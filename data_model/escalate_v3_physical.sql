@@ -33,6 +33,28 @@ ALTER TABLE "EXPERIMENT" DROP CONSTRAINT "fk_EXPERIMENT_STATUS_1";
 ALTER TABLE "DESCRIPTOR" DROP CONSTRAINT "fk_DESCRIPTOR_STATUS_1";
 ALTER TABLE "PERSON" DROP CONSTRAINT "fk_PERSON_ORGANIZATION_1";
 ALTER TABLE "SYSTEM" DROP CONSTRAINT "fk_SYSTEM_ORGANIZATION_1";
+ALTER TABLE "NOTE" DROP CONSTRAINT "fk_Note_DOCUMENT_1";
+ALTER TABLE "WORKFLOW" DROP CONSTRAINT "fk_WORKFLOW_NOTE_1";
+ALTER TABLE "EXPERIMENT" DROP CONSTRAINT "fk_EXPERIMENT_NOTE_1";
+ALTER TABLE "PERSON" DROP CONSTRAINT "fk_PERSON_NOTE_1";
+ALTER TABLE "ORGANIZATION" DROP CONSTRAINT "fk_ORGANIZATION_NOTE_1";
+ALTER TABLE "SYSTEM" DROP CONSTRAINT "fk_SYSTEM_NOTE_1";
+ALTER TABLE "STATUS" DROP CONSTRAINT "fk_STATUS_NOTE_1";
+ALTER TABLE "ACTOR" DROP CONSTRAINT "fk_ACTOR_NOTE_1";
+ALTER TABLE "ACTION" DROP CONSTRAINT "fk_ACTION_NOTE_1";
+ALTER TABLE "ACTION_DEF" DROP CONSTRAINT "fk_ACTION_DEF_NOTE_1";
+ALTER TABLE "AGGREGATE" DROP CONSTRAINT "fk_AGGREGATE_NOTE_1";
+ALTER TABLE "SYSTEMTYPE" DROP CONSTRAINT "fk_SYSTEMTYPE_NOTE_1";
+ALTER TABLE "ACTION_PLAN" DROP CONSTRAINT "fk_ACTION_PLAN_NOTE_1";
+ALTER TABLE "INGREDIENT" DROP CONSTRAINT "fk_INGREDIENT_NOTE_1";
+ALTER TABLE "INGREDIENT_REF" DROP CONSTRAINT "fk_INGREDIENT_REF_NOTE_1";
+ALTER TABLE "INGREDIENT_TYPE" DROP CONSTRAINT "fk_INGREDIENT_TYPE_NOTE_1";
+ALTER TABLE "OUTCOME" DROP CONSTRAINT "fk_OUTCOME_NOTE_1";
+ALTER TABLE "MEASURE" DROP CONSTRAINT "fk_MEASURE_NOTE_1";
+ALTER TABLE "MEASURE_TYPE" DROP CONSTRAINT "fk_MEASURE_TYPE_NOTE_1";
+ALTER TABLE "TAG" DROP CONSTRAINT "fk_TAG_NOTE_1";
+ALTER TABLE "DESCRIPTOR" DROP CONSTRAINT "fk_DESCRIPTOR_NOTE_1";
+ALTER TABLE "DESCRIPTOR_CLASS" DROP CONSTRAINT "fk_DESCRIPTOR_CLASS_NOTE_1";
 
 DROP TABLE "ORGANIZATION";
 DROP TABLE "PERSON";
@@ -58,6 +80,7 @@ DROP TABLE "INGREDIENT_REF";
 DROP TABLE "SYSTEMTYPE";
 DROP TABLE "INGREDIENT_TYPE";
 DROP TABLE "DESCRIPTOR_CLASS";
+DROP TABLE "NOTE";
 
 CREATE TABLE "ORGANIZATION" (
 "organizationID" int4 NOT NULL,
@@ -70,7 +93,7 @@ CREATE TABLE "ORGANIZATION" (
 "zip" varchar(255),
 "website_url" varchar(255),
 "phone" varchar(255),
-"note" varchar(255),
+"noteID" int4,
 "add_dt" timestamp(255),
 "mod_dt" timestamp(255),
 PRIMARY KEY ("organizationID") 
@@ -90,7 +113,7 @@ CREATE TABLE "PERSON" (
 "title" varchar(255),
 "suffix" varchar(255),
 "organizationID" int4,
-"note" varchar(255),
+"noteID" int4,
 "add_dt" timestamp(255),
 "mod_dt" timestamp(255),
 PRIMARY KEY ("personID") 
@@ -106,7 +129,7 @@ CREATE TABLE "SYSTEM" (
 "serial" varchar(255),
 "version" varchar(255),
 "organizationID" int4,
-"note" varchar(255),
+"noteID" int4,
 "alias" varchar(255),
 "add_dt" timestamp(255),
 "mod_dt" timestamp(255),
@@ -118,7 +141,7 @@ CREATE TABLE "WORKFLOW" (
 "description" varchar(255) NOT NULL,
 "actorID" int4,
 "statusID" int4,
-"note" varchar(255),
+"noteID" int4,
 "documentID" int4,
 "alias" varchar(255),
 "add_dt" timestamp(255),
@@ -133,7 +156,7 @@ CREATE TABLE "EXPERIMENT" (
 "statusID" int4,
 "outcomeID" int4,
 "documentID" int4,
-"note" varchar(255),
+"noteID" int4,
 "alias" varchar(255),
 "add_dt" timestamp(255),
 "mod_dt" timestamp(255),
@@ -145,7 +168,7 @@ CREATE TABLE "ACTION_PLAN" (
 "experimentID" int4,
 "actionID" int4,
 "seq" int4,
-"note" varchar(255),
+"noteID" int4,
 "alias" varchar(255),
 "add_dt" timestamp(255),
 "mod_dt" timestamp(255),
@@ -156,7 +179,7 @@ CREATE TABLE "ACTION_DEF" (
 "action_defID" int4 NOT NULL,
 "description" varchar(255),
 "category" varchar(255),
-"note" varchar(255),
+"noteID" int4,
 "alias" varchar(255),
 "add_dt" varchar(255),
 "mod_dt" varchar(255),
@@ -169,7 +192,7 @@ CREATE TABLE "ACTION" (
 "action_defID" int4,
 "measureID" int4,
 "performerID" int4,
-"note" varchar(255),
+"noteID" int4,
 "alias" varchar(255),
 "add_dt" timestamp(255),
 "mod_dt" timestamp(255),
@@ -180,7 +203,7 @@ CREATE TABLE "AGGREGATE" (
 "aggregateID" int4 NOT NULL,
 "description" varchar(255),
 "actorID" int4,
-"note" varchar(255),
+"noteID" int4,
 "alias" varchar(255),
 "add_dt" timestamp(255),
 "mod_dt" timestamp(255),
@@ -194,7 +217,7 @@ CREATE TABLE "INGREDIENT" (
 "actorID" int4,
 "descriptorID" int4,
 "aggregateID" int4,
-"note" varchar(255),
+"noteID" int4,
 "alias" varchar(255),
 "add_dt" timestamp(255),
 "mod_dt" timestamp(255),
@@ -207,7 +230,7 @@ CREATE TABLE "MEASURE" (
 "amount" numeric(255),
 "unit" varchar(255),
 "datadocID" int4,
-"note" varchar(255),
+"noteID" int4,
 "add_dt" timestamp(255),
 "mod_dt" timestamp(255),
 PRIMARY KEY ("measureID") 
@@ -219,7 +242,7 @@ CREATE TABLE "ACTION_INGREDIENT" (
 "aggregateID" int4,
 "ingredientID" int4,
 "measureID" int4,
-"note" varchar(255),
+"noteID" int4,
 "alias" varchar(255),
 "add_dt" timestamp(255),
 "mod_dt" timestamp(255),
@@ -229,7 +252,7 @@ WITHOUT OIDS;
 CREATE TABLE "MEASURE_TYPE" (
 "measure_typeID" int4 NOT NULL,
 "description" varchar(255),
-"note" varchar(255),
+"noteID" int4,
 "add_dt" timestamp(255),
 "mod_dt" timestamp(255),
 PRIMARY KEY ("measure_typeID") 
@@ -239,7 +262,7 @@ CREATE TABLE "STATUS" (
 "statusID" int4 NOT NULL,
 "description" varchar(255),
 "alias" varchar(255),
-"note" varchar(255),
+"noteID" int4,
 "add_dt" timestamp(255),
 "mod_dt" timestamp(255),
 PRIMARY KEY ("statusID") 
@@ -252,7 +275,7 @@ CREATE TABLE "OUTCOME" (
 "measureID" int4,
 "datafile" bytea,
 "compoundID" int4,
-"note" varchar(255),
+"noteID" int4,
 "alias" varchar(255),
 "add_dt" timestamp(255),
 "mod_dt" timestamp(255),
@@ -264,7 +287,7 @@ CREATE TABLE "ACTOR" (
 "personID" int4,
 "systemID" int4,
 "description" varchar(255),
-"note" varchar(255),
+"noteID" int4,
 "add_dt" timestamp(255),
 "mod_dt" timestamp(255),
 PRIMARY KEY ("actorID") 
@@ -279,7 +302,7 @@ CREATE TABLE "DESCRIPTOR" (
 "actorID" int4,
 "statusID" int4,
 "version" varchar(255),
-"note" varchar(255),
+"noteID" int4,
 "alias" varchar(255),
 "add_dt" timestamp(255),
 "mod_dt" timestamp(255),
@@ -298,7 +321,7 @@ WITHOUT OIDS;
 CREATE TABLE "TAG" (
 "tagID" int4 NOT NULL,
 "description" varchar(255),
-"note" varchar(255),
+"noteID" int4,
 "add_dt" timestamp(255),
 "mod_dt" timestamp(255),
 PRIMARY KEY ("tagID") 
@@ -310,7 +333,6 @@ CREATE TABLE "DOCUMENT" (
 "document" bytea,
 "doctype" varchar(255),
 "version" varchar(255),
-"note" varchar(255),
 "alias" varchar(255),
 "add_dt" timestamp(255),
 "mod_dt" timestamp(255),
@@ -321,7 +343,7 @@ CREATE TABLE "INGREDIENT_REF" (
 "ingredient_refID" int4 NOT NULL,
 "description" varchar(255),
 "ingredient_typeID" int4,
-"note" varchar(255),
+"noteID" int4,
 "alias" varchar(255),
 "add_dt" timestamp(255),
 "mod_dt" timestamp(255),
@@ -331,7 +353,7 @@ WITHOUT OIDS;
 CREATE TABLE "SYSTEMTYPE" (
 "systemtypeID" int4 NOT NULL,
 "description" varchar(255),
-"note" varchar(255),
+"noteID" int4,
 "add_dt" timestamp(255),
 "mod_dt" timestamp(255),
 PRIMARY KEY ("systemtypeID") 
@@ -340,7 +362,7 @@ WITHOUT OIDS;
 CREATE TABLE "INGREDIENT_TYPE" (
 "ingredient_typeID" int4 NOT NULL,
 "descritption" varchar(255),
-"note" varchar(255),
+"noteID" int4,
 "alias" varchar(255),
 "add_dt" timestamp(255),
 "mod_dt" timestamp(255),
@@ -350,10 +372,19 @@ WITHOUT OIDS;
 CREATE TABLE "DESCRIPTOR_CLASS" (
 "descriptot_classID" int4 NOT NULL,
 "description" varchar(255),
-"note" varchar(255),
+"noteID" int4,
 "add_dt" timestamp(255),
 "mod_dt" timestamp(255),
 PRIMARY KEY ("descriptot_classID") 
+)
+WITHOUT OIDS;
+CREATE TABLE "NOTE" (
+"noteID" int4 NOT NULL,
+"notetext" varchar(255),
+"documentID" int4,
+"add_dt" timestamp(255),
+"mod_dt" timestamp(255),
+PRIMARY KEY ("noteID") 
 )
 WITHOUT OIDS;
 
@@ -392,4 +423,26 @@ ALTER TABLE "EXPERIMENT" ADD CONSTRAINT "fk_EXPERIMENT_STATUS_1" FOREIGN KEY ("s
 ALTER TABLE "DESCRIPTOR" ADD CONSTRAINT "fk_DESCRIPTOR_STATUS_1" FOREIGN KEY ("statusID") REFERENCES "STATUS" ("statusID");
 ALTER TABLE "PERSON" ADD CONSTRAINT "fk_PERSON_ORGANIZATION_1" FOREIGN KEY ("organizationID") REFERENCES "ORGANIZATION" ("organizationID");
 ALTER TABLE "SYSTEM" ADD CONSTRAINT "fk_SYSTEM_ORGANIZATION_1" FOREIGN KEY ("organizationID") REFERENCES "ORGANIZATION" ("organizationID");
+ALTER TABLE "NOTE" ADD CONSTRAINT "fk_Note_DOCUMENT_1" FOREIGN KEY ("documentID") REFERENCES "DOCUMENT" ("documentID");
+ALTER TABLE "WORKFLOW" ADD CONSTRAINT "fk_WORKFLOW_NOTE_1" FOREIGN KEY ("noteID") REFERENCES "NOTE" ("noteID");
+ALTER TABLE "EXPERIMENT" ADD CONSTRAINT "fk_EXPERIMENT_NOTE_1" FOREIGN KEY ("noteID") REFERENCES "NOTE" ("noteID");
+ALTER TABLE "PERSON" ADD CONSTRAINT "fk_PERSON_NOTE_1" FOREIGN KEY ("noteID") REFERENCES "NOTE" ("noteID");
+ALTER TABLE "ORGANIZATION" ADD CONSTRAINT "fk_ORGANIZATION_NOTE_1" FOREIGN KEY ("noteID") REFERENCES "NOTE" ("noteID");
+ALTER TABLE "SYSTEM" ADD CONSTRAINT "fk_SYSTEM_NOTE_1" FOREIGN KEY ("noteID") REFERENCES "NOTE" ("noteID");
+ALTER TABLE "STATUS" ADD CONSTRAINT "fk_STATUS_NOTE_1" FOREIGN KEY ("noteID") REFERENCES "NOTE" ("noteID");
+ALTER TABLE "ACTOR" ADD CONSTRAINT "fk_ACTOR_NOTE_1" FOREIGN KEY ("noteID") REFERENCES "NOTE" ("noteID");
+ALTER TABLE "ACTION" ADD CONSTRAINT "fk_ACTION_NOTE_1" FOREIGN KEY ("noteID") REFERENCES "NOTE" ("noteID");
+ALTER TABLE "ACTION_DEF" ADD CONSTRAINT "fk_ACTION_DEF_NOTE_1" FOREIGN KEY ("noteID") REFERENCES "NOTE" ("noteID");
+ALTER TABLE "AGGREGATE" ADD CONSTRAINT "fk_AGGREGATE_NOTE_1" FOREIGN KEY ("noteID") REFERENCES "NOTE" ("noteID");
+ALTER TABLE "SYSTEMTYPE" ADD CONSTRAINT "fk_SYSTEMTYPE_NOTE_1" FOREIGN KEY ("noteID") REFERENCES "NOTE" ("noteID");
+ALTER TABLE "ACTION_PLAN" ADD CONSTRAINT "fk_ACTION_PLAN_NOTE_1" FOREIGN KEY ("noteID") REFERENCES "NOTE" ("noteID");
+ALTER TABLE "INGREDIENT" ADD CONSTRAINT "fk_INGREDIENT_NOTE_1" FOREIGN KEY ("noteID") REFERENCES "NOTE" ("noteID");
+ALTER TABLE "INGREDIENT_REF" ADD CONSTRAINT "fk_INGREDIENT_REF_NOTE_1" FOREIGN KEY ("noteID") REFERENCES "NOTE" ("noteID");
+ALTER TABLE "INGREDIENT_TYPE" ADD CONSTRAINT "fk_INGREDIENT_TYPE_NOTE_1" FOREIGN KEY ("noteID") REFERENCES "NOTE" ("noteID");
+ALTER TABLE "OUTCOME" ADD CONSTRAINT "fk_OUTCOME_NOTE_1" FOREIGN KEY ("noteID") REFERENCES "NOTE" ("noteID");
+ALTER TABLE "MEASURE" ADD CONSTRAINT "fk_MEASURE_NOTE_1" FOREIGN KEY ("noteID") REFERENCES "NOTE" ("noteID");
+ALTER TABLE "MEASURE_TYPE" ADD CONSTRAINT "fk_MEASURE_TYPE_NOTE_1" FOREIGN KEY ("noteID") REFERENCES "NOTE" ("noteID");
+ALTER TABLE "TAG" ADD CONSTRAINT "fk_TAG_NOTE_1" FOREIGN KEY ("noteID") REFERENCES "NOTE" ("noteID");
+ALTER TABLE "DESCRIPTOR" ADD CONSTRAINT "fk_DESCRIPTOR_NOTE_1" FOREIGN KEY ("noteID") REFERENCES "NOTE" ("noteID");
+ALTER TABLE "DESCRIPTOR_CLASS" ADD CONSTRAINT "fk_DESCRIPTOR_CLASS_NOTE_1" FOREIGN KEY ("noteID") REFERENCES "NOTE" ("noteID");
 
