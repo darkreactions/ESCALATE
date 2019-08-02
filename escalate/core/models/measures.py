@@ -1,7 +1,7 @@
 from django.db import models
 from . import Note, Document, CommonFields
-from tracking import Actor
-from ingredients import Aggregate
+from .tracking import Actor
+from .ingredients import Aggregate
 
 class MeasureType(CommonFields):
     pass

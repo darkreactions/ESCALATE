@@ -1,8 +1,8 @@
 from django.db import models
 from . import Note, Document, CommonFields
-from measures import Measure
-from tracking import Actor
-from ingredients import Ingredient, Aggregate
+from .measures import Measure
+from .tracking import Actor
+from .ingredients import Ingredient, Aggregate
 
 
 class ActionDef(CommonFields):

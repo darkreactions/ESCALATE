@@ -1,7 +1,7 @@
 from django.db import models
 from . import Note, Document, CommonFields
-from tracking import Actor
-from descriptors import Descriptor
+from .tracking import Actor
+from .descriptors import Descriptor
 
 
 class IngredientType(CommonFields):

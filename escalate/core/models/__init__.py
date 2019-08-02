@@ -27,3 +27,12 @@ class CommonFields(models.Model):
 
 class Tag(CommonFields):
     pass
+
+
+from .organization import *
+from .actions import *
+from .descriptors import *
+from .ingredients import *
+from .measures import *
+from .science import *
+from .tracking import *

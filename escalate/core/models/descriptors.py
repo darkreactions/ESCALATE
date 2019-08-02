@@ -1,6 +1,6 @@
 from django.db import models
 from . import Note, Document, CommonFields
-from tracking import Actor, Status
+from .tracking import Actor, Status
 
 class DescriptorClass(CommonFields):
     pass

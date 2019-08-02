@@ -1,7 +1,7 @@
 from django.db import models
 from . import Note, Document, CommonFields
-from tracking import Actor, Status
-from measures import Outcome
+from .tracking import Actor, Status
+from .measures import Outcome
 
 class Workflow(CommonFields):
     actor = models.ForeignKey(Actor, on_delete=models.CASCADE)

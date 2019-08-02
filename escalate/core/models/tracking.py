@@ -1,6 +1,6 @@
 from django.db import models
 from . import Note, Document, CommonFields
-from organization import Person, System
+from .organization import Person, System
 
 class Actor(CommonFields):
     person = models.ForeignKey(Person, on_delete=models.CASCADE)
