@@ -1,5 +1,5 @@
 certifi==2019.6.16
-Django==2.2.3
+Django==2.2.4
 django-filter==2.1.0
 djangorestframework==3.9.4
 Markdown==3.1.1
