@@ -1,7 +1,7 @@
 ---
 name: ESCALATE Development Sprint
 about: Development sprint task(s)
-title: "[SPEC]"
+title: "[DEV]"
 labels: ''
 assignees: ''
 
