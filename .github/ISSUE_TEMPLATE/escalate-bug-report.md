@@ -1,7 +1,7 @@
 ---
 name: ESCALATE Bug report
-about: Create a report to help us improve
-title: ''
+about: System bug report
+title: "[BUG]"
 labels: ''
 assignees: ''
 
