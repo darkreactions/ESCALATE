@@ -118,6 +118,7 @@ CREATE TABLE actor (
   organization_id int8,
   systemtool_id int8,
   description varchar(255) COLLATE "pg_catalog"."default",
+	status_id int8,
   note_id int8,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
@@ -130,12 +131,13 @@ DROP TABLE IF EXISTS material cascade;
 CREATE TABLE material (
   material_id serial8,
   material_uuid uuid DEFAULT uuid_generate_v4 (),
-  description varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+  description varchar COLLATE "pg_catalog"."default" NOT NULL,
   parent_material_id int8,
 --  "material_ref_id" int8,
-  actor_id int8,
+--  actor_id int8,
 --  "descriptor_id" int8,
 --  "alt_material_name_id" int8,
+	status_id int8,
   note_id int8,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
@@ -168,16 +170,17 @@ CREATE TABLE material_ref (
 );
 
 ---------------------------------------
--- Table structure for alt_material_name
+-- Table structure for material_name
 ---------------------------------------
-DROP TABLE IF EXISTS alt_material_name cascade;
-CREATE TABLE alt_material_name (
-  alt_material_name_id serial8,
-	alt_material_name_uuid uuid DEFAULT uuid_generate_v4 (),
-  description varchar(255) COLLATE "pg_catalog"."default",
+DROP TABLE IF EXISTS material_name cascade;
+CREATE TABLE material_name (
+  material_name_id serial8,
+	material_name_uuid uuid DEFAULT uuid_generate_v4 (),
+  description varchar COLLATE "pg_catalog"."default",
   material_id int8,		
-  alt_material_name_type varchar(255) COLLATE "pg_catalog"."default",
+  material_name_type varchar(255) COLLATE "pg_catalog"."default",
   reference varchar(255) COLLATE "pg_catalog"."default",
+	status_id int8,
   note_id int8,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
@@ -190,7 +193,7 @@ DROP TABLE IF EXISTS m_descriptor cascade;
 CREATE TABLE m_descriptor (
   m_descriptor_id serial8,
 	m_descriptor_uuid uuid DEFAULT uuid_generate_v4 (),
-  description varchar(255) COLLATE "pg_catalog"."default",
+  description varchar COLLATE "pg_catalog"."default",
   material_id int8,
   m_descriptor_class_id int8,
   m_descriptor_value_id int8,
@@ -235,12 +238,15 @@ DROP TABLE IF EXISTS inventory cascade;
 CREATE TABLE inventory (
   inventory_id serial8,
 	inventory_uuid uuid DEFAULT uuid_generate_v4 (),
+	description varchar,
   material_id int8,
   actor_id int8,
+	part_no varchar,
 	measure_id int8,
   create_dt timestamptz DEFAULT NULL,
   expiration_dt timestamptz DEFAULT NULL,
   inventory_location varchar(255) COLLATE "pg_catalog"."default",
+	status_id int8,
   note_id int8,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
@@ -283,7 +289,7 @@ DROP TABLE IF EXISTS note cascade;
 CREATE TABLE note (
   note_id serial8,
 	note_uuid uuid DEFAULT uuid_generate_v4 (),
-  notetext varchar(255) COLLATE "pg_catalog"."default",
+  notetext varchar COLLATE "pg_catalog"."default",
   edocument_id int8,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
@@ -296,7 +302,7 @@ DROP TABLE IF EXISTS edocument cascade;
 CREATE TABLE edocument (
   edocument_id serial8,
 	edocument_uuid uuid DEFAULT uuid_generate_v4 (),
-  description varchar(255) COLLATE "pg_catalog"."default",
+  description varchar COLLATE "pg_catalog"."default",
   edocument bytea,
   edoc_type varchar(255) COLLATE "pg_catalog"."default",
   ver varchar(255) COLLATE "pg_catalog"."default",
@@ -312,7 +318,7 @@ CREATE TABLE tag (
   tag_id serial8,
 	tag_uuid uuid DEFAULT uuid_generate_v4 (),
 	tag_type_id int8,
-  description varchar(255) COLLATE "pg_catalog"."default",
+  description varchar COLLATE "pg_catalog"."default",
   note_id int8,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
@@ -379,9 +385,9 @@ ALTER TABLE material_ref ADD
 	CONSTRAINT "pk_material_ref_material_ref_id" PRIMARY KEY (material_ref_id);
 CLUSTER material_ref USING "pk_material_ref_material_ref_id";
 
-ALTER TABLE alt_material_name ADD 
-	CONSTRAINT "pk_alt_material_name_alt_material_name_id" PRIMARY KEY (alt_material_name_id);
-CLUSTER alt_material_name USING "pk_alt_material_name_alt_material_name_id";
+ALTER TABLE material_name ADD 
+	CONSTRAINT "pk_material_name_material_name_id" PRIMARY KEY (material_name_id);
+CLUSTER material_name USING "pk_material_name_material_name_id";
 
 ALTER TABLE m_descriptor ADD 
 	CONSTRAINT "pk_m_descriptor_m_descriptor_id" PRIMARY KEY (m_descriptor_id);
@@ -460,14 +466,16 @@ ALTER TABLE actor
 	ADD CONSTRAINT fk_actor_person_1 FOREIGN KEY (person_id) REFERENCES person (person_id),
 	ADD CONSTRAINT fk_actor_organization_1 FOREIGN KEY (organization_id) REFERENCES organization (organization_id),
 	ADD CONSTRAINT fk_actor_systemtool_1 FOREIGN KEY (systemtool_id) REFERENCES systemtool (systemtool_id),
+	ADD CONSTRAINT fk_actor_status_1 FOREIGN KEY (status_id) REFERENCES status (status_id),	
 	ADD CONSTRAINT fk_actor_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
 	
 -- ALTER TABLE material DROP CONSTRAINT fk_material_actor_1,
 --	DROP CONSTRAINT fk_material_material_1;
 --	DROP CONSTRAINT fk_material_note_1;
 ALTER TABLE material 
-	ADD CONSTRAINT fk_material_actor_1 FOREIGN KEY (actor_id) REFERENCES actor (actor_id),
+--	ADD CONSTRAINT fk_material_actor_1 FOREIGN KEY (actor_id) REFERENCES actor (actor_id),
 	ADD CONSTRAINT fk_material_material_1 FOREIGN KEY (parent_material_id) REFERENCES material (material_id),
+	ADD CONSTRAINT fk_material_status_1 FOREIGN KEY (status_id) REFERENCES status (status_id),	
 	ADD CONSTRAINT fk_material_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
 	
 -- ALTER TABLE material_type DROP CONSTRAINT fk_material_type_note_1;
@@ -482,9 +490,10 @@ ALTER TABLE material_ref
 
 --ALTER TABLE alt_material_name DROP CONSTRAINT fk_alt_material_name_material_1, 
 --	DROP CONSTRAINT fk_alt_material_name_note_1;
-ALTER TABLE alt_material_name 
-	ADD CONSTRAINT fk_alt_material_name_material_1 FOREIGN KEY (material_id) REFERENCES material (material_id),
-	ADD CONSTRAINT fk_alt_material_name_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
+ALTER TABLE material_name 
+	ADD CONSTRAINT fk_material_name_material_1 FOREIGN KEY (material_id) REFERENCES material (material_id),
+	ADD CONSTRAINT fk_material_name_status_1 FOREIGN KEY (status_id) REFERENCES status (status_id),	
+	ADD CONSTRAINT fk_material_name_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
 
 -- ALTER TABLE m_descriptor DROP CONSTRAINT fk_m_descriptor_material_1, 
 -- DROP CONSTRAINT fk_m_descriptor_actor_1, 
@@ -512,6 +521,7 @@ ALTER TABLE inventory
 	ADD CONSTRAINT fk_inventory_material_1 FOREIGN KEY (material_id) REFERENCES material (material_id),
 	ADD CONSTRAINT fk_inventory_actor_1 FOREIGN KEY (actor_id) REFERENCES actor (actor_id),
 	ADD CONSTRAINT fk_inventory_measure_1 FOREIGN KEY (measure_id) REFERENCES measure (measure_id),	
+	ADD CONSTRAINT fk_inventory_status_1 FOREIGN KEY (status_id) REFERENCES status (status_id),	
 	ADD CONSTRAINT fk_inventory_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
 
 -- ALTER TABLE measure_type DROP CONSTRAINT fk_measure_type_note_1;
@@ -541,7 +551,7 @@ DECLARE
 BEGIN
     FOR t IN 
         SELECT table_name FROM information_schema.columns
-        WHERE column_name = 'mod_date'
+        WHERE column_name = 'mod_date' and table_schema='dev'
     LOOP
         EXECUTE format('DROP TRIGGER IF EXISTS set_timestamp ON %I',t);
     END LOOP;
@@ -555,7 +565,7 @@ DECLARE
 BEGIN
     FOR t IN 
         SELECT table_name FROM information_schema.columns
-        WHERE column_name = 'mod_date'
+        WHERE column_name = 'mod_date' and table_schema='dev'
     LOOP
         EXECUTE format('CREATE TRIGGER set_timestamp
                         BEFORE UPDATE ON %I

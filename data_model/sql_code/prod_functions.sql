@@ -164,4 +164,75 @@ $$ LANGUAGE plpgsql;
 */
 
 
+/*
+Name:					get_materialid_bystatus (p_status_arr, p_null_bool)
+Parameters:		p_status_array = array of status description (e.g. array['active', 'proto']) 
+--						where ANY of the status descriptions match
+--					  p_null_bool = true or false to include null status in returned set
+Returns:			dataset of material_id's 
+Author:				G. Cattabriga
+Date:					2019.12.12
+Description:	return material id's with specific status
+Notes:				
+Example:			SELECT * FROM get_materialid_bystatus (array['active', 'proto'], TRUE);
+*/
+DROP FUNCTION get_materialid_bystatus (p_status_arr VARCHAR[], p_null_bool BOOLEAN);
+CREATE OR REPLACE FUNCTION get_materialid_bystatus (p_status_array varchar[], p_null_bool boolean)
+RETURNS TABLE (
+      material_id INT8
+) AS $$
+BEGIN
+	RETURN QUERY SELECT
+			mat.material_id
+		FROM
+			material mat
+			LEFT JOIN status st ON mat.status_id = st.status_id
+		WHERE
+		CASE		
+			WHEN p_null_bool THEN 
+				st.description = ANY(p_status_array) OR st.description IS NULL 
+			ELSE st.description = ANY(p_status_array) 
+		END;
+END;
+$$ LANGUAGE plpgsql;
+-- SELECT * FROM get_materialid_bystatus (array['active', 'proto'], TRUE);
+
+
+/*
+Name:					get_materialname_bystatus (p_status_arr, p_null_bool)
+Parameters:		p_status_array = array of status description (e.g. array['active', 'proto']) 
+							where ANY of the status descriptions match
+							p_null_bool = true or false to include null status in returned set
+Returns:			dataset of material names, including alternative names
+Author:				G. Cattabriga
+Date:					2019.12.12
+Description:	return material id, material name based on specific status
+Notes:				need to UNION ALL the material dewscriptions with the returned set from function get_materialid_bystatus ()
+							because there may be duplicate names
+Example:			SELECT * FROM get_materialname_bystatus (array['active', 'proto'], TRUE);
+*/
+DROP FUNCTION get_materialname_bystatus ( p_status_arr VARCHAR[], p_null_bool BOOLEAN );
+CREATE OR REPLACE FUNCTION get_materialname_bystatus (p_status_arr varchar[], p_null_bool boolean)
+RETURNS TABLE (
+      material_id int8,
+			material_name varchar
+) AS $$
+BEGIN
+	RETURN QUERY SELECT
+		mat.material_id,
+		mat.description AS mname 
+	FROM get_materialid_bystatus ( p_status_arr, p_null_bool ) act
+	JOIN material mat ON act.material_id = mat.material_id 
+	UNION ALL
+	SELECT mnm.material_id, mnm.description 
+	FROM material_name mnm
+	JOIN 
+		(SELECT mat.material_id 
+		FROM get_materialid_bystatus ( p_status_arr, p_null_bool ) act
+		JOIN material mat ON 
+		act.material_id = mat.material_id) AS mid 
+	ON mnm.material_id = mid.material_id;
+END;
+$$ LANGUAGE plpgsql;
+-- test SELECT * FROM get_materialname_bystatus (array['active', 'proto'], TRUE);
 
