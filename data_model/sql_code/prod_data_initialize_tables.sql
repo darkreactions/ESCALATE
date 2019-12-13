@@ -60,8 +60,6 @@ VALUES
 	('Python toolkit');
 COMMIT;
 
-
-
 -- ----------------------------
 -- Records of systemtool
 -- ----------------------------
@@ -106,6 +104,37 @@ VALUES
 		NULL);
 COMMIT;
 
+-- ----------------------------
+-- Records of person
+-- ----------------------------
+/*
+	person_id serial8,
+  person_uuid uuid DEFAULT uuid_generate_v4 (),	
+  firstname varchar(255) COLLATE "pg_catalog"."default",
+  lastname varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+  middlename varchar(255) COLLATE "pg_catalog"."default",
+  address1 varchar(255) COLLATE "pg_catalog"."default",
+  address2 varchar(255) COLLATE "pg_catalog"."default",
+  city varchar(255) COLLATE "pg_catalog"."default",
+  stateprovince char(3) COLLATE "pg_catalog"."default",
+  phone varchar(255) COLLATE "pg_catalog"."default",
+  email varchar(255) COLLATE "pg_catalog"."default",
+  title varchar(255) COLLATE "pg_catalog"."default",
+  suffix varchar(255) COLLATE "pg_catalog"."default",
+  organization_id int8,
+  note_id int8,
+  add_date timestamptz NOT NULL DEFAULT NOW(),
+  mod_date timestamptz NOT NULL DEFAULT NOW()
+*/
+BEGIN;
+INSERT INTO person (firstname, lastname, email, organization_id)
+VALUES 
+	('Mansoor', 'Nellikkal', 'maninajeeb@haverford.edu', 
+		(select organization_id from organization where short_name = 'HC')),
+	('Ian', 'Pendleton', 'ipendleton@haverford.edu ', 
+		(select organization_id from organization where short_name = 'HC'))
+;
+COMMIT;
 
 -- ----------------------------
 -- Records of actor
@@ -121,10 +150,17 @@ COMMIT;
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 */
+
 BEGIN;
 INSERT INTO actor (person_id, organization_id, systemtool_id, description)  
 VALUES 
 	-- haverford college as an actor
+	((select person_id from person where lastname = 'Nellikkal'), 
+		(select organization_id from person where lastname = 'Nellikkal'),
+		NULL, 'Mansoor'),
+	((select person_id from person where lastname = 'Pendleton'), 
+		(select organization_id from person where lastname = 'Pendleton'),
+		NULL, 'Ian'),
 	(NULL, 
 		(select organization_id from organization where short_name = 'HC'),
 		NULL, 'Haverford College'),
@@ -134,16 +170,16 @@ VALUES
 		NULL, 'LBL'),
 	(NULL, 
 		(select organization_id from organization where short_name = 'Sigma-Aldrich'),
-		NULL, 'LBL'),
+		NULL, 'Sigma-Aldrich'),
 	(NULL, 
 		(select organization_id from organization where short_name = 'Greatcell'),
-		NULL, 'LBL'),		
+		NULL, 'Greatcell'),		
 	(NULL, 
 		(select organization_id from organization where short_name = 'ChemAxon'),
-		NULL, 'LBL'),		
+		NULL, 'ChemAxon'),		
 	(NULL, 
 		(select organization_id from organization where short_name = 'RDKit'),
-		NULL, 'LBL'),			
+		NULL, 'RDKit'),			
 	(NULL, 
 		(select organization_id from organization where short_name = 'ChemAxon'),
 		(select systemtool_id from systemtool where systemtool_name = 'standardize'), 
@@ -161,5 +197,26 @@ VALUES
 		(select systemtool_id from systemtool where systemtool_name = 'RDKit'), 
 		'RDKit: Python toolkit');	
 COMMIT;
+
+-- ----------------------------
+-- Records of status
+-- ----------------------------
+/*
+	status_id serial8,
+  description varchar(255) COLLATE "pg_catalog"."default",
+  add_date timestamptz NOT NULL DEFAULT NOW(),
+  mod_date timestamptz NOT NULL DEFAULT NOW()
+*/
+BEGIN;
+INSERT INTO status (description)
+VALUES 
+	('active'),
+	('inactive'),
+	('test'),
+	('do not use'),
+	('prototype')
+;
+COMMIT;
+
 
 

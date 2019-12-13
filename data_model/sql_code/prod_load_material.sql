@@ -16,11 +16,8 @@ insert into material_type (description)
 
 -- insert load_chem_inventory materials into material table
 -- default to HC as actor
-insert into material (material_id, description, actor_id)
-	select row_number() over () as m_id, "ChemicalName" as descr,  
-		(select aa.actor_id from actor aa 
-			join organization org on aa.organization_id = org.organization_id
-			where org.short_name = 'HC') as actor_id 
+insert into material (material_id, description)
+	select row_number() over () as m_id, "ChemicalName" as descr  
 	from load_chem_inventory inv;
 	
 -- insert load_chem_inventory "ChemicalCategory" crossref'ed to material_type
@@ -33,33 +30,38 @@ insert into material_ref (material_id, material_type_id)
 
 -- insert the alternative material names into alt_material_name
 -- abbreviation, inchi, inchikey, canonical smiles, molecular formula	
-insert into alt_material_name (description, material_id, alt_material_name_type) 	
+insert into material_name (description, material_id, material_name_type) 	
 	select inv."ChemicalAbbreviation" as abbrv, mat.material_id as m_id, 'Abbreviation' as atype 
 	from load_chem_inventory inv
 	join material mat ON
-	inv."ChemicalName" = mat.description;
+	inv."ChemicalName" = mat.description
+	where inv."ChemicalAbbreviation" is not null;
 	
-insert into alt_material_name (description, material_id, alt_material_name_type) 	
+insert into material_name (description, material_id, material_name_type) 	
 	select inv."InChI" as inchi, mat.material_id as m_id, 'InChi' as atype 
 	from load_chem_inventory inv
 	join material mat ON
-	inv."ChemicalName" = mat.description;
+	inv."ChemicalName" = mat.description
+	where inv."InChI" is not null;
 
-insert into alt_material_name (description, material_id, alt_material_name_type) 	
+insert into material_name (description, material_id, material_name_type) 	
 	select inv."InChIKey" as abbrv, mat.material_id as m_id, 'InChiKey' as atype 
 	from load_chem_inventory inv
 	join material mat ON
-	inv."ChemicalName" = mat.description;
+	inv."ChemicalName" = mat.description
+	where inv."InChIKey" is not null;
 	
-insert into alt_material_name (description, material_id, alt_material_name_type) 	
+insert into material_name (description, material_id, material_name_type) 	
 	select inv."CanonicalSMILES" as abbrv, mat.material_id as m_id, 'SMILES' as atype 
 	from load_chem_inventory inv
 	join material mat ON
-	inv."ChemicalName" = mat.description;
+	inv."ChemicalName" = mat.description
+	where inv."CanonicalSMILES" is not null;
 	
-insert into alt_material_name (description, material_id, alt_material_name_type) 	
+insert into material_name (description, material_id, material_name_type) 	
 	select inv."MolecularFormula" as abbrv, mat.material_id as m_id, 'Molecular Formula' as atype 
 	from load_chem_inventory inv
 	join material mat ON
-	inv."ChemicalName" = mat.description;
+	inv."ChemicalName" = mat.description
+	where inv."MolecularFormula" is not null;
 
