@@ -131,6 +131,8 @@ INSERT INTO person (firstname, lastname, email, organization_id)
 VALUES 
 	('Mansoor', 'Nellikkal', 'maninajeeb@haverford.edu', 
 		(select organization_id from organization where short_name = 'HC')),
+	('Zhi', 'Li', 'zhili@lbl.gov', 
+		(select organization_id from organization where short_name = 'LBL')),
 	('Ian', 'Pendleton', 'ipendleton@haverford.edu ', 
 		(select organization_id from organization where short_name = 'HC'))
 ;
@@ -150,7 +152,6 @@ COMMIT;
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 */
-
 BEGIN;
 INSERT INTO actor (person_id, organization_id, systemtool_id, description)  
 VALUES 
@@ -158,6 +159,9 @@ VALUES
 	((select person_id from person where lastname = 'Nellikkal'), 
 		(select organization_id from person where lastname = 'Nellikkal'),
 		NULL, 'Mansoor'),
+	((select person_id from person where lastname = 'Li'), 
+		(select organization_id from person where lastname = 'Li'),
+		NULL, 'Zhi'),	
 	((select person_id from person where lastname = 'Pendleton'), 
 		(select organization_id from person where lastname = 'Pendleton'),
 		NULL, 'Ian'),

@@ -239,14 +239,17 @@ CREATE TABLE inventory (
   inventory_id serial8,
 	inventory_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar,
-  material_id int8,
+  material_id int8 NOT NULL,
   actor_id int8,
 	part_no varchar,
+	onhand_amt  DOUBLE PRECISION,
+	unit varchar,
 	measure_id int8,
-  create_dt timestamptz DEFAULT NULL,
+  create_dt timestamptz NOT NULL DEFAULT NOW(),
   expiration_dt timestamptz DEFAULT NULL,
   inventory_location varchar(255) COLLATE "pg_catalog"."default",
 	status_id int8,
+	document_id int8,
   note_id int8,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
@@ -350,7 +353,7 @@ CREATE TABLE status (
 
 
 --=====================================
--- PRIMARY KEYS
+-- KEYS
 --=====================================
 ALTER TABLE organization ADD 
 	CONSTRAINT "pk_organization_organization_id" PRIMARY KEY (organization_id);
@@ -370,7 +373,7 @@ CLUSTER systemtool_type USING "pk_systemtool_systemtool_type_id";
 
 ALTER TABLE actor ADD 
 	CONSTRAINT "pk_actor_id" PRIMARY KEY (actor_id),
-	ADD CONSTRAINT "idx_actor" UNIQUE (person_id, organization_id, systemtool_id);
+	ADD CONSTRAINT "un_actor" UNIQUE (person_id, organization_id, systemtool_id);
 CLUSTER actor USING "pk_actor_id";
 
 ALTER TABLE material ADD 
@@ -401,8 +404,9 @@ ALTER TABLE m_descriptor_value ADD
 	CONSTRAINT "pk_m_descriptor_value_m_descriptor_value_id" PRIMARY KEY (m_descriptor_value_id);
 CLUSTER m_descriptor_value USING "pk_m_descriptor_value_m_descriptor_value_id";
 
-ALTER TABLE inventory ADD 
-	CONSTRAINT "pk_inventory_inventory_id" PRIMARY KEY (inventory_id);
+ALTER TABLE inventory 
+	ADD CONSTRAINT "pk_inventory_inventory_id" PRIMARY KEY (inventory_id),
+	ADD CONSTRAINT "un_inventory" UNIQUE (material_id, actor_id, create_dt);
 CLUSTER inventory USING "pk_inventory_inventory_id";
 
 ALTER TABLE measure ADD 
@@ -520,7 +524,6 @@ ALTER TABLE m_descriptor_class
 ALTER TABLE inventory 
 	ADD CONSTRAINT fk_inventory_material_1 FOREIGN KEY (material_id) REFERENCES material (material_id),
 	ADD CONSTRAINT fk_inventory_actor_1 FOREIGN KEY (actor_id) REFERENCES actor (actor_id),
-	ADD CONSTRAINT fk_inventory_measure_1 FOREIGN KEY (measure_id) REFERENCES measure (measure_id),	
 	ADD CONSTRAINT fk_inventory_status_1 FOREIGN KEY (status_id) REFERENCES status (status_id),	
 	ADD CONSTRAINT fk_inventory_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
 
@@ -582,4 +585,16 @@ $$ LANGUAGE plpgsql;
 --=====================================
 COMMENT ON TABLE organization IS 'organization information for ESCALATE users, vendors, and other actors';
   COMMENT ON COLUMN organization.organization_id IS 'Primary key for organization records';
+
+
+
+--=====================================
+-- VIEWS
+--=====================================
+CREATE OR REPLACE VIEW vw_inventory AS 
+	SELECT inv.inventory_id, inv.description, inv.material_id, inv.actor_id, inv.part_no, inv.create_dt, inv.mod_date, mm.measure_id, mm.amount, mm.unit
+		FROM inventory inv
+		LEFT JOIN measure mm 
+		ON inv.measure_id = mm.measure_id;
+
 
