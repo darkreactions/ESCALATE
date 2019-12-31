@@ -19,6 +19,6 @@ import rest_framework
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    #path('api-auth/', rest_framework.urls)
+    path('', include('core.urls')),
     re_path(r'^api-auth/', include('rest_framework.urls'))
 ]
