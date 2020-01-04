@@ -1,0 +1,47 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    {{ object }}
+    <table class=" table table-bordered">
+        <tbody>
+            <tr>
+                <td>ID</td>
+                <td> {{ object.material_id }} </td>
+            </tr>
+            <tr>
+                <td>Description</td>
+                <td> {{ object.description }} </td>
+            </tr>
+            <tr>
+                <td>UUID</td>
+                <td> {{ object.material_uuid }} </td>
+            </tr>
+            <tr>
+                <td>Parent Material</td>
+                <td> {{ object.parent_material }}</td>
+            </tr>
+            <tr>
+                <td>Status</td>
+                <td> {{ object.status }} </td>
+            </tr>
+            <tr>
+                <td>Note</td>
+                <td> {{ object.note }} </td>
+            </tr>
+            <tr>
+                <td>Add Date</td>
+                <td> {{ object.add_date }} </td>
+            </tr>
+            <tr>
+                <td>Mod Date</td>
+                <td> {{ object.mod_date }} </td>
+            </tr>
+        </tbody>
+    </table>
+    <a href="{% url 'material_update' pk=object.pk %}" class="btn btn-primary px-0">
+        <i class="fa fa-edit fa-lg"> Edit</i>
+    </a>
+</div>
+{% endblock %}
