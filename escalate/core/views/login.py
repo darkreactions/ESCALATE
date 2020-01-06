@@ -29,6 +29,8 @@ class LoginView(View):
             else:
                 messages.error(request, 'Error logging in')
                 return redirect('login')
+        else:
+            return redirect('login')
 
 
 class CreateUserView(View):
@@ -44,15 +46,19 @@ class CreateUserView(View):
     def post(self, request, *args, **kwargs):
         person_form = PersonForm(request.POST)
         user_form = CustomUserCreationForm(request.POST)
+        print('Person form is valid: {}'.format(person_form.is_valid()))
         if person_form.is_valid():
+
             person = person_form.save()
             user_form.person = person
             if user_form.is_valid():
+                print('User form is valid')
                 user_form.save()
                 messages.success(request, 'Account created successfully')
-                return redirect('')
+                return redirect('login')
         else:
             messages.error(request, 'Error creating user')
+            return redirect('login')
 
 
 """

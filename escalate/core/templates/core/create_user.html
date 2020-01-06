@@ -21,7 +21,7 @@
     <div class="col-md-6 offset-md-3">
         <div class="card">
             <div class="card-body">
-                <form action="/" method="post">
+                <form action="{% url 'create_user' %}" method="post">
                     {% csrf_token %}
                     {{ user_form|crispy }}
                     {{ person_form|crispy }}

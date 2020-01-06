@@ -35,5 +35,6 @@ class MaterialDelete(DeleteView):
 
 
 class MaterialView(DetailView):
+    template_name = 'core/material/material_detail.html'
     model = Material
     queryset = Material.objects.select_related()
