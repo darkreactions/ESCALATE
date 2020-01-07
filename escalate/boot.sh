@@ -1,8 +1,8 @@
 #!/bin/sh
 
 export DEBUG=1
-export SECRET_KEY="1qhmd^+6(k3t4$*^ws5px-f+loyi_%6@p)h33qha2z9wy6=*!4"
-export DJANGO_ALLOWED_HOSTS="localhost 127.0.0.1 [::1] 0.0.0.0 escalate.sd2e.org"
+export SECRET_KEY='1qhmd^+6(k3t4$*^ws5px-f+loyi_%6@p)h33qha2z9wy6=*!4'
+export DJANGO_ALLOWED_HOSTS="localhost 127.0.0.1 0.0.0.0 escalate.sd2e.org [::1]"
 export SQL_ENGINE=django.db.backends.postgresql
 export SQL_DATABASE=escalate
 export SQL_USER=escalate
@@ -24,9 +24,9 @@ fi
 
 
 
-python manage.py flush --no-input
+# python manage.py flush --no-input
 python manage.py migrate
 
 exec "$@"
-#python manage.py runserver
+# python manage.py runserver
 

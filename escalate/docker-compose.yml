@@ -3,11 +3,12 @@ version: '3.7'
 services:
     web:
         build: .
+        # command: gunicorn escalate.wsgi:application --bind 0.0.0.0:8000
         command: python manage.py runserver 0.0.0.0:8000
         volumes:
         - ./code/:/usr/src/code/
         ports:
-        - 8000:8000
+        - "8000:8000"
         env_file:
         - ./.env.dev
 

@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-from .models import CustomUser, Person, Material, Inventory, Actor
+from .models import CustomUser, Person, Material, Inventory, Actor, Note
 
 
 class LoginForm(forms.Form):
@@ -33,10 +33,19 @@ class PersonForm(forms.ModelForm):
         }
 
 
+class NoteForm(forms.ModelForm):
+    class Meta:
+        model = Note
+        fields = ['notetext']
+
+
 class MaterialForm(forms.ModelForm):
+    notetext = forms.CharField(
+        max_length=255, empty_value=None, required=False)
+
     class Meta:
         model = Material
-        fields = ['description', 'parent_material', 'status', 'note']
+        fields = ['description', 'parent_material', 'status', 'notetext']
 
 
 class InventoryForm(forms.ModelForm):

@@ -1,6 +1,7 @@
 from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
+from django import forms
 
 from ..models import Material
 from ..forms import MaterialForm
@@ -17,7 +18,8 @@ class MaterialsList(GenericListView):
 class MaterialEdit:
     template_name = 'core/material/material_edit.html'
     model = Material
-    fields = ['description', 'parent_material', 'status', 'note']
+    form_class = MaterialForm
+    #fields = ['description', 'parent_material', 'status', 'note']
     success_url = reverse_lazy('material_list')
 
 

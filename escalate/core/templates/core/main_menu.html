@@ -7,14 +7,12 @@
 {% block content %}
 
 <div class="container">
-    <div class="col-md-4 offset-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h3>Main Menu</h3>
-                <a href="{% url 'material_list' %}" class="btn btn-primary mt-3 text-center">Material</a>
-            </div>
-        </div>
-    </div>
+    <h3>Links to tables in the nav bar above will change based on logical groupings</h3>
+    <h3>Plots and Dashboard on this page</h3>
+
+    {% autoescape off %}
+    {{ plot_div }}
+    {% endautoescape %}
 
 </div>
 
