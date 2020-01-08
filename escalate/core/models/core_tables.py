@@ -9,7 +9,7 @@ from django.db import models
 from datetime import datetime
 from django.utils.timezone import now
 
-managed_value = True
+managed_value = False
 
 
 class Actor(models.Model):
