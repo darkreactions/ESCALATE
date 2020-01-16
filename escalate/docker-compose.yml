@@ -6,20 +6,9 @@ services:
         # command: gunicorn escalate.wsgi:application --bind 0.0.0.0:8000
         command: python manage.py runserver 0.0.0.0:8000
         volumes:
-        - ./code/:/usr/src/code/
+            - ./code/:/usr/src/code/
         ports:
-        - "8000:8000"
+            - "8000:8000"
         env_file:
-        - ./.env.dev
+            - ./.env.dev
 
-    escalate-postgres:
-        image: postgres:12.0-alpine
-        volumes:
-            - postgres_data:/var/lib/postgresql/data/
-        environment:
-            - POSTGRES_USER=escalate
-            - POSTGRES_PASSWORD=SD21sAwes0me3
-            - POSTGRES_DB=escalate
-        
-volumes:
-    postgres_data:

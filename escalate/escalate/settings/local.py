@@ -24,8 +24,8 @@ else:
             "PASSWORD": 'SD21sAwes0me3',
             "HOST": 'localhost',
             "PORT": 5432,
-            'OPTIONS': {
-                'options': '-c search_path=dev'
-            }
+            # 'OPTIONS': {
+            #    'options': '-c search_path=dev'
+            # }
         }
     }
