@@ -176,7 +176,7 @@ Description:	return material id's with specific status
 Notes:				
 Example:			SELECT * FROM get_materialid_bystatus (array['active', 'proto'], TRUE);
 */
-DROP FUNCTION get_materialid_bystatus (p_status_arr VARCHAR[], p_null_bool BOOLEAN);
+DROP FUNCTION get_materialid_bystatus (p_status_array VARCHAR[], p_null_bool BOOLEAN);
 CREATE OR REPLACE FUNCTION get_materialid_bystatus (p_status_array varchar[], p_null_bool boolean)
 RETURNS TABLE (
       material_id INT8
@@ -195,11 +195,10 @@ BEGIN
 		END;
 END;
 $$ LANGUAGE plpgsql;
--- SELECT * FROM get_materialid_bystatus (array['active', 'proto'], TRUE);
 
 
 /*
-Name:					get_materialname_bystatus (p_status_arr, p_null_bool)
+Name:					get_materialnameref_bystatus (p_status_arr, p_null_bool)
 Parameters:		p_status_array = array of status description (e.g. array['active', 'proto']) 
 							where ANY of the status descriptions match
 							p_null_bool = true or false to include null status in returned set
@@ -207,32 +206,93 @@ Returns:			dataset of material names, including alternative names
 Author:				G. Cattabriga
 Date:					2019.12.12
 Description:	return material id, material name based on specific status
-Notes:				need to UNION ALL the material dewscriptions with the returned set from function get_materialid_bystatus ()
+Notes:				need to UNION ALL the material descriptions with the returned set from function get_materialid_bystatus ()
 							because there may be duplicate names
-Example:			SELECT * FROM get_materialname_bystatus (array['active', 'proto'], TRUE);
+Example:			SELECT * FROM get_materialnameref_bystatus (array['active', 'proto'], TRUE);
 */
-DROP FUNCTION get_materialname_bystatus ( p_status_arr VARCHAR[], p_null_bool BOOLEAN );
-CREATE OR REPLACE FUNCTION get_materialname_bystatus (p_status_arr varchar[], p_null_bool boolean)
+DROP FUNCTION get_materialnameref_bystatus (p_status_array VARCHAR[], p_null_bool BOOLEAN );
+CREATE OR REPLACE FUNCTION get_materialnameref_bystatus (p_status_array varchar[], p_null_bool boolean)
 RETURNS TABLE (
       material_id int8,
-			material_name varchar
+			material_refname varchar,
+			material_refname_type varchar
 ) AS $$
 BEGIN
 	RETURN QUERY SELECT
 		mat.material_id,
-		mat.description AS mname 
-	FROM get_materialid_bystatus ( p_status_arr, p_null_bool ) act
-	JOIN material mat ON act.material_id = mat.material_id 
-	UNION ALL
-	SELECT mnm.material_id, mnm.description 
-	FROM material_name mnm
-	JOIN 
-		(SELECT mat.material_id 
-		FROM get_materialid_bystatus ( p_status_arr, p_null_bool ) act
-		JOIN material mat ON 
-		act.material_id = mat.material_id) AS mid 
-	ON mnm.material_id = mid.material_id;
+		mnm.description AS mname,
+		mnm.material_refname_type as material_refname_type
+	FROM get_materialid_bystatus ( p_status_array, p_null_bool ) mat
+	JOIN material_refname_x mx ON mat.material_id = mx.material_id 
+	JOIN material_refname mnm ON mx.material_refname_id = mnm.material_refname_id;
 END;
 $$ LANGUAGE plpgsql;
--- test SELECT * FROM get_materialname_bystatus (array['active', 'proto'], TRUE);
 
+
+/*
+Name:					get_actor ()
+Parameters:		none
+Returns:			actor_id, org_id, person_id, systemtool_id, actor_description, org_description, person_lastfirst, systemtool_description
+Author:				G. Cattabriga
+Date:					2019.12.12
+Description:	returns key info on the actor
+Notes:				the person_lastfirst is a concat of person.last_name + ',' + person.first_name
+							
+Example:			SELECT * FROM get_actor () where person_lastfirst like '%Mansoor%';
+*/
+/*
+DROP FUNCTION get_actor ();
+CREATE OR REPLACE FUNCTION get_actor ()
+RETURNS TABLE (
+      actor_id int8,
+			organization_id int8,
+			person_id int8,
+			systemtool_id int8,
+			actor_description varchar,
+			org_description varchar,
+			person_lastfirst varchar,
+			systemtool_name varchar,
+			systemtool_version varchar
+) AS $$
+BEGIN
+	RETURN QUERY SELECT
+		act.actor_id, org.organization_id, per.person_id, st.systemtool_id, act.description, stt.description as actor_status, nt.notetext as actor.notetext
+		org.full_name, 
+		case when per.person_id is not null then cast(concat(per.lastname,', ',per.firstname) as varchar) end as lastfirst, 
+		st.systemtool_name, st.ver
+	from actor act 
+	left join organization org on act.organization_id = org.organization_id
+	left join person per on act.person_id = per.person_id
+	left join systemtool st on act.systemtool_id = st.systemtool_id;
+END;
+$$ LANGUAGE plpgsql;
+*/
+
+
+/*
+Name:					get_descriptor_def ()
+Parameters:		p_descrp = string used in search over description columns: short_name, calc_definition, description
+Returns:			m_descriptor_def_id, m_descriptor_def_uuid, short_name, calc_definition, description
+Author:				G. Cattabriga
+Date:					2020.01.16
+Description:	returns keys (id, uuid) of m_descriptor_def matching p_descrp parameters 
+Notes:				
+							
+Example:			SELECT * FROM get_descriptor_def (array['molconvert']);
+*/
+DROP FUNCTION get_m_descriptor_def (p_descr VARCHAR[]);
+CREATE OR REPLACE FUNCTION get_m_descriptor_def (p_descr VARCHAR[])
+RETURNS TABLE (
+			m_descriptor_def_id int8,
+			m_descriptor_def_uuid uuid,
+			short_name varchar,
+			calc_definition varchar,
+			description varchar
+) AS $$
+BEGIN
+	RETURN QUERY SELECT
+		mdd.m_descriptor_def_id, mdd.m_descriptor_def_uuid, mdd.short_name, mdd.calc_definition, mdd.description
+	from m_descriptor_def mdd
+	WHERE mdd.short_name = ANY(p_descr) OR mdd.calc_definition = ANY(p_descr) OR mdd.description = ANY(p_descr); 
+END;
+$$ LANGUAGE plpgsql;

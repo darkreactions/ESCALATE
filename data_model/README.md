@@ -1,2 +1,2 @@
-# ESCALATE Data Model
-ESCALATE Logical and Physical data models - with associated SQL to generate physical data schemas (target Postgres v10)
+# ESCALATE v3 Data Model
+ESCALATE v3 Physical data model
