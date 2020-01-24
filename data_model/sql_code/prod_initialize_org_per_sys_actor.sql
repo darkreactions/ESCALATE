@@ -1,12 +1,34 @@
 /*
-Name:					prod_data_initialize_tables
+Name:					prod_initialize_org_per_sys_actor
 Parameters:		none
 Returns:			none
 Author:				G. Cattabriga
-Date:					2019.12.02
-Description:	initialize production tables with data
+Date:					2020.01.23
+Description:	initialize production tables organization, person, systemtool and actor with data
 Notes:				code for parsing chem inventory data is contained in other file(s)
+							20200123: - reorganize the actors so that persons or systemtools are not redundantly defined by 
+							there parent organization
 */
+
+-- ----------------------------
+-- Records of status
+-- ----------------------------
+/*
+	status_id serial8,
+  description varchar(255) COLLATE "pg_catalog"."default",
+  add_date timestamptz NOT NULL DEFAULT NOW(),
+  mod_date timestamptz NOT NULL DEFAULT NOW()
+*/
+BEGIN;
+INSERT INTO status (description)
+VALUES 
+	('active'),
+	('inactive'),
+	('test'),
+	('do not use'),
+	('prototype')
+;
+COMMIT;
 
 -- ----------------------------
 -- Records of organization
@@ -84,12 +106,17 @@ INSERT INTO systemtool (systemtool_name, description, systemtool_type_id, vendor
 VALUES 
 	('standardize', 'Chemical standardizer', 
 		(select systemtool_type_id from systemtool_type where description = 'Command-line tool'), 
-		'ChemAxon', NULL, NULL, '19.24.0', 
+		'ChemAxon', NULL, NULL, '19.27.0', 
 		(select organization_id from organization where full_name = 'ChemAxon'),
 		NULL),
 	('cxcalc', 'Chemical descriptor calculator',
 		(select systemtool_type_id from systemtool_type where description = 'Command-line tool'), 
-		'ChemAxon', NULL, NULL, '19.24.0', 
+		'ChemAxon', NULL, NULL, '19.27.0', 
+		(select organization_id from organization where full_name = 'ChemAxon'),
+		NULL),
+	('molconvert', 'Chemical converter',
+		(select systemtool_type_id from systemtool_type where description = 'Command-line tool'), 
+		'ChemAxon', NULL, NULL, '19.27.0', 
 		(select organization_id from organization where full_name = 'ChemAxon'),
 		NULL),
 	('generatemd', 'Chemical fingerprint calculator',
@@ -153,73 +180,48 @@ COMMIT;
   mod_date timestamptz NOT NULL DEFAULT NOW()
 */
 BEGIN;
-INSERT INTO actor (person_id, organization_id, systemtool_id, description)  
+INSERT INTO actor (person_id, organization_id, systemtool_id, description, status_id)  
 VALUES 
 	-- haverford college as an actor
-	((select person_id from person where lastname = 'Nellikkal'), 
-		(select organization_id from person where lastname = 'Nellikkal'),
-		NULL, 'Mansoor'),
-	((select person_id from person where lastname = 'Li'), 
-		(select organization_id from person where lastname = 'Li'),
-		NULL, 'Zhi'),	
-	((select person_id from person where lastname = 'Pendleton'), 
-		(select organization_id from person where lastname = 'Pendleton'),
-		NULL, 'Ian'),
+	((select person_id from person where lastname = 'Nellikkal'), NULL, NULL, 
+		'Mansoor Nellikkal', (select status_id from status where description = 'active')),
+	((select person_id from person where lastname = 'Li'), NULL, NULL, 
+		'Zhi Li', (select status_id from status where description = 'active')),	
+	((select person_id from person where lastname = 'Pendleton'), NULL, NULL, 
+		'Ian Pendleton', (select status_id from status where description = 'active')),
 	(NULL, 
 		(select organization_id from organization where short_name = 'HC'),
-		NULL, 'Haverford College'),
-	-- LBL as an actor
+		NULL, 'Haverford College', (select status_id from status where description = 'active')),
 	(NULL, 
 		(select organization_id from organization where short_name = 'LBL'),
-		NULL, 'LBL'),
+		NULL, 'LBL', (select status_id from status where description = 'active')),
 	(NULL, 
 		(select organization_id from organization where short_name = 'Sigma-Aldrich'),
-		NULL, 'Sigma-Aldrich'),
+		NULL, 'Sigma-Aldrich', (select status_id from status where description = 'active')),
 	(NULL, 
 		(select organization_id from organization where short_name = 'Greatcell'),
-		NULL, 'Greatcell'),		
+		NULL, 'Greatcell', (select status_id from status where description = 'active')),		
 	(NULL, 
 		(select organization_id from organization where short_name = 'ChemAxon'),
-		NULL, 'ChemAxon'),		
+		NULL, 'ChemAxon', (select status_id from status where description = 'active')),		
 	(NULL, 
 		(select organization_id from organization where short_name = 'RDKit'),
-		NULL, 'RDKit'),			
-	(NULL, 
-		(select organization_id from organization where short_name = 'ChemAxon'),
+		NULL, 'RDKit', (select status_id from status where description = 'active')),			
+	(NULL, NULL,
 		(select systemtool_id from systemtool where systemtool_name = 'standardize'), 
-		'ChemAxon: standardize'),		
-	(NULL, 
-		(select organization_id from organization where short_name = 'ChemAxon'),
+		'ChemAxon: standardize', (select status_id from status where description = 'active')),		
+	(NULL, NULL,
 		(select systemtool_id from systemtool where systemtool_name = 'cxcalc'), 
-		'ChemAxon: cxcalc'),		
-	(NULL, 
-		(select organization_id from organization where short_name = 'ChemAxon'),
+		'ChemAxon: cxcalc', (select status_id from status where description = 'active')),		
+	(NULL, NULL,
+		(select systemtool_id from systemtool where systemtool_name = 'molconvert'), 
+		'ChemAxon: molconvert', (select status_id from status where description = 'active')),		
+	(NULL, NULL,
 		(select systemtool_id from systemtool where systemtool_name = 'generatemd'), 
-		'ChemAxon: generatemd'),
-	(NULL, 
-		(select organization_id from organization where short_name = 'RDKit'),
+		'ChemAxon: generatemd', (select status_id from status where description = 'active')),
+	(NULL, NULL,
 		(select systemtool_id from systemtool where systemtool_name = 'RDKit'), 
-		'RDKit: Python toolkit');	
-COMMIT;
-
--- ----------------------------
--- Records of status
--- ----------------------------
-/*
-	status_id serial8,
-  description varchar(255) COLLATE "pg_catalog"."default",
-  add_date timestamptz NOT NULL DEFAULT NOW(),
-  mod_date timestamptz NOT NULL DEFAULT NOW()
-*/
-BEGIN;
-INSERT INTO status (description)
-VALUES 
-	('active'),
-	('inactive'),
-	('test'),
-	('do not use'),
-	('prototype')
-;
+		'RDKit: Python toolkit', (select status_id from status where description = 'active'));	
 COMMIT;
 
 

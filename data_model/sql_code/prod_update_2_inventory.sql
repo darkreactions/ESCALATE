@@ -1,9 +1,9 @@
 /*
-Name:					prod_load_INVENTORY
+Name:					prod_update_2_inventory
 Parameters:		none
 Returns:			
 Author:				G. Cattabriga
-Date:					2019.12.12
+Date:					2020.01.23
 Description:	load data from load_hc_inventory, load_lbl_inventory into inventory, measure
 Notes:				
 */
@@ -11,6 +11,7 @@ Notes:
 -- ----------------------------
 -- Table structure for load_hc_inventory
 -- ----------------------------
+/*
 DROP TABLE IF EXISTS load_hc_inventory;
 CREATE TABLE load_hc_inventory (
   reagent varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
@@ -38,35 +39,37 @@ CREATE TABLE load_lbl_inventory (
 update load_hc_inventory
 	set units = 'g'
 	where amount is not null;
-
+*/
 -- truncate table inventory;
 -- add the hc inventory data from load_hc_inventory 
-INSERT INTO inventory (description, material_id, actor_id, part_no, onhand_amt, unit, create_dt, mod_date)
+INSERT INTO inventory (description, material_id, actor_id, part_no, onhand_amt, unit, create_date, mod_date)
 	select distinct inv.reagent, mat.material_id, 
-		(SELECT actor_id FROM get_actor () where person_lastfirst like '%Mansoor%'), inv.part_no, inv.amount, inv.units, create_date::timestamptz, now() 
+		(SELECT actor_id FROM vw_actor where person_lastfirst like '%Mansoor%'), inv.part_no, inv.amount, inv.units, create_date::timestamptz, now() 
 	from load_hc_inventory inv
 	join 
-		(SELECT * FROM get_materialname_bystatus (array['active'], TRUE)) mat 
-	on upper(inv.reagent) = upper(mat.material_name)
+		(SELECT * FROM get_materialnameref_bystatus (array['active'], TRUE)) mat 
+	on upper(inv.reagent) = upper(mat.material_refname)
 	where inv.reagent is not NULL and inv.amount is not NULL
 ON CONFLICT ON CONSTRAINT un_inventory DO UPDATE
 	SET mod_date = EXCLUDED.mod_date,
+		create_date = EXCLUDED.create_date,
 		onhand_amt = EXCLUDED.onhand_amt,
 		unit = EXCLUDED.unit,
 		part_no = EXCLUDED.part_no;
 
 
 -- add the lbl inventory data from load_lbl_inventory 
-INSERT INTO inventory (description, material_id, actor_id, part_no, onhand_amt, unit, create_dt, mod_date)
+INSERT INTO inventory (description, material_id, actor_id, part_no, onhand_amt, unit, create_date, mod_date)
 	select distinct inv.reagent, mat.material_id, 
-		(SELECT actor_id FROM get_actor () where person_lastfirst like '%Zhi%'), inv.part_no, inv.amount, inv.units, create_date::timestamptz, now() 
+		(SELECT actor_id FROM vw_actor where person_lastfirst like '%Zhi%'), inv.part_no, inv.amount, inv.units, create_date::timestamptz, now() 
 	from load_lbl_inventory inv
 	join 
-		(SELECT * FROM get_materialname_bystatus (array['active'], TRUE)) mat 
-	on upper(inv.reagent) = upper(mat.material_name)
+		(SELECT * FROM get_materialnameref_bystatus (array['active'], TRUE)) mat 
+	on upper(inv.reagent) = upper(mat.material_refname)
 	where inv.reagent is not NULL and inv.amount is not NULL
 ON CONFLICT ON CONSTRAINT un_inventory DO UPDATE
 	SET mod_date = EXCLUDED.mod_date,
+		create_date = EXCLUDED.create_date,
 		onhand_amt = EXCLUDED.onhand_amt,
 		unit = EXCLUDED.unit,
 		part_no = EXCLUDED.part_no;
