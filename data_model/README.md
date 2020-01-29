@@ -1,40 +1,134 @@
-# ESCALATE v3 Data Model
+<!-- ESCALATE v3 Data Model -->
+<!--
+Author: Gary Cattabriga
+Date: 01.29.2020
+*** I'm using markdown "reference style" links for readability.
+*** Reference links are enclosed in brackets [ ] instead of parentheses 
+*** See the bottom of this document for the declaration of the reference variables
+*** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
+*** https://www.markdownguide.org/basic-syntax/#reference-style-links
+-->
+[![Contributors][contributors-shield]][contributors-url]
+[![Commits][commits-shield]][commits-url]
+[![Last Commit][lastcommit-shield]][lastcommit-url]
+[![Issues][issues-shield]][issues-url]
+[![MIT License][license-shield]][license-url]
 
-ESCALATE v3 physical data model implemented in PostgreSQL v11/12
+<!-- PROJECT LOGO -->
+<br />
+<p align="center">
+  <a href="https://github.com/darkreactions/ESCALATE">
+    <img src="images/Escalate_B-04.png" alt="Logo" width="250 height="100">
+  </a>
+  <h1 align="center">ESCALATE v3 Data Model</h1>
+  <p align="center">
+   PostgreSQL (v11/12) physical data model as part of the ESCALATE v3 application 
+    <br />
+    <a href="https://github.com/darkreactions/ESCALATE"><strong>Explore the docs</strong></a>
+    <br />
+    <br />
+  </p>
+</p>
+
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+These instructions will get you a copy of the database up and running on your local machine (or container) for development and testing purposes. 
 
 ### Prerequisites
 
-What things you need to install the software and how to install them
+Minimal software you need in place to instatiate the model
 
 ```
-Give examples
+postgreSQL v11 / v12
 ```
 
-### Installing
+### Optional
 
-A step by step series of examples that tell you how to get a development env running
+Optional software for implementing this model:
 
-Say what the step will be
+[![dockerlogo][docker-logo]][dockerinstall-url]
+&ensp;[![pgadminlogo][pgadmin-logo]][pgadmininstall-url]
+
+<br/>
+## Instantiating the Model (w/ experimental data)
+
+This model can be instantiated into a local postgreSQL server or into a docker container. As there is extensive documentation and instructions to install postgreSQL and docker, it will not be covered in this README.
+
+In addition to the environments in which this model can reside (e.g. local or docker), it can be created (restored) from a pg_dump backup or a manual process (running descrete sql to create and load tables). What follows are the steps to instantiate the ESCALATE v3 data model populated with experimental perovskite data from a backup and manual SQL.
+
+But before the ESCALATE data model can be instantiated, the first step is to configure your postgreSQL environment.
+
+### PostgreSQL configuration
+**Step 1** -  Create a database named 'escalate' with owner named 'escalate'. Use pgAdmin to create the database or execute the following SQL:
 
 ```
-Give the example
+CREATE DATABASE escalate OWNER escalate;
+```
+**Step 2** -  Create schema 'dev' using pgAdmin or executing the following SQL:
+
+```
+CREATE SCHEMA dev;
+```
+**Step 3** -  Add required extensions (collection of functions) to the schema:
+
+```
+CREATE EXTENSION if not exists ltree;
+CREATE EXTENSION if not exists tablefunc;
+CREATE EXTENSION if not exists "uuid-ossp";
+```
+<br/>
+### Instantiation (restore) from *pg_dump* utility
+**Option 1** -  restore into a local postgreSQL environment
+using the latest 'bak' file in the repo's backup folder. This assumes a local directory named backup
+
+```
+pg_restore -d escalate -c -C -U escalate /backup/escalate-postgres_docker_backup.bak
+```
+**Option 2** -  restore into a docker container
+using the latest 'bak' file in the repo's backup folder. This assumes the following: 1) the docker container is named: escalate-postgres and 2) the bak file has been moved to a folder in the container
+
+```
+docker exec escalate-postgres pg_restore -d escalate -c -C -U escalate /var/lib/postgres/escalate-postgres_docker_backup.bak
+```
+<br/>
+### Instantiation from SQL
+Running the SQL below, in order, will create the tables, keys and contraints, load load tables, and populate core tables.
+
+
+**Step 1** - Populate the load tables with existing perovskite experimental data using SQL code found in the repo 'sql_dataload' subdirectory:
+
+```
+prod_dataload_perov_desc.sql
+prod_dataload_perov_desc_def.sql
+prod_dataload_perov_mol_image.sql
+prod_dataload_chem_inventory.sql
+prod_dataload_hc_inventory.sql
+prod_dataload_lbl_inventory.sql
 ```
 
-And repeat
+**Step 2** - Create the core model tables, primary keys, foreign keys and constraints and views using SQL code found in the repo 'sql_core' subdirectory:
 
 ```
-until finished
+prod_create_tables.sql
+```
+
+**Step 3** - Populate the core tables:
+
+```
+prod_initialize_org_per_sys_actor.sql
+prod_load_functions.sql
+prod_update_1_material.sql
+prod_update_2_inventory.sql
+prod_update_3_descriptor.sql
 ```
 
 End with an example of getting some data out of the system or using it for a little demo
 
+<br/>
 ## Running the tests
 
-Explain how to run the automated tests for this system
+How to run the automated tests for this system
 
 ### Break down into end to end tests
 
@@ -43,46 +137,44 @@ Explain what these tests test and why
 ```
 Give an example
 ```
-
-### And coding style tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-## Deployment
-
-Add additional notes about how to deploy this on a live system
-
+<br/>
 ## Built With
 
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
+* [postgreSQL 12](https://www.postgresql.org) - Database
+* [pgAdmin 4](https://www.pgadmin.org) - Database management tool
+* [Navicat](https://www.navicat.com/en/) - Used to generate model and SQL code
 
-## Contributing
-
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
-
-## Versioning
-
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
 
 ## Authors
 
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+* **Gary Cattabriga** - *Initial work* - [ESCALATE](https://github.com/gcatabr1)
 
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/darkreactions/ESCALATE/graphs/contributors) who participated in this project.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details
 
 ## Acknowledgments
+* [DARPA SD2 program](https://www.darpa.mil/program/synergistic-discovery-and-design)
+* [Haverford College](https://www.haverford.edu)
+* [Lawrence Berkely National Lab](https://www.lbl.gov)
 
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
+<!-- MARKDOWN LINKS & IMAGES -->
+[contributors-shield]: https://img.shields.io/github/contributors/darkreactions/ESCALATE
+[contributors-url]: https://github.com/darkreactions/ESCALATE/graphs/contributors
+[lastcommit-shield]: https://img.shields.io/github/last-commit/darkreactions/ESCALATE
+[lastcommit-url]: https://github.com/darkreactions/ESCALATE/graphs/commit-activity
+[issues-shield]: https://img.shields.io/github/issues/darkreactions/ESCALATE
+[issues-url]: https://github.com/darkreactions/ESCALATE/issues
+[license-shield]: https://img.shields.io/github/license/darkreactions/ESCALATE
+[license-url]: https://github.com/darkreactions/ESCALATE/blob/master/LICENSE
+[commits-shield]: https://img.shields.io/github/commit-activity/m/darkreactions/ESCALATE
+[commits-url]: https://github.com/darkreactions/ESCALATE/graphs/commit-activity
+[postgresqlinstall-url]: https://www.postgresql.org/download/
+[postgresql-logo]: images/postgresql_logo.png
+[dockerinstall-url]: https://docs.docker.com/install/
+[docker-logo]: images/docker_logo.png
+[pgadmininstall-url]: https://www.pgadmin.org/download/
+[pgadmin-logo]: images/pgadmin_logo.png
 
