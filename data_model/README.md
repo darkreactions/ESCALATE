@@ -7,6 +7,8 @@ Date: 01.29.2020
 *** See the bottom of this document for the declaration of the reference variables
 *** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
+*** used some nice shields from this site:
+*** https://shields.io/category/platform-support
 -->
 [![Contributors][contributors-shield]][contributors-url]
 [![Commits][commits-shield]][commits-url]
