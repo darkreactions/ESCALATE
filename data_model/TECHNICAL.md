@@ -70,46 +70,63 @@ Keys, fk
 <a name="views"></a>
 
 ## Views
-Below is a list of views with highlevel description, followed by the column details of each view. 
+Below is a list of views with highlevel description, followed by column names returned by view. 
 
-| view name| Description|
+| view name| description|
 | -------- |----------|
 | vw\_actor| returns table of all actor information: org, person, systemtool, status, note, edocument|
 | vw\_latest\_systemtool| returns systemtool records with 'active' status  |
 | vw\_latest\_systemtool\_actor| returns actor records that are comprised of 'active' systemtools |
 | vw\_m\_descriptor\_def| returns descriptor_def and associated actor info |
 | vw\_m\_descriptor| returns descriptor info and associated parent |
-| vw\_m\_descriptor| returns descriptor info and associated parent |
-
 
 <br/>
 
-### vw_actor columns
+**vw_actor** columns
+
 ```
-	actor_uuid,
-	actor_id,
-	organization_id,
-	pperson_id,
-	systemtool_id,
-	actor_description,
-	actor_status,
-	actor_notetext,
-	actor_document,
-	actor_doc_type,
-	org_full_name,
-	org_short_name,
-	per_lastname,
-	per_firstname,
-	person_lastfirst,
-	person_org,
-	systemtool_name,
-	systemtool_description,
-	systemtool_type,
-	systemtool_vendor,
-	systemtool_model,
-	systemtool_serial,
-	systemtool_version,
+	actor_uuid
+	actor_id
+	organization_id
+	person_id
+	systemtool_id
+	actor_description
+	actor_status
+	actor_notetext
+	actor_document
+	actor_doc_type
+	org_full_name
+	org_short_name
+	per_lastname
+	per_firstname
+	person_lastfirst
+	person_org
+	systemtool_name
+	systemtool_description
+	systemtool_type
+	systemtool_vendor
+	systemtool_model
+	systemtool_serial
+	systemtool_version
 	systemtool_org 
+```
+<br/>
+**vw\_latest_systemtool** columns
+
+```
+  systemtool_id
+  systemtool_uuid
+  systemtool_name
+  description
+  systemtool_type_id
+  vendor
+  model
+  serial
+  ver
+  organization_id
+  note_id
+  add_date
+  mod_date
 ```
 
 <br/>
