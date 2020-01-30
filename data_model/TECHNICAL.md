@@ -33,7 +33,7 @@ Date: 01.29.2020
 * [Overview](#overview)
 * [Schema Detail](#schemadetail)
 * [Views](#views)
-* [Authors](#author)
+* [Authors](#authors)
 * [License](#license)
 * [Acknowledgements](#acknowledgements)
 
