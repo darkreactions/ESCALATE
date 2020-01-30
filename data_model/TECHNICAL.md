@@ -70,13 +70,47 @@ Keys, fk
 <a name="views"></a>
 
 ## Views
-List of the views with discriptions
+Below is a list of views with highlevel description, followed by the column details of each view. 
 
 | view name| Description|
 | -------- |----------|
-| vw_abcdefghijklmnopqrstuwx1| this is a long description about the vw|
-| vw_abcde_stuff| description   |
-| vw_abcdefghijk3| description  |
+| vw\_actor| returns table of all actor information: org, person, systemtool, status, note, edocument|
+| vw\_latest\_systemtool| returns systemtool records with 'active' status  |
+| vw\_latest\_systemtool\_actor| returns actor records that are comprised of 'active' systemtools |
+| vw\_m\_descriptor\_def| returns descriptor_def and associated actor info |
+| vw\_m\_descriptor| returns descriptor info and associated parent |
+| vw\_m\_descriptor| returns descriptor info and associated parent |
+
+
+<br/>
+
+### vw_actor columns
+```
+	actor_uuid,
+	actor_id,
+	organization_id,
+	pperson_id,
+	systemtool_id,
+	actor_description,
+	actor_status,
+	actor_notetext,
+	actor_document,
+	actor_doc_type,
+	org_full_name,
+	org_short_name,
+	per_lastname,
+	per_firstname,
+	person_lastfirst,
+	person_org,
+	systemtool_name,
+	systemtool_description,
+	systemtool_type,
+	systemtool_vendor,
+	systemtool_model,
+	systemtool_serial,
+	systemtool_version,
+	systemtool_org 
+```
 
 <br/>
 <a name="authors"></a>
