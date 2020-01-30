@@ -32,10 +32,10 @@ Date: 01.29.2020
 * [Introduction](#introduction)
 * [Overview](#overview)
 * [Schema Detail](#schemadetail)
-- [Views](#views)
-- [Authors](#author)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
+* [Views](#views)
+* [Authors](#author)
+* [License](#license)
+* [Acknowledgements](#acknowledgements)
 
 
 <a name="introduction"></a>
@@ -46,7 +46,7 @@ These instructions will get you a copy of the database up and running on your lo
 
 
 <br/>
-<a name="approach"></a>
+<a name="overview"></a>
 ## Overview
 Talk about the core entities...
 
