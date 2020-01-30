@@ -26,38 +26,42 @@ Date: 01.29.2020
   </p>
 </p>
 
-<!-- TABLE OF CONTENTS -->
+<!-- **************** Table of Contents **************** -->
 ## Table of Contents
 
 * [Introduction](#introduction)
 * [Overview](#overview)
 * [Schema Detail](#schemadetail)
+* [Functions](#functions)
 * [Views](#views)
+* [Upserts](#upserts)
 * [Authors](#authors)
 * [License](#license)
 * [Acknowledgements](#acknowledgements)
 
+<br/>
 
+<!-- ******************* Introduction ****************** -->
 <a name="introduction"></a>
-
 ## Introduction
 
 These instructions will get you a copy of the database up and running on your local machine (or container) for development and testing purposes. 
 
-
-
 <br/>
-<a name="overview"></a>
 
+
+<!-- ******************* Overview ****************** -->
+<a name="overview"></a>
 ## Overview
 Talk about the core entities...
 
 [![Schema Highlevel][schema-highlevel]](https://github.com/darkreactions/ESCALATE/blob/master/data_model/erd_diagrams/escalatev3_schema_highlevel.png)
 
 <br/>
-<a name="schemadetail"></a>
 
-## Schema: Detail
+<!-- ******************* Schema Detail ****************** -->
+<a name="schemadetail"></a>
+## Schema Detail
 Discussion how this stuff all relates together...
 
 [![Schema Detail][schema-detail]](https://github.com/darkreactions/ESCALATE/blob/master/data_model/erd_diagrams/escalate_erd_physicalmodel.pdf)
@@ -66,11 +70,22 @@ Discussion how this stuff all relates together...
 Keys, fk 
 ```
 
-<br/>
-<a name="views"></a>
 
+<br/>
+
+<!-- ******************* Functions ****************** -->
+<a name="functions"></a>
+## Functions
+```
+function fx() 
+```
+
+<br/>
+
+<!-- ******************* Views ****************** -->
+<a name="views"></a>
 ## Views
-Below is a list of views with highlevel description, followed by column names returned by view. 
+Below are a list of the views with highlevel description, followed by column names returned by view. 
 
 | view name| description|
 | -------- |----------|
@@ -81,7 +96,6 @@ Below is a list of views with highlevel description, followed by column names re
 | vw\_m\_descriptor| returns descriptor info and associated parent |
 
 <br/>
-
 **vw_actor** columns
 
 ```
@@ -130,28 +144,43 @@ Below is a list of views with highlevel description, followed by column names re
 ```
 
 <br/>
-<a name="authors"></a>
 
+<!-- ******************* Upserts ****************** -->
+<a name="upserts"></a>
+## Upserts
+```
+upsert up() 
+```
+
+<br/>
+
+<!-- ******************* Authors ****************** -->
+<a name="authors"></a>
 ## Authors
 
-* **Gary Cattabriga** - *Initial work* - [ESCALATE](https://github.com/gcatabr1)
+* **Gary Cattabriga** [ESCALATE](https://github.com/gcatabr1)
 
 See also the list of [contributors](https://github.com/darkreactions/ESCALATE/graphs/contributors) who participated in this project.
 
 <br/>
-<a name="license"></a>
 
+<!-- ******************* License ****************** -->
+<a name="license"></a>
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details
 
 <br/>
-<a name="acknowledgements"></a>
 
+
+<!-- ******************* Ackowledgements ****************** -->
+<a name="acknowledgements"></a>
 ## Acknowledgments
 * [DARPA SD2 program](https://www.darpa.mil/program/synergistic-discovery-and-design)
 * [Haverford College](https://www.haverford.edu)
 * [Lawrence Berkely National Lab](https://www.lbl.gov)
+
+
 
 <!-- MARKDOWN LINKS & IMAGES -->
 [postgresqlinstall-url]: https://www.postgresql.org/download/
