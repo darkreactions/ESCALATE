@@ -85,7 +85,15 @@ function fx()
 <!-- ******************* Views ****************** -->
 <a name="views"></a>
 ## Views
-Below are a list of the views with highlevel description, followed by column names returned by view. 
+Below are a list of the views with highlevel description, followed by column names returned by view. Views are named using the following structure: 
+
+```
+vw_[table1]_[table2]_[tablen]_[filter]
+```
+where the 'key' table enities are listed in order of preponderance ending with any filters (e.g. where clause) applied
+
+For example, __vw\_latest\_systemtool__ returns records in the systemtool table with a [filter] where clause selecting only 'active' status records. 
+
 
 | view name| description|
 | -------- |----------|
@@ -96,7 +104,8 @@ Below are a list of the views with highlevel description, followed by column nam
 | vw\_m\_descriptor| returns descriptor info and associated parent |
 
 <br/>
-**vw_actor** columns
+
+__vw_actor__ columns
 
 ```
 	actor_uuid
@@ -125,6 +134,7 @@ Below are a list of the views with highlevel description, followed by column nam
 	systemtool_org 
 ```
 <br/>
+
 **vw\_latest_systemtool** columns
 
 ```
