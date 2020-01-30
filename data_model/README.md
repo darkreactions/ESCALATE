@@ -26,7 +26,7 @@ Date: 01.29.2020
   <p align="center">
    PostgreSQL (v11/12) physical data model as part of the ESCALATE v3 application 
     <br />
-    <a href="https://github.com/darkreactions/ESCALATE"><strong>Explore the docs</strong></a>
+    <a href="https://github.com/darkreactions/ESCALATE/blob/master/data_model/TECHNICAL.md"><strong>Check out the ESCALATE v3 Data Model Technical Doc</strong></a>
     <br />
     <br />
   </p>
