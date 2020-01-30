@@ -39,6 +39,7 @@ Date: 01.29.2020
 
 
 <a name="introduction"></a>
+
 ## Introduction
 
 These instructions will get you a copy of the database up and running on your local machine (or container) for development and testing purposes. 
@@ -47,6 +48,7 @@ These instructions will get you a copy of the database up and running on your lo
 
 <br/>
 <a name="overview"></a>
+
 ## Overview
 Talk about the core entities...
 
@@ -54,6 +56,7 @@ Talk about the core entities...
 
 <br/>
 <a name="schemadetail"></a>
+
 ## Schema: Detail
 Discussion how this stuff all relates together...
 
@@ -65,6 +68,7 @@ Keys, fk
 
 <br/>
 <a name="views"></a>
+
 ## Views
 List of the views with discriptions
 
@@ -76,19 +80,23 @@ List of the views with discriptions
 
 <br/>
 <a name="authors"></a>
+
 ## Authors
 
 * **Gary Cattabriga** - *Initial work* - [ESCALATE](https://github.com/gcatabr1)
 
 See also the list of [contributors](https://github.com/darkreactions/ESCALATE/graphs/contributors) who participated in this project.
+
 <br/>
 <a name="license"></a>
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details
 
 <br/>
 <a name="acknowledgements"></a>
+
 ## Acknowledgments
 * [DARPA SD2 program](https://www.darpa.mil/program/synergistic-discovery-and-design)
 * [Haverford College](https://www.haverford.edu)
