@@ -90,69 +90,56 @@ Below are a list of the views with highlevel description, followed by column nam
 ```
 vw_[table1]_[table2]_[tablen]_[filter]
 ```
-where the 'key' table enities are listed in order of preponderance ending with any filters (e.g. where clause) applied
+where the source table enities are listed in order of preponderance ending with any filters (e.g. where clause) applied
 
-For example, __vw\_latest\_systemtool__ returns records in the systemtool table with a [filter] where clause selecting only 'active' status records. 
+e.g. __vw\_latest\_systemtool__ returns records from the **systemtool** table with a 'filter' or where clause selecting only 'active' status records. 
+<br/><br/>
 
-
-| view name| description|
-| -------- |----------|
-| vw\_actor| returns table of all actor information: org, person, systemtool, status, note, edocument|
-| vw\_latest\_systemtool| returns systemtool records with 'active' status  |
-| vw\_latest\_systemtool\_actor| returns actor records that are comprised of 'active' systemtools |
-| vw\_m\_descriptor\_def| returns descriptor_def and associated actor info |
-| vw\_m\_descriptor| returns descriptor info and associated parent |
-
-<br/>
-
-__vw_actor__ columns
+__vw_actor__<br/>
+_returns set of all **actor** records, direct and linked: **organization**, **person**, **systemtool**, **status**, **note**, **edocument**_ <br/>
+columns returned:
 
 ```
-	actor_uuid
-	actor_id
-	organization_id
-	person_id
-	systemtool_id
-	actor_description
-	actor_status
-	actor_notetext
-	actor_document
-	actor_doc_type
-	org_full_name
-	org_short_name
-	per_lastname
-	per_firstname
-	person_lastfirst
-	person_org
-	systemtool_name
-	systemtool_description
-	systemtool_type
-	systemtool_vendor
-	systemtool_model
-	systemtool_serial
-	systemtool_version
-	systemtool_org 
+actor_uuid, actor_id, organization_id, person_id, systemtool_id, actor_description, actor_status, actor_notetext, actor_document, actor_doc_type, org_full_name, org_short_name, per_lastname, per_firstname, person_lastfirst, person_org, systemtool_name, systemtool_description, systemtool_type, systemtool_vendor, systemtool_model, systemtool_serial, systemtool_version, systemtool_org 
 ```
 <br/>
 
-**vw\_latest_systemtool** columns
+__vw\_latest\_systemtool__<br/>
+_returns set of most recent / latest version **systemtool** records_ <br/>
+columns returned:
 
 ```
-  systemtool_id
-  systemtool_uuid
-  systemtool_name
-  description
-  systemtool_type_id
-  vendor
-  model
-  serial
-  ver
-  organization_id
-  note_id
-  add_date
-  mod_date
+systemtool_id, systemtool_uuid, systemtool_name, description, systemtool_type_id, vendor, model, serial, ver, organization_id, note_id, add_date,mod_date
 ```
+<br/>
 
+__vw\_latest\_systemtool\_actor__<br/>
+_returns set of **actor** records that are parents of latest *systemtool* records_ <br/>
+columns returned:
+
+```
+actor_id, actor_uuid, person_id, organization_id, systemtool_id, description, status_id, note_id, add_date, mod_date
+```
+<br/>
+
+
+__vw\_m\_descriptor\_def__<br/>
+_returns set of **descriptor\_def** and associated **actor** records_ <br/>
+columns returned:
+
+```
+m_descriptor_def_id, m_descriptor_def_uuid, short_name, calc_definition, description, actor_id, actor_org, actor_systemtool_name, actor_systemtool_version
+```
+<br/>
+
+
+__vw\_m\_descriptor__<br/>
+_returns set of **descriptor** and associated **descriptor** parent records_ <br/>
+columns returned:
+
+```
+m_descriptor_id, m_descriptor_uuid, material_ref, material_ref_type, descriptor_in, descriptor_type_in, create_date, num_valarray_out, blob_val_out, blob_type_out, m_descriptor_def_id, m_descriptor_def_uuid, short_name, calc_definition, description, actor_id, actor_org, actor_systemtool_name, actor_systemtool_version, status
+```
 <br/>
 
 <!-- ******************* Upserts ****************** -->
