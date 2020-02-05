@@ -128,6 +128,7 @@ prod_update_3_descriptor.sql
 End with an example of getting some data out of the system or using it for a little demo
 
 <br/>
+
 ## Validating the Tables & Data
 
 To ensure the database tables have been created and populated properly, run the following SQL scripts and check results.
@@ -169,6 +170,7 @@ select short_name, calc_definition, description, actor_org, actor_systemtool_nam
 ```
 
 <br/>
+
 ## Built With
 
 * [postgreSQL 12](https://www.postgresql.org) - Database
