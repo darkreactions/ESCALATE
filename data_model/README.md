@@ -39,10 +39,10 @@ These instructions will get you a copy of the database up and running on your lo
 
 ### Prerequisites
 
-Minimal software you need in place to instatiate the model
+Minimal software you need in place to instantiate the model
 
 ```
-postgreSQL v11 / v12
+PostgreSQL v11 / v12
 ```
 
 ### Optional
@@ -55,11 +55,11 @@ Optional software for implementing this model:
 <br/>
 ## Instantiating the Model (w/ experimental data)
 
-This model can be instantiated into a local postgreSQL server or into a docker container. As there is extensive documentation and instructions to install postgreSQL and docker, it will not be covered in this README.
+This model can be instantiated into a local PostgreSQL server or into a docker container. As there is extensive documentation and instructions to install PostgreSQL and docker, it will not be covered in this README.
 
-In addition to the environments in which this model can reside (e.g. local or docker), it can be created (restored) from a pg_dump backup or a manual process (running descrete sql to create and load tables). What follows are the steps to instantiate the ESCALATE v3 data model populated with experimental perovskite data from a backup and manual SQL.
+In addition to the environments in which this model can reside (e.g. local or docker), it can be created (restored) from a pg_dump backup or a manual process (running discrete sql to create and load tables). What follows are the steps to instantiate the ESCALATE v3 data model populated with experimental perovskite data from a backup and manual SQL.
 
-But before the ESCALATE data model can be instantiated, the first step is to configure your postgreSQL environment.
+But before the ESCALATE data model can be instantiated, the first step is to configure your PostgreSQL environment.
 
 ### PostgreSQL configuration
 **Step 1** -  Create a database named 'escalate' with owner named 'escalate'. Use pgAdmin to create the database or execute the following SQL:
@@ -81,7 +81,7 @@ CREATE EXTENSION if not exists "uuid-ossp";
 ```
 <br/>
 ### Instantiation (restore) from *pg_dump* utility
-**Option 1** -  restore into a local postgreSQL environment
+**Option 1** -  restore into a local PostgreSQL environment
 using the latest 'bak' file in the repo's backup folder. This assumes a local directory named backup
 
 ```
@@ -95,7 +95,7 @@ docker exec escalate-postgres pg_restore -d escalate -c -C -U escalate /var/lib/
 ```
 <br/>
 ### Instantiation from SQL
-Running the SQL below, in order, will create the tables, keys and contraints, load load tables, and populate core tables.
+Running the SQL below, in order, will create the tables, keys and constraints, load load tables, and populate core tables.
 
 
 **Step 1** - Populate the load tables with existing perovskite experimental data using SQL code found in the repo 'sql_dataload' subdirectory:
@@ -173,7 +173,7 @@ select short_name, calc_definition, description, actor_org, actor_systemtool_nam
 
 ## Built With
 
-* [postgreSQL 12](https://www.postgresql.org) - Database
+* [PostgreSQL 12](https://www.postgresql.org) - Database
 * [pgAdmin 4](https://www.pgadmin.org) - Database management tool
 * [Navicat](https://www.navicat.com/en/) - Used to generate model and SQL code
 
