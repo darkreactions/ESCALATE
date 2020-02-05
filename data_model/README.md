@@ -53,6 +53,7 @@ Optional software for implementing this model:
 &ensp;[![pgadminlogo][pgadmin-logo]][pgadmininstall-url]
 
 <br/>
+
 ## Instantiating the Model (w/ experimental data)
 
 This model can be instantiated into a local PostgreSQL server or into a docker container. As there is extensive documentation and instructions to install PostgreSQL and docker, it will not be covered in this README.
@@ -80,6 +81,7 @@ CREATE EXTENSION if not exists tablefunc;
 CREATE EXTENSION if not exists "uuid-ossp";
 ```
 <br/>
+
 ### Instantiation (restore) from *pg_dump* utility
 **Option 1** -  restore into a local PostgreSQL environment
 using the latest 'bak' file in the repo's backup folder. This assumes a local directory named backup
@@ -94,6 +96,7 @@ using the latest 'bak' file in the repo's backup folder. This assumes the follow
 docker exec escalate-postgres pg_restore -d escalate -c -C -U escalate /var/lib/postgres/escalate-postgres_docker_backup.bak
 ```
 <br/>
+
 ### Instantiation from SQL
 Running the SQL below, in order, will create the tables, keys and constraints, load load tables, and populate core tables.
 
