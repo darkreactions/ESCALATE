@@ -128,17 +128,46 @@ prod_update_3_descriptor.sql
 End with an example of getting some data out of the system or using it for a little demo
 
 <br/>
-## Running the tests
+## Validating the Tables & Data
 
-How to run the automated tests for this system
+To ensure the database tables have been created and populated properly, run the following SQL scripts and check results.
 
-### Break down into end to end tests
 
-Explain what these tests test and why
+Record count of selected core tables:
 
 ```
-Give an example
+select count(*) from actor;
+> 14
+
+select count(*) from material;
+> 77
+> 
+select count(*) from inventory;
+> 102
+> 
+select count(*) from m_descriptor;
+> 5544
 ```
+
+Check view vw_actor:
+
+```
+select systemtool_name, systemtool_description, systemtool_version from vw_actor where systemtool_vendor = 'ChemAxon';
+ 
+> standardize	Chemical standardizer	19.27.0
+> cxcalc	Chemical descriptor calculator	19.27.0
+> molconvert	Chemical converter	19.27.0
+> generatemd	Chemical fingerprint calculator	19.6.0
+```
+
+Check view vw_m_descriptor_def:
+
+```
+select short_name, calc_definition, description, actor_org, actor_systemtool_name, actor_systemtool_version from vw_m_descriptor_def where short_name = 'atomcount_c';;
+ 
+> atomcount_c	atomcount -z 6	number of carbon atoms in the molecule 	ChemAxon	cxcalc	19.27.0
+```
+
 <br/>
 ## Built With
 
