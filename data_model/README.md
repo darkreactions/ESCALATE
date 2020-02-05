@@ -199,6 +199,7 @@ This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.t
 * [Lawrence Berkely National Lab](https://www.lbl.gov)
 
 <br/>
+
 <!-- MARKDOWN LINKS & IMAGES -->
 [contributors-shield]: https://img.shields.io/github/contributors/darkreactions/ESCALATE
 [contributors-url]: https://github.com/darkreactions/ESCALATE/graphs/contributors
