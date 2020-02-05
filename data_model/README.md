@@ -177,6 +177,7 @@ select short_name, calc_definition, description, actor_org, actor_systemtool_nam
 * [pgAdmin 4](https://www.pgadmin.org) - Database management tool
 * [Navicat](https://www.navicat.com/en/) - Used to generate model and SQL code
 
+<br/>
 
 ## Authors
 
@@ -184,15 +185,20 @@ select short_name, calc_definition, description, actor_org, actor_systemtool_nam
 
 See also the list of [contributors](https://github.com/darkreactions/ESCALATE/graphs/contributors) who participated in this project.
 
+<br/>
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details
+
+<br/>
 
 ## Acknowledgments
 * [DARPA SD2 program](https://www.darpa.mil/program/synergistic-discovery-and-design)
 * [Haverford College](https://www.haverford.edu)
 * [Lawrence Berkely National Lab](https://www.lbl.gov)
 
+<br/>
 <!-- MARKDOWN LINKS & IMAGES -->
 [contributors-shield]: https://img.shields.io/github/contributors/darkreactions/ESCALATE
 [contributors-url]: https://github.com/darkreactions/ESCALATE/graphs/contributors
