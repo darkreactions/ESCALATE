@@ -29,6 +29,7 @@ DROP TABLE IF EXISTS person cascade;
 DROP TABLE IF EXISTS systemtool cascade;
 DROP TABLE IF EXISTS systemtool_type cascade;
 DROP TABLE IF EXISTS actor cascade;
+DROP TABLE IF EXISTS actor_pref cascade;
 DROP TABLE IF EXISTS material cascade;
 DROP TABLE IF EXISTS material_type cascade;
 DROP TABLE IF EXISTS material_type_x cascade;
@@ -109,11 +110,10 @@ CREATE TABLE systemtool (
   systemtool_name varchar COLLATE "pg_catalog"."default" NOT NULL,
   description varchar COLLATE "pg_catalog"."default",
   systemtool_type_id int8,
-  vendor varchar COLLATE "pg_catalog"."default",
+  vendor_organization_id int8,
   model varchar COLLATE "pg_catalog"."default",
   serial varchar COLLATE "pg_catalog"."default",
   ver varchar COLLATE "pg_catalog"."default",
-  organization_id int8,
   note_id int8,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
@@ -142,6 +142,20 @@ CREATE TABLE actor (
   systemtool_id int8,
   description varchar COLLATE "pg_catalog"."default",
 	status_id int8,
+  note_id int8,
+  add_date timestamptz NOT NULL DEFAULT NOW(),
+  mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+---------------------------------------
+-- Table structure for actor_pref
+---------------------------------------
+CREATE TABLE actor_pref (
+  actor_pref_id serial8,
+  actor_pref_uuid uuid DEFAULT uuid_generate_v4 (),
+  actor_id int8,
+	pkey varchar(255) COLLATE "pg_catalog"."default",
+  pvalue varchar COLLATE "pg_catalog"."default",
   note_id int8,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
@@ -238,6 +252,7 @@ CREATE TABLE m_descriptor_def (
 	m_descriptor_def_uuid uuid DEFAULT uuid_generate_v4 (),
   short_name varchar COLLATE "pg_catalog"."default",
 	calc_definition varchar COLLATE "pg_catalog"."default",
+	systemtool_id int8,
 	description varchar COLLATE "pg_catalog"."default",
 	m_descriptor_class_id int8,
 	actor_id int8, 
@@ -388,6 +403,7 @@ CREATE TABLE tag (
   tag_id serial8,
 	tag_uuid uuid DEFAULT uuid_generate_v4 (),
 	tag_type_id int8,
+	short_description varchar(16) COLLATE "pg_catalog"."default",
   description varchar COLLATE "pg_catalog"."default",
 	actor_id int8,
   note_id int8,
@@ -444,7 +460,7 @@ CLUSTER person USING "pk_person_person_id";
 
 ALTER TABLE systemtool 
 	ADD CONSTRAINT "pk_systemtool_systemtool_id" PRIMARY KEY (systemtool_id),
-	ADD CONSTRAINT "un_systemtool" UNIQUE (systemtool_name, systemtool_type_id, ver, organization_id);
+	ADD CONSTRAINT "un_systemtool" UNIQUE (systemtool_name, systemtool_type_id, vendor_organization_id, ver);
 CLUSTER systemtool USING "pk_systemtool_systemtool_id";
 
 ALTER TABLE systemtool_type 
@@ -455,6 +471,10 @@ ALTER TABLE actor
 	ADD CONSTRAINT "pk_actor_id" PRIMARY KEY (actor_id);
 CREATE UNIQUE INDEX "un_actor" ON actor (coalesce(person_id,-1), coalesce(organization_id,-1), coalesce(systemtool_id,-1) );
 CLUSTER actor USING "pk_actor_id";
+
+ALTER TABLE actor_pref 
+	ADD CONSTRAINT "pk_actor_pref_id" PRIMARY KEY (actor_pref_id);
+CLUSTER actor_pref USING "pk_actor_pref_id";
 
 ALTER TABLE material ADD 
 	CONSTRAINT "pk_material_material_id" PRIMARY KEY (material_id);
@@ -570,7 +590,7 @@ ALTER TABLE person
 --	DROP CONSTRAINT fk_systemtool_note_1;
 ALTER TABLE systemtool 
 	ADD CONSTRAINT fk_systemtool_systemtool_type_1 FOREIGN KEY (systemtool_type_id) REFERENCES systemtool_type (systemtool_type_id),
-	ADD CONSTRAINT fk_systemtool_organization_1 FOREIGN KEY (organization_id) REFERENCES organization (organization_id),
+	ADD CONSTRAINT fk_systemtool_vendor_1 FOREIGN KEY (vendor_organization_id) REFERENCES organization (organization_id),
 	ADD CONSTRAINT fk_systemtool_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
 
 -- ALTER TABLE systemtool_type DROP CONSTRAINT fk_systemtool_type_note_1;
@@ -587,6 +607,10 @@ ALTER TABLE actor
 	ADD CONSTRAINT fk_actor_systemtool_1 FOREIGN KEY (systemtool_id) REFERENCES systemtool (systemtool_id),
 	ADD CONSTRAINT fk_actor_status_1 FOREIGN KEY (status_id) REFERENCES status (status_id),	
 	ADD CONSTRAINT fk_actor_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
+	
+ALTER TABLE actor_pref 
+	ADD CONSTRAINT fk_actor_pref_actor_1 FOREIGN KEY (actor_id) REFERENCES actor (actor_id),
+	ADD CONSTRAINT fk_actor_pref_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
 	
 -- ALTER TABLE material DROP CONSTRAINT fk_material_actor_1,
 --	DROP CONSTRAINT fk_material_material_1;
@@ -628,6 +652,7 @@ ALTER TABLE m_descriptor_class
 -- DROP CONSTRAINT fk_m_descriptor_def_m_descriptor_class_1;
 ALTER TABLE m_descriptor_def 
 	ADD CONSTRAINT fk_m_descriptor_def_m_descriptor_class_1 FOREIGN KEY (m_descriptor_class_id) REFERENCES m_descriptor_class (m_descriptor_class_id),	
+	ADD CONSTRAINT fk_m_descriptor_def_systemtool_1 FOREIGN KEY (systemtool_id) REFERENCES systemtool (systemtool_id),	
 	ADD CONSTRAINT fk_m_descriptor_def_actor_1 FOREIGN KEY (actor_id) REFERENCES actor (actor_id),
 	ADD CONSTRAINT fk_m_descriptor_def_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);	
 
@@ -795,11 +820,10 @@ CASE
 	st.systemtool_name,
 	st.description AS systemtool_description,
 	stt.description AS systemtool_type,
-	st.vendor AS systemtool_vendor,
+	vorg.full_name AS systemtool_vendor,
 	st.model AS systemtool_model,
 	st.serial AS systemtool_serial,
-	st.ver AS systemtool_version,
-	storg.full_name AS systemtool_org 
+	st.ver AS systemtool_version
 FROM
 	actor act
 	LEFT JOIN organization org ON act.organization_id = org.organization_id
@@ -807,7 +831,7 @@ FROM
 	LEFT JOIN organization porg ON per.organization_id = porg.organization_id
 	LEFT JOIN systemtool st ON act.systemtool_id = st.systemtool_id
 	LEFT JOIN systemtool_type stt ON st.systemtool_type_id = stt.systemtool_type_id
-	LEFT JOIN organization storg ON st.organization_id = storg.organization_id
+	LEFT JOIN organization vorg on st.vendor_organization_id = vorg.organization_id
 	LEFT JOIN note nt ON act.note_id = nt.note_id
 	LEFT JOIN edocument_x docx ON nt.note_uuid = docx.ref_uuid
 	LEFT JOIN edocument doc ON docx.edocument_x_id = doc.edocument_id
@@ -834,7 +858,7 @@ FROM
 	SELECT
 		st.systemtool_name,
 		st.systemtool_type_id,
-		st.organization_id,
+		st.vendor_organization_id,
 		MAX ( st.ver ) AS ver 
 	FROM
 		systemtool st 
@@ -844,10 +868,10 @@ FROM
 	GROUP BY
 		st.systemtool_name,
 		st.systemtool_type_id,
-		st.organization_id 
+		st.vendor_organization_id 
 	) mrs ON stl.systemtool_name = mrs.systemtool_name 
 	AND stl.systemtool_type_id = mrs.systemtool_type_id 
-	AND stl.organization_id = mrs.organization_id 
+	AND stl.vendor_organization_id = mrs.vendor_organization_id 
 	AND stl.ver = mrs.ver;
 	
 -- get most recent version of a systemtool as it's parent actor
@@ -867,19 +891,22 @@ SELECT
 	mdd.m_descriptor_def_uuid,
 	mdd.short_name,
 	mdd.calc_definition,
+	mdd.systemtool_id,
 	mdd.description,
-	mdd.actor_id,
-	act.systemtool_org AS actor_org,
+	mdd.actor_id as actor_id,
+	act.systemtool_vendor AS actor_org,
 	act.systemtool_name AS actor_systemtool_name,
 	act.systemtool_version AS actor_systemtool_version 
 FROM
 	m_descriptor_def mdd
-	LEFT JOIN vw_actor act ON mdd.actor_id = act.actor_id;
+	LEFT JOIN vw_actor act ON mdd.actor_id = act.actor_id
+	LEFT JOIN vw_latest_systemtool st ON mdd.systemtool_id = st.systemtool_id;
 
 
 -- get the descriptors and associated descriptor_def, including parent
 -- if there is a parent descriptor, then use the parent m_descriptor_id (and type) as 
 -- link back to material, otherwise use the current m_descriptor_id
+-- DROP VIEW vw_m_descriptor;
 CREATE OR REPLACE VIEW vw_m_descriptor AS 
 SELECT
 	md.m_descriptor_id, md.m_descriptor_uuid,
@@ -893,6 +920,7 @@ CASE
 	END AS material_ref_type,
 	md.m_descriptor_material_in AS descriptor_in,
 	md.m_descriptor_material_type_in AS descriptor_type_in,
+	mdd.calc_definition as descriptor_def,
 	md.create_date,
 	md.num_valarray_out,
 	encode( md.blob_val_out, 'escape' ) AS blob_val_out,

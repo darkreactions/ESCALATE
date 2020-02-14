@@ -102,6 +102,6 @@ INSERT INTO "load_perov_desc_def" VALUES ('fr_ar_nh', 'fr_Ar_NH', 'number of aro
 INSERT INTO "load_perov_desc_def" VALUES ('fr_imine', 'fr_Imine', 'number of imines', 'RDKit', '19.03.4');
 INSERT INTO "load_perov_desc_def" VALUES ('aliphaticatomcount', 'aliphaticatomcount', 'aliphatic atom count', 'cxcalc', '19.27.0');
 INSERT INTO "load_perov_desc_def" VALUES ('heteroaromaticringcount', 'heteroaromaticringcount', 'heteroaromatic ring count', 'cxcalc', '19.27.0');
-INSERT INTO "load_perov_desc_def" VALUES ('standardize', 'standardize ''keepone''', 'smiles standardized', 'standardize', '19.27.0');
-INSERT INTO "load_perov_desc_def" VALUES ('molimage', 'molconvert svg', 'smiles svg image', 'molconvert', '19.27.0');
+INSERT INTO "load_perov_desc_def" VALUES ('standardize', '-c removefragment:method=keeplargest', 'smiles standardized', 'standardize', '19.27.0');
+INSERT INTO "load_perov_desc_def" VALUES ('molimage', 'svg', 'smiles svg image', 'molconvert', '19.27.0');
 COMMIT;

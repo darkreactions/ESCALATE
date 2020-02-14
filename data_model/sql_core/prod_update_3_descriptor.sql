@@ -11,12 +11,12 @@ Notes:				presumes m_descriptor_def has been populated (see initialize tables)
 
 -- first populate m_descriptor_def
 -- using the load_perov_desc_def table joined to actor table (function) to bring in approp actor_id 
-INSERT INTO m_descriptor_def (short_name, calc_definition, description, actor_id)
-	select def.short_name, def.calc_definition, def.description, act.actor_id
+INSERT INTO m_descriptor_def (short_name, calc_definition, description, systemtool_id)
+	select def.short_name, def.calc_definition, def.description, st.systemtool_id
 	from load_perov_desc_def def 
 	join 
-		(select actor_id, systemtool_name, systemtool_version from vw_actor) act 
-	on def.systemtool_name = act.systemtool_name and def.systemtool_ver = act.systemtool_version;
+		(select systemtool_id, systemtool_name from vw_latest_systemtool) st 
+	on def.systemtool_name = st.systemtool_name;
 
 -- get the standadized (desalted) SMILES - returns varchar, so put in blob_value with type text
 -- in this [perov] case, this descriptor becomes the parent of many subsequent descriptors
@@ -29,8 +29,8 @@ INSERT INTO m_descriptor (m_descriptor_material_in, m_descriptor_material_type_i
 	left join 
 		(select *
 		from m_descriptor_def mdd 
-		join vw_latest_systemtool_actor vst 
-		on mdd.actor_id = vst.actor_id) def 
+		join vw_latest_systemtool vst 
+		on mdd.systemtool_id = vst.systemtool_id) def 
 	on dsc.descriptor_name = def.short_name;
 
 
@@ -121,10 +121,10 @@ INSERT INTO m_descriptor (parent_id, m_descriptor_material_in, m_descriptor_mate
 	-- join this with the latest descriptor defs from the m_descriptor_def table 
 	-- and the latest view of systemtools (to make sure we have the most recent version)
 	left join 
-		(select mdd.*
+		(select *
 		from m_descriptor_def mdd 
-		join vw_latest_systemtool_actor vst 
-		on mdd.actor_id = vst.actor_id) def 
+		join vw_latest_systemtool vst 
+		on mdd.systemtool_id = vst.systemtool_id) def 
 	on dsc.descriptor_name = def.short_name
 	;
 
@@ -139,8 +139,8 @@ INSERT INTO m_descriptor (m_descriptor_material_in, m_descriptor_material_type_i
 	left join 
 		(select *
 		from m_descriptor_def mdd 
-		join vw_latest_systemtool_actor vst 
-		on mdd.actor_id = vst.actor_id) def 
+		join vw_latest_systemtool vst 
+		on mdd.systemtool_id = vst.systemtool_id) def 
 	on dsc.descriptor_name = def.short_name;
 
 
@@ -160,8 +160,8 @@ INSERT INTO m_descriptor (parent_id, m_descriptor_material_in, m_descriptor_mate
 	left join 
 		(select *
 		from m_descriptor_def mdd 
-		join vw_latest_systemtool_actor vst 
-		on mdd.actor_id = vst.actor_id) def 
+		join vw_latest_systemtool vst 
+		on mdd.systemtool_id = vst.systemtool_id) def 
 	on dsc.descriptor_name = def.short_name
 	;
 	
@@ -181,8 +181,8 @@ INSERT INTO m_descriptor (parent_id, m_descriptor_material_in, m_descriptor_mate
 	left join 
 		(select *
 		from m_descriptor_def mdd 
-		join vw_latest_systemtool_actor vst 
-		on mdd.actor_id = vst.actor_id) def 
+		join vw_latest_systemtool vst 
+		on mdd.systemtool_id = vst.systemtool_id) def 
 	on dsc.descriptor_name = def.short_name
 	;
 

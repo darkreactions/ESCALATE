@@ -55,7 +55,7 @@ BEGIN;
 INSERT INTO organization (description, full_name, short_name, address1, address2, city, state_province, zip, website_url, phone, note_id) 
 VALUES 
 	('College', 'Haverford College', 'HC', '370 Lancaster Ave.', NULL, 'Haverford', 'PA   ', '19041', 'http://www.haverford.edu', NULL, NULL),
-	('Laboratory', 'Lawrence Berkeley National Laboratory', 'LBL', '1 Cyclotron Rd.', NULL, 'Berkeley', 'CA   ', '94720', 'https://www.lbl.gov', NULL, NULL),
+	('Laboratory', 'Lawrence Berkeley National Laboratory', 'LBNL', '1 Cyclotron Rd.', NULL, 'Berkeley', 'CA   ', '94720', 'https://www.lbl.gov', NULL, NULL),
 	('Chemical vendor', 'Sigma-Aldrich', 'Sigma-Aldrich', '3050 Spruce St.', NULL, 'St Louis', 'MO   ', '63103', 'http://www.sigmaaldrich.com', NULL, NULL),
 	('Chemical vendor', 'Greatcell', 'Greatcell', NULL, NULL, 'Elanora', 'QLD  ', '4221', 'http://www.greatcellsolar.com/shop/', NULL, NULL),
 	('Cheminfomatics software', 'ChemAxon', 'ChemAxon', NULL, NULL, NULL, NULL, NULL, 'https://chemaxon.com', NULL, NULL),
@@ -102,33 +102,23 @@ COMMIT;
   mod_date timestamptz NOT NULL DEFAULT NOW()
 */
 BEGIN;
-INSERT INTO systemtool (systemtool_name, description, systemtool_type_id, vendor, model, serial, ver, organization_id, note_id)
+INSERT INTO systemtool (systemtool_name, description, systemtool_type_id, vendor_organization_id, model, serial, ver, note_id)
 VALUES 
-	('standardize', 'Chemical standardizer', 
+	('standardize', 'Molecule Standardizer', 
 		(select systemtool_type_id from systemtool_type where description = 'Command-line tool'), 
-		'ChemAxon', NULL, NULL, '19.27.0', 
-		(select organization_id from organization where full_name = 'ChemAxon'),
-		NULL),
-	('cxcalc', 'Chemical descriptor calculator',
+		(select organization_id from organization where full_name = 'ChemAxon'), NULL, NULL, '19.27.0', NULL),
+	('cxcalc', 'Molecular Descriptor Generator',
 		(select systemtool_type_id from systemtool_type where description = 'Command-line tool'), 
-		'ChemAxon', NULL, NULL, '19.27.0', 
-		(select organization_id from organization where full_name = 'ChemAxon'),
-		NULL),
-	('molconvert', 'Chemical converter',
+		(select organization_id from organization where full_name = 'ChemAxon'), NULL, NULL, '19.27.0', NULL),
+	('molconvert', 'Molecule File Converter',
 		(select systemtool_type_id from systemtool_type where description = 'Command-line tool'), 
-		'ChemAxon', NULL, NULL, '19.27.0', 
-		(select organization_id from organization where full_name = 'ChemAxon'),
-		NULL),
-	('generatemd', 'Chemical fingerprint calculator',
+		(select organization_id from organization where full_name = 'ChemAxon'), NULL, NULL, '19.27.0', NULL),
+	('generatemd', 'Molecular Descriptor Generator',
 		(select systemtool_type_id from systemtool_type where description = 'Command-line tool'),
-		'ChemAxon', NULL, NULL, '19.6.0', 
-		(select organization_id from organization where full_name = 'ChemAxon'),
-		NULL),
-	('RDKit', 'Cheminformatics toolkit for Python', 
+		(select organization_id from organization where full_name = 'ChemAxon'), NULL, NULL, '19.6.0', NULL),
+	('RDKit', 'Cheminformatics Toolkit for Python', 
 		(select systemtool_type_id from systemtool_type where description = 'Python toolkit'),
-		'Open Source: RDKit', NULL, NULL, '19.03.4', 
-		(select organization_id from organization where short_name = 'RDKit'),
-		NULL);
+		(select organization_id from organization where full_name = 'RDKit'), NULL, NULL, '19.03.4', NULL);
 COMMIT;
 
 -- ----------------------------
@@ -183,18 +173,21 @@ BEGIN;
 INSERT INTO actor (person_id, organization_id, systemtool_id, description, status_id)  
 VALUES 
 	-- haverford college as an actor
-	((select person_id from person where lastname = 'Nellikkal'), NULL, NULL, 
+	((select person_id from person where lastname = 'Nellikkal'), 
+		(select organization_id from organization where short_name = 'HC'), NULL, 
 		'Mansoor Nellikkal', (select status_id from status where description = 'active')),
-	((select person_id from person where lastname = 'Li'), NULL, NULL, 
+	((select person_id from person where lastname = 'Li'), 
+		(select organization_id from organization where short_name = 'LBNL'), NULL, 
 		'Zhi Li', (select status_id from status where description = 'active')),	
-	((select person_id from person where lastname = 'Pendleton'), NULL, NULL, 
+	((select person_id from person where lastname = 'Pendleton'), 
+		(select organization_id from organization where short_name = 'HC'), NULL, 
 		'Ian Pendleton', (select status_id from status where description = 'active')),
 	(NULL, 
 		(select organization_id from organization where short_name = 'HC'),
 		NULL, 'Haverford College', (select status_id from status where description = 'active')),
 	(NULL, 
-		(select organization_id from organization where short_name = 'LBL'),
-		NULL, 'LBL', (select status_id from status where description = 'active')),
+		(select organization_id from organization where short_name = 'LBNL'),
+		NULL, 'LBNL', (select status_id from status where description = 'active')),
 	(NULL, 
 		(select organization_id from organization where short_name = 'Sigma-Aldrich'),
 		NULL, 'Sigma-Aldrich', (select status_id from status where description = 'active')),
@@ -207,19 +200,19 @@ VALUES
 	(NULL, 
 		(select organization_id from organization where short_name = 'RDKit'),
 		NULL, 'RDKit', (select status_id from status where description = 'active')),			
-	(NULL, NULL,
+	(NULL, (select organization_id from organization where short_name = 'HC'), 
 		(select systemtool_id from systemtool where systemtool_name = 'standardize'), 
 		'ChemAxon: standardize', (select status_id from status where description = 'active')),		
-	(NULL, NULL,
+	(NULL, (select organization_id from organization where short_name = 'HC'), 
 		(select systemtool_id from systemtool where systemtool_name = 'cxcalc'), 
 		'ChemAxon: cxcalc', (select status_id from status where description = 'active')),		
-	(NULL, NULL,
+	(NULL, (select organization_id from organization where short_name = 'HC'), 
 		(select systemtool_id from systemtool where systemtool_name = 'molconvert'), 
 		'ChemAxon: molconvert', (select status_id from status where description = 'active')),		
-	(NULL, NULL,
+	(NULL, (select organization_id from organization where short_name = 'HC'), 
 		(select systemtool_id from systemtool where systemtool_name = 'generatemd'), 
 		'ChemAxon: generatemd', (select status_id from status where description = 'active')),
-	(NULL, NULL,
+	(NULL, (select organization_id from organization where short_name = 'HC'), 
 		(select systemtool_id from systemtool where systemtool_name = 'RDKit'), 
 		'RDKit: Python toolkit', (select status_id from status where description = 'active'));	
 COMMIT;

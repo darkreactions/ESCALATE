@@ -278,9 +278,9 @@ Date:					2020.01.16
 Description:	returns keys (id, uuid) of m_descriptor_def matching p_descrp parameters 
 Notes:				
 							
-Example:			SELECT * FROM get_descriptor_def (array['molconvert']);
+Example:			SELECT * FROM get_m_descriptor_def (array['molimage']);
 */
-DROP FUNCTION get_m_descriptor_def (p_descr VARCHAR[]);
+-- DROP FUNCTION get_m_descriptor_def (p_descr VARCHAR[]);
 CREATE OR REPLACE FUNCTION get_m_descriptor_def (p_descr VARCHAR[])
 RETURNS TABLE (
 			m_descriptor_def_id int8,
@@ -296,3 +296,64 @@ BEGIN
 	WHERE mdd.short_name = ANY(p_descr) OR mdd.calc_definition = ANY(p_descr) OR mdd.description = ANY(p_descr); 
 END;
 $$ LANGUAGE plpgsql;
+
+
+/*
+Name:					get_chemaxon_version ()
+Parameters:		p_systemtool_id = identifier (id) of the chemaxon [software] tool
+							p_actor_id = identifier (id) of the actor performing the calculation: this references the relevant software directories in order to run the CLI tool
+Returns:			version as TEXT
+Author:				G. Cattabriga
+Date:					2020.02.12
+Description:	returns the version for the specified chemaxon tool in string format 
+Notes:				
+							
+Example:			select get_chemaxon_version((select systemtool_id from systemtool where systemtool_name = 'cxcalc'), (select actor_id from actor where description = 'Gary Cattabriga')); (returns the version for cxcalc for actor GC) 
+*/
+-- DROP FUNCTION get_chemaxon_version ( p_systemtool_id int8, p_actor int8 )
+CREATE OR REPLACE FUNCTION get_chemaxon_version ( p_systemtool_id int8, p_actor_id int8 ) RETURNS TEXT AS $$ 
+DECLARE
+	var_name TEXT;
+	var_dir TEXT;
+BEGIN
+	DROP TABLE IF EXISTS load_temp;
+	CREATE TABLE load_temp ( help_string VARCHAR );
+	SELECT st.systemtool_name INTO var_name FROM systemtool st WHERE st.systemtool_id = p_systemtool_id;
+	CASE var_name 
+			WHEN 'cxcalc','standardize','molconvert' THEN
+				SELECT ap.pvalue INTO var_dir FROM actor_pref ap WHERE ap.actor_id = p_actor_id AND ap.pkey = 'MARVINSUITE_DIR';	
+			WHEN 'generatemd' THEN
+				SELECT ap.pvalue INTO var_dir FROM actor_pref ap WHERE ap.actor_id = p_actor_id AND ap.pkey = 'CHEMAXON_DIR';		
+	END CASE;
+		EXECUTE format ( 'COPY load_temp FROM PROGRAM ''%s%s -h'' ', var_dir, var_name );
+		RETURN ( SELECT SUBSTRING ( help_string FROM '[0-9]{1,2}[.][0-9]{1,2}[.][0-9]{1,2}' ) FROM load_temp WHERE SUBSTRING ( help_string FROM '[0-9]{1,2}[.][0-9]{1,2}[.][0-9]{1,2}' ) IS NOT NULL );
+		
+END;
+$$ LANGUAGE plpgsql;
+
+
+/*
+Name:					run_descriptor_calc ()
+Parameters:		p_exec_dir = string used to designate the descriptor calculator location directory
+							p_descr_def = reference to m_descriptor_def_id that will be used
+Returns:			m_descriptor_def_id, m_descriptor_def_uuid, short_name, calc_definition, description
+Author:				G. Cattabriga
+Date:					2020.01.16
+Description:	returns keys (id, uuid) of m_descriptor_def matching p_descrp parameters 
+Notes:				
+							
+Example:			SELECT * FROM get_descriptor_def (array['/Applications/MarvinSuite/bin/']);
+*/
+CREATE OR REPLACE FUNCTION run_descriptor_calc(p_exec_dir VARCHAR[], p_descr_def int, input)
+  RETURNS "pg_catalog"."bool" AS $BODY$ DECLARE
+	copycmd TEXT;
+BEGIN
+		DROP TABLE IF EXISTS load_temp_chemstring;
+		CREATE TABLE load_temp_chemstring ( chemstring VARCHAR );
+		COPY load_temp_chemstring FROM PROGRAM '/Applications/MarvinSuite/bin/standardize -c removefragment:method=keeplargest /Users/gcattabriga/DRP/demob/cp_inventory_run_20191104/cp_perov.smi ';
+			RETURN TRUE;	
+	EXCEPTION 
+	WHEN OTHERS THEN
+		RETURN FALSE;
+END $BODY$
+LANGUAGE plpgsql VOLATILE
