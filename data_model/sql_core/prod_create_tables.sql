@@ -38,7 +38,7 @@ DROP TABLE IF EXISTS material_refname_x cascade;
 DROP TABLE IF EXISTS m_descriptor_class cascade;
 DROP TABLE IF EXISTS m_descriptor_def cascade;
 DROP TABLE IF EXISTS m_descriptor cascade;
-DROP TABLE IF EXISTS m_descriptor_value cascade;
+DROP TABLE IF EXISTS m_descriptor_type cascade;
 DROP TABLE IF EXISTS inventory cascade;
 DROP TABLE IF EXISTS measure cascade;
 DROP TABLE IF EXISTS measure_x cascade;
@@ -154,7 +154,7 @@ CREATE TABLE actor_pref (
   actor_pref_id serial8,
   actor_pref_uuid uuid DEFAULT uuid_generate_v4 (),
   actor_id int8,
-	pkey varchar(255) COLLATE "pg_catalog"."default",
+	pkey varchar COLLATE "pg_catalog"."default",
   pvalue varchar COLLATE "pg_catalog"."default",
   note_id int8,
   add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -255,6 +255,7 @@ CREATE TABLE m_descriptor_def (
 	systemtool_id int8,
 	description varchar COLLATE "pg_catalog"."default",
 	m_descriptor_class_id int8,
+	m_descriptor_type_id int8,
 	actor_id int8, 
   note_id int8,
   add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -284,16 +285,15 @@ CREATE TABLE m_descriptor (
 );
 
 ---------------------------------------
--- Table structure for descriptor_value
+-- Table structure for descriptor_type
 ---------------------------------------
---DROP TABLE IF EXISTS m_descriptor_value cascade;
---CREATE TABLE m_descriptor_value (
- -- m_descriptor_value_id serial8,
---	m_descriptor_value_uuid uuid DEFAULT uuid_generate_v4 (),
---  num_value DOUBLE PRECISION,
---  blob_value bytea,
---  add_date timestamptz NOT NULL DEFAULT NOW(),
---  mod_date timestamptz NOT NULL DEFAULT NOW());
+CREATE TABLE m_descriptor_type (
+	m_descriptor_type_id serial8,
+	m_descriptor_type_uuid uuid DEFAULT uuid_generate_v4 (),
+	description varchar,
+  note_id int8,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW());
 
 ---------------------------------------
 -- Table structure for inventory
@@ -891,16 +891,20 @@ SELECT
 	mdd.m_descriptor_def_uuid,
 	mdd.short_name,
 	mdd.calc_definition,
-	mdd.systemtool_id,
 	mdd.description,
+	mdd.systemtool_id,
+	st.systemtool_name,
+	stt.description as systemtool_type_description,
+	org.short_name as systemtool_vendor_organzation,
+	st.ver as systemtool_version,
 	mdd.actor_id as actor_id,
-	act.systemtool_vendor AS actor_org,
-	act.systemtool_name AS actor_systemtool_name,
-	act.systemtool_version AS actor_systemtool_version 
+	act.actor_description as actor_description
 FROM
 	m_descriptor_def mdd
 	LEFT JOIN vw_actor act ON mdd.actor_id = act.actor_id
-	LEFT JOIN vw_latest_systemtool st ON mdd.systemtool_id = st.systemtool_id;
+	LEFT JOIN vw_latest_systemtool st ON mdd.systemtool_id = st.systemtool_id
+	LEFT JOIN systemtool_type stt on st.systemtool_type_id = stt.systemtool_type_id
+	LEFT JOIN organization org on st.vendor_organization_id = org.organization_id;
 
 
 -- get the descriptors and associated descriptor_def, including parent
@@ -935,10 +939,15 @@ FROM
 	LEFT JOIN status sts ON md.status_id = sts.status_id;
 
 
--- STUB get materials, all status
+-- get materials, all status
+-- DROP VIEW vw_material
 CREATE OR REPLACE VIEW vw_material AS 
-SELECT *
-FROM material mat;
+SELECT mat.material_uuid, mat.description as material_description, st.description as material_status, mr.material_refname_type, mr.description as material_refname_description
+FROM material mat
+LEFT JOIN material_refname_x mrx on mat.material_id = mrx.material_id
+LEFT JOIN material_refname mr on mrx.material_refname_id = mr.material_refname_id
+LEFT JOIN status st on mat.status_id = st.status_id
+order by 1, 2;
 
 -- get STUB materials and all descriptors, all status
 CREATE OR REPLACE VIEW vw_material_descriptor AS 

@@ -174,6 +174,25 @@ select short_name, calc_definition, description, actor_org, actor_systemtool_nam
 
 <br/>
 
+## Maintenance
+Script `pg_dump` to backup all the `dev` schema tables except the `load_` tables, which tend to be rather large:
+
+```
+ #!/usr/bin/env bash
+ 
+ today=`date +%Y%m%d`
+ filename="escalate_noload_dump_$today.bak"
+ pg_dump -U escalate -d escalate -Fc -T 'dev.load_*' > $filename 
+```
+
+If you want to back up everything, then eliminate the `exclude table` switch:
+
+```
+pg_dump -U escalate -d escalate -Fc -T > $filename
+```
+
+<br/>
+
 ## Built With
 
 * [PostgreSQL 12](https://www.postgresql.org) - Database

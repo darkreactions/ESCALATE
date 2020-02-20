@@ -106,19 +106,19 @@ INSERT INTO systemtool (systemtool_name, description, systemtool_type_id, vendor
 VALUES 
 	('standardize', 'Molecule Standardizer', 
 		(select systemtool_type_id from systemtool_type where description = 'Command-line tool'), 
-		(select organization_id from organization where full_name = 'ChemAxon'), NULL, NULL, '19.27.0', NULL),
+		(select organization_id from organization where short_name = 'ChemAxon'), NULL, NULL, '19.27.0', NULL),
 	('cxcalc', 'Molecular Descriptor Generator',
 		(select systemtool_type_id from systemtool_type where description = 'Command-line tool'), 
-		(select organization_id from organization where full_name = 'ChemAxon'), NULL, NULL, '19.27.0', NULL),
+		(select organization_id from organization where short_name = 'ChemAxon'), NULL, NULL, '19.27.0', NULL),
 	('molconvert', 'Molecule File Converter',
 		(select systemtool_type_id from systemtool_type where description = 'Command-line tool'), 
-		(select organization_id from organization where full_name = 'ChemAxon'), NULL, NULL, '19.27.0', NULL),
+		(select organization_id from organization where short_name = 'ChemAxon'), NULL, NULL, '19.27.0', NULL),
 	('generatemd', 'Molecular Descriptor Generator',
 		(select systemtool_type_id from systemtool_type where description = 'Command-line tool'),
-		(select organization_id from organization where full_name = 'ChemAxon'), NULL, NULL, '19.6.0', NULL),
+		(select organization_id from organization where short_name = 'ChemAxon'), NULL, NULL, '19.6.0', NULL),
 	('RDKit', 'Cheminformatics Toolkit for Python', 
 		(select systemtool_type_id from systemtool_type where description = 'Python toolkit'),
-		(select organization_id from organization where full_name = 'RDKit'), NULL, NULL, '19.03.4', NULL);
+		(select organization_id from organization where short_name = 'RDKit'), NULL, NULL, '19.03.4', NULL);
 COMMIT;
 
 -- ----------------------------
@@ -149,8 +149,10 @@ VALUES
 	('Mansoor', 'Nellikkal', 'maninajeeb@haverford.edu', 
 		(select organization_id from organization where short_name = 'HC')),
 	('Zhi', 'Li', 'zhili@lbl.gov', 
-		(select organization_id from organization where short_name = 'LBL')),
+		(select organization_id from organization where short_name = 'LBNL')),
 	('Ian', 'Pendleton', 'ipendleton@haverford.edu ', 
+		(select organization_id from organization where short_name = 'HC')),
+	('Gary', 'Cattabriga', 'gcattabrig@haverford.edu ', 
 		(select organization_id from organization where short_name = 'HC'))
 ;
 COMMIT;
@@ -182,6 +184,9 @@ VALUES
 	((select person_id from person where lastname = 'Pendleton'), 
 		(select organization_id from organization where short_name = 'HC'), NULL, 
 		'Ian Pendleton', (select status_id from status where description = 'active')),
+	((select person_id from person where lastname = 'Cattabriga'), 
+		(select organization_id from organization where short_name = 'HC'), NULL, 
+		'Gary Cattabriga', (select status_id from status where description = 'active')),
 	(NULL, 
 		(select organization_id from organization where short_name = 'HC'),
 		NULL, 'Haverford College', (select status_id from status where description = 'active')),
@@ -216,6 +221,31 @@ VALUES
 		(select systemtool_id from systemtool where systemtool_name = 'RDKit'), 
 		'RDKit: Python toolkit', (select status_id from status where description = 'active'));	
 COMMIT;
+
+
+-- ----------------------------
+-- Records of actor_pref
+-- ----------------------------
+/*
+  actor_pref_id serial8,
+  actor_pref_uuid uuid DEFAULT uuid_generate_v4 (),
+  actor_id int8,
+	pkey varchar(255) COLLATE "pg_catalog"."default",
+  pvalue varchar COLLATE "pg_catalog"."default",
+  note_id int8,
+  add_date timestamptz NOT NULL DEFAULT NOW(),
+  mod_date timestamptz NOT NULL DEFAULT NOW()
+*/
+BEGIN;
+INSERT INTO actor_pref (actor_id, pkey, pvalue)  
+VALUES 
+	-- for GC actor, set up environment variables
+	((select actor_id from vw_actor where per_lastname = 'Cattabriga'), 'HOME_DIR', '/Users/gcattabriga/'),	
+	((select actor_id from vw_actor where per_lastname = 'Cattabriga'), 'MARVINSUITE_DIR', '/Applications/MarvinSuite/bin/'),
+	((select actor_id from vw_actor where per_lastname = 'Cattabriga'), 'CHEMAXON_DIR', '/Applications/ChemAxon/JChemSuite/bin/')
+	;	
+COMMIT;
+
 
 
 

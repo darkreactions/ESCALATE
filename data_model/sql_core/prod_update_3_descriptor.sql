@@ -9,14 +9,33 @@ Notes:				presumes m_descriptor_def has been populated (see initialize tables)
 							not sure how best to use the m_descriptor_class :(
 */
 
+-- ----------------------------
+-- Records of status
+-- ----------------------------
+/*
+	status_id serial8,
+  description varchar(255) COLLATE "pg_catalog"."default",
+  add_date timestamptz NOT NULL DEFAULT NOW(),
+  mod_date timestamptz NOT NULL DEFAULT NOW()
+*/
+BEGIN;
+INSERT INTO m_descriptor_type (description)
+VALUES 
+	('text'),
+	('num'),
+	('num_array'),
+	('blob')
+;
+COMMIT;
+
+
 -- first populate m_descriptor_def
 -- using the load_perov_desc_def table joined to actor table (function) to bring in approp actor_id 
-INSERT INTO m_descriptor_def (short_name, calc_definition, description, systemtool_id)
-	select def.short_name, def.calc_definition, def.description, st.systemtool_id
+INSERT INTO m_descriptor_def (short_name, calc_definition, description, systemtool_id, actor_id, m_descriptor_type_id)
+	select def.short_name, def.calc_definition, def.description, st.systemtool_id, (select actor_id from vw_actor where per_lastname = 'Cattabriga'), mdt.m_descriptor_type_id
 	from load_perov_desc_def def 
-	join 
-		(select systemtool_id, systemtool_name from vw_latest_systemtool) st 
-	on def.systemtool_name = st.systemtool_name;
+	join (select systemtool_id, systemtool_name from vw_latest_systemtool) st on def.systemtool_name = st.systemtool_name
+	join m_descriptor_type mdt on def.calc_type = mdt.description;
 
 -- get the standadized (desalted) SMILES - returns varchar, so put in blob_value with type text
 -- in this [perov] case, this descriptor becomes the parent of many subsequent descriptors

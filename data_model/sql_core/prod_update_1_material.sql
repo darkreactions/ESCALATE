@@ -11,8 +11,15 @@ Notes:
 
 -- insert rows into material type from "load_Chem_Inventory"
 insert into material_type (description)
-	select "ChemicalCategory" from load_chem_inventory
-		group by "ChemicalCategory";
+	SELECT trim(regexp_split_to_table(load_chem_inventory."ChemicalCategory", E',')) as ccat
+	FROM load_chem_inventory
+	group by ccat;
+
+
+	SELECT "ChemicalName", trim(regexp_split_to_table(load_chem_inventory."ChemicalCategory", E','))
+	FROM load_chem_inventory
+	group by "ChemicalName", "ChemicalCategory";
+
 
 -- insert load_chem_inventory materials into material table
 -- default to HC as actor
@@ -24,7 +31,9 @@ insert into material (material_id, description, status_id)
 insert into material_type_x (material_id, material_type_id)
 	select mat.material_id, mtt.t_id from material mat 
 	join 
-		(select inv."ChemicalName" as cname, mt.material_type_id as t_id from load_chem_inventory inv 
+		(select inv."ChemicalName" as cname, mt.material_type_id as t_id from ( SELECT "ChemicalName", trim(regexp_split_to_table(load_chem_inventory."ChemicalCategory", E',')) as "ChemicalCategory"
+				FROM load_chem_inventory
+				group by "ChemicalName", "ChemicalCategory" ) inv 
 		join material_type mt on inv."ChemicalCategory" = mt.description) mtt 
 	on mat.description = mtt.cname;
 
