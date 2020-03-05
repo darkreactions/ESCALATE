@@ -34,17 +34,16 @@ COMMIT;
 -- Records of value_type
 -- ----------------------------
 /*
-	value_type_id serial8,
-	value_type_uuid uuid DEFAULT uuid_generate_v4 (),
+	val_type_id serial8,
 	description varchar,
-	value_type varchar,
-	value_subtype varchar, 
-  note_id int8,
+	val_type varchar,
+	val_subtype varchar, 
+  note_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW());
 */
 BEGIN;
-INSERT INTO value_type (description, value_type, value_subtype)
+INSERT INTO val_type (description, val_type, val_subtype)
 VALUES 
 	('text', 'text', NULL),
 	('num', 'num', NULL),
