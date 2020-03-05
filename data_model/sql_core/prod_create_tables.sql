@@ -38,7 +38,6 @@ DROP TABLE IF EXISTS material_refname_x cascade;
 DROP TABLE IF EXISTS m_descriptor_class cascade;
 DROP TABLE IF EXISTS m_descriptor_def cascade;
 DROP TABLE IF EXISTS m_descriptor cascade;
-DROP TABLE IF EXISTS m_descriptor_type cascade;
 DROP TABLE IF EXISTS inventory cascade;
 DROP TABLE IF EXISTS measure cascade;
 DROP TABLE IF EXISTS measure_x cascade;
@@ -50,6 +49,8 @@ DROP TABLE IF EXISTS tag cascade;
 DROP TABLE IF EXISTS tag_x cascade;
 DROP TABLE IF EXISTS tag_type cascade;
 DROP TABLE IF EXISTS status cascade;
+DROP TABLE IF EXISTS val cascade;
+DROP TABLE IF EXISTS val_type cascade;
 
  --=====================================
  -- CREATE TABLES 
@@ -58,7 +59,7 @@ DROP TABLE IF EXISTS status cascade;
 -- Table structure for organization
 ---------------------------------------
 CREATE TABLE organization (
-  organization_id serial8,
+	organization_id	serial8, 
 	organization_uuid uuid DEFAULT uuid_generate_v4 (),
 	parent_id int8,
 	parent_path ltree,
@@ -73,7 +74,7 @@ CREATE TABLE organization (
   country varchar COLLATE "pg_catalog"."default",	
   website_url varchar COLLATE "pg_catalog"."default",
   phone varchar COLLATE "pg_catalog"."default",
-  note_id int8,
+  note_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -82,7 +83,7 @@ CREATE TABLE organization (
 -- Table structure for person
 ---------------------------------------
 CREATE TABLE person (
-  person_id serial8,
+	person_id serial8,
   person_uuid uuid DEFAULT uuid_generate_v4 (),	
   firstname varchar COLLATE "pg_catalog"."default",
   lastname varchar COLLATE "pg_catalog"."default" NOT NULL,
@@ -96,7 +97,7 @@ CREATE TABLE person (
   title VARCHAR COLLATE "pg_catalog"."default",
   suffix varchar COLLATE "pg_catalog"."default",
 	organization_id int8,
-  note_id int8,
+  note_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -105,7 +106,7 @@ CREATE TABLE person (
 -- Table structure for systemtool
 ---------------------------------------
 CREATE TABLE systemtool (
-  systemtool_id serial8,
+	systemtool_id serial8, 
   systemtool_uuid uuid DEFAULT uuid_generate_v4 (),
   systemtool_name varchar COLLATE "pg_catalog"."default" NOT NULL,
   description varchar COLLATE "pg_catalog"."default",
@@ -114,7 +115,7 @@ CREATE TABLE systemtool (
   model varchar COLLATE "pg_catalog"."default",
   serial varchar COLLATE "pg_catalog"."default",
   ver varchar COLLATE "pg_catalog"."default",
-  note_id int8,
+  note_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -123,10 +124,10 @@ CREATE TABLE systemtool (
 -- Table structure for systemtool_type
 ---------------------------------------
 CREATE TABLE systemtool_type (
-  systemtool_type_id serial8 NOT NULL,
+	systemtool_type_id serial8,
   systemtool_type_uuid uuid DEFAULT uuid_generate_v4 (),
   description varchar COLLATE "pg_catalog"."default",
-  note_id int8,
+  note_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -135,14 +136,13 @@ CREATE TABLE systemtool_type (
 -- Table structure for actor
 ---------------------------------------
 CREATE TABLE actor (
-  actor_id serial8,
   actor_uuid uuid DEFAULT uuid_generate_v4 (),
   person_id int8,
   organization_id int8,
   systemtool_id int8,
   description varchar COLLATE "pg_catalog"."default",
-	status_id int8,
-  note_id int8,
+	status_uuid uuid,
+  note_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -151,12 +151,11 @@ CREATE TABLE actor (
 -- Table structure for actor_pref
 ---------------------------------------
 CREATE TABLE actor_pref (
-  actor_pref_id serial8,
   actor_pref_uuid uuid DEFAULT uuid_generate_v4 (),
-  actor_id int8,
+  actor_uuid uuid,
 	pkey varchar COLLATE "pg_catalog"."default",
   pvalue varchar COLLATE "pg_catalog"."default",
-  note_id int8,
+  note_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -168,14 +167,14 @@ CREATE TABLE material (
   material_id serial8,
   material_uuid uuid DEFAULT uuid_generate_v4 (),
   description varchar COLLATE "pg_catalog"."default" NOT NULL,
-  parent_id int8,
+  parent_uuid uuid,
 	parent_path ltree,	
---  "material_type_x_id" int8,
---  actor_id int8,
---  "descriptor_id" int8,
---  "alt_material_refname_id" int8,
-	status_id int8,
-  note_id int8,
+--  "material_type_x_uuid" int8,
+--  actor_uuid int8,
+--  "descriptor_uuid" int8,
+--  "alt_material_refname_uuid" int8,
+	status_uuid uuid,
+  note_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -184,10 +183,9 @@ CREATE TABLE material (
 -- Table structure for material_type
 ---------------------------------------
 CREATE TABLE material_type (
-  material_type_id serial8,
   material_type_uuid uuid DEFAULT uuid_generate_v4 (),
   description varchar COLLATE "pg_catalog"."default",
-  note_id int8,
+  note_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -196,9 +194,9 @@ CREATE TABLE material_type (
 -- Table structure for material_type_x
 ---------------------------------------
 CREATE TABLE material_type_x (
-  material_type_x_id serial8,
-	material_id int8,
-  material_type_id int8,
+  material_type_x_uuid uuid DEFAULT uuid_generate_v4 (),
+	ref_material_uuid uuid,
+  material_type_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -207,16 +205,15 @@ CREATE TABLE material_type_x (
 -- Table structure for material_refname
 ---------------------------------------
 CREATE TABLE material_refname (
-  material_refname_id serial8,
 	material_refname_uuid uuid DEFAULT uuid_generate_v4 (),
   description varchar COLLATE "pg_catalog"."default",
- -- material_id int8,	
+ -- material_uuid int8,	
   blob_value bytea,
 	blob_type varchar,
   material_refname_type varchar COLLATE "pg_catalog"."default",
   reference varchar COLLATE "pg_catalog"."default",
-	status_id int8,
-  note_id int8,
+	status_uuid uuid,
+  note_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -225,9 +222,9 @@ CREATE TABLE material_refname (
 -- Table structure for material_refname_x
 ---------------------------------------
 CREATE TABLE material_refname_x (
-  material_refname_x_id serial8,
-	material_id int8,
-  material_refname_id int8,
+  material_refname_x_uuid uuid DEFAULT uuid_generate_v4 (),
+	material_uuid uuid,
+  material_refname_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -236,10 +233,9 @@ CREATE TABLE material_refname_x (
 -- Table structure for m_descriptor_class
 ---------------------------------------
 CREATE TABLE m_descriptor_class (
-  m_descriptor_class_id serial8,
 	m_descriptor_class_uuid uuid DEFAULT uuid_generate_v4 (),
   description varchar COLLATE "pg_catalog"."default",
-  note_id int8,
+  note_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -248,16 +244,15 @@ CREATE TABLE m_descriptor_class (
 -- Table structure for m_descriptor_def
 ---------------------------------------
 CREATE TABLE m_descriptor_def (
-  m_descriptor_def_id serial8,
 	m_descriptor_def_uuid uuid DEFAULT uuid_generate_v4 (),
   short_name varchar COLLATE "pg_catalog"."default",
 	calc_definition varchar COLLATE "pg_catalog"."default",
 	systemtool_id int8,
 	description varchar COLLATE "pg_catalog"."default",
-	m_descriptor_class_id int8,
-	m_descriptor_type_id int8,
-	actor_id int8, 
-  note_id int8,
+	m_descriptor_class_uuid uuid,
+	m_descriptor_out_value_type_uuid uuid,
+	actor_uuid uuid, 
+  note_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -266,54 +261,42 @@ CREATE TABLE m_descriptor_def (
 -- Table structure for m_descriptor
 ---------------------------------------
 CREATE TABLE m_descriptor (
-  m_descriptor_id serial8,
 	m_descriptor_uuid uuid DEFAULT uuid_generate_v4 (),
-	parent_id int8,
+	parent_uuid uuid,
 	parent_path ltree,
 	m_descriptor_material_in varchar COLLATE "pg_catalog"."default",
   m_descriptor_material_type_in varchar(255) COLLATE "pg_catalog"."default",
-  m_descriptor_def_id int8,
+  m_descriptor_def_uuid uuid,
 	create_date timestamptz,
   num_valarray_out DOUBLE PRECISION[],	
   blob_val_out bytea,	
 	blob_type_out varchar,
-  status_id int8,
-	actor_id int8,
-  note_id int8,
+  status_uuid uuid,
+	actor_uuid uuid,
+  note_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
 
----------------------------------------
--- Table structure for descriptor_type
----------------------------------------
-CREATE TABLE m_descriptor_type (
-	m_descriptor_type_id serial8,
-	m_descriptor_type_uuid uuid DEFAULT uuid_generate_v4 (),
-	description varchar,
-  note_id int8,
-	add_date timestamptz NOT NULL DEFAULT NOW(),
-	mod_date timestamptz NOT NULL DEFAULT NOW());
 
 ---------------------------------------
 -- Table structure for inventory
 ---------------------------------------
 CREATE TABLE inventory (
-  inventory_id serial8,
 	inventory_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar,
-  material_id int8 NOT NULL,
-  actor_id int8,
+  material_uuid uuid NOT NULL,
+  actor_uuid uuid,
 	part_no varchar,
 	onhand_amt  DOUBLE PRECISION,
 	unit varchar,
-	-- measure_id int8,
+	-- measure_uuid int8,
   create_date timestamptz,
   expiration_date timestamptz DEFAULT NULL,
   inventory_location varchar(255) COLLATE "pg_catalog"."default",
-	status_id int8,
-	edocument_id int8,
-  note_id int8,
+	status_uuid uuid,
+	edocument_uuid uuid,
+  note_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -322,14 +305,15 @@ CREATE TABLE inventory (
 -- Table structure for measure
 ---------------------------------------
 CREATE TABLE measure (
-	measure_id serial8,
 	measure_uuid uuid DEFAULT uuid_generate_v4 (),
-	measure_type_id int8,
+	measure_type_uuid uuid,
 	amount DOUBLE PRECISION,
 	unit varchar COLLATE "pg_catalog"."default",
 	blob_amount bytea,
-	edocument_id int8,
-	note_id int8,
+	blob_type varchar,
+	actor_uuid uuid,
+	edocument_uuid uuid,
+	note_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -338,8 +322,8 @@ CREATE TABLE measure (
 -- Table structure for measure_x
 ---------------------------------------
 CREATE TABLE measure_x (
-  measure_x_id serial8,
-	ref_measure_uuid uuid DEFAULT uuid_generate_v4 (),
+  measure_x_uuid uuid DEFAULT uuid_generate_v4 (),
+	ref_measure_uuid uuid,
   measure_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
@@ -349,10 +333,9 @@ CREATE TABLE measure_x (
 -- Table structure for measure_type
 ---------------------------------------
 CREATE TABLE measure_type (
-	measure_type_id serial8,
 	measure_type_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default",
-	note_id int8,
+	note_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -361,11 +344,10 @@ CREATE TABLE measure_type (
 -- Table structure for note
 ---------------------------------------
 CREATE TABLE note (
-  note_id serial8,
 	note_uuid uuid DEFAULT uuid_generate_v4 (),
   notetext varchar COLLATE "pg_catalog"."default",
-  edocument_id int8,
-	actor_id int8,
+  edocument_uuid uuid,
+	actor_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -374,13 +356,12 @@ CREATE TABLE note (
 -- Table structure for document
 -- ----------------------------
 CREATE TABLE edocument (
-  edocument_id serial8,
 	edocument_uuid uuid DEFAULT uuid_generate_v4 (),
   description varchar COLLATE "pg_catalog"."default",
   edocument bytea,
   edoc_type varchar COLLATE "pg_catalog"."default",
   ver varchar COLLATE "pg_catalog"."default",
-	actor_id int8,
+	actor_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -389,9 +370,9 @@ CREATE TABLE edocument (
 -- Table structure for edocument_x
 ---------------------------------------
 CREATE TABLE edocument_x (
-  edocument_x_id serial8,
-	ref_uuid uuid DEFAULT uuid_generate_v4 (),
-  edocument_id int8,
+  edocument_x_uuid uuid DEFAULT uuid_generate_v4 (),
+	ref_edocument_uuid uuid,
+  edocument_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -400,13 +381,12 @@ CREATE TABLE edocument_x (
 -- Table structure for tag
 -- ----------------------------
 CREATE TABLE tag (
-  tag_id serial8,
 	tag_uuid uuid DEFAULT uuid_generate_v4 (),
-	tag_type_id int8,
+	tag_type_uuid uuid,
 	short_description varchar(16) COLLATE "pg_catalog"."default",
   description varchar COLLATE "pg_catalog"."default",
-	actor_id int8,
-  note_id int8,
+	actor_uuid uuid,
+  note_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -415,8 +395,8 @@ CREATE TABLE tag (
 -- Table structure for tag_x
 ---------------------------------------
 CREATE TABLE tag_x (
-  tag_x_id serial8,
-	ref_tag_uuid uuid DEFAULT uuid_generate_v4 (),
+  tag_x_uuid uuid DEFAULT uuid_generate_v4 (),
+	ref_tag_uuid uuid,
   tag_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
@@ -426,7 +406,6 @@ CREATE TABLE tag_x (
 -- Table structure for tag_type
 -- ----------------------------
 CREATE TABLE tag_type (
-  tag_type_id serial8,
 	tag_type_uuid uuid DEFAULT uuid_generate_v4 (),
 	short_description varchar(32) COLLATE "pg_catalog"."default",
   description varchar COLLATE "pg_catalog"."default",
@@ -438,11 +417,40 @@ CREATE TABLE tag_type (
 -- Table structure for status
 -- ----------------------------
 CREATE TABLE status (
-  status_id serial8,
+  status_uuid uuid DEFAULT uuid_generate_v4 (),
   description varchar COLLATE "pg_catalog"."default",
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
+
+
+---------------------------------------
+-- Table structure for val (value)
+---------------------------------------
+CREATE TABLE val (
+	val_uuid uuid DEFAULT uuid_generate_v4 (),
+	description varchar,
+	val_type_id int8,
+	val_text varchar,
+	val_num double precision,
+	val_numarry double precision[],
+	val_blob bytea,
+  note_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW());
+
+---------------------------------------
+-- Table structure for val_type (value_type)
+-- e.g. text, num, num_array, blob, blob_svg, blob_text
+---------------------------------------
+CREATE TABLE val_type (
+	val_type_id serial8,
+	description varchar,
+	val_type varchar,
+	val_subtype varchar, 
+  note_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW());
 
 
 --=====================================
@@ -468,108 +476,117 @@ ALTER TABLE systemtool_type
 CLUSTER systemtool_type USING "pk_systemtool_systemtool_type_id";
 
 ALTER TABLE actor 
-	ADD CONSTRAINT "pk_actor_id" PRIMARY KEY (actor_id);
+	ADD CONSTRAINT "pk_actor_uuid" PRIMARY KEY (actor_uuid);
 CREATE UNIQUE INDEX "un_actor" ON actor (coalesce(person_id,-1), coalesce(organization_id,-1), coalesce(systemtool_id,-1) );
-CLUSTER actor USING "pk_actor_id";
+CLUSTER actor USING "pk_actor_uuid";
 
 ALTER TABLE actor_pref 
-	ADD CONSTRAINT "pk_actor_pref_id" PRIMARY KEY (actor_pref_id);
-CLUSTER actor_pref USING "pk_actor_pref_id";
+	ADD CONSTRAINT "pk_actor_pref_uuid" PRIMARY KEY (actor_pref_uuid);
+CLUSTER actor_pref USING "pk_actor_pref_uuid";
 
 ALTER TABLE material ADD 
-	CONSTRAINT "pk_material_material_id" PRIMARY KEY (material_id);
+	CONSTRAINT "pk_material_material_uuid" PRIMARY KEY (material_uuid);
 CREATE INDEX "ix_material_parent_path" ON material USING GIST (parent_path);
-CREATE INDEX "ix_material_parent_id" ON material (parent_id);
-CLUSTER material USING "pk_material_material_id";
+CREATE INDEX "ix_material_parent_uuid" ON material (parent_uuid);
+CLUSTER material USING "pk_material_material_uuid";
 
 ALTER TABLE material_type ADD 
-	CONSTRAINT "pk_material_type_material_type_id" PRIMARY KEY (material_type_id);
-CLUSTER material_type USING "pk_material_type_material_type_id";
+	CONSTRAINT "pk_material_type_material_type_uuid" PRIMARY KEY (material_type_uuid);
+CLUSTER material_type USING "pk_material_type_material_type_uuid";
 
 ALTER TABLE material_type_x 
-	ADD CONSTRAINT "pk_material_type_x_material_type_x_id" PRIMARY KEY (material_type_x_id),
-	ADD CONSTRAINT "un_material_type_x" UNIQUE (material_id, material_type_id);
-CLUSTER material_type_x USING "pk_material_type_x_material_type_x_id";
+	ADD CONSTRAINT "pk_material_type_x_material_type_x_uuid" PRIMARY KEY (material_type_x_uuid),
+	ADD CONSTRAINT "un_material_type_x" UNIQUE (ref_material_uuid, material_type_uuid);
+CLUSTER material_type_x USING "pk_material_type_x_material_type_x_uuid";
 
 ALTER TABLE material_refname 
-	ADD CONSTRAINT "pk_material_refname_material_refname_id" PRIMARY KEY (material_refname_id),
+	ADD CONSTRAINT "pk_material_refname_material_refname_uuid" PRIMARY KEY (material_refname_uuid),
 	ADD CONSTRAINT "un_material_refname" UNIQUE (description, material_refname_type);
-CLUSTER material_refname USING "pk_material_refname_material_refname_id";
+CLUSTER material_refname USING "pk_material_refname_material_refname_uuid";
 
 ALTER TABLE material_refname_x 
-	ADD CONSTRAINT "pk_material_refname_x_material_refname_x_id" PRIMARY KEY (material_refname_x_id),
-	ADD CONSTRAINT "un_material_refname_x" UNIQUE (material_id, material_refname_id);
-CLUSTER material_refname_x USING "pk_material_refname_x_material_refname_x_id";
+	ADD CONSTRAINT "pk_material_refname_x_material_refname_x_uuid" PRIMARY KEY (material_refname_x_uuid),
+	ADD CONSTRAINT "un_material_refname_x" UNIQUE (material_uuid, material_refname_uuid);
+CLUSTER material_refname_x USING "pk_material_refname_x_material_refname_x_uuid";
 
 ALTER TABLE m_descriptor_class ADD 
-	CONSTRAINT "pk_m_descriptor_class_m_descriptor_class_id" PRIMARY KEY (m_descriptor_class_id);
-CLUSTER m_descriptor_class USING "pk_m_descriptor_class_m_descriptor_class_id";
+	CONSTRAINT "pk_m_descriptor_class_m_descriptor_class_uuid" PRIMARY KEY (m_descriptor_class_uuid);
+CLUSTER m_descriptor_class USING "pk_m_descriptor_class_m_descriptor_class_uuid";
 
 ALTER TABLE m_descriptor_def 
-	ADD CONSTRAINT "pk_m_descriptor_m_descriptor_def_id" PRIMARY KEY (m_descriptor_def_id),
-	ADD CONSTRAINT "un_m_descriptor_def" UNIQUE (actor_id, calc_definition);	
-CLUSTER m_descriptor_def USING "pk_m_descriptor_m_descriptor_def_id";
+	ADD CONSTRAINT "pk_m_descriptor_m_descriptor_def_uuid" PRIMARY KEY (m_descriptor_def_uuid),
+	ADD CONSTRAINT "un_m_descriptor_def" UNIQUE (actor_uuid, calc_definition);	
+CLUSTER m_descriptor_def USING "pk_m_descriptor_m_descriptor_def_uuid";
 
 ALTER TABLE m_descriptor
-	ADD CONSTRAINT "pk_m_descriptor_m_descriptor_id" PRIMARY KEY (m_descriptor_id),
-	ADD CONSTRAINT "un_m_descriptor" UNIQUE (parent_id, m_descriptor_material_in, m_descriptor_material_type_in, m_descriptor_def_id);
+	ADD CONSTRAINT "pk_m_descriptor_m_descriptor_uuid" PRIMARY KEY (m_descriptor_uuid),
+	ADD CONSTRAINT "un_m_descriptor" UNIQUE (parent_uuid, m_descriptor_material_in, m_descriptor_material_type_in, m_descriptor_def_uuid);
 CREATE INDEX "ix_m_descriptor_parent_path" ON m_descriptor USING GIST (parent_path);
-CREATE INDEX "ix_m_descriptor_parent_id" ON m_descriptor (parent_id);
-CLUSTER m_descriptor USING "pk_m_descriptor_m_descriptor_id";
+CREATE INDEX "ix_m_descriptor_parent_uuid" ON m_descriptor (parent_uuid);
+CLUSTER m_descriptor USING "pk_m_descriptor_m_descriptor_uuid";
 
 -- ALTER TABLE m_descriptor_value ADD 
--- 	CONSTRAINT "pk_m_descriptor_value_m_descriptor_value_id" PRIMARY KEY (m_descriptor_value_id);
--- CLUSTER m_descriptor_value USING "pk_m_descriptor_value_m_descriptor_value_id";-- 
+-- 	CONSTRAINT "pk_m_descriptor_value_m_descriptor_value_uuid" PRIMARY KEY (m_descriptor_value_uuid);
+-- CLUSTER m_descriptor_value USING "pk_m_descriptor_value_m_descriptor_value_uuid";-- 
 
 ALTER TABLE inventory 
-	ADD CONSTRAINT "pk_inventory_inventory_id" PRIMARY KEY (inventory_id),
-	ADD CONSTRAINT "un_inventory" UNIQUE (material_id, actor_id, create_date);
-CLUSTER inventory USING "pk_inventory_inventory_id";
+	ADD CONSTRAINT "pk_inventory_inventory_uuid" PRIMARY KEY (inventory_uuid),
+	ADD CONSTRAINT "un_inventory" UNIQUE (material_uuid, actor_uuid, create_date);
+CLUSTER inventory USING "pk_inventory_inventory_uuid";
 
 ALTER TABLE measure 
-	ADD CONSTRAINT "pk_measure_measure_id" PRIMARY KEY (measure_id),
+	ADD CONSTRAINT "pk_measure_measure_uuid" PRIMARY KEY (measure_uuid),
 	ADD CONSTRAINT "un_measure" UNIQUE (measure_uuid);
- CLUSTER measure USING "pk_measure_measure_id";
+ CLUSTER measure USING "pk_measure_measure_uuid";
 
 ALTER TABLE measure_x 
-	ADD CONSTRAINT "pk_measure_x_measure_x_id" PRIMARY KEY (measure_x_id),
+	ADD CONSTRAINT "pk_measure_x_measure_x_uuid" PRIMARY KEY (measure_x_uuid),
 	ADD CONSTRAINT "un_measure_x" UNIQUE (ref_measure_uuid, measure_uuid);
-CLUSTER measure_x USING "pk_measure_x_measure_x_id";
+CLUSTER measure_x USING "pk_measure_x_measure_x_uuid";
 
  ALTER TABLE measure_type ADD 
-	CONSTRAINT "pk_measure_type_measure_type_id" PRIMARY KEY (measure_type_id);
- CLUSTER measure_type USING "pk_measure_type_measure_type_id";
+	CONSTRAINT "pk_measure_type_measure_type_uuid" PRIMARY KEY (measure_type_uuid);
+ CLUSTER measure_type USING "pk_measure_type_measure_type_uuid";
 
 ALTER TABLE note ADD 
-	CONSTRAINT "pk_note_note_id" PRIMARY KEY (note_id);
-CLUSTER note USING "pk_note_note_id";
+	CONSTRAINT "pk_note_note_uuid" PRIMARY KEY (note_uuid);
+CLUSTER note USING "pk_note_note_uuid";
 
 ALTER TABLE edocument ADD 
-	CONSTRAINT "pk_edocument_edocument_id" PRIMARY KEY (edocument_id);
-CLUSTER edocument USING "pk_edocument_edocument_id";
+	CONSTRAINT "pk_edocument_edocument_uuid" PRIMARY KEY (edocument_uuid);
+CLUSTER edocument USING "pk_edocument_edocument_uuid";
 
 ALTER TABLE edocument_x 
-	ADD CONSTRAINT "pk_edocument_x_edocument_x_id" PRIMARY KEY (edocument_x_id),
-	ADD CONSTRAINT "un_edocument_x" UNIQUE (ref_uuid, edocument_id);
-CLUSTER edocument_x USING "pk_edocument_x_edocument_x_id";
+	ADD CONSTRAINT "pk_edocument_x_edocument_x_uuid" PRIMARY KEY (edocument_x_uuid),
+	ADD CONSTRAINT "un_edocument_x" UNIQUE (ref_edocument_uuid, edocument_uuid);
+CLUSTER edocument_x USING "pk_edocument_x_edocument_x_uuid";
 
 ALTER TABLE tag 
-	ADD CONSTRAINT "pk_tag_tag_id" PRIMARY KEY (tag_id),
+	ADD CONSTRAINT "pk_tag_tag_uuid" PRIMARY KEY (tag_uuid),
 	ADD CONSTRAINT "un_tag" UNIQUE (tag_uuid);;
-CLUSTER tag USING "pk_tag_tag_id";
+CLUSTER tag USING "pk_tag_tag_uuid";
 
 ALTER TABLE tag_x 
-	ADD CONSTRAINT "pk_tag_x_tag_x_id" PRIMARY KEY (tag_x_id),
+	ADD CONSTRAINT "pk_tag_x_tag_x_uuid" PRIMARY KEY (tag_x_uuid),
 	ADD CONSTRAINT "un_tag_x" UNIQUE (ref_tag_uuid, tag_uuid);
-CLUSTER tag_x USING "pk_tag_x_tag_x_id";
+CLUSTER tag_x USING "pk_tag_x_tag_x_uuid";
 
 ALTER TABLE tag_type ADD 
-	CONSTRAINT "pk_tag_tag_type_id" PRIMARY KEY (tag_type_id);
-CLUSTER tag_type USING "pk_tag_tag_type_id";
+	CONSTRAINT "pk_tag_tag_type_uuid" PRIMARY KEY (tag_type_uuid);
+CLUSTER tag_type USING "pk_tag_tag_type_uuid";
 
 ALTER TABLE status ADD 
-	CONSTRAINT "pk_status_status_id" PRIMARY KEY (status_id);
-CLUSTER status USING "pk_status_status_id";
+	CONSTRAINT "pk_status_status_uuid" PRIMARY KEY (status_uuid);
+CLUSTER status USING "pk_status_status_uuid";
+
+ALTER TABLE val ADD 
+	CONSTRAINT "pk_val_val_uuid" PRIMARY KEY (val_uuid);
+CLUSTER status USING "pk_val_val_uuid";
+
+ALTER TABLE val_type 
+	ADD CONSTRAINT "pk_val_type_val_type_id" PRIMARY KEY (val_type_id),
+	ADD CONSTRAINT "un_val_type" UNIQUE (val_type, val_subtype);
+CLUSTER status USING "pk_val_type_val_type_id";
 
 --=====================================
 -- FOREIGN KEYS
@@ -577,13 +594,13 @@ CLUSTER status USING "pk_status_status_id";
 -- ALTER TABLE organization DROP CONSTRAINT fk_organization_note_1;
 ALTER TABLE organization 
 	ADD CONSTRAINT fk_organization_organization_1 FOREIGN KEY (parent_id) REFERENCES organization (organization_id),
-	ADD CONSTRAINT fk_organization_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
+	ADD CONSTRAINT fk_organization_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
 
 -- ALTER TABLE person DROP CONSTRAINT fk_person_organization_1, 
 --	DROP CONSTRAINT fk_person_note_1;
 ALTER TABLE person 
 	ADD CONSTRAINT fk_person_organization_1 FOREIGN KEY (organization_id) REFERENCES organization (organization_id),
-	ADD CONSTRAINT fk_person_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
+	ADD CONSTRAINT fk_person_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
 
 -- ALTER TABLE systemtool DROP CONSTRAINT fk_systemtool_systemtool_type_1,
 --	DROP CONSTRAINT fk_systemtool_organization_1,
@@ -591,11 +608,11 @@ ALTER TABLE person
 ALTER TABLE systemtool 
 	ADD CONSTRAINT fk_systemtool_systemtool_type_1 FOREIGN KEY (systemtool_type_id) REFERENCES systemtool_type (systemtool_type_id),
 	ADD CONSTRAINT fk_systemtool_vendor_1 FOREIGN KEY (vendor_organization_id) REFERENCES organization (organization_id),
-	ADD CONSTRAINT fk_systemtool_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
+	ADD CONSTRAINT fk_systemtool_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
 
 -- ALTER TABLE systemtool_type DROP CONSTRAINT fk_systemtool_type_note_1;
 ALTER TABLE systemtool_type 
-	ADD CONSTRAINT fk_systemtool_type_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
+	ADD CONSTRAINT fk_systemtool_type_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
 
 -- ALTER TABLE actor DROP CONSTRAINT fk_actor_person_1, 
 --	DROP CONSTRAINT fk_actor_organization_1, 
@@ -605,56 +622,57 @@ ALTER TABLE actor
 	ADD CONSTRAINT fk_actor_person_1 FOREIGN KEY (person_id) REFERENCES person (person_id),
 	ADD CONSTRAINT fk_actor_organization_1 FOREIGN KEY (organization_id) REFERENCES organization (organization_id),
 	ADD CONSTRAINT fk_actor_systemtool_1 FOREIGN KEY (systemtool_id) REFERENCES systemtool (systemtool_id),
-	ADD CONSTRAINT fk_actor_status_1 FOREIGN KEY (status_id) REFERENCES status (status_id),	
-	ADD CONSTRAINT fk_actor_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
+	ADD CONSTRAINT fk_actor_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid),	
+	ADD CONSTRAINT fk_actor_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
 	
 ALTER TABLE actor_pref 
-	ADD CONSTRAINT fk_actor_pref_actor_1 FOREIGN KEY (actor_id) REFERENCES actor (actor_id),
-	ADD CONSTRAINT fk_actor_pref_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
+	ADD CONSTRAINT fk_actor_pref_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+	ADD CONSTRAINT fk_actor_pref_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
 	
 -- ALTER TABLE material DROP CONSTRAINT fk_material_actor_1,
 --	DROP CONSTRAINT fk_material_material_1;
 --	DROP CONSTRAINT fk_material_note_1;
 ALTER TABLE material 
---	ADD CONSTRAINT fk_material_actor_1 FOREIGN KEY (actor_id) REFERENCES actor (actor_id),
-	ADD CONSTRAINT fk_material_material_1 FOREIGN KEY (parent_id) REFERENCES material (material_id),
-	ADD CONSTRAINT fk_material_status_1 FOREIGN KEY (status_id) REFERENCES status (status_id),	
-	ADD CONSTRAINT fk_material_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
+--	ADD CONSTRAINT fk_material_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+	ADD CONSTRAINT fk_material_material_1 FOREIGN KEY (parent_uuid) REFERENCES material (material_uuid),
+	ADD CONSTRAINT fk_material_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid),	
+	ADD CONSTRAINT fk_material_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
 	
 -- ALTER TABLE material_type DROP CONSTRAINT fk_material_type_note_1;
 ALTER TABLE material_type 
-	ADD CONSTRAINT fk_material_type_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
+	ADD CONSTRAINT fk_material_type_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
 
 --ALTER TABLE material_type_x DROP CONSTRAINT fk_material_type_x_material_1, 
 --	DROP CONSTRAINT fk_material_type_x_material_type_1;
 ALTER TABLE material_type_x 
-	ADD CONSTRAINT fk_material_type_x_material_1 FOREIGN KEY (material_id) REFERENCES material (material_id),
-	ADD CONSTRAINT fk_material_type_x_material_type_1 FOREIGN KEY (material_type_id) REFERENCES material_type (material_type_id);
+	ADD CONSTRAINT fk_material_type_x_material_1 FOREIGN KEY (ref_material_uuid) REFERENCES material (material_uuid),
+	ADD CONSTRAINT fk_material_type_x_material_type_1 FOREIGN KEY (material_type_uuid) REFERENCES material_type (material_type_uuid);
 
 --ALTER TABLE material_refname DROP CONSTRAINT fk_alt_material_refname_material_1, 
 --	DROP CONSTRAINT fk_alt_material_refname_note_1;
 ALTER TABLE material_refname 
-	ADD CONSTRAINT fk_material_refname_status_1 FOREIGN KEY (status_id) REFERENCES status (status_id),	
-	ADD CONSTRAINT fk_material_refname_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
+	ADD CONSTRAINT fk_material_refname_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid),	
+	ADD CONSTRAINT fk_material_refname_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
 
 --ALTER TABLE material_refname_x DROP CONSTRAINT fk_material_refname_x_material_1, 
 --	DROP CONSTRAINT fk_material_refname_x_material_type_1;
 ALTER TABLE material_refname_x 
-	ADD CONSTRAINT fk_material_refname_x_material_1 FOREIGN KEY (material_id) REFERENCES material (material_id),
-	ADD CONSTRAINT fk_material_refname_x_material_refname_1 FOREIGN KEY (material_refname_id) REFERENCES material_refname (material_refname_id);
+	ADD CONSTRAINT fk_material_refname_x_material_1 FOREIGN KEY (material_uuid) REFERENCES material (material_uuid),
+	ADD CONSTRAINT fk_material_refname_x_material_refname_1 FOREIGN KEY (material_refname_uuid) REFERENCES material_refname (material_refname_uuid);
 
 -- ALTER TABLE m_descriptor_class DROP CONSTRAINT fk_m_descriptor_class_note_1;
 ALTER TABLE m_descriptor_class 
-	ADD CONSTRAINT fk_m_descriptor_class_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
+	ADD CONSTRAINT fk_m_descriptor_class_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
 	
--- ALTER TABLE m_descriptor_type_x DROP CONSTRAINT fk_m_descriptor_def_note_1,
+-- ALTER TABLE m_descriptor_def DROP CONSTRAINT fk_m_descriptor_def_note_1,
 -- DROP CONSTRAINT fk_m_descriptor_def_actor_1, 
--- DROP CONSTRAINT fk_m_descriptor_def_m_descriptor_class_1;
+-- DROP CONSTRAINT fk_m_descriptor_def_m_descriptor_class_1,
+-- DROP CONSTRAINT fk_m_descriptor_def_systemtool_1;
 ALTER TABLE m_descriptor_def 
-	ADD CONSTRAINT fk_m_descriptor_def_m_descriptor_class_1 FOREIGN KEY (m_descriptor_class_id) REFERENCES m_descriptor_class (m_descriptor_class_id),	
+	ADD CONSTRAINT fk_m_descriptor_def_m_descriptor_class_1 FOREIGN KEY (m_descriptor_class_uuid) REFERENCES m_descriptor_class (m_descriptor_class_uuid),	
 	ADD CONSTRAINT fk_m_descriptor_def_systemtool_1 FOREIGN KEY (systemtool_id) REFERENCES systemtool (systemtool_id),	
-	ADD CONSTRAINT fk_m_descriptor_def_actor_1 FOREIGN KEY (actor_id) REFERENCES actor (actor_id),
-	ADD CONSTRAINT fk_m_descriptor_def_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);	
+	ADD CONSTRAINT fk_m_descriptor_def_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+	ADD CONSTRAINT fk_m_descriptor_def_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);	
 
 -- ALTER TABLE m_descriptor DROP CONSTRAINT fk_m_descriptor_material_1, 
 -- DROP CONSTRAINT fk_m_descriptor_actor_1, 
@@ -662,30 +680,30 @@ ALTER TABLE m_descriptor_def
 -- DROP CONSTRAINT fk_m_descriptor_note_1;
 ALTER TABLE m_descriptor 
 --	ADD CONSTRAINT fk_m_descriptor_material_refname_1 FOREIGN KEY (material_refname_description_in, material_refname_type_in) REFERENCES material_refname (description, material_refname_type),
-	ADD CONSTRAINT fk_m_descriptor_parent_1 FOREIGN KEY (parent_id) REFERENCES m_descriptor (m_descriptor_id),
-	ADD CONSTRAINT fk_m_descriptor_actor_1 FOREIGN KEY (actor_id) REFERENCES actor (actor_id),
-	ADD CONSTRAINT fk_m_descriptor_status_1 FOREIGN KEY (status_id) REFERENCES status (status_id),	
-	ADD CONSTRAINT fk_m_descriptor_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
+	ADD CONSTRAINT fk_m_descriptor_parent_1 FOREIGN KEY (parent_uuid) REFERENCES m_descriptor (m_descriptor_uuid),
+	ADD CONSTRAINT fk_m_descriptor_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+	ADD CONSTRAINT fk_m_descriptor_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid),	
+	ADD CONSTRAINT fk_m_descriptor_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
 	
 -- ALTER TABLE inventory  DROP CONSTRAINT fk_inventory_material_1, 
 -- DROP CONSTRAINT fk_inventory_actor_1, 
 -- DROP CONSTRAINT fk_inventory_measure_1,
 -- DROP CONSTRAINT fk_inventory_note_1;
 ALTER TABLE inventory 
-	ADD CONSTRAINT fk_inventory_material_1 FOREIGN KEY (material_id) REFERENCES material (material_id),
-	ADD CONSTRAINT fk_inventory_actor_1 FOREIGN KEY (actor_id) REFERENCES actor (actor_id),
-	ADD CONSTRAINT fk_inventory_status_1 FOREIGN KEY (status_id) REFERENCES status (status_id),	
-	ADD CONSTRAINT fk_inventory_edocument_1 FOREIGN KEY (edocument_id) REFERENCES edocument (edocument_id),		
-	ADD CONSTRAINT fk_inventory_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
+	ADD CONSTRAINT fk_inventory_material_1 FOREIGN KEY (material_uuid) REFERENCES material (material_uuid),
+	ADD CONSTRAINT fk_inventory_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+	ADD CONSTRAINT fk_inventory_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid),	
+	ADD CONSTRAINT fk_inventory_edocument_1 FOREIGN KEY (edocument_uuid) REFERENCES edocument (edocument_uuid),		
+	ADD CONSTRAINT fk_inventory_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
 
 ALTER TABLE measure 
-	ADD CONSTRAINT fk_measure_measure_type_1 FOREIGN KEY (measure_type_id) REFERENCES measure_type (measure_type_id),
-	ADD CONSTRAINT fk_measure_edocument_1 FOREIGN KEY (edocument_id) REFERENCES edocument (edocument_id),
-	ADD CONSTRAINT fk_measure_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
+	ADD CONSTRAINT fk_measure_measure_type_1 FOREIGN KEY (measure_type_uuid) REFERENCES measure_type (measure_type_uuid),
+	ADD CONSTRAINT fk_measure_edocument_1 FOREIGN KEY (edocument_uuid) REFERENCES edocument (edocument_uuid),
+	ADD CONSTRAINT fk_measure_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
 
  -- ALTER TABLE measure_type DROP CONSTRAINT fk_measure_type_note_1;
  ALTER TABLE measure_type 
-	ADD CONSTRAINT fk_measure_type_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
+	ADD CONSTRAINT fk_measure_type_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
 
 -- ALTER TABLE measure_x DROP CONSTRAINT fk_measure_x_measure_1;
 ALTER TABLE measure_x 
@@ -693,23 +711,28 @@ ALTER TABLE measure_x
 
 -- ALTER TABLE note DROP CONSTRAINT fk_note_edocument_1;
 ALTER TABLE note 
-	ADD CONSTRAINT fk_note_actor_1 FOREIGN KEY (actor_id) REFERENCES actor (actor_id),
-	ADD CONSTRAINT fk_note_edocument_1 FOREIGN KEY (edocument_id) REFERENCES edocument (edocument_id);	
+	ADD CONSTRAINT fk_note_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+	ADD CONSTRAINT fk_note_edocument_1 FOREIGN KEY (edocument_uuid) REFERENCES edocument (edocument_uuid);	
 
--- ALTER TABLE edocument_x ADD CONSTRAINT "pk_edocument_x_edocument_x_id" PRIMARY KEY (edocument_x_id), ADD CONSTRAINT "un_edocument_x" UNIQUE (ref_uuid, edocument_id);
+-- ALTER TABLE edocument_x ADD CONSTRAINT "pk_edocument_x_edocument_x_uuid" PRIMARY KEY (edocument_x_uuid), ADD CONSTRAINT "un_edocument_x" UNIQUE (ref_uuid, edocument_uuid);
 ALTER TABLE edocument_x
-	ADD CONSTRAINT fk_edocument_x_edocument_1 FOREIGN KEY (edocument_id) REFERENCES edocument (edocument_id);
+	ADD CONSTRAINT fk_edocument_x_edocument_1 FOREIGN KEY (edocument_uuid) REFERENCES edocument (edocument_uuid);
 
 --ALTER TABLE tag DROP CONSTRAINT fk_tag_tag_type_1, 
 --	DROP CONSTRAINT fk_tag_note_1;
 ALTER TABLE tag 
-	ADD CONSTRAINT fk_tag_tag_type_1 FOREIGN KEY (tag_type_id) REFERENCES tag_type (tag_type_id),
-	ADD CONSTRAINT fk_tag_actor_1 FOREIGN KEY (actor_id) REFERENCES actor (actor_id),
-	ADD CONSTRAINT fk_tag_note_1 FOREIGN KEY (note_id) REFERENCES note (note_id);
+	ADD CONSTRAINT fk_tag_tag_type_1 FOREIGN KEY (tag_type_uuid) REFERENCES tag_type (tag_type_uuid),
+	ADD CONSTRAINT fk_tag_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+	ADD CONSTRAINT fk_tag_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
 
--- ALTER TABLE tag ADD CONSTRAINT "pk_tag_tag_id" PRIMARY KEY (tag_id);
+-- ALTER TABLE tag ADD CONSTRAINT "pk_tag_tag_uuid" PRIMARY KEY (tag_uuid);
 ALTER TABLE tag_x 
 	ADD CONSTRAINT fk_tag_x_tag_1 FOREIGN KEY (tag_uuid) REFERENCES tag (tag_uuid);
+
+
+ALTER TABLE val_type 
+	ADD CONSTRAINT fk_val_type_val_1 FOREIGN KEY (val_type_id) REFERENCES val (val_type_id);
+
 
 
 
@@ -763,8 +786,8 @@ UPDATE organization
  WHERE name = 'ChemAxon' RETURNING *;
  
  UPDATE actor 
-	SET organization_id = 4
- WHERE organization_id = 4 RETURNING *;
+	SET organization_uuid = 4
+ WHERE organization_uuid = 4 RETURNING *;
  */
 
 
@@ -775,7 +798,7 @@ UPDATE organization
 COMMENT ON TABLE organization IS 'organization information for ESCALATE person and system tool; can be component of actor';
   COMMENT ON COLUMN organization.organization_id IS 'primary key for organization records';
 	COMMENT ON COLUMN organization.organization_uuid is 'uuid for this organization record';
-	COMMENT ON COLUMN organization.parent_id is 'reference to parent organization; uses [internal] organization_id';
+	COMMENT ON COLUMN organization.parent_id is 'reference to parent organization; uses [internal] organization_uuid';
 	COMMENT ON COLUMN organization.parent_path is 'allows a searchable, naviagatable tree structure; currently not being used';
   COMMENT ON COLUMN organization.description is 'free test describing the organization';
   COMMENT ON COLUMN organization.full_name is 'long (full) version of the org name';
@@ -788,7 +811,7 @@ COMMENT ON TABLE organization IS 'organization information for ESCALATE person a
   COMMENT ON COLUMN organization.country is 'country code';	
   COMMENT ON COLUMN organization.website_url is 'organization url';
   COMMENT ON COLUMN organization.phone is 'primary organization phone';
-  COMMENT ON COLUMN organization.note_id is 'organization note; reference to note object which can be free text or blob';
+  COMMENT ON COLUMN organization.note_uuid is 'organization note; reference to note object which can be free text or blob';
   COMMENT ON COLUMN organization.add_date is 'date this record added';
   COMMENT ON COLUMN organization.mod_date is 'date this record updated';
 
@@ -799,7 +822,6 @@ COMMENT ON TABLE organization IS 'organization information for ESCALATE person a
 CREATE OR REPLACE VIEW vw_actor AS 
 SELECT
 	act.actor_uuid AS actor_uuid,
-	act.actor_id,
 	org.organization_id,
 	per.person_id,
 	st.systemtool_id,
@@ -832,19 +854,19 @@ FROM
 	LEFT JOIN systemtool st ON act.systemtool_id = st.systemtool_id
 	LEFT JOIN systemtool_type stt ON st.systemtool_type_id = stt.systemtool_type_id
 	LEFT JOIN organization vorg on st.vendor_organization_id = vorg.organization_id
-	LEFT JOIN note nt ON act.note_id = nt.note_id
-	LEFT JOIN edocument_x docx ON nt.note_uuid = docx.ref_uuid
-	LEFT JOIN edocument doc ON docx.edocument_x_id = doc.edocument_id
-	LEFT JOIN status sts ON act.status_id = sts.status_id;
+	LEFT JOIN note nt ON act.note_uuid = nt.note_uuid
+	LEFT JOIN edocument_x docx ON nt.note_uuid = docx.ref_edocument_uuid
+	LEFT JOIN edocument doc ON docx.edocument_uuid = doc.edocument_uuid
+	LEFT JOIN status sts ON act.status_uuid = sts.status_uuid;
 					
 -- integrated view of inventory; joins actor...
 -- CREATE OR REPLACE VIEW vw_inventory AS 
---	SELECT inv.inventory_id, inv.description, inv.material_id, inv.actor_id, act.actor_description, inv.part_no, inv.create_date, inv.mod_date, mm.measure_id, mm.amount, mm.unit
+--	SELECT inv.inventory_uuid, inv.description, inv.material_uuid, inv.actor_uuid, act.actor_description, inv.part_no, inv.create_date, inv.mod_date, mm.measure_uuid, mm.amount, mm.unit
 --		FROM inventory inv
 --		LEFT JOIN measure mm 
---		ON inv.measure_id = mm.measure_id
+--		ON inv.measure_uuid = mm.measure_uuid
 --		left join get_actor() act
---		ON inv.actor_id = act.actor_id;
+--		ON inv.actor_uuid = act.actor_uuid;
 
 		
 -- get most recent version of a systemtool
@@ -887,7 +909,6 @@ FROM
 -- get the m_descriptor_def and associated actor
 CREATE OR REPLACE VIEW vw_m_descriptor_def AS 
 SELECT
-	mdd.m_descriptor_def_id,
 	mdd.m_descriptor_def_uuid,
 	mdd.short_name,
 	mdd.calc_definition,
@@ -897,29 +918,29 @@ SELECT
 	stt.description as systemtool_type_description,
 	org.short_name as systemtool_vendor_organzation,
 	st.ver as systemtool_version,
-	mdd.actor_id as actor_id,
+	mdd.actor_uuid as actor_uuid,
 	act.actor_description as actor_description
 FROM
 	m_descriptor_def mdd
-	LEFT JOIN vw_actor act ON mdd.actor_id = act.actor_id
+	LEFT JOIN vw_actor act ON mdd.actor_uuid = act.actor_uuid
 	LEFT JOIN vw_latest_systemtool st ON mdd.systemtool_id = st.systemtool_id
 	LEFT JOIN systemtool_type stt on st.systemtool_type_id = stt.systemtool_type_id
 	LEFT JOIN organization org on st.vendor_organization_id = org.organization_id;
 
 
 -- get the descriptors and associated descriptor_def, including parent
--- if there is a parent descriptor, then use the parent m_descriptor_id (and type) as 
--- link back to material, otherwise use the current m_descriptor_id
+-- if there is a parent descriptor, then use the parent m_descriptor_uuid (and type) as 
+-- link back to material, otherwise use the current m_descriptor_uuid
 -- DROP VIEW vw_m_descriptor;
 CREATE OR REPLACE VIEW vw_m_descriptor AS 
 SELECT
-	md.m_descriptor_id, md.m_descriptor_uuid,
+	md.m_descriptor_uuid,
 CASE
-		WHEN md.parent_id ISNULL THEN
+		WHEN md.parent_uuid ISNULL THEN
 		md.m_descriptor_material_in ELSE mdp.m_descriptor_material_in 
 	END AS material_ref,
 CASE
-		WHEN md.parent_id ISNULL THEN
+		WHEN md.parent_uuid ISNULL THEN
 		md.m_descriptor_material_type_in ELSE mdp.m_descriptor_material_type_in 
 	END AS material_ref_type,
 	md.m_descriptor_material_in AS descriptor_in,
@@ -933,20 +954,20 @@ CASE
 	sts.description AS status 
 FROM
 	m_descriptor md
-	LEFT JOIN m_descriptor mdp ON md.parent_id = mdp.m_descriptor_id
-	LEFT JOIN vw_m_descriptor_def mdd ON md.m_descriptor_def_id = mdd.m_descriptor_def_id
-	LEFT JOIN vw_actor dact ON md.actor_id = dact.actor_id
-	LEFT JOIN status sts ON md.status_id = sts.status_id;
+	LEFT JOIN m_descriptor mdp ON md.parent_uuid = mdp.m_descriptor_uuid
+	LEFT JOIN vw_m_descriptor_def mdd ON md.m_descriptor_def_uuid = mdd.m_descriptor_def_uuid
+	LEFT JOIN vw_actor dact ON md.actor_uuid = dact.actor_uuid
+	LEFT JOIN status sts ON md.status_uuid = sts.status_uuid;
 
 
 -- get materials, all status
 -- DROP VIEW vw_material
 CREATE OR REPLACE VIEW vw_material AS 
-SELECT mat.material_uuid, mat.description as material_description, st.description as material_status, mr.material_refname_type, mr.description as material_refname_description
+SELECT mat.material_id, mat.material_uuid, mat.description as material_description, st.description as material_status, mr.material_refname_type, mr.description as material_refname_description
 FROM material mat
-LEFT JOIN material_refname_x mrx on mat.material_id = mrx.material_id
-LEFT JOIN material_refname mr on mrx.material_refname_id = mr.material_refname_id
-LEFT JOIN status st on mat.status_id = st.status_id
+LEFT JOIN material_refname_x mrx on mat.material_uuid = mrx.material_uuid
+LEFT JOIN material_refname mr on mrx.material_refname_uuid = mr.material_refname_uuid
+LEFT JOIN status st on mat.status_uuid = st.status_uuid
 order by 1, 2;
 
 -- get STUB materials and all descriptors, all status

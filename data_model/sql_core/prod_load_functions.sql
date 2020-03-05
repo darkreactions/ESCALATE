@@ -174,19 +174,21 @@ Author:				G. Cattabriga
 Date:					2019.12.12
 Description:	return material id's with specific status
 Notes:				
-Example:			SELECT * FROM get_materialid_bystatus (array['active', 'proto'], TRUE);
+Example:			SELECT * FROM get_material_uuid_bystatus (array['active', 'proto'], TRUE);
 */
-DROP FUNCTION get_materialid_bystatus (p_status_array VARCHAR[], p_null_bool BOOLEAN);
-CREATE OR REPLACE FUNCTION get_materialid_bystatus (p_status_array varchar[], p_null_bool boolean)
+DROP FUNCTION get_material_uuid_bystatus (p_status_array VARCHAR[], p_null_bool BOOLEAN);
+CREATE OR REPLACE FUNCTION get_material_uuid_bystatus (p_status_array varchar[], p_null_bool boolean)
 RETURNS TABLE (
-      material_id INT8
+      material_id int8,
+			material_uuid uuid
 ) AS $$
 BEGIN
 	RETURN QUERY SELECT
-			mat.material_id
+			mat.material_id,
+			mat.material_uuid
 		FROM
 			material mat
-			LEFT JOIN status st ON mat.status_id = st.status_id
+			LEFT JOIN status st ON mat.status_uuid = st.status_uuid
 		WHERE
 		CASE		
 			WHEN p_null_bool THEN 
@@ -208,23 +210,25 @@ Date:					2019.12.12
 Description:	return material id, material name based on specific status
 Notes:				need to UNION ALL the material descriptions with the returned set from function get_materialid_bystatus ()
 							because there may be duplicate names
-Example:			SELECT * FROM get_materialnameref_bystatus (array['active', 'proto'], TRUE);
+Example:			SELECT material_id, material_uuid, material_refname FROM get_material_nameref_bystatus (array['active', 'proto'], TRUE) where material_refname_type = 'SMILES' order by 1;
 */
-DROP FUNCTION get_materialnameref_bystatus (p_status_array VARCHAR[], p_null_bool BOOLEAN );
-CREATE OR REPLACE FUNCTION get_materialnameref_bystatus (p_status_array varchar[], p_null_bool boolean)
+DROP FUNCTION get_material_nameref_bystatus (p_status_array VARCHAR[], p_null_bool BOOLEAN );
+CREATE OR REPLACE FUNCTION get_material_nameref_bystatus (p_status_array varchar[], p_null_bool boolean)
 RETURNS TABLE (
-      material_id int8,
+      material_id int8,	
+      material_uuid uuid,
 			material_refname varchar,
 			material_refname_type varchar
 ) AS $$
 BEGIN
 	RETURN QUERY SELECT
-		mat.material_id,
+		mat.material_id,		
+		mat.material_uuid,
 		mnm.description AS mname,
 		mnm.material_refname_type as material_refname_type
-	FROM get_materialid_bystatus ( p_status_array, p_null_bool ) mat
-	JOIN material_refname_x mx ON mat.material_id = mx.material_id 
-	JOIN material_refname mnm ON mx.material_refname_id = mnm.material_refname_id;
+	FROM get_material_uuid_bystatus ( p_status_array, p_null_bool ) mat
+	JOIN material_refname_x mx ON mat.material_uuid = mx.material_uuid 
+	JOIN material_refname mnm ON mx.material_refname_uuid = mnm.material_refname_uuid;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -283,7 +287,6 @@ Example:			SELECT * FROM get_m_descriptor_def (array['molimage']);
 -- DROP FUNCTION get_m_descriptor_def (p_descr VARCHAR[]);
 CREATE OR REPLACE FUNCTION get_m_descriptor_def (p_descr VARCHAR[])
 RETURNS TABLE (
-			m_descriptor_def_id int8,
 			m_descriptor_def_uuid uuid,
 			short_name varchar,
 			calc_definition varchar,
@@ -293,7 +296,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
 	RETURN QUERY SELECT
-		mdd.m_descriptor_def_id, mdd.m_descriptor_def_uuid, mdd.short_name, mdd.calc_definition, mdd.description, st.systemtool_name, st.ver
+		mdd.m_descriptor_def_uuid, mdd.short_name, mdd.calc_definition, mdd.description, st.systemtool_name, st.ver
 	from m_descriptor_def mdd
 	join systemtool st on mdd.systemtool_id = st.systemtool_id
 	WHERE mdd.short_name = ANY(p_descr) OR mdd.calc_definition = ANY(p_descr) OR mdd.description = ANY(p_descr); 
@@ -312,10 +315,10 @@ Date:					2020.02.18
 Description:	returns the directory chemaxon tool is located; uses actor_pref 
 Notes:				
 							
-Example:			select get_chemaxon_directory((select systemtool_id from systemtool where systemtool_name = 'standardize'), (select actor_id from actor where description = 'Gary Cattabriga')); (returns the version for cxcalc for actor GC) 
+Example:			select get_chemaxon_directory((select systemtool_id from systemtool where systemtool_name = 'standardize'), (select actor_uuid from actor where description = 'Gary Cattabriga')); (returns the version for cxcalc for actor GC) 
 */
 -- DROP FUNCTION get_chemaxon_directory ( p_systemtool_id int8, p_actor int8 )
-CREATE OR REPLACE FUNCTION get_chemaxon_directory ( p_systemtool_id int8, p_actor_id int8 ) RETURNS TEXT AS $$ 
+CREATE OR REPLACE FUNCTION get_chemaxon_directory ( p_systemtool_id int8, p_actor_uuid uuid ) RETURNS TEXT AS $$ 
 DECLARE
 	v_descr_name varchar;
 	v_descr_dir varchar;
@@ -323,9 +326,9 @@ BEGIN
 	SELECT st.systemtool_name INTO v_descr_name FROM systemtool st WHERE st.systemtool_id = p_systemtool_id;
 	CASE v_descr_name 
 			WHEN 'cxcalc','standardize','molconvert' THEN
-				return (SELECT ap.pvalue FROM actor_pref ap WHERE ap.actor_id = p_actor_id AND ap.pkey = 'MARVINSUITE_DIR');	
+				return (SELECT ap.pvalue FROM actor_pref ap WHERE ap.actor_uuid = p_actor_uuid AND ap.pkey = 'MARVINSUITE_DIR');	
 			WHEN 'generatemd' THEN
-				return (SELECT ap.pvalue FROM actor_pref ap WHERE ap.actor_id = p_actor_id AND ap.pkey = 'CHEMAXON_DIR');		
+				return (SELECT ap.pvalue FROM actor_pref ap WHERE ap.actor_uuid = p_actor_uuid AND ap.pkey = 'CHEMAXON_DIR');		
 	END CASE;
 	COMMIT;	
 END;
@@ -376,8 +379,8 @@ Author:				G. Cattabriga
 Date:					2020.01.16
 Description:	returns keys (id, uuid) of m_descriptor_def matching p_descrp parameters 
 Notes:				
-							DROP function run_descriptor_calc()
-Example:			SELECT * FROM run_descriptor_calc (cast('1' as bigint), cast('4' as bigint));
+							DROP function run_descriptor_calc();
+Example:			SELECT * FROM run_descriptor_calc (cast('69' as bigint), cast('4' as bigint));
 */
 CREATE OR REPLACE FUNCTION run_descriptor_calc(p_descriptor_def_id int8, p_actor_id int8)
 RETURNS TABLE (
@@ -397,6 +400,9 @@ DECLARE
 	v_descr_ver varchar;
 	v_temp_dir varchar;
 	v_temp_in varchar := 'temp_in.txt';
+	v_calc_out_blobval bytea;
+	v_calc_out_blobtype varchar;
+	v_calc_out_numarray DOUBLE PRECISION[];
 BEGIN
 	DROP TABLE IF EXISTS load_temp_out;
 	DROP TABLE IF EXISTS load_temp_in;
@@ -413,11 +419,17 @@ BEGIN
 	select into v_descr_ver get_chemaxon_version((select systemtool_id from systemtool where systemtool_name = 'standardize'), p_actor_id);
 
 	-- insert into load_temp_in(strin) (select mn.smiles from load_version2_smiles mn limit 5000);
-	insert into load_temp_in(strin) (select vw.material_refname_description from vw_material vw  where vw.material_refname_type = 'SMILES');
+	-- insert into load_temp_in(strin) (select vw.material_refname_description from vw_material vw  where vw.material_refname_type = 'SMILES');
 
 	EXECUTE format ('copy ( select strin from load_temp_in) to ''%s%s'' ', v_temp_dir, v_temp_in);  -- '/Users/gcattabriga/tmp/temp_chem.txt';   
 	EXECUTE format ('COPY load_temp_out(strout) FROM PROGRAM ''%s%s %s %s%s'' ', v_descr_dir, v_descr_command, v_descr_param, v_temp_dir, v_temp_in);
-	RETURN QUERY select lin.load_id, lin.strin, lout.strout, p_descriptor_def_id, v_descr_ver, p_actor_id from load_temp_in lin join load_temp_out lout on lin.load_id = lout.load_id order by 1;
+	lout.strout
+	
+	
+	RETURN QUERY select lin.load_id, lin.strin, 
+			case 
+			
+			, p_descriptor_def_id, v_descr_ver, p_actor_id from load_temp_in lin join load_temp_out lout on lin.load_id = lout.load_id order by 1;
 	-- COMMIT;
 END;
 $$ LANGUAGE plpgsql;
@@ -426,17 +438,17 @@ $$ LANGUAGE plpgsql;
 /*
 Name:					load_mol_images ()
 Parameters:		p_systemtool_id = identifier (id) of the chemaxon [software] tool
-							p_actor_id = identifier (id) of the actor performing the calculation: this references the relevant software directories in order to run the CLI tool
+							p_actor_uuid = identifier (uuid) of the actor performing the calculation: this references the relevant software directories in order to run the CLI tool
 Returns:			version as TEXT
 Author:				G. Cattabriga
 Date:					2020.02.12
 Description:	returns the version for the specified chemaxon tool in string format 
 Notes:				
 							
-Example:			select get_chemaxon_version((select systemtool_id from systemtool where systemtool_name = 'generatemd'), (select actor_id from actor where description = 'Gary Cattabriga')); (returns the version for cxcalc for actor GC) 
+Example:			select get_chemaxon_version((select systemtool_id from systemtool where systemtool_name = 'generatemd'), (select actor_uuid from actor where description = 'Gary Cattabriga')); (returns the version for cxcalc for actor GC) 
 */
--- DROP FUNCTION get_chemaxon_version ( p_systemtool_id int8, p_actor int8 )
-CREATE OR REPLACE FUNCTION load_mol_images ( p_systemtool_id int8, p_actor_id int8 ) RETURNS TEXT AS $$ 
+-- DROP FUNCTION load_mol_images ( p_systemtool_id int8, p_actor_uuid uuid )
+CREATE OR REPLACE FUNCTION load_mol_images ( p_systemtool_id int8, p_actor_uuid uuid ) RETURNS TEXT AS $$ 
 DECLARE
 	pathname varchar := '/Users/gcattabriga/DRP/demob/cp_inventory_run_20191104/svg/';
 	filename VARCHAR := null;

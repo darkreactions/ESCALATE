@@ -12,7 +12,7 @@
  Target Server Version : 120001
  File Encoding         : 65001
 
- Date: 18/02/2020 16:00:01
+ Date: 24/02/2020 11:44:23
 */
 
 
@@ -80,7 +80,6 @@ INSERT INTO "load_perov_desc_def" VALUES ('protpolarsurfacearea', '-g polarsurfa
 INSERT INTO "load_perov_desc_def" VALUES ('protpsa', '-g psa -H 3.0', 'topological polar surface area calculation (2d)', 'cxcalc', '19.27.0', 'num');
 INSERT INTO "load_perov_desc_def" VALUES ('hacceptorcount', '-g acceptorcount -H 3.0', 'hydrogen bond acceptor atom count in molecule', 'cxcalc', '19.27.0', 'num');
 INSERT INTO "load_perov_desc_def" VALUES ('hdonorcount', '-g donorcount -H 3.0', 'hydrogen bond donor atom count in molecule', 'cxcalc', '19.27.0', 'num');
-INSERT INTO "load_perov_desc_def" VALUES ('ecpf4_256_6', '-k ECFP -2 -f 256 -n 6', 'chemical fingerprint ecpf', 'generatemd', '19.6.0', 'blob');
 INSERT INTO "load_perov_desc_def" VALUES ('fr_amidine', 'fr_amidine', 'number of amidine groups', 'RDKit', '19.03.4', 'num');
 INSERT INTO "load_perov_desc_def" VALUES ('fr_dihydropyridine', 'fr_dihydropyridine', 'number of dihydropyridines', 'RDKit', '19.03.4', 'num');
 INSERT INTO "load_perov_desc_def" VALUES ('fr_guanido', 'fr_guanido', 'number of guanidine groups', 'RDKit', '19.03.4', 'num');
@@ -99,7 +98,8 @@ INSERT INTO "load_perov_desc_def" VALUES ('fr_arn', 'fr_ArN', 'number of aromati
 INSERT INTO "load_perov_desc_def" VALUES ('fr_ar_nh', 'fr_Ar_NH', 'number of aromatic amines', 'RDKit', '19.03.4', 'num');
 INSERT INTO "load_perov_desc_def" VALUES ('fr_imine', 'fr_Imine', 'number of imines', 'RDKit', '19.03.4', 'num');
 INSERT INTO "load_perov_desc_def" VALUES ('aliphaticatomcount', '-g aliphaticatomcount', 'aliphatic atom count', 'cxcalc', '19.27.0', 'num');
-INSERT INTO "load_perov_desc_def" VALUES ('molimage', '-g svg', 'smiles svg image', 'molconvert', '19.27.0', 'blob');
+INSERT INTO "load_perov_desc_def" VALUES ('molimage', '-g svg', 'smiles svg image', 'molconvert', '19.27.0', 'blob_svg');
+INSERT INTO "load_perov_desc_def" VALUES ('ecpf4_256_6', '-k ECFP -2 -f 256 -n 6', 'chemical fingerprint ecpf', 'generatemd', '19.6.0', 'blob_text');
 INSERT INTO "load_perov_desc_def" VALUES ('standardize', '-g -c removefragment:method=keeplargest', 'smiles standardized', 'standardize', '19.27.0', 'text');
 INSERT INTO "load_perov_desc_def" VALUES ('atomcount_c', '-g atomcount -z 6', 'number of carbon atoms in the molecule ', 'cxcalc', '19.27.0', 'num');
 INSERT INTO "load_perov_desc_def" VALUES ('chiralcentercount', '-g chiralcentercount', 'the number of tetrahedral stereogenic center atoms', 'cxcalc', '19.27.0', 'num');

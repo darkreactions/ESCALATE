@@ -42,12 +42,12 @@ update load_hc_inventory
 */
 -- truncate table inventory;
 -- add the hc inventory data from load_hc_inventory 
-INSERT INTO inventory (description, material_id, actor_id, part_no, onhand_amt, unit, create_date, mod_date)
-	select distinct inv.reagent, mat.material_id, 
-		(SELECT actor_id FROM vw_actor where person_lastfirst like '%Mansoor%'), inv.part_no, inv.amount, inv.units, create_date::timestamptz, now() 
+INSERT INTO inventory (description, material_uuid, actor_uuid, part_no, onhand_amt, unit, create_date, mod_date)
+	select distinct inv.reagent, mat.material_uuid, 
+		(SELECT actor_uuid FROM vw_actor where person_lastfirst like '%Mansoor%'), inv.part_no, inv.amount, inv.units, create_date::timestamptz, now() 
 	from load_hc_inventory inv
 	join 
-		(SELECT * FROM get_materialnameref_bystatus (array['active'], TRUE)) mat 
+		(SELECT * FROM get_material_nameref_bystatus (array['active'], TRUE)) mat 
 	on upper(inv.reagent) = upper(mat.material_refname)
 	where inv.reagent is not NULL and inv.amount is not NULL
 ON CONFLICT ON CONSTRAINT un_inventory DO UPDATE
@@ -59,12 +59,12 @@ ON CONFLICT ON CONSTRAINT un_inventory DO UPDATE
 
 
 -- add the lbl inventory data from load_lbl_inventory 
-INSERT INTO inventory (description, material_id, actor_id, part_no, onhand_amt, unit, create_date, mod_date)
-	select distinct inv.reagent, mat.material_id, 
-		(SELECT actor_id FROM vw_actor where person_lastfirst like '%Zhi%'), inv.part_no, inv.amount, inv.units, create_date::timestamptz, now() 
+INSERT INTO inventory (description, material_uuid, actor_uuid, part_no, onhand_amt, unit, create_date, mod_date)
+	select distinct inv.reagent, mat.material_uuid, 
+		(SELECT actor_uuid FROM vw_actor where person_lastfirst like '%Zhi%'), inv.part_no, inv.amount, inv.units, create_date::timestamptz, now() 
 	from load_lbl_inventory inv
 	join 
-		(SELECT * FROM get_materialnameref_bystatus (array['active'], TRUE)) mat 
+		(SELECT * FROM get_material_nameref_bystatus (array['active'], TRUE)) mat 
 	on upper(inv.reagent) = upper(mat.material_refname)
 	where inv.reagent is not NULL and inv.amount is not NULL
 ON CONFLICT ON CONSTRAINT un_inventory DO UPDATE
