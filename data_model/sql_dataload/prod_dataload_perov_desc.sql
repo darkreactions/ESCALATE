@@ -96,7 +96,6 @@ CREATE TABLE "load_perov_desc" (
   "_feat_hdonorcount" float8
 )
 ;
-ALTER TABLE "load_perov_desc" OWNER TO "gcattabriga";
 
 -- ----------------------------
 -- Records of load_perov_desc

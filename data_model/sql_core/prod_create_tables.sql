@@ -581,12 +581,12 @@ CLUSTER status USING "pk_status_status_uuid";
 
 ALTER TABLE val ADD 
 	CONSTRAINT "pk_val_val_uuid" PRIMARY KEY (val_uuid);
-CLUSTER status USING "pk_val_val_uuid";
+CLUSTER val USING "pk_val_val_uuid";
 
 ALTER TABLE val_type 
 	ADD CONSTRAINT "pk_val_type_val_type_id" PRIMARY KEY (val_type_id),
 	ADD CONSTRAINT "un_val_type" UNIQUE (val_type, val_subtype);
-CLUSTER status USING "pk_val_type_val_type_id";
+CLUSTER val_type USING "pk_val_type_val_type_id";
 
 --=====================================
 -- FOREIGN KEYS
@@ -729,9 +729,8 @@ ALTER TABLE tag
 ALTER TABLE tag_x 
 	ADD CONSTRAINT fk_tag_x_tag_1 FOREIGN KEY (tag_uuid) REFERENCES tag (tag_uuid);
 
-
-ALTER TABLE val_type 
-	ADD CONSTRAINT fk_val_type_val_1 FOREIGN KEY (val_type_id) REFERENCES val (val_type_id);
+ALTER TABLE val 
+	ADD CONSTRAINT fk_val_val_type_1 FOREIGN KEY (val_type_id) REFERENCES val_type (val_type_id);
 
 
 

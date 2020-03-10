@@ -29,7 +29,6 @@ CREATE TABLE "load_perov_desc_def" (
   "calc_type" varchar(255) COLLATE "pg_catalog"."default"
 )
 ;
-ALTER TABLE "load_perov_desc_def" OWNER TO "gcattabriga";
 
 -- ----------------------------
 -- Records of load_perov_desc_def
