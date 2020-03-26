@@ -314,7 +314,7 @@ CREATE TABLE m_descriptor (
 -- Table structure for m_descriptor_eval
 ---------------------------------------
 CREATE TABLE m_descriptor_eval(
-	eval_id serial8,
+	m_descriptor_eval_id serial8,
   m_descriptor_def_uuid uuid,
 	in_val val, 
 	in_opt_val val,
@@ -353,10 +353,8 @@ CREATE TABLE inventory (
 CREATE TABLE measure (
 	measure_uuid uuid DEFAULT uuid_generate_v4 (),
 	measure_type_uuid uuid,
-	amount DOUBLE PRECISION,
+	amount val,
 	unit varchar COLLATE "pg_catalog"."default",
-	blob_amount bytea,
-	blob_type varchar,
 	actor_uuid uuid,
 	edocument_uuid uuid,
 	note_uuid uuid,
@@ -543,6 +541,11 @@ ALTER TABLE m_descriptor
 	ADD CONSTRAINT "un_m_descriptor" UNIQUE (m_descriptor_def_uuid, in_val, in_opt_val);
 CLUSTER m_descriptor USING "pk_m_descriptor_m_descriptor_uuid";
 
+ALTER TABLE m_descriptor_eval
+	ADD CONSTRAINT "pk_m_descriptor_eval_m_descriptor_eval_id" PRIMARY KEY (m_descriptor_eval_id),
+	ADD CONSTRAINT "un_m_descriptor_eval" UNIQUE (m_descriptor_def_uuid, in_val, in_opt_val);
+CLUSTER m_descriptor_eval USING "pk_m_descriptor_eval_m_descriptor_eval_id";
+
 -- ALTER TABLE m_descriptor_value ADD 
 -- 	CONSTRAINT "pk_m_descriptor_value_m_descriptor_value_uuid" PRIMARY KEY (m_descriptor_value_uuid);
 -- CLUSTER m_descriptor_value USING "pk_m_descriptor_value_m_descriptor_value_uuid";-- 
@@ -691,10 +694,15 @@ ALTER TABLE m_descriptor_def
 -- DROP CONSTRAINT fk_m_descriptor_note_1;
 ALTER TABLE m_descriptor 
 --	ADD CONSTRAINT fk_m_descriptor_material_refname_1 FOREIGN KEY (material_refname_description_in, material_refname_type_in) REFERENCES material_refname (description, material_refname_type),
-	ADD CONSTRAINT fk_m_descriptor_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+	ADD CONSTRAINT fk_m_descriptor_m_descriptor_def_1 FOREIGN KEY (m_descriptor_def_uuid) REFERENCES m_descriptor_def (m_descriptor_def_uuid),	
+	ADD CONSTRAINT fk_m_descriptor_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),	
 	ADD CONSTRAINT fk_m_descriptor_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid),	
 	ADD CONSTRAINT fk_m_descriptor_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
-	
+
+ALTER TABLE m_descriptor_eval
+	ADD CONSTRAINT fk_m_descriptor_eval_m_descriptor_def_1 FOREIGN KEY (m_descriptor_def_uuid) REFERENCES m_descriptor_def (m_descriptor_def_uuid),	
+	ADD CONSTRAINT fk_m_descriptor_eval_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid);
+
 -- ALTER TABLE inventory  DROP CONSTRAINT fk_inventory_material_1, 
 -- DROP CONSTRAINT fk_inventory_actor_1, 
 -- DROP CONSTRAINT fk_inventory_measure_1,
@@ -708,6 +716,7 @@ ALTER TABLE inventory
 
 ALTER TABLE measure 
 	ADD CONSTRAINT fk_measure_measure_type_1 FOREIGN KEY (measure_type_uuid) REFERENCES measure_type (measure_type_uuid),
+	ADD CONSTRAINT fk_measure_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
 	ADD CONSTRAINT fk_measure_edocument_1 FOREIGN KEY (edocument_uuid) REFERENCES edocument (edocument_uuid),
 	ADD CONSTRAINT fk_measure_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
 

@@ -66,99 +66,184 @@ Discussion how this stuff all relates together...
 
 [![Schema Detail][schema-detail]](https://github.com/darkreactions/ESCALATE/blob/master/data_model/erd_diagrams/escalate_erd_physicalmodel.pdf)
 
+**Defined Types**
+
+```
+val_type AS ENUM ('int', 'array_int', 'num', 'array_num', 'text', 'array_text', 'blob_text', 'blob_svg', 'blob_jpg', 'blob_png')
+
+val AS (
+	v_type val_type,
+	v_text varchar,
+	v_text_array varchar[],
+	v_int int8,
+	v_int_array int8[],
+	v_num double precision,
+	v_num_array double precision[],
+	v_blob bytea)
+```
+<br/>
+
+
+**Core Tables (non ETL)**
+
+```
+person 
+systemtool
+systemtool_type
+actor
+actor_pref
+material
+material_type
+material_type_x
+material_refname
+material_refname_x
+material_refname_type
+m_descriptor_class
+m_descriptor_def
+m_descriptor
+m_descriptor_eval
+inventory
+measure
+measure_x
+measure_type
+note
+edocument
+edocument_x
+tag
+tag_x
+tag_type
+status
+```
+<br/>
+
 **Primary Keys and Constraints**
 
 ```
 ALTER TABLE organization 
-ADD CONSTRAINT "pk_organization_organization_id" PRIMARY KEY (organization_id);
-CREATE INDEX "ix_organization_parent_path" ON organization USING GIST (parent_path);
-CREATE INDEX "ix_organization_parent_id" ON organization (parent_id);
+	ADD CONSTRAINT "pk_organization_organization_id" PRIMARY KEY (organization_id);
+	CREATE INDEX "ix_organization_parent_path" ON organization USING GIST (parent_path);
+	CREATE INDEX "ix_organization_parent_id" ON organization (parent_id);
+CLUSTER organization USING "pk_organization_organization_id";
 
 ALTER TABLE person 
-	ADD CONSTRAINT "pk_person_person_id" PRIMARY KEY (person_id);
+ADD CONSTRAINT "pk_person_person_id" PRIMARY KEY (person_id);
+CLUSTER person USING "pk_person_person_id";
 
 ALTER TABLE systemtool 
 	ADD CONSTRAINT "pk_systemtool_systemtool_id" PRIMARY KEY (systemtool_id),
-	ADD CONSTRAINT "un_systemtool" UNIQUE (systemtool_name, systemtool_type_id, ver, organization_id);
+	ADD CONSTRAINT "un_systemtool" UNIQUE (systemtool_name, systemtool_type_id, vendor_organization_id, ver);
+CLUSTER systemtool USING "pk_systemtool_systemtool_id";
 
 ALTER TABLE systemtool_type 
 	ADD CONSTRAINT "pk_systemtool_systemtool_type_id" PRIMARY KEY (systemtool_type_id);
+CLUSTER systemtool_type USING "pk_systemtool_systemtool_type_id";
 
 ALTER TABLE actor 
-	ADD CONSTRAINT "pk_actor_id" PRIMARY KEY (actor_id);
-CREATE UNIQUE INDEX "un_actor" ON actor (coalesce(person_id,-1), coalesce(organization_id,-1), coalesce(systemtool_id,-1) );
+	ADD CONSTRAINT "pk_actor_uuid" PRIMARY KEY (actor_uuid);
+	CREATE UNIQUE INDEX "un_actor" ON actor (coalesce(person_id,-1), coalesce(organization_id,-1), coalesce(systemtool_id,-1) );
+CLUSTER actor USING "pk_actor_uuid";
 
-ALTER TABLE material 
-	ADD CONSTRAINT "pk_material_material_id" PRIMARY KEY (material_id);
-CREATE INDEX "ix_material_parent_path" ON material USING GIST (parent_path);
-CREATE INDEX "ix_material_parent_id" ON material (parent_id);
+ALTER TABLE actor_pref 
+	ADD CONSTRAINT "pk_actor_pref_uuid" PRIMARY KEY (actor_pref_uuid);
+CLUSTER actor_pref USING "pk_actor_pref_uuid";
 
-ALTER TABLE material_type 
-	ADD CONSTRAINT "pk_material_type_material_type_id" PRIMARY KEY (material_type_id);
+ALTER TABLE material ADD 
+	CONSTRAINT "pk_material_material_uuid" PRIMARY KEY (material_uuid);
+	CREATE INDEX "ix_material_parent_path" ON material USING GIST (parent_path);
+	CREATE INDEX "ix_material_parent_uuid" ON material (parent_uuid);
+CLUSTER material USING "pk_material_material_uuid";
+
+ALTER TABLE material_type ADD 
+	CONSTRAINT "pk_material_type_material_type_uuid" PRIMARY KEY (material_type_uuid);
+CLUSTER material_type USING "pk_material_type_material_type_uuid";
 
 ALTER TABLE material_type_x 
-	ADD CONSTRAINT "pk_material_type_x_material_type_x_id" PRIMARY KEY (material_type_x_id),
-	ADD CONSTRAINT "un_material_type_x" UNIQUE (material_id, material_type_id);
+	ADD CONSTRAINT "pk_material_type_x_material_type_x_uuid" PRIMARY KEY (material_type_x_uuid),
+	ADD CONSTRAINT "un_material_type_x" UNIQUE (ref_material_uuid, material_type_uuid);
+CLUSTER material_type_x USING "pk_material_type_x_material_type_x_uuid";
 
 ALTER TABLE material_refname 
-	ADD CONSTRAINT "pk_material_refname_material_refname_id" PRIMARY KEY (material_refname_id),
-	ADD CONSTRAINT "un_material_refname" UNIQUE (description, material_refname_type);
+	ADD CONSTRAINT "pk_material_refname_material_refname_uuid" PRIMARY KEY (material_refname_uuid),
+	ADD CONSTRAINT "un_material_refname" UNIQUE (description, material_refname_type_uuid);
+CLUSTER material_refname USING "pk_material_refname_material_refname_uuid";
 
 ALTER TABLE material_refname_x 
-	ADD CONSTRAINT "pk_material_refname_x_material_refname_x_id" PRIMARY KEY (material_refname_x_id),
-	ADD CONSTRAINT "un_material_refname_x" UNIQUE (material_id, material_refname_id);
+	ADD CONSTRAINT "pk_material_refname_x_material_refname_x_uuid" PRIMARY KEY (material_refname_x_uuid),
+	ADD CONSTRAINT "un_material_refname_x" UNIQUE (material_uuid, material_refname_uuid);
+CLUSTER material_refname_x USING "pk_material_refname_x_material_refname_x_uuid";
 
-ALTER TABLE m_descriptor_class 
-	ADD CONSTRAINT "pk_m_descriptor_class_m_descriptor_class_id" PRIMARY KEY (m_descriptor_class_id);
+ALTER TABLE material_refname_type 
+	ADD CONSTRAINT "pk_material_refname_type_material_refname_type_uuid" PRIMARY KEY (material_refname_type_uuid);
+CLUSTER material_refname_type USING "pk_material_refname_type_material_refname_type_uuid";
+
+ALTER TABLE m_descriptor_class ADD 
+	CONSTRAINT "pk_m_descriptor_class_m_descriptor_class_uuid" PRIMARY KEY (m_descriptor_class_uuid);
+CLUSTER m_descriptor_class USING "pk_m_descriptor_class_m_descriptor_class_uuid";
 
 ALTER TABLE m_descriptor_def 
-	ADD CONSTRAINT "pk_m_descriptor_m_descriptor_def_id" PRIMARY KEY (m_descriptor_def_id),
-	ADD CONSTRAINT "un_m_descriptor_def" UNIQUE (actor_id, calc_definition);
+	ADD CONSTRAINT "pk_m_descriptor_m_descriptor_def_uuid" PRIMARY KEY (m_descriptor_def_uuid),
+	ADD CONSTRAINT "un_m_descriptor_def" UNIQUE (actor_uuid, calc_definition);	
+CLUSTER m_descriptor_def USING "pk_m_descriptor_m_descriptor_def_uuid";
 
 ALTER TABLE m_descriptor
-	ADD CONSTRAINT "pk_m_descriptor_m_descriptor_id" PRIMARY KEY (m_descriptor_id),
-	ADD CONSTRAINT "un_m_descriptor" UNIQUE (parent_id, m_descriptor_material_in, m_descriptor_material_type_in, m_descriptor_def_id);
-CREATE INDEX "ix_m_descriptor_parent_path" ON m_descriptor USING GIST (parent_path);
-CREATE INDEX "ix_m_descriptor_parent_id" ON m_descriptor (parent_id);
+	ADD CONSTRAINT "pk_m_descriptor_m_descriptor_uuid" PRIMARY KEY (m_descriptor_uuid),
+	ADD CONSTRAINT "un_m_descriptor" UNIQUE (m_descriptor_def_uuid, in_val, in_opt_val);
+CLUSTER m_descriptor USING "pk_m_descriptor_m_descriptor_uuid";
+
+ALTER TABLE m_descriptor_eval
+	ADD CONSTRAINT "pk_m_descriptor_eval_m_descriptor_eval_id" PRIMARY KEY (m_descriptor_eval_id),
+	ADD CONSTRAINT "un_m_descriptor_eval" UNIQUE (m_descriptor_def_uuid, in_val, in_opt_val);
+CLUSTER m_descriptor_eval USING "pk_m_descriptor_eval_m_descriptor_eval_id";
 
 ALTER TABLE inventory 
-	ADD CONSTRAINT "pk_inventory_inventory_id" PRIMARY KEY (inventory_id),
-	ADD CONSTRAINT "un_inventory" UNIQUE (material_id, actor_id, create_date);
+	ADD CONSTRAINT "pk_inventory_inventory_uuid" PRIMARY KEY (inventory_uuid),
+	ADD CONSTRAINT "un_inventory" UNIQUE (material_uuid, actor_uuid, create_date);
+CLUSTER inventory USING "pk_inventory_inventory_uuid";
 
 ALTER TABLE measure 
-	ADD CONSTRAINT "pk_measure_measure_id" PRIMARY KEY (measure_id),
+	ADD CONSTRAINT "pk_measure_measure_uuid" PRIMARY KEY (measure_uuid),
 	ADD CONSTRAINT "un_measure" UNIQUE (measure_uuid);
+ CLUSTER measure USING "pk_measure_measure_uuid";
 
 ALTER TABLE measure_x 
-	ADD CONSTRAINT "pk_measure_x_measure_x_id" PRIMARY KEY (measure_x_id),
+	ADD CONSTRAINT "pk_measure_x_measure_x_uuid" PRIMARY KEY (measure_x_uuid),
 	ADD CONSTRAINT "un_measure_x" UNIQUE (ref_measure_uuid, measure_uuid);
+CLUSTER measure_x USING "pk_measure_x_measure_x_uuid";
 
- ALTER TABLE measure_type 
-	ADD CONSTRAINT "pk_measure_type_measure_type_id" PRIMARY KEY (measure_type_id);
+ ALTER TABLE measure_type ADD 
+	CONSTRAINT "pk_measure_type_measure_type_uuid" PRIMARY KEY (measure_type_uuid);
+ CLUSTER measure_type USING "pk_measure_type_measure_type_uuid";
 
-ALTER TABLE note 
-	ADD CONSTRAINT "pk_note_note_id" PRIMARY KEY (note_id);
+ALTER TABLE note ADD 
+	CONSTRAINT "pk_note_note_uuid" PRIMARY KEY (note_uuid);
+CLUSTER note USING "pk_note_note_uuid";
 
-ALTER TABLE edocument 
-	ADD CONSTRAINT "pk_edocument_edocument_id" PRIMARY KEY (edocument_id);
+ALTER TABLE edocument ADD 
+	CONSTRAINT "pk_edocument_edocument_uuid" PRIMARY KEY (edocument_uuid);
+CLUSTER edocument USING "pk_edocument_edocument_uuid";
 
 ALTER TABLE edocument_x 
-	ADD CONSTRAINT "pk_edocument_x_edocument_x_id" PRIMARY KEY (edocument_x_id),
-	ADD CONSTRAINT "un_edocument_x" UNIQUE (ref_uuid, edocument_id);
+	ADD CONSTRAINT "pk_edocument_x_edocument_x_uuid" PRIMARY KEY (edocument_x_uuid),
+	ADD CONSTRAINT "un_edocument_x" UNIQUE (ref_edocument_uuid, edocument_uuid);
+CLUSTER edocument_x USING "pk_edocument_x_edocument_x_uuid";
 
 ALTER TABLE tag 
-	ADD CONSTRAINT "pk_tag_tag_id" PRIMARY KEY (tag_id),
+	ADD CONSTRAINT "pk_tag_tag_uuid" PRIMARY KEY (tag_uuid),
 	ADD CONSTRAINT "un_tag" UNIQUE (tag_uuid);;
+CLUSTER tag USING "pk_tag_tag_uuid";
 
 ALTER TABLE tag_x 
-	ADD CONSTRAINT "pk_tag_x_tag_x_id" PRIMARY KEY (tag_x_id),
+	ADD CONSTRAINT "pk_tag_x_tag_x_uuid" PRIMARY KEY (tag_x_uuid),
 	ADD CONSTRAINT "un_tag_x" UNIQUE (ref_tag_uuid, tag_uuid);
+CLUSTER tag_x USING "pk_tag_x_tag_x_uuid";
 
-ALTER TABLE tag_type 
-	ADD CONSTRAINT "pk_tag_tag_type_id" PRIMARY KEY (tag_type_id);
+ALTER TABLE tag_type ADD 
+	CONSTRAINT "pk_tag_tag_type_uuid" PRIMARY KEY (tag_type_uuid);
+CLUSTER tag_type USING "pk_tag_tag_type_uuid";
 
-ALTER TABLE status 
-	ADD CONSTRAINT "pk_status_status_id" PRIMARY KEY (status_id);
+ALTER TABLE status ADD 
+	CONSTRAINT "pk_status_status_uuid" PRIMARY KEY (status_uuid);
+CLUSTER status USING "pk_status_status_uuid";
 ```
 
 

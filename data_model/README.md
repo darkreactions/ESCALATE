@@ -87,13 +87,13 @@ CREATE EXTENSION if not exists "uuid-ossp";
 using the latest 'bak' file in the repo's backup folder. This assumes a local directory named backup
 
 ```
-pg_restore -d escalate -c -C -U escalate /backup/escalate-postgres_docker_backup.bak
+pg_restore -d escalate -c -C -O -U escalate /backup/escalate_dev_backup.bak
 ```
 **Option 2** -  restore into a docker container
 using the latest 'bak' file in the repo's backup folder. This assumes the following: 1) the docker container is named: escalate-postgres and 2) the bak file has been moved to a folder in the container
 
 ```
-docker exec escalate-postgres pg_restore -d escalate -c -C -U escalate /var/lib/postgres/escalate-postgres_docker_backup.bak
+docker exec escalate-postgres pg_restore -d escalate -c -C -U escalate /var/lib/postgres/escalate_dev_backup.bak
 ```
 <br/>
 
@@ -141,16 +141,16 @@ Record count of selected core tables:
 
 ```
 select count(*) from actor;
-> 14
+> 16
 
 select count(*) from material;
-> 77
+> 108
 > 
 select count(*) from inventory;
-> 102
+> 131
 > 
 select count(*) from m_descriptor;
-> 5544
+> 5496
 ```
 
 Check view vw_actor:
