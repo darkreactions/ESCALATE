@@ -19,7 +19,12 @@ CREATE EXTENSION if not exists ltree;
 CREATE EXTENSION if not exists tablefunc;
 CREATE EXTENSION if not exists "uuid-ossp";
 -- set search_path = dev, public;
-
+ 
+ --=====================================
+ -- DROP TYPES 
+ --=====================================
+DROP TYPE IF EXISTS val_type cascade; 
+DROP TYPE IF EXISTS val cascade; 
 
  --=====================================
  -- DROP TABLES 
@@ -35,9 +40,11 @@ DROP TABLE IF EXISTS material_type cascade;
 DROP TABLE IF EXISTS material_type_x cascade;
 DROP TABLE IF EXISTS material_refname cascade;
 DROP TABLE IF EXISTS material_refname_x cascade;
+DROP TABLE IF EXISTS material_refname_type cascade;
 DROP TABLE IF EXISTS m_descriptor_class cascade;
 DROP TABLE IF EXISTS m_descriptor_def cascade;
 DROP TABLE IF EXISTS m_descriptor cascade;
+DROP TABLE IF EXISTS m_descriptor_eval cascade;
 DROP TABLE IF EXISTS inventory cascade;
 DROP TABLE IF EXISTS measure cascade;
 DROP TABLE IF EXISTS measure_x cascade;
@@ -49,8 +56,23 @@ DROP TABLE IF EXISTS tag cascade;
 DROP TABLE IF EXISTS tag_x cascade;
 DROP TABLE IF EXISTS tag_type cascade;
 DROP TABLE IF EXISTS status cascade;
-DROP TABLE IF EXISTS val cascade;
-DROP TABLE IF EXISTS val_type cascade;
+
+ --=====================================
+ -- CREATE DATA TYPES 
+ --=====================================
+-- define (enumerate) the value types where hierachy is seperated by '_' with simple data types (int, num, text) as single phrase; treat 'array' like a fifo stack
+CREATE TYPE val_type AS ENUM ('int', 'array_int', 'num', 'array_num', 'text', 'array_text', 'blob_text', 'blob_svg', 'blob_jpg', 'blob_png');
+
+CREATE TYPE val AS (
+	v_type 	val_type,
+	v_text varchar,
+	v_text_array varchar[],
+	v_int int8,
+	v_int_array int8[],
+	v_num double precision,
+	v_num_array double precision[],
+	v_blob bytea
+);
 
  --=====================================
  -- CREATE TABLES 
@@ -210,7 +232,7 @@ CREATE TABLE material_refname (
  -- material_uuid int8,	
   blob_value bytea,
 	blob_type varchar,
-  material_refname_type varchar COLLATE "pg_catalog"."default",
+  material_refname_type_uuid uuid,
   reference varchar COLLATE "pg_catalog"."default",
 	status_uuid uuid,
   note_uuid uuid,
@@ -227,6 +249,17 @@ CREATE TABLE material_refname_x (
   material_refname_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+---------------------------------------
+-- Table structure for material_refname_type
+---------------------------------------
+CREATE TABLE material_refname_type (
+	material_refname_type_uuid uuid DEFAULT uuid_generate_v4 (),
+	description varchar COLLATE "pg_catalog"."default",
+	note_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
 
 ---------------------------------------
@@ -249,8 +282,9 @@ CREATE TABLE m_descriptor_def (
 	calc_definition varchar COLLATE "pg_catalog"."default",
 	systemtool_id int8,
 	description varchar COLLATE "pg_catalog"."default",
+	in_type val_type,
+	out_type val_type,
 	m_descriptor_class_uuid uuid,
-	m_descriptor_out_value_type_uuid uuid,
 	actor_uuid uuid, 
   note_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -262,20 +296,32 @@ CREATE TABLE m_descriptor_def (
 ---------------------------------------
 CREATE TABLE m_descriptor (
 	m_descriptor_uuid uuid DEFAULT uuid_generate_v4 (),
-	parent_uuid uuid,
-	parent_path ltree,
-	m_descriptor_material_in varchar COLLATE "pg_catalog"."default",
-  m_descriptor_material_type_in varchar(255) COLLATE "pg_catalog"."default",
   m_descriptor_def_uuid uuid,
+	m_descriptor_alias_name varchar,
+	in_val val,
+	in_opt_val val,
+	out_val val,
 	create_date timestamptz,
-  num_valarray_out DOUBLE PRECISION[],	
-  blob_val_out bytea,	
-	blob_type_out varchar,
   status_uuid uuid,
 	actor_uuid uuid,
   note_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
+---------------------------------------
+-- Table structure for m_descriptor_eval
+---------------------------------------
+CREATE TABLE m_descriptor_eval(
+	eval_id serial8,
+  m_descriptor_def_uuid uuid,
+	in_val val, 
+	in_opt_val val,
+	out_val val, 
+	m_descriptor_alias_name varchar,
+	actor_uuid uuid, 
+	create_date timestamptz NOT NULL DEFAULT NOW()
 );
 
 
@@ -423,36 +469,6 @@ CREATE TABLE status (
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
 
-
----------------------------------------
--- Table structure for val (value)
----------------------------------------
-CREATE TABLE val (
-	val_uuid uuid DEFAULT uuid_generate_v4 (),
-	description varchar,
-	val_type_id int8,
-	val_text varchar,
-	val_num double precision,
-	val_numarry double precision[],
-	val_blob bytea,
-  note_uuid uuid,
-	add_date timestamptz NOT NULL DEFAULT NOW(),
-	mod_date timestamptz NOT NULL DEFAULT NOW());
-
----------------------------------------
--- Table structure for val_type (value_type)
--- e.g. text, num, num_array, blob, blob_svg, blob_text
----------------------------------------
-CREATE TABLE val_type (
-	val_type_id serial8,
-	description varchar,
-	val_type varchar,
-	val_subtype varchar, 
-  note_uuid uuid,
-	add_date timestamptz NOT NULL DEFAULT NOW(),
-	mod_date timestamptz NOT NULL DEFAULT NOW());
-
-
 --=====================================
 -- KEYS
 --=====================================
@@ -501,13 +517,17 @@ CLUSTER material_type_x USING "pk_material_type_x_material_type_x_uuid";
 
 ALTER TABLE material_refname 
 	ADD CONSTRAINT "pk_material_refname_material_refname_uuid" PRIMARY KEY (material_refname_uuid),
-	ADD CONSTRAINT "un_material_refname" UNIQUE (description, material_refname_type);
+	ADD CONSTRAINT "un_material_refname" UNIQUE (description, material_refname_type_uuid);
 CLUSTER material_refname USING "pk_material_refname_material_refname_uuid";
 
 ALTER TABLE material_refname_x 
 	ADD CONSTRAINT "pk_material_refname_x_material_refname_x_uuid" PRIMARY KEY (material_refname_x_uuid),
 	ADD CONSTRAINT "un_material_refname_x" UNIQUE (material_uuid, material_refname_uuid);
 CLUSTER material_refname_x USING "pk_material_refname_x_material_refname_x_uuid";
+
+ALTER TABLE material_refname_type 
+	ADD CONSTRAINT "pk_material_refname_type_material_refname_type_uuid" PRIMARY KEY (material_refname_type_uuid);
+CLUSTER material_refname_type USING "pk_material_refname_type_material_refname_type_uuid";
 
 ALTER TABLE m_descriptor_class ADD 
 	CONSTRAINT "pk_m_descriptor_class_m_descriptor_class_uuid" PRIMARY KEY (m_descriptor_class_uuid);
@@ -520,9 +540,7 @@ CLUSTER m_descriptor_def USING "pk_m_descriptor_m_descriptor_def_uuid";
 
 ALTER TABLE m_descriptor
 	ADD CONSTRAINT "pk_m_descriptor_m_descriptor_uuid" PRIMARY KEY (m_descriptor_uuid),
-	ADD CONSTRAINT "un_m_descriptor" UNIQUE (parent_uuid, m_descriptor_material_in, m_descriptor_material_type_in, m_descriptor_def_uuid);
-CREATE INDEX "ix_m_descriptor_parent_path" ON m_descriptor USING GIST (parent_path);
-CREATE INDEX "ix_m_descriptor_parent_uuid" ON m_descriptor (parent_uuid);
+	ADD CONSTRAINT "un_m_descriptor" UNIQUE (m_descriptor_def_uuid, in_val, in_opt_val);
 CLUSTER m_descriptor USING "pk_m_descriptor_m_descriptor_uuid";
 
 -- ALTER TABLE m_descriptor_value ADD 
@@ -579,14 +597,6 @@ ALTER TABLE status ADD
 	CONSTRAINT "pk_status_status_uuid" PRIMARY KEY (status_uuid);
 CLUSTER status USING "pk_status_status_uuid";
 
-ALTER TABLE val ADD 
-	CONSTRAINT "pk_val_val_uuid" PRIMARY KEY (val_uuid);
-CLUSTER val USING "pk_val_val_uuid";
-
-ALTER TABLE val_type 
-	ADD CONSTRAINT "pk_val_type_val_type_id" PRIMARY KEY (val_type_id),
-	ADD CONSTRAINT "un_val_type" UNIQUE (val_type, val_subtype);
-CLUSTER val_type USING "pk_val_type_val_type_id";
 
 --=====================================
 -- FOREIGN KEYS
@@ -651,6 +661,7 @@ ALTER TABLE material_type_x
 --ALTER TABLE material_refname DROP CONSTRAINT fk_alt_material_refname_material_1, 
 --	DROP CONSTRAINT fk_alt_material_refname_note_1;
 ALTER TABLE material_refname 
+	ADD CONSTRAINT fk_material_refname_type_1 FOREIGN KEY (material_refname_type_uuid) REFERENCES material_refname_type (material_refname_type_uuid),	
 	ADD CONSTRAINT fk_material_refname_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid),	
 	ADD CONSTRAINT fk_material_refname_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
 
@@ -680,7 +691,6 @@ ALTER TABLE m_descriptor_def
 -- DROP CONSTRAINT fk_m_descriptor_note_1;
 ALTER TABLE m_descriptor 
 --	ADD CONSTRAINT fk_m_descriptor_material_refname_1 FOREIGN KEY (material_refname_description_in, material_refname_type_in) REFERENCES material_refname (description, material_refname_type),
-	ADD CONSTRAINT fk_m_descriptor_parent_1 FOREIGN KEY (parent_uuid) REFERENCES m_descriptor (m_descriptor_uuid),
 	ADD CONSTRAINT fk_m_descriptor_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
 	ADD CONSTRAINT fk_m_descriptor_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid),	
 	ADD CONSTRAINT fk_m_descriptor_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
@@ -728,11 +738,6 @@ ALTER TABLE tag
 -- ALTER TABLE tag ADD CONSTRAINT "pk_tag_tag_uuid" PRIMARY KEY (tag_uuid);
 ALTER TABLE tag_x 
 	ADD CONSTRAINT fk_tag_x_tag_1 FOREIGN KEY (tag_uuid) REFERENCES tag (tag_uuid);
-
-ALTER TABLE val 
-	ADD CONSTRAINT fk_val_val_type_1 FOREIGN KEY (val_type_id) REFERENCES val_type (val_type_id);
-
-
 
 
 --=====================================
@@ -857,16 +862,6 @@ FROM
 	LEFT JOIN edocument_x docx ON nt.note_uuid = docx.ref_edocument_uuid
 	LEFT JOIN edocument doc ON docx.edocument_uuid = doc.edocument_uuid
 	LEFT JOIN status sts ON act.status_uuid = sts.status_uuid;
-					
--- integrated view of inventory; joins actor...
--- CREATE OR REPLACE VIEW vw_inventory AS 
---	SELECT inv.inventory_uuid, inv.description, inv.material_uuid, inv.actor_uuid, act.actor_description, inv.part_no, inv.create_date, inv.mod_date, mm.measure_uuid, mm.amount, mm.unit
---		FROM inventory inv
---		LEFT JOIN measure mm 
---		ON inv.measure_uuid = mm.measure_uuid
---		left join get_actor() act
---		ON inv.actor_uuid = act.actor_uuid;
-
 		
 -- get most recent version of a systemtool
 -- return all columns from the systemtool table
@@ -912,6 +907,8 @@ SELECT
 	mdd.short_name,
 	mdd.calc_definition,
 	mdd.description,
+	mdd.in_type,
+	mdd.out_type,
 	mdd.systemtool_id,
 	st.systemtool_name,
 	stt.description as systemtool_type_description,
@@ -933,56 +930,101 @@ FROM
 -- DROP VIEW vw_m_descriptor;
 CREATE OR REPLACE VIEW vw_m_descriptor AS 
 SELECT
-	md.m_descriptor_uuid,
-CASE
-		WHEN md.parent_uuid ISNULL THEN
-		md.m_descriptor_material_in ELSE mdp.m_descriptor_material_in 
-	END AS material_ref,
-CASE
-		WHEN md.parent_uuid ISNULL THEN
-		md.m_descriptor_material_type_in ELSE mdp.m_descriptor_material_type_in 
-	END AS material_ref_type,
-	md.m_descriptor_material_in AS descriptor_in,
-	md.m_descriptor_material_type_in AS descriptor_type_in,
-	mdd.calc_definition as descriptor_def,
+	md.m_descriptor_uuid, 
+-- in_val
+	md.in_val,
+	md.in_opt_val,
+	md.out_val,
+	md.m_descriptor_alias_name,
 	md.create_date,
-	md.num_valarray_out,
-	encode( md.blob_val_out, 'escape' ) AS blob_val_out,
-	md.blob_type_out,
-	mdd.*,
-	sts.description AS status 
+	sts.description AS status, 
+	dact.actor_description as actor_descr,
+	nt.notetext as note_text,
+--	md.num_valarray_out,
+--	encode( md.blob_val_out, 'escape' ) AS blob_val_out,
+--	md.blob_type_out,
+	mdd.*
 FROM
 	m_descriptor md
-	LEFT JOIN m_descriptor mdp ON md.parent_uuid = mdp.m_descriptor_uuid
 	LEFT JOIN vw_m_descriptor_def mdd ON md.m_descriptor_def_uuid = mdd.m_descriptor_def_uuid
 	LEFT JOIN vw_actor dact ON md.actor_uuid = dact.actor_uuid
-	LEFT JOIN status sts ON md.status_uuid = sts.status_uuid;
+	LEFT JOIN status sts ON md.status_uuid = sts.status_uuid
+	LEFT JOIN note nt ON md.note_uuid = nt.note_uuid
+;
+
+-- get material_refname_type
+-- DROP VIEW vw_material_refname_type
+CREATE OR REPLACE VIEW vw_material_refname_type AS 
+SELECT mrt.material_refname_type_uuid, mrt.description, nt.notetext
+FROM material_refname_type mrt
+left join note nt on mrt.note_uuid = nt.note_uuid
+order by 2;
 
 
 -- get materials, all status
--- DROP VIEW vw_material
-CREATE OR REPLACE VIEW vw_material AS 
-SELECT mat.material_id, mat.material_uuid, mat.description as material_description, st.description as material_status, mr.material_refname_type, mr.description as material_refname_description
+-- DROP VIEW vw_material_raw
+CREATE OR REPLACE VIEW vw_material_raw AS 
+SELECT mat.material_id, mat.material_uuid, mat.description as material_description, st.description as material_status, mr.description as material_refname_description, mr.material_refname_type_uuid, mt.description as material_refname_type, mt.add_date as create_date
 FROM material mat
 LEFT JOIN material_refname_x mrx on mat.material_uuid = mrx.material_uuid
 LEFT JOIN material_refname mr on mrx.material_refname_uuid = mr.material_refname_uuid
+LEFT JOIN material_refname_type mt on mr.material_refname_type_uuid = mt.material_refname_type_uuid
 LEFT JOIN status st on mat.status_uuid = st.status_uuid
-order by 1, 2;
+order by mat.material_uuid, mt.description;
 
--- get STUB materials and all descriptors, all status
-CREATE OR REPLACE VIEW vw_material_descriptor AS 
+-- get materials, all status as a crosstab, with refname types 
+-- DROP VIEW vw_material
+CREATE OR REPLACE VIEW vw_material AS 
 SELECT *
-FROM material mat;
+FROM crosstab(
+  'select material_uuid, material_status, create_date, material_refname_type, material_refname_description
+   from vw_material_raw order by 1, 3',
+	 'select distinct material_refname_type
+   from vw_material_raw order by 1')
+AS ct(material_uuid uuid, material_status varchar, create_date timestamptz, Abbreviation varchar, Chemical_Name varchar, InChI varchar, InChIKey varchar, Molecular_Formula varchar, SMILES varchar);
 
--- get STUB inventory, all status
+
+-- get materials and all related descriptors, all status
+-- drop view vw_material_descriptor_raw
+CREATE OR REPLACE VIEW vw_material_descriptor_raw AS 
+select mt.material_uuid, df.m_descriptor_uuid, df.m_descriptor_alias_name, df.in_val, df.in_opt_val, df.out_val
+	from
+	(SELECT distinct material_uuid, m_descriptor_uuid
+	FROM vw_material_raw mat
+	join (SELECT distinct des1.m_descriptor_uuid as parent_uuid, (des1.in_val).v_text as parent_text, des2.m_descriptor_uuid
+		FROM vw_m_descriptor des1 
+		join vw_m_descriptor des2 on (des1.out_val).v_text = (des2.in_val).v_text) t2 on mat.material_refname_description = t2.parent_text
+	UNION 
+	SELECT material_uuid, m_descriptor_uuid
+	FROM vw_material_raw mat
+	join vw_m_descriptor des on (mat.material_refname_description = (des.in_val).v_text)) tt 
+	left join (select * from vw_material_raw where vw_material_raw.material_refname_type = 'SMILES') mt on tt.material_uuid = mt.material_uuid 
+	left join vw_m_descriptor df on tt.m_descriptor_uuid = df.m_descriptor_uuid
+	order by mt.material_uuid, df.m_descriptor_alias_name;
+
+
+-- get materials and all related descriptors, all status
+-- drop view vw_material_descriptor
+CREATE OR REPLACE VIEW vw_material_descriptor AS 
+select mat.*, mdr.m_descriptor_uuid, mdr.m_descriptor_alias_name, mdr.in_val, mdr.in_opt_val, mdr.out_val from vw_material mat 
+join vw_material_descriptor_raw mdr on mat.material_uuid = mdr.material_uuid;
+
+
+-- get inventory, all status
 CREATE OR REPLACE VIEW vw_inventory AS 
 SELECT *
 FROM inventory inv;
 
--- STUB get inventory / material, all status
+-- get inventory / material, all status
 CREATE OR REPLACE VIEW vw_inventory_material AS 
-SELECT *
-FROM inventory inv;
+SELECT inv.inventory_uuid, inv.description as inventory_description, inv.part_no as inventory_part_no, inv.onhand_amt as inventory_onhand_amt, inv.unit as inventory_unit, 
+				inv.create_date as inventory_crate_date, inv.expiration_date as inventory_expiration_date, inv.inventory_location, st.description as inventory_status,
+				inv.actor_uuid, act.actor_description, act.org_full_name, inv.material_uuid, mat.material_status, mat.create_date as material_create_date, mat.chemical_name as material_name, 
+				mat.abbreviation as material_abbreviation, mat.inchi as material_inchi, mat.inchikey as material_inchikey, mat.molecular_formula as material_molecular_formula, mat.smiles as material_smiles
+FROM inventory inv
+left join vw_material mat on inv.material_uuid = mat.material_uuid
+left join vw_actor act on inv.actor_uuid = act.actor_uuid
+left join status st on inv.status_uuid = st.status_uuid;
 
 -- STUB get inventory / material / descriptors, all status
 CREATE OR REPLACE VIEW vw_inventory_material_descriptor AS 

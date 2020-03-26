@@ -1,7 +1,7 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : postgres12
+ Source Server         : postgres12 escalate
  Source Server Type    : PostgreSQL
  Source Server Version : 120001
  Source Host           : localhost:5432
@@ -12,7 +12,7 @@
  Target Server Version : 120001
  File Encoding         : 65001
 
- Date: 20/02/2020 15:33:57
+ Date: 26/03/2020 09:37:32
 */
 
 
@@ -39,6 +39,7 @@ CREATE TABLE "load_chem_inventory" (
 )
 ;
 
+
 -- ----------------------------
 -- Records of load_chem_inventory
 -- ----------------------------
@@ -48,8 +49,7 @@ INSERT INTO "load_chem_inventory" VALUES ('Dimethyl sulfoxide', 'DMSO', '78.129'
 INSERT INTO "load_chem_inventory" VALUES ('Formic Acid', 'FAH', '46.025', '1.22', 'InChI=1S/CH2O2/c2-1-3/h1H,(H,2,3)', 'BDAGIHXWWSANSR-UHFFFAOYSA-N', 'acid, solvent, antisolvent', 'C(=O)O', 'CH2O2', NULL, 'Formic acid, reagent grade, 1L', NULL, 'Sigma:F0507-1L', NULL, NULL);
 INSERT INTO "load_chem_inventory" VALUES ('Lead Diiodide', 'PbI2', '461.01', '6.16', 'InChI=1S/2HI.Pb/h2*1H;/q;;+2/p-2', 'RQQRAHKHDFPBMC-UHFFFAOYSA-L', 'inorganic, B-Cation, Halide', 'I[Pb]I', 'PbI2', NULL, 'Lead(II) iodide 99%, 50g', NULL, 'Sigma:211168-50G', NULL, NULL);
 INSERT INTO "load_chem_inventory" VALUES ('Ethylammonium Iodide', 'EtNH3I', '173', '2.053408', 'InChI=1S/C2H7N.HI/c1-2-3;/h2-3H2,1H3;1H', 'XFYICZOIWSBQSK-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'CC[NH3+].[I-]', 'C2H8IN', '57461411', 'Ethylammonium Iodide 98%, 25g', NULL, 'Sigma:805823-25G', NULL, NULL);
-INSERT INTO "load_chem_inventory" VALUES ('Methylammonium iodide', 'MeNH3I', '158.97', '2.341498', 'InChI=1S/CH5N.HI/c1-2;/h2H2,1H3;1H', 'LLWRXQXPJMPHLR-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'C[NH3+].[I-]', 'CH6IN', 'SID329769003', 'Methylammonium iodide', 'Methylammonium iodide, "Methanamine hydroiodide", "Methanaminium', 'Sigma: 806390-25G', 'https://www.sigmaaldrich.com/catalog/product/aldrich/806390?lang=en&region=US', 'PubChem');
-INSERT INTO "load_chem_inventory" VALUES ('Phenethylammonium iodide', 'PhEtNH3I', '249.095', '1.630204', 'InChI=1S/C8H11N.HI/c9-7-6-8-4-2-1-3-5-8;/h1-5H,6-7,9H2;1H', 'UPHCENSIMPJEIS-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'C1=CC=C(C=C1)CC[NH3+].[I-]', 'C8H12IN', 'SID329768971', 'Phenethylammonium iodide', NULL, 'Sigma:805904-25G', 'https://www.sigmaaldrich.com/catalog/product/aldrich/805904?lang=en&region=US', NULL);
+INSERT INTO "load_chem_inventory" VALUES ('Phenethylammonium iodide ', 'PhEtNH3I', '249.095', '1.630204', 'InChI=1S/C8H11N.HI/c9-7-6-8-4-2-1-3-5-8;/h1-5H,6-7,9H2;1H', 'UPHCENSIMPJEIS-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'C1=CC=C(C=C1)CC[NH3+].[I-]', 'C8H12IN', 'SID329768971', 'Phenethylammonium iodide', NULL, 'Sigma:805904-25G', 'https://www.sigmaaldrich.com/catalog/product/aldrich/805904?lang=en&region=US', NULL);
 INSERT INTO "load_chem_inventory" VALUES ('Acetamidinium iodide', 'AcNH3I', '185.96539', '2.176639', 'InChI=1S/C2H6N2.HI/c1-2(3)4;/h1H3,(H3,3,4);1H', 'GGYGJCFIYJVWIP-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'CC(=[NH2+])N.[I-]', 'C2H7IN2', 'SID329768980', NULL, NULL, 'Sigma:805971-25G', NULL, 'PubChem');
 INSERT INTO "load_chem_inventory" VALUES ('n-Butylammonium iodide', 'n-BuNH3I', '201.051', '1.686302', 'InChI=1S/C4H11N.HI/c1-2-3-4-5;/h2-5H2,1H3;1H', 'CALQKRVFTWDYDG-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'CCCC[NH3+].[I-]', 'C4H12IN', NULL, NULL, NULL, 'Sigma: 805874-25G', 'https://www.sigmaaldrich.com/catalog/product/aldrich/805874', NULL);
 INSERT INTO "load_chem_inventory" VALUES ('Guanidinium iodide', 'GnNH3I', '186.98', '2.359388', 'InChI=1S/CH5N3.HI/c2-1(3)4;/h(H5,2,3,4);1H', 'UUDRLGYROXTISK-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'C(=[NH2+])(N)N.[I-]', 'CH6IN3', NULL, 'Guanidinium iodide 99%', 'iodide", "Methylamine hydriodide", "Monomethylammonium iodide"', 'Sigma:806056-25G', 'https://www.sigmaaldrich.com/catalog/product/aldrich/806056?lang=en&region=US', 'PubChem');
@@ -132,4 +132,24 @@ INSERT INTO "load_chem_inventory" VALUES ('Diethylammonium bromide', 'Diethylamm
 INSERT INTO "load_chem_inventory" VALUES ('N,N-Dimethylethane-1,2-diammonium bromide', 'NNDimethylethaneDiammoniumBromide', '249.978', '1.7831', 'InChI=1S/C4H12N2.2BrH/c1-6(2)4-3-5;;/h3-5H2,1-2H3;2*1H', 'MDXXRKKHSWLPQO-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'CC[NH+](CC)CC[NH3+].[Br-].[Br-]', 'C4H14Br2N2', NULL, NULL, NULL, NULL, NULL, NULL);
 INSERT INTO "load_chem_inventory" VALUES ('Hexane-1,6-diammonium bromide', 'HexaneDiammoniumBromide', '278.032', '1.6276', 'InChI=1S/C6H16N2.2BrH/c7-5-3-1-2-4-6-8;;/h1-8H2;2*1H', 'XSYPBULLQGGYPJ-UHFFFAOYSA-N', 'organic, A-Cation, Halide', '[NH3+]CCCCCC[NH3+].[Br-].[Br-]', 'C6H18Br2N2', NULL, NULL, NULL, NULL, NULL, NULL);
 INSERT INTO "load_chem_inventory" VALUES ('4-Trifluoromethyl-Benzylammonium bromide', 'TrifluoromethylBenzylammoniumBromide', '256.066', '2.4065', 'InChI=1S/C8H8F3N.BrH/c9-8(10,11)7-3-1-6(5-12)2-4-7;/h1-4H,5,12H2;1H', 'NKMWCZULQZETPE-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'C1(=CC=C(C=C1)C(F)(F)F)C[NH3+].[Br-]', 'C8H9BrF3N', NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "load_chem_inventory" VALUES ('4-Fluoro- Benzylammonium bromide', '4FluoroBenzylammoniumBromide', '206.058', '2.944893', 'InChI=1S/C7H8FN.BrH/c8-7-3-1-6(5-9)2-4-7;/h1-4H,5,9H2;1H', 'PHIMWJYSMVBDPA-UHFFFAOYSA-N', 'organic, A-Cation, Halide', '[NH3+]Cc1ccc(F)cc1.[Br-]', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "load_chem_inventory" VALUES ('4-Fluoro-Phenethylammonium bromide', '4FluoroPhenethylammoniumBromide', '220.085', '2.846364', 'InChI=1S/C8H10FN.BrH/c9-8-3-1-7(2-4-8)5-6-10;/h1-4H,5-6,10H2;1H', 'ORNUPOUGVYVYHV-UHFFFAOYSA-N', 'organic, A-Cation, Halide', '[NH3+]CCc1ccc(F)cc1.[Br-]', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "load_chem_inventory" VALUES ('4-Fluoro-Phenylammonium bromide', '4FluoroPhenBromide', '192.031', '3.066623', 'InChI=1S/C6H6FN.BrH/c7-5-1-3-6(8)4-2-5;/h1-4H,8H2;1H', 'UFXSFFZUFGPRAI-UHFFFAOYSA-N', 'organic, A-Cation, Halide', '[NH3+]c1ccc(F)cc1.[Br-]', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "load_chem_inventory" VALUES ('4-methoxy-phenethylammonium-bromide', '4MethoxyPhenethylammoniumBromide', '232.121', '2.697986', 'InChI=1S/C9H13NO.BrH/c1-11-9-4-2-8(3-5-9)6-7-10;/h2-5H,6-7,10H2,1H3;1H', 'ZMSVLPNLFXWMKL-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'COc1ccc(CC[NH3+])cc1.[Br-]', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "load_chem_inventory" VALUES ('4-Methoxy-Phenylammonium bromide', '4MethoxyPhenylammoniumBromide', '204.067', '2.855279', 'InChI=1S/C7H9NO.BrH/c1-9-7-4-2-6(8)3-5-7;/h2-5H,8H2,1H3;1H', 'RJMOZBXAFVSKRY-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'COc1ccc([NH3+])cc1.[Br-]', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "load_chem_inventory" VALUES ('Cyclohexylammonium bromide', 'CyclohexylammoniumBromide', '180.089', '2.666702', 'InChI=1S/C6H13N.BrH/c7-6-4-2-1-3-5-6;/h6H,1-5,7H2;1H', 'QOHWJRRXQPGIQW-UHFFFAOYSA-N', 'organic, A-Cation, Halide', '[NH3+]C1CCCCC1.[Br-]', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "load_chem_inventory" VALUES ('Dimethylammonium bromide', 'Me2NH2Br', '125.997', '2.941156', 'InChI=1S/C2H7N.BrH/c1-3-2;/h3H,1-2H3;1H', 'FFJMLWSZNCJCSZ-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'C[NH2+]C.[Br-]', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "load_chem_inventory" VALUES ('Imidazolium bromide', 'ImidazoliumBromide', '148.991', '3.267861', 'InChI=1S/C3H4N2.BrH/c1-2-5-3-4-1;/h1-3H,(H,4,5);1H', 'VWUCIBOKNZGWLX-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'c1c[nH+]c[nH]1.[Br-]', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "load_chem_inventory" VALUES ('iso-Pentylammonium bromide', 'IsoPentylammoniumBromide', '168.078', '2.604508', 'InChI=1S/C5H13N.BrH/c1-5(2)3-4-6;/h5H,3-4,6H2,1-2H3;1H', 'OJOMXIACRLGDRB-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'CC(C)CC[NH3+].[Br-]', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "load_chem_inventory" VALUES ('n-Butylammonium bromide', 'NButylammoniumBromide', '154.051', '2.692208', 'InChI=1S/C4H11N.BrH/c1-2-3-4-5;/h2-5H2,1H3;1H', 'SXGBREZGMJVYRL-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'CCCC[NH3+].[Br-]', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "load_chem_inventory" VALUES ('n-Hexylammonium bromide', 'NHexylammoniumBromide', '182.105', '2.541042', 'InChI=1S/C6H15N.BrH/c1-2-3-4-5-6-7;/h2-7H2,1H3;1H', 'ZLSVALLKHLKICA-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'CCCCCC[NH3+].[Br-]', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "load_chem_inventory" VALUES ('n-Octylammonium bromide', 'NOctylammoniumBromide', '210.159', '2.443081', 'InChI=1S/C8H19N.BrH/c1-2-3-4-5-6-7-8-9;/h2-9H2,1H3;1H', 'GIDDQKKGAYONOU-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'CCCCCCCC[NH3+].[Br-]', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "load_chem_inventory" VALUES ('N-propylammonium bromide', 'NPropylammoniumBromide', '140.024', '2.802504', 'InChI=1S/C3H9N.BrH/c1-2-3-4;/h2-4H2,1H3;1H', 'MVYQJCPZZBFMLF-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'CCC[NH3+].[Br-]', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "load_chem_inventory" VALUES ('N,N-Diethylpropane-1,3-diammonium bromide', 'NNDiethylpropaneDiammoniumBromide', '292.059', '2.822177', 'InChI=1S/C7H18N2.2BrH/c1-3-9(4-2)7-5-6-8;;/h3-8H2,1-2H3;2*1H', 'WIEDADHWBFYIRI-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'CC[NH+](CC)CCC[NH3+].[Br-].[Br-]', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "load_chem_inventory" VALUES ('Phenylammonium bromide', 'PhenylammoniumBromide', '174.041', '2.91777', 'InChI=1S/C6H7N.BrH/c7-6-4-2-1-3-5-6;/h1-5H,7H2;1H', 'KBPWECBBZZNAIE-UHFFFAOYSA-N', 'organic, A-Cation, Halide', '[NH3+]c1ccccc1.[Br-]', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "load_chem_inventory" VALUES ('Pyridinium bromide', 'PyridiniumBromide', '160.014', '3.043198', 'InChI=1S/C5H5N.BrH/c1-2-4-6-5-3-1;/h1-5H;1H', 'BBFCIBZLAVOLCF-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'c1cc[nH+]cc1.[Br-]', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "load_chem_inventory" VALUES ('t-Butylammonium bromide', 'TButylammoniumBromide', '154.051', '2.687563', 'InChI=1S/C4H11N.BrH/c1-4(2,3)5;/h5H2,1-3H3;1H', 'CQKAPARXKPTKBK-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'CC(C)(C)[NH3+].[Br-]', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "load_chem_inventory" VALUES ('tert-Octylammonium bromide', 'TOctylammoniumBromide', '210.159', '2.433206', 'InChI=1S/C8H19N.BrH/c1-7(2,3)6-8(4,5)9;/h6,9H2,1-5H3;1H', 'GDLPVSVSDKCFKN-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'CC(C)(C)CC(C)(C)[NH3+].[Br-]', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "load_chem_inventory" VALUES ('2-Methoxyethylammonium bromide', '2MethoxyEthylammoniumBromide', '156.023', '2.861683', 'InChI=1S/C3H9NO.BrH/c1-5-3-2-4;/h2-4H2,1H3;1H', 'XAZUEHTWFIPWFR-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'COCC[NH3+].[Br-]', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "load_chem_inventory" VALUES ('Methylammonium iodide', 'MeNH3I', '158.97', '2.341498', 'InChI=1S/CH5N.HI/c1-2;/h2H2,1H3;1H', 'LLWRXQXPJMPHLR-UHFFFAOYSA-N', 'organic, A-Cation, Halide', 'C[NH3+].[I-]', 'CH6IN', 'SID329769003', 'Methylammonium iodide', 'Methylammonium iodide, "Methanamine hydroiodide", "Methanaminium', 'Sigma: 806390-25G', 'https://www.sigmaaldrich.com/catalog/product/aldrich/806390?lang=en&region=US', 'PubChem');
 COMMIT;

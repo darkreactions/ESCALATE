@@ -15,6 +15,21 @@ insert into material_type (description)
 	FROM load_chem_inventory
 	group by ccat;
 
+
+INSERT INTO material_refname_type (description)
+VALUES 
+	('Chemical_Name'),
+	('Abbreviation'),
+	('InChI'),
+	('InChIKey'),
+	('RInChI'),		
+	('SMILES'),
+	('SMARTS'),	
+	('SMIRKS'),	
+	('Molecular_Formula')
+;
+
+
 -- insert load_chem_inventory materials into material table
 -- default to HC as actor
 insert into material (description, status_uuid)
@@ -35,33 +50,33 @@ insert into material_type_x (ref_material_uuid, material_type_uuid)
 -- insert the alternative material names into material_refname
 -- abbreviation, inchi, inchikey, canonical smiles, molecular formula	
 -- chemical name
-insert into material_refname (description, material_refname_type, status_uuid) 	
-	select distinct inv."ChemicalName" as abbrv, 'Chemical Name' as atype, (select status_uuid from status where description = 'active') as status 
+insert into material_refname (description, material_refname_type_uuid, status_uuid) 	
+	select distinct inv."ChemicalName" as abbrv, (select material_refname_type_uuid from material_refname_type where description = 'Chemical_Name') as refname_type, (select status_uuid from status where description = 'active') as status 
 	from load_chem_inventory inv
 	where inv."ChemicalName" is not null;
 -- abbreviation
-insert into material_refname (description, material_refname_type, status_uuid) 	
-	select distinct inv."ChemicalAbbreviation" as abbrv, 'Abbreviation' as atype, (select status_uuid from status where description = 'active') as status 
+insert into material_refname (description, material_refname_type_uuid, status_uuid) 	
+	select distinct inv."ChemicalAbbreviation" as abbrv, (select material_refname_type_uuid from material_refname_type where description = 'Abbreviation') as refname_type, (select status_uuid from status where description = 'active') as status 
 	from load_chem_inventory inv
 	where inv."ChemicalAbbreviation" is not null;
 -- InChi
-insert into material_refname (description, material_refname_type, status_uuid) 	
-	select distinct inv."InChI" as abbrv, 'InChI' as atype, (select status_uuid from status where description = 'active') as status 
+insert into material_refname (description, material_refname_type_uuid, status_uuid) 	
+	select distinct inv."InChI" as abbrv, (select material_refname_type_uuid from material_refname_type where description = 'InChI') as refname_type, (select status_uuid from status where description = 'active') as status 
 	from load_chem_inventory inv
 	where inv."InChI" is not null;
 -- InChiKey
-insert into material_refname (description, material_refname_type, status_uuid) 	
-	select distinct inv."InChIKey" as abbrv, 'InChIKey' as atype, (select status_uuid from status where description = 'active') as status 
+insert into material_refname (description, material_refname_type_uuid, status_uuid) 	
+	select distinct inv."InChIKey" as abbrv, (select material_refname_type_uuid from material_refname_type where description = 'InChIKey') as refname_type, (select status_uuid from status where description = 'active') as status 
 	from load_chem_inventory inv
 	where inv."InChIKey" is not null;
 -- SMILES
-insert into material_refname (description, material_refname_type, status_uuid) 	
-	select distinct inv."CanonicalSMILES" as abbrv, 'SMILES' as atype, (select status_uuid from status where description = 'active') as status 
+insert into material_refname (description, material_refname_type_uuid, status_uuid) 	
+	select distinct inv."CanonicalSMILES" as abbrv, (select material_refname_type_uuid from material_refname_type where description = 'SMILES') as refname_type, (select status_uuid from status where description = 'active') as status 
 	from load_chem_inventory inv
 	where inv."CanonicalSMILES" is not null;
 -- MolecularFormula
-insert into material_refname (description, material_refname_type, status_uuid) 	
-	select distinct inv."MolecularFormula" as abbrv, 'Molecular Formula' as atype, (select status_uuid from status where description = 'active') as status 
+insert into material_refname (description, material_refname_type_uuid, status_uuid) 	
+	select distinct inv."MolecularFormula" as abbrv, (select material_refname_type_uuid from material_refname_type where description = 'Molecular_Formula') as refname_type, (select status_uuid from status where description = 'active') as status 
 	from load_chem_inventory inv
 	where inv."MolecularFormula" is not null;
 
@@ -71,35 +86,45 @@ insert into material_refname_x (material_uuid, material_refname_uuid)
 	select distinct mat.material_uuid as m_uuid, mn.material_refname_uuid 
 	from load_chem_inventory inv
 	join material mat ON inv."ChemicalName" = mat.description
-	join material_refname mn on inv."ChemicalName" = mn.description and mn.material_refname_type = 'Chemical Name'
+	join 
+		(select mr.material_refname_uuid, mr.description, mt.description as material_refname_type from material_refname mr join material_refname_type mt on mr.material_refname_type_uuid = mt.material_refname_type_uuid) as mn
+		on inv."ChemicalName" = mn.description and mn.material_refname_type = 'Chemical_Name'
 	where inv."ChemicalName" is not null;
 
 insert into material_refname_x (material_uuid, material_refname_uuid) 	
 	select distinct mat.material_uuid as m_uuid, mn.material_refname_uuid 
 	from load_chem_inventory inv
 	join material mat ON inv."ChemicalName" = mat.description
-	join material_refname mn on inv."ChemicalAbbreviation" = mn.description and mn.material_refname_type = 'Abbreviation'
+	join 
+		(select mr.material_refname_uuid, mr.description, mt.description as material_refname_type from material_refname mr join material_refname_type mt on mr.material_refname_type_uuid = mt.material_refname_type_uuid) as mn 
+		on inv."ChemicalAbbreviation" = mn.description and mn.material_refname_type = 'Abbreviation'
 	where inv."ChemicalAbbreviation" is not null;
 
 insert into material_refname_x (material_uuid, material_refname_uuid) 	
 	select distinct mat.material_uuid as m_uuid, mn.material_refname_uuid 
 	from load_chem_inventory inv
 	join material mat ON inv."ChemicalName" = mat.description
-	join material_refname mn on inv."InChI" = mn.description and mn.material_refname_type = 'InChI'
+	join 
+		(select mr.material_refname_uuid, mr.description, mt.description as material_refname_type from material_refname mr join material_refname_type mt on mr.material_refname_type_uuid = mt.material_refname_type_uuid) as mn 
+		on inv."InChI" = mn.description and mn.material_refname_type = 'InChI'
 	where inv."InChI" is not null;
 
 insert into material_refname_x (material_uuid, material_refname_uuid) 	
 	select distinct mat.material_uuid as m_uuid, mn.material_refname_uuid 
 	from load_chem_inventory inv
 	join material mat ON inv."ChemicalName" = mat.description
-	join material_refname mn on inv."InChIKey" = mn.description and mn.material_refname_type = 'InChIKey'
+	join 
+		(select mr.material_refname_uuid, mr.description, mt.description as material_refname_type from material_refname mr join material_refname_type mt on mr.material_refname_type_uuid = mt.material_refname_type_uuid) as mn 
+		on inv."InChIKey" = mn.description and mn.material_refname_type = 'InChIKey'
 	where inv."InChIKey" is not null;
 	
 insert into material_refname_x (material_uuid, material_refname_uuid) 	
 	select distinct mat.material_uuid as m_uuid, mn.material_refname_uuid 
 	from load_chem_inventory inv
 	join material mat ON inv."ChemicalName" = mat.description
-	join material_refname mn on inv."CanonicalSMILES" = mn.description and mn.material_refname_type = 'SMILES'
+	join 
+		(select mr.material_refname_uuid, mr.description, mt.description as material_refname_type from material_refname mr join material_refname_type mt on mr.material_refname_type_uuid = mt.material_refname_type_uuid) as mn 
+		on inv."CanonicalSMILES" = mn.description and mn.material_refname_type = 'SMILES'
 	where inv."CanonicalSMILES" is not null;	
 	
 --insert into material_refname_x (material_id, material_refname_id) 	
@@ -113,15 +138,9 @@ insert into material_refname_x (material_uuid, material_refname_uuid)
 	select distinct mat.material_uuid as m_uuid, mn.material_refname_uuid 
 	from load_chem_inventory inv
 	join material mat ON inv."ChemicalName" = mat.description
-	join material_refname mn on inv."MolecularFormula" = mn.description and mn.material_refname_type = 'Molecular Formula'
+	join 
+		(select mr.material_refname_uuid, mr.description, mt.description as material_refname_type from material_refname mr join material_refname_type mt on mr.material_refname_type_uuid = mt.material_refname_type_uuid) as mn 
+		on inv."MolecularFormula" = mn.description and mn.material_refname_type = 'Molecular_Formula'
 	where inv."MolecularFormula" is not null;	
 	
 	
--- test materials and NAMES
-/*
-select mat.material_id, mat.description, mtn.description, mtn.material_refname_type from 
-material mat 
-join material_refname_x mtx on mat.material_id = mtx.material_id
-join material_refname mtn on mtx.material_refname_id = mtn.material_refname_id
-order by 1, 4
-*/

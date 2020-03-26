@@ -1,10 +1,10 @@
 /*
-Name:					prod_initialize_org_per_sys_actor
+Name:					prod_initialize_coretables
 Parameters:		none
 Returns:			none
 Author:				G. Cattabriga
 Date:					2020.01.23
-Description:	initialize production tables organization, person, systemtool and actor with data
+Description:	initialize core production tables organization, person, systemtool and actor with data
 Notes:				code for parsing chem inventory data is contained in other file(s)
 							20200123: - reorganize the actors so that persons or systemtools are not redundantly defined by 
 							there parent organization
@@ -25,35 +25,10 @@ VALUES
 	('active'),
 	('inactive'),
 	('test'),
-	('do not use'),
+	('do_not_use'),
 	('prototype')
 ;
 COMMIT;
-
--- ----------------------------
--- Records of value_type
--- ----------------------------
-/*
-	val_type_id serial8,
-	description varchar,
-	val_type varchar,
-	val_subtype varchar, 
-  note_uuid uuid,
-	add_date timestamptz NOT NULL DEFAULT NOW(),
-	mod_date timestamptz NOT NULL DEFAULT NOW());
-*/
-BEGIN;
-INSERT INTO val_type (description, val_type, val_subtype)
-VALUES 
-	('text', 'text', NULL),
-	('num', 'num', NULL),
-	('num_array', 'num_array', NULL),
-	('blob_text', 'blob', 'text'),
-	('blob_svg', 'blob', 'svg'),
-	('blob_png', 'blob', 'png')	
-;
-COMMIT;
-
 
 -- ----------------------------
 -- Records of organization
@@ -104,7 +79,8 @@ INSERT INTO systemtool_type (description)
 VALUES 
 	('Command-line tool'),
 	('API'),
-	('Python toolkit');
+	('Python toolkit'),
+	('ESCALATE function');
 COMMIT;
 
 -- ----------------------------
@@ -143,7 +119,11 @@ VALUES
 		(select organization_id from organization where short_name = 'ChemAxon'), NULL, NULL, '19.6.0', NULL),
 	('RDKit', 'Cheminformatics Toolkit for Python', 
 		(select systemtool_type_id from systemtool_type where description = 'Python toolkit'),
-		(select organization_id from organization where short_name = 'RDKit'), NULL, NULL, '19.03.4', NULL);
+		(select organization_id from organization where short_name = 'RDKit'), NULL, NULL, '19.03.4', NULL),
+	('escalate', 'ESCALATE function call', 
+		(select systemtool_type_id from systemtool_type where description = 'ESCALATE function'),
+		(select organization_id from organization where short_name = 'Haverford'), NULL, NULL, 'V3', NULL)
+;
 COMMIT;
 
 -- ----------------------------
@@ -244,7 +224,11 @@ VALUES
 		'ChemAxon: generatemd', (select status_uuid from status where description = 'active')),
 	(NULL, (select organization_id from organization where short_name = 'HC'), 
 		(select systemtool_id from systemtool where systemtool_name = 'RDKit'), 
-		'RDKit: Python toolkit', (select status_uuid from status where description = 'active'));	
+		'RDKit: Python toolkit', (select status_uuid from status where description = 'active')),
+	(NULL, (select organization_id from organization where short_name = 'HC'), 
+		(select systemtool_id from systemtool where systemtool_name = 'escalate'), 
+		'escalate: system function call', (select status_uuid from status where description = 'active'))
+;	
 COMMIT;
 
 
