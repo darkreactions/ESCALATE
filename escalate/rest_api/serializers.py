@@ -57,7 +57,7 @@ class InventorySerializer(HyperlinkedModelSerializer):
 model_names = ['MDescriptor', 'MDescriptorClass', 'MDescriptorDef',
                'MDescriptorValue', 'MaterialType', 'MaterialName',
                'Measure', 'MeasureType', 'Status', 'Systemtool',
-               'SystemtoolType', 'Tag', 'TagType']
+               'SystemtoolType', 'Tag', 'TagType', 'ViewInventory']
 
 for model_name in model_names:
     meta_class = type('Meta', (), {'model': getattr(core.models, model_name),

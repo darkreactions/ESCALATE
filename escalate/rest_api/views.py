@@ -34,7 +34,7 @@ model_names = ['Actor', 'Person', 'Organization', 'Material', 'Inventory',
                'MDescriptor', 'MDescriptorClass', 'MDescriptorDef',
                'MDescriptorValue', 'MaterialType', 'MaterialName',
                'Measure', 'MeasureType', 'Status', 'Systemtool',
-               'SystemtoolType', 'Tag', 'TagType']
+               'SystemtoolType', 'Tag', 'TagType', 'ViewInventory']
 
 
 @api_view(['GET'])

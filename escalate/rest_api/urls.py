@@ -6,7 +6,7 @@ url_prefixes = ['Actor', 'Person', 'Organization', 'Material', 'Inventory',
                 'MDescriptor', 'MDescriptorClass', 'MDescriptorDef',
                 'MDescriptorValue', 'MaterialType', 'MaterialName',
                 'Measure', 'MeasureType', 'Status', 'Systemtool',
-                'SystemtoolType', 'Tag', 'TagType']
+                'SystemtoolType', 'Tag', 'TagType', 'ViewInventory']
 
 urlpatterns = [
     path('', views.api_root),
