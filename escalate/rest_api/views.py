@@ -16,7 +16,7 @@ from rest_framework.generics import ListAPIView, RetrieveAPIView
 # App imports
 from core.models import (Actor, Person, Organization, Material, Inventory,
                          MDescriptor, MDescriptorClass, MDescriptorDef,
-                         MDescriptorValue, MaterialType, MaterialName,
+                         MaterialType,
                          Measure, MeasureType, Status, Systemtool,
                          SystemtoolType, Tag, TagType)
 
@@ -24,7 +24,7 @@ from .serializers import (ActorSerializer, PersonSerializer,
                           OrganizationSerializer, MaterialSerializer,
                           InventorySerializer,
                           MDescriptorSerializer, MDescriptorClassSerializer, MDescriptorDefSerializer,
-                          MDescriptorValueSerializer, MaterialTypeSerializer, MaterialNameSerializer,
+                          MaterialTypeSerializer,
                           MeasureSerializer, MeasureTypeSerializer, StatusSerializer, SystemtoolSerializer,
                           SystemtoolTypeSerializer, TagSerializer, TagTypeSerializer)
 import rest_api.serializers
@@ -32,7 +32,7 @@ import core.models
 
 model_names = ['Actor', 'Person', 'Organization', 'Material', 'Inventory',
                'MDescriptor', 'MDescriptorClass', 'MDescriptorDef',
-               'MDescriptorValue', 'MaterialType', 'MaterialName',
+               'MaterialType',
                'Measure', 'MeasureType', 'Status', 'Systemtool',
                'SystemtoolType', 'Tag', 'TagType', 'ViewInventory']
 
@@ -77,10 +77,14 @@ for model_name in model_names:
     model = getattr(core.models, model_name)
     modelSerializer = getattr(rest_api.serializers, model_name+'Serializer')
 
-    methods = {"queryset": model.objects.all(),
-               "serializer_class": modelSerializer}
+    methods_list = {"queryset": model.objects.all(),
+                    "serializer_class": modelSerializer}
+
+    methods_detail = {"queryset": model.objects.all(),
+                      "serializer_class": modelSerializer, }
+    # "lookup_field": model_name + '_uuid'}
 
     globals()[model_name+'List'] = type(model_name + 'List',
-                                        tuple([ListAPIView]), methods)
+                                        tuple([ListAPIView]), methods_list)
     globals()[model_name+'Detail'] = type(model_name + 'Detail',
-                                          tuple([RetrieveAPIView]), methods)
+                                          tuple([RetrieveAPIView]), methods_detail)

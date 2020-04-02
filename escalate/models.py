@@ -84,7 +84,8 @@ class Files(models.Model):
 
 
 class Inventory(models.Model):
-    inventory_uuid = models.UUIDField(primary_key=True)
+    inventory_uuid = models.UUIDField(
+        primary_key=True, db_column='inventory_uuid')
     description = models.CharField(max_length=-1, blank=True, null=True)
     material_uuid = models.ForeignKey(
         'Material', models.DO_NOTHING, db_column='material_uuid')

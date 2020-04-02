@@ -45,18 +45,20 @@ class MaterialForm(forms.ModelForm):
 
     class Meta:
         model = Material
-        fields = ['description', 'parent_material', 'status', 'notetext']
+        fields = '__all__'
 
 
 class InventoryForm(forms.ModelForm):
     class Meta:
         model = Inventory
-        fields = ['description', 'material', 'actor', 'part_no', 'onhand_amt', 'unit',
-                  'measure_id', 'create_date', 'inventory_location', 'status', 'document_id', 'note']
+        # fields = ['description', 'material', 'actor', 'part_no', 'onhand_amt', 'unit',
+        #          'measure_id', 'create_date', 'inventory_location', 'status', 'document_id', 'note']
+        fields = '__all__'
 
 
 class ActorForm(forms.ModelForm):
     class Meta:
         model = Actor
-        fields = ['person', 'organization', 'systemtool', 'description', 'status',
-                  'note']
+        # fields = ['person', 'organization', 'systemtool', 'description', 'status',
+        #          'note']
+        fields = '__all__'

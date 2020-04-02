@@ -3,13 +3,13 @@
 #   * Rearrange models' order
 #   * Make sure each model has one field with primary_key=True
 #   * Make sure each ForeignKey has `on_delete` set to the desired behavior.
-#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
+#   * Remove `managed = managed_value` lines if you wish to allow Django to create, modify, and delete the table
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
 from datetime import datetime
 from django.utils.timezone import now
 
-managed_value = True
+managed_value = False
 
 
 class Actor(models.Model):
@@ -49,7 +49,7 @@ class ActorPref(models.Model):
     mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
-        managed = False
+        managed = managed_value
         db_table = 'actor_pref'
 
 
@@ -81,7 +81,7 @@ class EdocumentX(models.Model):
     mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
-        managed = False
+        managed = managed_value
         db_table = 'edocument_x'
         unique_together = (('ref_edocument_uuid', 'edocument_uuid'),)
 
@@ -259,7 +259,7 @@ class LoadPerovDesc(models.Model):
         db_column='_raw_standard_molweight', blank=True, null=True)
     # Field renamed because it started with '_'.
     field_prototype_ecpf4_256_6 = models.CharField(
-        db_column='_prototype_ecpf4_256_6', max_length=-1, blank=True, null=True)
+        db_column='_prototype_ecpf4_256_6', max_length=255, blank=True, null=True)
     # Field renamed because it started with '_'.
     field_feat_atomcount_c = models.SmallIntegerField(
         db_column='_feat_atomcount_c', blank=True, null=True)
@@ -494,13 +494,13 @@ class LoadPerovDescDef(models.Model):
 
 
 class LoadPerovMolImage(models.Model):
-    filename = models.CharField(max_length=-1, blank=True, null=True)
+    filename = models.CharField(max_length=255, blank=True, null=True)
     fileno = models.IntegerField(blank=True, null=True)
     # Field renamed because it started with '_'.
     field_image = models.BinaryField(db_column='_image', blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = managed_value
         db_table = 'load_perov_mol_image'
 
 
@@ -508,6 +508,8 @@ class MDescriptor(models.Model):
     #m_descriptor_id = models.BigAutoField(primary_key=True)
     m_descriptor_uuid = models.UUIDField(primary_key=True)
     m_descriptor_def_uuid = models.UUIDField(blank=True, null=True)
+    m_descriptor_alias_name = models.CharField(
+        max_length=255, blank=True, null=True)
     # This field type is a guess.
     in_val = models.TextField(blank=True, null=True)
     # This field type is a guess.
@@ -606,13 +608,13 @@ class MDescriptorEval(models.Model):
     create_date = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = managed_value
         db_table = 'm_descriptor_eval'
 
 
 class Material(models.Model):
-    material_id = models.BigAutoField(primary_key=True)
-    material_uuid = models.UUIDField(blank=True, null=True)
+    #material_id = models.BigAutoField(primary_key=True)
+    material_uuid = models.UUIDField(primary_key=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     parent_uuid = models.ForeignKey(
         'self', models.DO_NOTHING, db_column='parent_uuid', blank=True, null=True)
@@ -649,7 +651,7 @@ class MaterialRefname(models.Model):
     mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
-        managed = False
+        managed = managed_value
         db_table = 'material_refname'
         unique_together = (('description', 'material_refname_type_uuid'),)
 
@@ -666,7 +668,7 @@ class MaterialRefnameType(models.Model):
     mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
-        managed = False
+        managed = managed_value
         db_table = 'material_refname_type'
 
 
@@ -680,7 +682,7 @@ class MaterialRefnameX(models.Model):
     mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
-        managed = False
+        managed = managed_value
         db_table = 'material_refname_x'
         unique_together = (('material_uuid', 'material_refname_uuid'),)
 
@@ -769,7 +771,7 @@ class MeasureX(models.Model):
     mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
-        managed = False
+        managed = managed_value
         db_table = 'measure_x'
         unique_together = (('ref_measure_uuid', 'measure_uuid'),)
 
@@ -957,7 +959,7 @@ class TagX(models.Model):
     mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
-        managed = False
+        managed = managed_value
         db_table = 'tag_x'
         unique_together = (('ref_tag_uuid', 'tag_uuid'),)
 
@@ -975,5 +977,5 @@ class TriggerTest(models.Model):
 class VTypeOut(models.Model):
 
     class Meta:
-        managed = False
+        managed = managed_value
         db_table = 'v_type_out'

@@ -8,54 +8,59 @@ class ActorSerializer(HyperlinkedModelSerializer):
 
     class Meta:
         model = Actor
-        fields = ['description', 'person']
+        #fields = ['description', 'person']
+        fields = '__all__'
 
 
 class PersonSerializer(HyperlinkedModelSerializer):
     class Meta:
         model = Person
-        fields = ['person_id', 'person_uuid', 'firstname', 'lastname',
-                  'middlename', 'address1', 'city', 'stateprovince', 'phone',
-                  'email', 'title', 'suffix', 'organization', 'note']
+        # fields = ['person_id', 'person_uuid', 'firstname', 'lastname',
+        #          'middlename', 'address1', 'city', 'stateprovince', 'phone',
+        #          'email', 'title', 'suffix', 'organization', 'note_uuid']
+        fields = '__all__'
 
 
 class OrganizationSerializer(HyperlinkedModelSerializer):
-    note_text = CharField(source='note')
+    #note_text = CharField(source='note')
 
     class Meta:
         model = Organization
-        fields = ['organization_id', 'organization_uuid', 'description',
-                  'full_name', 'short_name', 'address1', 'address2', 'city',
-                  'state_province', 'zip', 'country', 'website_url', 'phone',
-                  'note_text', 'add_date', 'mod_date']
+        # fields = ['organization_id', 'organization_uuid', 'description',
+        #          'full_name', 'short_name', 'address1', 'address2', 'city',
+        #          'state_province', 'zip', 'country', 'website_url', 'phone',
+        #          'note_text', 'add_date', 'mod_date']
+        fields = '__all__'
 
 
 class MaterialSerializer(HyperlinkedModelSerializer):
-    note_text = CharField(source='note')
-    status_description = CharField(source='status')
+    #note_text = CharField(source='note')
+    #status_description = CharField(source='status')
 
     class Meta:
         model = Material
-        fields = ['material_id', 'material_uuid', 'description',
-                  'parent_material', 'status_description', 'note_text',
-                  'add_date', 'mod_date']
+        # fields = ['material_id', 'material_uuid', 'description',
+        #          'parent_material', 'status_description', 'note_text',
+        #          'add_date', 'mod_date']
+        fields = '__all__'
 
 
 class InventorySerializer(HyperlinkedModelSerializer):
-    note_text = CharField(source='note')
-    status_description = CharField(source='status')
+    #note_text = CharField(source='note')
+    #status_description = CharField(source='status')
 
     class Meta:
         model = Inventory
-        fields = ['inventory_id', 'inventory_uuid', 'description', 'material',
-                  'actor', 'part_no', 'onhand_amt', 'unit', 'measure_id',
-                  'create_date', 'expiration_dt', 'inventory_location',
-                  'status_description', 'document_id', 'note_text', 'add_date',
-                  'mod_date']
+        # fields = ['inventory_id', 'inventory_uuid', 'description', 'material',
+        #          'actor', 'part_no', 'onhand_amt', 'unit', 'measure_id',
+        #          'create_date', 'expiration_dt', 'inventory_location',
+        #          'status_description', 'document_id', 'note_text', 'add_date',
+        #          'mod_date']
+        fields = '__all__'
 
 
 model_names = ['MDescriptor', 'MDescriptorClass', 'MDescriptorDef',
-               'MDescriptorValue', 'MaterialType', 'MaterialName',
+               'MaterialType',
                'Measure', 'MeasureType', 'Status', 'Systemtool',
                'SystemtoolType', 'Tag', 'TagType', 'ViewInventory']
 

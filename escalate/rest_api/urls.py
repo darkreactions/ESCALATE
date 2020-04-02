@@ -4,7 +4,7 @@ from rest_api import views
 
 url_prefixes = ['Actor', 'Person', 'Organization', 'Material', 'Inventory',
                 'MDescriptor', 'MDescriptorClass', 'MDescriptorDef',
-                'MDescriptorValue', 'MaterialType', 'MaterialName',
+                'MaterialType',
                 'Measure', 'MeasureType', 'Status', 'Systemtool',
                 'SystemtoolType', 'Tag', 'TagType', 'ViewInventory']
 
