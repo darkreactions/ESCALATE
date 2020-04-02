@@ -13,8 +13,7 @@ managed_value = True
 
 
 class Actor(models.Model):
-    actor_id = models.BigAutoField(primary_key=True)
-    actor_uuid = models.UUIDField(blank=True, null=True)
+    actor_uuid = models.UUIDField(primary_key=True)
     person = models.ForeignKey(
         'Person', models.DO_NOTHING, blank=True, null=True)
     organization = models.ForeignKey(
@@ -22,28 +21,46 @@ class Actor(models.Model):
     systemtool = models.ForeignKey(
         'Systemtool', models.DO_NOTHING, blank=True, null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
-    status = models.ForeignKey(
-        'Status', models.DO_NOTHING, blank=True, null=True)
-    note = models.ForeignKey('Note', models.DO_NOTHING, blank=True, null=True)
+    status_uuid = models.ForeignKey(
+        'Status', models.DO_NOTHING, db_column='status_uuid', blank=True, null=True)
+    note_uuid = models.ForeignKey(
+        'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = managed_value
         db_table = 'actor'
-        unique_together = (('person', 'organization', 'systemtool'),)
+        #unique_together = (('person', 'organization', 'systemtool'),)
 
     def __str__(self):
         return self.description
 
 
+class ActorPref(models.Model):
+    actor_pref_uuid = models.UUIDField(primary_key=True)
+    actor_uuid = models.ForeignKey(
+        Actor, models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)
+    pkey = models.CharField(max_length=255, blank=True, null=True)
+    pvalue = models.CharField(max_length=255, blank=True, null=True)
+    note_uuid = models.ForeignKey(
+        'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'actor_pref'
+
+
 class Edocument(models.Model):
-    edocument_id = models.BigAutoField(primary_key=True)
-    edocument_uuid = models.UUIDField(blank=True, null=True)
+    edocument_uuid = models.UUIDField(primary_key=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     edocument = models.BinaryField(blank=True, null=True)
     edoc_type = models.CharField(max_length=255, blank=True, null=True)
     ver = models.CharField(max_length=255, blank=True, null=True)
+    actor_uuid = models.ForeignKey(
+        Actor, models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -53,6 +70,20 @@ class Edocument(models.Model):
 
     def __str__(self):
         return self.description
+
+
+class EdocumentX(models.Model):
+    edocument_x_uuid = models.UUIDField(primary_key=True)
+    ref_edocument_uuid = models.UUIDField(blank=True, null=True)
+    edocument_uuid = models.ForeignKey(
+        Edocument, models.DO_NOTHING, db_column='edocument_uuid', blank=True, null=True)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'edocument_x'
+        unique_together = (('ref_edocument_uuid', 'edocument_uuid'),)
 
 
 class Files(models.Model):
@@ -67,30 +98,35 @@ class Files(models.Model):
 
 
 class Inventory(models.Model):
-    inventory_id = models.BigAutoField(primary_key=True)
-    inventory_uuid = models.UUIDField(blank=True, null=True)
+    #inventory_id = models.BigAutoField(primary_key=True)
+    inventory_uuid = models.UUIDField(primary_key=True)
     description = models.CharField(max_length=255, blank=True, null=True)
-    material = models.ForeignKey('Material', models.DO_NOTHING)
-    actor = models.ForeignKey(Actor, models.DO_NOTHING, blank=True, null=True)
+    material_uuid = models.ForeignKey(
+        'Material', models.DO_NOTHING, db_column='material_uuid')
+    actor_uuid = models.ForeignKey(
+        Actor, models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)
     part_no = models.CharField(max_length=255, blank=True, null=True)
     onhand_amt = models.FloatField(blank=True, null=True)
     unit = models.CharField(max_length=255, blank=True, null=True)
-    measure_id = models.BigIntegerField(blank=True, null=True)
+
+    #measure_id = models.BigIntegerField(blank=True, null=True)
     create_date = models.DateTimeField(blank=True, null=True)
-    expiration_dt = models.DateTimeField(blank=True, null=True)
+    expiration_date = models.DateTimeField(blank=True, null=True)
     inventory_location = models.CharField(
         max_length=255, blank=True, null=True)
-    status = models.ForeignKey(
-        'Status', models.DO_NOTHING, blank=True, null=True)
-    document_id = models.BigIntegerField(blank=True, null=True)
-    note = models.ForeignKey('Note', models.DO_NOTHING, blank=True, null=True)
+    status_uuid = models.ForeignKey(
+        'Status', models.DO_NOTHING, db_column='status_uuid', blank=True, null=True)
+    edocument_uuid = models.ForeignKey(
+        Edocument, models.DO_NOTHING, db_column='edocument_uuid', blank=True, null=True)
+    note_uuid = models.ForeignKey(
+        'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = managed_value
         db_table = 'inventory'
-        unique_together = (('material', 'actor', 'create_date'),)
+        unique_together = (('material_uuid', 'actor_uuid', 'create_date'),)
 
     def __str__(self):
         return self.description
@@ -183,6 +219,9 @@ class LoadHcInventory(models.Model):
     units = models.CharField(max_length=255, blank=True, null=True)
     update_date = models.DateTimeField(auto_now=True)
     create_date = models.DateTimeField(auto_now_add=True)
+    updated_by = models.CharField(max_length=255, blank=True, null=True)
+    in_stock = models.FloatField(blank=True, null=True)
+    remaining_stock = models.FloatField(blank=True, null=True)
 
     class Meta:
         managed = managed_value
@@ -210,216 +249,227 @@ class LoadPerovDesc(models.Model):
     field_raw_smiles = models.CharField(
         db_column='_raw_smiles', max_length=255, blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_raw_molweight = models.DecimalField(
-        db_column='_raw_molweight', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_raw_molweight = models.FloatField(
+        db_column='_raw_molweight', blank=True, null=True)
     # Field renamed because it started with '_'.
     field_raw_smiles_standard = models.CharField(
         db_column='_raw_smiles_standard', max_length=255, blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_raw_standard_molweight = models.DecimalField(
-        db_column='_raw_standard_molweight', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_raw_standard_molweight = models.FloatField(
+        db_column='_raw_standard_molweight', blank=True, null=True)
     # Field renamed because it started with '_'.
     field_prototype_ecpf4_256_6 = models.CharField(
-        db_column='_prototype_ecpf4_256_6', max_length=256, blank=True, null=True)
+        db_column='_prototype_ecpf4_256_6', max_length=-1, blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_atomcount_c = models.DecimalField(
-        db_column='_feat_atomcount_c', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_atomcount_c = models.SmallIntegerField(
+        db_column='_feat_atomcount_c', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_atomcount_n = models.DecimalField(
-        db_column='_feat_atomcount_n', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_atomcount_n = models.SmallIntegerField(
+        db_column='_feat_atomcount_n', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_avgpol = models.DecimalField(
-        db_column='_feat_avgpol', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_avgpol = models.FloatField(
+        db_column='_feat_avgpol', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_molpol = models.DecimalField(
-        db_column='_feat_molpol', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_molpol = models.FloatField(
+        db_column='_feat_molpol', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_refractivity = models.DecimalField(
-        db_column='_feat_refractivity', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_refractivity = models.FloatField(
+        db_column='_feat_refractivity', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_aliphaticringcount = models.DecimalField(
-        db_column='_feat_aliphaticringcount', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_aliphaticringcount = models.SmallIntegerField(
+        db_column='_feat_aliphaticringcount', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_aromaticringcount = models.DecimalField(
-        db_column='_feat_aromaticringcount', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_aromaticringcount = models.SmallIntegerField(
+        db_column='_feat_aromaticringcount', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_aliphaticatomcount = models.DecimalField(
-        db_column='_feat_aliphaticatomcount', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_aliphaticatomcount = models.SmallIntegerField(
+        db_column='_feat_aliphaticatomcount', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_aromaticatomcount = models.DecimalField(
-        db_column='_feat_aromaticatomcount', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_aromaticatomcount = models.SmallIntegerField(
+        db_column='_feat_aromaticatomcount', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_bondcount = models.DecimalField(
-        db_column='_feat_bondcount', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_bondcount = models.SmallIntegerField(
+        db_column='_feat_bondcount', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_carboaliphaticringcount = models.DecimalField(
-        db_column='_feat_carboaliphaticringcount', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_carboaliphaticringcount = models.SmallIntegerField(
+        db_column='_feat_carboaliphaticringcount', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_carboaromaticringcount = models.DecimalField(
-        db_column='_feat_carboaromaticringcount', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_carboaromaticringcount = models.SmallIntegerField(
+        db_column='_feat_carboaromaticringcount', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_carboringcount = models.DecimalField(
-        db_column='_feat_carboringcount', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_carboringcount = models.SmallIntegerField(
+        db_column='_feat_carboringcount', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_chainatomcount = models.DecimalField(
-        db_column='_feat_chainatomcount', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_chainatomcount = models.SmallIntegerField(
+        db_column='_feat_chainatomcount', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_chiralcentercount = models.DecimalField(
-        db_column='_feat_chiralcentercount', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_chiralcentercount = models.SmallIntegerField(
+        db_column='_feat_chiralcentercount', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_ringatomcount = models.DecimalField(
-        db_column='_feat_ringatomcount', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_ringatomcount = models.SmallIntegerField(
+        db_column='_feat_ringatomcount', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_smallestringsize = models.DecimalField(
-        db_column='_feat_smallestringsize', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_smallestringsize = models.SmallIntegerField(
+        db_column='_feat_smallestringsize', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_largestringsize = models.DecimalField(
-        db_column='_feat_largestringsize', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_largestringsize = models.SmallIntegerField(
+        db_column='_feat_largestringsize', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_heteroaliphaticringcount = models.DecimalField(
-        db_column='_feat_heteroaliphaticringcount', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_heteroaliphaticringcount = models.SmallIntegerField(
+        db_column='_feat_heteroaliphaticringcount', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_heteroaromaticringcount = models.DecimalField(
-        db_column='_feat_heteroaromaticringcount', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_heteroaromaticringcount = models.SmallIntegerField(
+        db_column='_feat_heteroaromaticringcount', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_rotatablebondcount = models.DecimalField(
-        db_column='_feat_rotatablebondcount', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_rotatablebondcount = models.SmallIntegerField(
+        db_column='_feat_rotatablebondcount', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_balabanindex = models.DecimalField(
-        db_column='_feat_balabanindex', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_balabanindex = models.FloatField(
+        db_column='_feat_balabanindex', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_cyclomaticnumber = models.DecimalField(
-        db_column='_feat_cyclomaticnumber', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_cyclomaticnumber = models.SmallIntegerField(
+        db_column='_feat_cyclomaticnumber', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_hyperwienerindex = models.DecimalField(
-        db_column='_feat_hyperwienerindex', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_hyperwienerindex = models.SmallIntegerField(
+        db_column='_feat_hyperwienerindex', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_wienerindex = models.DecimalField(
-        db_column='_feat_wienerindex', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_wienerindex = models.SmallIntegerField(
+        db_column='_feat_wienerindex', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_wienerpolarity = models.DecimalField(
-        db_column='_feat_wienerpolarity', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_wienerpolarity = models.SmallIntegerField(
+        db_column='_feat_wienerpolarity', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_minimalprojectionarea = models.DecimalField(
-        db_column='_feat_minimalprojectionarea', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_minimalprojectionarea = models.FloatField(
+        db_column='_feat_minimalprojectionarea', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_maximalprojectionarea = models.DecimalField(
-        db_column='_feat_maximalprojectionarea', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_maximalprojectionarea = models.FloatField(
+        db_column='_feat_maximalprojectionarea', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_minimalprojectionradius = models.DecimalField(
-        db_column='_feat_minimalprojectionradius', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_minimalprojectionradius = models.FloatField(
+        db_column='_feat_minimalprojectionradius', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_maximalprojectionradius = models.DecimalField(
-        db_column='_feat_maximalprojectionradius', max_digits=255, decimal_places=0, blank=True, null=True)
-    field_feat_lengthperpendiculartotheminarea = models.DecimalField(
-        db_column='_feat_lengthperpendiculartotheminarea', max_digits=255, decimal_places=0, blank=True, null=True)  # Field renamed because it started with '_'.
-    field_feat_lengthperpendiculartothemaxarea = models.DecimalField(
-        db_column='_feat_lengthperpendiculartothemaxarea', max_digits=255, decimal_places=0, blank=True, null=True)  # Field renamed because it started with '_'.
+    field_feat_maximalprojectionradius = models.FloatField(
+        db_column='_feat_maximalprojectionradius', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_vanderwaalsvolume = models.DecimalField(
-        db_column='_feat_vanderwaalsvolume', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_lengthperpendiculartotheminarea = models.FloatField(
+        db_column='_feat_lengthperpendiculartotheminarea', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_vanderwaalssurfacearea = models.DecimalField(
-        db_column='_feat_vanderwaalssurfacearea', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_lengthperpendiculartothemaxarea = models.FloatField(
+        db_column='_feat_lengthperpendiculartothemaxarea', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_asa = models.DecimalField(
-        db_column='_feat_asa', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_vanderwaalsvolume = models.FloatField(
+        db_column='_feat_vanderwaalsvolume', blank=True, null=True)
+    # Field renamed because it started with '_'.
+    field_feat_vanderwaalssurfacearea = models.FloatField(
+        db_column='_feat_vanderwaalssurfacearea', blank=True, null=True)
+    # Field renamed because it started with '_'.
+    field_feat_asa = models.FloatField(
+        db_column='_feat_asa', blank=True, null=True)
     # Field renamed to remove unsuitable characters. Field renamed because it started with '_'. Field renamed because it ended with '_'.
-    field_feat_asa_field = models.DecimalField(
-        db_column='_feat_asa+', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_asa_field = models.FloatField(
+        db_column='_feat_asa+', blank=True, null=True)
     # Field renamed to remove unsuitable characters. Field renamed because it started with '_'. Field renamed because it ended with '_'. Field renamed because of name conflict.
-    field_feat_asa_field_0 = models.DecimalField(
-        db_column='_feat_asa-', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_asa_field_0 = models.FloatField(
+        db_column='_feat_asa-', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_asa_h = models.DecimalField(
-        db_column='_feat_asa_h', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_asa_h = models.FloatField(
+        db_column='_feat_asa_h', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_asa_p = models.DecimalField(
-        db_column='_feat_asa_p', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_asa_p = models.FloatField(
+        db_column='_feat_asa_p', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_polarsurfacearea = models.DecimalField(
-        db_column='_feat_polarsurfacearea', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_polarsurfacearea = models.FloatField(
+        db_column='_feat_polarsurfacearea', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_acceptorcount = models.DecimalField(
-        db_column='_feat_acceptorcount', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_acceptorcount = models.SmallIntegerField(
+        db_column='_feat_acceptorcount', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_accsitecount = models.DecimalField(
-        db_column='_feat_accsitecount', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_accsitecount = models.SmallIntegerField(
+        db_column='_feat_accsitecount', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_donorcount = models.DecimalField(
-        db_column='_feat_donorcount', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_donorcount = models.SmallIntegerField(
+        db_column='_feat_donorcount', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_donsitecount = models.DecimalField(
-        db_column='_feat_donsitecount', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_donsitecount = models.SmallIntegerField(
+        db_column='_feat_donsitecount', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_fr_nh2 = models.DecimalField(
-        db_column='_feat_fr_nh2', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_fr_nh2 = models.SmallIntegerField(
+        db_column='_feat_fr_nh2', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_fr_nh1 = models.DecimalField(
-        db_column='_feat_fr_nh1', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_fr_nh1 = models.SmallIntegerField(
+        db_column='_feat_fr_nh1', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_fr_nh0 = models.DecimalField(
-        db_column='_feat_fr_nh0', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_fr_nh0 = models.SmallIntegerField(
+        db_column='_feat_fr_nh0', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_fr_quatn = models.DecimalField(
-        db_column='_feat_fr_quatn', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_fr_quatn = models.SmallIntegerField(
+        db_column='_feat_fr_quatn', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_fr_arn = models.DecimalField(
-        db_column='_feat_fr_arn', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_fr_arn = models.SmallIntegerField(
+        db_column='_feat_fr_arn', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_fr_ar_nh = models.DecimalField(
-        db_column='_feat_fr_ar_nh', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_fr_ar_nh = models.SmallIntegerField(
+        db_column='_feat_fr_ar_nh', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_fr_imine = models.DecimalField(
-        db_column='_feat_fr_imine', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_fr_imine = models.SmallIntegerField(
+        db_column='_feat_fr_imine', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_fr_amidine = models.DecimalField(
-        db_column='_feat_fr_amidine', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_fr_amidine = models.SmallIntegerField(
+        db_column='_feat_fr_amidine', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_fr_dihydropyridine = models.DecimalField(
-        db_column='_feat_fr_dihydropyridine', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_fr_dihydropyridine = models.SmallIntegerField(
+        db_column='_feat_fr_dihydropyridine', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_fr_guanido = models.DecimalField(
-        db_column='_feat_fr_guanido', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_fr_guanido = models.SmallIntegerField(
+        db_column='_feat_fr_guanido', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_fr_piperdine = models.DecimalField(
-        db_column='_feat_fr_piperdine', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_fr_piperdine = models.SmallIntegerField(
+        db_column='_feat_fr_piperdine', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_fr_piperzine = models.DecimalField(
-        db_column='_feat_fr_piperzine', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_fr_piperzine = models.SmallIntegerField(
+        db_column='_feat_fr_piperzine', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_fr_pyridine = models.DecimalField(
-        db_column='_feat_fr_pyridine', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_fr_pyridine = models.SmallIntegerField(
+        db_column='_feat_fr_pyridine', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_maximalprojectionsize = models.DecimalField(
-        db_column='_feat_maximalprojectionsize', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_maximalprojectionsize = models.FloatField(
+        db_column='_feat_maximalprojectionsize', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_minimalprojectionsize = models.DecimalField(
-        db_column='_feat_minimalprojectionsize', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_minimalprojectionsize = models.FloatField(
+        db_column='_feat_minimalprojectionsize', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_molsurfaceareavdwp = models.DecimalField(
-        db_column='_feat_molsurfaceareavdwp', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_molsurfaceareavdwp = models.FloatField(
+        db_column='_feat_molsurfaceareavdwp', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_msareavdwp = models.DecimalField(
-        db_column='_feat_msareavdwp', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_msareavdwp = models.FloatField(
+        db_column='_feat_msareavdwp', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_molsurfaceareaasap = models.DecimalField(
-        db_column='_feat_molsurfaceareaasap', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_molsurfaceareaasap = models.FloatField(
+        db_column='_feat_molsurfaceareaasap', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_msareaasap = models.DecimalField(
-        db_column='_feat_msareaasap', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_msareaasap = models.FloatField(
+        db_column='_feat_msareaasap', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_protpolarsurfacearea = models.DecimalField(
-        db_column='_feat_protpolarsurfacearea', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_protpolarsurfacearea = models.FloatField(
+        db_column='_feat_protpolarsurfacearea', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_protpsa = models.DecimalField(
-        db_column='_feat_protpsa', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_protpsa = models.FloatField(
+        db_column='_feat_protpsa', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_hacceptorcount = models.DecimalField(
-        db_column='_feat_hacceptorcount', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_hacceptorcount = models.SmallIntegerField(
+        db_column='_feat_hacceptorcount', blank=True, null=True)
     # Field renamed because it started with '_'.
-    field_feat_hdonorcount = models.DecimalField(
-        db_column='_feat_hdonorcount', max_digits=255, decimal_places=0, blank=True, null=True)
+    field_feat_hdonorcount = models.SmallIntegerField(
+        db_column='_feat_hdonorcount', blank=True, null=True)
+    # Field renamed because it started with '_'.
+    field_feat_charge_cnt = models.SmallIntegerField(
+        db_column='_feat_charge_cnt', blank=True, null=True)
+    # Field renamed because it started with '_'.
+    field_calc_chrg_per_vol = models.FloatField(
+        db_column='_calc_chrg_per_vol', blank=True, null=True)
+    # Field renamed because it started with '_'.
+    field_calc_chrg_per_asa = models.FloatField(
+        db_column='_calc_chrg_per_asa', blank=True, null=True)
 
     class Meta:
         managed = managed_value
@@ -432,6 +482,8 @@ class LoadPerovDescDef(models.Model):
     description = models.CharField(max_length=255, blank=True, null=True)
     systemtool_name = models.CharField(max_length=255, blank=True, null=True)
     systemtool_ver = models.CharField(max_length=255, blank=True, null=True)
+    in_type = models.CharField(max_length=255, blank=True, null=True)
+    out_type = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = managed_value
@@ -441,9 +493,38 @@ class LoadPerovDescDef(models.Model):
         return self.description
 
 
+class LoadPerovMolImage(models.Model):
+    filename = models.CharField(max_length=-1, blank=True, null=True)
+    fileno = models.IntegerField(blank=True, null=True)
+    # Field renamed because it started with '_'.
+    field_image = models.BinaryField(db_column='_image', blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'load_perov_mol_image'
+
+
 class MDescriptor(models.Model):
-    m_descriptor_id = models.BigAutoField(primary_key=True)
-    m_descriptor_uuid = models.UUIDField(blank=True, null=True)
+    #m_descriptor_id = models.BigAutoField(primary_key=True)
+    m_descriptor_uuid = models.UUIDField(primary_key=True)
+    m_descriptor_def_uuid = models.UUIDField(blank=True, null=True)
+    # This field type is a guess.
+    in_val = models.TextField(blank=True, null=True)
+    # This field type is a guess.
+    in_opt_val = models.TextField(blank=True, null=True)
+    # This field type is a guess.
+    out_val = models.TextField(blank=True, null=True)
+    create_date = models.DateTimeField(blank=True, null=True)
+    status_uuid = models.ForeignKey(
+        'Status', models.DO_NOTHING, db_column='status_uuid', blank=True, null=True)
+    actor_uuid = models.ForeignKey(
+        Actor, models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)
+    note_uuid = models.ForeignKey(
+        'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    """
     material_name_description = models.ForeignKey(
         'MaterialName', models.DO_NOTHING, db_column='material_name_description', blank=True, null=True)
     material_name_type = models.CharField(
@@ -456,21 +537,19 @@ class MDescriptor(models.Model):
     status = models.ForeignKey(
         'Status', models.DO_NOTHING, blank=True, null=True)
     note = models.ForeignKey('Note', models.DO_NOTHING, blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
-
+    """
     class Meta:
         managed = managed_value
         db_table = 'm_descriptor'
-        unique_together = (
-            ('material_name_description', 'm_descriptor_def_id'),)
+        unique_together = (('m_descriptor_def_uuid', 'in_val', 'in_opt_val'),)
 
 
 class MDescriptorClass(models.Model):
-    m_descriptor_class_id = models.BigAutoField(primary_key=True)
-    m_descriptor_class_uuid = models.UUIDField(blank=True, null=True)
+    #m_descriptor_class_id = models.BigAutoField(primary_key=True)
+    m_descriptor_class_uuid = models.UUIDField(primary_key=True)
     description = models.CharField(max_length=255, blank=True, null=True)
-    note = models.ForeignKey('Note', models.DO_NOTHING, blank=True, null=True)
+    note_uuid = models.ForeignKey(
+        'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -483,49 +562,66 @@ class MDescriptorClass(models.Model):
 
 
 class MDescriptorDef(models.Model):
-    m_descriptor_def_id = models.BigAutoField(primary_key=True)
-    m_descriptor_def_uuid = models.UUIDField(blank=True, null=True)
+    #m_descriptor_def_id = models.BigAutoField(primary_key=True)
+    m_descriptor_def_uuid = models.UUIDField(primary_key=True)
     short_name = models.CharField(max_length=255, blank=True, null=True)
     calc_definition = models.CharField(max_length=255, blank=True, null=True)
+    systemtool = models.ForeignKey(
+        'Systemtool', models.DO_NOTHING, blank=True, null=True)
     description = models.CharField(max_length=1023, blank=True, null=True)
-    m_descriptor_class = models.ForeignKey(
-        MDescriptorClass, models.DO_NOTHING, blank=True, null=True)
-    actor = models.ForeignKey(Actor, models.DO_NOTHING, blank=True, null=True)
-    note = models.ForeignKey('Note', models.DO_NOTHING, blank=True, null=True)
+    # This field type is a guess.
+    in_type = models.TextField(blank=True, null=True)
+    # This field type is a guess.
+    out_type = models.TextField(blank=True, null=True)
+    m_descriptor_class_uuid = models.ForeignKey(
+        MDescriptorClass, models.DO_NOTHING, db_column='m_descriptor_class_uuid', blank=True, null=True)
+    actor_uuid = models.ForeignKey(
+        Actor, models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)
+    note_uuid = models.ForeignKey(
+        'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = managed_value
         db_table = 'm_descriptor_def'
-        unique_together = (('actor', 'calc_definition'),)
+        unique_together = (('actor_uuid', 'calc_definition'),)
 
     def __str__(self):
         return self.description
 
 
-class MDescriptorValue(models.Model):
-    m_descriptor_value_id = models.BigAutoField(primary_key=True)
-    m_descriptor_value_uuid = models.UUIDField(blank=True, null=True)
-    num_value = models.FloatField(blank=True, null=True)
-    blob_value = models.BinaryField(blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+class MDescriptorEval(models.Model):
+    eval_id = models.BigAutoField(primary_key=True)
+    m_descriptor_def_uuid = models.UUIDField(blank=True, null=True)
+    # This field type is a guess.
+    in_val = models.TextField(blank=True, null=True)
+    # This field type is a guess.
+    in_opt_val = models.TextField(blank=True, null=True)
+    # This field type is a guess.
+    out_val = models.TextField(blank=True, null=True)
+    m_descriptor_alias_name = models.CharField(
+        max_length=255, blank=True, null=True)
+    actor_uuid = models.UUIDField(blank=True, null=True)
+    create_date = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        managed = managed_value
-        db_table = 'm_descriptor_value'
+        managed = False
+        db_table = 'm_descriptor_eval'
 
 
 class Material(models.Model):
     material_id = models.BigAutoField(primary_key=True)
     material_uuid = models.UUIDField(blank=True, null=True)
-    description = models.CharField(max_length=255)
-    parent_material = models.ForeignKey(
-        'self', models.DO_NOTHING, blank=True, null=True)
-    status = models.ForeignKey(
-        'Status', models.DO_NOTHING, blank=True, null=True)
-    note = models.ForeignKey('Note', models.DO_NOTHING, blank=True, null=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
+    parent_uuid = models.ForeignKey(
+        'self', models.DO_NOTHING, db_column='parent_uuid', blank=True, null=True)
+    # This field type is a guess.
+    parent_path = models.TextField(blank=True, null=True)
+    status_uuid = models.ForeignKey(
+        'Status', models.DO_NOTHING, db_column='status_uuid', blank=True, null=True)
+    note_uuid = models.ForeignKey(
+        'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -537,54 +633,63 @@ class Material(models.Model):
         return self.description
 
 
-class MaterialName(models.Model):
-    material_name_id = models.BigAutoField(primary_key=True)
-    material_name_uuid = models.UUIDField(blank=True, null=True)
+class MaterialRefname(models.Model):
+    material_refname_uuid = models.UUIDField(primary_key=True)
     description = models.CharField(max_length=255, blank=True, null=True)
-    material = models.ForeignKey(
-        Material, models.DO_NOTHING, blank=True, null=True)
-    material_name_type = models.CharField(
-        max_length=255, blank=True, null=True)
+    blob_value = models.BinaryField(blank=True, null=True)
+    blob_type = models.CharField(max_length=255, blank=True, null=True)
+    material_refname_type_uuid = models.ForeignKey(
+        'MaterialRefnameType', models.DO_NOTHING, db_column='material_refname_type_uuid', blank=True, null=True)
     reference = models.CharField(max_length=255, blank=True, null=True)
-    status = models.ForeignKey(
-        'Status', models.DO_NOTHING, blank=True, null=True)
-    note = models.ForeignKey('Note', models.DO_NOTHING, blank=True, null=True)
+    status_uuid = models.ForeignKey(
+        'Status', models.DO_NOTHING, db_column='status_uuid', blank=True, null=True)
+    note_uuid = models.ForeignKey(
+        'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
-        managed = managed_value
-        db_table = 'material_name'
-        unique_together = (('description', 'material_name_type'),)
+        managed = False
+        db_table = 'material_refname'
+        unique_together = (('description', 'material_refname_type_uuid'),)
 
     def __str__(self):
         return self.description
 
 
-class MaterialNameX(models.Model):
-    material_name_x_id = models.BigAutoField(primary_key=True)
-    material_name_x_uuid = models.UUIDField(blank=True, null=True)
-    material = models.ForeignKey(
-        Material, models.DO_NOTHING, blank=True, null=True)
-    material_name = models.ForeignKey(
-        MaterialName, models.DO_NOTHING, blank=True, null=True)
+class MaterialRefnameType(models.Model):
+    material_refname_type_uuid = models.UUIDField(primary_key=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
+    note_uuid = models.ForeignKey(
+        'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
-        managed = managed_value
-        db_table = 'material_name_x'
-        unique_together = (('material', 'material_name'),)
+        managed = False
+        db_table = 'material_refname_type'
 
-    def __str__(self):
-        return self.material_name
+
+class MaterialRefnameX(models.Model):
+    material_refname_x_uuid = models.UUIDField(primary_key=True)
+    material_uuid = models.ForeignKey(
+        Material, models.DO_NOTHING, db_column='material_uuid', blank=True, null=True)
+    material_refname_uuid = models.ForeignKey(
+        MaterialRefname, models.DO_NOTHING, db_column='material_refname_uuid', blank=True, null=True)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'material_refname_x'
+        unique_together = (('material_uuid', 'material_refname_uuid'),)
 
 
 class MaterialType(models.Model):
-    material_type_id = models.BigAutoField(primary_key=True)
-    material_type_uuid = models.UUIDField(blank=True, null=True)
+    material_type_uuid = models.UUIDField(primary_key=True)
     description = models.CharField(max_length=255, blank=True, null=True)
-    note = models.ForeignKey('Note', models.DO_NOTHING, blank=True, null=True)
+    note_uuid = models.ForeignKey(
+        'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -597,33 +702,37 @@ class MaterialType(models.Model):
 
 
 class MaterialTypeX(models.Model):
-    material_type_x_id = models.BigAutoField(primary_key=True)
-    material_type_x_uuid = models.UUIDField(blank=True, null=True)
-    material = models.ForeignKey(
-        Material, models.DO_NOTHING, blank=True, null=True)
-    material_type = models.ForeignKey(
-        MaterialType, models.DO_NOTHING, blank=True, null=True)
+    #material_type_x_id = models.BigAutoField()
+    material_type_x_uuid = models.UUIDField(primary_key=True)
+    ref_material_uuid = models.ForeignKey(
+        Material, models.DO_NOTHING, db_column='ref_material_uuid', blank=True, null=True)
+    material_type_uuid = models.ForeignKey(
+        MaterialType, models.DO_NOTHING, db_column='material_type_uuid', blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = managed_value
         db_table = 'material_type_x'
-        unique_together = (('material', 'material_type'),)
+        unique_together = (('ref_material_uuid', 'material_type_uuid'),)
 
     def __str__(self):
         return self.material_type
 
 
 class Measure(models.Model):
-    measure_id = models.BigAutoField(primary_key=True)
-    measure_uuid = models.UUIDField(blank=True, null=True)
-    measure_type_id = models.BigIntegerField(blank=True, null=True)
+    measure_uuid = models.UUIDField(primary_key=True)
+    measure_type_uuid = models.ForeignKey(
+        'MeasureType', models.DO_NOTHING, db_column='measure_type_uuid', blank=True, null=True)
     amount = models.FloatField(blank=True, null=True)
     unit = models.CharField(max_length=255, blank=True, null=True)
     blob_amount = models.BinaryField(blank=True, null=True)
-    document_id = models.BigIntegerField(blank=True, null=True)
-    note_id = models.BigIntegerField(blank=True, null=True)
+    blob_type = models.CharField(max_length=255, blank=True, null=True)
+    actor_uuid = models.UUIDField(blank=True, null=True)
+    edocument_uuid = models.ForeignKey(
+        Edocument, models.DO_NOTHING, db_column='edocument_uuid', blank=True, null=True)
+    note_uuid = models.ForeignKey(
+        'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -632,14 +741,14 @@ class Measure(models.Model):
         db_table = 'measure'
 
     def __str__(self):
-        return "{} {}".format(amount, unit)
+        return "{} {}".format(self.amount, self.unit)
 
 
 class MeasureType(models.Model):
-    measure_type_id = models.BigAutoField(primary_key=True)
-    measure_type_uuid = models.UUIDField(blank=True, null=True)
+    measure_type_uuid = models.UUIDField(primary_key=True)
     description = models.CharField(max_length=255, blank=True, null=True)
-    note = models.ForeignKey('Note', models.DO_NOTHING, blank=True, null=True)
+    note_uuid = models.ForeignKey(
+        'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -651,12 +760,28 @@ class MeasureType(models.Model):
         return self.description
 
 
+class MeasureX(models.Model):
+    measure_x_uuid = models.UUIDField(primary_key=True)
+    ref_measure_uuid = models.ForeignKey(
+        Measure, models.DO_NOTHING, db_column='ref_measure_uuid', blank=True, null=True)
+    measure_uuid = models.UUIDField(blank=True, null=True)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'measure_x'
+        unique_together = (('ref_measure_uuid', 'measure_uuid'),)
+
+
 class Note(models.Model):
-    note_id = models.BigAutoField(primary_key=True)
-    note_uuid = models.UUIDField(blank=True, null=True)
+    #note_id = models.BigAutoField(primary_key=True)
+    note_uuid = models.UUIDField(primary_key=True)
     notetext = models.CharField(max_length=255, blank=True, null=True)
-    edocument = models.ForeignKey(
-        Edocument, models.DO_NOTHING, blank=True, null=True)
+    edocument_uuid = models.ForeignKey(
+        Edocument, models.DO_NOTHING, db_column='edocument_uuid', blank=True, null=True)
+    actor_uuid = models.ForeignKey(
+        Actor, models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -671,6 +796,11 @@ class Note(models.Model):
 class Organization(models.Model):
     organization_id = models.BigAutoField(primary_key=True)
     organization_uuid = models.UUIDField(blank=True, null=True)
+    parent = models.ForeignKey(
+        'self', models.DO_NOTHING, blank=True, null=True)
+    # This field type is a guess.
+    parent_path = models.TextField(blank=True, null=True)
+
     description = models.CharField(max_length=255, blank=True, null=True)
     full_name = models.CharField(max_length=255)
     short_name = models.CharField(max_length=255, blank=True, null=True)
@@ -682,7 +812,8 @@ class Organization(models.Model):
     country = models.CharField(max_length=255, blank=True, null=True)
     website_url = models.CharField(max_length=255, blank=True, null=True)
     phone = models.CharField(max_length=255, blank=True, null=True)
-    note = models.ForeignKey(Note, models.DO_NOTHING, blank=True, null=True)
+    note_uuid = models.ForeignKey(
+        Note, models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -710,7 +841,8 @@ class Person(models.Model):
     suffix = models.CharField(max_length=255, blank=True, null=True)
     organization = models.ForeignKey(
         Organization, models.DO_NOTHING, blank=True, null=True)
-    note = models.ForeignKey(Note, models.DO_NOTHING, blank=True, null=True)
+    note_uuid = models.ForeignKey(
+        Note, models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -723,7 +855,7 @@ class Person(models.Model):
 
 
 class Status(models.Model):
-    status_id = models.BigAutoField(primary_key=True)
+    status_uuid = models.UUIDField(primary_key=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
@@ -743,19 +875,21 @@ class Systemtool(models.Model):
     description = models.CharField(max_length=255, blank=True, null=True)
     systemtool_type = models.ForeignKey(
         'SystemtoolType', models.DO_NOTHING, blank=True, null=True)
-    vendor = models.CharField(max_length=255, blank=True, null=True)
+    vendor_organization = models.ForeignKey(
+        Organization, models.DO_NOTHING, blank=True, null=True)
     model = models.CharField(max_length=255, blank=True, null=True)
     serial = models.CharField(max_length=255, blank=True, null=True)
     ver = models.CharField(max_length=255, blank=True, null=True)
-    organization = models.ForeignKey(
-        Organization, models.DO_NOTHING, blank=True, null=True)
-    note = models.ForeignKey(Note, models.DO_NOTHING, blank=True, null=True)
+    note_uuid = models.ForeignKey(
+        Note, models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = managed_value
         db_table = 'systemtool'
+        unique_together = (
+            ('systemtool_name', 'systemtool_type', 'vendor_organization', 'ver'),)
 
     def __str__(self):
         return "{} {}".format(self.systemtool_name, self.model)
@@ -765,7 +899,8 @@ class SystemtoolType(models.Model):
     systemtool_type_id = models.BigAutoField(primary_key=True)
     systemtool_type_uuid = models.UUIDField(blank=True, null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
-    note = models.ForeignKey(Note, models.DO_NOTHING, blank=True, null=True)
+    note_uuid = models.ForeignKey(
+        Note, models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -778,12 +913,15 @@ class SystemtoolType(models.Model):
 
 
 class Tag(models.Model):
-    tag_id = models.BigAutoField(primary_key=True)
-    tag_uuid = models.UUIDField(blank=True, null=True)
-    tag_type = models.ForeignKey(
-        'TagType', models.DO_NOTHING, blank=True, null=True)
+    tag_uuid = models.UUIDField(primary_key=True)
+    tag_type_uuid = models.ForeignKey(
+        'TagType', models.DO_NOTHING, db_column='tag_type_uuid', blank=True, null=True)
+    short_description = models.CharField(max_length=16, blank=True, null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
-    note = models.ForeignKey(Note, models.DO_NOTHING, blank=True, null=True)
+    actor_uuid = models.ForeignKey(
+        Actor, models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)
+    note_uuid = models.ForeignKey(
+        Note, models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -796,8 +934,7 @@ class Tag(models.Model):
 
 
 class TagType(models.Model):
-    tag_type_id = models.BigAutoField(primary_key=True)
-    tag_type_uuid = models.UUIDField(blank=True, null=True)
+    tag_type_uuid = models.UUIDField(primary_key=True)
     short_desscription = models.CharField(max_length=32, blank=True, null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
@@ -811,6 +948,20 @@ class TagType(models.Model):
         return self.description
 
 
+class TagX(models.Model):
+    tag_x_uuid = models.UUIDField(primary_key=True)
+    ref_tag_uuid = models.UUIDField(blank=True, null=True)
+    tag_uuid = models.ForeignKey(
+        Tag, models.DO_NOTHING, db_column='tag_uuid', blank=True, null=True)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'tag_x'
+        unique_together = (('ref_tag_uuid', 'tag_uuid'),)
+
+
 class TriggerTest(models.Model):
     tt_id = models.AutoField(primary_key=True)
     smiles = models.TextField(blank=True, null=True)
@@ -819,3 +970,10 @@ class TriggerTest(models.Model):
     class Meta:
         managed = managed_value
         db_table = 'trigger_test'
+
+
+class VTypeOut(models.Model):
+
+    class Meta:
+        managed = False
+        db_table = 'v_type_out'
