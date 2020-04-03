@@ -5,13 +5,15 @@ managed_value = False
 
 
 class ViewInventory(models.Model):
-    vw_inventory_uuid = models.OneToOneField(
-        'Inventory', on_delete=models.DO_NOTHING, primary_key=True, db_column='vw_inventory_uuid')
+    # vw_inventory_uuid = models.OneToOneField(
+    #    'Inventory', on_delete=models.DO_NOTHING, primary_key=True, db_column='inventory_uuid')
+    vw_inventory_uuid = models.UUIDField(
+        primary_key=True, db_column='inventory_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
     material_uuid = models.ForeignKey(
-        'Material', models.DO_NOTHING, db_column='material_uuid')
+        'ViewMaterial', models.DO_NOTHING, db_column='material_uuid')
     actor_uuid = models.ForeignKey(
-        'Actor', models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)
+        'ViewActor', models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)
     part_no = models.CharField(max_length=255, blank=True, null=True)
     onhand_amt = models.FloatField(blank=True, null=True)
     unit = models.CharField(max_length=255, blank=True, null=True)
@@ -36,7 +38,8 @@ class ViewInventory(models.Model):
 
 
 class ViewActor(models.Model):
-    actor_uuid = models.UUIDField()
+    vw_actor_uuid = models.UUIDField(
+        primary_key=True, db_column='actor_uuid')
     organization = models.ForeignKey(
         'Organization', on_delete=models.DO_NOTHING, blank=True, null=True)
     person = models.ForeignKey(
@@ -59,19 +62,20 @@ class ViewActor(models.Model):
 
 
 class ViewLatestSystemtool(models.Model):
-    systemtool_id = models.BigAutoField(primary_key=True)
-    systemtool_uuid = models.UUIDField(blank=True, null=True)
+    #systemtool_id = models.BigAutoField(primary_key=True)
+    vw_systemtool_uuid = models.UUIDField(
+        primary_key=True, db_column='systemtool_uuid')
     systemtool_name = models.CharField(max_length=255)
     description = models.CharField(max_length=255, blank=True, null=True)
     systemtool_type = models.ForeignKey(
         'SystemtoolType', models.DO_NOTHING, blank=True, null=True)
-    vendor = models.CharField(max_length=255, blank=True, null=True)
+    vendor_organization = models.ForeignKey(
+        'Organization', models.DO_NOTHING, blank=True, null=True)
     model = models.CharField(max_length=255, blank=True, null=True)
     serial = models.CharField(max_length=255, blank=True, null=True)
     ver = models.CharField(max_length=255, blank=True, null=True)
-    organization = models.ForeignKey(
-        'Organization', models.DO_NOTHING, blank=True, null=True)
-    note = models.ForeignKey('Note', models.DO_NOTHING, blank=True, null=True)
+    note = models.ForeignKey(
+        'Note', models.DO_NOTHING, blank=True, null=True, db_column='note_uuid')
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -81,7 +85,8 @@ class ViewLatestSystemtool(models.Model):
 
 
 class ViewLatestSystemtoolActor(models.Model):
-    actor_uuid = models.UUIDField(primary_key=True)
+    vw_actor_uuid = models.UUIDField(
+        primary_key=True, db_column='actor_uuid')
     person = models.ForeignKey(
         'Person', models.DO_NOTHING, blank=True, null=True)
     organization = models.ForeignKey(
@@ -102,24 +107,24 @@ class ViewLatestSystemtoolActor(models.Model):
 
 
 class ViewMDescriptorDef(models.Model):
-    m_descriptor_def_uuid = models.ForeignKey(
-        'MDescriptorDef', models.DO_NOTHING, blank=True, null=True)
+    vw_m_descriptor_def_uuid = models.UUIDField(
+        primary_key=True, db_column='m_descriptor_def_uuid')
     short_name = models.CharField(max_length=255, blank=True, null=True)
     calc_definition = models.CharField(max_length=255, blank=True, null=True)
     description = models.CharField(max_length=1023, blank=True, null=True)
     in_type = models.CharField(max_length=255, blank=True, null=True)
     out_type = models.CharField(max_length=255, blank=True, null=True)
-    systemtool_id = models.ForeignKey(
+    systemtool = models.ForeignKey(
         'Systemtool', models.DO_NOTHING, blank=True, null=True)
     systemtool_name = models.CharField(max_length=255, blank=True, null=True)
     systemtool_type_description = models.CharField(
         max_length=255, blank=True, null=True)
     systemtool_vendor_organization = models.CharField(
-        max_length=255, blank=True, null=True)
+        max_length=255, blank=True, null=True, db_column='systemtool_vendor_organzation')
     systemtool_version = models.CharField(
         max_length=255, blank=True, null=True)
-    actor_uuid = models.ForeignKey(
-        'Actor', models.DO_NOTHING, blank=True, null=True)
+    actor = models.ForeignKey(
+        'Actor', models.DO_NOTHING, blank=True, null=True, db_column='actor_uuid')
     actor_description = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
@@ -128,8 +133,9 @@ class ViewMDescriptorDef(models.Model):
 
 
 class ViewMDescriptor(models.Model):
-    m_descriptor_uuid = models.UUIDField(primary_key=True)
-    #m_descriptor_def_uuid = models.UUIDField(blank=True, null=True)
+    vw_m_descriptor_uuid = models.UUIDField(
+        primary_key=True, db_column='m_descriptor_uuid')
+
     m_descriptor_alias_name = models.CharField(
         max_length=255, blank=True, null=True)
     in_val = models.TextField(blank=True, null=True)
@@ -140,25 +146,31 @@ class ViewMDescriptor(models.Model):
     actor_descr = models.CharField(max_length=255, blank=True, null=True)
     note_text = models.CharField(max_length=255, blank=True, null=True)
 
-    # mdd.*
-    m_descriptor_def_uuid = models.UUIDField()
+    m_descriptor_def_uuid = models.ForeignKey(
+        'ViewMDescriptorDef', models.DO_NOTHING, blank=True, null=True, db_column='m_descriptor_def_uuid')
     short_name = models.CharField(max_length=255, blank=True, null=True)
     calc_definition = models.CharField(max_length=255, blank=True, null=True)
-    systemtool = models.ForeignKey(
-        'Systemtool', models.DO_NOTHING, blank=True, null=True)
+
     description = models.CharField(max_length=1023, blank=True, null=True)
     # This field type is a guess.
     in_type = models.TextField(blank=True, null=True)
     # This field type is a guess.
     out_type = models.TextField(blank=True, null=True)
-    m_descriptor_class_uuid = models.ForeignKey(
-        'MDescriptorClass', models.DO_NOTHING, db_column='m_descriptor_class_uuid', blank=True, null=True)
+
+    systemtool = models.ForeignKey(
+        'Systemtool', models.DO_NOTHING, blank=True, null=True)
+    systemtool_name = models.CharField(max_length=1023, blank=True, null=True)
+    systemtool_type_description = models.CharField(
+        max_length=1023, blank=True, null=True)
+    systemtool_vendor_organization = models.CharField(
+        max_length=1023, blank=True, null=True, db_column='systemtool_vendor_organzation')
+    systemtool_version = models.CharField(
+        max_length=1023, blank=True, null=True)
+
     actor_uuid = models.ForeignKey(
         'Actor', models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)
-    note_uuid = models.ForeignKey(
-        'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    actor_description = models.CharField(
+        max_length=1023, blank=True, null=True)
 
     class Meta:
         managed = managed_value
@@ -166,7 +178,7 @@ class ViewMDescriptor(models.Model):
 
 
 class ViewMaterialRefnameType(models.Model):
-    material_refname_type_uuid = models.UUIDField()
+    material_refname_type_uuid = models.UUIDField(primary_key=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     notetext = models.CharField(max_length=255, blank=True, null=True)
 
@@ -176,14 +188,15 @@ class ViewMaterialRefnameType(models.Model):
 
 
 class ViewMaterialRaw(models.Model):
-    material_id = models.BigAutoField(primary_key=True)
-    material_uuid = models.UUIDField(blank=True, null=True)
+    material_id = models.BigIntegerField(primary_key=True)
+    material_uuid = models.UUIDField()
     material_description = models.CharField(
         max_length=255, blank=True, null=True)
     material_status = models.CharField(max_length=255, blank=True, null=True)
     material_refname_description = models.CharField(
         max_length=255, blank=True, null=True)
-    material_refname_type_uuid = models.UUIDField(blank=True, null=True)
+    material_refname_type_uuid = models.ForeignKey(
+        'MaterialRefname', models.DO_NOTHING, blank=True, null=True, db_column='material_refname_type_uuid')
     material_refname_type = models.CharField(
         max_length=255, blank=True, null=True)
     create_date = models.DateTimeField()
@@ -194,21 +207,21 @@ class ViewMaterialRaw(models.Model):
 
 
 class ViewMaterial(models.Model):
-    material_uuid = models.UUIDField(blank=True, null=True)
+    material_uuid = models.UUIDField(primary_key=True)
     material_status = models.CharField(max_length=255, blank=True, null=True)
     create_date = models.DateTimeField()
     abbreviation = models.CharField(
-        db_column='Abbreviation', max_length=255, blank=True, null=True)
+        db_column='abbreviation', max_length=255, blank=True, null=True)
     chemical_name = models.CharField(
-        db_column='Chemical_Name', max_length=255, blank=True, null=True)
+        db_column='chemical_name', max_length=255, blank=True, null=True)
     inchi = models.CharField(
-        db_column='InChI', max_length=255, blank=True, null=True)
+        db_column='inchi', max_length=255, blank=True, null=True)
     inchi_key = models.CharField(
-        db_column='InChIKey', max_length=255, blank=True, null=True)
+        db_column='inchikey', max_length=255, blank=True, null=True)
     molecular_formula = models.CharField(
-        db_column='Molecular_Formula', max_length=255, blank=True, null=True)
+        db_column='molecular_formula', max_length=255, blank=True, null=True)
     smiles = models.CharField(
-        db_column='SMILES', max_length=255, blank=True, null=True)
+        db_column='smiles', max_length=255, blank=True, null=True)
 
     class Meta:
         managed = managed_value
@@ -216,7 +229,7 @@ class ViewMaterial(models.Model):
 
 
 class ViewMaterialDescriptorRaw(models.Model):
-    material_uuid = models.UUIDField(blank=True, null=True)
+    material_uuid = models.UUIDField(primary_key=True)
     m_descriptor_uuid = models.UUIDField(blank=True, null=True)
     m_descriptor_alias_name = models.CharField(
         max_length=255, blank=True, null=True)
@@ -230,7 +243,7 @@ class ViewMaterialDescriptorRaw(models.Model):
 
 
 class ViewMaterialDescriptor(models.Model):
-    material_uuid = models.UUIDField(blank=True, null=True)
+    material_uuid = models.UUIDField(primary_key=True)
     material_status = models.CharField(max_length=255, blank=True, null=True)
     create_date = models.DateTimeField()
     abbreviation = models.CharField(
@@ -258,7 +271,7 @@ class ViewMaterialDescriptor(models.Model):
 
 
 class ViewInventoryMaterial(models.Model):
-    inventory_uuid = models.UUIDField(blank=True, null=True)
+    inventory_uuid = models.UUIDField(primary_key=True)
     inventory_description = models.CharField(
         max_length=255, blank=True, null=True)
     inventory_part_no = models.CharField(max_length=255, blank=True, null=True)
