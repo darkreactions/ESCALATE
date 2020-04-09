@@ -2,74 +2,63 @@
 # You'll have to do the following manually to clean this up:
 #   * Rearrange models' order
 #   * Make sure each model has one field with primary_key=True
-#   * Make sure each ForeignKey has `on_delete` set to the desired behavior.
-#   * Remove `managed = managed_value` lines if you wish to allow Django to create, modify, and delete the table
+#   * Make sure each ForeignKey and OneToOneField has `on_delete` set to the desired behavior
+#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
-from datetime import datetime
-from django.utils.timezone import now
-
-managed_value = False
 
 
 class Actor(models.Model):
-    actor_uuid = models.UUIDField(primary_key=True)
+    actor_uuid = models.UUIDField()
     person = models.ForeignKey(
         'Person', models.DO_NOTHING, blank=True, null=True)
     organization = models.ForeignKey(
         'Organization', models.DO_NOTHING, blank=True, null=True)
     systemtool = models.ForeignKey(
         'Systemtool', models.DO_NOTHING, blank=True, null=True)
-    description = models.CharField(max_length=255, blank=True, null=True)
+    description = models.CharField(max_length=-1, blank=True, null=True)
     status_uuid = models.ForeignKey(
         'Status', models.DO_NOTHING, db_column='status_uuid', blank=True, null=True)
     note_uuid = models.ForeignKey(
         'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
+    # A unique constraint could not be introspected.
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'actor'
-        #unique_together = (('person', 'organization', 'systemtool'),)
-
-    def __str__(self):
-        return self.description
 
 
 class ActorPref(models.Model):
     actor_pref_uuid = models.UUIDField(primary_key=True)
     actor_uuid = models.ForeignKey(
         Actor, models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)
-    pkey = models.CharField(max_length=255, blank=True, null=True)
-    pvalue = models.CharField(max_length=255, blank=True, null=True)
+    pkey = models.CharField(max_length=-1, blank=True, null=True)
+    pvalue = models.CharField(max_length=-1, blank=True, null=True)
     note_uuid = models.ForeignKey(
         'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'actor_pref'
 
 
 class Edocument(models.Model):
     edocument_uuid = models.UUIDField(primary_key=True)
-    description = models.CharField(max_length=255, blank=True, null=True)
+    description = models.CharField(max_length=-1, blank=True, null=True)
     edocument = models.BinaryField(blank=True, null=True)
-    edoc_type = models.CharField(max_length=255, blank=True, null=True)
-    ver = models.CharField(max_length=255, blank=True, null=True)
-    actor_uuid = models.ForeignKey(
-        Actor, models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    edoc_type = models.CharField(max_length=-1, blank=True, null=True)
+    ver = models.CharField(max_length=-1, blank=True, null=True)
+    actor_uuid = models.UUIDField(blank=True, null=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'edocument'
-
-    def __str__(self):
-        return self.description
 
 
 class EdocumentX(models.Model):
@@ -77,11 +66,11 @@ class EdocumentX(models.Model):
     ref_edocument_uuid = models.UUIDField(blank=True, null=True)
     edocument_uuid = models.ForeignKey(
         Edocument, models.DO_NOTHING, db_column='edocument_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'edocument_x'
         unique_together = (('ref_edocument_uuid', 'edocument_uuid'),)
 
@@ -90,26 +79,22 @@ class Files(models.Model):
     filename = models.TextField(blank=True, null=True)
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'files'
-
-    def __str__(self):
-        return self.filename
 
 
 class Inventory(models.Model):
-    #inventory_id = models.BigAutoField(primary_key=True)
-    inventory_uuid = models.UUIDField(primary_key=True)
-    description = models.CharField(max_length=255, blank=True, null=True)
+    inventory_uuid = models.UUIDField(
+        primary_key=True, db_column='inventory_uuid')
+    description = models.CharField(max_length=-1, blank=True, null=True)
     material_uuid = models.ForeignKey(
         'Material', models.DO_NOTHING, db_column='material_uuid')
     actor_uuid = models.ForeignKey(
         Actor, models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)
-    part_no = models.CharField(max_length=255, blank=True, null=True)
+    part_no = models.CharField(max_length=-1, blank=True, null=True)
     onhand_amt = models.FloatField(blank=True, null=True)
-    unit = models.CharField(max_length=255, blank=True, null=True)
+    unit = models.CharField(max_length=-1, blank=True, null=True)
 
-    #measure_id = models.BigIntegerField(blank=True, null=True)
     create_date = models.DateTimeField(blank=True, null=True)
     expiration_date = models.DateTimeField(blank=True, null=True)
     inventory_location = models.CharField(
@@ -120,16 +105,13 @@ class Inventory(models.Model):
         Edocument, models.DO_NOTHING, db_column='edocument_uuid', blank=True, null=True)
     note_uuid = models.ForeignKey(
         'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'inventory'
         unique_together = (('material_uuid', 'actor_uuid', 'create_date'),)
-
-    def __str__(self):
-        return self.description
 
 
 class LoadExpdataJson(models.Model):
@@ -139,77 +121,68 @@ class LoadExpdataJson(models.Model):
     add_dt = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'load_EXPDATA_JSON'
 
 
 class LoadChemInventory(models.Model):
     # Field name made lowercase.
     chemicalname = models.CharField(
-        db_column='ChemicalName', max_length=255, blank=True, null=True)
+        db_column='ChemicalName', max_length=-1, blank=True, null=True)
     # Field name made lowercase.
     chemicalabbreviation = models.CharField(
-        db_column='ChemicalAbbreviation', max_length=255, blank=True, null=True)
+        db_column='ChemicalAbbreviation', max_length=-1, blank=True, null=True)
     # Field name made lowercase.
     molecularweight = models.CharField(
-        db_column='MolecularWeight', max_length=255, blank=True, null=True)
+        db_column='MolecularWeight', max_length=-1, blank=True, null=True)
     # Field name made lowercase.
     density = models.CharField(
-        db_column='Density', max_length=255, blank=True, null=True)
+        db_column='Density', max_length=-1, blank=True, null=True)
     # Field name made lowercase.
     inchi = models.CharField(
-        db_column='InChI', max_length=255, blank=True, null=True)
+        db_column='InChI', max_length=-1, blank=True, null=True)
     # Field name made lowercase.
     inchikey = models.CharField(
-        db_column='InChIKey', max_length=255, blank=True, null=True)
+        db_column='InChIKey', max_length=-1, blank=True, null=True)
     # Field name made lowercase.
     chemicalcategory = models.CharField(
-        db_column='ChemicalCategory', max_length=255, blank=True, null=True)
+        db_column='ChemicalCategory', max_length=-1, blank=True, null=True)
     # Field name made lowercase.
     canonicalsmiles = models.CharField(
-        db_column='CanonicalSMILES', max_length=255, blank=True, null=True)
+        db_column='CanonicalSMILES', max_length=-1, blank=True, null=True)
     # Field name made lowercase.
     molecularformula = models.CharField(
-        db_column='MolecularFormula', max_length=255, blank=True, null=True)
+        db_column='MolecularFormula', max_length=-1, blank=True, null=True)
     # Field name made lowercase.
     pubchemid = models.CharField(
-        db_column='PubChemID', max_length=255, blank=True, null=True)
+        db_column='PubChemID', max_length=-1, blank=True, null=True)
     # Field name made lowercase.
     catalogdescr = models.CharField(
-        db_column='CatalogDescr', max_length=255, blank=True, null=True)
+        db_column='CatalogDescr', max_length=-1, blank=True, null=True)
     # Field name made lowercase.
     synonyms = models.CharField(
-        db_column='Synonyms', max_length=255, blank=True, null=True)
+        db_column='Synonyms', max_length=-1, blank=True, null=True)
     # Field name made lowercase.
     catalogno = models.CharField(
-        db_column='CatalogNo', max_length=255, blank=True, null=True)
-    # Field name made lowercase. Field renamed to remove unsuitable characters.
-    sigma_aldrich_url = models.CharField(
-        db_column='Sigma-Aldrich URL', max_length=255, blank=True, null=True)
+        db_column='CatalogNo', max_length=-1, blank=True, null=True)
+    # Field name made lowercase.
+    sigmaaldrichurl = models.CharField(
+        db_column='SigmaAldrichURL', max_length=-1, blank=True, null=True)
     # Field name made lowercase.
     primaryinformationsource = models.CharField(
-        db_column='PrimaryInformationSource', max_length=255, blank=True, null=True)
-    # Field name made lowercase.
-    standardizedsmiles = models.CharField(
-        db_column='StandardizedSMILES', max_length=255, blank=True, null=True)
+        db_column='PrimaryInformationSource', max_length=-1, blank=True, null=True)
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'load_chem_inventory'
-
-    def __str__(self):
-        return self.chemicalname
 
 
 class LoadDirfiles(models.Model):
     filename = models.TextField(blank=True, null=True)
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'load_dirfiles'
-
-    def __str__(self):
-        return self.filename
 
 
 class LoadHcInventory(models.Model):
@@ -217,14 +190,14 @@ class LoadHcInventory(models.Model):
     part_no = models.CharField(max_length=255, blank=True, null=True)
     amount = models.FloatField(blank=True, null=True)
     units = models.CharField(max_length=255, blank=True, null=True)
-    update_date = models.DateTimeField(auto_now=True)
-    create_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField()
+    create_date = models.DateTimeField()
     updated_by = models.CharField(max_length=255, blank=True, null=True)
     in_stock = models.FloatField(blank=True, null=True)
     remaining_stock = models.FloatField(blank=True, null=True)
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'load_hc_inventory'
 
 
@@ -233,11 +206,11 @@ class LoadLblInventory(models.Model):
     part_no = models.CharField(max_length=255, blank=True, null=True)
     amount = models.FloatField(blank=True, null=True)
     units = models.CharField(max_length=255, blank=True, null=True)
-    update_date = models.DateTimeField(auto_now=True)
-    create_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField()
+    create_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'load_lbl_inventory'
 
 
@@ -259,7 +232,7 @@ class LoadPerovDesc(models.Model):
         db_column='_raw_standard_molweight', blank=True, null=True)
     # Field renamed because it started with '_'.
     field_prototype_ecpf4_256_6 = models.CharField(
-        db_column='_prototype_ecpf4_256_6', max_length=255, blank=True, null=True)
+        db_column='_prototype_ecpf4_256_6', max_length=-1, blank=True, null=True)
     # Field renamed because it started with '_'.
     field_feat_atomcount_c = models.SmallIntegerField(
         db_column='_feat_atomcount_c', blank=True, null=True)
@@ -472,7 +445,7 @@ class LoadPerovDesc(models.Model):
         db_column='_calc_chrg_per_asa', blank=True, null=True)
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'load_perov_desc'
 
 
@@ -486,30 +459,26 @@ class LoadPerovDescDef(models.Model):
     out_type = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'load_perov_desc_def'
-
-    def __str__(self):
-        return self.description
 
 
 class LoadPerovMolImage(models.Model):
-    filename = models.CharField(max_length=255, blank=True, null=True)
+    filename = models.CharField(max_length=-1, blank=True, null=True)
     fileno = models.IntegerField(blank=True, null=True)
     # Field renamed because it started with '_'.
     field_image = models.BinaryField(db_column='_image', blank=True, null=True)
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'load_perov_mol_image'
 
 
 class MDescriptor(models.Model):
-    #m_descriptor_id = models.BigAutoField(primary_key=True)
     m_descriptor_uuid = models.UUIDField(primary_key=True)
     m_descriptor_def_uuid = models.UUIDField(blank=True, null=True)
     m_descriptor_alias_name = models.CharField(
-        max_length=255, blank=True, null=True)
+        max_length=-1, blank=True, null=True)
     # This field type is a guess.
     in_val = models.TextField(blank=True, null=True)
     # This field type is a guess.
@@ -523,54 +492,35 @@ class MDescriptor(models.Model):
         Actor, models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)
     note_uuid = models.ForeignKey(
         'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
-    """
-    material_name_description = models.ForeignKey(
-        'MaterialName', models.DO_NOTHING, db_column='material_name_description', blank=True, null=True)
-    material_name_type = models.CharField(
-        max_length=255, blank=True, null=True)
-    m_descriptor_def_id = models.BigIntegerField(blank=True, null=True)
-    create_date = models.DateTimeField(blank=True, null=True)
-    # This field type is a guess.
-    num_value = models.TextField(blank=True, null=True)
-    blob_value = models.BinaryField(blank=True, null=True)
-    status = models.ForeignKey(
-        'Status', models.DO_NOTHING, blank=True, null=True)
-    note = models.ForeignKey('Note', models.DO_NOTHING, blank=True, null=True)
-    """
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'm_descriptor'
         unique_together = (('m_descriptor_def_uuid', 'in_val', 'in_opt_val'),)
 
 
 class MDescriptorClass(models.Model):
-    #m_descriptor_class_id = models.BigAutoField(primary_key=True)
     m_descriptor_class_uuid = models.UUIDField(primary_key=True)
-    description = models.CharField(max_length=255, blank=True, null=True)
+    description = models.CharField(max_length=-1, blank=True, null=True)
     note_uuid = models.ForeignKey(
         'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'm_descriptor_class'
-
-    def __str__(self):
-        return self.description
 
 
 class MDescriptorDef(models.Model):
-    #m_descriptor_def_id = models.BigAutoField(primary_key=True)
     m_descriptor_def_uuid = models.UUIDField(primary_key=True)
-    short_name = models.CharField(max_length=255, blank=True, null=True)
-    calc_definition = models.CharField(max_length=255, blank=True, null=True)
+    short_name = models.CharField(max_length=-1, blank=True, null=True)
+    calc_definition = models.CharField(max_length=-1, blank=True, null=True)
     systemtool = models.ForeignKey(
         'Systemtool', models.DO_NOTHING, blank=True, null=True)
-    description = models.CharField(max_length=1023, blank=True, null=True)
+    description = models.CharField(max_length=-1, blank=True, null=True)
     # This field type is a guess.
     in_type = models.TextField(blank=True, null=True)
     # This field type is a guess.
@@ -581,20 +531,17 @@ class MDescriptorDef(models.Model):
         Actor, models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)
     note_uuid = models.ForeignKey(
         'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'm_descriptor_def'
         unique_together = (('actor_uuid', 'calc_definition'),)
 
-    def __str__(self):
-        return self.description
-
 
 class MDescriptorEval(models.Model):
-    eval_id = models.BigAutoField(primary_key=True)
+    eval_id = models.BigAutoField()
     m_descriptor_def_uuid = models.UUIDField(blank=True, null=True)
     # This field type is a guess.
     in_val = models.TextField(blank=True, null=True)
@@ -603,19 +550,19 @@ class MDescriptorEval(models.Model):
     # This field type is a guess.
     out_val = models.TextField(blank=True, null=True)
     m_descriptor_alias_name = models.CharField(
-        max_length=255, blank=True, null=True)
+        max_length=-1, blank=True, null=True)
     actor_uuid = models.UUIDField(blank=True, null=True)
-    create_date = models.DateTimeField(blank=True, null=True)
+    create_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'm_descriptor_eval'
 
 
 class Material(models.Model):
-    #material_id = models.BigAutoField(primary_key=True)
+    material_id = models.BigAutoField()
     material_uuid = models.UUIDField(primary_key=True)
-    description = models.CharField(max_length=255, blank=True, null=True)
+    description = models.CharField(max_length=-1)
     parent_uuid = models.ForeignKey(
         'self', models.DO_NOTHING, db_column='parent_uuid', blank=True, null=True)
     # This field type is a guess.
@@ -624,51 +571,44 @@ class Material(models.Model):
         'Status', models.DO_NOTHING, db_column='status_uuid', blank=True, null=True)
     note_uuid = models.ForeignKey(
         'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'material'
-
-    def __str__(self):
-        return self.description
 
 
 class MaterialRefname(models.Model):
     material_refname_uuid = models.UUIDField(primary_key=True)
-    description = models.CharField(max_length=255, blank=True, null=True)
+    description = models.CharField(max_length=-1, blank=True, null=True)
     blob_value = models.BinaryField(blank=True, null=True)
-    blob_type = models.CharField(max_length=255, blank=True, null=True)
+    blob_type = models.CharField(max_length=-1, blank=True, null=True)
     material_refname_type_uuid = models.ForeignKey(
         'MaterialRefnameType', models.DO_NOTHING, db_column='material_refname_type_uuid', blank=True, null=True)
-    reference = models.CharField(max_length=255, blank=True, null=True)
+    reference = models.CharField(max_length=-1, blank=True, null=True)
     status_uuid = models.ForeignKey(
         'Status', models.DO_NOTHING, db_column='status_uuid', blank=True, null=True)
     note_uuid = models.ForeignKey(
         'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'material_refname'
         unique_together = (('description', 'material_refname_type_uuid'),)
-
-    def __str__(self):
-        return self.description
 
 
 class MaterialRefnameType(models.Model):
     material_refname_type_uuid = models.UUIDField(primary_key=True)
-    description = models.CharField(max_length=255, blank=True, null=True)
-    note_uuid = models.ForeignKey(
-        'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    description = models.CharField(max_length=-1, blank=True, null=True)
+    note_uuid = models.UUIDField(blank=True, null=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'material_refname_type'
 
 
@@ -678,48 +618,41 @@ class MaterialRefnameX(models.Model):
         Material, models.DO_NOTHING, db_column='material_uuid', blank=True, null=True)
     material_refname_uuid = models.ForeignKey(
         MaterialRefname, models.DO_NOTHING, db_column='material_refname_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'material_refname_x'
         unique_together = (('material_uuid', 'material_refname_uuid'),)
 
 
 class MaterialType(models.Model):
     material_type_uuid = models.UUIDField(primary_key=True)
-    description = models.CharField(max_length=255, blank=True, null=True)
+    description = models.CharField(max_length=-1, blank=True, null=True)
     note_uuid = models.ForeignKey(
         'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'material_type'
-
-    def __str__(self):
-        return self.description
 
 
 class MaterialTypeX(models.Model):
-    #material_type_x_id = models.BigAutoField()
     material_type_x_uuid = models.UUIDField(primary_key=True)
     ref_material_uuid = models.ForeignKey(
         Material, models.DO_NOTHING, db_column='ref_material_uuid', blank=True, null=True)
     material_type_uuid = models.ForeignKey(
         MaterialType, models.DO_NOTHING, db_column='material_type_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'material_type_x'
         unique_together = (('ref_material_uuid', 'material_type_uuid'),)
-
-    def __str__(self):
-        return self.material_type
 
 
 class Measure(models.Model):
@@ -727,39 +660,33 @@ class Measure(models.Model):
     measure_type_uuid = models.ForeignKey(
         'MeasureType', models.DO_NOTHING, db_column='measure_type_uuid', blank=True, null=True)
     amount = models.FloatField(blank=True, null=True)
-    unit = models.CharField(max_length=255, blank=True, null=True)
+    unit = models.CharField(max_length=-1, blank=True, null=True)
     blob_amount = models.BinaryField(blank=True, null=True)
-    blob_type = models.CharField(max_length=255, blank=True, null=True)
+    blob_type = models.CharField(max_length=-1, blank=True, null=True)
     actor_uuid = models.UUIDField(blank=True, null=True)
     edocument_uuid = models.ForeignKey(
         Edocument, models.DO_NOTHING, db_column='edocument_uuid', blank=True, null=True)
     note_uuid = models.ForeignKey(
         'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'measure'
-
-    def __str__(self):
-        return "{} {}".format(self.amount, self.unit)
 
 
 class MeasureType(models.Model):
     measure_type_uuid = models.UUIDField(primary_key=True)
-    description = models.CharField(max_length=255, blank=True, null=True)
+    description = models.CharField(max_length=-1, blank=True, null=True)
     note_uuid = models.ForeignKey(
         'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'measure_type'
-
-    def __str__(self):
-        return self.description
 
 
 class MeasureX(models.Model):
@@ -767,32 +694,28 @@ class MeasureX(models.Model):
     ref_measure_uuid = models.ForeignKey(
         Measure, models.DO_NOTHING, db_column='ref_measure_uuid', blank=True, null=True)
     measure_uuid = models.UUIDField(blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'measure_x'
         unique_together = (('ref_measure_uuid', 'measure_uuid'),)
 
 
 class Note(models.Model):
-    #note_id = models.BigAutoField(primary_key=True)
     note_uuid = models.UUIDField(primary_key=True)
-    notetext = models.CharField(max_length=255, blank=True, null=True)
+    notetext = models.CharField(max_length=-1, blank=True, null=True)
     edocument_uuid = models.ForeignKey(
         Edocument, models.DO_NOTHING, db_column='edocument_uuid', blank=True, null=True)
     actor_uuid = models.ForeignKey(
         Actor, models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'note'
-
-    def __str__(self):
-        return self.notetext
 
 
 class Organization(models.Model):
@@ -802,116 +725,100 @@ class Organization(models.Model):
         'self', models.DO_NOTHING, blank=True, null=True)
     # This field type is a guess.
     parent_path = models.TextField(blank=True, null=True)
-
-    description = models.CharField(max_length=255, blank=True, null=True)
-    full_name = models.CharField(max_length=255)
-    short_name = models.CharField(max_length=255, blank=True, null=True)
-    address1 = models.CharField(max_length=255, blank=True, null=True)
-    address2 = models.CharField(max_length=255, blank=True, null=True)
-    city = models.CharField(max_length=255, blank=True, null=True)
+    description = models.CharField(max_length=-1, blank=True, null=True)
+    full_name = models.CharField(max_length=-1)
+    short_name = models.CharField(max_length=-1, blank=True, null=True)
+    address1 = models.CharField(max_length=-1, blank=True, null=True)
+    address2 = models.CharField(max_length=-1, blank=True, null=True)
+    city = models.CharField(max_length=-1, blank=True, null=True)
     state_province = models.CharField(max_length=3, blank=True, null=True)
-    zip = models.CharField(max_length=255, blank=True, null=True)
-    country = models.CharField(max_length=255, blank=True, null=True)
-    website_url = models.CharField(max_length=255, blank=True, null=True)
-    phone = models.CharField(max_length=255, blank=True, null=True)
+    zip = models.CharField(max_length=-1, blank=True, null=True)
+    country = models.CharField(max_length=-1, blank=True, null=True)
+    website_url = models.CharField(max_length=-1, blank=True, null=True)
+    phone = models.CharField(max_length=-1, blank=True, null=True)
     note_uuid = models.ForeignKey(
         Note, models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'organization'
-
-    def __str__(self):
-        return self.full_name
 
 
 class Person(models.Model):
     person_id = models.BigAutoField(primary_key=True)
     person_uuid = models.UUIDField(blank=True, null=True)
-    firstname = models.CharField(max_length=255, blank=True, null=True)
-    lastname = models.CharField(max_length=255)
-    middlename = models.CharField(max_length=255, blank=True, null=True)
-    address1 = models.CharField(max_length=255, blank=True, null=True)
-    address2 = models.CharField(max_length=255, blank=True, null=True)
-    city = models.CharField(max_length=255, blank=True, null=True)
+    firstname = models.CharField(max_length=-1, blank=True, null=True)
+    lastname = models.CharField(max_length=-1)
+    middlename = models.CharField(max_length=-1, blank=True, null=True)
+    address1 = models.CharField(max_length=-1, blank=True, null=True)
+    address2 = models.CharField(max_length=-1, blank=True, null=True)
+    city = models.CharField(max_length=-1, blank=True, null=True)
     stateprovince = models.CharField(max_length=3, blank=True, null=True)
-    phone = models.CharField(max_length=255, blank=True, null=True)
-    email = models.CharField(max_length=255, blank=True, null=True)
-    title = models.CharField(max_length=255, blank=True, null=True)
-    suffix = models.CharField(max_length=255, blank=True, null=True)
+    phone = models.CharField(max_length=-1, blank=True, null=True)
+    email = models.CharField(max_length=-1, blank=True, null=True)
+    title = models.CharField(max_length=-1, blank=True, null=True)
+    suffix = models.CharField(max_length=-1, blank=True, null=True)
     organization = models.ForeignKey(
         Organization, models.DO_NOTHING, blank=True, null=True)
     note_uuid = models.ForeignKey(
         Note, models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'person'
-
-    def __str__(self):
-        return "{} {}".format(self.firstname, self.lastname)
 
 
 class Status(models.Model):
     status_uuid = models.UUIDField(primary_key=True)
-    description = models.CharField(max_length=255, blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    description = models.CharField(max_length=-1, blank=True, null=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'status'
-
-    def __str__(self):
-        return self.description
 
 
 class Systemtool(models.Model):
     systemtool_id = models.BigAutoField(primary_key=True)
     systemtool_uuid = models.UUIDField(blank=True, null=True)
-    systemtool_name = models.CharField(max_length=255)
-    description = models.CharField(max_length=255, blank=True, null=True)
+    systemtool_name = models.CharField(max_length=-1)
+    description = models.CharField(max_length=-1, blank=True, null=True)
     systemtool_type = models.ForeignKey(
         'SystemtoolType', models.DO_NOTHING, blank=True, null=True)
     vendor_organization = models.ForeignKey(
         Organization, models.DO_NOTHING, blank=True, null=True)
-    model = models.CharField(max_length=255, blank=True, null=True)
-    serial = models.CharField(max_length=255, blank=True, null=True)
-    ver = models.CharField(max_length=255, blank=True, null=True)
+    model = models.CharField(max_length=-1, blank=True, null=True)
+    serial = models.CharField(max_length=-1, blank=True, null=True)
+    ver = models.CharField(max_length=-1, blank=True, null=True)
     note_uuid = models.ForeignKey(
         Note, models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'systemtool'
         unique_together = (
             ('systemtool_name', 'systemtool_type', 'vendor_organization', 'ver'),)
-
-    def __str__(self):
-        return "{} {}".format(self.systemtool_name, self.model)
 
 
 class SystemtoolType(models.Model):
     systemtool_type_id = models.BigAutoField(primary_key=True)
     systemtool_type_uuid = models.UUIDField(blank=True, null=True)
-    description = models.CharField(max_length=255, blank=True, null=True)
+    description = models.CharField(max_length=-1, blank=True, null=True)
     note_uuid = models.ForeignKey(
         Note, models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'systemtool_type'
-
-    def __str__(self):
-        return self.description
 
 
 class Tag(models.Model):
@@ -919,35 +826,29 @@ class Tag(models.Model):
     tag_type_uuid = models.ForeignKey(
         'TagType', models.DO_NOTHING, db_column='tag_type_uuid', blank=True, null=True)
     short_description = models.CharField(max_length=16, blank=True, null=True)
-    description = models.CharField(max_length=255, blank=True, null=True)
+    description = models.CharField(max_length=-1, blank=True, null=True)
     actor_uuid = models.ForeignKey(
         Actor, models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)
     note_uuid = models.ForeignKey(
         Note, models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'tag'
-
-    def __str__(self):
-        return self.description
 
 
 class TagType(models.Model):
     tag_type_uuid = models.UUIDField(primary_key=True)
-    short_desscription = models.CharField(max_length=32, blank=True, null=True)
-    description = models.CharField(max_length=255, blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    short_description = models.CharField(max_length=32, blank=True, null=True)
+    description = models.CharField(max_length=-1, blank=True, null=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'tag_type'
-
-    def __str__(self):
-        return self.description
 
 
 class TagX(models.Model):
@@ -955,11 +856,11 @@ class TagX(models.Model):
     ref_tag_uuid = models.UUIDField(blank=True, null=True)
     tag_uuid = models.ForeignKey(
         Tag, models.DO_NOTHING, db_column='tag_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'tag_x'
         unique_together = (('ref_tag_uuid', 'tag_uuid'),)
 
@@ -970,12 +871,12 @@ class TriggerTest(models.Model):
     val = models.TextField(blank=True, null=True)
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'trigger_test'
 
 
 class VTypeOut(models.Model):
 
     class Meta:
-        managed = managed_value
+        managed = False
         db_table = 'v_type_out'
