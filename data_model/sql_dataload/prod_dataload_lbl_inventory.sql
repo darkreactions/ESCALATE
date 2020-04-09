@@ -12,7 +12,7 @@
  Target Server Version : 120001
  File Encoding         : 65001
 
- Date: 26/03/2020 09:38:12
+ Date: 09/04/2020 09:36:32
 */
 
 
@@ -29,7 +29,6 @@ CREATE TABLE "load_lbl_inventory" (
   "create_date" timestamptz(6) NOT NULL DEFAULT '2019-05-31 20:00:00-04'::timestamp with time zone
 )
 ;
-
 
 -- ----------------------------
 -- Records of load_lbl_inventory

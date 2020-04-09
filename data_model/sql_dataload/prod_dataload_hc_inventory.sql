@@ -12,7 +12,7 @@
  Target Server Version : 120001
  File Encoding         : 65001
 
- Date: 26/03/2020 09:37:54
+ Date: 09/04/2020 09:36:19
 */
 
 
@@ -32,7 +32,6 @@ CREATE TABLE "load_hc_inventory" (
   "remaining_stock" float4
 )
 ;
-
 
 -- ----------------------------
 -- Records of load_hc_inventory

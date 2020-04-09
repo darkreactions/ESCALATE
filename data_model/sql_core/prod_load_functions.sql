@@ -169,7 +169,7 @@ Name:					get_materialid_bystatus (p_status_arr, p_null_bool)
 Parameters:		p_status_array = array of status description (e.g. array['active', 'proto']) 
 --						where ANY of the status descriptions match
 --					  p_null_bool = true or false to include null status in returned set
-Returns:			dataset of material_id's 
+Returns:			dataset of material_uuid's 
 Author:				G. Cattabriga
 Date:					2019.12.12
 Description:	return material id's with specific status
@@ -179,13 +179,13 @@ Example:			SELECT * FROM get_material_uuid_bystatus (array['active', 'proto'], T
 DROP FUNCTION get_material_uuid_bystatus (p_status_array VARCHAR[], p_null_bool BOOLEAN);
 CREATE OR REPLACE FUNCTION get_material_uuid_bystatus (p_status_array varchar[], p_null_bool boolean)
 RETURNS TABLE (
-      material_id int8,
-			material_uuid uuid
+			material_uuid uuid,
+			material_description varchar
 ) AS $$
 BEGIN
 	RETURN QUERY SELECT
-			mat.material_id,
-			mat.material_uuid
+			mat.material_uuid,
+			mat.description
 		FROM
 			material mat
 			LEFT JOIN status st ON mat.status_uuid = st.status_uuid
@@ -200,7 +200,7 @@ $$ LANGUAGE plpgsql;
 
 
 /*
-Name:					get_materialnameref_bystatus (p_status_arr, p_null_bool)
+Name:					get_material_nameref_bystatus (p_status_arr, p_null_bool)
 Parameters:		p_status_array = array of status description (e.g. array['active', 'proto']) 
 							where ANY of the status descriptions match
 							p_null_bool = true or false to include null status in returned set
@@ -210,19 +210,17 @@ Date:					2019.12.12
 Description:	return material id, material name based on specific status
 Notes:				need to UNION ALL the material descriptions with the returned set from function get_materialid_bystatus ()
 							because there may be duplicate names
-Example:			SELECT material_id, material_uuid, material_refname FROM get_material_nameref_bystatus (array['active', 'proto'], TRUE) where material_refname_type = 'InChI' order by 1;
+Example:			SELECT * FROM get_material_nameref_bystatus (array['active', 'proto'], TRUE) where material_refname_type = 'InChI' order by 1;
 */
 DROP FUNCTION get_material_nameref_bystatus (p_status_array VARCHAR[], p_null_bool BOOLEAN );
 CREATE OR REPLACE FUNCTION get_material_nameref_bystatus (p_status_array varchar[], p_null_bool boolean)
 RETURNS TABLE (
-      material_id int8,	
       material_uuid uuid,
 			material_refname varchar,
 			material_refname_type varchar
 ) AS $$
 BEGIN
-	RETURN QUERY SELECT
-		mat.material_id,		
+	RETURN QUERY SELECT	
 		mat.material_uuid,
 		mnm.description AS mname,
 		mt.description as material_refname_type
@@ -235,9 +233,73 @@ $$ LANGUAGE plpgsql;
 
 
 /*
+Name:					get_material_bydescr_bystatus (p_descr VARCHAR, p_status_array VARCHAR[], p_null_bool BOOLEAN );
+Parameters:		p_descr = varchar of string (to be searched in material and material_ref description)
+							p_status_array = array of status description (e.g. array['active', 'proto']) 
+							where ANY of the status descriptions match
+							p_null_bool = true or false to include null status in returned set
+Returns:			material_uuid, 
+Author:				G. Cattabriga
+Date:					2020.4.1
+Description:	return material uuid, material description, material_ref uuid, material_ref description based on specific status
+Notes:				need to UNION ALL the material descriptions with the returned set from function get_materialid_bystatus ()
+							because there may be duplicate names
+Example:			SELECT * FROM get_material_bydescr_bystatus ('CC(C)(C)[NH3+].[I-]', array['active'], TRUE);
+*/
+DROP FUNCTION get_material_bydescr_bystatus (p_descr varchar, p_status_array VARCHAR[], p_null_bool BOOLEAN );
+CREATE OR REPLACE FUNCTION get_material_bydescr_bystatus (p_descr varchar, p_status_array VARCHAR[], p_null_bool BOOLEAN)
+RETURNS TABLE (
+      material_uuid uuid,
+			material_description varchar,
+			material_refname_uuid uuid,
+			material_refname_description VARCHAR,
+			material_refname_type varchar
+) AS $$
+BEGIN
+	RETURN QUERY SELECT	
+		mat.material_uuid,
+		mat.material_description as material_description, 
+		mnm.material_refname_uuid,
+		mnm.description as material_refname_description,
+		mt.description as material_refname_type
+	FROM get_material_uuid_bystatus ( p_status_array, p_null_bool ) mat
+	JOIN material_refname_x mx ON mat.material_uuid = mx.material_uuid 
+	JOIN material_refname mnm ON mx.material_refname_uuid = mnm.material_refname_uuid
+	JOIN material_refname_type mt on mnm.material_refname_type_uuid = mt.material_refname_type_uuid
+	where mat.material_description = p_descr or mnm.description = p_descr;
+END;
+$$ LANGUAGE plpgsql;
+
+
+/*
+Name:					get_material_type (p_material_uuid uuid)
+Parameters:		p_material_uuid uuid of material to retreive material_type(s)
+Returns:			array of material_type descriptions
+Author:				G. Cattabriga
+Date:					2020.04.08
+Description:	returns varchar array of material_types associated with a material (uuid)
+Notes:				
+							
+Example:			SELECT * FROM get_material_type ((SELECT material_uuid FROM get_material_bydescr_bystatus ('CC(C)(C)[NH3+].[I-]', array['active'], TRUE)));
+*/
+-- DROP FUNCTION get_material_type (p_material_uuid uuid);
+CREATE OR REPLACE FUNCTION get_material_type (p_material_uuid uuid)
+RETURNS varchar[] AS $$
+BEGIN
+	return (
+		SELECT array_agg(mt.description) from material mat
+		LEFT JOIN material_type_x mtx on mat.material_uuid = mtx.ref_material_uuid
+		LEFT JOIN material_type mt on mtx.material_type_uuid = mt.material_type_uuid
+		WHERE mat.material_uuid = p_material_uuid); 
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+/*
 Name:					get_actor ()
 Parameters:		none
-Returns:			actor_id, org_id, person_id, systemtool_id, actor_description, org_description, person_lastfirst, systemtool_description
+Returns:			actor_uuid, org_uuid, person_uuid, systemtool_uuid, actor_description, org_description, person_lastfirst, systemtool_description
 Author:				G. Cattabriga
 Date:					2019.12.12
 Description:	returns key info on the actor
@@ -249,9 +311,9 @@ Example:			SELECT * FROM get_actor () where actor_description like '%ChemAxon: s
 CREATE OR REPLACE FUNCTION get_actor ()
 RETURNS TABLE (
       actor_uuid uuid,
-			organization_id int8,
-			person_id int8,
-			systemtool_id int8,
+			organization_uuid int8,
+			person_uuid int8,
+			systemtool_uuid int8,
 			actor_description varchar,
 			actor_status varchar,
 			notetext varchar,
@@ -262,14 +324,14 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
 	RETURN QUERY SELECT
-		act.actor_uuid, org.organization_id, per.person_id, st.systemtool_id, act.description, stt.description, nt.notetext as actor_notetext,
+		act.actor_uuid, org.organization_uuid, per.person_uuid, st.systemtool_uuid, act.description, stt.description, nt.notetext as actor_notetext,
 		org.full_name, 
-		case when per.person_id is not null then cast(concat(per.lastname,', ',per.firstname) as varchar) end as lastfirst, 
+		case when per.person_uuid is not null then cast(concat(per.lastname,', ',per.firstname) as varchar) end as lastfirst, 
 		st.systemtool_name, st.ver
 	from actor act 
-	left join organization org on act.organization_id = org.organization_id
-	left join person per on act.person_id = per.person_id
-	left join systemtool st on act.systemtool_id = st.systemtool_id
+	left join organization org on act.organization_uuid = org.organization_uuid
+	left join person per on act.person_uuid = per.person_uuid
+	left join systemtool st on act.systemtool_uuid = st.systemtool_uuid
 	left join status stt on act.status_uuid = stt.status_uuid
 	left join note nt on act.note_uuid = nt.note_uuid;
 END;
@@ -280,10 +342,10 @@ $$ LANGUAGE plpgsql;
 /*
 Name:					get_m_descriptor_def ()
 Parameters:		p_descrp = string used in search over description columns: short_name, calc_definition, description
-Returns:			m_descriptor_def_id, m_descriptor_def_uuid, short_name, calc_definition, description, systemtool_name, systemtool_ver
+Returns:			m_descriptor_def_uuid, m_descriptor_def_uuid, short_name, calc_definition, description, systemtool_name, systemtool_ver
 Author:				G. Cattabriga
 Date:					2020.01.16
-Description:	returns keys (id, uuid) of m_descriptor_def matching p_descrp parameters 
+Description:	returns keys (uuid) of m_descriptor_def matching p_descrp parameters 
 Notes:				
 							
 Example:			SELECT * FROM get_m_descriptor_def (array['standardize']);
@@ -304,7 +366,7 @@ BEGIN
 	RETURN QUERY SELECT
 		mdd.m_descriptor_def_uuid, mdd.short_name, st.systemtool_name, mdd.calc_definition, mdd.description, mdd.in_type, mdd.out_type, st.ver
 	from m_descriptor_def mdd
-	join systemtool st on mdd.systemtool_id = st.systemtool_id
+	join systemtool st on mdd.systemtool_uuid = st.systemtool_uuid
 	WHERE mdd.short_name = ANY(p_descr) OR mdd.calc_definition = ANY(p_descr) OR mdd.description = ANY(p_descr); 
 END;
 $$ LANGUAGE plpgsql;
@@ -312,24 +374,59 @@ $$ LANGUAGE plpgsql;
 
 
 /*
+Name:					get_m_descriptor (p_material_refname varchar, p_descr VARCHAR)
+Parameters:		p_material_refname = string of material (e.g. SMILES)
+							p_descrp = string used in search over description columns: short_name, calc_definition, description
+Returns:			m_descriptor_uuid
+Author:				G. Cattabriga
+Date:					2020.04.01
+Description:	returns uuid of m_descriptor
+Notes:				
+							
+Example:			SELECT * FROM get_m_descriptor ('C1=CC=C(C=C1)CC[NH3+].[I-]', 'standardize');
+							SELECT * FROM get_m_descriptor ('C1CC[NH2+]C1.[I-]', 'charge_cnt_standardize');	
+							
+*/
+-- DROP FUNCTION get_m_descriptor (p_material_refname varchar, p_descr VARCHAR);
+CREATE OR REPLACE FUNCTION get_m_descriptor (p_material_refname varchar, p_descr VARCHAR)
+RETURNS uuid AS $$
+BEGIN
+	RETURN 
+	(
+	with RECURSIVE m_descriptor_chain as (
+		select m_descriptor_uuid, (in_val).v_source_uuid from m_descriptor where (in_val).v_text = p_material_refname
+		UNION
+		select md2.m_descriptor_uuid, (md2.in_val).v_source_uuid from m_descriptor md2
+			inner join m_descriptor_chain dc on dc.m_descriptor_uuid = (md2.in_val).v_source_uuid
+		) select dc.m_descriptor_uuid from m_descriptor_chain dc 
+			join m_descriptor md on dc.m_descriptor_uuid = md.m_descriptor_uuid 
+			join m_descriptor_def mdd on md.m_descriptor_def_uuid = mdd.m_descriptor_def_uuid
+		where mdd.short_name = p_descr
+		); 
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+/*
 Name:					get_chemaxon_directory ()
-Parameters:		p_systemtool_id = identifier (id) of the chemaxon [software] tool
-							p_actor_id = identifier (id) of the actor performing the calculation: this references the relevant software directories in order to run the CLI tool
+Parameters:		p_systemtool_uuid = identifier (id) of the chemaxon [software] tool
+							p_actor_uuid = identifier (uuid) of the actor performing the calculation: this references the relevant software directories in order to run the CLI tool
 Returns:			directory as TEXT
 Author:				G. Cattabriga
 Date:					2020.02.18
 Description:	returns the directory chemaxon tool is located; uses actor_pref 
 Notes:				
 							
-Example:			select get_chemaxon_directory((select systemtool_id from systemtool where systemtool_name = 'standardize'), (SELECT actor_uuid FROM get_actor () where person_lastfirst like 'Cattabriga, Gary')); (returns the version for cxcalc for actor GC) 
+Example:			select get_chemaxon_directory((select systemtool_uuid from systemtool where systemtool_name = 'standardize'), (SELECT actor_uuid FROM get_actor () where person_lastfirst like 'Cattabriga, Gary')); (returns the version for cxcalc for actor GC) 
 */
--- DROP FUNCTION get_chemaxon_directory ( p_systemtool_id int8, p_actor int8 )
-CREATE OR REPLACE FUNCTION get_chemaxon_directory ( p_systemtool_id int8, p_actor_uuid uuid ) RETURNS TEXT AS $$ 
+-- DROP FUNCTION get_chemaxon_directory ( p_systemtool_uuid int8, p_actor int8 )
+CREATE OR REPLACE FUNCTION get_chemaxon_directory ( p_systemtool_uuid uuid, p_actor_uuid uuid ) RETURNS TEXT AS $$ 
 DECLARE
 	v_descr_name varchar;
 	v_descr_dir varchar;
 BEGIN
-	SELECT st.systemtool_name INTO v_descr_name FROM systemtool st WHERE st.systemtool_id = p_systemtool_id;
+	SELECT st.systemtool_name INTO v_descr_name FROM systemtool st WHERE st.systemtool_uuid = p_systemtool_uuid;
 	CASE v_descr_name 
 			WHEN 'cxcalc','standardize','molconvert' THEN
 				return (SELECT ap.pvalue FROM actor_pref ap WHERE ap.actor_uuid = p_actor_uuid AND ap.pkey = 'MARVINSUITE_DIR');	
@@ -344,25 +441,25 @@ $$ LANGUAGE plpgsql;
 
 /*
 Name:					get_chemaxon_version ()
-Parameters:		p_systemtool_id = identifier (id) of the chemaxon [software] tool
-							p_actor_id = identifier (id) of the actor performing the calculation: this references the relevant software directories in order to run the CLI tool
+Parameters:		p_systemtool_uuid = identifier (uuid) of the chemaxon [software] tool
+							p_actor_uuid = identifier (uuid) of the actor performing the calculation: this references the relevant software directories in order to run the CLI tool
 Returns:			version as TEXT
 Author:				G. Cattabriga
 Date:					2020.02.12
 Description:	returns the version for the specified chemaxon tool in string format 
 Notes:				
 							
-Example:			select get_chemaxon_version((select systemtool_id from systemtool where systemtool_name = 'generatemd'), (select actor_uuid from actor where description = 'Gary Cattabriga')); (returns the version for cxcalc for actor GC) 
+Example:			select get_chemaxon_version((select systemtool_uuid from systemtool where systemtool_name = 'generatemd'), (select actor_uuid from actor where description = 'Gary Cattabriga')); (returns the version for cxcalc for actor GC) 
 */
--- DROP FUNCTION get_chemaxon_version ( p_systemtool_id int8, p_actor_uuid uuid )
-CREATE OR REPLACE FUNCTION get_chemaxon_version ( p_systemtool_id int8, p_actor_uuid uuid ) RETURNS TEXT AS $$ 
+-- DROP FUNCTION get_chemaxon_version ( p_systemtool_uuid int8, p_actor_uuid uuid )
+CREATE OR REPLACE FUNCTION get_chemaxon_version ( p_systemtool_uuid uuid, p_actor_uuid uuid ) RETURNS TEXT AS $$ 
 DECLARE
 	v_descr_name varchar;
 	v_descr_dir varchar;
 BEGIN
 	DROP TABLE IF EXISTS load_temp;
 	CREATE TEMP TABLE load_temp ( help_string VARCHAR ) ON COMMIT DROP ;
-	SELECT st.systemtool_name INTO v_descr_name FROM systemtool st WHERE st.systemtool_id = p_systemtool_id;
+	SELECT st.systemtool_name INTO v_descr_name FROM systemtool st WHERE st.systemtool_uuid = p_systemtool_uuid;
 	CASE v_descr_name 
 			WHEN 'cxcalc','standardize','molconvert' THEN
 				SELECT ap.pvalue INTO v_descr_dir FROM actor_pref ap WHERE ap.actor_uuid = p_actor_uuid AND ap.pkey = 'MARVINSUITE_DIR';	
@@ -429,14 +526,14 @@ BEGIN
 	
 	-- load the variables with actor preference data; for temp directory and chemaxon directory
 	select into v_temp_dir pvalue from actor_pref act where act.actor_uuid = p_actor_uuid and act.pkey = 'HOME_DIR';
-	select into v_descr_dir get_chemaxon_directory((select systemtool_id from m_descriptor_def mdd where mdd.m_descriptor_def_uuid = p_descriptor_def_uuid), p_actor_uuid);
-	select into v_descr_command (select st.systemtool_name from m_descriptor_def mdd join systemtool st on mdd.systemtool_id = st.systemtool_id where mdd.m_descriptor_def_uuid = p_descriptor_def_uuid);
+	select into v_descr_dir get_chemaxon_directory((select systemtool_uuid from m_descriptor_def mdd where mdd.m_descriptor_def_uuid = p_descriptor_def_uuid), p_actor_uuid);
+	select into v_descr_command (select st.systemtool_name from m_descriptor_def mdd join systemtool st on mdd.systemtool_uuid = st.systemtool_uuid where mdd.m_descriptor_def_uuid = p_descriptor_def_uuid);
   select into v_descr_param mdd.calc_definition from m_descriptor_def mdd where mdd.m_descriptor_def_uuid = p_descriptor_def_uuid;
 
 	CASE v_descr_command
 	when 'cxcalc', 'standardize', 'generatemd' then 
 		-- load the version of the descriptor function that will be run, this will be a future validation
-		select into v_descr_ver get_chemaxon_version((select systemtool_id from systemtool where systemtool_name = v_descr_command), p_actor_uuid);
+		select into v_descr_ver get_chemaxon_version((select systemtool_uuid from systemtool where systemtool_name = v_descr_command), p_actor_uuid);
 		
 		-- copy the inputs from m_desriptor_eval into a text file to be read by the command
 		-- this is set to work for ONLY single text varchar input
@@ -472,7 +569,7 @@ $$ LANGUAGE plpgsql;
 
 /*
 Name:					load_mol_images ()
-Parameters:		p_systemtool_id = identifier (id) of the chemaxon [software] tool
+Parameters:		p_systemtool_uuid = identifier (id) of the chemaxon [software] tool
 							p_actor_uuid = identifier (uuid) of the actor performing the calculation: this references the relevant software directories in order to run the CLI tool
 Returns:			version as TEXT
 Author:				G. Cattabriga
@@ -480,26 +577,125 @@ Date:					2020.02.12
 Description:	returns the version for the specified chemaxon tool in string format 
 Notes:				
 							
-Example:			select load_mol_images((select systemtool_id from systemtool where systemtool_name = 'generatemd'), (select actor_uuid from actor where description = 'Gary Cattabriga'));
+Example:			select load_mol_images((select systemtool_uuid from systemtool where systemtool_name = 'generatemd'), (select actor_uuid from actor where description = 'Gary Cattabriga'));
 */
 -- TRUNCATE table load_perov_mol_image cascade;
--- DROP FUNCTION load_mol_images ( p_systemtool_id int8, p_actor_uuid uuid )
-CREATE OR REPLACE FUNCTION load_mol_images ( p_systemtool_id int8, p_actor_uuid uuid ) RETURNS bool AS $$ 
+-- DROP FUNCTION load_mol_images ( p_systemtool_uuid int8, p_actor_uuid uuid )
+CREATE OR REPLACE FUNCTION load_mol_images ( p_systemtool_uuid uuid, p_actor_uuid uuid ) RETURNS bool AS $$ 
 DECLARE
-	pathname varchar := '/Users/gcattabriga/DRP/demob/cp_inventory_run_20200311/svg/';
+	pathname varchar := '/Users/gcattabriga/DRP/demob/cp_inventory_run_20200311/chem_images/';
+	fullfilename VARCHAR := null;
 	filename VARCHAR := null;
 	fcontents varchar := null;
 	fullpathname varchar := null;
-	fileno int := 0;
+	underscorepos int;
 BEGIN
-	FOR filename IN select pg_ls_dir(pathname) order by 1 LOOP
-		 IF (filename ~ '^.*\.(svg)$') THEN
-				fcontents = read_file_utf8(pathname||filename);
-				fullpathname = pathname || filename;
-				fileno = cast(substring(filename, length('out')+1, length(filename) - POSITION('.' in reverse(filename)) - length('out')) as integer);
-				insert into "load_perov_mol_image" values (fullpathname, fileno, bytea(fcontents));
+	FOR fullfilename IN select pg_ls_dir(pathname) order by 1 LOOP
+		 IF (fullfilename ~ '^.*\.(svg)$') THEN
+				fcontents = read_file_utf8(pathname||fullfilename);
+				fullpathname = pathname || fullfilename;
+				underscorepos = POSITION('_' in fullfilename);
+				filename = substring(fullfilename, underscorepos+1, length(fullfilename) - POSITION('.' in reverse(fullfilename))- underscorepos);
+				insert into "load_perov_mol_image" values (fullpathname, filename, bytea(fcontents));
 		 END IF;
 	 END LOOP;
 	 RETURN TRUE;
  END; 
 $$ LANGUAGE plpgsql;
+
+
+/*
+Name:					load_edocuments (p_actor_uuid uuid)
+Parameters:		p_actor_uuid = identifier (uuid) of the actor owning this edocument
+Returns:			boolean T or F
+Author:				G. Cattabriga
+Date:					2020.04.07
+Description:	loads edocuments into the load table 
+Notes:				
+							
+Example:			select load_edocuments((select actor_uuid from actor where description = 'Ian Pendleton'));
+*/
+/*
+DROP table load_edocument cascade;
+CREATE TABLE load_edocument(
+	edocument_id serial8,
+	description VARCHAR,
+	document_type val_type,
+	edocument bytea,
+	actor_uuid uuid
+); */
+-- DROP FUNCTION load_mol_images ( p_systemtool_uuid int8, p_actor_uuid uuid )
+CREATE OR REPLACE FUNCTION load_edocuments (p_actor_uuid uuid) RETURNS bool AS $$ 
+DECLARE
+	pathname varchar := '/Users/gcattabriga/Downloads/GitHub/escalate_wip/';
+	filename VARCHAR := null;
+	fullfilename VARCHAR := null;
+	fullpathname varchar := null;
+	fcontents varchar := null;
+BEGIN
+	FOR fullfilename IN select pg_ls_dir(pathname) order by 1 LOOP
+		 IF (fullfilename ~ '^.*\.(pdf)$') THEN
+				fcontents = pg_read_binary_file(pathname||fullfilename);
+				fullpathname = pathname || fullfilename;
+				filename = substring(fullfilename, 1, length(fullfilename) - POSITION('.' in reverse(fullfilename)));
+				insert into load_edocument (description, document_type, edocument, actor_uuid) values (filename, 'blob_pdf'::val_type, bytea(fcontents), p_actor_uuid);
+		 END IF;
+	 END LOOP;
+	 RETURN TRUE;
+ END; 
+$$ LANGUAGE plpgsql;
+
+
+/*
+Name:					get_charge_count (p_mol_smiles varchar) 
+Parameters:		p_mol_smiles = SMILES string representing molecule
+Returns:			count of '+'s as INT
+Author:				G. Cattabriga
+Date:					2020.03.13
+Description:	returns the count of [+] charges in a SMILES string 
+Notes:				if p_mol_smiles is null, will return null (non-count); so you can check for null input
+							
+Example:			select get_charge_count('C1C[NH+]2CC[NH+]1CC2');
+							select get_charge_count(null);
+*/
+-- DROP FUNCTION get_charge_count (p_mol_smiles varchar);
+CREATE OR REPLACE FUNCTION get_charge_count ( p_mol_smiles varchar ) RETURNS int AS $$ 
+BEGIN
+	IF (p_mol_smiles is not null) THEN
+			return (CHAR_LENGTH(p_mol_smiles) - CHAR_LENGTH(REPLACE(p_mol_smiles, '+', '')));
+	ELSE 
+		RETURN null;
+	END IF;
+END; 
+$$ LANGUAGE plpgsql;
+
+
+
+/*
+Name:					math_op (p_in_num numeric, p_op text, p_in_opt_num numeric default null) 
+Parameters:		p_op = basic math operation ('+', '/', '-', '*'. etc)
+							p_in_num, p_in_opt_num = numeric input values
+Returns:			results of math operation as NUM
+Author:				G. Cattabriga
+Date:					2020.03.13
+Description:	returns the count of [+] charges in a SMILES string 
+Notes:				up to caller to cast into desired num type (e.g. int)
+Example:			select math_op(9, '/', 3);
+							select math_op(101, '*', 11);
+							select math_op(5, '!');
+*/
+-- DROP FUNCTION math_op (p_op text, p_in_num numeric, p_in_opt_num numeric);
+create or replace function math_op (p_in_num numeric, p_op text, p_in_opt_num numeric default null)
+returns numeric as $$
+declare 
+	i numeric;
+begin
+	CASE
+		WHEN p_op in ('/', '*', '+', '-', '%', '^', '!', '|/', '@') THEN 
+			execute format('select %s %s %s', p_in_num, p_op, p_in_opt_num) into i;
+			return i;
+		ELSE return null;
+	END CASE;
+END;
+$$ language plpgsql;
+

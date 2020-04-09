@@ -12,7 +12,7 @@
  Target Server Version : 120001
  File Encoding         : 65001
 
- Date: 26/03/2020 09:37:32
+ Date: 09/04/2020 09:35:35
 */
 
 
@@ -38,7 +38,6 @@ CREATE TABLE "load_chem_inventory" (
   "PrimaryInformationSource" varchar COLLATE "pg_catalog"."default"
 )
 ;
-
 
 -- ----------------------------
 -- Records of load_chem_inventory

@@ -13,12 +13,6 @@ Notes:				code for parsing chem inventory data is contained in other file(s)
 -- ----------------------------
 -- Records of status
 -- ----------------------------
-/*
-	status_uuid serial8,
-  description varchar(255) COLLATE "pg_catalog"."default",
-  add_date timestamptz NOT NULL DEFAULT NOW(),
-  mod_date timestamptz NOT NULL DEFAULT NOW()
-*/
 BEGIN;
 INSERT INTO status (description)
 VALUES 
@@ -30,27 +24,10 @@ VALUES
 ;
 COMMIT;
 
+
 -- ----------------------------
 -- Records of organization
 -- ----------------------------
-/*
-  organization_id serial8,
-	organization_uuid uuid,
-  description varchar(255),
-  full_name varchar(255),
-	short_name varchar(255)
-  address1 varchar(255),
-  address2 varchar(255),
-  city varchar(255),
-  state_province char(3) ,
-  zip varchar(255),
-  country varchar(255),
-  website_url varchar(255),
-  phone varchar(255),
-  note_id int8,
-  add_date timestamptz NOT NULL DEFAULT NOW(),
-  mod_date timestamptz NOT NULL DEFAULT NOW()
-*/
 BEGIN;
 INSERT INTO organization (description, full_name, short_name, address1, address2, city, state_province, zip, website_url, phone, note_uuid) 
 VALUES 
@@ -66,14 +43,6 @@ COMMIT;
 -- ----------------------------
 -- Records of systemtool_type
 -- ----------------------------
-/*
-  systemtype_id serial8 NOT NULL,
-	systemtype_uuid uuid,
-  description varchar(255),
-  note_id int8,
-  add_date" timestamptz NOT NULL DEFAULT NOW(),
-  mod_date" timestamptz NOT NULL DEFAULT NOW()
-*/
 BEGIN;
 INSERT INTO systemtool_type (description) 
 VALUES 
@@ -86,147 +55,101 @@ COMMIT;
 -- ----------------------------
 -- Records of systemtool
 -- ----------------------------
-/*
-  system_id serial8,
-	system_uuid uuid,
-  name varchar(255),
-  description varchar(255),
-  systemtype_id" int8,
-  vendor varchar(255),
-  model varchar(255),
-  serial varchar(255),
-  version varchar(255),
-  organization_id int8,
-  note_id int8,
-  alias varchar(255),
-  add_date timestamptz NOT NULL DEFAULT NOW(),
-  mod_date timestamptz NOT NULL DEFAULT NOW()
-*/
 BEGIN;
-INSERT INTO systemtool (systemtool_name, description, systemtool_type_id, vendor_organization_id, model, serial, ver, note_uuid)
+INSERT INTO systemtool (systemtool_name, description, systemtool_type_uuid, vendor_organization_uuid, model, serial, ver, note_uuid)
 VALUES 
 	('standardize', 'Molecule Standardizer', 
-		(select systemtool_type_id from systemtool_type where description = 'Command-line tool'), 
-		(select organization_id from organization where short_name = 'ChemAxon'), NULL, NULL, '19.27.0', NULL),
+		(select systemtool_type_uuid from systemtool_type where description = 'Command-line tool'), 
+		(select organization_uuid from organization where short_name = 'ChemAxon'), NULL, NULL, '19.27.0', NULL),
 	('cxcalc', 'Molecular Descriptor Generator',
-		(select systemtool_type_id from systemtool_type where description = 'Command-line tool'), 
-		(select organization_id from organization where short_name = 'ChemAxon'), NULL, NULL, '19.27.0', NULL),
+		(select systemtool_type_uuid from systemtool_type where description = 'Command-line tool'), 
+		(select organization_uuid from organization where short_name = 'ChemAxon'), NULL, NULL, '19.27.0', NULL),
 	('molconvert', 'Molecule File Converter',
-		(select systemtool_type_id from systemtool_type where description = 'Command-line tool'), 
-		(select organization_id from organization where short_name = 'ChemAxon'), NULL, NULL, '19.27.0', NULL),
+		(select systemtool_type_uuid from systemtool_type where description = 'Command-line tool'), 
+		(select organization_uuid from organization where short_name = 'ChemAxon'), NULL, NULL, '19.27.0', NULL),
 	('generatemd', 'Molecular Descriptor Generator',
-		(select systemtool_type_id from systemtool_type where description = 'Command-line tool'),
-		(select organization_id from organization where short_name = 'ChemAxon'), NULL, NULL, '19.6.0', NULL),
+		(select systemtool_type_uuid from systemtool_type where description = 'Command-line tool'),
+		(select organization_uuid from organization where short_name = 'ChemAxon'), NULL, NULL, '19.6.0', NULL),
 	('RDKit', 'Cheminformatics Toolkit for Python', 
-		(select systemtool_type_id from systemtool_type where description = 'Python toolkit'),
-		(select organization_id from organization where short_name = 'RDKit'), NULL, NULL, '19.03.4', NULL),
+		(select systemtool_type_uuid from systemtool_type where description = 'Python toolkit'),
+		(select organization_uuid from organization where short_name = 'RDKit'), NULL, NULL, '19.03.4', NULL),
 	('escalate', 'ESCALATE function call', 
-		(select systemtool_type_id from systemtool_type where description = 'ESCALATE function'),
-		(select organization_id from organization where short_name = 'Haverford'), NULL, NULL, 'V3', NULL)
+		(select systemtool_type_uuid from systemtool_type where description = 'ESCALATE function'),
+		(select organization_uuid from organization where short_name = 'HC'), NULL, NULL, '3.0.0', NULL)
 ;
 COMMIT;
 
 -- ----------------------------
 -- Records of person
 -- ----------------------------
-/*
-	person_id serial8,
-  person_uuid uuid DEFAULT uuid_generate_v4 (),	
-  firstname varchar(255) COLLATE "pg_catalog"."default",
-  lastname varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-  middlename varchar(255) COLLATE "pg_catalog"."default",
-  address1 varchar(255) COLLATE "pg_catalog"."default",
-  address2 varchar(255) COLLATE "pg_catalog"."default",
-  city varchar(255) COLLATE "pg_catalog"."default",
-  stateprovince char(3) COLLATE "pg_catalog"."default",
-  phone varchar(255) COLLATE "pg_catalog"."default",
-  email varchar(255) COLLATE "pg_catalog"."default",
-  title varchar(255) COLLATE "pg_catalog"."default",
-  suffix varchar(255) COLLATE "pg_catalog"."default",
-  organization_id int8,
-  note_id int8,
-  add_date timestamptz NOT NULL DEFAULT NOW(),
-  mod_date timestamptz NOT NULL DEFAULT NOW()
-*/
 BEGIN;
-INSERT INTO person (firstname, lastname, email, organization_id)
+INSERT INTO person (firstname, lastname, email, organization_uuid, note_uuid)
 VALUES 
 	('Mansoor', 'Nellikkal', 'maninajeeb@haverford.edu', 
-		(select organization_id from organization where short_name = 'HC')),
+		(select organization_uuid from organization where short_name = 'HC'),NULL),
 	('Zhi', 'Li', 'zhili@lbl.gov', 
-		(select organization_id from organization where short_name = 'LBNL')),
-	('Ian', 'Pendleton', 'ipendleton@haverford.edu ', 
-		(select organization_id from organization where short_name = 'HC')),
+		(select organization_uuid from organization where short_name = 'LBNL'),NULL),
 	('Gary', 'Cattabriga', 'gcattabrig@haverford.edu ', 
-		(select organization_id from organization where short_name = 'HC'))
+		(select organization_uuid from organization where short_name = 'HC'),NULL),
+	('Ian', 'Pendleton', 'ipendleton@haverford.edu ', 
+		(select organization_uuid from organization where short_name = 'HC'),NULL)
 ;
 COMMIT;
 
 -- ----------------------------
 -- Records of actor
 -- ----------------------------
-/*
-  actor_id serial8,
-	actor_uuid uuid,
-  person_id int8,
-  organization_id int8,
-  system_id int8,
-  description varchar(255),
-  note_id int8,
-  add_date timestamptz NOT NULL DEFAULT NOW(),
-  mod_date timestamptz NOT NULL DEFAULT NOW()
-*/
 BEGIN;
-INSERT INTO actor (person_id, organization_id, systemtool_id, description, status_uuid)  
+INSERT INTO actor (person_uuid, organization_uuid, systemtool_uuid, description, status_uuid)  
 VALUES 
 	-- haverford college as an actor
-	((select person_id from person where lastname = 'Nellikkal'), 
-		(select organization_id from organization where short_name = 'HC'), NULL, 
+	((select person_uuid from person where lastname = 'Nellikkal'), 
+		(select organization_uuid from organization where short_name = 'HC'), NULL, 
 		'Mansoor Nellikkal', (select status_uuid from status where description = 'active')),
-	((select person_id from person where lastname = 'Li'), 
-		(select organization_id from organization where short_name = 'LBNL'), NULL, 
+	((select person_uuid from person where lastname = 'Li'), 
+		(select organization_uuid from organization where short_name = 'LBNL'), NULL, 
 		'Zhi Li', (select status_uuid from status where description = 'active')),	
-	((select person_id from person where lastname = 'Pendleton'), 
-		(select organization_id from organization where short_name = 'HC'), NULL, 
+	((select person_uuid from person where lastname = 'Pendleton'), 
+		(select organization_uuid from organization where short_name = 'HC'), NULL, 
 		'Ian Pendleton', (select status_uuid from status where description = 'active')),
-	((select person_id from person where lastname = 'Cattabriga'), 
-		(select organization_id from organization where short_name = 'HC'), NULL, 
+	((select person_uuid from person where lastname = 'Cattabriga'), 
+		(select organization_uuid from organization where short_name = 'HC'), NULL, 
 		'Gary Cattabriga', (select status_uuid from status where description = 'active')),
 	(NULL, 
-		(select organization_id from organization where short_name = 'HC'),
+		(select organization_uuid from organization where short_name = 'HC'),
 		NULL, 'Haverford College', (select status_uuid from status where description = 'active')),
 	(NULL, 
-		(select organization_id from organization where short_name = 'LBNL'),
+		(select organization_uuid from organization where short_name = 'LBNL'),
 		NULL, 'LBNL', (select status_uuid from status where description = 'active')),
 	(NULL, 
-		(select organization_id from organization where short_name = 'Sigma-Aldrich'),
+		(select organization_uuid from organization where short_name = 'Sigma-Aldrich'),
 		NULL, 'Sigma-Aldrich', (select status_uuid from status where description = 'active')),
 	(NULL, 
-		(select organization_id from organization where short_name = 'Greatcell'),
+		(select organization_uuid from organization where short_name = 'Greatcell'),
 		NULL, 'Greatcell', (select status_uuid from status where description = 'active')),		
 	(NULL, 
-		(select organization_id from organization where short_name = 'ChemAxon'),
+		(select organization_uuid from organization where short_name = 'ChemAxon'),
 		NULL, 'ChemAxon', (select status_uuid from status where description = 'active')),		
 	(NULL, 
-		(select organization_id from organization where short_name = 'RDKit'),
+		(select organization_uuid from organization where short_name = 'RDKit'),
 		NULL, 'RDKit', (select status_uuid from status where description = 'active')),			
-	(NULL, (select organization_id from organization where short_name = 'HC'), 
-		(select systemtool_id from systemtool where systemtool_name = 'standardize'), 
+	(NULL, (select organization_uuid from organization where short_name = 'HC'), 
+		(select systemtool_uuid from systemtool where systemtool_name = 'standardize'), 
 		'ChemAxon: standardize', (select status_uuid from status where description = 'active')),		
-	(NULL, (select organization_id from organization where short_name = 'HC'), 
-		(select systemtool_id from systemtool where systemtool_name = 'cxcalc'), 
+	(NULL, (select organization_uuid from organization where short_name = 'HC'), 
+		(select systemtool_uuid from systemtool where systemtool_name = 'cxcalc'), 
 		'ChemAxon: cxcalc', (select status_uuid from status where description = 'active')),		
-	(NULL, (select organization_id from organization where short_name = 'HC'), 
-		(select systemtool_id from systemtool where systemtool_name = 'molconvert'), 
+	(NULL, (select organization_uuid from organization where short_name = 'HC'), 
+		(select systemtool_uuid from systemtool where systemtool_name = 'molconvert'), 
 		'ChemAxon: molconvert', (select status_uuid from status where description = 'active')),		
-	(NULL, (select organization_id from organization where short_name = 'HC'), 
-		(select systemtool_id from systemtool where systemtool_name = 'generatemd'), 
+	(NULL, (select organization_uuid from organization where short_name = 'HC'), 
+		(select systemtool_uuid from systemtool where systemtool_name = 'generatemd'), 
 		'ChemAxon: generatemd', (select status_uuid from status where description = 'active')),
-	(NULL, (select organization_id from organization where short_name = 'HC'), 
-		(select systemtool_id from systemtool where systemtool_name = 'RDKit'), 
+	(NULL, (select organization_uuid from organization where short_name = 'HC'), 
+		(select systemtool_uuid from systemtool where systemtool_name = 'RDKit'), 
 		'RDKit: Python toolkit', (select status_uuid from status where description = 'active')),
-	(NULL, (select organization_id from organization where short_name = 'HC'), 
-		(select systemtool_id from systemtool where systemtool_name = 'escalate'), 
+	(NULL, (select organization_uuid from organization where short_name = 'HC'), 
+		(select systemtool_uuid from systemtool where systemtool_name = 'escalate'), 
 		'escalate: system function call', (select status_uuid from status where description = 'active'))
 ;	
 COMMIT;
@@ -235,16 +158,6 @@ COMMIT;
 -- ----------------------------
 -- Records of actor_pref
 -- ----------------------------
-/*
-  actor_pref_id serial8,
-  actor_pref_uuid uuid DEFAULT uuid_generate_v4 (),
-  actor_id int8,
-	pkey varchar(255) COLLATE "pg_catalog"."default",
-  pvalue varchar COLLATE "pg_catalog"."default",
-  note_id int8,
-  add_date timestamptz NOT NULL DEFAULT NOW(),
-  mod_date timestamptz NOT NULL DEFAULT NOW()
-*/
 BEGIN;
 INSERT INTO actor_pref (actor_uuid, pkey, pvalue)  
 VALUES 
@@ -255,6 +168,74 @@ VALUES
 	;	
 COMMIT;
 
+
+
+-- ----------------------------
+-- Populate tag_type
+-- ----------------------------
+BEGIN;
+INSERT INTO tag_type (short_description, description, actor_uuid)
+VALUES 
+	('material', 'tags used to assist in identifying material types', (select actor_uuid from vw_actor where per_lastname = 'Cattabriga'))
+;
+COMMIT;
+
+-- ----------------------------
+-- Populate some Tags
+-- ----------------------------
+BEGIN;
+INSERT INTO tag (short_description, tag_type_uuid, actor_uuid)
+VALUES 
+	('A-Cation', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where per_lastname = 'Cattabriga')),
+	('B-Cation', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where per_lastname = 'Cattabriga')),
+	('Halide', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where per_lastname = 'Cattabriga')),
+	('acid', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where per_lastname = 'Cattabriga')),
+	('antisolvent', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where per_lastname = 'Cattabriga')),
+	('inorganic', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where per_lastname = 'Cattabriga')),
+	('organic', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where per_lastname = 'Cattabriga')),
+	('polymer', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where per_lastname = 'Cattabriga')),
+	('solvent', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where per_lastname = 'Cattabriga'))
+;
+COMMIT;
+
+
+
+-- ----------------------------
+-- Add example(s) edocument
+-- ----------------------------
+BEGIN;
+INSERT into edocument (description, edocument, edoc_type, actor_uuid) 
+	(select description, edocument, 'blob_pdf'::val_type, (select actor_uuid from vw_actor where per_lastname = 'Pendleton') from load_edocument)
+	;	
+COMMIT;
+
+
+-- ----------------------------
+-- Update Person, Org, Actor 
+-- with example note and edocument
+-- ----------------------------
+BEGIN;
+with ins as 
+(insert into note (notetext, edocument_uuid, actor_uuid)
+		(select ed.description, ed.edocument_uuid, ed.actor_uuid 
+		from edocument ed where actor_uuid = (select actor_uuid from vw_actor where per_lastname = 'Pendleton'))
+returning note_uuid)
+update person set note_uuid = (select note_uuid from ins) where lastname = 'Pendleton';
+COMMIT;
+BEGIN;
+with ins as 
+(insert into note (notetext, actor_uuid) VALUES
+	('https://docs.chemaxon.com/display/docs/cxcalc_command_line_tool.html', (select actor_uuid from vw_actor where per_lastname = 'Cattabriga'))
+returning note_uuid)
+update actor set note_uuid = (select note_uuid from ins) where description = 'ChemAxon: cxcalc';
+COMMIT;
+BEGIN;
+with ins as 
+(insert into note (notetext, actor_uuid) VALUES
+	('Motto: Non doctior, sed meliore doctrina imbutus (Not more learned, but steeped in a higher learning)', (select actor_uuid from vw_actor where per_lastname = 'Cattabriga'))
+returning note_uuid)
+update organization set note_uuid = (select note_uuid from ins) where full_name = 'Haverford College';
+COMMIT;
 
 
 

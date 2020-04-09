@@ -95,6 +95,11 @@ using the latest 'bak' file in the repo's backup folder. This assumes the follow
 ```
 docker exec escalate-postgres pg_restore -d escalate -c -C -U escalate /var/lib/postgres/escalate_dev_backup.bak
 ```
+or 
+
+```
+docker exec escalate-postgres psql -d escalate -U escalate -f escalate_dev_backup.sql
+```
 <br/>
 
 ### Instantiation from SQL

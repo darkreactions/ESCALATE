@@ -69,7 +69,7 @@ Discussion how this stuff all relates together...
 **Defined Types**
 
 ```
-val_type AS ENUM ('int', 'array_int', 'num', 'array_num', 'text', 'array_text', 'blob_text', 'blob_svg', 'blob_jpg', 'blob_png')
+val_type AS ENUM ('int', 'array_int', 'num', 'array_num', 'text', 'array_text', 'blob_text', 'blob_svg', 'blob_jpg', 'blob_png', 'blob_xrd')
 
 val AS (
 	v_type val_type,
@@ -257,7 +257,7 @@ CLUSTER status USING "pk_status_status_uuid";
 if str can be cast to a date, then return TRUE, else FALSE
 
 ```
-CREATE OR REPLACE FUNCTION isdate ( txt VARCHAR ) RETURNS BOOLEAN AS $$ BEGIN
+FUNCTION isdate ( txt VARCHAR ) RETURNS BOOLEAN AS $$ BEGIN
 		perform txt :: DATE;
 	RETURN TRUE;
 	EXCEPTION 
@@ -268,11 +268,11 @@ $$ LANGUAGE plpgsql;
 ```
 <br/>
 
-**trigger_set_timestamp()**<br/>
+**trigger\_set\_timestamp()**<br/>
 update the mod_dt (modify date) column with current date with timezone
 
 ```
-CREATE OR REPLACE FUNCTION trigger_set_timestamp()
+FUNCTION trigger_set_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
   NEW.mod_date = NOW();
@@ -280,8 +280,85 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 ```
+<br/>
+**get\_material\_uuid\_bystatus (p\_status_array VARCHAR[], p\_null\_bool BOOLEAN)**<br/>
+return `material` uuid's with specific status
+	where ANY of the p\_status_array element descriptions match 
+	p\_null\_bool = true or false to include null status in returned set
+	
+Example: SELECT * FROM get\_material\_uuid\_bystatus (array['active', 'proto'], TRUE);
 
+```
+FUNCTION get_material_uuid_bystatus (p_status_array varchar[], p_null_bool boolean)
+RETURNS TABLE (
+	material_id int8,
+	material_uuid uuid
+)
+```
 
+<br/>
+**get\_material\_nameref\_bystatus (p\_status\_array VARCHAR[], p\_null\_bool BOOLEAN )**<br/>
+return `material` id, uuid, ref\_name based on specific status
+	where ANY of the p\_status_array element descriptions match 
+	p\_null\_bool = true or false to include null status in returned set
+	
+Example: SELECT material\_id, material\_uuid, material\_refname FROM get\_material\_nameref\_bystatus (array['active', 'proto'], TRUE) where material\_refname\_type = 'InChI' order by 1;
+
+```
+FUNCTION get_material_nameref_bystatus (p_status_array varchar[], p_null_bool boolean)
+RETURNS TABLE (
+	material_id int8,	
+	material_uuid uuid,
+	material_refname varchar,
+	material_refname_type varchar
+)
+```
+
+<br/>
+**get\_actor()**<br/>
+return **all** `actor` uuid, org\_id, person\_id, systemtool\_id, actor\_description, actor\_status, notetext, org\_description, person\_lastfirst, systemtool\_name, systemtool\version
+note: use view `vw_actor` if you need a comprehensive set of related values. use this for a more concise set of uuid's/id's and descriptions (as perhaps part of a subquery)
+
+Example: SELECT * FROM get\_actor () where actor\_description like '%ChemAxon: standardize%';
+
+```
+FUNCTION actor()
+RETURNS TABLE (
+	actor_uuid uuid,
+	organization_id int8,
+	person_id int8,
+	systemtool_id int8,
+	actor_description varchar,
+	actor_status varchar,
+	notetext varchar,
+	org_description varchar,
+	person_lastfirst varchar,
+	systemtool_name varchar,
+	systemtool_version varchar
+)
+```
+
+<br/>
+
+**get\_m\_descriptor\_def (p_descr VARCHAR[])**<br/>
+return `m_descriptor_def` id, uuid, short\_name, calc\_definition, description, in\_val, out\_val, systemtool\_name, systemtool\_ver
+note: useful for finding a m\_descriptor based on calc\_definition or description; as in a search
+	
+Example: SELECT * FROM get\_m\_descriptor\_def (array['standardize']);
+
+```
+FUNCTION get_m_descriptor_def (p_descr VARCHAR[])
+RETURNS TABLE (
+	m_descriptor_def_uuid uuid,
+	short_name varchar,
+	systemtool_name varchar,
+	calc_definition varchar,
+	description varchar,
+	in_type val_type,
+	out_type val_type,
+	systemtool_version varchar
+)
+```
 
 <br/>
 
