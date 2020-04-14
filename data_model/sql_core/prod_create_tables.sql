@@ -58,6 +58,8 @@ DROP TABLE IF EXISTS tag cascade;
 DROP TABLE IF EXISTS tag_x cascade;
 DROP TABLE IF EXISTS tag_type cascade;
 DROP TABLE IF EXISTS status cascade;
+DROP TABLE IF EXISTS escalate_change_log cascade;
+DROP TABLE IF EXISTS escalate_version cascade;
 
  --=====================================
  -- CREATE DATA TYPES 
@@ -67,6 +69,7 @@ CREATE TYPE val_type AS ENUM ('int', 'array_int', 'num', 'array_num', 'text', 'a
 
 CREATE TYPE val AS (
 	v_type 	val_type,
+	v_unit varchar,
 	v_text varchar,
 	v_text_array varchar[],
 	v_int int8,
@@ -472,6 +475,30 @@ CREATE TABLE status (
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
 
+
+-- ----------------------------
+-- Table for [internal] escalate use only
+-- ----------------------------
+CREATE TABLE escalate_change_log (
+  change_log_uuid uuid DEFAULT uuid_generate_v4 (),
+	issue varchar COLLATE "pg_catalog"."default",
+	object_type varchar COLLATE "pg_catalog"."default",
+	object_name varchar COLLATE "pg_catalog"."default",
+  resolution varchar COLLATE "pg_catalog"."default",
+	author varchar COLLATE "pg_catalog"."default",
+	status varchar COLLATE "pg_catalog"."default",
+  create_date timestamptz NOT NULL DEFAULT NOW(),
+  close_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE escalate_version (
+  ver_uuid uuid DEFAULT uuid_generate_v4 (),
+	short_name varchar COLLATE "pg_catalog"."default",
+	description varchar COLLATE "pg_catalog"."default",	
+  add_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
 --=====================================
 -- KEYS
 --=====================================
@@ -601,6 +628,14 @@ ALTER TABLE status ADD
 	CONSTRAINT "pk_status_status_uuid" PRIMARY KEY (status_uuid);
 CLUSTER status USING "pk_status_status_uuid";
 
+ALTER TABLE escalate_change_log 
+	ADD CONSTRAINT "pk_escalate_change_log_uuid" PRIMARY KEY (change_log_uuid);
+CLUSTER escalate_change_log USING "pk_escalate_change_log_uuid";
+
+ALTER TABLE escalate_version 
+	ADD CONSTRAINT "pk_escalate_version_uuid" PRIMARY KEY (ver_uuid),
+	ADD CONSTRAINT "un_escalate_version" UNIQUE (ver_uuid, short_name);
+CLUSTER escalate_version USING "pk_escalate_version_uuid";
 
 --=====================================
 -- FOREIGN KEYS
@@ -833,11 +868,11 @@ COMMENT ON TABLE organization IS 'organization information for ESCALATE person a
 --=====================================
 -- view of status table (simple)
 CREATE OR REPLACE VIEW vw_status AS 
-SELECT description, add_date, mod_date from status;
+SELECT status_uuid, description, add_date, mod_date from status;
 
 -- view of note; links to edocument and actor
 CREATE OR REPLACE VIEW vw_note AS 
-select nt.notetext, nt.add_date, nt.mod_date, ed.edocument_uuid, ed.description as edocument_description, ed.edoc_type as edocument_type, act.actor_uuid, act.description as actor_description  from note nt 
+select nt.note_uuid, nt.notetext, nt.add_date, nt.mod_date, ed.edocument_uuid, ed.description as edocument_description, ed.edoc_type as edocument_type, act.actor_uuid, act.description as actor_description  from note nt 
 left join edocument ed on nt.edocument_uuid = ed.edocument_uuid 
 left join actor act on nt.actor_uuid = act.actor_uuid;
 
@@ -861,7 +896,7 @@ left join note nt on tg.note_uuid = nt.note_uuid;
 
 -- view of person; links to organization and note
 CREATE OR REPLACE VIEW vw_person AS 
-select per.firstname, per.lastname, per.middlename, per.address1, per.address2, per.city, per.stateprovince, per.zip, per.country, per.phone, per.email, per.title, per.suffix, 
+select per.person_uuid, per.firstname, per.lastname, per.middlename, per.address1, per.address2, per.city, per.stateprovince, per.zip, per.country, per.phone, per.email, per.title, per.suffix, 
 				per.add_date, per.mod_date, org.organization_uuid, org.full_name, nt.note_uuid, nt.notetext,
 				ed.edocument_uuid, ed.description as edocument_descr, tag.tag_uuid, tag.short_description as tag_short_descr
 				from person per 
@@ -875,7 +910,7 @@ left join edocument ed on edx.edocument_uuid = ed.edocument_uuid;
 
 -- view of organization; links to parent organization and note
 CREATE OR REPLACE VIEW vw_organization AS 
-select org.description, org.full_name, org.short_name, org.address1, org.address2, org.city, org.state_province, org.zip, org.country, org.website_url, org.phone, org.parent_uuid, orgp.full_name as parent_org_full_name, 
+select org.organization_uuid, org.description, org.full_name, org.short_name, org.address1, org.address2, org.city, org.state_province, org.zip, org.country, org.website_url, org.phone, org.parent_uuid, orgp.full_name as parent_org_full_name, 
 				org.add_date, org.mod_date, nt.note_uuid, nt.notetext,
 				ed.edocument_uuid, ed.description as edocument_descr, tag.tag_uuid, tag.short_description as tag_short_descr 
 				from organization org			
@@ -1007,7 +1042,7 @@ SELECT
 	md.create_date,
 	sts.description AS status, 
 	dact.actor_description as actor_descr,
-	nt.notetext as note_text,
+	nt.notetext as notetext,
 --	md.num_valarray_out,
 --	encode( md.blob_val_out, 'escape' ) AS blob_val_out,
 --	md.blob_type_out,
@@ -1057,7 +1092,7 @@ order by mat.material_uuid, mr.description;
 CREATE OR REPLACE VIEW vw_material AS 
 SELECT *
 FROM crosstab(
-  'select material_uuid, material_status, create_date, material_refname_type, material_refname_description
+  'select material_uuid, material_status, material_create_date, material_refname_type, material_refname_description
    from vw_material_raw order by 1, 3',
 	 'select distinct material_refname_type
    from vw_material_raw order by 1')
@@ -1092,7 +1127,7 @@ join vw_material_descriptor_raw mdr on mat.material_uuid = mdr.material_uuid;
 
 -- view inventory; with links to material, actor, status, edocument, note
 CREATE OR REPLACE VIEW vw_inventory AS 
-SELECT inv.description inventory_description, inv.part_no, inv.onhand_amt, inv.unit, inv.create_date, inv.expiration_date, inv.inventory_location, 
+SELECT inv.inventory_uuid, inv.description inventory_description, inv.part_no, inv.onhand_amt, inv.unit, inv.create_date, inv.expiration_date, inv.inventory_location, 
 			st.description as status, mat.material_uuid, mat.description as material_description, act.actor_uuid, act.description, 
 			ed.edocument_uuid, ed.description as edocument_description, nt.note_uuid, nt.notetext
 FROM inventory inv 
@@ -1106,7 +1141,7 @@ left join note nt on inv.note_uuid = nt.note_uuid;
 -- get inventory / material, all status
 CREATE OR REPLACE VIEW vw_inventory_material AS 
 SELECT inv.inventory_uuid, inv.description as inventory_description, inv.part_no as inventory_part_no, inv.onhand_amt as inventory_onhand_amt, inv.unit as inventory_unit, 
-				inv.create_date as inventory_crate_date, inv.expiration_date as inventory_expiration_date, inv.inventory_location, st.description as inventory_status,
+				inv.create_date as inventory_create_date, inv.expiration_date as inventory_expiration_date, inv.inventory_location, st.description as inventory_status,
 				inv.actor_uuid, act.actor_description, act.org_full_name, inv.material_uuid, mat.material_status, mat.create_date as material_create_date, mat.chemical_name as material_name, 
 				mat.abbreviation as material_abbreviation, mat.inchi as material_inchi, mat.inchikey as material_inchikey, mat.molecular_formula as material_molecular_formula, mat.smiles as material_smiles
 FROM inventory inv

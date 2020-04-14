@@ -36,6 +36,7 @@ insert into material (description, status_uuid)
 	select "ChemicalName" as descr, (select status_uuid from status where description = 'active') as status  
 	from load_chem_inventory inv;
 
+
 -- insert load_chem_inventory "ChemicalCategory" crossref'ed to material_type into material_type_x
 insert into material_type_x (ref_material_uuid, material_type_uuid)
 	select mat.material_uuid, mtt.t_uuid from material mat 
@@ -45,6 +46,16 @@ insert into material_type_x (ref_material_uuid, material_type_uuid)
 				group by "ChemicalName", "ChemicalCategory" ) inv 
 		join material_type mt on inv."ChemicalCategory" = mt.description) mtt 
 	on mat.description = mtt.cname;
+
+
+-- populate a material or two with tags 
+-- we'll do it based on material_type for 'CC(C)(C)[NH3+].[I-]'
+insert into tag_x (ref_tag_uuid, tag_uuid)
+	select (SELECT material_uuid FROM get_material_bydescr_bystatus ('CC(C)(C)[NH3+].[I-]', array['active'], TRUE)) as tag_ref_uuid, tag_uuid 
+		from tag tg where tg.short_description in (
+		SELECT unnest(get_material_type ((SELECT material_uuid FROM get_material_bydescr_bystatus ('CC(C)(C)[NH3+].[I-]', array['active'], TRUE))))
+		);
+
 
 	
 -- insert the alternative material names into material_refname
