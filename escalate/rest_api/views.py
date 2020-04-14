@@ -27,12 +27,12 @@ def api_root(request, format=None):
     for model_name in model_names:
         name = camel_case(model_name)
         response_object[name] = reverse(
-            name+'_list', request=request, format=format)
+            name+'-list', request=request, format=format)
 
     for view_name in view_names:
         name = camel_case(view_name)
         response_object[name] = reverse(
-            name+'_list', request=request, format=format)
+            name+'-list', request=request, format=format)
 
     return Response(response_object)
 
@@ -59,11 +59,11 @@ def create_view(model_name, lookup_field=None):
 
     methods_list = {"queryset": model.objects.all(),
                     "serializer_class": modelSerializer,
-                    "name": camel_case(model_name)+'_list'}
+                    "name": camel_case(model_name)+'-list'}
 
     methods_detail = {"queryset": model.objects.all(),
                       "serializer_class": modelSerializer,
-                      "name": camel_case(model_name)+'_detail'}
+                      "name": camel_case(model_name)+'-detail'}
     # if lookup_field:
     #    methods_detail["lookup_field"] = lookup_field
 
