@@ -47,16 +47,6 @@ insert into material_type_x (ref_material_uuid, material_type_uuid)
 		join material_type mt on inv."ChemicalCategory" = mt.description) mtt 
 	on mat.description = mtt.cname;
 
-
--- populate a material or two with tags 
--- we'll do it based on material_type for 'CC(C)(C)[NH3+].[I-]'
-insert into tag_x (ref_tag_uuid, tag_uuid)
-	select (SELECT material_uuid FROM get_material_bydescr_bystatus ('CC(C)(C)[NH3+].[I-]', array['active'], TRUE)) as tag_ref_uuid, tag_uuid 
-		from tag tg where tg.short_description in (
-		SELECT unnest(get_material_type ((SELECT material_uuid FROM get_material_bydescr_bystatus ('CC(C)(C)[NH3+].[I-]', array['active'], TRUE))))
-		);
-
-
 	
 -- insert the alternative material names into material_refname
 -- abbreviation, inchi, inchikey, canonical smiles, molecular formula	
@@ -155,3 +145,11 @@ insert into material_refname_x (material_uuid, material_refname_uuid)
 	where inv."MolecularFormula" is not null;	
 	
 	
+-- populate a material or two with tags 
+-- we'll do it based on material_type for 'CC(C)(C)[NH3+].[I-]'
+insert into tag_x (ref_tag_uuid, tag_uuid)
+	select (SELECT material_uuid FROM get_material_bydescr_bystatus ('CC(C)(C)[NH3+].[I-]', array['active'], TRUE)) as tag_ref_uuid, tag_uuid 
+		from tag tg where tg.short_description in (
+		SELECT unnest(get_material_type ((SELECT material_uuid FROM get_material_bydescr_bystatus ('CC(C)(C)[NH3+].[I-]', array['active'], TRUE))))
+		);
+

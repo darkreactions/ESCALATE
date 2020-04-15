@@ -43,10 +43,10 @@ DROP TABLE IF EXISTS material_type_x cascade;
 DROP TABLE IF EXISTS material_refname cascade;
 DROP TABLE IF EXISTS material_refname_x cascade;
 DROP TABLE IF EXISTS material_refname_type cascade;
-DROP TABLE IF EXISTS m_descriptor_class cascade;
-DROP TABLE IF EXISTS m_descriptor_def cascade;
-DROP TABLE IF EXISTS m_descriptor cascade;
-DROP TABLE IF EXISTS m_descriptor_eval cascade;
+DROP TABLE IF EXISTS calculation_class cascade;
+DROP TABLE IF EXISTS calculation_def cascade;
+DROP TABLE IF EXISTS calculation cascade;
+DROP TABLE IF EXISTS calculation_eval cascade;
 DROP TABLE IF EXISTS inventory cascade;
 DROP TABLE IF EXISTS measure cascade;
 DROP TABLE IF EXISTS measure_x cascade;
@@ -266,10 +266,10 @@ CREATE TABLE material_refname_type (
 );
 
 ---------------------------------------
--- Table structure for m_descriptor_class
+-- Table structure for calculation_class
 ---------------------------------------
-CREATE TABLE m_descriptor_class (
-	m_descriptor_class_uuid uuid DEFAULT uuid_generate_v4 (),
+CREATE TABLE calculation_class (
+	calculation_class_uuid uuid DEFAULT uuid_generate_v4 (),
   description varchar COLLATE "pg_catalog"."default",
   note_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -277,10 +277,10 @@ CREATE TABLE m_descriptor_class (
 );
 
 ---------------------------------------
--- Table structure for m_descriptor_def
+-- Table structure for calculation_def
 ---------------------------------------
-CREATE TABLE m_descriptor_def (
-	m_descriptor_def_uuid uuid DEFAULT uuid_generate_v4 (),
+CREATE TABLE calculation_def (
+	calculation_def_uuid uuid DEFAULT uuid_generate_v4 (),
   short_name varchar COLLATE "pg_catalog"."default",
 	calc_definition varchar COLLATE "pg_catalog"."default",
 	systemtool_uuid uuid,
@@ -290,7 +290,7 @@ CREATE TABLE m_descriptor_def (
 	in_opt_source varchar,
 	in_opt_type val_type,
 	out_type val_type,
-	m_descriptor_class_uuid uuid,
+	calculation_class_uuid uuid,
 	actor_uuid uuid, 
   note_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -298,12 +298,12 @@ CREATE TABLE m_descriptor_def (
 );
 
 ---------------------------------------
--- Table structure for m_descriptor
+-- Table structure for calculation
 ---------------------------------------
-CREATE TABLE m_descriptor (
-	m_descriptor_uuid uuid DEFAULT uuid_generate_v4 (),
-  m_descriptor_def_uuid uuid,
-	m_descriptor_alias_name varchar,
+CREATE TABLE calculation (
+	calculation_uuid uuid DEFAULT uuid_generate_v4 (),
+  calculation_def_uuid uuid,
+	calculation_alias_name varchar,
 	in_val val,
 	in_opt_val val,
 	out_val val,
@@ -317,16 +317,16 @@ CREATE TABLE m_descriptor (
 
 
 ---------------------------------------
--- Table structure for m_descriptor_eval
+-- Table structure for calculation_eval
 -- internal use only
 ---------------------------------------
-CREATE TABLE m_descriptor_eval(
-	m_descriptor_eval_id serial8,
-  m_descriptor_def_uuid uuid,
+CREATE TABLE calculation_eval(
+	calculation_eval_id serial8,
+  calculation_def_uuid uuid,
 	in_val val, 
 	in_opt_val val,
 	out_val val, 
-	m_descriptor_alias_name varchar,
+	calculation_alias_name varchar,
 	actor_uuid uuid, 
 	create_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -559,24 +559,24 @@ ALTER TABLE material_refname_type
 	ADD CONSTRAINT "pk_material_refname_type_material_refname_type_uuid" PRIMARY KEY (material_refname_type_uuid);
 CLUSTER material_refname_type USING "pk_material_refname_type_material_refname_type_uuid";
 
-ALTER TABLE m_descriptor_class ADD 
-	CONSTRAINT "pk_m_descriptor_class_m_descriptor_class_uuid" PRIMARY KEY (m_descriptor_class_uuid);
-CLUSTER m_descriptor_class USING "pk_m_descriptor_class_m_descriptor_class_uuid";
+ALTER TABLE calculation_class ADD 
+	CONSTRAINT "pk_calculation_class_calculation_class_uuid" PRIMARY KEY (calculation_class_uuid);
+CLUSTER calculation_class USING "pk_calculation_class_calculation_class_uuid";
 
-ALTER TABLE m_descriptor_def 
-	ADD CONSTRAINT "pk_m_descriptor_m_descriptor_def_uuid" PRIMARY KEY (m_descriptor_def_uuid),
-	ADD CONSTRAINT "un_m_descriptor_def" UNIQUE (actor_uuid, short_name, calc_definition);	
-CLUSTER m_descriptor_def USING "pk_m_descriptor_m_descriptor_def_uuid";
+ALTER TABLE calculation_def 
+	ADD CONSTRAINT "pk_calculation_calculation_def_uuid" PRIMARY KEY (calculation_def_uuid),
+	ADD CONSTRAINT "un_calculation_def" UNIQUE (actor_uuid, short_name, calc_definition);	
+CLUSTER calculation_def USING "pk_calculation_calculation_def_uuid";
 
-ALTER TABLE m_descriptor
-	ADD CONSTRAINT "pk_m_descriptor_m_descriptor_uuid" PRIMARY KEY (m_descriptor_uuid),
-	ADD CONSTRAINT "un_m_descriptor" UNIQUE (m_descriptor_def_uuid, in_val, in_opt_val);
-CLUSTER m_descriptor USING "pk_m_descriptor_m_descriptor_uuid";
+ALTER TABLE calculation
+	ADD CONSTRAINT "pk_calculation_calculation_uuid" PRIMARY KEY (calculation_uuid),
+	ADD CONSTRAINT "un_calculation" UNIQUE (calculation_def_uuid, in_val, in_opt_val);
+CLUSTER calculation USING "pk_calculation_calculation_uuid";
 
-ALTER TABLE m_descriptor_eval
-	ADD CONSTRAINT "pk_m_descriptor_eval_m_descriptor_eval_id" PRIMARY KEY (m_descriptor_eval_id),
-	ADD CONSTRAINT "un_m_descriptor_eval" UNIQUE (m_descriptor_def_uuid, in_val, in_opt_val);
-CLUSTER m_descriptor_eval USING "pk_m_descriptor_eval_m_descriptor_eval_id";
+ALTER TABLE calculation_eval
+	ADD CONSTRAINT "pk_calculation_eval_calculation_eval_id" PRIMARY KEY (calculation_eval_id),
+	ADD CONSTRAINT "un_calculation_eval" UNIQUE (calculation_def_uuid, in_val, in_opt_val);
+CLUSTER calculation_eval USING "pk_calculation_eval_calculation_eval_id";
 
 ALTER TABLE inventory 
 	ADD CONSTRAINT "pk_inventory_inventory_uuid" PRIMARY KEY (inventory_uuid),
@@ -710,34 +710,34 @@ ALTER TABLE material_refname_x
 	ADD CONSTRAINT fk_material_refname_x_material_1 FOREIGN KEY (material_uuid) REFERENCES material (material_uuid),
 	ADD CONSTRAINT fk_material_refname_x_material_refname_1 FOREIGN KEY (material_refname_uuid) REFERENCES material_refname (material_refname_uuid);
 
--- ALTER TABLE m_descriptor_class DROP CONSTRAINT fk_m_descriptor_class_note_1;
-ALTER TABLE m_descriptor_class 
-	ADD CONSTRAINT fk_m_descriptor_class_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
+-- ALTER TABLE calculation_class DROP CONSTRAINT fk_calculation_class_note_1;
+ALTER TABLE calculation_class 
+	ADD CONSTRAINT fk_calculation_class_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
 	
--- ALTER TABLE m_descriptor_def DROP CONSTRAINT fk_m_descriptor_def_note_1,
--- DROP CONSTRAINT fk_m_descriptor_def_actor_1, 
--- DROP CONSTRAINT fk_m_descriptor_def_m_descriptor_class_1,
--- DROP CONSTRAINT fk_m_descriptor_def_systemtool_1;
-ALTER TABLE m_descriptor_def 
-	ADD CONSTRAINT fk_m_descriptor_def_m_descriptor_class_1 FOREIGN KEY (m_descriptor_class_uuid) REFERENCES m_descriptor_class (m_descriptor_class_uuid),	
-	ADD CONSTRAINT fk_m_descriptor_def_systemtool_1 FOREIGN KEY (systemtool_uuid) REFERENCES systemtool (systemtool_uuid),	
-	ADD CONSTRAINT fk_m_descriptor_def_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
-	ADD CONSTRAINT fk_m_descriptor_def_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);	
+-- ALTER TABLE calculation_def DROP CONSTRAINT fk_calculation_def_note_1,
+-- DROP CONSTRAINT fk_calculation_def_actor_1, 
+-- DROP CONSTRAINT fk_calculation_def_calculation_class_1,
+-- DROP CONSTRAINT fk_calculation_def_systemtool_1;
+ALTER TABLE calculation_def 
+	ADD CONSTRAINT fk_calculation_def_calculation_class_1 FOREIGN KEY (calculation_class_uuid) REFERENCES calculation_class (calculation_class_uuid),	
+	ADD CONSTRAINT fk_calculation_def_systemtool_1 FOREIGN KEY (systemtool_uuid) REFERENCES systemtool (systemtool_uuid),	
+	ADD CONSTRAINT fk_calculation_def_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+	ADD CONSTRAINT fk_calculation_def_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);	
 
--- ALTER TABLE m_descriptor DROP CONSTRAINT fk_m_descriptor_material_1, 
--- DROP CONSTRAINT fk_m_descriptor_actor_1, 
--- DROP CONSTRAINT fk_m_descriptor_status_1,
--- DROP CONSTRAINT fk_m_descriptor_note_1;
-ALTER TABLE m_descriptor 
---	ADD CONSTRAINT fk_m_descriptor_material_refname_1 FOREIGN KEY (material_refname_description_in, material_refname_type_in) REFERENCES material_refname (description, material_refname_type),
-	ADD CONSTRAINT fk_m_descriptor_m_descriptor_def_1 FOREIGN KEY (m_descriptor_def_uuid) REFERENCES m_descriptor_def (m_descriptor_def_uuid),	
-	ADD CONSTRAINT fk_m_descriptor_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),	
-	ADD CONSTRAINT fk_m_descriptor_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid),	
-	ADD CONSTRAINT fk_m_descriptor_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
+-- ALTER TABLE calculation DROP CONSTRAINT fk_calculation_material_1, 
+-- DROP CONSTRAINT fk_calculation_actor_1, 
+-- DROP CONSTRAINT fk_calculation_status_1,
+-- DROP CONSTRAINT fk_calculation_note_1;
+ALTER TABLE calculation 
+--	ADD CONSTRAINT fk_calculation_material_refname_1 FOREIGN KEY (material_refname_description_in, material_refname_type_in) REFERENCES material_refname (description, material_refname_type),
+	ADD CONSTRAINT fk_calculation_calculation_def_1 FOREIGN KEY (calculation_def_uuid) REFERENCES calculation_def (calculation_def_uuid),	
+	ADD CONSTRAINT fk_calculation_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),	
+	ADD CONSTRAINT fk_calculation_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid),	
+	ADD CONSTRAINT fk_calculation_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
 
-ALTER TABLE m_descriptor_eval
-	ADD CONSTRAINT fk_m_descriptor_eval_m_descriptor_def_1 FOREIGN KEY (m_descriptor_def_uuid) REFERENCES m_descriptor_def (m_descriptor_def_uuid),	
-	ADD CONSTRAINT fk_m_descriptor_eval_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid);
+ALTER TABLE calculation_eval
+	ADD CONSTRAINT fk_calculation_eval_calculation_def_1 FOREIGN KEY (calculation_def_uuid) REFERENCES calculation_def (calculation_def_uuid),	
+	ADD CONSTRAINT fk_calculation_eval_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid);
 
 -- ALTER TABLE inventory  DROP CONSTRAINT fk_inventory_material_1, 
 -- DROP CONSTRAINT fk_inventory_actor_1, 
@@ -1003,10 +1003,10 @@ FROM
 	LEFT JOIN systemtool_type stt on vst.systemtool_type_uuid = stt.systemtool_type_uuid;
 
 
--- get the m_descriptor_def and associated actor
-CREATE OR REPLACE VIEW vw_m_descriptor_def AS 
+-- get the calculation_def and associated actor
+CREATE OR REPLACE VIEW vw_calculation_def AS 
 SELECT
-	mdd.m_descriptor_def_uuid,
+	mdd.calculation_def_uuid,
 	mdd.short_name,
 	mdd.calc_definition,
 	mdd.description,
@@ -1020,7 +1020,7 @@ SELECT
 	mdd.actor_uuid as actor_uuid,
 	act.actor_description as actor_description
 FROM
-	m_descriptor_def mdd
+	calculation_def mdd
 	LEFT JOIN vw_actor act ON mdd.actor_uuid = act.actor_uuid
 	LEFT JOIN vw_latest_systemtool st ON mdd.systemtool_uuid = st.systemtool_uuid
 	LEFT JOIN systemtool_type stt on st.systemtool_type_uuid = stt.systemtool_type_uuid
@@ -1028,17 +1028,17 @@ FROM
 
 
 -- get the descriptors and associated descriptor_def, including parent
--- if there is a parent descriptor, then use the parent m_descriptor_uuid (and type) as 
--- link back to material, otherwise use the current m_descriptor_uuid
--- DROP VIEW vw_m_descriptor;
-CREATE OR REPLACE VIEW vw_m_descriptor AS 
+-- if there is a parent descriptor, then use the parent calculation_uuid (and type) as 
+-- link back to material, otherwise use the current calculation_uuid
+-- DROP VIEW vw_calculation;
+CREATE OR REPLACE VIEW vw_calculation AS 
 SELECT
-	md.m_descriptor_uuid, 
+	md.calculation_uuid, 
 -- in_val
 	md.in_val,
 	md.in_opt_val,
 	md.out_val,
-	md.m_descriptor_alias_name,
+	md.calculation_alias_name,
 	md.create_date,
 	sts.description AS status, 
 	dact.actor_description as actor_descr,
@@ -1048,8 +1048,8 @@ SELECT
 --	md.blob_type_out,
 	mdd.*
 FROM
-	m_descriptor md
-	LEFT JOIN vw_m_descriptor_def mdd ON md.m_descriptor_def_uuid = mdd.m_descriptor_def_uuid
+	calculation md
+	LEFT JOIN vw_calculation_def mdd ON md.calculation_def_uuid = mdd.calculation_def_uuid
 	LEFT JOIN vw_actor dact ON md.actor_uuid = dact.actor_uuid
 	LEFT JOIN status sts ON md.status_uuid = sts.status_uuid
 	LEFT JOIN note nt ON md.note_uuid = nt.note_uuid
@@ -1102,26 +1102,26 @@ AS ct(material_uuid uuid, material_status varchar, create_date timestamptz, Abbr
 -- get materials and all related descriptors, all status
 -- drop view vw_material_descriptor_raw
 CREATE OR REPLACE VIEW vw_material_descriptor_raw AS 
-select mt.material_uuid, df.m_descriptor_uuid, df.m_descriptor_alias_name, df.in_val, df.in_opt_val, df.out_val
+select mt.material_uuid, df.calculation_uuid, df.calculation_alias_name, df.in_val, df.in_opt_val, df.out_val
 	from
-	(SELECT distinct material_uuid, m_descriptor_uuid
+	(SELECT distinct material_uuid, calculation_uuid
 	FROM vw_material_raw mat
-	join (SELECT distinct des1.m_descriptor_uuid as parent_uuid, (des1.in_val).v_text as parent_text, des2.m_descriptor_uuid
-		FROM vw_m_descriptor des1 
-		join vw_m_descriptor des2 on (des1.out_val).v_text = (des2.in_val).v_text) t2 on mat.material_refname_description = t2.parent_text
+	join (SELECT distinct des1.calculation_uuid as parent_uuid, (des1.in_val).v_text as parent_text, des2.calculation_uuid
+		FROM vw_calculation des1 
+		join vw_calculation des2 on (des1.out_val).v_text = (des2.in_val).v_text) t2 on mat.material_refname_description = t2.parent_text
 	UNION 
-	SELECT material_uuid, m_descriptor_uuid
+	SELECT material_uuid, calculation_uuid
 	FROM vw_material_raw mat
-	join vw_m_descriptor des on (mat.material_refname_description = (des.in_val).v_text)) tt 
+	join vw_calculation des on (mat.material_refname_description = (des.in_val).v_text)) tt 
 	left join (select * from vw_material_raw where vw_material_raw.material_refname_type = 'SMILES') mt on tt.material_uuid = mt.material_uuid 
-	left join vw_m_descriptor df on tt.m_descriptor_uuid = df.m_descriptor_uuid
-	order by mt.material_uuid, df.m_descriptor_alias_name;
+	left join vw_calculation df on tt.calculation_uuid = df.calculation_uuid
+	order by mt.material_uuid, df.calculation_alias_name;
 
 
 -- get materials and all related descriptors, all status
 -- drop view vw_material_descriptor
 CREATE OR REPLACE VIEW vw_material_descriptor AS 
-select mat.*, mdr.m_descriptor_uuid, mdr.m_descriptor_alias_name, mdr.in_val, mdr.in_opt_val, mdr.out_val from vw_material mat 
+select mat.*, mdr.calculation_uuid, mdr.calculation_alias_name, mdr.in_val, mdr.in_opt_val, mdr.out_val from vw_material mat 
 join vw_material_descriptor_raw mdr on mat.material_uuid = mdr.material_uuid;
 
 

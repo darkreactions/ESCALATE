@@ -340,20 +340,20 @@ $$ LANGUAGE plpgsql;
 
 
 /*
-Name:					get_m_descriptor_def ()
+Name:					get_calculation_def ()
 Parameters:		p_descrp = string used in search over description columns: short_name, calc_definition, description
-Returns:			m_descriptor_def_uuid, m_descriptor_def_uuid, short_name, calc_definition, description, systemtool_name, systemtool_ver
+Returns:			calculation_def_uuid, calculation_def_uuid, short_name, calc_definition, description, systemtool_name, systemtool_ver
 Author:				G. Cattabriga
 Date:					2020.01.16
-Description:	returns keys (uuid) of m_descriptor_def matching p_descrp parameters 
+Description:	returns keys (uuid) of calculation_def matching p_descrp parameters 
 Notes:				
 							
-Example:			SELECT * FROM get_m_descriptor_def (array['standardize']);
+Example:			SELECT * FROM get_calculation_def (array['standardize']);
 */
--- DROP FUNCTION get_m_descriptor_def (p_descr VARCHAR[]);
-CREATE OR REPLACE FUNCTION get_m_descriptor_def (p_descr VARCHAR[])
+-- DROP FUNCTION get_calculation_def (p_descr VARCHAR[]);
+CREATE OR REPLACE FUNCTION get_calculation_def (p_descr VARCHAR[])
 RETURNS TABLE (
-			m_descriptor_def_uuid uuid,
+			calculation_def_uuid uuid,
 			short_name varchar,
 			systemtool_name varchar,
 			calc_definition varchar,
@@ -364,8 +364,8 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
 	RETURN QUERY SELECT
-		mdd.m_descriptor_def_uuid, mdd.short_name, st.systemtool_name, mdd.calc_definition, mdd.description, mdd.in_type, mdd.out_type, st.ver
-	from m_descriptor_def mdd
+		mdd.calculation_def_uuid, mdd.short_name, st.systemtool_name, mdd.calc_definition, mdd.description, mdd.in_type, mdd.out_type, st.ver
+	from calculation_def mdd
 	join systemtool st on mdd.systemtool_uuid = st.systemtool_uuid
 	WHERE mdd.short_name = ANY(p_descr) OR mdd.calc_definition = ANY(p_descr) OR mdd.description = ANY(p_descr); 
 END;
@@ -374,33 +374,33 @@ $$ LANGUAGE plpgsql;
 
 
 /*
-Name:					get_m_descriptor (p_material_refname varchar, p_descr VARCHAR)
+Name:					get_calculation (p_material_refname varchar, p_descr VARCHAR)
 Parameters:		p_material_refname = string of material (e.g. SMILES)
 							p_descrp = string used in search over description columns: short_name, calc_definition, description
-Returns:			m_descriptor_uuid
+Returns:			calculation_uuid
 Author:				G. Cattabriga
 Date:					2020.04.01
-Description:	returns uuid of m_descriptor
+Description:	returns uuid of calculation
 Notes:				
 							
-Example:			SELECT * FROM get_m_descriptor ('C1=CC=C(C=C1)CC[NH3+].[I-]', 'standardize');
-							SELECT * FROM get_m_descriptor ('C1CC[NH2+]C1.[I-]', 'charge_cnt_standardize');	
+Example:			SELECT * FROM get_calculation ('C1=CC=C(C=C1)CC[NH3+].[I-]', 'standardize');
+							SELECT * FROM get_calculation ('C1CC[NH2+]C1.[I-]', 'charge_cnt_standardize');	
 							
 */
--- DROP FUNCTION get_m_descriptor (p_material_refname varchar, p_descr VARCHAR);
-CREATE OR REPLACE FUNCTION get_m_descriptor (p_material_refname varchar, p_descr VARCHAR)
+-- DROP FUNCTION get_calculation (p_material_refname varchar, p_descr VARCHAR);
+CREATE OR REPLACE FUNCTION get_calculation (p_material_refname varchar, p_descr VARCHAR)
 RETURNS uuid AS $$
 BEGIN
 	RETURN 
 	(
-	with RECURSIVE m_descriptor_chain as (
-		select m_descriptor_uuid, (in_val).v_source_uuid from m_descriptor where (in_val).v_text = p_material_refname
+	with RECURSIVE calculation_chain as (
+		select calculation_uuid, (in_val).v_source_uuid from calculation where (in_val).v_text = p_material_refname
 		UNION
-		select md2.m_descriptor_uuid, (md2.in_val).v_source_uuid from m_descriptor md2
-			inner join m_descriptor_chain dc on dc.m_descriptor_uuid = (md2.in_val).v_source_uuid
-		) select dc.m_descriptor_uuid from m_descriptor_chain dc 
-			join m_descriptor md on dc.m_descriptor_uuid = md.m_descriptor_uuid 
-			join m_descriptor_def mdd on md.m_descriptor_def_uuid = mdd.m_descriptor_def_uuid
+		select md2.calculation_uuid, (md2.in_val).v_source_uuid from calculation md2
+			inner join calculation_chain dc on dc.calculation_uuid = (md2.in_val).v_source_uuid
+		) select dc.calculation_uuid from calculation_chain dc 
+			join calculation md on dc.calculation_uuid = md.calculation_uuid 
+			join calculation_def mdd on md.calculation_def_uuid = mdd.calculation_def_uuid
 		where mdd.short_name = p_descr
 		); 
 END;
@@ -483,24 +483,24 @@ Returns:			boolean (true if executed normally, false if not
 Author:				G. Cattabriga
 Date:					2020.03.20
 Description:	runs a descriptor calculation on a specified input 
-Notes:				This function depends on the m_descriptor_eval table for inputs (of val_type) and storage of output
+Notes:				This function depends on the calculation_eval table for inputs (of val_type) and storage of output
 							It also creates a temp file 'temp_in.txt' in the HOME_DIR
 							DROP function run_descriptor (p_descriptor_def_uuid uuid, p_alias_name varchar, p_command_opt varchar, p_actor_uuid uuid);
-Example:			-- first truncate then populate the m_descriptor_eval table with the inputs 
-							truncate table m_descriptor_eval RESTART IDENTITY;
-							insert into m_descriptor_eval(in_val.v_type, in_val.v_text) (select 'text', vw.material_refname_description from vw_material vw  where vw.material_refname_type = 'SMILES');
-							SELECT * FROM run_descriptor ((SELECT m_descriptor_def_uuid FROM get_m_descriptor_def (array['standardize'])), '--ignore-error', (SELECT actor_uuid FROM get_actor () where person_lastfirst like 'Cattabriga, Gary'));
+Example:			-- first truncate then populate the calculation_eval table with the inputs 
+							truncate table calculation_eval RESTART IDENTITY;
+							insert into calculation_eval(in_val.v_type, in_val.v_text) (select 'text', vw.material_refname_description from vw_material vw  where vw.material_refname_type = 'SMILES');
+							SELECT * FROM run_descriptor ((SELECT calculation_def_uuid FROM get_calculation_def (array['standardize'])), '--ignore-error', (SELECT actor_uuid FROM get_actor () where person_lastfirst like 'Cattabriga, Gary'));
 							
 							-- example of using a previous calculated descriptor (standardize) as input; where we take the standardized SMILES from all materials
-							truncate table m_descriptor_eval RESTART IDENTITY;
-							insert into m_descriptor_eval(in_val.v_type, in_val.v_text) 
-								select (md.out_val).v_type, (md.out_val).v_text from m_descriptor md where md.m_descriptor_def_uuid = (select m_descriptor_def_uuid from get_m_descriptor_def(array['standardize']));
-							SELECT * FROM run_descriptor ((SELECT m_descriptor_def_uuid FROM get_m_descriptor_def (array['molweight'])), '_raw_standard_molweight', '--ignore-error --do-not-display ih', (SELECT actor_uuid FROM get_actor () where person_lastfirst like 'Cattabriga, Gary'));
+							truncate table calculation_eval RESTART IDENTITY;
+							insert into calculation_eval(in_val.v_type, in_val.v_text) 
+								select (md.out_val).v_type, (md.out_val).v_text from calculation md where md.calculation_def_uuid = (select calculation_def_uuid from get_calculation_def(array['standardize']));
+							SELECT * FROM run_descriptor ((SELECT calculation_def_uuid FROM get_calculation_def (array['molweight'])), '_raw_standard_molweight', '--ignore-error --do-not-display ih', (SELECT actor_uuid FROM get_actor () where person_lastfirst like 'Cattabriga, Gary'));
 							
-							truncate table m_descriptor_eval RESTART IDENTITY;
-							insert into m_descriptor_eval(in_val.v_type, in_val.v_text) 
+							truncate table calculation_eval RESTART IDENTITY;
+							insert into calculation_eval(in_val.v_type, in_val.v_text) 
 								(select 'text'::val_type, mat.material_refname_description from vw_material mat where mat.material_refname_type = 'SMILES');
-							SELECT * FROM run_descriptor ((SELECT m_descriptor_def_uuid FROM get_m_descriptor_def (array['molweight'])), '_raw_molweight', '--ignore-error --do-not-display ih', (SELECT actor_uuid FROM get_actor () where person_lastfirst like 'Cattabriga, Gary'));							
+							SELECT * FROM run_descriptor ((SELECT calculation_def_uuid FROM get_calculation_def (array['molweight'])), '_raw_molweight', '--ignore-error --do-not-display ih', (SELECT actor_uuid FROM get_actor () where person_lastfirst like 'Cattabriga, Gary'));							
 */
 CREATE OR REPLACE FUNCTION run_descriptor (p_descriptor_def_uuid uuid, p_alias_name varchar, p_command_opt varchar, p_actor_uuid uuid)
 RETURNS BOOLEAN AS $$
@@ -516,19 +516,19 @@ DECLARE
 	v_calc_out_numarray DOUBLE PRECISION[];
 	v_type_out varchar;
 BEGIN
-	-- assign the m_descriptor out_type so we can properly store the calc results into m_descriptor_eval
-	select out_type into v_type_out FROM get_m_descriptor_def (array['standardize']);
+	-- assign the calculation out_type so we can properly store the calc results into calculation_eval
+	select out_type into v_type_out FROM get_calculation_def (array['standardize']);
 	DROP TABLE IF EXISTS load_temp_out;
---	DROP TABLE IF EXISTS m_descriptor_eval;
+--	DROP TABLE IF EXISTS calculation_eval;
 	CREATE TEMP TABLE load_temp_out(load_id serial8, strout VARCHAR ) on COMMIT DROP;
 
---	CREATE TABLE m_descriptor_eval(eval_id serial8, in_val val, out_val val, actor_uuid uuid, create_date timestamptz NOT NULL DEFAULT NOW());
+--	CREATE TABLE calculation_eval(eval_id serial8, in_val val, out_val val, actor_uuid uuid, create_date timestamptz NOT NULL DEFAULT NOW());
 	
 	-- load the variables with actor preference data; for temp directory and chemaxon directory
 	select into v_temp_dir pvalue from actor_pref act where act.actor_uuid = p_actor_uuid and act.pkey = 'HOME_DIR';
-	select into v_descr_dir get_chemaxon_directory((select systemtool_uuid from m_descriptor_def mdd where mdd.m_descriptor_def_uuid = p_descriptor_def_uuid), p_actor_uuid);
-	select into v_descr_command (select st.systemtool_name from m_descriptor_def mdd join systemtool st on mdd.systemtool_uuid = st.systemtool_uuid where mdd.m_descriptor_def_uuid = p_descriptor_def_uuid);
-  select into v_descr_param mdd.calc_definition from m_descriptor_def mdd where mdd.m_descriptor_def_uuid = p_descriptor_def_uuid;
+	select into v_descr_dir get_chemaxon_directory((select systemtool_uuid from calculation_def mdd where mdd.calculation_def_uuid = p_descriptor_def_uuid), p_actor_uuid);
+	select into v_descr_command (select st.systemtool_name from calculation_def mdd join systemtool st on mdd.systemtool_uuid = st.systemtool_uuid where mdd.calculation_def_uuid = p_descriptor_def_uuid);
+  select into v_descr_param mdd.calc_definition from calculation_def mdd where mdd.calculation_def_uuid = p_descriptor_def_uuid;
 
 	CASE v_descr_command
 	when 'cxcalc', 'standardize', 'generatemd' then 
@@ -537,15 +537,15 @@ BEGIN
 		
 		-- copy the inputs from m_desriptor_eval into a text file to be read by the command
 		-- this is set to work for ONLY single text varchar input
-		EXECUTE format ('copy ( select (ev.in_val).v_text from m_descriptor_eval ev) to ''%s%s'' ', v_temp_dir, v_temp_in);  -- '/Users/gcattabriga/tmp/temp_chem.txt';   
+		EXECUTE format ('copy ( select (ev.in_val).v_text from calculation_eval ev) to ''%s%s'' ', v_temp_dir, v_temp_in);  -- '/Users/gcattabriga/tmp/temp_chem.txt';   
 		EXECUTE format ('COPY load_temp_out(strout) FROM PROGRAM ''%s%s %s %s %s%s'' ', v_descr_dir, v_descr_command, p_command_opt, v_descr_param, v_temp_dir, v_temp_in);
 	else 
 		return false;
 	end case;
 	
-	-- update the m_descriptor_eval table with results from commanc execution; found in load_temp_out temp table
+	-- update the calculation_eval table with results from commanc execution; found in load_temp_out temp table
 	
-	update m_descriptor_eval ev set m_descriptor_def_uuid = p_descriptor_def_uuid, 
+	update calculation_eval ev set calculation_def_uuid = p_descriptor_def_uuid, 
 	out_val.v_type = v_type_out::val_type, 
 	out_val.v_text = 
 	case v_type_out 
@@ -557,7 +557,7 @@ BEGIN
 		when 'num' then strout::double precision
 		else null
 	end, 
-	m_descriptor_alias_name = p_alias_name,
+	calculation_alias_name = p_alias_name,
 	actor_uuid = p_actor_uuid
 	from load_temp_out lto where lto.load_id = ev.eval_id;
 	
