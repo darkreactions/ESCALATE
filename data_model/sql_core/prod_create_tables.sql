@@ -408,7 +408,10 @@ CREATE TABLE note (
 -- ----------------------------
 CREATE TABLE edocument (
 	edocument_uuid uuid DEFAULT uuid_generate_v4 (),
+  edocument_title varchar COLLATE "pg_catalog"."default",
   description varchar COLLATE "pg_catalog"."default",
+	edocument_filename varchar COLLATE "pg_catalog"."default",
+	edocument_source varchar COLLATE "pg_catalog"."default",
   edocument bytea,
   edoc_type val_type,
   ver varchar COLLATE "pg_catalog"."default",
@@ -871,8 +874,16 @@ CREATE OR REPLACE VIEW vw_status AS
 SELECT status_uuid, description, add_date, mod_date from status;
 
 -- view of note; links to edocument and actor
+CREATE OR REPLACE VIEW vw_edocument AS 
+select doc.edocument_uuid, doc.edocument_title, doc.description as edocument_description, 
+		doc.edocument_filename, doc.edocument_source, doc.edoc_type as edocument_type, act.actor_uuid, act.description as actor_description  from edocument doc
+left join actor act on doc.actor_uuid = act.actor_uuid;
+
+
+-- view of note; links to edocument and actor
 CREATE OR REPLACE VIEW vw_note AS 
-select nt.note_uuid, nt.notetext, nt.add_date, nt.mod_date, ed.edocument_uuid, ed.description as edocument_description, ed.edoc_type as edocument_type, act.actor_uuid, act.description as actor_description  from note nt 
+select nt.note_uuid, nt.notetext, nt.add_date, nt.mod_date, ed.edocument_uuid, ed.edocument_title, ed.description as edocument_description, 
+		ed.edocument_filename, ed.edocument_source, ed.edoc_type as edocument_type, act.actor_uuid, act.description as actor_description  from note nt 
 left join edocument ed on nt.edocument_uuid = ed.edocument_uuid 
 left join actor act on nt.actor_uuid = act.actor_uuid;
 
