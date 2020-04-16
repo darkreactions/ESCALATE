@@ -19,10 +19,10 @@ def camel_case_uuid(text):
     return text
 
 
-model_names = []
-
 view_names = ['Systemtool', 'SystemtoolType', 'Actor', 'Inventory', 'InventoryMaterial',
-              'LatestSystemtool', 'MDescriptor', 'MDescriptorDef',
+              'LatestSystemtool', 'Calculation', 'CalculationDef',
               'Material', 'MaterialDescriptor', 'MaterialRefnameType',
               'MaterialType', 'Note', 'Organization', 'Person',
-              'Status', 'Tag', 'TagType', 'Edocument']
+              'Status', 'Tag', 'TagType']
+
+custom_serializer_views = ['Edocument']

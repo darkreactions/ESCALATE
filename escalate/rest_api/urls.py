@@ -1,23 +1,15 @@
 from django.urls import path
 from rest_framework.urlpatterns import format_suffix_patterns
 from rest_api import views
-from .utils import camel_case, camel_case_uuid, model_names, view_names
+from .utils import camel_case, camel_case_uuid, view_names, custom_serializer_views
 
 
 urlpatterns = [
     path('', views.api_root),
+    path('download/<uuid:uuid>/', views.download_blob, name='edoc_download')
 ]
 
-for model in model_names:
-    name = camel_case(model)
-    p_list = path(name+'/', getattr(views, model+'List').as_view(),
-                  name=name+'-list')
-    p_detail = path(name+'/<int:pk>/', getattr(views, model+'Detail').as_view(),
-                    name=name+'-detail')
-    urlpatterns.append(p_list)
-    urlpatterns.append(p_detail)
-
-for view in view_names:
+for view in view_names+custom_serializer_views:
     name = camel_case(view)
     uuid = camel_case_uuid(view)
 
