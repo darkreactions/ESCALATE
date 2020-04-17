@@ -149,23 +149,23 @@ class LatestSystemtool(models.Model):
         db_table = 'vw_latest_systemtool'
 
 
-class MDescriptor(models.Model):
-    m_descriptor_uuid = models.UUIDField(primary_key=True,
-                                         db_column='m_descriptor_uuid')
+class Calculation(models.Model):
+    calculation_uuid = models.UUIDField(primary_key=True,
+                                        db_column='calculation_uuid')
     in_val = models.TextField(blank=True, null=True)
     in_opt_val = models.TextField(blank=True, null=True)
     out_val = models.TextField(blank=True, null=True)
-    m_descriptor_alias_name = models.CharField(
+    calculation_alias_name = models.CharField(
         max_length=255, blank=True, null=True)
     create_date = models.DateTimeField(blank=True, null=True)
     status = models.CharField(max_length=255, blank=True, null=True)
     actor_descr = models.CharField(max_length=255, blank=True, null=True)
     notetext = models.CharField(max_length=255, blank=True, null=True)
 
-    m_descriptor_def = models.ForeignKey('MDescriptorDef',
-                                         models.DO_NOTHING,
-                                         blank=True, null=True,
-                                         db_column='m_descriptor_def_uuid')
+    calculation_def = models.ForeignKey('CalculationDef',
+                                        models.DO_NOTHING,
+                                        blank=True, null=True,
+                                        db_column='calculation_def_uuid')
     short_name = models.CharField(max_length=255, blank=True, null=True)
     calc_definition = models.CharField(max_length=255, blank=True, null=True)
 
@@ -191,12 +191,12 @@ class MDescriptor(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_m_descriptor'
+        db_table = 'vw_calculation'
 
 
-class MDescriptorDef(models.Model):
-    m_descriptor_def_uuid = models.UUIDField(
-        primary_key=True, db_column='m_descriptor_def_uuid')
+class CalculationDef(models.Model):
+    calculation_def_uuid = models.UUIDField(
+        primary_key=True, db_column='calculation_def_uuid')
     short_name = models.CharField(max_length=255, blank=True, null=True)
     calc_definition = models.CharField(max_length=255, blank=True, null=True)
     description = models.CharField(max_length=1023, blank=True, null=True)
@@ -209,7 +209,7 @@ class MDescriptorDef(models.Model):
     systemtool_type_description = models.CharField(
         max_length=255, blank=True, null=True)
     systemtool_vendor_organization = models.CharField(
-        max_length=255, blank=True, null=True, db_column='systemtool_vendor_organzation')
+        max_length=255, blank=True, null=True, db_column='systemtool_vendor_organization')
     systemtool_version = models.CharField(
         max_length=255, blank=True, null=True)
     actor = models.ForeignKey(
@@ -218,7 +218,7 @@ class MDescriptorDef(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_m_descriptor_def'
+        db_table = 'vw_calculation_def'
 
 
 class Material(models.Model):
@@ -261,10 +261,10 @@ class MaterialDescriptor(models.Model):
         db_column='molecular_formula', max_length=255, blank=True, null=True)
     smiles = models.CharField(
         db_column='smiles', max_length=255, blank=True, null=True)
-    m_descriptor_uuid = models.ForeignKey('MDescriptor',
-                                          models.DO_NOTHING,
-                                          db_column='m_descriptor_uuid')
-    m_descriptor_alias_name = models.CharField(
+    calculation_uuid = models.ForeignKey('Calculation',
+                                         models.DO_NOTHING,
+                                         db_column='calculation_uuid')
+    calculation_alias_name = models.CharField(
         max_length=255, blank=True, null=True)
     in_val = models.TextField(blank=True, null=True)
     in_opt_val = models.TextField(blank=True, null=True)
@@ -438,3 +438,29 @@ class TagType(models.Model):
     class Meta:
         managed = False
         db_table = 'vw_tag_type'
+
+
+class Edocument(models.Model):
+    edocument_uuid = models.UUIDField(primary_key=True)
+    title = models.CharField(max_length=255, blank=True,
+                             null=True, db_column='edocument_title')
+    description = models.CharField(
+        max_length=255, blank=True, null=True, db_column='edocument_description')
+    filename = models.CharField(
+        max_length=255, blank=True, null=True, db_column='edocument_filename')
+    source = models.CharField(
+        max_length=255, blank=True, null=True, db_column='edocument_source')
+    type = models.CharField(max_length=255, blank=True,
+                            null=True, db_column='edocument_type')
+    edocument = models.BinaryField(blank=True, null=True)
+    actor = models.ForeignKey(
+        'Actor', models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)
+    actor_description = models.CharField(
+        max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'vw_edocument'
+
+    def __str__(self):
+        return self.description
