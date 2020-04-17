@@ -59,7 +59,7 @@ Date:					2019.07.24
 Description:	if str can be cast to a date, then return TRUE, else FALSE
 Notes:
 */
--- DROP FUNCTION isdate(txt VARCHAR);
+DROP FUNCTION IF EXISTS isdate(txt VARCHAR) cascade;
 CREATE OR REPLACE FUNCTION isdate ( txt VARCHAR ) RETURNS BOOLEAN AS $$ BEGIN
 		perform txt :: DATE;
 	RETURN TRUE;
@@ -176,7 +176,7 @@ Description:	return material id's with specific status
 Notes:				
 Example:			SELECT * FROM get_material_uuid_bystatus (array['active', 'proto'], TRUE);
 */
-DROP FUNCTION get_material_uuid_bystatus (p_status_array VARCHAR[], p_null_bool BOOLEAN);
+DROP FUNCTION IF EXISTS get_material_uuid_bystatus (p_status_array VARCHAR[], p_null_bool BOOLEAN) cascade;
 CREATE OR REPLACE FUNCTION get_material_uuid_bystatus (p_status_array varchar[], p_null_bool boolean)
 RETURNS TABLE (
 			material_uuid uuid,
@@ -212,7 +212,7 @@ Notes:				need to UNION ALL the material descriptions with the returned set from
 							because there may be duplicate names
 Example:			SELECT * FROM get_material_nameref_bystatus (array['active', 'proto'], TRUE) where material_refname_type = 'InChI' order by 1;
 */
-DROP FUNCTION get_material_nameref_bystatus (p_status_array VARCHAR[], p_null_bool BOOLEAN );
+DROP FUNCTION IF EXISTS get_material_nameref_bystatus (p_status_array VARCHAR[], p_null_bool BOOLEAN ) cascade;
 CREATE OR REPLACE FUNCTION get_material_nameref_bystatus (p_status_array varchar[], p_null_bool boolean)
 RETURNS TABLE (
       material_uuid uuid,
@@ -246,7 +246,7 @@ Notes:				need to UNION ALL the material descriptions with the returned set from
 							because there may be duplicate names
 Example:			SELECT * FROM get_material_bydescr_bystatus ('CC(C)(C)[NH3+].[I-]', array['active'], TRUE);
 */
-DROP FUNCTION get_material_bydescr_bystatus (p_descr varchar, p_status_array VARCHAR[], p_null_bool BOOLEAN );
+DROP FUNCTION IF EXISTS get_material_bydescr_bystatus (p_descr varchar, p_status_array VARCHAR[], p_null_bool BOOLEAN ) cascade;
 CREATE OR REPLACE FUNCTION get_material_bydescr_bystatus (p_descr varchar, p_status_array VARCHAR[], p_null_bool BOOLEAN)
 RETURNS TABLE (
       material_uuid uuid,
@@ -282,7 +282,7 @@ Notes:
 							
 Example:			SELECT * FROM get_material_type ((SELECT material_uuid FROM get_material_bydescr_bystatus ('CC(C)(C)[NH3+].[I-]', array['active'], TRUE)));
 */
--- DROP FUNCTION get_material_type (p_material_uuid uuid);
+DROP FUNCTION IF EXISTS get_material_type (p_material_uuid uuid) cascade;
 CREATE OR REPLACE FUNCTION get_material_type (p_material_uuid uuid)
 RETURNS varchar[] AS $$
 BEGIN
@@ -307,7 +307,7 @@ Notes:				the person_lastfirst is a concat of person.last_name + ',' + person.fi
 							
 Example:			SELECT * FROM get_actor () where actor_description like '%ChemAxon: standardize%';
 */
--- DROP FUNCTION get_actor ();
+DROP FUNCTION IF EXISTS get_actor ();
 CREATE OR REPLACE FUNCTION get_actor ()
 RETURNS TABLE (
       actor_uuid uuid,
@@ -349,8 +349,8 @@ Description:	returns keys (uuid) of calculation_def matching p_descrp parameters
 Notes:				
 							
 Example:			SELECT * FROM get_calculation_def (array['standardize']);
-*/
--- DROP FUNCTION get_calculation_def (p_descr VARCHAR[]);
+*/                                                    
+DROP FUNCTION IF EXISTS get_calculation_def (p_descr VARCHAR[]) cascade;
 CREATE OR REPLACE FUNCTION get_calculation_def (p_descr VARCHAR[])
 RETURNS TABLE (
 			calculation_def_uuid uuid,
@@ -373,6 +373,7 @@ $$ LANGUAGE plpgsql;
 
 
 
+
 /*
 Name:					get_calculation (p_material_refname varchar, p_descr VARCHAR)
 Parameters:		p_material_refname = string of material (e.g. SMILES)
@@ -387,7 +388,7 @@ Example:			SELECT * FROM get_calculation ('C1=CC=C(C=C1)CC[NH3+].[I-]', 'standar
 							SELECT * FROM get_calculation ('C1CC[NH2+]C1.[I-]', 'charge_cnt_standardize');	
 							
 */
--- DROP FUNCTION get_calculation (p_material_refname varchar, p_descr VARCHAR);
+DROP FUNCTION IF EXISTS get_calculation (p_material_refname varchar, p_descr VARCHAR) cascade;
 CREATE OR REPLACE FUNCTION get_calculation (p_material_refname varchar, p_descr VARCHAR)
 RETURNS uuid AS $$
 BEGIN
@@ -407,6 +408,40 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+/*
+Name:					get_val (p_in val)
+Parameters:		p_in = value of composite type 'val'
+Returns:			returns the val value
+Author:				G. Cattabriga
+Date:					2020.04.16
+Description:	returns value (as text) from a 'val' type composite 
+Notes:				
+							
+Example:			SELECT get_val ('(text,,"[I-].[NH3+](CCC1=CC=C(C=C1)OC)",,,,,,,)'::val);
+							SELECT get_val ('(num,,,,,,266.99,,,)'::val);
+							SELECT get_val ('(int,,,,15,,,,,)'::val);			
+							SELECT get_val ('(array_int,,,,,"{1,2,3,4,5}",,,,)'::val);	
+							SELECT get_val ('(blob_svg,,,,,,,,"0ed27587-a79e-45d4-bb56-2e2e5d85937c",)'::val);				
+*/
+DROP FUNCTION IF EXISTS get_val (p_in val) cascade;
+CREATE OR REPLACE FUNCTION get_val (p_in val)
+returns text AS $$
+BEGIN
+	CASE
+		WHEN p_in.v_type = 'int' THEN return (p_in.v_int::text);
+		WHEN p_in.v_type = 'array_int' THEN return (p_in.v_int_array::text);
+		WHEN p_in.v_type = 'array_int' THEN return (p_in.v_int_array::text);
+		WHEN p_in.v_type = 'num' THEN return (p_in.v_num::text);
+		WHEN p_in.v_type = 'array_num' THEN return (p_in.v_num_array::text);
+		WHEN p_in.v_type = 'text' THEN return (p_in.v_text::text);
+		WHEN p_in.v_type = 'array_text' THEN return (p_in.v_text_array::text);	
+		WHEN p_in.v_type::text like 'blob%' THEN return (encode((select edocument from edocument where edocument_uuid = p_in.v_edocument_uuid),'escape'));	
+		ELSE return (NULL);
+	END CASE;	
+END;
+$$ LANGUAGE plpgsql;
+
+
 
 /*
 Name:					get_chemaxon_directory ()
@@ -420,7 +455,7 @@ Notes:
 							
 Example:			select get_chemaxon_directory((select systemtool_uuid from systemtool where systemtool_name = 'standardize'), (SELECT actor_uuid FROM get_actor () where person_lastfirst like 'Cattabriga, Gary')); (returns the version for cxcalc for actor GC) 
 */
--- DROP FUNCTION get_chemaxon_directory ( p_systemtool_uuid int8, p_actor int8 )
+DROP FUNCTION IF EXISTS get_chemaxon_directory ( p_systemtool_uuid int8, p_actor int8 ) cascade;
 CREATE OR REPLACE FUNCTION get_chemaxon_directory ( p_systemtool_uuid uuid, p_actor_uuid uuid ) RETURNS TEXT AS $$ 
 DECLARE
 	v_descr_name varchar;
@@ -451,7 +486,7 @@ Notes:
 							
 Example:			select get_chemaxon_version((select systemtool_uuid from systemtool where systemtool_name = 'generatemd'), (select actor_uuid from actor where description = 'Gary Cattabriga')); (returns the version for cxcalc for actor GC) 
 */
--- DROP FUNCTION get_chemaxon_version ( p_systemtool_uuid int8, p_actor_uuid uuid )
+DROP FUNCTION IF EXISTS get_chemaxon_version ( p_systemtool_uuid int8, p_actor_uuid uuid ) cascade;
 CREATE OR REPLACE FUNCTION get_chemaxon_version ( p_systemtool_uuid uuid, p_actor_uuid uuid ) RETURNS TEXT AS $$ 
 DECLARE
 	v_descr_name varchar;
@@ -502,6 +537,7 @@ Example:			-- first truncate then populate the calculation_eval table with the i
 								(select 'text'::val_type, mat.material_refname_description from vw_material mat where mat.material_refname_type = 'SMILES');
 							SELECT * FROM run_descriptor ((SELECT calculation_def_uuid FROM get_calculation_def (array['molweight'])), '_raw_molweight', '--ignore-error --do-not-display ih', (SELECT actor_uuid FROM get_actor () where person_lastfirst like 'Cattabriga, Gary'));							
 */
+DROP FUNCTION IF EXISTS run_descriptor (p_descriptor_def_uuid uuid, p_alias_name varchar, p_command_opt varchar, p_actor_uuid uuid) cascade;
 CREATE OR REPLACE FUNCTION run_descriptor (p_descriptor_def_uuid uuid, p_alias_name varchar, p_command_opt varchar, p_actor_uuid uuid)
 RETURNS BOOLEAN AS $$
 DECLARE
@@ -580,7 +616,7 @@ Notes:
 Example:			select load_mol_images((select systemtool_uuid from systemtool where systemtool_name = 'generatemd'), (select actor_uuid from actor where description = 'Gary Cattabriga'));
 */
 -- TRUNCATE table load_perov_mol_image cascade;
--- DROP FUNCTION load_mol_images ( p_systemtool_uuid int8, p_actor_uuid uuid )
+DROP FUNCTION IF EXISTS load_mol_images ( p_systemtool_uuid int8, p_actor_uuid uuid ) cascade;
 CREATE OR REPLACE FUNCTION load_mol_images ( p_systemtool_uuid uuid, p_actor_uuid uuid ) RETURNS bool AS $$ 
 DECLARE
 	pathname varchar := '/Users/gcattabriga/DRP/demob/cp_inventory_run_20200311/chem_images/';
@@ -596,7 +632,7 @@ BEGIN
 				fullpathname = pathname || fullfilename;
 				underscorepos = POSITION('_' in fullfilename);
 				filename = substring(fullfilename, underscorepos+1, length(fullfilename) - POSITION('.' in reverse(fullfilename))- underscorepos);
-				insert into "load_perov_mol_image" values (fullpathname, filename, bytea(fcontents));
+				insert into "load_perov_mol_image" values (fullpathname, fullfilename, filename, bytea(fcontents));
 		 END IF;
 	 END LOOP;
 	 RETURN TRUE;
@@ -615,16 +651,8 @@ Notes:
 							
 Example:			select load_edocuments((select actor_uuid from actor where description = 'Ian Pendleton'));
 */
-/*
-DROP table load_edocument cascade;
-CREATE TABLE load_edocument(
-	edocument_id serial8,
-	description VARCHAR,
-	document_type val_type,
-	edocument bytea,
-	actor_uuid uuid
-); */
--- DROP FUNCTION load_mol_images ( p_systemtool_uuid int8, p_actor_uuid uuid )
+
+DROP FUNCTION IF EXISTS load_edocuments (p_actor_uuid uuid) cascade;
 CREATE OR REPLACE FUNCTION load_edocuments (p_actor_uuid uuid) RETURNS bool AS $$ 
 DECLARE
 	pathname varchar := '/Users/gcattabriga/Downloads/GitHub/escalate_wip/';
@@ -658,7 +686,7 @@ Notes:				if p_mol_smiles is null, will return null (non-count); so you can chec
 Example:			select get_charge_count('C1C[NH+]2CC[NH+]1CC2');
 							select get_charge_count(null);
 */
--- DROP FUNCTION get_charge_count (p_mol_smiles varchar);
+DROP FUNCTION IF EXISTS get_charge_count (p_mol_smiles varchar) cascade;
 CREATE OR REPLACE FUNCTION get_charge_count ( p_mol_smiles varchar ) RETURNS int AS $$ 
 BEGIN
 	IF (p_mol_smiles is not null) THEN
@@ -684,7 +712,7 @@ Example:			select math_op(9, '/', 3);
 							select math_op(101, '*', 11);
 							select math_op(5, '!');
 */
--- DROP FUNCTION math_op (p_op text, p_in_num numeric, p_in_opt_num numeric);
+DROP FUNCTION IF EXISTS math_op (p_op text, p_in_num numeric, p_in_opt_num numeric) cascade;
 create or replace function math_op (p_in_num numeric, p_op text, p_in_opt_num numeric default null)
 returns numeric as $$
 declare 

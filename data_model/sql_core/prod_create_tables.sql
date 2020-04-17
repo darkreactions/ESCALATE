@@ -58,8 +58,8 @@ DROP TABLE IF EXISTS tag cascade;
 DROP TABLE IF EXISTS tag_x cascade;
 DROP TABLE IF EXISTS tag_type cascade;
 DROP TABLE IF EXISTS status cascade;
-DROP TABLE IF EXISTS escalate_change_log cascade;
-DROP TABLE IF EXISTS escalate_version cascade;
+-- DROP TABLE IF EXISTS escalate_change_log cascade;
+-- DROP TABLE IF EXISTS escalate_version cascade;
 
  --=====================================
  -- CREATE DATA TYPES 
@@ -76,7 +76,7 @@ CREATE TYPE val AS (
 	v_int_array int8[],
 	v_num double precision,
 	v_num_array double precision[],
-	v_blob bytea,
+	v_edocument_uuid uuid,
 	v_source_uuid uuid
 );
 
@@ -478,7 +478,7 @@ CREATE TABLE status (
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
 
-
+/*
 -- ----------------------------
 -- Table for [internal] escalate use only
 -- ----------------------------
@@ -500,7 +500,7 @@ CREATE TABLE escalate_version (
 	description varchar COLLATE "pg_catalog"."default",	
   add_date timestamptz NOT NULL DEFAULT NOW()
 );
-
+*/
 
 --=====================================
 -- KEYS
@@ -604,8 +604,9 @@ ALTER TABLE note ADD
 	CONSTRAINT "pk_note_note_uuid" PRIMARY KEY (note_uuid);
 CLUSTER note USING "pk_note_note_uuid";
 
-ALTER TABLE edocument ADD 
-	CONSTRAINT "pk_edocument_edocument_uuid" PRIMARY KEY (edocument_uuid);
+ALTER TABLE edocument 
+	ADD CONSTRAINT "pk_edocument_edocument_uuid" PRIMARY KEY (edocument_uuid),
+	ADD CONSTRAINT "un_edocument" UNIQUE (edocument_title, edocument_filename, edocument_source);
 CLUSTER edocument USING "pk_edocument_edocument_uuid";
 
 ALTER TABLE edocument_x 
@@ -630,7 +631,7 @@ CLUSTER tag_type USING "pk_tag_tag_type_uuid";
 ALTER TABLE status ADD 
 	CONSTRAINT "pk_status_status_uuid" PRIMARY KEY (status_uuid);
 CLUSTER status USING "pk_status_status_uuid";
-
+/*
 ALTER TABLE escalate_change_log 
 	ADD CONSTRAINT "pk_escalate_change_log_uuid" PRIMARY KEY (change_log_uuid);
 CLUSTER escalate_change_log USING "pk_escalate_change_log_uuid";
@@ -639,7 +640,7 @@ ALTER TABLE escalate_version
 	ADD CONSTRAINT "pk_escalate_version_uuid" PRIMARY KEY (ver_uuid),
 	ADD CONSTRAINT "un_escalate_version" UNIQUE (ver_uuid, short_name);
 CLUSTER escalate_version USING "pk_escalate_version_uuid";
-
+*/
 --=====================================
 -- FOREIGN KEYS
 --=====================================
@@ -876,14 +877,14 @@ SELECT status_uuid, description, add_date, mod_date from status;
 -- view of note; links to edocument and actor
 CREATE OR REPLACE VIEW vw_edocument AS 
 select doc.edocument_uuid, doc.edocument_title, doc.description as edocument_description, 
-		doc.edocument_filename, doc.edocument_source, doc.edoc_type as edocument_type, act.actor_uuid, act.description as actor_description  from edocument doc
+		doc.edocument_filename, doc.edocument_source, doc.edoc_type as edocument_type, doc.edocument, act.actor_uuid, act.description as actor_description  from edocument doc
 left join actor act on doc.actor_uuid = act.actor_uuid;
 
 
 -- view of note; links to edocument and actor
 CREATE OR REPLACE VIEW vw_note AS 
 select nt.note_uuid, nt.notetext, nt.add_date, nt.mod_date, ed.edocument_uuid, ed.edocument_title, ed.description as edocument_description, 
-		ed.edocument_filename, ed.edocument_source, ed.edoc_type as edocument_type, act.actor_uuid, act.description as actor_description  from note nt 
+		ed.edocument_filename, ed.edocument_source, ed.edoc_type as edocument_type, act.actor_uuid, act.description as actor_description from note nt 
 left join edocument ed on nt.edocument_uuid = ed.edocument_uuid 
 left join actor act on nt.actor_uuid = act.actor_uuid;
 
@@ -1046,9 +1047,21 @@ CREATE OR REPLACE VIEW vw_calculation AS
 SELECT
 	md.calculation_uuid, 
 -- in_val
-	md.in_val,
-	md.in_opt_val,
-	md.out_val,
+--	md.in_val,
+--	md.in_opt_val,
+--	md.out_val,
+	(md.in_val).v_type as in_val_type,
+	get_val(md.in_val) as in_val,
+	(md.in_val).v_unit as in_val_unit,
+	(md.in_val).v_edocument_uuid as in_val_edocument_uuid,
+	(md.in_opt_val).v_type as in_opt_val_type,
+	get_val(md.in_opt_val) as in_opt_val,
+	(md.in_opt_val).v_unit as in_opt_val_unit,
+	(md.in_opt_val).v_edocument_uuid as in_opt_val_edocument_uuid,
+	(md.out_val).v_type as out_val_type,
+	get_val(md.out_val) as out_val,
+	(md.out_val).v_unit as out_val_unit,
+	(md.out_val).v_edocument_uuid as out_val_edocument_uuid,
 	md.calculation_alias_name,
 	md.create_date,
 	sts.description AS status, 
@@ -1061,6 +1074,7 @@ SELECT
 FROM
 	calculation md
 	LEFT JOIN vw_calculation_def mdd ON md.calculation_def_uuid = mdd.calculation_def_uuid
+	LEFT JOIN vw_edocument ed on (md.out_val).v_edocument_uuid = ed.edocument_uuid
 	LEFT JOIN vw_actor dact ON md.actor_uuid = dact.actor_uuid
 	LEFT JOIN status sts ON md.status_uuid = sts.status_uuid
 	LEFT JOIN note nt ON md.note_uuid = nt.note_uuid

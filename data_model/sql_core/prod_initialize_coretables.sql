@@ -204,8 +204,8 @@ COMMIT;
 -- Add example(s) edocument
 -- ----------------------------
 BEGIN;
-INSERT into edocument (description, edocument, edoc_type, actor_uuid) 
-	(select description, edocument, 'blob_pdf'::val_type, (select actor_uuid from vw_actor where per_lastname = 'Pendleton') from load_edocument)
+INSERT into edocument (edocument_title, description, edocument_filename, edocument_source, edocument, edoc_type, actor_uuid) 
+	(select document_title, description, file_name, document_source, edocument, 'blob_pdf'::val_type, (select actor_uuid from vw_actor where per_lastname = 'Pendleton') from load_edocument)
 	;	
 COMMIT;
 

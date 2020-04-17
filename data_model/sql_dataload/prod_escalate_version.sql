@@ -33,7 +33,7 @@ CREATE TABLE "escalate_version" (
 -- Records of escalate_version
 -- ----------------------------
 BEGIN;
-INSERT INTO "escalate_version" VALUES ('328dd727-8e44-4abb-9098-abc1443d9c51', '3.0.0.b1', 'escalate V3 beta', '2020-04-14 13:43:29-04');
+INSERT INTO "escalate_version" (short_name, description) VALUES ('3.0.0.b1', 'escalate V3 beta');
 COMMIT;
 
 -- ----------------------------
