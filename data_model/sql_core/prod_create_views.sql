@@ -265,9 +265,9 @@ FROM crosstab(
 AS ct(material_uuid uuid, material_status varchar, create_date timestamptz, Abbreviation varchar, Chemical_Name varchar, InChI varchar, InChIKey varchar, Molecular_Formula varchar, SMILES varchar);
 
 
--- get materials and all related descriptors, all status
--- drop view vw_material_descriptor_raw
-CREATE OR REPLACE VIEW vw_material_descriptor_raw AS 
+-- get materials and all related calculations, all status
+-- drop view vw_material_calculation_raw
+CREATE OR REPLACE VIEW vw_material_calculation_raw AS 
 select mt.material_uuid, df.calculation_uuid, df.calculation_alias_name, df.in_val, df.in_opt_val, df.out_val
 	from
 	(SELECT distinct material_uuid, calculation_uuid
@@ -286,9 +286,9 @@ select mt.material_uuid, df.calculation_uuid, df.calculation_alias_name, df.in_v
 
 -- get materials and all related descriptors, all status
 -- drop view vw_material_descriptor
-CREATE OR REPLACE VIEW vw_material_descriptor AS 
+CREATE OR REPLACE VIEW vw_material_calculation AS 
 select mat.*, mdr.calculation_uuid, mdr.calculation_alias_name, mdr.in_val, mdr.in_opt_val, mdr.out_val from vw_material mat 
-join vw_material_descriptor_raw mdr on mat.material_uuid = mdr.material_uuid;
+join vw_material_calculation_raw mdr on mat.material_uuid = mdr.material_uuid;
 
 
 -- view inventory; with links to material, actor, status, edocument, note
