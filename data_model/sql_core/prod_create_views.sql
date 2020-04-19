@@ -1,0 +1,320 @@
+/*
+Name:					prod_create_views
+Parameters:		none
+Returns:			
+Author:				G. Cattabriga
+Date:					2020.01.23
+Description:	create the production views for ESCALATEv3
+Notes:				
+
+*/--=====================================
+-- VIEWS
+--=====================================
+-- view of status table (simple)
+CREATE OR REPLACE VIEW vw_status AS 
+SELECT status_uuid, description, add_date, mod_date from status;
+
+-- view of note; links to edocument and actor
+CREATE OR REPLACE VIEW vw_edocument AS 
+select doc.edocument_uuid, doc.edocument_title, doc.description as edocument_description, 
+		doc.edocument_filename, doc.edocument_source, doc.edoc_type as edocument_type, doc.edocument, act.actor_uuid, act.description as actor_description  from edocument doc
+left join actor act on doc.actor_uuid = act.actor_uuid;
+
+
+-- view of note; links to edocument and actor
+CREATE OR REPLACE VIEW vw_note AS 
+select nt.note_uuid, nt.notetext, nt.add_date, nt.mod_date, ed.edocument_uuid, ed.edocument_title, ed.description as edocument_description, 
+		ed.edocument_filename, ed.edocument_source, ed.edoc_type as edocument_type, act.actor_uuid, act.description as actor_description from note nt 
+left join edocument ed on nt.edocument_uuid = ed.edocument_uuid 
+left join actor act on nt.actor_uuid = act.actor_uuid;
+
+
+-- view of tag_type; links to actor
+CREATE OR REPLACE VIEW vw_tag_type AS 
+select tt.tag_type_uuid, tt.short_description, tt.description, tt.actor_uuid, act.description as actor_description, tt.add_date, tt.mod_date from tag_type tt
+left join actor act on tt.actor_uuid = act.actor_uuid;
+
+
+-- view of tag; links to tag_type, actor and note
+CREATE OR REPLACE VIEW vw_tag AS 
+select tg.tag_uuid, tg.short_description as tag_short_descr, tg.description as tag_description, tg.add_date, tg.mod_date,
+			tg.tag_type_uuid, tt.short_description as tag_type_short_descr, tt.description as tag_type_description,
+			act.actor_uuid, act.description as actor_description, nt.note_uuid, nt.notetext
+				from tag tg 
+left join tag_type tt on tg.tag_type_uuid = tt.tag_type_uuid 
+left join actor act on tg.actor_uuid = act.actor_uuid 
+left join note nt on tg.note_uuid = nt.note_uuid;
+
+
+-- view of person; links to organization and note
+CREATE OR REPLACE VIEW vw_person AS 
+select per.person_uuid, per.firstname, per.lastname, per.middlename, per.address1, per.address2, per.city, per.stateprovince, per.zip, per.country, per.phone, per.email, per.title, per.suffix, 
+				per.add_date, per.mod_date, org.organization_uuid, org.full_name, nt.note_uuid, nt.notetext,
+				ed.edocument_uuid, ed.description as edocument_descr, tag.tag_uuid, tag.short_description as tag_short_descr
+				from person per 
+left join organization org on per.organization_uuid = org.organization_uuid
+left join note nt on per.note_uuid = nt.note_uuid
+left join tag_x tx on per.person_uuid = tx.ref_tag_uuid
+left join tag on tx.tag_uuid = tag.tag_uuid
+left join edocument_x edx on per.person_uuid = edx.ref_edocument_uuid
+left join edocument ed on edx.edocument_uuid = ed.edocument_uuid;
+
+
+-- view of organization; links to parent organization and note
+CREATE OR REPLACE VIEW vw_organization AS 
+select org.organization_uuid, org.description, org.full_name, org.short_name, org.address1, org.address2, org.city, org.state_province, org.zip, org.country, org.website_url, org.phone, org.parent_uuid, orgp.full_name as parent_org_full_name, 
+				org.add_date, org.mod_date, nt.note_uuid, nt.notetext,
+				ed.edocument_uuid, ed.description as edocument_descr, tag.tag_uuid, tag.short_description as tag_short_descr 
+				from organization org			
+left join organization orgp on org.parent_uuid = orgp.organization_uuid 
+left join note nt on org.note_uuid = nt.note_uuid
+left join tag_x tx on org.organization_uuid = tx.ref_tag_uuid
+left join tag on tx.tag_uuid = tag.tag_uuid
+left join edocument_x edx on org.organization_uuid = edx.ref_edocument_uuid
+left join edocument ed on edx.edocument_uuid = ed.edocument_uuid;
+
+
+-- integrated view of inventory; joins measure (amounts of material
+CREATE OR REPLACE VIEW vw_actor AS 
+SELECT
+	act.actor_uuid AS actor_uuid,
+	org.organization_uuid,
+	per.person_uuid,
+	st.systemtool_uuid,
+	act.description AS actor_description,
+	sts.description AS actor_status,
+	nt.notetext AS actor_notetext,
+	org.full_name AS org_full_name,
+	org.short_name AS org_short_name,
+	per.lastname AS per_lastname,
+	per.firstname AS per_firstname,
+CASE
+		WHEN per.person_uuid IS NOT NULL THEN
+		CAST ( concat ( per.lastname, ', ', per.firstname ) AS VARCHAR ) 
+	END AS person_lastfirst,
+	porg.full_name AS person_org,
+	st.systemtool_name,
+	st.description AS systemtool_description,
+	stt.description AS systemtool_type,
+	vorg.full_name AS systemtool_vendor,
+	st.model AS systemtool_model,
+	st.serial AS systemtool_serial,
+	st.ver AS systemtool_version
+FROM
+	actor act
+	LEFT JOIN organization org ON act.organization_uuid = org.organization_uuid
+	LEFT JOIN person per ON act.person_uuid = per.person_uuid
+	LEFT JOIN organization porg ON per.organization_uuid = porg.organization_uuid
+	LEFT JOIN systemtool st ON act.systemtool_uuid = st.systemtool_uuid
+	LEFT JOIN systemtool_type stt ON st.systemtool_type_uuid = stt.systemtool_type_uuid
+	LEFT JOIN organization vorg on st.vendor_organization_uuid = vorg.organization_uuid
+	LEFT JOIN note nt ON act.note_uuid = nt.note_uuid
+	left join edocument_x edx on act.actor_uuid = edx.ref_edocument_uuid
+	left join edocument ed on edx.edocument_uuid = ed.edocument_uuid
+	LEFT JOIN status sts ON act.status_uuid = sts.status_uuid;
+		
+-- get most recent version of a systemtool in raw format
+-- return all columns from the systemtool table
+CREATE OR REPLACE VIEW vw_latest_systemtool_raw AS 
+SELECT
+	stl.* 
+FROM
+	systemtool stl
+	JOIN (
+	SELECT
+		st.systemtool_name,
+		st.systemtool_type_uuid,
+		st.vendor_organization_uuid,
+		MAX ( st.ver ) AS ver
+	FROM
+		systemtool st 
+	WHERE
+		st.systemtool_name IS NOT NULL 
+		AND st.ver IS NOT NULL 
+	GROUP BY
+		st.systemtool_name,
+		st.systemtool_type_uuid,
+		st.vendor_organization_uuid,
+		st.note_uuid
+	) mrs ON stl.systemtool_name = mrs.systemtool_name 
+	AND stl.systemtool_type_uuid = mrs.systemtool_type_uuid 
+	AND stl.vendor_organization_uuid = mrs.vendor_organization_uuid
+	AND stl.ver = mrs.ver;
+	
+-- get most recent version of a systemtool
+-- return all columns from actor table
+CREATE OR REPLACE VIEW vw_latest_systemtool AS 
+SELECT
+	vst.systemtool_uuid, vst.systemtool_name, vst.description, vst.vendor_organization_uuid, org.full_name organization_fullname, vst.systemtool_type_uuid, stt.description as systemtool_type_description, 
+	vst.model, vst.serial, vst.ver, act.actor_uuid, act.description as actor_description, vst.add_date, vst.mod_date 
+FROM
+	vw_latest_systemtool_raw vst
+	LEFT JOIN actor act ON vst.systemtool_uuid = act.systemtool_uuid
+	LEFT JOIN organization org on vst.vendor_organization_uuid = org.organization_uuid
+	LEFT JOIN note nt on vst.note_uuid = nt.note_uuid
+	LEFT JOIN systemtool_type stt on vst.systemtool_type_uuid = stt.systemtool_type_uuid;
+
+
+-- get the calculation_def and associated actor
+CREATE OR REPLACE VIEW vw_calculation_def AS 
+SELECT
+	mdd.calculation_def_uuid,
+	mdd.short_name,
+	mdd.calc_definition,
+	mdd.description,
+	mdd.in_type,
+	mdd.out_type,
+	mdd.systemtool_uuid,
+	st.systemtool_name,
+	stt.description as systemtool_type_description,
+	org.short_name as systemtool_vendor_organization,
+	st.ver as systemtool_version,
+	mdd.actor_uuid as actor_uuid,
+	act.actor_description as actor_description
+FROM
+	calculation_def mdd
+	LEFT JOIN vw_actor act ON mdd.actor_uuid = act.actor_uuid
+	LEFT JOIN vw_latest_systemtool st ON mdd.systemtool_uuid = st.systemtool_uuid
+	LEFT JOIN systemtool_type stt on st.systemtool_type_uuid = stt.systemtool_type_uuid
+	LEFT JOIN organization org on st.vendor_organization_uuid = org.organization_uuid;
+
+
+-- get the calculations and associated entities
+-- DROP VIEW vw_calculation;
+CREATE OR REPLACE VIEW vw_calculation AS 
+SELECT
+	md.calculation_uuid, 
+-- in_val
+--	md.in_val,
+--	md.in_opt_val,
+--	md.out_val,
+	md.in_val,
+	(md.in_val).v_type as in_val_type,
+	get_val(md.in_val) as in_val_value,
+	(md.in_val).v_unit as in_val_unit,
+	(md.in_val).v_edocument_uuid as in_val_edocument_uuid,
+	md.in_opt_val,
+	(md.in_opt_val).v_type as in_opt_val_type,
+	get_val(md.in_opt_val) as in_opt_val_value,
+	(md.in_opt_val).v_unit as in_opt_val_unit,
+	(md.in_opt_val).v_edocument_uuid as in_opt_val_edocument_uuid,
+	md.out_val,
+	(md.out_val).v_type as out_val_type,
+	get_val(md.out_val) as out_val_value,
+	(md.out_val).v_unit as out_val_unit,
+	(md.out_val).v_edocument_uuid as out_val_edocument_uuid,
+	md.calculation_alias_name,
+	md.create_date,
+	sts.description AS status, 
+	dact.actor_description as actor_descr,
+	nt.notetext as notetext,
+--	md.num_valarray_out,
+--	encode( md.blob_val_out, 'escape' ) AS blob_val_out,
+--	md.blob_type_out,
+	mdd.*
+FROM
+	calculation md
+	LEFT JOIN vw_calculation_def mdd ON md.calculation_def_uuid = mdd.calculation_def_uuid
+	LEFT JOIN vw_edocument ed on (md.out_val).v_edocument_uuid = ed.edocument_uuid
+	LEFT JOIN vw_actor dact ON md.actor_uuid = dact.actor_uuid
+	LEFT JOIN status sts ON md.status_uuid = sts.status_uuid
+	LEFT JOIN note nt ON md.note_uuid = nt.note_uuid
+;
+
+-- get material_refname_type
+-- DROP VIEW vw_material_refname_type
+CREATE OR REPLACE VIEW vw_material_refname_type AS 
+SELECT mrt.material_refname_type_uuid, mrt.description, nt.notetext
+FROM material_refname_type mrt
+left join note nt on mrt.note_uuid = nt.note_uuid
+order by 2;
+
+
+-- get material_type
+-- DROP VIEW vw_material_type
+CREATE OR REPLACE VIEW vw_material_type AS 
+SELECT mt.material_type_uuid, mt.description, nt.notetext
+FROM material_type mt
+left join note nt on mt.note_uuid = nt.note_uuid
+order by 2;
+
+
+-- get materials, all status
+-- DROP VIEW vw_material_raw
+CREATE OR REPLACE VIEW vw_material_raw AS 
+SELECT mat.material_uuid, mat.description as material_description, st.description as material_status, get_material_type(mat.material_uuid) as material_type_description,
+ mrt.description as material_refname_type, mr.description as material_refname_description, mr.material_refname_type_uuid, mat.add_date as material_create_date,
+nt.note_uuid, nt.notetext
+FROM material mat
+LEFT JOIN material_refname_x mrx on mat.material_uuid = mrx.material_uuid
+LEFT JOIN material_refname mr on mrx.material_refname_uuid = mr.material_refname_uuid
+LEFT JOIN material_refname_type mrt on mr.material_refname_type_uuid = mrt.material_refname_type_uuid
+LEFT JOIN status st on mat.status_uuid = st.status_uuid
+LEFT JOIN note nt on mat.note_uuid = nt.note_uuid
+order by mat.material_uuid, mr.description;
+
+-- get materials, all status as a crosstab, with refname types 
+-- DROP VIEW vw_material
+CREATE OR REPLACE VIEW vw_material AS 
+SELECT *
+FROM crosstab(
+  'select material_uuid, material_status, material_create_date, material_refname_type, material_refname_description
+   from vw_material_raw order by 1, 3',
+	 'select distinct material_refname_type
+   from vw_material_raw order by 1')
+AS ct(material_uuid uuid, material_status varchar, create_date timestamptz, Abbreviation varchar, Chemical_Name varchar, InChI varchar, InChIKey varchar, Molecular_Formula varchar, SMILES varchar);
+
+
+-- get materials and all related descriptors, all status
+-- drop view vw_material_descriptor_raw
+CREATE OR REPLACE VIEW vw_material_descriptor_raw AS 
+select mt.material_uuid, df.calculation_uuid, df.calculation_alias_name, df.in_val, df.in_opt_val, df.out_val
+	from
+	(SELECT distinct material_uuid, calculation_uuid
+	FROM vw_material_raw mat
+	join (SELECT distinct des1.calculation_uuid as parent_uuid, (des1.in_val).v_text as parent_text, des2.calculation_uuid
+		FROM vw_calculation des1 
+		join vw_calculation des2 on (des1.out_val).v_text = (des2.in_val).v_text) t2 on mat.material_refname_description = t2.parent_text
+	UNION 
+	SELECT material_uuid, calculation_uuid
+	FROM vw_material_raw mat
+	join vw_calculation des on (mat.material_refname_description = (des.in_val).v_text)) tt 
+	left join (select * from vw_material_raw where vw_material_raw.material_refname_type = 'SMILES') mt on tt.material_uuid = mt.material_uuid 
+	left join vw_calculation df on tt.calculation_uuid = df.calculation_uuid
+	order by mt.material_uuid, df.calculation_alias_name;
+
+
+-- get materials and all related descriptors, all status
+-- drop view vw_material_descriptor
+CREATE OR REPLACE VIEW vw_material_descriptor AS 
+select mat.*, mdr.calculation_uuid, mdr.calculation_alias_name, mdr.in_val, mdr.in_opt_val, mdr.out_val from vw_material mat 
+join vw_material_descriptor_raw mdr on mat.material_uuid = mdr.material_uuid;
+
+
+-- view inventory; with links to material, actor, status, edocument, note
+CREATE OR REPLACE VIEW vw_inventory AS 
+SELECT inv.inventory_uuid, inv.description inventory_description, inv.part_no, inv.onhand_amt, inv.unit, inv.create_date, inv.expiration_date, inv.inventory_location, 
+			st.description as status, mat.material_uuid, mat.description as material_description, act.actor_uuid, act.description, 
+			ed.edocument_uuid, ed.description as edocument_description, nt.note_uuid, nt.notetext
+FROM inventory inv 
+left join material mat on inv.material_uuid = mat.material_uuid
+left join actor act on inv.actor_uuid = act.actor_uuid
+left join status st on inv.status_uuid = st.status_uuid
+left join edocument ed on inv.edocument_uuid = ed.edocument_uuid
+left join note nt on inv.note_uuid = nt.note_uuid;
+
+
+-- get inventory / material, all status
+CREATE OR REPLACE VIEW vw_inventory_material AS 
+SELECT inv.inventory_uuid, inv.description as inventory_description, inv.part_no as inventory_part_no, inv.onhand_amt as inventory_onhand_amt, inv.unit as inventory_unit, 
+				inv.create_date as inventory_create_date, inv.expiration_date as inventory_expiration_date, inv.inventory_location, st.description as inventory_status,
+				inv.actor_uuid, act.actor_description, act.org_full_name, inv.material_uuid, mat.material_status, mat.create_date as material_create_date, mat.chemical_name as material_name, 
+				mat.abbreviation as material_abbreviation, mat.inchi as material_inchi, mat.inchikey as material_inchikey, mat.molecular_formula as material_molecular_formula, mat.smiles as material_smiles
+FROM inventory inv
+left join vw_material mat on inv.material_uuid = mat.material_uuid
+left join vw_actor act on inv.actor_uuid = act.actor_uuid
+left join status st on inv.status_uuid = st.status_uuid;
+
+
+
+
