@@ -1,0 +1,274 @@
+[<URLPattern ''>, <URLPattern 'download/<uuid:uuid>/' [name='edoc_download']>, <URLPattern 'systemtool/' [name='systemtool-list']>, <URLPattern 'systemtool/<uuid:pk>/' [name='systemtool-detail']>, <URLPattern 'systemtooltype/' [name='systemtooltype-list']>, <URLPattern 'systemtooltype/<uuid:pk>/' [name='systemtooltype-detail']>, <URLPattern 'actor/' [name='actor-list']>, <URLPattern 'actor/<uuid:pk>/' [name='actor-detail']>, <URLPattern 'inventory/' [name='inventory-list']>, <URLPattern 'inventory/<uuid:pk>/' [name='inventory-detail']>, <URLPattern 'inventorymaterial/' [name='inventorymaterial-list']>, <URLPattern 'inventorymaterial/<uuid:pk>/' [name='inventorymaterial-detail']>, <URLPattern 'latestsystemtool/' [name='latestsystemtool-list']>, <URLPattern 'latestsystemtool/<uuid:pk>/' [name='latestsystemtool-detail']>, <URLPattern 'calculation/' [name='calculation-list']>, <URLPattern 'calculation/<uuid:pk>/' [name='calculation-detail']>, <URLPattern 'calculationdef/' [name='calculationdef-list']>, <URLPattern 'calculationdef/<uuid:pk>/' [name='calculationdef-detail']>, <URLPattern 'material/' [name='material-list']>, <URLPattern 'material/<uuid:pk>/' [name='material-detail']>, <URLPattern 'materialcalculationjson/' [name='materialcalculationjson-list']>, <URLPattern 'materialcalculationjson/<uuid:pk>/' [name='materialcalculationjson-detail']>, <URLPattern 'materialrefnametype/' [name='materialrefnametype-list']>, <URLPattern 'materialrefnametype/<uuid:pk>/' [name='materialrefnametype-detail']>, <URLPattern 'materialtype/' [name='materialtype-list']>, <URLPattern 'materialtype/<uuid:pk>/' [name='materialtype-detail']>, <URLPattern 'note/' [name='note-list']>, <URLPattern 'note/<uuid:pk>/' [name='note-detail']>, <URLPattern 'organization/' [name='organization-list']>, <URLPattern 'organization/<uuid:pk>/' [name='organization-detail']>, <URLPattern 'person/' [name='person-list']>, <URLPattern 'person/<uuid:pk>/' [name='person-detail']>, <URLPattern 'status/' [name='status-list']>, <URLPattern 'status/<uuid:pk>/' [name='status-detail']>, <URLPattern 'tag/' [name='tag-list']>, <URLPattern 'tag/<uuid:pk>/' [name='tag-detail']>, <URLPattern 'tagtype/' [name='tagtype-list']>, <URLPattern 'tagtype/<uuid:pk>/' [name='tagtype-detail']>, <URLPattern 'edocument/' [name='edocument-list']>, <URLPattern 'edocument/<uuid:pk>/' [name='edocument-detail']>]
+info:
+  description: 'This is a test'
+  title: ''
+  version: ''
+openapi: 3.0.0
+paths:
+  /api/:
+    get:
+      operationId: api_list
+      tags:
+      - api
+  /api/actor{format}:
+    get:
+      operationId: api_read
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - api
+  /api/calculationdef{format}:
+    get:
+      operationId: api_read_0
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - api
+  /api/calculation{format}:
+    get:
+      operationId: api_read_1
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - api
+  /api/edocument{format}:
+    get:
+      operationId: api_read_2
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - api
+  /api/inventorymaterial{format}:
+    get:
+      operationId: api_read_3
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - api
+  /api/inventory{format}:
+    get:
+      operationId: api_read_4
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - api
+  /api/latestsystemtool{format}:
+    get:
+      operationId: api_read_5
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - api
+  /api/materialcalculationjson{format}:
+    get:
+      operationId: api_read_6
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - api
+  /api/materialrefnametype{format}:
+    get:
+      operationId: api_read_7
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - api
+  /api/materialtype{format}:
+    get:
+      operationId: api_read_8
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - api
+  /api/material{format}:
+    get:
+      operationId: api_read_9
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - api
+  /api/note{format}:
+    get:
+      operationId: api_read_10
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - api
+  /api/organization{format}:
+    get:
+      operationId: api_read_11
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - api
+  /api/person{format}:
+    get:
+      operationId: api_read_12
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - api
+  /api/status{format}:
+    get:
+      operationId: api_read_13
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - api
+  /api/systemtooltype{format}:
+    get:
+      operationId: api_read_14
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - api
+  /api/systemtool{format}:
+    get:
+      operationId: api_read_15
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - api
+  /api/tagtype{format}:
+    get:
+      operationId: api_read_16
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - api
+  /api/tag{format}:
+    get:
+      operationId: api_read_17
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - api
+  /api/{format}:
+    get:
+      operationId: api_read_18
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - api
+servers:
+- url: ''

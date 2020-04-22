@@ -1,12 +1,15 @@
-from django.urls import path
+from django.urls import path, include, re_path
 from rest_framework.urlpatterns import format_suffix_patterns
 from rest_api import views
 from .utils import camel_case, camel_case_uuid, view_names, custom_serializer_views
+from rest_framework.schemas import get_schema_view
+from rest_framework.routers import DefaultRouter
+from rest_framework import generics
 
 
 urlpatterns = [
     path('', views.api_root),
-    path('download/<uuid:uuid>/', views.download_blob, name='edoc_download')
+    path('download/<uuid:uuid>/', views.download_blob, name='edoc_download'),
 ]
 
 for view in view_names+custom_serializer_views:
@@ -21,5 +24,5 @@ for view in view_names+custom_serializer_views:
     urlpatterns.append(p_detail)
 
 
-print(urlpatterns)
+#urlpatterns.append(r'', include(router.urls))
 urlpatterns = format_suffix_patterns(urlpatterns)

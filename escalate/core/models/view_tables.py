@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.postgres.fields import JSONField
 
 managed_value = False
 
@@ -153,8 +153,32 @@ class Calculation(models.Model):
     calculation_uuid = models.UUIDField(primary_key=True,
                                         db_column='calculation_uuid')
     in_val = models.TextField(blank=True, null=True)
+    in_type = models.CharField(max_length=255, blank=True, null=True)
+    in_val_type = models.TextField(blank=True, null=True)
+    in_val_value = models.TextField(blank=True, null=True)
+    in_val_unit = models.TextField(blank=True, null=True)
+    in_val_edocument = models.ForeignKey('Edocument',
+                                         models.DO_NOTHING,
+                                         db_column='in_val_edocument_uuid',
+                                         related_name='in_val_edocument')
     in_opt_val = models.TextField(blank=True, null=True)
+    in_opt_val_type = models.TextField(blank=True, null=True)
+    in_opt_val_value = models.TextField(blank=True, null=True)
+    in_opt_val_unit = models.TextField(blank=True, null=True)
+    in_opt_val_edocument = models.ForeignKey('Edocument',
+                                             models.DO_NOTHING,
+                                             db_column='in_opt_val_edocument_uuid',
+                                             related_name='in_opt_val_edocument')
+
     out_val = models.TextField(blank=True, null=True)
+    out_val_type = models.TextField(blank=True, null=True)
+    out_val_value = models.TextField(blank=True, null=True)
+    out_val_unit = models.TextField(blank=True, null=True)
+    out_val_edocument = models.ForeignKey('Edocument',
+                                          models.DO_NOTHING,
+                                          db_column='out_val_edocument_uuid',
+                                          related_name='out_val_edocument')
+
     calculation_alias_name = models.CharField(
         max_length=255, blank=True, null=True)
     create_date = models.DateTimeField(blank=True, null=True)
@@ -170,7 +194,7 @@ class Calculation(models.Model):
     calc_definition = models.CharField(max_length=255, blank=True, null=True)
 
     description = models.CharField(max_length=1023, blank=True, null=True)
-    in_type = models.CharField(max_length=255, blank=True, null=True)
+
     out_type = models.CharField(max_length=255, blank=True, null=True)
 
     systemtool = models.ForeignKey('Systemtool',
@@ -244,7 +268,7 @@ class Material(models.Model):
         db_table = 'vw_material'
 
 
-class MaterialDescriptor(models.Model):
+class MaterialCalculationJson(models.Model):
     material_uuid = models.UUIDField(primary_key=True,
                                      db_column='material_uuid')
     material_status = models.CharField(max_length=255, blank=True, null=True)
@@ -261,6 +285,9 @@ class MaterialDescriptor(models.Model):
         db_column='molecular_formula', max_length=255, blank=True, null=True)
     smiles = models.CharField(
         db_column='smiles', max_length=255, blank=True, null=True)
+    calculation_json = JSONField()
+
+    """
     calculation_uuid = models.ForeignKey('Calculation',
                                          models.DO_NOTHING,
                                          db_column='calculation_uuid')
@@ -269,10 +296,11 @@ class MaterialDescriptor(models.Model):
     in_val = models.TextField(blank=True, null=True)
     in_opt_val = models.TextField(blank=True, null=True)
     out_val = models.TextField(blank=True, null=True)
+    """
 
     class Meta:
         managed = False
-        db_table = 'vw_material_descriptor'
+        db_table = 'vw_material_calculation_json'
 
 
 class MaterialRefnameType(models.Model):
@@ -441,6 +469,9 @@ class TagType(models.Model):
 
 
 class Edocument(models.Model):
+    """
+
+    """
     edocument_uuid = models.UUIDField(primary_key=True)
     title = models.CharField(max_length=255, blank=True,
                              null=True, db_column='edocument_title')

@@ -10,3 +10,7 @@ psycopg2
 gunicorn
 plotly
 six
+pyyaml
+uritemplate
+coreapi
+markdown
