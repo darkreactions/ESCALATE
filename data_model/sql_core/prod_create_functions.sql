@@ -50,6 +50,39 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
+/*
+Name:					read_file
+Parameters:		path (varchar)
+Returns:			string (text) of the file
+Author:				G. Cattabriga
+Date:					2019.07.24
+Description:	read the contents of a text file, retains all chars, including the control chars
+Notes:				used for any non-json text file
+*/
+CREATE OR REPLACE FUNCTION read_file(path CHARACTER VARYING)
+  RETURNS TEXT AS $$
+DECLARE
+  var_file_oid OID;
+  var_record   RECORD;
+  var_result   BYTEA := '';
+	var_resultt	 TEXT;
+BEGIN
+  SELECT lo_import(path)
+  INTO var_file_oid;
+  FOR var_record IN (SELECT data
+                     FROM pg_largeobject
+                     WHERE loid = var_file_oid
+                     ORDER BY pageno) LOOP
+  var_result = var_result || var_record.data;
+  END LOOP;
+  PERFORM lo_unlink(var_file_oid);
+  RETURN var_result;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
 /*
 Name:					isdate
 Parameters:		str (varchar) that contains string to test
@@ -384,25 +417,30 @@ Date:					2020.04.01
 Description:	returns uuid of calculation
 Notes:				
 							
-Example:			SELECT * FROM get_calculation ('C1=CC=C(C=C1)CC[NH3+].[I-]', 'standardize');
-							SELECT * FROM get_calculation ('C1CC[NH2+]C1.[I-]', 'charge_cnt_standardize');	
+Example:			SELECT * FROM get_calculation ('C1=CC=C(C=C1)CC[NH3+].[I-]', array['standardize']);
+							SELECT * FROM get_calculation ('C1CC[NH2+]C1.[I-]', array['standardize']);	
+							SELECT * FROM get_calculation ('C1CC[NH2+]C1.[I-]', array['charge_cnt_standardize']);
+							SELECT * FROM get_calculation ('CN(C)C=O', array['charge_cnt_standardize']);	
+							SELECT * FROM get_calculation ('CN(C)C=O');							
 							
 */
-DROP FUNCTION IF EXISTS get_calculation (p_material_refname varchar, p_descr VARCHAR) cascade;
-CREATE OR REPLACE FUNCTION get_calculation (p_material_refname varchar, p_descr VARCHAR)
-RETURNS uuid AS $$
+DROP FUNCTION IF EXISTS get_calculation (p_material_refname varchar, p_descr VARCHAR[]) cascade;
+CREATE OR REPLACE FUNCTION get_calculation (p_material_refname varchar, p_descr VARCHAR[] = null)
+RETURNS TABLE (
+			calculation_uuid uuid
+) AS $$
 BEGIN
-	RETURN 
+	RETURN query  
 	(
 	with RECURSIVE calculation_chain as (
-		select calculation_uuid, (in_val).v_source_uuid from calculation where (in_val).v_text = p_material_refname
+		select cal.calculation_uuid, (cal.in_val).v_source_uuid from calculation cal where (cal.in_val).v_text = p_material_refname
 		UNION
 		select md2.calculation_uuid, (md2.in_val).v_source_uuid from calculation md2
 			inner join calculation_chain dc on dc.calculation_uuid = (md2.in_val).v_source_uuid
-		) select dc.calculation_uuid from calculation_chain dc 
+		) select md.calculation_uuid from calculation_chain dc 
 			join calculation md on dc.calculation_uuid = md.calculation_uuid 
 			join calculation_def mdd on md.calculation_def_uuid = mdd.calculation_def_uuid
-		where mdd.short_name = p_descr
+			where (p_descr is null) or (mdd.short_name = ANY(p_descr) OR mdd.calc_definition = ANY(p_descr) OR mdd.description = ANY(p_descr))
 		); 
 END;
 $$ LANGUAGE plpgsql;
@@ -628,7 +666,7 @@ DECLARE
 BEGIN
 	FOR fullfilename IN select pg_ls_dir(pathname) order by 1 LOOP
 		 IF (fullfilename ~ '^.*\.(svg)$') THEN
-				fcontents = read_file_utf8(pathname||fullfilename);
+				fcontents = read_file(pathname||fullfilename);
 				fullpathname = pathname || fullfilename;
 				underscorepos = POSITION('_' in fullfilename);
 				filename = substring(fullfilename, underscorepos+1, length(fullfilename) - POSITION('.' in reverse(fullfilename))- underscorepos);

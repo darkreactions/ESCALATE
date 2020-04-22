@@ -268,27 +268,40 @@ AS ct(material_uuid uuid, material_status varchar, create_date timestamptz, Abbr
 -- get materials and all related calculations, all status
 -- drop view vw_material_calculation_raw
 CREATE OR REPLACE VIEW vw_material_calculation_raw AS 
-select mt.material_uuid, df.calculation_uuid, df.calculation_alias_name, df.in_val, df.in_opt_val, df.out_val
-	from
-	(SELECT distinct material_uuid, calculation_uuid
-	FROM vw_material_raw mat
-	join (SELECT distinct des1.calculation_uuid as parent_uuid, (des1.in_val).v_text as parent_text, des2.calculation_uuid
-		FROM vw_calculation des1 
-		join vw_calculation des2 on (des1.out_val).v_text = (des2.in_val).v_text) t2 on mat.material_refname_description = t2.parent_text
-	UNION 
-	SELECT material_uuid, calculation_uuid
-	FROM vw_material_raw mat
-	join vw_calculation des on (mat.material_refname_description = (des.in_val).v_text)) tt 
-	left join (select * from vw_material_raw where vw_material_raw.material_refname_type = 'SMILES') mt on tt.material_uuid = mt.material_uuid 
-	left join vw_calculation df on tt.calculation_uuid = df.calculation_uuid
-	order by mt.material_uuid, df.calculation_alias_name;
+select 
+		mat.material_uuid, mat.material_status, mat.create_date as material_create_date, 
+		mat.abbreviation, mat.chemical_name, mat.inchi, mat.inchikey, mat.molecular_formula, mat.smiles,
+		cal.calculation_uuid, cal.in_val, cal.in_val_type, cal.in_val_value, cal.in_val_unit, cal.in_val_edocument_uuid,
+    cal.in_opt_val, cal.in_opt_val_type, cal.in_opt_val_value, cal.in_opt_val_unit, cal.in_opt_val_edocument_uuid,
+    cal.out_val, cal.out_val_type, cal.out_val_value, cal.out_val_unit, cal.out_val_edocument_uuid, cal.calculation_alias_name,
+    cal.create_date as calculation_create_date, cal.status, cal.actor_descr, cal.notetext, cal.calculation_def_uuid, cal.short_name, cal.calc_definition, cal.description, 
+		cal.in_type, cal.out_type, cal.systemtool_uuid, cal.systemtool_name, cal.systemtool_type_description,
+    cal.systemtool_vendor_organization, cal.systemtool_version, cal.actor_uuid, cal.actor_description
+from 
+	(select distinct material_uuid, get_calculation(smiles) as calculation_uuid from vw_material) vmc
+join vw_material mat on vmc.material_uuid = mat.material_uuid
+join vw_calculation cal on vmc.calculation_uuid = cal.calculation_uuid;
 
 
--- get materials and all related descriptors, all status
--- drop view vw_material_descriptor
-CREATE OR REPLACE VIEW vw_material_calculation AS 
-select mat.*, mdr.calculation_uuid, mdr.calculation_alias_name, mdr.in_val, mdr.in_opt_val, mdr.out_val from vw_material mat 
-join vw_material_calculation_raw mdr on mat.material_uuid = mdr.material_uuid;
+-- get materials and all related calculations as a pivot
+-- drop view vw_material_calculation_json
+CREATE OR REPLACE VIEW vw_material_calculation_json AS 
+select 
+	vm.material_uuid, vm.material_status, vm.create_date, 
+	vm.abbreviation, vm.chemical_name, vm.inchi, vm.inchikey, vm.molecular_formula, vm.smiles, 
+	mc.json_object_agg as calculation_json
+from 
+	(SELECT material_uuid,
+				 json_object_agg(calculation_alias_name, json_build_object('type', calculation_type, 'value', calculation_value) ORDER BY calculation_alias_name desc)
+		 FROM (
+			 SELECT vmc.material_uuid, vmc.calculation_alias_name, max(vmc.out_val_type::text) as calculation_type, max(vmc.out_val_value) as calculation_value
+					FROM vw_material_calculation_raw vmc
+					GROUP BY vmc.material_uuid, vmc.calculation_alias_name order by 1, 2 desc
+		 ) s
+		GROUP BY material_uuid
+		ORDER BY material_uuid) mc
+left join vw_material vm on mc.material_uuid = vm.material_uuid;
+
 
 
 -- view inventory; with links to material, actor, status, edocument, note
