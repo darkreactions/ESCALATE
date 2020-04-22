@@ -13,4 +13,4 @@ six
 pyyaml
 uritemplate
 coreapi
-markdown
+django-url-filter

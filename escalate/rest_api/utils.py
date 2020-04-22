@@ -26,3 +26,16 @@ view_names = ['Systemtool', 'SystemtoolType', 'Actor', 'Inventory', 'InventoryMa
               'Status', 'Tag', 'TagType']
 
 custom_serializer_views = ['Edocument']
+
+
+def docstring(docstr, sep="\n"):
+    """
+    Decorator: Append to a function's docstring.
+    """
+    def _decorator(func):
+        if func.__doc__ == None:
+            func.__doc__ = docstr
+        else:
+            func.__doc__ = sep.join([func.__doc__, docstr])
+        return func
+    return _decorator
