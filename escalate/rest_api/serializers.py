@@ -38,7 +38,8 @@ class DynamicFieldsModelSerializer(HyperlinkedModelSerializer):
             not_allowed = set(exclude)
             existing = set(self.fields)
             for field_name in not_allowed:
-                self.fields.pop(field_name)
+                if field_name in self.fields:
+                    self.fields.pop(field_name)
 
 
 for model_name in view_names:

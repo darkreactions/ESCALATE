@@ -40,9 +40,11 @@ rest_docs = {
 
                 ## Filters
                 Data in the `results` list can be filtered using many different url options 
-                that can be added to the end of the table's url of the format <table_url\>/?<filter_option_1\>&<filter_option_2\>&...
-                All filters except 'exact match' expect a keyword that follows the column 
-                name it is applied to, by a double underscore (__)
+                that can be added to the end of the table's url of the format http://escalate.sd2e.org/api/person/?<filter_option\>
+                Multiple filter options can be chained together in a single url by using `&` symbol. Thus,
+                the url becomes http://escalate.sd2e.org/api/person/?<filter_option1\>&<filter_option2\>&<filter_option3\>
+                All filters except 'exact match' expect a keyword. Filters applied to columns follow the column 
+                name it is applied to, by a double underscore (__) e.g. `/?firstname__contains=Gary`
 
                 ### Exact Matches
                 Add the column name the the value to the matched to the url
@@ -50,6 +52,15 @@ rest_docs = {
                 For example, `http://escalate.sd2e.org/api/person/?firstname=Gary`
                 will display person table rows where the `firstname` column
                 is equal to value `Gary`
+
+                ### Select or exclude fields (fields, exclude)
+                A list of columns can be included or excluded in the json response.
+
+                For example, `http://escalate.sd2e.org/api/person/?fields=firstname,lastname`
+                will display only first and last names from the person table
+
+                `http://escalate.sd2e.org/api/person/?exclude=firstname,lastname`
+                will display all fields except first and last names
 
                 ### Related tables
                 Filters can also be applied based on columns in related tables

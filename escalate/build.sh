@@ -1,4 +1,4 @@
-docker build -t escalate-server .
+docker-compose build
 version=$(python VERSION.py)
-docker tag escalate-server vshekar/escalate-server:$version
+docker tag escalate_web:latest vshekar/escalate-server:$version
 docker push vshekar/escalate-server:$version
