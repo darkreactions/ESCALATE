@@ -1,0 +1,12 @@
+### Large json
+
+GET http://escalate.sd2e.org/api/materialcalculationjson/?exclude=calculation_json
+
+
+### Another large json
+GET http://escalate.sd2e.org/api/materialcalculationjson/
+
+
+### Without molimage
+
+GET http://escalate.sd2e.org/api/materialcalculationjson/?exclude=calculation_json,_molimage

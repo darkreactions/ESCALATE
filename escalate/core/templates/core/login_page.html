@@ -38,6 +38,10 @@
                     <a href="{% url 'create_user' %}" class="btn btn-primary mt-3 text-center">Create User</a>
                 </div>
 
+                <div class="col text-center">
+                    <a href="{% url 'api_root' %}" class="btn btn-primary mt-3 text-center">API Endpoints</a>
+                </div>
+
                 {% if messages %}
                 <ul class="messages">
                     {% for message in messages %}
@@ -47,8 +51,10 @@
                 {% endif %}
             </div>
         </div>
+
     </div>
 
+</div>
 </div>
 
 

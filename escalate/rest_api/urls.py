@@ -8,7 +8,7 @@ from rest_framework import generics
 
 
 urlpatterns = [
-    path('', views.api_root),
+    path('', views.api_root, name='api_root'),
     path('download/<uuid:uuid>/', views.download_blob, name='edoc_download'),
 ]
 
