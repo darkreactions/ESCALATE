@@ -3,33 +3,34 @@ rest_docs = {
                 ## Table data list
                 The links at the bottom of the page, return table data. For example http://escalate.sd2e.org/api/inventory/ returns data in the following format
 
-                ```
-                {
+                
+                <pre><code>{
                 "count": 131,
                 "next": "http://escalate.sd2e.org/api/inventory/?limit=100&offset=100",
                 "previous": null,
                 "results": [
-                    {
-                        "url": "http://escalate.sd2e.org/api/inventory/86a86f95-7611-4b2a-94c0-ede4259bf756/",
-                        "inventory_description": "N,N-Diethylpropane-1,3-diammonium iodide",
-                        "part_no": "MS123223-100",
-                        "onhand_amt": 185.5,
-                        "unit": "g",
-                        "create_date": "2019-06-01T00:00:00Z",
-                        "expiration_date": null,
-                        "inventory_location": null,
-                        "status": null,
-                        "material_description": "N,N-Diethylpropane-1,3-diammonium iodide",
-                        "description": "Zhi Li",
-                        "edocument_description": null,
-                        "notetext": null,
-                        "material_uuid": "http://escalate.sd2e.org/api/material/817fdd3f-50d8-4eff-a0ec-34f2920dd06c/",
-                        "actor_uuid": "http://escalate.sd2e.org/api/actor/df59bed1-9da9-41ca-8b69-cf6c1c207fe2/",
-                        "edocument_uuid": null,
-                        "note_uuid": null
-                    },
-                }
-                ```
+                            {
+                                "url": "http://escalate.sd2e.org/api/inventory/86a86f95-7611-4b2a-94c0-ede4259bf756/",
+                                "inventory_description": "N,N-Diethylpropane-1,3-diammonium iodide",
+                                "part_no": "MS123223-100",
+                                "onhand_amt": 185.5,
+                                "unit": "g",
+                                "create_date": "2019-06-01T00:00:00Z",
+                                "expiration_date": null,
+                                "inventory_location": null,
+                                "status": null,
+                                "material_description": "N,N-Diethylpropane-1,3-diammonium iodide",
+                                "description": "Zhi Li",
+                                "edocument_description": null,
+                                "notetext": null,
+                                "material_uuid": "http://escalate.sd2e.org/api/material/817fdd3f-50d8-4eff-a0ec-34f2920dd06c/",
+                                "actor_uuid": "http://escalate.sd2e.org/api/actor/df59bed1-9da9-41ca-8b69-cf6c1c207fe2/",
+                                "edocument_uuid": null,
+                                "note_uuid": null
+                            }, ...
+                           ]
+                }</code></pre>
+
 
                 The returned json includes 100 table data rows and meta-data such as:
 
@@ -98,22 +99,22 @@ rest_docs = {
                 For example, `http://escalate.sd2e.org/api/inventorymaterial/?inventory_onhand_amt__gte=180`
                 will display `inventorymaterial` table rows where the value in the `inventory_onhand_amt` column is greater than or equal to 180
 
-                ### **String starts with** (startwith, istartswith)
+                ### **String starts with** (`startwith`, `istartswith`)
                 Filters columns based on whether a column starts with a particular string.
                 For example, `http://escalate.sd2e.org/api/person/?firstname__startswith=Man`
                 will display person table rows where the `firstname` column starts with `Man`
 
-                ### **String ends with** (endswith, iendswith)
+                ### **String ends with** (`endswith`, `iendswith`)
                 Filters columns based on whether a column ends with a particular string.
                 For example, `http://escalate.sd2e.org/api/person/?firstname__endswith=soor`
                 will display person table rows where the `firstname` column starts with `soor`
 
-                ### **Range of values** (range)
+                ### **Range of values** (`range`)
                 Filters columns whose value lies between a given range inclusive.
                 For example, `http://escalate.sd2e.org/api/inventorymaterial/?inventory_onhand_amt__range=180,200`
                 will display `inventorymaterial` table rows where the value in the `inventory_onhand_amt` column is between 180 and 200
 
-                ### **Negate filter** (!)
+                ### **Negate filter** (`!`)
                 Negates the filter being used.
                 For example, `http://escalate.sd2e.org/api/person/?firstname__startswith!=Man`
                 will display person table rows where the `firstname` column **does not** start with `Man`
