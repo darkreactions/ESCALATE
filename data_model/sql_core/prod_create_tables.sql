@@ -20,6 +20,7 @@ Notes:				triggers, foreign keys and other constraints are in other sql files
 -- CREATE EXTENSION if not exists ltree with schema dev;
 -- REATE EXTENSION if not exists tablefunc with schema dev;
 -- CREATE EXTENSION if not exists "uuid-ossp" with schema dev;
+-- CREATE EXTENSION IF NOT EXISTS hstore with schema dev;
 -- set search_path = dev, public;
  
  --=====================================
@@ -31,6 +32,7 @@ DROP TYPE IF EXISTS val cascade;
  --=====================================
  -- DROP TABLES 
  --=====================================
+DROP TABLE IF EXISTS sys_audit cascade; 
 DROP TABLE IF EXISTS organization cascade; 
 DROP TABLE IF EXISTS person cascade; 
 DROP TABLE IF EXISTS systemtool cascade;
@@ -83,6 +85,29 @@ CREATE TYPE val AS (
  --=====================================
  -- CREATE TABLES 
  --=====================================
+ ---------------------------------------
+-- Table structure for sys_audit
+---------------------------------------
+CREATE TABLE sys_audit (
+    event_id bigserial primary key,
+    schema_name text not null,
+    table_name text not null,
+    relid oid not null,
+    session_user_name text,
+    action_tstamp_tx timestamptz NOT NULL,
+    action_tstamp_stm timestamptz NOT NULL,
+    action_tstamp_clk timestamptz NOT NULL,
+    transaction_id bigint,
+    application_name text,
+    client_addr inet,
+    client_port integer,
+    client_query text,
+    action TEXT NOT NULL CHECK (action IN ('I','D','U', 'T')),
+    row_data hstore,
+    changed_fields hstore,
+    statement_only boolean not null
+);
+ 
 ---------------------------------------
 -- Table structure for organization
 ---------------------------------------
@@ -181,6 +206,22 @@ CREATE TABLE actor_pref (
   actor_uuid uuid,
 	pkey varchar COLLATE "pg_catalog"."default",
   pvalue varchar COLLATE "pg_catalog"."default",
+  note_uuid uuid,
+  add_date timestamptz NOT NULL DEFAULT NOW(),
+  mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+---------------------------------------
+-- Table structure for experiment
+---------------------------------------
+CREATE TABLE experiment (
+  experiment_uuid uuid DEFAULT uuid_generate_v4 (),
+	ref_uid varchar,
+  description varchar COLLATE "pg_catalog"."default" NOT NULL,
+  parent_uuid uuid,
+	parent_path ltree,
+	owner_uuid uuid,
+	status_uuid uuid,
   note_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
@@ -478,6 +519,7 @@ CREATE TABLE status (
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
 
+
 /*
 -- ----------------------------
 -- Table for [internal] escalate use only
@@ -504,9 +546,14 @@ CREATE TABLE escalate_version (
 
 --=====================================
 -- KEYS
---=====================================
+--===================================== 
+CREATE INDEX "ix_sys_audit_relid" ON sys_audit(relid);
+CREATE INDEX "ix_sys_audit_action_tstamp_tx_stm" ON sys_audit(action_tstamp_stm);
+CREATE INDEX "ix_sys_audit_action" ON sys_audit(action);
+
 ALTER TABLE organization 
 	ADD CONSTRAINT "pk_organization_organization_uuid" PRIMARY KEY (organization_uuid);
+	ADD CONSTRAINT "un_organization" UNIQUE (full_name);
 	CREATE INDEX "ix_organization_parent_path" ON organization USING GIST (parent_path);
 	CREATE INDEX "ix_organization_parent_uuid" ON organization (parent_uuid);
 CLUSTER organization USING "pk_organization_organization_uuid";
@@ -532,6 +579,12 @@ CLUSTER actor USING "pk_actor_uuid";
 ALTER TABLE actor_pref 
 	ADD CONSTRAINT "pk_actor_pref_uuid" PRIMARY KEY (actor_pref_uuid);
 CLUSTER actor_pref USING "pk_actor_pref_uuid";
+
+ALTER TABLE experiment ADD 
+	CONSTRAINT "pk_experimentl_experiment_uuid" PRIMARY KEY (experiment_uuid);
+	CREATE INDEX "ix_experiment_parent_path" ON experiment USING GIST (parent_path);
+	CREATE INDEX "ix_experiment_parent_uuid" ON experiment (parent_uuid);
+CLUSTER experiment USING "pk_experimentl_experiment_uuid";
 
 ALTER TABLE material ADD 
 	CONSTRAINT "pk_material_material_uuid" PRIMARY KEY (material_uuid);

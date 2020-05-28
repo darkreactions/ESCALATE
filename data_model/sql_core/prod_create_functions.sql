@@ -17,6 +17,165 @@ Notes:
 -- CREATE EXTENSION IF NOT EXISTS tablefunc SCHEMA prod;
 -- CREATE EXTENSION IF NOT EXISTS "uuid-ossp" SCHEMA prod;
 
+/*
+Name:					trigger_set_timestamp
+Parameters:		none
+Returns:			'new' (now) timestamp
+Author:				G. Cattabriga
+Date:					2019.12.02
+Description:	update the mod_dt (modify date) column with current date with timezone
+Notes:				this creates both the function and the trigger (for all tables with mod_dt)
+*/
+CREATE OR REPLACE FUNCTION trigger_set_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.mod_date = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+/*
+Name:					if_modified()
+Parameters:		none
+Returns:			'new' if update or insert, 'old' if delete
+Author:				G. Cattabriga
+Date:					2020.05.12
+Description:	Track changes to a table at the statement and/or row level.
+Notes:				Optional parameters to trigger in CREATE TRIGGER call:
+							param 0: boolean, whether to log the query text. Default 't'.
+							param 1: text[], columns to ignore in updates. Default [].
+							Updates to ignored cols are omitted from changed_fields.
+
+							Updates with only ignored cols changed are not inserted
+							into the audit log.
+
+							Almost all the processing work is still done for updates
+							that ignored. If you need to save the load, you need to use
+							WHEN clause on the trigger instead.
+
+							No warning or error is issued if ignored_cols contains columns
+							that do not exist in the target table. This lets you specify
+							a standard set of ignored columns.
+*/
+CREATE OR REPLACE FUNCTION if_modified_func() RETURNS TRIGGER AS $body$
+DECLARE
+    audit_row sys_audit;
+    include_values boolean;
+    log_diffs boolean;
+    h_old hstore;
+    h_new hstore;
+    excluded_cols text[] = ARRAY[]::text[];
+BEGIN
+    IF TG_WHEN <> 'AFTER' THEN
+        RAISE EXCEPTION 'if_modified_func() may only run as an AFTER trigger';
+    END IF;
+    audit_row = ROW(
+        nextval('sys_audit_event_id_seq'), -- event_id
+        TG_TABLE_SCHEMA::text,                        -- schema_name
+        TG_TABLE_NAME::text,                          -- table_name
+        TG_RELID,                                     -- relation OID for much quicker searches
+        session_user::text,                           -- session_user_name
+        current_timestamp,                            -- action_tstamp_tx
+        statement_timestamp(),                        -- action_tstamp_stm
+        clock_timestamp(),                            -- action_tstamp_clk
+        txid_current(),                               -- transaction ID
+        current_setting('application_name'),          -- client application
+        inet_client_addr(),                           -- client_addr
+        inet_client_port(),                           -- client_port
+        current_query(),                              -- top-level query or queries (if multistatement) from client
+        substring(TG_OP,1,1),                         -- action
+        NULL, NULL,                                   -- row_data, changed_fields
+        'f'                                           -- statement_only
+        );
+    IF NOT TG_ARGV[0]::boolean IS DISTINCT FROM 'f'::boolean THEN
+        audit_row.client_query = NULL;
+    END IF;
+
+    IF TG_ARGV[1] IS NOT NULL THEN
+        excluded_cols = TG_ARGV[1]::text[];
+    END IF;
+    IF (TG_OP = 'UPDATE' AND TG_LEVEL = 'ROW') THEN
+        audit_row.row_data = hstore(OLD.*) - excluded_cols;
+        audit_row.changed_fields =  (hstore(NEW.*) - audit_row.row_data) - excluded_cols;
+        IF audit_row.changed_fields = hstore('') THEN
+            -- All changed fields are ignored. Skip this update.
+            RETURN NULL;
+        END IF;
+    ELSIF (TG_OP = 'DELETE' AND TG_LEVEL = 'ROW') THEN
+        audit_row.row_data = hstore(OLD.*) - excluded_cols;
+    ELSIF (TG_OP = 'INSERT' AND TG_LEVEL = 'ROW') THEN
+        audit_row.row_data = hstore(NEW.*) - excluded_cols;
+    ELSIF (TG_LEVEL = 'STATEMENT' AND TG_OP IN ('INSERT','UPDATE','DELETE','TRUNCATE')) THEN
+        audit_row.statement_only = 't';
+    ELSE
+        RAISE EXCEPTION '[if_modified_func] - Trigger func added as trigger for unhandled case: %, %',TG_OP, TG_LEVEL;
+        RETURN NULL;
+    END IF;
+    INSERT INTO sys_audit VALUES (audit_row.*);
+    RETURN NULL;
+END;
+$body$
+LANGUAGE plpgsql
+
+
+/*
+Name:					audit_table(target_table regclass, audit_rows boolean, audit_query_text boolean, ignored_cols text[])
+Parameters:		target_table:     Table name, schema qualified if not on search_path
+							audit_rows:       Record each row change, or only audit at a statement level
+							audit_query_text: Record the text of the client query that triggered the audit event?
+							ignored_cols:     Columns to exclude from update diffs, ignore updates that change only ignored cols.
+Returns:			void
+Author:				G. Cattabriga
+Date:					2020.05.12
+Description:	Add auditing support to a table.
+Notes:	
+Example:			to initiate auditing:   SELECT audit_table('person');
+																			SELECT audit_table('organization');
+							to cancel auditing:			DROP TRIGGER audit_trigger_row ON person;
+																			DROP TRIGGER audit_trigger_stm ON person;
+*/
+CREATE OR REPLACE FUNCTION audit_table(target_table regclass, audit_rows boolean, audit_query_text boolean, ignored_cols text[]) RETURNS void AS $body$
+DECLARE
+  stm_targets text = 'INSERT OR UPDATE OR DELETE OR TRUNCATE';
+  _q_txt text;
+  _ignored_cols_snip text = '';
+BEGIN
+    EXECUTE 'DROP TRIGGER IF EXISTS audit_trigger_row ON ' || target_table;
+    EXECUTE 'DROP TRIGGER IF EXISTS audit_trigger_stm ON ' || target_table;
+    IF audit_rows THEN
+        IF array_length(ignored_cols,1) > 0 THEN
+            _ignored_cols_snip = ', ' || quote_literal(ignored_cols);
+        END IF;
+        _q_txt = 'CREATE TRIGGER audit_trigger_row AFTER INSERT OR UPDATE OR DELETE ON ' || 
+                 target_table || 
+                 ' FOR EACH ROW EXECUTE PROCEDURE if_modified_func(' ||
+                 quote_literal(audit_query_text) || _ignored_cols_snip || ');';
+        RAISE NOTICE '%',_q_txt;
+        EXECUTE _q_txt;
+        stm_targets = 'TRUNCATE';
+    ELSE
+    END IF;
+    _q_txt = 'CREATE TRIGGER audit_trigger_stm AFTER ' || stm_targets || ' ON ' ||
+             target_table ||
+             ' FOR EACH STATEMENT EXECUTE PROCEDURE if_modified_func('||
+             quote_literal(audit_query_text) || ');';
+    RAISE NOTICE '%',_q_txt;
+    EXECUTE _q_txt;
+END;
+$body$
+language 'plpgsql';
+
+
+CREATE OR REPLACE FUNCTION audit_table(target_table regclass, audit_rows boolean, audit_query_text boolean) RETURNS void AS $body$
+SELECT audit_table($1, $2, $3, ARRAY[]::text[]);
+$body$ LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION audit_table(target_table regclass) RETURNS void AS $body$
+SELECT audit_table($1, BOOLEAN 't', BOOLEAN 't');
+$body$ LANGUAGE 'sql';
+
 
 /*
 Name:					read_file_utf8
@@ -145,23 +304,6 @@ Notes:				Not much in the way of validation; only checks to see if there is a no
 							Any other error (exception) will return FALSE
 */
 
-
-/*
-Name:					trigger_set_timestamp
-Parameters:		none
-Returns:			'new' (now) timestamp
-Author:				G. Cattabriga
-Date:					2019.12.02
-Description:	update the mod_dt (modify date) column with current date with timezone
-Notes:				this creates both the function and the trigger (for all tables with mod_dt)
-*/
-CREATE OR REPLACE FUNCTION trigger_set_timestamp()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.mod_date = NOW();
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
 /*
 -----------------------------------------------
 -- drop trigger_set_timestamp triggers
@@ -764,4 +906,80 @@ begin
 	END CASE;
 END;
 $$ language plpgsql;
+
+
+/*
+Name:					load_csv(_csv varchar, _csv varchar)
+Parameters:		fname = string of source filename, full location
+							tname = string of destination load_table
+Returns:			count of records loaded, or NULL is failed
+Author:				G. Cattabriga
+Date:					2020.05.15
+Description:	loads csv file (_csv) into load table (_table) 
+Notes:				assumes a column header row
+							drop function if exists load_csv(_csv varchar, _table varchar) cascade;
+Example:			select load_csv('/Users/gcattabriga/Downloads/GitHub/ESCALATE_report/iodides/REPORT/iodides.csv', 'load_v2_iodides_temp');
+*/
+CREATE OR REPLACE FUNCTION load_csv(_csv varchar, _table varchar)
+  RETURNS int AS
+$func$
+DECLARE
+   row_ct int;
+BEGIN
+   -- create staging table for 1st row as  single text column 
+	CREATE TEMP TABLE tmp0(cols varchar) ON COMMIT DROP;
+   -- fetch 1st row
+	EXECUTE format($$COPY tmp0 FROM PROGRAM 'head -n1 %I'$$, _csv);
+   -- create actual temp table with all columns text
+	EXECUTE (
+      SELECT format('CREATE TEMP TABLE %I(', _table)
+          || string_agg(quote_ident(col) || ' text', ',')
+          || ')'
+      FROM  (SELECT cols FROM tmp0 LIMIT 1) t
+         , unnest(string_to_array(t.cols, ',')) col
+     );
+   -- Import data
+   EXECUTE format($$COPY %I FROM %L WITH (format csv, HEADER, NULL 'null')$$, _table, _csv);
+		-- get row count
+	 GET DIAGNOSTICS row_ct = ROW_COUNT;
+   return row_ct;
+END
+$func$  LANGUAGE plpgsql;
+
+
+/*
+Name:					upsert_organization (description varchar, full_name varchar, short_name varchar, address1 varchar, address2 varchar, 
+																	city varchar, state_province varchar, zip varchar, country varchar, website_url varchar, phone varchar)
+Parameters:		
+
+Returns:			void
+Author:				G. Cattabriga
+Date:					2020.05.28
+Description:	loads file (fname) into load table (tname) using etl_map table
+Notes:				
+							
+Example:			select upsert_organization('/Users/gcattabriga/Downloads/GitHub/ESCALATE_report/bromides/REPORT/REPORT_LBL_INVENTORY.csv', 'load_lbl_inventory', true, true);
+*/
+-- DROP FUNCTION IF EXISTS upsert_organization (_descr varchar, _fulln varchar, _sname varchar, _add1 varchar, _add2 varchar, _city varchar, _state varchar, _zip varchar, _country varchar, _website varchar, _phone varchar) cascade;
+CREATE OR REPLACE FUNCTION upsert_organization (_descr varchar, _fulln varchar, _sname varchar, _add1 varchar, _add2 varchar, 
+														_city varchar, _state varchar, _zip varchar, _country varchar, _website varchar, _phone varchar) RETURNS void AS $$ 
+	begin
+    insert into organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone) 
+			values (_descr, _fulln, _sname, _add1, _add2, _city, _state, _zip, _country, _website, _phone)
+    on conflict on constraint un_organization
+    do update
+			set description = excluded.description,
+			short_name = excluded.short_name,
+			address1 = excluded.address1,
+			address2 = excluded.address2,
+			city = excluded.city,
+			state_province = excluded.state_province,
+			zip = excluded.zip,
+			country = excluded.country,
+			website_url = excluded.website_url,
+			phone = excluded.phone			
+    where organization.full_name = excluded.full_name;
+end
+$$ language plpgsql;
+
 
