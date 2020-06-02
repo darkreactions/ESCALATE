@@ -13,6 +13,16 @@ Notes:
 --=====================================
 
 ----------------------------------------
+-- view of sys_audit tables trigger on
+----------------------------------------
+CREATE OR REPLACE VIEW sys_audit_tableslist AS 
+ SELECT DISTINCT trigger_schema AS schema,
+    event_object_table AS auditedtable
+   FROM information_schema.triggers
+    WHERE trigger_name::text IN ('audit_trigger_row'::text, 'audit_trigger_stm'::text)  
+ORDER BY auditedtable;
+
+----------------------------------------
 -- view of status table (simple)
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_status AS
@@ -537,6 +547,7 @@ FROM (
 		material_uuid) mc
 	LEFT JOIN vw_material vm ON mc.material_uuid = vm.material_uuid;
 
+
 ----------------------------------------
 -- view inventory; with links to material, actor, status, edocument, note
 ----------------------------------------
@@ -598,3 +609,23 @@ FROM
 	LEFT JOIN vw_material mat ON inv.material_uuid = mat.material_uuid
 	LEFT JOIN vw_actor act ON inv.actor_uuid = act.actor_uuid
 	LEFT JOIN status st ON inv.status_uuid = st.status_uuid;
+	
+	
+	
+-- =======================================
+-- TESTING ONLY
+-- =======================================
+	----------------------------------------
+-- get experiments, measures, calculations 
+-- drop view vw_experiment_measure_calculation_json
+----------------------------------------
+CREATE OR REPLACE VIEW vw_experiment_measure_calculation_json AS
+select row_to_json(s) from  
+(
+	(SELECT 'wf1_iodides' as dataset_type, * from load_v2_iodides order by _exp_no)
+	union
+	(SELECT 'wf1_bromides' as dataset_type, * from load_v2_bromides order by _exp_no)
+) s
+
+
+	
