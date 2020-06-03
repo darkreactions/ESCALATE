@@ -615,8 +615,20 @@ FROM
 -- =======================================
 -- TESTING ONLY
 -- =======================================
-	----------------------------------------
+----------------------------------------
 -- get experiments, measures, calculations 
+-- drop view vw_experiment_measure_calculation
+----------------------------------------
+CREATE OR REPLACE VIEW vw_experiment_measure_calculation AS
+select * from  
+(
+	(SELECT 'wf1_iodides' as dataset_type, * from load_v2_iodides order by _exp_no)
+	union
+	(SELECT 'wf1_bromides' as dataset_type, * from load_v2_bromides order by _exp_no)
+) s
+
+----------------------------------------
+-- get experiments, measures, calculations in json 
 -- drop view vw_experiment_measure_calculation_json
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_experiment_measure_calculation_json AS

@@ -955,10 +955,11 @@ Parameters:
 Returns:			void
 Author:				G. Cattabriga
 Date:					2020.05.28
-Description:	loads file (fname) into load table (tname) using etl_map table
+Description:	inserts or updates organization record (using full_name as key)
 Notes:				
 							
-Example:			select upsert_organization('/Users/gcattabriga/Downloads/GitHub/ESCALATE_report/bromides/REPORT/REPORT_LBL_INVENTORY.csv', 'load_lbl_inventory', true, true);
+Example:			select upsert_organization('some description here','IBM','IBM','1001 IBM Lane',null,'Some City','NY',null,null,null,null);
+							select upsert_organization('some [new] description here','IBM','IBM','1001 IBM Lane',null,'Some [new] City','NY','00000',null,null,null);
 */
 -- DROP FUNCTION IF EXISTS upsert_organization (_descr varchar, _fulln varchar, _sname varchar, _add1 varchar, _add2 varchar, _city varchar, _state varchar, _zip varchar, _country varchar, _website varchar, _phone varchar) cascade;
 CREATE OR REPLACE FUNCTION upsert_organization (_descr varchar, _fulln varchar, _sname varchar, _add1 varchar, _add2 varchar, 
@@ -983,3 +984,25 @@ end
 $$ language plpgsql;
 
 
+/*
+Name:					delete_organization (full_name varchar)
+Parameters:		
+
+Returns:			void
+Author:				G. Cattabriga
+Date:					2020.05.28
+Description:	delete organization
+Notes:				
+							
+Example:			select count(*) from delete_organization('IBM');
+*/
+-- DROP FUNCTION IF EXISTS delete_organization (_fulln varchar) cascade;
+CREATE OR REPLACE FUNCTION delete_organization (_fulln varchar) RETURNS int8 AS $$ 
+	begin
+	with d as (
+    delete from organization org where org.full_name = _fulln returning *
+	)	
+	select count(*) from d;
+END;	
+	
+$$ language plpgsql;
