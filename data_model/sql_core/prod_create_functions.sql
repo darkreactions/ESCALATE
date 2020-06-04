@@ -960,14 +960,25 @@ Notes:
 							
 Example:			select upsert_organization('some description here','IBM','IBM','1001 IBM Lane',null,'Some City','NY',null,null,null,null);
 							select upsert_organization('some [new] description here','IBM','IBM','1001 IBM Lane',null,'Some [new] City','NY','00000',null,null,null);
+							
+							in case you want to add a dependent person...
+							INSERT INTO person (firstname, lastname, email, organization_uuid, note_uuid)
+							VALUES 
+							('Lester', 'Tester', 'ltester@testing.123', (select organization_uuid from organization where short_name = 'IBM'),NULL)
+							
+							
+							
+							
+							
 */
 -- DROP FUNCTION IF EXISTS upsert_organization (_descr varchar, _fulln varchar, _sname varchar, _add1 varchar, _add2 varchar, _city varchar, _state varchar, _zip varchar, _country varchar, _website varchar, _phone varchar) cascade;
+/*
 CREATE OR REPLACE FUNCTION upsert_organization (_descr varchar, _fulln varchar, _sname varchar, _add1 varchar, _add2 varchar, 
-														_city varchar, _state varchar, _zip varchar, _country varchar, _website varchar, _phone varchar) RETURNS void AS $$ 
+				_city varchar, _state varchar, _zip varchar, _country varchar, _website varchar, _phone varchar) RETURNS void AS $$ 
 	begin
-    insert into organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone) 
+   insert into organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone) 
 			values (_descr, _fulln, _sname, _add1, _add2, _city, _state, _zip, _country, _website, _phone)
-    on conflict on constraint un_organization
+   on conflict on constraint un_organization
     do update
 			set description = excluded.description,
 			short_name = excluded.short_name,
@@ -982,7 +993,7 @@ CREATE OR REPLACE FUNCTION upsert_organization (_descr varchar, _fulln varchar, 
     where organization.full_name = excluded.full_name;
 end
 $$ language plpgsql;
-
+*/
 
 /*
 Name:					delete_organization (full_name varchar)
@@ -1006,3 +1017,57 @@ CREATE OR REPLACE FUNCTION delete_organization (_fulln varchar) RETURNS int8 AS 
 END;	
 	
 $$ language plpgsql;
+
+
+/*
+Name:					upsert_organization ()
+Parameters:		
+
+Returns:			void
+Author:				G. Cattabriga
+Date:					2020.05.28
+Description:	trigger proc that deletes, inserts or updates organization record based on TG_OP (trigger operation)
+Notes:				
+							
+Example:			insert into vw_organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone) values ('some description here','IBM','IBM','1001 IBM Lane',null,'Some City','NY',null,null,null,null);
+							update vw_organization set description = 'some [new] description here', city = 'Some [new] City', zip = '00000' where full_name = 'IBM';
+							delete from vw_organization where full_name = 'IBM';
+				
+*/
+CREATE OR REPLACE FUNCTION upsert_organization() RETURNS TRIGGER AS $$
+    BEGIN
+        IF (TG_OP = 'DELETE') THEN
+            DELETE FROM organization WHERE full_name = OLD.full_name;
+            IF NOT FOUND THEN RETURN NULL; END IF;
+            RETURN OLD;
+        ELSIF (TG_OP = 'UPDATE') THEN
+            UPDATE organization
+						set description = NEW.description,
+							short_name = NEW.short_name,
+							address1 = NEW.address1,
+							address2 = NEW.address2,
+							city = NEW.city,
+							state_province = NEW.state_province,
+							zip = NEW.zip,
+							country = NEW.country,
+							website_url = NEW.website_url,
+							phone = NEW.phone			
+						where organization.full_name = NEW.full_name;
+            RETURN NEW;
+        ELSIF (TG_OP = 'INSERT') THEN
+            insert into organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone) 
+							values (NEW.description, NEW.full_name, NEW.short_name, NEW.address1, NEW.address2, NEW.city, NEW.state_province, NEW.zip, NEW.country, NEW.website_url, NEW.phone);
+            RETURN NEW;
+        END IF;
+    END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_organization_upsert
+INSTEAD OF INSERT OR UPDATE OR DELETE ON vw_organization
+    FOR EACH ROW EXECUTE PROCEDURE upsert_organization();
+		
+
+
+
+
+
