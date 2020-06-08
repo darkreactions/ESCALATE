@@ -625,6 +625,10 @@ select * from
 	(SELECT 'wf1_iodides' as dataset_type, * from load_v2_iodides order by _exp_no)
 	union
 	(SELECT 'wf1_bromides' as dataset_type, * from load_v2_bromides order by _exp_no)
+	union
+	(SELECT 'wf3_iodides' as dataset_type, * from load_v2_wf3_iodides order by _exp_no)	
+	union
+	(SELECT 'wf3_alloying' as dataset_type, * from load_v2_wf3_alloying order by _exp_no)	
 ) s
 
 ----------------------------------------
@@ -637,6 +641,10 @@ select _exp_no as UID, row_to_json(s) from
 	(SELECT 'wf1_iodides' as dataset_type, * from load_v2_iodides order by _exp_no)
 	union
 	(SELECT 'wf1_bromides' as dataset_type, * from load_v2_bromides order by _exp_no)
+	union
+	(SELECT 'wf3_iodides' as dataset_type, * from load_v2_wf3_iodides order by _exp_no)	
+	union
+	(SELECT 'wf3_alloying' as dataset_type, * from load_v2_wf3_alloying order by _exp_no)	
 ) s
 
 
