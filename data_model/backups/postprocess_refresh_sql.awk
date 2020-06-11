@@ -1,8 +1,8 @@
 #!/usr/bin/awk -f
 
 # super simple awk program to look for pattern in sql file and either add or modify
-# feed in the input sql file and speficy the output file with >
-# example ./parse_sql.awk sql_backup.sql > output.sql
+# feed in the input sql file and specify the output file with >
+# example ./postprocess_refresh_sql.awk escalate_dev_refresh_backup.sql > escalate_dev_refresh_backup.tmp && mv escalate_dev_refresh_backup.tmp escalate_dev_refresh_backup.sql
 BEGIN {}
 {
 	# add in the dev schema to the search_path
@@ -12,6 +12,7 @@ BEGIN {}
 			print $0
 			next
 		}
+		# comment out the drop schema
 		else if (index ($0, "DROP SCHEMA dev"))
 		{
 			print "-- DROP SCHEMA dev;"
