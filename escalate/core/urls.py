@@ -4,7 +4,8 @@ from .views import (LoginView, CreateUserView, MainMenuView,
                     MaterialDelete, MaterialView, InventoryList,
                     InventoryCreate, InventoryDelete, InventoryUpdate,
                     InventoryView, ActorView, ActorList, ActorCreate,
-                    ActorUpdate, ActorDelete)
+                    ActorUpdate, ActorDelete, OrganizationList, OrganizationCreate,
+                    OrganizationDelete, OrganizationUpdate, OrganizationView)
 
 urlpatterns = [
     path('', LoginView.as_view(), name='login'),
@@ -46,4 +47,17 @@ urlpatterns += [
          ActorDelete.as_view(), name='actor_delete'),
     path('actor/<int:pk>/view',
          ActorView.as_view(), name='actor_view'),
+]
+
+
+urlpatterns += [
+    path('organization_list/', OrganizationList.as_view(),
+         name='organization_list'),
+    path('organization/', OrganizationCreate.as_view(), name='organization_add'),
+    path('organization/<uuid:pk>',
+         OrganizationUpdate.as_view(), name='organization_update'),
+    path('organization/<uuid:organization_uuid>/delete',
+         OrganizationDelete.as_view(), name='organization_delete'),
+    path('organization/<uuid:pk>/view',
+         OrganizationView.as_view(), name='organization_view'),
 ]

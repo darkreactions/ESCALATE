@@ -1,0 +1,24 @@
+##
+
+GET http://escalate.sd2e.org/api/experimentmeasurecalculation/2018-12-04T01_52_47.768958%2B00_00_LBL_A1
+
+###
+
+GET http://escalate.sd2e.org/api/experimentmeasurecalculation/
+
+
+###
+
+GET http://escalate.sd2e.org/api/systemtool/?systemtool_name=standardize
+
+###
+GET http://localhost:8000/api/experimentmeasurecalculation/2018-12-04T01_52_47.768958%2B00_00_LBL_A1
+
+###
+
+GET http://localhost:8000/api/experimentmeasurecalculation/?fields=uid
+
+
+###
+
+GET http://localhost:8000/api/systemtool/?systemtool_name=standardize

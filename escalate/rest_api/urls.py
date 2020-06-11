@@ -10,11 +10,15 @@ from rest_framework import generics
 urlpatterns = [
     path('', views.api_root, name='api_root'),
     path('download/<uuid:uuid>/', views.download_blob, name='edoc_download'),
+    path('experimentmeasurecalculation/', views.ExperimentMeasureCalculationList.as_view(),
+         name='experimentmeasurecalculation-list'),
+    path('experimentmeasurecalculation/<str:pk>/',
+         views.ExperimentMeasureCalculationDetail.as_view(), name='experimentmeasurecalculation-detail')
 ]
 
 for view in view_names+custom_serializer_views:
     name = camel_case(view)
-    uuid = camel_case_uuid(view)
+    #uuid = camel_case_uuid(view)
 
     p_list = path('{}/'.format(name), getattr(views, view +
                                               'List').as_view(), name=name+'-list')

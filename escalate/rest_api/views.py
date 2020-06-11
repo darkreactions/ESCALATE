@@ -28,7 +28,6 @@ from .rest_docs import rest_docs
 view_names = view_names + custom_serializer_views
 
 
-
 @api_view(['GET'])
 @docstring(rest_docs['api_root'])
 def api_root(request, format=None):
@@ -83,8 +82,9 @@ def create_view(model_name, lookup_field=None):
 
 
 for view_name in view_names:
-    lookup_field = camel_case_uuid(view_name)
-    create_view(view_name, lookup_field)
+    #lookup_field = camel_case_uuid(view_name)
+    #create_view(view_name, lookup_field)
+    create_view(view_name)
 
 create_view('Edocument')
 

@@ -18,9 +18,12 @@ class Actor(models.Model):
     actor_description = models.CharField(max_length=255, blank=True, null=True)
     actor_status = models.CharField(max_length=255, blank=True, null=True)
     actor_notetext = models.CharField(max_length=255, blank=True, null=True)
-    org_full_name = models.CharField(max_length=255, blank=True, null=True)
-    org_short_name = models.CharField(max_length=255, blank=True, null=True)
-    per_lastname = models.CharField(max_length=255, blank=True, null=True)
+    org_full_name = models.CharField(
+        max_length=255, blank=True, null=True, verbose_name='Organization Full Name')
+    org_short_name = models.CharField(
+        max_length=255, blank=True, null=True, verbose_name='Organization Short Name')
+    per_lastname = models.CharField(
+        max_length=255, blank=True, null=True, verbose_name='Person Lastname')
     per_firstname = models.CharField(max_length=255, blank=True, null=True)
     person_lastfirst = models.CharField(max_length=255, blank=True, null=True)
     person_org = models.CharField(max_length=255, blank=True, null=True)
@@ -37,6 +40,9 @@ class Actor(models.Model):
     class Meta:
         managed = False
         db_table = 'vw_actor'
+
+    def __str__(self):
+        return "{}".format(self.actor_description)
 
 
 class Inventory(models.Model):
@@ -80,6 +86,9 @@ class Inventory(models.Model):
         managed = False
         db_table = 'vw_inventory'
 
+    def __str__(self):
+        return "{}".format(self.inventory_description)
+
 
 class InventoryMaterial(models.Model):
     inventory_uuid = models.UUIDField(primary_key=True)
@@ -118,6 +127,9 @@ class InventoryMaterial(models.Model):
         managed = False
         db_table = 'vw_inventory_material'
 
+    def __str__(self):
+        return "{} : {}".format(self.inventory_description, self.material_name)
+
 
 class LatestSystemtool(models.Model):
 
@@ -147,6 +159,9 @@ class LatestSystemtool(models.Model):
     class Meta:
         managed = False
         db_table = 'vw_latest_systemtool'
+
+    def __str__(self):
+        return "{}".format(self.systemtool_name)
 
 
 class Calculation(models.Model):
@@ -244,6 +259,9 @@ class CalculationDef(models.Model):
         managed = False
         db_table = 'vw_calculation_def'
 
+    def __str__(self):
+        return "{}".format(self.description)
+
 
 class Material(models.Model):
     material_uuid = models.UUIDField(primary_key=True,
@@ -267,6 +285,9 @@ class Material(models.Model):
         managed = False
         db_table = 'vw_material'
 
+    def __str__(self):
+        return "{}".format(self.chemical_name)
+
 
 class MaterialCalculationJson(models.Model):
     material_uuid = models.UUIDField(primary_key=True,
@@ -287,20 +308,12 @@ class MaterialCalculationJson(models.Model):
         db_column='smiles', max_length=255, blank=True, null=True)
     calculation_json = JSONField()
 
-    """
-    calculation_uuid = models.ForeignKey('Calculation',
-                                         models.DO_NOTHING,
-                                         db_column='calculation_uuid')
-    calculation_alias_name = models.CharField(
-        max_length=255, blank=True, null=True)
-    in_val = models.TextField(blank=True, null=True)
-    in_opt_val = models.TextField(blank=True, null=True)
-    out_val = models.TextField(blank=True, null=True)
-    """
-
     class Meta:
         managed = False
         db_table = 'vw_material_calculation_json'
+
+    def __str__(self):
+        return "{}".format(self.chemical_name)
 
 
 class MaterialRefnameType(models.Model):
@@ -312,6 +325,9 @@ class MaterialRefnameType(models.Model):
         managed = False
         db_table = 'vw_material_refname_type'
 
+    def __str__(self):
+        return "{}".format(self.description)
+
 
 class MaterialType(models.Model):
     material_type_uuid = models.UUIDField(primary_key=True)
@@ -321,6 +337,9 @@ class MaterialType(models.Model):
     class Meta:
         managed = False
         db_table = 'vw_material_type'
+
+    def __str__(self):
+        return "{}".format(self.description)
 
 
 class Note(models.Model):
@@ -339,6 +358,9 @@ class Note(models.Model):
     class Meta:
         managed = False
         db_table = 'vw_note'
+
+    def __str__(self):
+        return "{}".format(self.notetext)
 
 
 class Organization(models.Model):
@@ -365,15 +387,18 @@ class Organization(models.Model):
     notetext = models.TextField(blank=True, null=True)
     edocument = models.ForeignKey('Edocument',
                                   models.DO_NOTHING,
-                                  db_column='edocument_uuid')
+                                  db_column='edocument_uuid', blank=True, null=True)
     edocument_descr = models.CharField(max_length=255, blank=True, null=True)
     tag = models.ForeignKey('Tag', models.DO_NOTHING,
-                            db_column='tag_uuid')
+                            db_column='tag_uuid', blank=True, null=True)
     tag_short_descr = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'vw_organization'
+
+    def __str__(self):
+        return "{}".format(self.full_name)
 
 
 class Person(models.Model):
@@ -414,6 +439,9 @@ class Person(models.Model):
         managed = False
         db_table = 'vw_person'
 
+    def __str__(self):
+        return "{} {}".format(self.firstname, self.lastname)
+
 
 class Status(models.Model):
     status_uuid = models.UUIDField(primary_key=True)
@@ -424,6 +452,9 @@ class Status(models.Model):
     class Meta:
         managed = False
         db_table = 'vw_status'
+
+    def __str__(self):
+        return "{}".format(self.description)
 
 
 class Tag(models.Model):
@@ -452,6 +483,9 @@ class Tag(models.Model):
         managed = False
         db_table = 'vw_tag'
 
+    def __str__(self):
+        return "{}".format(self.tag_short_descr)
+
 
 class TagType(models.Model):
     tag_type_uuid = models.UUIDField(primary_key=True)
@@ -466,6 +500,9 @@ class TagType(models.Model):
     class Meta:
         managed = False
         db_table = 'vw_tag_type'
+
+    def __str__(self):
+        return "{}".format(self.short_description)
 
 
 class Edocument(models.Model):
@@ -494,4 +531,13 @@ class Edocument(models.Model):
         db_table = 'vw_edocument'
 
     def __str__(self):
-        return self.description
+        return "{}".format(self.title)
+
+
+class ExperimentMeasureCalculation(models.Model):
+    uid = models.CharField(max_length=255, primary_key=True, db_column='uid')
+    row_to_json = JSONField()
+
+    class Meta:
+        managed = False
+        db_table = 'vw_experiment_measure_calculation_json'

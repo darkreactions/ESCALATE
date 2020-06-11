@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-from .models import CustomUser, Person, Material, Inventory, Actor, Note
+from core.models import CustomUser, Person, Material, Inventory, Actor, Note, Organization
 
 
 class LoginForm(forms.Form):
@@ -62,3 +62,18 @@ class ActorForm(forms.ModelForm):
         # fields = ['person', 'organization', 'systemtool', 'description', 'status',
         #          'note']
         fields = '__all__'
+
+
+class OrganizationForm(forms.ModelForm):
+    class Meta:
+        model = Organization
+        fields = ['full_name', 'short_name', 'address1', 'address2', 'city',
+                  'state_province', 'zip', 'country', 'website_url', 'phone',
+                  'parent', 'notetext', 'edocument', 'tag']
+        labels = {
+            'state_province': 'State/Province',
+            'website_url': 'Website URL',
+            'address1': 'Address Line 1',
+            'address2': 'Address Line 2',
+            'notetext': 'Note Text'
+        }

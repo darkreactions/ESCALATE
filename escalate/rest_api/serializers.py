@@ -62,3 +62,9 @@ class EdocumentSerializer(DynamicFieldsModelSerializer):
                                      args=[obj.edocument_uuid],
                                      request=self.context['request']))
         return result
+
+
+class ExperimentMeasureCalculationSerializer(DynamicFieldsModelSerializer):
+    class Meta:
+        model = core.models.ExperimentMeasureCalculation
+        fields = ('uid', 'row_to_json')

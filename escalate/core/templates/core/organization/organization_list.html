@@ -1,0 +1,56 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block add_data %}
+<form class="form-inline my-2 my-lg-0" method="get" action="{% url url_name %}">
+
+    <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" value="{{filter}}"
+        name="filter">
+    <button class="btn btn-success my-2 my-sm-0" type="submit">Search</button>
+    <a href="{% url 'organization_add' %}" class="btn btn-warning mx-2 my-sm-0">Add Organization</a>
+</form>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <table class=" table table-bordered">
+        <thead>
+            <tr>
+                <th>UUID</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for org in orgs %}
+            <tr>
+                <td>{{ org.full_name }}</td>
+                <td>{{ org.address1 }} {{ org.address2 }} {{ org.city }}</td>
+                <td>{{ org.website_url}} </td>
+                <td>
+                    <a href="{% url 'organization_view' organization_uuid=org.pk %}" class="btn text-secondary px-0">
+                        <i class="fa fa-eye"></i>
+                    </a>
+
+                    </a>
+                    <a href="{% url 'organization_update' organization_uuid=org.pk %}" class="btn text-secondary px-0">
+                        <i class="fa fa-edit fa-lg"></i>
+                    </a>
+                    <button type="button" class="btn text-secondary px-0" data-toggle="modal" data-target="#deleteModal"
+                        data-description="{{ organization.full_name }}" data-pk="{{ organization.pk }}">
+                        <i class="fa fa-trash fa-lg"></i>
+                    </button>
+
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+</div>
+{% endblock %}
+
+{% block delete_url %}"/organization/" + pk + "/delete" {% endblock %}

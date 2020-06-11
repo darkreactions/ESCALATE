@@ -25,7 +25,7 @@ view_names = ['Systemtool', 'SystemtoolType', 'Actor', 'Inventory', 'InventoryMa
               'MaterialType', 'Note', 'Organization', 'Person',
               'Status', 'Tag', 'TagType']
 
-custom_serializer_views = ['Edocument']
+custom_serializer_views = ['Edocument', 'ExperimentMeasureCalculation']
 
 
 def docstring(docstr, sep="\n"):
