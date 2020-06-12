@@ -62,6 +62,26 @@ In addition to the environments in which this model can reside (e.g. local or do
 
 But before the ESCALATE data model can be instantiated, the first step is to configure your PostgreSQL environment.
 
+### Quickest method to fully create database (from backup)
+
+Assumption: you have a database named 'escalate' already created (in either local environment or docker container).
+
+**Option 1** -  restore into a local PostgreSQL environment
+using the latest 'create' sql file in the repo's backup folder. This assumes a local directory named backup
+
+```
+psql -d escalate -U escalate -f escalate_dev_create_backup.sql
+```
+**Option 2** -  restore into a docker container
+using the latest 'bak' file in the repo's backup folder. This assumes the following: 1) the docker container is named: escalate-postgres and 2) the backup sql file has been moved to a folder in the container
+
+```
+docker exec escalate-postgres psql -d escalate -U escalate -f escalate_dev_create_backup.sql
+```
+
+<br/>
+
+
 ### PostgreSQL configuration
 **Step 1** -  Create a database named 'escalate' with owner named 'escalate'. Use pgAdmin to create the database or execute the following SQL:
 
@@ -82,58 +102,77 @@ CREATE EXTENSION if not exists "uuid-ossp";
 ```
 <br/>
 
-### Instantiation (restore) from *pg_dump* utility
-**Option 1** -  restore into a local PostgreSQL environment
-using the latest 'bak' file in the repo's backup folder. This assumes a local directory named backup
+
+### Instantiation from SQL (as part of development process) 
+Running the SQL below, in order, will create the database, schema, functions, tables, keys and constraints, load load tables, and populate core tables.
+
+**Step 1** - Create database named: 'escalate'
 
 ```
-pg_restore -d escalate -c -C -O -U escalate /backup/escalate_dev_backup.bak
+CREATE DATABASE escalate OWNER escalate;
 ```
-**Option 2** -  restore into a docker container
-using the latest 'bak' file in the repo's backup folder. This assumes the following: 1) the docker container is named: escalate-postgres and 2) the bak file has been moved to a folder in the container
+
+**Step 2** - Create schema in database escalate (at this point, use: 'dev')
 
 ```
-docker exec escalate-postgres pg_restore -d escalate -c -C -U escalate /var/lib/postgres/escalate_dev_backup.bak
+CREATE SCHEMA dev;
 ```
-or 
 
-```
-docker exec escalate-postgres psql -d escalate -U escalate -f escalate_dev_backup.sql
-```
-<br/>
-
-### Instantiation from SQL
-Running the SQL below, in order, will create the tables, keys and constraints, load load tables, and populate core tables.
-
-
-**Step 1** - Populate the load tables with existing perovskite experimental data using SQL code found in the repo 'sql_dataload' subdirectory:
+**Step 3** -  Add required extensions (collection of functions) to the schema:
 
 ```
-prod_dataload_perov_desc.sql
-prod_dataload_perov_desc_def.sql
-prod_dataload_perov_mol_image.sql
+CREATE EXTENSION if not exists ltree with schema dev;
+CREATE EXTENSION if not exists tablefunc with schema dev;
+CREATE EXTENSION if not exists "uuid-ossp" with schema dev;
+CREATE EXTENSION IF NOT EXISTS hstore with schema dev;
+```
+
+**Step 4** - Populate the load tables with existing perovskite experimental data using SQL code found in the repo 'sql_dataload' subdirectory:
+
+```
 prod_dataload_chem_inventory.sql
+prod_dataload_edocument.sql
 prod_dataload_hc_inventory.sql
 prod_dataload_lbl_inventory.sql
+prod_dataload_perov_desc_def.sql
+prod_dataload_perov_desc.sql
+prod_dataload_perov_mol_image.sql
+prod_dataload_v2_wf3_iodides.sql
+pro_dataload_v2_wf3_alloying.sql
+prod_dataload_v2_iodides.sql
+prod_dataload_v2_bromides.sql
+
 ```
 
-**Step 2** - Create the core model tables, primary keys, foreign keys and constraints and views using SQL code found in the repo 'sql_core' subdirectory:
+**Step 5** - Create the core model tables, primary keys, foreign keys and constraints and views using SQL code found in the repo 'sql_core' subdirectory:
 
 ```
 prod_create_tables.sql
 ```
 
-**Step 3** - Populate the core tables:
+**Step 6** - Create the core functions:
 
 ```
-prod_initialize_org_per_sys_actor.sql
-prod_load_functions.sql
+prod_create_functions.sql
+```
+
+**Step 7** - Create the core views:
+
+```
+prod_create_views.sql
+```
+
+
+**Step 8** - Populate the core tables:
+
+```
+prod_initialize_coretables.sql
 prod_update_1_material.sql
 prod_update_2_inventory.sql
 prod_update_3_descriptor.sql
 ```
 
-End with an example of getting some data out of the system or using it for a little demo
+Note to self: End with an example of getting some data out of the system or using it for a little demo
 
 <br/>
 
@@ -154,8 +193,8 @@ select count(*) from material;
 select count(*) from inventory;
 > 131
 > 
-select count(*) from m_descriptor;
-> 5496
+select count(*) from calculation;
+> 8025
 ```
 
 Check view vw_actor:
@@ -172,9 +211,9 @@ select systemtool_name, systemtool_description, systemtool_version from vw_actor
 Check view vw_m_descriptor_def:
 
 ```
-select short_name, calc_definition, description, actor_org, actor_systemtool_name, actor_systemtool_version from vw_m_descriptor_def where short_name = 'atomcount_c';;
+select short_name, calc_definition, description, actor_description, systemtool_name, systemtool_version from vw_calculation_def where short_name = 'atomcount_c_standardize';
  
-> atomcount_c	atomcount -z 6	number of carbon atoms in the molecule 	ChemAxon	cxcalc	19.27.0
+> atomcount_c_standardize	atomcount -z 6 number of carbon atoms in the molecule Gary Cattabriga cxcalc 19.27.0
 ```
 
 <br/>

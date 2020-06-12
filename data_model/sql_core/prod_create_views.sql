@@ -187,6 +187,11 @@ FROM
 	LEFT JOIN edocument_x edx ON org.organization_uuid = edx.ref_edocument_uuid
 	LEFT JOIN edocument ed ON edx.edocument_uuid = ed.edocument_uuid;
 
+DROP TRIGGER IF EXISTS trigger_organization_upsert on vw_organization;
+CREATE TRIGGER trigger_organization_upsert
+INSTEAD OF INSERT OR UPDATE OR DELETE ON vw_organization
+    FOR EACH ROW EXECUTE PROCEDURE upsert_organization();
+
 ----------------------------------------
 -- integrated view of inventory; joins measure (amounts of material
 ----------------------------------------
@@ -629,7 +634,7 @@ select * from
 	(SELECT 'wf3_iodides' as dataset_type, * from load_v2_wf3_iodides order by _exp_no)	
 	union
 	(SELECT 'wf3_alloying' as dataset_type, * from load_v2_wf3_alloying order by _exp_no)	
-) s
+) s;
 
 ----------------------------------------
 -- get experiments, measures, calculations in json 
@@ -645,7 +650,7 @@ select _exp_no as UID, row_to_json(s) from
 	(SELECT 'wf3_iodides' as dataset_type, * from load_v2_wf3_iodides order by _exp_no)	
 	union
 	(SELECT 'wf3_alloying' as dataset_type, * from load_v2_wf3_alloying order by _exp_no)	
-) s
+) s;
 
 
 	

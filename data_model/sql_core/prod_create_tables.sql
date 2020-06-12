@@ -552,7 +552,7 @@ CREATE INDEX "ix_sys_audit_action_tstamp_tx_stm" ON sys_audit(action_tstamp_stm)
 CREATE INDEX "ix_sys_audit_action" ON sys_audit(action);
 
 ALTER TABLE organization 
-	ADD CONSTRAINT "pk_organization_organization_uuid" PRIMARY KEY (organization_uuid);
+	ADD CONSTRAINT "pk_organization_organization_uuid" PRIMARY KEY (organization_uuid),
 	ADD CONSTRAINT "un_organization" UNIQUE (full_name);
 	CREATE INDEX "ix_organization_parent_path" ON organization USING GIST (parent_path);
 	CREATE INDEX "ix_organization_parent_uuid" ON organization (parent_uuid);
@@ -840,62 +840,6 @@ ALTER TABLE tag
 -- ALTER TABLE tag ADD CONSTRAINT "pk_tag_tag_uuid" PRIMARY KEY (tag_uuid);
 ALTER TABLE tag_x 
 	ADD CONSTRAINT fk_tag_x_tag_1 FOREIGN KEY (tag_uuid) REFERENCES tag (tag_uuid);
-
-
---=====================================
--- TRIGGERS
---=====================================
----------------------------------------
--- set_timestamp trigger
----------------------------------------
--- drop trigger_set_timestamp triggers
-DO $$
-DECLARE
-    t text;
-BEGIN
-    FOR t IN 
-        SELECT table_name FROM information_schema.columns
-        WHERE column_name = 'mod_date' and table_schema='dev'
-    LOOP
-        EXECUTE format('DROP TRIGGER IF EXISTS set_timestamp ON %I',t);
-    END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
--- create trigger_set_timestamp triggers
-DO $$
-DECLARE
-    t text;
-BEGIN
-    FOR t IN 
-        SELECT table_name FROM information_schema.columns
-        WHERE column_name = 'mod_date' and table_schema='dev'
-    LOOP
-        EXECUTE format('CREATE TRIGGER set_timestamp
-                        BEFORE UPDATE ON %I
-                        FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp()',
-                        t);
-    END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
-/*
--- test the update TRIGGER
-CREATE TRIGGER set_timestamp
-	BEFORE UPDATE ON organization
-	FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();	
-	
-UPDATE organization 
-	SET city = 'Cambridge',
-	state = 'MA',
-	zip = '02142'
- WHERE name = 'ChemAxon' RETURNING *;
- 
- UPDATE actor 
-	SET organization_uuid = 4
- WHERE organization_uuid = 4 RETURNING *;
- */
-
 
 
 --=====================================

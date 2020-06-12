@@ -35,6 +35,40 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+---------------------------------------
+-- set_timestamp trigger
+---------------------------------------
+-- drop trigger_set_timestamp triggers
+DO $$
+DECLARE
+    t text;
+BEGIN
+    FOR t IN 
+        SELECT table_name FROM information_schema.columns
+        WHERE column_name = 'mod_date' and table_schema='dev'
+    LOOP
+        EXECUTE format('DROP TRIGGER IF EXISTS set_timestamp ON %I',t);
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- create trigger_set_timestamp triggers
+DO $$
+DECLARE
+    t text;
+BEGIN
+    FOR t IN 
+        SELECT table_name FROM information_schema.columns
+        WHERE column_name = 'mod_date' and table_schema='dev'
+    LOOP
+        EXECUTE format('CREATE TRIGGER set_timestamp
+                        BEFORE UPDATE ON %I
+                        FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp()',
+                        t);
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
 
 /*
 Name:					if_modified()
@@ -117,7 +151,7 @@ BEGIN
     RETURN NULL;
 END;
 $body$
-LANGUAGE plpgsql
+LANGUAGE plpgsql;
 
 
 /*
@@ -1062,9 +1096,6 @@ CREATE OR REPLACE FUNCTION upsert_organization() RETURNS TRIGGER AS $$
     END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_organization_upsert
-INSTEAD OF INSERT OR UPDATE OR DELETE ON vw_organization
-    FOR EACH ROW EXECUTE PROCEDURE upsert_organization();
 		
 
 

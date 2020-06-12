@@ -87,32 +87,39 @@ val AS (
 **Core Tables (non ETL)**
 
 ```
-person 
-systemtool
-systemtool_type
 actor
 actor_pref
-material
-material_type
-material_type_x
-material_refname
-material_refname_x
-material_refname_type
-m_descriptor_class
-m_descriptor_def
-m_descriptor
-m_descriptor_eval
-inventory
-measure
-measure_x
-measure_type
-note
+calculation
+calculation_class
+calculation_def
+calculation_eval
 edocument
 edocument_x
-tag
-tag_x
-tag_type
+escalate_change_log
+escalate_version
+experiment
+files
+inventory
+material
+material_refname
+material_refname_type
+material_refname_x
+material_type
+material_type_x
+measure
+measure_type
+measure_x
+note
+organization
+person
 status
+sys_audit
+systemtool
+systemtool_type
+tag
+tag_type
+tag_x
+
 ```
 <br/>
 
@@ -366,6 +373,37 @@ RETURNS TABLE (
 <a name="views"></a>
 ## Views
 Below are a list of the views with highlevel description, followed by column names returned by view. Views are named using the following structure: 
+
+**Core Views**
+
+```
+sys_audit_tableslist
+vw_actor
+vw_calculation
+vw_calculation_def
+vw_edocument
+vw_experiment_measure_calculation
+vw_experiment_measure_calculation_json
+vw_inventory
+vw_inventory_material
+vw_latest_systemtool
+vw_latest_systemtool_raw
+vw_material
+vw_material_calculation_json
+vw_material_calculation_raw
+vw_material_raw
+vw_material_refname_type
+vw_material_type
+vw_note
+vw_organization
+vw_person
+vw_status
+vw_tag
+vw_tag_type
+
+```
+<br/>
+
 
 ```
 vw_[filter]_[table1]_[table2]_[tablen]
