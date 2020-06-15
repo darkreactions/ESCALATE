@@ -219,21 +219,12 @@ select short_name, calc_definition, description, actor_description, systemtool_n
 <br/>
 
 ## Maintenance
-Script `pg_dump` to backup all the `dev` schema tables except the `load_` tables, which tend to be rather large:
+Included in the backups directory is a shell script `run_escalate_backups.sh` that will create two sql backups from the current escalate database: 1) a complete rebuild of the database and data including the dropping of the schema `escalate_dev_create_backup.sql` and 2) a refresh of the escalate tables, views, functions, etc but does not drop the schema or Django tables `escalate_dev_refresh_backup.sql`. To run the script, cd into the 'backups' directory and execute:
 
 ```
- #!/usr/bin/env bash
- 
- today=`date +%Y%m%d`
- filename="escalate_noload_dump_$today.bak"
- pg_dump -U escalate -d escalate -Fc -T 'dev.load_*' > $filename 
+./run_escalate_backups.sh
 ```
 
-If you want to back up everything, then eliminate the `exclude table` switch:
-
-```
-pg_dump -U escalate -d escalate -Fc -T > $filename
-```
 
 <br/>
 
