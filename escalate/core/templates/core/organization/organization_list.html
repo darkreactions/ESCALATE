@@ -30,16 +30,16 @@
                 <td>{{ org.address1 }} {{ org.address2 }} {{ org.city }}</td>
                 <td>{{ org.website_url}} </td>
                 <td>
-                    <a href="{% url 'organization_view' organization_uuid=org.pk %}" class="btn text-secondary px-0">
+                    <a href="{% url 'organization_view' pk=org.pk %}" class="btn text-secondary px-0">
                         <i class="fa fa-eye"></i>
                     </a>
 
                     </a>
-                    <a href="{% url 'organization_update' organization_uuid=org.pk %}" class="btn text-secondary px-0">
+                    <a href="{% url 'organization_update' pk=org.pk %}" class="btn text-secondary px-0">
                         <i class="fa fa-edit fa-lg"></i>
                     </a>
                     <button type="button" class="btn text-secondary px-0" data-toggle="modal" data-target="#deleteModal"
-                        data-description="{{ organization.full_name }}" data-pk="{{ organization.pk }}">
+                        data-description="{{ org.full_name }}" data-pk="{{ org.pk }}">
                         <i class="fa fa-trash fa-lg"></i>
                     </button>
 
