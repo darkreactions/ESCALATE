@@ -854,39 +854,6 @@ BEGIN
 $$ LANGUAGE plpgsql;
 
 
-/*
-Name:					load_edocuments (p_actor_uuid uuid)
-Parameters:		p_actor_uuid = identifier (uuid) of the actor owning this edocument
-Returns:			boolean T or F
-Author:				G. Cattabriga
-Date:					2020.04.07
-Description:	loads edocuments into the load table 
-Notes:				
-							
-Example:			select load_edocuments((select actor_uuid from actor where description = 'Ian Pendleton'));
-*/
-
-DROP FUNCTION IF EXISTS load_edocuments (p_actor_uuid uuid) cascade;
-CREATE OR REPLACE FUNCTION load_edocuments (p_actor_uuid uuid) RETURNS bool AS $$ 
-DECLARE
-	pathname varchar := '/Users/gcattabriga/Downloads/GitHub/escalate_wip/';
-	filename VARCHAR := null;
-	fullfilename VARCHAR := null;
-	fullpathname varchar := null;
-	fcontents varchar := null;
-BEGIN
-	FOR fullfilename IN select pg_ls_dir(pathname) order by 1 LOOP
-		 IF (fullfilename ~ '^.*\.(pdf)$') THEN
-				fcontents = pg_read_binary_file(pathname||fullfilename);
-				fullpathname = pathname || fullfilename;
-				filename = substring(fullfilename, 1, length(fullfilename) - POSITION('.' in reverse(fullfilename)));
-				insert into load_edocument (description, document_type, edocument, actor_uuid) values (filename, 'blob_pdf'::val_type, bytea(fcontents), p_actor_uuid);
-		 END IF;
-	 END LOOP;
-	 RETURN TRUE;
- END; 
-$$ LANGUAGE plpgsql;
-
 
 /*
 Name:					get_charge_count (p_mol_smiles varchar) 
@@ -941,44 +908,6 @@ begin
 END;
 $$ language plpgsql;
 
-
-/*
-Name:					load_csv(_csv varchar, _csv varchar)
-Parameters:		fname = string of source filename, full location
-							tname = string of destination load_table
-Returns:			count of records loaded, or NULL is failed
-Author:				G. Cattabriga
-Date:					2020.05.15
-Description:	loads csv file (_csv) into load table (_table) 
-Notes:				assumes a column header row
-							drop function if exists load_csv(_csv varchar, _table varchar) cascade;
-Example:			select load_csv('/Users/gcattabriga/Downloads/GitHub/ESCALATE_report/iodides/REPORT/iodides.csv', 'load_v2_iodides_temp');
-*/
-CREATE OR REPLACE FUNCTION load_csv(_csv varchar, _table varchar)
-  RETURNS int AS
-$func$
-DECLARE
-   row_ct int;
-BEGIN
-   -- create staging table for 1st row as  single text column 
-	CREATE TEMP TABLE tmp0(cols varchar) ON COMMIT DROP;
-   -- fetch 1st row
-	EXECUTE format($$COPY tmp0 FROM PROGRAM 'head -n1 %I'$$, _csv);
-   -- create actual temp table with all columns text
-	EXECUTE (
-      SELECT format('CREATE TEMP TABLE %I(', _table)
-          || string_agg(quote_ident(col) || ' text', ',')
-          || ')'
-      FROM  (SELECT cols FROM tmp0 LIMIT 1) t
-         , unnest(string_to_array(t.cols, ',')) col
-     );
-   -- Import data
-   EXECUTE format($$COPY %I FROM %L WITH (format csv, HEADER, NULL 'null')$$, _table, _csv);
-		-- get row count
-	 GET DIAGNOSTICS row_ct = ROW_COUNT;
-   return row_ct;
-END
-$func$  LANGUAGE plpgsql;
 
 
 /*
@@ -1059,20 +988,25 @@ Parameters:
 
 Returns:			void
 Author:				G. Cattabriga
-Date:					2020.05.28
+Date:					2020.06.16
 Description:	trigger proc that deletes, inserts or updates organization record based on TG_OP (trigger operation)
 Notes:				
 							
-Example:			insert into vw_organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone) values ('some description here','IBM','IBM','1001 IBM Lane',null,'Some City','NY',null,null,null,null);
-							update vw_organization set description = 'some [new] description here', city = 'Some [new] City', zip = '00000' where full_name = 'IBM';
+Example:			insert into vw_organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid, notetext) 
+								values ('some description here','IBM','IBM','1001 IBM Lane',null,'Some City','NY',null,null,null,null,null,'some text here... ');
+							update vw_organization set description = 'some [new] description here', city = 'Some [new] City', zip = '00000', notetext = 'some text here... with added text' where full_name = 'IBM';
+							update vw_organization set parent_uuid =  (select organization_uuid from organization where organization.full_name = 'Haverford College') where full_name = 'IBM';
 							delete from vw_organization where full_name = 'IBM';
-				
+			
 */
 CREATE OR REPLACE FUNCTION upsert_organization() RETURNS TRIGGER AS $$
+	  DECLARE
+			_note_uuid uuid;
     BEGIN
         IF (TG_OP = 'DELETE') THEN
             DELETE FROM organization WHERE full_name = OLD.full_name;
             IF NOT FOUND THEN RETURN NULL; END IF;
+						DELETE from note where note_uuid = OLD.note_uuid;
             RETURN OLD;
         ELSIF (TG_OP = 'UPDATE') THEN
             UPDATE organization
@@ -1085,12 +1019,20 @@ CREATE OR REPLACE FUNCTION upsert_organization() RETURNS TRIGGER AS $$
 							zip = NEW.zip,
 							country = NEW.country,
 							website_url = NEW.website_url,
-							phone = NEW.phone			
+							phone = NEW.phone,
+							parent_uuid = NEW.parent_uuid,
+							mod_date = now()
 						where organization.full_name = NEW.full_name;
+					  UPDATE note
+						set notetext = NEW.notetext,
+							mod_date = now()
+						where note.note_uuid = (select note_uuid from organization where organization.full_name = NEW.full_name);	
             RETURN NEW;
         ELSIF (TG_OP = 'INSERT') THEN
-            insert into organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone) 
-							values (NEW.description, NEW.full_name, NEW.short_name, NEW.address1, NEW.address2, NEW.city, NEW.state_province, NEW.zip, NEW.country, NEW.website_url, NEW.phone);
+						insert into note (notetext) 
+							values (NEW.notetext) returning note_uuid into _note_uuid;	
+            insert into organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid, note_uuid) 
+							values (NEW.description, NEW.full_name, NEW.short_name, NEW.address1, NEW.address2, NEW.city, NEW.state_province, NEW.zip, NEW.country, NEW.website_url, NEW.phone, NEW.parent_uuid, _note_uuid);					
             RETURN NEW;
         END IF;
     END;

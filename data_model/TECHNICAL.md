@@ -62,11 +62,11 @@ Talk about the core entities...
 <!-- ******************* Schema Detail ****************** -->
 <a name="schemadetail"></a>
 ## Schema Detail
-Discussion how this stuff all relates together...
+Discussion on how this stuff all relates together...
 
 [![Schema Detail][schema-detail]](https://github.com/darkreactions/ESCALATE/blob/master/data_model/erd_diagrams/escalate_erd_physicalmodel.pdf)
 
-**Defined Types**
+### Defined Types
 
 ```
 val_type AS ENUM ('int', 'array_int', 'num', 'array_num', 'text', 'array_text', 'blob_text', 'blob_svg', 'blob_jpg', 'blob_png', 'blob_xrd')
@@ -84,7 +84,7 @@ val AS (
 <br/>
 
 
-**Core Tables (non ETL)**
+### Core Tables (non ETL)
 
 ```
 actor
@@ -123,36 +123,47 @@ tag_x
 ```
 <br/>
 
-**Primary Keys and Constraints**
+### Primary Keys and Constraints
 
 ```
+CREATE INDEX "ix_sys_audit_relid" ON sys_audit(relid);
+CREATE INDEX "ix_sys_audit_action_tstamp_tx_stm" ON sys_audit(action_tstamp_stm);
+CREATE INDEX "ix_sys_audit_action" ON sys_audit(action);
+
 ALTER TABLE organization 
-	ADD CONSTRAINT "pk_organization_organization_id" PRIMARY KEY (organization_id);
+	ADD CONSTRAINT "pk_organization_organization_uuid" PRIMARY KEY (organization_uuid),
+	ADD CONSTRAINT "un_organization" UNIQUE (full_name);
 	CREATE INDEX "ix_organization_parent_path" ON organization USING GIST (parent_path);
-	CREATE INDEX "ix_organization_parent_id" ON organization (parent_id);
-CLUSTER organization USING "pk_organization_organization_id";
+	CREATE INDEX "ix_organization_parent_uuid" ON organization (parent_uuid);
+CLUSTER organization USING "pk_organization_organization_uuid";
 
 ALTER TABLE person 
-ADD CONSTRAINT "pk_person_person_id" PRIMARY KEY (person_id);
-CLUSTER person USING "pk_person_person_id";
+ADD CONSTRAINT "pk_person_person_uuid" PRIMARY KEY (person_uuid);
+CLUSTER person USING "pk_person_person_uuid";
 
 ALTER TABLE systemtool 
-	ADD CONSTRAINT "pk_systemtool_systemtool_id" PRIMARY KEY (systemtool_id),
-	ADD CONSTRAINT "un_systemtool" UNIQUE (systemtool_name, systemtool_type_id, vendor_organization_id, ver);
-CLUSTER systemtool USING "pk_systemtool_systemtool_id";
+	ADD CONSTRAINT "pk_systemtool_systemtool_uuid" PRIMARY KEY (systemtool_uuid),
+	ADD CONSTRAINT "un_systemtool" UNIQUE (systemtool_name, systemtool_type_uuid, vendor_organization_uuid, ver);
+CLUSTER systemtool USING "pk_systemtool_systemtool_uuid";
 
 ALTER TABLE systemtool_type 
-	ADD CONSTRAINT "pk_systemtool_systemtool_type_id" PRIMARY KEY (systemtool_type_id);
-CLUSTER systemtool_type USING "pk_systemtool_systemtool_type_id";
+	ADD CONSTRAINT "pk_systemtool_systemtool_type_uuid" PRIMARY KEY (systemtool_type_uuid);
+CLUSTER systemtool_type USING "pk_systemtool_systemtool_type_uuid";
 
 ALTER TABLE actor 
 	ADD CONSTRAINT "pk_actor_uuid" PRIMARY KEY (actor_uuid);
-	CREATE UNIQUE INDEX "un_actor" ON actor (coalesce(person_id,-1), coalesce(organization_id,-1), coalesce(systemtool_id,-1) );
+	CREATE UNIQUE INDEX "un_actor" ON actor (coalesce(person_uuid,null), coalesce(organization_uuid,null), coalesce(systemtool_uuid,null) );
 CLUSTER actor USING "pk_actor_uuid";
 
 ALTER TABLE actor_pref 
 	ADD CONSTRAINT "pk_actor_pref_uuid" PRIMARY KEY (actor_pref_uuid);
 CLUSTER actor_pref USING "pk_actor_pref_uuid";
+
+ALTER TABLE experiment ADD 
+	CONSTRAINT "pk_experimentl_experiment_uuid" PRIMARY KEY (experiment_uuid);
+	CREATE INDEX "ix_experiment_parent_path" ON experiment USING GIST (parent_path);
+	CREATE INDEX "ix_experiment_parent_uuid" ON experiment (parent_uuid);
+CLUSTER experiment USING "pk_experimentl_experiment_uuid";
 
 ALTER TABLE material ADD 
 	CONSTRAINT "pk_material_material_uuid" PRIMARY KEY (material_uuid);
@@ -183,24 +194,24 @@ ALTER TABLE material_refname_type
 	ADD CONSTRAINT "pk_material_refname_type_material_refname_type_uuid" PRIMARY KEY (material_refname_type_uuid);
 CLUSTER material_refname_type USING "pk_material_refname_type_material_refname_type_uuid";
 
-ALTER TABLE m_descriptor_class ADD 
-	CONSTRAINT "pk_m_descriptor_class_m_descriptor_class_uuid" PRIMARY KEY (m_descriptor_class_uuid);
-CLUSTER m_descriptor_class USING "pk_m_descriptor_class_m_descriptor_class_uuid";
+ALTER TABLE calculation_class ADD 
+	CONSTRAINT "pk_calculation_class_calculation_class_uuid" PRIMARY KEY (calculation_class_uuid);
+CLUSTER calculation_class USING "pk_calculation_class_calculation_class_uuid";
 
-ALTER TABLE m_descriptor_def 
-	ADD CONSTRAINT "pk_m_descriptor_m_descriptor_def_uuid" PRIMARY KEY (m_descriptor_def_uuid),
-	ADD CONSTRAINT "un_m_descriptor_def" UNIQUE (actor_uuid, calc_definition);	
-CLUSTER m_descriptor_def USING "pk_m_descriptor_m_descriptor_def_uuid";
+ALTER TABLE calculation_def 
+	ADD CONSTRAINT "pk_calculation_calculation_def_uuid" PRIMARY KEY (calculation_def_uuid),
+	ADD CONSTRAINT "un_calculation_def" UNIQUE (actor_uuid, short_name, calc_definition);	
+CLUSTER calculation_def USING "pk_calculation_calculation_def_uuid";
 
-ALTER TABLE m_descriptor
-	ADD CONSTRAINT "pk_m_descriptor_m_descriptor_uuid" PRIMARY KEY (m_descriptor_uuid),
-	ADD CONSTRAINT "un_m_descriptor" UNIQUE (m_descriptor_def_uuid, in_val, in_opt_val);
-CLUSTER m_descriptor USING "pk_m_descriptor_m_descriptor_uuid";
+ALTER TABLE calculation
+	ADD CONSTRAINT "pk_calculation_calculation_uuid" PRIMARY KEY (calculation_uuid),
+	ADD CONSTRAINT "un_calculation" UNIQUE (calculation_def_uuid, in_val, in_opt_val);
+CLUSTER calculation USING "pk_calculation_calculation_uuid";
 
-ALTER TABLE m_descriptor_eval
-	ADD CONSTRAINT "pk_m_descriptor_eval_m_descriptor_eval_id" PRIMARY KEY (m_descriptor_eval_id),
-	ADD CONSTRAINT "un_m_descriptor_eval" UNIQUE (m_descriptor_def_uuid, in_val, in_opt_val);
-CLUSTER m_descriptor_eval USING "pk_m_descriptor_eval_m_descriptor_eval_id";
+ALTER TABLE calculation_eval
+	ADD CONSTRAINT "pk_calculation_eval_calculation_eval_id" PRIMARY KEY (calculation_eval_id),
+	ADD CONSTRAINT "un_calculation_eval" UNIQUE (calculation_def_uuid, in_val, in_opt_val);
+CLUSTER calculation_eval USING "pk_calculation_eval_calculation_eval_id";
 
 ALTER TABLE inventory 
 	ADD CONSTRAINT "pk_inventory_inventory_uuid" PRIMARY KEY (inventory_uuid),
@@ -225,8 +236,9 @@ ALTER TABLE note ADD
 	CONSTRAINT "pk_note_note_uuid" PRIMARY KEY (note_uuid);
 CLUSTER note USING "pk_note_note_uuid";
 
-ALTER TABLE edocument ADD 
-	CONSTRAINT "pk_edocument_edocument_uuid" PRIMARY KEY (edocument_uuid);
+ALTER TABLE edocument 
+	ADD CONSTRAINT "pk_edocument_edocument_uuid" PRIMARY KEY (edocument_uuid),
+	ADD CONSTRAINT "un_edocument" UNIQUE (edocument_title, edocument_filename, edocument_source);
 CLUSTER edocument USING "pk_edocument_edocument_uuid";
 
 ALTER TABLE edocument_x 
@@ -259,112 +271,69 @@ CLUSTER status USING "pk_status_status_uuid";
 <!-- ******************* Functions ****************** -->
 <a name="functions"></a>
 ## Functions
-
-**isdate(str varchar)**<br/>
-if str can be cast to a date, then return TRUE, else FALSE
+List of callable and trigger functions (see SQL code for details):
 
 ```
-FUNCTION isdate ( txt VARCHAR ) RETURNS BOOLEAN AS $$ BEGIN
-		perform txt :: DATE;
-	RETURN TRUE;
-	EXCEPTION 
-	WHEN OTHERS THEN
-		RETURN FALSE;
-END;
-$$ LANGUAGE plpgsql;
-```
-<br/>
+trigger_set_timestamp()
+if_modified_func()
+audit_table(target_table regclass, audit_rows boolean, audit_query_text boolean, ignored_cols text[]) RETURNS void
+audit_table(target_table regclass, audit_rows boolean, audit_query_text boolean) RETURNS void
+read_file_utf8(path CHARACTER VARYING) RETURNS TEXT
+read_file(path CHARACTER VARYING) RETURNS TEXT
+isdate ( txt VARCHAR ) RETURNS BOOLEAN
+read_dirfiles ( PATH CHARACTER VARYING ) RETURNS BOOLEAN
+get_material_uuid_bystatus (p_status_array varchar[], p_null_bool boolean)
+   RETURNS TABLE (
+		material_uuid uuid,
+		material_description varchar)
+get_material_nameref_bystatus (p_status_array varchar[], p_null_bool boolean)
+   RETURNS TABLE (
+       material_uuid uuid,
+		material_refname varchar,
+		material_refname_type varchar)
+get_material_bydescr_bystatus (p_descr varchar, p_status_array VARCHAR[], p_null_bool BOOLEAN)
+   RETURNS TABLE (
+      material_uuid uuid,
+		material_description varchar,
+		material_refname_uuid uuid,
+		material_refname_description VARCHAR,
+		material_refname_type varchar)
+get_material_type (p_material_uuid uuid) RETURNS varchar[]
+get_actor ()
+   RETURNS TABLE (
+       actor_uuid uuid,
+		organization_uuid int8,
+		person_uuid int8,
+		systemtool_uuid int8,
+		actor_description varchar,
+		actor_status varchar,
+		notetext varchar,
+		org_description varchar,
+		person_lastfirst varchar,
+		systemtool_name varchar,
+		systemtool_version varchar)
+get_calculation_def (p_descr VARCHAR[])
+   RETURNS TABLE (
+		calculation_def_uuid uuid,
+		short_name varchar,
+		systemtool_name varchar,
+		calc_definition varchar,
+		description varchar,
+		in_type val_type,
+		out_type val_type,
+		systemtool_version varchar)
+get_calculation (p_material_refname varchar, p_descr VARCHAR[] = null)
+   RETURNS TABLE (calculation_uuid uuid) 
+get_val (p_in val) returns text
+get_chemaxon_directory ( p_systemtool_uuid uuid, p_actor_uuid uuid ) RETURNS TEXT
+get_chemaxon_version ( p_systemtool_uuid uuid, p_actor_uuid uuid ) RETURNS TEXT
+run_descriptor (p_descriptor_def_uuid uuid, p_alias_name varchar, p_command_opt varchar, p_actor_uuid uuid) RETURNS BOOLEAN
+load_mol_images ( p_systemtool_uuid uuid, p_actor_uuid uuid ) RETURNS bool
+get_charge_count ( p_mol_smiles varchar ) RETURNS int
+math_op (p_in_num numeric, p_op text, p_in_opt_num numeric default null) returns numeric
+delete_organization (_fulln varchar) RETURNS int8
+upsert_organization() RETURNS TRIGGER
 
-**trigger\_set\_timestamp()**<br/>
-update the mod_dt (modify date) column with current date with timezone
-
-```
-FUNCTION trigger_set_timestamp()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.mod_date = NOW();
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-```
-<br/>
-**get\_material\_uuid\_bystatus (p\_status_array VARCHAR[], p\_null\_bool BOOLEAN)**<br/>
-return `material` uuid's with specific status
-	where ANY of the p\_status_array element descriptions match 
-	p\_null\_bool = true or false to include null status in returned set
-	
-Example: SELECT * FROM get\_material\_uuid\_bystatus (array['active', 'proto'], TRUE);
-
-```
-FUNCTION get_material_uuid_bystatus (p_status_array varchar[], p_null_bool boolean)
-RETURNS TABLE (
-	material_id int8,
-	material_uuid uuid
-)
-```
-
-<br/>
-**get\_material\_nameref\_bystatus (p\_status\_array VARCHAR[], p\_null\_bool BOOLEAN )**<br/>
-return `material` id, uuid, ref\_name based on specific status
-	where ANY of the p\_status_array element descriptions match 
-	p\_null\_bool = true or false to include null status in returned set
-	
-Example: SELECT material\_id, material\_uuid, material\_refname FROM get\_material\_nameref\_bystatus (array['active', 'proto'], TRUE) where material\_refname\_type = 'InChI' order by 1;
-
-```
-FUNCTION get_material_nameref_bystatus (p_status_array varchar[], p_null_bool boolean)
-RETURNS TABLE (
-	material_id int8,	
-	material_uuid uuid,
-	material_refname varchar,
-	material_refname_type varchar
-)
-```
-
-<br/>
-**get\_actor()**<br/>
-return **all** `actor` uuid, org\_id, person\_id, systemtool\_id, actor\_description, actor\_status, notetext, org\_description, person\_lastfirst, systemtool\_name, systemtool\version
-note: use view `vw_actor` if you need a comprehensive set of related values. use this for a more concise set of uuid's/id's and descriptions (as perhaps part of a subquery)
-
-Example: SELECT * FROM get\_actor () where actor\_description like '%ChemAxon: standardize%';
-
-```
-FUNCTION actor()
-RETURNS TABLE (
-	actor_uuid uuid,
-	organization_id int8,
-	person_id int8,
-	systemtool_id int8,
-	actor_description varchar,
-	actor_status varchar,
-	notetext varchar,
-	org_description varchar,
-	person_lastfirst varchar,
-	systemtool_name varchar,
-	systemtool_version varchar
-)
-```
-
-<br/>
-
-**get\_m\_descriptor\_def (p_descr VARCHAR[])**<br/>
-return `m_descriptor_def` id, uuid, short\_name, calc\_definition, description, in\_val, out\_val, systemtool\_name, systemtool\_ver
-note: useful for finding a m\_descriptor based on calc\_definition or description; as in a search
-	
-Example: SELECT * FROM get\_m\_descriptor\_def (array['standardize']);
-
-```
-FUNCTION get_m_descriptor_def (p_descr VARCHAR[])
-RETURNS TABLE (
-	m_descriptor_def_uuid uuid,
-	short_name varchar,
-	systemtool_name varchar,
-	calc_definition varchar,
-	description varchar,
-	in_type val_type,
-	out_type val_type,
-	systemtool_version varchar
-)
 ```
 
 <br/>
@@ -372,9 +341,9 @@ RETURNS TABLE (
 <!-- ******************* Views ****************** -->
 <a name="views"></a>
 ## Views
-Below are a list of the views with highlevel description, followed by column names returned by view. Views are named using the following structure: 
+Below are a list of the views with high-level description, followed by column names returned by view. Views are named using the following structure: 
 
-**Core Views**
+### Available Views
 
 ```
 sys_audit_tableslist
@@ -405,6 +374,29 @@ vw_tag_type
 <br/>
 
 
+### Update Views
+
+These views provide full **CRUD/Restful API functionality**<br/>
+(C)reate/Post, (R)ead/Get, (U)pdate/Put, (D)elete/Delete
+
+
+__vw\_organization__<br/>
+_read/GET_ <br/>
+
+```
+organization_uuid, description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid, parent_org_full_name, add_date, mod_date, note_uuid, notetext, edocument_uuid, edocument_descr, tag_uuid, tag_short_descr
+```
+_upsert/POST/PUT/DELETE_ <br/>
+
+```
+description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid, notetext
+```
+
+<br/>
+
+
+<!-- UPDATE views!! 
+
 ```
 vw_[filter]_[table1]_[table2]_[tablen]
 ```
@@ -412,6 +404,9 @@ where *filter* indicates a 'where/having clause' applied and the [table] entitie
 
 e.g. __vw\_latest\_systemtool__ returns records from the **systemtool** table with a 'filter' or where clause selecting only 'active' status records. 
 <br/><br/>
+
+-->
+### Read/GET Views
 
 __vw_actor__<br/>
 _returns set of all **actor** records, direct and linked: **organization**, **person**, **systemtool**, **status**, **note**, **edocument**_ <br/>
@@ -441,30 +436,22 @@ actor_id, actor_uuid, person_id, organization_id, systemtool_id, description, st
 <br/>
 
 
-__vw\_m\_descriptor\_def__<br/>
-_returns set of **descriptor\_def** and associated **actor** records_ <br/>
+__vw\_calculation\_def__<br/>
+_returns set of **calculation\_def** and associated **actor** records_ <br/>
 columns returned:
 
 ```
-m_descriptor_def_id, m_descriptor_def_uuid, short_name, calc_definition, description, actor_id, actor_org, actor_systemtool_name, actor_systemtool_version
+calculation_def_uuid, short_name, calc_definition, description, actor_id, actor_org, actor_systemtool_name, actor_systemtool_version
 ```
 <br/>
 
 
-__vw\_m\_descriptor__<br/>
-_returns set of **descriptor** and associated **descriptor** parent records_ <br/>
+__vw\_calculation__<br/>
+_returns set of **calculation** and associated **calculation** parent records_ <br/>
 columns returned:
 
 ```
-m_descriptor_id, m_descriptor_uuid, material_ref, material_ref_type, descriptor_in, descriptor_type_in, create_date, num_valarray_out, blob_val_out, blob_type_out, m_descriptor_def_id, m_descriptor_def_uuid, short_name, calc_definition, description, actor_id, actor_org, actor_systemtool_name, actor_systemtool_version, status
-```
-<br/>
-
-<!-- ******************* Upserts ****************** -->
-<a name="upserts"></a>
-## Upserts
-```
-upsert up() 
+calculation_uuid, in_val, in_val_type, in_val_value, in_val_unit, in_val_edocument_uuid, in_opt_val, in_opt_val_type, in_opt_val_value, in_opt_val_unit, in_opt_val_edocument_uuid, out_val, out_val_type, out_val_value, out_val_unit, out_val_edocument_uuid, calculation_alias_name, create_date, status, actor_descr, notetext, calculation_def_uuid, short_name, calc_definition, description, in_type, out_type, systemtool_uuid, systemtool_name, systemtool_type_description, systemtool_vendor_organization, systemtool_version, actor_uuid, actor_description
 ```
 
 <br/>

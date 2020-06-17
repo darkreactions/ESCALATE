@@ -89,10 +89,12 @@ VALUES
 		(select organization_uuid from organization where short_name = 'HC'),NULL),
 	('Zhi', 'Li', 'zhili@lbl.gov', 
 		(select organization_uuid from organization where short_name = 'LBNL'),NULL),
-	('Gary', 'Cattabriga', 'gcattabrig@haverford.edu ', 
+	('Gary', 'Cattabriga', 'gcattabrig@haverford.edu', 
 		(select organization_uuid from organization where short_name = 'HC'),NULL),
-	('Ian', 'Pendleton', 'ipendleton@haverford.edu ', 
-		(select organization_uuid from organization where short_name = 'HC'),NULL)
+	('Ian', 'Pendleton', 'ipendleton@haverford.edu', 
+		(select organization_uuid from organization where short_name = 'HC'),NULL),
+	('Philip', 'Nega', 'pnega@lbl.gov', 
+		(select organization_uuid from organization where short_name = 'LBNL'),NULL)	
 ;
 COMMIT;
 

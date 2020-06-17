@@ -39,6 +39,7 @@ DROP TABLE IF EXISTS systemtool cascade;
 DROP TABLE IF EXISTS systemtool_type cascade;
 DROP TABLE IF EXISTS actor cascade;
 DROP TABLE IF EXISTS actor_pref cascade;
+DROP TABLE IF EXISTS experiment cascade;
 DROP TABLE IF EXISTS material cascade;
 DROP TABLE IF EXISTS material_type cascade;
 DROP TABLE IF EXISTS material_type_x cascade;
@@ -220,9 +221,12 @@ CREATE TABLE experiment (
   description varchar COLLATE "pg_catalog"."default" NOT NULL,
   parent_uuid uuid,
 	parent_path ltree,
-	owner_uuid uuid,
+	actor_owner_uuid uuid,
+	actor_operator_uuid uuid,
+	actor_equipment_uuid_arr uuid[],
 	status_uuid uuid,
   note_uuid uuid,
+	create_date timestamptz NOT NULL DEFAULT NOW(),
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
