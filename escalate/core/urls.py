@@ -56,7 +56,7 @@ urlpatterns += [
     path('organization/', OrganizationCreate.as_view(), name='organization_add'),
     path('organization/<uuid:pk>',
          OrganizationUpdate.as_view(), name='organization_update'),
-    path('organization/<uuid:organization_uuid>/delete',
+    path('organization/<uuid:pk>/delete',
          OrganizationDelete.as_view(), name='organization_delete'),
     path('organization/<uuid:pk>/view',
          OrganizationView.as_view(), name='organization_view'),
