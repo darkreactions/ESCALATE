@@ -13,7 +13,7 @@ Notes:				presumes calculation_def has been populated (see initialize tables)
 -- first populate calculation_def
 -- using the load_perov_desc_def table joined to actor table (function) to bring in approp actor_uuid 
 INSERT INTO calculation_def (short_name, calc_definition, description, in_source, in_type, in_opt_source, in_opt_type, out_type, systemtool_uuid, actor_uuid)
-	select def.short_name, def.calc_definition, def.description, def.in_calc_source, in_type::val_type, def.in_opt_calc_source, in_opt_type::val_type, out_type::val_type, st.systemtool_uuid, (select actor_uuid from vw_actor where per_lastname = 'Cattabriga')
+	select def.short_name, def.calc_definition, def.description, def.in_calc_source, in_type::val_type, def.in_opt_calc_source, in_opt_type::val_type, out_type::val_type, st.systemtool_uuid, (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')
 	from load_perov_desc_def def 
 	left join (select systemtool_uuid, systemtool_name from vw_latest_systemtool) st on def.systemtool_name = st.systemtool_name;
 
@@ -65,7 +65,7 @@ ON CONFLICT ON CONSTRAINT un_calculation DO UPDATE
 -- first insert image into edocument
 insert into edocument (edocument_title, description, edocument_filename, edocument_source, edocument, edoc_type, actor_uuid)
 	select mol_name as title, mol_name as description, filename, (select calculation_def_uuid from get_calculation_def (array['molimage'])) as edocument_source, _image as edocument, 
-	'blob_svg'::val_type as edoc_type, (select actor_uuid from vw_actor where per_lastname = 'Cattabriga') as actor_uuid from load_perov_mol_image img
+	'blob_svg'::val_type as edoc_type, (select actor_uuid from vw_actor where person_last_name = 'Cattabriga') as actor_uuid from load_perov_mol_image img
 ON CONFLICT ON CONSTRAINT un_edocument DO UPDATE
 	SET 
 		edocument = EXCLUDED.edocument,

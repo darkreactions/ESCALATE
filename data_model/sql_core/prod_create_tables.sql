@@ -137,13 +137,13 @@ CREATE TABLE organization (
 ---------------------------------------
 CREATE TABLE person (
   person_uuid uuid DEFAULT uuid_generate_v4 (),	
-  firstname varchar COLLATE "pg_catalog"."default",
-  lastname varchar COLLATE "pg_catalog"."default" NOT NULL,
-  middlename varchar COLLATE "pg_catalog"."default",
+  first_name varchar COLLATE "pg_catalog"."default",
+  last_name varchar COLLATE "pg_catalog"."default" NOT NULL,
+  middle_name varchar COLLATE "pg_catalog"."default",
   address1 varchar COLLATE "pg_catalog"."default",
   address2 varchar COLLATE "pg_catalog"."default",
   city varchar COLLATE "pg_catalog"."default",
-  stateprovince char(3) COLLATE "pg_catalog"."default",
+  state_province char(3) COLLATE "pg_catalog"."default",
   zip varchar COLLATE "pg_catalog"."default",
   country varchar COLLATE "pg_catalog"."default",	
   phone varchar COLLATE "pg_catalog"."default",
