@@ -462,14 +462,6 @@ actor_uuid, actor_id, organization_id, person_id, systemtool_id, actor_descripti
 ```
 <br/>
 
-__vw\_latest\_systemtool__<br/>
-_returns set of most recent / latest version **systemtool** records_ <br/>
-columns returned:
-
-```
-systemtool_id, systemtool_uuid, systemtool_name, description, systemtool_type_id, vendor, model, serial, ver, organization_id, note_id, add_date,mod_date
-```
-<br/>
 
 __vw\_latest\_systemtool\_actor__<br/>
 _returns set of **actor** records that are parents of latest *systemtool* records_ <br/>
