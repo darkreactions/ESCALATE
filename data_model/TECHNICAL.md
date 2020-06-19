@@ -367,6 +367,7 @@ vw_note
 vw_organization
 vw_person
 vw_status
+vw_systemtool_type
 vw_tag
 vw_tag_type
 
@@ -391,6 +392,50 @@ _upsert/POST/PUT/DELETE_ <br/>
 ```
 description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid, notetext
 ```
+<br/>
+
+__vw\_person__<br/>
+_read/GET_ <br/>
+
+```
+person_uuid, first_name, last_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, add_date, mod_date, organization_uuid, organization_full_name, note_uuid, notetext, edocument_uuid, edocument_descr, tag_uuid, tag_short_descr
+```
+_upsert/POST/PUT/DELETE_ <br/>
+
+```
+last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid, notetext
+```
+
+<br/>
+
+__vw\_latest_systemtool__<br/>
+_read/GET_ <br/>
+
+```
+systemtool_uuid, systemtool_name, description, vendor_organization_uuid, organization_fullname, systemtool_type_uuid, systemtool_type_description, model, serial, ver, note_uuid, notetext, actor_uuid, actor_description, add_date, mod_date
+```
+_upsert/POST/PUT/DELETE_ <br/>
+
+```
+systemtool_name, description, systemtool_type_uuid, vendor_organization_uuid, model, serial, ver, notetext
+```
+
+
+<br/>
+
+__vw\_systemtool_type__<br/>
+_read/GET_ <br/>
+
+```
+systemtool_type_uuid, description, note_uuid, notetext, add_date, mod_date
+```
+_upsert/POST/PUT/DELETE_ <br/>
+
+```
+description, notetext
+```
+
+
 
 <br/>
 
