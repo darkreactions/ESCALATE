@@ -12,7 +12,6 @@ class OrganizationList(GenericListView):
     template_name = 'core/organization/organization_list.html'
     context_object_name = 'orgs'
     paginate_by = 10
-
     def get_queryset(self):
         filter_val = self.request.GET.get('filter', '')
         ordering = self.request.GET.get('ordering', 'full_name')

@@ -14,13 +14,23 @@ class InventoryList(GenericListView):
     context_object_name = 'inventory'
     paginate_by = 10
 
+    def get_queryset(self):
+        filter_val = self.request.GET.get('filter', '')
+        ordering = self.request.GET.get('ordering', 'inventory_description')
+        if filter_val != None:
+            new_queryset = self.model.objects.filter(
+                inventory_description__icontains=filter_val).select_related().order_by(ordering)
+        else:
+            new_queryset = self.model.objects.all().select_related().order_by(ordering)
+        return new_queryset
+
 
 class InventoryEdit:
     template_name = 'core/inventory/inventory_edit.html'
     model = Inventory
-    fields = ['description', 'material', 'actor', 'part_no', 'onhand_amt',
-              'unit', 'measure_id', 'create_date', 'expiration_dt',
-              'inventory_location', 'status', 'document_id', 'note']
+    fields = ['description', 'material_uuid', 'actor_uuid', 'part_no', 'onhand_amt',
+              'unit', 'create_date', 'expiration_date',
+              'inventory_location', 'status', 'edocument_uuid', 'notetext']
     success_url = reverse_lazy('inventory_list')
 
 

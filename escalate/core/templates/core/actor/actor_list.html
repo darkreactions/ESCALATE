@@ -17,7 +17,6 @@
     <table class=" table table-bordered">
         <thead>
             <tr>
-
                 <th>Person</th>
                 <th>Organization</th>
                 <th>System Tool</th>
@@ -28,11 +27,10 @@
         <tbody>
             {% for actor in actors %}
             <tr>
-                <td>{{ actor.person }}</td>
-                <td>{{ actor.organization }}</td>
-                <td>{{ actor.systemtool }}</td>
-                <td>{{ actor.status }} </td>
-
+                <td>{{ actor.person_uuid }}</td>
+                <td>{{ actor.organization_uuid }}</td>
+                <td>{{ actor.systemtool_uuid }}</td>
+                <td>{{ actor.actor_status }} </td>
                 <td>
                     <a href="{% url 'actor_view' pk=actor.pk %}" class="btn text-secondary px-0">
                         <i class="fa fa-eye"></i>
@@ -41,7 +39,7 @@
                         <i class="fa fa-edit fa-lg"></i>
                     </a>
                     <button type="button" class="btn text-secondary px-0" data-toggle="modal" data-target="#deleteModal"
-                        data-description="{{ actor.person }}" data-pk="{{ actor.pk }}">
+                        data-description="{{ actor.person_uuid }}" data-pk="{{ actor.pk }}">
                         <i class="fa fa-trash fa-lg"></i>
                     </button>
                 </td>

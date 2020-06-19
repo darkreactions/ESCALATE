@@ -1,0 +1,52 @@
+
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <h3>{{ object }}</h3>
+    <table class=" table table-bordered">
+        <tbody>
+
+            <tr>
+                <td>ID</td>
+                <td> {{ object.id }} </td>
+            </tr>
+
+            <tr>
+                <td>Organization</td>
+                <td> {{ object.organization_uuid }}</td>
+            </tr>
+
+            <tr>
+                <td>Person</td>
+                <td> {{ object.person_uuid }} </td>
+            </tr>
+
+            <tr>
+                <td>System Tool</td>
+                <td> {{ object.systemtool }} </td>
+            </tr>
+
+            <tr>
+                <td>Description</td>
+                <td> {{ object.actor_description }} </td>
+            </tr>
+
+            <tr>
+                <td>Status</td>
+                <td> {{ object.status }} </td>
+            </tr>
+
+            <tr>
+                <td>Note</td>
+                <td> {{ object.notetext }} </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <a href="{% url 'actor_update' pk=object.pk %}" class="btn btn-primary px-0">
+        <i class="fa fa-edit fa-lg"> Edit</i>
+    </a>
+</div>
+{% endblock %}
