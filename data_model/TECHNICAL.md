@@ -375,10 +375,9 @@ vw_tag_type
 <br/>
 
 
-### Update Views
-
-These views provide full **CRUD/Restful API functionality**<br/>
+Views provide full **CRUD/Restful API** or **Read/Get** functionality<br/>
 (C)reate/Post, (R)ead/Get, (U)pdate/Put, (D)elete/Delete
+Below the columns returned or updateable for each of the views:
 
 
 __vw\_organization__<br/>
@@ -436,7 +435,6 @@ description, notetext
 ```
 
 
-
 <br/>
 
 
@@ -451,31 +449,26 @@ e.g. __vw\_latest\_systemtool__ returns records from the **systemtool** table wi
 <br/><br/>
 
 -->
-### Read/GET Views
+
 
 __vw_actor__<br/>
-_returns set of all **actor** records, direct and linked: **organization**, **person**, **systemtool**, **status**, **note**, **edocument**_ <br/>
-columns returned:
+_read/GET_<br/>
 
 ```
 actor_uuid, actor_id, organization_id, person_id, systemtool_id, actor_description, actor_status, actor_notetext, actor_document, actor_doc_type, org_full_name, org_short_name, per_lastname, per_firstname, person_lastfirst, person_org, systemtool_name, systemtool_description, systemtool_type, systemtool_vendor, systemtool_model, systemtool_serial, systemtool_version, systemtool_org 
 ```
 <br/>
 
-
-__vw\_latest\_systemtool\_actor__<br/>
-_returns set of **actor** records that are parents of latest *systemtool* records_ <br/>
-columns returned:
+__vw\_calculation__<br/>
+_read/GET_
 
 ```
-actor_id, actor_uuid, person_id, organization_id, systemtool_id, description, status_id, note_id, add_date, mod_date
+calculation_uuid, in_val, in_val_type, in_val_value, in_val_unit, in_val_edocument_uuid, in_opt_val, in_opt_val_type, in_opt_val_value, in_opt_val_unit, in_opt_val_edocument_uuid, out_val, out_val_type, out_val_value, out_val_unit, out_val_edocument_uuid, calculation_alias_name, create_date, status, actor_descr, notetext, calculation_def_uuid, short_name, calc_definition, description, in_type, out_type, systemtool_uuid, systemtool_name, systemtool_type_description, systemtool_vendor_organization, systemtool_version, actor_uuid, actor_description
 ```
 <br/>
 
-
 __vw\_calculation\_def__<br/>
-_returns set of **calculation\_def** and associated **actor** records_ <br/>
-columns returned:
+_read/GET_
 
 ```
 calculation_def_uuid, short_name, calc_definition, description, actor_id, actor_org, actor_systemtool_name, actor_systemtool_version
@@ -483,13 +476,46 @@ calculation_def_uuid, short_name, calc_definition, description, actor_id, actor_
 <br/>
 
 
-__vw\_calculation__<br/>
-_returns set of **calculation** and associated **calculation** parent records_ <br/>
-columns returned:
+__vw\_edocument__<br/>
+_read/GET_
 
 ```
-calculation_uuid, in_val, in_val_type, in_val_value, in_val_unit, in_val_edocument_uuid, in_opt_val, in_opt_val_type, in_opt_val_value, in_opt_val_unit, in_opt_val_edocument_uuid, out_val, out_val_type, out_val_value, out_val_unit, out_val_edocument_uuid, calculation_alias_name, create_date, status, actor_descr, notetext, calculation_def_uuid, short_name, calc_definition, description, in_type, out_type, systemtool_uuid, systemtool_name, systemtool_type_description, systemtool_vendor_organization, systemtool_version, actor_uuid, actor_description
+edocument_uuid, edocument_title, edocument_description, edocument_filename, edocument_source, edocument_type, edocument, actor_uuid, actor_description
 ```
+<br/>
+
+
+__vw\_inventory__<br/>
+_read/GET_
+
+```
+inventory_uuid, description inventory_description, part_no, onhand_amt, unit, create_date, expiration_date, inventory_location, status, material_uuid, material_description, actor_uuid, description, edocument_uuid, edocument_description, note_uuid, notetext
+```
+<br/>
+
+__vw\_inventory_material__<br/>
+_read/GET_
+
+```
+inventory_uuid, inventory_description, inventory_part_no, inventory_onhand_amt, inventory_unit, inventory_create_date, inventory_expiration_date, inventory_location, inventory_status, actor_uuid, actor_description, org_full_name, material_uuid, material_status, material_create_date, material_name, material_abbreviation, material_inchi, material_inchikey, material_molecular_formula, material_smiles
+```
+<br/>
+
+__vw\_material__<br/>
+_read/GET_
+
+```
+material_uuid, material_status, create_date, Abbreviation, Chemical_Name, InChI, InChIKey, Molecular_Formula, SMILES
+```
+<br/>
+
+__vw\_material_calculation_raw__<br/>
+_read/GET_
+
+```
+material_uuid, material_status, material_create_date, abbreviation, chemical_name, inchi, inchikey, molecular_formula, smiles, calculation_uuid, in_val, in_val_type, in_val_value, in_val_unit, in_val_edocument_uuid, in_opt_val, in_opt_val_type, in_opt_val_value, in_opt_val_unit, in_opt_val_edocument_uuid, out_val, out_val_type, out_val_value, out_val_unit, out_val_edocument_uuid, calculation_alias_name, calculation_create_date, status, actor_descr, notetext, calculation_def_uuid, short_name, calc_definition, description, in_type, out_type, systemtool_uuid, systemtool_name, systemtool_type_description, systemtool_vendor_organization, systemtool_version, actor_uuid, actor_description
+```
+<br/>
 
 <br/>
 
