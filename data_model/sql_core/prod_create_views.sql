@@ -119,13 +119,13 @@ FROM
 CREATE OR REPLACE VIEW vw_person AS
 SELECT
 	per.person_uuid,
-	per.firstname,
-	per.lastname,
-	per.middlename,
+	per.first_name,
+	per.last_name,
+	per.middle_name,
 	per.address1,
 	per.address2,
 	per.city,
-	per.stateprovince,
+	per.state_province,
 	per.zip,
 	per.country,
 	per.phone,
@@ -150,6 +150,12 @@ FROM
 	LEFT JOIN tag ON tx.tag_uuid = tag.tag_uuid
 	LEFT JOIN edocument_x edx ON per.person_uuid = edx.ref_edocument_uuid
 	LEFT JOIN edocument ed ON edx.edocument_uuid = ed.edocument_uuid;
+
+DROP TRIGGER IF EXISTS trigger_person_upsert on vw_person;
+CREATE TRIGGER trigger_person_upsert
+INSTEAD OF INSERT OR UPDATE OR DELETE ON vw_person
+    FOR EACH ROW EXECUTE PROCEDURE upsert_person();
+
 
 ----------------------------------------
 -- view of organization; links to parent organization and note
@@ -206,12 +212,12 @@ SELECT
 	nt.notetext AS actor_notetext,
 	org.full_name AS org_full_name,
 	org.short_name AS org_short_name,
-	per.lastname AS per_lastname,
-	per.firstname AS per_firstname,
+	per.last_name AS person_last_name,
+	per.first_name AS person_first_name,
 	CASE WHEN per.person_uuid IS NOT NULL THEN
 		CAST(
-			concat(per.lastname, ', ', per.firstname) AS VARCHAR)
-	END AS person_lastfirst,
+			concat(per.last_name, ', ', per.first_name) AS VARCHAR)
+	END AS person_last_first,
 	porg.full_name AS person_org,
 	st.systemtool_name,
 	st.description AS systemtool_description,
@@ -234,6 +240,26 @@ FROM
 	LEFT JOIN status sts ON act.status_uuid = sts.status_uuid;
 
 ----------------------------------------
+-- integrated view of systemtool_type
+----------------------------------------
+CREATE OR REPLACE VIEW vw_systemtool_type AS
+SELECT
+	stt.systemtool_type_uuid, 
+	stt.description,
+	nt.note_uuid,
+	nt.notetext,
+	stt.add_date,
+	stt.mod_date
+FROM
+	systemtool_type stt
+LEFT JOIN note nt ON stt.note_uuid = nt.note_uuid;
+
+DROP TRIGGER IF EXISTS trigger_systemtool_type_upsert on vw_systemtool_type;
+CREATE TRIGGER trigger_systemtool_type_upsert
+INSTEAD OF INSERT OR UPDATE OR DELETE ON vw_systemtool_type
+    FOR EACH ROW EXECUTE PROCEDURE upsert_systemtool_type();
+
+----------------------------------------
 -- get most recent version of a systemtool in raw format
 -- return all columns from the systemtool table
 ----------------------------------------
@@ -245,22 +271,23 @@ FROM
 	JOIN (
 		SELECT
 			st.systemtool_name,
-			st.systemtool_type_uuid,
-			st.vendor_organization_uuid,
+			-- st.systemtool_type_uuid,
+			-- st.vendor_organization_uuid,
 			MAX(st.ver) AS ver
 		FROM
 			systemtool st
-		WHERE
-			st.systemtool_name IS NOT NULL
-			AND st.ver IS NOT NULL
+		-- WHERE
+			-- st.systemtool_name IS NOT NULL
+			-- AND st.ver IS NOT NULL
 		GROUP BY
-			st.systemtool_name,
-			st.systemtool_type_uuid,
-			st.vendor_organization_uuid,
-			st.note_uuid) mrs ON stl.systemtool_name = mrs.systemtool_name
-	AND stl.systemtool_type_uuid = mrs.systemtool_type_uuid
-	AND stl.vendor_organization_uuid = mrs.vendor_organization_uuid
-	AND stl.ver = mrs.ver;
+			st.systemtool_name
+			-- st.systemtool_type_uuid,
+			-- st.vendor_organization_uuid,
+			-- st.note_uuid
+			) mrs ON stl.systemtool_name = mrs.systemtool_name;
+--	AND stl.systemtool_type_uuid = mrs.systemtool_type_uuid
+--	AND stl.vendor_organization_uuid = mrs.vendor_organization_uuid
+--	AND stl.ver = mrs.ver;
 
 ----------------------------------------
 -- get most recent version of a systemtool
@@ -278,6 +305,8 @@ SELECT
 	vst.model,
 	vst.serial,
 	vst.ver,
+	nt.note_uuid,
+  nt.notetext,
 	act.actor_uuid,
 	act.description AS actor_description,
 	vst.add_date,
@@ -288,6 +317,12 @@ FROM
 	LEFT JOIN organization org ON vst.vendor_organization_uuid = org.organization_uuid
 	LEFT JOIN note nt ON vst.note_uuid = nt.note_uuid
 	LEFT JOIN systemtool_type stt ON vst.systemtool_type_uuid = stt.systemtool_type_uuid;
+
+DROP TRIGGER IF EXISTS trigger_systemtool_upsert on vw_latest_systemtool;
+CREATE TRIGGER trigger_systemtool_upsert
+INSTEAD OF INSERT OR UPDATE OR DELETE ON vw_latest_systemtool
+    FOR EACH ROW EXECUTE PROCEDURE upsert_systemtool();
+
 
 ----------------------------------------
 -- get the calculation_def and associated actor

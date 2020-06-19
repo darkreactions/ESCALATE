@@ -378,7 +378,8 @@ class Organization(models.Model):
 
     parent = models.ForeignKey('self', models.DO_NOTHING,
                                blank=True, null=True, db_column='parent_uuid')
-    parent_org_full_name = models.CharField(max_length=255)
+    parent_org_full_name = models.CharField(
+        max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
     note = models.ForeignKey('Note', models.DO_NOTHING,
