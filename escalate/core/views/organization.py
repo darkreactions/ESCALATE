@@ -27,16 +27,7 @@ class OrganizationList(GenericListView):
 class OrganizationEdit:
     template_name = 'core/organization/organization_edit.html'
     model = Organization
-    fields = ['full_name', 'short_name', 'address1', 'address2', 'city',
-              'state_province', 'zip', 'country', 'website_url', 'phone',
-              'parent', 'notetext', 'edocument', 'tag']
-    labels = {
-        'state_province': 'State/Province',
-        'website_url': 'Website URL',
-        'address1': 'Address Line 1',
-        'address2': 'Address Line 2',
-        'notetext': 'Note Text'
-    }
+    form_class = OrganizationForm
     success_url = reverse_lazy('organization_list')
 
 

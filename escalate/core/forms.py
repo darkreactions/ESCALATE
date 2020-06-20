@@ -20,8 +20,7 @@ class PersonForm(forms.ModelForm):
         model = Person
         fields = ['firstname', 'middlename', 'lastname',
                   'address1', 'address2', 'city', 'stateprovince',
-                  'phone', 'title', 'suffix', 'organization', ]
-
+                  'phone', 'email' , 'title', 'suffix', 'organization', ]
         labels = {
             'firstname': 'First Name',
             'middlename': 'Middle Name',
@@ -45,23 +44,31 @@ class MaterialForm(forms.ModelForm):
 
     class Meta:
         model = Material
-        fields = '__all__'
+        fields = ['material_status', 'abbreviation', 'chemical_name',
+                  'inchi', 'inchikey', 'molecular_formula', 'smiles']
+        #fields = '__all__'
 
 
 class InventoryForm(forms.ModelForm):
     class Meta:
         model = Inventory
-        # fields = ['description', 'material', 'actor', 'part_no', 'onhand_amt', 'unit',
-        #          'measure_id', 'create_date', 'inventory_location', 'status', 'document_id', 'note']
-        fields = '__all__'
+        fields = ['inventory_description', 'part_no', 'onhand_amt', 'unit',
+                  'expiration_date', 'inventory_location', 'status',
+                  'material_description', 'description', 'edocument_description',
+                  'notetext']
+        #fields = '__all__'
 
 
 class ActorForm(forms.ModelForm):
     class Meta:
         model = Actor
-        # fields = ['person', 'organization', 'systemtool', 'description', 'status',
-        #          'note']
-        fields = '__all__'
+        fields = ['actor_description', 'actor_status', 'actor_notetext',
+                  'org_full_name', 'org_short_name',
+                  'per_lastname', 'per_firstname', 'person_lastfirst', 'person_org',
+                  'systemtool_name', 'systemtool_description', 'systemtool_type',
+                  'systemtool_vendor', 'systemtool_model', 'systemtool_serial',
+                  'systemtool_version']
+        #fields = '__all__'
 
 
 class OrganizationForm(forms.ModelForm):

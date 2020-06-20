@@ -3,9 +3,9 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
 from django.forms.models import model_to_dict
 
-from ..models import Inventory
-from ..forms import InventoryForm
-from .menu import GenericListView
+from core.models import Inventory
+from core.forms import InventoryForm
+from core.views.menu import GenericListView
 
 
 class InventoryList(GenericListView):
@@ -14,13 +14,27 @@ class InventoryList(GenericListView):
     context_object_name = 'inventory'
     paginate_by = 10
 
+    def get_queryset(self):
+    # added get_queryset method
+        filter_val = self.request.GET.get('filter', '')
+        ordering = self.request.GET.get('ordering', 'description')
+        # order by description
+        if filter_val != None:
+            new_queryset = self.model.objects.filter(
+                description__icontains=filter_val).select_related().order_by(ordering)
+            # filter by decription being a empty/nonempty string
+        else:
+            new_queryset = self.model.objects.all().select_related().order_by(ordering)
+        return new_queryset
+
 
 class InventoryEdit:
     template_name = 'core/inventory/inventory_edit.html'
     model = Inventory
-    fields = ['description', 'material', 'actor', 'part_no', 'onhand_amt',
-              'unit', 'measure_id', 'create_date', 'expiration_dt',
-              'inventory_location', 'status', 'document_id', 'note']
+    form_class = InventoryForm
+    # fields = ['description', 'material', 'actor', 'part_no', 'onhand_amt',
+    #           'unit', 'measure_id', 'create_date', 'expiration_dt',
+    #           'inventory_location', 'status', 'document_id', 'note']
     success_url = reverse_lazy('inventory_list')
 
 
