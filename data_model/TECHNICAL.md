@@ -493,7 +493,7 @@ inventory_uuid, description inventory_description, part_no, onhand_amt, unit, cr
 ```
 <br/>
 
-__vw\_inventory_material__<br/>
+__vw\_inventory\_material__<br/>
 _read/GET_
 
 ```
@@ -509,11 +509,68 @@ material_uuid, material_status, create_date, Abbreviation, Chemical_Name, InChI,
 ```
 <br/>
 
-__vw\_material_calculation_raw__<br/>
+__vw\_material\_calculation\_raw__<br/>
 _read/GET_
 
 ```
 material_uuid, material_status, material_create_date, abbreviation, chemical_name, inchi, inchikey, molecular_formula, smiles, calculation_uuid, in_val, in_val_type, in_val_value, in_val_unit, in_val_edocument_uuid, in_opt_val, in_opt_val_type, in_opt_val_value, in_opt_val_unit, in_opt_val_edocument_uuid, out_val, out_val_type, out_val_value, out_val_unit, out_val_edocument_uuid, calculation_alias_name, calculation_create_date, status, actor_descr, notetext, calculation_def_uuid, short_name, calc_definition, description, in_type, out_type, systemtool_uuid, systemtool_name, systemtool_type_description, systemtool_vendor_organization, systemtool_version, actor_uuid, actor_description
+```
+<br/>
+
+__vw\_material\_raw__<br/>
+_read/GET_
+
+```
+material_uuid, material_description, material_status, material_type_description, material_refname_type, material_refname_description, material_refname_type_uuid, material_create_date, note_uuid, notetext
+```
+<br/>
+
+__vw\_vw\_material\_refname\_type__<br/>
+_read/GET_
+
+```
+material_refname_type_uuid, description, notetext
+```
+<br/>
+
+__vw\_vw\_material\_type__<br/>
+_read/GET_
+
+```
+material_type_uuid, description, notetext
+```
+<br/>
+
+__vw\_vw\_note__<br/>
+_read/GET_
+
+```
+note_uuid, notetext, add_date, mod_date, edocument_uuid, edocument_title, edocument_description, edocument_filename, edocument_source, edocument_type, actor_uuid, actor_description
+```
+<br/>
+
+__vw\_vw\_status__<br/>
+_read/GET_
+
+```
+status_uuid, description, add_date, mod_date
+```
+<br/>
+
+__vw\_vw_tag__<br/>
+_read/GET_
+
+```
+tag_uuid, tag_short_descr, tag_description, add_date, mod_date, tag_type_uuid, tag_type_short_descr, tag_type_description, actor_uuid, actor_description, note_uuid, notetext
+```
+<br/>
+
+
+__vw\_vw_tag\_type__<br/>
+_read/GET_
+
+```
+tag_type_uuid, short_description, description, actor_uuid, actor_description, add_date, mod_date
 ```
 <br/>
 
