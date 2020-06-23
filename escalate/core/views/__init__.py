@@ -5,3 +5,4 @@ from .menu import *
 from .inventory import *
 from .actor import *
 from .organization import *
+from .person import *

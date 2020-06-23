@@ -14,14 +14,11 @@ class ActorList(GenericListView):
     paginate_by = 10
 
     def get_queryset(self):
-    # added get_queryset method
         filter_val = self.request.GET.get('filter', '')
-        ordering = self.request.GET.get('ordering', 'actor_uuid')
-        # order by actor_uuid because it not be null, a different field would be better
+        ordering = self.request.GET.get('ordering', 'actor_description')
         if filter_val != None:
             new_queryset = self.model.objects.filter(
-                actor_uuid__icontains=filter_val).select_related().order_by(ordering)
-                #not sure what column to filter by so I put actor_uuid
+                actor_description__icontains=filter_val).select_related().order_by(ordering)
         else:
             new_queryset = self.model.objects.all().select_related().order_by(ordering)
         return new_queryset
@@ -30,6 +27,7 @@ class ActorList(GenericListView):
 class ActorEdit:
     template_name = 'core/actor/actor_edit.html'
     model = Actor
+
     form_class = ActorForm
     # fields = ['person', 'organization', 'systemtool', 'description', 'status',
     #           'note']
@@ -50,5 +48,5 @@ class ActorDelete(DeleteView):
 
 
 class ActorView(DetailView):
-    model = Actor
+    template_name='core/actor/actor_detail.html'
     queryset = Actor.objects.select_related()

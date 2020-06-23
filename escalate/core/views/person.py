@@ -14,6 +14,7 @@ class PersonList(GenericListView):
     paginate_by = 10
 
     def get_queryset(self):
+
         filter_val = self.request.GET.get('filter', '')
         ordering = self.request.GET.get('ordering', 'lastname')
         if filter_val != None:
@@ -22,23 +23,13 @@ class PersonList(GenericListView):
         else:
             new_queryset = self.model.objects.all().select_related().order_by(ordering)
         print(new_queryset, f"length= {new_queryset.count()}")
+
         return new_queryset
 
 class PersonEdit:
     template_name = 'core/person/person_edit.html'
     model = Person
     form_class = PersonForm
-
-    # fields = ['firstname', 'middlename', 'lastname' , 'address1', 'address2',
-    #           'city', 'stateprovince', 'zip', 'country', 'phone', 'email' ,
-    #           'title' , 'suffix', 'notetext', 'edocument', 'tag']
-    # labels = {
-    #     'stateprovince': 'State/Province',
-    #     'address1': 'Address Line 1',
-    #     'address2': 'Address Line 2',
-    #     'notetext': 'Note Text'
-    # }
-
     success_url = reverse_lazy('person_list')
 
 

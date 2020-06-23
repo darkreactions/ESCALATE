@@ -22,7 +22,7 @@ else:
             "ENGINE": 'django.db.backends.postgresql',
             "NAME": 'escalate',
             "USER": 'escalate',
-            "PASSWORD": 'SD21sAwes0me3',
+            "PASSWORD": 'Alice0419',
             "HOST": 'localhost',
             "PORT": 5432,
             'OPTIONS': {

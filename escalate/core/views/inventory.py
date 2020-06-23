@@ -15,6 +15,7 @@ class InventoryList(GenericListView):
     paginate_by = 10
 
     def get_queryset(self):
+
     # added get_queryset method
         filter_val = self.request.GET.get('filter', '')
         ordering = self.request.GET.get('ordering', 'description')
@@ -31,10 +32,12 @@ class InventoryList(GenericListView):
 class InventoryEdit:
     template_name = 'core/inventory/inventory_edit.html'
     model = Inventory
+
     form_class = InventoryForm
     # fields = ['description', 'material', 'actor', 'part_no', 'onhand_amt',
     #           'unit', 'measure_id', 'create_date', 'expiration_dt',
     #           'inventory_location', 'status', 'document_id', 'note']
+
     success_url = reverse_lazy('inventory_list')
 
 

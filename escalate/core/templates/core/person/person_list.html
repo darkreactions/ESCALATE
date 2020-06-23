@@ -8,7 +8,7 @@
     <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" value="{{filter}}"
         name="filter">
     <button class="btn btn-success my-2 my-sm-0" type="submit">Search</button>
-    <a href="{% url 'actor_add' %}" class="btn btn-warning mx-2 my-sm-0">Add Actor</a>
+    <a href="{% url 'person_add' %}" class="btn btn-warning mx-2 my-sm-0">Add Person</a>
 </form>
 {% endblock %}
 
@@ -17,31 +17,33 @@
     <table class=" table table-bordered">
         <thead>
             <tr>
-                <th>Person</th>
-                <th>Organization</th>
-                <th>System Tool</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th>LastName</th>
+                <th>Address</th>
+                <th>Title</th>
+                <th>Email</th>
             </tr>
         </thead>
         <tbody>
-            {% for actor in actors %}
+            {% for person in persons %}
             <tr>
-                <td>{{ actor.person_uuid }}</td>
-                <td>{{ actor.organization_uuid }}</td>
-                <td>{{ actor.systemtool_uuid }}</td>
-                <td>{{ actor.actor_status }} </td>
+                <td>{{ person.lastname }}</td>
+                <td>{{ person.address1 }} {{ person.address2 }} {{ person.city }}</td>
+                <td>{{ person.title}} </td>
+                <td>{{ person.email}} </td>
                 <td>
-                    <a href="{% url 'actor_view' pk=actor.pk %}" class="btn text-secondary px-0">
+                    <a href="{% url 'person_view' pk=person.pk %}" class="btn text-secondary px-0">
                         <i class="fa fa-eye"></i>
                     </a>
-                    <a href="{% url 'actor_update' pk=actor.pk %}" class="btn text-secondary px-0">
+
+                    </a>
+                    <a href="{% url 'person_update' pk=person.pk %}" class="btn text-secondary px-0">
                         <i class="fa fa-edit fa-lg"></i>
                     </a>
                     <button type="button" class="btn text-secondary px-0" data-toggle="modal" data-target="#deleteModal"
-                        data-description="{{ actor.person_uuid }}" data-pk="{{ actor.pk }}">
+                        data-description="{{ person.lastname }}" data-pk="{{ person.pk }}">
                         <i class="fa fa-trash fa-lg"></i>
                     </button>
+
                 </td>
             </tr>
             {% endfor %}
@@ -52,4 +54,4 @@
 </div>
 {% endblock %}
 
-{% block delete_url %}"/actor/" + pk + "/delete" {% endblock %}
+{% block delete_url %}"/person/" + pk + "/delete" {% endblock %}

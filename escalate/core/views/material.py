@@ -13,6 +13,15 @@ class MaterialsList(GenericListView):
     template_name = 'core/material/material_list.html'
     context_object_name = 'materials'
     paginate_by = 10
+    def get_queryset(self):
+        filter_val = self.request.GET.get('filter', '')
+        ordering = self.request.GET.get('ordering', 'material_uuid')
+        if filter_val != None:
+            new_queryset = self.model.objects.filter(
+                material_uuid__icontains=filter_val).select_related().order_by(ordering)
+        else:
+            new_queryset = self.model.objects.all().select_related().order_by(ordering)
+        return new_queryset
 
     def get_queryset(self):
     # added get_queryset method
@@ -32,7 +41,6 @@ class MaterialEdit:
     template_name = 'core/material/material_edit.html'
     model = Material
     form_class = MaterialForm
-    #fields = ['description', 'parent_material', 'status', 'note']
     success_url = reverse_lazy('material_list')
 
 
