@@ -18,17 +18,14 @@
         <thead>
             <tr>
                 <th>UUID</th>
-                <th>Description</th>
                 <th>Status</th>
-                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             {% for material in materials %}
             <tr>
                 <td>{{ material.material_uuid }}</td>
-                <td>{{ material.description }}</td>
-                <td>{{ material.status.description }}</td>
+                <td>{{ material.material_status }}</td>
                 <td>
                     <a href="{% url 'material_view' pk=material.pk %}" class="btn text-secondary px-0">
                         <i class="fa fa-eye"></i>

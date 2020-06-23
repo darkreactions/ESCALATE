@@ -28,9 +28,9 @@
         <tbody>
             {% for thing in inventory %}
             <tr>
-                <td>{{ thing.description }}</td>
+                <td>{{ thing.inventory_description }}</td>
                 <td>{{ thing.status }}</td>
-                <td>{{ thing.material.description }}</td>
+                <td>{{ thing.material_uuid }}</td>
                 <td>{{ thing.onhand_amt }} {{ thing.unit }}</td>
 
                 <td>

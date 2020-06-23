@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="23453ae6-9c95-4656-bc5b-bcb93c0c2795" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/core/templates/core/person/person_detail.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/core/templates/core/person/person_edit.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/core/templates/core/person/person_list.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/core/views/person.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/models/extra_models.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/templates/core/actor/actor_detail.html" beforeDir="false" afterPath="$PROJECT_DIR$/core/templates/core/actor/actor_detail.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/templates/core/actor/actor_list.html" beforeDir="false" afterPath="$PROJECT_DIR$/core/templates/core/actor/actor_list.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/templates/core/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/core/templates/core/base.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/templates/core/inventory/inventory_list.html" beforeDir="false" afterPath="$PROJECT_DIR$/core/templates/core/inventory/inventory_list.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/templates/core/material/material_detail.html" beforeDir="false" afterPath="$PROJECT_DIR$/core/templates/core/material/material_detail.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/templates/core/material/material_list.html" beforeDir="false" afterPath="$PROJECT_DIR$/core/templates/core/material/material_list.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/templates/core/organization/organization_list.html" beforeDir="false" afterPath="$PROJECT_DIR$/core/templates/core/organization/organization_list.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/views/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/views/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/views/actor.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/views/actor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/views/inventory.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/views/inventory.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/views/material.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/views/material.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/views/menu.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/views/menu.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/views/organization.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/views/organization.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/escalate/settings/local.py" beforeDir="false" afterPath="$PROJECT_DIR$/escalate/settings/local.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="1dPIxypB6pkxfBiQSI0oSGDJsUH" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="last_opened_file_path" value="$USER_HOME$" />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="497" y="256" width="524" height="502" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog" timestamp="1592559789014">
+      <screen x="67" y="27" width="1633" height="928" />
+    </state>
+    <state x="497" y="256" width="524" height="502" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/67.27.1633.928@67.27.1633.928" timestamp="1592559789014" />
+    <state x="710" y="248" width="945" height="909" key="dock-window-1" timestamp="1592564555014">
+      <screen x="67" y="27" width="1633" height="928" />
+    </state>
+    <state x="710" y="248" width="945" height="909" key="dock-window-1/67.27.1633.928@67.27.1633.928" timestamp="1592564555014" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/core/migrations/0002_auto_20200611_1718.py</url>
+          <line>243</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/core/migrations/0002_auto_20200611_1718.py</url>
+          <line>101</line>
+          <option name="timeStamp" value="4" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>
