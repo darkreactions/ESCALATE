@@ -209,13 +209,13 @@ COMMIT;
 -- Populate some UDFs
 -- ----------------------------
 BEGIN;
-INSERT INTO udf_def (description)
+INSERT INTO udf_def (description, valtype)
 VALUES 
-	('experiment version'),
-	('generation version'),
-	('challenge problem'),
-	('model predicted'),
-	('batch count')
+	('experiment version', 'text'::val_type),
+	('generation version', 'text'::val_type),
+	('challenge problem', 'text'::val_type),
+	('model predicted', 'text'::val_type),
+	('batch count', 'text'::val_type)
 ;
 COMMIT;
 

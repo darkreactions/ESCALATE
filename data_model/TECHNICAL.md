@@ -497,6 +497,21 @@ __vw\_tag__
 
 <br/>
 
+__vw\_udf_def__
+
+* Read/GET
+
+	```
+	description, valtype, note_uuid, notetext, add_date, mod_date
+	```
+* upsert/POST/PUT/DELETE
+
+	```
+	description, valtype, notetext
+	```
+
+<br/>
+
 __vw\_status__
 
 * Read/GET
@@ -619,7 +634,7 @@ __vw\_material\_raw__
 
 <br/>
 
-__vw\_vw\_material\_refname\_type__
+__vw\_material\_refname\_type__
 
 * Read/GET
 
@@ -629,7 +644,7 @@ __vw\_vw\_material\_refname\_type__
 
 <br/>
 
-__vw\_vw\_material\_type__
+__vw\_material\_type__
 
 * Read/GET
 	
@@ -638,7 +653,7 @@ __vw\_vw\_material\_type__
 	```
 <br/>
 
-__vw\_vw\_note__
+__vw\_note__
 
 * Read/GET
 

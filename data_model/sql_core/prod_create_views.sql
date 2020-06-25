@@ -134,6 +134,7 @@ CREATE OR REPLACE VIEW vw_udf_def AS
 SELECT
 	ud.udf_def_uuid, 
 	ud.description,
+	ud.valtype,
 	nt.note_uuid,
 	nt.notetext,
 	ud.add_date,

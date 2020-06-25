@@ -559,6 +559,7 @@ CREATE TABLE udf (
 CREATE TABLE udf_def (
 	udf_def_uuid uuid DEFAULT uuid_generate_v4 (),
   description varchar COLLATE "pg_catalog"."default",
+	valtype val_type,
 	note_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()

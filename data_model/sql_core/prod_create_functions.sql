@@ -1409,11 +1409,11 @@ Date:					2020.06.22
 Description:	trigger proc that deletes, inserts or updates udf_def record based on TG_OP (trigger operation)
 Notes:				
 							
-Example:			insert into vw_udf_def (description, notetext) values ('TEST Systemtool Type', null);
-							insert into vw_udf_def (description, notetext) values ('TEST Systemtool Type', 'Some text here...');
-							update vw_udf_def set notetext = 'A bunch of text goes here... with added text' where udf_def_uuid = 
-								(select udf_def_uuid from vw_udf_def where (description = 'TEST Systemtool Type'));
-							delete from vw_udf_def where udf_def_uuid = (select udf_def_uuid from udf_def where (description = 'TEST Systemtool Type'));
+Example:			insert into vw_udf_def (description, valtype, notetext) values ('user defined 1', null, null);
+							insert into vw_udf_def (description, valtype, notetext) values ('user defined 1', 'int'::val_type, 'Some text here...');
+							update vw_udf_def set valtype = 'text'::val_type, notetext = 'A bunch of text goes here... with added text' where udf_def_uuid = 
+								(select udf_def_uuid from vw_udf_def where (description = 'user defined 1'));
+							delete from vw_udf_def where udf_def_uuid = (select udf_def_uuid from udf_def where (description = 'user defined 1'));
 */
 CREATE OR REPLACE FUNCTION upsert_udf_def () RETURNS TRIGGER AS $$ 
 	DECLARE
@@ -1431,6 +1431,7 @@ CREATE OR REPLACE FUNCTION upsert_udf_def () RETURNS TRIGGER AS $$
 		ELSIF ( TG_OP = 'UPDATE' ) THEN
 				UPDATE udf_def 
 				SET description = NEW.description,
+				valtype = NEW.valtype,
 				mod_date = now( ) 
 				WHERE udf_def.udf_def_uuid = NEW.udf_def_uuid;
 				IF ( SELECT note_uuid FROM udf_def WHERE udf_def.udf_def_uuid = NEW.udf_def_uuid ) IS NULL THEN
@@ -1452,10 +1453,11 @@ CREATE OR REPLACE FUNCTION upsert_udf_def () RETURNS TRIGGER AS $$
 							INSERT INTO note ( notetext )
 						VALUES ( NEW.notetext ) RETURNING note_uuid INTO _note_uuid;	
 					END IF;
-					INSERT INTO udf_def ( description, note_uuid )
+					INSERT INTO udf_def ( description, valtype, note_uuid )
 					VALUES
 						(
 							NEW.description,
+							NEW.valtype,
 							_note_uuid 
 						);
 					RETURN NEW;
