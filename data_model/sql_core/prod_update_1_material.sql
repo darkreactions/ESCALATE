@@ -149,7 +149,7 @@ insert into material_refname_x (material_uuid, material_refname_uuid)
 -- we'll do it based on material_type for 'CC(C)(C)[NH3+].[I-]'
 insert into tag_x (ref_tag_uuid, tag_uuid)
 	select (SELECT material_uuid FROM get_material_bydescr_bystatus ('CC(C)(C)[NH3+].[I-]', array['active'], TRUE)) as tag_ref_uuid, tag_uuid 
-		from tag tg where tg.short_description in (
+		from tag tg where tg.display_text in (
 		SELECT unnest(get_material_type ((SELECT material_uuid FROM get_material_bydescr_bystatus ('CC(C)(C)[NH3+].[I-]', array['active'], TRUE))))
 		);
 

@@ -98,6 +98,8 @@ edocument_x
 escalate_change_log
 escalate_version
 experiment
+experiment_inventory
+experiment_udf
 files
 inventory
 material
@@ -119,6 +121,8 @@ systemtool_type
 tag
 tag_type
 tag_x
+udf
+udf_def
 
 ```
 <br/>
@@ -160,10 +164,18 @@ ALTER TABLE actor_pref
 CLUSTER actor_pref USING "pk_actor_pref_uuid";
 
 ALTER TABLE experiment ADD 
-	CONSTRAINT "pk_experimentl_experiment_uuid" PRIMARY KEY (experiment_uuid);
+	CONSTRAINT "pk_experiment_experiment_uuid" PRIMARY KEY (experiment_uuid);
 	CREATE INDEX "ix_experiment_parent_path" ON experiment USING GIST (parent_path);
 	CREATE INDEX "ix_experiment_parent_uuid" ON experiment (parent_uuid);
-CLUSTER experiment USING "pk_experimentl_experiment_uuid";
+CLUSTER experiment USING "pk_experiment_experiment_uuid";
+
+ALTER TABLE experiment_inventory ADD 
+	CONSTRAINT "pk_experiment_inventory_uuid" PRIMARY KEY (experiment_inventory_uuid);
+CLUSTER experiment_inventory USING "pk_experiment_inventory_uuid";
+
+ALTER TABLE experiment_udf ADD 
+	CONSTRAINT "pk_experiment_udf_uuid" PRIMARY KEY (experiment_udf_uuid);
+CLUSTER experiment_udf USING "pk_experiment_udf_uuid";
 
 ALTER TABLE material ADD 
 	CONSTRAINT "pk_material_material_uuid" PRIMARY KEY (material_uuid);
@@ -248,7 +260,7 @@ CLUSTER edocument_x USING "pk_edocument_x_edocument_x_uuid";
 
 ALTER TABLE tag 
 	ADD CONSTRAINT "pk_tag_tag_uuid" PRIMARY KEY (tag_uuid),
-	ADD CONSTRAINT "un_tag" UNIQUE (tag_uuid);;
+	ADD CONSTRAINT "un_tag" UNIQUE (display_text);
 CLUSTER tag USING "pk_tag_tag_uuid";
 
 ALTER TABLE tag_x 
@@ -256,12 +268,22 @@ ALTER TABLE tag_x
 	ADD CONSTRAINT "un_tag_x" UNIQUE (ref_tag_uuid, tag_uuid);
 CLUSTER tag_x USING "pk_tag_x_tag_x_uuid";
 
-ALTER TABLE tag_type ADD 
-	CONSTRAINT "pk_tag_tag_type_uuid" PRIMARY KEY (tag_type_uuid);
+ALTER TABLE tag_type 
+	ADD CONSTRAINT "pk_tag_tag_type_uuid" PRIMARY KEY (tag_type_uuid),
+	ADD CONSTRAINT "un_tag_type" UNIQUE (short_description);
 CLUSTER tag_type USING "pk_tag_tag_type_uuid";
 
-ALTER TABLE status ADD 
-	CONSTRAINT "pk_status_status_uuid" PRIMARY KEY (status_uuid);
+ALTER TABLE udf 
+	ADD CONSTRAINT "pk_udf_udf_uuid" PRIMARY KEY (udf_uuid);
+CLUSTER udf USING "pk_udf_udf_uuid";
+
+ALTER TABLE udf_def 
+	ADD CONSTRAINT "pk_udf_udf_def_uuid" PRIMARY KEY (udf_def_uuid),
+	ADD CONSTRAINT "un_udf_def" UNIQUE (description);
+CLUSTER udf_def USING "pk_udf_udf_def_uuid";
+
+ALTER TABLE status 
+	ADD CONSTRAINT "pk_status_status_uuid" PRIMARY KEY (status_uuid);
 CLUSTER status USING "pk_status_status_uuid";
 ```
 
@@ -331,8 +353,14 @@ run_descriptor (p_descriptor_def_uuid uuid, p_alias_name varchar, p_command_opt 
 load_mol_images ( p_systemtool_uuid uuid, p_actor_uuid uuid ) RETURNS bool
 get_charge_count ( p_mol_smiles varchar ) RETURNS int
 math_op (p_in_num numeric, p_op text, p_in_opt_num numeric default null) returns numeric
-delete_organization (_fulln varchar) RETURNS int8
 upsert_organization() RETURNS TRIGGER
+upsert_person() RETURNS TRIGGER
+upsert_systemtool() RETURNS TRIGGER
+upsert_systemtool_type () RETURNS TRIGGER
+upsert_tag_type () RETURNS TRIGGER
+upsert_tag () RETURNS TRIGGER
+upsert_udf_def () RETURNS TRIGGER
+upsert_status () RETURNS TRIGGER
 
 ```
 
@@ -370,6 +398,7 @@ vw_status
 vw_systemtool_type
 vw_tag
 vw_tag_type
+vw_udf_def
 
 ```
 <br/>
@@ -380,62 +409,110 @@ Views provide full **CRUD/Restful API** or **Read/Get** functionality<br/>
 Below the columns returned or updateable for each of the views:
 
 
-__vw\_organization__<br/>
-_read/GET_ <br/>
+__vw\_organization__
 
-```
-organization_uuid, description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid, parent_org_full_name, add_date, mod_date, note_uuid, notetext, edocument_uuid, edocument_descr, tag_uuid, tag_short_descr
-```
-_upsert/POST/PUT/DELETE_ <br/>
+* Read/GET
 
-```
-description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid, notetext
-```
+	```	
+	organization_uuid, description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid, parent_org_full_name, add_date, mod_date, note_uuid, notetext, edocument_uuid, edocument_descr, tag_uuid, tag_short_descr
+	```
+* upsert/POST/PUT/DELETE
+
+	```
+	description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid, notetext
+	```
 <br/>
 
-__vw\_person__<br/>
-_read/GET_ <br/>
+__vw\_person__
 
-```
-person_uuid, first_name, last_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, add_date, mod_date, organization_uuid, organization_full_name, note_uuid, notetext, edocument_uuid, edocument_descr, tag_uuid, tag_short_descr
-```
-_upsert/POST/PUT/DELETE_ <br/>
+* Read/GET
 
-```
-last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid, notetext
-```
+	```
+	person_uuid, first_name, last_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, add_date, mod_date, organization_uuid, organization_full_name, note_uuid, notetext, edocument_uuid, edocument_descr, tag_uuid, tag_short_descr
+	```
+* upsert/POST/PUT/DELETE
 
-<br/>
-
-__vw\_latest_systemtool__<br/>
-_read/GET_ <br/>
-
-```
-systemtool_uuid, systemtool_name, description, vendor_organization_uuid, organization_fullname, systemtool_type_uuid, systemtool_type_description, model, serial, ver, note_uuid, notetext, actor_uuid, actor_description, add_date, mod_date
-```
-_upsert/POST/PUT/DELETE_ <br/>
-
-```
-systemtool_name, description, systemtool_type_uuid, vendor_organization_uuid, model, serial, ver, notetext
-```
-
+	```
+	last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid, notetext
+	```
 
 <br/>
 
-__vw\_systemtool_type__<br/>
-_read/GET_ <br/>
+__vw\_latest_systemtool__
 
-```
-systemtool_type_uuid, description, note_uuid, notetext, add_date, mod_date
-```
-_upsert/POST/PUT/DELETE_ <br/>
+* Read/GET
 
-```
-description, notetext
-```
+	```
+	systemtool_uuid, systemtool_name, description, vendor_organization_uuid, organization_fullname, systemtool_type_uuid, systemtool_type_description, model, serial, ver, note_uuid, notetext, actor_uuid, actor_description, add_date, mod_date
+	```
+* upsert/POST/PUT/DELETE
+
+	```
+	systemtool_name, description, systemtool_type_uuid, vendor_organization_uuid, model, serial, ver, notetext
+	```
 
 
 <br/>
+
+__vw\_systemtool_type__
+
+* Read/GET
+	
+	```
+	systemtool_type_uuid, description, note_uuid, notetext, add_date, mod_date
+	```
+* upsert/POST/PUT/DELETE
+
+	```
+	description, notetext
+	```
+
+<br/>
+
+__vw\_tag_type__
+
+* Read/GET
+
+	```
+	tag_type_uuid, short_description, description, add_date, mod_date
+	```
+* upsert/POST/PUT/DELETE
+
+	```
+	short_description, description
+	```
+
+__vw\_tag__
+
+* Read/GET
+
+	```
+	tag_uuid, display_text, description, add_date, mod_date, tag_type_uuid, tag_type_short_descr, tag_type_description, actor_uuid, actor_description, note_uuid, notetext
+	```
+* upsert/POST/PUT/DELETE
+
+	```
+	display_text, description, tag_type_uuid, actor_uuid, notetext
+	```
+
+<br/>
+
+__vw\_status__
+
+* Read/GET
+
+	```
+	status_uuid, description, add_date, mod_date
+	```
+* upsert/POST/PUT/DELETE
+
+	```
+	description
+	```
+
+<br/>
+
+
 
 
 <!-- UPDATE views!! 
@@ -451,128 +528,124 @@ e.g. __vw\_latest\_systemtool__ returns records from the **systemtool** table wi
 -->
 
 
-__vw_actor__<br/>
-_read/GET_<br/>
+__vw_actor__
 
-```
-actor_uuid, actor_id, organization_id, person_id, systemtool_id, actor_description, actor_status, actor_notetext, actor_document, actor_doc_type, org_full_name, org_short_name, per_lastname, per_firstname, person_lastfirst, person_org, systemtool_name, systemtool_description, systemtool_type, systemtool_vendor, systemtool_model, systemtool_serial, systemtool_version, systemtool_org 
-```
+* Read/GET_
+
+	```
+	actor_uuid, actor_id, organization_id, person_id, systemtool_id, actor_description, actor_status, actor_notetext, actor_document, actor_doc_type, org_full_name, org_short_name, per_lastname, per_firstname, person_lastfirst, person_org, systemtool_name, systemtool_description, systemtool_type, systemtool_vendor, systemtool_model, systemtool_serial, systemtool_version, systemtool_org 
+	```
 <br/>
 
-__vw\_calculation__<br/>
-_read/GET_
+__vw\_calculation__
 
-```
-calculation_uuid, in_val, in_val_type, in_val_value, in_val_unit, in_val_edocument_uuid, in_opt_val, in_opt_val_type, in_opt_val_value, in_opt_val_unit, in_opt_val_edocument_uuid, out_val, out_val_type, out_val_value, out_val_unit, out_val_edocument_uuid, calculation_alias_name, create_date, status, actor_descr, notetext, calculation_def_uuid, short_name, calc_definition, description, in_type, out_type, systemtool_uuid, systemtool_name, systemtool_type_description, systemtool_vendor_organization, systemtool_version, actor_uuid, actor_description
-```
+* Read/GET
+
+	```
+	calculation_uuid, in_val, in_val_type, in_val_value, in_val_unit, in_val_edocument_uuid, in_opt_val, in_opt_val_type, in_opt_val_value, in_opt_val_unit, in_opt_val_edocument_uuid, out_val, out_val_type, out_val_value, out_val_unit, out_val_edocument_uuid, calculation_alias_name, create_date, status, actor_descr, notetext, calculation_def_uuid, short_name, calc_definition, description, in_type, out_type, systemtool_uuid, systemtool_name, systemtool_type_description, systemtool_vendor_organization, systemtool_version, actor_uuid, actor_description
+	```
+
 <br/>
 
-__vw\_calculation\_def__<br/>
-_read/GET_
+__vw\_calculation\_def__
 
-```
-calculation_def_uuid, short_name, calc_definition, description, actor_id, actor_org, actor_systemtool_name, actor_systemtool_version
-```
-<br/>
+* Read/GET
 
+	```
+	calculation_def_uuid, short_name, calc_definition, description, actor_id, actor_org, actor_systemtool_name, actor_systemtool_version
+	```
 
-__vw\_edocument__<br/>
-_read/GET_
-
-```
-edocument_uuid, edocument_title, edocument_description, edocument_filename, edocument_source, edocument_type, edocument, actor_uuid, actor_description
-```
 <br/>
 
 
-__vw\_inventory__<br/>
-_read/GET_
+__vw\_edocument__
 
-```
-inventory_uuid, description inventory_description, part_no, onhand_amt, unit, create_date, expiration_date, inventory_location, status, material_uuid, material_description, actor_uuid, description, edocument_uuid, edocument_description, note_uuid, notetext
-```
-<br/>
+* read/GET
 
-__vw\_inventory\_material__<br/>
-_read/GET_
+	```
+	edocument_uuid, edocument_title, edocument_description, edocument_filename, edocument_source, edocument_type, edocument, actor_uuid, actor_description
+	```
 
-```
-inventory_uuid, inventory_description, inventory_part_no, inventory_onhand_amt, inventory_unit, inventory_create_date, inventory_expiration_date, inventory_location, inventory_status, actor_uuid, actor_description, org_full_name, material_uuid, material_status, material_create_date, material_name, material_abbreviation, material_inchi, material_inchikey, material_molecular_formula, material_smiles
-```
-<br/>
-
-__vw\_material__<br/>
-_read/GET_
-
-```
-material_uuid, material_status, create_date, Abbreviation, Chemical_Name, InChI, InChIKey, Molecular_Formula, SMILES
-```
-<br/>
-
-__vw\_material\_calculation\_raw__<br/>
-_read/GET_
-
-```
-material_uuid, material_status, material_create_date, abbreviation, chemical_name, inchi, inchikey, molecular_formula, smiles, calculation_uuid, in_val, in_val_type, in_val_value, in_val_unit, in_val_edocument_uuid, in_opt_val, in_opt_val_type, in_opt_val_value, in_opt_val_unit, in_opt_val_edocument_uuid, out_val, out_val_type, out_val_value, out_val_unit, out_val_edocument_uuid, calculation_alias_name, calculation_create_date, status, actor_descr, notetext, calculation_def_uuid, short_name, calc_definition, description, in_type, out_type, systemtool_uuid, systemtool_name, systemtool_type_description, systemtool_vendor_organization, systemtool_version, actor_uuid, actor_description
-```
-<br/>
-
-__vw\_material\_raw__<br/>
-_read/GET_
-
-```
-material_uuid, material_description, material_status, material_type_description, material_refname_type, material_refname_description, material_refname_type_uuid, material_create_date, note_uuid, notetext
-```
-<br/>
-
-__vw\_vw\_material\_refname\_type__<br/>
-_read/GET_
-
-```
-material_refname_type_uuid, description, notetext
-```
-<br/>
-
-__vw\_vw\_material\_type__<br/>
-_read/GET_
-
-```
-material_type_uuid, description, notetext
-```
-<br/>
-
-__vw\_vw\_note__<br/>
-_read/GET_
-
-```
-note_uuid, notetext, add_date, mod_date, edocument_uuid, edocument_title, edocument_description, edocument_filename, edocument_source, edocument_type, actor_uuid, actor_description
-```
-<br/>
-
-__vw\_vw\_status__<br/>
-_read/GET_
-
-```
-status_uuid, description, add_date, mod_date
-```
-<br/>
-
-__vw\_vw_tag__<br/>
-_read/GET_
-
-```
-tag_uuid, tag_short_descr, tag_description, add_date, mod_date, tag_type_uuid, tag_type_short_descr, tag_type_description, actor_uuid, actor_description, note_uuid, notetext
-```
 <br/>
 
 
-__vw\_vw_tag\_type__<br/>
-_read/GET_
+__vw\_inventory__
 
-```
-tag_type_uuid, short_description, description, actor_uuid, actor_description, add_date, mod_date
-```
+* Read/GET
+	
+	```
+	inventory_uuid, description inventory_description, part_no, onhand_amt, unit, create_date, expiration_date, inventory_location, status, material_uuid, material_description, actor_uuid, description, edocument_uuid, edocument_description, note_uuid, notetext
+	```
+
 <br/>
+
+__vw\_inventory\_material__
+
+* Read/GET
+
+	```
+	inventory_uuid, inventory_description, inventory_part_no, inventory_onhand_amt, inventory_unit, inventory_create_date, inventory_expiration_date, inventory_location, inventory_status, actor_uuid, actor_description, org_full_name, material_uuid, material_status, material_create_date, material_name, material_abbreviation, material_inchi, material_inchikey, material_molecular_formula, material_smiles
+	```
+
+<br/>
+
+__vw\_material__
+
+* Read/GET
+	
+	```
+	material_uuid, material_status, create_date, Abbreviation, Chemical_Name, InChI, InChIKey, Molecular_Formula, SMILES
+	```
+
+<br/>
+
+__vw\_material\_calculation\_raw__
+
+* Read/GET
+
+	```
+	material_uuid, material_status, material_create_date, abbreviation, chemical_name, inchi, inchikey, molecular_formula, smiles, calculation_uuid, in_val, in_val_type, in_val_value, in_val_unit, in_val_edocument_uuid, in_opt_val, in_opt_val_type, in_opt_val_value, in_opt_val_unit, in_opt_val_edocument_uuid, out_val, out_val_type, out_val_value, out_val_unit, out_val_edocument_uuid, calculation_alias_name, calculation_create_date, status, actor_descr, notetext, calculation_def_uuid, short_name, calc_definition, description, in_type, out_type, systemtool_uuid, systemtool_name, systemtool_type_description, systemtool_vendor_organization, systemtool_version, actor_uuid, actor_description
+	```
+
+<br/>
+
+__vw\_material\_raw__
+
+* Read/GET
+
+	```
+	material_uuid, material_description, material_status, material_type_description, material_refname_type, material_refname_description, material_refname_type_uuid, material_create_date, note_uuid, notetext
+	```
+
+<br/>
+
+__vw\_vw\_material\_refname\_type__
+
+* Read/GET
+
+	```
+	material_refname_type_uuid, description, notetext
+	```
+
+<br/>
+
+__vw\_vw\_material\_type__
+
+* Read/GET
+	
+	```
+	material_type_uuid, description, notetext
+	```
+<br/>
+
+__vw\_vw\_note__
+
+* Read/GET
+
+	```
+	note_uuid, notetext, add_date, mod_date, edocument_uuid, edocument_title, edocument_description, edocument_filename, edocument_source, edocument_type, actor_uuid, actor_description
+	```
+
 
 <br/>
 

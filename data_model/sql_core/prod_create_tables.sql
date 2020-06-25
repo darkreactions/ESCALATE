@@ -40,6 +40,8 @@ DROP TABLE IF EXISTS systemtool_type cascade;
 DROP TABLE IF EXISTS actor cascade;
 DROP TABLE IF EXISTS actor_pref cascade;
 DROP TABLE IF EXISTS experiment cascade;
+DROP TABLE IF EXISTS experiment_inventory cascade;
+DROP TABLE IF EXISTS experiment_udf cascade;
 DROP TABLE IF EXISTS material cascade;
 DROP TABLE IF EXISTS material_type cascade;
 DROP TABLE IF EXISTS material_type_x cascade;
@@ -60,6 +62,8 @@ DROP TABLE IF EXISTS edocument_x cascade;
 DROP TABLE IF EXISTS tag cascade;
 DROP TABLE IF EXISTS tag_x cascade;
 DROP TABLE IF EXISTS tag_type cascade;
+DROP TABLE IF EXISTS udf cascade;
+DROP TABLE IF EXISTS udf_def cascade;
 DROP TABLE IF EXISTS status cascade;
 -- DROP TABLE IF EXISTS escalate_change_log cascade;
 -- DROP TABLE IF EXISTS escalate_version cascade;
@@ -221,12 +225,38 @@ CREATE TABLE experiment (
   description varchar COLLATE "pg_catalog"."default" NOT NULL,
   parent_uuid uuid,
 	parent_path ltree,
-	actor_owner_uuid uuid,
-	actor_operator_uuid uuid,
-	actor_equipment_uuid_arr uuid[],
+	owner_uuid uuid,
+	operator_uuid uuid,
+	lab_uuid uuid,
 	status_uuid uuid,
   note_uuid uuid,
 	create_date timestamptz NOT NULL DEFAULT NOW(),
+  add_date timestamptz NOT NULL DEFAULT NOW(),
+  mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+---------------------------------------
+-- Table structure for experiment_inventory
+---------------------------------------
+CREATE TABLE experiment_inventory (
+  experiment_inventory_uuid uuid DEFAULT uuid_generate_v4 (),
+	experiment_uuid uuid,
+	inventory_uuid uuid,
+	-- measure_uuid uuid, 
+  description varchar COLLATE "pg_catalog"."default" NOT NULL,
+	status_uuid uuid,
+  note_uuid uuid,
+  add_date timestamptz NOT NULL DEFAULT NOW(),
+  mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+---------------------------------------
+-- Table structure for experiment_udf
+---------------------------------------
+CREATE TABLE experiment_udf (
+  experiment_udf_uuid uuid DEFAULT uuid_generate_v4 (),
+	experiment_uuid uuid,
+  udf_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -482,7 +512,7 @@ CREATE TABLE edocument_x (
 CREATE TABLE tag (
 	tag_uuid uuid DEFAULT uuid_generate_v4 (),
 	tag_type_uuid uuid,
-	short_description varchar(16) COLLATE "pg_catalog"."default",
+	display_text varchar(16) COLLATE "pg_catalog"."default" NOT NULL,
   description varchar COLLATE "pg_catalog"."default",
 	actor_uuid uuid,
   note_uuid uuid,
@@ -508,7 +538,28 @@ CREATE TABLE tag_type (
 	tag_type_uuid uuid DEFAULT uuid_generate_v4 (),
 	short_description varchar(32) COLLATE "pg_catalog"."default",
   description varchar COLLATE "pg_catalog"."default",
-	actor_uuid uuid,
+  add_date timestamptz NOT NULL DEFAULT NOW(),
+  mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+-- ----------------------------
+-- Table structure for udf
+-- ----------------------------
+CREATE TABLE udf (
+	udf_uuid uuid DEFAULT uuid_generate_v4 (),
+	udf_def_uuid uuid,
+  udf_val val, 
+  add_date timestamptz NOT NULL DEFAULT NOW(),
+  mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+-- ----------------------------
+-- Table structure for udf_def
+-- ----------------------------
+CREATE TABLE udf_def (
+	udf_def_uuid uuid DEFAULT uuid_generate_v4 (),
+  description varchar COLLATE "pg_catalog"."default",
+	note_uuid uuid,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -585,10 +636,18 @@ ALTER TABLE actor_pref
 CLUSTER actor_pref USING "pk_actor_pref_uuid";
 
 ALTER TABLE experiment ADD 
-	CONSTRAINT "pk_experimentl_experiment_uuid" PRIMARY KEY (experiment_uuid);
+	CONSTRAINT "pk_experiment_experiment_uuid" PRIMARY KEY (experiment_uuid);
 	CREATE INDEX "ix_experiment_parent_path" ON experiment USING GIST (parent_path);
 	CREATE INDEX "ix_experiment_parent_uuid" ON experiment (parent_uuid);
-CLUSTER experiment USING "pk_experimentl_experiment_uuid";
+CLUSTER experiment USING "pk_experiment_experiment_uuid";
+
+ALTER TABLE experiment_inventory ADD 
+	CONSTRAINT "pk_experiment_inventory_uuid" PRIMARY KEY (experiment_inventory_uuid);
+CLUSTER experiment_inventory USING "pk_experiment_inventory_uuid";
+
+ALTER TABLE experiment_udf ADD 
+	CONSTRAINT "pk_experiment_udf_uuid" PRIMARY KEY (experiment_udf_uuid);
+CLUSTER experiment_udf USING "pk_experiment_udf_uuid";
 
 ALTER TABLE material ADD 
 	CONSTRAINT "pk_material_material_uuid" PRIMARY KEY (material_uuid);
@@ -673,7 +732,7 @@ CLUSTER edocument_x USING "pk_edocument_x_edocument_x_uuid";
 
 ALTER TABLE tag 
 	ADD CONSTRAINT "pk_tag_tag_uuid" PRIMARY KEY (tag_uuid),
-	ADD CONSTRAINT "un_tag" UNIQUE (tag_uuid);;
+	ADD CONSTRAINT "un_tag" UNIQUE (display_text);
 CLUSTER tag USING "pk_tag_tag_uuid";
 
 ALTER TABLE tag_x 
@@ -681,12 +740,22 @@ ALTER TABLE tag_x
 	ADD CONSTRAINT "un_tag_x" UNIQUE (ref_tag_uuid, tag_uuid);
 CLUSTER tag_x USING "pk_tag_x_tag_x_uuid";
 
-ALTER TABLE tag_type ADD 
-	CONSTRAINT "pk_tag_tag_type_uuid" PRIMARY KEY (tag_type_uuid);
+ALTER TABLE tag_type 
+	ADD CONSTRAINT "pk_tag_tag_type_uuid" PRIMARY KEY (tag_type_uuid),
+	ADD CONSTRAINT "un_tag_type" UNIQUE (short_description);
 CLUSTER tag_type USING "pk_tag_tag_type_uuid";
 
-ALTER TABLE status ADD 
-	CONSTRAINT "pk_status_status_uuid" PRIMARY KEY (status_uuid);
+ALTER TABLE udf 
+	ADD CONSTRAINT "pk_udf_udf_uuid" PRIMARY KEY (udf_uuid);
+CLUSTER udf USING "pk_udf_udf_uuid";
+
+ALTER TABLE udf_def 
+	ADD CONSTRAINT "pk_udf_udf_def_uuid" PRIMARY KEY (udf_def_uuid),
+	ADD CONSTRAINT "un_udf_def" UNIQUE (description);
+CLUSTER udf_def USING "pk_udf_udf_def_uuid";
+
+ALTER TABLE status 
+	ADD CONSTRAINT "pk_status_status_uuid" PRIMARY KEY (status_uuid);
 CLUSTER status USING "pk_status_status_uuid";
 /*
 ALTER TABLE escalate_change_log 
@@ -738,6 +807,24 @@ ALTER TABLE actor
 ALTER TABLE actor_pref 
 	ADD CONSTRAINT fk_actor_pref_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
 	ADD CONSTRAINT fk_actor_pref_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
+
+ALTER TABLE experiment 
+	ADD CONSTRAINT fk_experiment_actor_owner_1 FOREIGN KEY (owner_uuid) REFERENCES actor (actor_uuid),
+	ADD CONSTRAINT fk_experiment_actor_operator_1 FOREIGN KEY (operator_uuid) REFERENCES actor (actor_uuid),
+	ADD CONSTRAINT fk_experiment_actor_lab_1 FOREIGN KEY (lab_uuid) REFERENCES actor (actor_uuid),	
+	ADD CONSTRAINT fk_experiment_experiment_1 FOREIGN KEY (parent_uuid) REFERENCES experiment (experiment_uuid),
+	ADD CONSTRAINT fk_experiment_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid),	
+	ADD CONSTRAINT fk_experiment_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
+
+ALTER TABLE experiment_inventory 
+	ADD CONSTRAINT fk_experiment_inventory_experiment_1 FOREIGN KEY (experiment_uuid) REFERENCES experiment (experiment_uuid),
+	ADD CONSTRAINT fk_experiment_inventory_inventory_1 FOREIGN KEY (inventory_uuid) REFERENCES inventory (inventory_uuid),
+	ADD CONSTRAINT fk_experiment_equipment_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid),	
+	ADD CONSTRAINT fk_experiment_equipment_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
+	
+ALTER TABLE experiment_udf 
+	ADD CONSTRAINT fk_experiment_udf_experiment_1 FOREIGN KEY (experiment_uuid) REFERENCES experiment (experiment_uuid),
+	ADD CONSTRAINT fk_experiment_udf_udf_1 FOREIGN KEY (udf_uuid) REFERENCES udf (udf_uuid);	
 	
 -- ALTER TABLE material DROP CONSTRAINT fk_material_actor_1,
 --	DROP CONSTRAINT fk_material_material_1;
@@ -844,6 +931,9 @@ ALTER TABLE tag
 -- ALTER TABLE tag ADD CONSTRAINT "pk_tag_tag_uuid" PRIMARY KEY (tag_uuid);
 ALTER TABLE tag_x 
 	ADD CONSTRAINT fk_tag_x_tag_1 FOREIGN KEY (tag_uuid) REFERENCES tag (tag_uuid);
+
+ALTER TABLE udf 
+	ADD CONSTRAINT fk_udf_udf_def_1 FOREIGN KEY (udf_def_uuid) REFERENCES udf_def (udf_def_uuid);
 
 
 --=====================================

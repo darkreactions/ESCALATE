@@ -34,6 +34,11 @@ SELECT
 FROM
 	status;
 
+DROP TRIGGER IF EXISTS trigger_status_upsert on vw_status;
+CREATE TRIGGER trigger_status_upsert
+INSTEAD OF INSERT OR UPDATE OR DELETE ON vw_status
+    FOR EACH ROW EXECUTE PROCEDURE upsert_status();
+
 ----------------------------------------
 -- view of note; links to edocument and actor
 ----------------------------------------
@@ -75,20 +80,23 @@ FROM
 	LEFT JOIN actor act ON nt.actor_uuid = act.actor_uuid;
 
 ----------------------------------------
--- view of tag_type; links to actor
+-- view of tag_type
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_tag_type AS
 SELECT
 	tt.tag_type_uuid,
 	tt.short_description,
 	tt.description,
-	tt.actor_uuid,
-	act.description AS actor_description,
 	tt.add_date,
 	tt.mod_date
 FROM
-	tag_type tt
-	LEFT JOIN actor act ON tt.actor_uuid = act.actor_uuid;
+	tag_type tt;
+
+DROP TRIGGER IF EXISTS trigger_tag_type_upsert on vw_tag_type;
+CREATE TRIGGER trigger_tag_type_upsert
+INSTEAD OF INSERT OR UPDATE OR DELETE ON vw_tag_type
+    FOR EACH ROW EXECUTE PROCEDURE upsert_tag_type();
+
 
 ----------------------------------------
 -- view of tag; links to tag_type, actor and note
@@ -96,8 +104,8 @@ FROM
 CREATE OR REPLACE VIEW vw_tag AS
 SELECT
 	tg.tag_uuid,
-	tg.short_description AS tag_short_descr,
-	tg.description AS tag_description,
+	tg.display_text,
+	tg.description,
 	tg.add_date,
 	tg.mod_date,
 	tg.tag_type_uuid,
@@ -112,6 +120,33 @@ FROM
 	LEFT JOIN tag_type tt ON tg.tag_type_uuid = tt.tag_type_uuid
 	LEFT JOIN actor act ON tg.actor_uuid = act.actor_uuid
 	LEFT JOIN note nt ON tg.note_uuid = nt.note_uuid;
+
+DROP TRIGGER IF EXISTS trigger_tag_upsert on vw_tag;
+CREATE TRIGGER trigger_tag_upsert
+INSTEAD OF INSERT OR UPDATE OR DELETE ON vw_tag
+    FOR EACH ROW EXECUTE PROCEDURE upsert_tag();
+
+
+----------------------------------------
+-- integrated view of udf_def; links to notes
+----------------------------------------
+CREATE OR REPLACE VIEW vw_udf_def AS
+SELECT
+	ud.udf_def_uuid, 
+	ud.description,
+	nt.note_uuid,
+	nt.notetext,
+	ud.add_date,
+	ud.mod_date
+FROM
+	udf_def ud
+LEFT JOIN note nt ON ud.note_uuid = nt.note_uuid;
+
+DROP TRIGGER IF EXISTS trigger_udf_def_upsert on vw_udf_def;
+CREATE TRIGGER trigger_udf_def_upsert
+INSTEAD OF INSERT OR UPDATE OR DELETE ON vw_udf_def
+    FOR EACH ROW EXECUTE PROCEDURE upsert_udf_def();
+
 
 ----------------------------------------
 -- view of person; links to organization and note
@@ -135,13 +170,13 @@ SELECT
 	per.add_date,
 	per.mod_date,
 	org.organization_uuid,
-	org.full_name,
+	org.full_name as organinization_full_name,
 	nt.note_uuid,
 	nt.notetext,
 	ed.edocument_uuid,
 	ed.description AS edocument_descr,
 	tag.tag_uuid,
-	tag.short_description AS tag_short_descr
+	tag.display_text AS tag_display_text
 FROM
 	person per
 	LEFT JOIN organization org ON per.organization_uuid = org.organization_uuid
@@ -183,7 +218,7 @@ SELECT
 	ed.edocument_uuid,
 	ed.description AS edocument_descr,
 	tag.tag_uuid,
-	tag.short_description AS tag_short_descr
+	tag.display_text AS tag_display_text
 FROM
 	organization org
 	LEFT JOIN organization orgp ON org.parent_uuid = orgp.organization_uuid

@@ -179,9 +179,10 @@ COMMIT;
 -- Populate tag_type
 -- ----------------------------
 BEGIN;
-INSERT INTO tag_type (short_description, description, actor_uuid)
+INSERT INTO tag_type (short_description, description)
 VALUES 
-	('material', 'tags used to assist in identifying material types', (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'))
+	('material', 'tags used to assist in identifying material types'),
+	('experiment', 'tags used to assist in charactizing experiments, visibility')
 ;
 COMMIT;
 
@@ -189,7 +190,7 @@ COMMIT;
 -- Populate some Tags
 -- ----------------------------
 BEGIN;
-INSERT INTO tag (short_description, tag_type_uuid, actor_uuid)
+INSERT INTO tag (display_text, tag_type_uuid, actor_uuid)
 VALUES 
 	('A-Cation', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
 	('B-Cation', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
@@ -200,6 +201,21 @@ VALUES
 	('organic', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
 	('polymer', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
 	('solvent', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'))
+;
+COMMIT;
+
+
+-- ----------------------------
+-- Populate some UDFs
+-- ----------------------------
+BEGIN;
+INSERT INTO udf_def (description)
+VALUES 
+	('experiment version'),
+	('generation version'),
+	('challenge problem'),
+	('model predicted'),
+	('batch count')
 ;
 COMMIT;
 

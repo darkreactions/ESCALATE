@@ -71,9 +71,9 @@ $$ LANGUAGE plpgsql;
 
 
 /*
-Name:					load_csv(_csv varchar, _csv varchar)
-Parameters:		fname = string of source filename, full location
-							tname = string of destination load_table
+Name:					load_csv(_csv varchar, _table varchar)
+Parameters:		_csv = string of source filename, full location
+							_table = string of destination load_table
 Returns:			count of records loaded, or NULL is failed
 Author:				G. Cattabriga
 Date:					2020.05.15
@@ -110,14 +110,34 @@ $func$  LANGUAGE plpgsql;
 
 
 /*
-Name:					load_experiment(_table)
+Name:					load_experiment(_loadtable varchar)
 Parameters:		fname = string of source filename, full location
 							tname = string of destination load_table
 Returns:			count of records loaded, or NULL is failed
 Author:				G. Cattabriga
-Date:					2020.05.15
-Description:	loads csv file (_csv) into load table (_table) 
+Date:					2020.06.10
+Description:	loads experiment load file (_loadtable) into experiment table 
 Notes:				assumes the following columns: _exp_no, _raw_operator, _raw_user_generated_experimentname, _raw_datecreated, _raw_lab, _raw_labwareid, 
-							drop function if exists load_csv(_csv varchar, _table varchar) cascade;
+							drop function if exists load_experiment(_loadtable) cascade;
 Example:			select load_csv('/Users/gcattabriga/Downloads/GitHub/ESCALATE_report/iodides/REPORT/iodides.csv', 'load_v2_iodides_temp');
 */
+CREATE OR REPLACE FUNCTION load_experiment(_loadtable varchar)
+  RETURNS int AS
+$func$
+DECLARE
+   row_ct int;
+BEGIN
+		
+		-- get row count
+	 GET DIAGNOSTICS row_ct = ROW_COUNT;
+   return row_ct;
+END
+$func$  LANGUAGE plpgsql;
+
+
+substring(_exp_no,1, length(_exp_no) - POSITION('_' in reverse(_exp_no))
+
+select ex1._exp_no, _exp, replace(replace(substring(ex1._exp, 1, length(ex1._exp) - POSITION('_' in reverse(ex1._exp))),'T', ' '),'_',':')::timestamp as _exp_date, right(ex1._exp, POSITION('_' in reverse(ex1._exp))-1) as _exp_lab from 
+	(select _exp_no, substring(_exp_no, 1, length(_exp_no) - POSITION('_' in reverse(_exp_no))) as _exp from load_v2_wf3_iodides) ex1
+
+
