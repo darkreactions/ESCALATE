@@ -104,75 +104,83 @@ CREATE EXTENSION if not exists "uuid-ossp";
 
 
 ### Instantiation from SQL (as part of development process) 
-Running the SQL below, in order, will create the database, schema, functions, tables, keys and constraints, load load tables, and populate core tables.
+Sometimes it's helpful to dev/test added tables, views, and functions iteratively and [re]build the schema accordingly. Below are two methods to aid in your dev/test cycle; 1) the first is a single bash script that will execute psql to rebuild the db objects in the dev schema automatically, and 2) is a manual method to do the same thing.
 
-**Step 1** - Create database named: 'escalate'
+**1. Single Script Method**
 
-```
-CREATE DATABASE escalate OWNER escalate;
-```
-
-**Step 2** - Create schema in database escalate (at this point, use: 'dev')
+Run the following bash script found in the backups directory
 
 ```
-CREATE SCHEMA dev;
+./rebuild_schema_dev.sh
 ```
+or 
 
-**Step 3** -  Add required extensions (collection of functions) to the schema:
+**2. Manual Method (in order)**
 
-```
-CREATE EXTENSION if not exists ltree with schema dev;
-CREATE EXTENSION if not exists tablefunc with schema dev;
-CREATE EXTENSION if not exists "uuid-ossp" with schema dev;
-CREATE EXTENSION IF NOT EXISTS hstore with schema dev;
-```
+* Create database named: 'escalate'
 
-**Step 4** - Populate the load tables with existing perovskite experimental data using SQL code found in the repo 'sql_dataload' subdirectory:
+	```
+	CREATE DATABASE escalate OWNER escalate;
+	```
 
-```
-prod_dataload_chem_inventory.sql
-prod_dataload_edocument.sql
-prod_dataload_hc_inventory.sql
-prod_dataload_lbl_inventory.sql
-prod_dataload_perov_desc_def.sql
-prod_dataload_perov_desc.sql
-prod_dataload_perov_mol_image.sql
-prod_dataload_v2_wf3_iodides.sql
-pro_dataload_v2_wf3_alloying.sql
-prod_dataload_v2_iodides.sql
-prod_dataload_v2_bromides.sql
+* Create schema in database escalate (at this point, use: 'dev')
 
-```
+	```	
+	CREATE SCHEMA dev;
+	```
 
-**Step 5** - Create the core model tables, primary keys, foreign keys and constraints and views using SQL code found in the repo 'sql_core' subdirectory:
+* Add required extensions (collection of functions) to the schema:
 
-```
-prod_create_tables.sql
-```
+	```
+	CREATE EXTENSION if not exists ltree with schema dev;
+	CREATE EXTENSION if not exists tablefunc with schema dev;
+	CREATE EXTENSION if not exists "uuid-ossp" with schema dev;
+	CREATE EXTENSION IF NOT EXISTS hstore with schema dev;
+	```
 
-**Step 6** - Create the core functions:
+* Populate the load tables with existing perovskite experimental data using SQL code found in the repo 'sql_dataload' subdirectory:
 
-```
-prod_create_functions.sql
-```
+	```
+	prod_dataload_chem_inventory.sql
+	prod_dataload_edocument.sql
+	prod_dataload_hc_inventory.sql
+	prod_dataload_lbl_inventory.sql
+	prod_dataload_perov_desc_def.sql
+	prod_dataload_perov_desc.sql
+	prod_dataload_perov_mol_image.sql
+	prod_dataload_v2_wf3_iodides.sql
+	pro_dataload_v2_wf3_alloying.sql
+	prod_dataload_v2_iodides.sql
+	prod_dataload_v2_bromides.sql
+	```
 
-**Step 7** - Create the core views:
+* Create the core model tables, primary keys, foreign keys and constraints and views using SQL code found in the repo 'sql_core' subdirectory:
 
-```
-prod_create_views.sql
-```
+	```
+	prod_create_tables.sql
+	```
+
+* Create the core functions:
+
+	```
+	prod_create_functions.sql
+	```
+
+* Create the core views:
+
+	```
+	prod_create_views.sql
+	```
 
 
-**Step 8** - Populate the core tables:
+* Populate the core tables:
 
-```
-prod_initialize_coretables.sql
-prod_update_1_material.sql
-prod_update_2_inventory.sql
-prod_update_3_descriptor.sql
-```
-
-Note to self: End with an example of getting some data out of the system or using it for a little demo
+	```
+	prod_initialize_coretables.sql
+	prod_update_1_material.sql
+	prod_update_2_inventory.sql
+	prod_update_3_descriptor.sql
+	```
 
 <br/>
 
