@@ -29,6 +29,12 @@ BEGIN {}
 			print "SELECT set_config(\047search_path\047\, \047dev\,\047||current_setting(\047search_path\047), false);"
 			next
 		}
+	else if (index ($0, "DROP TABLE"))
+		{
+			gsub(";"," CASCADE;")
+			print $0
+			next
+		}	
 	else 
 		print $0
 }
