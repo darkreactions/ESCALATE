@@ -11,6 +11,32 @@ Notes:
 --=====================================
 -- VIEWS
 --=====================================
+/*
+DROP TABLE IF EXISTS vw_actor cascade;  
+DROP TABLE IF EXISTS vw_calculation cascade; 
+DROP TABLE IF EXISTS vw_calculation_def cascade; 
+DROP TABLE IF EXISTS edocument cascade; 
+DROP TABLE IF EXISTS vw_experiment_measure_calculation cascade; 
+DROP TABLE IF EXISTS vw_experiment_measure_calculation_json cascade; 
+DROP TABLE IF EXISTS vw_inventory cascade; 
+DROP TABLE IF EXISTS vw_inventory_material cascade; 
+DROP TABLE IF EXISTS vw_latest_systemtool cascade; 
+DROP TABLE IF EXISTS vw_latest_systemtool_raw cascade; 
+DROP TABLE IF EXISTS vw_material cascade; 
+DROP TABLE IF EXISTS vw_material_calculation_json cascade; 
+DROP TABLE IF EXISTS vw_material_calculation_raw cascade; 
+DROP TABLE IF EXISTS vw_material_raw cascade;
+DROP TABLE IF EXISTS vw_material_refname_type cascade;
+DROP TABLE IF EXISTS vw_material_type cascade; 
+DROP TABLE IF EXISTS vw_note cascade;
+DROP TABLE IF EXISTS vw_organization cascade;
+DROP TABLE IF EXISTS vw_person cascade;
+DROP TABLE IF EXISTS vw_status cascade;
+DROP TABLE IF EXISTS vw_systemtool_type cascade;
+DROP TABLE IF EXISTS vw_tag cascade;
+DROP TABLE IF EXISTS vw_tag_type cascade;
+DROP TABLE IF EXISTS vw_udf_def cascade;
+*/
 
 ----------------------------------------
 -- view of sys_audit tables trigger on
@@ -464,12 +490,20 @@ CREATE OR REPLACE VIEW vw_material_type AS
 SELECT
 	mt.material_type_uuid,
 	mt.description,
+	mt.add_date,
+	mt.mod_date,
+	nt.note_uuid,
 	nt.notetext
 FROM
 	material_type mt
 	LEFT JOIN note nt ON mt.note_uuid = nt.note_uuid
 ORDER BY
 	2;
+
+DROP TRIGGER IF EXISTS trigger_material_type_upsert on vw_material_type;
+CREATE TRIGGER trigger_material_type_upsert
+INSTEAD OF INSERT OR UPDATE OR DELETE ON vw_material_type
+    FOR EACH ROW EXECUTE PROCEDURE upsert_material_type();
 
 ----------------------------------------
 -- get materials, all status

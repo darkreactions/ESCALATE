@@ -524,6 +524,20 @@ __vw\_status__
 	```
 	description
 	```
+<br/>
+
+__vw\_material\_type__
+
+* Read/GET
+	
+	```
+	material_type_uuid, description, add_date, mod_date, note_uuid, notetext
+	```
+* upsert/POST/PUT/DELETE
+
+	```
+	description, notetext
+	```
 
 <br/>
 
@@ -644,14 +658,6 @@ __vw\_material\_refname\_type__
 
 <br/>
 
-__vw\_material\_type__
-
-* Read/GET
-	
-	```
-	material_type_uuid, description, notetext
-	```
-<br/>
 
 __vw\_note__
 
