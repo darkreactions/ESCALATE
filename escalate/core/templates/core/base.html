@@ -70,6 +70,9 @@
                     <li class="nav-item {% if url_name == 'organization_list' %}active{% endif %}">
                         <a class="nav-link" href="{% url 'organization_list' %}">Organization</a>
                     </li>
+                    <li class="nav-item {% if url_name == 'person_list' %}active{% endif %}">
+                        <a class="nav-link" href="{% url 'person_list' %}">Person</a>
+                    </li>
                 </ul>
 
                 {% block add_data %}
