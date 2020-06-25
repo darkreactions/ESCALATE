@@ -108,11 +108,15 @@ Sometimes it's helpful to dev/test added tables, views, and functions iterativel
 
 **1. Single Script Method**
 
-Run the following bash script found in the backups directory
+* Run the following bash script found in the `sql_core` directory
+	
 
-```
-./rebuild_schema_dev.sh
-```
+	```
+	./rebuild_schema_dev.sh
+	```
+
+	*note: log file `rebuild_dev.log` is created in the same directory*	
+
 or 
 
 **2. Manual Method (in order)**
