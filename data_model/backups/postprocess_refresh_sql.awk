@@ -4,7 +4,7 @@
 # feed in the input sql file and specify the output file with >
 # example ./postprocess_refresh_sql.awk escalate_dev_refresh_backup.sql > escalate_dev_refresh_backup.tmp && mv escalate_dev_refresh_backup.tmp escalate_dev_refresh_backup.sql
 BEGIN {
-	cmd="date +%m/%d/%Y_%H:%M:%S_%a";
+	cmd="date -u +%Y-%m-%dT%H:%M:%SZ";
 	cmd|getline ts; 
 	close(cmd);
 }
@@ -34,14 +34,15 @@ BEGIN {
 			next
 		}
 	# add the filename and timestamp
-	else if (index ($0, "-- Dumped by pg_dump"))
+	else if (index ($0, "-- PostgreSQL database dump"))
 		{
+			print "-- |==================================================|"					
+			print "-- | Filename:       escalate_dev_refresh_backup.sql  |"
+			print "-- | Timestamp:     ",ts, "            |"
+			print "-- | Post-process:   postprocess_refresh_sql.awk      |"				
+			print "-- |==================================================|"
+			print "--"
 			print $0
-			print ""
-			print "-- ****************************************************"
-			print "-- *         escalate_dev_refresh_backup.sql          *"
-			print "-- *            ", ts, "             *"
-			print "-- ****************************************************"
 			next
 		}
 	# add insurance that old material_refname_type gets dropped

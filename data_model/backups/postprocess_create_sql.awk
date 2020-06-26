@@ -3,7 +3,7 @@
 # super simple awk program to update the escalate_dev_create_backup sql file
 # example postprocess_create_sql.awk escalate_dev_create_backup.sql > escalate_dev_create_backup.tmp && mv escalate_dev_create_backup.tmp escalate_dev_create_backup.sql
 BEGIN {
-	cmd="date +%m/%d/%Y_%H:%M:%S_%a";
+	cmd="date -u +%Y-%m-%dT%H:%M:%SZ";
 	cmd|getline ts; 
 	close(cmd);
 }
@@ -27,14 +27,15 @@ BEGIN {
 			next
 		}
 	# add the filename and timestamp
-	else if (index ($0, "-- Dumped by pg_dump"))
+	else if (index ($0, "-- PostgreSQL database dump"))
 		{
+			print "-- |==================================================|"				
+			print "-- | Filename:       escalate_dev_create_backup.sql   |"
+			print "-- | Timestamp:     ",ts, "            |"
+			print "-- | Post-process:   postprocess_create_sql.awk       |"				
+			print "-- |==================================================|"
+			print "--"
 			print $0
-			print ""
-			print "-- ****************************************************"
-			print "-- *          escalate_dev_create_backup.sql          *"
-			print "-- *            ", ts, "             *"
-			print "-- ****************************************************"
 			next
 		}
 	else 

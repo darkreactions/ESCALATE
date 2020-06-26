@@ -197,7 +197,7 @@ SELECT
 	per.add_date,
 	per.mod_date,
 	org.organization_uuid,
-	org.full_name as organinization_full_name,
+	org.full_name as organization_full_name,
 	nt.note_uuid,
 	nt.notetext,
 	ed.edocument_uuid,
@@ -472,6 +472,7 @@ CREATE OR REPLACE VIEW vw_material_refname_def AS
 SELECT
 	mrt.material_refname_def_uuid,
 	mrt.description,
+	nt.note_uuid,
 	nt.notetext
 FROM
 	material_refname_def mrt
@@ -479,6 +480,12 @@ FROM
 ORDER BY
 	2;
 
+DROP TRIGGER IF EXISTS trigger_material_refname_def_upsert on vw_material_refname_def;
+CREATE TRIGGER trigger_material_refname_def_upsert
+INSTEAD OF INSERT OR UPDATE OR DELETE ON vw_material_refname_def
+    FOR EACH ROW EXECUTE PROCEDURE upsert_material_refname_def();
+
+		
 ----------------------------------------
 -- get material_type
 -- DROP VIEW vw_material_type

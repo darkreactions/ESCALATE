@@ -1574,3 +1574,71 @@ CREATE OR REPLACE FUNCTION upsert_material_type () RETURNS TRIGGER AS $$
 			END;
 $$ LANGUAGE plpgsql;
 
+
+
+/*
+Name:					upsert_material_refname_def()
+Parameters:		
+
+Returns:			void
+Author:				G. Cattabriga
+Date:					2020.06.26
+Description:	trigger proc that deletes, inserts or updates material_refname_def record based on TG_OP (trigger operation)
+Notes:				
+							
+Example:			insert into vw_material_refname_def (description, notetext) values ('materialrefnamedef_test', null);
+							insert into vw_material_refname_def (description, notetext) values ('materialrefnamedef_test', 'Some text here...');
+							update vw_material_refname_def set notetext = 'A bunch of text goes here... with added text' where material_refname_def_uuid = 
+								(select material_refname_def_uuid from vw_material_refname_def where (description = 'materialrefnamedef_test'));
+							delete from vw_material_refname_def where material_refname_def_uuid = (select material_refname_def_uuid from vw_material_refname_def where (description = 'materialrefnamedef_test'));
+*/
+CREATE OR REPLACE FUNCTION upsert_material_refname_def () RETURNS TRIGGER AS $$ 
+	DECLARE
+		_note_uuid uuid;
+	BEGIN
+		IF ( TG_OP = 'DELETE' ) THEN
+		-- first delete the ornanization record
+			DELETE FROM material_refname_def WHERE material_refname_def_uuid = OLD.material_refname_def_uuid;
+			IF NOT FOUND THEN 
+				RETURN NULL;
+			END IF;
+	-- then delete the associated note record
+			DELETE FROM note WHERE note_uuid = OLD.note_uuid;
+			IF NOT FOUND THEN 
+				RETURN NULL;
+			END IF;
+			RETURN OLD;
+		ELSIF ( TG_OP = 'UPDATE' ) THEN
+				UPDATE material_refname_def 
+				SET description = NEW.description,
+				mod_date = now( ) 
+				WHERE material_refname_def.material_refname_def_uuid = NEW.material_refname_def_uuid;
+				IF ( SELECT note_uuid FROM material_refname_def WHERE material_refname_def.material_refname_def_uuid = NEW.material_refname_def_uuid ) IS NULL THEN
+					IF ( NEW.notetext IS NOT NULL ) THEN
+						INSERT INTO note ( notetext ) VALUES ( NEW.notetext ) RETURNING note_uuid INTO _note_uuid;
+					END IF;
+					UPDATE material_refname_def 
+					SET note_uuid = _note_uuid,
+					mod_date = now( ) 
+					WHERE material_refname_def.material_refname_def_uuid = NEW.material_refname_def_uuid;
+				ELSE UPDATE note 
+					SET notetext = NEW.notetext,
+					mod_date = now( ) 
+					WHERE note.note_uuid = (SELECT note_uuid FROM material_refname_def WHERE material_refname_def.material_refname_def_uuid = NEW.material_refname_def_uuid );
+				END IF;
+				RETURN NEW;
+		ELSIF ( TG_OP = 'INSERT' ) THEN
+					IF ( NEW.notetext IS NOT NULL ) THEN
+							INSERT INTO note ( notetext )
+						VALUES ( NEW.notetext ) RETURNING note_uuid INTO _note_uuid;	
+					END IF;
+					INSERT INTO material_refname_def ( description, note_uuid )
+					VALUES
+						(
+							NEW.description,
+							_note_uuid 
+						);
+					RETURN NEW;
+				END IF;
+			END;
+$$ LANGUAGE plpgsql;
