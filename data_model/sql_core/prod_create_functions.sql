@@ -1061,7 +1061,7 @@ CREATE OR REPLACE FUNCTION upsert_person () RETURNS TRIGGER AS $$
 				organization_uuid = NEW.organization_uuid,
 				mod_date = now( ) 
 				WHERE person.person_uuid = NEW.person_uuid;
-				IF ( SELECT note_uuid FROM person WHERE person.full_name = NEW.person_uuid ) IS NULL THEN
+				IF ( SELECT note_uuid FROM person WHERE person.fperson_uuid = NEW.person_uuid ) IS NULL THEN
 						IF ( NEW.notetext IS NOT NULL ) THEN
 							INSERT INTO note ( notetext ) VALUES ( NEW.notetext ) RETURNING note_uuid INTO _note_uuid;	
 						END IF;
