@@ -47,7 +47,7 @@ DROP TABLE IF EXISTS material_type cascade;
 DROP TABLE IF EXISTS material_type_x cascade;
 DROP TABLE IF EXISTS material_refname cascade;
 DROP TABLE IF EXISTS material_refname_x cascade;
-DROP TABLE IF EXISTS material_refname_type cascade;
+DROP TABLE IF EXISTS material_refname_def cascade;
 DROP TABLE IF EXISTS calculation_class cascade;
 DROP TABLE IF EXISTS calculation_def cascade;
 DROP TABLE IF EXISTS calculation cascade;
@@ -310,7 +310,7 @@ CREATE TABLE material_refname (
  -- material_uuid int8,	
   blob_value bytea,
 	blob_type varchar,
-  material_refname_type_uuid uuid,
+  material_refname_def_uuid uuid,
   reference varchar COLLATE "pg_catalog"."default",
 	status_uuid uuid,
   note_uuid uuid,
@@ -330,10 +330,10 @@ CREATE TABLE material_refname_x (
 );
 
 ---------------------------------------
--- Table structure for material_refname_type
+-- Table structure for material_refname_def
 ---------------------------------------
-CREATE TABLE material_refname_type (
-	material_refname_type_uuid uuid DEFAULT uuid_generate_v4 (),
+CREATE TABLE material_refname_def (
+	material_refname_def_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default",
 	note_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -667,7 +667,7 @@ CLUSTER material_type_x USING "pk_material_type_x_material_type_x_uuid";
 
 ALTER TABLE material_refname 
 	ADD CONSTRAINT "pk_material_refname_material_refname_uuid" PRIMARY KEY (material_refname_uuid),
-	ADD CONSTRAINT "un_material_refname" UNIQUE (description, material_refname_type_uuid);
+	ADD CONSTRAINT "un_material_refname" UNIQUE (description, material_refname_def_uuid);
 CLUSTER material_refname USING "pk_material_refname_material_refname_uuid";
 
 ALTER TABLE material_refname_x 
@@ -675,9 +675,9 @@ ALTER TABLE material_refname_x
 	ADD CONSTRAINT "un_material_refname_x" UNIQUE (material_uuid, material_refname_uuid);
 CLUSTER material_refname_x USING "pk_material_refname_x_material_refname_x_uuid";
 
-ALTER TABLE material_refname_type 
-	ADD CONSTRAINT "pk_material_refname_type_material_refname_type_uuid" PRIMARY KEY (material_refname_type_uuid);
-CLUSTER material_refname_type USING "pk_material_refname_type_material_refname_type_uuid";
+ALTER TABLE material_refname_def 
+	ADD CONSTRAINT "pk_material_refname_def_material_refname_def_uuid" PRIMARY KEY (material_refname_def_uuid);
+CLUSTER material_refname_def USING "pk_material_refname_def_material_refname_def_uuid";
 
 ALTER TABLE calculation_class ADD 
 	CONSTRAINT "pk_calculation_class_calculation_class_uuid" PRIMARY KEY (calculation_class_uuid);
@@ -849,7 +849,7 @@ ALTER TABLE material_type_x
 --ALTER TABLE material_refname DROP CONSTRAINT fk_alt_material_refname_material_1, 
 --	DROP CONSTRAINT fk_alt_material_refname_note_1;
 ALTER TABLE material_refname 
-	ADD CONSTRAINT fk_material_refname_type_1 FOREIGN KEY (material_refname_type_uuid) REFERENCES material_refname_type (material_refname_type_uuid),	
+	ADD CONSTRAINT fk_material_refname_def_1 FOREIGN KEY (material_refname_def_uuid) REFERENCES material_refname_def (material_refname_def_uuid),	
 	ADD CONSTRAINT fk_material_refname_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid),	
 	ADD CONSTRAINT fk_material_refname_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);
 
@@ -878,7 +878,7 @@ ALTER TABLE calculation_def
 -- DROP CONSTRAINT fk_calculation_status_1,
 -- DROP CONSTRAINT fk_calculation_note_1;
 ALTER TABLE calculation 
---	ADD CONSTRAINT fk_calculation_material_refname_1 FOREIGN KEY (material_refname_description_in, material_refname_type_in) REFERENCES material_refname (description, material_refname_type),
+--	ADD CONSTRAINT fk_calculation_material_refname_1 FOREIGN KEY (material_refname_description_in, material_refname_def_in) REFERENCES material_refname (description, material_refname_def),
 	ADD CONSTRAINT fk_calculation_calculation_def_1 FOREIGN KEY (calculation_def_uuid) REFERENCES calculation_def (calculation_def_uuid),	
 	ADD CONSTRAINT fk_calculation_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),	
 	ADD CONSTRAINT fk_calculation_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid),	

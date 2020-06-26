@@ -26,7 +26,7 @@ DROP TABLE IF EXISTS vw_material cascade;
 DROP TABLE IF EXISTS vw_material_calculation_json cascade; 
 DROP TABLE IF EXISTS vw_material_calculation_raw cascade; 
 DROP TABLE IF EXISTS vw_material_raw cascade;
-DROP TABLE IF EXISTS vw_material_refname_type cascade;
+DROP TABLE IF EXISTS vw_material_refname_def cascade;
 DROP TABLE IF EXISTS vw_material_type cascade; 
 DROP TABLE IF EXISTS vw_note cascade;
 DROP TABLE IF EXISTS vw_organization cascade;
@@ -468,16 +468,16 @@ FROM
 	LEFT JOIN note nt ON md.note_uuid = nt.note_uuid;
 
 ----------------------------------------
--- get material_refname_type
--- DROP VIEW vw_material_refname_type
+-- get material_refname_def
+-- DROP VIEW vw_material_refname_def
 ----------------------------------------
-CREATE OR REPLACE VIEW vw_material_refname_type AS
+CREATE OR REPLACE VIEW vw_material_refname_def AS
 SELECT
-	mrt.material_refname_type_uuid,
+	mrt.material_refname_def_uuid,
 	mrt.description,
 	nt.notetext
 FROM
-	material_refname_type mrt
+	material_refname_def mrt
 	LEFT JOIN note nt ON mrt.note_uuid = nt.note_uuid
 ORDER BY
 	2;
@@ -516,9 +516,9 @@ SELECT
 	st.description AS material_status,
 	get_material_type (
 		mat.material_uuid) AS material_type_description,
-	mrt.description AS material_refname_type,
+	mrt.description AS material_refname_def,
 	mr.description AS material_refname_description,
-	mr.material_refname_type_uuid,
+	mr.material_refname_def_uuid,
 	mat.add_date AS material_create_date,
 	nt.note_uuid,
 	nt.notetext
@@ -526,7 +526,7 @@ FROM
 	material mat
 	LEFT JOIN material_refname_x mrx ON mat.material_uuid = mrx.material_uuid
 	LEFT JOIN material_refname mr ON mrx.material_refname_uuid = mr.material_refname_uuid
-	LEFT JOIN material_refname_type mrt ON mr.material_refname_type_uuid = mrt.material_refname_type_uuid
+	LEFT JOIN material_refname_def mrt ON mr.material_refname_def_uuid = mrt.material_refname_def_uuid
 	LEFT JOIN status st ON mat.status_uuid = st.status_uuid
 	LEFT JOIN note nt ON mat.note_uuid = nt.note_uuid
 ORDER BY
@@ -542,9 +542,9 @@ SELECT
 	*
 FROM
 	crosstab (
-		'select material_uuid, material_status, material_create_date, material_refname_type, material_refname_description
+		'select material_uuid, material_status, material_create_date, material_refname_def, material_refname_description
 		   from vw_material_raw order by 1, 3',
-		'select distinct material_refname_type
+		'select distinct material_refname_def
 		   from vw_material_raw order by 1') AS ct (
 		material_uuid uuid,
 		material_status varchar,

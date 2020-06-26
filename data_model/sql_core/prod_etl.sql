@@ -134,9 +134,6 @@ BEGIN
 END
 $func$  LANGUAGE plpgsql;
 
-
-substring(_exp_no,1, length(_exp_no) - POSITION('_' in reverse(_exp_no))
-
 select ex1._exp_no, _exp, replace(replace(substring(ex1._exp, 1, length(ex1._exp) - POSITION('_' in reverse(ex1._exp))),'T', ' '),'_',':')::timestamp as _exp_date, right(ex1._exp, POSITION('_' in reverse(ex1._exp))-1) as _exp_lab from 
 	(select _exp_no, substring(_exp_no, 1, length(_exp_no) - POSITION('_' in reverse(_exp_no))) as _exp from load_v2_wf3_iodides) ex1
 

@@ -78,8 +78,8 @@ INSERT INTO calculation (in_val.v_text, in_val.v_type, calculation_def_uuid, out
 	from
 	(select pd.material_refname as val_in, 'text'::val_type as val_in_type, tmp.descr as descriptor_name, tmp.val as val_out, 'blob_svg'::val_type as val_out_type, alias_name, '2020-02-20'::timestamptz as create_date, (select status_uuid from status where description = 'active') as status
 	from 
-		(select mn.material_refname, mn.material_refname_type, img.edocument_uuid from edocument img 
-		join (SELECT * FROM get_material_nameref_bystatus (array['active', 'proto'], TRUE) where material_refname_type = 'SMILES') mn 
+		(select mn.material_refname, mn.material_refname_def, img.edocument_uuid from edocument img 
+		join (SELECT * FROM get_material_nameref_bystatus (array['active', 'proto'], TRUE) where material_refname_def = 'SMILES') mn 
 		on img.edocument_title = mn.material_refname) pd
 		join lateral (values ('molimage', '_molimage', edocument_uuid)) as tmp(descr, alias_name, val) on true) dsc
 	left join 
