@@ -231,12 +231,17 @@ select short_name, calc_definition, description, actor_description, systemtool_n
 <br/>
 
 ## Maintenance
-Included in the backups directory is a shell script `run_escalate_backups.sh` that will create two sql backups from the current escalate database: 1) a complete rebuild of the database and data including the dropping of the schema `escalate_dev_create_backup.sql` and 2) a refresh of the escalate tables, views, functions, etc but does not drop the schema or Django tables `escalate_dev_refresh_backup.sql`. To run the script, cd into the 'backups' directory and execute:
+Included in the backups directory is a shell script `run_escalate_backups.sh` that will create two sql backups from the current escalate database: 
+
+1. a complete rebuild of the database and data including the dropping of the schema `escalate_dev_create_backup.sql` and 
+2. a refresh of the escalate tables, views, functions, etc but does not drop the schema or Django tables `escalate_dev_refresh_backup.sql`. To run the script, cd into the 'backups' directory and execute:
 
 ```
 ./run_escalate_backups.sh
 ```
 
+There are two post-processing AWK scripts, one for each pg_dump. These scripts add a run timestamp, ensure proper set path, add extension commands and anything else that needs special attention. `postprocess_create_sql.awk`
+`postprocess_refresh_sql.awk`
 
 <br/>
 
