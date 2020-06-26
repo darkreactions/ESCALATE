@@ -32,7 +32,7 @@ BEGIN {
 			print $0
 			print ""
 			print "-- ****************************************************"
-			print "-- *         escalate_dev_refresh_backup.sql          *"
+			print "-- *          escalate_dev_create_backup.sql          *"
 			print "-- *            ", ts, "             *"
 			print "-- ****************************************************"
 			next
