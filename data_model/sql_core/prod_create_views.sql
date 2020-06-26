@@ -367,15 +367,12 @@ SELECT
 	vst.model,
 	vst.serial,
 	vst.ver,
-	nt.note_uuid,
-  nt.notetext,
-	act.actor_uuid,
-	act.description AS actor_description,
 	vst.add_date,
-	vst.mod_date
+	vst.mod_date,
+	nt.note_uuid,
+  nt.notetext
 FROM
 	vw_latest_systemtool_raw vst
-	LEFT JOIN actor act ON vst.systemtool_uuid = act.systemtool_uuid
 	LEFT JOIN organization org ON vst.vendor_organization_uuid = org.organization_uuid
 	LEFT JOIN note nt ON vst.note_uuid = nt.note_uuid
 	LEFT JOIN systemtool_type stt ON vst.systemtool_type_uuid = stt.systemtool_type_uuid;

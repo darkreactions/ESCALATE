@@ -44,13 +44,21 @@ BEGIN {
 			print "-- ****************************************************"
 			next
 		}
-	# add cascade option to all tables to make sure we elliminate all dependent objects
+	# add insurance that old material_refname_type gets dropped
+	else if (index ($0, "DROP TABLE dev.material_refname_def"))
+		{
+			gsub(";"," CASCADE;")
+			print $0
+			print "-- added next line in post-processing to ensure old [material_refname_type] table is dropped"
+			print "DROP TABLE dev.material_refname_type CASCADE;"
+			next
+		}	# add cascade option to all tables to make sure we elliminate all dependent objects
 	else if (index ($0, "DROP TABLE"))
 		{
 			gsub(";"," CASCADE;")
 			print $0
 			next
-		}	
+		}
 	else 
 		print $0
 }

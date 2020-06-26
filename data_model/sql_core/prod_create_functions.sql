@@ -429,24 +429,24 @@ Date:					2019.12.12
 Description:	return material id, material name based on specific status
 Notes:				need to UNION ALL the material descriptions with the returned set from function get_materialid_bystatus ()
 							because there may be duplicate names
-Example:			SELECT * FROM get_material_nameref_bystatus (array['active', 'proto'], TRUE) where material_refname_type = 'InChI' order by 1;
+Example:			SELECT * FROM get_material_nameref_bystatus (array['active', 'proto'], TRUE) where material_refname_def = 'InChI' order by 1;
 */
 DROP FUNCTION IF EXISTS get_material_nameref_bystatus (p_status_array VARCHAR[], p_null_bool BOOLEAN ) cascade;
 CREATE OR REPLACE FUNCTION get_material_nameref_bystatus (p_status_array varchar[], p_null_bool boolean)
 RETURNS TABLE (
       material_uuid uuid,
 			material_refname varchar,
-			material_refname_type varchar
+			material_refname_def varchar
 ) AS $$
 BEGIN
 	RETURN QUERY SELECT	
 		mat.material_uuid,
 		mnm.description AS mname,
-		mt.description as material_refname_type
+		mt.description as material_refname_def
 	FROM get_material_uuid_bystatus ( p_status_array, p_null_bool ) mat
 	JOIN material_refname_x mx ON mat.material_uuid = mx.material_uuid 
 	JOIN material_refname mnm ON mx.material_refname_uuid = mnm.material_refname_uuid
-	JOIN material_refname_type mt on mnm.material_refname_type_uuid = mt.material_refname_type_uuid;
+	JOIN material_refname_def mt on mnm.material_refname_def_uuid = mt.material_refname_def_uuid;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -472,7 +472,7 @@ RETURNS TABLE (
 			material_description varchar,
 			material_refname_uuid uuid,
 			material_refname_description VARCHAR,
-			material_refname_type varchar
+			material_refname_def varchar
 ) AS $$
 BEGIN
 	RETURN QUERY SELECT	
@@ -480,11 +480,11 @@ BEGIN
 		mat.material_description as material_description, 
 		mnm.material_refname_uuid,
 		mnm.description as material_refname_description,
-		mt.description as material_refname_type
+		mt.description as material_refname_def
 	FROM get_material_uuid_bystatus ( p_status_array, p_null_bool ) mat
 	JOIN material_refname_x mx ON mat.material_uuid = mx.material_uuid 
 	JOIN material_refname mnm ON mx.material_refname_uuid = mnm.material_refname_uuid
-	JOIN material_refname_type mt on mnm.material_refname_type_uuid = mt.material_refname_type_uuid
+	JOIN material_refname_def mt on mnm.material_refname_def_uuid = mt.material_refname_def_uuid
 	where mat.material_description = p_descr or mnm.description = p_descr;
 END;
 $$ LANGUAGE plpgsql;
@@ -747,7 +747,7 @@ Notes:				This function depends on the calculation_eval table for inputs (of val
 							DROP function run_descriptor (p_descriptor_def_uuid uuid, p_alias_name varchar, p_command_opt varchar, p_actor_uuid uuid);
 Example:			-- first truncate then populate the calculation_eval table with the inputs 
 							truncate table calculation_eval RESTART IDENTITY;
-							insert into calculation_eval(in_val.v_type, in_val.v_text) (select 'text', vw.material_refname_description from vw_material vw  where vw.material_refname_type = 'SMILES');
+							insert into calculation_eval(in_val.v_type, in_val.v_text) (select 'text', vw.material_refname_description from vw_material vw  where vw.material_refname_def = 'SMILES');
 							SELECT * FROM run_descriptor ((SELECT calculation_def_uuid FROM get_calculation_def (array['standardize'])), '--ignore-error', (SELECT actor_uuid FROM get_actor () where person_lastfirst like 'Cattabriga, Gary'));
 							
 							-- example of using a previous calculated descriptor (standardize) as input; where we take the standardized SMILES from all materials
@@ -758,7 +758,7 @@ Example:			-- first truncate then populate the calculation_eval table with the i
 							
 							truncate table calculation_eval RESTART IDENTITY;
 							insert into calculation_eval(in_val.v_type, in_val.v_text) 
-								(select 'text'::val_type, mat.material_refname_description from vw_material mat where mat.material_refname_type = 'SMILES');
+								(select 'text'::val_type, mat.material_refname_description from vw_material mat where mat.material_refname_def = 'SMILES');
 							SELECT * FROM run_descriptor ((SELECT calculation_def_uuid FROM get_calculation_def (array['molweight'])), '_raw_molweight', '--ignore-error --do-not-display ih', (SELECT actor_uuid FROM get_actor () where person_lastfirst like 'Cattabriga, Gary'));							
 */
 DROP FUNCTION IF EXISTS run_descriptor (p_descriptor_def_uuid uuid, p_alias_name varchar, p_command_opt varchar, p_actor_uuid uuid) cascade;
@@ -1061,7 +1061,7 @@ CREATE OR REPLACE FUNCTION upsert_person () RETURNS TRIGGER AS $$
 				organization_uuid = NEW.organization_uuid,
 				mod_date = now( ) 
 				WHERE person.person_uuid = NEW.person_uuid;
-				IF ( SELECT note_uuid FROM person WHERE person.fperson_uuid = NEW.person_uuid ) IS NULL THEN
+				IF ( SELECT note_uuid FROM person WHERE person.person_uuid = NEW.person_uuid ) IS NULL THEN
 						IF ( NEW.notetext IS NOT NULL ) THEN
 							INSERT INTO note ( notetext ) VALUES ( NEW.notetext ) RETURNING note_uuid INTO _note_uuid;	
 						END IF;
