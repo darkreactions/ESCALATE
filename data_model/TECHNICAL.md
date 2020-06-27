@@ -104,7 +104,7 @@ files
 inventory
 material
 material_refname
-material_refname_type
+material_refname_def
 material_refname_x
 material_type
 material_type_x
@@ -194,7 +194,7 @@ CLUSTER material_type_x USING "pk_material_type_x_material_type_x_uuid";
 
 ALTER TABLE material_refname 
 	ADD CONSTRAINT "pk_material_refname_material_refname_uuid" PRIMARY KEY (material_refname_uuid),
-	ADD CONSTRAINT "un_material_refname" UNIQUE (description, material_refname_type_uuid);
+	ADD CONSTRAINT "un_material_refname" UNIQUE (description, material_refname_def_uuid);
 CLUSTER material_refname USING "pk_material_refname_material_refname_uuid";
 
 ALTER TABLE material_refname_x 
@@ -202,9 +202,9 @@ ALTER TABLE material_refname_x
 	ADD CONSTRAINT "un_material_refname_x" UNIQUE (material_uuid, material_refname_uuid);
 CLUSTER material_refname_x USING "pk_material_refname_x_material_refname_x_uuid";
 
-ALTER TABLE material_refname_type 
-	ADD CONSTRAINT "pk_material_refname_type_material_refname_type_uuid" PRIMARY KEY (material_refname_type_uuid);
-CLUSTER material_refname_type USING "pk_material_refname_type_material_refname_type_uuid";
+ALTER TABLE material_refname_def 
+	ADD CONSTRAINT "pk_material_refname_def_material_refname_def_uuid" PRIMARY KEY (material_refname_def_uuid);
+CLUSTER material_refname_def USING "pk_material_refname_def_material_refname_def_uuid";
 
 ALTER TABLE calculation_class ADD 
 	CONSTRAINT "pk_calculation_class_calculation_class_uuid" PRIMARY KEY (calculation_class_uuid);
@@ -312,14 +312,14 @@ get_material_nameref_bystatus (p_status_array varchar[], p_null_bool boolean)
    RETURNS TABLE (
        material_uuid uuid,
 		material_refname varchar,
-		material_refname_type varchar)
+		material_refname_def varchar)
 get_material_bydescr_bystatus (p_descr varchar, p_status_array VARCHAR[], p_null_bool BOOLEAN)
    RETURNS TABLE (
       material_uuid uuid,
 		material_description varchar,
 		material_refname_uuid uuid,
 		material_refname_description VARCHAR,
-		material_refname_type varchar)
+		material_refname_def varchar)
 get_material_type (p_material_uuid uuid) RETURNS varchar[]
 get_actor ()
    RETURNS TABLE (
@@ -361,6 +361,9 @@ upsert_tag_type () RETURNS TRIGGER
 upsert_tag () RETURNS TRIGGER
 upsert_udf_def () RETURNS TRIGGER
 upsert_status () RETURNS TRIGGER
+upsert_material_type () RETURNS TRIGGER
+upsert_material_refname_def ()
+
 
 ```
 
@@ -389,7 +392,7 @@ vw_material
 vw_material_calculation_json
 vw_material_calculation_raw
 vw_material_raw
-vw_material_refname_type
+vw_material_refname_def
 vw_material_type
 vw_note
 vw_organization
@@ -541,6 +544,23 @@ __vw\_material\_type__
 
 <br/>
 
+__vw\_material\_refname\_def__
+
+* Read/GET
+
+	```
+	material_refname_def_uuid, description, note_uuid, notetext
+	```
+* upsert/POST/PUT/DELETE
+
+	```
+	description, notetext
+	```	
+
+
+
+<br/>
+
 
 
 
@@ -643,18 +663,9 @@ __vw\_material\_raw__
 * Read/GET
 
 	```
-	material_uuid, material_description, material_status, material_type_description, material_refname_type, material_refname_description, material_refname_type_uuid, material_create_date, note_uuid, notetext
+	material_uuid, material_description, material_status, material_type_description, material_refname_def, material_refname_description, material_refname_def_uuid, material_create_date, note_uuid, notetext
 	```
 
-<br/>
-
-__vw\_material\_refname\_type__
-
-* Read/GET
-
-	```
-	material_refname_type_uuid, description, notetext
-	```
 
 <br/>
 
