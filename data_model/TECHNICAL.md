@@ -362,8 +362,8 @@ upsert_tag () RETURNS TRIGGER
 upsert_udf_def () RETURNS TRIGGER
 upsert_status () RETURNS TRIGGER
 upsert_material_type () RETURNS TRIGGER
-upsert_material_refname_def ()
-
+upsert_material_refname_def () RETURNS TRIGGER
+upsert_note () RETURNS TRIGGER  -- this is imcomplete re: edocument
 
 ```
 
@@ -557,6 +557,21 @@ __vw\_material\_refname\_def__
 	description, notetext
 	```	
 
+<br/>
+
+__vw\_note__
+
+* Read/GET
+
+	```
+	note_uuid, notetext, add_date, mod_date, edocument_uuid, edocument_title, edocument_description, edocument_filename, edocument_source, edocument_type, actor_uuid, actor_description
+	```
+* upsert/POST/PUT/DELETE
+
+	```
+	notetext
+	```	
+
 
 
 <br/>
@@ -666,17 +681,6 @@ __vw\_material\_raw__
 	material_uuid, material_description, material_status, material_type_description, material_refname_def, material_refname_description, material_refname_def_uuid, material_create_date, note_uuid, notetext
 	```
 
-
-<br/>
-
-
-__vw\_note__
-
-* Read/GET
-
-	```
-	note_uuid, notetext, add_date, mod_date, edocument_uuid, edocument_title, edocument_description, edocument_filename, edocument_source, edocument_type, actor_uuid, actor_description
-	```
 
 
 <br/>
