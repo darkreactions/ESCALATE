@@ -14,7 +14,7 @@ class Actor(models.Model):
                                     blank=True, null=True, db_column='person_uuid')
     systemtool_uuid = models.ForeignKey('Systemtool',
                                         on_delete=models.DO_NOTHING,
-                                        blank=True, null=True, db_column='systemtool_uuid')
+                                        blank=True, null=True, db_column='systemtool_uuid',related_name='+')
     actor_description = models.CharField(max_length=255, blank=True, null=True)
     actor_status = models.CharField(max_length=255, blank=True, null=True)
     actor_notetext = models.CharField(max_length=255, blank=True, null=True)
@@ -22,10 +22,10 @@ class Actor(models.Model):
         max_length=255, blank=True, null=True, verbose_name='Organization Full Name')
     org_short_name = models.CharField(
         max_length=255, blank=True, null=True, verbose_name='Organization Short Name')
-    per_lastname = models.CharField(
+    person_last_name = models.CharField(
         max_length=255, blank=True, null=True, verbose_name='Person Lastname')
-    per_firstname = models.CharField(max_length=255, blank=True, null=True)
-    person_lastfirst = models.CharField(max_length=255, blank=True, null=True)
+    person_first_name = models.CharField(max_length=255, blank=True, null=True)
+    person_last_first = models.CharField(max_length=255, blank=True, null=True)
     person_org = models.CharField(max_length=255, blank=True, null=True)
     systemtool_name = models.CharField(max_length=255, blank=True, null=True)
     systemtool_description = models.CharField(
@@ -132,17 +132,16 @@ class InventoryMaterial(models.Model):
 
 
 class LatestSystemtool(models.Model):
-
     systemtool_uuid = models.UUIDField(primary_key=True,
                                        db_column='systemtool_uuid')
     systemtool_name = models.CharField(max_length=255, blank=True, null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
-    vendor_organization = models.ForeignKey('Organization',
+    vendor_organization_uuid = models.ForeignKey('Organization',
                                             models.DO_NOTHING,
                                             db_column='vendor_organization_uuid')
     organization_fullname = models.CharField(
         max_length=255, blank=True, null=True)
-    systemtool_type = models.ForeignKey('SystemtoolType',
+    systemtool_type_uuid = models.ForeignKey('SystemtoolType',
                                         models.DO_NOTHING,
                                         db_column='systemtool_type_uuid')
     systemtool_type_description = models.CharField(
@@ -150,9 +149,9 @@ class LatestSystemtool(models.Model):
     model = models.CharField(max_length=255, blank=True, null=True)
     serial = models.CharField(max_length=255, blank=True, null=True)
     ver = models.CharField(max_length=255, blank=True, null=True)
-    actor = models.ForeignKey('Actor', models.DO_NOTHING,
-                              db_column='actor_uuid')
-    actor_description = models.CharField(max_length=255, blank=True, null=True)
+    note_uuid = models.ForeignKey('Note', models.DO_NOTHING,
+                              db_column='note_uuid')
+    notetext = models.CharField(max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -162,6 +161,23 @@ class LatestSystemtool(models.Model):
 
     def __str__(self):
         return "{}".format(self.systemtool_name)
+
+class ViewSystemtoolType(models.Model):
+    systemtool_type_uuid = models.UUIDField(primary_key=True,
+                                       db_column='systemtool_type_uuid')
+    description = models.CharField(max_length=255, blank=True, null=True)
+    note_uuid = models.ForeignKey('Note', models.DO_NOTHING,
+                              db_column='note_uuid')
+    notetext = models.CharField(max_length=255, blank=True, null=True)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'vw_systemtool_type'
+
+    def __str__(self):
+        return "{}".format(self.description)
 
 
 class Calculation(models.Model):
@@ -332,7 +348,11 @@ class MaterialRefnameType(models.Model):
 class MaterialType(models.Model):
     material_type_uuid = models.UUIDField(primary_key=True)
     description = models.TextField(blank=True, null=True)
-    notetext = models.TextField(blank=True, null=True)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+    note_uuid = models.ForeignKey(
+        'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
+    notetext = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -351,7 +371,7 @@ class Note(models.Model):
                                        models.DO_NOTHING,
                                        db_column='edocument_uuid')
     edocument_type = models.CharField(max_length=255, blank=True, null=True)
-    actor = models.ForeignKey('Actor', models.DO_NOTHING,
+    actor_uuid = models.ForeignKey('Actor', models.DO_NOTHING,
                               db_column='actor_uuid')
     actor_description = models.CharField(max_length=255, blank=True, null=True)
 
@@ -365,6 +385,7 @@ class Note(models.Model):
 
 class Organization(models.Model):
     organization_uuid = models.UUIDField(primary_key=True)
+    description = models.CharField(max_length=255)
     full_name = models.CharField(max_length=255)
     short_name = models.CharField(max_length=255, blank=True, null=True)
     address1 = models.CharField(max_length=255, blank=True, null=True)
@@ -376,23 +397,23 @@ class Organization(models.Model):
     website_url = models.CharField(max_length=255, blank=True, null=True)
     phone = models.CharField(max_length=255, blank=True, null=True)
 
-    parent = models.ForeignKey('self', models.DO_NOTHING,
+    parent_uuid = models.ForeignKey('self', models.DO_NOTHING,
                                blank=True, null=True, db_column='parent_uuid')
     parent_org_full_name = models.CharField(
         max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
-    note = models.ForeignKey('Note', models.DO_NOTHING,
+    note_uuid = models.ForeignKey('Note', models.DO_NOTHING,
                              db_column='note_uuid',
                              blank=True, null=True)
     notetext = models.TextField(blank=True, null=True)
-    edocument = models.ForeignKey('Edocument',
+    edocument_uuid = models.ForeignKey('Edocument',
                                   models.DO_NOTHING,
                                   db_column='edocument_uuid', blank=True, null=True)
     edocument_descr = models.CharField(max_length=255, blank=True, null=True)
-    tag = models.ForeignKey('Tag', models.DO_NOTHING,
+    tag_uuid = models.ForeignKey('Tag', models.DO_NOTHING,
                             db_column='tag_uuid', blank=True, null=True)
-    tag_short_descr = models.CharField(max_length=255, blank=True, null=True)
+    tag_display_text = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -404,13 +425,13 @@ class Organization(models.Model):
 
 class Person(models.Model):
     person_uuid = models.UUIDField(primary_key=True)
-    firstname = models.CharField(max_length=255, blank=True, null=True)
-    lastname = models.CharField(max_length=255)
-    middlename = models.CharField(max_length=255, blank=True, null=True)
+    first_name = models.CharField(max_length=255, blank=True, null=True)
+    last_name = models.CharField(max_length=255)
+    middle_name = models.CharField(max_length=255, blank=True, null=True)
     address1 = models.CharField(max_length=255, blank=True, null=True)
     address2 = models.CharField(max_length=255, blank=True, null=True)
     city = models.CharField(max_length=255, blank=True, null=True)
-    stateprovince = models.CharField(max_length=3, blank=True, null=True)
+    state_province = models.CharField(max_length=3, blank=True, null=True)
     zip = models.CharField(max_length=255, blank=True, null=True)
     country = models.CharField(max_length=255, blank=True, null=True)
 
@@ -420,28 +441,27 @@ class Person(models.Model):
     suffix = models.CharField(max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
-
-    organization = models.ForeignKey('Organization', models.DO_NOTHING,
+    organization_uuid = models.ForeignKey('Organization', models.DO_NOTHING,
                                      blank=True, null=True,
                                      db_column='organization_uuid')
-    full_name = models.CharField(max_length=255)
+    organinization_full_name = models.CharField(max_length=255)
     note_uuid = models.ForeignKey('Note', models.DO_NOTHING,
                                   db_column='note_uuid', blank=True, null=True)
     notetext = models.TextField(blank=True, null=True)
-    edocument = models.ForeignKey('Edocument',
+    edocument_uuid = models.ForeignKey('Edocument',
                                   models.DO_NOTHING,
                                   db_column='edocument_uuid')
     edocument_descr = models.CharField(max_length=255, blank=True, null=True)
-    tag = models.ForeignKey('Tag', models.DO_NOTHING,
+    tag_uuid = models.ForeignKey('Tag', models.DO_NOTHING,
                             db_column='tag_uuid')
-    tag_short_descr = models.CharField(max_length=255, blank=True, null=True)
+    tag_display_text = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'vw_person'
 
     def __str__(self):
-        return "{} {}".format(self.firstname, self.lastname)
+        return "{} {}".format(self.first_name, self.last_name)
 
 
 class Status(models.Model):
@@ -460,8 +480,8 @@ class Status(models.Model):
 
 class Tag(models.Model):
     tag_uuid = models.UUIDField(primary_key=True)
-    tag_short_descr = models.CharField(max_length=255, blank=True, null=True)
-    tag_description = models.CharField(max_length=255, blank=True, null=True)
+    display_text = models.CharField(max_length=255, blank=True, null=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -485,16 +505,13 @@ class Tag(models.Model):
         db_table = 'vw_tag'
 
     def __str__(self):
-        return "{}".format(self.tag_short_descr)
+        return "{}".format(self.display_text)
 
 
 class TagType(models.Model):
     tag_type_uuid = models.UUIDField(primary_key=True)
     short_description = models.CharField(max_length=255, blank=True, null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
-    actor_uuid = models.ForeignKey(
-        'Actor', models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)
-    actor_description = models.CharField(max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -522,7 +539,7 @@ class Edocument(models.Model):
     type = models.CharField(max_length=255, blank=True,
                             null=True, db_column='edocument_type')
     edocument = models.BinaryField(blank=True, null=True)
-    actor = models.ForeignKey(
+    actor_uuid = models.ForeignKey(
         'Actor', models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)
     actor_description = models.CharField(
         max_length=255, blank=True, null=True)
@@ -542,3 +559,27 @@ class ExperimentMeasureCalculation(models.Model):
     class Meta:
         managed = False
         db_table = 'vw_experiment_measure_calculation_json'
+
+
+class UdfDef(models.Model):
+    """
+
+    """
+    udf_def_uuid = models.UUIDField(primary_key=True)
+    description = models.CharField(
+        max_length=255, blank=True, null=True)
+    valtype = models.CharField(
+        max_length=255, blank=True, null=True)
+    note_uuid = models.ForeignKey(
+        'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
+    notetext = models.CharField(max_length=255, blank=True, null=True)
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
+
+
+    class Meta:
+        managed = False
+        db_table = 'vw_udf_def'
+
+    def __str__(self):
+        return "{}".format(self.description)

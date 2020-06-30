@@ -1,0 +1,25 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    {{ object }}
+    <table class=" table table-bordered">
+        <tbody>
+            <tr>
+                <td> Short Description</td>
+                <td> {{ object.short_description }} </td>
+            </tr>
+
+            <tr>
+                <td> Long Description </td>
+                <td> {{ object.description }} </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <a href="{% url 'tag_type_update' pk=object.pk %}" class="btn btn-primary px-0">
+        <i class="fa fa-edit fa-lg"> Edit</i>
+    </a>
+</div>
+{% endblock %}

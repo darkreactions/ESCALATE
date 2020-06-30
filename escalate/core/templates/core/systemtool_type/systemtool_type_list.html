@@ -8,7 +8,7 @@
     <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" value="{{filter}}"
         name="filter">
     <button class="btn btn-success my-2 my-sm-0" type="submit">Search</button>
-    <a href="{% url 'person_add' %}" class="btn btn-warning mx-2 my-sm-0">Add Person</a>
+    <a href="{% url 'systemtool_type_add' %}" class="btn btn-warning mx-2 my-sm-0">Add SystemTool Type</a>
 </form>
 {% endblock %}
 
@@ -17,30 +17,26 @@
     <table class=" table table-bordered">
         <thead>
             <tr>
-                <th>Name</th>
-                <th>Address</th>
-                <th>Title</th>
-                <th>Email</th>
+                <th>System Tool Type</th>
+                <th>Note</th>
             </tr>
         </thead>
         <tbody>
-            {% for person in persons %}
+            {% for systemtool_type in systemtool_types %}
             <tr>
-                <td>{{person.first_name}} {{ person.last_name }}</td>
-                <td>{{ person.address1 }} {{ person.address2 }} {{ person.city }}</td>
-                <td>{{ person.title}} </td>
-                <td>{{ person.email}} </td>
+                <td>{{ systemtool_type.description }}</td>
+                <td>{{ systemtool_type.notetext}} </td>
                 <td>
-                    <a href="{% url 'person_view' pk=person.pk %}" class="btn text-secondary px-0">
+                    <a href="{% url 'systemtool_type_view' pk=systemtool_type.pk %}" class="btn text-secondary px-0">
                         <i class="fa fa-eye"></i>
                     </a>
 
                     </a>
-                    <a href="{% url 'person_update' pk=person.pk %}" class="btn text-secondary px-0">
+                    <a href="{% url 'systemtool_type_update' pk=systemtool_type.pk %}" class="btn text-secondary px-0">
                         <i class="fa fa-edit fa-lg"></i>
                     </a>
                     <button type="button" class="btn text-secondary px-0" data-toggle="modal" data-target="#deleteModal"
-                        data-description="{{ person.lastname }}" data-pk="{{ person.pk }}">
+                        data-description="{{ systemtool_type.description }}" data-pk="{{ systemtool_type.pk }}">
                         <i class="fa fa-trash fa-lg"></i>
                     </button>
 
@@ -54,4 +50,4 @@
 </div>
 {% endblock %}
 
-{% block delete_url %}"/person/" + pk + "/delete" {% endblock %}
+{% block delete_url %}"/systemtool_type/" + pk + "/delete" {% endblock %}
