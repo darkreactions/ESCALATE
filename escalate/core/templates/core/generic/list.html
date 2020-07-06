@@ -17,16 +17,15 @@
     <table class=" table table-bordered">
         <thead>
             <tr>
-                {% for column in table_columns %}
-                <th>{{ column }}</th>
+                {% for column_name in table_data %}
+                <th>{{ column_name }}</th>
                 {% endfor %}
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-            {% for org in orgs %}
+            {% for col, value in table_data.items %}
             <tr>
-
                 <td>{{ org.full_name }}</td>
                 <td>{{ org.address1 }} {{ org.address2 }} {{ org.city }}</td>
                 <td>{{ org.website_url}} </td>

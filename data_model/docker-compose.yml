@@ -1,0 +1,21 @@
+version: '3.7'
+
+services:
+    escalate-postgres:
+        build: .
+        volumes:
+            - postgres_data:/var/lib/postgresql/data/
+        environment:
+            - POSTGRES_USER=escalate
+            - POSTGRES_PASSWORD=SD21sAwes0me3
+            - POSTGRES_DB=escalate
+        ports:
+            - "5432:5432"
+        networks:
+            - escalate
+volumes:
+    postgres_data:
+
+networks:
+    escalate:
+        name: escalate

@@ -6,13 +6,19 @@ from .views import (LoginView, CreateUserView, MainMenuView,
                     InventoryView, ActorView, ActorList, ActorCreate,
                     ActorUpdate, ActorDelete, OrganizationList, OrganizationCreate,
                     OrganizationDelete, OrganizationUpdate, OrganizationView,
-                    PersonList, PersonView ,PersonCreate,
+                    PersonList, PersonView, PersonCreate,
                     PersonUpdate, PersonDelete)
+from core.views.capture import materials, materials2
 
 urlpatterns = [
     path('', LoginView.as_view(), name='login'),
     path('create_user/', CreateUserView.as_view(), name='create_user'),
     path('main_menu/', MainMenuView.as_view(), name='main_menu')
+]
+
+urlpatterns += [
+    path('capture/', materials, name='capture_materials'),
+    path('capture2/', materials2, name='capture_materials2'),
 ]
 
 # Materials
@@ -75,4 +81,3 @@ urlpatterns += [
     path('person/<uuid:pk>/view',
          PersonView.as_view(), name='person_view'),
 ]
-

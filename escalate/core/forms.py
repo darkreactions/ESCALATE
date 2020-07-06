@@ -77,3 +77,9 @@ class OrganizationForm(forms.ModelForm):
             'address2': 'Address Line 2',
             'notetext': 'Note Text'
         }
+
+
+class AddReagentForm(forms.Form):
+    reagent = forms.ModelMultipleChoiceField(queryset=Material.objects.all())
+    reagent.widget.attrs.update({'data-live-search': 'true'})
+    reagent.widget.attrs.update({'class': 'selectpicker form-control'})

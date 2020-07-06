@@ -1,4 +1,4 @@
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
 
@@ -23,6 +23,7 @@ class PersonList(GenericListView):
         # else:
         new_queryset = self.model.objects.all()
         return new_queryset
+
 
 class PersonEdit:
     template_name = 'core/person/person_edit.html'
@@ -52,4 +53,22 @@ class PersonDelete(DeleteView):
 
 class PersonView(DetailView):
     model = Person
-    template_name = 'core/person/person_detail.html'
+    #template_name = 'core/person/person_detail.html'
+    template_name = 'core/generic/detail.html'
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(**kwargs)
+        obj = context['object']
+        table_data = {'Full Name': f'{obj.firstname} {obj.lastname}',
+                      'Address': f'{obj.address1}, {obj.address2}, {obj.city}, {obj.stateprovince}, {obj.zip}, {obj.country}',
+                      'Phone': obj.phone,
+                      'Note': obj.notetext,
+                      'Edocument description': obj.edocument_descr,
+                      'Tag description': obj.tag_short_descr
+                      }
+        context['update_url'] = reverse('person_update', kwargs={'pk': obj.pk})
+        #context['update_url'] = 'person_update'
+        context['title'] = 'Person'
+        context['table_data'] = table_data
+        return context
