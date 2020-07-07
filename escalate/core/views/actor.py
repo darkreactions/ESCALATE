@@ -2,9 +2,9 @@ from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
 
-from ..models import Actor
-from ..forms import ActorForm
-from .menu import GenericListView
+from core.models import Actor
+from core.forms import ActorForm
+from core.views.menu import GenericListView
 
 
 class ActorList(GenericListView):
@@ -24,12 +24,10 @@ class ActorList(GenericListView):
         return new_queryset
 
 
-
 class ActorEdit:
     template_name = 'core/actor/actor_edit.html'
     model = Actor
-    fields = ['person_uuid', 'organization_uuid', 'systemtool_uuid', 'actor_description', 'actor_status',
-              'actor_notetext']
+    form_class = ActorForm
     success_url = reverse_lazy('actor_list')
 
 

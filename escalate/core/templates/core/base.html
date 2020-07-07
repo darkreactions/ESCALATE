@@ -55,9 +55,29 @@
             {% with url_name=request.resolver_match.url_name %}
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav mr-auto">
-                    <li class="nav-item {% if url_name == 'main_menu' %}active{% endif %}">
-                        <a class="nav-link" href="{% url 'main_menu' %}">Main Menu</a>
-                    </li>
+                  <li class="nav-item {% if url_name == 'main_menu' %}active{% endif %}">
+                      <a class="nav-link" href="{% url 'main_menu' %}">Main Menu</a>
+                  </li>
+                  <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="dropdown" data-toggle="dropdown">Models</a>
+                    <div class="dropdown-menu">
+                      <ul class="list-unstyled">
+                        <li><a class="dropdown-item" href="{% url 'material_type_list' %}">Material Type</a></li>
+                        <li><a class="dropdown-item" href="{% url 'material_list' %}">Material</a></li>
+                        <li><a class="dropdown-item" href="{% url 'inventory_list' %}">Inventory</a></li>
+                        <li><a class="dropdown-item" href="{% url 'actor_list' %}">Actor</a></li>
+                        <li><a class="dropdown-item" href="{% url 'organization_list' %}">Organization</a></li>
+                        <li><a class="dropdown-item" href="{% url 'person_list' %}">Person</a></li>
+                        <li><a class="dropdown-item" href="{% url 'systemtool_type_list' %}">Systemtool Type</a></li>
+                        <li><a class="dropdown-item" href="{% url 'systemtool_list' %}">Systemtool</a></li>
+                        <li><a class="dropdown-item" href="{% url 'status_list' %}">Status</a></li>
+                        <li><a class="dropdown-item" href="{% url 'tag_type_list' %}">Tag Type</a></li>
+                        <li><a class="dropdown-item" href="{% url 'tag_list' %}">Tag</a></li>
+                        <li><a class="dropdown-item" href="{% url 'udf_def_list' %}">Udf def</a></li>
+                      </ul>
+                    </div>
+                  </li>
+                  <!--
                     <li class="nav-item {% if url_name == 'material_list' %}active{% endif %}">
                         <a class="nav-link" href="{% url 'material_list' %}">Material</a>
                     </li>
@@ -73,6 +93,7 @@
                     <li class="nav-item {% if url_name == 'person_list' %}active{% endif %}">
                         <a class="nav-link" href="{% url 'person_list' %}">Person</a>
                     </li>
+                  -->
                 </ul>
 
                 {% block add_data %}

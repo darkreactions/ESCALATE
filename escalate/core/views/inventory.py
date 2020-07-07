@@ -3,9 +3,9 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
 from django.forms.models import model_to_dict
 
-from ..models import Inventory
-from ..forms import InventoryForm
-from .menu import GenericListView
+from core.models import Inventory
+from core.forms import InventoryForm
+from core.views.menu import GenericListView
 
 
 class InventoryList(GenericListView):
@@ -15,11 +15,15 @@ class InventoryList(GenericListView):
     paginate_by = 10
 
     def get_queryset(self):
+
+    # added get_queryset method
         filter_val = self.request.GET.get('filter', '')
-        ordering = self.request.GET.get('ordering', 'inventory_description')
+        ordering = self.request.GET.get('ordering', 'description')
+        # order by description
         if filter_val != None:
             new_queryset = self.model.objects.filter(
-                inventory_description__icontains=filter_val).select_related().order_by(ordering)
+                description__icontains=filter_val).select_related().order_by(ordering)
+            # filter by decription being a empty/nonempty string
         else:
             new_queryset = self.model.objects.all().select_related().order_by(ordering)
         return new_queryset
@@ -28,9 +32,7 @@ class InventoryList(GenericListView):
 class InventoryEdit:
     template_name = 'core/inventory/inventory_edit.html'
     model = Inventory
-    fields = ['description', 'material_uuid', 'actor_uuid', 'part_no', 'onhand_amt',
-              'unit', 'create_date', 'expiration_date',
-              'inventory_location', 'status', 'edocument_uuid', 'notetext']
+    form_class = InventoryForm
     success_url = reverse_lazy('inventory_list')
 
 
