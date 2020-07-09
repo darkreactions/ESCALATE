@@ -25,16 +25,15 @@ class PersonList(GenericListView):
         return new_queryset
 
 class PersonEdit:
-    template_name = 'core/person/person_edit.html'
+    template_name = 'core/generic/edit.html'
     model = Person
     form_class = PersonForm
-    labels = {
-        'stateprovince': 'State/Province',
-        'address1': 'Address Line 1',
-        'address2': 'Address Line 2',
-        'notetext': 'Note Text'
-    }
     success_url = reverse_lazy('person_list')
+
+    def get_context_data(self,**kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Person'
+        return context
 
 
 class PersonCreate(PersonEdit, CreateView):
@@ -52,4 +51,24 @@ class PersonDelete(DeleteView):
 
 class PersonView(DetailView):
     model = Person
-    template_name = 'core/person/person_detail.html'
+    template_name = 'core/generic/detail.html'
+
+    def get_context_data(self,**kwargs):
+        context = super().get_context_data(**kwargs)
+        obj = context['object']
+        table_data = {
+                'Full Name': f"{obj.first_name} {obj.middle_name} {obj.last_name}",
+                'Address': (f"{obj.address1}, {obj.address2}, {obj.zip}, {obj.city},"
+                                f"{obj.state_province}, {obj.country}"),
+                'Phone': obj.phone,
+                'Email': obj.email,
+                'Organization': obj.organization_full_name,
+                'Note': obj.notetext,
+                'Edocument description': obj.edocument_descr,
+                'Tag description': obj.tag_display_text
+        }
+        context['title'] = 'Person'
+        context['update_url'] = reverse_lazy(
+                    'person_update',kwargs={'pk':obj.pk})
+        context['table_data'] = table_data
+        return context

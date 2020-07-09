@@ -444,7 +444,7 @@ class Person(models.Model):
     organization_uuid = models.ForeignKey('Organization', models.DO_NOTHING,
                                      blank=True, null=True,
                                      db_column='organization_uuid')
-    organinization_full_name = models.CharField(max_length=255)
+    organization_full_name = models.CharField(max_length=255)
     note_uuid = models.ForeignKey('Note', models.DO_NOTHING,
                                   db_column='note_uuid', blank=True, null=True)
     notetext = models.TextField(blank=True, null=True)

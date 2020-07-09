@@ -25,10 +25,15 @@ class MaterialsList(GenericListView):
 
 
 class MaterialEdit:
-    template_name = 'core/material/material_edit.html'
+    template_name = 'core/generic/edit.html'
     model = Material
     form_class = MaterialForm
     success_url = reverse_lazy('material_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Material'
+        return context
 
 
 class MaterialCreate(MaterialEdit, CreateView):
@@ -45,6 +50,24 @@ class MaterialDelete(DeleteView):
 
 
 class MaterialView(DetailView):
-    template_name = 'core/material/material_detail.html'
+    template_name = 'core/generic/detail.html'
     model = Material
-    queryset = Material.objects.select_related()
+    #queryset = Material.objects.select_related()
+
+    def get_context_data(self,**kwargs):
+        context = super().get_context_data(**kwargs)
+        obj = context['object']
+        table_data = {
+                'Chemical name': obj.chemical_name,
+                'Abbreviation': obj.abbreviation,
+                'Moledular formula': obj.molecular_formula,
+                'InChI': obj.inchi,
+                'InChI key': obj.inchikey,
+                'Smiles': obj.smiles,
+                'Create Date': obj.create_date
+        }
+        context['update_url'] = reverse_lazy(
+            'material_update', kwargs={'pk': obj.pk})
+        context['title'] = 'Material'
+        context['table_data'] = table_data
+        return context

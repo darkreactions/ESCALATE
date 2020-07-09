@@ -30,10 +30,15 @@ class InventoryList(GenericListView):
 
 
 class InventoryEdit:
-    template_name = 'core/inventory/inventory_edit.html'
+    template_name = 'core/generic/edit.html'
     model = Inventory
     form_class = InventoryForm
     success_url = reverse_lazy('inventory_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Edit Inventory'
+        return context
 
 
 class InventoryCreate(InventoryEdit, CreateView):
@@ -50,14 +55,26 @@ class InventoryDelete(DeleteView):
 
 
 class InventoryView(DetailView):
-    template_name = 'core/inventory/inventory_detail.html'
+    template_name = 'core/generic/detail.html'
     model = Inventory
-    queryset = Inventory.objects.select_related()
+    #queryset = Inventory.objects.select_related()
 
-    """
     def get_context_data(self, **kwargs):
-        context = super(InventoryView, self).get_context_data(**kwargs)
-        context['thing'] = model_to_dict(Inventory.objects.select_related()[0])
-
+        context = super().get_context_data(**kwargs)
+        obj = context['object']
+        table_data = {
+                'Actor description': obj.description,
+                'Material description': obj.material_description,
+                'Part Number': obj.part_no,
+                'On Hand Amount': obj.onhand_amt,
+                'Create Date': obj.create_date,
+                'Expiration Date': obj.expiration_date,
+                'Inventory location': obj.inventory_location,
+                'Status': obj.status,
+                'Note text': obj.notetext
+        }
+        context['update_url'] = reverse_lazy(
+            'inventory_update', kwargs={'pk': obj.pk})
+        context['title'] = 'Inventory'
+        context['table_data'] = table_data
         return context
-    """

@@ -30,6 +30,11 @@ class ActorEdit:
     form_class = ActorForm
     success_url = reverse_lazy('actor_list')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Actor'
+        return context
+
 
 class ActorCreate(ActorEdit, CreateView):
     pass
@@ -47,3 +52,20 @@ class ActorDelete(DeleteView):
 class ActorView(DetailView):
     template_name='core/actor/actor_detail.html'
     queryset = Actor.objects.select_related()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        obj = context['object']
+        table_data = {
+                'Organization': obj.org_full_name + f" ({obj.org_short_name})",
+                'Person': f"{obj.person_first_name} {obj.person_last_name}",
+                'Systemtool': obj.systemtool_name,
+                'Description': obj.actor_description,
+                'Status': obj.actor_status,
+                'Note': obj.actor_notetext
+        }
+        context['update_url'] = reverse_lazy(
+            'actor_update', kwargs={'pk': obj.pk})
+        context['title'] = 'Actor'
+        context['table_data'] = table_data
+        return context
