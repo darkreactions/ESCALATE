@@ -1,9 +1,9 @@
 /*
-Name:					prod_update_1_material
+Name:			prod_update_1_material
 Parameters:		none
 Returns:			
-Author:				G. Cattabriga
-Date:					2020.12.02
+Author:			G. Cattabriga
+Date:			2020.12.02
 Description:	load data from load_chem_inventory into material tables; material_type, material, material_refname, material_refname_x
 Notes:				
 */
@@ -38,7 +38,7 @@ insert into material (description, status_uuid)
 
 
 -- insert load_chem_inventory "ChemicalCategory" crossref'ed to material_type into material_type_x
-insert into material_type_x (ref_material_uuid, material_type_uuid)
+insert into material_type_x (material_uuid, material_type_uuid)
 	select mat.material_uuid, mtt.t_uuid from material mat 
 	join 
 		(select inv."ChemicalName" as cname, mt.material_type_uuid as t_uuid from ( SELECT "ChemicalName", trim(regexp_split_to_table(load_chem_inventory."ChemicalCategory", E',')) as "ChemicalCategory"

@@ -400,6 +400,7 @@ vw_person
 vw_status
 vw_systemtool_type
 vw_tag
+vw_tag_x
 vw_tag_type
 vw_udf_def
 
@@ -407,176 +408,294 @@ vw_udf_def
 <br/>
 
 
-Views provide full **CRUD/Restful API** or **Read/Get** functionality<br/>
+Views provide full **CRUD/Restful API** or minimally **Read/Get** functionality<br/>
+```
 (C)reate/Post, (R)ead/Get, (U)pdate/Put, (D)elete/Delete
-Below the columns returned or updateable for each of the views:
-
-
-__vw\_organization__
-
-* Read/GET
-
-	```	
-	organization_uuid, description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid, parent_org_full_name, add_date, mod_date, note_uuid, notetext, edocument_uuid, edocument_descr, tag_uuid, tag_short_descr
-	```
-* upsert/POST/PUT/DELETE
-
-	```
-	description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid, notetext
-	```
+```
 <br/>
+Each view is described below with the following information:<br/>
+__view name__, if it is fully `CRUD` or only `R`, <br/>
+*associated upsert trigger function*<br/>
+followed by the returned columns;<br/>
+columns required are denoted with an `r` (required on insert, not updatable), <br/>
+columns visible in forms are denoted with a `v`,<br/>
+columns updatable are denoted with a `u`<br/>
+Examples<br/><br/>
 
-__vw\_person__
 
-* Read/GET
+__vw\_organization__ `CRUD`<br/>
+*upsert\_organization ()*
+> organization\_uuid (v) <br/>
+> description (v u) <br/>
+> full\_name (r v) <br/>
+> short_name (v u) <br/> 
+> address1 (v u) <br/>
+> address2 (v u) <br/>
+> city (v u) <br/>
+> state\_province (v u) <br/> 
+> zip (v u) <br/> 
+> country (v u) <br/> 
+> website\_url (v u) <br/> 
+> phone (v u) <br/> 
+> parent\_uuid (v) <br/> 
+> parent\_org\_full\_name (v) <br/> 
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
 
-	```
-	person_uuid, first_name, last_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, add_date, mod_date, organization_uuid, organization_full_name, note_uuid, notetext, edocument_uuid, edocument_descr, tag_uuid, tag_short_descr
-	```
-* upsert/POST/PUT/DELETE
-
-	```
-	last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid, notetext
-	```
-
-<br/>
-
-__vw\_latest_systemtool__
-
-* Read/GET
-
-	```
-	systemtool_uuid, systemtool_name, description, vendor_organization_uuid, organization_fullname, systemtool_type_uuid, systemtool_type_description, model, serial, ver, note_uuid, notetext, actor_uuid, actor_description, add_date, mod_date
-	```
-* upsert/POST/PUT/DELETE
-
-	```
-	systemtool_name, description, systemtool_type_uuid, vendor_organization_uuid, model, serial, ver, notetext
-	```
-
+```
+-- insert new record
+insert into vw_organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid) values ('some description here','IBM','IBM','1001 IBM Lane',null,'Some City','NY',null,null,null,null,null);
+-- update the description, city and zip columns
+update vw_organization set description = 'some [new] description here', city = 'Some [new] City', zip = '00000' where full_name = 'IBM';
+-- update with a parent organization
+update vw_organization set parent_uuid =  (select organization_uuid from organization where organization.full_name = 'Haverford College') where full_name = 'IBM';
+-- delete the record (assumes no dependent, referential records); any notes attached to this record are automatically deleted
+delete from vw_organization where full_name = 'IBM';
+```
 
 <br/>
 
-__vw\_systemtool_type__
+__vw\_person__ `CRUD`<br/>
+*upsert\_person ()*
+> person\_uuid (v) <br/>
+> first\_name (v u) <br/>
+> last\_name (v u) <br/>
+> middle\_name (v u) <br/> 
+> address1 (v u) <br/>
+> address2 (v u) <br/>
+> city (v u) <br/>
+> state\_province (v u) <br/> 
+> zip (v u) <br/> 
+> country (v u) <br/> 
+> phone (v u) <br/> 
+> email (v u) <br/> 
+> title (v u) <br/> 
+> suffix (v u) <br/> 
+> organization\_uuid (v u) <br/> 
+> organization\_full\_name (v) <br/> 
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
 
-* Read/GET
-	
-	```
-	systemtool_type_uuid, description, note_uuid, notetext, add_date, mod_date
-	```
-* upsert/POST/PUT/DELETE
-
-	```
-	description, notetext
-	```
-
+```
+-- insert new person record
+insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null);
+-- update title, city, zip and email columns
+update vw_person set title = 'Mr', city = 'Some [new] City', zip = '99999', email = 'TesterL@scarythings.xxx' where person_uuid = (select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
+-- update associated organization
+update vw_person set organization_uuid =  (select organization_uuid from organization where organization.full_name = 'Haverford College') where (last_name = 'Tester' and first_name = 'Lester');
+-- delete record; any notes attached to this record are automatically deleted
+delete from vw_person where person_uuid = (select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
+```
 <br/>
 
-__vw\_tag_type__
+__vw\_latest_systemtool__`CRUD`<br/>
+*upsert\_systemtool ()*
+> systemtool\_uuid (v) <br/>
+> systemtool\_name (v u) <br/>
+> description (v u) <br/>
+> systemtool\_type\_uuid (v u)
+> systemtool\_type\_description (v)
+> vendor\_organization\_uuid (v u) <br/> 
+> organization\_fullname (v) <br/>
+> model (v u) <br/>
+> serial (v u) <br/>
+> ver (v u) <br/> 
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
 
-* Read/GET
-
-	```
-	tag_type_uuid, short_description, description, add_date, mod_date
-	```
-* upsert/POST/PUT/DELETE
-
-	```
-	short_description, description
-	```
-
-__vw\_tag__
-
-* Read/GET
-
-	```
-	tag_uuid, display_text, description, add_date, mod_date, tag_type_uuid, tag_type_short_descr, tag_type_description, actor_uuid, actor_description, note_uuid, notetext
-	```
-* upsert/POST/PUT/DELETE
-
-	```
-	display_text, description, tag_type_uuid, actor_uuid, notetext
-	```
-
-<br/>
-
-__vw\_udf_def__
-
-* Read/GET
-
-	```
-	description, valtype, note_uuid, notetext, add_date, mod_date
-	```
-* upsert/POST/PUT/DELETE
-
-	```
-	description, valtype, notetext
-	```
-
-<br/>
-
-__vw\_status__
-
-* Read/GET
-
-	```
-	status_uuid, description, add_date, mod_date
-	```
-* upsert/POST/PUT/DELETE
-
-	```
-	description
-	```
-<br/>
-
-__vw\_material\_type__
-
-* Read/GET
-	
-	```
-	material_type_uuid, description, add_date, mod_date, note_uuid, notetext
-	```
-* upsert/POST/PUT/DELETE
-
-	```
-	description, notetext
-	```
-
-<br/>
-
-__vw\_material\_refname\_def__
-
-* Read/GET
-
-	```
-	material_refname_def_uuid, description, note_uuid, notetext
-	```
-* upsert/POST/PUT/DELETE
-
-	```
-	description, notetext
-	```	
-
-<br/>
-
-__vw\_note__
-
-* Read/GET
-
-	```
-	note_uuid, notetext, add_date, mod_date, edocument_uuid, edocument_title, edocument_description, edocument_filename, edocument_source, edocument_type, actor_uuid, actor_description
-	```
-* upsert/POST/PUT/DELETE
-
-	```
-	notetext
-	```	
-
+```
+-- insert new systemtool; note, no ver[sion]
+insert into vw_latest_systemtool (systemtool_name, description, systemtool_type_uuid, vendor_organization_uuid, model, serial, ver) values ('MRROBOT', 'MR Robot to you',(select systemtool_type_uuid from vw_systemtool_type where description = 'API'),(select organization_uuid from vw_organization where full_name = 'ChemAxon'),'super duper', null, null);
+-- update serial column
+update vw_latest_systemtool set serial = 'ABC-1234' where systemtool_uuid = 
+ (select systemtool_uuid from vw_latest_systemtool where (systemtool_name = 'MRROBOT'));
+ -- update ver[sion]
+update vw_latest_systemtool set ver = '1.1' where systemtool_uuid = 
+ (select systemtool_uuid from vw_latest_systemtool where (systemtool_name = 'MRROBOT'));
+-- *** update record with new version, but forced to insert a copy with new ver[sion] ***
+update vw_latest_systemtool set ver = '1.2' where systemtool_uuid = 
+ (select systemtool_uuid from vw_latest_systemtool where (systemtool_name = 'MRROBOT'));
+-- delete [latest] version = 1.2; any notes attached to this record are automatically deleted
+delete from vw_latest_systemtool where systemtool_uuid = (select systemtool_uuid from vw_latest_systemtool where systemtool_name = 'MRROBOT');
+-- delete [latest] version = 1.1; any notes attached to this record are automatically deleted
+delete from vw_latest_systemtool where systemtool_uuid = (select systemtool_uuid from vw_latest_systemtool where systemtool_name = 'MRROBOT');
+```
 
 
 <br/>
 
+__vw\_systemtool_type__`CRUD`<br/>
+*upsert\_systemtool\_type ()*
+> systemtool\_type\_uuid (v) <br/>
+> description (v u) <br/>
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
 
+```
+-- insert new systemtool_type record
+insert into vw_systemtool_type (description) values ('TEST Systemtool Type');
+-- update systemtool_type
+update vw_systemtool_type set description = 'TEST Systemtool Type w/ extra features';
+-- delete systemtool_type; any notes attached to this record are automatically deleted
+delete from vw_systemtool_type where systemtool_type_uuid = (select systemtool_type_uuid from vw_systemtool_type where (description = 'TEST Systemtool Type'));
+```
+
+<br/>
+
+__vw\_tag__`CRUD`<br/>
+*upsert\_tag ()*
+> tag\_uuid (v) <br/>
+> display_text (r v u) <br/>
+> description (v u) <br/>
+> tag\_type\_uuid (v u) <br/>
+> tag\_type\_short\_descr (v) <br/>
+> actor\_uuid (v u) <br/>
+> actor\_description (v) <br/>
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+
+```
+-- insert new tag
+ insert into vw_tag (tag_uuid, display_text, description, tag_type_uuid, actor_uuid) values (null, 'invalid', 'invalid experiment', null, (select actor_uuid from vw_actor where person_last_name = 'Alves'));
+ -- update tag description
+ update vw_tag set description = 'invalid experiment with stuff added', tag_type_uuid = (select tag_type_uuid from vw_tag_type where short_description = 'experiment') where tag_uuid = (select tag_uuid from vw_tag where (display_text = 'invalid'));
+-- delete tag; any notes attached to this record are automatically deleted	
+delete from vw_tag where tag_uuid in (select tag_uuid from vw_tag where (display_text = 'invalid'));
+```
+
+<br/>
+
+
+__vw\_tag_x__`CRUD`<br/>
+*upsert\_tag\_x ()*
+> tag\_x\_uuid (v) <br/>
+> ref\_tag\_uuid (r)
+> tag\_uuid (r) <br/>
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+
+```
+-- insert new tag_x (tag_uuid, ref_tag_uuid) that ties tag to table record 
+ insert into vw_tag_x (tag_uuid, ref_tag_uuid) values ((select tag_uuid from vw_tag where (display_text = 'invalid')), (select actor_uuid from vw_actor where person_last_name = 'Alves') );
+ -- delete tag_x
+ delete from vw_tag_x where tag_uuid = (select tag_uuid from vw_tag where (display_text = 'invalid') and ref_tag_uuid = (select actor_uuid from vw_actor where person_last_name = 'Alves') );
+```
+
+<br/>
+
+
+__vw\_tag_type__`CRUD`<br/>
+*upsert\_tag\_type ()*
+> tag\_type\_uuid (v) <br/>
+> short_description (r u) <br/>
+> description (v u) <br/>
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+
+```
+-- insert tag_type
+insert into vw_tag_type (short_description, description) values ('TESTDEV', 'tags for development cycle phase');
+-- update description column
+update vw_tag_type set description = 'tags used to help identify development cycle phase; e.g. SPEC, TEST, DEV' where tag_type_uuid = (select tag_type_uuid from vw_tag_type where (short_description = 'TESTDEV'));
+-- update short_description column
+update vw_tag_type set short_description = 'TESTDEV1', description = 'tags used to help identify development cycle phase; e.g. SPEC, TEST, DEV' where tag_type_uuid = (select tag_type_uuid from vw_tag_type where (short_description = 'TESTDEV'));
+-- delete tag_type (assumes no dependent, referential records); any notes attached to this record are automatically deleted
+ delete from vw_tag_type where tag_type_uuid = (select tag_type_uuid from vw_tag_type where (short_description = 'TESTDEV1'));
+```
+
+
+
+
+__vw\_udf_def__`CRUD`<br/>
+*upsert\_udf\_def ()*
+> udf\_def\_uuid (v) <br/>
+> description (r v u) <br/>
+> valtype (v u) <br/>
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+
+```
+-- insert udf_def record with only description
+insert into vw_udf_def (description, valtype) values ('user defined 1', null);
+-- update valtype column; need to cast to val_type 
+update vw_udf_def set valtype = 'text'::val_type where udf_def_uuid = (select udf_def_uuid from vw_udf_def where (description = 'user defined 1'));
+-- delete udf_def; any notes attached to this record are automatically deleted
+delete from vw_udf_def where udf_def_uuid = (select udf_def_uuid from udf_def where (description = 'user defined 1'));
+```
+
+<br/>
+
+__vw\_status__`CRUD`<br/>
+*upsert\_status ()*
+> status\_uuid (v) <br/>
+> description (r v u) <br/>
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+
+```
+insert into vw_status (description) values ('testtest');
+update vw_status set description = 'testtest status' where status_uuid = (select status_uuid from vw_status where (description = 'testtest'));
+-- delete record; any notes attached to this record are automatically deleted
+delete from vw_status where status_uuid = (select status_uuid from vw_status where (description = 'testtest status'));
+```
+
+<br/>
+
+__vw\_material\_type__`CRUD`<br/>
+*upsert\_material\_type ()*
+> material\_type\_uuid (v) <br/>
+> description (r v u) <br/>
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+
+```
+insert into vw_material_type (description) values ('materialtype_test');
+-- delete record; any notes attached to this record are automatically deleted
+delete from vw_material_type where material_type_uuid = (select material_type_uuid from vw_material_type where (description = 'materialtype_test'));
+```
+
+<br/>
+
+__vw\_material\_refname\_def__`CRUD`<br/>
+*upsert\_material\_refname\_def ()*
+> material\_refname\_def\_uuid (v) <br/>
+> description (r v u) <br/>
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+
+```
+insert into vw_material_refname_def (description) values ('materialrefnamedef_test');
+-- delete record; any notes attached to this record are automatically deleted
+delete from vw_material_refname_def where material_refname_def_uuid = (select material_refname_def_uuid from vw_material_refname_def where (description = 'materialrefnamedef_test'));
+```
+
+<br/>
+
+
+__vw\_note__`CRUD`<br/>
+*upsert\_material\_refname\_def ()*
+> note\_uuid (v) <br/>
+> notetext (v u) <br/>
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+> actor\_uuid (v u) <br/>
+> actor\_description (v) <br/>
+> note\_x\_uuid <br/>
+> ref\_note\_uuid (r)
+
+```
+insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note', (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'));
+-- no insert, ref_note_uuid missing
+insert into vw_note (notetext, actor_uuid) values ('test note', (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'));
+update vw_note set notetext = 'test note with additional text...' where note_uuid = (select note_uuid from vw_note where (notetext = 'test note'));
+delete from vw_note where note_uuid = (select note_uuid from vw_note where (notetext = 'test note with additional text...'));
+ --- delete all notes associated with a given entity
+insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note 1', (select actor_uuid from vw_actor where person_last_name = 'Alves'), (select actor_uuid from vw_actor where person_last_name = 'Alves'));
+insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note 2', (select actor_uuid from vw_actor where person_last_name = 'Alves'), (select actor_uuid from vw_actor where person_last_name = 'Alves'));
+insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note 3', (select actor_uuid from vw_actor where person_last_name = 'Alves'), (select actor_uuid from vw_actor where person_last_name = 'Alves'));
+delete from vw_note where note_uuid in (select note_uuid from vw_note where actor_uuid = (select actor_uuid from vw_actor where person_last_name = 'Alves'));
+```
+<br/>
 
 
 <!-- UPDATE views!! 
@@ -592,94 +711,218 @@ e.g. __vw\_latest\_systemtool__ returns records from the **systemtool** table wi
 -->
 
 
-__vw_actor__
-
-* Read/GET_
-
-	```
-	actor_uuid, actor_id, organization_id, person_id, systemtool_id, actor_description, actor_status, actor_notetext, actor_document, actor_doc_type, org_full_name, org_short_name, per_lastname, per_firstname, person_lastfirst, person_org, systemtool_name, systemtool_description, systemtool_type, systemtool_vendor, systemtool_model, systemtool_serial, systemtool_version, systemtool_org 
-	```
-<br/>
-
-__vw\_calculation__
-
-* Read/GET
-
-	```
-	calculation_uuid, in_val, in_val_type, in_val_value, in_val_unit, in_val_edocument_uuid, in_opt_val, in_opt_val_type, in_opt_val_value, in_opt_val_unit, in_opt_val_edocument_uuid, out_val, out_val_type, out_val_value, out_val_unit, out_val_edocument_uuid, calculation_alias_name, create_date, status, actor_descr, notetext, calculation_def_uuid, short_name, calc_definition, description, in_type, out_type, systemtool_uuid, systemtool_name, systemtool_type_description, systemtool_vendor_organization, systemtool_version, actor_uuid, actor_description
-	```
-
-<br/>
-
-__vw\_calculation\_def__
-
-* Read/GET
-
-	```
-	calculation_def_uuid, short_name, calc_definition, description, actor_id, actor_org, actor_systemtool_name, actor_systemtool_version
-	```
+__vw_actor__`R`<br/>
+> actor\_uuid (v) <br/>
+> organization\_uuid (v) <br/>
+> person\_uuid (v) <br/>
+> systemtool\_uuid (v) <br/>
+> actor\_description (v) <br/>
+> actor\_status (v) <br/>
+> actor\_add\_date (v) <br/>
+> actor\_mod\_date (v) <br/>
+> org\_full\_name (v) <br/>
+> org\_short\_name (v) <br/>
+> person\_last\_name (v) <br/>
+> person\_first\_name (v) <br/>
+> person\_last\_first (v) <br/>
+> person\_org (v) <br/>
+> systemtool\_name (v) <br/>
+> systemtool\_description (v) <br/>
+> systemtool\_type (v) <br/>
+> systemtool\_vendor (v) <br/>
+> systemtool\_model (v) <br/>
+> systemtool\_serial (v) <br/>
+> systemtool\_version (v) <br/>
 
 <br/>
 
+__vw\_calculation__`R`<br/>
+> calculation_uuid (v) <br/> 
+> in_val (v) <br/> 
+> in_val_type (v) <br/> 
+> in_val_value (v) <br/> 
+> in_val_unit (v) <br/>
+> in_val_edocument_uuid (v) <br/> 
+> in_opt_val (v) <br/> 
+> in_opt_val_type (v) <br/> 
+> in_opt_val_value (v) <br/>
+> in_opt_val_unit (v) <br/> 
+> in_opt_val_edocument_uuid (v) <br/> 
+> out_val (v) <br/> 
+> out_val_type (v) <br/> 
+> out_val_value (v) <br/> 
+> out_val_unit (v) <br/> 
+> out_val_edocument_uuid (v) <br/> 
+> calculation_alias_name (v) <br/> 
+> create_date (v) <br/> 
+> status (v) <br/> 
+> actor_descr (v) <br/> 
+> calculation_def_uuid (v) <br/> 
+> short_name (v) <br/>
+> calc_definition (v) <br/> 
+> description (v) <br/> 
+> in_type (v) <br/> 
+> out_type (v) <br/> 
+> systemtool_uuid (v) <br/> 
+> systemtool_name (v) <br/> 
+> systemtool_type_description (v) <br/> 
+> systemtool_vendor_organization (v) <br/> 
+> systemtool_version (v) <br/> 
+> actor_uuid (v) <br/> 
+> actor_description (v) <br/>
 
-__vw\_edocument__
 
-* read/GET
+<br/>
 
-	```
-	edocument_uuid, edocument_title, edocument_description, edocument_filename, edocument_source, edocument_type, edocument, actor_uuid, actor_description
-	```
+__vw\_calculation\_def__`R`<br/>
+> calculation_def_uuid (v) <br/> 
+> short_name (v) <br/> 
+> calc_definition (v) <br/>
+> description (v) <br/>
+> in_type (v) <br/>
+> out_type (v) <br/>
+> systemtool_uuid (v) <br/>
+> systemtool_name (v) <br/>
+> systemtool_type_description (v) <br/>
+> systemtool_vendor_organization (v) <br/>
+> systemtool_version (v) <br/>
+> actor_uuid (v) <br/>
+> actor_description (v) <br/>
+
 
 <br/>
 
 
-__vw\_inventory__
+__vw\_edocument__`R`<br/>
+> edocument_uuid (v) <br/> 
+> edocument_title (v) <br/> 
+> edocument_description (v) <br/> 
+> edocument_filename (v) <br/>
+> edocument_source (v) <br/> 
+> edocument_type (v) <br/> 
+> edocument (v) <br/> 
+> actor_uuid (v) <br/> 
+> actor_description (v) <br/>
 
-* Read/GET
-	
-	```
-	inventory_uuid, description inventory_description, part_no, onhand_amt, unit, create_date, expiration_date, inventory_location, status, material_uuid, material_description, actor_uuid, description, edocument_uuid, edocument_description, note_uuid, notetext
-	```
-
-<br/>
-
-__vw\_inventory\_material__
-
-* Read/GET
-
-	```
-	inventory_uuid, inventory_description, inventory_part_no, inventory_onhand_amt, inventory_unit, inventory_create_date, inventory_expiration_date, inventory_location, inventory_status, actor_uuid, actor_description, org_full_name, material_uuid, material_status, material_create_date, material_name, material_abbreviation, material_inchi, material_inchikey, material_molecular_formula, material_smiles
-	```
 
 <br/>
 
-__vw\_material__
 
-* Read/GET
-	
-	```
-	material_uuid, material_status, create_date, Abbreviation, Chemical_Name, InChI, InChIKey, Molecular_Formula, SMILES
-	```
+__vw\_inventory__`R`<br/>
+> inventory_uuid (v) <br/>
+> inventory_description (v) <br/>
+> part_no (v) <br/>
+> onhand_amt (v) <br/>
+> unit (v) <br/>
+> create_date (v) <br/>
+> expiration_date (v) <br/>
+> inventory_location (v) <br/>
+> status (v) <br/>
+> material_uuid (v) <br/>
+> material_description (v) <br/>
+> actor_uuid (v) <br/> 
+> actor_description (v) <br/>
+
 
 <br/>
 
-__vw\_material\_calculation\_raw__
+__vw\_inventory\_material__`R`<br/>
+> inventory_uuid (v) <br/>
+> inventory_description (v) <br/>
+> inventory_part_no (v) <br/>
+> inventory_onhand_amt (v) <br/>
+> inventory_unit (v) <br/>
+> inventory_create_date (v) <br/>
+> inventory_expiration_date (v) <br/>
+> inventory_location (v) <br/>
+> inventory_status (v) <br/>
+> actor_uuid (v) <br/>
+> actor_description (v) <br/>
+> org_full_name (v) <br/>
+> material_uuid (v) <br/>
+> material_status (v) <br/>
+> create_date AS material_create_date (v) <br/>
+> chemical_name AS material_name (v) <br/>
+> abbreviation AS material_abbreviation (v) <br/>
+> inchi AS material_inchi (v) <br/>
+> inchikey AS material_inchikey (v) <br/>
+> molecular_formula AS material_molecular_formula (v) <br/>
+> smiles AS material_smiles (v) <br/>
 
-* Read/GET
-
-	```
-	material_uuid, material_status, material_create_date, abbreviation, chemical_name, inchi, inchikey, molecular_formula, smiles, calculation_uuid, in_val, in_val_type, in_val_value, in_val_unit, in_val_edocument_uuid, in_opt_val, in_opt_val_type, in_opt_val_value, in_opt_val_unit, in_opt_val_edocument_uuid, out_val, out_val_type, out_val_value, out_val_unit, out_val_edocument_uuid, calculation_alias_name, calculation_create_date, status, actor_descr, notetext, calculation_def_uuid, short_name, calc_definition, description, in_type, out_type, systemtool_uuid, systemtool_name, systemtool_type_description, systemtool_vendor_organization, systemtool_version, actor_uuid, actor_description
-	```
 
 <br/>
 
-__vw\_material\_raw__
+__vw\_material__`R`<br/>
+> material_uuid (v) <br/>
+> material_status (v) <br/>
+> create_date (v) <br/>
+> Abbreviation (v) <br/>
+> Chemical_Name (v) <br/>
+> InChI (v) <br/>
+> InChIKeyv
+> Molecular_Formula (v) <br/>
+> SMILES (v) <br/>
 
-* Read/GET
 
-	```
-	material_uuid, material_description, material_status, material_type_description, material_refname_def, material_refname_description, material_refname_def_uuid, material_create_date, note_uuid, notetext
-	```
+<br/>
+
+__vw\_material\_calculation\_raw__`R`<br/>
+> material_uuid (v) <br/>
+> material_status (v) <br/>
+> material_create_date (v) <br/>
+> abbreviation (v) <br/>
+> chemical_name (v) <br/>
+> inchi (v) <br/>
+> inchikey (v) <br/>
+> molecular_formula (v) <br/>
+> smiles (v) <br/>
+> calculation_uuid (v) <br/>
+> in_val (v) <br/>
+> in_val_type (v) <br/>
+> in_val_value (v) <br/>
+> in_val_unit (v) <br/>
+> in_val_edocument_uuid (v) <br/>
+> in_opt_val (v) <br/>
+> in_opt_val_type (v) <br/>
+> in_opt_val_value (v) <br/>
+> in_opt_val_unit (v) <br/>
+> in_opt_val_edocument_uuid (v) <br/>
+> out_val (v) <br/>
+> out_val_type (v) <br/>
+> out_val_value (v) <br/>
+> out_val_unit (v) <br/>
+> out_val_edocument_uuid (v) <br/>
+> calculation_alias_name (v) <br/>
+> calculation_create_date (v) <br/>
+> status (v) <br/>
+> actor_descr (v) <br/>
+> calculation_def_uuid (v) <br/>
+> short_name (v) <br/>
+> calc_definition (v) <br/>
+> description (v) <br/>
+> in_type (v) <br/>
+> out_type (v) <br/>
+> systemtool_uuid (v) <br/>
+> systemtool_name (v) <br/>
+> systemtool_type_description (v) <br/>
+> systemtool_vendor_organization (v) <br/>
+> systemtool_version (v) <br/>
+> actor_uuid (v) <br/>
+> actor_description (v) <br/>
+
+
+<br/>
+
+__vw\_material\_raw__`R`<br/>
+> material_uuid (v) <br/>
+> material_description (v) <br/>
+> material_status (v) <br/>
+> material_type_description (v) <br/>
+> material_refname_def (v) <br/>
+> material_refname_description (v) <br/>
+> material_refname_def_uuid (v) <br/>
+> material_create_date (v) <br/>
+
 
 
 

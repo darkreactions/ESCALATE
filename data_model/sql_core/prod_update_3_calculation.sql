@@ -1,12 +1,12 @@
 /*
-Name:					prod_update_3_descriptor
+Name:			prod_update_3_caclulation
 Parameters:		none
 Returns:			
-Author:				G. Cattabriga
-Date:					2020.01.23
+Author:			G. Cattabriga
+Date:			2020.01.23
 Description:	load data from load_perov_desc
-Notes:				presumes calculation_def has been populated (see initialize tables)
-							not sure how best to use the calculation_class :(
+Notes:			presumes calculation_def has been populated (see initialize tables)
+				not sure how best to use the calculation_class :(
 */
 
 
@@ -230,7 +230,7 @@ INSERT INTO calculation (in_val.v_int, in_val.v_type, in_val.v_source_uuid, in_o
 					pd."_feat_asa-" as val_in_opt, 'num'::val_type as val_in_opt_type, tmp.descr as descriptor_name, tmp.val as val_out, 'num'::val_type as val_out_type, alias_name, '2020-02-20'::timestamptz as create_date, (select status_uuid from status where description = 'active') as status
 	from load_perov_desc pd
 		join lateral (values 
-			('chrg_per_asa_standardize', '_calc_chrg_per_asa', _calc_chrg_per_asa)) as tmp(descr, alias_name, val) on true) dsc
+			('chrg_per_asa_standardize', '_calc_chrg_per_asa-', "_calc_chrg_per_asa-")) as tmp(descr, alias_name, val) on true) dsc
 	left join 
 		(select *
 		from calculation_def mdd 

@@ -41,12 +41,17 @@ DROP TABLE IF EXISTS vw_udf_def cascade;
 ----------------------------------------
 -- view of sys_audit tables trigger on
 ----------------------------------------
-CREATE OR REPLACE VIEW sys_audit_tableslist AS 
- SELECT DISTINCT trigger_schema AS schema,
-    event_object_table AS auditedtable
-   FROM information_schema.triggers
-    WHERE trigger_name::text IN ('audit_trigger_row'::text, 'audit_trigger_stm'::text)  
-ORDER BY auditedtable;
+
+CREATE OR REPLACE VIEW sys_audit_tableslist AS SELECT DISTINCT
+	trigger_schema AS SCHEMA,
+	event_object_table AS auditedtable
+FROM
+	information_schema.triggers
+WHERE
+	trigger_name::text IN(
+		'audit_trigger_row' ::text, 'audit_trigger_stm' ::text)
+ORDER BY
+	auditedtable;
 
 ----------------------------------------
 -- view of status table (simple)
@@ -60,28 +65,32 @@ SELECT
 FROM
 	status;
 
-DROP TRIGGER IF EXISTS trigger_status_upsert on vw_status;
-CREATE TRIGGER trigger_status_upsert
-INSTEAD OF INSERT OR UPDATE OR DELETE ON vw_status
-    FOR EACH ROW EXECUTE PROCEDURE upsert_status();
+DROP TRIGGER IF EXISTS trigger_status_upsert ON vw_status;
+
+CREATE TRIGGER trigger_status_upsert INSTEAD OF INSERT
+	OR UPDATE
+	OR DELETE ON vw_status
+	FOR EACH ROW
+	EXECUTE PROCEDURE upsert_status ();
 
 ----------------------------------------
 -- view of note; links to edocument and actor
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_edocument AS
 SELECT
-  doc.edocument_uuid,
-  doc.edocument_title,
-  doc.description AS edocument_description,
-  doc.edocument_filename,
-  doc.edocument_source,
-  doc.edoc_type AS edocument_type,
-  doc.edocument,
-  act.actor_uuid,
-  act.description AS actor_description
+	doc.edocument_uuid,
+	doc.edocument_title,
+	doc.description AS edocument_description,
+	doc.edocument_filename,
+	doc.edocument_source,
+	doc.edoc_type AS edocument_type,
+	doc.edocument,
+	act.actor_uuid,
+	act.description AS actor_description
 FROM
-  edocument doc
-  LEFT JOIN actor act ON doc.actor_uuid = act.actor_uuid;
+	edocument doc
+	LEFT JOIN actor act ON doc.actor_uuid = act.actor_uuid;
+
 
 ----------------------------------------
 -- view of note; links to edocument and actor
@@ -92,19 +101,23 @@ SELECT
 	nt.notetext,
 	nt.add_date,
 	nt.mod_date,
-	ed.edocument_uuid,
-	ed.edocument_title,
-	ed.description AS edocument_description,
-	ed.edocument_filename,
-	ed.edocument_source,
-	ed.edoc_type AS edocument_type,
 	act.actor_uuid,
-	act.description AS actor_description
+	act.description AS actor_description,
+	nx.note_x_uuid,
+	nx.ref_note_uuid
 FROM
 	note nt
-	LEFT JOIN edocument ed ON nt.edocument_uuid = ed.edocument_uuid
-	LEFT JOIN actor act ON nt.actor_uuid = act.actor_uuid;
+	LEFT JOIN actor act ON nt.actor_uuid = act.actor_uuid
+	JOIN note_x nx ON nx.note_uuid = nt.note_uuid;
 
+DROP TRIGGER IF EXISTS trigger_note_upsert ON vw_note;
+CREATE TRIGGER trigger_note_upsert INSTEAD OF INSERT
+	OR UPDATE
+	OR DELETE ON vw_note
+	FOR EACH ROW
+	EXECUTE PROCEDURE upsert_note ();		
+
+	
 ----------------------------------------
 -- view of tag_type
 ----------------------------------------
@@ -118,10 +131,12 @@ SELECT
 FROM
 	tag_type tt;
 
-DROP TRIGGER IF EXISTS trigger_tag_type_upsert on vw_tag_type;
-CREATE TRIGGER trigger_tag_type_upsert
-INSTEAD OF INSERT OR UPDATE OR DELETE ON vw_tag_type
-    FOR EACH ROW EXECUTE PROCEDURE upsert_tag_type();
+DROP TRIGGER IF EXISTS trigger_tag_type_upsert ON vw_tag_type;
+CREATE TRIGGER trigger_tag_type_upsert INSTEAD OF INSERT
+	OR UPDATE
+	OR DELETE ON vw_tag_type
+	FOR EACH ROW
+	EXECUTE PROCEDURE upsert_tag_type ();
 
 
 ----------------------------------------
@@ -138,19 +153,40 @@ SELECT
 	tt.short_description AS tag_type_short_descr,
 	tt.description AS tag_type_description,
 	act.actor_uuid,
-	act.description AS actor_description,
-	nt.note_uuid,
-	nt.notetext
+	act.description AS actor_description
 FROM
 	tag tg
 	LEFT JOIN tag_type tt ON tg.tag_type_uuid = tt.tag_type_uuid
-	LEFT JOIN actor act ON tg.actor_uuid = act.actor_uuid
-	LEFT JOIN note nt ON tg.note_uuid = nt.note_uuid;
+	LEFT JOIN actor act ON tg.actor_uuid = act.actor_uuid;
 
-DROP TRIGGER IF EXISTS trigger_tag_upsert on vw_tag;
-CREATE TRIGGER trigger_tag_upsert
-INSTEAD OF INSERT OR UPDATE OR DELETE ON vw_tag
-    FOR EACH ROW EXECUTE PROCEDURE upsert_tag();
+DROP TRIGGER IF EXISTS trigger_tag_upsert ON vw_tag;
+CREATE TRIGGER trigger_tag_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_tag
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_tag ( );
+
+
+----------------------------------------
+-- view of tag_x; links to tag_type, actor and note
+----------------------------------------
+CREATE OR REPLACE VIEW vw_tag_x AS
+SELECT
+	tx.tag_x_uuid,
+	tx.ref_tag_uuid,
+	tx.tag_uuid,
+	tg.add_date,
+	tg.mod_date
+FROM
+	tag_x tx
+	LEFT JOIN tag tg ON tx.tag_uuid = tg.tag_uuid;
+
+DROP TRIGGER IF EXISTS trigger_tag_x_upsert ON vw_tag_x;
+CREATE TRIGGER trigger_tag_x_upsert INSTEAD OF INSERT
+	OR UPDATE
+	OR DELETE ON vw_tag_x
+	FOR EACH ROW
+	EXECUTE PROCEDURE upsert_tag_x ();
 
 
 ----------------------------------------
@@ -158,21 +194,20 @@ INSTEAD OF INSERT OR UPDATE OR DELETE ON vw_tag
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_udf_def AS
 SELECT
-	ud.udf_def_uuid, 
+	ud.udf_def_uuid,
 	ud.description,
 	ud.valtype,
-	nt.note_uuid,
-	nt.notetext,
 	ud.add_date,
 	ud.mod_date
 FROM
-	udf_def ud
-LEFT JOIN note nt ON ud.note_uuid = nt.note_uuid;
+	udf_def ud;
 
-DROP TRIGGER IF EXISTS trigger_udf_def_upsert on vw_udf_def;
-CREATE TRIGGER trigger_udf_def_upsert
-INSTEAD OF INSERT OR UPDATE OR DELETE ON vw_udf_def
-    FOR EACH ROW EXECUTE PROCEDURE upsert_udf_def();
+DROP TRIGGER IF EXISTS trigger_udf_def_upsert ON vw_udf_def;
+CREATE TRIGGER trigger_udf_def_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_udf_def
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_udf_def ( );
 
 
 ----------------------------------------
@@ -197,26 +232,17 @@ SELECT
 	per.add_date,
 	per.mod_date,
 	org.organization_uuid,
-	org.full_name as organization_full_name,
-	nt.note_uuid,
-	nt.notetext,
-	ed.edocument_uuid,
-	ed.description AS edocument_descr,
-	tag.tag_uuid,
-	tag.display_text AS tag_display_text
+	org.full_name AS organization_full_name
 FROM
 	person per
-	LEFT JOIN organization org ON per.organization_uuid = org.organization_uuid
-	LEFT JOIN note nt ON per.note_uuid = nt.note_uuid
-	LEFT JOIN tag_x tx ON per.person_uuid = tx.ref_tag_uuid
-	LEFT JOIN tag ON tx.tag_uuid = tag.tag_uuid
-	LEFT JOIN edocument_x edx ON per.person_uuid = edx.ref_edocument_uuid
-	LEFT JOIN edocument ed ON edx.edocument_uuid = ed.edocument_uuid;
+LEFT JOIN organization org ON per.organization_uuid = org.organization_uuid;
 
-DROP TRIGGER IF EXISTS trigger_person_upsert on vw_person;
-CREATE TRIGGER trigger_person_upsert
-INSTEAD OF INSERT OR UPDATE OR DELETE ON vw_person
-    FOR EACH ROW EXECUTE PROCEDURE upsert_person();
+DROP TRIGGER IF EXISTS trigger_person_upsert ON vw_person;
+CREATE TRIGGER trigger_person_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_person
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_person ( );
 
 
 ----------------------------------------
@@ -239,26 +265,18 @@ SELECT
 	org.parent_uuid,
 	orgp.full_name AS parent_org_full_name,
 	org.add_date,
-	org.mod_date,
-	nt.note_uuid,
-	nt.notetext,
-	ed.edocument_uuid,
-	ed.description AS edocument_descr,
-	tag.tag_uuid,
-	tag.display_text AS tag_display_text
+	org.mod_date
 FROM
 	organization org
-	LEFT JOIN organization orgp ON org.parent_uuid = orgp.organization_uuid
-	LEFT JOIN note nt ON org.note_uuid = nt.note_uuid
-	LEFT JOIN tag_x tx ON org.organization_uuid = tx.ref_tag_uuid
-	LEFT JOIN tag ON tx.tag_uuid = tag.tag_uuid
-	LEFT JOIN edocument_x edx ON org.organization_uuid = edx.ref_edocument_uuid
-	LEFT JOIN edocument ed ON edx.edocument_uuid = ed.edocument_uuid;
+LEFT JOIN organization orgp ON org.parent_uuid = orgp.organization_uuid;
 
-DROP TRIGGER IF EXISTS trigger_organization_upsert on vw_organization;
-CREATE TRIGGER trigger_organization_upsert
-INSTEAD OF INSERT OR UPDATE OR DELETE ON vw_organization
-    FOR EACH ROW EXECUTE PROCEDURE upsert_organization();
+DROP TRIGGER IF EXISTS trigger_organization_upsert ON vw_organization;
+CREATE TRIGGER trigger_organization_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_organization
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_organization ( );
+
 
 ----------------------------------------
 -- integrated view of inventory; joins measure (amounts of material
@@ -271,14 +289,13 @@ SELECT
 	st.systemtool_uuid,
 	act.description AS actor_description,
 	sts.description AS actor_status,
-	nt.notetext AS actor_notetext,
 	org.full_name AS org_full_name,
 	org.short_name AS org_short_name,
 	per.last_name AS person_last_name,
 	per.first_name AS person_first_name,
 	CASE WHEN per.person_uuid IS NOT NULL THEN
 		CAST(
-			concat(per.last_name, ', ', per.first_name) AS VARCHAR)
+			concat(per.last_name, ', ', per.first_name ) AS VARCHAR )
 	END AS person_last_first,
 	porg.full_name AS person_org,
 	st.systemtool_name,
@@ -290,36 +307,34 @@ SELECT
 	st.ver AS systemtool_version
 FROM
 	actor act
-	LEFT JOIN organization org ON act.organization_uuid = org.organization_uuid
-	LEFT JOIN person per ON act.person_uuid = per.person_uuid
-	LEFT JOIN organization porg ON per.organization_uuid = porg.organization_uuid
-	LEFT JOIN systemtool st ON act.systemtool_uuid = st.systemtool_uuid
-	LEFT JOIN systemtool_type stt ON st.systemtool_type_uuid = stt.systemtool_type_uuid
-	LEFT JOIN organization vorg ON st.vendor_organization_uuid = vorg.organization_uuid
-	LEFT JOIN note nt ON act.note_uuid = nt.note_uuid
-	LEFT JOIN edocument_x edx ON act.actor_uuid = edx.ref_edocument_uuid
-	LEFT JOIN edocument ed ON edx.edocument_uuid = ed.edocument_uuid
-	LEFT JOIN status sts ON act.status_uuid = sts.status_uuid;
+LEFT JOIN organization org ON act.organization_uuid = org.organization_uuid
+LEFT JOIN person per ON act.person_uuid = per.person_uuid
+LEFT JOIN organization porg ON per.organization_uuid = porg.organization_uuid
+LEFT JOIN systemtool st ON act.systemtool_uuid = st.systemtool_uuid
+LEFT JOIN systemtool_type stt ON st.systemtool_type_uuid = stt.systemtool_type_uuid
+LEFT JOIN organization vorg ON st.vendor_organization_uuid = vorg.organization_uuid
+LEFT JOIN status sts ON act.status_uuid = sts.status_uuid;
+
 
 ----------------------------------------
 -- integrated view of systemtool_type
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_systemtool_type AS
 SELECT
-	stt.systemtool_type_uuid, 
+	stt.systemtool_type_uuid,
 	stt.description,
-	nt.note_uuid,
-	nt.notetext,
 	stt.add_date,
 	stt.mod_date
 FROM
-	systemtool_type stt
-LEFT JOIN note nt ON stt.note_uuid = nt.note_uuid;
+	systemtool_type stt;
 
-DROP TRIGGER IF EXISTS trigger_systemtool_type_upsert on vw_systemtool_type;
-CREATE TRIGGER trigger_systemtool_type_upsert
-INSTEAD OF INSERT OR UPDATE OR DELETE ON vw_systemtool_type
-    FOR EACH ROW EXECUTE PROCEDURE upsert_systemtool_type();
+DROP TRIGGER IF EXISTS trigger_systemtool_type_upsert ON vw_systemtool_type;
+CREATE TRIGGER trigger_systemtool_type_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_systemtool_type
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_systemtool_type ( );
+
 
 ----------------------------------------
 -- get most recent version of a systemtool in raw format
@@ -338,7 +353,7 @@ FROM
 			MAX(st.ver) AS ver
 		FROM
 			systemtool st
-		-- WHERE
+			-- WHERE
 			-- st.systemtool_name IS NOT NULL
 			-- AND st.ver IS NOT NULL
 		GROUP BY
@@ -346,10 +361,11 @@ FROM
 			-- st.systemtool_type_uuid,
 			-- st.vendor_organization_uuid,
 			-- st.note_uuid
-			) mrs ON stl.systemtool_name = mrs.systemtool_name;
+) mrs ON stl.systemtool_name = mrs.systemtool_name and stl.ver = mrs.ver;
 --	AND stl.systemtool_type_uuid = mrs.systemtool_type_uuid
 --	AND stl.vendor_organization_uuid = mrs.vendor_organization_uuid
 --	AND stl.ver = mrs.ver;
+
 
 ----------------------------------------
 -- get most recent version of a systemtool
@@ -368,19 +384,20 @@ SELECT
 	vst.serial,
 	vst.ver,
 	vst.add_date,
-	vst.mod_date,
-	nt.note_uuid,
-  nt.notetext
+	vst.mod_date
 FROM
 	vw_latest_systemtool_raw vst
-	LEFT JOIN organization org ON vst.vendor_organization_uuid = org.organization_uuid
-	LEFT JOIN note nt ON vst.note_uuid = nt.note_uuid
-	LEFT JOIN systemtool_type stt ON vst.systemtool_type_uuid = stt.systemtool_type_uuid;
+LEFT JOIN organization org ON vst.vendor_organization_uuid = org.organization_uuid
+LEFT JOIN systemtool_type stt ON vst.systemtool_type_uuid = stt.systemtool_type_uuid
+;
 
-DROP TRIGGER IF EXISTS trigger_systemtool_upsert on vw_latest_systemtool;
-CREATE TRIGGER trigger_systemtool_upsert
-INSTEAD OF INSERT OR UPDATE OR DELETE ON vw_latest_systemtool
-    FOR EACH ROW EXECUTE PROCEDURE upsert_systemtool();
+
+DROP TRIGGER IF EXISTS trigger_systemtool_upsert ON vw_latest_systemtool;
+CREATE TRIGGER trigger_systemtool_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_latest_systemtool
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_systemtool ( );
 
 
 ----------------------------------------
@@ -403,10 +420,11 @@ SELECT
 	act.actor_description AS actor_description
 FROM
 	calculation_def mdd
-	LEFT JOIN vw_actor act ON mdd.actor_uuid = act.actor_uuid
-	LEFT JOIN vw_latest_systemtool st ON mdd.systemtool_uuid = st.systemtool_uuid
-	LEFT JOIN systemtool_type stt ON st.systemtool_type_uuid = stt.systemtool_type_uuid
-	LEFT JOIN organization org ON st.vendor_organization_uuid = org.organization_uuid;
+LEFT JOIN vw_actor act ON mdd.actor_uuid = act.actor_uuid
+LEFT JOIN vw_latest_systemtool st ON mdd.systemtool_uuid = st.systemtool_uuid
+LEFT JOIN systemtool_type stt ON st.systemtool_type_uuid = stt.systemtool_type_uuid
+LEFT JOIN organization org ON st.vendor_organization_uuid = org.organization_uuid;
+
 
 ----------------------------------------
 -- get the calculations and associated entities
@@ -421,48 +439,47 @@ SELECT
 	--	md.out_val,
 	md.in_val,
 	(
-		md.in_val).v_type AS in_val_type,
+		md.in_val ).v_type AS in_val_type,
 	get_val (
-		md.in_val) AS in_val_value,
+		md.in_val ) AS in_val_value,
 	(
-		md.in_val).v_unit AS in_val_unit,
+		md.in_val ).v_unit AS in_val_unit,
 	(
-		md.in_val).v_edocument_uuid AS in_val_edocument_uuid,
+		md.in_val ).v_edocument_uuid AS in_val_edocument_uuid,
 	md.in_opt_val,
 	(
-		md.in_opt_val).v_type AS in_opt_val_type,
+		md.in_opt_val ).v_type AS in_opt_val_type,
 	get_val (
-		md.in_opt_val) AS in_opt_val_value,
+		md.in_opt_val ) AS in_opt_val_value,
 	(
-		md.in_opt_val).v_unit AS in_opt_val_unit,
+		md.in_opt_val ).v_unit AS in_opt_val_unit,
 	(
-		md.in_opt_val).v_edocument_uuid AS in_opt_val_edocument_uuid,
+		md.in_opt_val ).v_edocument_uuid AS in_opt_val_edocument_uuid,
 	md.out_val,
 	(
-		md.out_val).v_type AS out_val_type,
+		md.out_val ).v_type AS out_val_type,
 	get_val (
-		md.out_val) AS out_val_value,
+		md.out_val ) AS out_val_value,
 	(
-		md.out_val).v_unit AS out_val_unit,
+		md.out_val ).v_unit AS out_val_unit,
 	(
-		md.out_val).v_edocument_uuid AS out_val_edocument_uuid,
+		md.out_val ).v_edocument_uuid AS out_val_edocument_uuid,
 	md.calculation_alias_name,
 	md.create_date,
 	sts.description AS status,
 	dact.actor_description AS actor_descr,
-	nt.notetext AS notetext,
 	--	md.num_valarray_out,
 	--	encode( md.blob_val_out, 'escape' ) AS blob_val_out,
 	--	md.blob_type_out,
 	mdd.*
 FROM
 	calculation md
-	LEFT JOIN vw_calculation_def mdd ON md.calculation_def_uuid = mdd.calculation_def_uuid
-	LEFT JOIN vw_edocument ed ON (
-		md.out_val).v_edocument_uuid = ed.edocument_uuid
-	LEFT JOIN vw_actor dact ON md.actor_uuid = dact.actor_uuid
-	LEFT JOIN status sts ON md.status_uuid = sts.status_uuid
-	LEFT JOIN note nt ON md.note_uuid = nt.note_uuid;
+LEFT JOIN vw_calculation_def mdd ON md.calculation_def_uuid = mdd.calculation_def_uuid
+LEFT JOIN vw_edocument ed ON (
+	md.out_val ).v_edocument_uuid = ed.edocument_uuid
+LEFT JOIN vw_actor dact ON md.actor_uuid = dact.actor_uuid
+LEFT JOIN status sts ON md.status_uuid = sts.status_uuid;
+
 
 ----------------------------------------
 -- get material_refname_def
@@ -471,21 +488,20 @@ FROM
 CREATE OR REPLACE VIEW vw_material_refname_def AS
 SELECT
 	mrt.material_refname_def_uuid,
-	mrt.description,
-	nt.note_uuid,
-	nt.notetext
+	mrt.description
 FROM
 	material_refname_def mrt
-	LEFT JOIN note nt ON mrt.note_uuid = nt.note_uuid
 ORDER BY
 	2;
 
-DROP TRIGGER IF EXISTS trigger_material_refname_def_upsert on vw_material_refname_def;
-CREATE TRIGGER trigger_material_refname_def_upsert
-INSTEAD OF INSERT OR UPDATE OR DELETE ON vw_material_refname_def
-    FOR EACH ROW EXECUTE PROCEDURE upsert_material_refname_def();
+DROP TRIGGER IF EXISTS trigger_material_refname_def_upsert ON vw_material_refname_def;
+CREATE TRIGGER trigger_material_refname_def_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_material_refname_def
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_material_refname_def ( );
 
-		
+
 ----------------------------------------
 -- get material_type
 -- DROP VIEW vw_material_type
@@ -495,19 +511,19 @@ SELECT
 	mt.material_type_uuid,
 	mt.description,
 	mt.add_date,
-	mt.mod_date,
-	nt.note_uuid,
-	nt.notetext
+	mt.mod_date
 FROM
 	material_type mt
-	LEFT JOIN note nt ON mt.note_uuid = nt.note_uuid
 ORDER BY
 	2;
 
-DROP TRIGGER IF EXISTS trigger_material_type_upsert on vw_material_type;
-CREATE TRIGGER trigger_material_type_upsert
-INSTEAD OF INSERT OR UPDATE OR DELETE ON vw_material_type
-    FOR EACH ROW EXECUTE PROCEDURE upsert_material_type();
+DROP TRIGGER IF EXISTS trigger_material_type_upsert ON vw_material_type;
+CREATE TRIGGER trigger_material_type_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_material_type
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_material_type ( );
+
 
 ----------------------------------------
 -- get materials, all status
@@ -519,23 +535,21 @@ SELECT
 	mat.description AS material_description,
 	st.description AS material_status,
 	get_material_type (
-		mat.material_uuid) AS material_type_description,
+		mat.material_uuid ) AS material_type_description,
 	mrt.description AS material_refname_def,
 	mr.description AS material_refname_description,
 	mr.material_refname_def_uuid,
-	mat.add_date AS material_create_date,
-	nt.note_uuid,
-	nt.notetext
+	mat.add_date AS material_create_date
 FROM
 	material mat
-	LEFT JOIN material_refname_x mrx ON mat.material_uuid = mrx.material_uuid
-	LEFT JOIN material_refname mr ON mrx.material_refname_uuid = mr.material_refname_uuid
-	LEFT JOIN material_refname_def mrt ON mr.material_refname_def_uuid = mrt.material_refname_def_uuid
-	LEFT JOIN status st ON mat.status_uuid = st.status_uuid
-	LEFT JOIN note nt ON mat.note_uuid = nt.note_uuid
+LEFT JOIN material_refname_x mrx ON mat.material_uuid = mrx.material_uuid
+LEFT JOIN material_refname mr ON mrx.material_refname_uuid = mr.material_refname_uuid
+LEFT JOIN material_refname_def mrt ON mr.material_refname_def_uuid = mrt.material_refname_def_uuid
+LEFT JOIN status st ON mat.status_uuid = st.status_uuid
 ORDER BY
-	mat.material_uuid,
-	mr.description;
+mat.material_uuid,
+mr.description;
+
 
 ----------------------------------------
 -- get materials, all status as a crosstab, with refname types
@@ -547,9 +561,9 @@ SELECT
 FROM
 	crosstab (
 		'select material_uuid, material_status, material_create_date, material_refname_def, material_refname_description
-		   from vw_material_raw order by 1, 3',
+				   from vw_material_raw order by 1, 3',
 		'select distinct material_refname_def
-		   from vw_material_raw order by 1') AS ct (
+				   from vw_material_raw order by 1' ) AS ct (
 		material_uuid uuid,
 		material_status varchar,
 		create_date timestamptz,
@@ -559,7 +573,8 @@ FROM
 		InChIKey varchar,
 		Molecular_Formula varchar,
 		SMILES varchar
-);
+	);
+
 
 ----------------------------------------
 -- get materials and all related calculations, all status
@@ -596,7 +611,6 @@ SELECT
 	cal.create_date AS calculation_create_date,
 	cal.status,
 	cal.actor_descr,
-	cal.notetext,
 	cal.calculation_def_uuid,
 	cal.short_name,
 	cal.calc_definition,
@@ -613,11 +627,12 @@ SELECT
 FROM (
 	SELECT DISTINCT
 		material_uuid,
-		get_calculation (smiles) AS calculation_uuid
+		get_calculation (smiles ) AS calculation_uuid
 	FROM
-		vw_material) vmc
-	JOIN vw_material mat ON vmc.material_uuid = mat.material_uuid
-	JOIN vw_calculation cal ON vmc.calculation_uuid = cal.calculation_uuid;
+		vw_material ) vmc
+JOIN vw_material mat ON vmc.material_uuid = mat.material_uuid
+JOIN vw_calculation cal ON vmc.calculation_uuid = cal.calculation_uuid;
+
 
 ----------------------------------------
 -- get materials and all related calculations as a pivot
@@ -638,15 +653,15 @@ SELECT
 FROM (
 	SELECT
 		material_uuid,
-		json_object_agg(calculation_alias_name, json_build_object('type', calculation_type, 'value', calculation_value)
+		json_object_agg(calculation_alias_name, json_build_object('type', calculation_type, 'value', calculation_value )
 		ORDER BY
-			calculation_alias_name DESC)
+			calculation_alias_name DESC )
 	FROM (
 		SELECT
 			vmc.material_uuid,
 			vmc.calculation_alias_name,
-			max(vmc.out_val_type::text) AS calculation_type,
-			max(vmc.out_val_value) AS calculation_value
+			max(vmc.out_val_type::text ) AS calculation_type,
+			max(vmc.out_val_value ) AS calculation_value
 		FROM
 			vw_material_calculation_raw vmc
 		GROUP BY
@@ -654,12 +669,12 @@ FROM (
 			vmc.calculation_alias_name
 		ORDER BY
 			1,
-			2 DESC) s
+			2 DESC ) s
 	GROUP BY
 		material_uuid
 	ORDER BY
-		material_uuid) mc
-	LEFT JOIN vw_material vm ON mc.material_uuid = vm.material_uuid;
+		material_uuid ) mc
+LEFT JOIN vw_material vm ON mc.material_uuid = vm.material_uuid;
 
 
 ----------------------------------------
@@ -679,18 +694,13 @@ SELECT
 	mat.material_uuid,
 	mat.description AS material_description,
 	act.actor_uuid,
-	act.description,
-	ed.edocument_uuid,
-	ed.description AS edocument_description,
-	nt.note_uuid,
-	nt.notetext
+	act.description
 FROM
 	inventory inv
-	LEFT JOIN material mat ON inv.material_uuid = mat.material_uuid
-	LEFT JOIN actor act ON inv.actor_uuid = act.actor_uuid
-	LEFT JOIN status st ON inv.status_uuid = st.status_uuid
-	LEFT JOIN edocument ed ON inv.edocument_uuid = ed.edocument_uuid
-	LEFT JOIN note nt ON inv.note_uuid = nt.note_uuid;
+LEFT JOIN material mat ON inv.material_uuid = mat.material_uuid
+LEFT JOIN actor act ON inv.actor_uuid = act.actor_uuid
+LEFT JOIN status st ON inv.status_uuid = st.status_uuid;
+
 
 ----------------------------------------
 -- get inventory / material, all status
@@ -720,46 +730,93 @@ SELECT
 	mat.smiles AS material_smiles
 FROM
 	inventory inv
-	LEFT JOIN vw_material mat ON inv.material_uuid = mat.material_uuid
-	LEFT JOIN vw_actor act ON inv.actor_uuid = act.actor_uuid
-	LEFT JOIN status st ON inv.status_uuid = st.status_uuid;
-	
-	
-	
+LEFT JOIN vw_material mat ON inv.material_uuid = mat.material_uuid
+LEFT JOIN vw_actor act ON inv.actor_uuid = act.actor_uuid
+LEFT JOIN status st ON inv.status_uuid = st.status_uuid;
+
+
 -- =======================================
 -- TESTING ONLY
 -- =======================================
 ----------------------------------------
--- get experiments, measures, calculations 
+-- get experiments, measures, calculations
 -- drop view vw_experiment_measure_calculation
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_experiment_measure_calculation AS
-select * from  
-(
-	(SELECT 'wf1_iodides' as dataset_type, * from load_v2_iodides order by _exp_no)
-	union
-	(SELECT 'wf1_bromides' as dataset_type, * from load_v2_bromides order by _exp_no)
-	union
-	(SELECT 'wf3_iodides' as dataset_type, * from load_v2_wf3_iodides order by _exp_no)	
-	union
-	(SELECT 'wf3_alloying' as dataset_type, * from load_v2_wf3_alloying order by _exp_no)	
-) s;
+SELECT
+	*
+FROM ((
+		SELECT
+			'wf1_iodides' AS dataset_type,
+			*
+		FROM
+			load_v2_iodides
+		ORDER BY
+			_exp_no )
+	UNION (
+		SELECT
+			'wf1_bromides' AS dataset_type,
+			*
+		FROM
+			load_v2_bromides
+		ORDER BY
+			_exp_no )
+	UNION (
+		SELECT
+			'wf3_iodides' AS dataset_type,
+			*
+		FROM
+			load_v2_wf3_iodides
+		ORDER BY
+			_exp_no )
+	UNION (
+		SELECT
+			'wf3_alloying' AS dataset_type,
+			*
+		FROM
+			load_v2_wf3_alloying
+		ORDER BY
+			_exp_no ) ) s;
+
 
 ----------------------------------------
--- get experiments, measures, calculations in json 
+-- get experiments, measures, calculations in json
 -- drop view vw_experiment_measure_calculation_json
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_experiment_measure_calculation_json AS
-select _exp_no as UID, row_to_json(s) from  
-(
-	(SELECT 'wf1_iodides' as dataset_type, * from load_v2_iodides order by _exp_no)
-	union
-	(SELECT 'wf1_bromides' as dataset_type, * from load_v2_bromides order by _exp_no)
-	union
-	(SELECT 'wf3_iodides' as dataset_type, * from load_v2_wf3_iodides order by _exp_no)	
-	union
-	(SELECT 'wf3_alloying' as dataset_type, * from load_v2_wf3_alloying order by _exp_no)	
-) s;
-
-
-	
+SELECT
+	_exp_no AS UID,
+	row_to_json(
+		s )
+FROM ((
+		SELECT
+			'wf1_iodides' AS dataset_type,
+			*
+		FROM
+			load_v2_iodides
+		ORDER BY
+			_exp_no )
+	UNION (
+		SELECT
+			'wf1_bromides' AS dataset_type,
+			*
+		FROM
+			load_v2_bromides
+		ORDER BY
+			_exp_no )
+	UNION (
+		SELECT
+			'wf3_iodides' AS dataset_type,
+			*
+		FROM
+			load_v2_wf3_iodides
+		ORDER BY
+			_exp_no )
+	UNION (
+		SELECT
+			'wf3_alloying' AS dataset_type,
+			*
+		FROM
+			load_v2_wf3_alloying
+		ORDER BY
+			_exp_no ) ) s;
