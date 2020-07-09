@@ -7,7 +7,14 @@ from .views import (LoginView, CreateUserView, MainMenuView,
                     ActorUpdate, ActorDelete, OrganizationList, OrganizationCreate,
                     OrganizationDelete, OrganizationUpdate, OrganizationView,
                     PersonList, PersonView ,PersonCreate,
-                    PersonUpdate, PersonDelete)
+                    PersonUpdate, PersonDelete,SystemtoolList,SystemtoolView,
+                    SystemtoolCreate,SystemtoolUpdate,SystemtoolDelete,SystemtoolTypeList,
+                    SystemtoolTypeView,SystemtoolTypeCreate,SystemtoolTypeUpdate,SystemtoolTypeDelete,
+                    UdfDefList, UdfDefView,UdfDefCreate,UdfDefUpdate,UdfDefDelete,
+                    StatusList, StatusView,StatusCreate,StatusUpdate,StatusDelete,
+                    TagList, TagView,TagCreate,TagUpdate,TagDelete,
+                    TagTypeList,TagTypeView,TagTypeCreate,TagTypeUpdate,TagTypeDelete,
+                    MaterialTypeList,MaterialTypeView,MaterialTypeCreate,MaterialTypeUpdate,MaterialTypeDelete)
 
 urlpatterns = [
     path('', LoginView.as_view(), name='login'),
@@ -76,3 +83,90 @@ urlpatterns += [
          PersonView.as_view(), name='person_view'),
 ]
 
+# Latest_SystemTool_Version
+urlpatterns += [
+    path('systemtool_list/', SystemtoolList.as_view(), name='systemtool_list'),
+    path('systemtool/', SystemtoolCreate.as_view(), name='systemtool_add'),
+    path('systemtool/<uuid:pk>',
+         SystemtoolUpdate.as_view(), name='systemtool_update'),
+    path('systemtool/<uuid:pk>/delete',
+         SystemtoolDelete.as_view(), name='systemtool_delete'),
+    path('systemtool/<uuid:pk>/view',
+         SystemtoolView.as_view(), name='systemtool_view'),
+]
+
+# System Type
+urlpatterns += [
+    path('systemtool_type_list/', SystemtoolTypeList.as_view(), name='systemtool_type_list'),
+    path('systemtool_type/', SystemtoolTypeCreate.as_view(), name='systemtool_type_add'),
+    path('systemtool_type/<uuid:pk>',
+         SystemtoolTypeUpdate.as_view(), name='systemtool_type_update'),
+    path('systemtool_type/<uuid:pk>/delete',
+         SystemtoolTypeDelete.as_view(), name='systemtool_type_delete'),
+    path('systemtool_type/<uuid:pk>/view',
+         SystemtoolTypeView.as_view(), name='systemtool_type_view'),
+]
+
+# User Defined Fields
+urlpatterns += [
+    path('udf_def_list/', UdfDefList.as_view(), name='udf_def_list'),
+    path('udf_def/', UdfDefCreate.as_view(), name='udf_def_add'),
+    path('udf_def/<uuid:pk>',
+         UdfDefUpdate.as_view(), name='udf_def_update'),
+    path('udf_def/<uuid:pk>/delete',
+         UdfDefDelete.as_view(), name='udf_def_delete'),
+    path('udf_def/<uuid:pk>/view',
+         UdfDefView.as_view(), name='udf_def_view'),
+]
+
+
+# Status
+urlpatterns += [
+    path('status_list/', StatusList.as_view(), name='status_list'),
+    path('status/', StatusCreate.as_view(), name='status_add'),
+    path('status/<uuid:pk>',
+         StatusUpdate.as_view(), name='status_update'),
+    path('status/<uuid:pk>/delete',
+         StatusDelete.as_view(), name='status_delete'),
+    path('status/<uuid:pk>/view',
+         StatusView.as_view(), name='status_view'),
+]
+
+
+# Tag
+urlpatterns += [
+    path('tag_list/', TagList.as_view(), name='tag_list'),
+    path('tag/', TagCreate.as_view(), name='tag_add'),
+    path('tag/<uuid:pk>',
+         TagUpdate.as_view(), name='tag_update'),
+    path('tag/<uuid:pk>/delete',
+         TagDelete.as_view(), name='tag_delete'),
+    path('tag/<uuid:pk>/view',
+         TagView.as_view(), name='tag_view'),
+]
+
+
+# Tag Type
+urlpatterns += [
+    path('tag_type_list/', TagTypeList.as_view(), name='tag_type_list'),
+    path('tag_type/', TagTypeCreate.as_view(), name='tag_type_add'),
+    path('tag_type/<uuid:pk>',
+         TagTypeUpdate.as_view(), name='tag_type_update'),
+    path('tag_type/<uuid:pk>/delete',
+         TagTypeDelete.as_view(), name='tag_type_delete'),
+    path('tag_type/<uuid:pk>/view',
+         TagTypeView.as_view(), name='tag_type_view'),
+]
+
+
+# Material Type
+urlpatterns += [
+    path('material_type_list/', MaterialTypeList.as_view(), name='material_type_list'),
+    path('material_type/', MaterialTypeCreate.as_view(), name='material_type_add'),
+    path('material_type/<uuid:pk>',
+         MaterialTypeUpdate.as_view(), name='material_type_update'),
+    path('material_type/<uuid:pk>/delete',
+         MaterialTypeDelete.as_view(), name='material_type_delete'),
+    path('material_type/<uuid:pk>/view',
+         MaterialTypeView.as_view(), name='material_type_view'),
+]

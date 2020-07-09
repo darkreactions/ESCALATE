@@ -1,0 +1,18 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+
+{% block content %}
+<div class="container">
+    <div class="col-md-6 offset-md-3">
+        <h3> Status </h3>
+        <form method="post">{% csrf_token %}
+            {{ form|crispy }}
+            <input class="btn btn-primary text-center" type="submit" value="Submit">
+        </form>
+    </div>
+</div>
+
+
+{% endblock %}

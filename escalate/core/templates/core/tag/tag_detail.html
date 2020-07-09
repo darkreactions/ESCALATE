@@ -1,0 +1,46 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    {{ object }}
+    <table class=" table table-bordered">
+        <tbody>
+            <tr>
+                <td>Display Text</td>
+                <td> {{ object.display_text }} </td>
+            </tr>
+
+            <tr>
+                <td> Tag Type </td>
+                <td> {{ object.tag_type_short_descr }} </td>
+            </tr>
+
+
+            <tr>
+                <td> Tag Type </td>
+                <td> {{ object.tag_type_uuid }} </td>
+            </tr>
+
+            <tr>
+                <td> Tag Type Detail </td>
+                <td> {{ object.tag_type_description }} </td>
+            </tr>
+
+            <tr>
+                <td> Actor </td>
+                <td> {{ object.actor_uuid }} </td>
+            </tr>
+
+            <tr>
+                <td> Note </td>
+                <td> {{ object.notetext }} </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <a href="{% url 'tag_update' pk=object.pk %}" class="btn btn-primary px-0">
+        <i class="fa fa-edit fa-lg"> Edit</i>
+    </a>
+</div>
+{% endblock %}

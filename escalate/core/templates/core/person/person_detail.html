@@ -8,11 +8,7 @@
         <tbody>
             <tr>
                 <td>Full Name</td>
-                <td> {{ object.full_name }} </td>
-            </tr>
-            <tr>
-                <td>short_name</td>
-                <td> {{ object.short_name }} </td>
+                <td> {{ object.first_name }} {{object.middle_name}} {{object.last_name}}</td>
             </tr>
             <tr>
                 <td>Address</td>
@@ -22,6 +18,10 @@
             <tr>
                 <td>Phone</td>
                 <td> {{ object.phone }} </td>
+            </tr>
+            <tr>
+                <td>Email</td>
+                <td> {{ object.email }} </td>
             </tr>
             <tr>
                 <td>Organization</td>
@@ -37,11 +37,11 @@
             </tr>
             <tr>
                 <td>Tag description</td>
-                <td> {{ object.tag_short_descr }} </td>
+                <td> {{ object.tag_display_text }} </td>
             </tr>
         </tbody>
     </table>
-    <a href="{% url 'organization_update' pk=object.pk %}" class="btn btn-primary px-0">
+    <a href="{% url 'person_update' pk=object.pk %}" class="btn btn-primary px-0">
         <i class="fa fa-edit fa-lg"> Edit</i>
     </a>
 </div>
