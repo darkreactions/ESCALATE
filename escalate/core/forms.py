@@ -49,7 +49,7 @@ class PersonForm(forms.ModelForm):
             'zip': forms.TextInput(attrs={'placeholder': 'Ex: 12345/12345-6789'}),
             'country': forms.TextInput(attrs={'placeholder': 'Ex: United States of America'}),
             'phone': forms.TextInput(attrs={'placeholder': 'Ex: 1-234-567-8900/12345678900'}),
-            'email': forms.EmailInput(attrs={'pattern': "^[a-zA-Z0-9_\.-\+]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$",
+            'email': forms.EmailInput(attrs={'pattern': "^[a-zA-Z0-9_\.\-\+]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$",
                                               # Regex mocdified from https://stackoverflow.com/a/719543
                                               'title': 'Please check for invalid or missing characters',
                                               'placeholder': 'Ex: example@gmail.com'}),
