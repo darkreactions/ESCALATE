@@ -10,7 +10,8 @@ from .menu import GenericListView
 
 class MaterialsList(GenericListView):
     model = Material
-    template_name = 'core/material/material_list.html'
+    #template_name = 'core/material/material_list.html'
+    template_name = 'core/generic/list.html'
     context_object_name = 'materials'
     paginate_by = 10
     def get_queryset(self):
@@ -22,6 +23,36 @@ class MaterialsList(GenericListView):
         else:
             new_queryset = self.model.objects.all().select_related().order_by(ordering)
         return new_queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        table_columns = ['Chemical Name', 'Abbreviation', 'Status', 'Actions']
+        context['table_columns'] = table_columns
+        materials = context['materials']
+        table_data = []
+        for material in materials:
+            table_row_data = []
+
+            # data for the object we want to display for a row
+            table_row_data.append(material.chemical_name)
+            table_row_data.append(material.abbreviation)
+            table_row_data.append(material.material_status)
+
+            # dict containing the data, view and update url, primary key and obj
+            # name to use in template
+            table_row_info = {
+                    'table_row_data' : table_row_data,
+                    'view_url' : reverse_lazy('material_view', kwargs={'pk': material.pk}),
+                    'update_url' : reverse_lazy('material_update', kwargs={'pk': material.pk}),
+                    'obj_name' : str(material),
+                    'obj_pk' : material.pk
+                    }
+            table_data.append(table_row_info)
+
+        context['add_url'] = reverse_lazy('material_add')
+        context['table_data'] = table_data
+        context['title'] = 'material'
+        return context
 
 
 class MaterialEdit:

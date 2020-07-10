@@ -21,7 +21,7 @@ class PersonForm(forms.ModelForm):
         fields = ['first_name', 'middle_name', 'last_name',
                   'address1', 'address2', 'city', 'state_province', 'zip', 'country',
                   'phone', 'email', 'title', 'suffix',
-                  'organization_uuid','edocument_uuid','tag_uuid']
+                  'organization_uuid']
         labels = {
             'first_name': 'First Name',
             'middle_name': 'Middle Name',
@@ -35,9 +35,7 @@ class PersonForm(forms.ModelForm):
             'email': 'E-mail',
             'title': 'Title',
             'suffix': 'Suffix',
-            'organization_uuid': 'Organization',
-            'edocument_uuid': 'Document',
-            'tag_uuid': 'Tag'
+            'organization_uuid': 'Organization'
         }
         widgets = {
             'first_name': forms.TextInput(attrs={'placeholder': 'Your first name'}),
@@ -105,7 +103,7 @@ class InventoryForm(forms.ModelForm):
         model = Inventory
         fields = ['description', 'material_uuid', 'actor_uuid', 'part_no', 'onhand_amt',
                   'unit', 'create_date', 'expiration_date',
-                  'inventory_location', 'status', 'edocument_uuid', 'notetext']
+                  'inventory_location', 'status']
         labels = {
             'description': 'Description',
             'material_uuid': 'Material',
@@ -116,9 +114,7 @@ class InventoryForm(forms.ModelForm):
             'create_date': 'Create date',
             'expiration_date': 'Expiration date',
             'inventory_location': 'Inventory location',
-            'status': 'Status',
-            'edocument_uuid': 'Document',
-            'notetext': 'Note text'
+            'status': 'Status'
         }
         widgets = {
             'description': forms.Textarea(attrs={'rows': '3',
@@ -148,21 +144,18 @@ class InventoryForm(forms.ModelForm):
 class ActorForm(forms.ModelForm):
     class Meta:
         model = Actor
-        fields = ['person_uuid', 'organization_uuid', 'systemtool_uuid', 'actor_description', 'actor_status',
-                  'actor_notetext']
+        fields = ['person_uuid', 'organization_uuid', 'systemtool_uuid', 'actor_description',
+                'actor_status']
         labels = {
             'person_uuid': 'Person',
             'organization_uuid': 'Organization',
             'systemtool_uuid': 'Systemtool',
             'actor_description': 'Actor description',
-            'actor_status': 'Actor status',
-            'actor_notetext': 'Actor note'
+            'actor_status': 'Actor status'
         }
         widgets = {
             'actor_description': forms.TextInput(attrs={'placeholder': 'Description'}),
-            'actor_status': forms.TextInput(attrs={'placeholder': 'Ex: Active/Not active'}),
-            'actor_notetext': forms.Textarea(attrs={'rows': '5',
-                                                    'cols': '10'})
+            'actor_status': forms.TextInput(attrs={'placeholder': 'Ex: Active/Not active'})
         }
 
 
@@ -211,22 +204,20 @@ class LatestSystemtoolForm(forms.ModelForm):
     class Meta:
         model = LatestSystemtool
         fields = ['systemtool_name', 'description', 'vendor_organization_uuid',
-                  'systemtool_type_uuid', 'model', 'serial', 'notetext']
+                  'systemtool_type_uuid', 'model', 'serial']
         labels = {
             'systemtool_name': 'System Tool Name',
             'vendor_organization_uuid': 'Organization',
-            'systemtool_type_uuid': 'System Tool',
-            'notetext': 'Note Text'
+            'systemtool_type_uuid': 'System Tool'
         }
 
 
 class SystemtoolTypeForm(forms.ModelForm):
     class Meta:
         model = ViewSystemtoolType
-        fields = ['description', 'notetext']
+        fields = ['description']
         labels = {
-            'description': 'Description',
-            'notetext': 'Note Text'
+            'description': 'Description'
         }
 
 
@@ -274,9 +265,7 @@ class TagTypeForm(forms.ModelForm):
 class MaterialTypeForm(forms.ModelForm):
     class Meta:
         model = MaterialType
-        fields = ['description', 'note_uuid','notetext']
+        fields = ['description']
         labels = {
-            'description': 'Description',
-            'note_uuid': 'Available Note Text',
-            'notetext': 'New Note Text'
+            'description': 'Description'
         }

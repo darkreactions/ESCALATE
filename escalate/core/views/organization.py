@@ -25,30 +25,32 @@ class OrganizationList(GenericListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        table_columns = {
-            'Full Name': 'full_name',
-            'Address1': 'address1',
-            'Website': 'website_url'
-        }
+        table_columns = ['Full Name', 'Address1', 'Website', 'Actions']
         context['table_columns'] = table_columns
         orgs = context['orgs']
         table_data = []
         for org in orgs:
             table_row_data = []
+
+            # data for the object we want to display for a row
             table_row_data.append(org.full_name)
             table_row_data.append(org.address1)
             table_row_data.append(org.website_url)
+
+            # dict containing the data, view and update url, primary key and obj
+            # name to use in template
             table_row_info = {
                     'table_row_data' : table_row_data,
                     'view_url' : reverse_lazy('organization_view', kwargs={'pk': org.pk}),
                     'update_url' : reverse_lazy('organization_update', kwargs={'pk': org.pk}),
-                    'item_name' : org.full_name,
-                    'pk' : org.pk
+                    'obj_name' : str(org),
+                    'obj_pk' : org.pk
                     }
             table_data.append(table_row_info)
+
         context['add_url'] = reverse_lazy('organization_add')
         context['table_data'] = table_data
-        context['title'] = 'organization'
+        context['title'] = 'Organization'
         return context
 
 class OrganizationEdit:

@@ -9,7 +9,8 @@ from core.views.menu import GenericListView
 
 class ActorList(GenericListView):
     model = Actor
-    template_name = 'core/actor/actor_list.html'
+    #template_name = 'core/actor/actor_list.html'
+    template_name = 'core/generic/list.html'
     context_object_name = 'actors'
     paginate_by = 10
 
@@ -23,9 +24,42 @@ class ActorList(GenericListView):
             new_queryset = self.model.objects.all().select_related().order_by(ordering)
         return new_queryset
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        table_columns = ['Person', 'Organization', 'Systemtool', 'Status', 'Actions']
+        context['table_columns'] = table_columns
+        actors = context['actors']
+        table_data = []
+        for actor in actors:
+            table_row_data = []
+
+            # data for the object we want to display for a row
+            person_full_name = f"{actor.person_first_name} {actor.person_last_name}"
+
+            table_row_data.append(person_full_name)
+            table_row_data.append(actor.org_full_name)
+            table_row_data.append(actor.systemtool_name)
+            table_row_data.append(actor.actor_status)
+
+            # dict containing the data, view and update url, primary key and obj
+            # name to use in template
+            table_row_info = {
+                    'table_row_data' : table_row_data,
+                    'view_url' : reverse_lazy('actor_view', kwargs={'pk': actor.pk}),
+                    'update_url' : reverse_lazy('actor_update', kwargs={'pk': actor.pk}),
+                    'obj_name' : str(actor),
+                    'obj_pk' : actor.pk
+                    }
+            table_data.append(table_row_info)
+
+        context['add_url'] = reverse_lazy('actor_add')
+        context['table_data'] = table_data
+        context['title'] = 'Actor'
+        return context
+
 
 class ActorEdit:
-    template_name = 'core/actor/actor_edit.html'
+    template_name = 'core/generic/edit.html'
     model = Actor
     form_class = ActorForm
     success_url = reverse_lazy('actor_list')
@@ -50,7 +84,7 @@ class ActorDelete(DeleteView):
 
 
 class ActorView(DetailView):
-    template_name='core/actor/actor_detail.html'
+    template_name='core/generic/detail.html'
     queryset = Actor.objects.select_related()
 
     def get_context_data(self, **kwargs):
@@ -61,8 +95,7 @@ class ActorView(DetailView):
                 'Person': f"{obj.person_first_name} {obj.person_last_name}",
                 'Systemtool': obj.systemtool_name,
                 'Description': obj.actor_description,
-                'Status': obj.actor_status,
-                'Note': obj.actor_notetext
+                'Status': obj.actor_status
         }
         context['update_url'] = reverse_lazy(
             'actor_update', kwargs={'pk': obj.pk})

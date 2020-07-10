@@ -10,7 +10,8 @@ from core.views.menu import GenericListView
 
 class InventoryList(GenericListView):
     model = Inventory
-    template_name = 'core/inventory/inventory_list.html'
+    #template_name = 'core/inventory/inventory_list.html'
+    template_name = 'core/generic/list.html'
     context_object_name = 'inventory'
     paginate_by = 10
 
@@ -28,6 +29,37 @@ class InventoryList(GenericListView):
             new_queryset = self.model.objects.all().select_related().order_by(ordering)
         return new_queryset
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        table_columns = ['Description', 'Status', 'Material', 'On Hand Amount'
+                            , 'Actions']
+        context['table_columns'] = table_columns
+        inventory = context['inventory']
+        table_data = []
+        for item in inventory:
+            table_row_data = []
+
+            # data for the object we want to display for a row
+            table_row_data.append(item.inventory_description)
+            table_row_data.append(item.status)
+            table_row_data.append(item.material_uuid)
+            table_row_data.append(f"{item.onhand_amt} {item.unit}")
+
+            # dict containing the data, view and update url, primary key and obj
+            # name to use in template
+            table_row_info = {
+                    'table_row_data' : table_row_data,
+                    'view_url' : reverse_lazy('inventory_view', kwargs={'pk': item.pk}),
+                    'update_url' : reverse_lazy('inventory_update', kwargs={'pk': item.pk}),
+                    'obj_name' : str(item),
+                    'obj_pk' : item.pk
+                    }
+            table_data.append(table_row_info)
+
+        context['add_url'] = reverse_lazy('inventory_add')
+        context['table_data'] = table_data
+        context['title'] = 'Inventory'
+        return context
 
 class InventoryEdit:
     template_name = 'core/generic/edit.html'
@@ -70,8 +102,7 @@ class InventoryView(DetailView):
                 'Create Date': obj.create_date,
                 'Expiration Date': obj.expiration_date,
                 'Inventory location': obj.inventory_location,
-                'Status': obj.status,
-                'Note text': obj.notetext
+                'Status': obj.status
         }
         context['update_url'] = reverse_lazy(
             'inventory_update', kwargs={'pk': obj.pk})

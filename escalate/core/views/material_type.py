@@ -9,7 +9,8 @@ from core.views.menu import GenericListView
 
 class MaterialTypeList(GenericListView):
     model = MaterialType
-    template_name = 'core/material_type/material_type_list.html'
+    #template_name = 'core/material_type/material_type_list.html'
+    template_name = 'core/generic/list.html'
     context_object_name = 'material_types'
     paginate_by = 10
 
@@ -24,6 +25,34 @@ class MaterialTypeList(GenericListView):
             new_queryset = self.model.objects.all()
         return new_queryset
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        table_columns = ['Description', 'Actions']
+        context['table_columns'] = table_columns
+        material_types = context['material_types']
+        table_data = []
+        for material_type in material_types:
+            table_row_data = []
+
+            # data for the object we want to display for a row
+            table_row_data.append(material_type.description)
+
+            # dict containing the data, view and update url, primary key and obj
+            # name to use in template
+            table_row_info = {
+                    'table_row_data' : table_row_data,
+                    'view_url' : reverse_lazy('material_type_view', kwargs={'pk': material_type.pk}),
+                    'update_url' : reverse_lazy('material_type_update', kwargs={'pk': material_type.pk}),
+                    'obj_name' : str(material_type),
+                    'obj_pk' : material_type.pk
+                    }
+            table_data.append(table_row_info)
+
+        context['add_url'] = reverse_lazy('material_type_add')
+        context['table_data'] = table_data
+        context['title'] = 'material_type'
+        return context
+
 
 class MaterialTypeEdit:
     template_name = 'core/generic/edit.html'
@@ -31,9 +60,9 @@ class MaterialTypeEdit:
     form_class = MaterialTypeForm
     success_url = reverse_lazy('material_type_list')
 
-    def get_context_data(self,**kwargs):
+    def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = 'Material type'
+        context['title'] = 'Material Type'
         return context
 
 
@@ -58,11 +87,9 @@ class MaterialTypeView(DetailView):
         context = super().get_context_data(**kwargs)
         obj = context['object']
         table_data = {
-                'Description': obj.description,
-                'Note text': obj.notetext
+                'Description': obj.description
         }
-        context['update_url'] = reverse_lazy(
-            'material_type_update',kwargs={'pk':obj.pk})
+        context['update_url'] = reverse_lazy('material_type_update', kwargs={'pk':obj.pk})
         context['title'] = 'Material Type'
         context['table_data'] = table_data
         return context
