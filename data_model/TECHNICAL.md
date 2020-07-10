@@ -34,7 +34,7 @@ Date: 01.29.2020
 * [Schema Detail](#schemadetail)
 * [Functions](#functions)
 * [Views](#views)
-* [Upserts](#upserts)
+* [View Models](#viewmodels)
 * [Authors](#authors)
 * [License](#license)
 * [Acknowledgements](#acknowledgements)
@@ -437,7 +437,7 @@ __vw\_organization__ `CRUD`<br/>
 > country (v u) <br/> 
 > website\_url (v u) <br/> 
 > phone (v u) <br/> 
-> parent\_uuid (v) <br/> 
+> parent\_uuid (v u) <br/> 
 > parent\_org\_full\_name (v) <br/> 
 > add\_date (v) <br/> 
 > mod\_date (v) <br/>
@@ -927,6 +927,14 @@ __vw\_material\_raw__`R`<br/>
 
 
 <br/>
+
+<!-- ******************* View Models ****************** -->
+<a name="viewmodels"></a>
+[![Note View Model][schema-detail]](https://github.com/darkreactions/ESCALATE/blob/master/data_model/erd_diagrams/note_viewmodel.pdf)
+
+
+
+
 
 <!-- ******************* Authors ****************** -->
 <a name="authors"></a>
