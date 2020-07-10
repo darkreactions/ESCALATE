@@ -92,10 +92,13 @@ class OrganizationView(DetailView):
         table_data = {
                 'Full Name': obj.full_name,
                 'Short Name': obj.short_name,
+                'Description': obj.description,
                 'Address': f'{obj.address1}, {obj.address2}, {obj.city}, {obj.state_province}, {obj.zip}, {obj.country}',
-                'Phone': obj.phone,
                 'Website': obj.website_url,
-                'Parent Org': obj.parent_org_full_name
+                'Phone': obj.phone,
+                'Parent Organization': obj.parent_org_full_name,
+                'Add Date': obj.add_date,
+                'Last Modification Date': obj.mod_date
         }
         context['update_url'] = reverse_lazy(
             'organization_update', kwargs={'pk': obj.pk})

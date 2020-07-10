@@ -20,8 +20,7 @@ class PersonForm(forms.ModelForm):
         model = Person
         fields = ['first_name', 'middle_name', 'last_name',
                   'address1', 'address2', 'city', 'state_province', 'zip', 'country',
-                  'phone', 'email', 'title', 'suffix',
-                  'organization_uuid']
+                  'phone', 'email', 'title', 'suffix', 'organization_uuid']
         labels = {
             'first_name': 'First Name',
             'middle_name': 'Middle Name',
@@ -162,12 +161,13 @@ class ActorForm(forms.ModelForm):
 class OrganizationForm(forms.ModelForm):
     class Meta:
         model = Organization
-        fields = ['full_name', 'short_name', 'address1', 'address2', 'city',
-                  'state_province', 'zip', 'country', 'website_url', 'phone',
+        fields = ['full_name', 'short_name', 'description', 'address1', 'address2',
+                  'city', 'state_province', 'zip', 'country', 'website_url', 'phone',
                   'parent_uuid']
         labels = {
             'full_name' : 'Full name',
             'short_name' : 'Short name',
+            'description' : 'Description',
             'address1': 'Address Line 1',
             'address2': 'Address Line 2',
             'city' : 'City',
@@ -175,8 +175,7 @@ class OrganizationForm(forms.ModelForm):
             'zip' : 'Zip',
             'country' : 'Country',
             'website_url': 'Website URL',
-            'phone' : 'Phone',
-            'edocument_uuid': 'Document'
+            'phone' : 'Phone'
         }
         widgets = {
             'full_name' : forms.TextInput(attrs={'placeholder': 'Ex: Full Organization Name',

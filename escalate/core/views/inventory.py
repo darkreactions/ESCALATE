@@ -95,6 +95,7 @@ class InventoryView(DetailView):
         context = super().get_context_data(**kwargs)
         obj = context['object']
         table_data = {
+                'Inventory description': obj.inventory_description,
                 'Actor description': obj.description,
                 'Material description': obj.material_description,
                 'Part Number': obj.part_no,

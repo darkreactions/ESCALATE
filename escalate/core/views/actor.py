@@ -91,11 +91,17 @@ class ActorView(DetailView):
         context = super().get_context_data(**kwargs)
         obj = context['object']
         table_data = {
+                'Actor description': obj.actor_description,
+                'Status': obj.actor_status,
                 'Organization': obj.org_full_name + f" ({obj.org_short_name})",
                 'Person': f"{obj.person_first_name} {obj.person_last_name}",
                 'Systemtool': obj.systemtool_name,
-                'Description': obj.actor_description,
-                'Status': obj.actor_status
+                'Systemtool description': obj.systemtool_description,
+                'Systemtool type': obj.systemtool_type,
+                'Systemtool vendor': obj.systemtool_vendor,
+                'Systemtool model': obj.systemtool_model,
+                'Systemtool serial': obj.systemtool_serial,
+                'Systemtool_version': obj.systemtool_version
         }
         context['update_url'] = reverse_lazy(
             'actor_update', kwargs={'pk': obj.pk})
