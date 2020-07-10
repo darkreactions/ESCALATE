@@ -930,9 +930,10 @@ __vw\_material\_raw__`R`<br/>
 
 <!-- ******************* View Models ****************** -->
 <a name="viewmodels"></a>
-[![Note View Model][schema-detail]](https://github.com/darkreactions/ESCALATE/blob/master/data_model/erd_diagrams/note_viewmodel.pdf)
+## View Models
 
-
+### Note View Model
+[![Note View Model][note-viewmodel]](https://github.com/darkreactions/ESCALATE/blob/master/data_model/erd_diagrams/note_viewmodel.pdf)
 
 
 
@@ -973,3 +974,5 @@ This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.t
 [pgadmin-logo]: images/pgadmin_logo.png
 [schema-highlevel]: erd_diagrams/escalatev3_schema_highlevel.png
 [schema-detail]: erd_diagrams/escalate_erd_physicalmodel.png
+[note-viewmodel]: erd_diagrams/note_viewmodel.png
+
