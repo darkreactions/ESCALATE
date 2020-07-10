@@ -25,19 +25,19 @@
         <tbody>
             {% for row_info in table_data %}
             <tr>
-                {% for col_data in row_info.0 %}
+                {% for col_data in row_info.table_row_data %}
                   <td>{{ col_data }}</td>
                 {% endfor %}
                 <td>
-                    <a href="{{ row_info.1 }}" class="btn text-secondary px-0">
+                    <a href="{{ row_info.view_url }}" class="btn text-secondary px-0">
                         <i class="fa fa-eye"></i>
                     </a>
                     </a>
-                    <a href="{{ row_info.2 }}" class="btn text-secondary px-0">
+                    <a href="{{ row_info.update_url }}" class="btn text-secondary px-0">
                         <i class="fa fa-edit fa-lg"></i>
                     </a>
                     <button type="button" class="btn text-secondary px-0" data-toggle="modal" data-target="#deleteModal"
-                        data-description="{{ row.1 }}" data-pk="{{ row.0 }}">
+                        data-description="{{ row_info.item_name }}" data-pk="{{ row_info.pk }}">
                         <i class="fa fa-trash fa-lg"></i>
                     </button>
                 </td>
@@ -50,4 +50,4 @@
 </div>
 {% endblock %}
 
-{% block delete_url %}"/{{ title }}/" + pk + "/delete" {% endblock %}
+{% block delete_url %}"/{{ title|lower }}/" + pk + "/delete" {% endblock %}

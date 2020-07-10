@@ -38,14 +38,17 @@ class OrganizationList(GenericListView):
             table_row_data.append(org.full_name)
             table_row_data.append(org.address1)
             table_row_data.append(org.website_url)
-            table_row_info = []
-            table_row_info.append(table_row_data)
-            table_row_info.append(reverse_lazy('organization_view', kwargs={'pk': org.pk}))
-            table_row_info.append(reverse_lazy('organization_update', kwargs={'pk': org.pk}))
+            table_row_info = {
+                    'table_row_data' : table_row_data,
+                    'view_url' : reverse_lazy('organization_view', kwargs={'pk': org.pk}),
+                    'update_url' : reverse_lazy('organization_update', kwargs={'pk': org.pk}),
+                    'item_name' : org.full_name,
+                    'pk' : org.pk
+                    }
             table_data.append(table_row_info)
         context['add_url'] = reverse_lazy('organization_add')
         context['table_data'] = table_data
-        context['title'] = 'Organization'
+        context['title'] = 'organization'
         return context
 
 class OrganizationEdit:
