@@ -9,7 +9,8 @@ from core.views.menu import GenericListView
 
 class OrganizationList(GenericListView):
     model = Organization
-    template_name = 'core/organization/organization_list.html'
+    #template_name = 'core/organization/organization_list.html'
+    template_name = 'core/generic/list.html'
     context_object_name = 'orgs'
     paginate_by = 10
     def get_queryset(self):
@@ -33,13 +34,19 @@ class OrganizationList(GenericListView):
         orgs = context['orgs']
         table_data = []
         for org in orgs:
-            table_row = []
-            table_row.append(org.full_name)
-            table_row.append(org.address1)
-            table_row.append(org.website_url)
-            table_data.append(table_row)
-
+            table_row_data = []
+            table_row_data.append(org.full_name)
+            table_row_data.append(org.address1)
+            table_row_data.append(org.website_url)
+            table_row_info = []
+            table_row_info.append(table_row_data)
+            table_row_info.append(reverse_lazy('organization_view', kwargs={'pk': org.pk}))
+            table_row_info.append(reverse_lazy('organization_update', kwargs={'pk': org.pk}))
+            table_data.append(table_row_info)
+        context['add_url'] = reverse_lazy('organization_add')
         context['table_data'] = table_data
+        context['title'] = 'Organization'
+        print(context)
         return context
 
 class OrganizationEdit:
@@ -84,10 +91,7 @@ class OrganizationView(DetailView):
                 'Address': f'{obj.address1}, {obj.address2}, {obj.city}, {obj.state_province}, {obj.zip}, {obj.country}',
                 'Phone': obj.phone,
                 'Website': obj.website_url,
-                'Note': obj.notetext,
-                'Parent Org': obj.parent_org_full_name,
-                'Edocument description': obj.edocument_descr,
-                'Tag description': obj.tag_display_text,
+                'Parent Org': obj.parent_org_full_name
         }
         context['update_url'] = reverse_lazy(
             'organization_update', kwargs={'pk': obj.pk})

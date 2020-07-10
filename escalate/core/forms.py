@@ -21,7 +21,7 @@ class PersonForm(forms.ModelForm):
         fields = ['first_name', 'middle_name', 'last_name',
                   'address1', 'address2', 'city', 'state_province', 'zip', 'country',
                   'phone', 'email', 'title', 'suffix',
-                  'organization_uuid','edocument_uuid','tag_uuid','note_uuid']
+                  'organization_uuid','edocument_uuid','tag_uuid']
         labels = {
             'first_name': 'First Name',
             'middle_name': 'Middle Name',
@@ -37,8 +37,7 @@ class PersonForm(forms.ModelForm):
             'suffix': 'Suffix',
             'organization_uuid': 'Organization',
             'edocument_uuid': 'Document',
-            'tag_uuid': 'Tag',
-            'note_uuid': 'Note'
+            'tag_uuid': 'Tag'
         }
         widgets = {
             'first_name': forms.TextInput(attrs={'placeholder': 'Your first name'}),
@@ -172,7 +171,7 @@ class OrganizationForm(forms.ModelForm):
         model = Organization
         fields = ['full_name', 'short_name', 'address1', 'address2', 'city',
                   'state_province', 'zip', 'country', 'website_url', 'phone',
-                  'parent_uuid', 'notetext', 'edocument_uuid', 'tag_uuid']
+                  'parent_uuid']
         labels = {
             'full_name' : 'Full name',
             'short_name' : 'Short name',
@@ -184,9 +183,7 @@ class OrganizationForm(forms.ModelForm):
             'country' : 'Country',
             'website_url': 'Website URL',
             'phone' : 'Phone',
-            'notetext': 'Note Text',
-            'edocument_uuid': 'Document',
-            'tag_uuid': 'Tag'
+            'edocument_uuid': 'Document'
         }
         widgets = {
             'full_name' : forms.TextInput(attrs={'placeholder': 'Ex: Full Organization Name',

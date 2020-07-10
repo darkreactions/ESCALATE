@@ -403,17 +403,17 @@ class Organization(models.Model):
         max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
-    note_uuid = models.ForeignKey('Note', models.DO_NOTHING,
-                             db_column='note_uuid',
-                             blank=True, null=True)
-    notetext = models.TextField(blank=True, null=True)
-    edocument_uuid = models.ForeignKey('Edocument',
-                                  models.DO_NOTHING,
-                                  db_column='edocument_uuid', blank=True, null=True)
-    edocument_descr = models.CharField(max_length=255, blank=True, null=True)
-    tag_uuid = models.ForeignKey('Tag', models.DO_NOTHING,
-                            db_column='tag_uuid', blank=True, null=True)
-    tag_display_text = models.CharField(max_length=255, blank=True, null=True)
+    # note_uuid = models.ForeignKey('Note', models.DO_NOTHING,
+    #                          db_column='note_uuid',
+    #                          blank=True, null=True)
+    # notetext = models.TextField(blank=True, null=True)
+    # edocument_uuid = models.ForeignKey('Edocument',
+    #                               models.DO_NOTHING,
+    #                               db_column='edocument_uuid', blank=True, null=True)
+    # edocument_descr = models.CharField(max_length=255, blank=True, null=True)
+    # tag_uuid = models.ForeignKey('Tag', models.DO_NOTHING,
+    #                         db_column='tag_uuid', blank=True, null=True)
+    #tag_display_text = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
