@@ -46,7 +46,6 @@ class OrganizationList(GenericListView):
         context['add_url'] = reverse_lazy('organization_add')
         context['table_data'] = table_data
         context['title'] = 'Organization'
-        print(context)
         return context
 
 class OrganizationEdit:
