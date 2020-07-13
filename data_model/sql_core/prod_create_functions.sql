@@ -1444,8 +1444,8 @@ Description:	trigger proc that deletes, inserts or updates tag record based on T
 Notes:			will not be able to delete a tag if any connected records in tag_x exist 
  
 Example:		-- insert new tag  (tag_uuid = NULL, ref_tag_uuid = NULL)
- insert into vw_tag (tag_uuid, display_text, description, tag_type_uuid, actor_uuid) values (null, 'invalid', 'invalid experiment', 
- null, (select actor_uuid from vw_actor where person_last_name = 'Alves'));
+ insert into vw_tag (display_text, description, actor_uuid, tag_type_uuid) values ('invalid', 'invalid experiment', 
+(select actor_uuid from vw_actor where person_last_name = 'Alves'), null);
  update vw_tag set description = 'invalid experiment with stuff added', tag_type_uuid = (select tag_type_uuid from vw_tag_type where short_description = 'experiment') where tag_uuid = (select tag_uuid from vw_tag where (display_text = 'invalid'));	
  delete from vw_tag where tag_uuid in (select tag_uuid from vw_tag where (display_text = 'invalid'));						
  */

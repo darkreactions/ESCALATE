@@ -147,13 +147,13 @@ SELECT
 	tg.tag_uuid,
 	tg.display_text,
 	tg.description,
+	tg.actor_uuid,
+	act.description AS actor_description,
 	tg.add_date,
 	tg.mod_date,
 	tg.tag_type_uuid,
 	tt.short_description AS tag_type_short_descr,
-	tt.description AS tag_type_description,
-	act.actor_uuid,
-	act.description AS actor_description
+	tt.description AS tag_type_description
 FROM
 	tag tg
 	LEFT JOIN tag_type tt ON tg.tag_type_uuid = tt.tag_type_uuid
@@ -553,20 +553,21 @@ mr.description;
 
 ----------------------------------------
 -- get materials, all status as a crosstab, with refname types
--- DROP VIEW vw_material
+DROP VIEW vw_material;
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_material AS
 SELECT
 	*
 FROM
 	crosstab (
-		'select material_uuid, material_status, material_create_date, material_refname_def, material_refname_description
+		'select material_uuid, material_status, material_create_date, material_description, material_refname_def, material_refname_description
 				   from vw_material_raw order by 1, 3',
 		'select distinct material_refname_def
 				   from vw_material_raw order by 1' ) AS ct (
 		material_uuid uuid,
 		material_status varchar,
 		create_date timestamptz,
+		material_description varchar,
 		Abbreviation varchar,
 		Chemical_Name varchar,
 		InChI varchar,
@@ -683,7 +684,7 @@ LEFT JOIN vw_material vm ON mc.material_uuid = vm.material_uuid;
 CREATE OR REPLACE VIEW vw_inventory AS
 SELECT
 	inv.inventory_uuid,
-	inv.description inventory_description,
+	inv.description as inventory_description,
 	inv.part_no,
 	inv.onhand_amt,
 	inv.unit,
@@ -694,7 +695,7 @@ SELECT
 	mat.material_uuid,
 	mat.description AS material_description,
 	act.actor_uuid,
-	act.description
+	act.description as actor_description
 FROM
 	inventory inv
 LEFT JOIN material mat ON inv.material_uuid = mat.material_uuid
@@ -740,7 +741,7 @@ LEFT JOIN status st ON inv.status_uuid = st.status_uuid;
 -- =======================================
 ----------------------------------------
 -- get experiments, measures, calculations
--- drop view vw_experiment_measure_calculation
+drop view vw_experiment_measure_calculation;
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_experiment_measure_calculation AS
 SELECT
@@ -781,7 +782,7 @@ FROM ((
 
 ----------------------------------------
 -- get experiments, measures, calculations in json
--- drop view vw_experiment_measure_calculation_json
+drop view vw_experiment_measure_calculation_json;
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_experiment_measure_calculation_json AS
 SELECT

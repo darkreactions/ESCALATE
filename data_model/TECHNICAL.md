@@ -556,7 +556,7 @@ __vw\_tag__`CRUD`<br/>
 
 ```
 -- insert new tag
- insert into vw_tag (tag_uuid, display_text, description, tag_type_uuid, actor_uuid) values (null, 'invalid', 'invalid experiment', null, (select actor_uuid from vw_actor where person_last_name = 'Alves'));
+ insert into vw_tag (display_text, description, tag_type_uuid, actor_uuid) values ('invalid', 'invalid experiment', null, (select actor_uuid from vw_actor where person_last_name = 'Alves'));
  -- update tag description
  update vw_tag set description = 'invalid experiment with stuff added', tag_type_uuid = (select tag_type_uuid from vw_tag_type where short_description = 'experiment') where tag_uuid = (select tag_uuid from vw_tag where (display_text = 'invalid'));
 -- delete tag; any notes attached to this record are automatically deleted	
@@ -935,7 +935,11 @@ __vw\_material\_raw__`R`<br/>
 ### Note View Model
 [![Note View Model][note-viewmodel]](https://github.com/darkreactions/ESCALATE/blob/master/data_model/erd_diagrams/note_viewmodel.pdf)
 
+### Tag Manage View Model
+[![Tag Manage View Model][tag-manage-viewmodel]](https://github.com/darkreactions/ESCALATE/blob/master/data_model/erd_diagrams/tag_manage_viewmodel.pdf)
 
+### Tag Assign Model
+[![Tag Assign View Model][tag-assign-viewmodel]](https://github.com/darkreactions/ESCALATE/blob/master/data_model/erd_diagrams/tag_assign_viewmodel.pdf)
 
 <!-- ******************* Authors ****************** -->
 <a name="authors"></a>
@@ -975,4 +979,6 @@ This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.t
 [schema-highlevel]: erd_diagrams/escalatev3_schema_highlevel.png
 [schema-detail]: erd_diagrams/escalate_erd_physicalmodel.png
 [note-viewmodel]: erd_diagrams/note_viewmodel.png
+[tag-manage-viewmodel]: erd_diagrams/tag_manage_viewmodel.png
+[tag-assign-viewmodel]: erd_diagrams/tag_assign_viewmodel.png
 
