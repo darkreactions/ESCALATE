@@ -24,8 +24,6 @@ class Systemtool(models.Model):
     model = models.CharField(max_length=255, blank=True, null=True)
     serial = models.CharField(max_length=255, blank=True, null=True)
     ver = models.CharField(max_length=255, blank=True, null=True)
-    note_uuid = models.ForeignKey(
-        'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
