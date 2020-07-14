@@ -69,7 +69,7 @@ class InventoryEdit:
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = 'Edit Inventory'
+        context['title'] = 'Inventory'
         return context
 
 

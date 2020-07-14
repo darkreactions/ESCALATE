@@ -35,7 +35,7 @@ class PersonList(GenericListView):
             table_row_data = []
 
             # data for the object we want to display for a row
-            full_name = f"{person.first_name} {person.middle_name} {person.last_name}"
+            full_name = f"{person.first_name} {person.last_name}"
             full_address = (f"{person.address1}, {person.address2}, {person.zip}, {person.city},"
                             f"{person.state_province}, {person.country}")
             table_row_data.append(full_name)

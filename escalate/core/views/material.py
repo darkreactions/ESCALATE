@@ -95,7 +95,8 @@ class MaterialView(DetailView):
                 'InChI': obj.inchi,
                 'InChI key': obj.inchikey,
                 'Smiles': obj.smiles,
-                'Create Date': obj.create_date
+                'Create Date': obj.create_date,
+                'Status': obj.material_status
         }
         context['update_url'] = reverse_lazy(
             'material_update', kwargs={'pk': obj.pk})
