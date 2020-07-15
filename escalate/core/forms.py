@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-from core.models import (CustomUser, Person, Material, Inventory, Actor, Note, Organization, LatestSystemtool, \
+from core.models import (CustomUser, Person, Material, Inventory, Actor, Note, Organization, LatestSystemtool,
                          ViewSystemtoolType, UdfDef, Status, Tag, TagType, MaterialType)
 
 
@@ -24,20 +24,20 @@ class PersonForm(forms.ModelForm):
                   'organization_full_name']
 
         field_classes = {
-                'first_name': forms.CharField,
-                'middle_name': forms.CharField,
-                'last_name': forms.CharField,
-                'address1': forms.CharField,
-                'address2': forms.CharField,
-                'city': forms.CharField,
-                'state_province': forms.CharField,
-                'zip': forms.CharField,
-                'country': forms.CharField,
-                'phone': forms.CharField,
-                'email': forms.EmailField,
-                'title': forms.CharField,
-                'suffix': forms.CharField,
-                'organization_full_name': forms.CharField
+            'first_name': forms.CharField,
+            'middle_name': forms.CharField,
+            'last_name': forms.CharField,
+            'address1': forms.CharField,
+            'address2': forms.CharField,
+            'city': forms.CharField,
+            'state_province': forms.CharField,
+            'zip': forms.CharField,
+            'country': forms.CharField,
+            'phone': forms.CharField,
+            'email': forms.EmailField,
+            'title': forms.CharField,
+            'suffix': forms.CharField,
+            'organization_full_name': forms.CharField
         }
 
         labels = {
@@ -79,6 +79,7 @@ class PersonForm(forms.ModelForm):
             'suffix': forms.TextInput(attrs={'placeholder': 'Your suffix'})
         }
 
+
 class NoteForm(forms.ModelForm):
     class Meta:
         model = Note
@@ -113,34 +114,35 @@ class MaterialForm(forms.ModelForm):
         }
         widgets = {
             'create_date': forms.SplitDateTimeWidget(
-                                        date_format='%d-%m-%Y',
-                                        date_attrs= {
-                                            'placeholder':'DD-MM-YYYY'
-                                        },
-                                        time_format='%H:%M',
-                                        time_attrs= {
-                                            'placeholder':'HH-MM'
-                                        }
-                                                                ),
+                date_format='%d-%m-%Y',
+                date_attrs={
+                    'placeholder': 'DD-MM-YYYY'
+                },
+                time_format='%H:%M',
+                time_attrs={
+                    'placeholder': 'HH-MM'
+                }
+            ),
             'abbreviation': forms.TextInput(attrs={'placeholder': 'Ex: Water'}),
             'chemical_name': forms.TextInput(attrs={
-                                    'placeholder': 'Ex: Dihydrogen Monoxide'}),
+                'placeholder': 'Ex: Dihydrogen Monoxide'}),
             'inchi': forms.TextInput(attrs={'placeholder': 'Ex: 1S/H2O/h1H2'}),
             'inchikey': forms.TextInput(attrs={
-                             'placeholder': 'Ex: XLYOFNOQVPJJNP-UHFFFAOYSA-N'}),
+                'placeholder': 'Ex: XLYOFNOQVPJJNP-UHFFFAOYSA-N'}),
             'molecular_formula': forms.TextInput(attrs={
-                                                     'placeholder': 'Ex: H2O'}),
+                'placeholder': 'Ex: H2O'}),
             'smiles': forms.TextInput(attrs={'placeholder': 'Ex: O'})
-            }
+        }
+
 
 class InventoryForm(forms.ModelForm):
     class Meta:
         model = Inventory
-        fields = ['material_uuid', 'actor_uuid', 'description', 'part_no',
+        fields = ['material_uuid', 'actor_uuid', 'inventory_description', 'part_no',
                   'onhand_amt', 'unit', 'create_date', 'expiration_date',
                   'inventory_location', 'status']
         field_classes = {
-            'description': forms.CharField,
+            'inventory_description': forms.CharField,
             'part_no': forms.CharField,
             'onhand_amt': forms.DecimalField,
             'unit': forms.CharField,
@@ -150,7 +152,7 @@ class InventoryForm(forms.ModelForm):
             'status': forms.CharField
         }
         labels = {
-            'description': 'Description',
+            'inventory_description': 'Description',
             'material_uuid': 'Material',
             'actor_uuid': 'Actor',
             'part_no': 'Part Number',
@@ -162,36 +164,36 @@ class InventoryForm(forms.ModelForm):
             'status': 'Status'
         }
         widgets = {
-            'description': forms.Textarea(attrs={'rows': '3',
-                                                 'cols': '10',
-                                                 'placeholder': 'Description'}),
+            'inventory_description': forms.Textarea(attrs={'rows': '3',
+                                                           'cols': '10',
+                                                           'placeholder': 'Description'}),
             'part_no': forms.TextInput(attrs={'placeholder': 'Part number'}),
             'onhand_amt': forms.NumberInput(attrs={'value': '0.01',
                                                    'min': '0.00',
                                                    'step': '0.01'}),
             'unit': forms.TextInput(attrs={'placeholder': 'Ex: g for grams'}),
             'create_date': forms.SplitDateTimeWidget(
-                                        date_format='%d-%m-%Y',
-                                        date_attrs= {
-                                            'placeholder':'DD-MM-YYYY'
-                                        },
-                                        time_format='%H:%M',
-                                        time_attrs= {
-                                            'placeholder':'HH-MM'
-                                        }
-                                                                ),
+                date_format='%d-%m-%Y',
+                date_attrs={
+                    'placeholder': 'DD-MM-YYYY'
+                },
+                time_format='%H:%M',
+                time_attrs={
+                    'placeholder': 'HH-MM'
+                }
+            ),
             'expiration_date': forms.SplitDateTimeWidget(
-                                        date_format='%d-%m-%Y',
-                                        date_attrs= {
-                                            'placeholder':'DD-MM-YYYY'
-                                        },
-                                        time_format='%H:%M',
-                                        time_attrs= {
-                                            'placeholder':'HH-MM'
-                                        }
-                                                                ),
+                date_format='%d-%m-%Y',
+                date_attrs={
+                    'placeholder': 'DD-MM-YYYY'
+                },
+                time_format='%H:%M',
+                time_attrs={
+                    'placeholder': 'HH-MM'
+                }
+            ),
             'inventory_location': forms.TextInput(attrs={
-                                                    'placeholder': 'Location'})
+                'placeholder': 'Location'})
         }
 
 
@@ -226,23 +228,23 @@ class ActorForm(forms.ModelForm):
         }
         widgets = {
             'person_first_name': forms.TextInput(attrs={
-                                    'placeholder': 'Actor (person) first name'
+                'placeholder': 'Actor (person) first name'
             }),
             'person_last_name': forms.TextInput(attrs={
-                                    'placeholder': 'Actor (person) last name'
+                'placeholder': 'Actor (person) last name'
             }),
             'org_full_name': forms.TextInput(attrs={
-                                'placeholder': 'Actor (organization) full name'
+                'placeholder': 'Actor (organization) full name'
             }),
             'systemtool_name': forms.TextInput(attrs={
-                                        'placeholder': 'Actor (systemtool) name'
+                'placeholder': 'Actor (systemtool) name'
             }),
             'actor_description': forms.Textarea(attrs={
                                                 'rows': '3',
                                                 'cols': '10',
                                                 'placeholder': 'Description'}),
             'actor_status': forms.TextInput(attrs={
-                                        'placeholder': 'Ex: Active/Not active'})
+                'placeholder': 'Ex: Active/Not active'})
         }
 
 
@@ -253,32 +255,32 @@ class OrganizationForm(forms.ModelForm):
                   'address2', 'city', 'state_province', 'zip', 'country',
                   'website_url', 'phone', 'parent_uuid', 'parent_org_full_name']
         field_classes = {
-            'full_name' : forms.CharField,
-            'short_name' : forms.CharField,
-            'description' : forms.CharField,
+            'full_name': forms.CharField,
+            'short_name': forms.CharField,
+            'description': forms.CharField,
             'address1': forms.CharField,
             'address2': forms.CharField,
-            'city' : forms.CharField,
+            'city': forms.CharField,
             'state_province': forms.CharField,
-            'zip' : forms.CharField,
-            'country' : forms.CharField,
+            'zip': forms.CharField,
+            'country': forms.CharField,
             'website_url': forms.URLField,
-            'phone' : forms.CharField,
+            'phone': forms.CharField,
             'parent_org_full_name': forms.CharField,
         }
         labels = {
-            'full_name' : 'Full name',
-            'short_name' : 'Short name',
-            'description' : 'Description',
+            'full_name': 'Full name',
+            'short_name': 'Short name',
+            'description': 'Description',
             'address1': 'Address Line 1',
             'address2': 'Address Line 2',
-            'city' : 'City',
+            'city': 'City',
             'state_province': 'State/Province',
-            'zip' : 'Zip',
-            'country' : 'Country',
+            'zip': 'Zip',
+            'country': 'Country',
             'website_url': 'Website URL',
-            'phone' : 'Phone',
-            'parent_uuid' : 'Parent Organization',
+            'phone': 'Phone',
+            'parent_uuid': 'Parent Organization',
             'parent_org_full_name': 'Parent Organization full name'
         }
         help_texts = {
@@ -287,33 +289,33 @@ class OrganizationForm(forms.ModelForm):
                                      'organization selected above')
         }
         widgets = {
-            'full_name' : forms.TextInput(attrs={
-                                'placeholder': 'Ex: Some Full Organization Name',
-                                }),
-            'short_name' : forms.TextInput(attrs={
-                                                'placeholder': 'Ex: S.F.O.N'}),
-            'description': forms.Textarea(attrs={
-                                    'cols': '10',
-                                    'rows': '3',
-                                    'placeholder': 'Your organization description'
+            'full_name': forms.TextInput(attrs={
+                'placeholder': 'Ex: Some Full Organization Name',
             }),
-            'address1' : forms.TextInput(attrs={
-                                        'placeholder': 'Ex: 123 Smith Street'}),
-            'address2' : forms.TextInput(attrs={
-                                        'placeholder': 'Ex: Apt. 2c'}),
-            'city' : forms.TextInput(attrs={
-                                        'placeholder': 'Ex: San Francisco'}),
-            'state_province' : forms.TextInput(attrs={
-                                        'cols' : 3,
-                                        'placeholder': 'Ex: CA'}),
-            'zip' : forms.TextInput(attrs={
-                                        'placeholder': 'Ex: 12345/12345-6789'}),
-            'country' : forms.TextInput(attrs={
-                                'placeholder': 'Ex: United States of America'}),
-            'website_url' : forms.URLInput(attrs={
-                    'placeholder': 'Ex: https://example.com'}),
-            'phone' : forms.TextInput(attrs={
-                              'placeholder': 'Ex: 1-234-567-8900/12345678900'})
+            'short_name': forms.TextInput(attrs={
+                'placeholder': 'Ex: S.F.O.N'}),
+            'description': forms.Textarea(attrs={
+                'cols': '10',
+                'rows': '3',
+                'placeholder': 'Your organization description'
+            }),
+            'address1': forms.TextInput(attrs={
+                'placeholder': 'Ex: 123 Smith Street'}),
+            'address2': forms.TextInput(attrs={
+                'placeholder': 'Ex: Apt. 2c'}),
+            'city': forms.TextInput(attrs={
+                'placeholder': 'Ex: San Francisco'}),
+            'state_province': forms.TextInput(attrs={
+                'cols': 3,
+                'placeholder': 'Ex: CA'}),
+            'zip': forms.TextInput(attrs={
+                'placeholder': 'Ex: 12345/12345-6789'}),
+            'country': forms.TextInput(attrs={
+                'placeholder': 'Ex: United States of America'}),
+            'website_url': forms.URLInput(attrs={
+                'placeholder': 'Ex: https://example.com'}),
+            'phone': forms.TextInput(attrs={
+                'placeholder': 'Ex: 1-234-567-8900/12345678900'})
         }
 
 
@@ -384,15 +386,15 @@ class MaterialTypeForm(forms.ModelForm):
         model = MaterialType
         fields = ['description']
         field_classes = {
-        'description': forms.CharField
+            'description': forms.CharField
         }
         labels = {
             'description': 'Description'
         }
         widgets = {
             'description': forms.Textarea(attrs={
-                                'cols': '10',
-                                'rows': '3',
-                                'placeholder': 'Your material type description'
-                                        })
+                'cols': '10',
+                'rows': '3',
+                'placeholder': 'Your material type description'
+            })
         }
