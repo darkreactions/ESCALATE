@@ -95,8 +95,8 @@ class PersonView(DetailView):
         obj = context['object']
         table_data = {
                 'Full Name': f"{obj.first_name} {obj.middle_name} {obj.last_name}",
-                'Address': (f"{obj.address1}, {obj.address2}, {obj.zip}, {obj.city},"
-                                f"{obj.state_province}, {obj.country}"),
+                'Address': (f" {obj.address1}, {obj.address2}, {obj.zip}, {obj.city},"
+                                f" {obj.state_province}, {obj.country}"),
                 'Phone': obj.phone,
                 'Email': obj.email,
                 'Title' : obj.title,

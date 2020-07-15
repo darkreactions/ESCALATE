@@ -93,8 +93,9 @@ class ActorView(DetailView):
         table_data = {
                 'Actor description': obj.actor_description,
                 'Status': obj.actor_status,
-                'Organization': obj.org_full_name + f" ({obj.org_short_name})",
+                'Organization': f"{obj.org_full_name} ({obj.org_short_name})",
                 'Person': f"{obj.person_first_name} {obj.person_last_name}",
+                'Person organization': obj.person_org,
                 'Systemtool': obj.systemtool_name,
                 'Systemtool description': obj.systemtool_description,
                 'Systemtool type': obj.systemtool_type,

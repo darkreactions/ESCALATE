@@ -20,9 +20,7 @@ class PersonForm(forms.ModelForm):
         model = Person
         fields = ['first_name', 'middle_name', 'last_name', 'address1',
                   'address2', 'city', 'state_province', 'zip', 'country',
-                  'phone', 'email', 'title', 'suffix', 'organization_uuid',
-                  'organization_full_name']
-
+                  'phone', 'email', 'title', 'suffix', 'organization_uuid']
         field_classes = {
                 'first_name': forms.CharField,
                 'middle_name': forms.CharField,
@@ -36,8 +34,7 @@ class PersonForm(forms.ModelForm):
                 'phone': forms.CharField,
                 'email': forms.EmailField,
                 'title': forms.CharField,
-                'suffix': forms.CharField,
-                'organization_full_name': forms.CharField
+                'suffix': forms.CharField
         }
 
         labels = {
@@ -54,13 +51,12 @@ class PersonForm(forms.ModelForm):
             'email': 'E-mail',
             'title': 'Title',
             'suffix': 'Suffix',
-            'organization_uuid': 'Organization',
-            'organization_full_name': 'Organization full name'
+            'organization_uuid': 'Organization'
         }
 
         help_texts = {
             'phone': 'Include extension number and/or country code if applicable',
-            'organization_full_name': 'Please type the name of the organization selected above'
+            'organization_uuid': 'If applicable, select the organization this person belongs to'
         }
 
         widgets = {
@@ -198,49 +194,28 @@ class InventoryForm(forms.ModelForm):
 class ActorForm(forms.ModelForm):
     class Meta:
         model = Actor
-        fields = ['person_uuid', 'person_first_name', 'person_last_name',
-                  'organization_uuid', 'org_full_name', 'systemtool_uuid',
-                  'systemtool_name', 'actor_description', 'actor_status']
+        fields = ['person_uuid', 'organization_uuid', 'systemtool_uuid',
+                  'actor_description', 'actor_status']
         field_classes = {
-            'person_first_name': forms.CharField,
-            'org_full_name': forms.CharField,
-            'systemtool_name': forms.CharField,
             'actor_description': forms.CharField
         }
         labels = {
             'person_uuid': 'Person',
-            'person_first_name': 'Person first name',
-            'person_last_name': 'Person lastname',
             'organization_uuid': 'Organization',
-            'org_full_name': 'Organization full name',
             'systemtool_uuid': 'Systemtool',
-            'systemtool_name': 'Systemtool_name',
             'actor_description': 'Actor description',
             'actor_status': 'Actor status'
         }
         help_texts = {
-            'person_first_name': 'Please enter the first name if actor is a person',
-            'person_last_name': 'Please enter the last name if actor is a person',
-            'org_full_name': 'Please enter the full name if actor is an organization',
-            'systemtool_name': 'Please enter the name if actor is a systemtool'
+            'person_uuid': 'Select if actor is a person',
+            'organization_uuid': 'Select if actor is an organization',
+            'systemtool_uuid': 'Select if actor is a systemtool'
         }
         widgets = {
-            'person_first_name': forms.TextInput(attrs={
-                                    'placeholder': 'Actor (person) first name'
-            }),
-            'person_last_name': forms.TextInput(attrs={
-                                    'placeholder': 'Actor (person) last name'
-            }),
-            'org_full_name': forms.TextInput(attrs={
-                                'placeholder': 'Actor (organization) full name'
-            }),
-            'systemtool_name': forms.TextInput(attrs={
-                                        'placeholder': 'Actor (systemtool) name'
-            }),
             'actor_description': forms.Textarea(attrs={
-                                                'rows': '3',
-                                                'cols': '10',
-                                                'placeholder': 'Description'}),
+                                            'rows': '3',
+                                            'cols': '10',
+                                            'placeholder': 'Your description'}),
             'actor_status': forms.TextInput(attrs={
                                         'placeholder': 'Ex: Active/Not active'})
         }
@@ -251,7 +226,7 @@ class OrganizationForm(forms.ModelForm):
         model = Organization
         fields = ['full_name', 'short_name', 'description', 'address1',
                   'address2', 'city', 'state_province', 'zip', 'country',
-                  'website_url', 'phone', 'parent_uuid', 'parent_org_full_name']
+                  'website_url', 'phone', 'parent_uuid']
         field_classes = {
             'full_name' : forms.CharField,
             'short_name' : forms.CharField,
@@ -263,8 +238,7 @@ class OrganizationForm(forms.ModelForm):
             'zip' : forms.CharField,
             'country' : forms.CharField,
             'website_url': forms.URLField,
-            'phone' : forms.CharField,
-            'parent_org_full_name': forms.CharField,
+            'phone' : forms.CharField
         }
         labels = {
             'full_name' : 'Full name',
@@ -278,13 +252,10 @@ class OrganizationForm(forms.ModelForm):
             'country' : 'Country',
             'website_url': 'Website URL',
             'phone' : 'Phone',
-            'parent_uuid' : 'Parent Organization',
-            'parent_org_full_name': 'Parent Organization full name'
+            'parent_uuid' : 'Parent Organization'
         }
         help_texts = {
-            'website_url': 'Make sure to include https:// or http:// or www(1-9)',
-            'parent_org_full_name': ('Please enter the full name of parent '
-                                     'organization selected above')
+            'website_url': 'Make sure to include https:// or http:// or www(1-9)'
         }
         widgets = {
             'full_name' : forms.TextInput(attrs={
