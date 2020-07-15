@@ -104,7 +104,7 @@ INSERT INTO calculation (in_val.v_source_uuid, in_val.v_text, in_val.v_type, cal
 	select distinct val_in_source, val_in, val_in_type, def.calculation_def_uuid, 
 	case when val_out_type::text = 'int' then val_out else NULL end as vout_int, 
 	case when val_out_type::text = 'num' then val_out else NULL end as vout_num, 
-	val_out_type, alias_name, create_date, status_uuid, (SELECT actor_uuid FROM vw_actor where actor_description like '%Haverford College%') as actor_uuid
+	val_out_type, alias_name, create_date, dsc.status_uuid, (SELECT actor_uuid FROM vw_actor where actor_description like '%Haverford College%') as actor_uuid
 	from
 	(select (get_calculation (pd._raw_smiles, array['standardize'])) as val_in_source, pd._raw_smiles_standard as val_in, 'text'::val_type as val_in_type, tmp.descr as descriptor_name, tmp.val as val_out, tmp.vtype::val_type as val_out_type, alias_name, '2020-02-20'::timestamptz as create_date, (select status_uuid from status where description = 'active') as status_uuid
 	from load_perov_desc pd

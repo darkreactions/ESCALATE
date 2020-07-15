@@ -60,10 +60,15 @@ SELECT
 	doc.edoc_type AS edocument_type,
 	doc.edocument,
 	act.actor_uuid,
-	act.description AS actor_description
+	act.description AS actor_description,
+	doc.status_uuid,
+	sts.description as status_description,
+	doc.add_date,
+	doc.mod_date
 FROM
 	edocument doc
-	LEFT JOIN actor act ON doc.actor_uuid = act.actor_uuid;
+	LEFT JOIN actor act ON doc.actor_uuid = act.actor_uuid
+	LEFT JOIN status sts ON doc.status_uuid = sts.status_uuid;
 
 
 ----------------------------------------
@@ -263,7 +268,7 @@ SELECT
 	st.systemtool_uuid,
 	act.description AS actor_description,
 	sts.status_uuid AS actor_status_uuid,
-	sts.description AS actor_status,
+	sts.description AS actor_status_description,
 	org.full_name AS org_full_name,
 	org.short_name AS org_short_name,
 	per.last_name AS person_last_name,
@@ -289,6 +294,14 @@ LEFT JOIN systemtool st ON act.systemtool_uuid = st.systemtool_uuid
 LEFT JOIN systemtool_type stt ON st.systemtool_type_uuid = stt.systemtool_type_uuid
 LEFT JOIN organization vorg ON st.vendor_organization_uuid = vorg.organization_uuid
 LEFT JOIN status sts ON act.status_uuid = sts.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_actor_upsert ON vw_actor;
+CREATE TRIGGER trigger_actor_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_actor
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_actor ( );
+
 
 
 ----------------------------------------
@@ -392,13 +405,18 @@ SELECT
 	org.short_name AS systemtool_vendor_organization,
 	st.ver AS systemtool_version,
 	mdd.actor_uuid AS actor_uuid,
-	act.actor_description AS actor_description
+	act.actor_description AS actor_description,
+	sts.status_uuid as calculation_def_status_uuid,
+	sts.description as caclulation_def_status_description,
+	mdd.add_date,
+	mdd.mod_date
 FROM
 	calculation_def mdd
 LEFT JOIN vw_actor act ON mdd.actor_uuid = act.actor_uuid
 LEFT JOIN vw_latest_systemtool st ON mdd.systemtool_uuid = st.systemtool_uuid
 LEFT JOIN systemtool_type stt ON st.systemtool_type_uuid = stt.systemtool_type_uuid
-LEFT JOIN organization org ON st.vendor_organization_uuid = org.organization_uuid;
+LEFT JOIN organization org ON st.vendor_organization_uuid = org.organization_uuid
+LEFT JOIN status sts ON mdd.status_uuid = sts.status_uuid;
 
 
 ----------------------------------------
@@ -441,8 +459,8 @@ SELECT
 		md.out_val ).v_edocument_uuid AS out_val_edocument_uuid,
 	md.calculation_alias_name,
 	md.create_date,
-	sts.status_uuid AS status_uuid,
-	sts.description AS status,
+	sts.status_uuid AS calculation_status_uuid,
+	sts.description AS calculation_status_description,
 	dact.actor_description AS actor_descr,
 	--	md.num_valarray_out,
 	--	encode( md.blob_val_out, 'escape' ) AS blob_val_out,
@@ -454,7 +472,7 @@ LEFT JOIN vw_calculation_def mdd ON md.calculation_def_uuid = mdd.calculation_de
 LEFT JOIN vw_edocument ed ON (
 	md.out_val ).v_edocument_uuid = ed.edocument_uuid
 LEFT JOIN vw_actor dact ON md.actor_uuid = dact.actor_uuid
-LEFT JOIN status sts ON md.status_uuid = sts.status_uuid;
+LEFT JOIN vw_status sts ON md.status_uuid = sts.status_uuid;
 
 
 ----------------------------------------
@@ -464,7 +482,9 @@ LEFT JOIN status sts ON md.status_uuid = sts.status_uuid;
 CREATE OR REPLACE VIEW vw_material_refname_def AS
 SELECT
 	mrt.material_refname_def_uuid,
-	mrt.description
+	mrt.description,
+	mrt.add_date,
+	mrt.mod_date
 FROM
 	material_refname_def mrt
 ORDER BY
@@ -510,7 +530,7 @@ SELECT
 	mat.material_uuid,
 	mat.description AS material_description,
 	st.status_uuid AS material_status_uuid,
-	st.description AS material_status,
+	st.description AS material_status_description,
 	get_material_type (
 		mat.material_uuid ) AS material_type_description,
 	mrt.description AS material_refname_def,
@@ -537,13 +557,13 @@ SELECT
 	*
 FROM
 	crosstab (
-		'select material_uuid, material_status_uuid, material_status, material_create_date, material_description, material_refname_def, material_refname_description
+		'select material_uuid, material_status_uuid, material_status_description, material_create_date, material_description, material_refname_def, material_refname_description
 				   from vw_material_raw order by 1, 3',
 		'select distinct material_refname_def
 				   from vw_material_raw where material_refname_def is not null order by 1' ) AS ct (
 		material_uuid uuid,
 		material_status_uuid uuid,
-		material_status varchar,
+		material_status_description varchar,
 		create_date timestamptz,
 		material_description varchar,
 		Abbreviation varchar,
@@ -563,7 +583,7 @@ CREATE OR REPLACE VIEW vw_material_calculation_raw AS
 SELECT
 	mat.material_uuid,
 	mat.material_status_uuid,	
-	mat.material_status,
+	mat.material_status_description,
 	mat.create_date AS material_create_date,
 	mat.abbreviation,
 	mat.chemical_name,
@@ -589,8 +609,8 @@ SELECT
 	cal.out_val_edocument_uuid,
 	cal.calculation_alias_name,
 	cal.create_date AS calculation_create_date,
-	cal.status_uuid as calculation_status_uuid,
-	cal.status as calculation_status,
+	cal.calculation_status_uuid,
+	cal.calculation_status_description,
 	cal.calculation_def_uuid,
 	cal.short_name,
 	cal.calc_definition,
@@ -622,7 +642,7 @@ CREATE OR REPLACE VIEW vw_material_calculation_json AS
 SELECT
 	vm.material_uuid,
 	vm.material_status_uuid,
-	vm.material_status,
+	vm.material_status_description,
 	vm.create_date,
 	vm.abbreviation,
 	vm.chemical_name,
@@ -672,11 +692,13 @@ SELECT
 	inv.expiration_date,
 	inv.inventory_location,
 	st.status_uuid AS status_uuid,
-	st.description AS status,
+	st.description AS status_description,
 	mat.material_uuid,
 	mat.description AS material_description,
 	act.actor_uuid,
-	act.description as actor_description
+	act.description as actor_description,
+	inv.add_date,
+	inv.mod_date
 FROM
 	inventory inv
 LEFT JOIN material mat ON inv.material_uuid = mat.material_uuid
@@ -698,13 +720,13 @@ SELECT
 	inv.expiration_date AS inventory_expiration_date,
 	inv.inventory_location,
 	st.status_uuid AS inventory_status_uuid,	
-	st.description AS inventory_status,
+	st.description AS inventory_status_description,
 	inv.actor_uuid,
 	act.actor_description,
 	act.org_full_name,
 	inv.material_uuid,
 	mat.material_status_uuid,
-	mat.material_status,
+	mat.material_status_description,
 	mat.create_date AS material_create_date,
 	mat.chemical_name AS material_name,
 	mat.abbreviation AS material_abbreviation,

@@ -130,161 +130,215 @@ udf_def
 ### Primary Keys and Constraints
 
 ```
-CREATE INDEX "ix_sys_audit_relid" ON sys_audit(relid);
-CREATE INDEX "ix_sys_audit_action_tstamp_tx_stm" ON sys_audit(action_tstamp_stm);
-CREATE INDEX "ix_sys_audit_action" ON sys_audit(action);
+CREATE INDEX "ix_sys_audit_relid" ON sys_audit (relid);
 
-ALTER TABLE organization 
+CREATE INDEX "ix_sys_audit_action_tstamp_tx_stm" ON sys_audit (action_tstamp_stm);
+
+CREATE INDEX "ix_sys_audit_action" ON sys_audit (action);
+
+ALTER TABLE organization
 	ADD CONSTRAINT "pk_organization_organization_uuid" PRIMARY KEY (organization_uuid),
-	ADD CONSTRAINT "un_organization" UNIQUE (full_name);
-	CREATE INDEX "ix_organization_parent_path" ON organization USING GIST (parent_path);
-	CREATE INDEX "ix_organization_parent_uuid" ON organization (parent_uuid);
-CLUSTER organization USING "pk_organization_organization_uuid";
+		ADD CONSTRAINT "un_organization" UNIQUE (full_name);
+CREATE INDEX "ix_organization_parent_path" ON organization
+USING GIST (parent_path);
+CREATE INDEX "ix_organization_parent_uuid" ON organization (parent_uuid);
+CLUSTER organization
+USING "pk_organization_organization_uuid";
 
-ALTER TABLE person 
-ADD CONSTRAINT "pk_person_person_uuid" PRIMARY KEY (person_uuid);
-CLUSTER person USING "pk_person_person_uuid";
+ALTER TABLE person
+	ADD CONSTRAINT "pk_person_person_uuid" PRIMARY KEY (person_uuid);
+CLUSTER person
+USING "pk_person_person_uuid";
 
-ALTER TABLE systemtool 
+ALTER TABLE systemtool
 	ADD CONSTRAINT "pk_systemtool_systemtool_uuid" PRIMARY KEY (systemtool_uuid),
-	ADD CONSTRAINT "un_systemtool" UNIQUE (systemtool_name, systemtool_type_uuid, vendor_organization_uuid, ver);
-CLUSTER systemtool USING "pk_systemtool_systemtool_uuid";
+		ADD CONSTRAINT "un_systemtool" UNIQUE (systemtool_name, systemtool_type_uuid, vendor_organization_uuid, ver);
+CLUSTER systemtool
+USING "pk_systemtool_systemtool_uuid";
 
-ALTER TABLE systemtool_type 
+ALTER TABLE systemtool_type
 	ADD CONSTRAINT "pk_systemtool_systemtool_type_uuid" PRIMARY KEY (systemtool_type_uuid);
-CLUSTER systemtool_type USING "pk_systemtool_systemtool_type_uuid";
+CLUSTER systemtool_type
+USING "pk_systemtool_systemtool_type_uuid";
 
-ALTER TABLE actor 
+ALTER TABLE actor
 	ADD CONSTRAINT "pk_actor_uuid" PRIMARY KEY (actor_uuid);
-	CREATE UNIQUE INDEX "un_actor" ON actor (coalesce(person_uuid,null), coalesce(organization_uuid,null), coalesce(systemtool_uuid,null) );
-CLUSTER actor USING "pk_actor_uuid";
+CREATE UNIQUE INDEX "un_actor" ON actor (coalesce(person_uuid, NULL), coalesce(organization_uuid, NULL), coalesce(systemtool_uuid, NULL));
+CLUSTER actor
+USING "pk_actor_uuid";
 
-ALTER TABLE actor_pref 
+ALTER TABLE actor_pref
 	ADD CONSTRAINT "pk_actor_pref_uuid" PRIMARY KEY (actor_pref_uuid);
-CLUSTER actor_pref USING "pk_actor_pref_uuid";
+CLUSTER actor_pref
+USING "pk_actor_pref_uuid";
 
-ALTER TABLE experiment ADD 
-	CONSTRAINT "pk_experiment_experiment_uuid" PRIMARY KEY (experiment_uuid);
-	CREATE INDEX "ix_experiment_parent_path" ON experiment USING GIST (parent_path);
-	CREATE INDEX "ix_experiment_parent_uuid" ON experiment (parent_uuid);
-CLUSTER experiment USING "pk_experiment_experiment_uuid";
+ALTER TABLE experiment
+	ADD CONSTRAINT "pk_experiment_experiment_uuid" PRIMARY KEY (experiment_uuid);
+CREATE INDEX "ix_experiment_parent_path" ON experiment
+USING GIST (parent_path);
+CREATE INDEX "ix_experiment_parent_uuid" ON experiment (parent_uuid);
+CLUSTER experiment
+USING "pk_experiment_experiment_uuid";
 
-ALTER TABLE experiment_inventory ADD 
-	CONSTRAINT "pk_experiment_inventory_uuid" PRIMARY KEY (experiment_inventory_uuid);
-CLUSTER experiment_inventory USING "pk_experiment_inventory_uuid";
+ALTER TABLE experiment_inventory
+	ADD CONSTRAINT "pk_experiment_inventory_uuid" PRIMARY KEY (experiment_inventory_uuid);
+CLUSTER experiment_inventory
+USING "pk_experiment_inventory_uuid";
+ALTER TABLE experiment_udf
+	ADD CONSTRAINT "pk_experiment_udf_uuid" PRIMARY KEY (experiment_udf_uuid);
+CLUSTER experiment_udf
+USING "pk_experiment_udf_uuid";
 
-ALTER TABLE experiment_udf ADD 
-	CONSTRAINT "pk_experiment_udf_uuid" PRIMARY KEY (experiment_udf_uuid);
-CLUSTER experiment_udf USING "pk_experiment_udf_uuid";
+ALTER TABLE material
+	ADD CONSTRAINT "pk_material_material_uuid" PRIMARY KEY (material_uuid);
+CREATE INDEX "ix_material_parent_path" ON material
+USING GIST (parent_path);
+CREATE INDEX "ix_material_parent_uuid" ON material (parent_uuid);
+CLUSTER material
+USING "pk_material_material_uuid";
 
-ALTER TABLE material ADD 
-	CONSTRAINT "pk_material_material_uuid" PRIMARY KEY (material_uuid);
-	CREATE INDEX "ix_material_parent_path" ON material USING GIST (parent_path);
-	CREATE INDEX "ix_material_parent_uuid" ON material (parent_uuid);
-CLUSTER material USING "pk_material_material_uuid";
+ALTER TABLE material_x
+	ADD CONSTRAINT "pk_material_x_material_x_uuid" PRIMARY KEY (material_x_uuid),
+		ADD CONSTRAINT "un_material_x" UNIQUE (material_x_uuid, material_uuid);
+CLUSTER material_x
+USING "pk_material_x_material_x_uuid";
 
-ALTER TABLE material_type ADD 
-	CONSTRAINT "pk_material_type_material_type_uuid" PRIMARY KEY (material_type_uuid);
-CLUSTER material_type USING "pk_material_type_material_type_uuid";
+ALTER TABLE material_type
+	ADD CONSTRAINT "pk_material_type_material_type_uuid" PRIMARY KEY (material_type_uuid);
+CLUSTER material_type
+USING "pk_material_type_material_type_uuid";
 
-ALTER TABLE material_type_x 
+ALTER TABLE material_type_x
 	ADD CONSTRAINT "pk_material_type_x_material_type_x_uuid" PRIMARY KEY (material_type_x_uuid),
-	ADD CONSTRAINT "un_material_type_x" UNIQUE (ref_material_uuid, material_type_uuid);
-CLUSTER material_type_x USING "pk_material_type_x_material_type_x_uuid";
+		ADD CONSTRAINT "un_material_type_x" UNIQUE (material_uuid, material_type_uuid);
+CLUSTER material_type_x
+USING "pk_material_type_x_material_type_x_uuid";
 
-ALTER TABLE material_refname 
+ALTER TABLE material_refname
 	ADD CONSTRAINT "pk_material_refname_material_refname_uuid" PRIMARY KEY (material_refname_uuid),
-	ADD CONSTRAINT "un_material_refname" UNIQUE (description, material_refname_def_uuid);
-CLUSTER material_refname USING "pk_material_refname_material_refname_uuid";
+		ADD CONSTRAINT "un_material_refname" UNIQUE (description, material_refname_def_uuid);
+CLUSTER material_refname
+USING "pk_material_refname_material_refname_uuid";
 
-ALTER TABLE material_refname_x 
+ALTER TABLE material_refname_x
 	ADD CONSTRAINT "pk_material_refname_x_material_refname_x_uuid" PRIMARY KEY (material_refname_x_uuid),
-	ADD CONSTRAINT "un_material_refname_x" UNIQUE (material_uuid, material_refname_uuid);
-CLUSTER material_refname_x USING "pk_material_refname_x_material_refname_x_uuid";
+		ADD CONSTRAINT "un_material_refname_x" UNIQUE (material_uuid, material_refname_uuid);
+CLUSTER material_refname_x
+USING "pk_material_refname_x_material_refname_x_uuid";
 
-ALTER TABLE material_refname_def 
+ALTER TABLE material_refname_def
 	ADD CONSTRAINT "pk_material_refname_def_material_refname_def_uuid" PRIMARY KEY (material_refname_def_uuid);
-CLUSTER material_refname_def USING "pk_material_refname_def_material_refname_def_uuid";
+CLUSTER material_refname_def
+USING "pk_material_refname_def_material_refname_def_uuid";
 
-ALTER TABLE calculation_class ADD 
-	CONSTRAINT "pk_calculation_class_calculation_class_uuid" PRIMARY KEY (calculation_class_uuid);
-CLUSTER calculation_class USING "pk_calculation_class_calculation_class_uuid";
+ALTER TABLE calculation_class
+	ADD CONSTRAINT "pk_calculation_class_calculation_class_uuid" PRIMARY KEY (calculation_class_uuid);
+CLUSTER calculation_class
+USING "pk_calculation_class_calculation_class_uuid";
 
-ALTER TABLE calculation_def 
+ALTER TABLE calculation_def
 	ADD CONSTRAINT "pk_calculation_calculation_def_uuid" PRIMARY KEY (calculation_def_uuid),
-	ADD CONSTRAINT "un_calculation_def" UNIQUE (actor_uuid, short_name, calc_definition);	
-CLUSTER calculation_def USING "pk_calculation_calculation_def_uuid";
+		ADD CONSTRAINT "un_calculation_def" UNIQUE (actor_uuid, short_name, calc_definition);
+CLUSTER calculation_def
+USING "pk_calculation_calculation_def_uuid";
 
 ALTER TABLE calculation
 	ADD CONSTRAINT "pk_calculation_calculation_uuid" PRIMARY KEY (calculation_uuid),
-	ADD CONSTRAINT "un_calculation" UNIQUE (calculation_def_uuid, in_val, in_opt_val);
-CLUSTER calculation USING "pk_calculation_calculation_uuid";
+		ADD CONSTRAINT "un_calculation" UNIQUE (calculation_def_uuid, in_val, in_opt_val);
+CLUSTER calculation
+USING "pk_calculation_calculation_uuid";
 
 ALTER TABLE calculation_eval
 	ADD CONSTRAINT "pk_calculation_eval_calculation_eval_id" PRIMARY KEY (calculation_eval_id),
-	ADD CONSTRAINT "un_calculation_eval" UNIQUE (calculation_def_uuid, in_val, in_opt_val);
-CLUSTER calculation_eval USING "pk_calculation_eval_calculation_eval_id";
+		ADD CONSTRAINT "un_calculation_eval" UNIQUE (calculation_def_uuid, in_val, in_opt_val);
+CLUSTER calculation_eval
+USING "pk_calculation_eval_calculation_eval_id";
 
-ALTER TABLE inventory 
+ALTER TABLE inventory
 	ADD CONSTRAINT "pk_inventory_inventory_uuid" PRIMARY KEY (inventory_uuid),
-	ADD CONSTRAINT "un_inventory" UNIQUE (material_uuid, actor_uuid, create_date);
-CLUSTER inventory USING "pk_inventory_inventory_uuid";
+		ADD CONSTRAINT "un_inventory" UNIQUE (material_uuid, actor_uuid, create_date);
+CLUSTER inventory
+USING "pk_inventory_inventory_uuid";
 
-ALTER TABLE measure 
+ALTER TABLE measure
 	ADD CONSTRAINT "pk_measure_measure_uuid" PRIMARY KEY (measure_uuid),
-	ADD CONSTRAINT "un_measure" UNIQUE (measure_uuid);
- CLUSTER measure USING "pk_measure_measure_uuid";
+		ADD CONSTRAINT "un_measure" UNIQUE (measure_uuid);
+CLUSTER measure
+USING "pk_measure_measure_uuid";
 
-ALTER TABLE measure_x 
+ALTER TABLE measure_x
 	ADD CONSTRAINT "pk_measure_x_measure_x_uuid" PRIMARY KEY (measure_x_uuid),
-	ADD CONSTRAINT "un_measure_x" UNIQUE (ref_measure_uuid, measure_uuid);
-CLUSTER measure_x USING "pk_measure_x_measure_x_uuid";
+		ADD CONSTRAINT "un_measure_x" UNIQUE (ref_measure_uuid, measure_uuid);
+CLUSTER measure_x
+USING "pk_measure_x_measure_x_uuid";
 
- ALTER TABLE measure_type ADD 
-	CONSTRAINT "pk_measure_type_measure_type_uuid" PRIMARY KEY (measure_type_uuid);
- CLUSTER measure_type USING "pk_measure_type_measure_type_uuid";
+ALTER TABLE measure_type
+	ADD CONSTRAINT "pk_measure_type_measure_type_uuid" PRIMARY KEY (measure_type_uuid);
+CLUSTER measure_type
+USING "pk_measure_type_measure_type_uuid";
 
-ALTER TABLE note ADD 
-	CONSTRAINT "pk_note_note_uuid" PRIMARY KEY (note_uuid);
-CLUSTER note USING "pk_note_note_uuid";
+ALTER TABLE note
+	ADD CONSTRAINT "pk_note_note_uuid" PRIMARY KEY (note_uuid);
+CLUSTER note
+USING "pk_note_note_uuid";
 
-ALTER TABLE edocument 
+ALTER TABLE note_x
+	ADD CONSTRAINT "pk_note_x_note_x_uuid" PRIMARY KEY (note_x_uuid),
+		ADD CONSTRAINT "un_note_x" UNIQUE (ref_note_uuid, note_uuid);
+CLUSTER note_x
+USING "pk_note_x_note_x_uuid";
+
+ALTER TABLE edocument
 	ADD CONSTRAINT "pk_edocument_edocument_uuid" PRIMARY KEY (edocument_uuid),
-	ADD CONSTRAINT "un_edocument" UNIQUE (edocument_title, edocument_filename, edocument_source);
-CLUSTER edocument USING "pk_edocument_edocument_uuid";
+		ADD CONSTRAINT "un_edocument" UNIQUE (edocument_title, edocument_filename, edocument_source);
+CLUSTER edocument
+USING "pk_edocument_edocument_uuid";
 
-ALTER TABLE edocument_x 
+ALTER TABLE edocument_x
 	ADD CONSTRAINT "pk_edocument_x_edocument_x_uuid" PRIMARY KEY (edocument_x_uuid),
-	ADD CONSTRAINT "un_edocument_x" UNIQUE (ref_edocument_uuid, edocument_uuid);
-CLUSTER edocument_x USING "pk_edocument_x_edocument_x_uuid";
+		ADD CONSTRAINT "un_edocument_x" UNIQUE (ref_edocument_uuid, edocument_uuid);
+CLUSTER edocument_x
+USING "pk_edocument_x_edocument_x_uuid";
 
-ALTER TABLE tag 
+ALTER TABLE tag
 	ADD CONSTRAINT "pk_tag_tag_uuid" PRIMARY KEY (tag_uuid),
-	ADD CONSTRAINT "un_tag" UNIQUE (display_text);
-CLUSTER tag USING "pk_tag_tag_uuid";
+		ADD CONSTRAINT "un_tag" UNIQUE (display_text);
+CLUSTER tag
+USING "pk_tag_tag_uuid";
 
-ALTER TABLE tag_x 
+ALTER TABLE tag_x
 	ADD CONSTRAINT "pk_tag_x_tag_x_uuid" PRIMARY KEY (tag_x_uuid),
-	ADD CONSTRAINT "un_tag_x" UNIQUE (ref_tag_uuid, tag_uuid);
-CLUSTER tag_x USING "pk_tag_x_tag_x_uuid";
+		ADD CONSTRAINT "un_tag_x" UNIQUE (ref_tag_uuid, tag_uuid);
+CLUSTER tag_x
+USING "pk_tag_x_tag_x_uuid";
 
-ALTER TABLE tag_type 
+ALTER TABLE tag_type
 	ADD CONSTRAINT "pk_tag_tag_type_uuid" PRIMARY KEY (tag_type_uuid),
-	ADD CONSTRAINT "un_tag_type" UNIQUE (short_description);
-CLUSTER tag_type USING "pk_tag_tag_type_uuid";
+		ADD CONSTRAINT "un_tag_type" UNIQUE (short_description);
+CLUSTER tag_type
+USING "pk_tag_tag_type_uuid";
 
-ALTER TABLE udf 
+ALTER TABLE udf
 	ADD CONSTRAINT "pk_udf_udf_uuid" PRIMARY KEY (udf_uuid);
-CLUSTER udf USING "pk_udf_udf_uuid";
+CLUSTER udf
+USING "pk_udf_udf_uuid";
 
-ALTER TABLE udf_def 
+ALTER TABLE udf_x
+	ADD CONSTRAINT "pk_udf_x_udf_x_uuid" PRIMARY KEY (udf_x_uuid),
+		ADD CONSTRAINT "un_udf_x" UNIQUE (ref_udf_uuid, udf_uuid);
+CLUSTER udf_x
+USING "pk_udf_x_udf_x_uuid";
+
+ALTER TABLE udf_def
 	ADD CONSTRAINT "pk_udf_udf_def_uuid" PRIMARY KEY (udf_def_uuid),
-	ADD CONSTRAINT "un_udf_def" UNIQUE (description);
-CLUSTER udf_def USING "pk_udf_udf_def_uuid";
+		ADD CONSTRAINT "un_udf_def" UNIQUE (description);
+CLUSTER udf_def
+USING "pk_udf_udf_def_uuid";
 
-ALTER TABLE status 
+ALTER TABLE status
 	ADD CONSTRAINT "pk_status_status_uuid" PRIMARY KEY (status_uuid);
-CLUSTER status USING "pk_status_status_uuid";
+CLUSTER status
+USING "pk_status_status_uuid";
 ```
 
 
@@ -357,8 +411,10 @@ upsert_organization() RETURNS TRIGGER
 upsert_person() RETURNS TRIGGER
 upsert_systemtool() RETURNS TRIGGER
 upsert_systemtool_type () RETURNS TRIGGER
+upsert_actor () RETURNS TRIGGER
 upsert_tag_type () RETURNS TRIGGER
 upsert_tag () RETURNS TRIGGER
+upsert_tag_x () RETURNS TRIGGER
 upsert_udf_def () RETURNS TRIGGER
 upsert_status () RETURNS TRIGGER
 upsert_material_type () RETURNS TRIGGER
@@ -539,6 +595,58 @@ update vw_systemtool_type set description = 'TEST Systemtool Type w/ extra featu
 -- delete systemtool_type; any notes attached to this record are automatically deleted
 delete from vw_systemtool_type where systemtool_type_uuid = (select systemtool_type_uuid from vw_systemtool_type where (description = 'TEST Systemtool Type'));
 ```
+<br/>
+
+__vw_actor__`CRUD`<br/>
+*upsert\_actor ()*
+> actor\_uuid (v) <br/>
+> organization\_uuid (v u) <br/>
+> person\_uuid (v u) <br/>
+> systemtool\_uuid (v u) <br/>
+> actor\_description (v u) <br/>
+> actor\_status\_uuid (v u)
+> actor\_status\_description (v) <br/>
+> actor\_add\_date (v) <br/>
+> actor\_mod\_date (v) <br/>
+> org\_full\_name (v) <br/>
+> org\_short\_name (v) <br/>
+> person\_last\_name (v) <br/>
+> person\_first\_name (v) <br/>
+> person\_last\_first (v) <br/>
+> person\_org (v) <br/>
+> systemtool\_name (v) <br/>
+> systemtool\_description (v) <br/>
+> systemtool\_type (v) <br/>
+> systemtool\_vendor (v) <br/>
+> systemtool\_model (v) <br/>
+> systemtool\_serial (v) <br/>
+> systemtool\_version (v) <br/>
+
+`**NOTE: actor will typically have many dependencies (e.g. experiments, workflows, inventory) so deleting may be impractical. In that case do a status change (e.g. inactive)`
+
+```
+-- first create a 'test' person that will become the actor
+insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null);
+-- insert 'test' person into actor
+insert into vw_actor (person_uuid, actor_description, actor_status_uuid) values ((select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester')), 'Lester the Actor', (select status_uuid from vw_status where description = 'active'));
+-- add a note to the actor; with the author being the same actor !! <- note
+insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note for Lester the Actor', (select actor_uuid from vw_actor where person_last_name = 'Tester'), (select actor_uuid from vw_actor where person_last_name = 'Tester'));
+-- update the 'test' actor with a new description
+update vw_actor set actor_description = 'new description for Lester the Actor' where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
+-- update the 'test' actor with an assigned organization
+update vw_actor set organization_uuid = (select organization_uuid from vw_organization where full_name = 'Haverford College') where person_uuid = (select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
+-- delete the actor (WILL get an ERROR as there is a dependency to note)
+delete from vw_actor where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
+-- delete the note
+delete from vw_note where note_uuid in (select note_uuid from vw_note where actor_uuid = (select actor_uuid from vw_actor where person_last_name = 'Tester'));
+-- delete the actor (no other dependencies, so will succeed)
+delete from vw_actor where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
+-- clean up the 'test' person
+delete from vw_person where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
+```
+
+
+
 
 <br/>
 
@@ -547,12 +655,13 @@ __vw\_tag__`CRUD`<br/>
 > tag\_uuid (v) <br/>
 > display_text (r v u) <br/>
 > description (v u) <br/>
-> tag\_type\_uuid (v u) <br/>
-> tag\_type\_short\_descr (v) <br/>
 > actor\_uuid (v u) <br/>
 > actor\_description (v) <br/>
 > add\_date (v) <br/> 
 > mod\_date (v) <br/>
+> tag\_type\_uuid (v u) <br/>
+> tag\_type\_short\_descr (v) <br/>
+> tag\_type\_description (v) <br/>
 
 ```
 -- insert new tag
@@ -603,7 +712,7 @@ update vw_tag_type set short_description = 'TESTDEV1', description = 'tags used 
  delete from vw_tag_type where tag_type_uuid = (select tag_type_uuid from vw_tag_type where (short_description = 'TESTDEV1'));
 ```
 
-
+<br/>
 
 
 __vw\_udf_def__`CRUD`<br/>
@@ -710,30 +819,6 @@ e.g. __vw\_latest\_systemtool__ returns records from the **systemtool** table wi
 
 -->
 
-
-__vw_actor__`R`<br/>
-> actor\_uuid (v) <br/>
-> organization\_uuid (v) <br/>
-> person\_uuid (v) <br/>
-> systemtool\_uuid (v) <br/>
-> actor\_description (v) <br/>
-> actor\_status (v) <br/>
-> actor\_add\_date (v) <br/>
-> actor\_mod\_date (v) <br/>
-> org\_full\_name (v) <br/>
-> org\_short\_name (v) <br/>
-> person\_last\_name (v) <br/>
-> person\_first\_name (v) <br/>
-> person\_last\_first (v) <br/>
-> person\_org (v) <br/>
-> systemtool\_name (v) <br/>
-> systemtool\_description (v) <br/>
-> systemtool\_type (v) <br/>
-> systemtool\_vendor (v) <br/>
-> systemtool\_model (v) <br/>
-> systemtool\_serial (v) <br/>
-> systemtool\_version (v) <br/>
-
 <br/>
 
 __vw\_calculation__`R`<br/>
@@ -755,7 +840,8 @@ __vw\_calculation__`R`<br/>
 > out_val_edocument_uuid (v) <br/> 
 > calculation_alias_name (v) <br/> 
 > create_date (v) <br/> 
-> status (v) <br/> 
+> calculation_status_uuid (v)
+> calulation_status_description (v) <br/> 
 > actor_descr (v) <br/> 
 > calculation_def_uuid (v) <br/> 
 > short_name (v) <br/>
@@ -770,7 +856,8 @@ __vw\_calculation__`R`<br/>
 > systemtool_version (v) <br/> 
 > actor_uuid (v) <br/> 
 > actor_description (v) <br/>
-
+> add_date (v) <br/>
+> mod_date (v) <br/>
 
 <br/>
 
@@ -788,6 +875,10 @@ __vw\_calculation\_def__`R`<br/>
 > systemtool_version (v) <br/>
 > actor_uuid (v) <br/>
 > actor_description (v) <br/>
+> calculation_def_status_uuid (v) <br/>
+> calculation_def_status_description (v) <br/>
+> add_date (v) <br/>
+> mod_date (v) <br/>
 
 
 <br/>
@@ -803,6 +894,10 @@ __vw\_edocument__`R`<br/>
 > edocument (v) <br/> 
 > actor_uuid (v) <br/> 
 > actor_description (v) <br/>
+> status_uuid (v) <br/>
+> status_description (v) <br/>
+> add_date (v) <br/>
+> mod_date (v) <br/>
 
 
 <br/>
@@ -817,12 +912,14 @@ __vw\_inventory__`R`<br/>
 > create_date (v) <br/>
 > expiration_date (v) <br/>
 > inventory_location (v) <br/>
-> status (v) <br/>
+> status_uuid (v) <br/>
+> status_description (v) <br/>
 > material_uuid (v) <br/>
 > material_description (v) <br/>
 > actor_uuid (v) <br/> 
 > actor_description (v) <br/>
-
+> add_date (v) <br/>
+> mod_date (v) <br/>
 
 <br/>
 
@@ -835,12 +932,13 @@ __vw\_inventory\_material__`R`<br/>
 > inventory_create_date (v) <br/>
 > inventory_expiration_date (v) <br/>
 > inventory_location (v) <br/>
-> inventory_status (v) <br/>
+> inventory_status_uuid (v) <br/>
+> inventory_status_description (v) <br/>
 > actor_uuid (v) <br/>
 > actor_description (v) <br/>
 > org_full_name (v) <br/>
 > material_uuid (v) <br/>
-> material_status (v) <br/>
+> material_status_description (v) <br/>
 > create_date AS material_create_date (v) <br/>
 > chemical_name AS material_name (v) <br/>
 > abbreviation AS material_abbreviation (v) <br/>
@@ -854,7 +952,8 @@ __vw\_inventory\_material__`R`<br/>
 
 __vw\_material__`R`<br/>
 > material_uuid (v) <br/>
-> material_status (v) <br/>
+> material_status_uuid (v) <br/>
+> material_status_description (v) <br/>
 > create_date (v) <br/>
 > Abbreviation (v) <br/>
 > Chemical_Name (v) <br/>
@@ -894,6 +993,8 @@ __vw\_material\_calculation\_raw__`R`<br/>
 > out_val_edocument_uuid (v) <br/>
 > calculation_alias_name (v) <br/>
 > calculation_create_date (v) <br/>
+> calculation_status_uuid (v) <br/>
+> calculation_status_description (v) <br/>
 > status (v) <br/>
 > actor_descr (v) <br/>
 > calculation_def_uuid (v) <br/>
@@ -916,7 +1017,8 @@ __vw\_material\_calculation\_raw__`R`<br/>
 __vw\_material\_raw__`R`<br/>
 > material_uuid (v) <br/>
 > material_description (v) <br/>
-> material_status (v) <br/>
+> material_status_uuid (v) <br/>
+> material_status_description (v) <br/>
 > material_type_description (v) <br/>
 > material_refname_def (v) <br/>
 > material_refname_description (v) <br/>

@@ -1089,7 +1089,7 @@ Description:	returns the count of [+] charges in a SMILES string
 Notes:			if p_mol_smiles is null, will return null (non-count); so you can check for null input
 							
 Example:		select get_charge_count('C1C[NH+]2CC[NH+]1CC2');
-							select get_charge_count(null);
+				select get_charge_count(null);
 */
 -- DROP FUNCTION IF EXISTS get_charge_count (p_mol_smiles varchar) cascade;
 CREATE OR REPLACE FUNCTION get_charge_count (p_mol_smiles varchar)
@@ -1211,11 +1211,11 @@ Description:		trigger proc that deletes, inserts or updates person record based 
 Notes:				
  
 Example:			insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) 
- values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null);
- update vw_person set title = 'Mr', city = 'Some [new] City', zip = '99999', email = 'TesterL@scarythings.xxx' where person_uuid = 
- (select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
- update vw_person set organization_uuid =  (select organization_uuid from organization where organization.full_name = 'Haverford College') where (last_name = 'Tester' and first_name = 'Lester');
- delete from vw_person where person_uuid = (select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
+ 					values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null);
+ 					update vw_person set title = 'Mr', city = 'Some [new] City', zip = '99999', email = 'TesterL@scarythings.xxx' where person_uuid = 
+ 					(select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
+ 					update vw_person set organization_uuid =  (select organization_uuid from organization where organization.full_name = 'Haverford College') where (last_name = 'Tester' and 						first_name = 'Lester');
+ 					delete from vw_person where person_uuid = (select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
  */
 CREATE OR REPLACE FUNCTION upsert_person ()
 	RETURNS TRIGGER
@@ -1274,17 +1274,13 @@ Date:			2020.06.17
 Description:	trigger proc that deletes, inserts or updates systemtool record based on TG_OP (trigger operation)
 Notes:				
  
-Example:		insert into vw_latest_systemtool (systemtool_name, description, systemtool_type_uuid, vendor_organization_uuid, model, serial, ver) 
- values ('MRROBOT', 'MR Robot to you',(select systemtool_type_uuid from vw_systemtool_type where description = 'API'),(select organization_uuid from vw_organization where full_name = 'ChemAxon'),'super duper', null, null);
- update vw_latest_systemtool set serial = 'ABC-1234' where systemtool_uuid = 
- (select systemtool_uuid from vw_latest_systemtool where (systemtool_name = 'MRROBOT'));
- update vw_latest_systemtool set ver = '1.1' where systemtool_uuid = 
- (select systemtool_uuid from vw_latest_systemtool where (systemtool_name = 'MRROBOT'));
- update vw_latest_systemtool set ver = '1.2' where systemtool_uuid = 
- (select systemtool_uuid from vw_latest_systemtool where (systemtool_name = 'MRROBOT'));
- delete from vw_latest_systemtool where systemtool_uuid = (select systemtool_uuid from vw_latest_systemtool where systemtool_name = 'MRROBOT');
- delete from vw_latest_systemtool where systemtool_uuid = (select systemtool_uuid from vw_latest_systemtool where systemtool_name = 'MRROBOT');
- delete from vw_latest_systemtool where systemtool_uuid = (select systemtool_uuid from vw_latest_systemtool where systemtool_name = 'MRROBOT' and ver = '1.1');
+Example:		insert into vw_latest_systemtool (systemtool_name, description, systemtool_type_uuid, vendor_organization_uuid, model, serial, ver) values ('MRROBOT', 'MR Robot to you',(select systemtool_type_uuid from vw_systemtool_type where description = 'API'),(select organization_uuid from vw_organization where full_name = 'ChemAxon'),'super duper', null, null);
+ 				update vw_latest_systemtool set serial = 'ABC-1234' where systemtool_uuid = (select systemtool_uuid from vw_latest_systemtool where (systemtool_name = 'MRROBOT'));
+ 				update vw_latest_systemtool set ver = '1.1' where systemtool_uuid = (select systemtool_uuid from vw_latest_systemtool where (systemtool_name = 'MRROBOT'));
+ 				update vw_latest_systemtool set ver = '1.2' where systemtool_uuid = (select systemtool_uuid from vw_latest_systemtool where (systemtool_name = 'MRROBOT'));
+ 				delete from vw_latest_systemtool where systemtool_uuid = (select systemtool_uuid from vw_latest_systemtool where systemtool_name = 'MRROBOT');
+ 				delete from vw_latest_systemtool where systemtool_uuid = (select systemtool_uuid from vw_latest_systemtool where systemtool_name = 'MRROBOT');
+ 				delete from vw_latest_systemtool where systemtool_uuid = (select systemtool_uuid from vw_latest_systemtool where systemtool_name = 'MRROBOT' and ver = '1.1');
 
  */
 CREATE OR REPLACE FUNCTION upsert_systemtool ()
@@ -1345,7 +1341,7 @@ Description:	trigger proc that deletes, inserts or updates systemtool_type recor
 Notes:				
  
 Example:		insert into vw_systemtool_type (description, notetext) values ('TEST Systemtool Type', null);
- delete from vw_systemtool_type where systemtool_type_uuid = (select systemtool_type_uuid from vw_systemtool_type where (description = 'TEST Systemtool Type'));
+				delete from vw_systemtool_type where systemtool_type_uuid = (select systemtool_type_uuid from vw_systemtool_type where (description = 'TEST Systemtool Type'));
  */
 CREATE OR REPLACE FUNCTION upsert_systemtool_type ()
 	RETURNS TRIGGER
@@ -1379,6 +1375,65 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
+
+
+/*
+Name:				upsert_actor ()
+Parameters:		
+
+Returns:			void
+Author:				G. Cattabriga
+Date:				2020.07.15
+Description:		trigger proc that deletes, inserts or updates actor 
+Notes:				there is going to be a lot of dependencies on actor, so a 'delete' will need a lot of cleanup first; easier to just change status to 'inactive' or something like that
+ 
+Example:			insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) 
+ 					values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null);
+					delete from vw_person where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
+					insert into vw_actor (person_uuid, actor_description, actor_status_uuid) values ((select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester')), 'Lester the Actor', (select status_uuid from vw_status where description = 'active'));
+					insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note for Lester the Actor', (select actor_uuid from vw_actor where person_last_name = 'Tester'), (select actor_uuid from vw_actor where person_last_name = 'Tester'));
+					update vw_actor set actor_description = 'new description for Lester the Actor' where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
+ 					update vw_actor set organization_uuid = (select organization_uuid from vw_organization where full_name = 'Haverford College') where person_uuid = (select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
+					delete from vw_note where note_uuid in (select note_uuid from vw_note where actor_uuid = (select actor_uuid from vw_actor where person_last_name = 'Tester'));
+ 					delete from vw_actor where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
+ */
+CREATE OR REPLACE FUNCTION upsert_actor ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		-- first delete the ornanization record
+		DELETE FROM actor
+		WHERE actor_uuid = OLD.actor_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- then delete the associated note record
+		DELETE FROM vw_note cascade
+		WHERE note_uuid = OLD.actor_uuid;
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			actor
+		SET
+			organization_uuid = NEW.organization_uuid,
+			person_uuid = NEW.person_uuid,
+			systemtool_uuid = NEW.systemtool_uuid,
+			description = NEW.actor_description,
+			status_uuid = NEW.actor_status_uuid,
+			mod_date = now()
+		WHERE
+			actor.actor_uuid = NEW.actor_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO actor (organization_uuid, person_uuid, systemtool_uuid, description, status_uuid)
+			VALUES(NEW.organization_uuid, NEW.person_uuid, NEW.systemtool_uuid, NEW.actor_description, NEW.actor_status_uuid);
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
 
 
 /*

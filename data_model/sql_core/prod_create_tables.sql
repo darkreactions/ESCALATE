@@ -375,6 +375,7 @@ CREATE TABLE calculation_def (
 	out_type val_type,
 	calculation_class_uuid uuid,
 	actor_uuid uuid,
+	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -522,6 +523,7 @@ CREATE TABLE edocument (
 	edoc_type val_type,
 	ver varchar COLLATE "pg_catalog"."default",
 	actor_uuid uuid,
+	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -673,30 +675,24 @@ USING "pk_systemtool_systemtool_type_uuid";
 ALTER TABLE actor
 	ADD CONSTRAINT "pk_actor_uuid" PRIMARY KEY (actor_uuid);
 CREATE UNIQUE INDEX "un_actor" ON actor (coalesce(person_uuid, NULL), coalesce(organization_uuid, NULL), coalesce(systemtool_uuid, NULL));
-
 CLUSTER actor
 USING "pk_actor_uuid";
 
 ALTER TABLE actor_pref
 	ADD CONSTRAINT "pk_actor_pref_uuid" PRIMARY KEY (actor_pref_uuid);
-
 CLUSTER actor_pref
 USING "pk_actor_pref_uuid";
 
 ALTER TABLE experiment
 	ADD CONSTRAINT "pk_experiment_experiment_uuid" PRIMARY KEY (experiment_uuid);
-
 CREATE INDEX "ix_experiment_parent_path" ON experiment
 USING GIST (parent_path);
-
 CREATE INDEX "ix_experiment_parent_uuid" ON experiment (parent_uuid);
-
 CLUSTER experiment
 USING "pk_experiment_experiment_uuid";
 
 ALTER TABLE experiment_inventory
 	ADD CONSTRAINT "pk_experiment_inventory_uuid" PRIMARY KEY (experiment_inventory_uuid);
-
 CLUSTER experiment_inventory
 USING "pk_experiment_inventory_uuid";
 ALTER TABLE experiment_udf
@@ -748,35 +744,30 @@ USING "pk_material_refname_def_material_refname_def_uuid";
 
 ALTER TABLE calculation_class
 	ADD CONSTRAINT "pk_calculation_class_calculation_class_uuid" PRIMARY KEY (calculation_class_uuid);
-
 CLUSTER calculation_class
 USING "pk_calculation_class_calculation_class_uuid";
 
 ALTER TABLE calculation_def
 	ADD CONSTRAINT "pk_calculation_calculation_def_uuid" PRIMARY KEY (calculation_def_uuid),
 		ADD CONSTRAINT "un_calculation_def" UNIQUE (actor_uuid, short_name, calc_definition);
-
 CLUSTER calculation_def
 USING "pk_calculation_calculation_def_uuid";
 
 ALTER TABLE calculation
 	ADD CONSTRAINT "pk_calculation_calculation_uuid" PRIMARY KEY (calculation_uuid),
 		ADD CONSTRAINT "un_calculation" UNIQUE (calculation_def_uuid, in_val, in_opt_val);
-
 CLUSTER calculation
 USING "pk_calculation_calculation_uuid";
 
 ALTER TABLE calculation_eval
 	ADD CONSTRAINT "pk_calculation_eval_calculation_eval_id" PRIMARY KEY (calculation_eval_id),
 		ADD CONSTRAINT "un_calculation_eval" UNIQUE (calculation_def_uuid, in_val, in_opt_val);
-
 CLUSTER calculation_eval
 USING "pk_calculation_eval_calculation_eval_id";
 
 ALTER TABLE inventory
 	ADD CONSTRAINT "pk_inventory_inventory_uuid" PRIMARY KEY (inventory_uuid),
 		ADD CONSTRAINT "un_inventory" UNIQUE (material_uuid, actor_uuid, create_date);
-
 CLUSTER inventory
 USING "pk_inventory_inventory_uuid";
 
@@ -794,81 +785,69 @@ USING "pk_measure_x_measure_x_uuid";
 
 ALTER TABLE measure_type
 	ADD CONSTRAINT "pk_measure_type_measure_type_uuid" PRIMARY KEY (measure_type_uuid);
-
 CLUSTER measure_type
 USING "pk_measure_type_measure_type_uuid";
 
 ALTER TABLE note
 	ADD CONSTRAINT "pk_note_note_uuid" PRIMARY KEY (note_uuid);
-
 CLUSTER note
 USING "pk_note_note_uuid";
 
 ALTER TABLE note_x
 	ADD CONSTRAINT "pk_note_x_note_x_uuid" PRIMARY KEY (note_x_uuid),
 		ADD CONSTRAINT "un_note_x" UNIQUE (ref_note_uuid, note_uuid);
-
 CLUSTER note_x
 USING "pk_note_x_note_x_uuid";
 
 ALTER TABLE edocument
 	ADD CONSTRAINT "pk_edocument_edocument_uuid" PRIMARY KEY (edocument_uuid),
 		ADD CONSTRAINT "un_edocument" UNIQUE (edocument_title, edocument_filename, edocument_source);
-
 CLUSTER edocument
 USING "pk_edocument_edocument_uuid";
 
 ALTER TABLE edocument_x
 	ADD CONSTRAINT "pk_edocument_x_edocument_x_uuid" PRIMARY KEY (edocument_x_uuid),
 		ADD CONSTRAINT "un_edocument_x" UNIQUE (ref_edocument_uuid, edocument_uuid);
-
 CLUSTER edocument_x
 USING "pk_edocument_x_edocument_x_uuid";
 
 ALTER TABLE tag
 	ADD CONSTRAINT "pk_tag_tag_uuid" PRIMARY KEY (tag_uuid),
 		ADD CONSTRAINT "un_tag" UNIQUE (display_text);
-
 CLUSTER tag
 USING "pk_tag_tag_uuid";
 
 ALTER TABLE tag_x
 	ADD CONSTRAINT "pk_tag_x_tag_x_uuid" PRIMARY KEY (tag_x_uuid),
 		ADD CONSTRAINT "un_tag_x" UNIQUE (ref_tag_uuid, tag_uuid);
-
 CLUSTER tag_x
 USING "pk_tag_x_tag_x_uuid";
 
 ALTER TABLE tag_type
 	ADD CONSTRAINT "pk_tag_tag_type_uuid" PRIMARY KEY (tag_type_uuid),
 		ADD CONSTRAINT "un_tag_type" UNIQUE (short_description);
-
 CLUSTER tag_type
 USING "pk_tag_tag_type_uuid";
 
 ALTER TABLE udf
 	ADD CONSTRAINT "pk_udf_udf_uuid" PRIMARY KEY (udf_uuid);
-
 CLUSTER udf
 USING "pk_udf_udf_uuid";
 
 ALTER TABLE udf_x
 	ADD CONSTRAINT "pk_udf_x_udf_x_uuid" PRIMARY KEY (udf_x_uuid),
 		ADD CONSTRAINT "un_udf_x" UNIQUE (ref_udf_uuid, udf_uuid);
-
 CLUSTER udf_x
 USING "pk_udf_x_udf_x_uuid";
 
 ALTER TABLE udf_def
 	ADD CONSTRAINT "pk_udf_udf_def_uuid" PRIMARY KEY (udf_def_uuid),
 		ADD CONSTRAINT "un_udf_def" UNIQUE (description);
-
 CLUSTER udf_def
 USING "pk_udf_udf_def_uuid";
 
 ALTER TABLE status
 	ADD CONSTRAINT "pk_status_status_uuid" PRIMARY KEY (status_uuid);
-
 CLUSTER status
 USING "pk_status_status_uuid";
 
