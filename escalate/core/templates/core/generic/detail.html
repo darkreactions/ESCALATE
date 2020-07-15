@@ -1,0 +1,21 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <h2>{{ title }}</h2>
+    <table class="table table-bordered">
+        <tbody>
+            {% for label, value in table_data.items %}
+            <tr>
+                <td>{{ label }}</td>
+                <td>{{ value }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{{ update_url }}" class="btn btn-primary px-0">
+        <i class="fa fa-edit fa-lg"> Edit</i>
+    </a>
+</div>
+{% endblock %}

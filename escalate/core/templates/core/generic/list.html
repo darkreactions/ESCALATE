@@ -8,7 +8,7 @@
     <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" value="{{filter}}"
         name="filter">
     <button class="btn btn-success my-2 my-sm-0" type="submit">Search</button>
-    <a href="{% url 'inventory_add' %}" class="btn btn-warning mx-2 my-sm-0">Add Inventory</a>
+    <a href="{{ add_url }}" class="btn btn-warning mx-2 my-sm-0">Add {{ title }}</a>
 </form>
 {% endblock %}
 
@@ -17,31 +17,27 @@
     <table class=" table table-bordered">
         <thead>
             <tr>
-
-                <th>Description</th>
-                <th>Status</th>
-                <th>Material</th>
-                <th>On hand amount</th>
-                <th>Actions</th>
+                {% for header in table_columns %}
+                  <th>{{ header }}</th>
+                {% endfor %}
             </tr>
         </thead>
         <tbody>
-            {% for thing in inventory %}
+            {% for row_info in table_data %}
             <tr>
-                <td>{{ thing.inventory_description }}</td>
-                <td>{{ thing.status }}</td>
-                <td>{{ thing.material_uuid }}</td>
-                <td>{{ thing.onhand_amt }} {{ thing.unit }}</td>
-
+                {% for col_data in row_info.table_row_data %}
+                  <td>{{ col_data }}</td>
+                {% endfor %}
                 <td>
-                    <a href="{% url 'inventory_view' pk=thing.pk %}" class="btn text-secondary px-0">
+                    <a href="{{ row_info.view_url }}" class="btn text-secondary px-0">
                         <i class="fa fa-eye"></i>
                     </a>
-                    <a href="{% url 'inventory_update' pk=thing.pk %}" class="btn text-secondary px-0">
+                    </a>
+                    <a href="{{ row_info.update_url }}" class="btn text-secondary px-0">
                         <i class="fa fa-edit fa-lg"></i>
                     </a>
                     <button type="button" class="btn text-secondary px-0" data-toggle="modal" data-target="#deleteModal"
-                        data-description="{{ thing.description }}" data-pk="{{ thing.pk }}">
+                        data-description="{{ row_info.obj_name }}" data-pk="{{ row_info.obj_pk }}">
                         <i class="fa fa-trash fa-lg"></i>
                     </button>
                 </td>
@@ -54,4 +50,4 @@
 </div>
 {% endblock %}
 
-{% block delete_url %}"/inventory/" + pk + "/delete" {% endblock %}
+{% block delete_url %}"/{{ title|lower }}/" + pk + "/delete" {% endblock %}

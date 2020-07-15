@@ -1,0 +1,57 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block add_data %}
+<form class="form-inline my-2 my-lg-0" method="get" action="{% url url_name %}">
+
+    <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" value="{{filter}}"
+        name="filter">
+    <button class="btn btn-success my-2 my-sm-0" type="submit">Search</button>
+    <a href="{% url 'inventory_add' %}" class="btn btn-warning mx-2 my-sm-0">Add Inventory</a>
+</form>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <table class=" table table-bordered">
+        <thead>
+            <tr>
+
+                <th>Description</th>
+                <th>Status</th>
+                <th>Material</th>
+                <th>On hand amount</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for thing in inventory %}
+            <tr>
+                <td>{{ thing.inventory_description }}</td>
+                <td>{{ thing.status }}</td>
+                <td>{{ thing.material_uuid }}</td>
+                <td>{{ thing.onhand_amt }} {{ thing.unit }}</td>
+
+                <td>
+                    <a href="{% url 'inventory_view' pk=thing.pk %}" class="btn text-secondary px-0">
+                        <i class="fa fa-eye"></i>
+                    </a>
+                    <a href="{% url 'inventory_update' pk=thing.pk %}" class="btn text-secondary px-0">
+                        <i class="fa fa-edit fa-lg"></i>
+                    </a>
+                    <button type="button" class="btn text-secondary px-0" data-toggle="modal" data-target="#deleteModal"
+                        data-description="{{ thing.inventory_description }}" data-pk="{{ thing.pk }}">
+                        <i class="fa fa-trash fa-lg"></i>
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+</div>
+{% endblock %}
+
+{% block delete_url %}"/inventory/" + pk + "/delete" {% endblock %}
