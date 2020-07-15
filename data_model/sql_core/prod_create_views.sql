@@ -11,32 +11,6 @@ Notes:
 --=====================================
 -- VIEWS
 --=====================================
-/*
-DROP TABLE IF EXISTS vw_actor cascade;  
-DROP TABLE IF EXISTS vw_calculation cascade; 
-DROP TABLE IF EXISTS vw_calculation_def cascade; 
-DROP TABLE IF EXISTS edocument cascade; 
-DROP TABLE IF EXISTS vw_experiment_measure_calculation cascade; 
-DROP TABLE IF EXISTS vw_experiment_measure_calculation_json cascade; 
-DROP TABLE IF EXISTS vw_inventory cascade; 
-DROP TABLE IF EXISTS vw_inventory_material cascade; 
-DROP TABLE IF EXISTS vw_latest_systemtool cascade; 
-DROP TABLE IF EXISTS vw_latest_systemtool_raw cascade; 
-DROP TABLE IF EXISTS vw_material cascade; 
-DROP TABLE IF EXISTS vw_material_calculation_json cascade; 
-DROP TABLE IF EXISTS vw_material_calculation_raw cascade; 
-DROP TABLE IF EXISTS vw_material_raw cascade;
-DROP TABLE IF EXISTS vw_material_refname_def cascade;
-DROP TABLE IF EXISTS vw_material_type cascade; 
-DROP TABLE IF EXISTS vw_note cascade;
-DROP TABLE IF EXISTS vw_organization cascade;
-DROP TABLE IF EXISTS vw_person cascade;
-DROP TABLE IF EXISTS vw_status cascade;
-DROP TABLE IF EXISTS vw_systemtool_type cascade;
-DROP TABLE IF EXISTS vw_tag cascade;
-DROP TABLE IF EXISTS vw_tag_type cascade;
-DROP TABLE IF EXISTS vw_udf_def cascade;
-*/
 
 ----------------------------------------
 -- view of sys_audit tables trigger on
@@ -288,6 +262,7 @@ SELECT
 	per.person_uuid,
 	st.systemtool_uuid,
 	act.description AS actor_description,
+	sts.status_uuid AS actor_status_uuid,
 	sts.description AS actor_status,
 	org.full_name AS org_full_name,
 	org.short_name AS org_short_name,
@@ -466,6 +441,7 @@ SELECT
 		md.out_val ).v_edocument_uuid AS out_val_edocument_uuid,
 	md.calculation_alias_name,
 	md.create_date,
+	sts.status_uuid AS status_uuid,
 	sts.description AS status,
 	dact.actor_description AS actor_descr,
 	--	md.num_valarray_out,
@@ -533,6 +509,7 @@ CREATE OR REPLACE VIEW vw_material_raw AS
 SELECT
 	mat.material_uuid,
 	mat.description AS material_description,
+	st.status_uuid AS material_status_uuid,
 	st.description AS material_status,
 	get_material_type (
 		mat.material_uuid ) AS material_type_description,
@@ -553,18 +530,19 @@ mr.description;
 
 ----------------------------------------
 -- get materials, all status as a crosstab, with refname types
-DROP VIEW vw_material;
+DROP VIEW vw_material cascade;
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_material AS
 SELECT
 	*
 FROM
 	crosstab (
-		'select material_uuid, material_status, material_create_date, material_description, material_refname_def, material_refname_description
+		'select material_uuid, material_status_uuid, material_status, material_create_date, material_description, material_refname_def, material_refname_description
 				   from vw_material_raw order by 1, 3',
 		'select distinct material_refname_def
-				   from vw_material_raw order by 1' ) AS ct (
+				   from vw_material_raw where material_refname_def is not null order by 1' ) AS ct (
 		material_uuid uuid,
+		material_status_uuid uuid,
 		material_status varchar,
 		create_date timestamptz,
 		material_description varchar,
@@ -584,6 +562,7 @@ FROM
 CREATE OR REPLACE VIEW vw_material_calculation_raw AS
 SELECT
 	mat.material_uuid,
+	mat.material_status_uuid,	
 	mat.material_status,
 	mat.create_date AS material_create_date,
 	mat.abbreviation,
@@ -610,8 +589,8 @@ SELECT
 	cal.out_val_edocument_uuid,
 	cal.calculation_alias_name,
 	cal.create_date AS calculation_create_date,
-	cal.status,
-	cal.actor_descr,
+	cal.status_uuid as calculation_status_uuid,
+	cal.status as calculation_status,
 	cal.calculation_def_uuid,
 	cal.short_name,
 	cal.calc_definition,
@@ -642,6 +621,7 @@ JOIN vw_calculation cal ON vmc.calculation_uuid = cal.calculation_uuid;
 CREATE OR REPLACE VIEW vw_material_calculation_json AS
 SELECT
 	vm.material_uuid,
+	vm.material_status_uuid,
 	vm.material_status,
 	vm.create_date,
 	vm.abbreviation,
@@ -691,6 +671,7 @@ SELECT
 	inv.create_date,
 	inv.expiration_date,
 	inv.inventory_location,
+	st.status_uuid AS status_uuid,
 	st.description AS status,
 	mat.material_uuid,
 	mat.description AS material_description,
@@ -716,11 +697,13 @@ SELECT
 	inv.create_date AS inventory_create_date,
 	inv.expiration_date AS inventory_expiration_date,
 	inv.inventory_location,
+	st.status_uuid AS inventory_status_uuid,	
 	st.description AS inventory_status,
 	inv.actor_uuid,
 	act.actor_description,
 	act.org_full_name,
 	inv.material_uuid,
+	mat.material_status_uuid,
 	mat.material_status,
 	mat.create_date AS material_create_date,
 	mat.chemical_name AS material_name,

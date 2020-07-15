@@ -211,6 +211,19 @@ VALUES
 COMMIT;
 
 -- ----------------------------
+-- Populate measure_type
+-- ----------------------------
+BEGIN;
+INSERT INTO measure_type (description)
+VALUES 
+	('nominal'),
+	('actual'),
+	('derived')
+;
+COMMIT;
+
+
+-- ----------------------------
 -- Populate some Tags
 -- ----------------------------
 BEGIN;

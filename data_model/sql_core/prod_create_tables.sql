@@ -43,6 +43,7 @@ DROP TABLE IF EXISTS experiment cascade;
 DROP TABLE IF EXISTS experiment_inventory cascade;
 DROP TABLE IF EXISTS experiment_udf cascade;
 DROP TABLE IF EXISTS material cascade;
+DROP TABLE IF EXISTS material_x cascade;
 DROP TABLE IF EXISTS material_type cascade;
 DROP TABLE IF EXISTS material_type_x cascade;
 DROP TABLE IF EXISTS material_refname cascade;
@@ -263,7 +264,6 @@ CREATE TABLE experiment_udf (
 ---------------------------------------
 -- Table structure for material
 ---------------------------------------
-
 CREATE TABLE material (
 	material_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default" NOT NULL,
@@ -275,9 +275,20 @@ CREATE TABLE material (
 );
 
 ---------------------------------------
+-- Table structure for material_x
+---------------------------------------
+CREATE TABLE material_x (
+	material_x_uuid uuid DEFAULT uuid_generate_v4 (),
+	ref_material_uuid uuid,
+	material_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
+---------------------------------------
 -- Table structure for material_type_x
 ---------------------------------------
-
 CREATE TABLE material_type_x (
 	material_type_x_uuid uuid DEFAULT uuid_generate_v4 (),
 	material_uuid uuid,
@@ -289,7 +300,6 @@ CREATE TABLE material_type_x (
 ---------------------------------------
 -- Table structure for material_type
 ---------------------------------------
-
 CREATE TABLE material_type (
 	material_type_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default",
@@ -443,6 +453,7 @@ CREATE TABLE measure_x (
 CREATE TABLE measure (
 	measure_uuid uuid DEFAULT uuid_generate_v4 (),
 	measure_type_uuid uuid,
+	description varchar COLLATE "pg_catalog"."default",
 	amount val,
 	unit varchar COLLATE "pg_catalog"."default",
 	actor_uuid uuid,
@@ -457,7 +468,6 @@ CREATE TABLE measure (
 CREATE TABLE measure_type (
 	measure_type_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default",
-	note_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -689,54 +699,50 @@ ALTER TABLE experiment_inventory
 
 CLUSTER experiment_inventory
 USING "pk_experiment_inventory_uuid";
-
 ALTER TABLE experiment_udf
 	ADD CONSTRAINT "pk_experiment_udf_uuid" PRIMARY KEY (experiment_udf_uuid);
-
 CLUSTER experiment_udf
 USING "pk_experiment_udf_uuid";
 
 ALTER TABLE material
 	ADD CONSTRAINT "pk_material_material_uuid" PRIMARY KEY (material_uuid);
-
 CREATE INDEX "ix_material_parent_path" ON material
 USING GIST (parent_path);
-
 CREATE INDEX "ix_material_parent_uuid" ON material (parent_uuid);
-
 CLUSTER material
 USING "pk_material_material_uuid";
 
+ALTER TABLE material_x
+	ADD CONSTRAINT "pk_material_x_material_x_uuid" PRIMARY KEY (material_x_uuid),
+		ADD CONSTRAINT "un_material_x" UNIQUE (material_x_uuid, material_uuid);
+CLUSTER material_x
+USING "pk_material_x_material_x_uuid";
+
 ALTER TABLE material_type
 	ADD CONSTRAINT "pk_material_type_material_type_uuid" PRIMARY KEY (material_type_uuid);
-
 CLUSTER material_type
 USING "pk_material_type_material_type_uuid";
 
 ALTER TABLE material_type_x
 	ADD CONSTRAINT "pk_material_type_x_material_type_x_uuid" PRIMARY KEY (material_type_x_uuid),
 		ADD CONSTRAINT "un_material_type_x" UNIQUE (material_uuid, material_type_uuid);
-
 CLUSTER material_type_x
 USING "pk_material_type_x_material_type_x_uuid";
 
 ALTER TABLE material_refname
 	ADD CONSTRAINT "pk_material_refname_material_refname_uuid" PRIMARY KEY (material_refname_uuid),
 		ADD CONSTRAINT "un_material_refname" UNIQUE (description, material_refname_def_uuid);
-
 CLUSTER material_refname
 USING "pk_material_refname_material_refname_uuid";
 
 ALTER TABLE material_refname_x
 	ADD CONSTRAINT "pk_material_refname_x_material_refname_x_uuid" PRIMARY KEY (material_refname_x_uuid),
 		ADD CONSTRAINT "un_material_refname_x" UNIQUE (material_uuid, material_refname_uuid);
-
 CLUSTER material_refname_x
 USING "pk_material_refname_x_material_refname_x_uuid";
 
 ALTER TABLE material_refname_def
 	ADD CONSTRAINT "pk_material_refname_def_material_refname_def_uuid" PRIMARY KEY (material_refname_def_uuid);
-
 CLUSTER material_refname_def
 USING "pk_material_refname_def_material_refname_def_uuid";
 
@@ -777,14 +783,12 @@ USING "pk_inventory_inventory_uuid";
 ALTER TABLE measure
 	ADD CONSTRAINT "pk_measure_measure_uuid" PRIMARY KEY (measure_uuid),
 		ADD CONSTRAINT "un_measure" UNIQUE (measure_uuid);
-
 CLUSTER measure
 USING "pk_measure_measure_uuid";
 
 ALTER TABLE measure_x
 	ADD CONSTRAINT "pk_measure_x_measure_x_uuid" PRIMARY KEY (measure_x_uuid),
 		ADD CONSTRAINT "un_measure_x" UNIQUE (ref_measure_uuid, measure_uuid);
-
 CLUSTER measure_x
 USING "pk_measure_x_measure_x_uuid";
 
@@ -943,6 +947,8 @@ ALTER TABLE material
 	ADD CONSTRAINT fk_material_material_1 FOREIGN KEY (parent_uuid) REFERENCES material (material_uuid),
 		ADD CONSTRAINT fk_material_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
+ALTER TABLE material_x
+	ADD CONSTRAINT fk_material_x_material_1 FOREIGN KEY (ref_material_uuid) REFERENCES material (material_uuid);
 -- ALTER TABLE material_type DROP CONSTRAINT fk_material_type_note_1;
 -- ALTER TABLE material_type
 --	ADD CONSTRAINT fk_material_type_note_1 FOREIGN KEY (note_uuid) REFERENCES note (note_uuid);

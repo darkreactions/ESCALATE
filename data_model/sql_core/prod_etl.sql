@@ -119,7 +119,7 @@ BEGIN
 	CREATE TEMP TABLE tmp0 (
 		cols varchar ) ON COMMIT DROP;
 	-- fetch 1st row
-	EXECUTE format($$ COPY tmp0 FROM PROGRAM 'head -n1 %I' $$, _csv);
+	EXECUTE format($$COPY tmp0 FROM PROGRAM 'head -n1 %I' $$, _csv);
 	-- create actual temp table with all columns text
 	EXECUTE (
 		SELECT
@@ -143,10 +143,230 @@ BEGIN
 	-- get row count
 	GET DIAGNOSTICS row_ct = ROW_COUNT;
 	RETURN row_ct;
-END
-$func$
+END $func$
 LANGUAGE plpgsql;
 
+
+/*
+Name:			load_experiment_json(_jsondir varchar, _exp_type varchar)
+Parameters:		_jsondir = directory of experimental json files
+				_exp_type = experiment type (e.g. wf1_iodides, wf1_bromides, wf3_alloying, wf3_iodide) 
+Returns:		count of records loaded, or NULL is failed
+Author:			G. Cattabriga
+Date:			2020.07.10
+Description:	loads experiment json into load_exp_json table 
+Notes:			assumes load_exp_json exists with at least the following columns: uid, exp_type, exp_json, add_date 
+Example:		select load_experiment_json ('/Users/gcattabriga/Downloads/GitHub/ESCALATE_report/iodides/', 'wf1_iodides');
+*/
+CREATE OR REPLACE FUNCTION load_experiment_json (_jsondir varchar, _exp_type varchar)
+	RETURNS int
+	AS $$
+DECLARE
+	pathname varchar := _jsondir;  				--'/Users/gcattabriga/escalate_report/TEST_DATA/';
+	filename VARCHAR := null;
+	uid VARCHAR := null;
+	fcontents varchar := null;
+	fullpathname varchar := null;
+	exp_type varchar := _exp_type;
+	row_ct int := 0;
+BEGIN
+	FOR filename IN select pg_ls_dir(pathname) order by 1 LOOP
+		 IF (filename ~ '^.*\.(json)$') THEN
+				fcontents = read_file_utf8(pathname||filename);
+				fullpathname = pathname || filename;
+				uid = left(filename, length(filename) - POSITION('.' in reverse(filename)));
+				insert into "load_exp_json" values (exp_type, uid, cast(fcontents as jsonb), CURRENT_TIMESTAMP);
+				row_ct := row_ct + 1;
+		 END IF;
+	 END LOOP;
+ 	-- get row count
+	RETURN row_ct;
+END $$
+LANGUAGE plpgsql;
+
+
+DROP TABLE IF EXISTS "dev"."load_exp_json";
+CREATE TABLE "dev"."load_exp_json" (
+	"exp_type" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+  "uid" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+  "exp_json" json,
+  "add_dt" timestamptz(6)
+);
+ALTER TABLE "dev"."load_exp_json" ADD CONSTRAINT "load_exp_json_pkey" PRIMARY KEY ("uid");
+
+select load_experiment_json ('/Users/gcattabriga/Downloads/GitHub/ESCALATE_report/wf1_iodides/', 'wf1_iodides');
+select load_experiment_json ('/Users/gcattabriga/Downloads/GitHub/ESCALATE_report/wf1_bromides/', 'wf1_bromides');
+select load_experiment_json ('/Users/gcattabriga/Downloads/GitHub/ESCALATE_report/wf3_iodide/', 'wf3_iodide');
+select load_experiment_json ('/Users/gcattabriga/Downloads/GitHub/ESCALATE_report/wf3_alloying/', 'wf3_alloying');
+
+DROP TABLE load_temp_materials;
+CREATE TABLE load_temp_materials AS
+select x2.uid, x2.lab, x2.actor, x2.exp_date, x2.reagent_no, x2.create_date, 
+	chemical ->> 'InChIKey' as inchikey, 
+	case 
+		when (position('null' in chemical ->> 'actual_amount') = 0) 
+		then left(chemical ->> 'actual_amount', position(':' in chemical ->> 'actual_amount')-1)::float8 
+		else null 
+	end as actual_amt,
+	case 
+		when (position('null' in chemical ->> 'actual_amount') = 0) 
+		then right(chemical ->> 'actual_amount', length(chemical ->> 'actual_amount') - position(':' in chemical ->> 'actual_amount'))
+		else null 
+	end as actual_unit,
+	case 
+		when (position('null' in chemical ->> 'nominal_amount') = 0) 
+		then left(chemical ->> 'nominal_amount', position(':' in chemical ->> 'nominal_amount')-1)::float8 
+		else null 
+	end as nominal_amt,
+	case 
+		when (position('null' in chemical ->> 'nominal_amount') = 0) 
+		then right(chemical ->> 'nominal_amount', length(chemical ->> 'nominal_amount') - position(':' in chemical ->> 'nominal_amount'))
+		else null 
+	end as nominal_unit
+from
+	(select x1.uid, x1.lab, x1.actor,
+		replace(replace(substring(x1.uid, 1, length(x1.uid) - POSITION('_' IN reverse(x1.uid))), 'T', ' '), '_', ':')::timestamp AS exp_date, chemicals -> 'id' as reagent_no, 
+		case when (chemicals ->> 'date') <> 'null' 
+		then to_timestamp((chemicals ->> 'date'),'YYYY-MM-DD hh24:mi:ss')::timestamp 
+		else null 
+		end as create_date, jsonb_array_elements(x1.chemicals -> 'chemicals') as chemical from
+			(select exp_json->'run' ->> 'jobserial' as uid, exp_json->'run' ->> 'lab' as lab, exp_json->'run' ->> 'operator' as actor, 
+					jsonb_array_elements(ex.exp_json ->'reagent') as chemicals from load_exp_json ex) x1) x2;
+
+
+
+-- insert into materials as a parent
+insert into material (description, status_uuid)
+select mm.uid || ': Reagent ' || mm.reagent_no as reagent_descr, (select status_uuid from vw_status where description = 'active') 
+from
+	(select mat.*, act.actor_uuid, vm.material_uuid from load_temp_materials mat 
+	join 
+		(select uid, reagent_no as r_no from load_temp_materials 
+		group by uid, reagent_no 
+		having count(*) > 1) mc
+	on mat.uid = mc.uid and mat.reagent_no = mc.r_no
+	left join vw_material vm 
+	on mat.inchikey = vm.inchikey
+	left join vw_actor act 
+	on mat.actor like act.actor_description
+	where mat.inchikey <> 'null'
+	order by 1, 5) mm
+group by mm.uid || ': Reagent ' || mm.reagent_no
+
+-- insert materials with parents	
+insert into material (description, parent_uuid, status_uuid)
+select mxx.inchikey as description, mxx.parent_uuid, mxx.status_uuid from
+	(select mx.*, mt.material_uuid as parent_uuid from 
+		(select mm.*, mm.uid || ': Reagent ' || mm.reagent_no as reagent_descr, (select status_uuid from vw_status where description = 'active') from
+			(select mat.*, act.actor_uuid from load_temp_materials mat 
+			join 
+				(select uid, reagent_no as r_no from load_temp_materials 
+				group by uid, reagent_no 
+				having count(*) > 1) mc
+			on mat.uid = mc.uid and mat.reagent_no = mc.r_no
+			left join vw_actor act 
+			on mat.actor like act.actor_description
+			where mat.inchikey <> 'null'
+			order by 1, 5) mm) mx 
+	left join material mt on mx.reagent_descr = mt.description) mxx 
+left join vw_material mtt on mxx.inchikey = mtt.inchikey
+
+-- insert materials into material_x
+insert into material (description, parent_uuid, status_uuid)
+select mxx.inchikey as description, mxx.material_uuid, mxx.status_uuid from
+	(select mx.*, mt.material_uuid from 
+		(select mm.*, mm.uid || ': Reagent ' || mm.reagent_no as reagent_descr, (select status_uuid from vw_status where description = 'active') from
+			(select mat.*, act.actor_uuid from load_temp_materials mat 
+			join 
+				(select uid, reagent_no as r_no from load_temp_materials 
+				group by uid, reagent_no 
+				having count(*) = 1 order by 1, 2) mc
+			on mat.uid = mc.uid and mat.reagent_no = mc.r_no
+			left join vw_actor act 
+			on mat.actor like act.actor_description
+			where mat.inchikey <> 'null'
+			order by 1, 5) mm) mx 
+	left join vw_material mt on mx.inchikey = mt.inchikey order by 1, 5) mxx 
+left join vw_material mtt on mxx.inchikey = mtt.inchikey
+
+
+-- insert into measure actual 
+insert into measure (measure_type_uuid, description, amount.v_type, amount.v_num, amount.v_unit, unit, actor_uuid)
+select (select measure_type_uuid from measure_type where description = 'actual') as measure_type_uuid, mxx.material_uuid,'num'::val_type, mxx.actual_amt, mxx.actual_unit as val_unit, mxx.actual_unit, mxx.actor_uuid from
+	(select mx.*, mt.material_uuid from 
+		(select mm.*, mm.uid || ': Reagent ' || mm.reagent_no as reagent_descr, (select status_uuid from vw_status where description = 'active') from
+			(select mat.*, act.actor_uuid from load_temp_materials mat 
+			join 
+				(select uid, reagent_no as r_no from load_temp_materials 
+				group by uid, reagent_no 
+				having count(*) > 1) mc
+			on mat.uid = mc.uid and mat.reagent_no = mc.r_no
+			left join vw_actor act 
+			on mat.actor like act.actor_description
+			where mat.inchikey <> 'null'
+			order by 1, 5) mm) mx 
+	left join material mt on mx.reagent_descr = mt.description) mxx 
+	
+-- insert into measure nominal 
+insert into measure (measure_type_uuid, description, amount.v_type, amount.v_num, amount.v_unit, unit, actor_uuid)
+select (select measure_type_uuid from measure_type where description = 'nominal') as measure_type_uuid, mxx.material_uuid,'num'::val_type, mxx.nominal_amt, mxx.nominal_unit as val_unit, mxx.nominal_unit, mxx.actor_uuid from
+	(select mx.*, mt.material_uuid from 
+		(select mm.*, mm.uid || ': Reagent ' || mm.reagent_no as reagent_descr, (select status_uuid from vw_status where description = 'active') from
+			(select mat.*, act.actor_uuid from load_temp_materials mat 
+			join 
+				(select uid, reagent_no as r_no from load_temp_materials 
+				group by uid, reagent_no 
+				having count(*) > 1) mc
+			on mat.uid = mc.uid and mat.reagent_no = mc.r_no
+			left join vw_actor act 
+			on mat.actor like act.actor_description
+			where mat.inchikey <> 'null'
+			order by 1, 5) mm) mx 
+	left join material mt on mx.reagent_descr = mt.description) mxx 
+
+
+select *, ms.measure_uuid, ms.description, mt.material_uuid from measure ms 
+join material mt on ms.description = mt.material_uuid::text
+where (amount).v_num = 24.89
+where '2017-10-17T16_00_00.000000+00_00_LBL'
+
+select * from measure ms 
+join 
+	(select mt1.material_uuid, mt1.description, mt1.parent_uuid from material mt1 
+	join material mt2 on mt1.parent_uuid = mt2.material_uuid
+	where mt2.description like '%2017-10-17T16_00_00.000000+00_00_LBL%') mtt
+on ms.description = mtt.material_uuid::text
+
+select * from measure where description = '76dd9d8e-3c84-478f-9b0f-0b3e3d2b598e'
+
+
+/*
+
+-- materials with parent
+select mat.*, act.actor_uuid, vm.material_uuid from load_temp_materials mat 
+join 
+	(select uid, reagent_no as r_no from load_temp_materials 
+	group by uid, reagent_no 
+	having count(*) > 1) mc
+on mat.uid = mc.uid and mat.reagent_no = mc.r_no
+left join vw_material vm 
+on mat.inchikey = vm.inchikey
+left join vw_actor act 
+on mat.actor like act.actor_description
+where mat.inchikey <> 'null'
+order by 1, 5
+-- materials with no parent
+select mat.*, vm.material_uuid from load_temp_materials mat 
+join 
+	(select uid, reagent_no as r_no from load_temp_materials 
+	group by uid, reagent_no 
+	having count(*) = 1 order by 1, 2) mp
+on mat.uid = mp.uid and mat.reagent_no = mp.r_no
+left join vw_material vm 
+on mat.inchikey = vm.inchikey
+where mat.inchikey <> 'null'
+order by 1
+*/
 
 /*
 Name:			load_escalate_experiment()
@@ -162,7 +382,7 @@ Example:		select load_csv('/Users/gcattabriga/Downloads/GitHub/ESCALATE_report/i
 */
 CREATE OR REPLACE FUNCTION load_escalate_experiments (_loadtable varchar)
 	RETURNS int
-	AS $func$
+	AS $$
 DECLARE
 	row_ct1 int;
 	row_ct2 int;
@@ -281,7 +501,7 @@ FROM (
 	GET DIAGNOSTICS row_ct2 = ROW_COUNT;
 	RETURN (row_ct1 + row_ct2);
 END
-$func$
+$$
 LANGUAGE plpgsql;
 
 
