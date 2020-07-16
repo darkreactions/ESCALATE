@@ -17,7 +17,7 @@ class InventoryList(GenericListView):
 
     def get_queryset(self):
 
-    # added get_queryset method
+        # added get_queryset method
         filter_val = self.request.GET.get('filter', '')
         ordering = self.request.GET.get('ordering', 'inventory_description')
         # order by description
@@ -31,8 +31,8 @@ class InventoryList(GenericListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        table_columns = ['Description', 'Status', 'Material', 'On Hand Amount'
-                            , 'Actions']
+        table_columns = ['Description', 'Status',
+                         'Material', 'On Hand Amount', 'Actions']
         context['table_columns'] = table_columns
         inventory = context['inventory']
         table_data = []
@@ -48,18 +48,19 @@ class InventoryList(GenericListView):
             # dict containing the data, view and update url, primary key and obj
             # name to use in template
             table_row_info = {
-                    'table_row_data' : table_row_data,
-                    'view_url' : reverse_lazy('inventory_view', kwargs={'pk': item.pk}),
-                    'update_url' : reverse_lazy('inventory_update', kwargs={'pk': item.pk}),
-                    'obj_name' : str(item),
-                    'obj_pk' : item.pk
-                    }
+                'table_row_data': table_row_data,
+                'view_url': reverse_lazy('inventory_view', kwargs={'pk': item.pk}),
+                'update_url': reverse_lazy('inventory_update', kwargs={'pk': item.pk}),
+                'obj_name': str(item),
+                'obj_pk': item.pk
+            }
             table_data.append(table_row_info)
 
         context['add_url'] = reverse_lazy('inventory_add')
         context['table_data'] = table_data
         context['title'] = 'Inventory'
         return context
+
 
 class InventoryEdit:
     template_name = 'core/generic/edit.html'

@@ -1,9 +1,9 @@
 /*
-Name:					prod_update_2_inventory
+Name:			prod_update_2_inventory
 Parameters:		none
 Returns:			
-Author:				G. Cattabriga
-Date:					2020.01.23
+Author:			G. Cattabriga
+Date:			2020.01.23
 Description:	load data from load_hc_inventory, load_lbl_inventory into inventory, measure
 Notes:				
 */

@@ -26,7 +26,8 @@ class ActorList(GenericListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        table_columns = ['Person', 'Organization', 'Systemtool', 'Status', 'Actions']
+        table_columns = ['Person', 'Organization',
+                         'Systemtool', 'Status', 'Actions']
         context['table_columns'] = table_columns
         actors = context['actors']
         table_data = []
@@ -44,12 +45,12 @@ class ActorList(GenericListView):
             # dict containing the data, view and update url, primary key and obj
             # name to use in template
             table_row_info = {
-                    'table_row_data' : table_row_data,
-                    'view_url' : reverse_lazy('actor_view', kwargs={'pk': actor.pk}),
-                    'update_url' : reverse_lazy('actor_update', kwargs={'pk': actor.pk}),
-                    'obj_name' : str(actor),
-                    'obj_pk' : actor.pk
-                    }
+                'table_row_data': table_row_data,
+                'view_url': reverse_lazy('actor_view', kwargs={'pk': actor.pk}),
+                'update_url': reverse_lazy('actor_update', kwargs={'pk': actor.pk}),
+                'obj_name': str(actor),
+                'obj_pk': actor.pk
+            }
             table_data.append(table_row_info)
 
         context['add_url'] = reverse_lazy('actor_add')
@@ -84,7 +85,7 @@ class ActorDelete(DeleteView):
 
 
 class ActorView(DetailView):
-    template_name='core/generic/detail.html'
+    template_name = 'core/generic/detail.html'
     queryset = Actor.objects.select_related()
 
     def get_context_data(self, **kwargs):

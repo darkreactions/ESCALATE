@@ -3,8 +3,11 @@ from django.http import HttpResponse
 from django.views import View
 from django.contrib import messages
 from django.contrib.auth import login, authenticate
+from django.db import transaction, IntegrityError
 
-from ..forms import CustomUserCreationForm, PersonForm, LoginForm
+from core.forms import CustomUserCreationForm, PersonForm, LoginForm
+from core.models.view_tables import Actor, Person
+from core.models.app_tables import CustomUser
 
 # Create your views here.
 
@@ -28,9 +31,9 @@ class LoginView(View):
                 return redirect('main_menu')
             else:
                 messages.error(request, 'Error logging in')
-                return redirect('login')
+                return render(request, self.template_name, {'login_form': login_form})
         else:
-            return redirect('login')
+            return render(request, self.template_name, {'login_form': login_form})
 
 
 class CreateUserView(View):
@@ -47,18 +50,25 @@ class CreateUserView(View):
         person_form = PersonForm(request.POST)
         user_form = CustomUserCreationForm(request.POST)
         print('Person form is valid: {}'.format(person_form.is_valid()))
-        if person_form.is_valid():
-
+        if person_form.is_valid() and user_form.is_valid():
+            print('User form is valid')
             person = person_form.save()
-            user_form.person = person
-            if user_form.is_valid():
-                print('User form is valid')
-                user_form.save()
-                messages.success(request, 'Account created successfully')
-                return redirect('login')
-        else:
-            messages.error(request, 'Error creating user')
+            p = Person.objects.filter(first_name=person.first_name,
+                                      last_name=person.last_name).latest('add_date')
+
+            user = user_form.save(commit=False)
+            user.person = p
+            user.save()
+
+            actor = Actor(person_uuid=p,
+                          actor_description=f'{p.first_name} {p.last_name}')
+            actor.save()
+            messages.success(request, 'Account created successfully')
             return redirect('login')
+
+        else:
+            return render(request, self.template_name, {'person_form': person_form,
+                                                        'user_form': user_form})
 
 
 """

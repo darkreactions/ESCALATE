@@ -28,9 +28,10 @@ psql -d escalate -U escalate -f prod_update_1_material.sql >> rebuild_dev.log 2>
 echo "update inventory..."
 psql -d escalate -U escalate -f prod_update_2_inventory.sql >> rebuild_dev.log 2>&1
 
-echo "update descriptors..."
-psql -d escalate -U escalate -f prod_update_3_descriptor.sql >> rebuild_dev.log 2>&1
+echo "update calculations..."
+psql -d escalate -U escalate -f prod_update_3_calculation.sql >> rebuild_dev.log 2>&1
+
+echo "run ETL..."
+psql -d escalate -U escalate -f prod_etl.sql >> rebuild_dev.log 2>&1
 
 echo "done"
-
-
