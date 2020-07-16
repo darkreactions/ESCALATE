@@ -478,38 +478,6 @@ columns updatable are denoted with a `u`<br/>
 Examples<br/><br/>
 
 
-__vw\_organization__ `CRUD`<br/>
-*upsert\_organization ()*
-> organization\_uuid (v) <br/>
-> description (v u) <br/>
-> full\_name (r v) <br/>
-> short_name (v u) <br/> 
-> address1 (v u) <br/>
-> address2 (v u) <br/>
-> city (v u) <br/>
-> state\_province (v u) <br/> 
-> zip (v u) <br/> 
-> country (v u) <br/> 
-> website\_url (v u) <br/> 
-> phone (v u) <br/> 
-> parent\_uuid (v u) <br/> 
-> parent\_org\_full\_name (v) <br/> 
-> add\_date (v) <br/> 
-> mod\_date (v) <br/>
-
-```
--- insert new record
-insert into vw_organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid) values ('some description here','IBM','IBM','1001 IBM Lane',null,'Some City','NY',null,null,null,null,null);
--- update the description, city and zip columns
-update vw_organization set description = 'some [new] description here', city = 'Some [new] City', zip = '00000' where full_name = 'IBM';
--- update with a parent organization
-update vw_organization set parent_uuid =  (select organization_uuid from organization where organization.full_name = 'Haverford College') where full_name = 'IBM';
--- delete the record (assumes no dependent, referential records); any notes attached to this record are automatically deleted
-delete from vw_organization where full_name = 'IBM';
-```
-
-<br/>
-
 __vw_actor__`CRUD`<br/>
 *upsert\_actor ()*
 > actor\_uuid (v) <br/>
@@ -558,6 +526,39 @@ delete from vw_actor where person_uuid = (select person_uuid from vw_person wher
 -- clean up the 'test' person
 delete from vw_person where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
 ```
+
+<br/>
+
+__vw\_organization__ `CRUD`<br/>
+*upsert\_organization ()*
+> organization\_uuid (v) <br/>
+> description (v u) <br/>
+> full\_name (r v) <br/>
+> short_name (v u) <br/> 
+> address1 (v u) <br/>
+> address2 (v u) <br/>
+> city (v u) <br/>
+> state\_province (v u) <br/> 
+> zip (v u) <br/> 
+> country (v u) <br/> 
+> website\_url (v u) <br/> 
+> phone (v u) <br/> 
+> parent\_uuid (v u) <br/> 
+> parent\_org\_full\_name (v) <br/> 
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+
+```
+-- insert new record
+insert into vw_organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid) values ('some description here','IBM','IBM','1001 IBM Lane',null,'Some City','NY',null,null,null,null,null);
+-- update the description, city and zip columns
+update vw_organization set description = 'some [new] description here', city = 'Some [new] City', zip = '00000' where full_name = 'IBM';
+-- update with a parent organization
+update vw_organization set parent_uuid =  (select organization_uuid from organization where organization.full_name = 'Haverford College') where full_name = 'IBM';
+-- delete the record (assumes no dependent, referential records); any notes attached to this record are automatically deleted
+delete from vw_organization where full_name = 'IBM';
+```
+
 
 <br/>
 
