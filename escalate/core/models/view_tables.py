@@ -16,7 +16,9 @@ class Actor(models.Model):
                                         on_delete=models.DO_NOTHING,
                                         blank=True, null=True, db_column='systemtool_uuid',related_name='+')
     actor_description = models.CharField(max_length=255, blank=True, null=True)
-    actor_status = models.CharField(max_length=255, blank=True, null=True)
+    actor_status_uuid = models.ForeignKey('Status', on_delete=models.DO_NOTHING,
+                            blank=True, null=True, db_column='actor_status_uuid')
+    actor_status_description= models.CharField(max_length=255, blank=True, null=True)
     org_full_name = models.CharField(
         max_length=255, blank=True, null=True, verbose_name='Organization Full Name')
     org_short_name = models.CharField(
@@ -56,8 +58,9 @@ class Inventory(models.Model):
     expiration_date = models.DateTimeField(blank=True, null=True)
     inventory_location = models.CharField(max_length=255,
                                           blank=True, null=True)
-    status = models.CharField(max_length=255,
-                              blank=True, null=True)
+    status_uuid = models.ForeignKey('Status', on_delete=models.DO_NOTHING,
+                            blank=True, null=True, db_column='status_uuid')
+    status_description = models.CharField(max_length=255, blank=True, null=True)
     material_uuid = models.ForeignKey('Material',
                                       models.DO_NOTHING,
                                       db_column='material_uuid',
@@ -67,7 +70,7 @@ class Inventory(models.Model):
     actor_uuid = models.ForeignKey('Actor', models.DO_NOTHING,
                                    db_column='actor_uuid',
                                    blank=True, null=True)
-    description = models.CharField(max_length=255,
+    actor_description = models.CharField(max_length=255,
                                    blank=True, null=True)
 
     class Meta:
@@ -151,9 +154,9 @@ class ViewSystemtoolType(models.Model):
     systemtool_type_uuid = models.UUIDField(primary_key=True,
                                        db_column='systemtool_type_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
-    note_uuid = models.ForeignKey('Note', models.DO_NOTHING,
-                              db_column='note_uuid')
-    notetext = models.CharField(max_length=255, blank=True, null=True)
+    # note_uuid = models.ForeignKey('Note', models.DO_NOTHING,
+    #                           db_column='note_uuid')
+    # notetext = models.CharField(max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -267,7 +270,9 @@ class CalculationDef(models.Model):
 class Material(models.Model):
     material_uuid = models.UUIDField(primary_key=True,
                                      db_column='material_uuid')
-    material_status = models.CharField(max_length=255, blank=True, null=True)
+    material_status_uuid = models.ForeignKey('Status', on_delete=models.DO_NOTHING,
+                            blank=True, null=True, db_column='material_status_uuid')
+    material_status_description = models.CharField(max_length=255, blank=True, null=True)
     create_date = models.DateTimeField()
     abbreviation = models.CharField(
         db_column='abbreviation', max_length=255, blank=True, null=True)

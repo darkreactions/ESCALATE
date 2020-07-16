@@ -85,7 +85,8 @@ class MaterialForm(forms.ModelForm):
     class Meta:
         model = Material
         fields = ['chemical_name', 'abbreviation', 'inchi', 'inchikey',
-                  'molecular_formula', 'smiles', 'create_date', 'material_status']
+                  'molecular_formula', 'smiles', 'create_date',
+                  'material_status_uuid']
         field_classes = {
             'create_date': forms.SplitDateTimeField,
             'abbreviation': forms.CharField,
@@ -93,11 +94,9 @@ class MaterialForm(forms.ModelForm):
             'inchi': forms.CharField,
             'inchikey': forms.CharField,
             'molecular_formula': forms.CharField,
-            'smiles': forms.CharField,
-            'material_status': forms.CharField
+            'smiles': forms.CharField
         }
         labels = {
-            'material_status': 'Status',
             'create_date': 'Create date',
             'abbreviation': 'Abbreviation',
             'chemical_name': 'Chemical name',
@@ -105,7 +104,7 @@ class MaterialForm(forms.ModelForm):
             'inchikey': 'International Chemical Identifier key (InChI key)',
             'molecular_formula': 'Molecular formula',
             'smiles': 'Smiles',
-            'material_status': 'Status'
+            'material_status_uuid': 'Status'
         }
         widgets = {
             'create_date': forms.SplitDateTimeWidget(
@@ -132,21 +131,20 @@ class MaterialForm(forms.ModelForm):
 class InventoryForm(forms.ModelForm):
     class Meta:
         model = Inventory
-        fields = ['material_uuid', 'actor_uuid', 'description', 'part_no',
+        fields = ['material_uuid', 'actor_uuid', 'part_no',
                   'onhand_amt', 'unit', 'create_date', 'expiration_date',
-                  'inventory_location', 'status']
+                  'inventory_location', 'status_uuid']
         field_classes = {
-            'description': forms.CharField,
+            'inventory_description': forms.CharField,
             'part_no': forms.CharField,
             'onhand_amt': forms.DecimalField,
             'unit': forms.CharField,
             'create_date': forms.SplitDateTimeField,
             'expiration_date': forms.SplitDateTimeField,
-            'inventory_location': forms.CharField,
-            'status': forms.CharField
+            'inventory_location': forms.CharField
         }
         labels = {
-            'description': 'Description',
+            'inventory_description': 'Description',
             'material_uuid': 'Material',
             'actor_uuid': 'Actor',
             'part_no': 'Part Number',
@@ -154,11 +152,10 @@ class InventoryForm(forms.ModelForm):
             'unit': 'Unit',
             'create_date': 'Create date',
             'expiration_date': 'Expiration date',
-            'inventory_location': 'Inventory location',
-            'status': 'Status'
+            'inventory_location': 'Inventory location'
         }
         widgets = {
-            'description': forms.Textarea(attrs={'rows': '3',
+            'inventory_description': forms.Textarea(attrs={'rows': '3',
                                                  'cols': '10',
                                                  'placeholder': 'Description'}),
             'part_no': forms.TextInput(attrs={'placeholder': 'Part number'}),
@@ -195,7 +192,7 @@ class ActorForm(forms.ModelForm):
     class Meta:
         model = Actor
         fields = ['person_uuid', 'organization_uuid', 'systemtool_uuid',
-                  'actor_description', 'actor_status']
+                  'actor_description', 'actor_status_uuid']
         field_classes = {
             'actor_description': forms.CharField
         }
@@ -204,7 +201,7 @@ class ActorForm(forms.ModelForm):
             'organization_uuid': 'Organization',
             'systemtool_uuid': 'Systemtool',
             'actor_description': 'Actor description',
-            'actor_status': 'Actor status'
+            'actor_status_uuid': 'Actor status'
         }
         help_texts = {
             'person_uuid': 'Select if actor is a person',
@@ -215,9 +212,7 @@ class ActorForm(forms.ModelForm):
             'actor_description': forms.Textarea(attrs={
                                             'rows': '3',
                                             'cols': '10',
-                                            'placeholder': 'Your description'}),
-            'actor_status': forms.TextInput(attrs={
-                                        'placeholder': 'Ex: Active/Not active'})
+                                            'placeholder': 'Your description'})
         }
 
 

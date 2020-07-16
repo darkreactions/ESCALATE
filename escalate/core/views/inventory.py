@@ -19,11 +19,11 @@ class InventoryList(GenericListView):
 
     # added get_queryset method
         filter_val = self.request.GET.get('filter', '')
-        ordering = self.request.GET.get('ordering', 'description')
+        ordering = self.request.GET.get('ordering', 'inventory_description')
         # order by description
         if filter_val != None:
             new_queryset = self.model.objects.filter(
-                description__icontains=filter_val).select_related().order_by(ordering)
+                inventory_description__icontains=filter_val).select_related().order_by(ordering)
             # filter by decription being a empty/nonempty string
         else:
             new_queryset = self.model.objects.all().select_related().order_by(ordering)
@@ -41,8 +41,8 @@ class InventoryList(GenericListView):
 
             # data for the object we want to display for a row
             table_row_data.append(item.inventory_description)
-            table_row_data.append(item.status)
-            table_row_data.append(item.material_uuid)
+            table_row_data.append(item.status_description)
+            table_row_data.append(item.material_description)
             table_row_data.append(f"{item.onhand_amt} {item.unit}")
 
             # dict containing the data, view and update url, primary key and obj
@@ -96,14 +96,14 @@ class InventoryView(DetailView):
         obj = context['object']
         table_data = {
                 'Inventory description': obj.inventory_description,
-                'Actor description': obj.description,
+                'Actor description': obj.actor_description,
                 'Material description': obj.material_description,
                 'Part Number': obj.part_no,
                 'On Hand Amount': obj.onhand_amt,
                 'Create Date': obj.create_date,
                 'Expiration Date': obj.expiration_date,
                 'Inventory location': obj.inventory_location,
-                'Status': obj.status
+                'Status': obj.status_description
         }
         context['update_url'] = reverse_lazy(
             'inventory_update', kwargs={'pk': obj.pk})

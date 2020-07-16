@@ -36,7 +36,7 @@ class MaterialsList(GenericListView):
             # data for the object we want to display for a row
             table_row_data.append(material.chemical_name)
             table_row_data.append(material.abbreviation)
-            table_row_data.append(material.material_status)
+            table_row_data.append(material.material_status_description)
 
             # dict containing the data, view and update url, primary key and obj
             # name to use in template
@@ -96,7 +96,7 @@ class MaterialView(DetailView):
                 'InChI key': obj.inchikey,
                 'Smiles': obj.smiles,
                 'Create Date': obj.create_date,
-                'Status': obj.material_status
+                'Status': obj.material_status_description
         }
         context['update_url'] = reverse_lazy(
             'material_update', kwargs={'pk': obj.pk})
