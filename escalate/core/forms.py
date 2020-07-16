@@ -12,7 +12,16 @@ class LoginForm(forms.Form):
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = CustomUser
-        fields = ['username', 'password1', 'password2', 'email']
+        fields = ['username', 'password1', 'password2']
+
+
+class NoteForm(forms.ModelForm):
+    class Meta:
+        model = Note
+        fields = ['notetext']
+        widgets = {
+            'notetext': forms.Textarea(attrs={'rows': 3}),
+        }
 
 
 class PersonForm(forms.ModelForm):
@@ -78,12 +87,6 @@ class PersonForm(forms.ModelForm):
             'title': forms.TextInput(attrs={'placeholder': 'Your title'}),
             'suffix': forms.TextInput(attrs={'placeholder': 'Your suffix'})
         }
-
-
-class NoteForm(forms.ModelForm):
-    class Meta:
-        model = Note
-        fields = ['notetext']
 
 
 class MaterialForm(forms.ModelForm):
@@ -202,7 +205,7 @@ class ActorForm(forms.ModelForm):
         model = Actor
         fields = ['person_uuid', 'person_first_name', 'person_last_name',
                   'organization_uuid', 'org_full_name', 'systemtool_uuid',
-                  'systemtool_name', 'actor_description', 'actor_status']
+                  'systemtool_name', 'actor_description', 'actor_status_uuid']
         field_classes = {
             'person_first_name': forms.CharField,
             'org_full_name': forms.CharField,
@@ -218,7 +221,7 @@ class ActorForm(forms.ModelForm):
             'systemtool_uuid': 'Systemtool',
             'systemtool_name': 'Systemtool_name',
             'actor_description': 'Actor description',
-            'actor_status': 'Actor status'
+            'actor_status_uuid': 'Actor status'
         }
         help_texts = {
             'person_first_name': 'Please enter the first name if actor is a person',
@@ -243,8 +246,7 @@ class ActorForm(forms.ModelForm):
                                                 'rows': '3',
                                                 'cols': '10',
                                                 'placeholder': 'Description'}),
-            'actor_status': forms.TextInput(attrs={
-                'placeholder': 'Ex: Active/Not active'})
+
         }
 
 
