@@ -1140,244 +1140,6 @@ LANGUAGE plpgsql;
 
 
 /*
-Name:				upsert_organization ()
-Parameters:		
-
-Returns:			void
-Author:				G. Cattabriga
-Date:				2020.06.16
-Description:		trigger proc that deletes, inserts or updates organization record based on TG_OP (trigger operation)
-Notes:				
-							
-Example:			insert into vw_organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid) 
-								values ('some description here','IBM','IBM','1001 IBM Lane',null,'Some City','NY',null,null,null,null,null);
-					update vw_organization set description = 'some [new] description here', city = 'Some [new] City', zip = '00000' where full_name = 'IBM';
-					update vw_organization set parent_uuid =  (select organization_uuid from organization where organization.full_name = 'Haverford College') where full_name = 'IBM';
-					delete from vw_organization where full_name = 'IBM';
-			
-*/
-CREATE OR REPLACE FUNCTION upsert_organization ()
-	RETURNS TRIGGER
-	AS $$
-BEGIN
-	IF(TG_OP = 'DELETE') THEN
-		-- first delete the ornanization record
-		DELETE FROM organization
-		WHERE full_name = OLD.full_name;
-		IF NOT FOUND THEN
-			RETURN NULL;
-		END IF;
-		-- then delete the associated note record
-		DELETE FROM vw_note
-		WHERE ref_note_uuid = OLD.organization_uuid;
-		RETURN OLD;
-	ELSIF (TG_OP = 'UPDATE') THEN
-		UPDATE
-			organization
-		SET
-			description = NEW.description,
-			short_name = NEW.short_name,
-			address1 = NEW.address1,
-			address2 = NEW.address2,
-			city = NEW.city,
-			state_province = NEW.state_province,
-			zip = NEW.zip,
-			country = NEW.country,
-			website_url = NEW.website_url,
-			phone = NEW.phone,
-			parent_uuid = NEW.parent_uuid,
-			mod_date = now()
-		WHERE
-			organization.full_name = NEW.full_name;
-		RETURN NEW;
-	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid)
-			VALUES(NEW.description, NEW.full_name, NEW.short_name, NEW.address1, NEW.address2, NEW.city, NEW.state_province, NEW.zip, NEW.country, NEW.website_url, NEW.phone, NEW.parent_uuid);
-		RETURN NEW;
-	END IF;
-END;
-$$
-LANGUAGE plpgsql;
-
-
-/*
-Name:				upsert_person ()
-Parameters:		
-
-Returns:			void
-Author:				G. Cattabriga
-Date:				2020.06.17
-Description:		trigger proc that deletes, inserts or updates person record based on TG_OP (trigger operation)
-Notes:				
- 
-Example:			insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) 
- 					values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null);
- 					update vw_person set title = 'Mr', city = 'Some [new] City', zip = '99999', email = 'TesterL@scarythings.xxx' where person_uuid = 
- 					(select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
- 					update vw_person set organization_uuid =  (select organization_uuid from organization where organization.full_name = 'Haverford College') where (last_name = 'Tester' and 						first_name = 'Lester');
- 					delete from vw_person where person_uuid = (select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
- */
-CREATE OR REPLACE FUNCTION upsert_person ()
-	RETURNS TRIGGER
-	AS $$
-BEGIN
-	IF(TG_OP = 'DELETE') THEN
-		-- first delete the ornanization record
-		DELETE FROM person
-		WHERE person_uuid = OLD.person_uuid;
-		IF NOT FOUND THEN
-			RETURN NULL;
-		END IF;
-		-- then delete the associated note record
-		DELETE FROM vw_note
-		WHERE note_uuid = OLD.person_uuid;
-		RETURN OLD;
-	ELSIF (TG_OP = 'UPDATE') THEN
-		UPDATE
-			person
-		SET
-			last_name = NEW.last_name,
-			first_name = NEW.first_name,
-			middle_name = NEW.middle_name,
-			address1 = NEW.address1,
-			address2 = NEW.address2,
-			city = NEW.city,
-			state_province = NEW.state_province,
-			zip = NEW.zip,
-			country = NEW.country,
-			phone = NEW.phone,
-			email = NEW.email,
-			title = NEW.title,
-			suffix = NEW.suffix,
-			organization_uuid = NEW.organization_uuid,
-			mod_date = now()
-		WHERE
-			person.person_uuid = NEW.person_uuid;
-		RETURN NEW;
-	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid)
-			VALUES(NEW.last_name, NEW.first_name, NEW.middle_name, NEW.address1, NEW.address2, NEW.city, NEW.state_province, NEW.zip, NEW.country, NEW.phone, NEW.email, NEW.title, NEW.suffix, NEW.organization_uuid);
-		RETURN NEW;
-	END IF;
-END;
-$$
-LANGUAGE plpgsql;
-
-
-/*
-Name:			upsert_systemtool()
-Parameters:		
-
-Returns:		void
-Author:			G. Cattabriga
-Date:			2020.06.17
-Description:	trigger proc that deletes, inserts or updates systemtool record based on TG_OP (trigger operation)
-Notes:				
- 
-Example:		insert into vw_latest_systemtool (systemtool_name, description, systemtool_type_uuid, vendor_organization_uuid, model, serial, ver) values ('MRROBOT', 'MR Robot to you',(select systemtool_type_uuid from vw_systemtool_type where description = 'API'),(select organization_uuid from vw_organization where full_name = 'ChemAxon'),'super duper', null, null);
- 				update vw_latest_systemtool set serial = 'ABC-1234' where systemtool_uuid = (select systemtool_uuid from vw_latest_systemtool where (systemtool_name = 'MRROBOT'));
- 				update vw_latest_systemtool set ver = '1.1' where systemtool_uuid = (select systemtool_uuid from vw_latest_systemtool where (systemtool_name = 'MRROBOT'));
- 				update vw_latest_systemtool set ver = '1.2' where systemtool_uuid = (select systemtool_uuid from vw_latest_systemtool where (systemtool_name = 'MRROBOT'));
- 				delete from vw_latest_systemtool where systemtool_uuid = (select systemtool_uuid from vw_latest_systemtool where systemtool_name = 'MRROBOT');
- 				delete from vw_latest_systemtool where systemtool_uuid = (select systemtool_uuid from vw_latest_systemtool where systemtool_name = 'MRROBOT');
- 				delete from vw_latest_systemtool where systemtool_uuid = (select systemtool_uuid from vw_latest_systemtool where systemtool_name = 'MRROBOT' and ver = '1.1');
-
- */
-CREATE OR REPLACE FUNCTION upsert_systemtool ()
-	RETURNS TRIGGER
-	AS $$
-BEGIN
-	IF(TG_OP = 'DELETE') THEN
-		-- first delete the ornanization record
-		DELETE FROM systemtool
-		WHERE systemtool_uuid = OLD.systemtool_uuid;
-		IF NOT FOUND THEN
-			RETURN NULL;
-		END IF;
-		-- then delete the associated note record
-		DELETE FROM vw_note
-		WHERE note_uuid = OLD.systemtool_uuid;
-		RETURN OLD;
-	ELSIF (TG_OP = 'UPDATE') THEN
-		-- check to see if it's a version change of the tool. if so, then create a new record
-		if(OLD.ver IS NOT NULL) and(OLD.ver != NEW.ver) THEN
-			INSERT INTO systemtool (systemtool_name, description, systemtool_type_uuid, vendor_organization_uuid, model, serial, ver)
-				VALUES(NEW.systemtool_name, NEW.description, NEW.systemtool_type_uuid, NEW.vendor_organization_uuid, NEW.model, NEW.serial, NEW.ver);
-			RETURN NEW;
-		ELSE
-			UPDATE
-				systemtool
-			SET
-				systemtool_name = NEW.systemtool_name,
-				description = NEW.description,
-				systemtool_type_uuid = NEW.systemtool_type_uuid,
-				vendor_organization_uuid = NEW.vendor_organization_uuid,
-				model = NEW.model,
-				serial = NEW.serial,
-				ver = NEW.ver,
-				mod_date = now()
-			WHERE
-				systemtool.systemtool_uuid = NEW.systemtool_uuid;
-			RETURN NEW;
-		END IF;
-	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO systemtool (systemtool_name, description, systemtool_type_uuid, vendor_organization_uuid, model, serial, ver)
-			VALUES(NEW.systemtool_name, NEW.description, NEW.systemtool_type_uuid, NEW.vendor_organization_uuid, NEW.model, NEW.serial, NEW.ver);
-		RETURN NEW;
-	END IF;
-END;
-$$
-LANGUAGE plpgsql;
-
-
-/*
-Name:			upsert_systemtool_type()
-Parameters:		
-
-Returns:		void
-Author:			G. Cattabriga
-Date:			2020.06.17
-Description:	trigger proc that deletes, inserts or updates systemtool_type record based on TG_OP (trigger operation)
-Notes:				
- 
-Example:		insert into vw_systemtool_type (description, notetext) values ('TEST Systemtool Type', null);
-				delete from vw_systemtool_type where systemtool_type_uuid = (select systemtool_type_uuid from vw_systemtool_type where (description = 'TEST Systemtool Type'));
- */
-CREATE OR REPLACE FUNCTION upsert_systemtool_type ()
-	RETURNS TRIGGER
-	AS $$
-BEGIN
-	IF(TG_OP = 'DELETE') THEN
-		-- first delete the ornanization record
-		DELETE FROM systemtool_type
-		WHERE systemtool_type_uuid = OLD.systemtool_type_uuid;
-		IF NOT FOUND THEN
-			RETURN NULL;
-		END IF;
-		-- then delete the associated note record
-		DELETE FROM vw_note
-		WHERE note_uuid = OLD.systemtool_type_uuid;
-		RETURN OLD;
-	ELSIF (TG_OP = 'UPDATE') THEN
-		UPDATE
-			systemtool_type
-		SET
-			description = NEW.description,
-			mod_date = now()
-		WHERE
-			systemtool_type.systemtool_type_uuid = NEW.systemtool_type_uuid;
-		RETURN NEW;
-	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO systemtool_type (description)
-			VALUES(NEW.description);
-		RETURN NEW;
-	END IF;
-END;
-$$
-LANGUAGE plpgsql;
-
-
-/*
 Name:				upsert_actor ()
 Parameters:		
 
@@ -1428,6 +1190,261 @@ BEGIN
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO actor (organization_uuid, person_uuid, systemtool_uuid, description, status_uuid)
 			VALUES(NEW.organization_uuid, NEW.person_uuid, NEW.systemtool_uuid, NEW.actor_description, NEW.actor_status_uuid);
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+
+/*
+Name:				upsert_organization ()
+Parameters:		
+
+Returns:			void
+Author:				G. Cattabriga
+Date:				2020.06.16
+Description:		trigger proc that deletes, inserts or updates organization record based on TG_OP (trigger operation)
+Notes:				added functionality to insert a NEW organization into a NEW actor
+							
+Example:			-- note: this insert also inserts record into actor
+					insert into vw_organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid) values ('some description here','IBM','IBM','1001 IBM Lane',null,'Some City','NY',null,null,null,null,null);
+					update vw_organization set description = 'some [new] description here', city = 'Some [new] City', zip = '00000' where full_name = 'IBM';
+					update vw_organization set parent_uuid =  (select organization_uuid from organization where organization.full_name = 'Haverford College') where full_name = 'IBM';
+					-- if related actor exists, will not be able to delete
+					delete from vw_organization where full_name = 'IBM';
+					delete from vw_actor where organization_uuid = (select organization_uuid from vw_organization where full_name = 'IBM');
+			
+*/
+CREATE OR REPLACE FUNCTION upsert_organization ()
+	RETURNS TRIGGER
+	AS $$
+DECLARE
+	_org_uuid uuid;
+	_org_description varchar;
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		-- first delete the ornanization record
+		DELETE FROM organization
+		WHERE organization_uuid = OLD.organization_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- then delete the associated note record
+		DELETE FROM vw_note
+		WHERE ref_note_uuid = OLD.organization_uuid;
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			organization
+		SET
+			description = NEW.description,
+			full_name = NEW.full_name,
+			short_name = NEW.short_name,
+			address1 = NEW.address1,
+			address2 = NEW.address2,
+			city = NEW.city,
+			state_province = NEW.state_province,
+			zip = NEW.zip,
+			country = NEW.country,
+			website_url = NEW.website_url,
+			phone = NEW.phone,
+			parent_uuid = NEW.parent_uuid,
+			mod_date = now()
+		WHERE
+			organization.full_name = NEW.full_name;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid) VALUES(NEW.description, NEW.full_name, NEW.short_name, NEW.address1, NEW.address2, NEW.city, NEW.state_province, NEW.zip, NEW.country, NEW.website_url, NEW.phone, NEW.parent_uuid) returning organization_uuid, description into _org_uuid, _org_description;
+		insert into vw_actor (organization_uuid, actor_description, actor_status_uuid) values (_org_uuid, _org_description, (select status_uuid from vw_status where description = 'active'));
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:				upsert_person ()
+Parameters:		
+
+Returns:			void
+Author:				G. Cattabriga
+Date:				2020.06.17
+Description:		trigger proc that deletes, inserts or updates person record based on TG_OP (trigger operation)
+Notes:				added functionality to insert a NEW organization into a NEW actor
+ 
+Example:			-- note: this insert also inserts record into actor
+					insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null);
+ 					update vw_person set title = 'Mr', city = 'Some [new] City', zip = '99999', email = 'TesterL@scarythings.xxx' where person_uuid = 
+ 					(select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
+ 					update vw_person set organization_uuid =  (select organization_uuid from organization where organization.full_name = 'Haverford College') where (last_name = 'Tester' and 						first_name = 'Lester');
+ 					delete from vw_person where person_uuid = (select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
+					delete from vw_actor where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
+ */
+CREATE OR REPLACE FUNCTION upsert_person ()
+	RETURNS TRIGGER
+	AS $$
+DECLARE
+	_person_uuid uuid;
+	_person_first_name varchar;
+	_person_middle_name varchar;
+	_person_last_name varchar;
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		-- first delete the ornanization record
+		DELETE FROM person
+		WHERE person_uuid = OLD.person_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- then delete the associated note record
+		DELETE FROM vw_note
+		WHERE note_uuid = OLD.person_uuid;
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			person
+		SET
+			last_name = NEW.last_name,
+			first_name = NEW.first_name,
+			middle_name = NEW.middle_name,
+			address1 = NEW.address1,
+			address2 = NEW.address2,
+			city = NEW.city,
+			state_province = NEW.state_province,
+			zip = NEW.zip,
+			country = NEW.country,
+			phone = NEW.phone,
+			email = NEW.email,
+			title = NEW.title,
+			suffix = NEW.suffix,
+			organization_uuid = NEW.organization_uuid,
+			mod_date = now()
+		WHERE
+			person.person_uuid = NEW.person_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) VALUES(NEW.last_name, NEW.first_name, NEW.middle_name, NEW.address1, NEW.address2, NEW.city, NEW.state_province, NEW.zip, NEW.country, NEW.phone, NEW.email, NEW.title, NEW.suffix, NEW.organization_uuid) returning person_uuid, first_name, middle_name, last_name  into _person_uuid, _person_first_name, _person_middle_name, _person_last_name;
+		insert into vw_actor (person_uuid, actor_description, actor_status_uuid) values (_person_uuid, trim(concat(_person_first_name,' ',_person_middle_name, ' ', _person_last_name)), (select status_uuid from vw_status where description = 'active'));
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			upsert_systemtool()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.06.17
+Description:	trigger proc that deletes, inserts or updates systemtool record based on TG_OP (trigger operation)
+Notes:			added functionality to insert a NEW organization into a NEW actor
+ 
+Example:		-- note: this insert also inserts record into actor
+				insert into vw_systemtool (systemtool_name, description, systemtool_type_uuid, vendor_organization_uuid, model, serial, ver) values ('MRROBOT', 'MR Robot to you',(select systemtool_type_uuid from vw_systemtool_type where description = 'API'),(select organization_uuid from vw_organization where full_name = 'ChemAxon'),'super duper', null, '1.0');
+ 				update vw_systemtool set serial = 'ABC-1234' where systemtool_uuid = (select systemtool_uuid from vw_systemtool where (systemtool_name = 'MRROBOT'));
+ 				update vw_systemtool set ver = '1.1' where systemtool_uuid = (select systemtool_uuid from vw_systemtool where systemtool_name = 'MRROBOT');
+ 				update vw_systemtool set ver = '1.2' where systemtool_uuid = (select systemtool_uuid from vw_systemtool where systemtool_name = 'MRROBOT' and ver = '1.1');
+ 				delete from actor where systemtool_uuid in (select systemtool_uuid from systemtool where systemtool_name = 'MRROBOT');
+ 				delete from vw_systemtool where systemtool_uuid in (select systemtool_uuid from vw_systemtool where systemtool_name = 'MRROBOT');
+ 				delete from vw_systemtool where systemtool_uuid = (select systemtool_uuid from vw_systemtool where systemtool_name = 'MRROBOT' and ver = '1.1');
+
+ */
+CREATE OR REPLACE FUNCTION upsert_systemtool ()
+	RETURNS TRIGGER
+	AS $$
+DECLARE
+	_systemtool_uuid uuid;
+	_systemtool_description varchar;
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		-- first delete the ornanization record
+		DELETE FROM systemtool
+		WHERE systemtool_uuid = OLD.systemtool_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- then delete the associated note record
+		DELETE FROM vw_note
+		WHERE note_uuid = OLD.systemtool_uuid;
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		-- check to see if it's a version change of the tool. if so, then create a new record
+		if(OLD.ver != NEW.ver) THEN
+			INSERT INTO systemtool (systemtool_name, description, systemtool_type_uuid, vendor_organization_uuid, model, serial, ver) VALUES(NEW.systemtool_name, NEW.description, NEW.systemtool_type_uuid, NEW.vendor_organization_uuid, NEW.model, NEW.serial, NEW.ver) returning systemtool_uuid, description into _systemtool_uuid, _systemtool_description;
+			insert into vw_actor (systemtool_uuid, actor_description, actor_status_uuid) values (_systemtool_uuid, _systemtool_description, (select status_uuid from vw_status where description = 'active'));			
+			RETURN NEW;
+		ELSE
+			UPDATE
+				systemtool
+			SET
+				systemtool_name = NEW.systemtool_name,
+				description = NEW.description,
+				systemtool_type_uuid = NEW.systemtool_type_uuid,
+				vendor_organization_uuid = NEW.vendor_organization_uuid,
+				model = NEW.model,
+				serial = NEW.serial,
+				ver = NEW.ver,
+				mod_date = now()
+			WHERE
+				systemtool.systemtool_uuid = NEW.systemtool_uuid;
+			RETURN NEW;
+		END IF;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO systemtool (systemtool_name, description, systemtool_type_uuid, vendor_organization_uuid, model, serial, ver) VALUES(NEW.systemtool_name, NEW.description, NEW.systemtool_type_uuid, NEW.vendor_organization_uuid, NEW.model, NEW.serial, NEW.ver) returning systemtool_uuid, description into _systemtool_uuid, _systemtool_description;
+		insert into vw_actor (systemtool_uuid, actor_description, actor_status_uuid) values (_systemtool_uuid, _systemtool_description, (select status_uuid from vw_status where description = 'active'));
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			upsert_systemtool_type()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.06.17
+Description:	trigger proc that deletes, inserts or updates systemtool_type record based on TG_OP (trigger operation)
+Notes:				
+ 
+Example:		insert into vw_systemtool_type (description, notetext) values ('TEST Systemtool Type', null);
+				delete from vw_systemtool_type where systemtool_type_uuid = (select systemtool_type_uuid from vw_systemtool_type where (description = 'TEST Systemtool Type'));
+ */
+CREATE OR REPLACE FUNCTION upsert_systemtool_type ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		-- first delete the ornanization record
+		DELETE FROM systemtool_type
+		WHERE systemtool_type_uuid = OLD.systemtool_type_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- then delete the associated note record
+		DELETE FROM vw_note
+		WHERE note_uuid = OLD.systemtool_type_uuid;
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			systemtool_type
+		SET
+			description = NEW.description,
+			mod_date = now()
+		WHERE
+			systemtool_type.systemtool_type_uuid = NEW.systemtool_type_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO systemtool_type (description)
+			VALUES(NEW.description);
 		RETURN NEW;
 	END IF;
 END;

@@ -15,7 +15,7 @@ Notes:			presumes calculation_def has been populated (see initialize tables)
 INSERT INTO calculation_def (short_name, calc_definition, description, in_source, in_type, in_opt_source, in_opt_type, out_type, systemtool_uuid, actor_uuid)
 	select def.short_name, def.calc_definition, def.description, def.in_calc_source, in_type::val_type, def.in_opt_calc_source, in_opt_type::val_type, out_type::val_type, st.systemtool_uuid, (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')
 	from load_perov_desc_def def 
-	left join (select systemtool_uuid, systemtool_name from vw_latest_systemtool) st on def.systemtool_name = st.systemtool_name;
+	left join (select systemtool_uuid, systemtool_name from vw_systemtool) st on def.systemtool_name = st.systemtool_name;
 
 
 -- get the standardized (desalted) SMILES - returns varchar, so put in blob_value with type text
@@ -30,7 +30,7 @@ INSERT INTO calculation (in_val.v_text, in_val.v_type, calculation_def_uuid, out
 	left join 
 		(select *
 		from calculation_def mdd 
-		join vw_latest_systemtool vst 
+		join vw_systemtool vst 
 		on mdd.systemtool_uuid = vst.systemtool_uuid) def 
 	on dsc.descriptor_name = def.short_name
 ON CONFLICT ON CONSTRAINT un_calculation DO UPDATE
@@ -50,7 +50,7 @@ INSERT INTO calculation (in_val.v_text, in_val.v_type, calculation_def_uuid, out
 	left join 
 		(select *
 		from calculation_def mdd 
-		join vw_latest_systemtool vst 
+		join vw_systemtool vst 
 		on mdd.systemtool_uuid = vst.systemtool_uuid) def 
 	on dsc.descriptor_name = def.short_name
 ON CONFLICT ON CONSTRAINT un_calculation DO UPDATE
@@ -85,7 +85,7 @@ INSERT INTO calculation (in_val.v_text, in_val.v_type, calculation_def_uuid, out
 	left join 
 		(select *
 		from calculation_def mdd 
-		join vw_latest_systemtool vst 
+		join vw_systemtool vst 
 		on mdd.systemtool_uuid = vst.systemtool_uuid) def 
 	on dsc.descriptor_name = def.short_name
 ON CONFLICT ON CONSTRAINT un_calculation DO UPDATE
@@ -189,7 +189,7 @@ INSERT INTO calculation (in_val.v_source_uuid, in_val.v_text, in_val.v_type, cal
 	left join 
 		(select *
 		from calculation_def mdd 
-		join vw_latest_systemtool vst 
+		join vw_systemtool vst 
 		on mdd.systemtool_uuid = vst.systemtool_uuid) def 
 	on dsc.descriptor_name = def.short_name
 ON CONFLICT ON CONSTRAINT un_calculation DO UPDATE
@@ -212,7 +212,7 @@ INSERT INTO calculation (in_val.v_int, in_val.v_type, in_val.v_source_uuid, in_o
 	left join 
 		(select *
 		from calculation_def mdd 
-		join vw_latest_systemtool vst 
+		join vw_systemtool vst 
 		on mdd.systemtool_uuid = vst.systemtool_uuid) def 
 	on dsc.descriptor_name = def.short_name
 ON CONFLICT ON CONSTRAINT un_calculation DO UPDATE
@@ -234,7 +234,7 @@ INSERT INTO calculation (in_val.v_int, in_val.v_type, in_val.v_source_uuid, in_o
 	left join 
 		(select *
 		from calculation_def mdd 
-		join vw_latest_systemtool vst 
+		join vw_systemtool vst 
 		on mdd.systemtool_uuid = vst.systemtool_uuid) def 
 	on dsc.descriptor_name = def.short_name
 ON CONFLICT ON CONSTRAINT un_calculation DO UPDATE
@@ -255,7 +255,7 @@ INSERT INTO calculation (in_val.v_text, in_val.v_type, in_val.v_source_uuid, cal
 	left join 
 		(select *
 		from calculation_def mdd 
-		join vw_latest_systemtool vst 
+		join vw_systemtool vst 
 		on mdd.systemtool_uuid = vst.systemtool_uuid) def 
 	on dsc.descriptor_name = def.short_name
 ON CONFLICT ON CONSTRAINT un_calculation DO UPDATE

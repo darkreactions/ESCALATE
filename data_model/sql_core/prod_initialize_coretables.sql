@@ -285,7 +285,7 @@ BEGIN;
 insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('Motto: Non doctior, sed meliore doctrina imbutus (Not more learned, but steeped in a higher learning)', 
 	(select actor_uuid from vw_actor where person_last_name = 'Cattabriga'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'));
 insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('https://docs.chemaxon.com/display/docs/cxcalc_command_line_tool.html', 
-	(select actor_uuid from vw_actor where person_last_name = 'Cattabriga'), (select systemtool_uuid from vw_latest_systemtool where systemtool_name = 'cxcalc'));
+	(select actor_uuid from vw_actor where person_last_name = 'Cattabriga'), (select systemtool_uuid from vw_systemtool where systemtool_name = 'cxcalc'));
 COMMIT;
 
 

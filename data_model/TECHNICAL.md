@@ -442,8 +442,7 @@ vw_experiment_measure_calculation
 vw_experiment_measure_calculation_json
 vw_inventory
 vw_inventory_material
-vw_latest_systemtool
-vw_latest_systemtool_raw
+vw_systemtool
 vw_material
 vw_material_calculation_json
 vw_material_calculation_raw
@@ -511,92 +510,6 @@ delete from vw_organization where full_name = 'IBM';
 
 <br/>
 
-__vw\_person__ `CRUD`<br/>
-*upsert\_person ()*
-> person\_uuid (v) <br/>
-> first\_name (v u) <br/>
-> last\_name (v u) <br/>
-> middle\_name (v u) <br/> 
-> address1 (v u) <br/>
-> address2 (v u) <br/>
-> city (v u) <br/>
-> state\_province (v u) <br/> 
-> zip (v u) <br/> 
-> country (v u) <br/> 
-> phone (v u) <br/> 
-> email (v u) <br/> 
-> title (v u) <br/> 
-> suffix (v u) <br/> 
-> organization\_uuid (v u) <br/> 
-> organization\_full\_name (v) <br/> 
-> add\_date (v) <br/> 
-> mod\_date (v) <br/>
-
-```
--- insert new person record
-insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null);
--- update title, city, zip and email columns
-update vw_person set title = 'Mr', city = 'Some [new] City', zip = '99999', email = 'TesterL@scarythings.xxx' where person_uuid = (select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
--- update associated organization
-update vw_person set organization_uuid =  (select organization_uuid from organization where organization.full_name = 'Haverford College') where (last_name = 'Tester' and first_name = 'Lester');
--- delete record; any notes attached to this record are automatically deleted
-delete from vw_person where person_uuid = (select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
-```
-<br/>
-
-__vw\_latest_systemtool__`CRUD`<br/>
-*upsert\_systemtool ()*
-> systemtool\_uuid (v) <br/>
-> systemtool\_name (v u) <br/>
-> description (v u) <br/>
-> systemtool\_type\_uuid (v u)
-> systemtool\_type\_description (v)
-> vendor\_organization\_uuid (v u) <br/> 
-> organization\_fullname (v) <br/>
-> model (v u) <br/>
-> serial (v u) <br/>
-> ver (v u) <br/> 
-> add\_date (v) <br/> 
-> mod\_date (v) <br/>
-
-```
--- insert new systemtool; note, no ver[sion]
-insert into vw_latest_systemtool (systemtool_name, description, systemtool_type_uuid, vendor_organization_uuid, model, serial, ver) values ('MRROBOT', 'MR Robot to you',(select systemtool_type_uuid from vw_systemtool_type where description = 'API'),(select organization_uuid from vw_organization where full_name = 'ChemAxon'),'super duper', null, null);
--- update serial column
-update vw_latest_systemtool set serial = 'ABC-1234' where systemtool_uuid = 
- (select systemtool_uuid from vw_latest_systemtool where (systemtool_name = 'MRROBOT'));
- -- update ver[sion]
-update vw_latest_systemtool set ver = '1.1' where systemtool_uuid = 
- (select systemtool_uuid from vw_latest_systemtool where (systemtool_name = 'MRROBOT'));
--- *** update record with new version, but forced to insert a copy with new ver[sion] ***
-update vw_latest_systemtool set ver = '1.2' where systemtool_uuid = 
- (select systemtool_uuid from vw_latest_systemtool where (systemtool_name = 'MRROBOT'));
--- delete [latest] version = 1.2; any notes attached to this record are automatically deleted
-delete from vw_latest_systemtool where systemtool_uuid = (select systemtool_uuid from vw_latest_systemtool where systemtool_name = 'MRROBOT');
--- delete [latest] version = 1.1; any notes attached to this record are automatically deleted
-delete from vw_latest_systemtool where systemtool_uuid = (select systemtool_uuid from vw_latest_systemtool where systemtool_name = 'MRROBOT');
-```
-
-
-<br/>
-
-__vw\_systemtool_type__`CRUD`<br/>
-*upsert\_systemtool\_type ()*
-> systemtool\_type\_uuid (v) <br/>
-> description (v u) <br/>
-> add\_date (v) <br/> 
-> mod\_date (v) <br/>
-
-```
--- insert new systemtool_type record
-insert into vw_systemtool_type (description) values ('TEST Systemtool Type');
--- update systemtool_type
-update vw_systemtool_type set description = 'TEST Systemtool Type w/ extra features';
--- delete systemtool_type; any notes attached to this record are automatically deleted
-delete from vw_systemtool_type where systemtool_type_uuid = (select systemtool_type_uuid from vw_systemtool_type where (description = 'TEST Systemtool Type'));
-```
-<br/>
-
 __vw_actor__`CRUD`<br/>
 *upsert\_actor ()*
 > actor\_uuid (v) <br/>
@@ -623,6 +536,7 @@ __vw_actor__`CRUD`<br/>
 > systemtool\_version (v) <br/>
 
 `**NOTE: actor will typically have many dependencies (e.g. experiments, workflows, inventory) so deleting may be impractical. In that case do a status change (e.g. inactive)`
+`**NOTE: new actor record will be created on person, organization, systemtool insert`
 
 ```
 -- first create a 'test' person that will become the actor
@@ -645,10 +559,94 @@ delete from vw_actor where person_uuid = (select person_uuid from vw_person wher
 delete from vw_person where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
 ```
 
+<br/>
 
+__vw\_person__ `CRUD`<br/>
+*upsert\_person ()*
+> person\_uuid (v) <br/>
+> first\_name (v u) <br/>
+> last\_name (r v) <br/>
+> middle\_name (v u) <br/> 
+> address1 (v u) <br/>
+> address2 (v u) <br/>
+> city (v u) <br/>
+> state\_province (v u) <br/> 
+> zip (v u) <br/> 
+> country (v u) <br/> 
+> phone (v u) <br/> 
+> email (v u) <br/> 
+> title (v u) <br/> 
+> suffix (v u) <br/> 
+> organization\_uuid (v u) <br/> 
+> organization\_full\_name (v) <br/> 
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+
+```
+-- insert new person record; also adds actor record related to this person
+insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null);
+-- update title, city, zip and email columns
+update vw_person set title = 'Mr', city = 'Some [new] City', zip = '99999', email = 'TesterL@scarythings.xxx' where person_uuid = (select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
+-- update associated organization
+update vw_person set organization_uuid =  (select organization_uuid from organization where organization.full_name = 'Haverford College') where (last_name = 'Tester' and first_name = 'Lester');
+-- delete record; any notes attached to this record are automatically deleted - note that actor must be deleted first
+delete from vw_actor where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
+delete from vw_person where person_uuid = (select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
+```
+<br/>
+
+__vw\_systemtool__`CRUD`<br/>
+*upsert\_systemtool ()*
+> systemtool\_uuid (v) <br/>
+> systemtool\_name (r v u) <br/>
+> description (v u) <br/>
+> systemtool\_type\_uuid (v u)
+> systemtool\_type\_description (v)
+> vendor\_organization\_uuid (v u) <br/> 
+> organization\_fullname (v) <br/>
+> model (v u) <br/>
+> serial (v u) <br/>
+> ver (r v u) <br/> 
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+
+```
+-- insert new systemtool; note, ver[sion] is required
+insert into vw_systemtool (systemtool_name, description, systemtool_type_uuid, vendor_organization_uuid, model, serial, ver) values ('MRROBOT', 'MR Robot to you',(select systemtool_type_uuid from vw_systemtool_type where description = 'API'),(select organization_uuid from vw_organization where full_name = 'ChemAxon'),'super duper', null, '1.0');
+-- update serial column
+update vw_systemtool set serial = 'ABC-1234' where systemtool_uuid = 
+ (select systemtool_uuid from vw_systemtool where (systemtool_name = 'MRROBOT'));
+-- *** update record with new version, but forced to insert a copy with new ver[sion] and create a new actor ***
+update vw_systemtool set ver = '1.1' where systemtool_uuid = 
+ (select systemtool_uuid from vw_systemtool where (systemtool_name = 'MRROBOT'));
+-- delete [latest] version = 1.1; any notes attached to this record are automatically deleted - note that actor must be deleted first
+delete from actor where systemtool_uuid = (select systemtool_uuid from vw_systemtool where systemtool_name = 'MRROBOT' and ver = '1.1');
+delete from vw_systemtool where systemtool_uuid = (select systemtool_uuid from vw_systemtool where systemtool_name = 'MRROBOT' and ver = '1.1');
+-- delete version = 1.0; any notes attached to this record are automatically deleted - note that actor must be deleted first
+delete from actor where systemtool_uuid = (select systemtool_uuid from vw_systemtool where systemtool_name = 'MRROBOT' and ver = '1.1');
+delete from vw_systemtool where systemtool_uuid = (select systemtool_uuid from vw_systemtool where systemtool_name = 'MRROBOT' and ver = '1.0');
+```
 
 
 <br/>
+
+__vw\_systemtool_type__`CRUD`<br/>
+*upsert\_systemtool\_type ()*
+> systemtool\_type\_uuid (v) <br/>
+> description (v u) <br/>
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+
+```
+-- insert new systemtool_type record
+insert into vw_systemtool_type (description) values ('TEST Systemtool Type');
+-- update systemtool_type
+update vw_systemtool_type set description = 'TEST Systemtool Type w/ extra features';
+-- delete systemtool_type; any notes attached to this record are automatically deleted
+delete from vw_systemtool_type where systemtool_type_uuid = (select systemtool_type_uuid from vw_systemtool_type where (description = 'TEST Systemtool Type'));
+```
+<br/>
+
 
 __vw\_tag__`CRUD`<br/>
 *upsert\_tag ()*

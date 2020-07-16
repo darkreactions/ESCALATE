@@ -328,7 +328,7 @@ EXECUTE PROCEDURE upsert_systemtool_type ( );
 -- get most recent version of a systemtool in raw format
 -- return all columns from the systemtool table
 ----------------------------------------
-CREATE OR REPLACE VIEW vw_latest_systemtool_raw AS
+CREATE OR REPLACE VIEW vw_systemtool_raw AS
 SELECT
 	stl.*
 FROM
@@ -349,7 +349,7 @@ FROM
 			-- st.systemtool_type_uuid,
 			-- st.vendor_organization_uuid,
 			-- st.note_uuid
-) mrs ON stl.systemtool_name = mrs.systemtool_name and stl.ver = mrs.ver;
+		) mrs ON stl.systemtool_name = mrs.systemtool_name and stl.ver = mrs.ver;
 --	AND stl.systemtool_type_uuid = mrs.systemtool_type_uuid
 --	AND stl.vendor_organization_uuid = mrs.vendor_organization_uuid
 --	AND stl.ver = mrs.ver;
@@ -359,7 +359,7 @@ FROM
 -- get most recent version of a systemtool
 -- return all columns from actor table
 ----------------------------------------
-CREATE OR REPLACE VIEW vw_latest_systemtool AS
+CREATE OR REPLACE VIEW vw_systemtool AS
 SELECT
 	vst.systemtool_uuid,
 	vst.systemtool_name,
@@ -374,16 +374,16 @@ SELECT
 	vst.add_date,
 	vst.mod_date
 FROM
-	vw_latest_systemtool_raw vst
+	systemtool vst
 LEFT JOIN organization org ON vst.vendor_organization_uuid = org.organization_uuid
 LEFT JOIN systemtool_type stt ON vst.systemtool_type_uuid = stt.systemtool_type_uuid
 ;
 
 
-DROP TRIGGER IF EXISTS trigger_systemtool_upsert ON vw_latest_systemtool;
+DROP TRIGGER IF EXISTS trigger_systemtool_upsert ON vw_systemtool;
 CREATE TRIGGER trigger_systemtool_upsert INSTEAD OF INSERT
 OR UPDATE
-OR DELETE ON vw_latest_systemtool
+OR DELETE ON vw_systemtool
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_systemtool ( );
 
@@ -413,7 +413,7 @@ SELECT
 FROM
 	calculation_def mdd
 LEFT JOIN vw_actor act ON mdd.actor_uuid = act.actor_uuid
-LEFT JOIN vw_latest_systemtool st ON mdd.systemtool_uuid = st.systemtool_uuid
+LEFT JOIN vw_systemtool st ON mdd.systemtool_uuid = st.systemtool_uuid
 LEFT JOIN systemtool_type stt ON st.systemtool_type_uuid = stt.systemtool_type_uuid
 LEFT JOIN organization org ON st.vendor_organization_uuid = org.organization_uuid
 LEFT JOIN status sts ON mdd.status_uuid = sts.status_uuid;

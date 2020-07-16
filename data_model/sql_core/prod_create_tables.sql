@@ -172,7 +172,7 @@ CREATE TABLE systemtool (
   vendor_organization_uuid uuid,
   model varchar COLLATE "pg_catalog"."default",
   serial varchar COLLATE "pg_catalog"."default",
-  ver varchar COLLATE "pg_catalog"."default",
+  ver varchar COLLATE "pg_catalog"."default" NOT NULL,
   add_date timestamptz NOT NULL DEFAULT NOW(),
   mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -658,6 +658,7 @@ USING "pk_organization_organization_uuid";
 
 ALTER TABLE person
 	ADD CONSTRAINT "pk_person_person_uuid" PRIMARY KEY (person_uuid);
+CREATE UNIQUE INDEX "un_person" ON person (coalesce(last_name, NULL), coalesce(first_name, NULL), coalesce(middle_name, NULL));
 CLUSTER person
 USING "pk_person_person_uuid";
 
