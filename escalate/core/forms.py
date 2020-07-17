@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from core.models import (CustomUser, Person, Material, Inventory, Actor, Note, Organization, LatestSystemtool,
-                         ViewSystemtoolType, UdfDef, Status, Tag, TagType, MaterialType)
+                         SystemtoolType, UdfDef, Status, Tag, TagType, MaterialType)
 
 
 class LoginForm(forms.Form):
@@ -32,19 +32,19 @@ class PersonForm(forms.ModelForm):
                   'phone', 'email', 'title', 'suffix', 'organization_uuid']
         field_classes = {
 
-                'first_name': forms.CharField,
-                'middle_name': forms.CharField,
-                'last_name': forms.CharField,
-                'address1': forms.CharField,
-                'address2': forms.CharField,
-                'city': forms.CharField,
-                'state_province': forms.CharField,
-                'zip': forms.CharField,
-                'country': forms.CharField,
-                'phone': forms.CharField,
-                'email': forms.EmailField,
-                'title': forms.CharField,
-                'suffix': forms.CharField
+            'first_name': forms.CharField,
+            'middle_name': forms.CharField,
+            'last_name': forms.CharField,
+            'address1': forms.CharField,
+            'address2': forms.CharField,
+            'city': forms.CharField,
+            'state_province': forms.CharField,
+            'zip': forms.CharField,
+            'country': forms.CharField,
+            'phone': forms.CharField,
+            'email': forms.EmailField,
+            'title': forms.CharField,
+            'suffix': forms.CharField
 
         }
 
@@ -164,8 +164,8 @@ class InventoryForm(forms.ModelForm):
         }
         widgets = {
             'inventory_description': forms.Textarea(attrs={'rows': '3',
-                                                 'cols': '10',
-                                                 'placeholder': 'Description'}),
+                                                           'cols': '10',
+                                                           'placeholder': 'Description'}),
 
             'part_no': forms.TextInput(attrs={'placeholder': 'Part number'}),
             'onhand_amt': forms.NumberInput(attrs={'value': '0.01',
@@ -222,9 +222,9 @@ class ActorForm(forms.ModelForm):
         widgets = {
 
             'actor_description': forms.Textarea(attrs={
-                                            'rows': '3',
-                                            'cols': '10',
-                                            'placeholder': 'Your description'})
+                'rows': '3',
+                'cols': '10',
+                'placeholder': 'Your description'})
 
         }
 
@@ -246,7 +246,7 @@ class OrganizationForm(forms.ModelForm):
             'zip': forms.CharField,
             'country': forms.CharField,
             'website_url': forms.URLField,
-            'phone' : forms.CharField
+            'phone': forms.CharField
 
         }
         labels = {
@@ -260,9 +260,6 @@ class OrganizationForm(forms.ModelForm):
             'zip': 'Zip',
             'country': 'Country',
             'website_url': 'Website URL',
-
-            'phone' : 'Phone',
-            'parent_uuid' : 'Parent Organization'
             'phone': 'Phone',
             'parent_uuid': 'Parent Organization',
             'parent_org_full_name': 'Parent Organization full name'
@@ -316,7 +313,7 @@ class LatestSystemtoolForm(forms.ModelForm):
 
 class SystemtoolTypeForm(forms.ModelForm):
     class Meta:
-        model = ViewSystemtoolType
+        model = SystemtoolType
         fields = ['description']
         labels = {
             'description': 'Description'
@@ -345,12 +342,11 @@ class StatusForm(forms.ModelForm):
 class TagForm(forms.ModelForm):
     class Meta:
         model = Tag
-        fields = ['display_text', 'tag_type_uuid', 'actor_uuid', 'notetext']
+        fields = ['display_text', 'tag_type_uuid', 'actor_uuid']
         labels = {
             'description': 'Description',
             'tag_type_uuid': 'Tag Type',
             'actor_uuid': 'Actor',
-            'notetext': 'Note'
         }
 
 

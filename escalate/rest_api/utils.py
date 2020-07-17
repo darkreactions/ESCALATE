@@ -21,7 +21,7 @@ def camel_case_uuid(text):
 
 view_names = ['Systemtool', 'SystemtoolType', 'Actor', 'Inventory', 'InventoryMaterial',
               'LatestSystemtool', 'Calculation', 'CalculationDef',
-              'Material', 'MaterialCalculationJson', 'MaterialRefnameType',
+              'Material', 'MaterialCalculationJson', 'MaterialRefnameDef',
               'MaterialType', 'Note', 'Organization', 'Person',
               'Status', 'Tag', 'TagType']
 

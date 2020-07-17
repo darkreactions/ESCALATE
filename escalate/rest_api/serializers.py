@@ -55,7 +55,7 @@ class EdocumentSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = core.models.Edocument
         fields = ('edocument_uuid', 'title', 'description', 'filename',
-                  'source', 'type', 'download_link', 'actor', 'actor_description')
+                  'source', 'type', 'download_link', 'actor_uuid', 'actor_description')
 
     def get_download_link(self, obj):
         result = '{}'.format(reverse('edoc_download',

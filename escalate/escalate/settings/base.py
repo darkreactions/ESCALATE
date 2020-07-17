@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     # 'django_filters',
     'rest_api',
     'crispy_forms',
+    'rest_framework_swagger',
 ]
 
 MIDDLEWARE = [
@@ -137,7 +138,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         # 'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     ],
-    'DEFAULT_FILTER_BACKENDS': ['url_filter.integrations.drf.DjangoFilterBackend'],
+    # 'DEFAULT_FILTER_BACKENDS': ['url_filter.integrations.drf.DjangoFilterBackend'],
+    # 'DEFAULT_FILTER_BACKENDS': ['rest_api.filter_backend.CustomDjangoFilterBackend'],
+    'DEFAULT_FILTER_BACKENDS': ['url_filter.integrations.drf_coreapi.CoreAPIURLFilterBackend'],
     # 'django_filters.rest_framework.DjangoFilterBackend'
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 100,

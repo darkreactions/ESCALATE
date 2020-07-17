@@ -14,3 +14,5 @@ pyyaml
 uritemplate
 coreapi
 django-url-filter
+django-rest-swagger
+coreschema

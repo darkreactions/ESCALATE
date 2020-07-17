@@ -16,10 +16,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 import rest_framework
+from rest_framework.schemas import get_schema_view
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('core.urls')),
-    path('api/', include('rest_api.urls')),
+    path('', include('rest_api.urls')),
 ]

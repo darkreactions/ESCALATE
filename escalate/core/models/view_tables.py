@@ -17,11 +17,12 @@ class Actor(models.Model):
     systemtool_uuid = models.ForeignKey('Systemtool',
                                         on_delete=models.DO_NOTHING,
 
-                                        blank=True, null=True, db_column='systemtool_uuid',related_name='+')
+                                        blank=True, null=True, db_column='systemtool_uuid', related_name='+')
     actor_description = models.CharField(max_length=255, blank=True, null=True)
     actor_status_uuid = models.ForeignKey('Status', on_delete=models.DO_NOTHING,
-                            blank=True, null=True, db_column='actor_status_uuid')
-    actor_status_description= models.CharField(max_length=255, blank=True, null=True)
+                                          blank=True, null=True, db_column='actor_status_uuid')
+    actor_status_description = models.CharField(
+        max_length=255, blank=True, null=True)
     org_full_name = models.CharField(
         max_length=255, blank=True, null=True, verbose_name='Organization Full Name')
     org_short_name = models.CharField(
@@ -70,8 +71,9 @@ class Inventory(models.Model):
     inventory_location = models.CharField(max_length=255,
                                           blank=True, null=True)
     status_uuid = models.ForeignKey('Status', on_delete=models.DO_NOTHING,
-                            blank=True, null=True, db_column='status_uuid')
-    status_description = models.CharField(max_length=255, blank=True, null=True)
+                                    blank=True, null=True, db_column='status_uuid')
+    status_description = models.CharField(
+        max_length=255, blank=True, null=True)
     material_uuid = models.ForeignKey('Material',
                                       models.DO_NOTHING,
                                       db_column='material_uuid',
@@ -82,8 +84,7 @@ class Inventory(models.Model):
                                    db_column='actor_uuid',
                                    blank=True, null=True)
     actor_description = models.CharField(max_length=255,
-                                   blank=True, null=True)
-
+                                         blank=True, null=True)
 
     class Meta:
         managed = False
@@ -105,7 +106,11 @@ class InventoryMaterial(models.Model):
     inventory_expiration_date = models.DateTimeField(blank=True, null=True)
     inventory_location = models.CharField(
         max_length=255, blank=True, null=True)
-    inventory_status = models.CharField(max_length=255, blank=True, null=True)
+    inventory_status = models.ForeignKey('Status', models.DO_NOTHING,
+                                         db_column='inventory_status_uuid',
+                                         blank=True, null=True, related_name='inventory_status')
+    inventory_status_description = models.CharField(
+        max_length=255, blank=True, null=True)
 
     actor_uuid = models.ForeignKey('Actor', models.DO_NOTHING,
                                    db_column='actor_uuid',
@@ -115,7 +120,11 @@ class InventoryMaterial(models.Model):
     material_uuid = models.ForeignKey('Material', models.DO_NOTHING,
                                       db_column='material_uuid',
                                       blank=True, null=True)
-    material_status = models.CharField(max_length=255, blank=True, null=True)
+    material_status = models.ForeignKey('Status', models.DO_NOTHING,
+                                        db_column='material_status_uuid',
+                                        blank=True, null=True, related_name='material_status')
+    material_status_description = models.CharField(
+        max_length=255, blank=True, null=True)
     material_create_date = models.DateTimeField()
     material_name = models.CharField(max_length=255, blank=True, null=True)
     material_abbreviation = models.CharField(
@@ -163,14 +172,10 @@ class LatestSystemtool(models.Model):
         return "{}".format(self.systemtool_name)
 
 
-class ViewSystemtoolType(models.Model):
-    systemtool_type_uuid = models.UUIDField(primary_key=True,
-                                            db_column='systemtool_type_uuid')
+class SystemtoolType(models.Model):
+    #systemtool_type_id = models.BigAutoField()
+    systemtool_type_uuid = models.UUIDField(primary_key=True)
     description = models.CharField(max_length=255, blank=True, null=True)
-    # note_uuid = models.ForeignKey('Note', models.DO_NOTHING,
-    #                           db_column='note_uuid')
-    # notetext = models.CharField(max_length=255, blank=True, null=True)
-
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -179,7 +184,7 @@ class ViewSystemtoolType(models.Model):
         db_table = 'vw_systemtool_type'
 
     def __str__(self):
-        return "{}".format(self.description)
+        return self.description
 
 
 class Calculation(models.Model):
@@ -215,10 +220,12 @@ class Calculation(models.Model):
     calculation_alias_name = models.CharField(
         max_length=255, blank=True, null=True)
     create_date = models.DateTimeField(blank=True, null=True)
-    status = models.CharField(max_length=255, blank=True, null=True)
+    calculation_status = models.ForeignKey('Status',
+                                           models.DO_NOTHING,
+                                           db_column='calculation_status_uuid',)
+    calculation_status_description = models.CharField(max_length=255,
+                                                      blank=True, null=True)
     actor_descr = models.CharField(max_length=255, blank=True, null=True)
-    notetext = models.CharField(max_length=255, blank=True, null=True)
-
     calculation_def = models.ForeignKey('CalculationDef',
                                         models.DO_NOTHING,
                                         blank=True, null=True,
@@ -285,8 +292,9 @@ class Material(models.Model):
     material_uuid = models.UUIDField(primary_key=True,
                                      db_column='material_uuid')
     material_status_uuid = models.ForeignKey('Status', on_delete=models.DO_NOTHING,
-                            blank=True, null=True, db_column='material_status_uuid')
-    material_status_description = models.CharField(max_length=255, blank=True, null=True)
+                                             blank=True, null=True, db_column='material_status_uuid')
+    material_status_description = models.CharField(
+        max_length=255, blank=True, null=True)
     create_date = models.DateTimeField()
     abbreviation = models.CharField(
         db_column='abbreviation', max_length=255, blank=True, null=True)
@@ -312,7 +320,9 @@ class Material(models.Model):
 class MaterialCalculationJson(models.Model):
     material_uuid = models.UUIDField(primary_key=True,
                                      db_column='material_uuid')
-    material_status = models.CharField(max_length=255, blank=True, null=True)
+    material_status_uuid = models.UUIDField()
+    material_status_description = models.CharField(
+        max_length=255, blank=True, null=True)
     create_date = models.DateTimeField()
     abbreviation = models.CharField(
         db_column='abbreviation', max_length=255, blank=True, null=True)
@@ -336,14 +346,15 @@ class MaterialCalculationJson(models.Model):
         return "{}".format(self.chemical_name)
 
 
-class MaterialRefnameType(models.Model):
-    material_refname_type_uuid = models.UUIDField(primary_key=True)
+class MaterialRefnameDef(models.Model):
+    material_refname_def_uuid = models.UUIDField(primary_key=True)
     description = models.CharField(max_length=255, blank=True, null=True)
-    notetext = models.CharField(max_length=255, blank=True, null=True)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
-        db_table = 'vw_material_refname_type'
+        db_table = 'vw_material_refname_def'
 
     def __str__(self):
         return "{}".format(self.description)
@@ -483,11 +494,6 @@ class Tag(models.Model):
                                    db_column='actor_uuid',
                                    blank=True, null=True)
     actor_description = models.CharField(max_length=255, blank=True, null=True)
-
-    note_uuid = models.ForeignKey('Note', models.DO_NOTHING,
-                                  db_column='note_uuid',
-                                  blank=True, null=True)
-    notetext = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False

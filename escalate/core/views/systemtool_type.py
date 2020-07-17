@@ -2,13 +2,13 @@ from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
 
-from core.models import ViewSystemtoolType
+from core.models import SystemtoolType
 from core.forms import SystemtoolTypeForm
 from core.views.menu import GenericListView
 
 
 class SystemtoolTypeList(GenericListView):
-    model = ViewSystemtoolType
+    model = SystemtoolType
     template_name = 'core/systemtool_type/systemtool_type_list.html'
     context_object_name = 'systemtool_types'
     paginate_by = 10
@@ -24,9 +24,10 @@ class SystemtoolTypeList(GenericListView):
             new_queryset = self.model.objects.all()
         return new_queryset
 
+
 class SystemtoolTypeEdit:
     template_name = 'core/systemtool_type/systemtool_type_edit.html'
-    model = ViewSystemtoolType
+    model = SystemtoolType
     form_class = SystemtoolTypeForm
     success_url = reverse_lazy('systemtool_type_list')
 
@@ -40,10 +41,10 @@ class SystemtoolTypeUpdate(SystemtoolTypeEdit, UpdateView):
 
 
 class SystemtoolTypeDelete(DeleteView):
-    model = ViewSystemtoolType
+    model = SystemtoolType
     success_url = reverse_lazy('systemtool_type_list')
 
 
 class SystemtoolTypeView(DetailView):
-    model = ViewSystemtoolType
+    model = SystemtoolType
     template_name = 'core/systemtool_type/systemtool_type_detail.html'
