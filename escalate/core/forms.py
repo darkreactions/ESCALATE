@@ -270,7 +270,7 @@ class OrganizationForm(forms.ModelForm):
         }
         widgets = {
             'full_name': forms.TextInput(attrs={
-                'placeholder': 'Ex: Some Full Organization Name',
+                'placeholder': 'Ex: Some Full Organization Name'
             }),
             'short_name': forms.TextInput(attrs={
                 'placeholder': 'Ex: S.F.O.N'}),
@@ -302,12 +302,41 @@ class OrganizationForm(forms.ModelForm):
 class LatestSystemtoolForm(forms.ModelForm):
     class Meta:
         model = LatestSystemtool
-        fields = ['systemtool_name', 'description', 'vendor_organization_uuid',
-                  'systemtool_type_uuid', 'model', 'serial']
+        fields = ['systemtool_name', 'description', 'systemtool_type_uuid',
+                  'vendor_organization_uuid', 'model', 'serial', 'ver']
+        field_classes = {
+            'systemtool_name': forms.CharField,
+            'description': forms.CharField,
+            'model': forms.CharField,
+            'serial': forms.CharField,
+            'ver': forms.CharField
+        }
         labels = {
-            'systemtool_name': 'System Tool Name',
-            'vendor_organization_uuid': 'Organization',
-            'systemtool_type_uuid': 'System Tool'
+            'systemtool_name': 'System tool name',
+            'description': 'Description',
+            'model': 'Model',
+            'serial': 'Serial number',
+            'ver': 'Version',
+            'systemtool_type_uuid': 'System tool type',
+            'vendor_organization_uuid': 'Vendor Organization'
+        }
+       # help_texts = {
+      #  }
+        widgets = {
+            'systemtool_name': forms.TextInput(attrs={
+                'placeholder': 'Ex: Command Line'
+            }),
+            'description': forms.Textarea(attrs={
+                'cols': '10',
+                'rows': '3',
+                'placeholder': 'Your system tool description'
+            }),
+            'model': forms.TextInput(attrs={
+                'placeholder': 'Ex: left to be done'}),
+            'serial': forms.TextInput(attrs={
+                'placeholder': 'Your system tool serial number Ex:Y291325'}),
+            'ver': forms.TextInput(attrs={
+                'placeholder': 'Your system tool current version Ex: 1.06'}),
         }
 
 
@@ -318,15 +347,34 @@ class SystemtoolTypeForm(forms.ModelForm):
         labels = {
             'description': 'Description'
         }
+        widgets = {
+            'description': forms.Textarea(attrs={
+                'cols': '10',
+                'rows': '3',
+                'placeholder': 'Your system tool type description'
+            })
+        }
 
 
 class UdfDefForm(forms.ModelForm):
     class Meta:
         model = UdfDef
-        fields = ['description', 'notetext']
+        fields = ['description', 'valtype']
         labels = {
             'description': 'Description',
-            'notetext': 'Note Text'
+            'valtype': 'Value type'
+        }
+        CHOICES = (('1','int'),('2','array_int'),('3','num'),('4','array_num'),
+                   ('5','text'),('6','array_text'),('7','blob_text'),('8','blob_svg'),
+                   ('9','blob_jpg'),('10','blob_png'),('11','blob_xrd'))
+        widgets = {
+            'description': forms.Textarea(attrs={
+                'cols': '10',
+                'rows': '3',
+                'placeholder': 'Your system tool type description'
+            }),
+            'valtype': forms.Select(attrs={
+                'placeholder': 'Ex: text, image'}, choices =CHOICES )
         }
 
 
@@ -335,28 +383,54 @@ class StatusForm(forms.ModelForm):
         model = Status
         fields = ['description']
         labels = {
-            'description': 'Description',
+            'description': 'Status Description'
+        }
+        widgets = {
+            'description': forms.Textarea(attrs={
+                'cols': '10',
+                'rows': '3',
+                'placeholder': 'Your status description'
+            })
         }
 
 
 class TagForm(forms.ModelForm):
     class Meta:
         model = Tag
-        fields = ['display_text', 'tag_type_uuid', 'actor_uuid']
+        fields = ['display_text','description','actor_uuid','tag_type_uuid']
         labels = {
-            'description': 'Description',
-            'tag_type_uuid': 'Tag Type',
-            'actor_uuid': 'Actor',
+            'display_text':'Tag Name',
+            'description':'Tag Description',
+            'actor_uuid':'Actor',
+            'tag_type_uuid':'Tag Type Name'
+        }
+        widgets = {
+            'display_text': forms.TextInput(attrs={
+                'placeholder': 'Enter your name of the tag Ex: acid'}),
+            'description': forms.Textarea(attrs={
+                'cols': '10',
+                'rows': '3',
+                'placeholder': 'Detail description for your tag type'
+            })
         }
 
 
 class TagTypeForm(forms.ModelForm):
     class Meta:
         model = TagType
-        fields = ['short_description', 'description']
+        fields = ['short_description','description']
         labels = {
-            'short_description': 'Short Description',
-            'description': 'Description'
+            'short_description': 'Tag Type Short Description',
+            'description':'Tag Type Long Description'
+        }
+        widgets = {
+            'short_description': forms.TextInput(attrs={
+                'placeholder': 'Enter your name of the tag type'}),
+            'description': forms.Textarea(attrs={
+                'cols': '10',
+                'rows': '3',
+                'placeholder': 'Detail description for your tag type'
+            })
         }
 
 
