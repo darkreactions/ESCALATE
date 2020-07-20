@@ -7,16 +7,19 @@
 <div class="container">
     <div class="col-md-6 offset-md-3">
         <h3> {{ title }} </h3>
+        <a href="#last">Jump to the end </a>
+
         <form method="post">{% csrf_token %}
             {{ form|crispy }}
+            {{ note_forms.management_form }}
             {% for f in note_forms %}
             {{ f|crispy }}
             {% endfor %}
-            {{ note_forms.management_form }}
-            <input class="btn btn-primary text-center" type="submit" value="Submit">
+            <button type="submit" name="add_note" value="add_note" class="btn btn-primary">Update</button>
+            <input class="btn btn-primary text-center" type="submit" name="Submit" value="Submit">
         </form>
+        <a id="last"></a>
     </div>
 </div>
-
 
 {% endblock %}

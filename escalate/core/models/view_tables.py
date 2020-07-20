@@ -386,6 +386,7 @@ class Note(models.Model):
     edocument_type = models.CharField(max_length=255, blank=True, null=True)"""
     actor_uuid = models.ForeignKey('Actor', models.DO_NOTHING,
                                    db_column='actor_uuid')
+    note_x_uuid = models.ForeignKey('Note_x',models.DO_NOTHING,db_column='note_x_uuid')
     actor_description = models.CharField(max_length=255, blank=True, null=True)
     ref_note_uuid = models.UUIDField()
 
@@ -396,6 +397,21 @@ class Note(models.Model):
     def __str__(self):
         return "{}".format(self.notetext)
 
+class Note_x(models.Model):
+    note_x_uuid = models.UUIDField(primary_key=True)
+
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
+    note_uuid = models.ForeignKey('Note', models.DO_NOTHING,
+                                   db_column='note_uuid')
+    ref_note_uuid = models.UUIDField()
+
+    class Meta:
+        managed = False
+        db_table = 'note_x'
+
+    def __str__(self):
+        return "{}".format(self.note_uuid)
 
 class Organization(models.Model):
     organization_uuid = models.UUIDField(primary_key=True)

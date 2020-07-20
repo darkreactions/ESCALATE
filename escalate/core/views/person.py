@@ -1,29 +1,28 @@
 from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
-
+from django.http import HttpResponse
 from core.models import Person, Note, Actor, CustomUser
 from core.forms import PersonForm, NoteForm
 from core.views.menu import GenericListView
 from django.forms import modelformset_factory
+from django.shortcuts import get_object_or_404
 
 
 class PersonList(GenericListView):
     model = Person
-    #template_name = 'core/person/person_list.html'
     template_name = 'core/generic/list.html'
     context_object_name = 'persons'
     paginate_by = 10
 
     def get_queryset(self):
-        # return self.model.objects.all()
-        # filter_val = self.request.GET.get('filter', '')
-        # ordering = self.request.GET.get('ordering', 'lastname')
-        # if filter_val != None:
-        #     new_queryset = self.model.objects.filter(
-        #         lastname__icontains=filter_val).select_related().order_by(ordering)
-        # else:
-        new_queryset = self.model.objects.all()
+        filter_val = self.request.GET.get('filter', '')
+        ordering = self.request.GET.get('ordering', 'first_name')
+        if filter_val != None:
+            new_queryset = self.model.objects.filter(
+                first_name__icontains=filter_val).select_related().order_by(ordering)
+        else:
+            new_queryset = self.model.objects.all()
         return new_queryset
 
     def get_context_data(self, **kwargs):
@@ -61,14 +60,15 @@ class PersonList(GenericListView):
         return context
 
 
-class PersonEdit:
+class PersonEdit():
     template_name = 'core/generic/edit_note.html'
     model = Person
     context_object_name = 'person'
     form_class = PersonForm
     #form_class_list = [PersonForm, NoteForm]
     success_url = reverse_lazy('person_list')
-    NoteFormSet = modelformset_factory(Note, form=NoteForm)
+    NoteFormSet = modelformset_factory(Note, form=NoteForm,can_delete=True)
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -93,9 +93,18 @@ class PersonEdit:
                     note.actor_uuid = actor
                     # Get the appropriate uuid of the record being changed.
                     # Conveniently in this case its person, but we need to figure out an alternative
-                    note.ref_note_uuid = request.user.person.pk
+                    #note.ref_note_uuid = request.user.person.pk
+                    person = get_object_or_404(Person, pk=self.kwargs['pk'])
+                    note.ref_note_uuid = person.pk
                     note.save()
-
+        # Delete each note we marked in the formset
+        for obj in formset.deleted_objects:
+            obj.delete()
+        # Choose which website we are redirected to
+        if request.POST.get("Submit"):
+            self.success_url = reverse_lazy('person_list')
+        if request.POST.get('add_note'):
+            self.success_url = reverse_lazy('person_update',kwargs={'pk': person.pk})
         return super().post(request, *args, **kwargs)
 
 
