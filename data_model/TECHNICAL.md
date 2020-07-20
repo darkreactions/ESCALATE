@@ -435,6 +435,7 @@ Below are a list of the views with high-level description, followed by column na
 ```
 sys_audit_tableslist
 vw_actor
+vw_actor_pref
 vw_calculation
 vw_calculation_def
 vw_edocument
@@ -505,6 +506,7 @@ __vw_actor__`CRUD`<br/>
 
 `**NOTE: actor will typically have many dependencies (e.g. experiments, workflows, inventory) so deleting may be impractical. In that case do a status change (e.g. inactive)`
 `**NOTE: new actor record will be created on person, organization, systemtool insert`
+`**NOTE: delete vw_actor will automatically delete all related actor_pref records`
 
 ```
 -- first create a 'test' person that will become the actor
@@ -526,6 +528,27 @@ delete from vw_actor where person_uuid = (select person_uuid from vw_person wher
 -- clean up the 'test' person
 delete from vw_person where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
 ```
+
+<br/>
+
+__vw\_actor\_pref__ `CRUD`<br/>
+*upsert\_actor_pref ()*
+> actor\_pref\_uuid (v) <br/>
+> actor\_uuid (r v) <br/>
+> pkey (r v u) <br/>
+> pvalue (v u) <br/> 
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+
+```
+insert into vw_actor_pref (actor_uuid, pkey, pvalue) values ((select actor_uuid from vw_actor where person_last_name = 'Tester'), 'test_key', 'test_value');
+update vw_actor_pref set pvalue = 'new_new_test_value' where actor_pref_uuid = (select actor_pref_uuid from vw_actor_pref where actor_uuid = (select actor_uuid from vw_actor where actor_description = 'Lester Fester Tester') and pkey = 'test_key');
+delete from vw_actor_pref where actor_pref_uuid = (select actor_pref_uuid from vw_actor_pref where actor_uuid = (select actor_uuid from vw_actor where actor_description = 'Lester Fester Tester'));
+
+```
+
+
+
 
 <br/>
 

@@ -608,7 +608,7 @@ CREATE TABLE udf_def (
 
 CREATE TABLE status (
 	status_uuid uuid DEFAULT uuid_generate_v4 (),
-	description varchar COLLATE "pg_catalog"."default",
+	description varchar COLLATE "pg_catalog"."default" NOT NULL,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -848,7 +848,8 @@ CLUSTER udf_def
 USING "pk_udf_udf_def_uuid";
 
 ALTER TABLE status
-	ADD CONSTRAINT "pk_status_status_uuid" PRIMARY KEY (status_uuid);
+	ADD CONSTRAINT "pk_status_status_uuid" PRIMARY KEY (status_uuid),
+			ADD CONSTRAINT "un_status" UNIQUE (description);;
 CLUSTER status
 USING "pk_status_status_uuid";
 

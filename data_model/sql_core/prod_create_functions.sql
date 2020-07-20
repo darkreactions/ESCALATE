@@ -273,6 +273,9 @@ SELECT audit_table('person');
 SELECT audit_table('organization');
 SELECT audit_table('systemtool');
 SELECT audit_table('systemtool_type');
+SELECT audit_table('actor');
+SELECT audit_table('edocument');
+SELECT audit_table('edocument_x');
 SELECT audit_table('note_x');
 SELECT audit_table('note');
 SELECT audit_table('tag_type');
@@ -280,6 +283,7 @@ SELECT audit_table('tag_x');
 SELECT audit_table('tag');
 SELECT audit_table('udf_def');
 SELECT audit_table('udf');
+
 
 
 /*
@@ -906,16 +910,16 @@ LANGUAGE plpgsql;
 
 
 /*
-Name:					get_chemaxon_version ()
+Name:			get_chemaxon_version ()
 Parameters:		p_systemtool_uuid = identifier (uuid) of the chemaxon [software] tool
-							p_actor_uuid = identifier (uuid) of the actor performing the calculation: this references the relevant software directories in order to run the CLI tool
-Returns:			version as TEXT
-Author:				G. Cattabriga
-Date:					2020.02.12
+				p_actor_uuid = identifier (uuid) of the actor performing the calculation: this references the relevant software directories in order to run the CLI tool
+Returns:		version as TEXT
+Author:			G. Cattabriga
+Date:			2020.02.12
 Description:	returns the version for the specified chemaxon tool in string format 
 Notes:				
 							
-Example:			select get_chemaxon_version((select systemtool_uuid from systemtool where systemtool_name = 'generatemd'), (select actor_uuid from actor where description = 'Gary Cattabriga')); (returns the version for cxcalc for actor GC) 
+Example:		select get_chemaxon_version((select systemtool_uuid from systemtool where systemtool_name = 'generatemd'), (select actor_uuid from actor where description = 'Gary Cattabriga')); (returns the version for cxcalc for actor GC) 
 */
 -- DROP FUNCTION IF EXISTS get_chemaxon_version ( p_systemtool_uuid int8, p_actor_uuid uuid ) cascade;
 CREATE OR REPLACE FUNCTION get_chemaxon_version ( p_systemtool_uuid uuid, p_actor_uuid uuid ) RETURNS TEXT AS $$ 
@@ -1156,6 +1160,7 @@ Example:			insert into vw_person (last_name, first_name, middle_name, address1, 
 					insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note for Lester the Actor', (select actor_uuid from vw_actor where person_last_name = 'Tester'), (select actor_uuid from vw_actor where person_last_name = 'Tester'));
 					update vw_actor set actor_description = 'new description for Lester the Actor' where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
  					update vw_actor set organization_uuid = (select organization_uuid from vw_organization where full_name = 'Haverford College') where person_uuid = (select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
+					delete from vw_actor where actor_uuid in (select actor_uuid from vw_actor where actor_description = 'Lester the Actor');
 					delete from vw_note where note_uuid in (select note_uuid from vw_note where actor_uuid = (select actor_uuid from vw_actor where person_last_name = 'Tester'));
  					delete from vw_actor where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
  */
@@ -1164,7 +1169,10 @@ CREATE OR REPLACE FUNCTION upsert_actor ()
 	AS $$
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
-		-- first delete the ornanization record
+		-- first delete all the actor_pref records
+		DELETE FROM vw_actor_pref cascade
+		WHERE actor_uuid = OLD.actor_uuid;
+		-- then delete the actor record
 		DELETE FROM actor
 		WHERE actor_uuid = OLD.actor_uuid;
 		IF NOT FOUND THEN
@@ -1190,6 +1198,55 @@ BEGIN
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO actor (organization_uuid, person_uuid, systemtool_uuid, description, status_uuid)
 			VALUES(NEW.organization_uuid, NEW.person_uuid, NEW.systemtool_uuid, NEW.actor_description, NEW.actor_status_uuid);
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			upsert_actor_pref()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.07.20
+Description:	trigger proc that deletes, inserts or updates actor_pref record based on TG_OP (trigger operation)
+Notes:				
+ 
+Example:		insert into vw_actor_pref (actor_uuid, pkey, pvalue) values ((select actor_uuid from vw_actor where person_last_name = 'Tester'), 'test_key', 'test_value');
+ 				update vw_actor_pref set pvalue = 'new_new_test_value' where actor_pref_uuid = (select actor_pref_uuid from vw_actor_pref where actor_uuid = (select actor_uuid from vw_actor where actor_description = 'Lester Fester Tester') and pkey = 'test_key');
+ 				delete from vw_actor_pref where actor_pref_uuid = (select actor_pref_uuid from vw_actor_pref where actor_uuid = (select actor_uuid from vw_actor where actor_description = 'Lester Fester Tester'));
+ */
+CREATE OR REPLACE FUNCTION upsert_actor_pref ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		-- first delete the actor_pref record
+		DELETE FROM actor_pref
+		WHERE actor_pref_uuid = OLD.actor_pref_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- then delete the associated note record
+		DELETE FROM vw_note
+		WHERE note_uuid = OLD.actor_pref_uuid;
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			actor_pref
+		SET
+			pkey = NEW.pkey,
+			pvalue = NEW.pvalue,
+			mod_date = now()
+		WHERE
+			actor_pref.actor_pref_uuid = NEW.actor_pref_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO actor_pref (actor_uuid, pkey, pvalue)
+			VALUES(NEW.actor_uuid, NEW.pkey, NEW.pvalue);
 		RETURN NEW;
 	END IF;
 END;
@@ -1415,7 +1472,7 @@ Date:			2020.06.17
 Description:	trigger proc that deletes, inserts or updates systemtool_type record based on TG_OP (trigger operation)
 Notes:				
  
-Example:		insert into vw_systemtool_type (description, notetext) values ('TEST Systemtool Type', null);
+Example:		insert into vw_systemtool_type (description) values ('TEST Systemtool Type');
 				delete from vw_systemtool_type where systemtool_type_uuid = (select systemtool_type_uuid from vw_systemtool_type where (description = 'TEST Systemtool Type'));
  */
 CREATE OR REPLACE FUNCTION upsert_systemtool_type ()
@@ -1464,13 +1521,11 @@ Description:	trigger proc that deletes, inserts or updates tag_type record based
 Notes:				
  
 Example:		insert into vw_tag_type (short_description, description) values ('TESTDEV', 'tags used to help identify development cycle phase');
- insert into vw_tag_type (short_description) values ('TESTDEV');
- update vw_tag_type set description = 'tags used to help identify development cycle phase; e.g. SPEC, TEST, DEV' where tag_type_uuid = 
- (select tag_type_uuid from vw_tag_type where (short_description = 'TESTDEV'));
- update vw_tag_type set short_description = 'TESTDEV1', description = 'tags used to help identify development cycle phase; e.g. SPEC, TEST, DEV' where tag_type_uuid = 
- (select tag_type_uuid from vw_tag_type where (short_description = 'TESTDEV'));
- delete from vw_tag_type where tag_type_uuid = (select tag_type_uuid from vw_tag_type where (short_description = 'TESTDEV'));
- delete from vw_tag_type where tag_type_uuid = (select tag_type_uuid from vw_tag_type where (short_description = 'TESTDEV1'));
+ 				insert into vw_tag_type (short_description) values ('TESTDEV');
+ 				update vw_tag_type set description = 'tags used to help identify development cycle phase; e.g. SPEC, TEST, DEV' where tag_type_uuid = (select tag_type_uuid from vw_tag_type where (short_description = 'TESTDEV'));
+ 				update vw_tag_type set short_description = 'TESTDEV1', description = 'tags used to help identify development cycle phase; e.g. SPEC, TEST, DEV' where tag_type_uuid = (select tag_type_uuid from vw_tag_type where (short_description = 'TESTDEV'));
+ 				delete from vw_tag_type where tag_type_uuid = (select tag_type_uuid from vw_tag_type where (short_description = 'TESTDEV'));
+ 				delete from vw_tag_type where tag_type_uuid = (select tag_type_uuid from vw_tag_type where (short_description = 'TESTDEV1'));
  */
 CREATE OR REPLACE FUNCTION upsert_tag_type ()
 	RETURNS TRIGGER
@@ -1516,10 +1571,9 @@ Description:	trigger proc that deletes, inserts or updates tag record based on T
 Notes:			will not be able to delete a tag if any connected records in tag_x exist 
  
 Example:		-- insert new tag  (tag_uuid = NULL, ref_tag_uuid = NULL)
- insert into vw_tag (display_text, description, actor_uuid, tag_type_uuid) values ('invalid', 'invalid experiment', 
-(select actor_uuid from vw_actor where person_last_name = 'Alves'), null);
- update vw_tag set description = 'invalid experiment with stuff added', tag_type_uuid = (select tag_type_uuid from vw_tag_type where short_description = 'experiment') where tag_uuid = (select tag_uuid from vw_tag where (display_text = 'invalid'));	
- delete from vw_tag where tag_uuid in (select tag_uuid from vw_tag where (display_text = 'invalid'));						
+ 				insert into vw_tag (display_text, description, actor_uuid, tag_type_uuid) values ('invalid', 'invalid experiment', (select actor_uuid from vw_actor where person_last_name = 'Alves'), null);
+ 				update vw_tag set description = 'invalid experiment with stuff added', tag_type_uuid = (select tag_type_uuid from vw_tag_type where short_description = 'experiment') where tag_uuid = (select tag_uuid from vw_tag where (display_text = 'invalid'));	
+ 				delete from vw_tag where tag_uuid in (select tag_uuid from vw_tag where (display_text = 'invalid'));						
  */
 CREATE OR REPLACE FUNCTION upsert_tag ()
 	RETURNS TRIGGER
@@ -1566,8 +1620,8 @@ Description:	trigger proc that deletes, inserts or updates tag_x record based on
 Notes:			requires both ref_tag_uuid and tag_uuid
  
 Example:		-- insert new tag_x (ref_tag) 
- insert into vw_tag_x (tag_uuid, ref_tag_uuid) values ((select tag_uuid from vw_tag where (display_text = 'invalid')), (select actor_uuid from vw_actor where person_last_name = 'Alves') );
- delete from vw_tag_x where tag_uuid = (select tag_uuid from vw_tag where (display_text = 'invalid') and ref_tag_uuid = (select actor_uuid from vw_actor where person_last_name = 'Alves') );						
+ 				insert into vw_tag_x (tag_uuid, ref_tag_uuid) values ((select tag_uuid from vw_tag where (display_text = 'invalid')), (select actor_uuid from vw_actor where person_last_name = 'Alves') );
+ 				delete from vw_tag_x where tag_uuid = (select tag_uuid from vw_tag where (display_text = 'invalid') and ref_tag_uuid = (select actor_uuid from vw_actor where person_last_name = 'Alves') );						
  */
 CREATE OR REPLACE FUNCTION upsert_tag_x ()
 	RETURNS TRIGGER
@@ -1603,9 +1657,8 @@ Description:	trigger proc that deletes, inserts or updates udf_def record based 
 Notes:				
  
 Example:		insert into vw_udf_def (description, valtype) values ('user defined 1', null);
- update vw_udf_def set valtype = 'text'::val_type where udf_def_uuid = 
- (select udf_def_uuid from vw_udf_def where (description = 'user defined 1'));
- delete from vw_udf_def where udf_def_uuid = (select udf_def_uuid from udf_def where (description = 'user defined 1'));
+ 				update vw_udf_def set valtype = 'text'::val_type where udf_def_uuid = (select udf_def_uuid from vw_udf_def where (description = 'user defined 1'));
+ 				delete from vw_udf_def where udf_def_uuid = (select udf_def_uuid from udf_def where (description = 'user defined 1'));
  */
 CREATE OR REPLACE FUNCTION upsert_udf_def ()
 	RETURNS TRIGGER
@@ -1653,8 +1706,8 @@ Description:	trigger proc that deletes, inserts or updates status record based o
 Notes:				
  
 Example:		insert into vw_status (description) values ('testtest');
- update vw_status set description = 'testtest status' where status_uuid = (select status_uuid from vw_status where (description = 'testtest'));
- delete from vw_status where status_uuid = (select status_uuid from vw_status where (description = 'testtest status'));
+ 				update vw_status set description = 'testtest status' where status_uuid = (select status_uuid from vw_status where (description = 'testtest'));
+ 				delete from vw_status where status_uuid = (select status_uuid from vw_status where (description = 'testtest status'));
  */
 CREATE OR REPLACE FUNCTION upsert_status ()
 	RETURNS TRIGGER
@@ -1700,7 +1753,7 @@ Description:	trigger proc that deletes, inserts or updates material_type record 
 Notes:				
  
 Example:		insert into vw_material_type (description) values ('materialtype_test');
- delete from vw_material_type where material_type_uuid = (select material_type_uuid from vw_material_type where (description = 'materialtype_test'));
+ 				delete from vw_material_type where material_type_uuid = (select material_type_uuid from vw_material_type where (description = 'materialtype_test'));
  */
 CREATE OR REPLACE FUNCTION upsert_material_type ()
 	RETURNS TRIGGER
@@ -1747,7 +1800,7 @@ Description:	trigger proc that deletes, inserts or updates material_refname_def 
 Notes:				
  
 Example:		insert into vw_material_refname_def (description) values ('materialrefnamedef_test');
- delete from vw_material_refname_def where material_refname_def_uuid = (select material_refname_def_uuid from vw_material_refname_def where (description = 'materialrefnamedef_test'));
+ 				delete from vw_material_refname_def where material_refname_def_uuid = (select material_refname_def_uuid from vw_material_refname_def where (description = 'materialrefnamedef_test'));
  */
 CREATE OR REPLACE FUNCTION upsert_material_refname_def ()
 	RETURNS TRIGGER
@@ -1796,14 +1849,13 @@ Notes:			must have ref_note_uuid in order to return appropriate notes for that e
 Example:		insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note', (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'));
  insert into vw_note (notetext, actor_uuid) values ('test note', (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'));
 
- update vw_note set notetext = 'test note with additional text...' where note_uuid = 
- (select note_uuid from vw_note where (notetext = 'test note'));
- delete from vw_note where note_uuid = (select note_uuid from vw_note where (notetext = 'test note with additional text...'));
- --- delete all notes associated with a given entity
- insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note 1', (select actor_uuid from vw_actor where person_last_name = 'Alves'), (select actor_uuid from vw_actor where person_last_name = 'Alves'));
- insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note 2', (select actor_uuid from vw_actor where person_last_name = 'Alves'), (select actor_uuid from vw_actor where person_last_name = 'Alves'));
- insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note 2', (select actor_uuid from vw_actor where person_last_name = 'Alves'), (select actor_uuid from vw_actor where person_last_name = 'Alves'));
- delete from vw_note where note_uuid in (select note_uuid from vw_note where actor_uuid = (select actor_uuid from vw_actor where person_last_name = 'Alves'));
+ 				update vw_note set notetext = 'test note with additional text...' where note_uuid = (select note_uuid from vw_note where (notetext = 'test note'));
+ 				delete from vw_note where note_uuid = (select note_uuid from vw_note where (notetext = 'test note with additional text...'));
+ 				--- delete all notes associated with a given entity
+ 				insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note 1', (select actor_uuid from vw_actor where person_last_name = 'Alves'), (select actor_uuid from vw_actor where person_last_name = 'Alves'));
+ 				insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note 2', (select actor_uuid from vw_actor where person_last_name = 'Alves'), (select actor_uuid from vw_actor where person_last_name = 'Alves'));
+ 				insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note 2', (select actor_uuid from vw_actor where person_last_name = 'Alves'), (select actor_uuid from vw_actor where person_last_name = 'Alves'));
+ 				delete from vw_note where note_uuid in (select note_uuid from vw_note where actor_uuid = (select actor_uuid from vw_actor where person_last_name = 'Alves'));
  */
 CREATE OR REPLACE FUNCTION upsert_note ()
 	RETURNS TRIGGER

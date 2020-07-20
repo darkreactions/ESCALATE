@@ -303,6 +303,29 @@ FOR EACH ROW
 EXECUTE PROCEDURE upsert_actor ( );
 
 
+----------------------------------------
+-- integrated view of actor_pref
+----------------------------------------
+CREATE OR REPLACE VIEW vw_actor_pref AS
+SELECT
+	ap.actor_pref_uuid,
+	ap.actor_uuid,
+	ap.pkey,
+	ap.pvalue,
+	ap.add_date,
+	ap.mod_date
+FROM
+	actor_pref ap;
+
+DROP TRIGGER IF EXISTS trigger_actor_pref_upsert ON vw_actor_pref;
+CREATE TRIGGER trigger_actor_pref_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_actor_pref
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_actor_pref ( );
+
+
+
 
 ----------------------------------------
 -- integrated view of systemtool_type

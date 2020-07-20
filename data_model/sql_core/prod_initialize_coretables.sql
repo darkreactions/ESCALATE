@@ -14,14 +14,11 @@ Notes:			code for parsing chem inventory data is contained in other file(s)
 -- Records of status
 -- ----------------------------
 BEGIN;
-INSERT INTO status (description)
-VALUES 
-	('active'),
-	('inactive'),
-	('test'),
-	('do_not_use'),
-	('prototype')
-;
+	insert into vw_status (description) values ('active');
+	insert into vw_status (description) values ('inactive');
+	insert into vw_status (description) values ('test');
+	insert into vw_status (description) values ('do_not_use');
+	insert into vw_status (description) values ('prototype');
 COMMIT;
 
 
@@ -29,15 +26,15 @@ COMMIT;
 -- Records of organization
 -- ----------------------------
 BEGIN;
-INSERT INTO organization (description, full_name, short_name, address1, address2, city, state_province, zip, website_url, phone) 
+INSERT INTO vw_organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone) 
 VALUES 
-	('College', 'Haverford College', 'HC', '370 Lancaster Ave.', NULL, 'Haverford', 'PA', '19041', 'http://www.haverford.edu', NULL),
-	('Laboratory', 'Lawrence Berkeley National Laboratory', 'LBL', '1 Cyclotron Rd.', NULL, 'Berkeley', 'CA', '94720', 'https://www.lbl.gov', NULL),
-	('Chemical vendor', 'Sigma-Aldrich', 'Sigma-Aldrich', '3050 Spruce St.', NULL, 'St Louis', 'MO', '63103', 'http://www.sigmaaldrich.com', NULL),
-	('Chemical vendor', 'Greatcell', 'Greatcell', NULL, NULL, 'Elanora', 'QLD', '4221', 'http://www.greatcellsolar.com/shop/', NULL),
-	('Cheminfomatics software', 'ChemAxon', 'ChemAxon', NULL, NULL, NULL, NULL, NULL, 'https://chemaxon.com', NULL),
-	('Cheminfomatics software', 'RDKit open source software', 'RDKit', NULL, NULL, NULL, NULL, NULL, 'https://www.rdkit.org', NULL),
-	('Laboratory', 'Emerald Cloud Lab', 'ECL', '844 Dubuque Ave', NULL, 'South San Francisco,', 'CA', '94080', 'https://www.emeraldcloudlab.com', NULL);
+	('College', 'Haverford College', 'HC', '370 Lancaster Ave.', NULL, 'Haverford', 'PA', '19041', 'US','http://www.haverford.edu', NULL),
+	('Laboratory', 'Lawrence Berkeley National Laboratory', 'LBL', '1 Cyclotron Rd.', NULL, 'Berkeley', 'CA', '94720', 'US', 'https://www.lbl.gov', NULL),
+	('Chemical vendor', 'Sigma-Aldrich', 'Sigma-Aldrich', '3050 Spruce St.', NULL, 'St Louis', 'MO', '63103', 'US', 'http://www.sigmaaldrich.com', NULL),
+	('Chemical vendor', 'Greatcell Solar', 'Greatcell', '3 Dominion Place', NULL, 'Queanbeyan', 'NSW', '2620', 'AUS', 'http://www.greatcellsolar.com/shop/', NULL),
+	('Cheminfomatics software', 'ChemAxon', 'ChemAxon', NULL, NULL, NULL, NULL, NULL, 'US', 'https://chemaxon.com', NULL),
+	('Cheminfomatics software', 'RDKit open source software', 'RDKit', NULL, NULL, NULL, NULL, NULL, NULL,'https://www.rdkit.org', NULL),
+	('Laboratory', 'Emerald Cloud Lab', 'ECL', '844 Dubuque Ave', NULL, 'South San Francisco,', 'CA', '94080', 'US', 'https://www.emeraldcloudlab.com', NULL);
 COMMIT;
 
 
@@ -45,19 +42,17 @@ COMMIT;
 -- Records of systemtool_type
 -- ----------------------------
 BEGIN;
-INSERT INTO systemtool_type (description) 
-VALUES 
-	('Command-line tool'),
-	('API'),
-	('Python toolkit'),
-	('ESCALATE function');
+INSERT INTO vw_systemtool_type (description) VALUES ('Command-line tool');
+INSERT INTO vw_systemtool_type (description) VALUES ('API');
+INSERT INTO vw_systemtool_type (description) VALUES ('Python toolkit');
+INSERT INTO vw_systemtool_type (description) VALUES ('ESCALATE function');
 COMMIT;
 
 -- ----------------------------
 -- Records of systemtool
 -- ----------------------------
 BEGIN;
-INSERT INTO systemtool (systemtool_name, description, systemtool_type_uuid, vendor_organization_uuid, model, serial, ver)
+INSERT INTO vw_systemtool (systemtool_name, description, systemtool_type_uuid, vendor_organization_uuid, model, serial, ver)
 VALUES 
 	('standardize', 'Molecule Standardizer', 
 		(select systemtool_type_uuid from systemtool_type where description = 'Command-line tool'), 
@@ -84,7 +79,7 @@ COMMIT;
 -- Records of person
 -- ----------------------------
 BEGIN;
-INSERT INTO person (first_name, last_name, email, organization_uuid)
+INSERT INTO vw_person (first_name, last_name, email, organization_uuid)
 VALUES 
 	('Mansoor', 'Nellikkal', 'maninajeeb@haverford.edu', 
 		(select organization_uuid from organization where short_name = 'HC')),
@@ -110,6 +105,7 @@ COMMIT;
 -- ----------------------------
 -- Records of actor
 -- ----------------------------
+/*
 BEGIN;
 INSERT INTO actor (person_uuid, organization_uuid, systemtool_uuid, description, status_uuid)  
 VALUES 
@@ -182,7 +178,7 @@ VALUES
 		'escalate: system function call', (select status_uuid from status where description = 'active'))
 ;	
 COMMIT;
-
+*/
 
 -- ----------------------------
 -- Records of actor_pref
@@ -203,7 +199,7 @@ COMMIT;
 -- Populate tag_type
 -- ----------------------------
 BEGIN;
-INSERT INTO tag_type (short_description, description)
+INSERT INTO vw_tag_type (short_description, description)
 VALUES 
 	('material', 'tags used to assist in identifying material types'),
 	('experiment', 'tags used to assist in charactizing experiments, visibility')
@@ -227,7 +223,7 @@ COMMIT;
 -- Populate some Tags
 -- ----------------------------
 BEGIN;
-INSERT INTO tag (display_text, tag_type_uuid, actor_uuid)
+INSERT INTO vw_tag (display_text, tag_type_uuid, actor_uuid)
 VALUES 
 	('A-Cation', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
 	('B-Cation', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
@@ -251,7 +247,7 @@ COMMIT;
 -- Populate some UDFs
 -- ----------------------------
 BEGIN;
-INSERT INTO udf_def (description, valtype)
+INSERT INTO vw_udf_def (description, valtype)
 VALUES 
 	('experiment version', 'text'::val_type),
 	('generation version', 'text'::val_type),

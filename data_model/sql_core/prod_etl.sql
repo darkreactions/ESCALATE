@@ -106,7 +106,7 @@ Author:			G. Cattabriga
 Date:			2020.05.15
 Description:	loads csv file (_csv) into load table (_table) 
 Notes:			assumes a column header row
-							drop function if exists load_csv(_csv varchar, _table varchar) cascade;
+				drop function if exists load_csv(_csv varchar, _table varchar) cascade;
 Example:		select load_csv('/Users/gcattabriga/Downloads/GitHub/ESCALATE_report/iodides/REPORT/iodides.csv', 'load_v2_iodides_temp');
 */
 CREATE OR REPLACE FUNCTION load_csv (_csv varchar, _table varchar)
