@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="80889b38-8cff-431c-9bcc-772134bbcf29" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/../escalate/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/core/forms.py" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/core/forms.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/core/models/view_tables.py" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/core/models/view_tables.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/core/templates/core/generic/list.html" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/core/templates/core/generic/list.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/core/templates/core/status/status_detail.html" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/core/templates/core/backup_unused_templates/status/status_detail.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/core/templates/core/status/status_edit.html" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/core/templates/core/backup_unused_templates/status/status_edit.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/core/templates/core/status/status_list.html" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/core/templates/core/backup_unused_templates/status/status_list.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/core/templates/core/systemtool/systemtool_detail.html" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/core/templates/core/backup_unused_templates/systemtool/systemtool_detail.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/core/templates/core/systemtool/systemtool_edit.html" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/core/templates/core/backup_unused_templates/systemtool/systemtool_edit.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/core/templates/core/systemtool/systemtool_list.html" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/core/templates/core/backup_unused_templates/systemtool/systemtool_list.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/core/templates/core/systemtool_type/systemtool_type_detail.html" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/core/templates/core/backup_unused_templates/systemtool_type/systemtool_type_detail.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/core/templates/core/systemtool_type/systemtool_type_edit.html" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/core/templates/core/backup_unused_templates/systemtool_type/systemtool_type_edit.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/core/templates/core/systemtool_type/systemtool_type_list.html" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/core/templates/core/backup_unused_templates/systemtool_type/systemtool_type_list.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/core/templates/core/tag/tag_detail.html" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/core/templates/core/backup_unused_templates/tag/tag_detail.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/core/templates/core/tag/tag_edit.html" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/core/templates/core/backup_unused_templates/tag/tag_edit.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/core/templates/core/tag/tag_list.html" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/core/templates/core/backup_unused_templates/tag/tag_list.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/core/templates/core/tag_type/tag_type_detail.html" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/core/templates/core/backup_unused_templates/tag_type/tag_type_detail.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/core/templates/core/tag_type/tag_type_edit.html" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/core/templates/core/backup_unused_templates/tag_type/tag_type_edit.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/core/templates/core/tag_type/tag_type_list.html" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/core/templates/core/backup_unused_templates/tag_type/tag_type_list.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/core/templates/core/udf_def/udf_def_detail.html" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/core/templates/core/backup_unused_templates/udf_def/udf_def_detail.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/core/templates/core/udf_def/udf_def_edit.html" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/core/templates/core/backup_unused_templates/udf_def/udf_def_edit.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/core/templates/core/udf_def/udf_def_list.html" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/core/templates/core/backup_unused_templates/udf_def/udf_def_list.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/core/views/latest_systemtool.py" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/core/views/latest_systemtool.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/core/views/systemtool_type.py" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/core/views/systemtool_type.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../escalate/escalate/settings/local.py" beforeDir="false" afterPath="$PROJECT_DIR$/../escalate/escalate/settings/local.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="1epZUXuQ9XU315A4TxMACkkxfHE" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="80889b38-8cff-431c-9bcc-772134bbcf29" name="Default Changelist" comment="" />
+      <created>1595020510602</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1595020510602</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="622" y="233" width="424" height="484" key="FileChooserDialogImpl" timestamp="1595020524235">
+      <screen x="67" y="27" width="1582" height="897" />
+    </state>
+    <state x="622" y="233" width="424" height="484" key="FileChooserDialogImpl/67.27.1582.897@67.27.1582.897" timestamp="1595020524235" />
+  </component>
+</project>
