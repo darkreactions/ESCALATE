@@ -12,7 +12,6 @@ from django.utils.timezone import now
 managed_value = False
 
 
-
 class Systemtool(models.Model):
     systemtool_uuid = models.UUIDField(primary_key=True)
     systemtool_name = models.CharField(max_length=255)
@@ -35,20 +34,3 @@ class Systemtool(models.Model):
 
     def __str__(self):
         return "{} {}".format(self.systemtool_name, self.model)
-
-
-class SystemtoolType(models.Model):
-    #systemtool_type_id = models.BigAutoField()
-    systemtool_type_uuid = models.UUIDField(primary_key=True)
-    description = models.CharField(max_length=255, blank=True, null=True)
-    note_uuid = models.ForeignKey(
-        'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        managed = False
-        db_table = 'systemtool_type'
-
-    def __str__(self):
-        return self.description

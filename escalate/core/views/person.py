@@ -120,16 +120,18 @@ class PersonView(DetailView):
         context = super().get_context_data(**kwargs)
         obj = context['object']
         table_data = {
-            'Full Name': f"{obj.first_name} {obj.middle_name} {obj.last_name}",
-            'Address': (f"{obj.address1}, {obj.address2}, {obj.zip}, {obj.city},"
-                        f"{obj.state_province}, {obj.country}"),
-            'Phone': obj.phone,
-            'Email': obj.email,
-            'Title': obj.title,
-            'Suffix': obj.suffix,
-            'Organization': obj.organization_full_name,
-            'Add Date': obj.add_date,
-            'Last Modification Date': obj.mod_date
+
+                'Full Name': f"{obj.first_name} {obj.middle_name} {obj.last_name}",
+                'Address': (f" {obj.address1}, {obj.address2}, {obj.zip}, {obj.city},"
+                                f" {obj.state_province}, {obj.country}"),
+                'Phone': obj.phone,
+                'Email': obj.email,
+                'Title' : obj.title,
+                'Suffix' : obj.suffix,
+                'Organization' : obj.organization_full_name,
+                'Add Date': obj.add_date,
+                'Last Modification Date': obj.mod_date
+
         }
         context['title'] = 'Person'
         context['update_url'] = reverse_lazy(

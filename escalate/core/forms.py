@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from core.models import (CustomUser, Person, Material, Inventory, Actor, Note, Organization, LatestSystemtool,
-                         ViewSystemtoolType, UdfDef, Status, Tag, TagType, MaterialType)
+                         SystemtoolType, UdfDef, Status, Tag, TagType, MaterialType)
 
 
 class LoginForm(forms.Form):
@@ -29,10 +29,9 @@ class PersonForm(forms.ModelForm):
         model = Person
         fields = ['first_name', 'middle_name', 'last_name', 'address1',
                   'address2', 'city', 'state_province', 'zip', 'country',
-                  'phone', 'email', 'title', 'suffix', 'organization_uuid',
-                  'organization_full_name']
-
+                  'phone', 'email', 'title', 'suffix', 'organization_uuid']
         field_classes = {
+
             'first_name': forms.CharField,
             'middle_name': forms.CharField,
             'last_name': forms.CharField,
@@ -45,8 +44,8 @@ class PersonForm(forms.ModelForm):
             'phone': forms.CharField,
             'email': forms.EmailField,
             'title': forms.CharField,
-            'suffix': forms.CharField,
-            'organization_full_name': forms.CharField
+            'suffix': forms.CharField
+
         }
 
         labels = {
@@ -63,13 +62,12 @@ class PersonForm(forms.ModelForm):
             'email': 'E-mail',
             'title': 'Title',
             'suffix': 'Suffix',
-            'organization_uuid': 'Organization',
-            'organization_full_name': 'Organization full name'
+            'organization_uuid': 'Organization'
         }
 
         help_texts = {
             'phone': 'Include extension number and/or country code if applicable',
-            'organization_full_name': 'Please type the name of the organization selected above'
+            'organization_uuid': 'If applicable, select the organization this person belongs to'
         }
 
         widgets = {
@@ -93,7 +91,8 @@ class MaterialForm(forms.ModelForm):
     class Meta:
         model = Material
         fields = ['chemical_name', 'abbreviation', 'inchi', 'inchikey',
-                  'molecular_formula', 'smiles', 'create_date', 'material_status']
+                  'molecular_formula', 'smiles', 'create_date',
+                  'material_status_uuid']
         field_classes = {
             'create_date': forms.SplitDateTimeField,
             'abbreviation': forms.CharField,
@@ -101,11 +100,9 @@ class MaterialForm(forms.ModelForm):
             'inchi': forms.CharField,
             'inchikey': forms.CharField,
             'molecular_formula': forms.CharField,
-            'smiles': forms.CharField,
-            'material_status': forms.CharField
+            'smiles': forms.CharField
         }
         labels = {
-            'material_status': 'Status',
             'create_date': 'Create date',
             'abbreviation': 'Abbreviation',
             'chemical_name': 'Chemical name',
@@ -113,7 +110,7 @@ class MaterialForm(forms.ModelForm):
             'inchikey': 'International Chemical Identifier key (InChI key)',
             'molecular_formula': 'Molecular formula',
             'smiles': 'Smiles',
-            'material_status': 'Status'
+            'material_status_uuid': 'Status'
         }
         widgets = {
             'create_date': forms.SplitDateTimeWidget(
@@ -141,9 +138,10 @@ class MaterialForm(forms.ModelForm):
 class InventoryForm(forms.ModelForm):
     class Meta:
         model = Inventory
-        fields = ['material_uuid', 'actor_uuid', 'inventory_description', 'part_no',
+
+        fields = ['material_uuid', 'actor_uuid', 'part_no',
                   'onhand_amt', 'unit', 'create_date', 'expiration_date',
-                  'inventory_location', 'status']
+                  'inventory_location', 'status_uuid']
         field_classes = {
             'inventory_description': forms.CharField,
             'part_no': forms.CharField,
@@ -151,8 +149,7 @@ class InventoryForm(forms.ModelForm):
             'unit': forms.CharField,
             'create_date': forms.SplitDateTimeField,
             'expiration_date': forms.SplitDateTimeField,
-            'inventory_location': forms.CharField,
-            'status': forms.CharField
+            'inventory_location': forms.CharField
         }
         labels = {
             'inventory_description': 'Description',
@@ -163,13 +160,13 @@ class InventoryForm(forms.ModelForm):
             'unit': 'Unit',
             'create_date': 'Create date',
             'expiration_date': 'Expiration date',
-            'inventory_location': 'Inventory location',
-            'status': 'Status'
+            'inventory_location': 'Inventory location'
         }
         widgets = {
             'inventory_description': forms.Textarea(attrs={'rows': '3',
                                                            'cols': '10',
                                                            'placeholder': 'Description'}),
+
             'part_no': forms.TextInput(attrs={'placeholder': 'Part number'}),
             'onhand_amt': forms.NumberInput(attrs={'value': '0.01',
                                                    'min': '0.00',
@@ -203,49 +200,31 @@ class InventoryForm(forms.ModelForm):
 class ActorForm(forms.ModelForm):
     class Meta:
         model = Actor
-        fields = ['person_uuid', 'person_first_name', 'person_last_name',
-                  'organization_uuid', 'org_full_name', 'systemtool_uuid',
-                  'systemtool_name', 'actor_description', 'actor_status_uuid']
+
+        fields = ['person_uuid', 'organization_uuid', 'systemtool_uuid',
+                  'actor_description', 'actor_status_uuid']
+
         field_classes = {
-            'person_first_name': forms.CharField,
-            'org_full_name': forms.CharField,
-            'systemtool_name': forms.CharField,
             'actor_description': forms.CharField
         }
         labels = {
             'person_uuid': 'Person',
-            'person_first_name': 'Person first name',
-            'person_last_name': 'Person lastname',
             'organization_uuid': 'Organization',
-            'org_full_name': 'Organization full name',
             'systemtool_uuid': 'Systemtool',
-            'systemtool_name': 'Systemtool_name',
             'actor_description': 'Actor description',
             'actor_status_uuid': 'Actor status'
         }
         help_texts = {
-            'person_first_name': 'Please enter the first name if actor is a person',
-            'person_last_name': 'Please enter the last name if actor is a person',
-            'org_full_name': 'Please enter the full name if actor is an organization',
-            'systemtool_name': 'Please enter the name if actor is a systemtool'
+            'person_uuid': 'Select if actor is a person',
+            'organization_uuid': 'Select if actor is an organization',
+            'systemtool_uuid': 'Select if actor is a systemtool'
         }
         widgets = {
-            'person_first_name': forms.TextInput(attrs={
-                'placeholder': 'Actor (person) first name'
-            }),
-            'person_last_name': forms.TextInput(attrs={
-                'placeholder': 'Actor (person) last name'
-            }),
-            'org_full_name': forms.TextInput(attrs={
-                'placeholder': 'Actor (organization) full name'
-            }),
-            'systemtool_name': forms.TextInput(attrs={
-                'placeholder': 'Actor (systemtool) name'
-            }),
+
             'actor_description': forms.Textarea(attrs={
-                                                'rows': '3',
-                                                'cols': '10',
-                                                'placeholder': 'Description'}),
+                'rows': '3',
+                'cols': '10',
+                'placeholder': 'Your description'})
 
         }
 
@@ -255,7 +234,7 @@ class OrganizationForm(forms.ModelForm):
         model = Organization
         fields = ['full_name', 'short_name', 'description', 'address1',
                   'address2', 'city', 'state_province', 'zip', 'country',
-                  'website_url', 'phone', 'parent_uuid', 'parent_org_full_name']
+                  'website_url', 'phone', 'parent_uuid']
         field_classes = {
             'full_name': forms.CharField,
             'short_name': forms.CharField,
@@ -267,8 +246,8 @@ class OrganizationForm(forms.ModelForm):
             'zip': forms.CharField,
             'country': forms.CharField,
             'website_url': forms.URLField,
-            'phone': forms.CharField,
-            'parent_org_full_name': forms.CharField,
+            'phone': forms.CharField
+
         }
         labels = {
             'full_name': 'Full name',
@@ -284,11 +263,10 @@ class OrganizationForm(forms.ModelForm):
             'phone': 'Phone',
             'parent_uuid': 'Parent Organization',
             'parent_org_full_name': 'Parent Organization full name'
+
         }
         help_texts = {
-            'website_url': 'Make sure to include https:// or http:// or www(1-9)',
-            'parent_org_full_name': ('Please enter the full name of parent '
-                                     'organization selected above')
+            'website_url': 'Make sure to include https:// or http:// or www(1-9)'
         }
         widgets = {
             'full_name': forms.TextInput(attrs={
@@ -335,7 +313,7 @@ class LatestSystemtoolForm(forms.ModelForm):
 
 class SystemtoolTypeForm(forms.ModelForm):
     class Meta:
-        model = ViewSystemtoolType
+        model = SystemtoolType
         fields = ['description']
         labels = {
             'description': 'Description'
@@ -364,12 +342,11 @@ class StatusForm(forms.ModelForm):
 class TagForm(forms.ModelForm):
     class Meta:
         model = Tag
-        fields = ['display_text', 'tag_type_uuid', 'actor_uuid', 'notetext']
+        fields = ['display_text', 'tag_type_uuid', 'actor_uuid']
         labels = {
             'description': 'Description',
             'tag_type_uuid': 'Tag Type',
             'actor_uuid': 'Actor',
-            'notetext': 'Note'
         }
 
 

@@ -67,14 +67,15 @@ def create_view(model_name, lookup_field=None):
                     "name": camel_case(model_name)+'-list',
                     "filter_backends": [DjangoFilterBackend],
                     "filter_fields": '__all__',
-                    "__doc__": rest_docs.get(model_name, '')
+                    "__doc__": rest_docs.get(model_name.lower(), '')
                     }
     #
     #
 
     methods_detail = {"queryset": model.objects.all(),
                       "serializer_class": modelSerializer,
-                      "name": camel_case(model_name)+'-detail'}
+                      "name": camel_case(model_name)+'-detail',
+                      "__doc__": rest_docs.get(model_name.lower()+'_detail', '')}
     globals()[model_name+'List'] = type(model_name + 'List',
                                         tuple([ListAPIView]), methods_list)
     globals()[model_name+'Detail'] = type(model_name + 'Detail',

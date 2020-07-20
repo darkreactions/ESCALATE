@@ -87,7 +87,9 @@ class MaterialTypeView(DetailView):
         context = super().get_context_data(**kwargs)
         obj = context['object']
         table_data = {
-                'Description': obj.description
+                'Description': obj.description,
+                'Add Date': obj.add_date,
+                'Last Modification Date': obj.mod_date
         }
         context['update_url'] = reverse_lazy('material_type_update', kwargs={'pk':obj.pk})
         context['title'] = 'Material Type'
