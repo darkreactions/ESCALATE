@@ -13,7 +13,7 @@
             {{ form|crispy }}
             {{ note_forms.management_form }}
             {% for f in note_forms %}
-            {{ f|crispy }}
+              {{ f|crispy }}
             {% endfor %}
             <button type="submit" name="add_note" value="add_note" class="btn btn-primary">Update</button>
             <input class="btn btn-primary text-center" type="submit" name="Submit" value="Submit">
@@ -21,5 +21,6 @@
         <a id="last"></a>
     </div>
 </div>
+
 
 {% endblock %}

@@ -80,35 +80,40 @@ class PersonEdit():
         return context
 
     def post(self, request, *args, **kwargs):
-        formset = self.NoteFormSet(request.POST)
-        # Loop through every note form
-        for form in formset:
-            # Only if the form has changed make an update, otherwise ignore
-            if form.has_changed() and form.is_valid():
-                if request.user.is_authenticated:
-                    # Get the appropriate actor and then add it to the note
-                    actor = Actor.objects.get(
-                        person_uuid=request.user.person.pk)
-                    note = form.save(commit=False)
-                    note.actor_uuid = actor
-                    # Get the appropriate uuid of the record being changed.
-                    # Conveniently in this case its person, but we need to figure out an alternative
-                    #note.ref_note_uuid = request.user.person.pk
-                    person = get_object_or_404(Person, pk=self.kwargs['pk'])
-                    note.ref_note_uuid = person.pk
-                    note.save()
-        # Delete each note we marked in the formset
-        for obj in formset.deleted_objects:
-            obj.delete()
-        # Choose which website we are redirected to
-        if request.POST.get("Submit"):
-            self.success_url = reverse_lazy('person_list')
-        if request.POST.get('add_note'):
-            self.success_url = reverse_lazy('person_update',kwargs={'pk': person.pk})
+        if self.NoteFormSet != None:
+            formset = self.NoteFormSet(request.POST)
+            # Loop through every note form
+            for form in formset:
+                # Only if the form has changed make an update, otherwise ignore
+                if form.has_changed() and form.is_valid():
+                    if request.user.is_authenticated:
+                        # Get the appropriate actor and then add it to the note
+                        actor = Actor.objects.get(
+                            person_uuid=request.user.person.pk)
+                        note = form.save(commit=False)
+                        note.actor_uuid = actor
+                        # Get the appropriate uuid of the record being changed.
+                        # Conveniently in this case its person, but we need to figure out an alternative
+                        #note.ref_note_uuid = request.user.person.pk
+                        person = get_object_or_404(Person, pk=self.kwargs['pk'])
+                        note.ref_note_uuid = person.pk
+                        note.save()
+            # Delete each note we marked in the formset
+            for form in formset.deleted_forms:
+                form.instance.delete()
+            # Choose which website we are redirected to
+            if request.POST.get("Submit"):
+                self.success_url = reverse_lazy('person_list')
+            if request.POST.get('add_note'):
+                self.success_url = reverse_lazy('person_update',kwargs={'pk': person.pk})
         return super().post(request, *args, **kwargs)
 
 
 class PersonCreate(PersonEdit, CreateView):
+    #template no functionality related to note
+    template_name = 'core/generic/edit.html'
+    #make NoteFormSet none to ignore it in edit parent class's post method
+    NoteFormSet = None
     pass
 
 
