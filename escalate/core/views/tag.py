@@ -2,10 +2,13 @@ from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
 
-from core.models import Tag
-from core.forms import TagForm
+from core.models import Tag,Note,Actor
+from core.forms import TagForm,NoteForm
 from core.views.menu import GenericListView
 
+#Note side
+from django.forms import modelformset_factory
+from django.shortcuts import get_object_or_404
 
 class TagList(GenericListView):
     model = Tag
@@ -56,19 +59,59 @@ class TagList(GenericListView):
 
 
 class TagEdit:
-    template_name = 'core/generic/edit.html'
+    template_name = 'core/generic/edit_note.html'
     model = Tag
     form_class = TagForm
     success_url = reverse_lazy('tag_list')
 
+    #Note side
+    context_object_name = 'tag'
+    NoteFormSet = modelformset_factory(Note, form=NoteForm,can_delete=True)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        if 'tag' in context:
+            tag = context['tag']
+            context['note_forms'] = self.NoteFormSet(
+                queryset=Note.objects.filter(ref_note_uuid=tag.pk))
         context['title'] = 'tag'
         return context
 
-class TagCreate(TagEdit, CreateView):
-    pass
+    def post(self, request, *args, **kwargs):
+        # Note side
+        if self.NoteFormSet != None:
+            formset = self.NoteFormSet(request.POST)
+            tag = get_object_or_404(Tag, pk=self.kwargs['pk'])
+            # Loop through every note form
+            for form in formset:
+                # Only if the form has changed make an update, otherwise ignore
+                if form.has_changed() and form.is_valid():
+                    if request.user.is_authenticated:
+                        # Get the appropriate actor and then add it to the note
+                        actor = Actor.objects.get(
+                            person_uuid=request.user.person.pk)
+                        note = form.save(commit=False)
+                        note.actor_uuid = actor
+                        # Get the appropriate uuid of the record being changed.
+                        # Conveniently in this case its tag, but we need to figure out an alternative
+                        note.ref_note_uuid = tag.pk
+                        note.save()
+            # Delete each note we marked in the formset
+            formset.save(commit=False)
+            for obj in formset.deleted_objects:
+                obj.delete()
+            # Choose which website we are redirected to
+        if request.POST.get("Submit"):
+            self.success_url = reverse_lazy('tag_list')
+        if request.POST.get('update'):
+            self.success_url = reverse_lazy('tag_update', kwargs={'pk': tag.pk})
 
+        return super().post(request, *args, **kwargs)
+
+class TagCreate(TagEdit, CreateView):
+        # Note side
+        template_name = 'core/generic/edit.html'
+        NoteFormSet = None
 
 class TagUpdate(TagEdit, UpdateView):
     pass

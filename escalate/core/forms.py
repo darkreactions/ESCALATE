@@ -91,7 +91,8 @@ class MaterialForm(forms.ModelForm):
     class Meta:
         model = Material
         fields = ['chemical_name', 'abbreviation', 'inchi', 'inchikey',
-                  'molecular_formula', 'smiles', 'create_date',
+                  'molecular_formula', 'smiles',
+                  'create_date',
                   'material_status_uuid']
         field_classes = {
             'create_date': forms.SplitDateTimeField,
@@ -364,9 +365,9 @@ class UdfDefForm(forms.ModelForm):
             'description': 'Description',
             'valtype': 'Value type'
         }
-        CHOICES = (('1','int'),('2','array_int'),('3','num'),('4','array_num'),
-                   ('5','text'),('6','array_text'),('7','blob_text'),('8','blob_svg'),
-                   ('9','blob_jpg'),('10','blob_png'),('11','blob_xrd'))
+        CHOICES = (('int','int'),('array_int','array_int'),('num','num'),('array_num','array_num'),
+                   ('text','text'),('array_text','array_text'),('blob_text','blob_text'),('blob_svg','blob_svg'),
+                   ('blob_jpg','blob_jpg'),('blob_png','blob_png'),('blob_xrd','blob_xrd'))
         widgets = {
             'description': forms.Textarea(attrs={
                 'cols': '10',

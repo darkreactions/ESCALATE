@@ -5,6 +5,8 @@ from django.http import HttpResponse
 from core.models import Person, Note, Actor, CustomUser
 from core.forms import PersonForm, NoteForm
 from core.views.menu import GenericListView
+
+#Note side
 from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404
 
@@ -63,53 +65,62 @@ class PersonList(GenericListView):
 class PersonEdit():
     template_name = 'core/generic/edit_note.html'
     model = Person
-    context_object_name = 'person'
     form_class = PersonForm
     #form_class_list = [PersonForm, NoteForm]
     success_url = reverse_lazy('person_list')
+
+    #Note side
+    context_object_name = 'person'
     NoteFormSet = modelformset_factory(Note, form=NoteForm,can_delete=True)
 
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        #Note side
         if 'person' in context:
             person = context['person']
             context['note_forms'] = self.NoteFormSet(
                 queryset=Note.objects.filter(ref_note_uuid=person.pk))
+
         context['title'] = 'Person'
         return context
 
     def post(self, request, *args, **kwargs):
-        formset = self.NoteFormSet(request.POST)
-        # Loop through every note form
-        for form in formset:
-            # Only if the form has changed make an update, otherwise ignore
-            if form.has_changed() and form.is_valid():
-                if request.user.is_authenticated:
-                    # Get the appropriate actor and then add it to the note
-                    actor = Actor.objects.get(
-                        person_uuid=request.user.person.pk)
-                    note = form.save(commit=False)
-                    note.actor_uuid = actor
-                    # Get the appropriate uuid of the record being changed.
-                    # Conveniently in this case its person, but we need to figure out an alternative
-                    #note.ref_note_uuid = request.user.person.pk
-                    person = get_object_or_404(Person, pk=self.kwargs['pk'])
-                    note.ref_note_uuid = person.pk
-                    note.save()
-        # Delete each note we marked in the formset
-        for obj in formset.deleted_objects:
-            obj.delete()
-        # Choose which website we are redirected to
+        #Note side
+        if self.NoteFormSet != None:
+            formset = self.NoteFormSet(request.POST)
+            person = get_object_or_404(Person, pk=self.kwargs['pk'])
+            # Loop through every note form
+            for form in formset:
+                # Only if the form has changed make an update, otherwise ignore
+                if form.has_changed() and form.is_valid():
+                    if request.user.is_authenticated:
+                        # Get the appropriate actor and then add it to the note
+                        actor = Actor.objects.get(
+                            person_uuid=request.user.person.pk)
+                        note = form.save(commit=False)
+                        note.actor_uuid = actor
+                        # Get the appropriate uuid of the record being changed.
+                        # Conveniently in this case its person, but we need to figure out an alternative
+                        note.ref_note_uuid = person.pk
+                        note.save()
+            # Delete each note we marked in the formset
+            formset.save(commit=False)
+            for obj in formset.deleted_objects:
+                obj.delete()
+            # Choose which website we are redirected to
         if request.POST.get("Submit"):
             self.success_url = reverse_lazy('person_list')
-        if request.POST.get('add_note'):
+        if request.POST.get('update'):
             self.success_url = reverse_lazy('person_update',kwargs={'pk': person.pk})
+
         return super().post(request, *args, **kwargs)
 
 
 class PersonCreate(PersonEdit, CreateView):
-    pass
+    #Note side
+    template_name = 'core/generic/edit.html'
+    NoteFormSet = None
 
 
 class PersonUpdate(PersonEdit, UpdateView):

@@ -3,9 +3,13 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
 from django import forms
 
-from ..models import Material
-from ..forms import MaterialForm
+from ..models import Material,Note, Actor
+from ..forms import MaterialForm, NoteForm
 from .menu import GenericListView
+#Note side
+from django.forms import modelformset_factory
+from django.shortcuts import get_object_or_404
+
 
 
 class MaterialsList(GenericListView):
@@ -56,19 +60,61 @@ class MaterialsList(GenericListView):
 
 
 class MaterialEdit:
-    template_name = 'core/generic/edit.html'
+    template_name = 'core/generic/edit_note.html'
     model = Material
     form_class = MaterialForm
     success_url = reverse_lazy('material_list')
 
+    #Note side
+    context_object_name = 'material'
+    NoteFormSet = modelformset_factory(Note, form=NoteForm,can_delete=True)
+
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        if 'material' in context:
+            material = context['material']
+            context['note_forms'] = self.NoteFormSet(
+                queryset=Note.objects.filter(ref_note_uuid=material.pk))
         context['title'] = 'Material'
         return context
 
+    def post(self, request, *args, **kwargs):
+        #Note side
+        if self.NoteFormSet != None:
+            formset = self.NoteFormSet(request.POST)
+            material = get_object_or_404(Material, pk=self.kwargs['pk'])
+            # Loop through every note form
+            for form in formset:
+                # Only if the form has changed make an update, otherwise ignore
+                if form.has_changed() and form.is_valid():
+                    if request.user.is_authenticated:
+                        # Get the appropriate actor and then add it to the note
+                        actor = Actor.objects.get(
+                            person_uuid=request.user.person.pk)
+                        note = form.save(commit=False)
+                        note.actor_uuid = actor
+                        # Get the appropriate uuid of the record being changed.
+                        # Conveniently in this case its person, but we need to figure out an alternative
+                        note.ref_note_uuid = material.pk
+                        note.save()
+            # Delete each note we marked in the formset
+            formset.save(commit=False)
+            for obj in formset.deleted_objects:
+                obj.delete()
+            # Choose which website we are redirected to
+        if request.POST.get("Submit"):
+            self.success_url = reverse_lazy('material_list')
+        if request.POST.get('update'):
+            self.success_url = reverse_lazy('material_update',kwargs={'pk': material.pk})
+
+        return super().post(request, *args, **kwargs)
+
 
 class MaterialCreate(MaterialEdit, CreateView):
-    pass
+    #Note side
+    template_name = 'core/generic/edit.html'
+    NoteFormSet = None
 
 
 class MaterialUpdate(MaterialEdit, UpdateView):
