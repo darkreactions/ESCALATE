@@ -12,7 +12,6 @@ from django.shortcuts import get_object_or_404
 
 class ActorList(GenericListView):
     model = Actor
-    #template_name = 'core/actor/actor_list.html'
     template_name = 'core/generic/list.html'
     context_object_name = 'actors'
     paginate_by = 10

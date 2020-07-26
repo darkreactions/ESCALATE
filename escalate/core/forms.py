@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from core.models import (CustomUser, Person, Material, Inventory, Actor, Note, Organization, LatestSystemtool,
-                         SystemtoolType, UdfDef, Status, Tag, TagType, MaterialType)
+                         SystemtoolType, UdfDef, Status, Tag, TagType, MaterialType,Tag_x)
 
 
 class LoginForm(forms.Form):
@@ -394,6 +394,12 @@ class StatusForm(forms.ModelForm):
             })
         }
 
+
+class TagXForm(forms.ModelForm):
+    class Meta:
+        model = Tag_x
+        fields = ['tag_uuid']
+        widgets = {}
 
 class TagForm(forms.ModelForm):
     class Meta:

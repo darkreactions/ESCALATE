@@ -2,8 +2,8 @@ from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
 from django.http import HttpResponse
-from core.models import Person, Note, Actor, CustomUser
-from core.forms import PersonForm, NoteForm
+from core.models import Person, Note, Actor, CustomUser,Tag_x
+from core.forms import PersonForm, NoteForm,TagXForm
 from core.views.menu import GenericListView
 
 #Note side
@@ -73,6 +73,8 @@ class PersonEdit():
     context_object_name = 'person'
     NoteFormSet = modelformset_factory(Note, form=NoteForm,can_delete=True)
 
+    #Tag Side
+    TagXFormSet= modelformset_factory(Tag_x, form=TagXForm,can_delete=True)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -80,35 +82,52 @@ class PersonEdit():
         if 'person' in context:
             person = context['person']
             context['note_forms'] = self.NoteFormSet(
-                queryset=Note.objects.filter(ref_note_uuid=person.pk))
-
+                queryset=Note.objects.filter(ref_note_uuid=person.pk),prefix='note')
+            context['tag_forms'] = self.TagXFormSet(
+                queryset=Tag_x.objects.filter(ref_tag_uuid=person.pk),prefix='tag')
         context['title'] = 'Person'
         return context
 
     def post(self, request, *args, **kwargs):
         #Note side
-        if self.NoteFormSet != None:
-            formset = self.NoteFormSet(request.POST)
-            person = get_object_or_404(Person, pk=self.kwargs['pk'])
-            # Loop through every note form
-            for form in formset:
-                # Only if the form has changed make an update, otherwise ignore
-                if form.has_changed() and form.is_valid():
-                    if request.user.is_authenticated:
-                        # Get the appropriate actor and then add it to the note
-                        actor = Actor.objects.get(
-                            person_uuid=request.user.person.pk)
-                        note = form.save(commit=False)
-                        note.actor_uuid = actor
-                        # Get the appropriate uuid of the record being changed.
-                        # Conveniently in this case its person, but we need to figure out an alternative
-                        note.ref_note_uuid = person.pk
-                        note.save()
-            # Delete each note we marked in the formset
-            formset.save(commit=False)
-            for obj in formset.deleted_objects:
-                obj.delete()
-            # Choose which website we are redirected to
+        NoteFormSet = self.NoteFormSet(request.POST or None,prefix='note')
+        person = get_object_or_404(Person, pk=self.kwargs['pk'])
+
+        # Loop through every note form
+        for form in NoteFormSet:
+            # Only if the form has changed make an update, otherwise ignore
+            if form.has_changed() and form.is_valid():
+                if request.user.is_authenticated:
+                    # Get the appropriate actor and then add it to the note
+                    actor = Actor.objects.get(
+                        person_uuid=request.user.person.pk)
+                    note = form.save(commit=False)
+                    note.actor_uuid = actor
+                    # Get the appropriate uuid of the record being changed.
+                    # Conveniently in this case its person, but we need to figure out an alternative
+                    note.ref_note_uuid = person.pk
+                    note.save()
+        NoteFormSet.save(commit=False)
+        # Delete each note we marked in the formset
+        for obj in NoteFormSet.deleted_objects:
+            obj.delete()
+
+        # Tag side
+        TagFormSet = self.TagXFormSet(request.POST or None,prefix = 'tag')
+        # Loop through every tagX form
+        for form in TagFormSet:
+            # Only if the form has changed make an update, otherwise ignore
+            if form.has_changed() and form.is_valid():
+                if request.user.is_authenticated:
+                    # Get the tag uuid from form and create a corresponding tagX
+                    tag_x = form.save(commit=False)
+                    tag_x.ref_tag_uuid=person.pk
+                    tag_x.save()
+        # Delete each tag we marked in the formset
+        TagFormSet.save(commit=False)
+        for obj in TagFormSet.deleted_objects:
+            obj.delete()
+        # Choose which website we are redirected to
         if request.POST.get("Submit"):
             self.success_url = reverse_lazy('person_list')
         if request.POST.get('update'):
