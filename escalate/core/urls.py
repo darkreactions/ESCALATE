@@ -14,12 +14,19 @@ from .views import (LoginView, CreateUserView, MainMenuView,
                     StatusList, StatusView,StatusCreate,StatusUpdate,StatusDelete,
                     TagList, TagView,TagCreate,TagUpdate,TagDelete,
                     TagTypeList,TagTypeView,TagTypeCreate,TagTypeUpdate,TagTypeDelete,
-                    MaterialTypeList,MaterialTypeView,MaterialTypeCreate,MaterialTypeUpdate,MaterialTypeDelete)
+                    MaterialTypeList,MaterialTypeView,MaterialTypeCreate,MaterialTypeUpdate,MaterialTypeDelete,
+                    ModelTagCreate, ModelTagUpdate)
+from .views.capture import materials, materials2
 
 urlpatterns = [
     path('', LoginView.as_view(), name='login'),
     path('create_user/', CreateUserView.as_view(), name='create_user'),
     path('main_menu/', MainMenuView.as_view(), name='main_menu')
+]
+
+urlpatterns += [
+    path('capture/', materials, name='capture_materials'),
+    path('capture2/', materials2, name='capture_materials2'),
 ]
 
 # Materials
@@ -169,4 +176,9 @@ urlpatterns += [
          MaterialTypeDelete.as_view(), name='material_type_delete'),
     path('material_type/<uuid:pk>/view',
          MaterialTypeView.as_view(), name='material_type_view'),
+]
+
+urlpatterns += [
+    path('new_tag/<uuid:pk>', ModelTagCreate.as_view(), name='model_tag_create'),
+    path('new_tag/<uuid:pk>', ModelTagUpdate.as_view(), name='model_tag_update'),
 ]

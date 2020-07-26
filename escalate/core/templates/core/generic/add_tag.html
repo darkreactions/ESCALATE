@@ -1,0 +1,26 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+
+{% block content %}
+<div class="container">
+    <div class="col-md-6 offset-md-3">
+        <h3> {{ title }} </h3>
+        <form method="post">{% csrf_token %}
+          <!--
+          {{ form|crispy}}
+          -->
+          {{ tag_forms.management_form }}
+          {% for f in tag_forms %}
+            {{ f|crispy }}
+          {% endfor %}
+          <button type="submit" name="cancel" value="cancel" class="btn btn-primary">Cancel</button>
+          <button type="submit" name="another_tag" value="another_tag" class="btn btn-primary">Add Tag</button>
+          <button type="submit" name="submit" value="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+</div>
+
+
+{% endblock %}

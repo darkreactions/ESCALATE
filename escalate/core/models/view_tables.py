@@ -518,6 +518,21 @@ class Tag(models.Model):
     def __str__(self):
         return "{}".format(self.display_text)
 
+class Tag_X(models.Model):
+    tag_x_uuid = models.UUIDField(primary_key=True)
+    ref_tag_uuid = models.UUIDField()
+    tag_uuid = models.ForeignKey('Tag', models.DO_NOTHING,
+                                   db_column='tag_uuid')
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'vw_tag_x'
+
+    def __str__(self):
+        return "{}".format(self.tag_x_uuid)
+
 
 class TagType(models.Model):
     tag_type_uuid = models.UUIDField(primary_key=True)

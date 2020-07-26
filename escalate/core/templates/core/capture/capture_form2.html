@@ -1,0 +1,23 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+
+{% block content %}
+<div class="container">
+    <div class="col-md-6 offset-md-3">
+        <h3> Inventory </h3>
+        <form method="post">{% csrf_token %}
+            {% for form in formset %}
+            {{ form|crispy }}
+            {% endfor %}
+            {{ formset.management_form }}
+            <input type="hidden" id="currReagents" name="currReagents" value="{{curr_reagents|last}}">
+            <button type="submit" name="newReagent" value="newReagent" class="btn btn-primary">Add
+                Reagent</button>
+
+            <input class="btn btn-primary text-center" name="save" value="save" type="submit" value="Submit">
+        </form>
+    </div>
+</div>
+{% endblock %}
