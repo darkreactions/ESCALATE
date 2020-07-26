@@ -16,7 +16,6 @@ from .views import (LoginView, CreateUserView, MainMenuView,
                     TagTypeList,TagTypeView,TagTypeCreate,TagTypeUpdate,TagTypeDelete,
                     MaterialTypeList,MaterialTypeView,MaterialTypeCreate,MaterialTypeUpdate,MaterialTypeDelete,
                     ModelTagCreate, ModelTagUpdate)
-from .views.capture import materials, materials2
 
 urlpatterns = [
     path('', LoginView.as_view(), name='login'),
