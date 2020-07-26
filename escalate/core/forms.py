@@ -1,7 +1,9 @@
 from django import forms
+from django.db.models.query import QuerySet
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from core.models import (CustomUser, Person, Material, Inventory, Actor, Note, Organization, LatestSystemtool,
                          SystemtoolType, UdfDef, Status, Tag, TagType, MaterialType,Tag_x)
+from django.core.exceptions import ValidationError
 
 
 class LoginForm(forms.Form):
@@ -394,12 +396,25 @@ class StatusForm(forms.ModelForm):
             })
         }
 
+def validate_tagX(value):
+    pass
 
-class TagXForm(forms.ModelForm):
-    class Meta:
-        model = Tag_x
-        fields = ['tag_uuid']
-        widgets = {}
+# class TagXForm(forms.ModelForm):
+#
+#     tag_uuid = forms.ModelMultipleChoiceField(validators=[validate_tagX],queryset=Tag.objects.all())
+#     tag_uuid.widget.attrs.update({'data-live-search': 'true'})
+#     tag_uuid.widget.attrs.update({'class': 'selectpicker form-control'})
+#
+#     class Meta:
+#         model = Tag_x
+#         fields = ['tag_uuid']
+
+class TagXForm(forms.Form):
+
+    tag_uuid = forms.ModelMultipleChoiceField(queryset=Tag.objects.all())
+    tag_uuid.widget.attrs.update({'data-live-search': 'true'})
+    tag_uuid.widget.attrs.update({'class': 'selectpicker form-control'})
+
 
 class TagForm(forms.ModelForm):
     class Meta:

@@ -16,11 +16,7 @@
             {% for note in note_forms %}
             {{ note|crispy }}
             {% endfor %}
-            {{ tag_forms.management_form }}
-            {{ tag_forms.non_form_errors}}
-            {% for tag in tag_forms %}
-            {{ tag|crispy }}
-            {% endfor %}
+            {{ tag_form |crispy}}
             <button type="submit" name="update" value="update" class="btn btn-primary">Update</button>
             <input class="btn btn-primary text-center" type="submit" name="Submit" value="Submit">
         </form>

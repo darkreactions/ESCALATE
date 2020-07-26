@@ -534,11 +534,6 @@ class Tag_x(models.Model):
     def __str__(self):
         return "{}".format(self.tag_uuid)
 
-    @classmethod
-    def create(cls,ref_tag_uuid,tag_uuid):
-        tag_x=cls(ref_tag_uuid=ref_tag_uuid,tag_uuid=tag_uuid)
-        return tag_x
-
 
 class TagType(models.Model):
     tag_type_uuid = models.UUIDField(primary_key=True)

@@ -2,7 +2,7 @@ from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
 from django.http import HttpResponse
-from core.models import Person, Note, Actor, CustomUser,Tag_x
+from core.models import Person, Note, Actor, CustomUser,Tag_x,Tag
 from core.forms import PersonForm, NoteForm,TagXForm
 from core.views.menu import GenericListView
 
@@ -73,9 +73,6 @@ class PersonEdit():
     context_object_name = 'person'
     NoteFormSet = modelformset_factory(Note, form=NoteForm,can_delete=True)
 
-    #Tag Side
-    TagXFormSet= modelformset_factory(Tag_x, form=TagXForm,can_delete=True)
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         #Note side
@@ -83,10 +80,12 @@ class PersonEdit():
             person = context['person']
             context['note_forms'] = self.NoteFormSet(
                 queryset=Note.objects.filter(ref_note_uuid=person.pk),prefix='note')
-            context['tag_forms'] = self.TagXFormSet(
-                queryset=Tag_x.objects.filter(ref_tag_uuid=person.pk),prefix='tag')
+            context['tag_form'] = TagXForm(
+                initial = {'tag_uuid':
+                    Tag_x.objects.filter(ref_tag_uuid=person.pk).values_list('tag_uuid', flat=True)})
         context['title'] = 'Person'
         return context
+
 
     def post(self, request, *args, **kwargs):
         #Note side
@@ -113,20 +112,26 @@ class PersonEdit():
             obj.delete()
 
         # Tag side
-        TagFormSet = self.TagXFormSet(request.POST or None,prefix = 'tag')
+        TagForm = TagXForm(request.POST or None)
         # Loop through every tagX form
-        for form in TagFormSet:
-            # Only if the form has changed make an update, otherwise ignore
-            if form.has_changed() and form.is_valid():
-                if request.user.is_authenticated:
-                    # Get the tag uuid from form and create a corresponding tagX
-                    tag_x = form.save(commit=False)
-                    tag_x.ref_tag_uuid=person.pk
-                    tag_x.save()
+
+        # Only if the form has changed make an update, otherwise ignore
+        if TagForm.has_changed() and TagForm.is_valid():
+            if request.user.is_authenticated:
+                exist_tag_x = Tag_x.objects.filter(ref_tag_uuid=person.pk)
+                for tag in exist_tag_x:
+                    tag.delete()
+                # Get the tag uuid from form and create a corresponding tagX
+                tag_queryset = TagForm.cleaned_data['tag_uuid']
+                for tag in tag_queryset:
+                    addedTagX = Tag_x(ref_tag_uuid=person.pk,tag_uuid=tag)
+                    addedTagX.save()
+        else:
+            raise Exception("Form not changed or not valid")
+
         # Delete each tag we marked in the formset
-        TagFormSet.save(commit=False)
-        for obj in TagFormSet.deleted_objects:
-            obj.delete()
+        #TagForm.save(commit=False)
+
         # Choose which website we are redirected to
         if request.POST.get("Submit"):
             self.success_url = reverse_lazy('person_list')
