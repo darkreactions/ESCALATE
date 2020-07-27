@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from core.models import (CustomUser, Person, Material, Inventory, Actor, Note, Organization, LatestSystemtool,
-                         SystemtoolType, UdfDef, Status, Tag, TagType, MaterialType)
+                         SystemtoolType, UdfDef, Status, Tag, Tag_X, TagType, MaterialType)
 
 
 class LoginForm(forms.Form):
@@ -414,7 +414,6 @@ class TagForm(forms.ModelForm):
             })
         }
 
-
 class TagTypeForm(forms.ModelForm):
     class Meta:
         model = TagType
@@ -451,3 +450,14 @@ class MaterialTypeForm(forms.ModelForm):
                 'placeholder': 'Your material type description'
             })
         }
+
+
+class TagSelectForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        model_pk = kwargs.pop('model_pk')
+        super(TagSelectForm, self).__init__(*args, **kwargs)
+        current_tags = Tag.objects.filter(pk__in=Tag_X.objects.filter(ref_tag_uuid=model_pk).values_list('tag_uuid',flat=True))
+        self.fields['tags'] = forms.ModelMultipleChoiceField(initial=current_tags,required=False, queryset=Tag.objects.all())
+        self.fields['tags'].widget.attrs.update({'data-live-search': 'true'})
+        self.fields['tags'].widget.attrs.update({'class': 'selectpicker form-control'})
+        #filter(pk__in=Tag_X.objects.filter(ref_tag_uuid=model_pk).values_list('tag_uuid',flat=True))
