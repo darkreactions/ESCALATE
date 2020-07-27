@@ -114,18 +114,23 @@ class PersonEdit():
         # Tag side
         TagForm = TagXForm(request.POST or None)
         # Loop through every tagX form
-
         # Only if the form has changed make an update, otherwise ignore
         if TagForm.has_changed() and TagForm.is_valid():
             if request.user.is_authenticated:
-                exist_tag_x = Tag_x.objects.filter(ref_tag_uuid=person.pk)
-                for tag in exist_tag_x:
-                    tag.delete()
-                # Get the tag uuid from form and create a corresponding tagX
-                tag_queryset = TagForm.cleaned_data['tag_uuid']
-                for tag in tag_queryset:
-                    addedTagX = Tag_x(ref_tag_uuid=person.pk,tag_uuid=tag)
-                    addedTagX.save()
+                # Before is UUID, After is object
+                tag_queryset_before = Tag_x.objects.filter(ref_tag_uuid=person.pk).values_list('tag_uuid', flat=True)
+                tag_queryset_after = TagForm.cleaned_data['tag_uuid']
+                # If tag exist after post but not before, add corresponding tag_x
+                for tag in tag_queryset_after:
+                    if tag.tag_uuid not in tag_queryset_before:
+                        addedTagX = Tag_x(ref_tag_uuid=person.pk,tag_uuid=tag)
+                        addedTagX.save()
+                # If tag exist before post but not after, delete corresponding tag_x
+                for tag_uuid in tag_queryset_before:
+                    if Tag.objects.get(tag_uuid=tag_uuid) not in tag_queryset_after:
+                        tag_x_set = Tag_x.objects.filter(ref_tag_uuid=person.pk,tag_uuid=Tag.objects.get(tag_uuid=tag_uuid))
+                        for tag_x in tag_x_set:
+                            tag_x.delete()
         else:
             raise Exception("Form not changed or not valid")
 
