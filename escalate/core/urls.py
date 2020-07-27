@@ -24,11 +24,6 @@ urlpatterns = [
     path('main_menu/', MainMenuView.as_view(), name='main_menu')
 ]
 
-urlpatterns += [
-    path('capture/', materials, name='capture_materials'),
-    path('capture2/', materials2, name='capture_materials2'),
-]
-
 # Materials
 urlpatterns += [
     path('material_list/', MaterialsList.as_view(), name='material_list'),
