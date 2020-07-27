@@ -91,7 +91,6 @@ class PersonEdit():
         actor = Actor.objects.get(
             person_uuid=request.user.person.pk)
         person = get_object_or_404(Person, pk=self.kwargs['pk'])
-        print(request.POST)
         if self.NoteFormSet != None:
             formset = self.NoteFormSet(request.POST,prefix='note')
             # Loop through every note form
