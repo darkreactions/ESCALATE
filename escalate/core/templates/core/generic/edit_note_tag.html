@@ -12,32 +12,18 @@
         <form method="post">{% csrf_token %}
             {{ form|crispy }}
             {{ note_forms.management_form }}
-            <div id="note_form_set">
-              {% for f in note_forms %}
-                {{ f|crispy }}
-              {% endfor %}
-            </div>
-            <!--
-            <input type="button" value="Add Note" id="add_note">
-            -->
-
-            <button type="submit" name="add_note" value="add_note" class="btn btn-primary">Add Note</button>
-            {{ tag_select_form|crispy }}
-            <button type="submit" name="add_new_tag" value="add_new_tag" class="btn btn-primary">Create New Tag</button>
-            <!--
-            <div id="empty_form" style="display:none">
-                <table class='no_error'>
-                    {{ note_forms.empty_form|crispy }}
-                </table>
-            </div>
-
-            {{ tag_forms.management_form }}
-            {% for f in tag_forms %}
+            {% for f in note_forms %}
               {{ f|crispy }}
             {% endfor %}
-            <button type="submit" name="add_tag" value="add_tag" class="btn btn-primary">Add Tag</button>
-            -->
+            <button type="submit" name="add_note" value="add_note" class="btn btn-primary">Add Note</button>
+            {{ tag_select_form|crispy }}
+            <div>
+            <button type="submit" name="add_new_tag" value="add_new_tag" class="btn btn-primary">Create New Tag</button>
+            </div>
+            <div class="spacer"></div>
+            <div class = "mt-2">
             <input class="btn btn-primary text-center" type="submit" name="Submit" value="Submit">
+            </div>
         </form>
         <a id="last"></a>
         <!--

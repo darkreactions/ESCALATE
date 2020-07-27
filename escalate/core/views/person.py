@@ -61,7 +61,7 @@ class PersonList(GenericListView):
 
 
 class PersonEdit():
-    template_name = 'core/generic/edit_note.html'
+    template_name = 'core/generic/edit_note_tag.html'
     model = Person
     context_object_name = 'person'
     form_class = PersonForm
