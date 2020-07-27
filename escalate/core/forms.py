@@ -451,10 +451,6 @@ class MaterialTypeForm(forms.ModelForm):
             })
         }
 
-class AddReagentForm(forms.Form):
-    reagent = forms.ModelMultipleChoiceField(queryset=Material.objects.all())
-    reagent.widget.attrs.update({'data-live-search': 'true'})
-    reagent.widget.attrs.update({'class': 'selectpicker form-control'})
 
 class TagSelectForm(forms.Form):
     def __init__(self, *args, **kwargs):
