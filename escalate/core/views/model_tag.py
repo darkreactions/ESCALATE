@@ -33,7 +33,7 @@ class ModelTagEdit:
             #above url not being redirected to in super.post so I brute-forced redirect
             return redirect(f'/{model_name}/{model_pk}')
         elif request.POST.get('another_tag'):
-            #Functionality plan block
+            #Functionality plan
             #add another tag form to the new tag forms
             #should re-render the page with a formset with post info to have the
             #current new forms and a new empty tag form

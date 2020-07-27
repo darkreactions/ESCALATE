@@ -91,6 +91,7 @@ class PersonEdit():
         actor = Actor.objects.get(
             person_uuid=request.user.person.pk)
         person = get_object_or_404(Person, pk=self.kwargs['pk'])
+        print(request.POST)
         if self.NoteFormSet != None:
             formset = self.NoteFormSet(request.POST,prefix='note')
             # Loop through every note form
@@ -113,13 +114,31 @@ class PersonEdit():
             # Choose which website we are redirected to
             if request.POST.get('add_note'):
                 self.success_url = reverse_lazy('person_update',kwargs={'pk': person.pk})
+        if request.POST.get('tags'):
+            #tags from post
+            submitted_tags = request.POST.getlist('tags')
+            #tags from db with a tag_x that connects the person and the tags
+            existing_tags = Tag.objects.filter(pk__in=Tag_X.objects.filter(ref_tag_uuid=person.pk).values_list('tag_uuid',flat=True))
+            for tag in existing_tags:
+                if tag not in submitted_tags:
+                #delete tag_x for existing tags that are no longer used
+                    Tag_X.objects.filter(tag_uuid=tag).delete()
+            for tag in submitted_tags:
+                #make tag_x for existing tags that are now used
+                if tag not in existing_tags:
+                    #for some reason tags from post are the uuid as a string
+                    tag_obj = Tag.objects.get(pk=tag) #get actual tag obj with that uuid
+                    tag_x = Tag_X()
+                    tag_x.tag_uuid=tag_obj
+                    tag_x.ref_tag_uuid=person.pk
+                    tag_x.add_date=tag_obj.add_date
+                    tag_x.mod_date=tag_obj.mod_date
+                    tag_x.save()
         if request.POST.get('add_new_tag'):
-            #request.session['model_pk'] = person.pk
-            request.session['model_name'] = 'person'
+            #request.session['model_name'] = 'person'
             self.success_url = reverse_lazy('model_tag_create', kwargs={'pk':person.pk})
         if request.POST.get("Submit"):
             self.success_url = reverse_lazy('person_list')
-        print(self.success_url)
         return super().post(request, *args, **kwargs)
 
 
