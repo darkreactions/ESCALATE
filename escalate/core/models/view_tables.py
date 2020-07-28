@@ -146,7 +146,7 @@ class InventoryMaterial(models.Model):
 class LatestSystemtool(models.Model):
     systemtool_uuid = models.UUIDField(primary_key=True,
                                        db_column='systemtool_uuid')
-    systemtool_name = models.CharField(max_length=255, blank=True, null=True)
+    systemtool_name = models.CharField(max_length=255, null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     vendor_organization_uuid = models.ForeignKey('Organization',
                                                  models.DO_NOTHING,
@@ -160,13 +160,13 @@ class LatestSystemtool(models.Model):
         max_length=255, blank=True, null=True)
     model = models.CharField(max_length=255, blank=True, null=True)
     serial = models.CharField(max_length=255, blank=True, null=True)
-    ver = models.CharField(max_length=255, blank=True, null=True)
+    ver = models.CharField(max_length=255,  null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
-        db_table = 'vw_latest_systemtool'
+        db_table = 'vw_systemtool'
 
     def __str__(self):
         return "{}".format(self.systemtool_name)
@@ -386,6 +386,7 @@ class Note(models.Model):
     edocument_type = models.CharField(max_length=255, blank=True, null=True)"""
     actor_uuid = models.ForeignKey('Actor', models.DO_NOTHING,
                                    db_column='actor_uuid')
+    note_x_uuid = models.ForeignKey('Note_x',models.DO_NOTHING,db_column='note_x_uuid')
     actor_description = models.CharField(max_length=255, blank=True, null=True)
     ref_note_uuid = models.UUIDField()
 
@@ -396,6 +397,21 @@ class Note(models.Model):
     def __str__(self):
         return "{}".format(self.notetext)
 
+class Note_x(models.Model):
+    note_x_uuid = models.UUIDField(primary_key=True)
+
+    add_date = models.DateTimeField()
+    mod_date = models.DateTimeField()
+    note_uuid = models.ForeignKey('Note', models.DO_NOTHING,
+                                   db_column='note_uuid')
+    ref_note_uuid = models.UUIDField()
+
+    class Meta:
+        managed = False
+        db_table = 'note_x'
+
+    def __str__(self):
+        return "{}".format(self.note_uuid)
 
 class Organization(models.Model):
     organization_uuid = models.UUIDField(primary_key=True)
@@ -463,7 +479,7 @@ class Person(models.Model):
 
 class Status(models.Model):
     status_uuid = models.UUIDField(primary_key=True)
-    description = models.CharField(max_length=255, blank=True, null=True)
+    description = models.CharField(max_length=255, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -477,7 +493,7 @@ class Status(models.Model):
 
 class Tag(models.Model):
     tag_uuid = models.UUIDField(primary_key=True)
-    display_text = models.CharField(max_length=255, blank=True, null=True)
+    display_text = models.CharField(max_length=255,  null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
@@ -502,10 +518,25 @@ class Tag(models.Model):
     def __str__(self):
         return "{}".format(self.display_text)
 
+class Tag_X(models.Model):
+    tag_x_uuid = models.UUIDField(primary_key=True)
+    ref_tag_uuid = models.UUIDField()
+    tag_uuid = models.ForeignKey('Tag', models.DO_NOTHING,
+                                   db_column='tag_uuid')
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'vw_tag_x'
+
+    def __str__(self):
+        return "{}".format(self.tag_x_uuid)
+
 
 class TagType(models.Model):
     tag_type_uuid = models.UUIDField(primary_key=True)
-    short_description = models.CharField(max_length=255, blank=True, null=True)
+    short_description = models.CharField(max_length=255,  null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
@@ -562,12 +593,9 @@ class UdfDef(models.Model):
     """
     udf_def_uuid = models.UUIDField(primary_key=True)
     description = models.CharField(
-        max_length=255, blank=True, null=True)
+        max_length=255,  null=True)
     valtype = models.CharField(
         max_length=255, blank=True, null=True)
-    note_uuid = models.ForeignKey(
-        'Note', models.DO_NOTHING, db_column='note_uuid', blank=True, null=True)
-    notetext = models.CharField(max_length=255, blank=True, null=True)
     add_date = models.DateTimeField()
     mod_date = models.DateTimeField()
 

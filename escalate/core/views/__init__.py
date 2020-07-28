@@ -13,4 +13,4 @@ from .status import *
 from .tag import *
 from .tag_type import *
 from .material_type import *
-
+from .model_tag import *

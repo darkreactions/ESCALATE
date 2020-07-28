@@ -60,9 +60,6 @@ class CreateUserView(View):
             user.person = p
             user.save()
 
-            actor = Actor(person_uuid=p,
-                          actor_description=f'{p.first_name} {p.last_name}')
-            actor.save()
             messages.success(request, 'Account created successfully')
             return redirect('login')
 

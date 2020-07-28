@@ -1,0 +1,42 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+
+{% block content %}
+<div class="container">
+    <div class="col-md-6 offset-md-3">
+        <h3> {{ title }} </h3>
+        <a href="#last">Jump to the end </a>
+
+        <form method="post">{% csrf_token %}
+            {{ form|crispy }}
+            {{ note_forms.management_form }}
+            {% for f in note_forms %}
+              {{ f|crispy }}
+            {% endfor %}
+            <button type="submit" name="add_note" value="add_note" class="btn btn-primary">Add Note</button>
+            {{ tag_select_form|crispy }}
+            <div>
+            <button type="submit" name="add_new_tag" value="add_new_tag" class="btn btn-primary">Create New Tag</button>
+            </div>
+            <div class="spacer"></div>
+            <div class = "mt-2">
+            <input class="btn btn-primary text-center" type="submit" name="Submit" value="Submit">
+            </div>
+        </form>
+        <a id="last"></a>
+        <!--
+        <script>
+            $('#add_note').click(function() {
+                var form_idx = $('note-TOTAL_FORMS').val();
+                $('#note_form_set').append($('#empty_form').html().replace(/__prefix__/g, form_idx));
+                $('#note-TOTAL_FORMS').val(parseInt(form_idx) + 1);
+            });
+        </script>
+        -->
+    </div>
+</div>
+
+
+{% endblock %}

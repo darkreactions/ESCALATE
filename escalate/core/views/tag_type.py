@@ -9,7 +9,7 @@ from core.views.menu import GenericListView
 
 class TagTypeList(GenericListView):
     model = TagType
-    template_name = 'core/tag_type/tag_type_list.html'
+    template_name = 'core/generic/list.html'
     context_object_name = 'tag_types'
     paginate_by = 10
 
@@ -24,11 +24,45 @@ class TagTypeList(GenericListView):
             new_queryset = self.model.objects.all()
         return new_queryset
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        table_columns = [ 'Short Description','Description','Actions']
+        context['table_columns'] = table_columns
+        tag_types = context['tag_types']
+        table_data = []
+        for tag_type in tag_types:
+            table_row_data = []
+
+            # data for the object we want to display for a row
+            table_row_data.append(tag_type.short_description)
+            table_row_data.append(tag_type.description)
+            # dict containing the data, view and update url, primary key and obj
+            # name to use in template
+            table_row_info = {
+                'table_row_data': table_row_data,
+                'view_url': reverse_lazy('tag_type_view', kwargs={'pk': tag_type.pk}),
+                'update_url': reverse_lazy('tag_type_update', kwargs={'pk': tag_type.pk}),
+                'obj_name': str(tag_type),
+                'obj_pk': tag_type.pk
+            }
+            table_data.append(table_row_info)
+
+        context['add_url'] = reverse_lazy('tag_type_add')
+        context['table_data'] = table_data
+        context['title'] = 'tag_type'
+        return context
+
+
 class TagTypeEdit:
-    template_name = 'core/tag_type/tag_type_edit.html'
+    template_name = 'core/generic/edit.html'
     model = TagType
     form_class = TagTypeForm
     success_url = reverse_lazy('tag_type_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'tag_type'
+        return context
 
 
 class TagTypeCreate(TagTypeEdit, CreateView):
@@ -46,4 +80,20 @@ class TagTypeDelete(DeleteView):
 
 class TagTypeView(DetailView):
     model = TagType
-    template_name = 'core/tag_type/tag_type_detail.html'
+    template_name = 'core/generic/detail.html'
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        obj = context['object']
+        table_data = {
+                'Short description': obj.short_description,
+                'Long description': obj.description,
+                'Add date': obj.add_date,
+                'Modified date': obj.mod_date
+        }
+        context['update_url'] = reverse_lazy(
+            'tag_type_update', kwargs={'pk': obj.pk})
+        context['title'] = 'tag_type'
+        context['table_data'] = table_data
+        return context

@@ -1,29 +1,28 @@
 from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
-
-from core.models import Person, Note, Actor, CustomUser
-from core.forms import PersonForm, NoteForm
+from django.http import HttpResponse
+from core.models import Person, Note, Actor, CustomUser, Tag_X, Tag
+from core.forms import PersonForm, NoteForm, TagSelectForm, TagForm
 from core.views.menu import GenericListView
 from django.forms import modelformset_factory
+from django.shortcuts import get_object_or_404
 
 
 class PersonList(GenericListView):
     model = Person
-    #template_name = 'core/person/person_list.html'
     template_name = 'core/generic/list.html'
     context_object_name = 'persons'
     paginate_by = 10
 
     def get_queryset(self):
-        # return self.model.objects.all()
-        # filter_val = self.request.GET.get('filter', '')
-        # ordering = self.request.GET.get('ordering', 'lastname')
-        # if filter_val != None:
-        #     new_queryset = self.model.objects.filter(
-        #         lastname__icontains=filter_val).select_related().order_by(ordering)
-        # else:
-        new_queryset = self.model.objects.all()
+        filter_val = self.request.GET.get('filter', '')
+        ordering = self.request.GET.get('ordering', 'first_name')
+        if filter_val != None:
+            new_queryset = self.model.objects.filter(
+                first_name__icontains=filter_val).select_related().order_by(ordering)
+        else:
+            new_queryset = self.model.objects.all()
         return new_queryset
 
     def get_context_data(self, **kwargs):
@@ -61,45 +60,92 @@ class PersonList(GenericListView):
         return context
 
 
-class PersonEdit:
-    template_name = 'core/generic/edit_note.html'
+class PersonEdit():
+    template_name = 'core/generic/edit_note_tag.html'
     model = Person
     context_object_name = 'person'
     form_class = PersonForm
     #form_class_list = [PersonForm, NoteForm]
     success_url = reverse_lazy('person_list')
-    NoteFormSet = modelformset_factory(Note, form=NoteForm)
+    NoteFormSet = modelformset_factory(Note, form=NoteForm,can_delete=True)
+    #TagFormSet = modelformset_factory(Tag, form=TagForm,can_delete=True)
+
 
     def get_context_data(self, **kwargs):
+        #pass tag select form in with form getting the pk
         context = super().get_context_data(**kwargs)
         if 'person' in context:
             person = context['person']
             context['note_forms'] = self.NoteFormSet(
-                queryset=Note.objects.filter(ref_note_uuid=person.pk))
+                queryset=Note.objects.filter(ref_note_uuid=person.pk),prefix='note')
+            print(person.pk)
+            context['tag_select_form'] = TagSelectForm(model_pk=person.pk)
+            # tag_queryset = Tag.objects.filter(
+            #                 pk__in=Tag_X.objects.filter(ref_tag_uuid=person.pk).values_list('tag_uuid',flat=True))
+            # context['tag_forms'] = self.TagFormSet(
+            #     queryset=tag_queryset, prefix='tag')
         context['title'] = 'Person'
         return context
 
     def post(self, request, *args, **kwargs):
-        formset = self.NoteFormSet(request.POST)
-        # Loop through every note form
-        for form in formset:
-            # Only if the form has changed make an update, otherwise ignore
-            if form.has_changed() and form.is_valid():
-                if request.user.is_authenticated:
-                    # Get the appropriate actor and then add it to the note
-                    actor = Actor.objects.get(
-                        person_uuid=request.user.person.pk)
-                    note = form.save(commit=False)
-                    note.actor_uuid = actor
-                    # Get the appropriate uuid of the record being changed.
-                    # Conveniently in this case its person, but we need to figure out an alternative
-                    note.ref_note_uuid = request.user.person.pk
-                    note.save()
-
+        actor = Actor.objects.get(
+            person_uuid=request.user.person.pk)
+        person = get_object_or_404(Person, pk=self.kwargs['pk'])
+        if self.NoteFormSet != None:
+            formset = self.NoteFormSet(request.POST,prefix='note')
+            # Loop through every note form
+            for form in formset:
+                # Only if the form has changed make an update, otherwise ignore
+                if form.has_changed() and form.is_valid():
+                    if request.user.is_authenticated:
+                        # Get the appropriate actor and then add it to the note
+                        note = form.save(commit=False)
+                        note.actor_uuid = actor
+                        # Get the appropriate uuid of the record being changed.
+                        # Conveniently in this case its person, but we need to figure out an alternative
+                        #note.ref_note_uuid = request.user.person.pk
+                        note.ref_note_uuid = person.pk
+                        note.save()
+            # Delete each note we marked in the formset
+            formset.save(commit=False)
+            for form in formset.deleted_forms:
+                form.instance.delete()
+            # Choose which website we are redirected to
+            if request.POST.get('add_note'):
+                self.success_url = reverse_lazy('person_update',kwargs={'pk': person.pk})
+        if request.POST.get('tags'):
+            #tags from post
+            submitted_tags = request.POST.getlist('tags')
+            #tags from db with a tag_x that connects the person and the tags
+            existing_tags = Tag.objects.filter(pk__in=Tag_X.objects.filter(ref_tag_uuid=person.pk).values_list('tag_uuid',flat=True))
+            for tag in existing_tags:
+                if tag not in submitted_tags:
+                #delete tag_x for existing tags that are no longer used
+                    Tag_X.objects.filter(tag_uuid=tag).delete()
+            for tag in submitted_tags:
+                #make tag_x for existing tags that are now used
+                if tag not in existing_tags:
+                    #for some reason tags from post are the uuid as a string
+                    tag_obj = Tag.objects.get(pk=tag) #get actual tag obj with that uuid
+                    tag_x = Tag_X()
+                    tag_x.tag_uuid=tag_obj
+                    tag_x.ref_tag_uuid=person.pk
+                    tag_x.add_date=tag_obj.add_date
+                    tag_x.mod_date=tag_obj.mod_date
+                    tag_x.save()
+        if request.POST.get('add_new_tag'):
+            #request.session['model_name'] = 'person'
+            self.success_url = reverse_lazy('model_tag_create', kwargs={'pk':person.pk})
+        if request.POST.get("Submit"):
+            self.success_url = reverse_lazy('person_list')
         return super().post(request, *args, **kwargs)
 
 
 class PersonCreate(PersonEdit, CreateView):
+    #template no functionality related to note
+    template_name = 'core/generic/edit.html'
+    #make NoteFormSet none to ignore it in parent edit class's post method
+    NoteFormSet = None
     pass
 
 
