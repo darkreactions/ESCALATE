@@ -1153,11 +1153,11 @@ Date:				2020.07.15
 Description:		trigger proc that deletes, inserts or updates actor 
 Notes:				there is going to be a lot of dependencies on actor, so a 'delete' will need a lot of cleanup first; easier to just change status to 'inactive' or something like that
  
-Example:			insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) 
- 					values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null);
+Example:			insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null);
 					delete from vw_person where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
 					insert into vw_actor (person_uuid, actor_description, actor_status_uuid) values ((select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester')), 'Lester the Actor', (select status_uuid from vw_status where description = 'active'));
 					insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note for Lester the Actor', (select actor_uuid from vw_actor where person_last_name = 'Tester'), (select actor_uuid from vw_actor where person_last_name = 'Tester'));
+					insert into vw_tag_x (tag_uuid, ref_tag_uuid) values ((select tag_uuid from vw_tag where (display_text = 'do_not_use')), (select actor_uuid from vw_actor where person_last_name = 'Tester'));
 					update vw_actor set actor_description = 'new description for Lester the Actor' where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
  					update vw_actor set organization_uuid = (select organization_uuid from vw_organization where full_name = 'Haverford College') where person_uuid = (select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
 					delete from vw_actor where actor_uuid in (select actor_uuid from vw_actor where actor_description = 'Lester the Actor');
@@ -1172,15 +1172,26 @@ BEGIN
 		-- first delete all the actor_pref records
 		DELETE FROM vw_actor_pref cascade
 		WHERE actor_uuid = OLD.actor_uuid;
+		-- then delete the associated note records
+		DELETE FROM vw_note cascade
+		WHERE actor_uuid = OLD.actor_uuid;
+		-- then delete the associated tag records
+		DELETE FROM vw_tag_x cascade
+		WHERE ref_tag_uuid = OLD.actor_uuid;
 		-- then delete the actor record
 		DELETE FROM actor
 		WHERE actor_uuid = OLD.actor_uuid;
 		IF NOT FOUND THEN
 			RETURN NULL;
 		END IF;
-		-- then delete the associated note record
-		DELETE FROM vw_note cascade
-		WHERE note_uuid = OLD.actor_uuid;
+		-- then delete the associated [sub]actor (org, person, systemtool)
+		IF OLD.organization_uuid is not NULL THEN
+			DELETE FROM vw_organization WHERE organization_uuid = OLD.organization_uuid;
+		ELSIF OLD.person_uuid is not NULL THEN
+			DELETE FROM vw_person WHERE person_uuid = OLD.person_uuid;	
+		ELSIF OLD.person_uuid is not NULL THEN
+			DELETE FROM vw_systemtool WHERE systemtool_uuid = OLD.systemtool_uuid;
+		END IF;	
 		RETURN OLD;
 	ELSIF (TG_OP = 'UPDATE') THEN
 		UPDATE
@@ -1196,9 +1207,13 @@ BEGIN
 			actor.actor_uuid = NEW.actor_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO actor (organization_uuid, person_uuid, systemtool_uuid, description, status_uuid)
-			VALUES(NEW.organization_uuid, NEW.person_uuid, NEW.systemtool_uuid, NEW.actor_description, NEW.actor_status_uuid);
-		RETURN NEW;
+		IF (NEW.organization_uuid is NULL and NEW.person_uuid is NULL and NEW.systemtool_uuid is NULL) THEN
+			RETURN NULL;
+		ELSE
+			INSERT INTO actor (organization_uuid, person_uuid, systemtool_uuid, description, status_uuid)
+				VALUES(NEW.organization_uuid, NEW.person_uuid, NEW.systemtool_uuid, NEW.actor_description, NEW.actor_status_uuid);
+			RETURN NEW;
+		END IF;
 	END IF;
 END;
 $$
@@ -1313,7 +1328,7 @@ BEGIN
 			organization.full_name = NEW.full_name;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid) VALUES(NEW.description, NEW.full_name, NEW.short_name, NEW.address1, NEW.address2, NEW.city, NEW.state_province, NEW.zip, NEW.country, NEW.website_url, NEW.phone, NEW.parent_uuid) returning organization_uuid, description into _org_uuid, _org_description;
+		INSERT INTO organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid) VALUES(NEW.description, NEW.full_name, NEW.short_name, NEW.address1, NEW.address2, NEW.city, NEW.state_province, NEW.zip, NEW.country, NEW.website_url, NEW.phone, NEW.parent_uuid) returning organization_uuid, short_name into _org_uuid, _org_description;
 		insert into vw_actor (organization_uuid, actor_description, actor_status_uuid) values (_org_uuid, _org_description, (select status_uuid from vw_status where description = 'active'));
 		RETURN NEW;
 	END IF;
@@ -1384,7 +1399,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) VALUES(NEW.last_name, NEW.first_name, NEW.middle_name, NEW.address1, NEW.address2, NEW.city, NEW.state_province, NEW.zip, NEW.country, NEW.phone, NEW.email, NEW.title, NEW.suffix, NEW.organization_uuid) returning person_uuid, first_name, middle_name, last_name  into _person_uuid, _person_first_name, _person_middle_name, _person_last_name;
-		insert into vw_actor (person_uuid, actor_description, actor_status_uuid) values (_person_uuid, trim(concat(_person_first_name,' ',_person_middle_name, ' ', _person_last_name)), (select status_uuid from vw_status where description = 'active'));
+		insert into vw_actor (person_uuid, actor_description, actor_status_uuid) values (_person_uuid, trim(concat(_person_first_name,' ', _person_last_name)), (select status_uuid from vw_status where description = 'active'));
 		RETURN NEW;
 	END IF;
 END;
@@ -1638,7 +1653,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO tag_x (ref_tag_uuid, tag_uuid)
-			VALUES(NEW.ref_tag_uuid, NEW.tag_uuid);
+		VALUES(NEW.ref_tag_uuid, NEW.tag_uuid);
 		RETURN NEW;
 	END IF;
 END;
@@ -1834,6 +1849,57 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
+
+
+/*
+Name:			upsert_material()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.07.20
+Description:	trigger proc that deletes, inserts or updates material record based on TG_OP (trigger operation)
+Notes:				
+ 
+Example:		insert into vw_material (material_description, ) values ('materialrefnamedef_test');
+ 				delete from vw_material_refname_def where material_refname_def_uuid = (select material_refname_def_uuid from vw_material_refname_def where (description = 'materialrefnamedef_test'));
+ */
+CREATE OR REPLACE FUNCTION upsert_material ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		-- first delete the ornanization record
+		DELETE FROM material_refname_def
+		WHERE material_refname_def_uuid = OLD.material_refname_def_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- then delete the associated note record
+		DELETE FROM vw_note
+		WHERE note_uuid = OLD.material_refname_def_uuid;
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			material_refname_def
+		SET
+			description = NEW.description,
+			mod_date = now()
+		WHERE
+			material_refname_def.material_refname_def_uuid = NEW.material_refname_def_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO material_refname_def (description)
+			VALUES(NEW.description);
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+
+
 
 
 /*

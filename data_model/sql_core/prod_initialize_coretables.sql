@@ -34,7 +34,8 @@ VALUES
 	('Chemical vendor', 'Greatcell Solar', 'Greatcell', '3 Dominion Place', NULL, 'Queanbeyan', 'NSW', '2620', 'AUS', 'http://www.greatcellsolar.com/shop/', NULL),
 	('Cheminfomatics software', 'ChemAxon', 'ChemAxon', NULL, NULL, NULL, NULL, NULL, 'US', 'https://chemaxon.com', NULL),
 	('Cheminfomatics software', 'RDKit open source software', 'RDKit', NULL, NULL, NULL, NULL, NULL, NULL,'https://www.rdkit.org', NULL),
-	('Laboratory', 'Emerald Cloud Lab', 'ECL', '844 Dubuque Ave', NULL, 'South San Francisco,', 'CA', '94080', 'US', 'https://www.emeraldcloudlab.com', NULL);
+	('Laboratory', 'Emerald Cloud Lab', 'ECL', '844 Dubuque Ave', NULL, 'South San Francisco', 'CA', '94080', 'US', 'https://www.emeraldcloudlab.com', NULL),
+	('DBMS', 'PostgreSQL', 'postgres', NULL, NULL, NULL, NULL, NULL, NULL, 'https://www.postgresql.org', NULL);
 COMMIT;
 
 
@@ -46,6 +47,7 @@ INSERT INTO vw_systemtool_type (description) VALUES ('Command-line tool');
 INSERT INTO vw_systemtool_type (description) VALUES ('API');
 INSERT INTO vw_systemtool_type (description) VALUES ('Python toolkit');
 INSERT INTO vw_systemtool_type (description) VALUES ('ESCALATE function');
+INSERT INTO vw_systemtool_type (description) VALUES ('Database Management System');
 COMMIT;
 
 -- ----------------------------
@@ -71,7 +73,10 @@ VALUES
 		(select organization_uuid from organization where short_name = 'RDKit'), NULL, NULL, '19.03.4'),
 	('escalate', 'ESCALATE function call', 
 		(select systemtool_type_uuid from systemtool_type where description = 'ESCALATE function'),
-		(select organization_uuid from organization where short_name = 'HC'), NULL, NULL, '3.0.0')
+		(select organization_uuid from organization where short_name = 'HC'), NULL, NULL, '3.0.0'),
+	('postgres', 'PostgreSQL DBMS',
+		(select systemtool_type_uuid from systemtool_type where description = 'Database Management System'),
+		(select organization_uuid from organization where short_name = 'HC'), NULL, NULL, '12.0')	
 ;
 COMMIT;
 
@@ -189,11 +194,10 @@ VALUES
 	-- for GC actor, set up environment variables
 	((select actor_uuid from vw_actor where person_last_name = 'Cattabriga'), 'HOME_DIR', '/Users/gcattabriga/'),	
 	((select actor_uuid from vw_actor where person_last_name = 'Cattabriga'), 'MARVINSUITE_DIR', '/Applications/MarvinSuite/bin/'),
-	((select actor_uuid from vw_actor where person_last_name = 'Cattabriga'), 'CHEMAXON_DIR', '/Applications/ChemAxon/JChemSuite/bin/')
-	;	
+	((select actor_uuid from vw_actor where person_last_name = 'Cattabriga'), 'CHEMAXON_DIR', '/Applications/ChemAxon/JChemSuite/bin/');	
 COMMIT;
 
-
+delete from vw_actor where systemtool_name = 'postgres';
 
 -- ----------------------------
 -- Populate tag_type
@@ -202,7 +206,8 @@ BEGIN;
 INSERT INTO vw_tag_type (short_description, description)
 VALUES 
 	('material', 'tags used to assist in identifying material types'),
-	('experiment', 'tags used to assist in charactizing experiments, visibility')
+	('experiment', 'tags used to assist in charactizing experiments, visibility'),
+	('actor', 'tags used to assist in charactizing actors');
 ;
 COMMIT;
 
@@ -225,9 +230,9 @@ COMMIT;
 BEGIN;
 INSERT INTO vw_tag (display_text, tag_type_uuid, actor_uuid)
 VALUES 
-	('A-Cation', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
-	('B-Cation', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
-	('Halide', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+	('a-cation', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+	('b-cation', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+	('halide', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
 	('acid', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
 	('antisolvent', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
 	('inorganic', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
@@ -238,7 +243,15 @@ VALUES
 	('WF1 Iodides', (select tag_type_uuid from vw_tag_type where short_description = 'experiment'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
 	('WF3 Iodide', (select tag_type_uuid from vw_tag_type where short_description = 'experiment'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
 	('WF3 HalideAlloy', (select tag_type_uuid from vw_tag_type where short_description = 'experiment'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
-	('WF3 Unique', (select tag_type_uuid from vw_tag_type where short_description = 'experiment'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'))
+	('WF3 Unique', (select tag_type_uuid from vw_tag_type where short_description = 'experiment'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+	('reference', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),	
+	('catalog', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+	('reference', (select tag_type_uuid from vw_tag_type where short_description = 'experiment'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),	
+	('catalog', (select tag_type_uuid from vw_tag_type where short_description = 'experiment'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+	('reference', (select tag_type_uuid from vw_tag_type where short_description = 'actor'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),	
+	('temporary', (select tag_type_uuid from vw_tag_type where short_description = 'actor'), (select actor_uuid from vw_actor where systemtool_name = 'postgres')),
+	('on_loan', (select tag_type_uuid from vw_tag_type where short_description = 'actor'), (select actor_uuid from vw_actor where systemtool_name = 'postgres')),	
+	('do_not_use', (select tag_type_uuid from vw_tag_type where short_description = 'actor'), (select actor_uuid from vw_actor where systemtool_name = 'postgres'))	
 ;
 COMMIT;
 

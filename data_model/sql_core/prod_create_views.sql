@@ -481,7 +481,8 @@ SELECT
 	(
 		md.out_val ).v_edocument_uuid AS out_val_edocument_uuid,
 	md.calculation_alias_name,
-	md.create_date,
+	md.add_date as calculation_add_date,
+	md.mod_date as calculation_mod_date,
 	sts.status_uuid AS calculation_status_uuid,
 	sts.description AS calculation_status_description,
 	dact.actor_description AS actor_descr,
@@ -551,20 +552,24 @@ EXECUTE PROCEDURE upsert_material_type ( );
 CREATE OR REPLACE VIEW vw_material_raw AS
 SELECT
 	mat.material_uuid,
-	mat.description AS material_description,
-	st.status_uuid AS material_status_uuid,
-	st.description AS material_status_description,
-	get_material_type (
-		mat.material_uuid ) AS material_type_description,
+	mat.description AS description,
+	st.status_uuid AS status_uuid,
+	st.description AS status_description,
+	mt.material_type_uuid,
+	mt.description as material_type_description,
+	mr.material_refname_def_uuid,
 	mrt.description AS material_refname_def,
 	mr.description AS material_refname_description,
-	mr.material_refname_def_uuid,
-	mat.add_date AS material_create_date
+	mat.parent_uuid,
+	mat.add_date,
+	mat.mod_date
 FROM
 	material mat
 LEFT JOIN material_refname_x mrx ON mat.material_uuid = mrx.material_uuid
 LEFT JOIN material_refname mr ON mrx.material_refname_uuid = mr.material_refname_uuid
 LEFT JOIN material_refname_def mrt ON mr.material_refname_def_uuid = mrt.material_refname_def_uuid
+LEFT JOIN material_type_x mtx ON mat.material_uuid = mtx.material_uuid
+LEFT JOIN material_type mt ON mtx.material_type_uuid = mt.material_type_uuid
 LEFT JOIN status st ON mat.status_uuid = st.status_uuid
 ORDER BY
 mat.material_uuid,
@@ -573,22 +578,24 @@ mr.description;
 
 ----------------------------------------
 -- get materials, all status as a crosstab, with refname types
-DROP VIEW vw_material cascade;
+-- DROP VIEW vw_material cascade;
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_material AS
 SELECT
 	*
 FROM
 	crosstab (
-		'select material_uuid, material_status_uuid, material_status_description, material_create_date, material_description, material_refname_def, material_refname_description
-				   from vw_material_raw order by 1, 3',
+		'select material_uuid, description, parent_uuid, status_uuid, status_description, add_date, mod_date, material_refname_def, material_refname_description
+				   from vw_material_raw where material_type_description = ''catalog'' order by 1, 3',
 		'select distinct material_refname_def
 				   from vw_material_raw where material_refname_def is not null order by 1' ) AS ct (
 		material_uuid uuid,
+		description varchar,
+		parent_uuid uuid,
 		material_status_uuid uuid,
 		material_status_description varchar,
-		create_date timestamptz,
-		material_description varchar,
+		add_date timestamptz,
+		mod_date timestamptz, 
 		Abbreviation varchar,
 		Chemical_Name varchar,
 		InChI varchar,
@@ -607,7 +614,8 @@ SELECT
 	mat.material_uuid,
 	mat.material_status_uuid,	
 	mat.material_status_description,
-	mat.create_date AS material_create_date,
+	mat.add_date AS material_add_date,
+	mat.mod_date AS material_mod_date,	
 	mat.abbreviation,
 	mat.chemical_name,
 	mat.inchi,
@@ -631,7 +639,7 @@ SELECT
 	cal.out_val_unit,
 	cal.out_val_edocument_uuid,
 	cal.calculation_alias_name,
-	cal.create_date AS calculation_create_date,
+	cal.add_date AS calculation_add_date,
 	cal.calculation_status_uuid,
 	cal.calculation_status_description,
 	cal.calculation_def_uuid,
@@ -666,7 +674,8 @@ SELECT
 	vm.material_uuid,
 	vm.material_status_uuid,
 	vm.material_status_description,
-	vm.create_date,
+	vm.add_date,
+	vm.mod_date,
 	vm.abbreviation,
 	vm.chemical_name,
 	vm.inchi,
@@ -711,7 +720,8 @@ SELECT
 	inv.part_no,
 	inv.onhand_amt,
 	inv.unit,
-	inv.create_date,
+	inv.add_date,
+	inv.mod_date,
 	inv.expiration_date,
 	inv.inventory_location,
 	st.status_uuid AS status_uuid,
@@ -719,9 +729,7 @@ SELECT
 	mat.material_uuid,
 	mat.description AS material_description,
 	act.actor_uuid,
-	act.description as actor_description,
-	inv.add_date,
-	inv.mod_date
+	act.description as actor_description
 FROM
 	inventory inv
 LEFT JOIN material mat ON inv.material_uuid = mat.material_uuid
@@ -739,7 +747,7 @@ SELECT
 	inv.part_no AS inventory_part_no,
 	inv.onhand_amt AS inventory_onhand_amt,
 	inv.unit AS inventory_unit,
-	inv.create_date AS inventory_create_date,
+	inv.add_date AS inventory_add_date,
 	inv.expiration_date AS inventory_expiration_date,
 	inv.inventory_location,
 	st.status_uuid AS inventory_status_uuid,	
@@ -750,7 +758,7 @@ SELECT
 	inv.material_uuid,
 	mat.material_status_uuid,
 	mat.material_status_description,
-	mat.create_date AS material_create_date,
+	mat.add_date AS material_add_date,
 	mat.chemical_name AS material_name,
 	mat.abbreviation AS material_abbreviation,
 	mat.inchi AS material_inchi,
@@ -769,7 +777,7 @@ LEFT JOIN status st ON inv.status_uuid = st.status_uuid;
 -- =======================================
 ----------------------------------------
 -- get experiments, measures, calculations
-drop view vw_experiment_measure_calculation;
+-- drop view vw_experiment_measure_calculation;
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_experiment_measure_calculation AS
 SELECT
@@ -810,7 +818,7 @@ FROM ((
 
 ----------------------------------------
 -- get experiments, measures, calculations in json
-drop view vw_experiment_measure_calculation_json;
+-- drop view vw_experiment_measure_calculation_json;
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_experiment_measure_calculation_json AS
 SELECT

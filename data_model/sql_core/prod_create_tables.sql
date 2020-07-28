@@ -29,10 +29,49 @@ Notes:			triggers, foreign keys and other constraints are in other sql files
 DROP TYPE IF EXISTS val_type cascade; 
 DROP TYPE IF EXISTS val cascade; 
 
+
+ --=====================================
+ -- DROP VIEWS
+ --=====================================
+DROP VIEW IF EXISTS vw_actor cascade;
+DROP VIEW IF EXISTS vw_actor_pref cascade;
+DROP VIEW IF EXISTS vw_calculation cascade;
+DROP VIEW IF EXISTS vw_calculation_def cascade;
+DROP VIEW IF EXISTS vw_edocument cascade;
+DROP VIEW IF EXISTS vw_experiment_measure_calculation cascade;
+DROP VIEW IF EXISTS vw_experiment_measure_calculation_json cascade;
+DROP VIEW IF EXISTS vw_inventory cascade;
+DROP VIEW IF EXISTS vw_inventory_material cascade;
+DROP VIEW IF EXISTS vw_material cascade;
+DROP VIEW IF EXISTS vw_material_calculation_json cascade;
+DROP VIEW IF EXISTS vw_material_calculation_raw cascade;
+DROP VIEW IF EXISTS vw_material_raw cascade;
+DROP VIEW IF EXISTS vw_material_refname_def cascade;
+DROP VIEW IF EXISTS vw_material_type cascade;
+DROP VIEW IF EXISTS vw_note cascade;
+DROP VIEW IF EXISTS vw_organization cascade;
+DROP VIEW IF EXISTS vw_person cascade;
+DROP VIEW IF EXISTS vw_status cascade;
+DROP VIEW IF EXISTS vw_systemtool cascade;
+DROP VIEW IF EXISTS vw_systemtool_raw cascade;
+DROP VIEW IF EXISTS vw_systemtool_type cascade;
+DROP VIEW IF EXISTS vw_tag cascade;
+DROP VIEW IF EXISTS vw_tag_type cascade;
+DROP VIEW IF EXISTS vw_tag_x cascade;
+
+
+
  --=====================================
  -- DROP TABLES 
  --=====================================
 DROP TABLE IF EXISTS sys_audit cascade; 
+DROP TABLE IF EXISTS action cascade;
+DROP TABLE IF EXISTS action_def cascade;
+DROP TABLE IF EXISTS action_condition cascade;
+DROP TABLE IF EXISTS action_condition_x cascade;
+DROP TABLE IF EXISTS action_x cascade;
+DROP TABLE IF EXISTS action_def cascade;
+DROP TABLE IF EXISTS action_type cascade;
 DROP TABLE IF EXISTS organization cascade; 
 DROP TABLE IF EXISTS person cascade; 
 DROP TABLE IF EXISTS systemtool cascade;
@@ -67,6 +106,9 @@ DROP TABLE IF EXISTS tag_type cascade;
 DROP TABLE IF EXISTS udf cascade;
 DROP TABLE IF EXISTS udf_x cascade;
 DROP TABLE IF EXISTS udf_def cascade;
+DROP TABLE IF EXISTS workflow cascade;
+DROP TABLE IF EXISTS workflow_action cascade;
+DROP TABLE IF EXISTS workflow_x cascade;
 DROP TABLE IF EXISTS status cascade;
 -- DROP TABLE IF EXISTS escalate_change_log cascade;
 -- DROP TABLE IF EXISTS escalate_version cascade;
@@ -115,7 +157,67 @@ CREATE TABLE sys_audit (
     changed_fields hstore,
     statement_only boolean not null
 );
- 
+
+ ---------------------------------------
+-- Table structure for action
+---------------------------------------
+CREATE TABLE action (
+	action_uuid uuid DEFAULT uuid_generate_v4 (),
+	action_def uuid,
+	description varchar COLLATE "pg_catalog"."default" NOT NULL,
+	start_date timestamptz,
+	end_date timestamptz,
+	duration double precision,
+	material_uuid uuid,
+	actor_uuid uuid,
+	status_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
+---------------------------------------
+-- Table structure for action_def
+---------------------------------------
+CREATE TABLE action_def (
+	action_def_uuid uuid DEFAULT uuid_generate_v4 (),
+	description varchar COLLATE "pg_catalog"."default" NOT NULL,
+	input val,
+	output val,
+	status_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
+---------------------------------------
+-- Table structure for action_condition
+---------------------------------------
+CREATE TABLE action_condition (
+	action_condition_uuid uuid DEFAULT uuid_generate_v4 (),
+	calculation_def_uuid uuid,
+	in_val val,
+	in_opt_val val,
+	out_val val,
+	actor_uuid uuid,
+	status_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
+---------------------------------------
+-- Table structure for action_condition
+---------------------------------------
+CREATE TABLE action_condition_x (
+	action_condition_x_uuid uuid DEFAULT uuid_generate_v4 (),
+	ref_action_uuid uuid,
+	condition_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
 ---------------------------------------
 -- Table structure for organization
 ---------------------------------------
@@ -190,7 +292,6 @@ CREATE TABLE systemtool_type (
 ---------------------------------------
 -- Table structure for actor
 ---------------------------------------
-
 CREATE TABLE actor (
 	actor_uuid uuid DEFAULT uuid_generate_v4 (),
 	person_uuid uuid,
@@ -205,11 +306,10 @@ CREATE TABLE actor (
 ---------------------------------------
 -- Table structure for actor_pref
 ---------------------------------------
-
 CREATE TABLE actor_pref (
 	actor_pref_uuid uuid DEFAULT uuid_generate_v4 (),
 	actor_uuid uuid,
-	pkey varchar COLLATE "pg_catalog"."default",
+	pkey varchar COLLATE "pg_catalog"."default" NOT NULL,
 	pvalue varchar COLLATE "pg_catalog"."default",
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
@@ -218,7 +318,6 @@ CREATE TABLE actor_pref (
 ---------------------------------------
 -- Table structure for experiment
 ---------------------------------------
-
 CREATE TABLE experiment (
 	experiment_uuid uuid DEFAULT uuid_generate_v4 (),
 	ref_uid varchar,
@@ -229,7 +328,6 @@ CREATE TABLE experiment (
 	operator_uuid uuid,
 	lab_uuid uuid,
 	status_uuid uuid,
-	create_date timestamptz NOT NULL DEFAULT NOW(),
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -237,7 +335,6 @@ CREATE TABLE experiment (
 ---------------------------------------
 -- Table structure for experiment_inventory
 ---------------------------------------
-
 CREATE TABLE experiment_inventory (
 	experiment_inventory_uuid uuid DEFAULT uuid_generate_v4 (),
 	experiment_uuid uuid,
@@ -252,7 +349,6 @@ CREATE TABLE experiment_inventory (
 ---------------------------------------
 -- Table structure for experiment_udf
 ---------------------------------------
-
 CREATE TABLE experiment_udf (
 	experiment_udf_uuid uuid DEFAULT uuid_generate_v4 (),
 	experiment_uuid uuid,
@@ -260,6 +356,19 @@ CREATE TABLE experiment_udf (
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
+
+
+---------------------------------------
+-- Table structure for experiment_workflow
+---------------------------------------
+CREATE TABLE experiment_workflow (
+	experiment_workflow_uuid uuid DEFAULT uuid_generate_v4 (),
+	experiment_uuid uuid,
+	workflow_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
 
 ---------------------------------------
 -- Table structure for material
@@ -279,8 +388,8 @@ CREATE TABLE material (
 ---------------------------------------
 CREATE TABLE material_x (
 	material_x_uuid uuid DEFAULT uuid_generate_v4 (),
-	ref_material_uuid uuid,
-	material_uuid uuid,
+	material_uuid uuid NOT NULL,
+	ref_material_uuid uuid NOT NULL,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -310,7 +419,6 @@ CREATE TABLE material_type (
 ---------------------------------------
 -- Table structure for material_refname
 ---------------------------------------
-
 CREATE TABLE material_refname (
 	material_refname_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default",
@@ -327,7 +435,6 @@ CREATE TABLE material_refname (
 ---------------------------------------
 -- Table structure for material_refname_x
 ---------------------------------------
-
 CREATE TABLE material_refname_x (
 	material_refname_x_uuid uuid DEFAULT uuid_generate_v4 (),
 	material_uuid uuid,
@@ -339,7 +446,6 @@ CREATE TABLE material_refname_x (
 ---------------------------------------
 -- Table structure for material_refname_def
 ---------------------------------------
-
 CREATE TABLE material_refname_def (
 	material_refname_def_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default",
@@ -350,7 +456,6 @@ CREATE TABLE material_refname_def (
 ---------------------------------------
 -- Table structure for calculation_class
 ---------------------------------------
-
 CREATE TABLE calculation_class (
 	calculation_class_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default",
@@ -361,7 +466,6 @@ CREATE TABLE calculation_class (
 ---------------------------------------
 -- Table structure for calculation_def
 ---------------------------------------
-
 CREATE TABLE calculation_def (
 	calculation_def_uuid uuid DEFAULT uuid_generate_v4 (),
 	short_name varchar COLLATE "pg_catalog"."default",
@@ -383,7 +487,6 @@ CREATE TABLE calculation_def (
 ---------------------------------------
 -- Table structure for calculation
 ---------------------------------------
-
 CREATE TABLE calculation (
 	calculation_uuid uuid DEFAULT uuid_generate_v4 (),
 	calculation_def_uuid uuid,
@@ -391,7 +494,6 @@ CREATE TABLE calculation (
 	in_val val,
 	in_opt_val val,
 	out_val val,
-	create_date timestamptz,
 	status_uuid uuid,
 	actor_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -402,7 +504,6 @@ CREATE TABLE calculation (
 -- Table structure for calculation_eval
 -- internal use only
 ---------------------------------------
-
 CREATE TABLE calculation_eval (
 	calculation_eval_id serial8,
 	calculation_def_uuid uuid,
@@ -411,13 +512,12 @@ CREATE TABLE calculation_eval (
 	out_val val,
 	calculation_alias_name varchar,
 	actor_uuid uuid,
-	create_date timestamptz NOT NULL DEFAULT NOW()
+	add_date timestamptz NOT NULL DEFAULT NOW()
 );
 
 ---------------------------------------
 -- Table structure for inventory
 ---------------------------------------
-
 CREATE TABLE inventory (
 	inventory_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar,
@@ -427,7 +527,6 @@ CREATE TABLE inventory (
 	onhand_amt DOUBLE PRECISION,
 	unit varchar,
 	-- measure_uuid int8,
-	create_date timestamptz,
 	expiration_date timestamptz DEFAULT NULL,
 	inventory_location varchar(255) COLLATE "pg_catalog"."default",
 	status_uuid uuid,
@@ -438,11 +537,10 @@ CREATE TABLE inventory (
 ---------------------------------------
 -- Table structure for measure_x
 ---------------------------------------
-
 CREATE TABLE measure_x (
 	measure_x_uuid uuid DEFAULT uuid_generate_v4 (),
-	ref_measure_uuid uuid,
-	measure_uuid uuid,
+	ref_measure_uuid uuid NOT NULL,
+	measure_uuid uuid NOT NULL,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -450,7 +548,6 @@ CREATE TABLE measure_x (
 ---------------------------------------
 -- Table structure for measure
 ---------------------------------------
-
 CREATE TABLE measure (
 	measure_uuid uuid DEFAULT uuid_generate_v4 (),
 	measure_type_uuid uuid,
@@ -465,7 +562,6 @@ CREATE TABLE measure (
 ---------------------------------------
 -- Table structure for measure_type
 ---------------------------------------
-
 CREATE TABLE measure_type (
 	measure_type_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default",
@@ -476,11 +572,10 @@ CREATE TABLE measure_type (
 ---------------------------------------
 -- Table structure for note_x
 ---------------------------------------
-
 CREATE TABLE note_x (
 	note_x_uuid uuid DEFAULT uuid_generate_v4 (),
-	ref_note_uuid uuid,
-	note_uuid uuid,
+	ref_note_uuid uuid NOT NULL,
+	note_uuid uuid NOT NULL,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -488,7 +583,6 @@ CREATE TABLE note_x (
 ---------------------------------------
 -- Table structure for note
 ---------------------------------------
-
 CREATE TABLE note (
 	note_uuid uuid DEFAULT uuid_generate_v4 (),
 	notetext varchar COLLATE "pg_catalog"."default",
@@ -497,14 +591,26 @@ CREATE TABLE note (
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
 
+
+-- ----------------------------
+-- Table structure for outcomes
+-- ----------------------------
+CREATE TABLE outcome (
+	outcome_uuid uuid DEFAULT uuid_generate_v4 (),
+	material_uuid uuid,
+	actor_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
 ---------------------------------------
 -- Table structure for edocument_x
 ---------------------------------------
-
 CREATE TABLE edocument_x (
 	edocument_x_uuid uuid DEFAULT uuid_generate_v4 (),
-	ref_edocument_uuid uuid,
-	edocument_uuid uuid,
+	ref_edocument_uuid uuid NOT NULL,
+	edocument_uuid uuid NOT NULL,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -512,7 +618,6 @@ CREATE TABLE edocument_x (
 -- ----------------------------
 -- Table structure for document
 -- ----------------------------
-
 CREATE TABLE edocument (
 	edocument_uuid uuid DEFAULT uuid_generate_v4 (),
 	edocument_title varchar COLLATE "pg_catalog"."default",
@@ -531,7 +636,6 @@ CREATE TABLE edocument (
 ---------------------------------------
 -- Table structure for tag_x
 ---------------------------------------
-
 CREATE TABLE tag_x (
 	tag_x_uuid uuid DEFAULT uuid_generate_v4 (),
 	ref_tag_uuid uuid,
@@ -543,7 +647,6 @@ CREATE TABLE tag_x (
 -- ----------------------------
 -- Table structure for tag
 -- ----------------------------
-
 CREATE TABLE tag (
 	tag_uuid uuid DEFAULT uuid_generate_v4 (),
 	tag_type_uuid uuid,
@@ -557,7 +660,6 @@ CREATE TABLE tag (
 -- ----------------------------
 -- Table structure for tag_type
 -- ----------------------------
-
 CREATE TABLE tag_type (
 	tag_type_uuid uuid DEFAULT uuid_generate_v4 (),
 	short_description varchar(32) COLLATE "pg_catalog"."default",
@@ -569,7 +671,6 @@ CREATE TABLE tag_type (
 -- ----------------------------
 -- Table structure for udf_x
 -- ----------------------------
-
 CREATE TABLE udf_x (
 	udf_x_uuid uuid DEFAULT uuid_generate_v4 (),
 	ref_udf_uuid uuid,
@@ -581,7 +682,6 @@ CREATE TABLE udf_x (
 -- ----------------------------
 -- Table structure for udf
 -- ----------------------------
-
 CREATE TABLE udf (
 	udf_uuid uuid DEFAULT uuid_generate_v4 (),
 	udf_def_uuid uuid,
@@ -593,7 +693,6 @@ CREATE TABLE udf (
 -- ----------------------------
 -- Table structure for udf_def
 -- ----------------------------
-
 CREATE TABLE udf_def (
 	udf_def_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default",
@@ -602,10 +701,39 @@ CREATE TABLE udf_def (
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
 
+
+-- ----------------------------
+-- Table structure for workflow
+-- ----------------------------
+CREATE TABLE workflow (
+	workflow_uuid uuid DEFAULT uuid_generate_v4 (),
+	description varchar COLLATE "pg_catalog"."default",
+	seq int8,
+	parent_uuid uuid,
+	parent_path ltree,
+	actor_uuid uuid,
+	outcome_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
+-- ----------------------------
+-- Table structure for workflow_action
+-- ----------------------------
+CREATE TABLE workflow_action (
+	workflow_action_uuid uuid DEFAULT uuid_generate_v4 (),
+	workflow_uuid uuid,
+	action_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
+
 -- ----------------------------
 -- Table structure for status
 -- ----------------------------
-
 CREATE TABLE status (
 	status_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default" NOT NULL,
@@ -701,17 +829,20 @@ ALTER TABLE experiment_udf
 CLUSTER experiment_udf
 USING "pk_experiment_udf_uuid";
 
+-- material constraints
 ALTER TABLE material
-	ADD CONSTRAINT "pk_material_material_uuid" PRIMARY KEY (material_uuid);
+	ADD CONSTRAINT "pk_material_material_uuid" PRIMARY KEY (material_uuid),
+		ADD CONSTRAINT "un_material" UNIQUE (description, parent_uuid, status_uuid);
+-- CREATE UNIQUE INDEX "un_material" ON material (coalesce(description, NULL), coalesce(parent_uuid, NULL), coalesce(status_uuid, NULL));
 CREATE INDEX "ix_material_parent_path" ON material
 USING GIST (parent_path);
 CREATE INDEX "ix_material_parent_uuid" ON material (parent_uuid);
 CLUSTER material
 USING "pk_material_material_uuid";
-
+-- material_x constraints
 ALTER TABLE material_x
 	ADD CONSTRAINT "pk_material_x_material_x_uuid" PRIMARY KEY (material_x_uuid),
-		ADD CONSTRAINT "un_material_x" UNIQUE (material_x_uuid, material_uuid);
+		ADD CONSTRAINT "un_material_x" UNIQUE (material_uuid, ref_material_uuid);
 CLUSTER material_x
 USING "pk_material_x_material_x_uuid";
 
@@ -768,7 +899,7 @@ USING "pk_calculation_eval_calculation_eval_id";
 
 ALTER TABLE inventory
 	ADD CONSTRAINT "pk_inventory_inventory_uuid" PRIMARY KEY (inventory_uuid),
-		ADD CONSTRAINT "un_inventory" UNIQUE (material_uuid, actor_uuid, create_date);
+		ADD CONSTRAINT "un_inventory" UNIQUE (material_uuid, actor_uuid, add_date);
 CLUSTER inventory
 USING "pk_inventory_inventory_uuid";
 
@@ -814,7 +945,7 @@ USING "pk_edocument_x_edocument_x_uuid";
 
 ALTER TABLE tag
 	ADD CONSTRAINT "pk_tag_tag_uuid" PRIMARY KEY (tag_uuid),
-		ADD CONSTRAINT "un_tag" UNIQUE (display_text);
+		ADD CONSTRAINT "un_tag" UNIQUE (display_text, tag_type_uuid);
 CLUSTER tag
 USING "pk_tag_tag_uuid";
 
@@ -1002,7 +1133,7 @@ ALTER TABLE measure
 -- ALTER TABLE measure_x DROP CONSTRAINT fk_measure_x_measure_1;
 
 ALTER TABLE measure_x
-	ADD CONSTRAINT fk_measure_x_measure_1 FOREIGN KEY (ref_measure_uuid) REFERENCES measure (measure_uuid);
+	ADD CONSTRAINT fk_measure_x_measure_1 FOREIGN KEY (measure_uuid) REFERENCES measure (measure_uuid);
 
 -- ALTER TABLE note DROP CONSTRAINT fk_note_edocument_1;
 ALTER TABLE note

@@ -222,7 +222,7 @@ BEGIN
 	-- create a temp table so we can reference
 	EXECUTE format('CREATE TEMP TABLE ttable ON COMMIT DROP AS SELECT * FROM %I', _loadtable);
 	-- load in the [parent] experiments
-	INSERT INTO experiment (description, ref_uid, owner_uuid, operator_uuid, lab_uuid, create_date, status_uuid)
+	INSERT INTO experiment (description, ref_uid, owner_uuid, operator_uuid, lab_uuid, add_date, status_uuid)
 SELECT DISTINCT
 	CASE _loadtable
 	WHEN 'load_v2_bromides' THEN
@@ -274,7 +274,7 @@ FROM (
 	-- get row count
 	GET DIAGNOSTICS row_ct1 = ROW_COUNT;
 	-- load in the [children] experiments
-	INSERT INTO experiment (description, ref_uid, parent_uuid, owner_uuid, operator_uuid, lab_uuid, create_date, status_uuid)
+	INSERT INTO experiment (description, ref_uid, parent_uuid, owner_uuid, operator_uuid, lab_uuid, add_date, status_uuid)
 SELECT
 	CASE _loadtable
 	WHEN 'load_v2_bromides' THEN
@@ -345,3 +345,4 @@ select load_escalate_experiments('load_v2_wf3_iodides');
 -- select count(*) from experiment where parent_uuid is null;
 -- delete from experiment;
 -- select * from load_v2_iodides where "_raw_participantname" is not null
+
