@@ -1,4 +1,5 @@
 from django.urls import path, include
+"""
 from .views import (LoginView, CreateUserView, MainMenuView,
                     MaterialsList, MaterialCreate, MaterialUpdate,
                     MaterialDelete, MaterialView, InventoryList,
@@ -6,17 +7,21 @@ from .views import (LoginView, CreateUserView, MainMenuView,
                     InventoryView, ActorView, ActorList, ActorCreate,
                     ActorUpdate, ActorDelete, OrganizationList, OrganizationCreate,
                     OrganizationDelete, OrganizationUpdate, OrganizationView,
-                    PersonList, PersonView ,PersonCreate,
-                    PersonUpdate, PersonDelete,SystemtoolList,SystemtoolView,
-                    SystemtoolCreate,SystemtoolUpdate,SystemtoolDelete,SystemtoolTypeList,
-                    SystemtoolTypeView,SystemtoolTypeCreate,SystemtoolTypeUpdate,SystemtoolTypeDelete,
-                    UdfDefList, UdfDefView,UdfDefCreate,UdfDefUpdate,UdfDefDelete,
-                    StatusList, StatusView,StatusCreate,StatusUpdate,StatusDelete,
-                    TagList, TagView,TagCreate,TagUpdate,TagDelete,
-                    TagTypeList,TagTypeView,TagTypeCreate,TagTypeUpdate,TagTypeDelete,
-                    MaterialTypeList,MaterialTypeView,MaterialTypeCreate,MaterialTypeUpdate,MaterialTypeDelete,
+                    PersonList, PersonView, PersonCreate,
+                    PersonUpdate, PersonDelete, SystemtoolList, SystemtoolView,
+                    SystemtoolCreate, SystemtoolUpdate, SystemtoolDelete, SystemtoolTypeList,
+                    SystemtoolTypeView, SystemtoolTypeCreate, SystemtoolTypeUpdate, SystemtoolTypeDelete,
+                    UdfDefList, UdfDefView, UdfDefCreate, UdfDefUpdate, UdfDefDelete,
+                    StatusList, StatusView, StatusCreate, StatusUpdate, StatusDelete,
+                    TagList, TagView, TagCreate, TagUpdate, TagDelete,
+                    TagTypeList, TagTypeView, TagTypeCreate, TagTypeUpdate, TagTypeDelete,
+                    MaterialTypeList, MaterialTypeView, MaterialTypeCreate, MaterialTypeUpdate, MaterialTypeDelete,
                     ModelTagCreate, ModelTagUpdate)
-from .views.capture import materials, materials2
+"""
+import core.views
+from .views import (LoginView, CreateUserView, MainMenuView,
+                    ModelTagCreate, ModelTagUpdate)
+from core.utils import view_names, camel_to_snake
 
 urlpatterns = [
     path('', LoginView.as_view(), name='login'),
@@ -24,6 +29,33 @@ urlpatterns = [
     path('main_menu/', MainMenuView.as_view(), name='main_menu')
 ]
 
+
+def add_urls(model_name, pattern_list):
+
+    lower_case_model_name = camel_to_snake(model_name)
+    new_urls = [path(f'{lower_case_model_name}_list/',
+                     getattr(core.views, f'{model_name}List').as_view(),
+                     name=f'{lower_case_model_name}_list'),
+                path(f'{lower_case_model_name}/',
+                     getattr(core.views, f'{model_name}Create').as_view(),
+                     name=f'{lower_case_model_name}_add'),
+                path(f'{lower_case_model_name}/<uuid:pk>',
+                     getattr(core.views, f'{model_name}Update').as_view(),
+                     name=f'{lower_case_model_name}_update'),
+                path(f'{lower_case_model_name}/<uuid:pk>/delete',
+                     getattr(core.views, f'{model_name}Delete').as_view(),
+                     name=f'{lower_case_model_name}_delete'),
+                path(f'{lower_case_model_name}/<uuid:pk>/view',
+                     getattr(core.views, f'{model_name}View').as_view(),
+                     name=f'{lower_case_model_name}_view'),
+                ]
+    return pattern_list
+
+
+for model_name in view_names:
+    url_patterns = add_urls(model_name, urlpatterns)
+
+"""
 # Materials
 urlpatterns += [
     path('material_list/', MaterialsList.as_view(), name='material_list'),
@@ -172,6 +204,7 @@ urlpatterns += [
     path('material_type/<uuid:pk>/view',
          MaterialTypeView.as_view(), name='material_type_view'),
 ]
+"""
 
 urlpatterns += [
     path('new_tag/<uuid:pk>', ModelTagCreate.as_view(), name='model_tag_create'),

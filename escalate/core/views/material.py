@@ -8,12 +8,13 @@ from ..forms import MaterialForm
 from .menu import GenericListView
 
 
-class MaterialsList(GenericListView):
+class MaterialList(GenericListView):
     model = Material
     #template_name = 'core/material/material_list.html'
     template_name = 'core/generic/list.html'
     context_object_name = 'materials'
     paginate_by = 10
+
     def get_queryset(self):
         filter_val = self.request.GET.get('filter', '')
         ordering = self.request.GET.get('ordering', 'material_uuid')
@@ -41,12 +42,12 @@ class MaterialsList(GenericListView):
             # dict containing the data, view and update url, primary key and obj
             # name to use in template
             table_row_info = {
-                    'table_row_data' : table_row_data,
-                    'view_url' : reverse_lazy('material_view', kwargs={'pk': material.pk}),
-                    'update_url' : reverse_lazy('material_update', kwargs={'pk': material.pk}),
-                    'obj_name' : str(material),
-                    'obj_pk' : material.pk
-                    }
+                'table_row_data': table_row_data,
+                'view_url': reverse_lazy('material_view', kwargs={'pk': material.pk}),
+                'update_url': reverse_lazy('material_update', kwargs={'pk': material.pk}),
+                'obj_name': str(material),
+                'obj_pk': material.pk
+            }
             table_data.append(table_row_info)
 
         context['add_url'] = reverse_lazy('material_add')
@@ -85,18 +86,18 @@ class MaterialView(DetailView):
     model = Material
     #queryset = Material.objects.select_related()
 
-    def get_context_data(self,**kwargs):
+    def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         obj = context['object']
         table_data = {
-                'Chemical name': obj.chemical_name,
-                'Abbreviation': obj.abbreviation,
-                'Moledular formula': obj.molecular_formula,
-                'InChI': obj.inchi,
-                'InChI key': obj.inchikey,
-                'Smiles': obj.smiles,
-                'Create Date': obj.create_date,
-                'Status': obj.material_status_description
+            'Chemical name': obj.chemical_name,
+            'Abbreviation': obj.abbreviation,
+            'Moledular formula': obj.molecular_formula,
+            'InChI': obj.inchi,
+            'InChI key': obj.inchikey,
+            'Smiles': obj.smiles,
+            'Create Date': obj.create_date,
+            'Status': obj.material_status_description
         }
         context['update_url'] = reverse_lazy(
             'material_update', kwargs={'pk': obj.pk})
