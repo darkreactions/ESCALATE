@@ -974,23 +974,27 @@ __vw\_inventory\_material__`R`<br/>
 
 __vw\_material__`R`<br/>
 > material_uuid (v) <br/>
+> description (v) <br/>
 > material_status_uuid (v) <br/>
 > material_status_description (v) <br/>
-> create_date (v) <br/>
-> Abbreviation (v) <br/>
-> Chemical_Name (v) <br/>
-> InChI (v) <br/>
-> InChIKeyv
-> Molecular_Formula (v) <br/>
-> SMILES (v) <br/>
+> add_date (v) <br/>
+> mod_date (v) <br/>
+> abbreviation (v) <br/>
+> chemical_name (v) <br/>
+> inchi (v) <br/>
+> inchikey (v) <br/>
+> molecular_formula (v) <br/>
+> smiles (v) <br/>
 
 
 <br/>
 
 __vw\_material\_calculation\_raw__`R`<br/>
 > material_uuid (v) <br/>
-> material_status (v) <br/>
-> material_create_date (v) <br/>
+> material_status_uuid (v) <br/>
+> material_status_description (v) <br/>
+> material_add_date (v) <br/>
+> material_mod_date (v) <br/>
 > abbreviation (v) <br/>
 > chemical_name (v) <br/>
 > inchi (v) <br/>
@@ -1038,14 +1042,17 @@ __vw\_material\_calculation\_raw__`R`<br/>
 
 __vw\_material\_raw__`R`<br/>
 > material_uuid (v) <br/>
-> material_description (v) <br/>
-> material_status_uuid (v) <br/>
-> material_status_description (v) <br/>
+> description (v) <br/>
+> status_uuid (v) <br/>
+> status_description (v) <br/>
+> material_type_uuid (v) <br/>
 > material_type_description (v) <br/>
+> material_refname_uuid (v) <br/>
 > material_refname_def (v) <br/>
 > material_refname_description (v) <br/>
-> material_refname_def_uuid (v) <br/>
-> material_create_date (v) <br/>
+> parent_uuid (v) <br/>
+> add_date (v) <br/>
+> mod_date (v) <br/>
 
 
 

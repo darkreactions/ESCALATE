@@ -10,10 +10,17 @@ Notes:
 -- drop and create material, material_type, material_refname
 
 -- insert rows into material type from "load_Chem_Inventory"
-insert into material_type (description)
+insert into vw_material_type (description)
 	SELECT trim(regexp_split_to_table(load_chem_inventory."ChemicalCategory", E',')) as ccat
 	FROM load_chem_inventory
 	group by ccat;
+-- ones not identified in the inventory (yet)
+insert into vw_material_type (description) values ('a-cation'); 
+insert into vw_material_type (description) values ('b-cation'); 
+insert into vw_material_type (description) values ('halide'); 
+insert into vw_material_type (description) values ('antisovent'); 
+insert into vw_material_type (description) values ('reference');
+insert into vw_material_type (description) values ('catalog');
 
 
 INSERT INTO material_refname_def (description)
@@ -41,7 +48,7 @@ insert into material (description, status_uuid)
 insert into material_type_x (material_uuid, material_type_uuid)
 	select mat.material_uuid, mtt.t_uuid from material mat 
 	join 
-		(select inv."ChemicalName" as cname, mt.material_type_uuid as t_uuid from ( SELECT "ChemicalName", trim(regexp_split_to_table(load_chem_inventory."ChemicalCategory", E',')) as "ChemicalCategory"
+		(select inv."ChemicalName" as cname, mt.material_type_uuid as t_uuid from ( SELECT "ChemicalName", trim(regexp_split_to_table(load_chem_inventory."ChemicalCategory"||',catalog,reference', E',')) as "ChemicalCategory"
 				FROM load_chem_inventory
 				group by "ChemicalName", "ChemicalCategory" ) inv 
 		join material_type mt on inv."ChemicalCategory" = mt.description) mtt 
