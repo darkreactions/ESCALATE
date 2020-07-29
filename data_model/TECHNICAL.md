@@ -504,9 +504,9 @@ __vw_actor__`CRUD`<br/>
 > systemtool\_serial (v) <br/>
 > systemtool\_version (v) <br/>
 
-`**NOTE: actor will typically have many dependencies (e.g. experiments, workflows, inventory) so deleting may be impractical. In that case do a status change (e.g. inactive)`
-`**NOTE: new actor record will be created on person, organization, systemtool insert`
-`**NOTE: delete vw_actor will automatically delete all related actor_pref records`
+`**NOTE: actor will typically have many dependencies (e.g. experiments, workflows, inventory) so deleting may be impractical. In that case do a status change (e.g. inactive)`<br/>
+`**NOTE: new actor record will be created on person, organization, systemtool insert`<br/>
+`**NOTE: delete vw_actor will automatically delete all related actor_pref records`<br/>
 
 ```
 -- first create a 'test' person that will become the actor
