@@ -454,10 +454,10 @@ class MaterialTypeForm(forms.ModelForm):
 
 class TagSelectForm(forms.Form):
     def __init__(self, *args, **kwargs):
+        #pk of model that is passed in to filter for tags belonging to the model
         model_pk = kwargs.pop('model_pk')
         super(TagSelectForm, self).__init__(*args, **kwargs)
         current_tags = Tag.objects.filter(pk__in=Tag_X.objects.filter(ref_tag_uuid=model_pk).values_list('tag_uuid',flat=True))
         self.fields['tags'] = forms.ModelMultipleChoiceField(initial=current_tags,required=False, queryset=Tag.objects.all())
         self.fields['tags'].widget.attrs.update({'data-live-search': 'true'})
         self.fields['tags'].widget.attrs.update({'class': 'selectpicker form-control'})
-        #filter(pk__in=Tag_X.objects.filter(ref_tag_uuid=model_pk).values_list('tag_uuid',flat=True))

@@ -6,6 +6,8 @@ from core.models import MaterialType
 from core.forms import MaterialTypeForm
 from core.views.menu import GenericListView
 
+from .model_view_generic import GenericModelEdit
+
 
 class MaterialTypeList(GenericListView):
     model = MaterialType
@@ -54,16 +56,21 @@ class MaterialTypeList(GenericListView):
         return context
 
 
-class MaterialTypeEdit:
-    template_name = 'core/generic/edit.html'
-    model = MaterialType
-    form_class = MaterialTypeForm
-    success_url = reverse_lazy('material_type_list')
+# class MaterialTypeEdit:
+#     template_name = 'core/generic/edit.html'
+#     model = MaterialType
+#     form_class = MaterialTypeForm
+#     success_url = reverse_lazy('material_type_list')
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['title'] = 'Material Type'
+#         return context
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Material Type'
-        return context
+class MaterialTypeEdit(GenericModelEdit):
+    model = MaterialType
+    context_object_name = 'material_type'
+    form_class = MaterialTypeForm
 
 
 class MaterialTypeCreate(MaterialTypeEdit, CreateView):

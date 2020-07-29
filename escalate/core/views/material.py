@@ -7,6 +7,8 @@ from ..models import Material
 from ..forms import MaterialForm
 from .menu import GenericListView
 
+from .model_view_generic import GenericModelEdit
+
 
 class MaterialList(GenericListView):
     model = Material
@@ -56,16 +58,21 @@ class MaterialList(GenericListView):
         return context
 
 
-class MaterialEdit:
-    template_name = 'core/generic/edit.html'
-    model = Material
-    form_class = MaterialForm
-    success_url = reverse_lazy('material_list')
+# class MaterialEdit:
+#     template_name = 'core/generic/edit.html'
+#     model = Material
+#     form_class = MaterialForm
+#     success_url = reverse_lazy('material_list')
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['title'] = 'Material'
+#         return context
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Material'
-        return context
+class MaterialEdit(GenericModelEdit):
+    model = Material
+    context_object_name = 'material'
+    form_class = MaterialForm
 
 
 class MaterialCreate(MaterialEdit, CreateView):

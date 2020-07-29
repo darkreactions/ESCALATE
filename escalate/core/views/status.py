@@ -6,6 +6,8 @@ from core.models import Status
 from core.forms import StatusForm
 from core.views.menu import GenericListView
 
+from .model_view_generic import GenericModelEdit
+
 
 class StatusList(GenericListView):
     model = Status
@@ -52,16 +54,21 @@ class StatusList(GenericListView):
         context['title'] = 'status'
         return context
 
-class StatusEdit:
-    template_name = 'core/generic/edit.html'
-    model = Status
-    form_class = StatusForm
-    success_url = reverse_lazy('status_list')
+# class StatusEdit:
+#     template_name = 'core/generic/edit.html'
+#     model = Status
+#     form_class = StatusForm
+#     success_url = reverse_lazy('status_list')
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['title'] = 'status'
+#         return context
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'status'
-        return context
+class StatusEdit(GenericModelEdit):
+    model = Status
+    context_object_name = 'status'
+    form_class = StatusForm
 
 class StatusCreate(StatusEdit, CreateView):
     pass

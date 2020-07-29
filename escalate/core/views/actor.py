@@ -6,6 +6,8 @@ from core.models import Actor
 from core.forms import ActorForm
 from core.views.menu import GenericListView
 
+from .model_view_generic import GenericModelEdit
+
 
 class ActorList(GenericListView):
     model = Actor
@@ -59,16 +61,20 @@ class ActorList(GenericListView):
         return context
 
 
-class ActorEdit:
-    template_name = 'core/generic/edit.html'
+# class ActorEdit:
+#     template_name = 'core/generic/edit.html'
+#     model = Actor
+#     form_class = ActorForm
+#     success_url = reverse_lazy('actor_list')
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['title'] = 'Actor'
+#         return context
+class ActorEdit(GenericModelEdit):
     model = Actor
+    context_object_name = 'actor'
     form_class = ActorForm
-    success_url = reverse_lazy('actor_list')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Actor'
-        return context
 
 
 class ActorCreate(ActorEdit, CreateView):

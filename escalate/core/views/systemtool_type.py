@@ -6,6 +6,8 @@ from core.models import SystemtoolType
 from core.forms import SystemtoolTypeForm
 from core.views.menu import GenericListView
 
+from .model_view_generic import GenericModelEdit
+
 
 class SystemtoolTypeList(GenericListView):
     model = SystemtoolType
@@ -52,16 +54,21 @@ class SystemtoolTypeList(GenericListView):
         context['title'] = 'systemtool_type'
         return context
 
-class SystemtoolTypeEdit:
-    template_name = 'core/generic/edit.html'
-    model = SystemtoolType
-    form_class = SystemtoolTypeForm
-    success_url = reverse_lazy('systemtool_type_list')
+# class SystemtoolTypeEdit:
+#     template_name = 'core/generic/edit.html'
+#     model = SystemtoolType
+#     form_class = SystemtoolTypeForm
+#     success_url = reverse_lazy('systemtool_type_list')
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['title'] = 'systemtool_type'
+#         return context
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'systemtool_type'
-        return context
+class SystemtoolTypeEdit(GenericModelEdit):
+    model = SystemtoolType
+    context_object_name = 'systemtool_type'
+    form_class = SystemtoolTypeForm
 
 
 class SystemtoolTypeCreate(SystemtoolTypeEdit, CreateView):

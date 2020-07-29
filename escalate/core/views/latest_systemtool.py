@@ -6,6 +6,8 @@ from core.models import LatestSystemtool
 from core.forms import LatestSystemtoolForm
 from core.views.menu import GenericListView
 
+from .model_view_generic import GenericModelEdit
+
 
 class SystemtoolList(GenericListView):
     model = LatestSystemtool
@@ -34,7 +36,7 @@ class SystemtoolList(GenericListView):
             table_row_data = []
 
             # data for the object we want to display for a row
-            table_row_data.append(systemtool.systemtool_uuid)
+            table_row_data.append(systemtool.systemtool_name)
             table_row_data.append(systemtool.description)
             table_row_data.append(systemtool.systemtool_type_uuid)
             table_row_data.append(systemtool.vendor_organization_uuid)
@@ -56,16 +58,21 @@ class SystemtoolList(GenericListView):
         return context
 
 
-class SystemtoolEdit:
-    template_name = 'core/generic/edit.html'
-    model = LatestSystemtool
-    form_class = LatestSystemtoolForm
-    success_url = reverse_lazy('systemtool_list')
+# class SystemtoolEdit:
+#     template_name = 'core/generic/edit.html'
+#     model = LatestSystemtool
+#     form_class = LatestSystemtoolForm
+#     success_url = reverse_lazy('systemtool_list')
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['title'] = 'SystemTool'
+#         return context
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'SystemTool'
-        return context
+class SystemtoolEdit(GenericModelEdit):
+    model = LatestSystemtool
+    context_object_name = 'systemtool'
+    form_class = LatestSystemtoolForm
 
 
 class SystemtoolCreate(SystemtoolEdit, CreateView):

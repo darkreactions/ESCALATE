@@ -7,6 +7,8 @@ from core.models import Inventory
 from core.forms import InventoryForm
 from core.views.menu import GenericListView
 
+from .model_view_generic import GenericModelEdit
+
 
 class InventoryList(GenericListView):
     model = Inventory
@@ -62,16 +64,21 @@ class InventoryList(GenericListView):
         return context
 
 
-class InventoryEdit:
-    template_name = 'core/generic/edit.html'
-    model = Inventory
-    form_class = InventoryForm
-    success_url = reverse_lazy('inventory_list')
+# class InventoryEdit:
+#     template_name = 'core/generic/edit.html'
+#     model = Inventory
+#     form_class = InventoryForm
+#     success_url = reverse_lazy('inventory_list')
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['title'] = 'Inventory'
+#         return context
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Inventory'
-        return context
+class InventoryEdit(GenericModelEdit):
+    model = Inventory
+    context_object_name = 'inventory'
+    form_class = InventoryForm
 
 
 class InventoryCreate(InventoryEdit, CreateView):

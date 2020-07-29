@@ -6,6 +6,8 @@ from core.models import TagType
 from core.forms import TagTypeForm
 from core.views.menu import GenericListView
 
+from .model_view_generic import GenericModelEdit
+
 
 class TagTypeList(GenericListView):
     model = TagType
@@ -53,16 +55,21 @@ class TagTypeList(GenericListView):
         return context
 
 
-class TagTypeEdit:
-    template_name = 'core/generic/edit.html'
-    model = TagType
-    form_class = TagTypeForm
-    success_url = reverse_lazy('tag_type_list')
+# class TagTypeEdit:
+#     template_name = 'core/generic/edit.html'
+#     model = TagType
+#     form_class = TagTypeForm
+#     success_url = reverse_lazy('tag_type_list')
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['title'] = 'tag_type'
+#         return context
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'tag_type'
-        return context
+class TagTypeEdit(GenericModelEdit):
+    model = TagType
+    context_object_name = 'tag_type'
+    form_class = TagTypeForm
 
 
 class TagTypeCreate(TagTypeEdit, CreateView):

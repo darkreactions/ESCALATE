@@ -2,9 +2,12 @@ from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
 
-from core.models import Organization
-from core.forms import OrganizationForm
+from core.models import Organization, Tag, Tag_X, Note, Actor, CustomUser
+from core.forms import OrganizationForm, NoteForm, TagSelectForm
 from core.views.menu import GenericListView
+from django.forms import modelformset_factory
+from django.shortcuts import get_object_or_404
+from .model_view_generic import GenericModelEdit
 
 
 class OrganizationList(GenericListView):
@@ -39,10 +42,11 @@ class OrganizationList(GenericListView):
 
             # dict containing the data, view and update url, primary key and obj
             # name to use in template
+            a = 'organization'
             table_row_info = {
                     'table_row_data' : table_row_data,
                     'view_url' : reverse_lazy('organization_view', kwargs={'pk': org.pk}),
-                    'update_url' : reverse_lazy('organization_update', kwargs={'pk': org.pk}),
+                    'update_url' : reverse_lazy(f'{a}_update', kwargs={'pk': org.pk}),
                     'obj_name' : str(org),
                     'obj_pk' : org.pk
                     }
@@ -53,17 +57,80 @@ class OrganizationList(GenericListView):
         context['title'] = 'Organization'
         return context
 
-class OrganizationEdit:
-    #template_name = 'core/organization/organization_edit.html'
-    template_name = 'core/generic/edit.html'
-    model = Organization
-    form_class = OrganizationForm
-    success_url = reverse_lazy('organization_list')
+# class OrganizationEdit():
+#     #template_name = 'core/organization/organization_edit.html'
+#     template_name = 'core/generic/edit_note_tag.html'
+#     model = Organization
+#     context_object_name = 'organization'
+#     form_class = OrganizationForm
+#     success_url = reverse_lazy('organization_list')
+#     NoteFormSet = modelformset_factory(Note, form=NoteForm,can_delete=True)
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         if 'organization' in context:
+#             organization = context['organization']
+#             context['note_forms'] = self.NoteFormSet(
+#                 queryset=Note.objects.filter(ref_note_uuid=organization.pk),prefix='note')
+#             context['tag_select_form'] = TagSelectForm(model_pk=organization.pk)
+#         context['title'] = 'Organization'
+#         return context
+#
+#     def post(self, request, *args, **kwargs):
+#         actor = Actor.objects.get(
+#             person_uuid=request.user.person.pk)
+#         organization = get_object_or_404(Organization, pk=self.kwargs['pk'])
+#         if self.NoteFormSet != None:
+#             formset = self.NoteFormSet(request.POST,prefix='note')
+#             # Loop through every note form
+#             for form in formset:
+#                 # Only if the form has changed make an update, otherwise ignore
+#                 if form.has_changed() and form.is_valid():
+#                     if request.user.is_authenticated:
+#                         # Get the appropriate actor and then add it to the note
+#                         note = form.save(commit=False)
+#                         note.actor_uuid = actor
+#                         # Get the appropriate uuid of the record being changed.
+#                         note.ref_note_uuid = organization.pk
+#                         note.save()
+#             # Delete each note we marked in the formset
+#             formset.save(commit=False)
+#             for form in formset.deleted_forms:
+#                 form.instance.delete()
+#             # Choose which website we are redirected to
+#             if request.POST.get('add_note'):
+#                 self.success_url = reverse_lazy('organization_update',kwargs={'pk': organization.pk})
+#         if request.POST.get('tags'):
+#             #tags from post
+#             submitted_tags = request.POST.getlist('tags')
+#             #tags from db with a tag_x that connects the organizaton and the tags
+#             existing_tags = Tag.objects.filter(pk__in=Tag_X.objects.filter(ref_tag_uuid=organization.pk).values_list('tag_uuid',flat=True))
+#             for tag in existing_tags:
+#                 if tag not in submitted_tags:
+#                 #delete tag_x for existing tags that are no longer used
+#                     Tag_X.objects.filter(tag_uuid=tag).delete()
+#             for tag in submitted_tags:
+#                 #make tag_x for existing tags that are now used
+#                 if tag not in existing_tags:
+#                     #for some reason tags from post are the uuid as a string
+#                     tag_obj = Tag.objects.get(pk=tag) #get actual tag obj with that uuid
+#                     tag_x = Tag_X()
+#                     tag_x.tag_uuid=tag_obj
+#                     tag_x.ref_tag_uuid=organization.pk
+#                     tag_x.add_date=tag_obj.add_date
+#                     tag_x.mod_date=tag_obj.mod_date
+#                     tag_x.save()
+#         if request.POST.get('add_new_tag'):
+#             request.session['model_name'] = 'organization'
+#             self.success_url = reverse_lazy('model_tag_create', kwargs={'pk':organization.pk})
+#         if request.POST.get("Submit"):
+#             self.success_url = reverse_lazy('organization_list')
+#         return super().post(request, *args, **kwargs)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Organization'
-        return context
+class OrganizationEdit(GenericModelEdit):
+    model = Organization
+    context_object_name = 'organization'
+    form_class = OrganizationForm
 
 
 class OrganizationCreate(OrganizationEdit, CreateView):

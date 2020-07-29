@@ -6,6 +6,8 @@ from core.models import UdfDef
 from core.forms import UdfDefForm
 from core.views.menu import GenericListView
 
+from .model_view_generic import GenericModelEdit
+
 
 class UdfDefList(GenericListView):
     model = UdfDef
@@ -53,16 +55,21 @@ class UdfDefList(GenericListView):
         return context
 
 
-class UdfDefEdit:
-    template_name = 'core/generic/edit.html'
-    model = UdfDef
-    form_class = UdfDefForm
-    success_url = reverse_lazy('udf_def_list')
+# class UdfDefEdit:
+#     template_name = 'core/generic/edit.html'
+#     model = UdfDef
+#     form_class = UdfDefForm
+#     success_url = reverse_lazy('udf_def_list')
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['title'] = 'udf_def'
+#         return context
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'udf_def'
-        return context
+class UdfDefEdit(GenericModelEdit):
+    model = UdfDef
+    context_object_name = 'udf_def'
+    form_class = UdfDefForm
 
 
 class UdfDefCreate(UdfDefEdit, CreateView):
@@ -96,4 +103,3 @@ class UdfDefView(DetailView):
         context['title'] = 'udf_def'
         context['table_data'] = table_data
         return context
-
