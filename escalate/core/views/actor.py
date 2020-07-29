@@ -6,60 +6,75 @@ from core.models import Actor
 from core.forms import ActorForm
 from core.views.menu import GenericListView
 
-from .model_view_generic import GenericModelEdit
+from .model_view_generic import GenericModelEdit, GenericModelList
 
 
-class ActorList(GenericListView):
+# class ActorList(GenericListView):
+#     model = Actor
+#     #template_name = 'core/actor/actor_list.html'
+#     template_name = 'core/generic/list.html'
+#     context_object_name = 'actors'
+#     paginate_by = 10
+#
+#     def get_queryset(self):
+#         filter_val = self.request.GET.get('filter', '')
+#         ordering = self.request.GET.get('ordering', 'actor_description')
+#         if filter_val != None:
+#             new_queryset = self.model.objects.filter(
+#                 actor_description__icontains=filter_val).select_related().order_by(ordering)
+#         else:
+#             new_queryset = self.model.objects.all().select_related().order_by(ordering)
+#         return new_queryset
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         table_columns = ['Person', 'Organization',
+#                          'Systemtool', 'Status', 'Actions']
+#         context['table_columns'] = table_columns
+#         actors = context['actors']
+#         table_data = []
+#         for actor in actors:
+#             table_row_data = []
+#
+#             # data for the object we want to display for a row
+#             person_full_name = f"{actor.person_first_name} {actor.person_last_name}"
+#
+#             table_row_data.append(person_full_name)
+#             table_row_data.append(actor.org_full_name)
+#             table_row_data.append(actor.systemtool_name)
+#             table_row_data.append(actor.actor_status_description)
+#
+#             # dict containing the data, view and update url, primary key and obj
+#             # name to use in template
+#             table_row_info = {
+#                 'table_row_data': table_row_data,
+#                 'view_url': reverse_lazy('actor_view', kwargs={'pk': actor.pk}),
+#                 'update_url': reverse_lazy('actor_update', kwargs={'pk': actor.pk}),
+#                 'obj_name': str(actor),
+#                 'obj_pk': actor.pk
+#             }
+#             table_data.append(table_row_info)
+#
+#         context['add_url'] = reverse_lazy('actor_add')
+#         context['table_data'] = table_data
+#         context['title'] = 'Actor'
+#         return context
+
+class ActorList(GenericModelList):
     model = Actor
-    #template_name = 'core/actor/actor_list.html'
-    template_name = 'core/generic/list.html'
     context_object_name = 'actors'
-    paginate_by = 10
+    table_columns = ['Name', 'Organization', 'Systemtool', 'Status']
+    column_necessary_fields = {
+                'Name': ['person_first_name', 'person_last_name'],
+                'Organization': ['org_full_name'],
+                'Systemtool': ['systemtool_name'],
+                'Status': ['actor_status_description']
+    }
+    order_field = 'actor_description'
+    field_contains = ''
 
-    def get_queryset(self):
-        filter_val = self.request.GET.get('filter', '')
-        ordering = self.request.GET.get('ordering', 'actor_description')
-        if filter_val != None:
-            new_queryset = self.model.objects.filter(
-                actor_description__icontains=filter_val).select_related().order_by(ordering)
-        else:
-            new_queryset = self.model.objects.all().select_related().order_by(ordering)
-        return new_queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        table_columns = ['Person', 'Organization',
-                         'Systemtool', 'Status', 'Actions']
-        context['table_columns'] = table_columns
-        actors = context['actors']
-        table_data = []
-        for actor in actors:
-            table_row_data = []
-
-            # data for the object we want to display for a row
-            person_full_name = f"{actor.person_first_name} {actor.person_last_name}"
-
-            table_row_data.append(person_full_name)
-            table_row_data.append(actor.org_full_name)
-            table_row_data.append(actor.systemtool_name)
-            table_row_data.append(actor.actor_status_description)
-
-            # dict containing the data, view and update url, primary key and obj
-            # name to use in template
-            table_row_info = {
-                'table_row_data': table_row_data,
-                'view_url': reverse_lazy('actor_view', kwargs={'pk': actor.pk}),
-                'update_url': reverse_lazy('actor_update', kwargs={'pk': actor.pk}),
-                'obj_name': str(actor),
-                'obj_pk': actor.pk
-            }
-            table_data.append(table_row_info)
-
-        context['add_url'] = reverse_lazy('actor_add')
-        context['table_data'] = table_data
-        context['title'] = 'Actor'
-        return context
-
+    #Need this
+    table_columns += ['Actions']
 
 # class ActorEdit:
 #     template_name = 'core/generic/edit.html'
@@ -71,6 +86,7 @@ class ActorList(GenericListView):
 #         context = super().get_context_data(**kwargs)
 #         context['title'] = 'Actor'
 #         return context
+
 class ActorEdit(GenericModelEdit):
     model = Actor
     context_object_name = 'actor'

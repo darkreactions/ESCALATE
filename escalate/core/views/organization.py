@@ -7,55 +7,70 @@ from core.forms import OrganizationForm, NoteForm, TagSelectForm
 from core.views.menu import GenericListView
 from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404
-from .model_view_generic import GenericModelEdit
+from .model_view_generic import GenericModelEdit, GenericModelList
 
 
-class OrganizationList(GenericListView):
+# class OrganizationList(GenericListView):
+#     model = Organization
+#     #template_name = 'core/organization/organization_list.html'
+#     template_name = 'core/generic/list.html'
+#     context_object_name = 'orgs'
+#     paginate_by = 10
+#     def get_queryset(self):
+#         filter_val = self.request.GET.get('filter', '')
+#         ordering = self.request.GET.get('ordering', 'full_name')
+#         if filter_val != None:
+#             new_queryset = self.model.objects.filter(
+#                 full_name__icontains=filter_val).select_related().order_by(ordering)
+#         else:
+#             new_queryset = self.model.objects.all().select_related().order_by(ordering)
+#         return new_queryset
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         table_columns = ['Full Name', 'Address1', 'Website', 'Actions']
+#         context['table_columns'] = table_columns
+#         orgs = context['orgs']
+#         table_data = []
+#         for org in orgs:
+#             table_row_data = []
+#
+#             # data for the object we want to display for a row
+#             table_row_data.append(org.full_name)
+#             table_row_data.append(org.address1)
+#             table_row_data.append(org.website_url)
+#
+#             # dict containing the data, view and update url, primary key and obj
+#             # name to use in template
+#             a = 'organization'
+#             table_row_info = {
+#                     'table_row_data' : table_row_data,
+#                     'view_url' : reverse_lazy('organization_view', kwargs={'pk': org.pk}),
+#                     'update_url' : reverse_lazy(f'{a}_update', kwargs={'pk': org.pk}),
+#                     'obj_name' : str(org),
+#                     'obj_pk' : org.pk
+#                     }
+#             table_data.append(table_row_info)
+#
+#         context['add_url'] = reverse_lazy('organization_add')
+#         context['table_data'] = table_data
+#         context['title'] = 'Organization'
+#         return context
+
+class OrganizationList(GenericModelList):
     model = Organization
-    #template_name = 'core/organization/organization_list.html'
-    template_name = 'core/generic/list.html'
-    context_object_name = 'orgs'
-    paginate_by = 10
-    def get_queryset(self):
-        filter_val = self.request.GET.get('filter', '')
-        ordering = self.request.GET.get('ordering', 'full_name')
-        if filter_val != None:
-            new_queryset = self.model.objects.filter(
-                full_name__icontains=filter_val).select_related().order_by(ordering)
-        else:
-            new_queryset = self.model.objects.all().select_related().order_by(ordering)
-        return new_queryset
+    context_object_name = 'organizations'
+    table_columns = ['Full Name', 'Address', 'Website']
+    column_necessary_fields = {
+                'Full Name': ['full_name'],
+                'Address': ['address1','address2','zip','city','state_province','country'],
+                'Website': ['website_url']
+    }
+    order_field = 'full_name'
+    field_contains = ''
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        table_columns = ['Full Name', 'Address1', 'Website', 'Actions']
-        context['table_columns'] = table_columns
-        orgs = context['orgs']
-        table_data = []
-        for org in orgs:
-            table_row_data = []
-
-            # data for the object we want to display for a row
-            table_row_data.append(org.full_name)
-            table_row_data.append(org.address1)
-            table_row_data.append(org.website_url)
-
-            # dict containing the data, view and update url, primary key and obj
-            # name to use in template
-            a = 'organization'
-            table_row_info = {
-                    'table_row_data' : table_row_data,
-                    'view_url' : reverse_lazy('organization_view', kwargs={'pk': org.pk}),
-                    'update_url' : reverse_lazy(f'{a}_update', kwargs={'pk': org.pk}),
-                    'obj_name' : str(org),
-                    'obj_pk' : org.pk
-                    }
-            table_data.append(table_row_info)
-
-        context['add_url'] = reverse_lazy('organization_add')
-        context['table_data'] = table_data
-        context['title'] = 'Organization'
-        return context
+    #Need this
+    table_columns += ['Actions']
 
 # class OrganizationEdit():
 #     #template_name = 'core/organization/organization_edit.html'

@@ -7,61 +7,77 @@ from core.models import Inventory
 from core.forms import InventoryForm
 from core.views.menu import GenericListView
 
-from .model_view_generic import GenericModelEdit
+from .model_view_generic import GenericModelEdit, GenericModelList
 
 
-class InventoryList(GenericListView):
+# class InventoryList(GenericListView):
+#     model = Inventory
+#     #template_name = 'core/inventory/inventory_list.html'
+#     template_name = 'core/generic/list.html'
+#     context_object_name = 'inventory'
+#     paginate_by = 10
+#
+#     def get_queryset(self):
+#
+#         # added get_queryset method
+#         filter_val = self.request.GET.get('filter', '')
+#         ordering = self.request.GET.get('ordering', 'inventory_description')
+#         # order by description
+#         if filter_val != None:
+#             new_queryset = self.model.objects.filter(
+#                 inventory_description__icontains=filter_val).select_related().order_by(ordering)
+#             # filter by decription being a empty/nonempty string
+#         else:
+#             new_queryset = self.model.objects.all().select_related().order_by(ordering)
+#         return new_queryset
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         table_columns = ['Description', 'Status',
+#                          'Material', 'On Hand Amount', 'Actions']
+#         context['table_columns'] = table_columns
+#         inventory = context['inventory']
+#         table_data = []
+#         for item in inventory:
+#             table_row_data = []
+#
+#             # data for the object we want to display for a row
+#             table_row_data.append(item.inventory_description)
+#             table_row_data.append(item.status_description)
+#             table_row_data.append(item.material_description)
+#             table_row_data.append(f"{item.onhand_amt} {item.unit}")
+#
+#             # dict containing the data, view and update url, primary key and obj
+#             # name to use in template
+#             table_row_info = {
+#                 'table_row_data': table_row_data,
+#                 'view_url': reverse_lazy('inventory_view', kwargs={'pk': item.pk}),
+#                 'update_url': reverse_lazy('inventory_update', kwargs={'pk': item.pk}),
+#                 'obj_name': str(item),
+#                 'obj_pk': item.pk
+#             }
+#             table_data.append(table_row_info)
+#
+#         context['add_url'] = reverse_lazy('inventory_add')
+#         context['table_data'] = table_data
+#         context['title'] = 'Inventory'
+#         return context
+
+class InventoryList(GenericModelList):
     model = Inventory
-    #template_name = 'core/inventory/inventory_list.html'
-    template_name = 'core/generic/list.html'
-    context_object_name = 'inventory'
-    paginate_by = 10
+    context_object_name = 'inventorys'
+    table_columns = ['Description', 'Status', 'Material', 'On Hand Amount']
+    column_necessary_fields = {
+                'Description': ['inventory_description'],
+                'Status': ['status_description'],
+                'Material': ['material_description'],
+                'On Hand Amount': ['onhand_amt']
+    }
+    order_field = 'inventory_description'
+    field_contains = ''
 
-    def get_queryset(self):
-
-        # added get_queryset method
-        filter_val = self.request.GET.get('filter', '')
-        ordering = self.request.GET.get('ordering', 'inventory_description')
-        # order by description
-        if filter_val != None:
-            new_queryset = self.model.objects.filter(
-                inventory_description__icontains=filter_val).select_related().order_by(ordering)
-            # filter by decription being a empty/nonempty string
-        else:
-            new_queryset = self.model.objects.all().select_related().order_by(ordering)
-        return new_queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        table_columns = ['Description', 'Status',
-                         'Material', 'On Hand Amount', 'Actions']
-        context['table_columns'] = table_columns
-        inventory = context['inventory']
-        table_data = []
-        for item in inventory:
-            table_row_data = []
-
-            # data for the object we want to display for a row
-            table_row_data.append(item.inventory_description)
-            table_row_data.append(item.status_description)
-            table_row_data.append(item.material_description)
-            table_row_data.append(f"{item.onhand_amt} {item.unit}")
-
-            # dict containing the data, view and update url, primary key and obj
-            # name to use in template
-            table_row_info = {
-                'table_row_data': table_row_data,
-                'view_url': reverse_lazy('inventory_view', kwargs={'pk': item.pk}),
-                'update_url': reverse_lazy('inventory_update', kwargs={'pk': item.pk}),
-                'obj_name': str(item),
-                'obj_pk': item.pk
-            }
-            table_data.append(table_row_info)
-
-        context['add_url'] = reverse_lazy('inventory_add')
-        context['table_data'] = table_data
-        context['title'] = 'Inventory'
-        return context
+    #Need this
+    table_columns += ['Actions']
 
 
 # class InventoryEdit:

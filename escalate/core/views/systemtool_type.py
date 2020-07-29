@@ -6,53 +6,65 @@ from core.models import SystemtoolType
 from core.forms import SystemtoolTypeForm
 from core.views.menu import GenericListView
 
-from .model_view_generic import GenericModelEdit
+from .model_view_generic import GenericModelEdit, GenericModelList
 
+# class SystemtoolTypeList(GenericListView):
+#     model = SystemtoolType
+#     template_name = 'core/generic/list.html'
+#     context_object_name = 'systemtool_types'
+#     paginate_by = 10
+#
+#     def get_queryset(self):
+#         return self.model.objects.all()
+#         filter_val = self.request.GET.get('filter', '')
+#         ordering = self.request.GET.get('ordering', 'description')
+#         if filter_val != None:
+#             new_queryset = self.model.objects.filter(
+#                 description__icontains=filter_val).select_related().order_by(ordering)
+#         else:
+#             new_queryset = self.model.objects.all()
+#         return new_queryset
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         table_columns = [ 'Description','Actions']
+#         context['table_columns'] = table_columns
+#         systemtool_types = context['systemtool_types']
+#         table_data = []
+#         for systemtool_type in systemtool_types:
+#             table_row_data = []
+#
+#             # data for the object we want to display for a row
+#             table_row_data.append(systemtool_type.description)
+#
+#             # dict containing the data, view and update url, primary key and obj
+#             # name to use in template
+#             table_row_info = {
+#                 'table_row_data': table_row_data,
+#                 'view_url': reverse_lazy('systemtool_type_view', kwargs={'pk': systemtool_type.pk}),
+#                 'update_url': reverse_lazy('systemtool_type_update', kwargs={'pk': systemtool_type.pk}),
+#                 'obj_name': str(systemtool_type),
+#                 'obj_pk': systemtool_type.pk
+#             }
+#             table_data.append(table_row_info)
+#
+#         context['add_url'] = reverse_lazy('systemtool_type_add')
+#         context['table_data'] = table_data
+#         context['title'] = 'systemtool_type'
+#         return context
 
-class SystemtoolTypeList(GenericListView):
+class SystemtoolTypeList(GenericModelList):
     model = SystemtoolType
-    template_name = 'core/generic/list.html'
     context_object_name = 'systemtool_types'
-    paginate_by = 10
+    table_columns = ['Description']
+    column_necessary_fields = {
+                'Description': ['description']
+    }
+    order_field = 'description'
+    field_contains = ''
 
-    def get_queryset(self):
-        return self.model.objects.all()
-        filter_val = self.request.GET.get('filter', '')
-        ordering = self.request.GET.get('ordering', 'description')
-        if filter_val != None:
-            new_queryset = self.model.objects.filter(
-                description__icontains=filter_val).select_related().order_by(ordering)
-        else:
-            new_queryset = self.model.objects.all()
-        return new_queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        table_columns = [ 'Description','Actions']
-        context['table_columns'] = table_columns
-        systemtool_types = context['systemtool_types']
-        table_data = []
-        for systemtool_type in systemtool_types:
-            table_row_data = []
-
-            # data for the object we want to display for a row
-            table_row_data.append(systemtool_type.description)
-
-            # dict containing the data, view and update url, primary key and obj
-            # name to use in template
-            table_row_info = {
-                'table_row_data': table_row_data,
-                'view_url': reverse_lazy('systemtool_type_view', kwargs={'pk': systemtool_type.pk}),
-                'update_url': reverse_lazy('systemtool_type_update', kwargs={'pk': systemtool_type.pk}),
-                'obj_name': str(systemtool_type),
-                'obj_pk': systemtool_type.pk
-            }
-            table_data.append(table_row_info)
-
-        context['add_url'] = reverse_lazy('systemtool_type_add')
-        context['table_data'] = table_data
-        context['title'] = 'systemtool_type'
-        return context
+    #Need this
+    table_columns += ['Actions']
 
 # class SystemtoolTypeEdit:
 #     template_name = 'core/generic/edit.html'

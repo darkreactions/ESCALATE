@@ -1,63 +1,77 @@
 from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
-from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
+from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.http import HttpResponse
 from core.models import Person
 from core.forms import PersonForm
-from core.views.menu import GenericListView
 
-from .model_view_generic import GenericModelEdit
+from .model_view_generic import GenericModelEdit, GenericModelList
 
-class PersonList(GenericListView):
+# class PersonList(GenericListView):
+#     model = Person
+#     template_name = 'core/generic/list.html'
+#     context_object_name = 'persons'
+#     paginate_by = 10
+#
+#     def get_queryset(self):
+#         filter_val = self.request.GET.get('filter', '')
+#         ordering = self.request.GET.get('ordering', 'first_name')
+#         if filter_val != None:
+#             new_queryset = self.model.objects.filter(
+#                 first_name__icontains=filter_val).select_related().order_by(ordering)
+#         else:
+#             new_queryset = self.model.objects.all()
+#         return new_queryset
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         table_columns = ['Name', 'Address', 'Title', 'Email', 'Actions']
+#         context['table_columns'] = table_columns
+#         persons = context['persons']
+#         table_data = []
+#         for person in persons:
+#             table_row_data = []
+#
+#             # data for the object we want to display for a row
+#             full_name = f"{person.first_name} {person.last_name}"
+#             full_address = (f"{person.address1}, {person.address2}, {person.zip}, {person.city},"
+#                             f"{person.state_province}, {person.country}")
+#             table_row_data.append(full_name)
+#             table_row_data.append(full_address)
+#             table_row_data.append(person.title)
+#             table_row_data.append(person.email)
+#
+#             # dict containing the data, view and update url, primary key and obj
+#             # name to use in template
+#             table_row_info = {
+#                 'table_row_data': table_row_data,
+#                 'view_url': reverse_lazy('person_view', kwargs={'pk': person.pk}),
+#                 'update_url': reverse_lazy('person_update', kwargs={'pk': person.pk}),
+#                 'obj_name': str(person),
+#                 'obj_pk': person.pk
+#             }
+#             table_data.append(table_row_info)
+#
+#         context['add_url'] = reverse_lazy('person_add')
+#         context['table_data'] = table_data
+#         context['title'] = 'Person'
+#         return context
+
+class PersonList(GenericModelList):
     model = Person
-    template_name = 'core/generic/list.html'
     context_object_name = 'persons'
-    paginate_by = 10
+    table_columns = ['Name', 'Address', 'Title', 'Email']
+    column_necessary_fields = {
+                'Name': ['first_name', 'middle_name', 'last_name'],
+                'Address': ['address1','address2','zip','city','state_province','country'],
+                'Title': ['title'],
+                'Email': ['email']
+    }
+    order_field = 'first_name'
+    field_contains = ''
 
-    def get_queryset(self):
-        filter_val = self.request.GET.get('filter', '')
-        ordering = self.request.GET.get('ordering', 'first_name')
-        if filter_val != None:
-            new_queryset = self.model.objects.filter(
-                first_name__icontains=filter_val).select_related().order_by(ordering)
-        else:
-            new_queryset = self.model.objects.all()
-        return new_queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        table_columns = ['Name', 'Address', 'Title', 'Email', 'Actions']
-        context['table_columns'] = table_columns
-        persons = context['persons']
-        table_data = []
-        for person in persons:
-            table_row_data = []
-
-            # data for the object we want to display for a row
-            full_name = f"{person.first_name} {person.last_name}"
-            full_address = (f"{person.address1}, {person.address2}, {person.zip}, {person.city},"
-                            f"{person.state_province}, {person.country}")
-            table_row_data.append(full_name)
-            table_row_data.append(full_address)
-            table_row_data.append(person.title)
-            table_row_data.append(person.email)
-
-            # dict containing the data, view and update url, primary key and obj
-            # name to use in template
-            table_row_info = {
-                'table_row_data': table_row_data,
-                'view_url': reverse_lazy('person_view', kwargs={'pk': person.pk}),
-                'update_url': reverse_lazy('person_update', kwargs={'pk': person.pk}),
-                'obj_name': str(person),
-                'obj_pk': person.pk
-            }
-            table_data.append(table_row_info)
-
-        context['add_url'] = reverse_lazy('person_add')
-        context['table_data'] = table_data
-        context['title'] = 'Person'
-        return context
-
+    #Need this
+    table_columns += ['Actions']
 
 # class PersonEdit():
 #     template_name = 'core/generic/edit_note_tag.html'
