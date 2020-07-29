@@ -7,7 +7,8 @@ from core.models import Tag, Tag_X, Actor
 from core.forms import TagForm
 #from core.views.menu import GenericListView
 
-#class for tagform when making new tag in a models
+#class for generating a tagform when making new tag in a models
+#Not actual model
 
 class ModelTagEdit():
     template_name = 'core/generic/add_tag.html'

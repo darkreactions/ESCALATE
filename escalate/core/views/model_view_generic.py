@@ -9,24 +9,27 @@ from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404
 from core.views.menu import GenericListView
 
+#class with generic classes to use in models
+
 class GenericModelList(GenericListView):
     template_name = 'core/generic/list.html'
 
-    #Override in subclass
+    #Override the 2 fields below in subclass
     model = None
     context_object_name = None #lowercase, snake case and plural. Ex:tag_types or inventorys
 
-    #for get_context_data method. Override in subclass
+    #for get_context_data method.
+    # Override 2 fields below in subclass
     table_columns = None    #list of strings of column names
     column_necessary_fields = None    #should be a dictionary with keys from table_columns
-                            #and value should be a list of the field names in strings
-                            #needed to fill out the corresponding cell.
-                            #fields in list of fields should be spelled exactly
+                            #and value should be a list of the field names (as strings)needed
+                            #to fill out the corresponding cell.
+                            #Fields in list of fields should be spelled exactly
                             # Ex: {'Name': ['first_name','middle_name','last_name']}
 
-    #for get_queryset method. Override in subclass
+    #for get_queryset method. Override the 2 fields below in subclass
     order_field = None  #Ex: 'first_name'
-    field_contains = None   #Ex: 'Gary'
+    field_contains = None   #Ex: 'Gary'. Use '' to show all
 
     paginate_by = 10
 
