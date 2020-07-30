@@ -7,8 +7,7 @@ from core.models import Inventory
 from core.forms import InventoryForm
 from core.views.menu import GenericListView
 
-from .model_view_generic import GenericModelEdit, GenericModelList
-
+from .model_view_generic import GenericModelEdit, GenericModelList, GenericModelView
 
 # class InventoryList(GenericListView):
 #     model = Inventory
@@ -113,27 +112,45 @@ class InventoryDelete(DeleteView):
     success_url = reverse_lazy('inventory_list')
 
 
-class InventoryView(DetailView):
-    template_name = 'core/generic/detail.html'
-    model = Inventory
-    #queryset = Inventory.objects.select_related()
+# class InventoryView(DetailView):
+#     template_name = 'core/generic/detail.html'
+#     model = Inventory
+#     #queryset = Inventory.objects.select_related()
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         obj = context['object']
+#         table_data = {
+#                 'Inventory description': obj.inventory_description,
+#                 'Actor description': obj.actor_description,
+#                 'Material description': obj.material_description,
+#                 'Part Number': obj.part_no,
+#                 'On Hand Amount': obj.onhand_amt,
+#                 'Create Date': obj.create_date,
+#                 'Expiration Date': obj.expiration_date,
+#                 'Inventory location': obj.inventory_location,
+#                 'Status': obj.status_description
+#         }
+#         context['update_url'] = reverse_lazy(
+#             'inventory_update', kwargs={'pk': obj.pk})
+#         context['title'] = 'Inventory'
+#         context['table_data'] = table_data
+#         return context
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        obj = context['object']
-        table_data = {
-                'Inventory description': obj.inventory_description,
-                'Actor description': obj.actor_description,
-                'Material description': obj.material_description,
-                'Part Number': obj.part_no,
-                'On Hand Amount': obj.onhand_amt,
-                'Create Date': obj.create_date,
-                'Expiration Date': obj.expiration_date,
-                'Inventory location': obj.inventory_location,
-                'Status': obj.status_description
-        }
-        context['update_url'] = reverse_lazy(
-            'inventory_update', kwargs={'pk': obj.pk})
-        context['title'] = 'Inventory'
-        context['table_data'] = table_data
-        return context
+class InventoryView(GenericModelView):
+    model = Inventory
+    model_name = 'inventory'
+    detail_fields = ['Inventory Description', 'Actor Description', 'Material Description',
+                     'Part Number', 'On Hand Amount', 'Create Date', 'Expiration Date',
+                     'Inventory Location', 'Status']
+    detail_fields_need_fields = {
+                'Inventory Description': ['inventory_description'],
+                'Actor Description': ['actor_description'],
+                'Material Description': ['material_description'],
+                'Part Number': ['part_no'],
+                'On Hand Amount': ['onhand_amt'],
+                'Create Date': ['create_date'],
+                'Expiration Date': ['expiration_date'],
+                'Inventory Location': ['inventory_location'],
+                'Status': ['status_description']
+    }

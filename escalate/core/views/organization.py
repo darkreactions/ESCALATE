@@ -7,8 +7,7 @@ from core.forms import OrganizationForm, NoteForm, TagSelectForm
 from core.views.menu import GenericListView
 from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404
-from .model_view_generic import GenericModelEdit, GenericModelList
-
+from .model_view_generic import GenericModelEdit, GenericModelList, GenericModelView
 
 # class OrganizationList(GenericListView):
 #     model = Organization
@@ -164,29 +163,46 @@ class OrganizationDelete(DeleteView):
     success_url = reverse_lazy('organization_list')
 
 
-class OrganizationView(DetailView):
-    model = Organization
-    #queryset = Organization.objects.all()
-    #template_name = 'core/organization/organization_detail.html'
-    template_name = 'core/generic/detail.html'
+# class OrganizationView(DetailView):
+#     model = Organization
+#     #queryset = Organization.objects.all()
+#     #template_name = 'core/organization/organization_detail.html'
+#     template_name = 'core/generic/detail.html'
+#
+#     def get_context_data(self, **kwargs):
+#         # Call the base implementation first to get a context
+#         context = super().get_context_data(**kwargs)
+#         obj = context['object']
+#         table_data = {
+#                 'Full Name': obj.full_name,
+#                 'Short Name': obj.short_name,
+#                 'Description': obj.description,
+#                 'Address': f'{obj.address1}, {obj.address2}, {obj.city}, {obj.state_province}, {obj.zip}, {obj.country}',
+#                 'Website': obj.website_url,
+#                 'Phone': obj.phone,
+#                 'Parent Organization': obj.parent_org_full_name,
+#                 'Add Date': obj.add_date,
+#                 'Last Modification Date': obj.mod_date
+#         }
+#         context['update_url'] = reverse_lazy(
+#             'organization_update', kwargs={'pk': obj.pk})
+#         context['title'] = 'Organization'
+#         context['table_data'] = table_data
+#         return context
 
-    def get_context_data(self, **kwargs):
-        # Call the base implementation first to get a context
-        context = super().get_context_data(**kwargs)
-        obj = context['object']
-        table_data = {
-                'Full Name': obj.full_name,
-                'Short Name': obj.short_name,
-                'Description': obj.description,
-                'Address': f'{obj.address1}, {obj.address2}, {obj.city}, {obj.state_province}, {obj.zip}, {obj.country}',
-                'Website': obj.website_url,
-                'Phone': obj.phone,
-                'Parent Organization': obj.parent_org_full_name,
-                'Add Date': obj.add_date,
-                'Last Modification Date': obj.mod_date
-        }
-        context['update_url'] = reverse_lazy(
-            'organization_update', kwargs={'pk': obj.pk})
-        context['title'] = 'Organization'
-        context['table_data'] = table_data
-        return context
+class OrganizationView(GenericModelView):
+    model = Organization
+    model_name = 'organization'
+    detail_fields = ['Full Name','Short Name','Description','Address','Website',
+                     'Phone','Parent Organization','Add Date','Last Modification Date']
+    detail_fields_need_fields = {
+                'Full Name': ['full_name'],
+                'Short Name': ['short_name'],
+                'Description': ['description'],
+                'Address': ['address1','address2','zip','city','state_province','country'],
+                'Website': ['website_url'],
+                'Phone': ['phone'],
+                'Parent Organization': ['parent_org_full_name'],
+                'Add Date': ['add_date'],
+                'Last Modification Date': ['mod_date']
+    }

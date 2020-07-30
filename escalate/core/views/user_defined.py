@@ -6,8 +6,7 @@ from core.models import UdfDef
 from core.forms import UdfDefForm
 from core.views.menu import GenericListView
 
-from .model_view_generic import GenericModelEdit, GenericModelList
-
+from .model_view_generic import GenericModelEdit, GenericModelList, GenericModelView
 
 # class UdfDefList(GenericListView):
 #     model = UdfDef
@@ -101,21 +100,32 @@ class UdfDefDelete(DeleteView):
     success_url = reverse_lazy('udf_def_list')
 
 
-class UdfDefView(DetailView):
-    model = UdfDef
-    template_name = 'core/generic/detail.html'
+# class UdfDefView(DetailView):
+#     model = UdfDef
+#     template_name = 'core/generic/detail.html'
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         obj = context['object']
+#         table_data = {
+#                 'User defined description': obj.description,
+#                 'Value type': obj.valtype,
+#                 'Add date': obj.add_date,
+#                 'Modified date': obj.mod_date
+#         }
+#         context['update_url'] = reverse_lazy(
+#             'udf_def_update', kwargs={'pk': obj.pk})
+#         context['title'] = 'udf_def'
+#         context['table_data'] = table_data
+#         return context
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        obj = context['object']
-        table_data = {
-                'User defined description': obj.description,
-                'Value type': obj.valtype,
-                'Add date': obj.add_date,
-                'Modified date': obj.mod_date
-        }
-        context['update_url'] = reverse_lazy(
-            'udf_def_update', kwargs={'pk': obj.pk})
-        context['title'] = 'udf_def'
-        context['table_data'] = table_data
-        return context
+class UdfDefView(GenericModelView):
+    model = UdfDef
+    model_name = 'udf_def'
+    detail_fields = ['Description','Value Type','Add Date','Last Modification Date']
+    detail_fields_need_fields = {
+                'Description': ['description'],
+                'Value Type': ['valtype'],
+                'Add Date': ['add_date'],
+                'Last Modification Date': ['mod_date']
+    }

@@ -6,8 +6,7 @@ from core.models import SystemtoolType
 from core.forms import SystemtoolTypeForm
 from core.views.menu import GenericListView
 
-from .model_view_generic import GenericModelEdit, GenericModelList
-
+from .model_view_generic import GenericModelEdit, GenericModelList, GenericModelView
 # class SystemtoolTypeList(GenericListView):
 #     model = SystemtoolType
 #     template_name = 'core/generic/list.html'
@@ -99,21 +98,31 @@ class SystemtoolTypeDelete(DeleteView):
     success_url = reverse_lazy('systemtool_type_list')
 
 
-class SystemtoolTypeView(DetailView):
+# class SystemtoolTypeView(DetailView):
+#     model = SystemtoolType
+#     template_name = 'core/generic/detail.html'
+#
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         obj = context['object']
+#         table_data = {
+#                 'System tool type description': obj.description,
+#                 'Add date': obj.add_date,
+#                 'Modified date': obj.mod_date
+#         }
+#         context['update_url'] = reverse_lazy(
+#             'systemtool_type_update', kwargs={'pk': obj.pk})
+#         context['title'] = 'systemtool_type'
+#         context['table_data'] = table_data
+#         return context
+
+class SystemtoolTypeView(GenericModelView):
     model = SystemtoolType
-    template_name = 'core/generic/detail.html'
-
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        obj = context['object']
-        table_data = {
-                'System tool type description': obj.description,
-                'Add date': obj.add_date,
-                'Modified date': obj.mod_date
-        }
-        context['update_url'] = reverse_lazy(
-            'systemtool_type_update', kwargs={'pk': obj.pk})
-        context['title'] = 'systemtool_type'
-        context['table_data'] = table_data
-        return context
+    model_name = 'systemtool_type'
+    detail_fields = ['Description','Add Date','Last Modification Date']
+    detail_fields_need_fields = {
+                'Description': ['description'],
+                'Add Date': ['add_date'],
+                'Last Modification Date': ['mod_date']
+    }

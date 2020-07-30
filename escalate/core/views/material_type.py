@@ -6,8 +6,7 @@ from core.models import MaterialType
 from core.forms import MaterialTypeForm
 from core.views.menu import GenericListView
 
-from .model_view_generic import GenericModelEdit, GenericModelList
-
+from .model_view_generic import GenericModelEdit, GenericModelList, GenericModelView
 
 # class MaterialTypeList(GenericListView):
 #     model = MaterialType
@@ -101,19 +100,29 @@ class MaterialTypeDelete(DeleteView):
     success_url = reverse_lazy('material_type_list')
 
 
-class MaterialTypeView(DetailView):
-    model = MaterialType
-    template_name = 'core/generic/detail.html'
+# class MaterialTypeView(DetailView):
+#     model = MaterialType
+#     template_name = 'core/generic/detail.html'
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         obj = context['object']
+#         table_data = {
+#                 'Description': obj.description,
+#                 'Add Date': obj.add_date,
+#                 'Last Modification Date': obj.mod_date
+#         }
+#         context['update_url'] = reverse_lazy('material_type_update', kwargs={'pk':obj.pk})
+#         context['title'] = 'Material Type'
+#         context['table_data'] = table_data
+#         return context
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        obj = context['object']
-        table_data = {
-                'Description': obj.description,
-                'Add Date': obj.add_date,
-                'Last Modification Date': obj.mod_date
-        }
-        context['update_url'] = reverse_lazy('material_type_update', kwargs={'pk':obj.pk})
-        context['title'] = 'Material Type'
-        context['table_data'] = table_data
-        return context
+class MaterialTypeView(GenericModelView):
+    model = MaterialType
+    model_name = 'material_type'
+    detail_fields = ['Description', 'Add Date', 'Last Modification Date']
+    detail_fields_need_fields = {
+            'Description': ['description'],
+            'Add Date': ['add_date'],
+            'Last Modification Date': ['mod_date']
+    }

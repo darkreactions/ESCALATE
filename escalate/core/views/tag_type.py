@@ -6,8 +6,7 @@ from core.models import TagType
 from core.forms import TagTypeForm
 from core.views.menu import GenericListView
 
-from .model_view_generic import GenericModelEdit, GenericModelList
-
+from .model_view_generic import GenericModelEdit, GenericModelList, GenericModelView
 # class TagTypeList(GenericListView):
 #     model = TagType
 #     template_name = 'core/generic/list.html'
@@ -101,22 +100,34 @@ class TagTypeDelete(DeleteView):
     success_url = reverse_lazy('tag_type_list')
 
 
-class TagTypeView(DetailView):
+# class TagTypeView(DetailView):
+#     model = TagType
+#     template_name = 'core/generic/detail.html'
+#
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         obj = context['object']
+#         table_data = {
+#                 'Short description': obj.short_description,
+#                 'Long description': obj.description,
+#                 'Add date': obj.add_date,
+#                 'Modified date': obj.mod_date
+#         }
+#         context['update_url'] = reverse_lazy(
+#             'tag_type_update', kwargs={'pk': obj.pk})
+#         context['title'] = 'tag_type'
+#         context['table_data'] = table_data
+#         return context
+
+class TagTypeView(GenericModelView):
     model = TagType
-    template_name = 'core/generic/detail.html'
-
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        obj = context['object']
-        table_data = {
-                'Short description': obj.short_description,
-                'Long description': obj.description,
-                'Add date': obj.add_date,
-                'Modified date': obj.mod_date
-        }
-        context['update_url'] = reverse_lazy(
-            'tag_type_update', kwargs={'pk': obj.pk})
-        context['title'] = 'tag_type'
-        context['table_data'] = table_data
-        return context
+    model_name = 'tag_type'
+    detail_fields = ['Short Description','Long Description','Add Date',
+                     'Last Modification Date']
+    detail_fields_need_fields = {
+                'Short Description': ['short_description'],
+                'Long Description': ['description'],
+                'Add Date': ['add_date'],
+                'Last Modification Date': ['mod_date']
+    }

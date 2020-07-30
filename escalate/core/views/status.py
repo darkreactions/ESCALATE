@@ -6,8 +6,7 @@ from core.models import Status
 from core.forms import StatusForm
 from core.views.menu import GenericListView
 
-from .model_view_generic import GenericModelEdit, GenericModelList
-
+from .model_view_generic import GenericModelEdit, GenericModelList, GenericModelView
 # class StatusList(GenericListView):
 #     model = Status
 #     template_name = 'core/generic/list.html'
@@ -98,21 +97,31 @@ class StatusDelete(DeleteView):
     success_url = reverse_lazy('status_list')
 
 
-class StatusView(DetailView):
+# class StatusView(DetailView):
+#     model = Status
+#     template_name = 'core/generic/detail.html'
+#
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         obj = context['object']
+#         table_data = {
+#                 'Status description': obj.description,
+#                 'Add date': obj.add_date,
+#                 'Modified date': obj.mod_date
+#         }
+#         context['update_url'] = reverse_lazy(
+#             'status_update', kwargs={'pk': obj.pk})
+#         context['title'] = 'status'
+#         context['table_data'] = table_data
+#         return context
+
+class StatusView(GenericModelView):
     model = Status
-    template_name = 'core/generic/detail.html'
-
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        obj = context['object']
-        table_data = {
-                'Status description': obj.description,
-                'Add date': obj.add_date,
-                'Modified date': obj.mod_date
-        }
-        context['update_url'] = reverse_lazy(
-            'status_update', kwargs={'pk': obj.pk})
-        context['title'] = 'status'
-        context['table_data'] = table_data
-        return context
+    model_name = 'status'
+    detail_fields = ['Description','Add Date','Last Modification Date']
+    detail_fields_need_fields = {
+                'Description': ['description'],
+                'Add Date': ['add_date'],
+                'Last Modification Date': ['mod_date']
+    }

@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from core.models import Person
 from core.forms import PersonForm
 
-from .model_view_generic import GenericModelEdit, GenericModelList
+from .model_view_generic import GenericModelEdit, GenericModelList, GenericModelView
 
 # class PersonList(GenericListView):
 #     model = Person
@@ -168,29 +168,46 @@ class PersonDelete(DeleteView):
     success_url = reverse_lazy('person_list')
 
 
-class PersonView(DetailView):
+# class PersonView(DetailView):
+#     model = Person
+#     template_name = 'core/generic/detail.html'
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         obj = context['object']
+#         table_data = {
+#
+#                 'Full Name': f"{obj.first_name} {obj.middle_name} {obj.last_name}",
+#                 'Address': (f" {obj.address1}, {obj.address2}, {obj.zip}, {obj.city},"
+#                                 f" {obj.state_province}, {obj.country}"),
+#                 'Phone': obj.phone,
+#                 'Email': obj.email,
+#                 'Title' : obj.title,
+#                 'Suffix' : obj.suffix,
+#                 'Organization' : obj.organization_full_name,
+#                 'Add Date': obj.add_date,
+#                 'Last Modification Date': obj.mod_date
+#
+#         }
+#         context['title'] = 'Person'
+#         context['update_url'] = reverse_lazy(
+#             'person_update', kwargs={'pk': obj.pk})
+#         context['table_data'] = table_data
+#         return context
+
+class PersonView(GenericModelView):
     model = Person
-    template_name = 'core/generic/detail.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        obj = context['object']
-        table_data = {
-
-                'Full Name': f"{obj.first_name} {obj.middle_name} {obj.last_name}",
-                'Address': (f" {obj.address1}, {obj.address2}, {obj.zip}, {obj.city},"
-                                f" {obj.state_province}, {obj.country}"),
-                'Phone': obj.phone,
-                'Email': obj.email,
-                'Title' : obj.title,
-                'Suffix' : obj.suffix,
-                'Organization' : obj.organization_full_name,
-                'Add Date': obj.add_date,
-                'Last Modification Date': obj.mod_date
-
-        }
-        context['title'] = 'Person'
-        context['update_url'] = reverse_lazy(
-            'person_update', kwargs={'pk': obj.pk})
-        context['table_data'] = table_data
-        return context
+    model_name = 'person'
+    detail_fields = ['Full Name', 'Address', 'Phone', 'Email', 'Title',
+                     'Suffix', 'Organization', 'Add Date', 'Last Modification Date']
+    detail_fields_need_fields = {
+                'Full Name': ['first_name','middle_name','last_name'],
+                'Address': ['address1','address2','zip','city','state_province','country'],
+                'Phone': ['phone'],
+                'Email': ['email'],
+                'Title' : ['title'],
+                'Suffix' : ['suffix'],
+                'Organization' : ['organization_full_name'],
+                'Add Date': ['add_date'],
+                'Last Modification Date': ['mod_date']
+    }

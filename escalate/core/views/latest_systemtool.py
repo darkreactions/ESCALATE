@@ -6,8 +6,7 @@ from core.models import LatestSystemtool
 from core.forms import LatestSystemtoolForm
 from core.views.menu import GenericListView
 
-from .model_view_generic import GenericModelEdit, GenericModelList
-
+from .model_view_generic import GenericModelEdit, GenericModelList, GenericModelView
 # class SystemtoolList(GenericListView):
 #     model = LatestSystemtool
 #     template_name = 'core/generic/list.html'
@@ -106,24 +105,40 @@ class SystemtoolDelete(DeleteView):
     success_url = reverse_lazy('systemtool_list')
 
 
-class SystemtoolView(DetailView):
-    model = LatestSystemtool
-    template_name = 'core/generic/detail.html'
+# class SystemtoolView(DetailView):
+#     model = LatestSystemtool
+#     template_name = 'core/generic/detail.html'
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         obj = context['object']
+#         table_data = {
+#                 'Systemtool name': obj.systemtool_name,
+#                 'Systemtool description': obj.description,
+#                 'Systemtool type': obj.systemtool_type_uuid,
+#                 'Systemtool vendor': obj.vendor_organization_uuid,
+#                 'Systemtool model': obj.model,
+#                 'Systemtool serial': obj.serial,
+#                 'Systemtool version': obj.ver
+#         }
+#         context['update_url'] = reverse_lazy(
+#             'systemtool_update', kwargs={'pk': obj.pk})
+#         context['title'] = 'systemtool'
+#         context['table_data'] = table_data
+#         return context
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        obj = context['object']
-        table_data = {
-                'Systemtool name': obj.systemtool_name,
-                'Systemtool description': obj.description,
-                'Systemtool type': obj.systemtool_type_uuid,
-                'Systemtool vendor': obj.vendor_organization_uuid,
-                'Systemtool model': obj.model,
-                'Systemtool serial': obj.serial,
-                'Systemtool version': obj.ver
-        }
-        context['update_url'] = reverse_lazy(
-            'systemtool_update', kwargs={'pk': obj.pk})
-        context['title'] = 'systemtool'
-        context['table_data'] = table_data
-        return context
+class SystemtoolView(GenericModelView):
+    model = LatestSystemtool
+    model_name = 'systemtool'
+    detail_fields = ['Systemtool Name', 'Systemtool Description', 'Systemtool Type',
+                     'Systemtool Vendor', 'Systemtool Model', 'Systemtool Serial',
+                     'Systemtool Version']
+    detail_fields_need_fields = {
+            'Systemtool Name': ['systemtool_name'],
+            'Systemtool Description': ['description'],
+            'Systemtool Type': ['systemtool_type_description'],
+            'Systemtool Vendor': ['organization_fullname'],
+            'Systemtool Model': ['model'],
+            'Systemtool Serial': ['serial'],
+            'Systemtool Version': ['ver']
+    }

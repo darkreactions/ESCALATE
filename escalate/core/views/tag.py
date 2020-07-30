@@ -6,8 +6,7 @@ from core.models import Tag
 from core.forms import TagForm
 from core.views.menu import GenericListView
 
-from .model_view_generic import GenericModelEdit, GenericModelList
-
+from .model_view_generic import GenericModelEdit, GenericModelList, GenericModelView
 # class TagList(GenericListView):
 #     model = Tag
 #     template_name = 'core/generic/list.html'
@@ -104,25 +103,40 @@ class TagDelete(DeleteView):
     success_url = reverse_lazy('tag_list')
 
 
-class TagView(DetailView):
+# class TagView(DetailView):
+#     model = Tag
+#     template_name = 'core/generic/detail.html'
+#
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         obj = context['object']
+#         table_data = {
+#                 'Tag name': obj.display_text,
+#                 'Tag description': obj.description,
+#                 'Actor':obj.actor_uuid,
+#                 'Add date': obj.add_date,
+#                 'Modified date': obj.mod_date,
+#                 'Tag type name':obj.tag_type_uuid,
+#                 'Tag type description':obj.tag_type_description
+#         }
+#         context['update_url'] = reverse_lazy(
+#             'tag_update', kwargs={'pk': obj.pk})
+#         context['title'] = 'tag'
+#         context['table_data'] = table_data
+#         return context
+
+class TagView(GenericModelView):
     model = Tag
-    template_name = 'core/generic/detail.html'
-
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        obj = context['object']
-        table_data = {
-                'Tag name': obj.display_text,
-                'Tag description': obj.description,
-                'Actor':obj.actor_uuid,
-                'Add date': obj.add_date,
-                'Modified date': obj.mod_date,
-                'Tag type name':obj.tag_type_uuid,
-                'Tag type description':obj.tag_type_description
-        }
-        context['update_url'] = reverse_lazy(
-            'tag_update', kwargs={'pk': obj.pk})
-        context['title'] = 'tag'
-        context['table_data'] = table_data
-        return context
+    model_name = 'tag'
+    detail_fields = ['Tag Name','Description','Actor','Add Date','Last Modification Date',
+                     'Tag Type', 'Tag Type Description']
+    detail_fields_need_fields = {
+                'Tag Name': ['display_text'],
+                'Description': ['description'],
+                'Actor':['actor_description'],
+                'Add Date': ['add_date'],
+                'Last Modification Date': ['mod_date'],
+                'Tag Type':['tag_type_short_descr'],
+                'Tag Type Description':['tag_type_description']
+    }

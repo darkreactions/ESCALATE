@@ -6,8 +6,7 @@ from core.models import Actor
 from core.forms import ActorForm
 from core.views.menu import GenericListView
 
-from .model_view_generic import GenericModelEdit, GenericModelList
-
+from .model_view_generic import GenericModelEdit, GenericModelList, GenericModelView
 
 # class ActorList(GenericListView):
 #     model = Actor
@@ -110,29 +109,50 @@ class ActorDelete(DeleteView):
     success_url = reverse_lazy('actor_list')
 
 
-class ActorView(DetailView):
-    template_name = 'core/generic/detail.html'
-    queryset = Actor.objects.select_related()
+# class ActorView(DetailView):
+#     template_name = 'core/generic/detail.html'
+#     queryset = Actor.objects.select_related()
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         obj = context['object']
+#         table_data = {
+#                 'Actor description': obj.actor_description,
+#                 'Status': obj.actor_status_description,
+#                 'Organization': f"{obj.org_full_name} ({obj.org_short_name})",
+#                 'Person': f"{obj.person_first_name} {obj.person_last_name}",
+#                 'Person organization': obj.person_org,
+#                 'Systemtool': obj.systemtool_name,
+#                 'Systemtool description': obj.systemtool_description,
+#                 'Systemtool type': obj.systemtool_type,
+#                 'Systemtool vendor': obj.systemtool_vendor,
+#                 'Systemtool model': obj.systemtool_model,
+#                 'Systemtool serial': obj.systemtool_serial,
+#                 'Systemtool version': obj.systemtool_version
+#         }
+#         context['update_url'] = reverse_lazy(
+#             'actor_update', kwargs={'pk': obj.pk})
+#         context['title'] = 'Actor'
+#         context['table_data'] = table_data
+#         return context
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        obj = context['object']
-        table_data = {
-                'Actor description': obj.actor_description,
-                'Status': obj.actor_status_description,
-                'Organization': f"{obj.org_full_name} ({obj.org_short_name})",
-                'Person': f"{obj.person_first_name} {obj.person_last_name}",
-                'Person organization': obj.person_org,
-                'Systemtool': obj.systemtool_name,
-                'Systemtool description': obj.systemtool_description,
-                'Systemtool type': obj.systemtool_type,
-                'Systemtool vendor': obj.systemtool_vendor,
-                'Systemtool model': obj.systemtool_model,
-                'Systemtool serial': obj.systemtool_serial,
-                'Systemtool version': obj.systemtool_version
-        }
-        context['update_url'] = reverse_lazy(
-            'actor_update', kwargs={'pk': obj.pk})
-        context['title'] = 'Actor'
-        context['table_data'] = table_data
-        return context
+class ActorView(GenericModelView):
+    model = Actor
+    model_name = 'actor'
+    detail_fields = ['Actor Description', 'Status', 'Organization', 'Person', 'Person Organization',
+                     'Systemtool', 'Systemtool description', 'Systemtool type', 'Systemtool vendor',
+                     'Systemtool model', 'Systemtool serial', 'Systemtool version']
+    detail_fields_need_fields = {
+                'Actor Description': ['actor_description'],
+                'Status': ['actor_status_description'],
+                'Organization': ['org_full_name'],
+                'Person': ['person_first_name', 'person_last_name'],
+                'Person Organization': ['person_org'],
+                'Systemtool': ['systemtool_name'],
+                'Systemtool description': ['systemtool_description'],
+                'Systemtool type': ['systemtool_type'],
+                'Systemtool vendor': ['systemtool_vendor'],
+                'Systemtool model': ['systemtool_model'],
+                'Systemtool serial': ['systemtool_serial'],
+                'Systemtool version': ['systemtool_version']
+    }

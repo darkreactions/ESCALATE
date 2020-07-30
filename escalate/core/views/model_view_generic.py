@@ -1,6 +1,6 @@
 from django.urls import reverse_lazy
 from django.http import HttpResponse
-#from django.views.generic.detail import DetailView
+from django.views.generic.detail import DetailView
 #from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
 from core.models import Note, Actor, Tag_X, Tag
 from core.forms import NoteForm, TagSelectForm
@@ -56,10 +56,11 @@ class GenericModelList(GenericListView):
         for model in models:
             table_row_data = []
 
-            #loop to get each column data for one row
-            for i in range(0,len(self.table_columns)-1):
+            #loop to get each column data for one row. [:-1] because table_columns has 'Actions'
+            header_names = self.table_columns[:-1]
+            for field_name in header_names:
                 #get list of fields used to fill out one cell
-                necessary_fields = self.column_necessary_fields[self.table_columns[i]]
+                necessary_fields = self.column_necessary_fields[field_name]
                 #get actual field value from the model
                 fields_for_col = [getattr(model,field) for field in necessary_fields]
                 #loop to change None to '' or non-string to string because join needs strings
@@ -166,3 +167,65 @@ class GenericModelEdit:
         if request.POST.get("Submit"):
             self.success_url = reverse_lazy(f'{self.context_object_name}_list')
         return super().post(request, *args, **kwargs)
+
+class GenericModelView(DetailView):
+    #Override below 2 in subclass
+    model = None
+    model_name = None #lowercase, snake case. Ex:tag_type or inventory
+
+    template_name = 'core/generic/detail.html'
+
+    #Override below 2 in subclass
+    detail_fields = None    #list of strings of detail fields (does not need to be same as field names in model)
+    detail_fields_need_fields = None    #should be a dictionary with keys detail_fields
+                            #and value should be a list of the field names (as strings)needed
+                            #to fill out the corresponding cell.
+                            #Fields in list of fields should be spelled exactly
+                            # Ex: {'Name': ['first_name','middle_name','last_name']}
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        obj = context['object']
+
+        #dict of detail field names to their value
+        detail_data = {}
+
+        #loop to get each detail data for one detail field
+        for field in self.detail_fields:
+            #get list of fields used to fill out one detail field
+            necessary_fields = self.detail_fields_need_fields[field]
+            #get actual field value from the model
+            fields_for_field = [getattr(obj,field) for field in necessary_fields]
+            #loop to change None to '' or non-string to string because join needs strings
+            for i in range(0,len(fields_for_field)):
+                if fields_for_field[i] == None:
+                    fields_for_field[i] = ''
+                elif not isinstance(fields_for_field[i],str):
+                    fields_for_field[i] = str(fields_for_field[i])
+                else:
+                    continue
+            obj_detail = ' '.join(fields_for_field)
+            obj_detail = obj_detail.strip()
+            if len(obj_detail) == 0:
+                obj_detail = 'N/A'
+            detail_data[field] = obj_detail
+
+        #get notes
+        notes_raw = Note.objects.filter(ref_note_uuid=obj.pk)
+        notes = []
+        for note in notes_raw:
+            notes.append('-' + note.notetext)
+        context['Notes'] = notes
+
+        #get tags
+        tags_raw = Tag.objects.filter(pk__in=Tag_X.objects.filter(ref_tag_uuid=obj.pk).values_list('tag_uuid',flat=True))
+        tags = []
+        for tag in tags_raw:
+            tags.append(tag.display_text.strip())
+        detail_data['Tags'] = ', '.join(tags)
+
+        context['title'] = self.model_name.replace('_'," ").capitalize()
+        context['update_url'] = reverse_lazy(
+            f'{self.model_name}_update', kwargs={'pk': obj.pk})
+        context['detail_data'] = detail_data
+        return context
