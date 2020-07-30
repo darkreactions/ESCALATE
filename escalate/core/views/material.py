@@ -89,8 +89,11 @@ class MaterialEdit(GenericModelEdit):
     form_class = MaterialForm
 
 
-class MaterialCreate(MaterialEdit, CreateView):
-    pass
+class MaterialCreate(CreateView):
+    template_name = 'core/generic/edit.html'
+    model = Material
+    form_class = MaterialForm
+    success_url = reverse_lazy('material_list')
 
 
 class MaterialUpdate(MaterialEdit, UpdateView):

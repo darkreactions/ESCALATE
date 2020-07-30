@@ -82,8 +82,11 @@ class StatusEdit(GenericModelEdit):
     context_object_name = 'status'
     form_class = StatusForm
 
-class StatusCreate(StatusEdit, CreateView):
-    pass
+class StatusCreate(CreateView):
+    template_name = 'core/generic/edit.html'
+    model = Status
+    form_class = StatusForm
+    success_url = reverse_lazy('status_list')
 
 
 class StatusUpdate(StatusEdit, UpdateView):

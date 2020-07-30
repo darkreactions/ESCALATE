@@ -148,8 +148,11 @@ class OrganizationEdit(GenericModelEdit):
     form_class = OrganizationForm
 
 
-class OrganizationCreate(OrganizationEdit, CreateView):
-    pass
+class OrganizationCreate(CreateView):
+    template_name = 'core/generic/edit.html'
+    model = Organization
+    form_class = OrganizationForm
+    success_url = reverse_lazy('organization_list')
 
 
 class OrganizationUpdate(OrganizationEdit, UpdateView):

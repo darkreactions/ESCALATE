@@ -85,8 +85,11 @@ class UdfDefEdit(GenericModelEdit):
     form_class = UdfDefForm
 
 
-class UdfDefCreate(UdfDefEdit, CreateView):
-    pass
+class UdfDefCreate(CreateView):
+    template_name = 'core/generic/edit.html'
+    model = UdfDef
+    form_class = UdfDefForm
+    success_url = reverse_lazy('udf_def_list')
 
 
 class UdfDefUpdate(UdfDefEdit, UpdateView):

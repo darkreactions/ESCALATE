@@ -85,8 +85,11 @@ class TagTypeEdit(GenericModelEdit):
     form_class = TagTypeForm
 
 
-class TagTypeCreate(TagTypeEdit, CreateView):
-    pass
+class TagTypeCreate(CreateView):
+    template_name = 'core/generic/edit.html'
+    model = TagType
+    form_class = TagTypeForm
+    success_url = reverse_lazy('tag_type_list')
 
 
 class TagTypeUpdate(TagTypeEdit, UpdateView):

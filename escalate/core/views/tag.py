@@ -88,8 +88,11 @@ class TagEdit(GenericModelEdit):
     context_object_name = 'tag'
     form_class = TagForm
 
-class TagCreate(TagEdit, CreateView):
-    pass
+class TagCreate(CreateView):
+    template_name = 'core/generic/edit.html'
+    model = Tag
+    form_class = TagForm
+    success_url = reverse_lazy('tag_list')
 
 
 class TagUpdate(TagEdit, UpdateView):

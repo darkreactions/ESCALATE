@@ -93,8 +93,12 @@ class ActorEdit(GenericModelEdit):
     form_class = ActorForm
 
 
-class ActorCreate(ActorEdit, CreateView):
-    pass
+class ActorCreate(CreateView):
+    template_name = 'core/generic/edit.html'
+    model = Actor
+    form_class = ActorForm
+    success_url = reverse_lazy('actor_list')
+
 
 
 class ActorUpdate(ActorEdit, UpdateView):

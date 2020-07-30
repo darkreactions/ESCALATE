@@ -151,12 +151,12 @@ class PersonEdit(GenericModelEdit):
     form_class = PersonForm
 
 
-class PersonCreate(PersonEdit, CreateView):
-    #template no functionality related to note
+class PersonCreate(CreateView):
     template_name = 'core/generic/edit.html'
-    #make NoteFormSet none to ignore it in parent edit class's post method
-    NoteFormSet = None
-    pass
+    model = Person
+    context_object_name = 'person'
+    form_class = PersonForm
+    success_url = reverse_lazy('person_list')
 
 
 class PersonUpdate(PersonEdit, UpdateView):

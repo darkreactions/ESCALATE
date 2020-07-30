@@ -97,8 +97,11 @@ class InventoryEdit(GenericModelEdit):
     form_class = InventoryForm
 
 
-class InventoryCreate(InventoryEdit, CreateView):
-    pass
+class InventoryCreate(CreateView):
+    template_name = 'core/generic/edit.html'
+    model = Inventory
+    form_class = InventoryForm
+    success_url = reverse_lazy('inventory_list')
 
 
 class InventoryUpdate(InventoryEdit, UpdateView):

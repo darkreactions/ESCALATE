@@ -83,8 +83,11 @@ class SystemtoolTypeEdit(GenericModelEdit):
     form_class = SystemtoolTypeForm
 
 
-class SystemtoolTypeCreate(SystemtoolTypeEdit, CreateView):
-    pass
+class SystemtoolTypeCreate(CreateView):
+    template_name = 'core/generic/edit.html'
+    model = SystemtoolType
+    form_class = SystemtoolTypeForm
+    success_url = reverse_lazy('systemtool_type_list')
 
 
 class SystemtoolTypeUpdate(SystemtoolTypeEdit, UpdateView):
