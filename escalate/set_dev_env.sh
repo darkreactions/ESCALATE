@@ -1,1 +1,0 @@
-allexport; source .env.dev; set +o allexport
