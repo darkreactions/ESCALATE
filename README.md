@@ -30,6 +30,7 @@ ESCALATE (Experiment Specification, Capture and Laboratory Automation Technology
 ## Authors
 
 * **Gary Cattabriga** [ESCALATE](https://github.com/gcatabr1)
+* **Venkateswaran Shekar** [ESCALATE](https://github.com/gcatabr1)
 
 See also the list of [contributors](https://github.com/darkreactions/ESCALATE/graphs/contributors) who participated in this project.
 
