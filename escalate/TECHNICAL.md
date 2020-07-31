@@ -1,9 +1,3 @@
-[![Contributors][contributors-shield]][contributors-url]
-[![Commits][commits-shield]][commits-url]
-[![Last Commit][lastcommit-shield]][lastcommit-url]
-[![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
-
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
@@ -95,3 +89,30 @@ These models are defined in `./core/view_tables.py`. They track the postgres vie
 
 <a name="rest_api"></a>
 # Rest API
+
+
+<!-- ******************* Authors ****************** -->
+<a name="authors"></a>
+## Authors
+
+* **Venkateswaran Shekar** [ESCALATE](https://github.com/vshekar)
+
+See also the list of [contributors](https://github.com/darkreactions/ESCALATE/graphs/contributors) who participated in this project.
+
+<br/>
+
+<!-- ******************* License ****************** -->
+<a name="license"></a>
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details
+
+<br/>
+
+
+<!-- ******************* Acknowledgments ****************** -->
+<a name="acknowledgements"></a>
+## Acknowledgments
+* [DARPA SD2 program](https://www.darpa.mil/program/synergistic-discovery-and-design)
+* [Haverford College](https://www.haverford.edu)
+* [Lawrence Berkely National Lab](https://www.lbl.gov)
