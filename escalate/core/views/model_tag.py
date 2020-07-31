@@ -1,5 +1,4 @@
 from django.urls import reverse_lazy
-from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormView, CreateView, UpdateView
 from django.forms import modelformset_factory
 from django.shortcuts import redirect
@@ -8,7 +7,10 @@ from core.models import Tag, Tag_X, Actor
 from core.forms import TagForm
 #from core.views.menu import GenericListView
 
-class ModelTagEdit:
+#class for generating a tagform when making new tag in a models
+#Not actual model
+
+class ModelTagEdit():
     template_name = 'core/generic/add_tag.html'
     model = Tag
     tag_model_name = ""
@@ -27,7 +29,6 @@ class ModelTagEdit:
         model_pk = self.kwargs['pk']
         model_name = request.session.get('model_name')
         self.tag_model_name = model_name
-        print(request.POST)
         if request.POST.get('cancel'):
             #self.success_url = reverse_lazy(f'{model_name}_update',kwargs={'pk':model_pk})
             #above url not being redirected to in super.post so I brute-forced redirect
