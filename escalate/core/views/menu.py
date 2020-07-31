@@ -26,15 +26,6 @@ class MainMenuView(View):
 
 
 class GenericListView(ListView):
-    # def get_queryset(self):
-    #     filter_val = self.request.GET.get('filter', '')
-    #     ordering = self.request.GET.get('ordering', 'actor_description')
-    #     if filter_val != None:
-    #         new_queryset = self.model.objects.filter(
-    #             actor_description__icontains=filter_val).select_related().order_by(ordering)
-    #     else:
-    #         new_queryset = self.model.objects.all().select_related().order_by(ordering)
-    #     return new_queryset
 
     def get_context_data(self, **kwargs):
         context = super(GenericListView, self).get_context_data(**kwargs)

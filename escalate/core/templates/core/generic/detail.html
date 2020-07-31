@@ -13,17 +13,17 @@
             </tr>
             {% endfor %}
             <tr>
-              <td>Notes:</td>
-              <td>
-              {% for note in Notes %}
-                {{note|linebreaks}}
-              {% endfor %}
-              </td>
+                <td>Notes:</td>
+                <td>
+                    {% for note in Notes %}
+                    {{note|linebreaks}}
+                    {% endfor %}
+                </td>
             </tr>
         </tbody>
     </table>
-    <a href="{{ update_url }}" class="btn btn-primary px-0">
-        <i class="fa fa-edit fa-lg"> Edit</i>
+    <a href="{{ update_url }}" class="btn btn-primary active">
+        <i class="fa fa-edit fa-lg"></i>Edit
     </a>
 </div>
 {% endblock %}

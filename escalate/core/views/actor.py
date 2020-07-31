@@ -8,83 +8,23 @@ from core.views.menu import GenericListView
 
 from .model_view_generic import GenericModelEdit, GenericModelList, GenericModelView
 
-# class ActorList(GenericListView):
-#     model = Actor
-#     #template_name = 'core/actor/actor_list.html'
-#     template_name = 'core/generic/list.html'
-#     context_object_name = 'actors'
-#     paginate_by = 10
-#
-#     def get_queryset(self):
-#         filter_val = self.request.GET.get('filter', '')
-#         ordering = self.request.GET.get('ordering', 'actor_description')
-#         if filter_val != None:
-#             new_queryset = self.model.objects.filter(
-#                 actor_description__icontains=filter_val).select_related().order_by(ordering)
-#         else:
-#             new_queryset = self.model.objects.all().select_related().order_by(ordering)
-#         return new_queryset
-#
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         table_columns = ['Person', 'Organization',
-#                          'Systemtool', 'Status', 'Actions']
-#         context['table_columns'] = table_columns
-#         actors = context['actors']
-#         table_data = []
-#         for actor in actors:
-#             table_row_data = []
-#
-#             # data for the object we want to display for a row
-#             person_full_name = f"{actor.person_first_name} {actor.person_last_name}"
-#
-#             table_row_data.append(person_full_name)
-#             table_row_data.append(actor.org_full_name)
-#             table_row_data.append(actor.systemtool_name)
-#             table_row_data.append(actor.actor_status_description)
-#
-#             # dict containing the data, view and update url, primary key and obj
-#             # name to use in template
-#             table_row_info = {
-#                 'table_row_data': table_row_data,
-#                 'view_url': reverse_lazy('actor_view', kwargs={'pk': actor.pk}),
-#                 'update_url': reverse_lazy('actor_update', kwargs={'pk': actor.pk}),
-#                 'obj_name': str(actor),
-#                 'obj_pk': actor.pk
-#             }
-#             table_data.append(table_row_info)
-#
-#         context['add_url'] = reverse_lazy('actor_add')
-#         context['table_data'] = table_data
-#         context['title'] = 'Actor'
-#         return context
 
 class ActorList(GenericModelList):
     model = Actor
     context_object_name = 'actors'
     table_columns = ['Name', 'Organization', 'Systemtool', 'Status']
     column_necessary_fields = {
-                'Name': ['person_first_name', 'person_last_name'],
-                'Organization': ['org_full_name'],
-                'Systemtool': ['systemtool_name'],
-                'Status': ['actor_status_description']
+        'Name': ['person_first_name', 'person_last_name'],
+        'Organization': ['org_full_name'],
+        'Systemtool': ['systemtool_name'],
+        'Status': ['actor_status_description']
     }
     order_field = 'actor_description'
     field_contains = ''
 
-    #Need this
+    # Need this
     table_columns += ['Actions']
 
-# class ActorEdit:
-#     template_name = 'core/generic/edit.html'
-#     model = Actor
-#     form_class = ActorForm
-#     success_url = reverse_lazy('actor_list')
-#
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         context['title'] = 'Actor'
-#         return context
 
 class ActorEdit(GenericModelEdit):
     model = Actor
@@ -99,7 +39,6 @@ class ActorCreate(CreateView):
     success_url = reverse_lazy('actor_list')
 
 
-
 class ActorUpdate(ActorEdit, UpdateView):
     pass
 
@@ -109,33 +48,6 @@ class ActorDelete(DeleteView):
     success_url = reverse_lazy('actor_list')
 
 
-# class ActorView(DetailView):
-#     template_name = 'core/generic/detail.html'
-#     queryset = Actor.objects.select_related()
-#
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         obj = context['object']
-#         table_data = {
-#                 'Actor description': obj.actor_description,
-#                 'Status': obj.actor_status_description,
-#                 'Organization': f"{obj.org_full_name} ({obj.org_short_name})",
-#                 'Person': f"{obj.person_first_name} {obj.person_last_name}",
-#                 'Person organization': obj.person_org,
-#                 'Systemtool': obj.systemtool_name,
-#                 'Systemtool description': obj.systemtool_description,
-#                 'Systemtool type': obj.systemtool_type,
-#                 'Systemtool vendor': obj.systemtool_vendor,
-#                 'Systemtool model': obj.systemtool_model,
-#                 'Systemtool serial': obj.systemtool_serial,
-#                 'Systemtool version': obj.systemtool_version
-#         }
-#         context['update_url'] = reverse_lazy(
-#             'actor_update', kwargs={'pk': obj.pk})
-#         context['title'] = 'Actor'
-#         context['table_data'] = table_data
-#         return context
-
 class ActorView(GenericModelView):
     model = Actor
     model_name = 'actor'
@@ -143,16 +55,16 @@ class ActorView(GenericModelView):
                      'Systemtool', 'Systemtool description', 'Systemtool type', 'Systemtool vendor',
                      'Systemtool model', 'Systemtool serial', 'Systemtool version']
     detail_fields_need_fields = {
-                'Actor Description': ['actor_description'],
-                'Status': ['actor_status_description'],
-                'Organization': ['org_full_name'],
-                'Person': ['person_first_name', 'person_last_name'],
-                'Person Organization': ['person_org'],
-                'Systemtool': ['systemtool_name'],
-                'Systemtool description': ['systemtool_description'],
-                'Systemtool type': ['systemtool_type'],
-                'Systemtool vendor': ['systemtool_vendor'],
-                'Systemtool model': ['systemtool_model'],
-                'Systemtool serial': ['systemtool_serial'],
-                'Systemtool version': ['systemtool_version']
+        'Actor Description': ['actor_description'],
+        'Status': ['actor_status_description'],
+        'Organization': ['org_full_name'],
+        'Person': ['person_first_name', 'person_last_name'],
+        'Person Organization': ['person_org'],
+        'Systemtool': ['systemtool_name'],
+        'Systemtool description': ['systemtool_description'],
+        'Systemtool type': ['systemtool_type'],
+        'Systemtool vendor': ['systemtool_vendor'],
+        'Systemtool model': ['systemtool_model'],
+        'Systemtool serial': ['systemtool_serial'],
+        'Systemtool version': ['systemtool_version']
     }
