@@ -25,6 +25,33 @@
 
 ESCALATE (Experiment Specification, Capture and Laboratory Automation Technology)—an ontological framework and open-source software package provides an abstraction layer for human- and machine-readable experiment specification, comprehensive and extensible (meta-)data capture, and structured data reporting.
 
+<!-- ******************* Authors ****************** -->
+<a name="authors"></a>
+## Authors
+
+* [**Gary Cattabriga**](https://github.com/gcatabr1)
+* [**Venkateswaran Shekar**](https://github.com/vshekar)
+
+See also the list of [contributors](https://github.com/darkreactions/ESCALATE/graphs/contributors) who participated in this project.
+
+<br/>
+
+<!-- ******************* License ****************** -->
+<a name="license"></a>
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details
+
+<br/>
+
+
+<!-- ******************* Acknowledgments ****************** -->
+<a name="acknowledgements"></a>
+## Acknowledgments
+* [DARPA SD2 program](https://www.darpa.mil/program/synergistic-discovery-and-design)
+* [Haverford College](https://www.haverford.edu)
+* [Lawrence Berkely National Lab](https://www.lbl.gov)
+
 
 <!-- MARKDOWN LINKS & IMAGES -->
 [contributors-shield]: https://img.shields.io/github/contributors/darkreactions/ESCALATE
