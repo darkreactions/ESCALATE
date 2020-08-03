@@ -454,32 +454,20 @@ SELECT
 	--	md.in_opt_val,
 	--	md.out_val,
 	md.in_val,
-	(
-		md.in_val ).v_type AS in_val_type,
-	get_val (
-		md.in_val ) AS in_val_value,
-	(
-		md.in_val ).v_unit AS in_val_unit,
-	(
-		md.in_val ).v_edocument_uuid AS in_val_edocument_uuid,
+	( md.in_val ).v_type AS in_val_type,
+	get_val ( md.in_val ) AS in_val_value,
+	( md.in_val ).v_unit AS in_val_unit,
+	( md.in_val ).v_edocument_uuid AS in_val_edocument_uuid,
 	md.in_opt_val,
-	(
-		md.in_opt_val ).v_type AS in_opt_val_type,
-	get_val (
-		md.in_opt_val ) AS in_opt_val_value,
-	(
-		md.in_opt_val ).v_unit AS in_opt_val_unit,
-	(
-		md.in_opt_val ).v_edocument_uuid AS in_opt_val_edocument_uuid,
+	( md.in_opt_val ).v_type AS in_opt_val_type,
+	get_val ( md.in_opt_val ) AS in_opt_val_value,
+	( md.in_opt_val ).v_unit AS in_opt_val_unit,
+	( md.in_opt_val ).v_edocument_uuid AS in_opt_val_edocument_uuid,
 	md.out_val,
-	(
-		md.out_val ).v_type AS out_val_type,
-	get_val (
-		md.out_val ) AS out_val_value,
-	(
-		md.out_val ).v_unit AS out_val_unit,
-	(
-		md.out_val ).v_edocument_uuid AS out_val_edocument_uuid,
+	( md.out_val ).v_type AS out_val_type,
+	get_val ( md.out_val ) AS out_val_value,
+	( md.out_val ).v_unit AS out_val_unit,
+	( md.out_val ).v_edocument_uuid AS out_val_edocument_uuid,
 	md.calculation_alias_name,
 	md.add_date as calculation_add_date,
 	md.mod_date as calculation_mod_date,

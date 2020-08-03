@@ -72,6 +72,7 @@ DROP TABLE IF EXISTS action_condition_x cascade;
 DROP TABLE IF EXISTS action_x cascade;
 DROP TABLE IF EXISTS action_def cascade;
 DROP TABLE IF EXISTS action_type cascade;
+DROP TABLE IF EXISTS bom cascade; 
 DROP TABLE IF EXISTS organization cascade; 
 DROP TABLE IF EXISTS person cascade; 
 DROP TABLE IF EXISTS systemtool cascade;
@@ -79,8 +80,7 @@ DROP TABLE IF EXISTS systemtool_type cascade;
 DROP TABLE IF EXISTS actor cascade;
 DROP TABLE IF EXISTS actor_pref cascade;
 DROP TABLE IF EXISTS experiment cascade;
-DROP TABLE IF EXISTS experiment_inventory cascade;
-DROP TABLE IF EXISTS experiment_udf cascade;
+DROP TABLE IF EXISTS experiment_workflow cascade;
 DROP TABLE IF EXISTS material cascade;
 DROP TABLE IF EXISTS material_x cascade;
 DROP TABLE IF EXISTS material_type cascade;
@@ -88,6 +88,12 @@ DROP TABLE IF EXISTS material_type_x cascade;
 DROP TABLE IF EXISTS material_refname cascade;
 DROP TABLE IF EXISTS material_refname_x cascade;
 DROP TABLE IF EXISTS material_refname_def cascade;
+DROP TABLE IF EXISTS outcome cascade;
+DROP TABLE IF EXISTS outcome_type cascade;
+DROP TABLE IF EXISTS outcome_x cascade;
+DROP TABLE IF EXISTS property cascade;
+DROP TABLE IF EXISTS property_def cascade;
+DROP TABLE IF EXISTS property_x cascade;
 DROP TABLE IF EXISTS calculation_class cascade;
 DROP TABLE IF EXISTS calculation_def cascade;
 DROP TABLE IF EXISTS calculation cascade;
@@ -332,30 +338,6 @@ CREATE TABLE experiment (
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
 
----------------------------------------
--- Table structure for experiment_inventory
----------------------------------------
-CREATE TABLE experiment_inventory (
-	experiment_inventory_uuid uuid DEFAULT uuid_generate_v4 (),
-	experiment_uuid uuid,
-	inventory_uuid uuid,
-	-- measure_uuid uuid,
-	description varchar COLLATE "pg_catalog"."default" NOT NULL,
-	status_uuid uuid,
-	add_date timestamptz NOT NULL DEFAULT NOW(),
-	mod_date timestamptz NOT NULL DEFAULT NOW()
-);
-
----------------------------------------
--- Table structure for experiment_udf
----------------------------------------
-CREATE TABLE experiment_udf (
-	experiment_udf_uuid uuid DEFAULT uuid_generate_v4 (),
-	experiment_uuid uuid,
-	udf_uuid uuid,
-	add_date timestamptz NOT NULL DEFAULT NOW(),
-	mod_date timestamptz NOT NULL DEFAULT NOW()
-);
 
 
 ---------------------------------------
@@ -371,17 +353,35 @@ CREATE TABLE experiment_workflow (
 
 
 ---------------------------------------
--- Table structure for material
+-- Table structure for material (reference/catalog)
 ---------------------------------------
 CREATE TABLE material (
 	material_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default" NOT NULL,
 	parent_uuid uuid,
 	parent_path ltree,
+	actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
+
+
+
+---------------------------------------
+-- Table structure for bom (bill of materials)
+---------------------------------------
+CREATE TABLE bom (
+	bom_uuid uuid DEFAULT uuid_generate_v4 (),
+	experiment_uuid uuid NOT NULL,
+	material_uuid uuid NOT NULL,
+	measure_x_uuid uuid,
+	actor_uuid uuid, 
+	status_uuid uuid, 
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
 
 ---------------------------------------
 -- Table structure for material_x
@@ -453,12 +453,52 @@ CREATE TABLE material_refname_def (
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
 
+
+---------------------------------------
+-- Table structure for property
+---------------------------------------
+CREATE TABLE property (
+	property_uuid uuid DEFAULT uuid_generate_v4 (),
+	property_def_uuid uuid NOT NULL,
+	property_val val,
+	actor_uuid uuid,
+	status_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
+---------------------------------------
+-- Table structure for property_x
+---------------------------------------
+CREATE TABLE property_x (
+	property_x_uuid uuid DEFAULT uuid_generate_v4 (),
+	material_uuid uuid,
+	property_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
+---------------------------------------
+-- Table structure for property_def
+---------------------------------------
+CREATE TABLE property_def (
+	property_def_uuid uuid DEFAULT uuid_generate_v4 (),
+	description varchar COLLATE "pg_catalog"."default",
+	short_description varchar COLLATE "pg_catalog"."default" NOT NULL,
+	actor_uuid uuid,
+	status_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
 ---------------------------------------
 -- Table structure for calculation_class
 ---------------------------------------
 CREATE TABLE calculation_class (
 	calculation_class_uuid uuid DEFAULT uuid_generate_v4 (),
-	description varchar COLLATE "pg_catalog"."default",
+	description varchar COLLATE "pg_catalog"."default" not null,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -591,18 +631,40 @@ CREATE TABLE note (
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
 
-
 -- ----------------------------
--- Table structure for outcomes
+-- Table structure for outcome_type
 -- ----------------------------
-CREATE TABLE outcome (
-	outcome_uuid uuid DEFAULT uuid_generate_v4 (),
-	material_uuid uuid,
+CREATE TABLE outcome_type (
+	outcome_type_uuid uuid DEFAULT uuid_generate_v4 (),
+	description varchar COLLATE "pg_catalog"."default" NOT NULL,
 	actor_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
 
+-- ----------------------------
+-- Table structure for outcome
+-- ----------------------------
+CREATE TABLE outcome (
+	outcome_uuid uuid DEFAULT uuid_generate_v4 (),
+	outcome_ref_uuid uuid,
+	actor_uuid uuid,
+	outcome_type_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
+-- ----------------------------
+-- Table structure for outcome_x
+-- ----------------------------
+CREATE TABLE outcome_x (
+	outcome_x_uuid uuid DEFAULT uuid_generate_v4 (),
+	outcome_ref_uuid uuid,
+	outcome_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
 
 ---------------------------------------
 -- Table structure for edocument_x
@@ -708,11 +770,12 @@ CREATE TABLE udf_def (
 CREATE TABLE workflow (
 	workflow_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default",
-	seq int8,
+	experiment_uuid uuid NOT NULL, 
 	parent_uuid uuid,
 	parent_path ltree,
+	seq int8 NOT NULL,
 	actor_uuid uuid,
-	outcome_uuid uuid,
+	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -725,6 +788,7 @@ CREATE TABLE workflow_action (
 	workflow_action_uuid uuid DEFAULT uuid_generate_v4 (),
 	workflow_uuid uuid,
 	action_uuid uuid,
+	seq int8 NOT NULL,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -820,14 +884,11 @@ CREATE INDEX "ix_experiment_parent_uuid" ON experiment (parent_uuid);
 CLUSTER experiment
 USING "pk_experiment_experiment_uuid";
 
-ALTER TABLE experiment_inventory
-	ADD CONSTRAINT "pk_experiment_inventory_uuid" PRIMARY KEY (experiment_inventory_uuid);
-CLUSTER experiment_inventory
-USING "pk_experiment_inventory_uuid";
-ALTER TABLE experiment_udf
-	ADD CONSTRAINT "pk_experiment_udf_uuid" PRIMARY KEY (experiment_udf_uuid);
-CLUSTER experiment_udf
-USING "pk_experiment_udf_uuid";
+ALTER TABLE experiment_workflow
+	ADD CONSTRAINT "pk_experiment_workflow_uuid" PRIMARY KEY (experiment_workflow_uuid);
+CLUSTER experiment_workflow
+USING "pk_experiment_workflow_uuid";
+
 
 -- material constraints
 ALTER TABLE material
@@ -839,6 +900,15 @@ USING GIST (parent_path);
 CREATE INDEX "ix_material_parent_uuid" ON material (parent_uuid);
 CLUSTER material
 USING "pk_material_material_uuid";
+
+-- bom (bill of materials) constraints
+ALTER TABLE bom
+	ADD CONSTRAINT "pk_bom_bom_uuid" PRIMARY KEY (bom_uuid),
+		ADD CONSTRAINT "un_bom_experiment_material" UNIQUE (experiment_uuid, material_uuid);
+CREATE INDEX "ix_bom_experiment_uuid" ON bom (experiment_uuid);
+CLUSTER bom
+USING "pk_bom_bom_uuid";
+
 -- material_x constraints
 ALTER TABLE material_x
 	ADD CONSTRAINT "pk_material_x_material_x_uuid" PRIMARY KEY (material_x_uuid),
@@ -873,6 +943,26 @@ ALTER TABLE material_refname_def
 	ADD CONSTRAINT "pk_material_refname_def_material_refname_def_uuid" PRIMARY KEY (material_refname_def_uuid);
 CLUSTER material_refname_def
 USING "pk_material_refname_def_material_refname_def_uuid";
+
+-- property (of materials) constraints
+ALTER TABLE property
+	ADD CONSTRAINT "pk_property_property_uuid" PRIMARY KEY (property_uuid);
+CLUSTER property
+USING "pk_property_property_uuid";
+
+-- property_def (of materials) constraints
+ALTER TABLE property_def
+	ADD CONSTRAINT "pk_property_def_property_def_uuid" PRIMARY KEY (property_def_uuid),
+		ADD CONSTRAINT "un_property_def" UNIQUE (short_description);
+CLUSTER property_def
+USING "pk_property_def_property_def_uuid";
+
+-- property_x (of materials) constraints
+ALTER TABLE property_x
+	ADD CONSTRAINT "pk_property_x_property_x_uuid" PRIMARY KEY (property_x_uuid),
+		ADD CONSTRAINT "un_property_x_def" UNIQUE (material_uuid, property_uuid);
+CLUSTER property_x
+USING "pk_property_x_property_x_uuid";
 
 ALTER TABLE calculation_class
 	ADD CONSTRAINT "pk_calculation_class_calculation_class_uuid" PRIMARY KEY (calculation_class_uuid);
@@ -978,6 +1068,24 @@ ALTER TABLE udf_def
 CLUSTER udf_def
 USING "pk_udf_udf_def_uuid";
 
+-- workflow primary key and constraints
+ALTER TABLE workflow
+	ADD CONSTRAINT "pk_workflow_workflow_uuid" PRIMARY KEY (workflow_uuid);
+CREATE INDEX "ix_workflow_experiment_uuid" ON workflow (experiment_uuid);
+CREATE INDEX "ix_workflow_parent_uuid" ON workflow
+USING GIST (parent_path);
+CLUSTER workflow
+USING "pk_workflow_workflow_uuid";
+
+-- workflow_action primary key and constraints
+ALTER TABLE workflow_action
+	ADD CONSTRAINT "pk_workflow_action_workflow_action_uuid" PRIMARY KEY (workflow_action_uuid);
+CREATE INDEX "ix_workflow_action_workflow_uuid" ON workflow (workflow_uuid);
+CLUSTER workflow_action
+USING "pk_workflow_action_workflow_action_uuid";
+
+
+-- status primary key and constraints
 ALTER TABLE status
 	ADD CONSTRAINT "pk_status_status_uuid" PRIMARY KEY (status_uuid),
 			ADD CONSTRAINT "un_status" UNIQUE (description);;
@@ -1041,23 +1149,20 @@ ALTER TABLE experiment
 				ADD CONSTRAINT fk_experiment_experiment_1 FOREIGN KEY (parent_uuid) REFERENCES experiment (experiment_uuid),
 					ADD CONSTRAINT fk_experiment_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
-ALTER TABLE experiment_inventory
-	ADD CONSTRAINT fk_experiment_inventory_experiment_1 FOREIGN KEY (experiment_uuid) REFERENCES experiment (experiment_uuid),
-		ADD CONSTRAINT fk_experiment_inventory_inventory_1 FOREIGN KEY (inventory_uuid) REFERENCES inventory (inventory_uuid),
-			ADD CONSTRAINT fk_experiment_equipment_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
-
-ALTER TABLE experiment_udf
-	ADD CONSTRAINT fk_experiment_udf_experiment_1 FOREIGN KEY (experiment_uuid) REFERENCES experiment (experiment_uuid),
-		ADD CONSTRAINT fk_experiment_udf_udf_1 FOREIGN KEY (udf_uuid) REFERENCES udf (udf_uuid);
 
 -- ALTER TABLE material DROP CONSTRAINT fk_material_actor_1,
 --	DROP CONSTRAINT fk_material_material_1;
 --	DROP CONSTRAINT fk_material_note_1;
 
 ALTER TABLE material
---	ADD CONSTRAINT fk_material_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+ ADD CONSTRAINT fk_material_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
 	ADD CONSTRAINT fk_material_material_1 FOREIGN KEY (parent_uuid) REFERENCES material (material_uuid),
 		ADD CONSTRAINT fk_material_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+
+ALTER TABLE bom
+	ADD CONSTRAINT fk_bom_experiment_1 FOREIGN KEY (experiment_uuid) REFERENCES experiment (experiment_uuid),
+		ADD CONSTRAINT fk_bom_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+			ADD CONSTRAINT fk_bom_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
 ALTER TABLE material_x
 	ADD CONSTRAINT fk_material_x_material_1 FOREIGN KEY (ref_material_uuid) REFERENCES material (material_uuid);
@@ -1092,6 +1197,20 @@ ALTER TABLE material_refname_x
 -- DROP CONSTRAINT fk_calculation_def_actor_1,
 -- DROP CONSTRAINT fk_calculation_def_calculation_class_1,
 -- DROP CONSTRAINT fk_calculation_def_systemtool_1;
+
+
+ALTER TABLE property 
+ ADD CONSTRAINT fk_property_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+	ADD CONSTRAINT fk_property_property_def_1 FOREIGN KEY (property_def_uuid) REFERENCES property_def (property_def_uuid),
+		ADD CONSTRAINT fk_property_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+
+ALTER TABLE property_def 
+ ADD CONSTRAINT fk_property_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+	ADD CONSTRAINT fk_property_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+
+ALTER TABLE property_x 
+ ADD CONSTRAINT fk_property_x_material_1 FOREIGN KEY (material_uuid) REFERENCES material (material_uuid),
+	ADD CONSTRAINT fk_property_x_property_1 FOREIGN KEY (property_uuid) REFERENCES property (property_uuid);
 
 ALTER TABLE calculation_def
 	ADD CONSTRAINT fk_calculation_def_calculation_class_1 FOREIGN KEY (calculation_class_uuid) REFERENCES calculation_class (calculation_class_uuid),
@@ -1162,6 +1281,12 @@ ALTER TABLE udf
 
 ALTER TABLE udf_x
 	ADD CONSTRAINT fk_udf_x_udf_1 FOREIGN KEY (udf_uuid) REFERENCES udf (udf_uuid);
+
+ALTER TABLE workflow
+	ADD CONSTRAINT fk_workflow_experiment_1 FOREIGN KEY (experiment_uuid) REFERENCES experiment (experiment_uuid),
+		ADD CONSTRAINT fk_workflow_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+			ADD CONSTRAINT fk_workflow_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+
 
 --=====================================
 -- TABLE AND COLUMN COMMENTS

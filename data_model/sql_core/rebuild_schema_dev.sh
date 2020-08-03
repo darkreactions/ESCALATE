@@ -34,4 +34,6 @@ psql -d escalate -U escalate -f prod_update_3_calculation.sql >> rebuild_dev.log
 echo "run ETL..."
 psql -d escalate -U escalate -f prod_etl.sql >> rebuild_dev.log 2>&1
 
-echo "done"
+echo "done (rebuild_dev.log)"
+
+awk 'BEGIN { count=0 } /ERROR:/ {print $0;count++ } END { print "error count: ", count }' rebuild_dev.log

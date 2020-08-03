@@ -806,6 +806,120 @@ LANGUAGE plpgsql;
 
 
 /*
+Name:			get_val_json (p_in val)
+Parameters:		p_in = value of composite type 'val'
+Returns:		returns the val value in json form, keys = type, value, unit
+Author:			G. Cattabriga
+Date:			2020.07.31
+Description:	returns value from a 'val' type composite in json, otherwise null 
+Notes:				
+							
+Example:		SELECT get_val_json ('(text,,"[I-].[NH3+](CCC1=CC=C(C=C1)OC)",,,,,,,)'::val);
+				SELECT get_val_json ('(array_text,,,"{"one", "two","three"}",,,,,,)'::val); 
+				SELECT get_val_json ('(num,,,,,,266.99,,,)'::val);
+				SELECT get_val_json ('(int,,,,15,,,,,)'::val);			
+				SELECT get_val_json ('(array_int,,,,,"{1,2,3,4,5}",,,,)'::val);	
+				SELECT get_val_json ('(blob_svg,,,,,,,,"02c25ce7-1f0c-4922-b60b-6bc48e7557fd",)'::val);	
+*/
+-- DROP FUNCTION IF EXISTS get_val_json (p_in val) cascade;
+CREATE OR REPLACE FUNCTION get_val_json (p_in val)
+	RETURNS json
+	AS $$
+BEGIN
+	CASE WHEN p_in.v_type = 'int' THEN
+		RETURN json_build_object(
+			'data_type', p_in.v_type,
+			'value', p_in.v_int, 
+			'unit', p_in.v_unit 
+			);
+	WHEN p_in.v_type = 'array_int' THEN
+		RETURN json_build_object(
+			'data_type', p_in.v_type,
+			'value', p_in.v_int_array, 
+			'unit', p_in.v_unit 
+			);	
+	WHEN p_in.v_type = 'num' THEN
+		RETURN json_build_object(
+			'data_type', p_in.v_type,
+			'value', p_in.v_num, 
+			'unit', p_in.v_unit 
+			);	
+	WHEN p_in.v_type = 'array_num' THEN
+		RETURN json_build_object(
+			'data_type', p_in.v_type,
+			'value', p_in.v_num_array, 
+			'unit', p_in.v_unit 
+			);			
+	WHEN p_in.v_type = 'text' THEN
+		RETURN json_build_object(
+			'data_type', p_in.v_type,
+			'value', p_in.v_text
+			);	
+	WHEN p_in.v_type = 'array_text' THEN
+		RETURN json_build_object(
+			'data_type', p_in.v_type,
+			'value', p_in.v_text_array 
+			);
+	WHEN p_in.v_type::text LIKE 'blob%' THEN											
+		RETURN json_build_object(
+			'data_type', p_in.v_type,
+			'value', p_in.v_edocument_uuid 
+			);				
+	ELSE
+		RETURN (NULL);
+	END CASE;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+
+/*
+Name:			get_val_actual (p_in anyelement, p_val val)
+Parameters:		p_in = data_type of the composite field, p_val = value of composite type 'val'
+Returns:		returns the value in it's type (e.g. int8, int8[], text, etc)
+Author:			G. Cattabriga
+Date:			2020.04.16
+Description:	returns value from a 'val' type composite, otherwise null 
+Notes:				
+							
+Example:		SELECT get_val_actual (null::int8, '(int,,,,15,,,,,)'::val);
+				SELECT get_val_actual (null::int8[], '(array_int,,,,,"{1,2,3,4,5}",,,,)'::val);
+				SELECT get_val_actual (null::text,'(text,,"[I-].[NH3+](CCC1=CC=C(C=C1)OC)",,,,,,,)'::val);
+				SELECT get_val_actual (null::double PRECISION,'(num,,,,,,266.99,,,)'::val);
+				SELECT get_val_actual (null::double PRECISION[],'(array_num,,,,,,266.99,"{1.23, 1.0003, 3.339, 3.14159}",,)'::val);
+				SELECT get_val_actual (null::text[],'(array_text,,,"{"one", "two","three"}",,,,,,)'::val); 
+				SELECT get_val_actual (null::uuid,'(blob_svg,,,,,,,,"02c25ce7-1f0c-4922-b60b-6bc48e7557fd",)'::val);		
+*/
+-- DROP FUNCTION IF EXISTS get_val_actual (p_in anyelement, p_val val) cascade;
+CREATE OR REPLACE FUNCTION get_val_actual (p_in anyelement, p_val val)
+	RETURNS anyelement
+	AS $$
+BEGIN
+	CASE WHEN p_val.v_type = 'int' THEN
+		RETURN (p_val.v_int);
+	WHEN p_val.v_type = 'array_int' THEN
+		RETURN (p_val.v_int_array);
+	WHEN p_val.v_type = 'num' THEN
+		RETURN (p_val.v_num);
+	WHEN p_val.v_type = 'array_num' THEN
+		RETURN (p_val.v_num_array);
+	WHEN p_val.v_type = 'text' THEN
+		RETURN (p_val.v_text);
+	WHEN p_val.v_type = 'array_text' THEN
+		RETURN (p_val.v_text_array);
+	WHEN p_val.v_type::text LIKE 'blob%' THEN
+		RETURN (p_val.v_edocument_uuid);
+	ELSE
+		RETURN (NULL);
+	END CASE;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+
+/*
 Name:			get_val (p_in val)
 Parameters:		p_in = value of composite type 'val'
 Returns:		returns the val value
@@ -818,33 +932,60 @@ Example:		SELECT get_val ('(text,,"[I-].[NH3+](CCC1=CC=C(C=C1)OC)",,,,,,,)'::val
 				SELECT get_val ('(num,,,,,,266.99,,,)'::val);
 				SELECT get_val ('(int,,,,15,,,,,)'::val);			
 				SELECT get_val ('(array_int,,,,,"{1,2,3,4,5}",,,,)'::val);	
-				SELECT get_val ('(blob_svg,,,,,,,,"0ed27587-a79e-45d4-bb56-2e2e5d85937c",)'::val);				
+				SELECT get_val ('(blob_svg,,,,,,,,"02c25ce7-1f0c-4922-b60b-6bc48e7557fd",)'::val);				
 */
--- DROP FUNCTION IF EXISTS get_val (p_in val) cascade;
+DROP FUNCTION IF EXISTS get_val (p_in val) cascade;
 CREATE OR REPLACE FUNCTION get_val (p_in val)
+returns text AS $$
+BEGIN
+	CASE
+		WHEN p_in.v_type = 'int' THEN return (p_in.v_int::text);
+		WHEN p_in.v_type = 'array_int' THEN return (p_in.v_int_array::text);
+		WHEN p_in.v_type = 'array_int' THEN return (p_in.v_int_array::text);
+		WHEN p_in.v_type = 'num' THEN return (p_in.v_num::text);
+		WHEN p_in.v_type = 'array_num' THEN return (p_in.v_num_array::text);
+		WHEN p_in.v_type = 'text' THEN return (p_in.v_text::text);
+		WHEN p_in.v_type = 'array_text' THEN return (p_in.v_text_array::text);	
+		WHEN p_in.v_type::text like 'blob%' THEN return (encode((select edocument from edocument where edocument_uuid = p_in.v_edocument_uuid),'escape'));	
+		ELSE return (NULL);
+	END CASE;	
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+/*
+Name:			put_val (p_in val)
+Parameters:		
+Returns:		
+Author:			G. Cattabriga
+Date:			
+Description:	 
+Notes:				
+							
+Example:						
+*/
+-- DROP FUNCTION IF EXISTS put_val () cascade;
+CREATE OR REPLACE FUNCTION put_val ()
 	RETURNS text
 	AS $$
 BEGIN
 	CASE WHEN p_in.v_type = 'int' THEN
-		RETURN (p_in.v_int::text);
+
 	WHEN p_in.v_type = 'array_int' THEN
-		RETURN (p_in.v_int_array::text);
+
 	WHEN p_in.v_type = 'array_int' THEN
-		RETURN (p_in.v_int_array::text);
+
 	WHEN p_in.v_type = 'num' THEN
-		RETURN (p_in.v_num::text);
+
 	WHEN p_in.v_type = 'array_num' THEN
-		RETURN (p_in.v_num_array::text);
+
 	WHEN p_in.v_type = 'text' THEN
-		RETURN (p_in.v_text::text);
+
 	WHEN p_in.v_type = 'array_text' THEN
-		RETURN (p_in.v_text_array::text);
+
 	WHEN p_in.v_type::text LIKE 'blob%' THEN
-		RETURN (encode((
-				SELECT
-					edocument FROM edocument
-				WHERE
-					edocument_uuid = p_in.v_edocument_uuid), 'escape'));
+
 ELSE
 	RETURN (NULL);
 	END CASE;
