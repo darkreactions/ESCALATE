@@ -49,11 +49,10 @@ def add_urls(model_name, pattern_list):
                      getattr(core.views, f'{model_name}View').as_view(),
                      name=f'{lower_case_model_name}_view'),
                 ]
-    return pattern_list
-
+    return pattern_list + new_urls
 
 for model_name in view_names:
-    url_patterns = add_urls(model_name, urlpatterns)
+    urlpatterns = add_urls(model_name, urlpatterns)
 
 """
 # Materials

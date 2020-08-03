@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     # 'django_filters',
     'rest_api',
     'crispy_forms',
-    'rest_framework_swagger'
+    'rest_framework_swagger',
 ]
 
 MIDDLEWARE = [
@@ -144,6 +144,6 @@ REST_FRAMEWORK = {
     # 'django_filters.rest_framework.DjangoFilterBackend'
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 100,
-    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+    # 'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
 
 }
