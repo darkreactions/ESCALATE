@@ -248,7 +248,7 @@ SELECT DISTINCT
 		actor_uuid
 	FROM
 		vw_actor
-	WHERE (actor_description LIKE '%' ||
+	WHERE (description LIKE '%' ||
 	left(ex1._raw_operator, 7) || '%')) AS _operator_uuid, (
 	SELECT
 		actor_uuid
@@ -305,7 +305,7 @@ SELECT
 		actor_uuid
 	FROM
 		vw_actor
-	WHERE (actor_description LIKE '%' ||
+	WHERE (description LIKE '%' ||
 	left(ex1._raw_operator, 7) || '%')) AS _operator_uuid, (
 	SELECT
 		actor_uuid

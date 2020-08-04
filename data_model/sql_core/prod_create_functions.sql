@@ -669,18 +669,18 @@ LANGUAGE plpgsql;
 /*
 Name:			get_actor ()
 Parameters:		none
-Returns:		actor_uuid, org_uuid, person_uuid, systemtool_uuid, actor_description, org_description, person_lastfirst, systemtool_description
+Returns:		actor_uuid, org_uuid, person_uuid, systemtool_uuid, description, org_description, person_lastfirst, systemtool_description
 Author:			G. Cattabriga
 Date:			2019.12.12
 Description:	returns key info on the actor
 Notes:			the person_lastfirst is a concat of person.last_name + ',' + person.first_name
 							
-Example:		SELECT * FROM get_actor () where actor_description like '%ChemAxon: standardize%';
+Example:		SELECT * FROM get_actor () where description like '%ChemAxon: standardize%';
 */
 -- DROP FUNCTION IF EXISTS get_actor ();
 CREATE OR REPLACE FUNCTION get_actor ()
 	RETURNS TABLE (
-		actor_uuid uuid, organization_uuid int8, person_uuid int8, systemtool_uuid int8, actor_description varchar, actor_status varchar, notetext varchar, org_description varchar, person_lastfirst varchar, systemtool_name varchar, systemtool_version varchar)
+		actor_uuid uuid, organization_uuid int8, person_uuid int8, systemtool_uuid int8, description varchar, status varchar, notetext varchar, org_description varchar, person_lastfirst varchar, systemtool_name varchar, systemtool_version varchar)
 	AS $$
 BEGIN
 	RETURN QUERY
@@ -876,8 +876,8 @@ LANGUAGE plpgsql;
 
 /*
 Name:			get_val_actual (p_in anyelement, p_val val)
-Parameters:		p_in = data_type of the composite field, p_val = value of composite type 'val'
-Returns:		returns the value in it's type (e.g. int8, int8[], text, etc)
+Parameters:		p_in = data_type of the composite field, p_val = actual value of composite type 'val'
+Returns:		returns the value in it's actual type (e.g. int8, int8[], text, etc)
 Author:			G. Cattabriga
 Date:			2020.04.16
 Description:	returns value from a 'val' type composite, otherwise null 
@@ -934,7 +934,7 @@ Example:		SELECT get_val ('(text,,"[I-].[NH3+](CCC1=CC=C(C=C1)OC)",,,,,,,)'::val
 				SELECT get_val ('(array_int,,,,,"{1,2,3,4,5}",,,,)'::val);	
 				SELECT get_val ('(blob_svg,,,,,,,,"02c25ce7-1f0c-4922-b60b-6bc48e7557fd",)'::val);				
 */
-DROP FUNCTION IF EXISTS get_val (p_in val) cascade;
+-- DROP FUNCTION IF EXISTS get_val (p_in val) cascade;
 CREATE OR REPLACE FUNCTION get_val (p_in val)
 returns text AS $$
 BEGIN
@@ -955,37 +955,39 @@ $$ LANGUAGE plpgsql;
 
 
 /*
-Name:			put_val (p_in val)
-Parameters:		
-Returns:		
+Name:			put_val (p_type val_type, p_val text )
+Parameters:		p_type is the data type as defined by val_type enum, p_val is the value to be inserted, in text
+Returns:		val composite or null
 Author:			G. Cattabriga
-Date:			
-Description:	 
-Notes:				
+Date:			08.02.2020
+Description:	function to insert a value and it's type into the composite value data type 
+Notes:			this will cast the p_val text into it's requisite type	
 							
-Example:						
+Example:	
+					
 */
--- DROP FUNCTION IF EXISTS put_val () cascade;
-CREATE OR REPLACE FUNCTION put_val ()
-	RETURNS text
+-- DROP FUNCTION IF EXISTS put_val (p_type val_type, p_val text, p_unit ) cascade;
+CREATE OR REPLACE FUNCTION put_val (p_type val_type, p_val text, p_unit text )
+	RETURNS val
 	AS $$
+DECLARE
+	out_val val;
 BEGIN
-	CASE WHEN p_in.v_type = 'int' THEN
+	CASE WHEN p_type = 'int' THEN
 
-	WHEN p_in.v_type = 'array_int' THEN
+	WHEN p_type = 'array_int' THEN
 
-	WHEN p_in.v_type = 'array_int' THEN
+	WHEN p_type = 'array_int' THEN
 
-	WHEN p_in.v_type = 'num' THEN
+	WHEN p_type = 'num' THEN
 
-	WHEN p_in.v_type = 'array_num' THEN
+	WHEN p_type = 'array_num' THEN
 
-	WHEN p_in.v_type = 'text' THEN
+	WHEN p_type = 'text' THEN
 
-	WHEN p_in.v_type = 'array_text' THEN
+	WHEN p_type = 'array_text' THEN
 
-	WHEN p_in.v_type::text LIKE 'blob%' THEN
-
+	WHEN p_type::text LIKE 'blob%' THEN
 ELSE
 	RETURN (NULL);
 	END CASE;
@@ -1296,12 +1298,12 @@ Notes:				there is going to be a lot of dependencies on actor, so a 'delete' wil
  
 Example:			insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null);
 					delete from vw_person where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
-					insert into vw_actor (person_uuid, actor_description, actor_status_uuid) values ((select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester')), 'Lester the Actor', (select status_uuid from vw_status where description = 'active'));
+					insert into vw_actor (person_uuid, description, status_uuid) values ((select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester')), 'Lester the Actor', (select status_uuid from vw_status where description = 'active'));
 					insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note for Lester the Actor', (select actor_uuid from vw_actor where person_last_name = 'Tester'), (select actor_uuid from vw_actor where person_last_name = 'Tester'));
 					insert into vw_tag_x (tag_uuid, ref_tag_uuid) values ((select tag_uuid from vw_tag where (display_text = 'do_not_use')), (select actor_uuid from vw_actor where person_last_name = 'Tester'));
-					update vw_actor set actor_description = 'new description for Lester the Actor' where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
+					update vw_actor set description = 'new description for Lester the Actor' where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
  					update vw_actor set organization_uuid = (select organization_uuid from vw_organization where full_name = 'Haverford College') where person_uuid = (select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
-					delete from vw_actor where actor_uuid in (select actor_uuid from vw_actor where actor_description = 'Lester the Actor');
+					delete from vw_actor where actor_uuid in (select actor_uuid from vw_actor where description = 'Lester the Actor');
 					delete from vw_note where note_uuid in (select note_uuid from vw_note where actor_uuid = (select actor_uuid from vw_actor where person_last_name = 'Tester'));
  					delete from vw_actor where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
  */
@@ -1341,8 +1343,8 @@ BEGIN
 			organization_uuid = NEW.organization_uuid,
 			person_uuid = NEW.person_uuid,
 			systemtool_uuid = NEW.systemtool_uuid,
-			description = NEW.actor_description,
-			status_uuid = NEW.actor_status_uuid,
+			description = NEW.description,
+			status_uuid = NEW.status_uuid,
 			mod_date = now()
 		WHERE
 			actor.actor_uuid = NEW.actor_uuid;
@@ -1352,7 +1354,7 @@ BEGIN
 			RETURN NULL;
 		ELSE
 			INSERT INTO actor (organization_uuid, person_uuid, systemtool_uuid, description, status_uuid)
-				VALUES(NEW.organization_uuid, NEW.person_uuid, NEW.systemtool_uuid, NEW.actor_description, NEW.actor_status_uuid);
+				VALUES(NEW.organization_uuid, NEW.person_uuid, NEW.systemtool_uuid, NEW.description, NEW.status_uuid);
 			RETURN NEW;
 		END IF;
 	END IF;
@@ -1372,8 +1374,8 @@ Description:	trigger proc that deletes, inserts or updates actor_pref record bas
 Notes:				
  
 Example:		insert into vw_actor_pref (actor_uuid, pkey, pvalue) values ((select actor_uuid from vw_actor where person_last_name = 'Tester'), 'test_key', 'test_value');
- 				update vw_actor_pref set pvalue = 'new_new_test_value' where actor_pref_uuid = (select actor_pref_uuid from vw_actor_pref where actor_uuid = (select actor_uuid from vw_actor where actor_description = 'Lester Fester Tester') and pkey = 'test_key');
- 				delete from vw_actor_pref where actor_pref_uuid = (select actor_pref_uuid from vw_actor_pref where actor_uuid = (select actor_uuid from vw_actor where actor_description = 'Lester Fester Tester'));
+ 				update vw_actor_pref set pvalue = 'new_new_test_value' where actor_pref_uuid = (select actor_pref_uuid from vw_actor_pref where actor_uuid = (select actor_uuid from vw_actor where description = 'Lester Fester Tester') and pkey = 'test_key');
+ 				delete from vw_actor_pref where actor_pref_uuid = (select actor_pref_uuid from vw_actor_pref where actor_uuid = (select actor_uuid from vw_actor where description = 'Lester Fester Tester'));
  */
 CREATE OR REPLACE FUNCTION upsert_actor_pref ()
 	RETURNS TRIGGER
@@ -1470,7 +1472,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid) VALUES(NEW.description, NEW.full_name, NEW.short_name, NEW.address1, NEW.address2, NEW.city, NEW.state_province, NEW.zip, NEW.country, NEW.website_url, NEW.phone, NEW.parent_uuid) returning organization_uuid, short_name into _org_uuid, _org_description;
-		insert into vw_actor (organization_uuid, actor_description, actor_status_uuid) values (_org_uuid, _org_description, (select status_uuid from vw_status where description = 'active'));
+		insert into vw_actor (organization_uuid, description, status_uuid) values (_org_uuid, _org_description, (select status_uuid from vw_status where description = 'active'));
 		RETURN NEW;
 	END IF;
 END;
@@ -1540,7 +1542,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) VALUES(NEW.last_name, NEW.first_name, NEW.middle_name, NEW.address1, NEW.address2, NEW.city, NEW.state_province, NEW.zip, NEW.country, NEW.phone, NEW.email, NEW.title, NEW.suffix, NEW.organization_uuid) returning person_uuid, first_name, middle_name, last_name  into _person_uuid, _person_first_name, _person_middle_name, _person_last_name;
-		insert into vw_actor (person_uuid, actor_description, actor_status_uuid) values (_person_uuid, trim(concat(_person_first_name,' ', _person_last_name)), (select status_uuid from vw_status where description = 'active'));
+		insert into vw_actor (person_uuid, description, status_uuid) values (_person_uuid, trim(concat(_person_first_name,' ', _person_last_name)), (select status_uuid from vw_status where description = 'active'));
 		RETURN NEW;
 	END IF;
 END;
@@ -1590,7 +1592,7 @@ BEGIN
 		-- check to see if it's a version change of the tool. if so, then create a new record
 		if(OLD.ver != NEW.ver) THEN
 			INSERT INTO systemtool (systemtool_name, description, systemtool_type_uuid, vendor_organization_uuid, model, serial, ver) VALUES(NEW.systemtool_name, NEW.description, NEW.systemtool_type_uuid, NEW.vendor_organization_uuid, NEW.model, NEW.serial, NEW.ver) returning systemtool_uuid, description into _systemtool_uuid, _systemtool_description;
-			insert into vw_actor (systemtool_uuid, actor_description, actor_status_uuid) values (_systemtool_uuid, _systemtool_description, (select status_uuid from vw_status where description = 'active'));			
+			insert into vw_actor (systemtool_uuid, description, status_uuid) values (_systemtool_uuid, _systemtool_description, (select status_uuid from vw_status where description = 'active'));			
 			RETURN NEW;
 		ELSE
 			UPDATE
@@ -1610,7 +1612,7 @@ BEGIN
 		END IF;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO systemtool (systemtool_name, description, systemtool_type_uuid, vendor_organization_uuid, model, serial, ver) VALUES(NEW.systemtool_name, NEW.description, NEW.systemtool_type_uuid, NEW.vendor_organization_uuid, NEW.model, NEW.serial, NEW.ver) returning systemtool_uuid, description into _systemtool_uuid, _systemtool_description;
-		insert into vw_actor (systemtool_uuid, actor_description, actor_status_uuid) values (_systemtool_uuid, _systemtool_description, (select status_uuid from vw_status where description = 'active'));
+		insert into vw_actor (systemtool_uuid, description, status_uuid) values (_systemtool_uuid, _systemtool_description, (select status_uuid from vw_status where description = 'active'));
 		RETURN NEW;
 	END IF;
 END;

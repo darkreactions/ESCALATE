@@ -485,11 +485,11 @@ __vw_actor__`CRUD`<br/>
 > organization\_uuid (v u) <br/>
 > person\_uuid (v u) <br/>
 > systemtool\_uuid (v u) <br/>
-> actor\_description (v u) <br/>
-> actor\_status\_uuid (v u)
-> actor\_status\_description (v) <br/>
-> actor\_add\_date (v) <br/>
-> actor\_mod\_date (v) <br/>
+> description (v u) <br/>
+> status\_uuid (v u)
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
 > org\_full\_name (v) <br/>
 > org\_short\_name (v) <br/>
 > person\_last\_name (v) <br/>
@@ -516,7 +516,7 @@ insert into vw_actor (person_uuid, actor_description, actor_status_uuid) values 
 -- add a note to the actor; with the author being the same actor !! <- note
 insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note for Lester the Actor', (select actor_uuid from vw_actor where person_last_name = 'Tester'), (select actor_uuid from vw_actor where person_last_name = 'Tester'));
 -- update the 'test' actor with a new description
-update vw_actor set actor_description = 'new description for Lester the Actor' where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
+update vw_actor set description = 'new description for Lester the Actor' where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
 -- update the 'test' actor with an assigned organization
 update vw_actor set organization_uuid = (select organization_uuid from vw_organization where full_name = 'Haverford College') where person_uuid = (select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
 -- delete the actor (WILL get an ERROR as there is a dependency to note)
@@ -542,13 +542,10 @@ __vw\_actor\_pref__ `CRUD`<br/>
 
 ```
 insert into vw_actor_pref (actor_uuid, pkey, pvalue) values ((select actor_uuid from vw_actor where person_last_name = 'Tester'), 'test_key', 'test_value');
-update vw_actor_pref set pvalue = 'new_new_test_value' where actor_pref_uuid = (select actor_pref_uuid from vw_actor_pref where actor_uuid = (select actor_uuid from vw_actor where actor_description = 'Lester Fester Tester') and pkey = 'test_key');
-delete from vw_actor_pref where actor_pref_uuid = (select actor_pref_uuid from vw_actor_pref where actor_uuid = (select actor_uuid from vw_actor where actor_description = 'Lester Fester Tester'));
+update vw_actor_pref set pvalue = 'new_new_test_value' where actor_pref_uuid = (select actor_pref_uuid from vw_actor_pref where actor_uuid = (select actor_uuid from vw_actor where description = 'Lester Fester Tester') and pkey = 'test_key');
+delete from vw_actor_pref where actor_pref_uuid = (select actor_pref_uuid from vw_actor_pref where actor_uuid = (select actor_uuid from vw_actor where description = 'Lester Fester Tester'));
 
 ```
-
-
-
 
 <br/>
 
@@ -864,7 +861,6 @@ __vw\_calculation__`R`<br/>
 > create_date (v) <br/> 
 > calculation_status_uuid (v)
 > calulation_status_description (v) <br/> 
-> actor_descr (v) <br/> 
 > calculation_def_uuid (v) <br/> 
 > short_name (v) <br/>
 > calc_definition (v) <br/> 

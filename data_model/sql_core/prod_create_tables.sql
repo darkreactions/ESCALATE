@@ -31,6 +31,48 @@ DROP TYPE IF EXISTS val cascade;
 
 
  --=====================================
+ -- DROP FUNCTIONS
+ --=====================================
+DROP FUNCTION IF EXISTS read_file_utf8 (path CHARACTER VARYING) cascade;
+DROP FUNCTION IF EXISTS read_file (path CHARACTER VARYING) cascade;
+DROP FUNCTION IF EXISTS isdate (txt VARCHAR) CASCADE;
+DROP FUNCTION IF EXISTS read_dirfiles (PATH CHARACTER VARYING) cascade;
+DROP FUNCTION IF EXISTS get_table_uuids() cascade;
+DROP FUNCTION IF EXISTS get_material_uuid_bystatus () CASCADE;
+DROP FUNCTION IF EXISTS get_material_nameref_bystatus () cascade;
+DROP FUNCTION IF EXISTS get_material_bydescr_bystatus () cascade;
+DROP FUNCTION IF EXISTS get_material_type () cascade;
+DROP FUNCTION IF EXISTS get_actor () cascade;
+DROP FUNCTION IF EXISTS get_calculation_def () cascade;
+DROP FUNCTION IF EXISTS get_calculation () cascade;
+DROP FUNCTION IF EXISTS get_val_json () cascade;
+DROP FUNCTION IF EXISTS get_val_actual () cascade;
+DROP FUNCTION IF EXISTS get_val () cascade;
+DROP FUNCTION IF EXISTS put_val () cascade;
+DROP FUNCTION IF EXISTS get_chemaxon_directory () cascade;
+DROP FUNCTION IF EXISTS get_chemaxon_version () cascade;
+DROP FUNCTION IF EXISTS run_descriptor () cascade;
+DROP FUNCTION IF EXISTS get_charge_count () cascade;
+DROP FUNCTION IF EXISTS math_op () cascade;
+DROP FUNCTION IF EXISTS upsert_actor () cascade;
+DROP FUNCTION IF EXISTS upsert_actor_pref () cascade;
+DROP FUNCTION IF EXISTS upsert_organization () cascade;
+DROP FUNCTION IF EXISTS upsert_person () cascade;
+DROP FUNCTION IF EXISTS upsert_systemtool () cascade;
+DROP FUNCTION IF EXISTS upsert_systemtool_type () cascade;
+DROP FUNCTION IF EXISTS upsert_tag_type () cascade;
+DROP FUNCTION IF EXISTS upsert_tag () cascade;
+DROP FUNCTION IF EXISTS upsert_tag_x () cascade;
+DROP FUNCTION IF EXISTS upsert_udf_def () cascade;
+DROP FUNCTION IF EXISTS upsert_status () cascade;
+DROP FUNCTION IF EXISTS upsert_material_type () cascade;
+DROP FUNCTION IF EXISTS upsert_material_refname_def () cascade;
+DROP FUNCTION IF EXISTS upsert_material () cascade;
+DROP FUNCTION IF EXISTS upsert_note () cascade;
+
+
+
+ --=====================================
  -- DROP VIEWS
  --=====================================
 DROP VIEW IF EXISTS vw_actor cascade;
