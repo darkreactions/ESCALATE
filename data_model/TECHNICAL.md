@@ -486,7 +486,7 @@ __vw_actor__`CRUD`<br/>
 > person\_uuid (v u) <br/>
 > systemtool\_uuid (v u) <br/>
 > description (v u) <br/>
-> status\_uuid (v u)
+> status\_uuid (v u) <br/>
 > status\_description (v) <br/>
 > add\_date (v) <br/>
 > mod\_date (v) <br/>
@@ -1017,8 +1017,6 @@ __vw\_material\_calculation\_raw__`R`<br/>
 > calculation_create_date (v) <br/>
 > calculation_status_uuid (v) <br/>
 > calculation_status_description (v) <br/>
-> status (v) <br/>
-> actor_descr (v) <br/>
 > calculation_def_uuid (v) <br/>
 > short_name (v) <br/>
 > calc_definition (v) <br/>
