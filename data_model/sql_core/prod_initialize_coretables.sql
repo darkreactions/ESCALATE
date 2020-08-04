@@ -35,7 +35,8 @@ VALUES
 	('Cheminfomatics software', 'ChemAxon', 'ChemAxon', NULL, NULL, NULL, NULL, NULL, 'US', 'https://chemaxon.com', NULL),
 	('Cheminfomatics software', 'RDKit open source software', 'RDKit', NULL, NULL, NULL, NULL, NULL, NULL,'https://www.rdkit.org', NULL),
 	('Laboratory', 'Emerald Cloud Lab', 'ECL', '844 Dubuque Ave', NULL, 'South San Francisco', 'CA', '94080', 'US', 'https://www.emeraldcloudlab.com', NULL),
-	('DBMS', 'PostgreSQL', 'postgres', NULL, NULL, NULL, NULL, NULL, NULL, 'https://www.postgresql.org', NULL);
+	('DBMS', 'PostgreSQL', 'postgres', NULL, NULL, NULL, NULL, NULL, NULL, 'https://www.postgresql.org', NULL),
+	('Laboratory', 'Los Alamos National Laboratory', 'LANL', 'Bikini Atoll Rd', 'SM 30', 'Los Alamos', 'NM', '87545', 'US', 'https://www.lanl.gov', NULL);
 COMMIT;
 
 

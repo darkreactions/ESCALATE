@@ -269,6 +269,8 @@ SELECT
 	act.description AS actor_description,
 	sts.status_uuid AS actor_status_uuid,
 	sts.description AS actor_status_description,
+	act.add_date as actor_add_date,
+	act.mod_date as actor_mod_date,
 	org.full_name AS org_full_name,
 	org.short_name AS org_short_name,
 	per.last_name AS person_last_name,
