@@ -5,25 +5,26 @@
 
 {% block content %}
 <div class="container">
-    <div class="col-md-6 offset-md-3">
-        <h3> {{ title }} </h3>
-        <form method="post">{% csrf_token %}
-          <!--
+  <div class="col-md-6 offset-md-3">
+    <h3> {{ title }} </h3>
+    <form method="post">{% csrf_token %}
+      <!--
           {{ form|crispy}}
           -->
-          {{ tag_forms.management_form }}
-          {% for f in tag_forms %}
-            {{ f|crispy }}
-          {% endfor %}
-          <div>
-          <button type="submit" name="another_tag" value="another_tag" class="btn btn-primary">Add Tag (Not work)</button>
-          </div>
-          <div class='mt-2'>
-          <button type="submit" name="cancel" value="cancel" class="btn btn-primary">Cancel</button>
-          <button type="submit" name="submit" value="submit" class="btn btn-primary">Submit</button>
-          </div>
-        </form>
-    </div>
+      {{ tag_forms.management_form }}
+      {% for f in tag_forms %}
+      {{ f|crispy }}
+      {% endfor %}
+      <div>
+        <button type="submit" name="another_tag" value="another_tag" class="btn btn-raised btn-primary">Add Tag (Not
+          work)</button>
+      </div>
+      <div class='mt-2'>
+        <button type="submit" name="cancel" value="cancel" class="btn btn-raised btn-primary">Cancel</button>
+        <button type="submit" name="submit" value="submit" class="btn btn-raised btn-primary">Submit</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 

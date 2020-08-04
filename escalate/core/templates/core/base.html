@@ -104,36 +104,44 @@
     </div>
     {% endblock %}
     <section>
-        {% block content %}
-        {% endblock %}
-        <nav>
-            {% if is_paginated %}
-            <ul class="pagination justify-content-center">
-                {% if page_obj.has_previous %}
-                <li class="page-item"><a class="page-link"
-                        href="?page={{ page_obj.previous_page_number }}&filter={{filter}}">&laquo;</a>
-                </li>
-                {% else %}
-                <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
-                {% endif %}
-                {% for i in paginator.page_range %}
-                {% if page_obj.number == i %}
-                <li class="page-item active"><span class="page-link">{{ i }} <span
-                            class="sr-only">(current)</span></span>
-                </li>
-                {% else %}
-                <li class="page-item"><a class="page-link" href="?page={{ i }}&filter={{filter}}">{{ i }}</a></li>
-                {% endif %}
-                {% endfor %}
-                {% if page_obj.has_next %}
-                <li class="page-item"><a class="page-link"
-                        href="?page={{ page_obj.next_page_number }}&filter={{filter}}">&raquo;</a></li>
-                {% else %}
-                <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
-                {% endif %}
-            </ul>
-            {% endif %}
-        </nav>
+        <div class="container">
+            <div class="card">
+                <div class="card-body">
+                    {% block content %}
+                    {% endblock %}
+                    <nav>
+                        {% if is_paginated %}
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item"><a class="page-link"
+                                    href="?page={{ page_obj.previous_page_number }}&filter={{filter}}">&laquo;</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                            {% endif %}
+                            {% for i in paginator.page_range %}
+                            {% if page_obj.number == i %}
+                            <li class="page-item active"><span class="page-link">{{ i }} <span
+                                        class="sr-only">(current)</span></span>
+                            </li>
+                            {% else %}
+                            <li class="page-item"><a class="page-link"
+                                    href="?page={{ i }}&filter={{filter}}">{{ i }}</a>
+                            </li>
+                            {% endif %}
+                            {% endfor %}
+                            {% if page_obj.has_next %}
+                            <li class="page-item"><a class="page-link"
+                                    href="?page={{ page_obj.next_page_number }}&filter={{filter}}">&raquo;</a></li>
+                            {% else %}
+                            <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                            {% endif %}
+                        </ul>
+                        {% endif %}
+                    </nav>
+                </div>
+            </div>
+        </div>
 
         {% block delete_block %}
         <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel"
@@ -156,8 +164,8 @@
                         </div>
                         <div class="modal-footer">
                             <div class="btn-toolbar">
-                                <input class="btn btn-danger mt-3 mx-3" type="submit" value="Confirm">
-                                <button type="button" class="btn btn-secondary mt-3"
+                                <input class="btn btn-raised btn-danger mt-3 mx-3" type="submit" value="Confirm">
+                                <button type="button" class="btn btn-raised btn-secondary mt-3"
                                     data-dismiss="modal">Cancel</button>
                             </div>
                         </div>

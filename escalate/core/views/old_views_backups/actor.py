@@ -8,7 +8,7 @@ from core.views.menu import GenericListView
 
 from .model_view_generic import GenericModelEdit, GenericModelList, GenericModelView
 
-
+"""
 class ActorList(GenericModelList):
     model = Actor
     context_object_name = 'actors'
@@ -24,6 +24,9 @@ class ActorList(GenericModelList):
 
     # Need this
     table_columns += ['Actions']
+
+
+
 
 
 class ActorEdit(GenericModelEdit):
@@ -48,6 +51,8 @@ class ActorDelete(DeleteView):
     success_url = reverse_lazy('actor_list')
 
 
+
+
 class ActorView(GenericModelView):
     model = Actor
     model_name = 'actor'
@@ -68,3 +73,4 @@ class ActorView(GenericModelView):
         'Systemtool serial': ['systemtool_serial'],
         'Systemtool version': ['systemtool_version']
     }
+"""

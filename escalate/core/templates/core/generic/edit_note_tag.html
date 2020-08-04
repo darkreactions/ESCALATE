@@ -10,31 +10,23 @@
         <a href="#last">Jump to the end </a>
 
         <form method="post">{% csrf_token %}
-            {{ form|crispy }}
             {{ note_forms.management_form }}
+            {{ form|crispy }}
             {% for f in note_forms %}
-              {{ f|crispy }}
+            {{ f|crispy }}
             {% endfor %}
-            <button type="submit" name="add_note" value="add_note" class="btn btn-primary">Add Note</button>
+            <button type="submit" name="add_note" value="add_note" class="btn btn-raised btn-primary">Add Note</button>
             {{ tag_select_form|crispy }}
             <div>
-            <button type="submit" name="add_new_tag" value="add_new_tag" class="btn btn-primary">Create New Tag</button>
+                <button type="submit" name="add_new_tag" value="add_new_tag" class="btn btn-raised btn-primary">Create
+                    New Tag</button>
             </div>
             <div class="spacer"></div>
-            <div class = "mt-2">
-            <input class="btn btn-primary text-center" type="submit" name="Submit" value="Submit">
+            <div class="mt-2">
+                <input class="btn btn-raised btn-primary text-center" type="submit" name="Submit" value="Submit">
             </div>
         </form>
         <a id="last"></a>
-        <!--
-        <script>
-            $('#add_note').click(function() {
-                var form_idx = $('note-TOTAL_FORMS').val();
-                $('#note_form_set').append($('#empty_form').html().replace(/__prefix__/g, form_idx));
-                $('#note-TOTAL_FORMS').val(parseInt(form_idx) + 1);
-            });
-        </script>
-        -->
     </div>
 </div>
 

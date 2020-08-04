@@ -7,13 +7,14 @@
 
     <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" value="{{filter}}"
         name="filter">
-    <button class="btn btn-success my-2 my-sm-0 active" type="submit">Search</button>
-    <a href="{{ add_url }}" class="btn btn-warning mx-2 my-sm-0 active">Add {{ title }}</a>
+    <button class="btn btn-raised btn-success my-2 my-sm-0 " type="submit">Search</button>
+    <a href="{{ add_url }}" class="btn btn-raised btn-warning mx-2 my-sm-0 ">Add {{ title }}</a>
 </form>
 {% endblock %}
 
 {% block content %}
 <div class="container">
+
     <table class="table table-bordered table-hover">
         <thead>
             <tr>
@@ -29,23 +30,24 @@
                 <td>{{ col_data }}</td>
                 {% endfor %}
                 <td>
-                    <a href="{{ row_info.view_url }}" class="btn text-secondary px-0">
-                        <i class="fa fa-eye"></i>
-                    </a>
-                    </a>
-                    <a href="{{ row_info.update_url }}" class="btn text-secondary px-0">
-                        <i class="fa fa-edit fa-lg"></i>
-                    </a>
-                    <button type="button" class="btn text-secondary px-0" data-toggle="modal" data-target="#deleteModal"
-                        data-description="{{ row_info.obj_name }}" data-pk="{{ row_info.obj_pk }}">
-                        <i class="fa fa-trash fa-lg"></i>
+                    <button onclick="location.href='{{ row_info.view_url }}'" type="button"
+                        class="btn btn-raised text-secondary px-1">
+                        <i class="fa fa-eye"></i></button>
+
+                    <button onclick="location.href='{{ row_info.update_url }}'" type="button"
+                        class="btn btn-raised text-secondary px-1">
+                        <i class="fa fa-edit"></i></button>
+
+                    <button type="button" class="btn btn-raised text-secondary px-1" data-toggle="modal"
+                        data-target="#deleteModal" data-description="{{ row_info.obj_name }}"
+                        data-pk="{{ row_info.obj_pk }}">
+                        <i class="fa fa-trash"></i>
                     </button>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-
 
 </div>
 {% endblock %}
