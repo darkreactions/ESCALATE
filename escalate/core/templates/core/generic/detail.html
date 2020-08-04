@@ -3,27 +3,31 @@
 
 {% block content %}
 <div class="container">
-    <h2>{{ title }}</h2>
-    <table class="table table-striped table-bordered">
-        <tbody>
-            {% for label, value in detail_data.items %}
-            <tr>
-                <td>{{ label }}</td>
-                <td>{{ value }}</td>
-            </tr>
-            {% endfor %}
-            <tr>
-                <td>Notes:</td>
-                <td>
-                    {% for note in Notes %}
-                    {{note|linebreaks}}
+    <div class="card">
+        <div class="card-body">
+            <h2>{{ title }}</h2>
+            <table class="table table-striped table-bordered">
+                <tbody>
+                    {% for label, value in detail_data.items %}
+                    <tr>
+                        <td>{{ label }}</td>
+                        <td>{{ value }}</td>
+                    </tr>
                     {% endfor %}
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <a href="{{ update_url }}" class="btn btn-primary active">
-        <i class="fa fa-edit fa-lg"></i>Edit
-    </a>
+                    <tr>
+                        <td>Notes:</td>
+                        <td>
+                            {% for note in Notes %}
+                            {{note|linebreaks}}
+                            {% endfor %}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <a href="{{ update_url }}" class="btn btn-raised btn-primary active">
+                <i class="fa fa-edit fa-lg"></i>Edit
+            </a>
+        </div>
+    </div>
 </div>
 {% endblock %}

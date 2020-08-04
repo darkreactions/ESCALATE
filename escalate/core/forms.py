@@ -364,9 +364,10 @@ class UdfDefForm(forms.ModelForm):
             'description': 'Description',
             'valtype': 'Value type'
         }
-        CHOICES = (('1','int'),('2','array_int'),('3','num'),('4','array_num'),
-                   ('5','text'),('6','array_text'),('7','blob_text'),('8','blob_svg'),
-                   ('9','blob_jpg'),('10','blob_png'),('11','blob_xrd'))
+        CHOICES = (('1', 'int'), ('2', 'array_int'), ('3', 'num'), ('4', 'array_num'),
+                   ('5', 'text'), ('6', 'array_text'), ('7',
+                                                        'blob_text'), ('8', 'blob_svg'),
+                   ('9', 'blob_jpg'), ('10', 'blob_png'), ('11', 'blob_xrd'))
         widgets = {
             'description': forms.Textarea(attrs={
                 'cols': '10',
@@ -374,7 +375,7 @@ class UdfDefForm(forms.ModelForm):
                 'placeholder': 'Your system tool type description'
             }),
             'valtype': forms.Select(attrs={
-                'placeholder': 'Ex: text, image'}, choices =CHOICES )
+                'placeholder': 'Ex: text, image'}, choices=CHOICES)
         }
 
 
@@ -397,12 +398,12 @@ class StatusForm(forms.ModelForm):
 class TagForm(forms.ModelForm):
     class Meta:
         model = Tag
-        fields = ['display_text','description','actor_uuid','tag_type_uuid']
+        fields = ['display_text', 'description', 'actor_uuid', 'tag_type_uuid']
         labels = {
-            'display_text':'Tag Name',
-            'description':'Tag Description',
-            'actor_uuid':'Actor',
-            'tag_type_uuid':'Tag Type Name'
+            'display_text': 'Tag Name',
+            'description': 'Tag Description',
+            'actor_uuid': 'Actor',
+            'tag_type_uuid': 'Tag Type Name'
         }
         widgets = {
             'display_text': forms.TextInput(attrs={
@@ -414,13 +415,14 @@ class TagForm(forms.ModelForm):
             })
         }
 
+
 class TagTypeForm(forms.ModelForm):
     class Meta:
         model = TagType
-        fields = ['short_description','description']
+        fields = ['short_description', 'description']
         labels = {
             'short_description': 'Tag Type Short Description',
-            'description':'Tag Type Long Description'
+            'description': 'Tag Type Long Description'
         }
         widgets = {
             'short_description': forms.TextInput(attrs={
@@ -454,10 +456,17 @@ class MaterialTypeForm(forms.ModelForm):
 
 class TagSelectForm(forms.Form):
     def __init__(self, *args, **kwargs):
-        #pk of model that is passed in to filter for tags belonging to the model
-        model_pk = kwargs.pop('model_pk')
+        # pk of model that is passed in to filter for tags belonging to the model
+        if 'model_pk' in kwargs:
+            model_pk = kwargs.pop('model_pk')
+            current_tags = Tag.objects.filter(pk__in=Tag_X.objects.filter(
+                ref_tag_uuid=model_pk).values_list('tag_uuid', flat=True))
+        else:
+            current_tags = Tag.objects.none()
         super(TagSelectForm, self).__init__(*args, **kwargs)
-        current_tags = Tag.objects.filter(pk__in=Tag_X.objects.filter(ref_tag_uuid=model_pk).values_list('tag_uuid',flat=True))
-        self.fields['tags'] = forms.ModelMultipleChoiceField(initial=current_tags,required=False, queryset=Tag.objects.all())
+
+        self.fields['tags'] = forms.ModelMultipleChoiceField(
+            initial=current_tags, required=False, queryset=Tag.objects.all())
         self.fields['tags'].widget.attrs.update({'data-live-search': 'true'})
-        self.fields['tags'].widget.attrs.update({'class': 'selectpicker form-control'})
+        self.fields['tags'].widget.attrs.update(
+            {'class': 'selectpicker form-control'})

@@ -1,35 +1,38 @@
-from django.urls import reverse_lazy
-from django.http import HttpResponse
+from django.urls import reverse_lazy, reverse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic.detail import DetailView
-#from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
+# from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
 from core.models import Note, Actor, Tag_X, Tag
 from core.forms import NoteForm, TagSelectForm
-#from core.views.menu import GenericListView
+# from core.views.menu import GenericListView
 from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404
 from core.views.menu import GenericListView
 
-#class with generic classes to use in models
+# class with generic classes to use in models
+
 
 class GenericModelList(GenericListView):
     template_name = 'core/generic/list.html'
 
-    #Override the 2 fields below in subclass
+    # Override the 2 fields below in subclass
     model = None
-    context_object_name = None #lowercase, snake case and plural. Ex:tag_types or inventorys
+    # lowercase, snake case and plural. Ex:tag_types or inventorys
+    context_object_name = None
 
-    #for get_context_data method.
+    # for get_context_data method.
     # Override 2 fields below in subclass
-    table_columns = None    #list of strings of column names
-    column_necessary_fields = None    #should be a dictionary with keys from table_columns
-                            #and value should be a list of the field names (as strings)needed
-                            #to fill out the corresponding cell.
-                            #Fields in list of fields should be spelled exactly
-                            # Ex: {'Name': ['first_name','middle_name','last_name']}
+    table_columns = None  # list of strings of column names
+    # should be a dictionary with keys from table_columns
+    column_necessary_fields = None
+    # and value should be a list of the field names (as strings)needed
+    # to fill out the corresponding cell.
+    # Fields in list of fields should be spelled exactly
+    # Ex: {'Name': ['first_name','middle_name','last_name']}
 
-    #for get_queryset method. Override the 2 fields below in subclass
-    order_field = None  #Ex: 'first_name'
-    field_contains = None   #Ex: 'Gary'. Use '' to show all
+    # for get_queryset method. Override the 2 fields below in subclass
+    order_field = None  # Ex: 'first_name'
+    field_contains = None  # Ex: 'Gary'. Use '' to show all
 
     paginate_by = 10
 
@@ -37,8 +40,9 @@ class GenericModelList(GenericListView):
         filter_val = self.request.GET.get('filter', self.field_contains)
         ordering = self.request.GET.get('ordering', self.order_field)
 
-        #same as <field want to order by>__icontains = filter_val
-        filter_kwargs = {'{}__{}'.format(self.order_field, 'icontains'):filter_val}
+        # same as <field want to order by>__icontains = filter_val
+        filter_kwargs = {'{}__{}'.format(
+            self.order_field, 'icontains'): filter_val}
 
         if filter_val != None:
             new_queryset = self.model.objects.filter(
@@ -51,32 +55,32 @@ class GenericModelList(GenericListView):
         context = super().get_context_data(**kwargs)
         context['table_columns'] = self.table_columns
         models = context[self.context_object_name]
-        model_name = self.context_object_name[:-1] #Ex: tag_types -> tag_type
+        model_name = self.context_object_name[:-1]  # Ex: tag_types -> tag_type
         table_data = []
         for model in models:
             table_row_data = []
 
-            #loop to get each column data for one row. [:-1] because table_columns has 'Actions'
+            # loop to get each column data for one row. [:-1] because table_columns has 'Actions'
             header_names = self.table_columns[:-1]
             for field_name in header_names:
-                #get list of fields used to fill out one cell
+                # get list of fields used to fill out one cell
                 necessary_fields = self.column_necessary_fields[field_name]
-                #get actual field value from the model
-                fields_for_col = [getattr(model,field) for field in necessary_fields]
-                #loop to change None to '' or non-string to string because join needs strings
+                # get actual field value from the model
+                fields_for_col = [getattr(model, field)
+                                  for field in necessary_fields]
+                # loop to change None to '' or non-string to string because join needs strings
                 for k in range(0, len(fields_for_col)):
                     if fields_for_col[k] == None:
                         fields_for_col[k] = ''
-                    if not isinstance(fields_for_col[k],str):
+                    if not isinstance(fields_for_col[k], str):
                         fields_for_col[k] = str(fields_for_col[k])
                 col_data = " ".join(fields_for_col)
-                #take away any leading and trailing whitespace
+                # take away any leading and trailing whitespace
                 col_data = col_data.strip()
-                #change the cell data to be N/A if it is empty string at this point
+                # change the cell data to be N/A if it is empty string at this point
                 if len(col_data) == 0:
                     col_data = 'N/A'
                 table_row_data.append(col_data)
-
 
             # dict containing the data, view and update url, primary key and obj
             # name to use in template
@@ -92,115 +96,159 @@ class GenericModelList(GenericListView):
         context['add_url'] = reverse_lazy(f'{model_name}_add')
         context['table_data'] = table_data
         # get rid of underscores with spaces and capitalize
-        context['title'] = model_name.replace('_',' ').capitalize()
+        context['title'] = model_name.replace('_', ' ').capitalize()
         return context
+
 
 class GenericModelEdit:
     template_name = 'core/generic/edit_note_tag.html'
 
-    #override in subclass
+    # override in subclass
     model = None
     context_object_name = None
     form_class = None
 
-    success_url = reverse_lazy(f'{context_object_name}_list')
-    NoteFormSet = modelformset_factory(Note, form=NoteForm,can_delete=True)
-
+    # success_url = reverse_lazy(f'{context_object_name}_list')
+    NoteFormSet = modelformset_factory(
+        Note, form=NoteForm, can_delete=True)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
         if self.context_object_name in context:
+            print('Found context!!!')
             model = context[self.context_object_name]
             context['note_forms'] = self.NoteFormSet(
-                queryset=Note.objects.filter(ref_note_uuid=model.pk),prefix='note')
+                queryset=Note.objects.filter(ref_note_uuid=model.pk), prefix='note')
             context['tag_select_form'] = TagSelectForm(model_pk=model.pk)
+        else:
+            print('DID NOT find context!!!')
+            context['note_forms'] = self.NoteFormSet(
+                queryset=self.model.objects.none(), prefix='note')
+            context['tag_select_form'] = TagSelectForm()
+
         context['title'] = self.context_object_name.capitalize()
         return context
 
     def post(self, request, *args, **kwargs):
-        actor = Actor.objects.get(
-            person_uuid=request.user.person.pk)
-        model = get_object_or_404(self.model, pk=self.kwargs['pk'])
+
+        if 'pk' in self.kwargs:
+            model = get_object_or_404(self.model, pk=self.kwargs['pk'])
+        else:
+            model = self.model()
+
+        if request.POST.get('add_new_tag'):
+            request.session['model_name'] = self.context_object_name
+            self.success_url = reverse_lazy(
+                'model_tag_create', kwargs={'pk': model.pk})
+        if request.POST.get("Submit"):
+            self.success_url = reverse(f'{self.context_object_name}_list')
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        self.object = form.save()
+        if self.object.pk is None:
+            print('object.pk not found')
+            required_fields = [f.name for f in self.model._meta.get_fields(
+            ) if not getattr(f, 'null', False) is True]
+            print(required_fields)
+            required_fields = [f for f in required_fields if f not in [
+                'add_date', 'mod_date', 'uuid']]
+            print(required_fields)
+
+            query = {k: v for k, v in self.object.__dict__.items() if (
+                k in required_fields)}
+
+            print(query)
+            self.object = self.model.objects.filter(**query).latest('mod_date')
+            print(self.object.pk)
+
+        if self.request.POST.get('tags'):
+            # tags from post
+            submitted_tags = self.request.POST.getlist('tags')
+            # tags from db with a tag_x that connects the model and the tags
+            existing_tags = Tag.objects.filter(pk__in=Tag_X.objects.filter(
+                ref_tag_uuid=self.object.pk).values_list('tag_uuid', flat=True))
+            for tag in existing_tags:
+                if tag not in submitted_tags:
+                    # delete tag_x for existing tags that are no longer used
+                    Tag_X.objects.filter(tag_uuid=tag).delete()
+            for tag in submitted_tags:
+                # make tag_x for existing tags that are now used
+                if tag not in existing_tags:
+                    # for some reason tags from post are the uuid as a string
+                    # get actual tag obj with that uuid
+                    tag_obj = Tag.objects.get(pk=tag)
+                    tag_x = Tag_X()
+                    tag_x.tag_uuid = tag_obj
+                    tag_x.ref_tag_uuid = self.object.pk
+                    tag_x.add_date = tag_obj.add_date
+                    tag_x.mod_date = tag_obj.mod_date
+                    tag_x.save()
+
         if self.NoteFormSet != None:
-            formset = self.NoteFormSet(request.POST,prefix='note')
+            actor = Actor.objects.get(
+                person_uuid=self.request.user.person.pk)
+            formset = self.NoteFormSet(self.request.POST, prefix='note')
+            # print(request.POST)
             # Loop through every note form
             for form in formset:
                 # Only if the form has changed make an update, otherwise ignore
                 if form.has_changed() and form.is_valid():
-                    if request.user.is_authenticated:
+                    if self.request.user.is_authenticated:
                         # Get the appropriate actor and then add it to the note
                         note = form.save(commit=False)
                         note.actor_uuid = actor
                         # Get the appropriate uuid of the record being changed.
-                        note.ref_note_uuid = model.pk
+                        note.ref_note_uuid = self.object.pk
                         note.save()
             # Delete each note we marked in the formset
             formset.save(commit=False)
             for form in formset.deleted_forms:
                 form.instance.delete()
             # Choose which website we are redirected to
-            if request.POST.get('add_note'):
-                self.success_url = reverse_lazy(f'{self.context_object_name}_update',kwargs={'pk': model.pk})
-        if request.POST.get('tags'):
-            #tags from post
-            submitted_tags = request.POST.getlist('tags')
-            #tags from db with a tag_x that connects the model and the tags
-            existing_tags = Tag.objects.filter(pk__in=Tag_X.objects.filter(ref_tag_uuid=model.pk).values_list('tag_uuid',flat=True))
-            for tag in existing_tags:
-                if tag not in submitted_tags:
-                #delete tag_x for existing tags that are no longer used
-                    Tag_X.objects.filter(tag_uuid=tag).delete()
-            for tag in submitted_tags:
-                #make tag_x for existing tags that are now used
-                if tag not in existing_tags:
-                    #for some reason tags from post are the uuid as a string
-                    tag_obj = Tag.objects.get(pk=tag) #get actual tag obj with that uuid
-                    tag_x = Tag_X()
-                    tag_x.tag_uuid=tag_obj
-                    tag_x.ref_tag_uuid=model.pk
-                    tag_x.add_date=tag_obj.add_date
-                    tag_x.mod_date=tag_obj.mod_date
-                    tag_x.save()
-        if request.POST.get('add_new_tag'):
-            request.session['model_name'] = self.context_object_name
-            self.success_url = reverse_lazy('model_tag_create', kwargs={'pk':model.pk})
-        if request.POST.get("Submit"):
-            self.success_url = reverse_lazy(f'{self.context_object_name}_list')
-        return super().post(request, *args, **kwargs)
+            if self.request.POST.get('add_note'):
+                self.success_url = reverse_lazy(
+                    f'{self.context_object_name}_update', kwargs={'pk': self.object.pk})
+
+        return HttpResponseRedirect(self.get_success_url())
+
 
 class GenericModelView(DetailView):
-    #Override below 2 in subclass
+    # Override below 2 in subclass
     model = None
-    model_name = None #lowercase, snake case. Ex:tag_type or inventory
+    model_name = None  # lowercase, snake case. Ex:tag_type or inventory
 
     template_name = 'core/generic/detail.html'
 
-    #Override below 2 in subclass
-    detail_fields = None    #list of strings of detail fields (does not need to be same as field names in model)
-    detail_fields_need_fields = None    #should be a dictionary with keys detail_fields
-                            #and value should be a list of the field names (as strings)needed
-                            #to fill out the corresponding cell.
-                            #Fields in list of fields should be spelled exactly
-                            # Ex: {'Name': ['first_name','middle_name','last_name']}
+    # Override below 2 in subclass
+    # list of strings of detail fields (does not need to be same as field names in model)
+    detail_fields = None
+    detail_fields_need_fields = None  # should be a dictionary with keys detail_fields
+    # and value should be a list of the field names (as strings)needed
+    # to fill out the corresponding cell.
+    # Fields in list of fields should be spelled exactly
+    # Ex: {'Name': ['first_name','middle_name','last_name']}
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         obj = context['object']
 
-        #dict of detail field names to their value
+        # dict of detail field names to their value
         detail_data = {}
 
-        #loop to get each detail data for one detail field
+        # loop to get each detail data for one detail field
         for field in self.detail_fields:
-            #get list of fields used to fill out one detail field
+            # get list of fields used to fill out one detail field
             necessary_fields = self.detail_fields_need_fields[field]
-            #get actual field value from the model
-            fields_for_field = [getattr(obj,field) for field in necessary_fields]
-            #loop to change None to '' or non-string to string because join needs strings
-            for i in range(0,len(fields_for_field)):
+            # get actual field value from the model
+            fields_for_field = [getattr(obj, field)
+                                for field in necessary_fields]
+            # loop to change None to '' or non-string to string because join needs strings
+            for i in range(0, len(fields_for_field)):
                 if fields_for_field[i] == None:
                     fields_for_field[i] = ''
-                elif not isinstance(fields_for_field[i],str):
+                elif not isinstance(fields_for_field[i], str):
                     fields_for_field[i] = str(fields_for_field[i])
                 else:
                     continue
@@ -210,21 +258,22 @@ class GenericModelView(DetailView):
                 obj_detail = 'N/A'
             detail_data[field] = obj_detail
 
-        #get notes
+        # get notes
         notes_raw = Note.objects.filter(ref_note_uuid=obj.pk)
         notes = []
         for note in notes_raw:
             notes.append('-' + note.notetext)
         context['Notes'] = notes
 
-        #get tags
-        tags_raw = Tag.objects.filter(pk__in=Tag_X.objects.filter(ref_tag_uuid=obj.pk).values_list('tag_uuid',flat=True))
+        # get tags
+        tags_raw = Tag.objects.filter(pk__in=Tag_X.objects.filter(
+            ref_tag_uuid=obj.pk).values_list('tag_uuid', flat=True))
         tags = []
         for tag in tags_raw:
             tags.append(tag.display_text.strip())
         detail_data['Tags'] = ', '.join(tags)
 
-        context['title'] = self.model_name.replace('_'," ").capitalize()
+        context['title'] = self.model_name.replace('_', " ").capitalize()
         context['update_url'] = reverse_lazy(
             f'{self.model_name}_update', kwargs={'pk': obj.pk})
         context['detail_data'] = detail_data
