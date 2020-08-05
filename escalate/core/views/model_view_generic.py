@@ -40,6 +40,8 @@ class GenericModelList(GenericListView):
         filter_val = self.request.GET.get('filter', self.field_contains)
         ordering = self.request.GET.get('ordering', self.order_field)
 
+        print(f'Order field: {self.order_field} in model {self.model}')
+
         # same as <field want to order by>__icontains = filter_val
         filter_kwargs = {'{}__{}'.format(
             self.order_field, 'icontains'): filter_val}

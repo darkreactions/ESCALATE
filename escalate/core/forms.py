@@ -91,7 +91,7 @@ class MaterialForm(forms.ModelForm):
     class Meta:
         model = Material
         fields = ['chemical_name', 'abbreviation', 'inchi', 'inchikey',
-                  'molecular_formula', 'smiles', 'create_date',
+                  'molecular_formula', 'smiles',
                   'material_status_uuid']
         field_classes = {
             'create_date': forms.SplitDateTimeField,
@@ -140,14 +140,14 @@ class InventoryForm(forms.ModelForm):
         model = Inventory
 
         fields = ['material_uuid', 'actor_uuid', 'part_no',
-                  'onhand_amt', 'unit', 'create_date', 'expiration_date',
+                  'onhand_amt', 'unit', 'expiration_date',
                   'inventory_location', 'status_uuid']
         field_classes = {
             'inventory_description': forms.CharField,
             'part_no': forms.CharField,
             'onhand_amt': forms.DecimalField,
             'unit': forms.CharField,
-            'create_date': forms.SplitDateTimeField,
+            # 'create_date': forms.SplitDateTimeField,
             'expiration_date': forms.SplitDateTimeField,
             'inventory_location': forms.CharField
         }
@@ -158,7 +158,7 @@ class InventoryForm(forms.ModelForm):
             'part_no': 'Part Number',
             'onhand_amt': 'On hand amount',
             'unit': 'Unit',
-            'create_date': 'Create date',
+            # 'create_date': 'Create date',
             'expiration_date': 'Expiration date',
             'inventory_location': 'Inventory location'
         }
@@ -172,16 +172,16 @@ class InventoryForm(forms.ModelForm):
                                                    'min': '0.00',
                                                    'step': '0.01'}),
             'unit': forms.TextInput(attrs={'placeholder': 'Ex: g for grams'}),
-            'create_date': forms.SplitDateTimeWidget(
-                date_format='%d-%m-%Y',
-                date_attrs={
-                    'placeholder': 'DD-MM-YYYY'
-                },
-                time_format='%H:%M',
-                time_attrs={
-                    'placeholder': 'HH-MM'
-                }
-            ),
+            # 'create_date': forms.SplitDateTimeWidget(
+            #    date_format='%d-%m-%Y',
+            #    date_attrs={
+            #        'placeholder': 'DD-MM-YYYY'
+            #    },
+            #    time_format='%H:%M',
+            #    time_attrs={
+            #        'placeholder': 'HH-MM'
+            #    }
+            # ),
             'expiration_date': forms.SplitDateTimeWidget(
                 date_format='%d-%m-%Y',
                 date_attrs={
@@ -202,17 +202,17 @@ class ActorForm(forms.ModelForm):
         model = Actor
 
         fields = ['person_uuid', 'organization_uuid', 'systemtool_uuid',
-                  'actor_description', 'actor_status_uuid']
+                  'description', 'status_uuid']
 
         field_classes = {
-            'actor_description': forms.CharField
+            'description': forms.CharField
         }
         labels = {
             'person_uuid': 'Person',
             'organization_uuid': 'Organization',
             'systemtool_uuid': 'Systemtool',
-            'actor_description': 'Actor description',
-            'actor_status_uuid': 'Actor status'
+            'description': 'Actor description',
+            'status_uuid': 'Actor status'
         }
         help_texts = {
             'person_uuid': 'Select if actor is a person',
@@ -221,7 +221,7 @@ class ActorForm(forms.ModelForm):
         }
         widgets = {
 
-            'actor_description': forms.Textarea(attrs={
+            'description': forms.Textarea(attrs={
                 'rows': '3',
                 'cols': '10',
                 'placeholder': 'Your description'})

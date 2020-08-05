@@ -10,9 +10,9 @@ methods = {
             'Name': ['person_first_name', 'person_last_name'],
             'Organization': ['org_full_name'],
             'Systemtool': ['systemtool_name'],
-            'Status': ['actor_status_description']
+            'Status': ['status_description']
         },
-        'order_field': 'actor_description',
+        'order_field': 'description',
         'field_contains': '',
     },
 

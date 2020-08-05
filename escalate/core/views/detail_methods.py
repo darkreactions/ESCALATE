@@ -8,8 +8,8 @@ methods = {
                           'Systemtool', 'Systemtool description', 'Systemtool type', 'Systemtool vendor',
                           'Systemtool model', 'Systemtool serial', 'Systemtool version'],
         'detail_fields_need_fields': {
-            'Actor Description': ['actor_description'],
-            'Status': ['actor_status_description'],
+            'Actor Description': ['description'],
+            'Status': ['status_description'],
             'Organization': ['org_full_name'],
             'Person': ['person_first_name', 'person_last_name'],
             'Person Organization': ['person_org'],
@@ -30,7 +30,7 @@ methods = {
                           'Inventory Location', 'Status'],
         'detail_fields_need_fields': {
             'Inventory Description': ['inventory_description'],
-            'Actor Description': ['actor_description'],
+            'Actor Description': ['description'],
             'Material Description': ['material_description'],
             'Part Number': ['part_no'],
             'On Hand Amount': ['onhand_amt'],
@@ -144,7 +144,7 @@ methods = {
         'detail_fields_need_fields': {
             'Tag Name': ['display_text'],
             'Description': ['description'],
-            'Actor': ['actor_description'],
+            'Actor': ['description'],
             'Add Date': ['add_date'],
             'Last Modification Date': ['mod_date'],
             'Tag Type': ['tag_type_short_descr'],

@@ -53,6 +53,7 @@ class CreateUserView(View):
         if person_form.is_valid() and user_form.is_valid():
             print('User form is valid')
             person = person_form.save()
+            print(person.pk)
             p = Person.objects.filter(first_name=person.first_name,
                                       last_name=person.last_name).latest('add_date')
 

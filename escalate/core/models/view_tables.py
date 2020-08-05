@@ -19,14 +19,14 @@ class Actor(models.Model):
                                         blank=True, null=True,
                                         db_column='systemtool_uuid',
                                         related_name='+')
-    actor_description = models.CharField(max_length=255, blank=True, null=True)
-    actor_status_uuid = models.ForeignKey('Status', on_delete=models.DO_NOTHING,
-                                          blank=True, null=True,
-                                          db_column='actor_status_uuid')
-    #add_date = models.DateTimeField(db_column='actor_add_date')
-    #mod_date = models.DateTimeField(db_column='actor_mod_date')
-    actor_status_description = models.CharField(
+    description = models.CharField(max_length=255, blank=True, null=True)
+    status_uuid = models.ForeignKey('Status', on_delete=models.DO_NOTHING,
+                                    blank=True, null=True,
+                                    db_column='status_uuid')
+    status_description = models.CharField(
         max_length=255, blank=True, null=True)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
     org_full_name = models.CharField(
         max_length=255, blank=True, null=True, verbose_name='Organization Full Name')
     org_short_name = models.CharField(
@@ -59,7 +59,7 @@ class Actor(models.Model):
         db_table = 'vw_actor'
 
     def __str__(self):
-        return "{}".format(self.actor_description)
+        return "{}".format(self.description)
 
 
 class Inventory(models.Model):
@@ -70,7 +70,7 @@ class Inventory(models.Model):
     part_no = models.CharField(max_length=255, blank=True, null=True)
     onhand_amt = models.FloatField(blank=True, null=True)
     unit = models.CharField(max_length=255, blank=True, null=True)
-    create_date = models.DateTimeField(blank=True, null=True)
+    # create_date = models.DateTimeField(blank=True, null=True)
     expiration_date = models.DateTimeField(blank=True, null=True)
     inventory_location = models.CharField(max_length=255,
                                           blank=True, null=True)
@@ -89,6 +89,8 @@ class Inventory(models.Model):
                                    blank=True, null=True)
     actor_description = models.CharField(max_length=255,
                                          blank=True, null=True)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
@@ -295,11 +297,17 @@ class CalculationDef(models.Model):
 class Material(models.Model):
     uuid = models.UUIDField(primary_key=True,
                             db_column='material_uuid')
+    description = models.CharField(max_length=255, blank=True, null=True)
+    parent_uuid = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
+                                    blank=True, null=True, db_column='parent_uuid')
+
     material_status_uuid = models.ForeignKey('Status', on_delete=models.DO_NOTHING,
                                              blank=True, null=True, db_column='material_status_uuid')
     material_status_description = models.CharField(
         max_length=255, blank=True, null=True)
-    create_date = models.DateTimeField()
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
     abbreviation = models.CharField(
         db_column='abbreviation', max_length=255, blank=True, null=True)
     chemical_name = models.CharField(
