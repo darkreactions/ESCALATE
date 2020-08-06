@@ -48,6 +48,7 @@ DROP FUNCTION IF EXISTS get_calculation () cascade;
 DROP FUNCTION IF EXISTS get_val_json () cascade;
 DROP FUNCTION IF EXISTS get_val_actual () cascade;
 DROP FUNCTION IF EXISTS get_val () cascade;
+DROP FUNCTION IF EXISTS get_val_unit () cascade;
 DROP FUNCTION IF EXISTS put_val () cascade;
 DROP FUNCTION IF EXISTS get_chemaxon_directory () cascade;
 DROP FUNCTION IF EXISTS get_chemaxon_version () cascade;
@@ -90,6 +91,8 @@ DROP VIEW IF EXISTS vw_material_calculation_raw cascade;
 DROP VIEW IF EXISTS vw_material_raw cascade;
 DROP VIEW IF EXISTS vw_material_refname_def cascade;
 DROP VIEW IF EXISTS vw_material_type cascade;
+DROP VIEW IF EXISTS vw_property_def cascade;
+DROP VIEW IF EXISTS vw_property cascade;
 DROP VIEW IF EXISTS vw_note cascade;
 DROP VIEW IF EXISTS vw_organization cascade;
 DROP VIEW IF EXISTS vw_person cascade;
@@ -469,6 +472,8 @@ CREATE TABLE property_def (
 	property_def_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default",
 	short_description varchar COLLATE "pg_catalog"."default" NOT NULL,
+	valtype val_type,
+	valunit varchar,
 	actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
