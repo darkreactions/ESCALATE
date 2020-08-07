@@ -30,11 +30,11 @@ methods = {
                           'Inventory Location', 'Status'],
         'detail_fields_need_fields': {
             'Inventory Description': ['inventory_description'],
-            'Actor Description': ['description'],
+            'Actor Description': ['actor_description'],
             'Material Description': ['material_description'],
             'Part Number': ['part_no'],
             'On Hand Amount': ['onhand_amt'],
-            'Create Date': ['create_date'],
+            'Create Date': ['add_date'],
             'Expiration Date': ['expiration_date'],
             'Inventory Location': ['inventory_location'],
             'Status': ['status_description']
@@ -52,7 +52,7 @@ methods = {
             'InChI': ['inchi'],
             'InChI Key': ['inchikey'],
             'Smiles': ['smiles'],
-            'Create Date': ['create_date'],
+            'Create Date': ['add_date'],
             'Status': ['material_status_description']
         },
     },
