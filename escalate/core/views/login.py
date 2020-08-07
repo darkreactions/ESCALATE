@@ -2,14 +2,16 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.views import View
 from django.contrib import messages
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.db import transaction, IntegrityError
 
 from core.forms import CustomUserCreationForm, PersonForm, LoginForm
 from core.models.view_tables import Actor, Person
 from core.models.app_tables import CustomUser
 
-# Create your views here.
+
+def logout_view(request):
+    logout(request)
 
 
 class LoginView(View):

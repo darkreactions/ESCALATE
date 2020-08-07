@@ -1,6 +1,7 @@
 from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 import core.models
 import core.forms
@@ -9,29 +10,34 @@ from core.utils import view_names, camel_to_snake
 from core.views import create_methods, detail_methods, update_methods, delete_methods, list_methods
 
 
+class LoginRequired(LoginRequiredMixin):
+    login_url = '/'
+    redirect_field_name = 'redirect_to'
+
+
 def create_list_view(model_name, methods):
     globals()[model_name+'List'] = type(model_name + 'List',
-                                        tuple([GenericModelList]), methods)
+                                        tuple([LoginRequired, GenericModelList]), methods)
 
 
 def create_create_view(model_name, methods):
     globals()[model_name+'Create'] = type(model_name + 'Create',
-                                          tuple([GenericModelEdit, CreateView]), methods)
+                                          tuple([LoginRequired, GenericModelEdit, CreateView]), methods)
 
 
 def create_update_view(model_name, methods):
     globals()[model_name+'Update'] = type(model_name + 'Update',
-                                          tuple([GenericModelEdit, UpdateView]), methods)
+                                          tuple([LoginRequired, GenericModelEdit, UpdateView]), methods)
 
 
 def create_delete_view(model_name, methods):
     globals()[model_name+'Delete'] = type(model_name + 'Delete',
-                                          tuple([DeleteView]), methods)
+                                          tuple([LoginRequired, DeleteView]), methods)
 
 
 def create_detail_view(model_name, methods):
     globals()[model_name+'View'] = type(model_name + 'View',
-                                        tuple([GenericModelView]), methods)
+                                        tuple([LoginRequired, GenericModelView]), methods)
 
 
 for model_name, methods_list in list_methods.methods.items():

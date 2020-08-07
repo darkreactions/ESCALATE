@@ -1,32 +1,22 @@
 from django.urls import path, include
-"""
-from .views import (LoginView, CreateUserView, MainMenuView,
-                    MaterialsList, MaterialCreate, MaterialUpdate,
-                    MaterialDelete, MaterialView, InventoryList,
-                    InventoryCreate, InventoryDelete, InventoryUpdate,
-                    InventoryView, ActorView, ActorList, ActorCreate,
-                    ActorUpdate, ActorDelete, OrganizationList, OrganizationCreate,
-                    OrganizationDelete, OrganizationUpdate, OrganizationView,
-                    PersonList, PersonView, PersonCreate,
-                    PersonUpdate, PersonDelete, SystemtoolList, SystemtoolView,
-                    SystemtoolCreate, SystemtoolUpdate, SystemtoolDelete, SystemtoolTypeList,
-                    SystemtoolTypeView, SystemtoolTypeCreate, SystemtoolTypeUpdate, SystemtoolTypeDelete,
-                    UdfDefList, UdfDefView, UdfDefCreate, UdfDefUpdate, UdfDefDelete,
-                    StatusList, StatusView, StatusCreate, StatusUpdate, StatusDelete,
-                    TagList, TagView, TagCreate, TagUpdate, TagDelete,
-                    TagTypeList, TagTypeView, TagTypeCreate, TagTypeUpdate, TagTypeDelete,
-                    MaterialTypeList, MaterialTypeView, MaterialTypeCreate, MaterialTypeUpdate, MaterialTypeDelete,
-                    ModelTagCreate, ModelTagUpdate)
-"""
 import core.views
 from .views import (LoginView, CreateUserView, MainMenuView,
-                    ModelTagCreate, ModelTagUpdate)
+                    ModelTagCreate, ModelTagUpdate, logout_view)
 from core.utils import view_names, camel_to_snake
+from django.contrib.staticfiles.storage import staticfiles_storage
+from django.views.generic.base import RedirectView
+
+
+urlpatterns = [
+    path('favicon.ico', RedirectView.as_view(
+        url=staticfiles_storage.url('static/favicon.ico')))
+]
 
 urlpatterns = [
     path('', LoginView.as_view(), name='login'),
     path('create_user/', CreateUserView.as_view(), name='create_user'),
-    path('main_menu/', MainMenuView.as_view(), name='main_menu')
+    path('main_menu/', MainMenuView.as_view(), name='main_menu'),
+    path('logout/', logout_view, name='logout')
 ]
 
 
@@ -50,6 +40,7 @@ def add_urls(model_name, pattern_list):
                      name=f'{lower_case_model_name}_view'),
                 ]
     return pattern_list + new_urls
+
 
 for model_name in view_names:
     urlpatterns = add_urls(model_name, urlpatterns)

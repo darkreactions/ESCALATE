@@ -4,11 +4,11 @@
 
 {% block add_data %}
 <form class="form-inline my-2 my-lg-0" method="get" action="{% url url_name %}">
-
     <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" value="{{filter}}"
         name="filter">
-    <button class="btn btn-raised btn-success my-2 my-sm-0 " type="submit">Search</button>
-    <a href="{{ add_url }}" class="btn btn-raised btn-warning mx-2 my-sm-0 ">Add {{ title }}</a>
+    <button class="btn btn-raised btn-success my-2 my-sm-0 " type="submit"><i class="fa fa-search"></i></button>
+    <a href="{{ add_url }}" class="btn btn-raised btn-success mx-2 my-sm-0 view-add">Add {{ title }}</a>
+    <a href="{{ logout }}" class="btn btn-raised btn-warning mx-2 my-sm-0">Logout</a>
 </form>
 {% endblock %}
 
