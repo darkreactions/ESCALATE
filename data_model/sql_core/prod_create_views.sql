@@ -701,6 +701,61 @@ LEFT JOIN vw_material vm ON mc.material_uuid = vm.material_uuid;
 
 
 ----------------------------------------
+-- view property_def
+----------------------------------------
+CREATE OR REPLACE VIEW vw_property_def AS
+SELECT 
+	pd.property_def_uuid,
+	pd.description,
+	pd.short_description,
+	pd.valtype,
+	pd.valunit,
+	pd.add_date,
+	pd.mod_date,
+	pd.actor_uuid,
+	act.description as actor_description,
+	st.status_uuid,
+	st.description as status_description
+FROM property_def pd
+LEFT JOIN actor act on pd.actor_uuid = act.actor_uuid
+LEFT JOIN status st on pd.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_property_def_upsert ON vw_property_def;
+CREATE TRIGGER trigger_property_def_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_property_def
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_property_def ( );
+
+
+----------------------------------------
+-- view property
+----------------------------------------
+CREATE OR REPLACE VIEW vw_property AS
+SELECT 
+	pr.property_uuid,
+	pr.property_def_uuid,
+	pd.short_description,
+	pr.property_val,
+	pr.add_date,
+	pr.mod_date,
+	pr.actor_uuid,
+	act.description as actor_description,
+	st.status_uuid,
+	st.description as status_description
+FROM property pr
+LEFT JOIN property_def pd on pr.property_def_uuid = pd.property_def_uuid 
+LEFT JOIN actor act on pd.actor_uuid = act.actor_uuid
+LEFT JOIN status st on pd.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_property_upsert ON vw_property;
+CREATE TRIGGER trigger_property_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_property
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_property ( );
+
+----------------------------------------
 -- view inventory; with links to material, actor, status, edocument, note
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_inventory AS

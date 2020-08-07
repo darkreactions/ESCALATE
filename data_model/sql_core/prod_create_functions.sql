@@ -814,12 +814,14 @@ Date:			2020.07.31
 Description:	returns value from a 'val' type composite in json, otherwise null 
 Notes:				
 							
-Example:		SELECT get_val_json ('(text,,"[I-].[NH3+](CCC1=CC=C(C=C1)OC)",,,,,,,)'::val);
-				SELECT get_val_json ('(array_text,,,"{"one", "two","three"}",,,,,,)'::val); 
-				SELECT get_val_json ('(num,,,,,,266.99,,,)'::val);
-				SELECT get_val_json ('(int,,,,15,,,,,)'::val);			
-				SELECT get_val_json ('(array_int,,,,,"{1,2,3,4,5}",,,,)'::val);	
-				SELECT get_val_json ('(blob_svg,,,,,,,,"02c25ce7-1f0c-4922-b60b-6bc48e7557fd",)'::val);	
+Example:		SELECT get_val_json ('(text,,"[I-].[NH3+](CCC1=CC=C(C=C1)OC)",,,,,,,,,)'::val);
+				SELECT get_val_json ('(array_text,,,"{"one", "two","three"}",,,,,,,,)'::val); 
+				SELECT get_val_json ('(num,,,,,,266.99,,,,,)'::val);
+				SELECT get_val_json ('(int,,,,15,,,,,,,)'::val);			
+				SELECT get_val_json ('(array_int,,,,,"{1,2,3,4,5}",,,,,,)'::val);	
+				SELECT get_val_json ('(blob_svg,,,,,,,,"02c25ce7-1f0c-4922-b60b-6bc48e7557fd",,,)'::val);
+				SELECT get_val_json ('(bool,,,,,,,,,,TRUE,)'::val);	
+				SELECT get_val_json ('(array_bool,,,,,,,,,,,"{TRUE,TRUE,FALSE}")'::val);	
 */
 -- DROP FUNCTION IF EXISTS get_val_json (p_in val) cascade;
 CREATE OR REPLACE FUNCTION get_val_json (p_in val)
@@ -864,7 +866,17 @@ BEGIN
 		RETURN json_build_object(
 			'data_type', p_in.v_type,
 			'value', p_in.v_edocument_uuid 
-			);				
+			);	
+	WHEN p_in.v_type = 'bool' THEN
+		RETURN json_build_object(
+			'data_type', p_in.v_type,
+			'value', p_in.v_bool
+			);	
+	WHEN p_in.v_type = 'array_bool' THEN
+		RETURN json_build_object(
+			'data_type', p_in.v_type,
+			'value', p_in.v_bool_array
+			);			
 	ELSE
 		RETURN (NULL);
 	END CASE;
@@ -883,13 +895,14 @@ Date:			2020.04.16
 Description:	returns value from a 'val' type composite, otherwise null 
 Notes:				
 							
-Example:		SELECT get_val_actual (null::int8, '(int,,,,15,,,,,)'::val);
-				SELECT get_val_actual (null::int8[], '(array_int,,,,,"{1,2,3,4,5}",,,,)'::val);
-				SELECT get_val_actual (null::text,'(text,,"[I-].[NH3+](CCC1=CC=C(C=C1)OC)",,,,,,,)'::val);
-				SELECT get_val_actual (null::double PRECISION,'(num,,,,,,266.99,,,)'::val);
-				SELECT get_val_actual (null::double PRECISION[],'(array_num,,,,,,266.99,"{1.23, 1.0003, 3.339, 3.14159}",,)'::val);
-				SELECT get_val_actual (null::text[],'(array_text,,,"{"one", "two","three"}",,,,,,)'::val); 
-				SELECT get_val_actual (null::uuid,'(blob_svg,,,,,,,,"02c25ce7-1f0c-4922-b60b-6bc48e7557fd",)'::val);		
+Example:		SELECT get_val_actual (null::int8, '(int,,,,15,,,,,,,)'::val);
+				SELECT get_val_actual (null::int8[], '(array_int,,,,,"{1,2,3,4,5}",,,,,,)'::val);
+				SELECT get_val_actual (null::text,'(text,,"[I-].[NH3+](CCC1=CC=C(C=C1)OC)",,,,,,,,,)'::val);
+				SELECT get_val_actual (null::double PRECISION,'(num,,,,,,266.99,,,,,)'::val);
+				SELECT get_val_actual (null::double PRECISION[],'(array_num,,,,,,266.99,"{1.23, 1.0003, 3.339, 3.14159}",,,,)'::val);
+				SELECT get_val_actual (null::text[],'(array_text,,,"{"one", "two","three"}",,,,,,,,)'::val); 
+				SELECT get_val_actual (null::uuid,'(blob_svg,,,,,,,,"02c25ce7-1f0c-4922-b60b-6bc48e7557fd",,,)'::val);	
+				SELECT get_val_actual (null::bool, '(bool,,,,,,,,,,TRUE,)'::val);	
 */
 -- DROP FUNCTION IF EXISTS get_val_actual (p_in anyelement, p_val val) cascade;
 CREATE OR REPLACE FUNCTION get_val_actual (p_in anyelement, p_val val)
@@ -910,6 +923,10 @@ BEGIN
 		RETURN (p_val.v_text_array);
 	WHEN p_val.v_type::text LIKE 'blob%' THEN
 		RETURN (p_val.v_edocument_uuid);
+	WHEN p_val.v_type = 'bool' THEN
+		RETURN (p_val.v_bool);
+	WHEN p_val.v_type = 'array_bool' THEN
+		RETURN (p_val.v_bool_array);
 	ELSE
 		RETURN (NULL);
 	END CASE;
@@ -928,11 +945,12 @@ Date:			2020.04.16
 Description:	returns value (as text) from a 'val' type composite 
 Notes:				
 							
-Example:		SELECT get_val ('(text,,"[I-].[NH3+](CCC1=CC=C(C=C1)OC)",,,,,,,)'::val);
-				SELECT get_val ('(num,,,,,,266.99,,,)'::val);
-				SELECT get_val ('(int,,,,15,,,,,)'::val);			
-				SELECT get_val ('(array_int,,,,,"{1,2,3,4,5}",,,,)'::val);	
-				SELECT get_val ('(blob_svg,,,,,,,,"02c25ce7-1f0c-4922-b60b-6bc48e7557fd",)'::val);				
+Example:		SELECT get_val ('(text,,"[I-].[NH3+](CCC1=CC=C(C=C1)OC)",,,,,,,,,)'::val);
+				SELECT get_val ('(num,,,,,,266.99,,,,,)'::val);
+				SELECT get_val ('(int,,,,15,,,,,,,)'::val);			
+				SELECT get_val ('(array_int,,,,,"{1,2,3,4,5}",,,,,,)'::val);	
+				SELECT get_val ('(blob_svg,,,,,,,,"02c25ce7-1f0c-4922-b60b-6bc48e7557fd",,,)'::val);
+				SELECT get_val ('(bool,,,,,,,,,,TRUE,)'::val);					
 */
 -- DROP FUNCTION IF EXISTS get_val (p_in val) cascade;
 CREATE OR REPLACE FUNCTION get_val (p_in val)
@@ -941,57 +959,91 @@ BEGIN
 	CASE
 		WHEN p_in.v_type = 'int' THEN return (p_in.v_int::text);
 		WHEN p_in.v_type = 'array_int' THEN return (p_in.v_int_array::text);
-		WHEN p_in.v_type = 'array_int' THEN return (p_in.v_int_array::text);
 		WHEN p_in.v_type = 'num' THEN return (p_in.v_num::text);
 		WHEN p_in.v_type = 'array_num' THEN return (p_in.v_num_array::text);
 		WHEN p_in.v_type = 'text' THEN return (p_in.v_text::text);
 		WHEN p_in.v_type = 'array_text' THEN return (p_in.v_text_array::text);	
-		WHEN p_in.v_type::text like 'blob%' THEN return (encode((select edocument from edocument where edocument_uuid = p_in.v_edocument_uuid),'escape'));	
+		WHEN p_in.v_type::text like 'blob%' THEN return (encode((select edocument from edocument where edocument_uuid = p_in.v_edocument_uuid),'escape'));
+		WHEN p_in.v_type = 'bool' THEN return (p_in.v_bool::text);
+		WHEN p_in.v_type = 'array_bool' THEN return (p_in.v_bool_array::text);	
 		ELSE return (NULL);
 	END CASE;	
 END;
 $$ LANGUAGE plpgsql;
 
 
+/*
+Name:			get_val_units (p_in val)
+Parameters:		p_in = value of composite type 'val'
+Returns:		returns unit (text)
+Author:			G. Cattabriga
+Date:			2020.04.16
+Description:	returns unit (as text) from a 'val' type composite 
+Notes:				
+							
+Example:		SELECT get_val_unit ('(text,"inchikey","[I-].[NH3+](CCC1=CC=C(C=C1)OC)",,,,,,,,,)'::val);
+				SELECT get_val_unit ('(num,"ergs",,,,,266.99,,,,,)'::val);
+				SELECT get_val_unit ('(int,"mols",,,15,,,,,,,)'::val);							
+*/
+-- DROP FUNCTION IF EXISTS get_val_unit (p_in val) cascade;
+CREATE OR REPLACE FUNCTION get_val_unit (p_in val)
+returns text AS $$
+BEGIN
+	return (p_in.v_unit);
+END;
+$$ LANGUAGE plpgsql;
+
+
 
 /*
-Name:			put_val (p_type val_type, p_val text )
-Parameters:		p_type is the data type as defined by val_type enum, p_val is the value to be inserted, in text
+Name:			put_val (p_type val_type, p_val text, p_unit text )
+Parameters:		p_type is the data type as defined by val_type enum, p_val is the value to be inserted, p_unit is the unit in text
 Returns:		val composite or null
 Author:			G. Cattabriga
 Date:			08.02.2020
 Description:	function to insert a value and it's type into the composite value data type 
 Notes:			this will cast the p_val text into it's requisite type	
 							
-Example:	
-					
+Example:		SELECT put_val ('text','[I-].[NH3+](CCC1=CC=C(C=C1)OC)', 'inchikey');
+				SELECT put_val ('text','fred', null);
+				SELECT put_val ('int', 5, 'ergs');
+				SELECT put_val ('num', 1.2345, 'ergs');
+				SELECT put_val ('array_int', '{1,2,3,4}', 'ergs');
+				SELECT put_val ('bool', FALSE, null);
+				SELECT put_val ('array_bool'::val_type, '{FALSE,TRUE,TRUE,FALSE}', null);
+				select get_val((SELECT put_val ('int', 5, 'ergs')));
+				select get_val((SELECT put_val ('array_int', '{1,2,3,4}', 'ergs')));				
 */
--- DROP FUNCTION IF EXISTS put_val (p_type val_type, p_val text, p_unit ) cascade;
+-- DROP FUNCTION IF EXISTS put_val (p_type val_type, p_val anyelement, p_unit text ) cascade;
 CREATE OR REPLACE FUNCTION put_val (p_type val_type, p_val text, p_unit text )
 	RETURNS val
 	AS $$
 DECLARE
 	out_val val;
 BEGIN
-	CASE WHEN p_type = 'int' THEN
-
-	WHEN p_type = 'array_int' THEN
-
-	WHEN p_type = 'array_int' THEN
-
-	WHEN p_type = 'num' THEN
-
-	WHEN p_type = 'array_num' THEN
-
-	WHEN p_type = 'text' THEN
-
-	WHEN p_type = 'array_text' THEN
-
-	WHEN p_type::text LIKE 'blob%' THEN
-ELSE
-	RETURN (NULL);
-	END CASE;
-	END;
+	out_val.v_type = p_type::val_type;
+	out_val.v_unit = p_unit::text;
+	IF p_type = 'int' THEN
+		out_val.v_int = p_val::int8;
+	ELSIF p_type = 'array_int' THEN
+		out_val.v_int_array = p_val::int8[];
+	ELSIF p_type = 'num' THEN
+		out_val.v_num = p_val::double PRECISION;
+	ELSIF p_type = 'array_num' THEN
+		out_val.v_num = p_val::double PRECISION;
+	ELSIF p_type = 'text' THEN
+		out_val.v_text = p_val::text;
+	ELSIF p_type = 'array_text' THEN
+		out_val.v_text = p_val::text[];
+	ELSIF p_type::text LIKE 'blob%' THEN
+		out_val.v_edocument = p_val::uuid;
+	ELSIF p_type = 'bool' THEN
+		out_val.v_bool = p_val::BOOLEAN;
+	ELSIF p_type = 'array_bool' THEN
+		out_val.v_bool_array = p_val::BOOLEAN[];
+	END IF;
+	RETURN out_val;
+END;
 $$
 LANGUAGE plpgsql;
 
@@ -2004,7 +2056,7 @@ Date:			2020.07.20
 Description:	trigger proc that deletes, inserts or updates material record based on TG_OP (trigger operation)
 Notes:				
  
-Example:		insert into vw_material (material_description, ) values ('materialrefnamedef_test');
+Example:		insert into vw_material (material_description) values ('materialrefnamedef_test');
  				delete from vw_material_refname_def where material_refname_def_uuid = (select material_refname_def_uuid from vw_material_refname_def where (description = 'materialrefnamedef_test'));
  */
 CREATE OR REPLACE FUNCTION upsert_material ()
@@ -2041,8 +2093,120 @@ $$
 LANGUAGE plpgsql;
 
 
+/*
+Name:			upsert_property_def()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.08.03
+Description:	trigger proc that deletes, inserts or updates property_def record based on TG_OP (trigger operation)
+Notes:				
+ 
+Example:		insert into vw_property_def (description, short_description, valtype, valunit, actor_uuid, status_uuid ) values 
+											('particle-size', 'p-size', 'array_num', 'mesh', 
+											null,
+											(select status_uuid from vw_status where description = 'active')
+											);
+				update vw_property_def set short_description = 'particle-size',
+											actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where (description = 'particle-size');
+ 				delete from vw_property_def where description = 'particle-size';
+ */
+CREATE OR REPLACE FUNCTION upsert_property_def ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		-- first delete the ornanization record
+		DELETE FROM property_def
+		WHERE property_def_uuid = OLD.property_def_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- then delete the associated note record
+		DELETE FROM vw_note
+		WHERE note_uuid = OLD.property_def_uuid;
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			property_def
+		SET
+			description = NEW.description,
+			short_description = NEW.short_description,
+			valtype = NEW.valtype,
+			valunit = NEW.valunit,
+			actor_uuid = NEW.actor_uuid,
+			status_uuid = NEW.status_uuid,
+			mod_date = now()
+		WHERE
+			property_def.property_def_uuid = NEW.property_def_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO property_def (description, short_description, valtype, valunit, actor_uuid, status_uuid)
+			VALUES(NEW.description, NEW.short_description, NEW.valtype, NEW.valunit, NEW.actor_uuid, NEW.status_uuid);
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
 
 
+/*
+Name:			upsert_property()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.08.04
+Description:	trigger proc that deletes, inserts or updates property record based on TG_OP (trigger operation)
+Notes:				
+ 
+Example:		insert into vw_property (material_uuid, valtype, valunit, actor_uuid, status_uuid ) values 
+											('particle-size', 'p-size', 'array_num', 'mesh', 
+											null,
+											(select status_uuid from vw_status where description = 'active')
+											);
+				update vw_property set short_description = 'particle-size',
+											actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where (description = 'particle-size');
+ 				delete from vw_property where description = 'particle-size';
+ */
+CREATE OR REPLACE FUNCTION upsert_property ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		-- first delete the ornanization record
+		DELETE FROM property
+		WHERE property_uuid = OLD.property_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- then delete the associated note record
+		DELETE FROM vw_note
+		WHERE note_uuid = OLD.property_uuid;
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			property
+		SET
+			description = NEW.description,
+			short_description = NEW.short_description,
+			valtype = NEW.valtype,
+			valunit = NEW.valunit,
+			actor_uuid = NEW.actor_uuid,
+			status_uuid = NEW.status_uuid,
+			mod_date = now()
+		WHERE
+			property.property_uuid = NEW.property_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO property (description, short_description, valtype, valunit, actor_uuid, status_uuid)
+			VALUES(NEW.description, NEW.short_description, NEW.valtype, NEW.valunit, NEW.actor_uuid, NEW.status_uuid);
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
 
 
 /*
