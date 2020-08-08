@@ -29,55 +29,65 @@ class NoteForm(forms.ModelForm):
 
 
 class PersonForm(forms.ModelForm):
-    first_name = forms.CharField(label='First Name',
-                                 widget=forms.TextInput(
-                                     attrs={'placeholder': 'Your first name'}))
-    middle_name = forms.CharField(label='Middle Name',
-                                  widget=forms.TextInput(
-                                      attrs={'placeholder': 'Your middle name'}))
-    last_name = forms.CharField(label='Last Name',
-                                widget=forms.TextInput(
-                                    attrs={'placeholder': 'Your last name'}))
-    address1 = forms.CharField(label='Address Line 1',
-                               widget=forms.TextInput(
-                                   attrs={'placeholder': 'Ex: 123 Smith Street'}))
-    address2 = forms.CharField(label='Address Line 2',
-                               widget=forms.TextInput(
-                                   attrs={'placeholder': 'Ex: Apt. 2c'}))
-    city = forms.CharField(label='City',
-                           widget=forms.TextInput(
-                               attrs={'placeholder': 'Ex: San Francisco'}))
-    state_province = forms.CharField(label='State/Province',
-                                     widget=forms.TextInput(attrs={'placeholder': 'Ex: CA'}))
-    zip = forms.CharField(label='Zip',
-                          widget=forms.TextInput(attrs={'placeholder': 'Ex: 12345/12345-6789'}))
-    country = forms.CharField(label='Country',
-                              widget=forms.TextInput(
-                                  attrs={'placeholder': 'Ex: United States of America'}))
-    phone = forms.CharField(label='Phone',
-                            widget=forms.TextInput(
-                                attrs={'placeholder': 'Ex: 1-234-567-8900/12345678900'}))
-    email = forms.EmailField(label='Email',
-                             widget=forms.TextInput(
-                                 attrs={'placeholder': 'Ex: example@gmail.com'}))
-    title = forms.CharField(label='Title',
-                            widget=forms.TextInput(
-                                attrs={'placeholder': 'Your title'}))
-    suffix = forms.CharField(label='Suffix',
-                             widget=forms.TextInput(
-                                 attrs={'placeholder': 'Your suffix'}))
-
     class Meta:
         model = Person
         fields = ['first_name', 'middle_name', 'last_name', 'address1',
                   'address2', 'city', 'state_province', 'zip', 'country',
                   'phone', 'email', 'title', 'suffix', 'organization_uuid']
+        field_classes = {
+
+            'first_name': forms.CharField,
+            'middle_name': forms.CharField,
+            'last_name': forms.CharField,
+            'address1': forms.CharField,
+            'address2': forms.CharField,
+            'city': forms.CharField,
+            'state_province': forms.CharField,
+            'zip': forms.CharField,
+            'country': forms.CharField,
+            'phone': forms.CharField,
+            'email': forms.EmailField,
+            'title': forms.CharField,
+            'suffix': forms.CharField
+        }
+
         labels = {
+            'first_name': 'First Name',
+            'middle_name': 'Middle Name',
+            'last_name': 'Last Name',
+            'address1': 'Address Line 1',
+            'address2': 'Address Line 2',
+            'city': 'City',
+            'state_province': 'State/Province',
+            'zip': 'Zip',
+            'country': 'Country',
+            'phone': 'Phone',
+            'email': 'E-mail',
+            'title': 'Title',
+            'suffix': 'Suffix',
             'organization_uuid': 'Organization'
         }
+
         help_texts = {
             'phone': 'Include extension number and/or country code if applicable',
             'organization_uuid': 'If applicable, select the organization this person belongs to'
+        }
+
+        widgets = {
+            'first_name': forms.TextInput(attrs={'placeholder': 'Your first name'}),
+            'middle_name': forms.TextInput(attrs={'placeholder': 'Your middle name'}),
+            'last_name': forms.TextInput(attrs={'placeholder': 'Your last name'}),
+            'address1': forms.TextInput(attrs={'placeholder': 'Ex: 123 Smith Street'}),
+            'address2': forms.TextInput(attrs={'placeholder': 'Ex: Apt. 2c'}),
+            'city': forms.TextInput(attrs={'placeholder': 'Ex: San Francisco'}),
+            'state_province': forms.TextInput(attrs={'placeholder': 'Ex: CA'}),
+            'zip': forms.TextInput(attrs={'placeholder': 'Ex: 12345/12345-6789'}),
+            'country': forms.TextInput(attrs={'placeholder': 'Ex: United States of America'}),
+            'phone': forms.TextInput(attrs={'placeholder': 'Ex: 1-234-567-8900/12345678900'}),
+            'email': forms.TextInput(attrs={'placeholder': 'Ex: example@gmail.com'}),
+            'title': forms.TextInput(attrs={'placeholder': 'Your title'}),
+            'suffix': forms.TextInput(attrs={'placeholder': 'Your suffix'}),
+            'organization_uuid': forms.Select(attrs=dropdown_attrs)
         }
 
 
@@ -125,49 +135,61 @@ class MaterialForm(forms.ModelForm):
                 'placeholder': 'Ex: XLYOFNOQVPJJNP-UHFFFAOYSA-N'}),
             'molecular_formula': forms.TextInput(attrs={
                 'placeholder': 'Ex: H2O'}),
-            'smiles': forms.TextInput(attrs={'placeholder': 'Ex: O'})
+            'smiles': forms.TextInput(attrs={'placeholder': 'Ex: O'}),
+            'material_status_uuid': forms.Select(attrs=dropdown_attrs),
         }
 
 
 class InventoryForm(forms.ModelForm):
-    #material_uuid = forms.ChoiceField(label='Material')
-    inventory_description = forms.CharField(label='Description', widget=forms.Textarea(attrs={'rows': '3',
-                                                                                              'cols': '10',
-                                                                                              'placeholder': 'Description'}))
-    part_no = forms.CharField(label='Part Number', widget=forms.TextInput(
-        attrs={'placeholder': 'Part number'}))
-    onhand_amt = forms.DecimalField(label='On hand amount', widget=forms.NumberInput(attrs={'value': '0.01',
-                                                                                            'min': '0.00',
-                                                                                            'step': '0.01'}))
-    unit = forms.CharField(label='Unit', widget=forms.TextInput(
-        attrs={'placeholder': 'Ex: g for grams'}))
-    expiration_date = forms.SplitDateTimeField(label='Expiration date',
-                                               widget=forms.SplitDateTimeWidget(
-                                                   date_format='%d-%m-%Y',
-                                                   date_attrs={
-                                                       'placeholder': 'DD-MM-YYYY'
-                                                   },
-                                                   time_format='%H:%M',
-                                                   time_attrs={
-                                                       'placeholder': 'HH-MM'
-                                                   }
-                                               ))
-    inventory_location = forms.CharField(label='Inventory location', widget=forms.TextInput(attrs={
-        'placeholder': 'Location'}))
-
     class Meta:
         model = Inventory
         fields = ['material_uuid', 'actor_uuid', 'part_no',
                   'onhand_amt', 'unit', 'expiration_date',
                   'inventory_location', 'status_uuid']
 
+        field_classes = {
+            'description': forms.CharField,
+            'part_no': forms.CharField,
+            'onhand_amt': forms.DecimalField,
+            'unit': forms.CharField,
+            'expiration_date': forms.SplitDateTimeField,
+            'inventory_location': forms.CharField
+        }
         labels = {
+            'description': 'Description',
             'material_uuid': 'Material',
             'actor_uuid': 'Actor',
+            'part_no': 'Part Number',
+            'onhand_amt': 'On hand amount',
+            'unit': 'Unit',
+            'expiration_date': 'Expiration date',
+            'inventory_location': 'Inventory location'
         }
         widgets = {
             'material_uuid': forms.Select(attrs=dropdown_attrs),
             'actor_uuid': forms.Select(attrs=dropdown_attrs),
+            'description': forms.Textarea(attrs={'rows': '3',
+                                                 'cols': '10',
+                                                 'placeholder': 'Description'}),
+
+            'part_no': forms.TextInput(attrs={'placeholder': 'Part number'}),
+            'onhand_amt': forms.NumberInput(attrs={'value': '0.01',
+                                                   'min': '0.00',
+                                                   'step': '0.01'}),
+            'unit': forms.TextInput(attrs={'placeholder': 'Ex: g for grams'}),
+            'expiration_date': forms.SplitDateTimeWidget(
+                date_format='%d-%m-%Y',
+                date_attrs={
+                    'placeholder': 'DD-MM-YYYY'
+                },
+                time_format='%H:%M',
+                time_attrs={
+                    'placeholder': 'HH-MM'
+                }
+            ),
+            'inventory_location': forms.TextInput(attrs={
+                'placeholder': 'Location'}),
+            'status_uuid': forms.Select(attrs=dropdown_attrs),
         }
 
 
@@ -198,7 +220,11 @@ class ActorForm(forms.ModelForm):
             'description': forms.Textarea(attrs={
                 'rows': '3',
                 'cols': '10',
-                'placeholder': 'Your description'})
+                'placeholder': 'Your description'}),
+            'person_uuid': forms.Select(attrs=dropdown_attrs),
+            'organization_uuid': forms.Select(attrs=dropdown_attrs),
+            'systemtool_uuid': forms.Select(attrs=dropdown_attrs),
+            'status_uuid': forms.Select(attrs=dropdown_attrs),
 
         }
 
@@ -269,7 +295,8 @@ class OrganizationForm(forms.ModelForm):
             'website_url': forms.URLInput(attrs={
                 'placeholder': 'Ex: https://example.com'}),
             'phone': forms.TextInput(attrs={
-                'placeholder': 'Ex: 1-234-567-8900/12345678900'})
+                'placeholder': 'Ex: 1-234-567-8900/12345678900'}),
+            'parent_uuid': forms.Select(attrs=dropdown_attrs),
         }
 
 
@@ -311,6 +338,7 @@ class LatestSystemtoolForm(forms.ModelForm):
                 'placeholder': 'Your system tool serial number Ex:Y291325'}),
             'ver': forms.TextInput(attrs={
                 'placeholder': 'Your system tool current version Ex: 1.06'}),
+            'systemtool_type_uuid': forms.Select(attrs=dropdown_attrs),
         }
 
 

@@ -1,15 +1,22 @@
 from django.urls import reverse_lazy, reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic.detail import DetailView
+from django.views.generic.list import ListView
 # from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
 from core.models import Note, Actor, Tag_X, Tag
 from core.forms import NoteForm, TagSelectForm
-# from core.views.menu import GenericListView
 from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404
-from core.views.menu import GenericListView
 
 # class with generic classes to use in models
+
+
+class GenericListView(ListView):
+
+    def get_context_data(self, **kwargs):
+        context = super(GenericListView, self).get_context_data(**kwargs)
+        context['filter'] = self.request.GET.get('filter', '')
+        return context
 
 
 class GenericModelList(GenericListView):

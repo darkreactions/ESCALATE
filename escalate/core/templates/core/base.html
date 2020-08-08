@@ -48,9 +48,11 @@
     <!-- Plotly javascript import -->
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
+    <link rel="stylesheet" href={% static "main.css" %}>
+
 </head>
 
-<body class="layout-default" style="display: flex; min-height: 100vh; flex-direction: column;">
+<body class="d-flex flex-column">
 
 
     {% block nav %}
@@ -97,7 +99,7 @@
 
                 {% block add_data %}
                 {% endblock %}
-
+                <a href="{% url 'logout' %}" class="btn btn-raised btn-warning mx-2 my-sm-0">Logout</a>
             </div>
             {% endwith %}
         </nav>
@@ -106,7 +108,7 @@
     <section>
         <div class="container">
             <div class="card">
-                <div class="card-body">
+                <div class="card-body" id="page-content">
                     {% block content %}
                     {% endblock %}
                     <nav>
@@ -189,16 +191,17 @@
         {% endblock %}
     </section>
 
-    <div class="container">
-        <footer class="footer">
+
+    <footer class="footer">
+        <div class="container">
             <div class="content has-text-centered">
-                <p>
-                    Work supported by the Defense Advanced Research Projects Agency
-                    (DARPA) under Contract No. HR001118C0036
-                </p>
+                <span class="text-muted">Work supported by the Defense Advanced Research Projects Agency
+                    (DARPA) under Contract No. HR001118C0036</span>
             </div>
-        </footer>
-    </div>
+        </div>
+
+    </footer>
+
 
 
 </body>

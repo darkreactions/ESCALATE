@@ -12,6 +12,7 @@ from core.models.app_tables import CustomUser
 
 def logout_view(request):
     logout(request)
+    return redirect('login')
 
 
 class LoginView(View):
@@ -30,6 +31,7 @@ class LoginView(View):
             if user:
                 login(request, user)
             if request.user.is_authenticated:
+
                 return redirect('main_menu')
             else:
                 messages.error(request, 'Error logging in')
