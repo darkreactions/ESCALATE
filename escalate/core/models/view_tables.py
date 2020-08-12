@@ -619,3 +619,34 @@ class UdfDef(models.Model):
 
     def __str__(self):
         return "{}".format(self.description)
+
+
+class PropertyDef(models.Model):
+    """
+
+    """
+    uuid = models.UUIDField(primary_key=True, db_column='property_def_uuid')
+    description = models.CharField(max_length=255, blank=True, null=True,
+                                   db_column='property_def_description')
+    short_description = models.CharField(max_length=255, blank=True, null=True,
+                                         db_column='property_def_short_description')
+    val_type = models.CharField(max_length=255, blank=True, null=True,
+                                db_column='property_def_val_type')
+    val_unit = models.CharField(max_length=255, blank=True, null=True,
+                                db_column='property_def_val_unit')
+    actor_uuid = models.ForeignKey('Actor', on_delete=models.DO_NOTHING,
+                                   db_column='actor_uuid', blank=True, null=True)
+    actor_description = models.CharField(max_length=255, blank=True, null=True,
+                                         db_column='actor_description')
+    status_uuid = models.ForeignKey('Status', on_delete=models.DO_NOTHING,
+                                    blank=True, null=True,
+                                    db_column='status_uuid')
+    status_description = models.CharField(max_length=255, blank=True, null=True,
+                                          db_column='status_description')
+    add_date = models.CharField(max_length=255, blank=True, null=True,
+                                db_column='property_def_add_date')
+    mod_date = models.CharField(max_length=255, blank=True, null=True,
+                                db_column='property_def_mod_date')
+    class Meta:
+        managed = False
+        db_table = 'vw_property_def'
