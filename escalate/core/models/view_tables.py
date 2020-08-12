@@ -647,10 +647,8 @@ class PropertyDef(models.Model):
                                     db_column='status_uuid')
     status_description = models.CharField(max_length=255, blank=True, null=True,
                                           db_column='status_description')
-    add_date = models.CharField(max_length=255, blank=True, null=True,
-                                db_column='add_date')
-    mod_date = models.CharField(max_length=255, blank=True, null=True,
-                                db_column='mod_date')
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
     class Meta:
         managed = False
         db_table = 'vw_property_def'
