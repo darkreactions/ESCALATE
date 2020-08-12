@@ -69,8 +69,8 @@ DROP FUNCTION IF EXISTS upsert_status () cascade;
 DROP FUNCTION IF EXISTS upsert_material_type () cascade;
 DROP FUNCTION IF EXISTS upsert_material_refname_def () cascade;
 DROP FUNCTION IF EXISTS upsert_material () cascade;
+DROP FUNCTION IF EXISTS upsert_property () cascade;
 DROP FUNCTION IF EXISTS upsert_note () cascade;
-
 
 
  --=====================================
@@ -93,6 +93,7 @@ DROP VIEW IF EXISTS vw_material_refname_def cascade;
 DROP VIEW IF EXISTS vw_material_type cascade;
 DROP VIEW IF EXISTS vw_property_def cascade;
 DROP VIEW IF EXISTS vw_property cascade;
+DROP VIEW IF EXISTS vw_material_property cascade;
 DROP VIEW IF EXISTS vw_note cascade;
 DROP VIEW IF EXISTS vw_organization cascade;
 DROP VIEW IF EXISTS vw_person cascade;
@@ -174,8 +175,8 @@ CREATE TYPE val AS (
 	v_text_array varchar[],
 	v_int int8,
 	v_int_array int8[],
-	v_num double precision,
-	v_num_array double precision[],
+	v_num numeric,
+	v_num_array numeric[],
 	v_edocument_uuid uuid,
 	v_source_uuid uuid,
 	v_bool BOOLEAN,
@@ -551,7 +552,7 @@ CREATE TABLE inventory (
 	material_uuid uuid NOT NULL,
 	actor_uuid uuid,
 	part_no varchar,
-	onhand_amt DOUBLE PRECISION,
+	onhand_amt numeric,
 	unit varchar,
 	-- measure_uuid int8,
 	expiration_date timestamptz DEFAULT NULL,
@@ -825,7 +826,7 @@ CREATE TABLE workflow_action (
 	description varchar COLLATE "pg_catalog"."default" NOT NULL,
 	start_date timestamptz,
 	end_date timestamptz,
-	duration double precision,
+	duration numeric,
 	input val,
 	output val,
 	calculation_def_uuid uuid,

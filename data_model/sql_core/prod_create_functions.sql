@@ -898,8 +898,8 @@ Notes:
 Example:		SELECT get_val_actual (null::int8, '(int,,,,15,,,,,,,)'::val);
 				SELECT get_val_actual (null::int8[], '(array_int,,,,,"{1,2,3,4,5}",,,,,,)'::val);
 				SELECT get_val_actual (null::text,'(text,,"[I-].[NH3+](CCC1=CC=C(C=C1)OC)",,,,,,,,,)'::val);
-				SELECT get_val_actual (null::double PRECISION,'(num,,,,,,266.99,,,,,)'::val);
-				SELECT get_val_actual (null::double PRECISION[],'(array_num,,,,,,266.99,"{1.23, 1.0003, 3.339, 3.14159}",,,,)'::val);
+				SELECT get_val_actual (null::numeric,'(num,,,,,,266.99,,,,,)'::val);
+				SELECT get_val_actual (null::numeric[],'(array_num,,,,,,266.99,"{1.23, 1.0003, 3.339, 3.14159}",,,,)'::val);
 				SELECT get_val_actual (null::text[],'(array_text,,,"{"one", "two","three"}",,,,,,,,)'::val); 
 				SELECT get_val_actual (null::uuid,'(blob_svg,,,,,,,,"02c25ce7-1f0c-4922-b60b-6bc48e7557fd",,,)'::val);	
 				SELECT get_val_actual (null::bool, '(bool,,,,,,,,,,TRUE,)'::val);	
@@ -1009,6 +1009,7 @@ Example:		SELECT put_val ('text','[I-].[NH3+](CCC1=CC=C(C=C1)OC)', 'inchikey');
 				SELECT put_val ('int', 5, 'ergs');
 				SELECT put_val ('num', 1.2345, 'ergs');
 				SELECT put_val ('array_int', '{1,2,3,4}', 'ergs');
+				SELECT put_val ('array_num', '{1.01,2,3,404.237}', 'ergs');
 				SELECT put_val ('bool', FALSE, null);
 				SELECT put_val ('array_bool'::val_type, '{FALSE,TRUE,TRUE,FALSE}', null);
 				select get_val((SELECT put_val ('int', 5, 'ergs')));
@@ -1028,9 +1029,9 @@ BEGIN
 	ELSIF p_type = 'array_int' THEN
 		out_val.v_int_array = p_val::int8[];
 	ELSIF p_type = 'num' THEN
-		out_val.v_num = p_val::double PRECISION;
+		out_val.v_num = p_val::numeric;
 	ELSIF p_type = 'array_num' THEN
-		out_val.v_num = p_val::double PRECISION;
+		out_val.v_num_array = p_val::numeric[];
 	ELSIF p_type = 'text' THEN
 		out_val.v_text = p_val::text;
 	ELSIF p_type = 'array_text' THEN
@@ -1180,7 +1181,7 @@ DECLARE
 	v_temp_in varchar := 'temp_in.txt';
 	v_calc_out_blobval bytea;
 	v_calc_out_blobtype varchar;
-	v_calc_out_numarray DOUBLE PRECISION [];
+	v_calc_out_numarray numeric [];
 	v_type_out varchar;
 BEGIN
 	-- assign the calculation out_type so we can properly store the calc results into calculation_eval
@@ -1260,7 +1261,7 @@ ELSE
 		END,
 		out_val.v_num = CASE v_type_out
 		WHEN 'num' THEN
-			strout::double precision
+			strout::numeric
 		ELSE
 			NULL
 		END,
@@ -1560,7 +1561,7 @@ DECLARE
 	_person_last_name varchar;
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
-		-- first delete the ornanization record
+		-- first delete the person record
 		DELETE FROM person
 		WHERE person_uuid = OLD.person_uuid;
 		IF NOT FOUND THEN
@@ -1630,7 +1631,7 @@ DECLARE
 	_systemtool_description varchar;
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
-		-- first delete the ornanization record
+		-- first delete the systemtool record
 		DELETE FROM systemtool
 		WHERE systemtool_uuid = OLD.systemtool_uuid;
 		IF NOT FOUND THEN
@@ -1690,7 +1691,7 @@ CREATE OR REPLACE FUNCTION upsert_systemtool_type ()
 	AS $$
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
-		-- first delete the ornanization record
+		-- first delete the systemtool_type record
 		DELETE FROM systemtool_type
 		WHERE systemtool_type_uuid = OLD.systemtool_type_uuid;
 		IF NOT FOUND THEN
@@ -1742,7 +1743,7 @@ CREATE OR REPLACE FUNCTION upsert_tag_type ()
 	AS $$
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
-		-- first delete the ornanization record
+		-- first delete the tag_type record
 		DELETE FROM tag_type
 		WHERE tag_type_uuid = OLD.tag_type_uuid;
 		IF NOT FOUND THEN
@@ -1875,7 +1876,7 @@ CREATE OR REPLACE FUNCTION upsert_udf_def ()
 	AS $$
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
-		-- first delete the ornanization record
+		-- first delete the udf_def record
 		DELETE FROM udf_def
 		WHERE udf_def_uuid = OLD.udf_def_uuid;
 		IF NOT FOUND THEN
@@ -1924,7 +1925,7 @@ CREATE OR REPLACE FUNCTION upsert_status ()
 	AS $$
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
-		-- first delete the ornanization record
+		-- first delete the status record
 		DELETE FROM status
 		WHERE status_uuid = OLD.status_uuid;
 		IF NOT FOUND THEN
@@ -1970,7 +1971,7 @@ CREATE OR REPLACE FUNCTION upsert_material_type ()
 	AS $$
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
-		-- first delete the ornanization record
+		-- first delete the material_type record
 		DELETE FROM material_type
 		WHERE material_type_uuid = OLD.material_type_uuid;
 		IF NOT FOUND THEN
@@ -2017,7 +2018,7 @@ CREATE OR REPLACE FUNCTION upsert_material_refname_def ()
 	AS $$
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
-		-- first delete the ornanization record
+		-- first delete the material_refname_def record
 		DELETE FROM material_refname_def
 		WHERE material_refname_def_uuid = OLD.material_refname_def_uuid;
 		IF NOT FOUND THEN
@@ -2064,7 +2065,7 @@ CREATE OR REPLACE FUNCTION upsert_material ()
 	AS $$
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
-		-- first delete the ornanization record
+		-- first delete the material_refname_def record
 		DELETE FROM material_refname_def
 		WHERE material_refname_def_uuid = OLD.material_refname_def_uuid;
 		IF NOT FOUND THEN
@@ -2104,20 +2105,20 @@ Description:	trigger proc that deletes, inserts or updates property_def record b
 Notes:				
  
 Example:		insert into vw_property_def (description, short_description, valtype, valunit, actor_uuid, status_uuid ) values 
-											('particle-size', 'p-size', 'array_num', 'mesh', 
+											('particle-size {min, max}', 'particle-size', 'array_num', 'mesh', 
 											null,
 											(select status_uuid from vw_status where description = 'active')
 											);
 				update vw_property_def set short_description = 'particle-size',
-											actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where (description = 'particle-size');
- 				delete from vw_property_def where description = 'particle-size';
+											actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where (short_description = 'particle-size');
+ 				delete from vw_property_def where short_description = 'particle-size';
  */
 CREATE OR REPLACE FUNCTION upsert_property_def ()
 	RETURNS TRIGGER
 	AS $$
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
-		-- first delete the ornanization record
+		-- first delete the property_def record
 		DELETE FROM property_def
 		WHERE property_def_uuid = OLD.property_def_uuid;
 		IF NOT FOUND THEN
@@ -2159,23 +2160,26 @@ Returns:		void
 Author:			G. Cattabriga
 Date:			2020.08.04
 Description:	trigger proc that deletes, inserts or updates property record based on TG_OP (trigger operation)
-Notes:				
+Notes:			this will check to see if property_def exists	
  
-Example:		insert into vw_property (material_uuid, valtype, valunit, actor_uuid, status_uuid ) values 
-											('particle-size', 'p-size', 'array_num', 'mesh', 
+Example:		insert into vw_property (property_def_uuid, property_val, actor_uuid, status_uuid ) values (
+											(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
+											(select put_val (
+												(select valtype from vw_property_def where short_description = 'particle-size'),
+												'{100, 200}',
+												(select valunit from vw_property_def where short_description = 'particle-size'))), 
 											null,
 											(select status_uuid from vw_status where description = 'active')
 											);
-				update vw_property set short_description = 'particle-size',
-											actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where (description = 'particle-size');
- 				delete from vw_property where description = 'particle-size';
+				update vw_property set actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where (property_uuid = 'e36c8f19-cd2f-4f5d-960d-54638f26f066');
+ 				delete from vw_property where (property_uuid = 'e36c8f19-cd2f-4f5d-960d-54638f26f066');
  */
 CREATE OR REPLACE FUNCTION upsert_property ()
 	RETURNS TRIGGER
 	AS $$
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
-		-- first delete the ornanization record
+		-- first delete the property record
 		DELETE FROM property
 		WHERE property_uuid = OLD.property_uuid;
 		IF NOT FOUND THEN
@@ -2189,10 +2193,7 @@ BEGIN
 		UPDATE
 			property
 		SET
-			description = NEW.description,
-			short_description = NEW.short_description,
-			valtype = NEW.valtype,
-			valunit = NEW.valunit,
+			property_val = NEW.property_val,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
 			mod_date = now()
@@ -2200,13 +2201,93 @@ BEGIN
 			property.property_uuid = NEW.property_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO property (description, short_description, valtype, valunit, actor_uuid, status_uuid)
-			VALUES(NEW.description, NEW.short_description, NEW.valtype, NEW.valunit, NEW.actor_uuid, NEW.status_uuid);
+		IF (select exists (select property_def_uuid from vw_property_def where property_def_uuid = NEW.property_def_uuid)) THEN
+			INSERT INTO property (property_def_uuid, property_val, actor_uuid, status_uuid)
+				VALUES(NEW.property_def_uuid, NEW.property_val, NEW.actor_uuid, NEW.status_uuid);
+			RETURN NEW;
+		END IF;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			upsert_material_property()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.08.04
+Description:	trigger proc that deletes, inserts or updates property record based on TG_OP (trigger operation)
+Notes:			this will check to see if property_def exists, also will add entry into property_x to join material_uuid with property_uuid	
+ 
+Example:		insert into vw_material_property (material_uuid, property_def_uuid, property_val, property_actor_uuid, property_status_uuid ) values (
+											(select material_uuid from vw_material where description = 'Formic Acid'),
+											(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
+											(select put_val (
+												(select valtype from vw_property_def where short_description = 'particle-size'),
+												'{100, 200}',
+												(select valunit from vw_property_def where short_description = 'particle-size'))), 
+											null,
+											(select status_uuid from vw_status where description = 'active')
+											);
+				update vw_material_property set property_actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where material_uuid = 
+				(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
+ 				delete from vw_material_property where material_uuid = 
+				(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
+ */
+CREATE OR REPLACE FUNCTION upsert_material_property ()
+	RETURNS TRIGGER
+	AS $$
+DECLARE
+	_property_uuid uuid;
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		-- first delete the property_x record
+		DELETE FROM property_x
+		WHERE property_uuid = OLD.property_uuid and material_uuid = OLD.material_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		DELETE FROM property
+		WHERE property_uuid = OLD.property_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- then delete the associated note record
+		DELETE FROM vw_note
+		WHERE note_uuid = OLD.property_uuid;
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			property
+		SET
+			property_val = NEW.property_val,
+			actor_uuid = NEW.property_actor_uuid,
+			status_uuid = NEW.property_status_uuid,
+			mod_date = now()
+		WHERE
+			property.property_uuid = NEW.property_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		IF (select exists (select property_def_uuid from vw_property_def where property_def_uuid = NEW.property_def_uuid)) THEN
+			IF NEW.material_uuid is null THEN
+				return null;
+			END IF;
+			INSERT INTO property (property_def_uuid, property_val, actor_uuid, status_uuid)
+				VALUES(NEW.property_def_uuid, NEW.property_val, NEW.property_actor_uuid, NEW.property_status_uuid)
+			RETURNING property_uuid into _property_uuid;
+			INSERT INTO property_x (material_uuid, property_uuid)
+				VALUES (NEW.material_uuid, _property_uuid);
+			RETURN NEW;
+		END IF;
 		RETURN NEW;
 	END IF;
 END;
 $$
 LANGUAGE plpgsql;
+
 
 
 /*

@@ -148,6 +148,35 @@ LANGUAGE plpgsql;
 
 
 /*
+Name:			load_json(_json varchar, _table varchar)
+Parameters:		_json = string of source filename, full location
+				_table = string of destination load_table
+Returns:		count of records loaded, or NULL is failed
+Author:			G. Cattabriga
+Date:			2020.07.31
+Description:	loads json file (_json) into load table (_table) 
+Notes:			drop function if exists load_json(_json varchar, _table varchar) cascade;
+Example:		select load_json('/Users/gcattabriga/Downloads/GitHub/escalate_wip/lanl_material_example_20200729.json', 'load_lanl_materials_json');
+*/
+CREATE OR REPLACE FUNCTION load_json (_json varchar, _table varchar)
+	RETURNS int
+	AS $func$
+DECLARE
+	fcontents varchar := null;
+	row_ct int := 0;
+BEGIN
+	EXECUTE (format('DROP TABLE IF EXISTS %I', _table));
+	EXECUTE (format('CREATE TABLE %I (json_val jsonb)', _table));
+	fcontents = read_file_utf8(_json);
+	EXECUTE (format('insert into %I (json_val) values (%L::jsonb)', _table, fcontents));
+	-- get row count
+	GET DIAGNOSTICS row_ct = ROW_COUNT;
+	RETURN row_ct;
+END $func$
+LANGUAGE plpgsql;
+
+
+/*
 Name:			load_experiment_json(_jsondir varchar, _exp_type varchar)
 Parameters:		_jsondir = directory of experimental json files
 				_exp_type = experiment type (e.g. wf1_iodides, wf1_bromides, wf3_alloying, wf3_iodide) 

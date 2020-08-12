@@ -89,6 +89,7 @@ val AS (
 ```
 actor
 actor_pref
+bom
 calculation
 calculation_class
 calculation_def
@@ -98,8 +99,7 @@ edocument_x
 escalate_change_log
 escalate_version
 experiment
-experiment_inventory
-experiment_udf
+experiment_workflow
 files
 inventory
 material
@@ -108,12 +108,20 @@ material_refname_def
 material_refname_x
 material_type
 material_type_x
+material_x
 measure
 measure_type
 measure_x
 note
+note_x
 organization
+outcome
+outcome_type
+outcome_x
 person
+property
+property_def
+property_x
 status
 sys_audit
 systemtool
@@ -123,6 +131,13 @@ tag_type
 tag_x
 udf
 udf_def
+workflow
+workflow_action
+workflow_action_condition
+workflow_action_def
+workflow_state
+workflow_state_def
+workflow_step
 
 ```
 <br/>
@@ -147,6 +162,7 @@ USING "pk_organization_organization_uuid";
 
 ALTER TABLE person
 	ADD CONSTRAINT "pk_person_person_uuid" PRIMARY KEY (person_uuid);
+CREATE UNIQUE INDEX "un_person" ON person (coalesce(last_name, NULL), coalesce(first_name, NULL), coalesce(middle_name, NULL));
 CLUSTER person
 USING "pk_person_person_uuid";
 
@@ -180,26 +196,30 @@ CREATE INDEX "ix_experiment_parent_uuid" ON experiment (parent_uuid);
 CLUSTER experiment
 USING "pk_experiment_experiment_uuid";
 
-ALTER TABLE experiment_inventory
-	ADD CONSTRAINT "pk_experiment_inventory_uuid" PRIMARY KEY (experiment_inventory_uuid);
-CLUSTER experiment_inventory
-USING "pk_experiment_inventory_uuid";
-ALTER TABLE experiment_udf
-	ADD CONSTRAINT "pk_experiment_udf_uuid" PRIMARY KEY (experiment_udf_uuid);
-CLUSTER experiment_udf
-USING "pk_experiment_udf_uuid";
+ALTER TABLE experiment_workflow
+	ADD CONSTRAINT "pk_experiment_workflow_uuid" PRIMARY KEY (experiment_workflow_uuid);
+CLUSTER experiment_workflow
+USING "pk_experiment_workflow_uuid";
 
 ALTER TABLE material
-	ADD CONSTRAINT "pk_material_material_uuid" PRIMARY KEY (material_uuid);
+	ADD CONSTRAINT "pk_material_material_uuid" PRIMARY KEY (material_uuid),
+		ADD CONSTRAINT "un_material" UNIQUE (description, parent_uuid, status_uuid);
 CREATE INDEX "ix_material_parent_path" ON material
 USING GIST (parent_path);
 CREATE INDEX "ix_material_parent_uuid" ON material (parent_uuid);
 CLUSTER material
 USING "pk_material_material_uuid";
 
+ALTER TABLE bom
+	ADD CONSTRAINT "pk_bom_bom_uuid" PRIMARY KEY (bom_uuid),
+		ADD CONSTRAINT "un_bom_experiment_material" UNIQUE (experiment_uuid, material_uuid);
+CREATE INDEX "ix_bom_experiment_uuid" ON bom (experiment_uuid);
+CLUSTER bom
+USING "pk_bom_bom_uuid";
+
 ALTER TABLE material_x
 	ADD CONSTRAINT "pk_material_x_material_x_uuid" PRIMARY KEY (material_x_uuid),
-		ADD CONSTRAINT "un_material_x" UNIQUE (material_x_uuid, material_uuid);
+		ADD CONSTRAINT "un_material_x" UNIQUE (material_uuid, ref_material_uuid);
 CLUSTER material_x
 USING "pk_material_x_material_x_uuid";
 
@@ -231,6 +251,23 @@ ALTER TABLE material_refname_def
 CLUSTER material_refname_def
 USING "pk_material_refname_def_material_refname_def_uuid";
 
+ALTER TABLE property
+	ADD CONSTRAINT "pk_property_property_uuid" PRIMARY KEY (property_uuid);
+CLUSTER property
+USING "pk_property_property_uuid";
+
+ALTER TABLE property_def
+	ADD CONSTRAINT "pk_property_def_property_def_uuid" PRIMARY KEY (property_def_uuid),
+		ADD CONSTRAINT "un_property_def" UNIQUE (short_description);
+CLUSTER property_def
+USING "pk_property_def_property_def_uuid";
+
+ALTER TABLE property_x
+	ADD CONSTRAINT "pk_property_x_property_x_uuid" PRIMARY KEY (property_x_uuid),
+		ADD CONSTRAINT "un_property_x_def" UNIQUE (material_uuid, property_uuid);
+CLUSTER property_x
+USING "pk_property_x_property_x_uuid";
+
 ALTER TABLE calculation_class
 	ADD CONSTRAINT "pk_calculation_class_calculation_class_uuid" PRIMARY KEY (calculation_class_uuid);
 CLUSTER calculation_class
@@ -256,7 +293,7 @@ USING "pk_calculation_eval_calculation_eval_id";
 
 ALTER TABLE inventory
 	ADD CONSTRAINT "pk_inventory_inventory_uuid" PRIMARY KEY (inventory_uuid),
-		ADD CONSTRAINT "un_inventory" UNIQUE (material_uuid, actor_uuid, create_date);
+		ADD CONSTRAINT "un_inventory" UNIQUE (material_uuid, actor_uuid, add_date);
 CLUSTER inventory
 USING "pk_inventory_inventory_uuid";
 
@@ -302,7 +339,7 @@ USING "pk_edocument_x_edocument_x_uuid";
 
 ALTER TABLE tag
 	ADD CONSTRAINT "pk_tag_tag_uuid" PRIMARY KEY (tag_uuid),
-		ADD CONSTRAINT "un_tag" UNIQUE (display_text);
+		ADD CONSTRAINT "un_tag" UNIQUE (display_text, tag_type_uuid);
 CLUSTER tag
 USING "pk_tag_tag_uuid";
 
@@ -335,8 +372,49 @@ ALTER TABLE udf_def
 CLUSTER udf_def
 USING "pk_udf_udf_def_uuid";
 
+ALTER TABLE workflow
+	ADD CONSTRAINT "pk_workflow_workflow_uuid" PRIMARY KEY (workflow_uuid);
+CREATE INDEX "ix_workflow_experiment_uuid" ON workflow (experiment_uuid);
+CREATE INDEX "ix_workflow_parent_uuid" ON workflow
+USING GIST (parent_path);
+CLUSTER workflow
+USING "pk_workflow_workflow_uuid";
+
+ALTER TABLE workflow_step
+	ADD CONSTRAINT "pk_workflow_step_workflow_step_uuid" PRIMARY KEY (workflow_step_uuid);
+CLUSTER workflow_step
+USING "pk_workflow_step_workflow_step_uuid";
+
+ALTER TABLE workflow_state_def
+	ADD CONSTRAINT "pk_workflow_state_def_workflow_state_def_uuid" PRIMARY KEY (workflow_state_def_uuid),
+		ADD CONSTRAINT "un_workflow_state_def" UNIQUE (description);
+CLUSTER workflow_state_def
+USING "pk_workflow_state_def_workflow_state_def_uuid";
+
+ALTER TABLE workflow_state
+	ADD CONSTRAINT "pk_workflow_state_workflow_state_uuid" PRIMARY KEY (workflow_state_uuid);
+CLUSTER workflow_state
+USING "pk_workflow_state_workflow_state_uuid";
+
+ALTER TABLE workflow_action_def
+	ADD CONSTRAINT "pk_workflow_action_def_workflow_action_def_uuid" PRIMARY KEY (workflow_action_def_uuid),
+		ADD CONSTRAINT "un_workflow_action_def" UNIQUE (description);
+CLUSTER workflow_action_def
+USING "pk_workflow_action_def_workflow_action_def_uuid";
+
+ALTER TABLE workflow_action
+	ADD CONSTRAINT "pk_workflow_action_workflow_action_uuid" PRIMARY KEY (workflow_action_uuid);
+CLUSTER workflow_action
+USING "pk_workflow_action_workflow_action_uuid";
+
+ALTER TABLE workflow_action_condition
+	ADD CONSTRAINT "pk_workflow_action_condition_workflow_action_condition_uuid" PRIMARY KEY (workflow_action_condition_uuid);
+CLUSTER workflow_action_condition
+USING "pk_workflow_action_condition_workflow_action_condition_uuid";
+
 ALTER TABLE status
-	ADD CONSTRAINT "pk_status_status_uuid" PRIMARY KEY (status_uuid);
+	ADD CONSTRAINT "pk_status_status_uuid" PRIMARY KEY (status_uuid),
+			ADD CONSTRAINT "un_status" UNIQUE (description);;
 CLUSTER status
 USING "pk_status_status_uuid";
 ```
@@ -401,6 +479,10 @@ get_calculation_def (p_descr VARCHAR[])
 get_calculation (p_material_refname varchar, p_descr VARCHAR[] = null)
    RETURNS TABLE (calculation_uuid uuid) 
 get_val (p_in val) returns text
+get_val_json (p_in val) RETURNS json
+get_val_actual (p_in anyelement, p_val val) RETURNS anyelement
+get_val_unit (p_in val) returns text
+put_val (p_type val_type, p_val text, p_unit text ) RETURNS val
 get_chemaxon_directory ( p_systemtool_uuid uuid, p_actor_uuid uuid ) RETURNS TEXT
 get_chemaxon_version ( p_systemtool_uuid uuid, p_actor_uuid uuid ) RETURNS TEXT
 run_descriptor (p_descriptor_def_uuid uuid, p_alias_name varchar, p_command_opt varchar, p_actor_uuid uuid) RETURNS BOOLEAN
@@ -419,7 +501,11 @@ upsert_udf_def () RETURNS TRIGGER
 upsert_status () RETURNS TRIGGER
 upsert_material_type () RETURNS TRIGGER
 upsert_material_refname_def () RETURNS TRIGGER
-upsert_note () RETURNS TRIGGER  -- this is imcomplete re: edocument
+upsert_material () RETURNS TRIGGER
+upsert_property_def () RETURNS TRIGGER
+upsert_property () RETURNS TRIGGER
+upsert_material_property () RETURNS TRIGGER
+upsert_note () RETURNS TRIGGER
 
 ```
 
@@ -447,12 +533,15 @@ vw_systemtool
 vw_material
 vw_material_calculation_json
 vw_material_calculation_raw
+vw_material_property
 vw_material_raw
 vw_material_refname_def
 vw_material_type
 vw_note
 vw_organization
 vw_person
+vw_property
+vw_property_def
 vw_status
 vw_systemtool_type
 vw_tag
@@ -799,6 +888,92 @@ delete from vw_material_refname_def where material_refname_def_uuid = (select ma
 
 <br/>
 
+__vw\_property\_def__`CRUD`<br/>
+*upsert\_property\_def ()*
+> property_def_uuid (v) <br/>
+> description (v u) <br/>
+> short_description (r v u) <br/>
+> valtype (r v u) <br/>
+> valunit(r v u) <br/>
+> add_date (v) <br/>
+> mod_date (v) <br/>
+> actor_uuid (v u) <br/>
+> actor_description (v) <br/>
+> status_uuid (v u) <br/>
+> status_description (v) <br/>
+
+```
+insert into vw_property_def (description, short_description, valtype, valunit, actor_uuid, status_uuid ) 
+	values ('particle-size {min, max}', 'particle-size', 'array_num', 'mesh', 
+	null,
+	(select status_uuid from vw_status where description = 'active'));
+update vw_property_def set short_description = 'particle-size', actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where (short_description = 'particle-size');
+delete from vw_property_def where short_description = 'particle-size';
+```
+
+<br/>
+
+__vw\_property__`CRUD`<br/>
+*upsert\_property ()*
+> property_uuid (v) <br/>
+> property_def_uuid (r v u) <br/>
+> short_description (v) <br/>
+> property_val (r v u) <br/>
+> add_date (v) <br/>
+> mod_date (v) <br/>
+> actor_uuid (v u) <br/>
+> actor_description (v) <br/>
+> status_uuid (v u) <br/>
+> status_description (v) <br/>
+
+`**NOTE: avoid using this view as an upsert as it needs to be associated with a material, so use vw_property_view instead.`<br/>
+
+```
+insert into vw_property (property_def_uuid, property_val, actor_uuid, status_uuid ) 
+	values ((select property_def_uuid from vw_property_def where short_description = 'particle-size'),
+	(select put_val ((select valtype from vw_property_def where short_description = 'particle-size'),'{100, 200}',
+	(select valunit from vw_property_def where short_description = 'particle-size'))), 
+	null,
+	(select status_uuid from vw_status where description = 'active'));
+update vw_property set actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where (property_uuid = 'e36c8f19-cd2f-4f5d-960d-54638f26f066');
+delete from vw_property where (property_uuid = 'e36c8f19-cd2f-4f5d-960d-54638f26f066');
+```
+
+
+<br/>
+
+__vw\_material\_property__`CRUD`<br/>
+*upsert\_material\_property ()*
+> material_uuid (r v) <br/>
+> description (v) <br/>
+> parent_uuid (v) <br/>
+> property_uuid (r v) <br/>
+> property_def_uuid (v u) <br/>
+> property_short_description (r v u) <br/>
+> property_val (r v u) <br/>
+> add_date (v) <br/>
+> mod_date (v) <br/>
+> actor_uuid (v u) <br/>
+> actor_description (v) <br/>
+> status_uuid (v u) <br/>
+> status_description (v) <br/>
+
+`**NOTE: because this is a one to many, on upsert property_uuid and material_uuid is (r)equired`<br/>
+
+```
+insert into vw_material_property (material_uuid, property_def_uuid, property_val, property_actor_uuid, property_status_uuid ) values (
+	(select material_uuid from vw_material where description = 'Formic Acid'),
+	(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
+	(select put_val ((select valtype from vw_property_def where short_description = 'particle-size'),'{100, 200}',
+	(select valunit from vw_property_def where short_description = 'particle-size'))), 
+	null,
+	(select status_uuid from vw_status where description = 'active'));
+update vw_material_property set property_actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where material_uuid = (select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
+delete from vw_material_property 
+ 	where material_uuid = (select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
+```
+
+<br/>
 
 __vw\_note__`CRUD`<br/>
 *upsert\_material\_refname\_def ()*
@@ -1049,9 +1224,8 @@ __vw\_material\_raw__`R`<br/>
 > mod_date (v) <br/>
 
 
-
-
 <br/>
+
 
 <!-- ******************* View Models ****************** -->
 <a name="viewmodels"></a>

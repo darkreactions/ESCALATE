@@ -755,6 +755,35 @@ OR DELETE ON vw_property
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_property ( );
 
+
+----------------------------------------
+-- view property
+----------------------------------------
+CREATE OR REPLACE VIEW vw_material_property AS
+SELECT
+	mat.material_uuid,
+	mat.description,
+	mat.parent_uuid,
+	pr.property_uuid,
+	pr.property_def_uuid,
+	pd.description as property_description,
+	pd.short_description as property_short_description,	
+	pr.property_val,
+	pr.actor_uuid as property_actor_uuid,
+	pr.status_uuid as property_status_uuid
+FROM vw_material mat
+LEFT JOIN property_x px on mat.material_uuid = px.material_uuid
+LEFT JOIN property pr on px.property_uuid = pr.property_uuid
+LEFT JOIN property_def pd on pr.property_def_uuid = pd.property_def_uuid;
+
+DROP TRIGGER IF EXISTS trigger_material_property_upsert ON vw_material_property;
+CREATE TRIGGER trigger_material_property_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_material_property
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_material_property ( );
+
+
 ----------------------------------------
 -- view inventory; with links to material, actor, status, edocument, note
 ----------------------------------------
