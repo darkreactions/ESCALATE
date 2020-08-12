@@ -631,13 +631,13 @@ class PropertyDef(models.Model):
     """
     uuid = models.UUIDField(primary_key=True, db_column='property_def_uuid')
     description = models.CharField(max_length=255, blank=True, null=True,
-                                   db_column='property_def_description')
+                                   db_column='description')
     short_description = models.CharField(max_length=255, blank=True, null=True,
-                                         db_column='property_def_short_description')
+                                         db_column='short_description')
     val_type = models.CharField(max_length=255, blank=True, null=True,
-                                db_column='property_def_val_type')
+                                db_column='valtype')
     val_unit = models.CharField(max_length=255, blank=True, null=True,
-                                db_column='property_def_val_unit')
+                                db_column='valunit')
     actor_uuid = models.ForeignKey('Actor', on_delete=models.DO_NOTHING,
                                    db_column='actor_uuid', blank=True, null=True)
     actor_description = models.CharField(max_length=255, blank=True, null=True,
@@ -648,9 +648,9 @@ class PropertyDef(models.Model):
     status_description = models.CharField(max_length=255, blank=True, null=True,
                                           db_column='status_description')
     add_date = models.CharField(max_length=255, blank=True, null=True,
-                                db_column='property_def_add_date')
+                                db_column='add_date')
     mod_date = models.CharField(max_length=255, blank=True, null=True,
-                                db_column='property_def_mod_date')
+                                db_column='mod_date')
     class Meta:
         managed = False
         db_table = 'vw_property_def'
