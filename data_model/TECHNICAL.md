@@ -895,12 +895,12 @@ __vw\_property\_def__`CRUD`<br/>
 > short_description (r v u) <br/>
 > valtype (r v u) <br/>
 > valunit(r v u) <br/>
-> add_date (v) <br/>
-> mod_date (v) <br/>
 > actor_uuid (v u) <br/>
 > actor_description (v) <br/>
 > status_uuid (v u) <br/>
 > status_description (v) <br/>
+> add_date (v) <br/>
+> mod_date (v) <br/>
 
 ```
 insert into vw_property_def (description, short_description, valtype, valunit, actor_uuid, status_uuid ) 
@@ -915,16 +915,16 @@ delete from vw_property_def where short_description = 'particle-size';
 
 __vw\_property__`CRUD`<br/>
 *upsert\_property ()*
-> property_uuid (v) <br/>
-> property_def_uuid (r v u) <br/>
-> short_description (v) <br/>
-> property_val (r v u) <br/>
-> add_date (v) <br/>
-> mod_date (v) <br/>
-> actor_uuid (v u) <br/>
-> actor_description (v) <br/>
-> status_uuid (v u) <br/>
-> status_description (v) <br/>
+> property\_uuid (v) <br/>
+> property\_def\_uuid (r v u) <br/>
+> short\_description (v) <br/>
+> property\_val (r v u) <br/>
+> actor\_uuid (v u) <br/>
+> actor\_description (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
 
 `**NOTE: avoid using this view as an upsert as it needs to be associated with a material, so use vw_property_view instead.`<br/>
 
@@ -944,19 +944,19 @@ delete from vw_property where (property_uuid = 'e36c8f19-cd2f-4f5d-960d-54638f26
 
 __vw\_material\_property__`CRUD`<br/>
 *upsert\_material\_property ()*
-> material_uuid (r v) <br/>
+> material\_uuid (r v) <br/>
 > description (v) <br/>
-> parent_uuid (v) <br/>
-> property_uuid (r v) <br/>
-> property_def_uuid (v u) <br/>
-> property_short_description (r v u) <br/>
-> property_val (r v u) <br/>
-> add_date (v) <br/>
-> mod_date (v) <br/>
-> actor_uuid (v u) <br/>
-> actor_description (v) <br/>
-> status_uuid (v u) <br/>
-> status_description (v) <br/>
+> parent\_uuid (v) <br/>
+> property\_uuid (r v) <br/>
+> property\_def\_uuid (v u) <br/>
+> property\_short\_description (r v u) <br/>
+> property\_val (r v u) <br/>
+> actor\_uuid (v u) <br/>
+> actor\_description (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
 
 `**NOTE: because this is a one to many, on upsert property_uuid and material_uuid is (r)equired`<br/>
 
@@ -987,16 +987,55 @@ __vw\_note__`CRUD`<br/>
 > ref\_note\_uuid (r)
 
 ```
-insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note', (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'));
--- no insert, ref_note_uuid missing
-insert into vw_note (notetext, actor_uuid) values ('test note', (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'));
+insert into vw_note (notetext, actor_uuid, ref_note_uuid) 
+	values ('test note', (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'), 
+	(select actor_uuid from vw_actor where person_last_name = 'Cattabriga'));
+insert into vw_note (notetext, actor_uuid) values 
+	('test note', (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'));
 update vw_note set notetext = 'test note with additional text...' where note_uuid = (select note_uuid from vw_note where (notetext = 'test note'));
 delete from vw_note where note_uuid = (select note_uuid from vw_note where (notetext = 'test note with additional text...'));
- --- delete all notes associated with a given entity
-insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note 1', (select actor_uuid from vw_actor where person_last_name = 'Alves'), (select actor_uuid from vw_actor where person_last_name = 'Alves'));
-insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note 2', (select actor_uuid from vw_actor where person_last_name = 'Alves'), (select actor_uuid from vw_actor where person_last_name = 'Alves'));
-insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note 3', (select actor_uuid from vw_actor where person_last_name = 'Alves'), (select actor_uuid from vw_actor where person_last_name = 'Alves'));
+-- delete all notes associated with a given entity
+insert into vw_note (notetext, actor_uuid, ref_note_uuid) 
+	values ('test note 1', (select actor_uuid from vw_actor where person_last_name = 'Alves'), (select actor_uuid from vw_actor where person_last_name = 'Alves'));
+insert into vw_note (notetext, actor_uuid, ref_note_uuid) 
+	values ('test note 2', (select actor_uuid from vw_actor where person_last_name = 'Alves'), (select actor_uuid from vw_actor where person_last_name = 'Alves'));
+insert into vw_note (notetext, actor_uuid, ref_note_uuid) 
+	values ('test note 2', (select actor_uuid from vw_actor where person_last_name = 'Alves'), (select actor_uuid from vw_actor where person_last_name = 'Alves'));
 delete from vw_note where note_uuid in (select note_uuid from vw_note where actor_uuid = (select actor_uuid from vw_actor where person_last_name = 'Alves'));
+
+```
+
+<br/>
+
+__vw\_edocument__`CRUD`<br/>
+*upsert\_edocument ()*
+> edocument\_uuid (v) <br/> 
+> title (r v u) <br/> 
+> description (v u) <br/> 
+> filename (v u) <br/>
+> source (v u) <br/> 
+> edocument (r v) <br/> 
+> doc\_type (r v u) <br/> 
+> doc\_ver (v u) <br/> 
+> actor\_uuid (v u) <br/> 
+> actor\_description (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+> edocument\_x\_uuid (v) <br/>
+> ref\_edocument\_uuid (v u) <br/>
+
+```
+-- just insert the document, with no association to an entity
+insert into vw_edocument (title, description, filename, source, edocument, doc_type, doc_ver, actor_uuid, status_uuid, ref_edocument_uuid) 
+	values ('Test document 1', 'This is a test document', null, null, 'a bunch of text cast as a blob'::bytea, 'blob_text'::val_type, null,
+	(select actor_uuid from vw_actor where description = 'Gary Cattabriga'), (select status_uuid from vw_status where description = 'active'),
+	null);
+-- now associate the edocument to an actor
+update vw_edocument set ref_edocument_uuid = (select actor_uuid from vw_actor where description = 'Gary Cattabriga') 
+	where edocument_uuid = (select edocument_uuid from vw_edocument where title = 'Test document 1');
+delete from vw_edocument where edocument_uuid = (select edocument_uuid from vw_edocument where title = 'Test document 1');
 ```
 <br/>
 
@@ -1070,25 +1109,6 @@ __vw\_calculation\_def__`R`<br/>
 > actor_description (v) <br/>
 > calculation_def_status_uuid (v) <br/>
 > calculation_def_status_description (v) <br/>
-> add_date (v) <br/>
-> mod_date (v) <br/>
-
-
-<br/>
-
-
-__vw\_edocument__`R`<br/>
-> edocument_uuid (v) <br/> 
-> edocument_title (v) <br/> 
-> edocument_description (v) <br/> 
-> edocument_filename (v) <br/>
-> edocument_source (v) <br/> 
-> edocument_type (v) <br/> 
-> edocument (v) <br/> 
-> actor_uuid (v) <br/> 
-> actor_description (v) <br/>
-> status_uuid (v) <br/>
-> status_description (v) <br/>
 > add_date (v) <br/>
 > mod_date (v) <br/>
 

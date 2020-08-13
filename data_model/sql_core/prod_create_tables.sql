@@ -71,6 +71,7 @@ DROP FUNCTION IF EXISTS upsert_material_refname_def () cascade;
 DROP FUNCTION IF EXISTS upsert_material () cascade;
 DROP FUNCTION IF EXISTS upsert_property () cascade;
 DROP FUNCTION IF EXISTS upsert_note () cascade;
+DROP FUNCTION IF EXISTS upsert_edocument () cascade;
 
 
  --=====================================
@@ -670,13 +671,13 @@ CREATE TABLE edocument_x (
 -- ----------------------------
 CREATE TABLE edocument (
 	edocument_uuid uuid DEFAULT uuid_generate_v4 (),
-	edocument_title varchar COLLATE "pg_catalog"."default",
+	title varchar COLLATE "pg_catalog"."default" NOT NULL,
 	description varchar COLLATE "pg_catalog"."default",
-	edocument_filename varchar COLLATE "pg_catalog"."default",
-	edocument_source varchar COLLATE "pg_catalog"."default",
-	edocument bytea,
-	edoc_type val_type,
-	ver varchar COLLATE "pg_catalog"."default",
+	filename varchar COLLATE "pg_catalog"."default",
+	source varchar COLLATE "pg_catalog"."default",
+	edocument bytea NOT NULL,
+	doc_type val_type NOT NULL,
+	doc_ver varchar COLLATE "pg_catalog"."default",
 	actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -1081,7 +1082,7 @@ USING "pk_note_x_note_x_uuid";
 
 ALTER TABLE edocument
 	ADD CONSTRAINT "pk_edocument_edocument_uuid" PRIMARY KEY (edocument_uuid),
-		ADD CONSTRAINT "un_edocument" UNIQUE (edocument_title, edocument_filename, edocument_source);
+		ADD CONSTRAINT "un_edocument" UNIQUE (title, doc_ver);
 CLUSTER edocument
 USING "pk_edocument_edocument_uuid";
 

@@ -53,22 +53,34 @@ CREATE TRIGGER trigger_status_upsert INSTEAD OF INSERT
 CREATE OR REPLACE VIEW vw_edocument AS
 SELECT
 	doc.edocument_uuid,
-	doc.edocument_title,
-	doc.description AS edocument_description,
-	doc.edocument_filename,
-	doc.edocument_source,
-	doc.edoc_type AS edocument_type,
+	doc.title,
+	doc.description,
+	doc.filename,
+	doc.source,
 	doc.edocument,
+	doc.doc_type,
+	doc.doc_ver,
 	act.actor_uuid,
 	act.description AS actor_description,
 	doc.status_uuid,
 	sts.description as status_description,
 	doc.add_date,
-	doc.mod_date
+	doc.mod_date,
+	docx.edocument_x_uuid,
+	docx.ref_edocument_uuid
 FROM
 	edocument doc
+	LEFT JOIN edocument_x docx on docx.edocument_uuid = doc.edocument_uuid
 	LEFT JOIN actor act ON doc.actor_uuid = act.actor_uuid
 	LEFT JOIN status sts ON doc.status_uuid = sts.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_edocument_upsert ON vw_edocument;
+CREATE TRIGGER trigger_edocument_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_edocument
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_edocument ( );
+
 
 
 ----------------------------------------
@@ -710,12 +722,12 @@ SELECT
 	pd.short_description,
 	pd.valtype,
 	pd.valunit,
-	pd.add_date,
-	pd.mod_date,
 	pd.actor_uuid,
 	act.description as actor_description,
 	st.status_uuid,
-	st.description as status_description
+	st.description as status_description,
+	pd.add_date,
+	pd.mod_date
 FROM property_def pd
 LEFT JOIN actor act on pd.actor_uuid = act.actor_uuid
 LEFT JOIN status st on pd.status_uuid = st.status_uuid;
@@ -737,12 +749,12 @@ SELECT
 	pr.property_def_uuid,
 	pd.short_description,
 	pr.property_val,
-	pr.add_date,
-	pr.mod_date,
 	pr.actor_uuid,
 	act.description as actor_description,
 	st.status_uuid,
-	st.description as status_description
+	st.description as status_description,
+	pr.add_date,
+	pr.mod_date
 FROM property pr
 LEFT JOIN property_def pd on pr.property_def_uuid = pd.property_def_uuid 
 LEFT JOIN actor act on pd.actor_uuid = act.actor_uuid
@@ -770,11 +782,17 @@ SELECT
 	pd.short_description as property_short_description,	
 	pr.property_val,
 	pr.actor_uuid as property_actor_uuid,
-	pr.status_uuid as property_status_uuid
+	act.description as actor_description,
+	pr.status_uuid as property_status_uuid,
+	st.description as status_description,
+	pr.add_date,
+	pr.mod_date
 FROM vw_material mat
 LEFT JOIN property_x px on mat.material_uuid = px.material_uuid
 LEFT JOIN property pr on px.property_uuid = pr.property_uuid
-LEFT JOIN property_def pd on pr.property_def_uuid = pd.property_def_uuid;
+LEFT JOIN property_def pd on pr.property_def_uuid = pd.property_def_uuid
+LEFT JOIN actor act on pr.actor_uuid = act.actor_uuid
+LEFT JOIN status st on pr.status_uuid = st.status_uuid;
 
 DROP TRIGGER IF EXISTS trigger_material_property_upsert ON vw_material_property;
 CREATE TRIGGER trigger_material_property_upsert INSTEAD OF INSERT

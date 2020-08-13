@@ -1569,7 +1569,7 @@ BEGIN
 		END IF;
 		-- then delete the associated note record
 		DELETE FROM vw_note
-		WHERE note_uuid = OLD.person_uuid;
+		WHERE ref_note_uuid = OLD.person_uuid;
 		RETURN OLD;
 	ELSIF (TG_OP = 'UPDATE') THEN
 		UPDATE
@@ -1639,7 +1639,7 @@ BEGIN
 		END IF;
 		-- then delete the associated note record
 		DELETE FROM vw_note
-		WHERE note_uuid = OLD.systemtool_uuid;
+		WHERE ref_note_uuid = OLD.systemtool_uuid;
 		RETURN OLD;
 	ELSIF (TG_OP = 'UPDATE') THEN
 		-- check to see if it's a version change of the tool. if so, then create a new record
@@ -1699,7 +1699,7 @@ BEGIN
 		END IF;
 		-- then delete the associated note record
 		DELETE FROM vw_note
-		WHERE note_uuid = OLD.systemtool_type_uuid;
+		WHERE ref_note_uuid = OLD.systemtool_type_uuid;
 		RETURN OLD;
 	ELSIF (TG_OP = 'UPDATE') THEN
 		UPDATE
@@ -1884,7 +1884,7 @@ BEGIN
 		END IF;
 		-- then delete the associated note record
 		DELETE FROM vw_note
-		WHERE note_uuid = OLD.udf_def_uuid;
+		WHERE ref_note_uuid = OLD.udf_def_uuid;
 		RETURN OLD;
 	ELSIF (TG_OP = 'UPDATE') THEN
 		UPDATE
@@ -1932,7 +1932,7 @@ BEGIN
 			RETURN NULL;
 		END IF;
 		DELETE FROM vw_note
-		WHERE note_uuid = OLD.status_uuid;
+		WHERE ref_note_uuid = OLD.status_uuid;
 		RETURN OLD;
 	ELSIF (TG_OP = 'UPDATE') THEN
 		UPDATE
@@ -1979,7 +1979,7 @@ BEGIN
 		END IF;
 		-- then delete the associated note record
 		DELETE FROM vw_note
-		WHERE note_uuid = OLD.material_type_uuid;
+		WHERE ref_note_uuid = OLD.material_type_uuid;
 		RETURN OLD;
 	ELSIF (TG_OP = 'UPDATE') THEN
 		UPDATE
@@ -2026,7 +2026,7 @@ BEGIN
 		END IF;
 		-- then delete the associated note record
 		DELETE FROM vw_note
-		WHERE note_uuid = OLD.material_refname_def_uuid;
+		WHERE ref_note_uuid = OLD.material_refname_def_uuid;
 		RETURN OLD;
 	ELSIF (TG_OP = 'UPDATE') THEN
 		UPDATE
@@ -2073,7 +2073,7 @@ BEGIN
 		END IF;
 		-- then delete the associated note record
 		DELETE FROM vw_note
-		WHERE note_uuid = OLD.material_refname_def_uuid;
+		WHERE ref_note_uuid = OLD.material_refname_def_uuid;
 		RETURN OLD;
 	ELSIF (TG_OP = 'UPDATE') THEN
 		UPDATE
@@ -2126,7 +2126,7 @@ BEGIN
 		END IF;
 		-- then delete the associated note record
 		DELETE FROM vw_note
-		WHERE note_uuid = OLD.property_def_uuid;
+		WHERE ref_note_uuid = OLD.property_def_uuid;
 		RETURN OLD;
 	ELSIF (TG_OP = 'UPDATE') THEN
 		UPDATE
@@ -2187,7 +2187,7 @@ BEGIN
 		END IF;
 		-- then delete the associated note record
 		DELETE FROM vw_note
-		WHERE note_uuid = OLD.property_uuid;
+		WHERE ref_note_uuid = OLD.property_uuid;
 		RETURN OLD;
 	ELSIF (TG_OP = 'UPDATE') THEN
 		UPDATE
@@ -2257,7 +2257,7 @@ BEGIN
 		END IF;
 		-- then delete the associated note record
 		DELETE FROM vw_note
-		WHERE note_uuid = OLD.property_uuid;
+		WHERE ref_note_uuid = OLD.property_uuid;
 		RETURN OLD;
 	ELSIF (TG_OP = 'UPDATE') THEN
 		UPDATE
@@ -2348,6 +2348,84 @@ BEGIN
 			note_uuid INTO _note_uuid;
 		INSERT INTO note_x (ref_note_uuid, note_uuid)
 			VALUES(NEW.ref_note_uuid, _note_uuid);
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			upsert_edocument()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.08.12
+Description:	trigger proc that deletes, inserts or updates edocument record based on TG_OP (trigger operation)
+Notes:				
+ 
+Example:		-- just insert the document, with no association to an entity
+				insert into vw_edocument (title, description, filename, source, edocument, doc_type, doc_ver,
+					actor_uuid, status_uuid, ref_edocument_uuid) 
+					values ('Test document 1', 'This is a test document', null, null, 'a bunch of text cast as a blob'::bytea, 'blob_text'::val_type, null,
+					(select actor_uuid from vw_actor where description = 'Gary Cattabriga'), (select status_uuid from vw_status where description = 'active'),
+					null);
+				-- now associate the edocument to an actor
+				update vw_edocument set ref_edocument_uuid = (select actor_uuid from vw_actor where description = 'Gary Cattabriga') where 
+					edocument_uuid = (select edocument_uuid from vw_edocument where title = 'Test document 1');
+				delete from vw_edocument where edocument_uuid = (select edocument_uuid from vw_edocument where title = 'Test document 1');
+
+*/
+CREATE OR REPLACE FUNCTION upsert_edocument ()
+	RETURNS TRIGGER
+	AS $$
+DECLARE
+	_edocument_uuid uuid;
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		-- first delete the document_x record if exists
+		DELETE FROM edocument_x
+		WHERE edocument_x_uuid = OLD.edocument_x_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		DELETE FROM edocument
+		WHERE edocument_uuid = OLD.edocument_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		DELETE FROM vw_note
+		WHERE ref_note_uuid = OLD.edocument_uuid;
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			edocument
+		SET
+			title = NEW.title,
+			description = NEW.description,
+			filename = NEW.filename,
+			source = NEW.source,
+			edocument = NEW.edocument,
+			doc_type = NEW.doc_type,
+			doc_ver = NEW.doc_ver,
+			actor_uuid = NEW.actor_uuid,
+			status_uuid = NEW.status_uuid,
+			mod_date = now()
+		WHERE
+			edocument.edocument_uuid = NEW.edocument_uuid;
+		INSERT INTO edocument_x (ref_edocument_uuid, edocument_uuid)
+				VALUES(NEW.ref_edocument_uuid, NEW.edocument_uuid) ON CONFLICT DO NOTHING;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO edocument (title, description, filename, source, edocument, doc_type, doc_ver, actor_uuid, status_uuid)
+			VALUES(NEW.title, NEW.description, NEW.filename, NEW.source, NEW.edocument, NEW.doc_type, NEW.doc_ver,
+			NEW.actor_uuid, NEW.status_uuid)
+		RETURNING edocument_uuid INTO _edocument_uuid;
+		IF NEW.ref_edocument_uuid IS NOT NULL THEN
+			INSERT INTO edocument_x (ref_edocument_uuid, edocument_uuid)
+				VALUES(NEW.ref_edocument_uuid, _edocument_uuid);
+		END IF;
 		RETURN NEW;
 	END IF;
 END;

@@ -278,7 +278,7 @@ COMMIT;
 -- ----------------------------
 BEGIN;
 	with ins as 
-		(INSERT into edocument (edocument_title, description, edocument_filename, edocument_source, edocument, edoc_type, actor_uuid) 
+		(INSERT into edocument (title, description, filename, source, edocument, doc_type, actor_uuid) 
 		(select document_title, description, file_name, document_source, edocument, 'blob_pdf'::val_type, (select actor_uuid from vw_actor where person_last_name = 'Pendleton') from load_edocument)
 		returning edocument_uuid)
 		insert into edocument_x (ref_edocument_uuid, edocument_uuid) VALUES

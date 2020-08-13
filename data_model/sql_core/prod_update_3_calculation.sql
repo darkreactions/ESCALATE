@@ -63,7 +63,7 @@ ON CONFLICT ON CONSTRAINT un_calculation DO UPDATE
 
 -- add the molecule image (from SMILES)	
 -- first insert image into edocument
-insert into edocument (edocument_title, description, edocument_filename, edocument_source, edocument, edoc_type, actor_uuid)
+insert into edocument (title, description, filename, source, edocument, doc_type, actor_uuid)
 	select mol_name as title, mol_name as description, filename, (select calculation_def_uuid from get_calculation_def (array['molimage'])) as edocument_source, _image as edocument, 
 	'blob_svg'::val_type as edoc_type, (select actor_uuid from vw_actor where person_last_name = 'Cattabriga') as actor_uuid from load_perov_mol_image img
 ON CONFLICT ON CONSTRAINT un_edocument DO UPDATE
@@ -80,7 +80,7 @@ INSERT INTO calculation (in_val.v_text, in_val.v_type, calculation_def_uuid, out
 	from 
 		(select mn.material_refname, mn.material_refname_def, img.edocument_uuid from edocument img 
 		join (SELECT * FROM get_material_nameref_bystatus (array['active', 'proto'], TRUE) where material_refname_def = 'SMILES') mn 
-		on img.edocument_title = mn.material_refname) pd
+		on img.title = mn.material_refname) pd
 		join lateral (values ('molimage', '_molimage', edocument_uuid)) as tmp(descr, alias_name, val) on true) dsc
 	left join 
 		(select *
