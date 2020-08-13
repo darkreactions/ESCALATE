@@ -3,7 +3,8 @@ from core.models import (Actor, Material, Inventory,
 from rest_framework.serializers import HyperlinkedModelSerializer, CharField, SerializerMethodField
 from rest_framework.reverse import reverse
 import core.models
-from .utils import view_names
+from .utils import view_names, perform_create_views
+#view_names += perform_create_views
 
 
 class DynamicFieldsModelSerializer(HyperlinkedModelSerializer):
@@ -68,3 +69,10 @@ class ExperimentMeasureCalculationSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = core.models.ExperimentMeasureCalculation
         fields = ('uid', 'row_to_json')
+
+
+class PropertyDefSerializer:
+
+    class Meta:
+        model = core.models.PropertyDef
+        fields = ('uuid', 'description', 'short_description', 'val_type', 'val_unit')
