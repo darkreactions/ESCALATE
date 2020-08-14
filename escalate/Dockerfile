@@ -1,5 +1,5 @@
 # pull official base image
-FROM python:3.6.0-alpine
+FROM python:3.7-alpine
 
 RUN apk update && apk add postgresql-dev gcc python3-dev musl-dev
 RUN apk add g++ libstdc++ bash git openssl-dev libffi-dev 

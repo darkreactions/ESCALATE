@@ -11,7 +11,9 @@ from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView, ListCreateAPIView
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.mixins import CreateModelMixin
 from django_filters import rest_framework as filters
 from url_filter.integrations.drf import DjangoFilterBackend
 
@@ -64,6 +66,7 @@ def create_view(model_name, lookup_field=None):
 
     methods_list = {"queryset": model.objects.all(),
                     "serializer_class": modelSerializer,
+                    "permission_classes": [IsAuthenticatedOrReadOnly],
                     "name": camel_case(model_name)+'-list',
                     "filter_backends": [DjangoFilterBackend],
                     "filter_fields": '__all__',
@@ -77,9 +80,9 @@ def create_view(model_name, lookup_field=None):
                       "name": camel_case(model_name)+'-detail',
                       "__doc__": rest_docs.get(model_name.lower()+'_detail', '')}
     globals()[model_name+'List'] = type(model_name + 'List',
-                                        tuple([ListAPIView]), methods_list)
+                                        tuple([ListCreateAPIView]), methods_list)
     globals()[model_name+'Detail'] = type(model_name + 'Detail',
-                                          tuple([RetrieveAPIView]), methods_detail)
+                                          tuple([RetrieveUpdateAPIView]), methods_detail)
 
 
 for view_name in view_names:
@@ -92,7 +95,7 @@ create_view('Edocument')
 
 # Download file view
 def download_blob(request, uuid):
-    edoc = core.models.Edocument.objects.get(edocument_uuid=uuid)
+    edoc = core.models.Edocument.objects.get(uuid=uuid)
     contents = edoc.edocument
     filename = edoc.filename
     testfile = tempfile.TemporaryFile()

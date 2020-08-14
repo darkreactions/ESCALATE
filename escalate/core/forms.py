@@ -1,7 +1,9 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-from core.models import (CustomUser, Person, Material, Inventory, Actor, Note, Organization, LatestSystemtool,
-                         SystemtoolType, UdfDef, Status, Tag, Tag_X, TagType, MaterialType)
+from core.models import (CustomUser, Person, Material, Inventory, Actor, Note,
+                         Organization, LatestSystemtool, SystemtoolType,
+                         UdfDef, Status, Tag, Tag_X, TagType, MaterialType,
+                         Edocument)
 
 
 dropdown_attrs = {'class': 'selectpicker',
@@ -471,3 +473,22 @@ class TagSelectForm(forms.Form):
             initial=current_tags, required=False, queryset=Tag.objects.all())
         # self.fields['tags'].widget.attrs.update({'data-live-search': 'true'})
         self.fields['tags'].widget.attrs.update(dropdown_attrs)
+
+
+class UploadEdocForm(forms.ModelForm):
+    class Meta:
+        model = Edocument
+        fields = ['title', 'description', 'source']
+        field_classes = {
+            'description': forms.CharField
+        }
+        labels = {
+            'description': 'Description'
+        }
+        widgets = {
+            'description': forms.Textarea(attrs={
+                'cols': '10',
+                'rows': '3',
+                'placeholder': 'Your material type description'
+            })
+        }

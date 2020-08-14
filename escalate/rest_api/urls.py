@@ -6,12 +6,14 @@ from .utils import camel_case, camel_case_uuid, view_names, custom_serializer_vi
 from rest_framework.schemas import get_schema_view
 from rest_framework.routers import DefaultRouter
 from rest_framework import generics
+from rest_framework.authtoken import views as token_views
 from rest_framework_swagger.views import get_swagger_view
 
 
 rest_urlpatterns = [
 
     path('api/', views.api_root, name='api_root'),
+    path('api/login', token_views.obtain_auth_token, name='api_login'),
     path('api/download/<uuid:uuid>/', views.download_blob, name='edoc_download'),
     path('api/experimentmeasurecalculation/', views.ExperimentMeasureCalculationList.as_view(),
          name='experimentmeasurecalculation-list'),

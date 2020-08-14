@@ -22,3 +22,35 @@ GET http://localhost:8000/api/experimentmeasurecalculation/?fields=uid
 ###
 
 GET http://localhost:8000/api/systemtool/?systemtool_name=standardize
+
+###
+
+POST http://localhost:8000/api/login
+content-type: application/json
+
+{
+  "username": "vshekar",
+  "password": "copperhead123"
+  
+}
+
+###
+POST http://localhost:8000/api/person/
+content-type: application/json
+
+{
+ "first_name": "S",
+ "last_name": "V" 
+  
+}
+
+###
+POST http://localhost:8000/api/person/
+Authorization: Token b1d7184e1257df774d6f20321ef767e0648a9e8c
+content-type: application/json
+
+{
+ "first_name": "S",
+ "last_name": "V" 
+  
+}

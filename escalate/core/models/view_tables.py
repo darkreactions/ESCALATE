@@ -576,12 +576,16 @@ class Edocument(models.Model):
                                 db_column='edocument_filename')
     source = models.CharField(
         max_length=255, blank=True, null=True, db_column='edocument_source')
-    type = models.CharField(max_length=255, blank=True,
-                            null=True, db_column='edocument_type')
+    edoc_type = models.CharField(max_length=255, blank=True,
+                                 null=True, db_column='edocument_type')
     edocument = models.BinaryField(blank=True, null=True)
     actor_uuid = models.ForeignKey(
         'Actor', models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)
     actor_description = models.CharField(
+        max_length=255, blank=True, null=True)
+    status_uuid = models.ForeignKey(
+        'Status', models.DO_NOTHING, db_column='status_uuid', blank=True, null=True)
+    status_description = models.CharField(
         max_length=255, blank=True, null=True)
 
     class Meta:
