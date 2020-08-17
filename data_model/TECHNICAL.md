@@ -548,7 +548,7 @@ vw_property_def
 vw_status
 vw_systemtool_type
 vw_tag
-vw_tag_x
+vw_tag_assign
 vw_tag_type
 vw_udf_def
 
