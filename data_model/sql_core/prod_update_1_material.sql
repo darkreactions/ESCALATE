@@ -9,6 +9,7 @@ Notes:
 */
 -- drop and create material, material_type, material_refname
 
+
 -- insert rows into material type from "load_Chem_Inventory"
 insert into vw_material_type (description)
 	SELECT trim(regexp_split_to_table(load_chem_inventory."ChemicalCategory", E',')) as ccat

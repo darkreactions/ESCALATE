@@ -8,38 +8,6 @@ Description:	load data from load_hc_inventory, load_lbl_inventory into inventory
 Notes:				
 */
 
--- ----------------------------
--- Table structure for load_hc_inventory
--- ----------------------------
-/*
-DROP TABLE IF EXISTS load_hc_inventory;
-CREATE TABLE load_hc_inventory (
-  reagent varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-  part_no varchar(255) COLLATE "pg_catalog"."default",
-  amount DOUBLE PRECISION,
-	units varchar(255) COLLATE "pg_catalog"."default",
-  update_date timestamptz NOT NULL DEFAULT NOW(),
-  create_date timestamptz NOT NULL DEFAULT '2019-06-01'::timestamptz
-);
-
--- ----------------------------
--- Table structure for load_lbl_inventory
--- ----------------------------
-DROP TABLE IF EXISTS load_lbl_inventory;
-CREATE TABLE load_lbl_inventory (
-  reagent varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-  part_no varchar(255) COLLATE "pg_catalog"."default",
-  amount DOUBLE PRECISION,
-	units varchar(255) COLLATE "pg_catalog"."default",
-  update_date timestamptz NOT NULL DEFAULT NOW(),
-  create_date timestamptz NOT NULL DEFAULT '2019-06-01'::timestamptz
-);
-
---add in the units
-update load_hc_inventory
-	set units = 'g'
-	where amount is not null;
-*/
 -- truncate table inventory;
 -- add the hc inventory data from load_hc_inventory 
 INSERT INTO inventory (description, material_uuid, actor_uuid, part_no, onhand_amt, unit, add_date, mod_date)

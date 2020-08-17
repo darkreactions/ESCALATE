@@ -266,12 +266,3 @@ ON CONFLICT ON CONSTRAINT un_calculation DO UPDATE
 		add_date = EXCLUDED.add_date;
 
 
-
-
-
-
-
-	
-	
-
-

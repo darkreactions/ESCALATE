@@ -1306,7 +1306,6 @@ $$
 LANGUAGE plpgsql;
 
 
-
 /*
 Name:			math_op (p_in_num numeric, p_op text, p_in_opt_num numeric default null) 
 Parameters:		p_op = basic math operation ('+', '/', '-', '*'. etc)
@@ -1336,7 +1335,6 @@ ELSE
 	END;
 $$
 LANGUAGE plpgsql;
-
 
 
 /*

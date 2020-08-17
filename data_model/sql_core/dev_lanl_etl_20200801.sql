@@ -8,6 +8,7 @@ Notes:			discrete (non-optimized!) -> run at your own peril <-
 */
 --===================================================================
 
+
 -- load material json into load table
 select load_json('/Users/gcattabriga/Downloads/GitHub/escalate_wip/lanl_material_example_20200729.json', 'load_lanl_materials_json');
 

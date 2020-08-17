@@ -9,7 +9,6 @@ Notes:
 */
 
 
-
 /*
 Name:			load_mol_images ()
 Parameters:		p_systemtool_uuid = identifier (id) of the chemaxon [software] tool
