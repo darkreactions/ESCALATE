@@ -496,7 +496,7 @@ upsert_systemtool_type () RETURNS TRIGGER
 upsert_actor () RETURNS TRIGGER
 upsert_tag_type () RETURNS TRIGGER
 upsert_tag () RETURNS TRIGGER
-upsert_tag_x () RETURNS TRIGGER
+upsert_tag_assign () RETURNS TRIGGER
 upsert_udf_def () RETURNS TRIGGER
 upsert_status () RETURNS TRIGGER
 upsert_material_type () RETURNS TRIGGER
@@ -506,6 +506,8 @@ upsert_property_def () RETURNS TRIGGER
 upsert_property () RETURNS TRIGGER
 upsert_material_property () RETURNS TRIGGER
 upsert_note () RETURNS TRIGGER
+upsert_edocument () RETURNS TRIGGER
+upsert_edocument_assign () RETURNS TRIGGER
 
 ```
 
@@ -525,6 +527,7 @@ vw_actor_pref
 vw_calculation
 vw_calculation_def
 vw_edocument
+vw_edocument_assign
 vw_experiment_measure_calculation
 vw_experiment_measure_calculation_json
 vw_inventory
@@ -783,8 +786,8 @@ delete from vw_tag where tag_uuid in (select tag_uuid from vw_tag where (display
 <br/>
 
 
-__vw\_tag_x__`CRUD`<br/>
-*upsert\_tag\_x ()*
+__vw\_tag_assign__`CRUD`<br/>
+*upsert\_tag\_assign ()*
 > tag\_x\_uuid (v) <br/>
 > ref\_tag\_uuid (r)
 > tag\_uuid (r) <br/>
@@ -1023,19 +1026,31 @@ __vw\_edocument__`CRUD`<br/>
 > status\_description (v) <br/>
 > add\_date (v) <br/>
 > mod\_date (v) <br/>
-> edocument\_x\_uuid (v) <br/>
-> ref\_edocument\_uuid (v u) <br/>
 
 ```
 -- just insert the document, with no association to an entity
-insert into vw_edocument (title, description, filename, source, edocument, doc_type, doc_ver, actor_uuid, status_uuid, ref_edocument_uuid) 
+insert into vw_edocument (title, description, filename, source, edocument, doc_type, doc_ver, actor_uuid, status_uuid) 
 	values ('Test document 1', 'This is a test document', null, null, 'a bunch of text cast as a blob'::bytea, 'blob_text'::val_type, null,
-	(select actor_uuid from vw_actor where description = 'Gary Cattabriga'), (select status_uuid from vw_status where description = 'active'),
-	null);
--- now associate the edocument to an actor
-update vw_edocument set ref_edocument_uuid = (select actor_uuid from vw_actor where description = 'Gary Cattabriga') 
-	where edocument_uuid = (select edocument_uuid from vw_edocument where title = 'Test document 1');
+	(select actor_uuid from vw_actor where description = 'Gary Cattabriga'), (select status_uuid from vw_status where description = 'active'));
 delete from vw_edocument where edocument_uuid = (select edocument_uuid from vw_edocument where title = 'Test document 1');
+```
+<br/>
+
+
+__vw\_edocument\_assign__`CRUD`<br/>
+*upsert\_edocument\_assign ()*
+> edocument\_x\_uuid (v) <br/>
+> ref\_edocument\_uuid (r)
+> edocument\_uuid (r) <br/>
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+
+```
+-- just insert the document, with no association to an entity
+insert into vw_edocument_assign (ref_edocument_uuid, edocument_uuid) values 
+ 	((select actor_uuid from vw_actor where person_last_name = 'Alves') ,(select edocument_uuid from vw_edocument where (title = 'Test document 1'));
+delete from vw_edocument_assign where edocument_uuid = (select edocument_uuid from vw_edocument where 
+ 	(title = 'Test document 1') and ref_tag_uuid = (select actor_uuid from vw_actor where person_last_name = 'Alves') );
 ```
 <br/>
 
