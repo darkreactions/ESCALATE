@@ -70,8 +70,8 @@ class ExperimentMeasureCalculationSerializer(DynamicFieldsModelSerializer):
         fields = ('uid', 'row_to_json')
 
 
-class PropertyDefSerializer:
+class PropertyDefSerializer(DynamicFieldsModelSerializer):
 
     class Meta:
         model = core.models.PropertyDef
-        fields = ('uuid', 'description', 'short_description', 'val_type', 'val_unit')
+        fields = ('description', 'short_description', 'val_type', 'val_unit')
