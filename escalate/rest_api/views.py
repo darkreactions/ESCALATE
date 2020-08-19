@@ -29,8 +29,8 @@ from .rest_docs import rest_docs
 view_names = view_names + custom_serializer_views
 
 def perform_create_save_actor(self, serializer):
-    actor = Actor.objects.get(person_uuid=request.user.person.pk)
-    serializer.save(actor_uuid = actor.uuid)
+    actor = Actor.objects.get(person_uuid=self.request.user.person)
+    serializer.save(actor_uuid=actor)
 
 @api_view(['GET'])
 @docstring(rest_docs['api_root'])
