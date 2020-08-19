@@ -26,8 +26,7 @@ import core.models
 import rest_api
 from .rest_docs import rest_docs
 
-
-view_names = view_names + custom_serializer_views + perform_create_views
+view_names = view_names + custom_serializer_views
 
 def perform_create_save_actor(self, serializer):
     actor = Actor.objects.get(person_uuid=request.user.person.pk)

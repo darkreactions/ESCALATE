@@ -3,8 +3,7 @@ from core.models import (Actor, Material, Inventory,
 from rest_framework.serializers import HyperlinkedModelSerializer, CharField, SerializerMethodField
 from rest_framework.reverse import reverse
 import core.models
-from .utils import view_names, perform_create_views
-#view_names += perform_create_views
+from .utils import view_names
 
 
 class DynamicFieldsModelSerializer(HyperlinkedModelSerializer):
