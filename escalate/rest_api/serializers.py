@@ -1,6 +1,6 @@
 from core.models import (Actor, Material, Inventory,
                          Person, Organization, Note)
-from rest_framework.serializers import HyperlinkedModelSerializer, CharField, SerializerMethodField
+from rest_framework.serializers import HyperlinkedModelSerializer, CharField, SerializerMethodField, ReadOnlyField
 from rest_framework.reverse import reverse
 import core.models
 from .utils import view_names
@@ -74,4 +74,8 @@ class PropertyDefSerializer(DynamicFieldsModelSerializer):
 
     class Meta:
         model = core.models.PropertyDef
-        fields = ('description', 'short_description', 'val_type', 'val_unit')
+        fields = ("uuid", "description", "short_description", "val_type", "val_unit", "actor_uuid", "actor_description",
+                  "status_uuid", "status_description", "add_date", "mod_date")
+    uuid = ReadOnlyField()
+    actor_uuid = ReadOnlyField()
+    actor_description = ReadOnlyField()
