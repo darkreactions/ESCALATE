@@ -33,7 +33,7 @@ select prop.m_prop->'name' as prop_name from
 
 
 	
-select com.jval->'name' as compound_name, com. from 
+select com.jval->'name' as compound_name from 
 	(select json_array_elements(jval->'compound') as jval from load_lanl_materials_json) com
 
 
