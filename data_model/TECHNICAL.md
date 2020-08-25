@@ -947,6 +947,7 @@ delete from vw_property where (property_uuid = 'e36c8f19-cd2f-4f5d-960d-54638f26
 
 __vw\_material\_property__`CRUD`<br/>
 *upsert\_material\_property ()*
+> property\_x\_uuid (v) <br/>
 > material\_uuid (r v) <br/>
 > description (v) <br/>
 > parent\_uuid (v) <br/>
@@ -962,18 +963,22 @@ __vw\_material\_property__`CRUD`<br/>
 > mod\_date (v) <br/>
 
 `**NOTE: because this is a one to many, on upsert property_uuid and material_uuid is (r)equired`<br/>
+`**NOTE: property_x_uuid is added to guarantee a unique key for the view table`<br/>
 
 ```
-insert into vw_material_property (material_uuid, property_def_uuid, property_val, property_actor_uuid, property_status_uuid ) values (
-	(select material_uuid from vw_material where description = 'Formic Acid'),
-	(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
-	(select put_val ((select valtype from vw_property_def where short_description = 'particle-size'),'{100, 200}',
-	(select valunit from vw_property_def where short_description = 'particle-size'))), 
-	null,
-	(select status_uuid from vw_status where description = 'active'));
-update vw_material_property set property_actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where material_uuid = (select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
-delete from vw_material_property 
- 	where material_uuid = (select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
+insert into vw_material_property (property_x_uuid, material_uuid, property_def_uuid, property_val, property_actor_uuid, property_status_uuid ) 
+	values (null, (select material_uuid from vw_material where description = 'Formic Acid'),
+			(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
+			(select put_val ((select valtype from vw_property_def where short_description = 'particle-size'),
+				'{100, 200}',
+				(select valunit from vw_property_def where short_description = 'particle-size'))), 
+				null,
+				(select status_uuid from vw_status where description = 'active')
+	) returning *;
+update vw_material_property set property_actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where material_uuid = 
+	(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
+delete from vw_material_property where material_uuid = 
+	(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
 ```
 
 <br/>

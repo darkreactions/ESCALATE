@@ -2220,16 +2220,15 @@ Date:			2020.08.04
 Description:	trigger proc that deletes, inserts or updates property record based on TG_OP (trigger operation)
 Notes:			this will check to see if property_def exists, also will add entry into property_x to join material_uuid with property_uuid	
  
-Example:		insert into vw_material_property (material_uuid, property_def_uuid, property_val, property_actor_uuid, property_status_uuid ) values (
-											(select material_uuid from vw_material where description = 'Formic Acid'),
-											(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
-											(select put_val (
-												(select valtype from vw_property_def where short_description = 'particle-size'),
-												'{100, 200}',
-												(select valunit from vw_property_def where short_description = 'particle-size'))), 
-											null,
-											(select status_uuid from vw_status where description = 'active')
-											);
+Example:		insert into vw_material_property (property_x_uuid, material_uuid, property_def_uuid, property_val, property_actor_uuid, property_status_uuid ) 
+					values (null, (select material_uuid from vw_material where description = 'Formic Acid'),
+							(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
+							(select put_val ((select valtype from vw_property_def where short_description = 'particle-size'),
+								'{100, 200}',
+								(select valunit from vw_property_def where short_description = 'particle-size'))), 
+								null,
+								(select status_uuid from vw_status where description = 'active')
+				) returning *;
 				update vw_material_property set property_actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where material_uuid = 
 				(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
  				delete from vw_material_property where material_uuid = 
@@ -2275,9 +2274,9 @@ BEGIN
 			END IF;
 			INSERT INTO property (property_def_uuid, property_val, actor_uuid, status_uuid)
 				VALUES(NEW.property_def_uuid, NEW.property_val, NEW.property_actor_uuid, NEW.property_status_uuid)
-			RETURNING property_uuid into _property_uuid;
+			RETURNING property_uuid into NEW.property_uuid;
 			INSERT INTO property_x (material_uuid, property_uuid)
-				VALUES (NEW.material_uuid, _property_uuid) returning _property_uuid into NEW.property_uuid;
+				VALUES (NEW.material_uuid, _property_uuid) returning property_x_uuid into NEW.property_x_uuid;
 			RETURN NEW;
 		END IF;
 		RETURN NEW;

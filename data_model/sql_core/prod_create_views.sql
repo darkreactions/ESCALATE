@@ -773,6 +773,7 @@ EXECUTE PROCEDURE upsert_property ( );
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_material_property AS
 SELECT
+	px.property_x_uuid,
 	mat.material_uuid,
 	mat.description,
 	mat.parent_uuid,
