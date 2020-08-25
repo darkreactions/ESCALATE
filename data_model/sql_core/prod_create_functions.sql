@@ -1347,9 +1347,9 @@ Date:				2020.07.15
 Description:		trigger proc that deletes, inserts or updates actor 
 Notes:				there is going to be a lot of dependencies on actor, so a 'delete' will need a lot of cleanup first; easier to just change status to 'inactive' or something like that
  
-Example:			insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null);
+Example:			insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null) returning *;
 					delete from vw_person where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
-					insert into vw_actor (person_uuid, description, status_uuid) values ((select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester')), 'Lester the Actor', (select status_uuid from vw_status where description = 'active'));
+					insert into vw_actor (person_uuid, description, status_uuid) values ((select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester')), 'Lester the Actor', (select status_uuid from vw_status where description = 'active')) returning *;
 					insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note for Lester the Actor', (select actor_uuid from vw_actor where person_last_name = 'Tester'), (select actor_uuid from vw_actor where person_last_name = 'Tester'));
 					insert into vw_tag_x (tag_uuid, ref_tag_uuid) values ((select tag_uuid from vw_tag where (display_text = 'do_not_use')), (select actor_uuid from vw_actor where person_last_name = 'Tester'));
 					update vw_actor set description = 'new description for Lester the Actor' where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
@@ -1405,7 +1405,7 @@ BEGIN
 			RETURN NULL;
 		ELSE
 			INSERT INTO actor (organization_uuid, person_uuid, systemtool_uuid, description, status_uuid)
-				VALUES(NEW.organization_uuid, NEW.person_uuid, NEW.systemtool_uuid, NEW.description, NEW.status_uuid);
+				VALUES(NEW.organization_uuid, NEW.person_uuid, NEW.systemtool_uuid, NEW.description, NEW.status_uuid) returning actor_uuid into NEW.actor_uuid;
 			RETURN NEW;
 		END IF;
 	END IF;
@@ -1455,7 +1455,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO actor_pref (actor_uuid, pkey, pvalue)
-			VALUES(NEW.actor_uuid, NEW.pkey, NEW.pvalue);
+			VALUES(NEW.actor_uuid, NEW.pkey, NEW.pvalue) returning actor_pref_uuid into NEW.actor_pref_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1710,7 +1710,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO systemtool_type (description)
-			VALUES(NEW.description);
+			VALUES(NEW.description) returning systemtool_type_uuid into NEW.systemtool_type_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1762,7 +1762,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO tag_type (short_description, description)
-			VALUES(NEW.short_description, NEW.description);
+			VALUES(NEW.short_description, NEW.description) returning tag_type_uuid into NEW.tag_type_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1811,7 +1811,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO tag (display_text, description, tag_type_uuid, actor_uuid)
-			VALUES(NEW.display_text, NEW.description, NEW.tag_type_uuid, NEW.actor_uuid);
+			VALUES(NEW.display_text, NEW.description, NEW.tag_type_uuid, NEW.actor_uuid) returning tag_uuid into NEW.tag_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1896,7 +1896,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO udf_def (description, valtype)
-			VALUES(NEW.description, NEW.valtype);
+			VALUES(NEW.description, NEW.valtype) returning udf_def_uuid into NEW.udf_def_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1943,7 +1943,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO status (description)
-			VALUES(NEW.description);
+			VALUES(NEW.description) returning status_uuid into NEW.status_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1990,7 +1990,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO material_type (description)
-			VALUES(NEW.description);
+			VALUES(NEW.description) returning material_type_uuid into NEW.material_type_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -2037,7 +2037,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO material_refname_def (description)
-			VALUES(NEW.description);
+			VALUES(NEW.description) returning material_refname_uuid into NEW.material_refname_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -2084,7 +2084,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO material_refname_def (description)
-			VALUES(NEW.description);
+			VALUES(NEW.description) returning material_uuid into NEW.material_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -2142,7 +2142,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO property_def (description, short_description, valtype, valunit, actor_uuid, status_uuid)
-			VALUES(NEW.description, NEW.short_description, NEW.valtype, NEW.valunit, NEW.actor_uuid, NEW.status_uuid);
+			VALUES(NEW.description, NEW.short_description, NEW.valtype, NEW.valunit, NEW.actor_uuid, NEW.status_uuid) returning property_def_uuid into NEW.property_def_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -2201,7 +2201,7 @@ BEGIN
 	ELSIF (TG_OP = 'INSERT') THEN
 		IF (select exists (select property_def_uuid from vw_property_def where property_def_uuid = NEW.property_def_uuid)) THEN
 			INSERT INTO property (property_def_uuid, property_val, actor_uuid, status_uuid)
-				VALUES(NEW.property_def_uuid, NEW.property_val, NEW.actor_uuid, NEW.status_uuid);
+				VALUES(NEW.property_def_uuid, NEW.property_val, NEW.actor_uuid, NEW.status_uuid) returning property_uuid into NEW.property_uuid;
 			RETURN NEW;
 		END IF;
 	END IF;
@@ -2277,7 +2277,7 @@ BEGIN
 				VALUES(NEW.property_def_uuid, NEW.property_val, NEW.property_actor_uuid, NEW.property_status_uuid)
 			RETURNING property_uuid into _property_uuid;
 			INSERT INTO property_x (material_uuid, property_uuid)
-				VALUES (NEW.material_uuid, _property_uuid);
+				VALUES (NEW.material_uuid, _property_uuid) returning _property_uuid into NEW.property_uuid;
 			RETURN NEW;
 		END IF;
 		RETURN NEW;
@@ -2345,7 +2345,7 @@ BEGIN
 		RETURNING
 			note_uuid INTO _note_uuid;
 		INSERT INTO note_x (ref_note_uuid, note_uuid)
-			VALUES(NEW.ref_note_uuid, _note_uuid);
+			VALUES(NEW.ref_note_uuid, _note_uuid) returning _note_uuid into NEW.note_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -2419,10 +2419,10 @@ BEGIN
 		INSERT INTO edocument (title, description, filename, source, edocument, doc_type, doc_ver, actor_uuid, status_uuid)
 			VALUES(NEW.title, NEW.description, NEW.filename, NEW.source, NEW.edocument, NEW.doc_type, NEW.doc_ver,
 			NEW.actor_uuid, NEW.status_uuid)
-		RETURNING edocument_uuid INTO _edocument_uuid;
+		RETURNING edocument_uuid INTO NEW.edocument_uuid;
 		IF NEW.ref_edocument_uuid IS NOT NULL THEN
 			INSERT INTO edocument_x (ref_edocument_uuid, edocument_uuid)
-				VALUES(NEW.ref_edocument_uuid, _edocument_uuid);
+				VALUES(NEW.ref_edocument_uuid, NEW.edocument_uuid);
 		END IF;
 		RETURN NEW;
 	END IF;
