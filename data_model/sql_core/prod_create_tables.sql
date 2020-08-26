@@ -326,7 +326,6 @@ CREATE TABLE experiment (
 );
 
 
-
 ---------------------------------------
 -- Table structure for experiment_workflow
 ---------------------------------------
@@ -352,7 +351,6 @@ CREATE TABLE material (
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
-
 
 
 ---------------------------------------

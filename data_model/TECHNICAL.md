@@ -496,7 +496,7 @@ upsert_systemtool_type () RETURNS TRIGGER
 upsert_actor () RETURNS TRIGGER
 upsert_tag_type () RETURNS TRIGGER
 upsert_tag () RETURNS TRIGGER
-upsert_tag_x () RETURNS TRIGGER
+upsert_tag_assign () RETURNS TRIGGER
 upsert_udf_def () RETURNS TRIGGER
 upsert_status () RETURNS TRIGGER
 upsert_material_type () RETURNS TRIGGER
@@ -506,6 +506,8 @@ upsert_property_def () RETURNS TRIGGER
 upsert_property () RETURNS TRIGGER
 upsert_material_property () RETURNS TRIGGER
 upsert_note () RETURNS TRIGGER
+upsert_edocument () RETURNS TRIGGER
+upsert_edocument_assign () RETURNS TRIGGER
 
 ```
 
@@ -525,6 +527,7 @@ vw_actor_pref
 vw_calculation
 vw_calculation_def
 vw_edocument
+vw_edocument_assign
 vw_experiment_measure_calculation
 vw_experiment_measure_calculation_json
 vw_inventory
@@ -545,7 +548,7 @@ vw_property_def
 vw_status
 vw_systemtool_type
 vw_tag
-vw_tag_x
+vw_tag_assign
 vw_tag_type
 vw_udf_def
 
@@ -783,8 +786,8 @@ delete from vw_tag where tag_uuid in (select tag_uuid from vw_tag where (display
 <br/>
 
 
-__vw\_tag_x__`CRUD`<br/>
-*upsert\_tag\_x ()*
+__vw\_tag_assign__`CRUD`<br/>
+*upsert\_tag\_assign ()*
 > tag\_x\_uuid (v) <br/>
 > ref\_tag\_uuid (r)
 > tag\_uuid (r) <br/>
@@ -944,6 +947,7 @@ delete from vw_property where (property_uuid = 'e36c8f19-cd2f-4f5d-960d-54638f26
 
 __vw\_material\_property__`CRUD`<br/>
 *upsert\_material\_property ()*
+> property\_x\_uuid (v) <br/>
 > material\_uuid (r v) <br/>
 > description (v) <br/>
 > parent\_uuid (v) <br/>
@@ -959,18 +963,22 @@ __vw\_material\_property__`CRUD`<br/>
 > mod\_date (v) <br/>
 
 `**NOTE: because this is a one to many, on upsert property_uuid and material_uuid is (r)equired`<br/>
+`**NOTE: property_x_uuid is added to guarantee a unique key for the view table`<br/>
 
 ```
-insert into vw_material_property (material_uuid, property_def_uuid, property_val, property_actor_uuid, property_status_uuid ) values (
-	(select material_uuid from vw_material where description = 'Formic Acid'),
-	(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
-	(select put_val ((select valtype from vw_property_def where short_description = 'particle-size'),'{100, 200}',
-	(select valunit from vw_property_def where short_description = 'particle-size'))), 
-	null,
-	(select status_uuid from vw_status where description = 'active'));
-update vw_material_property set property_actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where material_uuid = (select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
-delete from vw_material_property 
- 	where material_uuid = (select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
+insert into vw_material_property (property_x_uuid, material_uuid, property_def_uuid, property_val, property_actor_uuid, property_status_uuid ) 
+	values (null, (select material_uuid from vw_material where description = 'Formic Acid'),
+			(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
+			(select put_val ((select valtype from vw_property_def where short_description = 'particle-size'),
+				'{100, 200}',
+				(select valunit from vw_property_def where short_description = 'particle-size'))), 
+				null,
+				(select status_uuid from vw_status where description = 'active')
+	) returning *;
+update vw_material_property set property_actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where material_uuid = 
+	(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
+delete from vw_material_property where material_uuid = 
+	(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
 ```
 
 <br/>
@@ -1023,19 +1031,31 @@ __vw\_edocument__`CRUD`<br/>
 > status\_description (v) <br/>
 > add\_date (v) <br/>
 > mod\_date (v) <br/>
-> edocument\_x\_uuid (v) <br/>
-> ref\_edocument\_uuid (v u) <br/>
 
 ```
 -- just insert the document, with no association to an entity
-insert into vw_edocument (title, description, filename, source, edocument, doc_type, doc_ver, actor_uuid, status_uuid, ref_edocument_uuid) 
+insert into vw_edocument (title, description, filename, source, edocument, doc_type, doc_ver, actor_uuid, status_uuid) 
 	values ('Test document 1', 'This is a test document', null, null, 'a bunch of text cast as a blob'::bytea, 'blob_text'::val_type, null,
-	(select actor_uuid from vw_actor where description = 'Gary Cattabriga'), (select status_uuid from vw_status where description = 'active'),
-	null);
--- now associate the edocument to an actor
-update vw_edocument set ref_edocument_uuid = (select actor_uuid from vw_actor where description = 'Gary Cattabriga') 
-	where edocument_uuid = (select edocument_uuid from vw_edocument where title = 'Test document 1');
+	(select actor_uuid from vw_actor where description = 'Gary Cattabriga'), (select status_uuid from vw_status where description = 'active'));
 delete from vw_edocument where edocument_uuid = (select edocument_uuid from vw_edocument where title = 'Test document 1');
+```
+<br/>
+
+
+__vw\_edocument\_assign__`CRUD`<br/>
+*upsert\_edocument\_assign ()*
+> edocument\_x\_uuid (v) <br/>
+> ref\_edocument\_uuid (r)
+> edocument\_uuid (r) <br/>
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+
+```
+-- just insert the document, with no association to an entity
+insert into vw_edocument_assign (ref_edocument_uuid, edocument_uuid) values 
+ 	((select actor_uuid from vw_actor where person_last_name = 'Alves') ,(select edocument_uuid from vw_edocument where (title = 'Test document 1'));
+delete from vw_edocument_assign where edocument_uuid = (select edocument_uuid from vw_edocument where 
+ 	(title = 'Test document 1') and ref_tag_uuid = (select actor_uuid from vw_actor where person_last_name = 'Alves') );
 ```
 <br/>
 

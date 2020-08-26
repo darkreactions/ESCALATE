@@ -1306,7 +1306,6 @@ $$
 LANGUAGE plpgsql;
 
 
-
 /*
 Name:			math_op (p_in_num numeric, p_op text, p_in_opt_num numeric default null) 
 Parameters:		p_op = basic math operation ('+', '/', '-', '*'. etc)
@@ -1338,7 +1337,6 @@ $$
 LANGUAGE plpgsql;
 
 
-
 /*
 Name:				upsert_actor ()
 Parameters:		
@@ -1349,9 +1347,9 @@ Date:				2020.07.15
 Description:		trigger proc that deletes, inserts or updates actor 
 Notes:				there is going to be a lot of dependencies on actor, so a 'delete' will need a lot of cleanup first; easier to just change status to 'inactive' or something like that
  
-Example:			insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null);
+Example:			insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null) returning *;
 					delete from vw_person where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
-					insert into vw_actor (person_uuid, description, status_uuid) values ((select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester')), 'Lester the Actor', (select status_uuid from vw_status where description = 'active'));
+					insert into vw_actor (person_uuid, description, status_uuid) values ((select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester')), 'Lester the Actor', (select status_uuid from vw_status where description = 'active')) returning *;
 					insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note for Lester the Actor', (select actor_uuid from vw_actor where person_last_name = 'Tester'), (select actor_uuid from vw_actor where person_last_name = 'Tester'));
 					insert into vw_tag_x (tag_uuid, ref_tag_uuid) values ((select tag_uuid from vw_tag where (display_text = 'do_not_use')), (select actor_uuid from vw_actor where person_last_name = 'Tester'));
 					update vw_actor set description = 'new description for Lester the Actor' where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
@@ -1407,7 +1405,7 @@ BEGIN
 			RETURN NULL;
 		ELSE
 			INSERT INTO actor (organization_uuid, person_uuid, systemtool_uuid, description, status_uuid)
-				VALUES(NEW.organization_uuid, NEW.person_uuid, NEW.systemtool_uuid, NEW.description, NEW.status_uuid);
+				VALUES(NEW.organization_uuid, NEW.person_uuid, NEW.systemtool_uuid, NEW.description, NEW.status_uuid) returning actor_uuid into NEW.actor_uuid;
 			RETURN NEW;
 		END IF;
 	END IF;
@@ -1457,7 +1455,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO actor_pref (actor_uuid, pkey, pvalue)
-			VALUES(NEW.actor_uuid, NEW.pkey, NEW.pvalue);
+			VALUES(NEW.actor_uuid, NEW.pkey, NEW.pvalue) returning actor_pref_uuid into NEW.actor_pref_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1525,7 +1523,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid) VALUES(NEW.description, NEW.full_name, NEW.short_name, NEW.address1, NEW.address2, NEW.city, NEW.state_province, NEW.zip, NEW.country, NEW.website_url, NEW.phone, NEW.parent_uuid) returning organization_uuid, short_name into _org_uuid, _org_description;
-		insert into vw_actor (organization_uuid, description, status_uuid) values (_org_uuid, _org_description, (select status_uuid from vw_status where description = 'active'));
+		insert into vw_actor (organization_uuid, description, status_uuid) values (_org_uuid, _org_description, (select status_uuid from vw_status where description = 'active')) returning _org_uuid into NEW.organization_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1544,10 +1542,10 @@ Description:		trigger proc that deletes, inserts or updates person record based 
 Notes:				added functionality to insert a NEW organization into a NEW actor
  
 Example:			-- note: this insert also inserts record into actor
-					insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null);
+					insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null) returning *;
  					update vw_person set title = 'Mr', city = 'Some [new] City', zip = '99999', email = 'TesterL@scarythings.xxx' where person_uuid = 
- 					(select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
- 					update vw_person set organization_uuid =  (select organization_uuid from organization where organization.full_name = 'Haverford College') where (last_name = 'Tester' and 						first_name = 'Lester');
+ 					(select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester')) returning *;
+ 					update vw_person set organization_uuid =  (select organization_uuid from organization where organization.full_name = 'Haverford College') where (last_name = 'Tester' and first_name = 'Lester') returning *;
  					delete from vw_person where person_uuid = (select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
 					delete from vw_actor where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
  */
@@ -1595,7 +1593,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) VALUES(NEW.last_name, NEW.first_name, NEW.middle_name, NEW.address1, NEW.address2, NEW.city, NEW.state_province, NEW.zip, NEW.country, NEW.phone, NEW.email, NEW.title, NEW.suffix, NEW.organization_uuid) returning person_uuid, first_name, middle_name, last_name  into _person_uuid, _person_first_name, _person_middle_name, _person_last_name;
-		insert into vw_actor (person_uuid, description, status_uuid) values (_person_uuid, trim(concat(_person_first_name,' ', _person_last_name)), (select status_uuid from vw_status where description = 'active'));
+		insert into vw_actor (person_uuid, description, status_uuid) values (_person_uuid, trim(concat(_person_first_name,' ', _person_last_name)), (select status_uuid from vw_status where description = 'active')) returning _person_uuid into NEW.person_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1614,7 +1612,7 @@ Description:	trigger proc that deletes, inserts or updates systemtool record bas
 Notes:			added functionality to insert a NEW organization into a NEW actor
  
 Example:		-- note: this insert also inserts record into actor
-				insert into vw_systemtool (systemtool_name, description, systemtool_type_uuid, vendor_organization_uuid, model, serial, ver) values ('MRROBOT', 'MR Robot to you',(select systemtool_type_uuid from vw_systemtool_type where description = 'API'),(select organization_uuid from vw_organization where full_name = 'ChemAxon'),'super duper', null, '1.0');
+				insert into vw_systemtool (systemtool_name, description, systemtool_type_uuid, vendor_organization_uuid, model, serial, ver) values ('MRROBOT', 'MR Robot to you',(select systemtool_type_uuid from vw_systemtool_type where description = 'API'),(select organization_uuid from vw_organization where full_name = 'ChemAxon'),'super duper', null, '1.0') returning *;
  				update vw_systemtool set serial = 'ABC-1234' where systemtool_uuid = (select systemtool_uuid from vw_systemtool where (systemtool_name = 'MRROBOT'));
  				update vw_systemtool set ver = '1.1' where systemtool_uuid = (select systemtool_uuid from vw_systemtool where systemtool_name = 'MRROBOT');
  				update vw_systemtool set ver = '1.2' where systemtool_uuid = (select systemtool_uuid from vw_systemtool where systemtool_name = 'MRROBOT' and ver = '1.1');
@@ -1665,7 +1663,7 @@ BEGIN
 		END IF;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO systemtool (systemtool_name, description, systemtool_type_uuid, vendor_organization_uuid, model, serial, ver) VALUES(NEW.systemtool_name, NEW.description, NEW.systemtool_type_uuid, NEW.vendor_organization_uuid, NEW.model, NEW.serial, NEW.ver) returning systemtool_uuid, description into _systemtool_uuid, _systemtool_description;
-		insert into vw_actor (systemtool_uuid, description, status_uuid) values (_systemtool_uuid, _systemtool_description, (select status_uuid from vw_status where description = 'active'));
+		insert into vw_actor (systemtool_uuid, description, status_uuid) values (_systemtool_uuid, _systemtool_description, (select status_uuid from vw_status where description = 'active')) returning _systemtool_uuid into NEW.systemtool_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1712,7 +1710,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO systemtool_type (description)
-			VALUES(NEW.description);
+			VALUES(NEW.description) returning systemtool_type_uuid into NEW.systemtool_type_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1764,7 +1762,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO tag_type (short_description, description)
-			VALUES(NEW.short_description, NEW.description);
+			VALUES(NEW.short_description, NEW.description) returning tag_type_uuid into NEW.tag_type_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1813,7 +1811,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO tag (display_text, description, tag_type_uuid, actor_uuid)
-			VALUES(NEW.display_text, NEW.description, NEW.tag_type_uuid, NEW.actor_uuid);
+			VALUES(NEW.display_text, NEW.description, NEW.tag_type_uuid, NEW.actor_uuid) returning tag_uuid into NEW.tag_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1898,7 +1896,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO udf_def (description, valtype)
-			VALUES(NEW.description, NEW.valtype);
+			VALUES(NEW.description, NEW.valtype) returning udf_def_uuid into NEW.udf_def_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1945,7 +1943,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO status (description)
-			VALUES(NEW.description);
+			VALUES(NEW.description) returning status_uuid into NEW.status_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1992,7 +1990,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO material_type (description)
-			VALUES(NEW.description);
+			VALUES(NEW.description) returning material_type_uuid into NEW.material_type_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -2039,7 +2037,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO material_refname_def (description)
-			VALUES(NEW.description);
+			VALUES(NEW.description) returning material_refname_uuid into NEW.material_refname_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -2086,7 +2084,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO material_refname_def (description)
-			VALUES(NEW.description);
+			VALUES(NEW.description) returning material_uuid into NEW.material_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -2144,7 +2142,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO property_def (description, short_description, valtype, valunit, actor_uuid, status_uuid)
-			VALUES(NEW.description, NEW.short_description, NEW.valtype, NEW.valunit, NEW.actor_uuid, NEW.status_uuid);
+			VALUES(NEW.description, NEW.short_description, NEW.valtype, NEW.valunit, NEW.actor_uuid, NEW.status_uuid) returning property_def_uuid into NEW.property_def_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -2203,7 +2201,7 @@ BEGIN
 	ELSIF (TG_OP = 'INSERT') THEN
 		IF (select exists (select property_def_uuid from vw_property_def where property_def_uuid = NEW.property_def_uuid)) THEN
 			INSERT INTO property (property_def_uuid, property_val, actor_uuid, status_uuid)
-				VALUES(NEW.property_def_uuid, NEW.property_val, NEW.actor_uuid, NEW.status_uuid);
+				VALUES(NEW.property_def_uuid, NEW.property_val, NEW.actor_uuid, NEW.status_uuid) returning property_uuid into NEW.property_uuid;
 			RETURN NEW;
 		END IF;
 	END IF;
@@ -2222,16 +2220,15 @@ Date:			2020.08.04
 Description:	trigger proc that deletes, inserts or updates property record based on TG_OP (trigger operation)
 Notes:			this will check to see if property_def exists, also will add entry into property_x to join material_uuid with property_uuid	
  
-Example:		insert into vw_material_property (material_uuid, property_def_uuid, property_val, property_actor_uuid, property_status_uuid ) values (
-											(select material_uuid from vw_material where description = 'Formic Acid'),
-											(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
-											(select put_val (
-												(select valtype from vw_property_def where short_description = 'particle-size'),
-												'{100, 200}',
-												(select valunit from vw_property_def where short_description = 'particle-size'))), 
-											null,
-											(select status_uuid from vw_status where description = 'active')
-											);
+Example:		insert into vw_material_property (property_x_uuid, material_uuid, property_def_uuid, property_val, property_actor_uuid, property_status_uuid ) 
+					values (null, (select material_uuid from vw_material where description = 'Formic Acid'),
+							(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
+							(select put_val ((select valtype from vw_property_def where short_description = 'particle-size'),
+								'{100, 200}',
+								(select valunit from vw_property_def where short_description = 'particle-size'))), 
+								null,
+								(select status_uuid from vw_status where description = 'active')
+				) returning *;
 				update vw_material_property set property_actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where material_uuid = 
 				(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
  				delete from vw_material_property where material_uuid = 
@@ -2277,9 +2274,9 @@ BEGIN
 			END IF;
 			INSERT INTO property (property_def_uuid, property_val, actor_uuid, status_uuid)
 				VALUES(NEW.property_def_uuid, NEW.property_val, NEW.property_actor_uuid, NEW.property_status_uuid)
-			RETURNING property_uuid into _property_uuid;
+			RETURNING property_uuid into NEW.property_uuid;
 			INSERT INTO property_x (material_uuid, property_uuid)
-				VALUES (NEW.material_uuid, _property_uuid);
+				VALUES (NEW.material_uuid, _property_uuid) returning property_x_uuid into NEW.property_x_uuid;
 			RETURN NEW;
 		END IF;
 		RETURN NEW;
@@ -2347,7 +2344,7 @@ BEGIN
 		RETURNING
 			note_uuid INTO _note_uuid;
 		INSERT INTO note_x (ref_note_uuid, note_uuid)
-			VALUES(NEW.ref_note_uuid, _note_uuid);
+			VALUES(NEW.ref_note_uuid, _note_uuid) returning _note_uuid into NEW.note_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -2421,10 +2418,10 @@ BEGIN
 		INSERT INTO edocument (title, description, filename, source, edocument, doc_type, doc_ver, actor_uuid, status_uuid)
 			VALUES(NEW.title, NEW.description, NEW.filename, NEW.source, NEW.edocument, NEW.doc_type, NEW.doc_ver,
 			NEW.actor_uuid, NEW.status_uuid)
-		RETURNING edocument_uuid INTO _edocument_uuid;
+		RETURNING edocument_uuid INTO NEW.edocument_uuid;
 		IF NEW.ref_edocument_uuid IS NOT NULL THEN
 			INSERT INTO edocument_x (ref_edocument_uuid, edocument_uuid)
-				VALUES(NEW.ref_edocument_uuid, _edocument_uuid);
+				VALUES(NEW.ref_edocument_uuid, NEW.edocument_uuid);
 		END IF;
 		RETURN NEW;
 	END IF;

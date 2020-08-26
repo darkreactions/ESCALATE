@@ -9,7 +9,6 @@ Notes:
 */
 
 
-
 /*
 Name:			load_mol_images ()
 Parameters:		p_systemtool_uuid = identifier (id) of the chemaxon [software] tool
@@ -166,9 +165,9 @@ DECLARE
 	row_ct int := 0;
 BEGIN
 	EXECUTE (format('DROP TABLE IF EXISTS %I', _table));
-	EXECUTE (format('CREATE TABLE %I (json_val json)', _table));
+	EXECUTE (format('CREATE TABLE %I (jval json)', _table));
 	fcontents = read_file_utf8(_json);
-	EXECUTE (format('insert into %I (json_val) values (%L::json)', _table, fcontents));
+	EXECUTE (format('insert into %I (jval) values (%L::jsonb)', _table, fcontents));
 	-- get row count
 	GET DIAGNOSTICS row_ct = ROW_COUNT;
 	RETURN row_ct;
