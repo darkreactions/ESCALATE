@@ -951,9 +951,9 @@ __vw\_material\_property__`CRUD`<br/>
 > material\_uuid (r v) <br/>
 > description (v) <br/>
 > parent\_uuid (v) <br/>
-> property\_uuid (r v) <br/>
-> property\_def\_uuid (v u) <br/>
-> property\_short\_description (r v u) <br/>
+> property\_uuid (v) <br/>
+> property\_def\_uuid (r v u) <br/>
+> property\_short\_description (v u) <br/>
 > property\_val (r v u) <br/>
 > actor\_uuid (v u) <br/>
 > actor\_description (v) <br/>
