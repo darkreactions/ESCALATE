@@ -2269,14 +2269,14 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		IF (select exists (select property_def_uuid from vw_property_def where property_def_uuid = NEW.property_def_uuid)) THEN
-			IF NEW.material_uuid is null THEN
+			IF (NEW.material_uuid is null) or (NEW.property_uuid is not null) THEN
 				return null;
 			END IF;
 			INSERT INTO property (property_def_uuid, property_val, actor_uuid, status_uuid)
 				VALUES(NEW.property_def_uuid, NEW.property_val, NEW.property_actor_uuid, NEW.property_status_uuid)
 			RETURNING property_uuid into NEW.property_uuid;
 			INSERT INTO property_x (material_uuid, property_uuid)
-				VALUES (NEW.material_uuid, _property_uuid) returning property_x_uuid into NEW.property_x_uuid;
+				VALUES (NEW.material_uuid, NEW.property_uuid) returning property_x_uuid into NEW.property_x_uuid;
 			RETURN NEW;
 		END IF;
 		RETURN NEW;

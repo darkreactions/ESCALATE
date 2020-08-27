@@ -458,8 +458,8 @@ CREATE TABLE property (
 ---------------------------------------
 CREATE TABLE property_x (
 	property_x_uuid uuid DEFAULT uuid_generate_v4 (),
-	material_uuid uuid,
-	property_uuid uuid,
+	material_uuid uuid NOT NULL,
+	property_uuid uuid NOT NULL,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
