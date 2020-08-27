@@ -1,2 +1,3 @@
 pytest-django
 beautifulsoup4
+werkzeug==1.0.1
