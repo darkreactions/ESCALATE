@@ -30,7 +30,7 @@ view_names = view_names + custom_serializer_views
 
 def perform_create_save_actor(self, serializer):
     actor = Actor.objects.get(person_uuid=self.request.user.person)
-    serializer.save(actor_uuid=actor)
+    serializer.save(actor_uuid=actor, actor_description=actor.description)
 
 @api_view(['GET'])
 @docstring(rest_docs['api_root'])

@@ -68,14 +68,3 @@ class ExperimentMeasureCalculationSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = core.models.ExperimentMeasureCalculation
         fields = ('uid', 'row_to_json')
-
-
-class PropertyDefSerializer(DynamicFieldsModelSerializer):
-
-    class Meta:
-        model = core.models.PropertyDef
-        fields = ("uuid", "description", "short_description", "val_type", "val_unit", "actor_uuid", "actor_description",
-                  "status_uuid", "status_description", "add_date", "mod_date")
-    uuid = ReadOnlyField()
-    actor_uuid = ReadOnlyField()
-    actor_description = ReadOnlyField()

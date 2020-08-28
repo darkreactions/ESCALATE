@@ -23,11 +23,11 @@ view_names = ['Systemtool', 'SystemtoolType', 'Actor', 'Inventory', 'InventoryMa
               'LatestSystemtool', 'Calculation', 'CalculationDef',
               'Material', 'MaterialCalculationJson', 'MaterialRefnameDef',
               'MaterialType', 'Note', 'Organization', 'Person',
-              'Status', 'Tag', 'TagType', 'PropertyDef']
+              'Status', 'Tag', 'TagType', 'PropertyDef', 'Property', 'MaterialProperty']
 
 custom_serializer_views = ['Edocument', 'ExperimentMeasureCalculation']
 
-perform_create_views = ['PropertyDef']
+perform_create_views = ['PropertyDef', "MaterialProperty"]
 
 def docstring(docstr, sep="\n"):
     """
