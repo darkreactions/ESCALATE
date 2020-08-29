@@ -15,4 +15,5 @@ uritemplate
 coreapi
 django-url-filter
 django-rest-swagger
+django-extensions==3.0.5
 coreschema
