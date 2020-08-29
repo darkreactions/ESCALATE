@@ -677,61 +677,6 @@ class PropertyDef(models.Model):
         return "{}".format(self.description)
 
 
-# TODO: dont allow this to be postable
-class Property(models.Model):
-    uuid = models.UUIDField(primary_key=True,
-                            db_column='property_uuid')
-    property_def_uuid = models.ForeignKey('PropertyDef',
-                                          on_delete=models.DO_NOTHING,
-                                          blank=True,
-                                          null=True,
-                                          db_column='property_def_uuid')
-
-    property_def_short_description = models.CharField(max_length=255,
-                                                      blank=True,
-                                                      null=True,
-                                                      db_column='short_description',
-                                                      editable=False)
-
-    property_val = models.CharField(max_length=255,
-                                    blank=True,
-                                    null=True,
-                                    db_column='property_val')
-
-    actor_uuid = models.ForeignKey('Actor',
-                                    on_delete=models.DO_NOTHING,
-                                    blank=True,
-                                    null=True,
-                                    db_column='actor_uuid',
-                                    editable=False)
-
-    actor_description = models.CharField(max_length=255,
-                                         blank=True,
-                                         null=True,
-                                         db_column='actor_description',
-                                         editable=False)
-
-    status_uuid = models.ForeignKey('Status',
-                                    on_delete=models.DO_NOTHING,
-                                    blank=True,
-                                    null=True,
-                                    db_column='status_uuid',
-                                    editable=False)
-
-    status_description = models.CharField(max_length=255,
-                                          blank=True,
-                                          null=True,
-                                          db_column='status_description',
-                                          editable=False)
-
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        managed = False
-        db_table = 'vw_property'
-
-
 class MaterialProperty(models.Model):
 
     property_x_uuid = models.UUIDField(primary_key=True,
@@ -753,12 +698,6 @@ class MaterialProperty(models.Model):
                                     null=True,
                                     related_name="material_uuid",
                                     editable=False)
-    property_uuid = models.ForeignKey('Property',
-                                      on_delete=models.DO_NOTHING,
-                                      db_column='property_uuid',
-                                      blank=True,
-                                      null=True,
-                                      editable=False)
     property_def_uuid = models.ForeignKey('PropertyDef',
                                           on_delete=models.DO_NOTHING,
                                           db_column='property_def_uuid',

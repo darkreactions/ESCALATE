@@ -23,7 +23,7 @@ view_names = ['Systemtool', 'SystemtoolType', 'Actor', 'Inventory', 'InventoryMa
               'LatestSystemtool', 'Calculation', 'CalculationDef',
               'Material', 'MaterialCalculationJson', 'MaterialRefnameDef',
               'MaterialType', 'Note', 'Organization', 'Person',
-              'Status', 'Tag', 'TagType', 'PropertyDef', 'Property', 'MaterialProperty']
+              'Status', 'Tag', 'TagType', 'PropertyDef', 'MaterialProperty']
 
 custom_serializer_views = ['Edocument', 'ExperimentMeasureCalculation']
 

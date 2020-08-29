@@ -28,7 +28,11 @@ from .rest_docs import rest_docs
 
 view_names = view_names + custom_serializer_views
 
-def perform_create_save_actor(self, serializer):
+def save_actor_on_post(self, serializer):
+    """Save the person POSTing as the actor associated with a resource being created
+
+    Use this to overload perform_create on a view.
+    """
     actor = Actor.objects.get(person_uuid=self.request.user.person)
     serializer.save(actor_uuid=actor, actor_description=actor.description)
 
@@ -87,8 +91,8 @@ def create_view(model_name, lookup_field=None):
                                           tuple([RetrieveUpdateAPIView]), methods_detail)
 
     if model_name in perform_create_views:
-        globals()[model_name+'List'].perform_create = perform_create_save_actor
-        globals()[model_name+'Detail'].perform_create = perform_create_save_actor
+        globals()[model_name+'List'].perform_create = save_actor_on_post
+        globals()[model_name+'Detail'].perform_create = save_actor_on_post
 
 
 for view_name in view_names:
