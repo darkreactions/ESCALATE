@@ -10,6 +10,29 @@ Notes:			code for parsing chem inventory data is contained in other file(s)
 				there parent organization
 */
 
+
+-- ----------------------------
+-- Records of type_def
+-- ----------------------------
+BEGIN;
+	insert into vw_type_def (category, description) values ('data', 'bool');
+	insert into vw_type_def (category, description) values ('data', 'array_bool');	
+	insert into vw_type_def (category, description) values ('data', 'int');
+	insert into vw_type_def (category, description) values ('data', 'array_int');
+	insert into vw_type_def (category, description) values ('data', 'num');
+	insert into vw_type_def (category, description) values ('data', 'array_num');
+	insert into vw_type_def (category, description) values ('data', 'text');
+	insert into vw_type_def (category, description) values ('data', 'array_text');
+	insert into vw_type_def (category, description) values ('data', 'blob');
+	insert into vw_type_def (category, description) values ('file', 'text');
+	insert into vw_type_def (category, description) values ('file', 'pdf');
+	insert into vw_type_def (category, description) values ('file', 'svg');
+	insert into vw_type_def (category, description) values ('file', 'jpg');
+	insert into vw_type_def (category, description) values ('file', 'png');
+	insert into vw_type_def (category, description) values ('file', 'xrd');
+COMMIT;
+
+
 -- ----------------------------
 -- Records of status
 -- ----------------------------
@@ -184,14 +207,13 @@ COMMIT;
 -- Populate some UDFs
 -- ----------------------------
 BEGIN;
-INSERT INTO vw_udf_def (description, valtype)
+INSERT INTO vw_udf_def (description, valtype_uuid)
 VALUES 
-	('experiment version', 'text'::val_type),
-	('generation version', 'text'::val_type),
-	('challenge problem', 'text'::val_type),
-	('model predicted', 'text'::val_type),
-	('batch count', 'text'::val_type)
-;
+	('experiment version', (select type_def_uuid from vw_type_def where category = 'data' and description = 'text')),
+	('generation version', (select type_def_uuid from vw_type_def where category = 'data' and description = 'text')),
+	('challenge problem', (select type_def_uuid from vw_type_def where category = 'data' and description = 'text')),
+	('model predicted', (select type_def_uuid from vw_type_def where category = 'data' and description = 'text')),
+	('batch count', (select type_def_uuid from vw_type_def where category = 'data' and description = 'text'));
 COMMIT;
 
 
@@ -201,8 +223,8 @@ COMMIT;
 -- ----------------------------
 BEGIN;
 	with ins as 
-		(INSERT into edocument (title, description, filename, source, edocument, doc_type, actor_uuid) 
-		(select document_title, description, file_name, document_source, edocument, 'blob_pdf'::val_type, (select actor_uuid from vw_actor where person_last_name = 'Pendleton') from load_edocument)
+		(INSERT into edocument (title, description, filename, source, edocument, doc_type_uuid, actor_uuid) 
+		(select document_title, description, file_name, document_source, edocument, (select type_def_uuid from vw_type_def where category = 'file' and description = 'pdf'), (select actor_uuid from vw_actor where person_last_name = 'Pendleton') from load_edocument)
 		returning edocument_uuid)
 		insert into edocument_x (ref_edocument_uuid, edocument_uuid) VALUES
 		((select actor_uuid from vw_actor where person_last_name = 'Pendleton'), (select edocument_uuid from ins))

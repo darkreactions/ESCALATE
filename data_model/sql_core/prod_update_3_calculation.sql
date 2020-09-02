@@ -12,8 +12,12 @@ Notes:			presumes calculation_def has been populated (see initialize tables)
 
 -- first populate calculation_def
 -- using the load_perov_desc_def table joined to actor table (function) to bring in approp actor_uuid 
-INSERT INTO calculation_def (short_name, calc_definition, description, in_source, in_type, in_opt_source, in_opt_type, out_type, systemtool_uuid, actor_uuid)
-	select def.short_name, def.calc_definition, def.description, def.in_calc_source, in_type::val_type, def.in_opt_calc_source, in_opt_type::val_type, out_type::val_type, st.systemtool_uuid, (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')
+INSERT INTO calculation_def (short_name, calc_definition, description, in_source, in_type_uuid, in_opt_source, in_opt_type_uuid, out_type_uuid, systemtool_uuid, actor_uuid)
+	select def.short_name, def.calc_definition, def.description, def.in_calc_source, 
+	(select get_type_def ('data', def.in_type)), def.in_opt_calc_source, 
+	(select get_type_def ('data', def.in_opt_type)),
+	(select get_type_def ('data', def.out_type)),	
+	st.systemtool_uuid, (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')
 	from load_perov_desc_def def 
 	left join (select systemtool_uuid, systemtool_name from vw_systemtool) st on def.systemtool_name = st.systemtool_name;
 
@@ -21,10 +25,14 @@ INSERT INTO calculation_def (short_name, calc_definition, description, in_source
 -- get the standardized (desalted) SMILES - returns varchar, so put in blob_value with type text
 -- in this [perov] case, this descriptor becomes the parent of many subsequent descriptors
 -- do this is 2 steps: 1) add the values into the val table then create the calculation record
-INSERT INTO calculation (in_val.v_text, in_val.v_type, calculation_def_uuid, out_val.v_text, out_val.v_type, calculation_alias_name, add_date, status_uuid, actor_uuid)
-	select distinct val_in, val_in_type, calculation_def_uuid, val_out, val_out_type, alias_name, create_date, status, (SELECT actor_uuid FROM vw_actor where description like '%Haverford College%') as actor_uuid
+INSERT INTO calculation (in_val.v_text, in_val.v_type_uuid, calculation_def_uuid, out_val.v_text, out_val.v_type_uuid, calculation_alias_name, add_date, status_uuid, actor_uuid)
+	select distinct val_in, val_in_type_uuid, calculation_def_uuid, val_out, val_out_type_uuid, alias_name, create_date, status, (SELECT actor_uuid FROM vw_actor where description like '%Haverford College%') as actor_uuid
 	from
-	(select pd._raw_smiles as val_in, 'text'::val_type as val_in_type, tmp.descr as descriptor_name, tmp.val as val_out, 'text'::val_type as val_out_type, alias_name, '2020-02-20'::timestamptz as create_date, (select status_uuid from status where description = 'active') as status
+	(select pd._raw_smiles as val_in, 
+	(select get_type_def ('data', 'text')) as val_in_type_uuid, 
+	tmp.descr as descriptor_name, tmp.val as val_out, 
+	(select get_type_def ('data', 'text')) as val_out_type_uuid, 
+	alias_name, '2020-02-20'::timestamptz as create_date, (select status_uuid from status where description = 'active') as status
 	from load_perov_desc pd
 		join lateral (values ('standardize', '_raw_smiles_standard', _raw_smiles_standard)) as tmp(descr, alias_name, val) on true) dsc
 	left join 
@@ -41,10 +49,14 @@ ON CONFLICT ON CONSTRAINT un_calculation DO UPDATE
 		add_date = EXCLUDED.add_date;
 
 
-INSERT INTO calculation (in_val.v_text, in_val.v_type, calculation_def_uuid, out_val.v_num, out_val.v_type, calculation_alias_name, add_date, status_uuid, actor_uuid)
-	select distinct val_in, val_in_type, calculation_def_uuid, val_out, val_out_type, alias_name, create_date, status, (SELECT actor_uuid FROM vw_actor where description like '%Haverford College%') as actor_uuid
+INSERT INTO calculation (in_val.v_text, in_val.v_type_uuid, calculation_def_uuid, out_val.v_num, out_val.v_type_uuid, calculation_alias_name, add_date, status_uuid, actor_uuid)
+	select distinct val_in, val_in_type_uuid, calculation_def_uuid, val_out, val_out_type_uuid, alias_name, create_date, status, (SELECT actor_uuid FROM vw_actor where description like '%Haverford College%') as actor_uuid
 	from
-	(select pd._raw_smiles as val_in, 'text'::val_type as val_in_type, tmp.descr as descriptor_name, tmp.val as val_out, 'num'::val_type as val_out_type, alias_name, '2020-02-20'::timestamptz as create_date, (select status_uuid from status where description = 'active') as status
+	(select pd._raw_smiles as val_in, 
+	(select get_type_def ('data', 'num')) as val_in_type_uuid, 
+	tmp.descr as descriptor_name, tmp.val as val_out, 
+	(select get_type_def ('data', 'num')) as val_out_type_uuid, 
+	alias_name, '2020-02-20'::timestamptz as create_date, (select status_uuid from status where description = 'active') as status
 	from load_perov_desc pd
 		join lateral (values ('molweight', '_raw_molweight', _raw_molweight)) as tmp(descr, alias_name, val) on true) dsc
 	left join 
@@ -63,9 +75,10 @@ ON CONFLICT ON CONSTRAINT un_calculation DO UPDATE
 
 -- add the molecule image (from SMILES)	
 -- first insert image into edocument
-insert into edocument (title, description, filename, source, edocument, doc_type, actor_uuid)
+insert into edocument (title, description, filename, source, edocument, doc_type_uuid, actor_uuid)
 	select mol_name as title, mol_name as description, filename, (select calculation_def_uuid from get_calculation_def (array['molimage'])) as edocument_source, _image as edocument, 
-	'blob_svg'::val_type as edoc_type, (select actor_uuid from vw_actor where person_last_name = 'Cattabriga') as actor_uuid from load_perov_mol_image img
+	(select get_type_def ('file', 'svg')) as edoc_type_uuid, 
+	(select actor_uuid from vw_actor where person_last_name = 'Cattabriga') as actor_uuid from load_perov_mol_image img
 ON CONFLICT ON CONSTRAINT un_edocument DO UPDATE
 	SET 
 		edocument = EXCLUDED.edocument,
@@ -73,10 +86,14 @@ ON CONFLICT ON CONSTRAINT un_edocument DO UPDATE
 		mod_date = EXCLUDED.mod_date;
 
 
-INSERT INTO calculation (in_val.v_text, in_val.v_type, calculation_def_uuid, out_val.v_edocument_uuid, out_val.v_type, calculation_alias_name, add_date, status_uuid, actor_uuid)
-	select distinct val_in, val_in_type, calculation_def_uuid, val_out, val_out_type, alias_name, create_date, status, (SELECT actor_uuid FROM vw_actor where description like '%Haverford College%') as actor_uuid
+INSERT INTO calculation (in_val.v_text, in_val.v_type_uuid, calculation_def_uuid, out_val.v_edocument_uuid, out_val.v_type_uuid, calculation_alias_name, add_date, status_uuid, actor_uuid)
+	select distinct val_in, val_in_type_uuid, calculation_def_uuid, val_out, val_out_type_uuid, alias_name, create_date, status, (SELECT actor_uuid FROM vw_actor where description like '%Haverford College%') as actor_uuid
 	from
-	(select pd.material_refname as val_in, 'text'::val_type as val_in_type, tmp.descr as descriptor_name, tmp.val as val_out, 'blob_svg'::val_type as val_out_type, alias_name, '2020-02-20'::timestamptz as create_date, (select status_uuid from status where description = 'active') as status
+	(select pd.material_refname as val_in, 
+	(select get_type_def ('data', 'text')) as val_in_type_uuid, 
+	tmp.descr as descriptor_name, tmp.val as val_out, 
+	(select get_type_def ('file', 'svg')) as val_out_type_uuid, 
+	alias_name, '2020-02-20'::timestamptz as create_date, (select status_uuid from status where description = 'active') as status
 	from 
 		(select mn.material_refname, mn.material_refname_def, img.edocument_uuid from edocument img 
 		join (SELECT * FROM get_material_nameref_bystatus (array['active', 'proto'], TRUE) where material_refname_def = 'SMILES') mn 
@@ -100,13 +117,16 @@ ON CONFLICT ON CONSTRAINT un_calculation DO UPDATE
 -- the calculation_def table and load_perov_desc table
 -- get all the descriptors previously run on the perov from the load_perov_desc table
 -- for those descriptors based on the STANDARDIZED SMILES
-INSERT INTO calculation (in_val.v_source_uuid, in_val.v_text, in_val.v_type, calculation_def_uuid, out_val.v_int, out_val.v_num, out_val.v_type, calculation_alias_name, add_date, status_uuid, actor_uuid)
-	select distinct val_in_source, val_in, val_in_type, def.calculation_def_uuid, 
-	case when val_out_type::text = 'int' then val_out else NULL end as vout_int, 
-	case when val_out_type::text = 'num' then val_out else NULL end as vout_num, 
-	val_out_type, alias_name, create_date, dsc.status_uuid, (SELECT actor_uuid FROM vw_actor where description like '%Haverford College%') as actor_uuid
+INSERT INTO calculation (in_val.v_source_uuid, in_val.v_text, in_val.v_type_uuid, calculation_def_uuid, out_val.v_int, out_val.v_num, out_val.v_type_uuid, calculation_alias_name, add_date, status_uuid, actor_uuid)
+	select distinct val_in_source, val_in, val_in_type_uuid, def.calculation_def_uuid, 
+	case when val_out_type_uuid = (select get_type_def ('data', 'int')) then val_out else NULL end as vout_int, 
+	case when val_out_type_uuid = (select get_type_def ('data', 'num')) then val_out else NULL end as vout_num, 
+	val_out_type_uuid, alias_name, create_date, dsc.status_uuid, (SELECT actor_uuid FROM vw_actor where description like '%Haverford College%') as actor_uuid
 	from
-	(select (get_calculation (pd._raw_smiles, array['standardize'])) as val_in_source, pd._raw_smiles_standard as val_in, 'text'::val_type as val_in_type, tmp.descr as descriptor_name, tmp.val as val_out, tmp.vtype::val_type as val_out_type, alias_name, '2020-02-20'::timestamptz as create_date, (select status_uuid from status where description = 'active') as status_uuid
+	(select (get_calculation (pd._raw_smiles, array['standardize'])) as val_in_source, pd._raw_smiles_standard as val_in, 
+		(select get_type_def ('data', 'text')) as val_in_type_uuid, tmp.descr as descriptor_name, tmp.val as val_out, 
+		(select get_type_def ('data', tmp.vtype)) as val_out_type_uuid, alias_name, 
+		'2020-02-20'::timestamptz as create_date, (select status_uuid from status where description = 'active') as status_uuid
 	from load_perov_desc pd
 		join lateral (values 	
 													('molweight_standardize', 'num', '_raw_standard_molweight', _raw_standard_molweight),
@@ -201,11 +221,15 @@ ON CONFLICT ON CONSTRAINT un_calculation DO UPDATE
 
 
 -- get the escalate calculated descriptors
-INSERT INTO calculation (in_val.v_int, in_val.v_type, in_val.v_source_uuid, in_opt_val.v_num, in_opt_val.v_type, in_opt_val.v_source_uuid, calculation_def_uuid, out_val.v_num, out_val.v_type, calculation_alias_name, add_date, status_uuid, actor_uuid)
-	select distinct val_in, val_in_type, val_in_source, val_in_opt, val_in_opt_type, val_in_opt_source, calculation_def_uuid, val_out::numeric, val_out_type, alias_name, create_date, status, (SELECT actor_uuid FROM vw_actor where description like '%Haverford College%') as actor_uuid
+INSERT INTO calculation (in_val.v_int, in_val.v_type_uuid, in_val.v_source_uuid, in_opt_val.v_num, in_opt_val.v_type_uuid, in_opt_val.v_source_uuid, calculation_def_uuid, out_val.v_num, out_val.v_type_uuid, calculation_alias_name, add_date, status_uuid, actor_uuid)
+	select distinct val_in, val_in_type_uuid, val_in_source, val_in_opt, val_in_opt_type_uuid, val_in_opt_source, calculation_def_uuid, val_out::numeric, val_out_type_uuid, alias_name, create_date, status, (SELECT actor_uuid FROM vw_actor where description like '%Haverford College%') as actor_uuid
 	from
-	(select (get_calculation (pd._raw_smiles, array['charge_cnt_standardize'])) as val_in_source, pd._feat_charge_cnt as val_in, 'int'::val_type as val_in_type, (get_calculation (pd._raw_smiles, array['vanderwaalsvolume_standardize'])) as val_in_opt_source,
-					pd._feat_vanderwaalsvolume as val_in_opt, 'num'::val_type as val_in_opt_type, tmp.descr as descriptor_name, tmp.val as val_out, 'num'::val_type as val_out_type, alias_name, '2020-02-20'::timestamptz as create_date, (select status_uuid from status where description = 'active') as status
+	(select (get_calculation (pd._raw_smiles, array['charge_cnt_standardize'])) as val_in_source, pd._feat_charge_cnt as val_in, 
+		(select get_type_def ('data', 'int')) as val_in_type_uuid, (get_calculation (pd._raw_smiles, array['vanderwaalsvolume_standardize'])) as val_in_opt_source,
+		pd._feat_vanderwaalsvolume as val_in_opt, 
+		(select get_type_def ('data', 'num')) as val_in_opt_type_uuid, tmp.descr as descriptor_name, tmp.val as val_out, 
+		(select get_type_def ('data', 'num')) as val_out_type_uuid, 
+		alias_name, '2020-02-20'::timestamptz as create_date, (select status_uuid from status where description = 'active') as status
 	from load_perov_desc pd
 		join lateral (values 
 			('chrg_per_vol_standardize', '_calc_chrg_per_vol', _calc_chrg_per_vol)) as tmp(descr, alias_name, val) on true) dsc
@@ -223,11 +247,16 @@ ON CONFLICT ON CONSTRAINT un_calculation DO UPDATE
 		add_date = EXCLUDED.add_date;
 		
 		
-INSERT INTO calculation (in_val.v_int, in_val.v_type, in_val.v_source_uuid, in_opt_val.v_num, in_opt_val.v_type, in_opt_val.v_source_uuid, calculation_def_uuid, out_val.v_num, out_val.v_type, calculation_alias_name, add_date, status_uuid, actor_uuid)
-	select distinct val_in, val_in_type, val_in_source, val_in_opt, val_in_opt_type, val_in_opt_source, calculation_def_uuid, val_out::numeric, val_out_type, alias_name, create_date, status, (SELECT actor_uuid FROM vw_actor where description like '%Haverford College%') as actor_uuid
+INSERT INTO calculation (in_val.v_int, in_val.v_type_uuid, in_val.v_source_uuid, in_opt_val.v_num, in_opt_val.v_type_uuid, in_opt_val.v_source_uuid, calculation_def_uuid, out_val.v_num, out_val.v_type_uuid, calculation_alias_name, add_date, status_uuid, actor_uuid)
+	select distinct val_in, val_in_type_uuid, val_in_source, val_in_opt, val_in_opt_type_uuid, val_in_opt_source, calculation_def_uuid, val_out::numeric, val_out_type_uuid, alias_name, create_date, status, (SELECT actor_uuid FROM vw_actor where description like '%Haverford College%') as actor_uuid
 	from
-	(select (get_calculation (pd._raw_smiles, array['charge_cnt_standardize'])) as val_in_source, pd._feat_charge_cnt as val_in, 'int'::val_type as val_in_type, (get_calculation (pd._raw_smiles, array['asa-_standardize'])) as val_in_opt_source,
-					pd."_feat_asa-" as val_in_opt, 'num'::val_type as val_in_opt_type, tmp.descr as descriptor_name, tmp.val as val_out, 'num'::val_type as val_out_type, alias_name, '2020-02-20'::timestamptz as create_date, (select status_uuid from status where description = 'active') as status
+	(select (get_calculation (pd._raw_smiles, array['charge_cnt_standardize'])) as val_in_source, pd._feat_charge_cnt as val_in, 
+		(select get_type_def ('data', 'int')) as val_in_type_uuid, 
+		(get_calculation (pd._raw_smiles, array['asa-_standardize'])) as val_in_opt_source,
+		pd."_feat_asa-" as val_in_opt, 
+		(select get_type_def ('data', 'num')) as val_in_opt_type_uuid, tmp.descr as descriptor_name, tmp.val as val_out, 
+		(select get_type_def ('data', 'num')) as val_out_type_uuid,
+		alias_name, '2020-02-20'::timestamptz as create_date, (select status_uuid from status where description = 'active') as status
 	from load_perov_desc pd
 		join lateral (values 
 			('chrg_per_asa_standardize', '_calc_chrg_per_asa-', "_calc_chrg_per_asa-")) as tmp(descr, alias_name, val) on true) dsc
@@ -246,10 +275,13 @@ ON CONFLICT ON CONSTRAINT un_calculation DO UPDATE
 
 
 -- get the ecpf_256_6 and load in as a blob value
-INSERT INTO calculation (in_val.v_text, in_val.v_type, in_val.v_source_uuid, calculation_def_uuid, out_val.v_text, out_val.v_type, calculation_alias_name, add_date, status_uuid, actor_uuid)
-	select distinct val_in, val_in_type, val_in_source, calculation_def_uuid, val_out::text, val_out_type, alias_name, create_date, status, (SELECT actor_uuid FROM vw_actor where description like '%Haverford College%') as actor_uuid
+INSERT INTO calculation (in_val.v_text, in_val.v_type_uuid, in_val.v_source_uuid, calculation_def_uuid, out_val.v_text, out_val.v_type_uuid, calculation_alias_name, add_date, status_uuid, actor_uuid)
+	select distinct val_in, val_in_type_uuid, val_in_source, calculation_def_uuid, val_out::text, val_out_type_uuid, alias_name, create_date, status, (SELECT actor_uuid FROM vw_actor where description like '%Haverford College%') as actor_uuid
 	from
-	(select (get_calculation(pd._raw_smiles, array['standardize'])) as val_in_source, pd._raw_smiles_standard as val_in, 'text'::val_type as val_in_type, tmp.descr as descriptor_name, tmp.val as val_out, 'text'::val_type as val_out_type, alias_name, '2020-02-20'::timestamptz as create_date, (select status_uuid from status where description = 'active') as status
+	(select (get_calculation(pd._raw_smiles, array['standardize'])) as val_in_source, pd._raw_smiles_standard as val_in, 
+		(select get_type_def ('data', 'text')) as val_in_type_uuid, tmp.descr as descriptor_name, tmp.val as val_out, 
+		(select get_type_def ('data', 'text')) as val_out_type_uuid, alias_name, '2020-02-20'::timestamptz as
+		create_date, (select status_uuid from status where description = 'active') as status
 	from load_perov_desc pd
 		join lateral (values ('ecpf4_256_6_standardize', '_prototype_ecpf4_256_6', _prototype_ecpf4_256_6)) as tmp(descr, alias_name, val) on true) dsc
 	left join 

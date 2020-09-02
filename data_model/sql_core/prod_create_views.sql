@@ -47,6 +47,29 @@ CREATE TRIGGER trigger_status_upsert INSTEAD OF INSERT
 	FOR EACH ROW
 	EXECUTE PROCEDURE upsert_status ();
 
+
+----------------------------------------
+-- view of type_def table
+----------------------------------------
+CREATE OR REPLACE VIEW vw_type_def AS
+SELECT
+	type_def_uuid,
+	category, 
+	description,
+	add_date,
+	mod_date
+FROM
+	type_def;
+
+DROP TRIGGER IF EXISTS trigger_type_def_upsert ON vw_type_def;
+
+CREATE TRIGGER trigger_type_def_upsert INSTEAD OF INSERT
+	OR UPDATE
+	OR DELETE ON vw_type_def
+	FOR EACH ROW
+	EXECUTE PROCEDURE upsert_type_def ();
+
+
 ----------------------------------------
 -- view of note; links to edocument and actor
 ----------------------------------------
@@ -58,7 +81,8 @@ SELECT
 	doc.filename,
 	doc.source,
 	doc.edocument,
-	doc.doc_type,
+	doc.doc_type_uuid,
+	td.description as doc_type_description,
 	doc.doc_ver,
 	act.actor_uuid,
 	act.description AS actor_description,
@@ -72,7 +96,8 @@ FROM
 	edocument doc
 	LEFT JOIN edocument_x docx on docx.edocument_uuid = doc.edocument_uuid
 	LEFT JOIN actor act ON doc.actor_uuid = act.actor_uuid
-	LEFT JOIN status sts ON doc.status_uuid = sts.status_uuid;
+	LEFT JOIN status sts ON doc.status_uuid = sts.status_uuid
+	LEFT JOIN type_def td ON doc.doc_type_uuid = td.type_def_uuid;
 
 DROP TRIGGER IF EXISTS trigger_edocument_upsert ON vw_edocument;
 CREATE TRIGGER trigger_edocument_upsert INSTEAD OF INSERT
@@ -187,11 +212,14 @@ CREATE OR REPLACE VIEW vw_udf_def AS
 SELECT
 	ud.udf_def_uuid,
 	ud.description,
-	ud.valtype,
+	ud.valtype_uuid,
+	td.category as valtype_category,
+	td.description as valtype_description,
 	ud.add_date,
 	ud.mod_date
 FROM
-	udf_def ud;
+	udf_def ud
+	LEFT JOIN type_def td on ud.valtype_uuid = td.type_def_uuid;
 
 DROP TRIGGER IF EXISTS trigger_udf_def_upsert ON vw_udf_def;
 CREATE TRIGGER trigger_udf_def_upsert INSTEAD OF INSERT
@@ -434,8 +462,8 @@ SELECT
 	mdd.short_name,
 	mdd.calc_definition,
 	mdd.description,
-	mdd.in_type,
-	mdd.out_type,
+	mdd.in_type_uuid,
+	mdd.out_type_uuid,
 	mdd.systemtool_uuid,
 	st.systemtool_name,
 	stt.description AS systemtool_type_description,
@@ -468,18 +496,18 @@ SELECT
 	--	md.in_opt_val,
 	--	md.out_val,
 	md.in_val,
-	( md.in_val ).v_type AS in_val_type,
-	get_val ( md.in_val ) AS in_val_value,
+	( md.in_val ).v_type_uuid AS in_val_type_uuid,
+	(select v_val from get_val ( md.in_val )) AS in_val_value,
 	( md.in_val ).v_unit AS in_val_unit,
 	( md.in_val ).v_edocument_uuid AS in_val_edocument_uuid,
 	md.in_opt_val,
-	( md.in_opt_val ).v_type AS in_opt_val_type,
-	get_val ( md.in_opt_val ) AS in_opt_val_value,
+	( md.in_opt_val ).v_type_uuid AS in_opt_val_type_uuid,
+	(select v_val from get_val ( md.in_opt_val )) AS in_opt_val_value,
 	( md.in_opt_val ).v_unit AS in_opt_val_unit,
 	( md.in_opt_val ).v_edocument_uuid AS in_opt_val_edocument_uuid,
 	md.out_val,
-	( md.out_val ).v_type AS out_val_type,
-	get_val ( md.out_val ) AS out_val_value,
+	( md.out_val ).v_type_uuid AS out_val_type_uuid,
+	(select v_val from get_val ( md.out_val )) AS out_val_value,
 	( md.out_val ).v_unit AS out_val_unit,
 	( md.out_val ).v_edocument_uuid AS out_val_edocument_uuid,
 	md.calculation_alias_name,
@@ -626,17 +654,17 @@ SELECT
 	mat.smiles,
 	cal.calculation_uuid,
 	cal.in_val,
-	cal.in_val_type,
+	cal.in_val_type_uuid,
 	cal.in_val_value,
 	cal.in_val_unit,
 	cal.in_val_edocument_uuid,
 	cal.in_opt_val,
-	cal.in_opt_val_type,
+	cal.in_opt_val_type_uuid,
 	cal.in_opt_val_value,
 	cal.in_opt_val_unit,
 	cal.in_opt_val_edocument_uuid,
 	cal.out_val,
-	cal.out_val_type,
+	cal.out_val_type_uuid,
 	cal.out_val_value,
 	cal.out_val_unit,
 	cal.out_val_edocument_uuid,
@@ -648,8 +676,8 @@ SELECT
 	cal.short_name,
 	cal.calc_definition,
 	cal.description,
-	cal.in_type,
-	cal.out_type,
+	cal.in_type_uuid,
+	cal.out_type_uuid,
 	cal.systemtool_uuid,
 	cal.systemtool_name,
 	cal.systemtool_type_description,
@@ -688,14 +716,14 @@ SELECT
 FROM (
 	SELECT
 		material_uuid,
-		json_object_agg(calculation_alias_name, json_build_object('type', calculation_type, 'value', calculation_value )
+		json_object_agg(calculation_alias_name, json_build_object('type', calculation_type_uuid, 'value', calculation_value )
 		ORDER BY
 			calculation_alias_name DESC )
 	FROM (
 		SELECT
 			vmc.material_uuid,
 			vmc.calculation_alias_name,
-			max(vmc.out_val_type::text ) AS calculation_type,
+			max(vmc.out_val_type_uuid::text ) AS calculation_type_uuid,
 			max(vmc.out_val_value ) AS calculation_value
 		FROM
 			vw_material_calculation_raw vmc
@@ -720,7 +748,7 @@ SELECT
 	pd.property_def_uuid,
 	pd.description,
 	pd.short_description,
-	pd.valtype,
+	pd.valtype_uuid,
 	pd.valunit,
 	pd.actor_uuid,
 	act.description as actor_description,
@@ -782,6 +810,10 @@ SELECT
 	pd.description as property_description,
 	pd.short_description as property_short_description,	
 	pr.property_val,
+	-- break out the val fields
+	vl.v_type,
+	vl.v_unit,
+	vl.v_val,	
 	pr.actor_uuid as property_actor_uuid,
 	act.description as actor_description,
 	pr.status_uuid as property_status_uuid,
@@ -793,7 +825,8 @@ LEFT JOIN property_x px on mat.material_uuid = px.material_uuid
 LEFT JOIN property pr on px.property_uuid = pr.property_uuid
 LEFT JOIN property_def pd on pr.property_def_uuid = pd.property_def_uuid
 LEFT JOIN actor act on pr.actor_uuid = act.actor_uuid
-LEFT JOIN status st on pr.status_uuid = st.status_uuid;
+LEFT JOIN status st on pr.status_uuid = st.status_uuid
+LEFT JOIN LATERAL (select * from get_val (pr.property_val)) vl ON true;
 
 DROP TRIGGER IF EXISTS trigger_material_property_upsert ON vw_material_property;
 CREATE TRIGGER trigger_material_property_upsert INSTEAD OF INSERT

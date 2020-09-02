@@ -28,6 +28,7 @@ Notes:			triggers, foreign keys and other constraints are in other sql files
  --=====================================
 DROP TYPE IF EXISTS val_type cascade; 
 DROP TYPE IF EXISTS val cascade; 
+DROP TYPE IF EXISTS type_def_category cascade;
 
 
  --=====================================
@@ -72,6 +73,7 @@ DROP FUNCTION IF EXISTS upsert_material () cascade;
 DROP FUNCTION IF EXISTS upsert_property () cascade;
 DROP FUNCTION IF EXISTS upsert_note () cascade;
 DROP FUNCTION IF EXISTS upsert_edocument () cascade;
+DROP FUNCTION IF EXISTS upsert_type_def () cascade;
 
 
  --=====================================
@@ -105,7 +107,7 @@ DROP VIEW IF EXISTS vw_systemtool_type cascade;
 DROP VIEW IF EXISTS vw_tag cascade;
 DROP VIEW IF EXISTS vw_tag_type cascade;
 DROP VIEW IF EXISTS vw_tag_x cascade;
-
+DROP VIEW IF EXISTS vw_type_def cascade;
 
 
  --=====================================
@@ -149,6 +151,7 @@ DROP TABLE IF EXISTS edocument_x cascade;
 DROP TABLE IF EXISTS tag cascade;
 DROP TABLE IF EXISTS tag_x cascade;
 DROP TABLE IF EXISTS tag_type cascade;
+DROP TABLE IF EXISTS type_def cascade;
 DROP TABLE IF EXISTS udf cascade;
 DROP TABLE IF EXISTS udf_x cascade;
 DROP TABLE IF EXISTS udf_def cascade;
@@ -167,10 +170,14 @@ DROP TABLE IF EXISTS status cascade;
  -- CREATE DATA TYPES 
  --=====================================
 -- define (enumerate) the value types where hierachy is seperated by '_' with simple data types (int, num, text) as single phrase; treat 'array' like a fifo stack
-CREATE TYPE val_type AS ENUM ('int', 'array_int', 'num', 'array_num', 'text', 'array_text', 'blob_text', 'blob_pdf', 'blob_svg', 'blob_jpg', 'blob_png', 'blob_xrd', 'bool', 'array_bool');
+-- CREATE TYPE val_type AS ENUM ('int', 'array_int', 'num', 'array_num', 'text', 'array_text', 'blob_text', 'blob_pdf', 'blob_svg', 'blob_jpg', 'blob_png', 'blob_xrd', 'bool', 'array_bool');
+
+-- define (enumerate) the type_def categories 
+CREATE TYPE type_def_category AS ENUM ('data', 'file', 'role');
+
 
 CREATE TYPE val AS (
-	v_type 	val_type,
+	v_type_uuid uuid,
 	v_unit varchar,
 	v_text varchar,
 	v_text_array varchar[],
@@ -210,6 +217,17 @@ CREATE TABLE sys_audit (
     statement_only boolean not null
 );
 
+
+ ---------------------------------------
+-- Table structure for type_def
+---------------------------------------
+CREATE TABLE type_def (
+	type_def_uuid uuid DEFAULT uuid_generate_v4 (),
+	category type_def_category NOT NULL,
+	description varchar COLLATE "pg_catalog"."default" NOT NULL,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
 
 ---------------------------------------
 -- Table structure for organization
@@ -385,8 +403,8 @@ CREATE TABLE material_x (
 ---------------------------------------
 CREATE TABLE material_type_x (
 	material_type_x_uuid uuid DEFAULT uuid_generate_v4 (),
-	material_uuid uuid,
-	material_type_uuid uuid,
+	material_uuid uuid NOT NULL,
+	material_type_uuid uuid NOT NULL,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -422,8 +440,8 @@ CREATE TABLE material_refname (
 ---------------------------------------
 CREATE TABLE material_refname_x (
 	material_refname_x_uuid uuid DEFAULT uuid_generate_v4 (),
-	material_uuid uuid,
-	material_refname_uuid uuid,
+	material_uuid uuid NOT NULL,
+	material_refname_uuid uuid NOT NULL,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -472,7 +490,7 @@ CREATE TABLE property_def (
 	property_def_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default",
 	short_description varchar COLLATE "pg_catalog"."default" NOT NULL,
-	valtype val_type,
+	valtype_uuid uuid,
 	valunit varchar,
 	actor_uuid uuid,
 	status_uuid uuid,
@@ -500,10 +518,10 @@ CREATE TABLE calculation_def (
 	systemtool_uuid uuid,
 	description varchar COLLATE "pg_catalog"."default",
 	in_source varchar,
-	in_type val_type,
+	in_type_uuid uuid,
 	in_opt_source varchar,
-	in_opt_type val_type,
-	out_type val_type,
+	in_opt_type_uuid uuid,
+	out_type_uuid uuid,
 	calculation_class_uuid uuid,
 	actor_uuid uuid,
 	status_uuid uuid,
@@ -516,7 +534,7 @@ CREATE TABLE calculation_def (
 ---------------------------------------
 CREATE TABLE calculation (
 	calculation_uuid uuid DEFAULT uuid_generate_v4 (),
-	calculation_def_uuid uuid,
+	calculation_def_uuid uuid NOT NULL,
 	calculation_alias_name varchar,
 	in_val val,
 	in_opt_val val,
@@ -674,7 +692,7 @@ CREATE TABLE edocument (
 	filename varchar COLLATE "pg_catalog"."default",
 	source varchar COLLATE "pg_catalog"."default",
 	edocument bytea NOT NULL,
-	doc_type val_type NOT NULL,
+	doc_type_uuid uuid NOT NULL,
 	doc_ver varchar COLLATE "pg_catalog"."default",
 	actor_uuid uuid,
 	status_uuid uuid,
@@ -687,8 +705,8 @@ CREATE TABLE edocument (
 ---------------------------------------
 CREATE TABLE tag_x (
 	tag_x_uuid uuid DEFAULT uuid_generate_v4 (),
-	ref_tag_uuid uuid,
-	tag_uuid uuid,
+	ref_tag_uuid uuid NOT NULL,
+	tag_uuid uuid NOT NULL,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -722,8 +740,8 @@ CREATE TABLE tag_type (
 -- ----------------------------
 CREATE TABLE udf_x (
 	udf_x_uuid uuid DEFAULT uuid_generate_v4 (),
-	ref_udf_uuid uuid,
-	udf_uuid uuid,
+	ref_udf_uuid uuid NOT NULL,
+	udf_uuid uuid NOT NULL,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -745,7 +763,7 @@ CREATE TABLE udf (
 CREATE TABLE udf_def (
 	udf_def_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default",
-	valtype val_type,
+	valtype_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );

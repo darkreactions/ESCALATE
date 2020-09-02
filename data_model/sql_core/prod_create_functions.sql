@@ -714,7 +714,7 @@ LANGUAGE plpgsql;
 /*
 Name:			get_calculation_def ()
 Parameters:		p_descrp = string used in search over description columns: short_name, calc_definition, description
-Returns:			calculation_def_uuid, calculation_def_uuid, short_name, calc_definition, description, systemtool_name, systemtool_ver
+Returns:		calculation_def_uuid, short_name, systemtool_name, in_type_uuid, out_type_uuid, systemtool_ver
 Author:			G. Cattabriga
 Date:			2020.01.16
 Description:	returns keys (uuid) of calculation_def matching p_descrp parameters 
@@ -725,7 +725,7 @@ Example:		SELECT * FROM get_calculation_def (array['standardize']);
 -- DROP FUNCTION IF EXISTS get_calculation_def (p_descr VARCHAR[]) cascade;
 CREATE OR REPLACE FUNCTION get_calculation_def (p_descr VARCHAR [])
 	RETURNS TABLE (
-		calculation_def_uuid uuid, short_name varchar, systemtool_name varchar, calc_definition varchar, description varchar, in_type val_type, out_type val_type, systemtool_version varchar)
+		calculation_def_uuid uuid, short_name varchar, systemtool_name varchar, calc_definition varchar, description varchar, in_type_uuid uuid, out_type_uuid uuid, systemtool_version varchar)
 	AS $$
 BEGIN
 	RETURN QUERY
@@ -735,12 +735,14 @@ BEGIN
 		st.systemtool_name,
 		mdd.calc_definition,
 		mdd.description,
-		mdd.in_type,
-		mdd.out_type,
+		mdd.in_type_uuid,
+		mdd.out_type_uuid,
 		st.ver
 	FROM
 		calculation_def mdd
 		JOIN systemtool st ON mdd.systemtool_uuid = st.systemtool_uuid
+		LEFT JOIN type_def td ON mdd.in_type_uuid = td.type_def_uuid
+		LEFT JOIN type_def tdd ON mdd.out_type_uuid = tdd.type_def_uuid
 	WHERE
 		mdd.short_name = ANY (p_descr)
 		OR mdd.calc_definition = ANY (p_descr)
@@ -814,67 +816,82 @@ Date:			2020.07.31
 Description:	returns value from a 'val' type composite in json, otherwise null 
 Notes:				
 							
-Example:		SELECT get_val_json ('(text,,"[I-].[NH3+](CCC1=CC=C(C=C1)OC)",,,,,,,,,)'::val);
-				SELECT get_val_json ('(array_text,,,"{"one", "two","three"}",,,,,,,,)'::val); 
-				SELECT get_val_json ('(num,,,,,,266.99,,,,,)'::val);
-				SELECT get_val_json ('(int,,,,15,,,,,,,)'::val);			
-				SELECT get_val_json ('(array_int,,,,,"{1,2,3,4,5}",,,,,,)'::val);	
-				SELECT get_val_json ('(blob_svg,,,,,,,,"02c25ce7-1f0c-4922-b60b-6bc48e7557fd",,,)'::val);
-				SELECT get_val_json ('(bool,,,,,,,,,,TRUE,)'::val);	
-				SELECT get_val_json ('(array_bool,,,,,,,,,,,"{TRUE,TRUE,FALSE}")'::val);	
+Example:		SELECT get_val_json (concat('(', 
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='text'),
+					',,"[I-].[NH3+](CCC1=CC=C(C=C1)OC)",,,,,,,,,)')::val);
+				SELECT get_val_json (concat('(',
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='num'),
+					',fuff,,,,,266.99,,,,,)')::val);
+				SELECT get_val_json (concat('(',
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='int'),
+					',tuts,,,15,,,,,,,)')::val);			
+				SELECT get_val_json (concat('(',
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='array_int'),
+					',,,,,"{1,2,3,4,5}",,,,,,)')::val);	
+				SELECT get_val_json (concat('(',
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='blob'),				
+					',,,,,,,,',
+					(select edocument_uuid from vw_edocument where title = 'Experiment Specification, Capture and Laboratory Automation Technology (ESCALATE): a software pipeline for automated chemical experimentation and data management'),
+					',,,)')::val);
+				SELECT get_val_json (concat('(',
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='bool'),
+					',,,,,,,,,,TRUE,)')::val);		
 */
 -- DROP FUNCTION IF EXISTS get_val_json (p_in val) cascade;
 CREATE OR REPLACE FUNCTION get_val_json (p_in val)
 	RETURNS json
 	AS $$
+DECLARE
+	_p_type varchar;
 BEGIN
-	CASE WHEN p_in.v_type = 'int' THEN
+	select description into _p_type from vw_type_def where type_def_uuid = p_in.v_type_uuid;
+	CASE WHEN _p_type = 'int' THEN
 		RETURN json_build_object(
-			'data_type', p_in.v_type,
+			'data_type', _p_type,
 			'value', p_in.v_int, 
 			'unit', p_in.v_unit 
 			);
-	WHEN p_in.v_type = 'array_int' THEN
+	WHEN _p_type = 'array_int' THEN
 		RETURN json_build_object(
-			'data_type', p_in.v_type,
+			'data_type', _p_type,
 			'value', p_in.v_int_array, 
 			'unit', p_in.v_unit 
 			);	
-	WHEN p_in.v_type = 'num' THEN
+	WHEN _p_type = 'num' THEN
 		RETURN json_build_object(
-			'data_type', p_in.v_type,
+			'data_type', _p_type,
 			'value', p_in.v_num, 
 			'unit', p_in.v_unit 
 			);	
-	WHEN p_in.v_type = 'array_num' THEN
+	WHEN _p_type = 'array_num' THEN
 		RETURN json_build_object(
-			'data_type', p_in.v_type,
+			'data_type', _p_type,
 			'value', p_in.v_num_array, 
 			'unit', p_in.v_unit 
 			);			
-	WHEN p_in.v_type = 'text' THEN
+	WHEN _p_type = 'text' THEN
 		RETURN json_build_object(
-			'data_type', p_in.v_type,
+			'data_type', _p_type,
 			'value', p_in.v_text
 			);	
-	WHEN p_in.v_type = 'array_text' THEN
+	WHEN _p_type = 'array_text' THEN
 		RETURN json_build_object(
-			'data_type', p_in.v_type,
+			'data_type', _p_type,
 			'value', p_in.v_text_array 
 			);
-	WHEN p_in.v_type::text LIKE 'blob%' THEN											
+	WHEN _p_type = 'blob' THEN											
 		RETURN json_build_object(
-			'data_type', p_in.v_type,
+			'data_type', _p_type,
 			'value', p_in.v_edocument_uuid 
 			);	
-	WHEN p_in.v_type = 'bool' THEN
+	WHEN _p_type = 'bool' THEN
 		RETURN json_build_object(
-			'data_type', p_in.v_type,
+			'data_type', _p_type,
 			'value', p_in.v_bool
 			);	
-	WHEN p_in.v_type = 'array_bool' THEN
+	WHEN _p_type = 'array_bool' THEN
 		RETURN json_build_object(
-			'data_type', p_in.v_type,
+			'data_type', _p_type,
 			'value', p_in.v_bool_array
 			);			
 	ELSE
@@ -895,37 +912,44 @@ Date:			2020.04.16
 Description:	returns value from a 'val' type composite, otherwise null 
 Notes:				
 							
-Example:		SELECT get_val_actual (null::int8, '(int,,,,15,,,,,,,)'::val);
-				SELECT get_val_actual (null::int8[], '(array_int,,,,,"{1,2,3,4,5}",,,,,,)'::val);
-				SELECT get_val_actual (null::text,'(text,,"[I-].[NH3+](CCC1=CC=C(C=C1)OC)",,,,,,,,,)'::val);
-				SELECT get_val_actual (null::numeric,'(num,,,,,,266.99,,,,,)'::val);
-				SELECT get_val_actual (null::numeric[],'(array_num,,,,,,266.99,"{1.23, 1.0003, 3.339, 3.14159}",,,,)'::val);
-				SELECT get_val_actual (null::text[],'(array_text,,,"{"one", "two","three"}",,,,,,,,)'::val); 
-				SELECT get_val_actual (null::uuid,'(blob_svg,,,,,,,,"02c25ce7-1f0c-4922-b60b-6bc48e7557fd",,,)'::val);	
-				SELECT get_val_actual (null::bool, '(bool,,,,,,,,,,TRUE,)'::val);	
+Example:		SELECT get_val_actual (null::int8, concat('(',
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='int'),
+					',,,,15,,,,,,,)')::val);	
+				SELECT get_val_actual (null::int8[], concat('(',
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='array_int'),
+					',,,,,"{1,2,3,4,5}",,,,,,)')::val);	
+				SELECT get_val_actual (null::text, concat('(', 
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='text'),
+					',,"[I-].[NH3+](CCC1=CC=C(C=C1)OC)",,,,,,,,,)')::val);
+				SELECT get_val_actual (null::numeric, concat('(',
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='num'),
+					',,,,,,266.99,,,,,)')::val);
 */
 -- DROP FUNCTION IF EXISTS get_val_actual (p_in anyelement, p_val val) cascade;
 CREATE OR REPLACE FUNCTION get_val_actual (p_in anyelement, p_val val)
 	RETURNS anyelement
 	AS $$
+DECLARE
+	_p_type varchar;
 BEGIN
-	CASE WHEN p_val.v_type = 'int' THEN
+	select description into _p_type from vw_type_def where type_def_uuid = p_val.v_type_uuid;
+	CASE WHEN _p_type = 'int' THEN
 		RETURN (p_val.v_int);
-	WHEN p_val.v_type = 'array_int' THEN
+	WHEN _p_type = 'array_int' THEN
 		RETURN (p_val.v_int_array);
-	WHEN p_val.v_type = 'num' THEN
+	WHEN _p_type = 'num' THEN
 		RETURN (p_val.v_num);
-	WHEN p_val.v_type = 'array_num' THEN
+	WHEN _p_type = 'array_num' THEN
 		RETURN (p_val.v_num_array);
-	WHEN p_val.v_type = 'text' THEN
+	WHEN _p_type = 'text' THEN
 		RETURN (p_val.v_text);
-	WHEN p_val.v_type = 'array_text' THEN
+	WHEN _p_type = 'array_text' THEN
 		RETURN (p_val.v_text_array);
-	WHEN p_val.v_type::text LIKE 'blob%' THEN
+	WHEN _p_type = 'blob' THEN
 		RETURN (p_val.v_edocument_uuid);
-	WHEN p_val.v_type = 'bool' THEN
+	WHEN _p_type = 'bool' THEN
 		RETURN (p_val.v_bool);
-	WHEN p_val.v_type = 'array_bool' THEN
+	WHEN _p_type = 'array_bool' THEN
 		RETURN (p_val.v_bool_array);
 	ELSE
 		RETURN (NULL);
@@ -939,34 +963,62 @@ LANGUAGE plpgsql;
 /*
 Name:			get_val (p_in val)
 Parameters:		p_in = value of composite type 'val'
-Returns:		returns the val value
+Returns:		returns the val type, val unit and val value as a table (v_type text, v_unit text, v_val text)
 Author:			G. Cattabriga
 Date:			2020.04.16
-Description:	returns value (as text) from a 'val' type composite 
+Description:	returns type, unit and value (all as text) from a 'val' type composite 
 Notes:				
 							
-Example:		SELECT get_val ('(text,,"[I-].[NH3+](CCC1=CC=C(C=C1)OC)",,,,,,,,,)'::val);
-				SELECT get_val ('(num,,,,,,266.99,,,,,)'::val);
-				SELECT get_val ('(int,,,,15,,,,,,,)'::val);			
-				SELECT get_val ('(array_int,,,,,"{1,2,3,4,5}",,,,,,)'::val);	
-				SELECT get_val ('(blob_svg,,,,,,,,"02c25ce7-1f0c-4922-b60b-6bc48e7557fd",,,)'::val);
-				SELECT get_val ('(bool,,,,,,,,,,TRUE,)'::val);					
+Example:		SELECT get_val (concat('(', 
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='text'),
+					',,"[I-].[NH3+](CCC1=CC=C(C=C1)OC)",,,,,,,,,)')::val);
+				SELECT get_val (concat('(',
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='num'),
+					',,,,,,266.99,,,,,)')::val);
+				SELECT v_type from get_val (concat('(',
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='num'),
+					',,,,,,266.99,,,,,)')::val);
+				SELECT v_val from get_val (concat('(',
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='num'),
+					',,,,,,266.99,,,,,)')::val);
+				SELECT get_val (concat('(',
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='int'),
+					',,,,15,,,,,,,)')::val);			
+				SELECT get_val (concat('(',
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='array_int'),
+					',,,,,"{1,2,3,4,5}",,,,,,)')::val);	
+				SELECT get_val (concat('(',
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='blob'),				
+					',,,,,,,,',
+					(select edocument_uuid from vw_edocument where title = 'Experiment Specification, Capture and Laboratory Automation Technology (ESCALATE): a software pipeline for automated chemical experimentation and data management'),
+					',,,)')::val);
+				SELECT get_val (concat('(',
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='bool'),
+					',,,,,,,,,,TRUE,)')::val);	
+				SELECT get_val (concat('(',
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='fred'),
+					',,,,,,,,,,TRUE,)')::val);					
 */
 -- DROP FUNCTION IF EXISTS get_val (p_in val) cascade;
 CREATE OR REPLACE FUNCTION get_val (p_in val)
-returns text AS $$
+RETURNS table (v_type text, v_unit text, v_val text) 
+AS $$
+DECLARE
+	_p_type text;
 BEGIN
+	select description into _p_type from vw_type_def where type_def_uuid = p_in.v_type_uuid;
 	CASE
-		WHEN p_in.v_type = 'int' THEN return (p_in.v_int::text);
-		WHEN p_in.v_type = 'array_int' THEN return (p_in.v_int_array::text);
-		WHEN p_in.v_type = 'num' THEN return (p_in.v_num::text);
-		WHEN p_in.v_type = 'array_num' THEN return (p_in.v_num_array::text);
-		WHEN p_in.v_type = 'text' THEN return (p_in.v_text::text);
-		WHEN p_in.v_type = 'array_text' THEN return (p_in.v_text_array::text);	
-		WHEN p_in.v_type::text like 'blob%' THEN return (encode((select edocument from edocument where edocument_uuid = p_in.v_edocument_uuid),'escape'));
-		WHEN p_in.v_type = 'bool' THEN return (p_in.v_bool::text);
-		WHEN p_in.v_type = 'array_bool' THEN return (p_in.v_bool_array::text);	
-		ELSE return (NULL);
+		WHEN _p_type = 'int' THEN return query select _p_type as v_type, p_in.v_unit::text as v_unit, p_in.v_int::text as v_val;
+		WHEN _p_type = 'array_int' THEN return query select _p_type as v_type, p_in.v_unit::text as v_unit, p_in.v_int_array::text as v_val;
+		WHEN _p_type = 'num' THEN return query select _p_type as v_type, p_in.v_unit::text as v_unit, p_in.v_num::text as v_val;
+		WHEN _p_type = 'array_num' THEN return query select _p_type as v_type, p_in.v_unit::text as v_unit, p_in.v_num_array::text as v_val;
+		WHEN _p_type = 'text' THEN return query select _p_type as v_type, p_in.v_unit::text as v_unit, p_in.v_text::text as v_val;
+		WHEN _p_type = 'array_text' THEN return query select _p_type as v_type, p_in.v_unit::text as v_unit, p_in.v_text_array::text as v_val;
+		WHEN _p_type = 'blob' THEN return query select _p_type as v_type, p_in.v_unit::text as v_unit, 
+			(encode((select edocument from edocument where edocument_uuid = p_in.v_edocument_uuid),'escape'))::text as v_val;
+		WHEN _p_type = 'bool' THEN return query select _p_type as v_type, p_in.v_unit::text as v_unit, p_in.v_bool::text as v_val;
+		WHEN _p_type = 'array_bool' THEN return query select _p_type as v_type, p_in.v_unit::text as v_unit, p_in.v_bool_array::text as v_val;
+		ELSE return;
 	END CASE;	
 END;
 $$ LANGUAGE plpgsql;
@@ -981,9 +1033,15 @@ Date:			2020.04.16
 Description:	returns unit (as text) from a 'val' type composite 
 Notes:				
 							
-Example:		SELECT get_val_unit ('(text,"inchikey","[I-].[NH3+](CCC1=CC=C(C=C1)OC)",,,,,,,,,)'::val);
-				SELECT get_val_unit ('(num,"ergs",,,,,266.99,,,,,)'::val);
-				SELECT get_val_unit ('(int,"mols",,,15,,,,,,,)'::val);							
+Example:		SELECT get_val_unit (concat('(', 
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='text'),
+					',inchikey,"[I-].[NH3+](CCC1=CC=C(C=C1)OC)",,,,,,,,,)')::val);
+				SELECT get_val_unit (concat('(',
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='num'),
+					',ergs,,,,,266.99,,,,,)')::val);
+				SELECT get_val_unit (concat('(',
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='int'),
+					',mols,,,15,,,,,,,)')::val);							
 */
 -- DROP FUNCTION IF EXISTS get_val_unit (p_in val) cascade;
 CREATE OR REPLACE FUNCTION get_val_unit (p_in val)
@@ -996,7 +1054,32 @@ $$ LANGUAGE plpgsql;
 
 
 /*
-Name:			put_val (p_type val_type, p_val text, p_unit text )
+Name:			get_type_def (_category type_def_category, _description varchar)
+Parameters:		_category = type_def category, _description = type_def description
+Returns:		returns uuid of type_def
+Author:			G. Cattabriga
+Date:			2020.09.01
+Description:	returns uuid of type_def or null
+Notes:				
+							
+Example:		select get_type_def ('data', 'text');
+				select get_type_def ('data', 'bool');
+				select get_type_def ('data', 'blob');	
+				select get_type_def ('file', 'svg');	
+				select get_type_def ('data', 'fred');				
+*/
+-- DROP FUNCTION IF EXISTS get_type_def (_category varchar, _description varchar) cascade;
+CREATE OR REPLACE FUNCTION get_type_def (_category varchar, _description varchar)
+returns uuid AS $$
+BEGIN
+	return (select type_def_uuid from vw_type_def where category = _category::type_def_category and description = _description);
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+/*
+Name:			put_val (p_type_uuid uuid, p_val anyelement, p_unit text )
 Parameters:		p_type is the data type as defined by val_type enum, p_val is the value to be inserted, p_unit is the unit in text
 Returns:		val composite or null
 Author:			G. Cattabriga
@@ -1004,43 +1087,45 @@ Date:			08.02.2020
 Description:	function to insert a value and it's type into the composite value data type 
 Notes:			this will cast the p_val text into it's requisite type	
 							
-Example:		SELECT put_val ('text','[I-].[NH3+](CCC1=CC=C(C=C1)OC)', 'inchikey');
-				SELECT put_val ('text','fred', null);
-				SELECT put_val ('int', 5, 'ergs');
-				SELECT put_val ('num', 1.2345, 'ergs');
-				SELECT put_val ('array_int', '{1,2,3,4}', 'ergs');
-				SELECT put_val ('array_num', '{1.01,2,3,404.237}', 'ergs');
-				SELECT put_val ('bool', FALSE, null);
-				SELECT put_val ('array_bool'::val_type, '{FALSE,TRUE,TRUE,FALSE}', null);
-				select get_val((SELECT put_val ('int', 5, 'ergs')));
-				select get_val((SELECT put_val ('array_int', '{1,2,3,4}', 'ergs')));				
+Example:		SELECT put_val ((select get_type_def ('data', 'text')),'[I-].[NH3+](CCC1=CC=C(C=C1)OC)'::text, 'inchikey');
+				SELECT put_val ((select get_type_def ('data', 'text')),'fred'::text, null);
+				SELECT put_val ((select get_type_def ('data', 'int')), 5, 'ergs');
+				SELECT put_val ((select get_type_def ('data', 'num')), 1.2345, 'ergs');
+				SELECT put_val ((select get_type_def ('data', 'array_int')), '{1,2,3,4}'::int[], 'ergs');
+				SELECT put_val ((select get_type_def ('data', 'array_num')), '{1.01,2,3,404.237}'::numeric[], 'ergs');
+				SELECT put_val ((select get_type_def ('data', 'bool')), FALSE, null);
+				SELECT put_val ((select get_type_def ('data', 'array_bool')), '{FALSE,TRUE,TRUE,FALSE}'::boolean[], null);
+				select get_val((SELECT put_val ((select get_type_def ('data', 'int')), 5, 'ergs')));
+				select get_val((SELECT put_val ((select get_type_def ('data', 'array_int')), '{1,2,3,4}'::int[], 'ergs')));				
 */
--- DROP FUNCTION IF EXISTS put_val (p_type val_type, p_val anyelement, p_unit text ) cascade;
-CREATE OR REPLACE FUNCTION put_val (p_type val_type, p_val text, p_unit text )
+-- DROP FUNCTION IF EXISTS put_val (p_type_uuid uuid, p_val anyelement, p_unit text ) cascade;
+CREATE OR REPLACE FUNCTION put_val (p_type_uuid uuid, p_val anyelement, p_unit text )
 	RETURNS val
 	AS $$
 DECLARE
 	out_val val;
+	_p_type varchar;
 BEGIN
-	out_val.v_type = p_type::val_type;
+	select description into _p_type from vw_type_def where type_def_uuid = p_type_uuid;
+	out_val.v_type_uuid = p_type_uuid;
 	out_val.v_unit = p_unit::text;
-	IF p_type = 'int' THEN
+	IF _p_type = 'int' THEN
 		out_val.v_int = p_val::int8;
-	ELSIF p_type = 'array_int' THEN
+	ELSIF _p_type = 'array_int' THEN
 		out_val.v_int_array = p_val::int8[];
-	ELSIF p_type = 'num' THEN
+	ELSIF _p_type = 'num' THEN
 		out_val.v_num = p_val::numeric;
-	ELSIF p_type = 'array_num' THEN
+	ELSIF _p_type = 'array_num' THEN
 		out_val.v_num_array = p_val::numeric[];
-	ELSIF p_type = 'text' THEN
+	ELSIF _p_type = 'text' THEN
 		out_val.v_text = p_val::text;
-	ELSIF p_type = 'array_text' THEN
+	ELSIF _p_type = 'array_text' THEN
 		out_val.v_text = p_val::text[];
-	ELSIF p_type::text LIKE 'blob%' THEN
+	ELSIF _p_type::text LIKE 'blob%' THEN
 		out_val.v_edocument = p_val::uuid;
-	ELSIF p_type = 'bool' THEN
+	ELSIF _p_type = 'bool' THEN
 		out_val.v_bool = p_val::BOOLEAN;
-	ELSIF p_type = 'array_bool' THEN
+	ELSIF _p_type = 'array_bool' THEN
 		out_val.v_bool_array = p_val::BOOLEAN[];
 	END IF;
 	RETURN out_val;
@@ -1865,8 +1950,9 @@ Date:			2020.06.22
 Description:	trigger proc that deletes, inserts or updates udf_def record based on TG_OP (trigger operation)
 Notes:				
  
-Example:		insert into vw_udf_def (description, valtype) values ('user defined 1', null);
- 				update vw_udf_def set valtype = 'text'::val_type where udf_def_uuid = (select udf_def_uuid from vw_udf_def where (description = 'user defined 1'));
+Example:		insert into vw_udf_def (description, valtype_uuid) values ('user defined 1', null);
+ 				update vw_udf_def set valtype_uuid = (select type_def_uuid from vw_type_def where category = 'data' and description = 'text') where
+ 					udf_def_uuid = (select udf_def_uuid from vw_udf_def where (description = 'user defined 1'));
  				delete from vw_udf_def where udf_def_uuid = (select udf_def_uuid from udf_def where (description = 'user defined 1'));
  */
 CREATE OR REPLACE FUNCTION upsert_udf_def ()
@@ -1888,15 +1974,15 @@ BEGIN
 		UPDATE
 			udf_def
 		SET
+			valtype_uuid = NEW.valtype_uuid,
 			description = NEW.description,
-			valtype = NEW.valtype,
 			mod_date = now()
 		WHERE
 			udf_def.udf_def_uuid = NEW.udf_def_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO udf_def (description, valtype)
-			VALUES(NEW.description, NEW.valtype) returning udf_def_uuid into NEW.udf_def_uuid;
+		INSERT INTO udf_def (description, valtype_uuid)
+			VALUES(NEW.description, NEW.valtype_uuid) returning udf_def_uuid into NEW.udf_def_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -2102,8 +2188,10 @@ Date:			2020.08.03
 Description:	trigger proc that deletes, inserts or updates property_def record based on TG_OP (trigger operation)
 Notes:				
  
-Example:		insert into vw_property_def (description, short_description, valtype, valunit, actor_uuid, status_uuid ) values 
-											('particle-size {min, max}', 'particle-size', 'array_num', 'mesh', 
+Example:		insert into vw_property_def (description, short_description, valtype_uuid, valunit, actor_uuid, status_uuid ) values 
+											('particle-size {min, max}', 'particle-size', 
+											(select get_type_def ('data', 'array_num')), 
+											'mesh', 
 											null,
 											(select status_uuid from vw_status where description = 'active')
 											);
@@ -2132,7 +2220,7 @@ BEGIN
 		SET
 			description = NEW.description,
 			short_description = NEW.short_description,
-			valtype = NEW.valtype,
+			valtype_uuid = NEW.valtype_uuid,
 			valunit = NEW.valunit,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
@@ -2141,8 +2229,8 @@ BEGIN
 			property_def.property_def_uuid = NEW.property_def_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO property_def (description, short_description, valtype, valunit, actor_uuid, status_uuid)
-			VALUES(NEW.description, NEW.short_description, NEW.valtype, NEW.valunit, NEW.actor_uuid, NEW.status_uuid) returning property_def_uuid into NEW.property_def_uuid;
+		INSERT INTO property_def (description, short_description, valtype_uuid, valunit, actor_uuid, status_uuid)
+			VALUES(NEW.description, NEW.short_description, NEW.valtype_uuid, NEW.valunit, NEW.actor_uuid, NEW.status_uuid) returning property_def_uuid into NEW.property_def_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -2158,19 +2246,21 @@ Returns:		void
 Author:			G. Cattabriga
 Date:			2020.08.04
 Description:	trigger proc that deletes, inserts or updates property record based on TG_OP (trigger operation)
-Notes:			this will check to see if property_def exists	
+Notes:			AVOID THIS FUNCTION as it will isolate property records	
  
 Example:		insert into vw_property (property_def_uuid, property_val, actor_uuid, status_uuid ) values (
 											(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
 											(select put_val (
-												(select valtype from vw_property_def where short_description = 'particle-size'),
-												'{100, 200}',
+												(select valtype_uuid from vw_property_def where short_description = 'particle-size'),
+												'{100, 200}'::int[],
 												(select valunit from vw_property_def where short_description = 'particle-size'))), 
-											null,
+											(select actor_uuid from vw_actor where org_short_name = 'LANL'),
 											(select status_uuid from vw_status where description = 'active')
 											);
-				update vw_property set actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where (property_uuid = 'e36c8f19-cd2f-4f5d-960d-54638f26f066');
- 				delete from vw_property where (property_uuid = 'e36c8f19-cd2f-4f5d-960d-54638f26f066');
+ 				delete from vw_property where (property_val = (select put_val (
+												(select valtype_uuid from vw_property_def where short_description = 'particle-size'),
+												'{100, 200}'::int[],
+												(select valunit from vw_property_def where short_description = 'particle-size'))));
  */
 CREATE OR REPLACE FUNCTION upsert_property ()
 	RETURNS TRIGGER
@@ -2223,11 +2313,11 @@ Notes:			this will check to see if property_def exists, also will add entry into
 Example:		insert into vw_material_property (property_x_uuid, material_uuid, property_def_uuid, property_val, property_actor_uuid, property_status_uuid ) 
 					values (null, (select material_uuid from vw_material where description = 'Formic Acid'),
 							(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
-							(select put_val ((select valtype from vw_property_def where short_description = 'particle-size'),
-								'{100, 200}',
+							(select put_val ((select valtype_uuid from vw_property_def where short_description = 'particle-size'),
+								'{100, 200}'::int[],
 								(select valunit from vw_property_def where short_description = 'particle-size'))), 
-								null,
-								(select status_uuid from vw_status where description = 'active')
+							null,
+							(select status_uuid from vw_status where description = 'active')
 				) returning *;
 				update vw_material_property set property_actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where material_uuid = 
 				(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
@@ -2279,6 +2369,168 @@ BEGIN
 				VALUES (NEW.material_uuid, NEW.property_uuid) returning property_x_uuid into NEW.property_x_uuid;
 			RETURN NEW;
 		END IF;
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			upsert_calculation_def()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.08.17
+Description:	trigger proc that deletes, inserts or updates calculation_def record based on TG_OP (trigger operation)
+Notes:				
+ 
+Example:		
+ */
+CREATE OR REPLACE FUNCTION upsert_calculation_def ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		-- first delete the property_def record
+		DELETE FROM calculation_def
+		WHERE calculation_def_uuid = OLD.calculation_def_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- then delete the associated note record
+		DELETE FROM vw_note
+		WHERE ref_note_uuid = OLD.property_def_uuid;
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			calculation_def
+		SET
+			short_name = NEW.short_name,
+			calc_definition = NEW.calc_definition,
+			systemtool_uuid = NEW.systemtool_uuid,
+			description = NEW.description,
+			in_source = NEW.in_source,
+			in_type = NEW.in_type,
+			in_opt_source = NEW.in_opt_source,
+			in_opt_type = NEW.in_opt_type,	
+			out_type = NEW.out_type,		
+			calculation_class_uuid = NEW.calculation_class_uuid,
+			actor_uuid = NEW.actor_uuid,
+			status_uuid = NEW.status_uuid,
+			mod_date = now()
+		WHERE
+			calculation_def.calculation_def_uuid = NEW.calculation_def_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO property_def (short_name, calc_definition, systemtool_uuid, description, in_source, in_type, in_opt_source, in_opt_type, out_type, calculation_class_uuid, actor_uuid, status_uuid)
+			VALUES(NEW.short_name, NEW.calc_definition, NEW.systemtool_uuid, NEW.description, NEW.in_source, NEW.in_type, NEW.in_opt_source, NEW.in_opt_type, NEW.out_type, NEW.calculation_class_uuid, NEW.actor_uuid, NEW.status_uuid) returning calculation_def_uuid into NEW.calculation_def_uuid;
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+
+
+/*
+Name:			upsert_calculation()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.08.19
+Description:	trigger proc that deletes, inserts or updates calculation record based on TG_OP (trigger operation)
+Notes:			this will check to see if calculation_def exists	
+ 
+Example:		
+
+ */
+CREATE OR REPLACE FUNCTION upsert_calculation ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		-- first delete the property record
+		DELETE FROM calculation
+		WHERE calculation_uuid = OLD.calculation_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- then delete the associated note record
+		DELETE FROM vw_note
+		WHERE ref_note_uuid = OLD.property_uuid;
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			calculation
+		SET
+			calculation_alias_name = NEW.calculation_alias_name,
+			in_val = NEW.in_val,
+			in_opt_val = NEW.in_opt_val,
+			out_val = NEW.out_val,
+			actor_uuid = NEW.actor_uuid,
+			status_uuid = NEW.status_uuid,
+			mod_date = now()
+		WHERE
+			calculation.calculation_uuid = NEW.calculation_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		IF (select exists (select calculation_def_uuid from vw_calculation_def where calculation_def_uuid = NEW.calculation_def_uuid)) THEN
+			INSERT INTO property (calculation_def_uuid, calculation_alias_name, in_val, in_opt_val, out_val, actor_uuid, status_uuid)
+				VALUES(NEW.calculation_def_uuid, NEW.in_val, NEW.in_opt_val, NEW.OUT_val, NEW.actor_uuid, NEW.status_uuid) returning calculation_uuid into NEW.calculation_uuid;
+			RETURN NEW;
+		END IF;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			upsert_workflow()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.08.20
+Description:	trigger proc that deletes, inserts or updates workflow record based on TG_OP (trigger operation)
+Notes:				
+ 
+Example:		insert into vw_workflow (workflow_description) values ('workflow_test');
+ 				delete from vw_workflow where workflow_uuid = ;
+ */
+CREATE OR REPLACE FUNCTION upsert_workflow ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		-- first delete the material_refname_def record
+		DELETE FROM workflow
+		WHERE workflow_uuid = OLD.workflow_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- then delete the associated note record
+		DELETE FROM vw_note
+		WHERE ref_note_uuid = OLD.material_refname_def_uuid;
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			workflow		
+		SET
+			description = NEW.description,
+			actor_uuid = NEW.actor_uuid,
+			status_uuid = NEW.status_uuid,
+			mod_date = now()
+		WHERE
+			workflow.workflow_uuid = NEW.workflow_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO workflow (description, actor_uuid, status_uuid)
+			VALUES(NEW.description, NEW.actor_uuid, NEW.status_uuid) returning workflow_uuid into NEW.workflow_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -2423,6 +2675,55 @@ BEGIN
 			INSERT INTO edocument_x (ref_edocument_uuid, edocument_uuid)
 				VALUES(NEW.ref_edocument_uuid, NEW.edocument_uuid);
 		END IF;
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			upsert_type_def()
+Parameters:		type_def_category (enum type) and description required on insert 
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.09.01
+Description:	trigger proc that deletes, inserts or updates note and note_x (for the object ref_note_uuid) based on TG_OP (trigger operation)
+Notes:			must have ref_note_uuid in order to return appropriate notes for that entity
+ 
+Example:		insert into vw_type_def (category, description) values ('data', 'bool');
+				insert into vw_type_def (category, description) values ('file', 'pdf');
+				update vw_type_def set description = 'svg' where type_def_uuid = (select type_def_uuid from 
+					vw_type_def where category = 'file' and description = 'pdf');
+				delete from vw_type_def where type_def_uuid = (select type_def_uuid from vw_type_def where category = 'data' and description = 'bool');
+				delete from vw_type_def where type_def_uuid = (select type_def_uuid from vw_type_def where category = 'file' and description = 'svg');	
+ */
+CREATE OR REPLACE FUNCTION upsert_type_def ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		DELETE FROM type_def
+		WHERE type_def_uuid = OLD.type_def_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			type_def
+		SET
+			category = NEW.category,
+			description = NEW.description,
+			mod_date = now()
+		WHERE
+			type_def.type_def_uuid = NEW.type_def_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO type_def (category, description)
+			VALUES(NEW.category, NEW.description)
+		RETURNING type_def_uuid INTO NEW.type_def_uuid;
 		RETURN NEW;
 	END IF;
 END;
