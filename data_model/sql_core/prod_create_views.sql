@@ -811,8 +811,8 @@ SELECT
 	pd.short_description as property_short_description,	
 	pr.property_val,
 	-- break out the val fields
-	vl.v_type,
-	vl.v_unit,
+	(pr.property_val).v_type_uuid,
+	(pr.property_val).v_unit,
 	vl.v_val,	
 	pr.actor_uuid as property_actor_uuid,
 	act.description as actor_description,

@@ -1089,17 +1089,17 @@ Notes:			this will cast the p_val text into it's requisite type
 							
 Example:		SELECT put_val ((select get_type_def ('data', 'text')),'[I-].[NH3+](CCC1=CC=C(C=C1)OC)'::text, 'inchikey');
 				SELECT put_val ((select get_type_def ('data', 'text')),'fred'::text, null);
-				SELECT put_val ((select get_type_def ('data', 'int')), 5, 'ergs');
-				SELECT put_val ((select get_type_def ('data', 'num')), 1.2345, 'ergs');
-				SELECT put_val ((select get_type_def ('data', 'array_int')), '{1,2,3,4}'::int[], 'ergs');
-				SELECT put_val ((select get_type_def ('data', 'array_num')), '{1.01,2,3,404.237}'::numeric[], 'ergs');
-				SELECT put_val ((select get_type_def ('data', 'bool')), FALSE, null);
-				SELECT put_val ((select get_type_def ('data', 'array_bool')), '{FALSE,TRUE,TRUE,FALSE}'::boolean[], null);
+				SELECT put_val ((select get_type_def ('data', 'int')), '5', 'ergs');
+				SELECT put_val ((select get_type_def ('data', 'num')), '1.2345', 'ergs');
+				SELECT put_val ((select get_type_def ('data', 'array_int')), '{1,2,3,4}', 'ergs');
+				SELECT put_val ((select get_type_def ('data', 'array_num')), '{1.01,2,3,404.237}', 'ergs');
+				SELECT put_val ((select get_type_def ('data', 'bool')), 'FALSE', null);
+				SELECT put_val ((select get_type_def ('data', 'array_bool')), '{FALSE,TRUE,TRUE,FALSE}', null);
 				select get_val((SELECT put_val ((select get_type_def ('data', 'int')), 5, 'ergs')));
-				select get_val((SELECT put_val ((select get_type_def ('data', 'array_int')), '{1,2,3,4}'::int[], 'ergs')));				
+				select get_val((SELECT put_val ((select get_type_def ('data', 'array_int')), '{1,2,3,4}', 'ergs')));				
 */
--- DROP FUNCTION IF EXISTS put_val (p_type_uuid uuid, p_val anyelement, p_unit text ) cascade;
-CREATE OR REPLACE FUNCTION put_val (p_type_uuid uuid, p_val anyelement, p_unit text )
+-- DROP FUNCTION IF EXISTS put_val (p_type_uuid uuid, p_val text, p_unit text ) cascade;
+CREATE OR REPLACE FUNCTION put_val (p_type_uuid uuid, p_val text, p_unit text )
 	RETURNS val
 	AS $$
 DECLARE
@@ -2310,16 +2310,17 @@ Date:			2020.08.04
 Description:	trigger proc that deletes, inserts or updates property record based on TG_OP (trigger operation)
 Notes:			this will check to see if property_def exists, also will add entry into property_x to join material_uuid with property_uuid	
  
-Example:		insert into vw_material_property (property_x_uuid, material_uuid, property_def_uuid, property_val, property_actor_uuid, property_status_uuid ) 
-					values (null, (select material_uuid from vw_material where description = 'Formic Acid'),
+Example:		insert into vw_material_property (material_uuid, property_def_uuid, 
+					v_val, property_actor_uuid, property_status_uuid ) 
+					values ((select material_uuid from vw_material where description = 'Formic Acid'),
 							(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
-							(select put_val ((select valtype_uuid from vw_property_def where short_description = 'particle-size'),
-								'{100, 200}'::int[],
-								(select valunit from vw_property_def where short_description = 'particle-size'))), 
+							'{100, 200}', 
 							null,
 							(select status_uuid from vw_status where description = 'active')
 				) returning *;
 				update vw_material_property set property_actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where material_uuid = 
+				(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
+				update vw_material_property set v_val = '{100, 900}' where material_uuid = 
 				(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
  				delete from vw_material_property where material_uuid = 
 				(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
@@ -2350,7 +2351,8 @@ BEGIN
 		UPDATE
 			property
 		SET
-			property_val = NEW.property_val,
+			property_val = 
+				(select put_val ((NEW.property_val).v_type_uuid, NEW.v_val, (NEW.property_val).v_unit)),
 			actor_uuid = NEW.property_actor_uuid,
 			status_uuid = NEW.property_status_uuid,
 			mod_date = now()
@@ -2363,7 +2365,11 @@ BEGIN
 				return null;
 			END IF;
 			INSERT INTO property (property_def_uuid, property_val, actor_uuid, status_uuid)
-				VALUES(NEW.property_def_uuid, NEW.property_val, NEW.property_actor_uuid, NEW.property_status_uuid)
+				VALUES(NEW.property_def_uuid, 
+				(select put_val ((select valtype_uuid from vw_property_def where property_def_uuid = NEW.property_def_uuid), 
+								 NEW.v_val, 
+								 (select valunit from vw_property_def where property_def_uuid = NEW.property_def_uuid))),	
+				NEW.property_actor_uuid, NEW.property_status_uuid)
 			RETURNING property_uuid into NEW.property_uuid;
 			INSERT INTO property_x (material_uuid, property_uuid)
 				VALUES (NEW.material_uuid, NEW.property_uuid) returning property_x_uuid into NEW.property_x_uuid;
