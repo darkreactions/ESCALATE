@@ -21,14 +21,20 @@ from url_filter.integrations.drf import DjangoFilterBackend
 # App imports
 
 from .serializers import *
-from .utils import camel_case_uuid, camel_case, view_names, custom_serializer_views, docstring
+from .utils import camel_case_uuid, camel_case, view_names, custom_serializer_views, perform_create_views, docstring
 import core.models
 import rest_api
 from .rest_docs import rest_docs
 
-
 view_names = view_names + custom_serializer_views
 
+def save_actor_on_post(self, serializer):
+    """Save the person POSTing as the actor associated with a resource being created
+
+    Use this to overload perform_create on a view.
+    """
+    actor = Actor.objects.get(person_uuid=self.request.user.person)
+    serializer.save(actor_uuid=actor, actor_description=actor.description)
 
 @api_view(['GET'])
 @docstring(rest_docs['api_root'])
@@ -83,6 +89,10 @@ def create_view(model_name, lookup_field=None):
                                         tuple([ListCreateAPIView]), methods_list)
     globals()[model_name+'Detail'] = type(model_name + 'Detail',
                                           tuple([RetrieveUpdateAPIView]), methods_detail)
+
+    if model_name in perform_create_views:
+        globals()[model_name+'List'].perform_create = save_actor_on_post
+        globals()[model_name+'Detail'].perform_create = save_actor_on_post
 
 
 for view_name in view_names:

@@ -1,6 +1,6 @@
 from django.db import models
-from django.contrib.postgres.fields import JSONField
-
+#from django.contrib.postgres.fields import JSONField
+from django.db.models import JSONField
 managed_value = False
 
 
@@ -108,8 +108,8 @@ class InventoryMaterial(models.Model):
                                          blank=True, null=True)
     inventory_onhand_amt = models.FloatField(blank=True, null=True)
     inventory_unit = models.CharField(max_length=255, blank=True, null=True)
-    inventory_create_date = models.DateTimeField(blank=True, null=True)
     inventory_expiration_date = models.DateTimeField(blank=True, null=True)
+    inventory_add_date = models.DateTimeField()
     inventory_location = models.CharField(
         max_length=255, blank=True, null=True)
     inventory_status = models.ForeignKey('Status', models.DO_NOTHING,
@@ -131,7 +131,7 @@ class InventoryMaterial(models.Model):
                                         blank=True, null=True, related_name='material_status')
     material_status_description = models.CharField(
         max_length=255, blank=True, null=True)
-    material_create_date = models.DateTimeField()
+    material_add_date = models.DateTimeField()
     material_name = models.CharField(max_length=255, blank=True, null=True)
     material_abbreviation = models.CharField(
         max_length=255, blank=True, null=True)
@@ -225,13 +225,12 @@ class Calculation(models.Model):
 
     calculation_alias_name = models.CharField(
         max_length=255, blank=True, null=True)
-    create_date = models.DateTimeField(blank=True, null=True)
+
     calculation_status = models.ForeignKey('Status',
                                            models.DO_NOTHING,
                                            db_column='calculation_status_uuid',)
     calculation_status_description = models.CharField(max_length=255,
                                                       blank=True, null=True)
-    actor_descr = models.CharField(max_length=255, blank=True, null=True)
     calculation_def = models.ForeignKey('CalculationDef',
                                         models.DO_NOTHING,
                                         blank=True, null=True,
@@ -258,6 +257,8 @@ class Calculation(models.Model):
         'Actor', models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)
     actor_description = models.CharField(
         max_length=1023, blank=True, null=True)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
@@ -335,7 +336,8 @@ class MaterialCalculationJson(models.Model):
     material_status_uuid = models.UUIDField()
     material_status_description = models.CharField(
         max_length=255, blank=True, null=True)
-    create_date = models.DateTimeField()
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
     abbreviation = models.CharField(
         db_column='abbreviation', max_length=255, blank=True, null=True)
     chemical_name = models.CharField(
@@ -569,16 +571,18 @@ class TagType(models.Model):
 class Edocument(models.Model):
     uuid = models.UUIDField(primary_key=True, db_column='edocument_uuid')
     title = models.CharField(max_length=255, blank=True,
-                             null=True, db_column='edocument_title')
+                             null=True, db_column='title')
     description = models.CharField(max_length=255, blank=True, null=True,
-                                   db_column='edocument_description')
+                                   db_column='description')
     filename = models.CharField(max_length=255, blank=True, null=True,
-                                db_column='edocument_filename')
+                                db_column='filename')
     source = models.CharField(
-        max_length=255, blank=True, null=True, db_column='edocument_source')
+        max_length=255, blank=True, null=True, db_column='source')
     edoc_type = models.CharField(max_length=255, blank=True,
-                                 null=True, db_column='edocument_type')
+                                 null=True, db_column='doc_type')
     edocument = models.BinaryField(blank=True, null=True)
+    edoc_ver = models.CharField(max_length=255, blank=True,
+                                null=True, db_column='doc_ver')
     actor_uuid = models.ForeignKey(
         'Actor', models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)
     actor_description = models.CharField(
@@ -587,6 +591,8 @@ class Edocument(models.Model):
         'Status', models.DO_NOTHING, db_column='status_uuid', blank=True, null=True)
     status_description = models.CharField(
         max_length=255, blank=True, null=True)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
@@ -626,31 +632,121 @@ class UdfDef(models.Model):
 
 
 class PropertyDef(models.Model):
-    """
 
-    """
-    uuid = models.UUIDField(primary_key=True, db_column='property_def_uuid')
-    description = models.CharField(max_length=255, blank=True, null=True,
-                                   db_column='property_def_description')
-    short_description = models.CharField(max_length=255, blank=True, null=True,
-                                         db_column='property_def_short_description')
-    val_type = models.CharField(max_length=255, blank=True, null=True,
-                                db_column='property_def_val_type')
-    val_unit = models.CharField(max_length=255, blank=True, null=True,
-                                db_column='property_def_val_unit')
-    actor_uuid = models.ForeignKey('Actor', on_delete=models.DO_NOTHING,
-                                   db_column='actor_uuid', blank=True, null=True)
-    actor_description = models.CharField(max_length=255, blank=True, null=True,
-                                         db_column='actor_description')
-    status_uuid = models.ForeignKey('Status', on_delete=models.DO_NOTHING,
-                                    blank=True, null=True,
+    uuid = models.UUIDField(primary_key=True,
+                            db_column='property_def_uuid')
+    description = models.CharField(max_length=255,
+                                   blank=True,
+                                   null=True,
+                                   db_column='description')
+    short_description = models.CharField(max_length=255,
+                                         blank=True,
+                                         null=True,
+                                         db_column='short_description')
+    val_type = models.CharField(max_length=255,
+                                blank=True,
+                                null=True,
+                                db_column='valtype')
+    val_unit = models.CharField(max_length=255,
+                                blank=True,
+                                null=True,
+                                db_column='valunit')
+    actor_uuid = models.ForeignKey('Actor',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='actor_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    actor_description = models.CharField(max_length=255,
+                                         blank=True,
+                                         null=True,
+                                         db_column='actor_description',
+                                         editable=False)
+    status_uuid = models.ForeignKey('Status',
+                                    on_delete=models.DO_NOTHING,
+                                    blank=True,
+                                    null=True,
                                     db_column='status_uuid')
-    status_description = models.CharField(max_length=255, blank=True, null=True,
-                                          db_column='status_description')
-    add_date = models.CharField(max_length=255, blank=True, null=True,
-                                db_column='property_def_add_date')
-    mod_date = models.CharField(max_length=255, blank=True, null=True,
-                                db_column='property_def_mod_date')
+    status_description = models.CharField(max_length=255,
+                                          blank=True,
+                                          null=True,
+                                          db_column='status_description',
+                                          editable=False)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
     class Meta:
         managed = False
         db_table = 'vw_property_def'
+
+    def __str__(self):
+        return "{}".format(self.description)
+
+
+class MaterialProperty(models.Model):
+
+    property_x_uuid = models.UUIDField(primary_key=True,
+                                       db_column='property_x_uuid')
+    material_uuid = models.ForeignKey('Material',
+                                      db_column='material_uuid',
+                                      on_delete=models.DO_NOTHING,
+                                      blank=True,
+                                      null=True)
+    property_description = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='description',
+                                            editable=False)
+    parent_uuid = models.ForeignKey('Material',
+                                    on_delete=models.DO_NOTHING,
+                                    db_column='parent_uuid',
+                                    blank=True,
+                                    null=True,
+                                    related_name="material_uuid",
+                                    editable=False)
+    property_def_uuid = models.ForeignKey('PropertyDef',
+                                          on_delete=models.DO_NOTHING,
+                                          db_column='property_def_uuid',
+                                          blank=True,
+                                          null=True)
+    property_description = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='property_description',
+                                            editable=False)
+    property_short_description = models.CharField(max_length=255,
+                                                  blank=True,
+                                                  null=True,
+                                                  db_column='property_short_description',
+                                                  editable=False)
+    property_val = models.CharField(max_length=255,
+                                    blank=True,
+                                    null=True,
+                                    db_column='property_val')
+    actor_uuid = models.ForeignKey('Actor',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='property_actor_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    actor_description = models.CharField(max_length=255,
+                                         blank=True,
+                                         null=True,
+                                         db_column='actor_description',
+                                         editable=False)
+    status_uuid = models.ForeignKey('Status',
+                                    on_delete=models.DO_NOTHING,
+                                    blank=True,
+                                    null=True,
+                                    db_column='property_status_uuid')
+    status_description = models.CharField(max_length=255,
+                                          blank=True,
+                                          null=True,
+                                          db_column='status_description',
+                                          editable=False)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'vw_material_property'

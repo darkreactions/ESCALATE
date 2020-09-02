@@ -1,11 +1,11 @@
 certifi==2019.6.16
-django>=2.2.8,<3.0.0
-django-filter==2.1.0
-djangorestframework
+django==3.1
+django-filter==2.3.0
+djangorestframework==3.11.1
 Markdown==3.1.1
 pytz==2019.1
 sqlparse==0.3.0
-django-crispy-forms
+django-crispy-forms==1.9.2
 psycopg2
 gunicorn
 plotly
@@ -15,4 +15,5 @@ uritemplate
 coreapi
 django-url-filter
 django-rest-swagger
+django-extensions==3.0.5
 coreschema

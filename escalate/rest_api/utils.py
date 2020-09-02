@@ -22,10 +22,12 @@ def camel_case_uuid(text):
 view_names = ['Systemtool', 'SystemtoolType', 'Actor', 'Inventory', 'InventoryMaterial',
               'LatestSystemtool', 'Calculation', 'CalculationDef',
               'Material', 'MaterialCalculationJson', 'MaterialRefnameDef',
-              'MaterialType', 'Note', 'Organization', 'Person',
-              'Status', 'Tag', 'TagType', 'PropertyDef']
+              'MaterialType', 'Note', 'Note_x', 'Organization', 'Person',
+              'Status', 'Tag', 'TagType', 'PropertyDef', 'MaterialProperty']
 
 custom_serializer_views = ['Edocument', 'ExperimentMeasureCalculation']
+
+perform_create_views = ['PropertyDef', "MaterialProperty"]
 
 
 def docstring(docstr, sep="\n"):
