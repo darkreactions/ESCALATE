@@ -269,21 +269,53 @@ LANGUAGE 'sql';
 -----------------------------
 -- turn on auditting
 -----------------------------
-SELECT audit_table('person');
-SELECT audit_table('organization');
-SELECT audit_table('systemtool');
-SELECT audit_table('systemtool_type');
-SELECT audit_table('actor');
-SELECT audit_table('edocument');
-SELECT audit_table('edocument_x');
-SELECT audit_table('note_x');
-SELECT audit_table('note');
-SELECT audit_table('tag_type');
-SELECT audit_table('tag_x');
-SELECT audit_table('tag');
-SELECT audit_table('udf_def');
-SELECT audit_table('udf');
-
+-- SELECT audit_table('person');
+-- SELECT audit_table('organization');
+-- SELECT audit_table('systemtool');
+-- SELECT audit_table('systemtool_type');
+-- SELECT audit_table('actor');
+-- SELECT audit_table('actor_pref');
+-- SELECT audit_table('edocument');
+-- SELECT audit_table('edocument_x');
+-- SELECT audit_table('bom');
+-- SELECT audit_table('experiment');
+-- SELECT audit_table('experiment_workflow');
+-- SELECT audit_table('material');
+-- SELECT audit_table('material_x');
+-- SELECT audit_table('material_type');
+-- SELECT audit_table('material_type_x');
+-- SELECT audit_table('material_refname');
+-- SELECT audit_table('material_refname_x');
+-- SELECT audit_table('material_refname_def');
+-- SELECT audit_table('outcome');
+-- SELECT audit_table('outcome_type');
+-- SELECT audit_table('outcome_x');
+-- SELECT audit_table('property');
+-- SELECT audit_table('property_def');
+-- SELECT audit_table('property_x');
+-- SELECT audit_table('calculation_class');
+-- SELECT audit_table('calculation_def');
+-- SELECT audit_table('calculation');
+-- SELECT audit_table('calculation_eval');
+-- SELECT audit_table('inventory');
+-- SELECT audit_table('measure');
+-- SELECT audit_table('measure_x');
+-- SELECT audit_table('measure_type');
+-- SELECT audit_table('note_x');
+-- SELECT audit_table('note');
+-- SELECT audit_table('tag_type');
+-- SELECT audit_table('tag_x');
+-- SELECT audit_table('tag');
+-- SELECT audit_table('type_def');
+-- SELECT audit_table('udf_def');
+-- SELECT audit_table('udf');
+-- SELECT audit_table('workflow');
+-- SELECT audit_table('workflow_step');
+-- SELECT audit_table('workflow_state_def');
+-- SELECT audit_table('workflow_state');
+-- SELECT audit_table('workflow_action_def');
+-- SELECT audit_table('workflow_action');
+-- SELECT audit_table('workflow_action_condition');
 
 
 /*
@@ -1001,23 +1033,23 @@ Example:		SELECT get_val (concat('(',
 */
 -- DROP FUNCTION IF EXISTS get_val (p_in val) cascade;
 CREATE OR REPLACE FUNCTION get_val (p_in val)
-RETURNS table (v_type text, v_unit text, v_val text) 
+RETURNS table (val_type text, val_unit text, val_val text) 
 AS $$
 DECLARE
 	_p_type text;
 BEGIN
 	select description into _p_type from vw_type_def where type_def_uuid = p_in.v_type_uuid;
-	CASE
-		WHEN _p_type = 'int' THEN return query select _p_type as v_type, p_in.v_unit::text as v_unit, p_in.v_int::text as v_val;
-		WHEN _p_type = 'array_int' THEN return query select _p_type as v_type, p_in.v_unit::text as v_unit, p_in.v_int_array::text as v_val;
-		WHEN _p_type = 'num' THEN return query select _p_type as v_type, p_in.v_unit::text as v_unit, p_in.v_num::text as v_val;
-		WHEN _p_type = 'array_num' THEN return query select _p_type as v_type, p_in.v_unit::text as v_unit, p_in.v_num_array::text as v_val;
-		WHEN _p_type = 'text' THEN return query select _p_type as v_type, p_in.v_unit::text as v_unit, p_in.v_text::text as v_val;
-		WHEN _p_type = 'array_text' THEN return query select _p_type as v_type, p_in.v_unit::text as v_unit, p_in.v_text_array::text as v_val;
-		WHEN _p_type = 'blob' THEN return query select _p_type as v_type, p_in.v_unit::text as v_unit, 
-			(encode((select edocument from edocument where edocument_uuid = p_in.v_edocument_uuid),'escape'))::text as v_val;
-		WHEN _p_type = 'bool' THEN return query select _p_type as v_type, p_in.v_unit::text as v_unit, p_in.v_bool::text as v_val;
-		WHEN _p_type = 'array_bool' THEN return query select _p_type as v_type, p_in.v_unit::text as v_unit, p_in.v_bool_array::text as v_val;
+	CASE 
+		WHEN _p_type = 'int' THEN return query select _p_type as val_type, p_in.v_unit::text as val_unit, p_in.v_int::text as val_val;
+		WHEN _p_type = 'array_int' THEN return query select _p_type as val_type, p_in.v_unit::text as v_unit, p_in.v_int_array::text as val_val;
+		WHEN _p_type = 'num' THEN return query select _p_type as val_type, p_in.v_unit::text as v_unit, p_in.v_num::text as val_val;
+		WHEN _p_type = 'array_num' THEN return query select _p_type as val_type, p_in.v_unit::text as v_unit, p_in.v_num_array::text as val_val;
+		WHEN _p_type = 'text' THEN return query select _p_type as val_type, p_in.v_unit::text as v_unit, p_in.v_text::text as val_val;
+		WHEN _p_type = 'array_text' THEN return query select _p_type as val_type, p_in.v_unit::text as v_unit, p_in.v_text_array::text as val_val;
+		WHEN _p_type = 'blob' THEN return query select _p_type as val_type, p_in.v_unit::text as val_unit, 
+			(encode((select edocument from edocument where edocument_uuid = p_in.v_edocument_uuid),'escape'))::text as val_val;
+		WHEN _p_type = 'bool' THEN return query select _p_type as val_type, p_in.v_unit::text as v_unit, p_in.v_bool::text as val_val;
+		WHEN _p_type = 'array_bool' THEN return query select _p_type as val_type, p_in.v_unit::text as val_unit, p_in.v_bool_array::text as val_val;
 		ELSE return;
 	END CASE;	
 END;
@@ -2308,10 +2340,11 @@ Returns:		void
 Author:			G. Cattabriga
 Date:			2020.08.04
 Description:	trigger proc that deletes, inserts or updates property record based on TG_OP (trigger operation)
-Notes:			this will check to see if property_def exists, also will add entry into property_x to join material_uuid with property_uuid	
+Notes:			this will check to see if property_def exists, also will add entry into property_x to join material_uuid with property_uuid
+				on insert, will inherit the data type and unit from property_def	
  
 Example:		insert into vw_material_property (material_uuid, property_def_uuid, 
-					v_val, property_actor_uuid, property_status_uuid ) 
+					val_val, property_actor_uuid, property_status_uuid ) 
 					values ((select material_uuid from vw_material where description = 'Formic Acid'),
 							(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
 							'{100, 200}', 
@@ -2320,7 +2353,7 @@ Example:		insert into vw_material_property (material_uuid, property_def_uuid,
 				) returning *;
 				update vw_material_property set property_actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where material_uuid = 
 				(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
-				update vw_material_property set v_val = '{100, 900}' where material_uuid = 
+				update vw_material_property set val_val = '{100, 900}' where material_uuid = 
 				(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
  				delete from vw_material_property where material_uuid = 
 				(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
@@ -2352,7 +2385,7 @@ BEGIN
 			property
 		SET
 			property_val = 
-				(select put_val ((NEW.property_val).v_type_uuid, NEW.v_val, (NEW.property_val).v_unit)),
+				(select put_val (NEW.v_type_uuid, NEW.val_val, NEW.val_unit)),
 			actor_uuid = NEW.property_actor_uuid,
 			status_uuid = NEW.property_status_uuid,
 			mod_date = now()
@@ -2366,9 +2399,9 @@ BEGIN
 			END IF;
 			INSERT INTO property (property_def_uuid, property_val, actor_uuid, status_uuid)
 				VALUES(NEW.property_def_uuid, 
-				(select put_val ((select valtype_uuid from vw_property_def where property_def_uuid = NEW.property_def_uuid), 
-								 NEW.v_val, 
-								 (select valunit from vw_property_def where property_def_uuid = NEW.property_def_uuid))),	
+					(select put_val ((select valtype_uuid from vw_property_def where property_def_uuid = NEW.property_def_uuid), 
+					NEW.val_val, 
+					(select valunit from vw_property_def where property_def_uuid = NEW.property_def_uuid))),	
 				NEW.property_actor_uuid, NEW.property_status_uuid)
 			RETURNING property_uuid into NEW.property_uuid;
 			INSERT INTO property_x (material_uuid, property_uuid)

@@ -129,6 +129,7 @@ systemtool_type
 tag
 tag_type
 tag_x
+type_def
 udf
 udf_def
 workflow
@@ -201,15 +202,18 @@ ALTER TABLE experiment_workflow
 CLUSTER experiment_workflow
 USING "pk_experiment_workflow_uuid";
 
+-- material constraints
 ALTER TABLE material
 	ADD CONSTRAINT "pk_material_material_uuid" PRIMARY KEY (material_uuid),
 		ADD CONSTRAINT "un_material" UNIQUE (description, parent_uuid, status_uuid);
+-- CREATE UNIQUE INDEX "un_material" ON material (coalesce(description, NULL), coalesce(parent_uuid, NULL), coalesce(status_uuid, NULL));
 CREATE INDEX "ix_material_parent_path" ON material
 USING GIST (parent_path);
 CREATE INDEX "ix_material_parent_uuid" ON material (parent_uuid);
 CLUSTER material
 USING "pk_material_material_uuid";
 
+-- bom (bill of materials) constraints
 ALTER TABLE bom
 	ADD CONSTRAINT "pk_bom_bom_uuid" PRIMARY KEY (bom_uuid),
 		ADD CONSTRAINT "un_bom_experiment_material" UNIQUE (experiment_uuid, material_uuid);
@@ -217,6 +221,7 @@ CREATE INDEX "ix_bom_experiment_uuid" ON bom (experiment_uuid);
 CLUSTER bom
 USING "pk_bom_bom_uuid";
 
+-- material_x constraints
 ALTER TABLE material_x
 	ADD CONSTRAINT "pk_material_x_material_x_uuid" PRIMARY KEY (material_x_uuid),
 		ADD CONSTRAINT "un_material_x" UNIQUE (material_uuid, ref_material_uuid);
@@ -251,17 +256,20 @@ ALTER TABLE material_refname_def
 CLUSTER material_refname_def
 USING "pk_material_refname_def_material_refname_def_uuid";
 
+-- property (of materials) constraints
 ALTER TABLE property
 	ADD CONSTRAINT "pk_property_property_uuid" PRIMARY KEY (property_uuid);
 CLUSTER property
 USING "pk_property_property_uuid";
 
+-- property_def (of materials) constraints
 ALTER TABLE property_def
 	ADD CONSTRAINT "pk_property_def_property_def_uuid" PRIMARY KEY (property_def_uuid),
 		ADD CONSTRAINT "un_property_def" UNIQUE (short_description);
 CLUSTER property_def
 USING "pk_property_def_property_def_uuid";
 
+-- property_x (of materials) constraints
 ALTER TABLE property_x
 	ADD CONSTRAINT "pk_property_x_property_x_uuid" PRIMARY KEY (property_x_uuid),
 		ADD CONSTRAINT "un_property_x_def" UNIQUE (material_uuid, property_uuid);
@@ -327,7 +335,7 @@ USING "pk_note_x_note_x_uuid";
 
 ALTER TABLE edocument
 	ADD CONSTRAINT "pk_edocument_edocument_uuid" PRIMARY KEY (edocument_uuid),
-		ADD CONSTRAINT "un_edocument" UNIQUE (edocument_title, edocument_filename, edocument_source);
+		ADD CONSTRAINT "un_edocument" UNIQUE (title, doc_ver);
 CLUSTER edocument
 USING "pk_edocument_edocument_uuid";
 
@@ -355,6 +363,12 @@ ALTER TABLE tag_type
 CLUSTER tag_type
 USING "pk_tag_tag_type_uuid";
 
+ALTER TABLE type_def
+	ADD CONSTRAINT "pk_type_def_type_def_uuid" PRIMARY KEY (type_def_uuid),
+		ADD CONSTRAINT "un_type_def" UNIQUE (category, description);
+CLUSTER type_def
+USING "pk_type_def_type_def_uuid";
+
 ALTER TABLE udf
 	ADD CONSTRAINT "pk_udf_udf_uuid" PRIMARY KEY (udf_uuid);
 CLUSTER udf
@@ -367,11 +381,12 @@ CLUSTER udf_x
 USING "pk_udf_x_udf_x_uuid";
 
 ALTER TABLE udf_def
-	ADD CONSTRAINT "pk_udf_udf_def_uuid" PRIMARY KEY (udf_def_uuid),
+	ADD CONSTRAINT "pk_udf_def_udf_def_uuid" PRIMARY KEY (udf_def_uuid),
 		ADD CONSTRAINT "un_udf_def" UNIQUE (description);
 CLUSTER udf_def
-USING "pk_udf_udf_def_uuid";
+USING "pk_udf_def_udf_def_uuid";
 
+-- workflow primary key and constraints
 ALTER TABLE workflow
 	ADD CONSTRAINT "pk_workflow_workflow_uuid" PRIMARY KEY (workflow_uuid);
 CREATE INDEX "ix_workflow_experiment_uuid" ON workflow (experiment_uuid);
@@ -380,38 +395,45 @@ USING GIST (parent_path);
 CLUSTER workflow
 USING "pk_workflow_workflow_uuid";
 
+-- workflow_step primary key and constraints
 ALTER TABLE workflow_step
 	ADD CONSTRAINT "pk_workflow_step_workflow_step_uuid" PRIMARY KEY (workflow_step_uuid);
 CLUSTER workflow_step
 USING "pk_workflow_step_workflow_step_uuid";
 
+-- workflow_state_def primary key and constraints
 ALTER TABLE workflow_state_def
 	ADD CONSTRAINT "pk_workflow_state_def_workflow_state_def_uuid" PRIMARY KEY (workflow_state_def_uuid),
 		ADD CONSTRAINT "un_workflow_state_def" UNIQUE (description);
 CLUSTER workflow_state_def
 USING "pk_workflow_state_def_workflow_state_def_uuid";
 
+-- workflow_state primary key and constraints
 ALTER TABLE workflow_state
 	ADD CONSTRAINT "pk_workflow_state_workflow_state_uuid" PRIMARY KEY (workflow_state_uuid);
 CLUSTER workflow_state
 USING "pk_workflow_state_workflow_state_uuid";
 
+-- workflow_action_def primary key and constraints
 ALTER TABLE workflow_action_def
 	ADD CONSTRAINT "pk_workflow_action_def_workflow_action_def_uuid" PRIMARY KEY (workflow_action_def_uuid),
 		ADD CONSTRAINT "un_workflow_action_def" UNIQUE (description);
 CLUSTER workflow_action_def
 USING "pk_workflow_action_def_workflow_action_def_uuid";
 
+-- workflow_action primary key and constraints
 ALTER TABLE workflow_action
 	ADD CONSTRAINT "pk_workflow_action_workflow_action_uuid" PRIMARY KEY (workflow_action_uuid);
 CLUSTER workflow_action
 USING "pk_workflow_action_workflow_action_uuid";
 
+-- workflow_action_condition primary key and constraints
 ALTER TABLE workflow_action_condition
 	ADD CONSTRAINT "pk_workflow_action_condition_workflow_action_condition_uuid" PRIMARY KEY (workflow_action_condition_uuid);
 CLUSTER workflow_action_condition
 USING "pk_workflow_action_condition_workflow_action_condition_uuid";
 
+-- status primary key and constraints
 ALTER TABLE status
 	ADD CONSTRAINT "pk_status_status_uuid" PRIMARY KEY (status_uuid),
 			ADD CONSTRAINT "un_status" UNIQUE (description);;
@@ -478,11 +500,12 @@ get_calculation_def (p_descr VARCHAR[])
 		systemtool_version varchar)
 get_calculation (p_material_refname varchar, p_descr VARCHAR[] = null)
    RETURNS TABLE (calculation_uuid uuid) 
-get_val (p_in val) returns text
+get_val (p_in val) returns table (val_type text, val_unit text, val_val text)
 get_val_json (p_in val) RETURNS json
 get_val_actual (p_in anyelement, p_val val) RETURNS anyelement
 get_val_unit (p_in val) returns text
-put_val (p_type val_type, p_val text, p_unit text ) RETURNS val
+put_val (p_type_uuid uuid, p_val text, p_unit text) RETURNS val
+get_type_def (_category varchar, _description varchar) returns uuid
 get_chemaxon_directory ( p_systemtool_uuid uuid, p_actor_uuid uuid ) RETURNS TEXT
 get_chemaxon_version ( p_systemtool_uuid uuid, p_actor_uuid uuid ) RETURNS TEXT
 run_descriptor (p_descriptor_def_uuid uuid, p_alias_name varchar, p_command_opt varchar, p_actor_uuid uuid) RETURNS BOOLEAN
@@ -508,6 +531,7 @@ upsert_material_property () RETURNS TRIGGER
 upsert_note () RETURNS TRIGGER
 upsert_edocument () RETURNS TRIGGER
 upsert_edocument_assign () RETURNS TRIGGER
+upsert_type_def () RETURNS TRIGGER
 
 ```
 
@@ -550,6 +574,7 @@ vw_systemtool_type
 vw_tag
 vw_tag_assign
 vw_tag_type
+vw_type_def
 vw_udf_def
 
 ```
@@ -929,7 +954,7 @@ __vw\_property__`CRUD`<br/>
 > add\_date (v) <br/>
 > mod\_date (v) <br/>
 
-`**NOTE: avoid using this view as an upsert as it needs to be associated with a material, so use vw_property_view instead.`<br/>
+`**NOTE: AVOID using this view as an upsert; USE vw_material_property instead.`<br/>
 
 ```
 insert into vw_property (property_def_uuid, property_val, actor_uuid, status_uuid ) 
@@ -954,6 +979,10 @@ __vw\_material\_property__`CRUD`<br/>
 > property\_uuid (v) <br/>
 > property\_def\_uuid (r v u) <br/>
 > property\_short\_description (v u) <br/>
+> v\_type\_uuid (v) <br/>
+> val\_type (v) <br/>
+> val_unit (v) <br/>
+> val_val (r v u) <br/>
 > property\_val (r v u) <br/>
 > actor\_uuid (v u) <br/>
 > actor\_description (v) <br/>
@@ -962,20 +991,21 @@ __vw\_material\_property__`CRUD`<br/>
 > add\_date (v) <br/>
 > mod\_date (v) <br/>
 
-`**NOTE: because this is a one to many, on upsert property_uuid and material_uuid is (r)equired`<br/>
+`**NOTE: because this is a one to many, on insert property_uuid and material_uuid is (r)equired`<br/>
 `**NOTE: property_x_uuid is added to guarantee a unique key for the view table`<br/>
 
 ```
-insert into vw_material_property (property_x_uuid, material_uuid, property_def_uuid, property_val, property_actor_uuid, property_status_uuid ) 
-	values (null, (select material_uuid from vw_material where description = 'Formic Acid'),
-			(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
-			(select put_val ((select valtype from vw_property_def where short_description = 'particle-size'),
-				'{100, 200}',
-				(select valunit from vw_property_def where short_description = 'particle-size'))), 
-				null,
-				(select status_uuid from vw_status where description = 'active')
+insert into vw_material_property (material_uuid, property_def_uuid, 
+	val_val, property_actor_uuid, property_status_uuid ) 
+	values ((select material_uuid from vw_material where description = 'Formic Acid'),
+		(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
+		'{100, 200}', 
+		null,
+		(select status_uuid from vw_status where description = 'active')
 	) returning *;
 update vw_material_property set property_actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where material_uuid = 
+	(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
+update vw_material_property set val_val = '{100, 900}' where material_uuid = 
 	(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
 delete from vw_material_property where material_uuid = 
 	(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
@@ -1022,7 +1052,7 @@ __vw\_edocument__`CRUD`<br/>
 > description (v u) <br/> 
 > filename (v u) <br/>
 > source (v u) <br/> 
-> edocument (r v) <br/> 
+> edocument (r v u) <br/> 
 > doc\_type (r v u) <br/> 
 > doc\_ver (v u) <br/> 
 > actor\_uuid (v u) <br/> 
@@ -1045,8 +1075,8 @@ delete from vw_edocument where edocument_uuid = (select edocument_uuid from vw_e
 __vw\_edocument\_assign__`CRUD`<br/>
 *upsert\_edocument\_assign ()*
 > edocument\_x\_uuid (v) <br/>
-> ref\_edocument\_uuid (r)
-> edocument\_uuid (r) <br/>
+> ref\_edocument\_uuid (r v u)
+> edocument\_uuid (r v u) <br/>
 > add\_date (v) <br/> 
 > mod\_date (v) <br/>
 
@@ -1058,6 +1088,27 @@ delete from vw_edocument_assign where edocument_uuid = (select edocument_uuid fr
  	(title = 'Test document 1') and ref_tag_uuid = (select actor_uuid from vw_actor where person_last_name = 'Alves') );
 ```
 <br/>
+
+
+__vw\_type\_def__`CRUD`<br/>
+*upsert\_edocument\_assign ()*
+> type\_def\_uuid (v) <br/>
+> category (r v u)
+> description (r v u) <br/>
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+
+```
+insert into vw_type_def (category, description) values ('data', 'bool');
+insert into vw_type_def (category, description) values ('file', 'pdf');
+update vw_type_def set description = 'svg' where type_def_uuid = (select type_def_uuid from 
+	vw_type_def where category = 'file' and description = 'pdf');
+delete from vw_type_def where type_def_uuid = (select type_def_uuid from vw_type_def where category = 'data' and description = 'bool');
+delete from vw_type_def where type_def_uuid = (select type_def_uuid from vw_type_def where category = 'file' and description = 'svg');
+```
+<br/>
+
+
 
 
 <!-- UPDATE views!! 

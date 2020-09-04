@@ -1126,6 +1126,12 @@ ALTER TABLE tag_type
 CLUSTER tag_type
 USING "pk_tag_tag_type_uuid";
 
+ALTER TABLE type_def
+	ADD CONSTRAINT "pk_type_def_type_def_uuid" PRIMARY KEY (type_def_uuid),
+		ADD CONSTRAINT "un_type_def" UNIQUE (category, description);
+CLUSTER type_def
+USING "pk_type_def_type_def_uuid";
+
 ALTER TABLE udf
 	ADD CONSTRAINT "pk_udf_udf_uuid" PRIMARY KEY (udf_uuid);
 CLUSTER udf
@@ -1138,10 +1144,10 @@ CLUSTER udf_x
 USING "pk_udf_x_udf_x_uuid";
 
 ALTER TABLE udf_def
-	ADD CONSTRAINT "pk_udf_udf_def_uuid" PRIMARY KEY (udf_def_uuid),
+	ADD CONSTRAINT "pk_udf_def_udf_def_uuid" PRIMARY KEY (udf_def_uuid),
 		ADD CONSTRAINT "un_udf_def" UNIQUE (description);
 CLUSTER udf_def
-USING "pk_udf_udf_def_uuid";
+USING "pk_udf_def_udf_def_uuid";
 
 -- workflow primary key and constraints
 ALTER TABLE workflow
