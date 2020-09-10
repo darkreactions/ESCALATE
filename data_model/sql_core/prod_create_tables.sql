@@ -70,6 +70,9 @@ DROP FUNCTION IF EXISTS upsert_status () cascade;
 DROP FUNCTION IF EXISTS upsert_material_type () cascade;
 DROP FUNCTION IF EXISTS upsert_material_refname_def () cascade;
 DROP FUNCTION IF EXISTS upsert_material () cascade;
+DROP FUNCTION IF EXISTS upsert_calculation_def () cascade;
+DROP FUNCTION IF EXISTS upsert_calculation () cascade;
+DROP FUNCTION IF EXISTS upsert_property_def () cascade;
 DROP FUNCTION IF EXISTS upsert_property () cascade;
 DROP FUNCTION IF EXISTS upsert_note () cascade;
 DROP FUNCTION IF EXISTS upsert_edocument () cascade;
@@ -463,7 +466,7 @@ CREATE TABLE material_refname_def (
 CREATE TABLE property (
 	property_uuid uuid DEFAULT uuid_generate_v4 (),
 	property_def_uuid uuid NOT NULL,
-	property_val val,
+	property_val val NOT NULL,
 	actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -513,13 +516,13 @@ CREATE TABLE calculation_class (
 ---------------------------------------
 CREATE TABLE calculation_def (
 	calculation_def_uuid uuid DEFAULT uuid_generate_v4 (),
-	short_name varchar COLLATE "pg_catalog"."default",
-	calc_definition varchar COLLATE "pg_catalog"."default",
+	short_name varchar COLLATE "pg_catalog"."default" NOT NULL,
+	calc_definition varchar COLLATE "pg_catalog"."default" NOT NULL,
 	systemtool_uuid uuid,
 	description varchar COLLATE "pg_catalog"."default",
-	in_source varchar,
+	in_source_uuid uuid,
 	in_type_uuid uuid,
-	in_opt_source varchar,
+	in_opt_source_uuid uuid,
 	in_opt_type_uuid uuid,
 	out_type_uuid uuid,
 	calculation_class_uuid uuid,
@@ -528,6 +531,7 @@ CREATE TABLE calculation_def (
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
+
 
 ---------------------------------------
 -- Table structure for calculation
@@ -1315,7 +1319,8 @@ ALTER TABLE property
 
 ALTER TABLE property_def 
  ADD CONSTRAINT fk_property_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
-	ADD CONSTRAINT fk_property_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+	ADD CONSTRAINT fk_property_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid),
+			ADD CONSTRAINT fk_property_def_valtype_1 FOREIGN KEY (valtype_uuid) REFERENCES type_def (type_def_uuid);
 
 ALTER TABLE property_x 
  ADD CONSTRAINT fk_property_x_material_1 FOREIGN KEY (material_uuid) REFERENCES material (material_uuid),
@@ -1324,12 +1329,10 @@ ALTER TABLE property_x
 ALTER TABLE calculation_def
 	ADD CONSTRAINT fk_calculation_def_calculation_class_1 FOREIGN KEY (calculation_class_uuid) REFERENCES calculation_class (calculation_class_uuid),
 		ADD CONSTRAINT fk_calculation_def_systemtool_1 FOREIGN KEY (systemtool_uuid) REFERENCES systemtool (systemtool_uuid),
-			ADD CONSTRAINT fk_calculation_def_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid);
-
--- ALTER TABLE calculation DROP CONSTRAINT fk_calculation_material_1,
--- DROP CONSTRAINT fk_calculation_actor_1,
--- DROP CONSTRAINT fk_calculation_status_1,
--- DROP CONSTRAINT fk_calculation_note_1;
+			ADD CONSTRAINT fk_calculation_def_in_type_1 FOREIGN KEY (in_type_uuid) REFERENCES type_def (type_def_uuid),
+				ADD CONSTRAINT fk_calculation_def_in_opt_type_1 FOREIGN KEY (in_opt_type_uuid) REFERENCES type_def (type_def_uuid),
+					ADD CONSTRAINT fk_calculation_def_opt_type_1 FOREIGN KEY (out_type_uuid) REFERENCES type_def (type_def_uuid),				
+						ADD CONSTRAINT fk_calculation_def_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid);
 
 ALTER TABLE calculation
 --	ADD CONSTRAINT fk_calculation_material_refname_1 FOREIGN KEY (material_refname_description_in, material_refname_def_in) REFERENCES material_refname (description, material_refname_def),

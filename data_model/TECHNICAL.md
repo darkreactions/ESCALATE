@@ -916,6 +916,36 @@ delete from vw_material_refname_def where material_refname_def_uuid = (select ma
 
 <br/>
 
+__vw\_calculation\_def__`CRUD`<br/>
+*upsert\_calculation\_def ()*
+> calculation_def_uuid (v) <br/> 
+> short_name (r v u) <br/> 
+> calc_definition (r v u) <br/>
+> description (v u) <br/>
+> in_source (v u) <br/>
+> in_type_uuid (v u) <br/>
+> in_type_description (v) <br/>
+> in_opt_source (v u) <br/>
+> in_opt_type_uuid (v u) <br/>
+> in_opt_type_description (v) <br/>
+> out_type_uuid (v u) <br/>
+> out_type_description (v) <br/>
+> systemtool_uuid (v) <br/>
+> systemtool_name (v) <br/>
+> systemtool_type_description (v) <br/>
+> systemtool_vendor_organization (v) <br/>
+> systemtool_version (v) <br/>
+> calculation_def_status_uuid (v u) <br/>
+> calculation_def_status_description (v) <br/>
+> calculation_class_uuid (v u) <br/>
+> actor_uuid (v u) <br/>
+> actor_description (v) <br/>
+> add_date (v) <br/>
+> mod_date (v) <br/>
+
+
+<br/>
+
 __vw\_property\_def__`CRUD`<br/>
 *upsert\_property\_def ()*
 > property_def_uuid (v) <br/>
@@ -1159,27 +1189,6 @@ __vw\_calculation__`R`<br/>
 > systemtool_version (v) <br/> 
 > actor_uuid (v) <br/> 
 > actor_description (v) <br/>
-> add_date (v) <br/>
-> mod_date (v) <br/>
-
-<br/>
-
-__vw\_calculation\_def__`R`<br/>
-> calculation_def_uuid (v) <br/> 
-> short_name (v) <br/> 
-> calc_definition (v) <br/>
-> description (v) <br/>
-> in_type (v) <br/>
-> out_type (v) <br/>
-> systemtool_uuid (v) <br/>
-> systemtool_name (v) <br/>
-> systemtool_type_description (v) <br/>
-> systemtool_vendor_organization (v) <br/>
-> systemtool_version (v) <br/>
-> actor_uuid (v) <br/>
-> actor_description (v) <br/>
-> calculation_def_status_uuid (v) <br/>
-> calculation_def_status_description (v) <br/>
 > add_date (v) <br/>
 > mod_date (v) <br/>
 

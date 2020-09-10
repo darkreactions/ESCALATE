@@ -164,7 +164,7 @@ DECLARE
 	fcontents varchar := null;
 	row_ct int := 0;
 BEGIN
-	EXECUTE (format('DROP TABLE IF EXISTS %I', _table));
+	EXECUTE (format('DROP TABLE IF EXISTS %I CASCADE', _table));
 	EXECUTE (format('CREATE TABLE %I (jval json)', _table));
 	fcontents = read_file_utf8(_json);
 	EXECUTE (format('insert into %I (jval) values (%L::jsonb)', _table, fcontents));

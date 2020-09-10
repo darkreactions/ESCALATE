@@ -10,16 +10,45 @@ Notes:			presumes calculation_def has been populated (see initialize tables)
 */
 
 
--- first populate calculation_def
+-- first populate calculation_def for calculations not dependent on a 'source'
 -- using the load_perov_desc_def table joined to actor table (function) to bring in approp actor_uuid 
-INSERT INTO calculation_def (short_name, calc_definition, description, in_source, in_type_uuid, in_opt_source, in_opt_type_uuid, out_type_uuid, systemtool_uuid, actor_uuid)
-	select def.short_name, def.calc_definition, def.description, def.in_calc_source, 
-	(select get_type_def ('data', def.in_type)), def.in_opt_calc_source, 
-	(select get_type_def ('data', def.in_opt_type)),
-	(select get_type_def ('data', def.out_type)),	
+INSERT INTO calculation_def (short_name, calc_definition, description, in_source_uuid, in_type_uuid, in_opt_source_uuid, in_opt_type_uuid, out_type_uuid, systemtool_uuid, actor_uuid)
+	select def.short_name, def.calc_definition, def.description, null::uuid as in_source_uuid, 
+	(select get_type_def ('data', def.in_type)) as in_type_uuid, null::uuid as in_opt_calc_source_uuid, 
+	(select get_type_def ('data', def.in_opt_type)) as in_opt_type_uuid,
+	(select get_type_def ('data', def.out_type)) as out_type_uuid,	
 	st.systemtool_uuid, (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')
 	from load_perov_desc_def def 
-	left join (select systemtool_uuid, systemtool_name from vw_systemtool) st on def.systemtool_name = st.systemtool_name;
+	left join (select systemtool_uuid, systemtool_name from vw_systemtool) st on def.systemtool_name = st.systemtool_name
+	where in_calc_source is null and in_opt_calc_source is null;
+
+
+-- now do the calculations that have an 'in_source' but not an 'in_opt_source'
+-- using the load_perov_desc_def table joined to actor table (function) to bring in approp actor_uuid 
+INSERT INTO calculation_def (short_name, calc_definition, description, in_source_uuid, in_type_uuid, in_opt_source_uuid, in_opt_type_uuid, out_type_uuid, systemtool_uuid, actor_uuid)
+	select def.short_name, def.calc_definition, def.description, cd1.calculation_def_uuid as in_source_uuid, 
+	cd1.out_type_uuid as in_type_uuid, null::uuid as in_opt_source_uuid, 
+	null as in_opt_type_uuid,
+	(select get_type_def ('data', def.out_type)) as out_type_uuid,	
+	st.systemtool_uuid, (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')
+	from load_perov_desc_def def 
+	left join (select systemtool_uuid, systemtool_name from vw_systemtool) st on def.systemtool_name = st.systemtool_name
+	left join calculation_def cd1 on def.in_calc_source = cd1.short_name
+	left join calculation_def cd2 on def.in_opt_calc_source = cd2.short_name
+	where in_calc_source is not null and in_opt_calc_source is null;
+
+-- now do the calculations that have an 'in_source' and an 'in_opt_source'
+-- using the load_perov_desc_def table joined to actor table (function) to bring in approp actor_uuid 
+INSERT INTO calculation_def (short_name, calc_definition, description, in_source_uuid, in_type_uuid, in_opt_source_uuid, in_opt_type_uuid, out_type_uuid, systemtool_uuid, actor_uuid)
+	select def.short_name, def.calc_definition, def.description, cd1.calculation_def_uuid as in_source_uuid, cd1.out_type_uuid as in_type_uuid, 
+	cd2.calculation_def_uuid as in_opt_source_uuid, cd2.out_type_uuid, 
+	(select get_type_def ('data', def.out_type)) as out_type_uuid,	
+	st.systemtool_uuid, (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')
+	from load_perov_desc_def def 
+	left join (select systemtool_uuid, systemtool_name from vw_systemtool) st on def.systemtool_name = st.systemtool_name
+	left join calculation_def cd1 on def.in_calc_source = cd1.short_name
+	left join calculation_def cd2 on def.in_opt_calc_source = cd2.short_name
+	where in_calc_source is not null and in_opt_calc_source is not null;
 
 
 -- get the standardized (desalted) SMILES - returns varchar, so put in blob_value with type text
@@ -92,7 +121,7 @@ INSERT INTO calculation (in_val.v_text, in_val.v_type_uuid, calculation_def_uuid
 	(select pd.material_refname as val_in, 
 	(select get_type_def ('data', 'text')) as val_in_type_uuid, 
 	tmp.descr as descriptor_name, tmp.val as val_out, 
-	(select get_type_def ('file', 'svg')) as val_out_type_uuid, 
+	(select get_type_def ('data', 'blob')) as val_out_type_uuid, 
 	alias_name, '2020-02-20'::timestamptz as create_date, (select status_uuid from status where description = 'active') as status
 	from 
 		(select mn.material_refname, mn.material_refname_def, img.edocument_uuid from edocument img 

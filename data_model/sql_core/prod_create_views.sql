@@ -462,26 +462,44 @@ SELECT
 	mdd.short_name,
 	mdd.calc_definition,
 	mdd.description,
+	mdd.in_source_uuid, 
 	mdd.in_type_uuid,
+	tdi.description as in_type_description,
+	mdd.in_opt_source_uuid,
+	mdd.in_opt_type_uuid,
+	tdio.description as in_opt_type_description,
 	mdd.out_type_uuid,
+	tdo.description as out_type_description,
 	mdd.systemtool_uuid,
 	st.systemtool_name,
 	stt.description AS systemtool_type_description,
 	org.short_name AS systemtool_vendor_organization,
 	st.ver AS systemtool_version,
-	sts.status_uuid as calculation_def_status_uuid,
-	sts.description as caclulation_def_status_description,
-	mdd.add_date,
-	mdd.mod_date,
+	sts.status_uuid as status_uuid,
+	sts.description as status_description,
 	mdd.actor_uuid AS actor_uuid,
-	act.description AS actor_description
+	act.description AS actor_description,
+	mdd.calculation_class_uuid,
+	mdd.add_date,
+	mdd.mod_date	
 FROM
 	calculation_def mdd
 LEFT JOIN vw_actor act ON mdd.actor_uuid = act.actor_uuid
 LEFT JOIN vw_systemtool st ON mdd.systemtool_uuid = st.systemtool_uuid
+LEFT JOIN vw_type_def tdi ON mdd.in_type_uuid = tdi.type_def_uuid
+LEFT JOIN vw_type_def tdio ON mdd.in_type_uuid = tdio.type_def_uuid
+LEFT JOIN vw_type_def tdo ON mdd.in_type_uuid = tdo.type_def_uuid 
 LEFT JOIN systemtool_type stt ON st.systemtool_type_uuid = stt.systemtool_type_uuid
 LEFT JOIN organization org ON st.vendor_organization_uuid = org.organization_uuid
 LEFT JOIN status sts ON mdd.status_uuid = sts.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_calculation_def_upsert ON vw_calculation_def;
+CREATE TRIGGER trigger_calculation_def_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_calculation_def
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_calculation_def ( );
+
 
 
 ----------------------------------------
