@@ -1144,20 +1144,42 @@ Date:
 Description:	trigger proc that deletes, inserts or updates parameter_def record based on TG_OP (trigger operation)
 Notes:				
  
-Example:		insert into vw_parameter_def () values ();
-				update vw_parameter_def set xxx = xxx where xxx;
- 				delete from vw_parameter_def where xxx;
+Example:		insert into vw_parameter_def (description, valtype_uuid, valunit, actor_uuid) values
+                                             ('beard_length', (select get_type_def ('data', 'num')), 'feet', (select actor_uuid from vw_actor where description = 'HC'));
+				update vw_parameter_def set status_uuid = (select status_uuid from vw_status where description = 'do_not_use') where description = 'beard_length';
+ 				delete from vw_parameter_def where description = 'beard_length';
  */
 CREATE OR REPLACE FUNCTION upsert_parameter_def ()
 	RETURNS TRIGGER
 	AS $$
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
-
+	    -- first delete the property_def record
+		DELETE FROM parameter_def
+		WHERE parameter_def_uuid = OLD.parameter_def_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- then delete the associated note record
+		DELETE FROM vw_note
+		WHERE ref_note_uuid = OLD.parameter_def_uuid;
+		RETURN OLD;
 	ELSIF (TG_OP = 'UPDATE') THEN
+	    UPDATE
+			parameter_def
+		SET
+			description = NEW.description,
+			valtype_uuid = NEW.valtype_uuid,
+			valunit = NEW.valunit,
+			actor_uuid = NEW.actor_uuid,
+			status_uuid = NEW.status_uuid,
+			mod_date = now()
+		WHERE
+			parameter_def.parameter_def_uuid = NEW.parameter_def_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-	
+	    INSERT INTO parameter_def (description, valtype_uuid, valunit, actor_uuid, status_uuid)
+			VALUES(NEW.description, NEW.valtype_uuid, NEW.valunit, NEW.actor_uuid, NEW.status_uuid) returning parameter_def_uuid into NEW.parameter_def_uuid;
 		RETURN NEW;
 	END IF;
 END;

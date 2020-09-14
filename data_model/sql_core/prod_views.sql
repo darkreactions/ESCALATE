@@ -953,10 +953,28 @@ LEFT JOIN status st ON inv.status_uuid = st.status_uuid;
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_parameter_def AS
 SELECT 
---
+    pd.parameter_def_uuid,
+    pd.description,
+	pd.valtype_uuid,
+	td.description as valtype_description,
+	pd.valunit,
+	pd.actor_uuid,
+	act.description as actor_description,
+	pd.status_uuid,
+	st.description as status_description,
+	pd.add_date,
+	pd.mod_date
 FROM parameter_def pd
-;
+LEFT JOIN vw_actor act ON act.actor_uuid = pd.actor_uuid
+LEFT JOIN status st ON pd.status_uuid = st.status_uuid
+LEFT JOIN type_def td ON pd.valtype_uuid = td.type_def_uuid;
 
+DROP TRIGGER IF EXISTS trigger_parameter_def_upsert ON vw_parameter_def;
+CREATE TRIGGER trigger_parameter_def_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_parameter_def
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_parameter_def ( );
 
 
 ----------------------------------------
