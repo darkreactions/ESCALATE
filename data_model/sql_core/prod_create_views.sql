@@ -206,7 +206,7 @@ CREATE TRIGGER trigger_tag_x_upsert INSTEAD OF INSERT
 
 
 ----------------------------------------
--- integrated view of udf_def; links to notes
+-- integrated view of udf_def
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_udf_def AS
 SELECT
@@ -215,6 +215,7 @@ SELECT
 	ud.valtype_uuid,
 	td.category as valtype_category,
 	td.description as valtype_description,
+	ud.unit,
 	ud.add_date,
 	ud.mod_date
 FROM
@@ -228,6 +229,32 @@ OR DELETE ON vw_udf_def
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_udf_def ( );
 
+
+----------------------------------------
+-- view of udf; links to notes
+----------------------------------------
+CREATE OR REPLACE VIEW vw_udf AS
+SELECT
+	ud.udf_uuid,
+	ud.udf_def_uuid,
+	ud.udf_val,
+	( ud.udf_val ).v_type_uuid AS udf_val_type_uuid,
+	(select val_val from get_val ( ud.udf_val )) AS udf_val_val,
+	( ud.udf_val ).v_unit AS udf_val_unit,
+	( ud.udf_val ).v_edocument_uuid AS udf_val_edocument_uuid,
+	ud.add_date,
+	ud.mod_date
+FROM
+	udf ud
+	LEFT JOIN udf_def udef on ud.udf_def_uuid = udef.udf_def_uuid
+	LEFT JOIN type_def td on udef.valtype_uuid = td.type_def_uuid;
+
+DROP TRIGGER IF EXISTS trigger_udf_upsert ON vw_udf;
+CREATE TRIGGER trigger_udf_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_udf
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_udf ( );
 
 ----------------------------------------
 -- view of person; links to organization and note

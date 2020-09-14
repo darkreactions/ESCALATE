@@ -207,13 +207,13 @@ COMMIT;
 -- Populate some UDFs
 -- ----------------------------
 BEGIN;
-INSERT INTO vw_udf_def (description, valtype_uuid)
+INSERT INTO vw_udf_def (description, valtype_uuid, unit)
 VALUES 
-	('experiment version', (select type_def_uuid from vw_type_def where category = 'data' and description = 'text')),
-	('generation version', (select type_def_uuid from vw_type_def where category = 'data' and description = 'text')),
-	('challenge problem', (select type_def_uuid from vw_type_def where category = 'data' and description = 'text')),
-	('model predicted', (select type_def_uuid from vw_type_def where category = 'data' and description = 'text')),
-	('batch count', (select type_def_uuid from vw_type_def where category = 'data' and description = 'text'));
+	('experiment version', (select type_def_uuid from vw_type_def where category = 'data' and description = 'text'), null),
+	('generation version', (select type_def_uuid from vw_type_def where category = 'data' and description = 'text'), null),
+	('challenge problem', (select type_def_uuid from vw_type_def where category = 'data' and description = 'text'), null),
+	('model predicted', (select type_def_uuid from vw_type_def where category = 'data' and description = 'text'), null),
+	('batch count', (select type_def_uuid from vw_type_def where category = 'data' and description = 'text'), null);
 COMMIT;
 
 

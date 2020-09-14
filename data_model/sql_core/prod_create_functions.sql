@@ -2008,18 +2008,73 @@ BEGIN
 		SET
 			valtype_uuid = NEW.valtype_uuid,
 			description = NEW.description,
+			unit = NEW.unit,
 			mod_date = now()
 		WHERE
 			udf_def.udf_def_uuid = NEW.udf_def_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO udf_def (description, valtype_uuid)
-			VALUES(NEW.description, NEW.valtype_uuid) returning udf_def_uuid into NEW.udf_def_uuid;
+		INSERT INTO udf_def (description, valtype_uuid, unit)
+			VALUES(NEW.description, NEW.valtype_uuid, NEW.unit) returning udf_def_uuid into NEW.udf_def_uuid;
 		RETURN NEW;
 	END IF;
 END;
 $$
 LANGUAGE plpgsql;
+
+
+/*
+Name:			upsert_udf()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.09.07
+Description:	trigger proc that deletes, inserts or updates udf record based on TG_OP (trigger operation)
+Notes:				
+ 
+Example:		insert into vw_udf (description, valtype_uuid) values ('user defined 1', null);
+ 				update vw_udf set valtype_uuid = (select type_def_uuid from vw_type_def where category = 'data' and description = 'text') where
+ 					udf_def_uuid = (select udf_def_uuid from vw_udf_def where (description = 'user defined 1'));
+ 				delete from vw_udf where udf_def_uuid = (select udf_def_uuid from udf_def where (description = 'user defined 1'));
+ */
+CREATE OR REPLACE FUNCTION upsert_udf ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		-- first delete the udf_def record
+		DELETE FROM udf
+		WHERE udf_uuid = OLD.udf_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- then delete the associated note record
+		DELETE FROM vw_note
+		WHERE ref_note_uuid = OLD.udf_def_uuid;
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			udf
+		SET
+			valtype_uuid = NEW.valtype_uuid,
+			description = NEW.description,
+			mod_date = now()
+		WHERE
+			udf_def.udf_def_uuid = NEW.udf_def_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO udf (udf_def_uuid, val)
+			VALUES(NEW.udf_def_uuid, 
+				(select put_val ((select valtype_uuid from vw_udf_def where udf_def_uuid = NEW.udf_def_uuid), 
+					NEW.udf_val_val, 
+					(select unit from vw_udf_def where udf_def_uuid = NEW.udf_def_uuid)))) returning udf_uuid into NEW.udf_uuid;
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
 
 
 /*

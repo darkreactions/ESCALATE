@@ -34,6 +34,37 @@ DROP TYPE IF EXISTS type_def_category cascade;
  --=====================================
  -- DROP FUNCTIONS
  --=====================================
+ -- this will delete all escalate functions
+ -- do this during dev, as we might miss
+ -- some functions along the way
+DO
+$do$
+DECLARE
+   _sql text;
+BEGIN
+	SELECT INTO _sql
+		string_agg(format('DROP %s %s cascade;', 
+		CASE prokind
+			WHEN 'f' THEN 'FUNCTION'
+			WHEN 'a' THEN 'AGGREGATE'
+			WHEN 'p' THEN 'PROCEDURE'
+		END
+		, oid::regprocedure), E'\n')
+	FROM   pg_proc
+	WHERE  pronamespace = 'dev'::regnamespace  -- schema name here!
+	AND proname like any (array['get%', 'put%', 'upsert%', 'load_%'])  
+   	-- AND prokind = ANY ('{f,a,p}')         -- optionally filter kinds
+   	;
+   	IF _sql IS NOT NULL THEN
+   	--   RAISE NOTICE '%', _sql;  -- debug / check first
+		EXECUTE _sql;         -- uncomment payload once you are sure
+   	ELSE 
+		RAISE NOTICE 'No functions found in schema';
+   	END IF;
+END
+$do$;
+
+/* 
 DROP FUNCTION IF EXISTS read_file_utf8 (path CHARACTER VARYING) cascade;
 DROP FUNCTION IF EXISTS read_file (path CHARACTER VARYING) cascade;
 DROP FUNCTION IF EXISTS isdate (txt VARCHAR) CASCADE;
@@ -58,6 +89,14 @@ DROP FUNCTION IF EXISTS get_charge_count () cascade;
 DROP FUNCTION IF EXISTS math_op () cascade;
 DROP FUNCTION IF EXISTS upsert_actor () cascade;
 DROP FUNCTION IF EXISTS upsert_actor_pref () cascade;
+DROP FUNCTION IF EXISTS upsert_calculation () cascade;
+DROP FUNCTION IF EXISTS upsert_calculation_def () cascade;
+DROP FUNCTION IF EXISTS upsert_edocument () cascade;
+DROP FUNCTION IF EXISTS upsert_edocument_assign () cascade;
+DROP FUNCTION IF EXISTS upsert_material () cascade;
+DROP FUNCTION IF EXISTS upsert_material () cascade;
+DROP FUNCTION IF EXISTS upsert_material_type () cascade;
+DROP FUNCTION IF EXISTS upsert_material_refname_def () cascade;
 DROP FUNCTION IF EXISTS upsert_organization () cascade;
 DROP FUNCTION IF EXISTS upsert_person () cascade;
 DROP FUNCTION IF EXISTS upsert_systemtool () cascade;
@@ -67,21 +106,42 @@ DROP FUNCTION IF EXISTS upsert_tag () cascade;
 DROP FUNCTION IF EXISTS upsert_tag_x () cascade;
 DROP FUNCTION IF EXISTS upsert_udf_def () cascade;
 DROP FUNCTION IF EXISTS upsert_status () cascade;
-DROP FUNCTION IF EXISTS upsert_material_type () cascade;
-DROP FUNCTION IF EXISTS upsert_material_refname_def () cascade;
-DROP FUNCTION IF EXISTS upsert_material () cascade;
-DROP FUNCTION IF EXISTS upsert_calculation_def () cascade;
-DROP FUNCTION IF EXISTS upsert_calculation () cascade;
 DROP FUNCTION IF EXISTS upsert_property_def () cascade;
 DROP FUNCTION IF EXISTS upsert_property () cascade;
+DROP FUNCTION IF EXISTS upsert_material_property () cascade;
 DROP FUNCTION IF EXISTS upsert_note () cascade;
-DROP FUNCTION IF EXISTS upsert_edocument () cascade;
 DROP FUNCTION IF EXISTS upsert_type_def () cascade;
+*/
+
 
 
  --=====================================
  -- DROP VIEWS
  --=====================================
+ -- this will delete all escalate functions
+ -- do this during dev, as we might miss
+ -- some functions along the way
+DO
+$do$
+DECLARE
+   _sql text;
+BEGIN
+	SELECT INTO _sql
+		string_agg(format('DROP VIEW IF EXISTS %s cascade;', 
+		viewname), E'\n')
+	FROM   pg_catalog.pg_views
+	where schemaname = 'dev'  -- schema name here!
+   	;
+   	IF _sql IS NOT NULL THEN
+   		-- RAISE NOTICE '%', _sql;  -- debug / check first
+		EXECUTE _sql;         -- uncomment payload once you are sure
+   	ELSE 
+		RAISE NOTICE 'No views found in schema';
+   	END IF;
+END
+$do$;
+
+/* 
 DROP VIEW IF EXISTS vw_actor cascade;
 DROP VIEW IF EXISTS vw_actor_pref cascade;
 DROP VIEW IF EXISTS vw_calculation cascade;
@@ -111,7 +171,7 @@ DROP VIEW IF EXISTS vw_tag cascade;
 DROP VIEW IF EXISTS vw_tag_type cascade;
 DROP VIEW IF EXISTS vw_tag_x cascade;
 DROP VIEW IF EXISTS vw_type_def cascade;
-
+*/
 
  --=====================================
  -- DROP TABLES 
@@ -768,6 +828,7 @@ CREATE TABLE udf_def (
 	udf_def_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default",
 	valtype_uuid uuid,
+	unit varchar,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
