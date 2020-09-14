@@ -131,6 +131,7 @@ tag_type
 tag_x
 type_def
 udf
+udf_x
 udf_def
 workflow
 workflow_action
@@ -576,6 +577,7 @@ vw_tag_assign
 vw_tag_type
 vw_type_def
 vw_udf_def
+vw_udf
 
 ```
 <br/>
@@ -851,7 +853,7 @@ update vw_tag_type set short_description = 'TESTDEV1', description = 'tags used 
 <br/>
 
 
-__vw\_udf_def__`CRUD`<br/>
+__vw\_udf\_def__`CRUD`<br/>
 *upsert\_udf\_def ()*
 > udf\_def\_uuid (v) <br/>
 > description (r v u) <br/>
@@ -866,6 +868,36 @@ insert into vw_udf_def (description, valtype) values ('user defined 1', null);
 update vw_udf_def set valtype = 'text'::val_type where udf_def_uuid = (select udf_def_uuid from vw_udf_def where (description = 'user defined 1'));
 -- delete udf_def; any notes attached to this record are automatically deleted
 delete from vw_udf_def where udf_def_uuid = (select udf_def_uuid from udf_def where (description = 'user defined 1'));
+```
+
+
+<br/>
+
+
+__vw\_udf__`CRUD`<br/>
+*upsert\_udf ()*
+> udf\_uuid (v) <br/>
+> udf\_def\_uuid (r v u) <br/>
+> description (v) <br/>
+> udf_val (v) <br/>
+> udf_val_type_uuid (v) <br/>
+> udf_val_val (r v u) <br/>
+> udf_val_unit (v) <br/>
+> udf_val_edocument_uuid (v u) <br/>
+> valtype (v u) <br/>
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+> udf\_x\_uuid (v) <br/>
+> ref\_udf\_uuid (r v u) <br/>
+
+```
+insert into vw_udf (ref_udf_uuid, udf_def_uuid, udf_val_val) values 
+	((select actor_uuid from vw_actor where description = 'HC'),
+	(select udf_def_uuid from vw_udf_def where description = 'user defined 1') 
+	, 'some text: a, b, c, d');
+update vw_udf set udf_val_val = 'some more text: a, b, c, d, e, f' where
+	udf_def_uuid = (select udf_def_uuid from vw_udf_def where (description = 'user defined 1'));
+delete from vw_udf where udf_def_uuid = (select udf_def_uuid from udf_def where (description = 'user defined 1'));
 ```
 
 <br/>

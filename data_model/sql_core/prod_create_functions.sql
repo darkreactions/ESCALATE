@@ -1985,6 +1985,8 @@ Notes:
 Example:		insert into vw_udf_def (description, valtype_uuid) values ('user defined 1', null);
  				update vw_udf_def set valtype_uuid = (select type_def_uuid from vw_type_def where category = 'data' and description = 'text') where
  					udf_def_uuid = (select udf_def_uuid from vw_udf_def where (description = 'user defined 1'));
+				update vw_udf_def set unit = 'test-unit' where
+ 					udf_def_uuid = (select udf_def_uuid from vw_udf_def where (description = 'user defined 1'));
  				delete from vw_udf_def where udf_def_uuid = (select udf_def_uuid from udf_def where (description = 'user defined 1'));
  */
 CREATE OR REPLACE FUNCTION upsert_udf_def ()
@@ -2037,7 +2039,7 @@ Example:		insert into vw_udf (ref_udf_uuid, udf_def_uuid, udf_val_val) values
 					((select actor_uuid from vw_actor where description = 'HC'),
 					(select udf_def_uuid from vw_udf_def where description = 'user defined 1') 
 					, 'some text: a, b, c, d');
- 				update vw_udf set valtype_uuid = (select type_def_uuid from vw_type_def where category = 'data' and description = 'text') where
+ 				update vw_udf set udf_val_val = 'some more text: a, b, c, d, e, f' where
  					udf_def_uuid = (select udf_def_uuid from vw_udf_def where (description = 'user defined 1'));
  				delete from vw_udf where udf_def_uuid = (select udf_def_uuid from udf_def where (description = 'user defined 1'));
  */
@@ -2046,7 +2048,12 @@ CREATE OR REPLACE FUNCTION upsert_udf ()
 	AS $$
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
-		-- first delete the udf_def record
+		-- first delete the udf_x record
+		DELETE FROM udf_x
+		WHERE udf_uuid = OLD.udf_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
 		DELETE FROM udf
 		WHERE udf_uuid = OLD.udf_uuid;
 		IF NOT FOUND THEN
@@ -2060,7 +2067,7 @@ BEGIN
 		UPDATE
 			udf
 		SET
-			udf_val = NEW.udf_val,
+			udf_val = (select put_val (NEW.udf_val_type_uuid, NEW.udf_val_val, NEW.udf_val_unit)),
 			mod_date = now()
 		WHERE
 			udf.udf_uuid = NEW.udf_uuid;
@@ -2081,7 +2088,6 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
-
 
 
 /*

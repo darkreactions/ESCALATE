@@ -51,7 +51,7 @@ BEGIN {
 			gsub(";"," CASCADE;")
 			print $0
 			print "-- added next line in post-processing to ensure old [material_refname_type] table is dropped"
-			print "DROP TABLE dev.material_refname_type CASCADE;"
+			print "DROP TABLE IF EXISTS dev.material_refname_type CASCADE;"
 			next
 		}	# add cascade option to all tables to make sure we elliminate all dependent objects
 	else if (index ($0, "DROP TABLE"))

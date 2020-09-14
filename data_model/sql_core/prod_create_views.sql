@@ -237,6 +237,7 @@ CREATE OR REPLACE VIEW vw_udf AS
 SELECT
 	ud.udf_uuid,
 	ud.udf_def_uuid,
+	udef.description,
 	ud.udf_val,
 	( ud.udf_val ).v_type_uuid AS udf_val_type_uuid,
 	(select val_val from get_val ( ud.udf_val )) AS udf_val_val,
