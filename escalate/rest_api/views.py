@@ -11,7 +11,7 @@ from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView, ListCreateAPIView
+from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView, ListCreateAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.mixins import CreateModelMixin
 from django_filters import rest_framework as filters
@@ -21,7 +21,8 @@ from url_filter.integrations.drf import DjangoFilterBackend
 # App imports
 
 from .serializers import *
-from .utils import camel_case_uuid, camel_case, view_names, custom_serializer_views, perform_create_views, docstring
+from .utils import (camel_case_uuid, camel_case, view_names, custom_serializer_views,
+                    perform_create_views, GET_only_views, docstring)
 import core.models
 import rest_api
 from .rest_docs import rest_docs
@@ -85,10 +86,13 @@ def create_view(model_name, lookup_field=None):
                       "serializer_class": modelSerializer,
                       "name": camel_case(model_name)+'-detail',
                       "__doc__": rest_docs.get(model_name.lower()+'_detail', '')}
+
+    list_view, detail_view = (ListAPIView, RetrieveAPIView) if model_name in GET_only_views else (ListCreateAPIView, RetrieveUpdateAPIView)
+
     globals()[model_name+'List'] = type(model_name + 'List',
-                                        tuple([ListCreateAPIView]), methods_list)
+                                        tuple([list_view]), methods_list)
     globals()[model_name+'Detail'] = type(model_name + 'Detail',
-                                          tuple([RetrieveUpdateAPIView]), methods_detail)
+                                          tuple([detail_view]), methods_detail)
 
     if model_name in perform_create_views:
         globals()[model_name+'List'].perform_create = save_actor_on_post

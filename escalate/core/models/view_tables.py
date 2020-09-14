@@ -631,6 +631,30 @@ class UdfDef(models.Model):
         return "{}".format(self.description)
 
 
+
+class TypeDef(models.Model):
+
+    uuid = models.UUIDField(primary_key=True,
+                            db_column='type_def_uuid')
+
+    category = models.CharField(max_length=255,
+                                blank=True,
+                                null=True,
+                                db_column='category')
+    description = models.CharField(max_length=255,
+                                   blank=True,
+                                   null=True,
+                                   db_column='description')
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+    class Meta:
+        managed = False
+        db_table = 'vw_type_def'
+
+    def __str__(self):
+        return self.description
+
+
 class PropertyDef(models.Model):
 
     uuid = models.UUIDField(primary_key=True,
@@ -643,10 +667,11 @@ class PropertyDef(models.Model):
                                          blank=True,
                                          null=True,
                                          db_column='short_description')
-    val_type = models.CharField(max_length=255,
-                                blank=True,
-                                null=True,
-                                db_column='valtype')
+    val_type = models.ForeignKey('TypeDef',
+                                 db_column='valtype_uuid',
+                                 on_delete=models.DO_NOTHING,
+                                 blank=True,
+                                 null=True)
     val_unit = models.CharField(max_length=255,
                                 blank=True,
                                 null=True,
@@ -719,10 +744,10 @@ class MaterialProperty(models.Model):
                                                   null=True,
                                                   db_column='property_short_description',
                                                   editable=False)
-    property_val = models.CharField(max_length=255,
+    value = models.CharField(max_length=255,
                                     blank=True,
                                     null=True,
-                                    db_column='property_val')
+                                    db_column='val_val')
     actor_uuid = models.ForeignKey('Actor',
                                    on_delete=models.DO_NOTHING,
                                    db_column='property_actor_uuid',
