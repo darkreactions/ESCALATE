@@ -243,9 +243,12 @@ SELECT
 	( ud.udf_val ).v_unit AS udf_val_unit,
 	( ud.udf_val ).v_edocument_uuid AS udf_val_edocument_uuid,
 	ud.add_date,
-	ud.mod_date
+	ud.mod_date,
+	udx.udf_x_uuid,
+	udx.ref_udf_uuid
 FROM
 	udf ud
+	LEFT JOIN udf_x udx on ud.udf_uuid = udx.udf_uuid
 	LEFT JOIN udf_def udef on ud.udf_def_uuid = udef.udf_def_uuid
 	LEFT JOIN type_def td on udef.valtype_uuid = td.type_def_uuid;
 

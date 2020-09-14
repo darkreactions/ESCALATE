@@ -60,6 +60,42 @@ BEGIN {
 			print $0
 			next
 		}
+	else if (index ($0, "DROP TRIGGER"))
+		{
+			gsub(";"," CASCADE;")
+			print $0
+			next
+		}
+	else if (index ($0, "DROP INDEX"))
+		{
+			gsub(";"," CASCADE;")
+			print $0
+			next
+		}
+	else if (index ($0, "DROP VIEW"))
+		{
+			gsub(";"," CASCADE;")
+			print $0
+			next
+		}
+	else if (index ($0, "DROP SEQUENCE"))
+		{
+			gsub(";"," CASCADE;")
+			print $0
+			next
+		}
+	else if (index ($0, "DROP FUNCTION"))
+		{
+			gsub(";"," CASCADE;")
+			print $0
+			next
+		}
+	else if (index ($0, "DROP TYPE"))
+		{
+			gsub(";"," CASCADE;")
+			print $0
+			next
+		}
 	else 
 		print $0
 }

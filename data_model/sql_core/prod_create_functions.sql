@@ -2033,7 +2033,10 @@ Date:			2020.09.07
 Description:	trigger proc that deletes, inserts or updates udf record based on TG_OP (trigger operation)
 Notes:				
  
-Example:		insert into vw_udf (description, valtype_uuid) values ('user defined 1', null);
+Example:		insert into vw_udf (ref_udf_uuid, udf_def_uuid, udf_val_val) values 
+					((select actor_uuid from vw_actor where description = 'HC'),
+					(select udf_def_uuid from vw_udf_def where description = 'user defined 1') 
+					, 'some text: a, b, c, d');
  				update vw_udf set valtype_uuid = (select type_def_uuid from vw_type_def where category = 'data' and description = 'text') where
  					udf_def_uuid = (select udf_def_uuid from vw_udf_def where (description = 'user defined 1'));
  				delete from vw_udf where udf_def_uuid = (select udf_def_uuid from udf_def where (description = 'user defined 1'));
@@ -2057,18 +2060,22 @@ BEGIN
 		UPDATE
 			udf
 		SET
-			valtype_uuid = NEW.valtype_uuid,
-			description = NEW.description,
+			udf_val = NEW.udf_val,
 			mod_date = now()
 		WHERE
-			udf_def.udf_def_uuid = NEW.udf_def_uuid;
+			udf.udf_uuid = NEW.udf_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO udf (udf_def_uuid, val)
+		IF NEW.udf_def_uuid is null THEN
+			return null;
+		END IF;
+		INSERT INTO udf (udf_def_uuid, udf_val)
 			VALUES(NEW.udf_def_uuid, 
 				(select put_val ((select valtype_uuid from vw_udf_def where udf_def_uuid = NEW.udf_def_uuid), 
 					NEW.udf_val_val, 
 					(select unit from vw_udf_def where udf_def_uuid = NEW.udf_def_uuid)))) returning udf_uuid into NEW.udf_uuid;
+		INSERT INTO udf_x (ref_udf_uuid, udf_uuid)
+			VALUES (NEW.ref_udf_uuid, NEW.udf_uuid);
 		RETURN NEW;
 	END IF;
 END;
