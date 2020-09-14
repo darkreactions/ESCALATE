@@ -948,6 +948,30 @@ LEFT JOIN vw_actor act ON inv.actor_uuid = act.actor_uuid
 LEFT JOIN status st ON inv.status_uuid = st.status_uuid;
 
 
+----------------------------------------
+-- view parameter_def
+----------------------------------------
+CREATE OR REPLACE VIEW vw_parameter_def AS
+SELECT 
+--
+FROM parameter_def pd
+;
+
+
+
+----------------------------------------
+-- view parameter
+----------------------------------------
+CREATE OR REPLACE VIEW vw_parameter AS
+SELECT 
+--
+FROM parameter pr
+;
+
+
+
+
+
 -- =======================================
 -- TESTING ONLY
 -- =======================================

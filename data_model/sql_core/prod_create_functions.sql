@@ -2654,6 +2654,68 @@ $$
 LANGUAGE plpgsql;
 
 
+/*
+Name:			upsert_parameter_def()
+Parameters:		
+
+Returns:		void
+Author:			
+Date:			
+Description:	trigger proc that deletes, inserts or updates parameter_def record based on TG_OP (trigger operation)
+Notes:				
+ 
+Example:		insert into vw_parameter_def () values ();
+				update vw_parameter_def set xxx = xxx where xxx;
+ 				delete from vw_parameter_def where xxx;
+ */
+CREATE OR REPLACE FUNCTION upsert_parameter_def ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+
+	ELSIF (TG_OP = 'UPDATE') THEN
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+	
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			upsert_parameter()
+Parameters:		
+
+Returns:		void
+Author:			
+Date:			
+Description:	trigger proc that deletes, inserts or updates paramter record based on TG_OP (trigger operation)
+Notes:				
+ 
+Example:		insert into vw_parameter();
+				update vw_parameter set xxx = xxx where xxx
+ 				delete from vw_parameter where ;
+ */
+CREATE OR REPLACE FUNCTION upsert_parameter()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+
+	ELSIF (TG_OP = 'UPDATE') THEN
+	
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
 
 /*
 Name:			upsert_note()
