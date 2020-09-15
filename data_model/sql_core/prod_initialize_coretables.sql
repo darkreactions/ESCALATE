@@ -162,12 +162,19 @@ COMMIT;
 -- Populate measure_type
 -- ----------------------------
 BEGIN;
-INSERT INTO measure_type (description)
-VALUES 
-	('nominal'),
-	('actual'),
-	('derived')
-;
+insert into vw_material_type (description) values ('nominal');
+insert into vw_material_type (description) values ('actual');
+insert into vw_material_type (description) values ('derived');
+COMMIT;
+
+
+-- ----------------------------
+-- Populate workflow_type
+-- ----------------------------
+BEGIN;
+insert into vw_workflow_type (description) values ('model');
+insert into vw_workflow_type (description) values ('template');
+insert into vw_workflow_type (description) values ('actual');
 COMMIT;
 
 

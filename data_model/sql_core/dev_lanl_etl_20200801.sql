@@ -54,7 +54,10 @@ create view vw_material_json as
    		mat->'vendor_information'->>'vendor' AS material_vendor_name,  	   			
   		mat->'material_ref' AS material_ext_ref,
    		mat->'property' AS material_property  		
- 	FROM vw_materials_json, json_array_elements(material) mat;
+ 	FROM (SELECT
+  		jval->'material' AS material,
+  		jval->'compound' as compound
+ 	FROM load_lanl_materials_json) ld, json_array_elements(material) mat;
 
 
 create view vw_material_ref_json as 
@@ -62,7 +65,7 @@ create view vw_material_ref_json as
 		mat.*,
 		ref->>'inchikey' as inchikey,
 		ref->>'InChI' as inchi
-		,(select array_agg(property_name) from (select json_extract_path_text(json_array_elements(material_property), 'name') as property_name from vw_material_ref_json) prop) as property_name
+		,(select array_agg(property_name) from (select json_extract_path_text(json_array_elements(material_property), 'name') as property_name from vw_material_json) prop) as property_name
  	FROM vw_material_json mat, json_array_elements(material_ext_ref) ref;
 
 
