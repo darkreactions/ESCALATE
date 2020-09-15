@@ -140,6 +140,7 @@ workflow_action_def
 workflow_state
 workflow_state_def
 workflow_step
+workflow_type
 
 ```
 <br/>
@@ -230,7 +231,8 @@ CLUSTER material_x
 USING "pk_material_x_material_x_uuid";
 
 ALTER TABLE material_type
-	ADD CONSTRAINT "pk_material_type_material_type_uuid" PRIMARY KEY (material_type_uuid);
+	ADD CONSTRAINT "pk_material_type_material_type_uuid" PRIMARY KEY (material_type_uuid),
+		ADD CONSTRAINT "un_material_type" UNIQUE (description);
 CLUSTER material_type
 USING "pk_material_type_material_type_uuid";
 
@@ -276,6 +278,26 @@ ALTER TABLE property_x
 		ADD CONSTRAINT "un_property_x_def" UNIQUE (material_uuid, property_uuid);
 CLUSTER property_x
 USING "pk_property_x_property_x_uuid";
+
+-- parameter constraints
+ALTER TABLE parameter
+	ADD CONSTRAINT "pk_parameter_parameter_uuid" PRIMARY KEY (parameter_uuid);
+CLUSTER parameter
+USING "pk_parameter_parameter_uuid";
+
+-- parameter_def constraints
+ALTER TABLE parameter_def
+	ADD CONSTRAINT "pk_parameter_def_parameter_def_uuid" PRIMARY KEY (parameter_def_uuid),
+		ADD CONSTRAINT "un_parameter_def" UNIQUE (description);
+CLUSTER parameter_def
+USING "pk_parameter_def_parameter_def_uuid";
+
+-- parameter_x constraints
+ALTER TABLE parameter_x
+	ADD CONSTRAINT "pk_parameter_x_parameter_x_uuid" PRIMARY KEY (parameter_x_uuid),
+		ADD CONSTRAINT "un_parameter_x_def" UNIQUE (ref_parameter_uuid, parameter_uuid);
+CLUSTER parameter_x
+USING "pk_parameter_x_parameter_x_uuid";
 
 ALTER TABLE calculation_class
 	ADD CONSTRAINT "pk_calculation_class_calculation_class_uuid" PRIMARY KEY (calculation_class_uuid);
@@ -415,24 +437,30 @@ ALTER TABLE workflow_state
 CLUSTER workflow_state
 USING "pk_workflow_state_workflow_state_uuid";
 
--- workflow_action_def primary key and constraints
-ALTER TABLE workflow_action_def
-	ADD CONSTRAINT "pk_workflow_action_def_workflow_action_def_uuid" PRIMARY KEY (workflow_action_def_uuid),
-		ADD CONSTRAINT "un_workflow_action_def" UNIQUE (description);
-CLUSTER workflow_action_def
-USING "pk_workflow_action_def_workflow_action_def_uuid";
+ALTER TABLE workflow_type
+	ADD CONSTRAINT "pk_workflow_type_workflow_type_uuid" PRIMARY KEY (workflow_type_uuid),
+		ADD CONSTRAINT "un_workflow_type" UNIQUE (description);
+CLUSTER workflow_type
+USING "pk_workflow_type_workflow_type_uuid";
 
--- workflow_action primary key and constraints
-ALTER TABLE workflow_action
-	ADD CONSTRAINT "pk_workflow_action_workflow_action_uuid" PRIMARY KEY (workflow_action_uuid);
-CLUSTER workflow_action
-USING "pk_workflow_action_workflow_action_uuid";
+-- action_def primary key and constraints
+ALTER TABLE action_def
+	ADD CONSTRAINT "pk_action_def_action_def_uuid" PRIMARY KEY (action_def_uuid),
+		ADD CONSTRAINT "un_action_def" UNIQUE (description);
+CLUSTER action_def
+USING "pk_action_def_action_def_uuid";
+
+-- action primary key and constraints
+ALTER TABLE action
+	ADD CONSTRAINT "pk_action_action_uuid" PRIMARY KEY (action_uuid);
+CLUSTER action
+USING "pk_action_action_uuid";
 
 -- workflow_action_condition primary key and constraints
-ALTER TABLE workflow_action_condition
-	ADD CONSTRAINT "pk_workflow_action_condition_workflow_action_condition_uuid" PRIMARY KEY (workflow_action_condition_uuid);
-CLUSTER workflow_action_condition
-USING "pk_workflow_action_condition_workflow_action_condition_uuid";
+ALTER TABLE action_condition
+	ADD CONSTRAINT "pk_action_condition_action_condition_uuid" PRIMARY KEY (action_condition_uuid);
+CLUSTER action_condition
+USING "pk_action_condition_action_condition_uuid";
 
 -- status primary key and constraints
 ALTER TABLE status
@@ -533,6 +561,7 @@ upsert_note () RETURNS TRIGGER
 upsert_edocument () RETURNS TRIGGER
 upsert_edocument_assign () RETURNS TRIGGER
 upsert_type_def () RETURNS TRIGGER
+upsert_workflow_type () RETURNS TRIGGER
 
 ```
 
@@ -578,6 +607,7 @@ vw_tag_type
 vw_type_def
 vw_udf_def
 vw_udf
+vw_workflow_type
 
 ```
 <br/>
@@ -1170,6 +1200,19 @@ delete from vw_type_def where type_def_uuid = (select type_def_uuid from vw_type
 ```
 <br/>
 
+__vw\_workflow\_type__`CRUD`<br/>
+*upsert\_workflow\_type ()*
+> workflow\_type\_uuid (v) <br/>
+> description (r v u) <br/>
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+
+```
+insert into vw_workflow_type (description) values ('workflowtype_test');
+delete from vw_workflow_type where workflow_type_uuid = (select workflow_type_uuid from vw_workflow_type where (description = 'workflowtype_test'));
+```
+
+<br/>
 
 
 
