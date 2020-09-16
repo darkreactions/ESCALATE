@@ -1418,15 +1418,15 @@ Name:			upsert_parameter_def()
 Parameters:		
 
 Returns:		void
-Author:			
-Date:			
+Author:			M. Tynes
+Date:			2020.09.15
 Description:	trigger proc that deletes, inserts or updates parameter_def record based on TG_OP (trigger operation)
 Notes:				
  
 Example:		insert into vw_parameter_def (description, valtype_uuid, valunit, actor_uuid) values
-                                             ('beard_length', (select get_type_def ('data', 'num')), 'feet', (select actor_uuid from vw_actor where description = 'HC'));
-				update vw_parameter_def set status_uuid = (select status_uuid from vw_status where description = 'do_not_use') where description = 'beard_length';
- 				delete from vw_parameter_def where description = 'beard_length';
+                                             ('beard_moisturize_dur', (select get_type_def ('data', 'num')), 'hours', (select actor_uuid from vw_actor where description = 'HC'));
+				update vw_parameter_def set status_uuid = (select status_uuid from vw_status where description = 'active') where description = 'beard_moisturize_dur';
+ 				delete from vw_parameter_def where description = 'beard_moisturize_dur';
  */
 CREATE OR REPLACE FUNCTION upsert_parameter_def ()
 	RETURNS TRIGGER
@@ -1470,32 +1470,69 @@ Name:			upsert_parameter()
 Parameters:		
 
 Returns:		void
-Author:			
-Date:			
-Description:	trigger proc that deletes, inserts or updates paramter record based on TG_OP (trigger operation)
-Notes:				
+Author:			M.Tynes
+Date:			2020.09.18
+Description:	trigger proc that deletes, inserts or updates parameter record based on TG_OP (trigger operation)
+Notes:		    The actor description from def appears to override the one provided here. We need to resolve this.
  
-Example:		insert into vw_parameter();
-				update vw_parameter set xxx = xxx where xxx
- 				delete from vw_parameter where ;
+Example:		insert into vw_parameter (parameter_def_uuid, parameter_val, actor_uuid, status_uuid ) values (
+											(select parameter_def_uuid from vw_parameter_def where description = 'beard_moisturize_dur'),
+											(select put_val (
+												(select valtype_uuid from vw_parameter_def where description = 'beard_moisturize_dur'),
+												'10',
+												(select valunit from vw_parameter_def where description = 'beard_moisturize_dur'))),
+											(select actor_uuid from vw_actor where org_short_name = 'LANL'),
+											(select status_uuid from vw_status where description = 'active')
+											);
+				update vw_parameter set parameter_val = (select put_val (
+                                                    (select valtype_uuid from vw_parameter_def where description = 'beard_moisturize_dur'),
+												    '36',
+												    (select valunit from vw_parameter_def where description = 'beard_moisturize_dur')))
+                                                where parameter_def_description = 'beard_moisturize_dur'
+ 				delete from vw_parameter where parameter_def_description = 'beard_moisturize_dur';
  */
 CREATE OR REPLACE FUNCTION upsert_parameter()
 	RETURNS TRIGGER
 	AS $$
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
-
+	    -- first delete the parameter record
+		DELETE FROM parameter
+		WHERE parameter_uuid = OLD.parameter_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- delete any assigned records
+		PERFORM delete_assigned_recs (OLD.parameter_uuid);
+		RETURN OLD;
 	ELSIF (TG_OP = 'UPDATE') THEN
-	
+	    UPDATE
+			parameter
+		SET
+			parameter_val = NEW.parameter_val,
+			actor_uuid = NEW.actor_uuid,
+			status_uuid = NEW.status_uuid,
+			mod_date = now()
+		WHERE
+			parameter.parameter_uuid = NEW.parameter_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-
+        IF (select exists
+                (select parameter_def_uuid
+                 from vw_parameter_def
+                 where parameter_def_uuid = NEW.parameter_def_uuid)
+            )
+        THEN
+			INSERT INTO parameter (parameter_def_uuid, parameter_val, actor_uuid, status_uuid)
+				VALUES(NEW.parameter_def_uuid, NEW.parameter_val, NEW.actor_uuid, NEW.status_uuid)
+				returning parameter_uuid into NEW.parameter_uuid;
+			RETURN NEW;
+		END IF;
 		RETURN NEW;
 	END IF;
 END;
 $$
 LANGUAGE plpgsql;
-
 
 
 /*

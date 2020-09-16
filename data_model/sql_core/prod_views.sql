@@ -987,12 +987,28 @@ EXECUTE PROCEDURE upsert_parameter_def ( );
 -- view parameter
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_parameter AS
-SELECT 
---
+SELECT
+	pr.parameter_uuid,
+	pr.parameter_def_uuid,
+    pd.description as parameter_def_description,
+	pr.parameter_val,
+	pr.actor_uuid,
+    act.description as actor_description,
+	pr.status_uuid,
+    st.description as statsus_description,
+	pr.add_date,
+	pr.mod_date
 FROM parameter pr
-;
+LEFT JOIN parameter_def pd on pr.parameter_def_uuid = pd.parameter_def_uuid
+LEFT JOIN actor act on pd.actor_uuid = act.actor_uuid
+LEFT JOIN status st on pd.status_uuid = st.status_uuid;
 
-
+DROP TRIGGER IF EXISTS trigger_parameter_upsert ON vw_parameter;
+CREATE TRIGGER trigger_parameter_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_parameter
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_parameter ( );
 
 ----------------------------------------
 -- view workflow_type
