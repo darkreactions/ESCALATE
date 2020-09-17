@@ -837,7 +837,7 @@ CREATE TABLE tag (
 -- ----------------------------
 CREATE TABLE tag_type (
 	tag_type_uuid uuid DEFAULT uuid_generate_v4 (),
-	short_description varchar(32) COLLATE "pg_catalog"."default",
+	type varchar(32) COLLATE "pg_catalog"."default",
 	description varchar COLLATE "pg_catalog"."default",
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
@@ -1264,7 +1264,7 @@ USING "pk_tag_x_tag_x_uuid";
 
 ALTER TABLE tag_type
 	ADD CONSTRAINT "pk_tag_tag_type_uuid" PRIMARY KEY (tag_type_uuid),
-		ADD CONSTRAINT "un_tag_type" UNIQUE (short_description);
+		ADD CONSTRAINT "un_tag_type" UNIQUE (type);
 CLUSTER tag_type
 USING "pk_tag_tag_type_uuid";
 

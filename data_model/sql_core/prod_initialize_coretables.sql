@@ -144,13 +144,12 @@ VALUES
 	((select actor_uuid from vw_actor where person_last_name = 'Cattabriga'), 'CHEMAXON_DIR', '/Applications/ChemAxon/JChemSuite/bin/');	
 COMMIT;
 
-delete from vw_actor where systemtool_name = 'postgres';
 
 -- ----------------------------
 -- Populate tag_type
 -- ----------------------------
 BEGIN;
-INSERT INTO vw_tag_type (short_description, description)
+INSERT INTO vw_tag_type (type, description)
 VALUES 
 	('material', 'tags used to assist in identifying material types'),
 	('experiment', 'tags used to assist in charactizing experiments, visibility'),
@@ -184,28 +183,28 @@ COMMIT;
 BEGIN;
 INSERT INTO vw_tag (display_text, tag_type_uuid, actor_uuid)
 VALUES 
-	('a-cation', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
-	('b-cation', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
-	('halide', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
-	('acid', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
-	('antisolvent', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
-	('inorganic', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
-	('organic', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
-	('polymer', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
-	('solvent', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
-	('WF1 Bromides', (select tag_type_uuid from vw_tag_type where short_description = 'experiment'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
-	('WF1 Iodides', (select tag_type_uuid from vw_tag_type where short_description = 'experiment'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
-	('WF3 Iodide', (select tag_type_uuid from vw_tag_type where short_description = 'experiment'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
-	('WF3 HalideAlloy', (select tag_type_uuid from vw_tag_type where short_description = 'experiment'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
-	('WF3 Unique', (select tag_type_uuid from vw_tag_type where short_description = 'experiment'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
-	('reference', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),	
-	('catalog', (select tag_type_uuid from vw_tag_type where short_description = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
-	('reference', (select tag_type_uuid from vw_tag_type where short_description = 'experiment'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),	
-	('catalog', (select tag_type_uuid from vw_tag_type where short_description = 'experiment'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
-	('reference', (select tag_type_uuid from vw_tag_type where short_description = 'actor'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),	
-	('temporary', (select tag_type_uuid from vw_tag_type where short_description = 'actor'), (select actor_uuid from vw_actor where systemtool_name = 'postgres')),
-	('on_loan', (select tag_type_uuid from vw_tag_type where short_description = 'actor'), (select actor_uuid from vw_actor where systemtool_name = 'postgres')),	
-	('do_not_use', (select tag_type_uuid from vw_tag_type where short_description = 'actor'), (select actor_uuid from vw_actor where systemtool_name = 'postgres'))	
+	('a-cation', (select tag_type_uuid from vw_tag_type where type = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+	('b-cation', (select tag_type_uuid from vw_tag_type where type = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+	('halide', (select tag_type_uuid from vw_tag_type where type = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+	('acid', (select tag_type_uuid from vw_tag_type where type = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+	('antisolvent', (select tag_type_uuid from vw_tag_type where type = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+	('inorganic', (select tag_type_uuid from vw_tag_type where type = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+	('organic', (select tag_type_uuid from vw_tag_type where type = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+	('polymer', (select tag_type_uuid from vw_tag_type where type = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+	('solvent', (select tag_type_uuid from vw_tag_type where type = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+	('WF1 Bromides', (select tag_type_uuid from vw_tag_type where type = 'experiment'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+	('WF1 Iodides', (select tag_type_uuid from vw_tag_type where type = 'experiment'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+	('WF3 Iodide', (select tag_type_uuid from vw_tag_type where type = 'experiment'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+	('WF3 HalideAlloy', (select tag_type_uuid from vw_tag_type where type = 'experiment'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+	('WF3 Unique', (select tag_type_uuid from vw_tag_type where type = 'experiment'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+	('reference', (select tag_type_uuid from vw_tag_type where type = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),	
+	('catalog', (select tag_type_uuid from vw_tag_type where type = 'material'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+	('reference', (select tag_type_uuid from vw_tag_type where type = 'experiment'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),	
+	('catalog', (select tag_type_uuid from vw_tag_type where type = 'experiment'), (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+	('inactive', (select tag_type_uuid from vw_tag_type where type = 'actor'), (select actor_uuid from vw_actor where systemtool_name = 'postgres')),
+	('temporary', (select tag_type_uuid from vw_tag_type where type = 'actor'), (select actor_uuid from vw_actor where systemtool_name = 'postgres')),
+	('on_loan', (select tag_type_uuid from vw_tag_type where type = 'actor'), (select actor_uuid from vw_actor where systemtool_name = 'postgres')),	
+	('do_not_use', (select tag_type_uuid from vw_tag_type where type = 'actor'), (select actor_uuid from vw_actor where systemtool_name = 'postgres'))	
 ;
 COMMIT;
 

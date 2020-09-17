@@ -140,7 +140,7 @@ CREATE TRIGGER trigger_note_upsert INSTEAD OF INSERT
 CREATE OR REPLACE VIEW vw_tag_type AS
 SELECT
 	tt.tag_type_uuid,
-	tt.short_description,
+	tt.type,
 	tt.description,
 	tt.add_date,
 	tt.mod_date
@@ -168,8 +168,8 @@ SELECT
 	tg.add_date,
 	tg.mod_date,
 	tg.tag_type_uuid,
-	tt.short_description AS tag_type_short_descr,
-	tt.description AS tag_type_description
+	tt.type,
+	tt.description AS type_description
 FROM
 	tag tg
 	LEFT JOIN tag_type tt ON tg.tag_type_uuid = tt.tag_type_uuid
@@ -186,23 +186,26 @@ EXECUTE PROCEDURE upsert_tag ( );
 ----------------------------------------
 -- view of tag_x; links to tag_type, actor and note
 ----------------------------------------
-CREATE OR REPLACE VIEW vw_tag_x AS
+CREATE OR REPLACE VIEW vw_tag_assign AS
 SELECT
 	tx.tag_x_uuid,
 	tx.ref_tag_uuid,
 	tx.tag_uuid,
+	tg.display_text,
+	tt.type,
 	tg.add_date,
 	tg.mod_date
 FROM
 	tag_x tx
-	LEFT JOIN tag tg ON tx.tag_uuid = tg.tag_uuid;
+	LEFT JOIN tag tg ON tx.tag_uuid = tg.tag_uuid
+	LEFT JOIN tag_type tt ON tg.tag_type_uuid = tt.tag_type_uuid;
 
-DROP TRIGGER IF EXISTS trigger_tag_x_upsert ON vw_tag_x;
-CREATE TRIGGER trigger_tag_x_upsert INSTEAD OF INSERT
+DROP TRIGGER IF EXISTS trigger_tag_assign_upsert ON vw_tag_assign;
+CREATE TRIGGER trigger_tag_assign_upsert INSTEAD OF INSERT
 	OR UPDATE
-	OR DELETE ON vw_tag_x
+	OR DELETE ON vw_tag_assign
 	FOR EACH ROW
-	EXECUTE PROCEDURE upsert_tag_x ();
+	EXECUTE PROCEDURE upsert_tag_assign ();
 
 
 ----------------------------------------

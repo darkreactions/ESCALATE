@@ -23,7 +23,7 @@ Example:			insert into vw_person (last_name, first_name, middle_name, address1, 
 					delete from vw_person where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
 					insert into vw_actor (person_uuid, description, status_uuid) values ((select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester')), 'Lester the Actor', (select status_uuid from vw_status where description = 'active')) returning *;
 					insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note for Lester the Actor', (select actor_uuid from vw_actor where person_last_name = 'Tester'), (select actor_uuid from vw_actor where person_last_name = 'Tester'));
-					insert into vw_tag_x (tag_uuid, ref_tag_uuid) values ((select tag_uuid from vw_tag where (display_text = 'do_not_use')), (select actor_uuid from vw_actor where person_last_name = 'Tester'));
+					insert into vw_tag_assign (tag_uuid, ref_tag_uuid) values ((select tag_uuid from vw_tag where (display_text = 'do_not_use')), (select actor_uuid from vw_actor where person_last_name = 'Tester'));
 					update vw_actor set description = 'new description for Lester the Actor' where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
  					update vw_actor set organization_uuid = (select organization_uuid from vw_organization where full_name = 'Haverford College') where person_uuid = (select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
 					delete from vw_actor where actor_uuid in (select actor_uuid from vw_actor where description = 'Lester the Actor');
@@ -38,12 +38,15 @@ BEGIN
 		-- first delete all the actor_pref records
 		DELETE FROM vw_actor_pref cascade
 		WHERE actor_uuid = OLD.actor_uuid;
-		-- then delete the associated note records
+		-- delete any associated note records
 		DELETE FROM vw_note cascade
 		WHERE actor_uuid = OLD.actor_uuid;
-		-- then delete the associated tag records
-		DELETE FROM vw_tag_x cascade
+		-- delete any associated tag records
+		DELETE FROM vw_tag_assign cascade
 		WHERE ref_tag_uuid = OLD.actor_uuid;
+		-- delete any udf's
+		DELETE FROM vw_udf
+		WHERE ref_udf_uuid = OLD.actor_uuid;
 		-- then delete the actor record
 		DELETE FROM actor
 		WHERE actor_uuid = OLD.actor_uuid;
@@ -403,12 +406,12 @@ Date:			2020.06.20
 Description:	trigger proc that deletes, inserts or updates tag_type record based on TG_OP (trigger operation)
 Notes:				
  
-Example:		insert into vw_tag_type (short_description, description) values ('TESTDEV', 'tags used to help identify development cycle phase');
- 				insert into vw_tag_type (short_description) values ('TESTDEV');
- 				update vw_tag_type set description = 'tags used to help identify development cycle phase; e.g. SPEC, TEST, DEV' where tag_type_uuid = (select tag_type_uuid from vw_tag_type where (short_description = 'TESTDEV'));
- 				update vw_tag_type set short_description = 'TESTDEV1', description = 'tags used to help identify development cycle phase; e.g. SPEC, TEST, DEV' where tag_type_uuid = (select tag_type_uuid from vw_tag_type where (short_description = 'TESTDEV'));
- 				delete from vw_tag_type where tag_type_uuid = (select tag_type_uuid from vw_tag_type where (short_description = 'TESTDEV'));
- 				delete from vw_tag_type where tag_type_uuid = (select tag_type_uuid from vw_tag_type where (short_description = 'TESTDEV1'));
+Example:		insert into vw_tag_type (type, description) values ('TESTDEV', 'tags used to help identify development cycle phase');
+ 				insert into vw_tag_type (type) values ('TESTDEV');
+ 				update vw_tag_type set description = 'tags used to help identify development cycle phase; e.g. SPEC, TEST, DEV' where tag_type_uuid = (select tag_type_uuid from vw_tag_type where (type = 'TESTDEV'));
+ 				update vw_tag_type set type = 'TESTDEV1', description = 'tags used to help identify development cycle phase; e.g. SPEC, TEST, DEV' where tag_type_uuid = (select tag_type_uuid from vw_tag_type where (type = 'TESTDEV'));
+ 				delete from vw_tag_type where tag_type_uuid = (select tag_type_uuid from vw_tag_type where (type = 'TESTDEV'));
+ 				delete from vw_tag_type where tag_type_uuid = (select tag_type_uuid from vw_tag_type where (type = 'TESTDEV1'));
  */
 CREATE OR REPLACE FUNCTION upsert_tag_type ()
 	RETURNS TRIGGER
@@ -428,15 +431,15 @@ BEGIN
 		UPDATE
 			tag_type
 		SET
-			short_description = NEW.short_description,
+			type = NEW.type,
 			description = NEW.description,
 			mod_date = now()
 		WHERE
 			tag_type.tag_type_uuid = NEW.tag_type_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO tag_type (short_description, description)
-			VALUES(NEW.short_description, NEW.description) returning tag_type_uuid into NEW.tag_type_uuid;
+		INSERT INTO tag_type (type, description)
+			VALUES(NEW.type, NEW.description) returning tag_type_uuid into NEW.tag_type_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -454,8 +457,11 @@ Description:	trigger proc that deletes, inserts or updates tag record based on T
 Notes:			will not be able to delete a tag if any connected records in tag_x exist 
  
 Example:		-- insert new tag  (tag_uuid = NULL, ref_tag_uuid = NULL)
- 				insert into vw_tag (display_text, description, actor_uuid, tag_type_uuid) values ('invalid', 'invalid experiment', (select actor_uuid from vw_actor where person_last_name = 'Alves'), null);
- 				update vw_tag set description = 'invalid experiment with stuff added', tag_type_uuid = (select tag_type_uuid from vw_tag_type where short_description = 'experiment') where tag_uuid = (select tag_uuid from vw_tag where (display_text = 'invalid'));	
+ 				insert into vw_tag (display_text, description, actor_uuid, tag_type_uuid) 
+ 					values ('invalid', 'invalid experiment', (select actor_uuid from vw_actor where person_last_name = 'Alves'), null);
+ 				update vw_tag set description = 'invalid experiment with stuff added', 
+ 					tag_type_uuid = (select tag_type_uuid from vw_tag_type where short_description = 'experiment') 
+ 					where tag_uuid = (select tag_uuid from vw_tag where (display_text = 'invalid'));	
  				delete from vw_tag where tag_uuid in (select tag_uuid from vw_tag where (display_text = 'invalid'));						
  */
 CREATE OR REPLACE FUNCTION upsert_tag ()
@@ -494,7 +500,7 @@ LANGUAGE plpgsql;
 
 
 /*
-Name:			upsert_tag_x()
+Name:			upsert_tag_assign()
 Parameters:		trigger proc that deletes, inserts or updates tag_x record based on TG_OP (trigger operation)				
 Returns:		void
 Author:			G. Cattabriga
@@ -502,11 +508,13 @@ Date:			2020.06.22
 Description:	trigger proc that deletes, inserts or updates tag_x record based on TG_OP (trigger operation)
 Notes:			requires both ref_tag_uuid and tag_uuid
  
-Example:		-- insert new tag_x (ref_tag) 
- 				insert into vw_tag_x (tag_uuid, ref_tag_uuid) values ((select tag_uuid from vw_tag where (display_text = 'invalid')), (select actor_uuid from vw_actor where person_last_name = 'Alves') );
- 				delete from vw_tag_x where tag_uuid = (select tag_uuid from vw_tag where (display_text = 'invalid') and ref_tag_uuid = (select actor_uuid from vw_actor where person_last_name = 'Alves') );						
+Example:		-- insert new tag_assign (ref_tag) 
+ 				insert into vw_tag_assign (tag_uuid, ref_tag_uuid) values ((select tag_uuid from vw_tag 
+ 					where (display_text = 'inactive' and vw_tag.type = 'actor')), (select actor_uuid from vw_actor where person_last_name = 'Alves') );
+ 				delete from vw_tag_assign where tag_uuid = (select tag_uuid from vw_tag 
+ 					where (display_text = 'inactive' and vw_tag.type = 'actor') and ref_tag_uuid = (select actor_uuid from vw_actor where person_last_name = 'Alves') );						
  */
-CREATE OR REPLACE FUNCTION upsert_tag_x ()
+CREATE OR REPLACE FUNCTION upsert_tag_assign ()
 	RETURNS TRIGGER
 	AS $$
 DECLARE
