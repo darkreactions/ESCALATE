@@ -9,6 +9,82 @@ Notes:
 */
 --=====================================
 
+/*
+Name:				upsert_actor ()
+Parameters:		
+
+Returns:			void
+Author:				G. Cattabriga
+Date:				2020.07.15
+Description:		trigger proc that deletes, inserts or updates actor 
+Notes:				there is going to be a lot of dependencies on actor, so a 'delete' will need a lot of cleanup first; easier to just change status to 'inactive' or something like that
+ 
+Example:			insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null) returning *;
+					delete from vw_person where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
+					insert into vw_actor (person_uuid, description, status_uuid) values ((select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester')), 'Lester the Actor', (select status_uuid from vw_status where description = 'active')) returning *;
+					insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note for Lester the Actor', (select actor_uuid from vw_actor where person_last_name = 'Tester'), (select actor_uuid from vw_actor where person_last_name = 'Tester'));
+					insert into vw_tag_x (tag_uuid, ref_tag_uuid) values ((select tag_uuid from vw_tag where (display_text = 'do_not_use')), (select actor_uuid from vw_actor where person_last_name = 'Tester'));
+					update vw_actor set description = 'new description for Lester the Actor' where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
+ 					update vw_actor set organization_uuid = (select organization_uuid from vw_organization where full_name = 'Haverford College') where person_uuid = (select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
+					delete from vw_actor where actor_uuid in (select actor_uuid from vw_actor where description = 'Lester the Actor');
+					delete from vw_note where note_uuid in (select note_uuid from vw_note where actor_uuid = (select actor_uuid from vw_actor where person_last_name = 'Tester'));
+ 					delete from vw_actor where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
+ */
+CREATE OR REPLACE FUNCTION upsert_actor ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		-- first delete all the actor_pref records
+		DELETE FROM vw_actor_pref cascade
+		WHERE actor_uuid = OLD.actor_uuid;
+		-- then delete the associated note records
+		DELETE FROM vw_note cascade
+		WHERE actor_uuid = OLD.actor_uuid;
+		-- then delete the associated tag records
+		DELETE FROM vw_tag_x cascade
+		WHERE ref_tag_uuid = OLD.actor_uuid;
+		-- then delete the actor record
+		DELETE FROM actor
+		WHERE actor_uuid = OLD.actor_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- then delete the associated [sub]actor (org, person, systemtool)
+		IF OLD.organization_uuid is not NULL THEN
+			DELETE FROM vw_organization WHERE organization_uuid = OLD.organization_uuid;
+		ELSIF OLD.person_uuid is not NULL THEN
+			DELETE FROM vw_person WHERE person_uuid = OLD.person_uuid;	
+		ELSIF OLD.person_uuid is not NULL THEN
+			DELETE FROM vw_systemtool WHERE systemtool_uuid = OLD.systemtool_uuid;
+		END IF;	
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			actor
+		SET
+			organization_uuid = NEW.organization_uuid,
+			person_uuid = NEW.person_uuid,
+			systemtool_uuid = NEW.systemtool_uuid,
+			description = NEW.description,
+			status_uuid = NEW.status_uuid,
+			mod_date = now()
+		WHERE
+			actor.actor_uuid = NEW.actor_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		IF (NEW.organization_uuid is NULL and NEW.person_uuid is NULL and NEW.systemtool_uuid is NULL) THEN
+			RETURN NULL;
+		ELSE
+			INSERT INTO actor (organization_uuid, person_uuid, systemtool_uuid, description, status_uuid)
+				VALUES(NEW.organization_uuid, NEW.person_uuid, NEW.systemtool_uuid, NEW.description, NEW.status_uuid) returning actor_uuid into NEW.actor_uuid;
+			RETURN NEW;
+		END IF;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
 
 
 /*
@@ -36,7 +112,7 @@ BEGIN
 		IF NOT FOUND THEN
 			RETURN NULL;
 		END IF;
-		-- then delete the associated note record
+		-- then delete any associated note record
 		DELETE FROM vw_note
 		WHERE note_uuid = OLD.actor_pref_uuid;
 		RETURN OLD;
@@ -94,7 +170,7 @@ BEGIN
 		IF NOT FOUND THEN
 			RETURN NULL;
 		END IF;
-		-- then delete the associated note record
+		-- then delete any associated note record
 		DELETE FROM vw_note
 		WHERE ref_note_uuid = OLD.organization_uuid;
 		RETURN OLD;
@@ -139,7 +215,8 @@ Description:		trigger proc that deletes, inserts or updates person record based 
 Notes:				added functionality to insert a NEW organization into a NEW actor
  
 Example:			-- note: this insert also inserts record into actor
-					insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null) returning *;
+					insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) 
+					values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null) returning *;
  					update vw_person set title = 'Mr', city = 'Some [new] City', zip = '99999', email = 'TesterL@scarythings.xxx' where person_uuid = 
  					(select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester')) returning *;
  					update vw_person set organization_uuid =  (select organization_uuid from organization where organization.full_name = 'Haverford College') where (last_name = 'Tester' and first_name = 'Lester') returning *;
@@ -162,7 +239,7 @@ BEGIN
 		IF NOT FOUND THEN
 			RETURN NULL;
 		END IF;
-		-- then delete the associated note record
+		-- then delete any associated note record
 		DELETE FROM vw_note
 		WHERE ref_note_uuid = OLD.person_uuid;
 		RETURN OLD;
@@ -232,7 +309,7 @@ BEGIN
 		IF NOT FOUND THEN
 			RETURN NULL;
 		END IF;
-		-- then delete the associated note record
+		-- then delete any associated note record
 		DELETE FROM vw_note
 		WHERE ref_note_uuid = OLD.systemtool_uuid;
 		RETURN OLD;
@@ -292,7 +369,7 @@ BEGIN
 		IF NOT FOUND THEN
 			RETURN NULL;
 		END IF;
-		-- then delete the associated note record
+		-- then delete any associated note record
 		DELETE FROM vw_note
 		WHERE ref_note_uuid = OLD.systemtool_type_uuid;
 		RETURN OLD;
@@ -480,7 +557,7 @@ BEGIN
 		IF NOT FOUND THEN
 			RETURN NULL;
 		END IF;
-		-- then delete the associated note record
+		-- then delete any associated note record
 		DELETE FROM vw_note
 		WHERE ref_note_uuid = OLD.udf_def_uuid;
 		RETURN OLD;
@@ -539,7 +616,7 @@ BEGIN
 		IF NOT FOUND THEN
 			RETURN NULL;
 		END IF;
-		-- then delete the associated note record
+		-- then delete any associated note record
 		DELETE FROM vw_note
 		WHERE ref_note_uuid = OLD.udf_def_uuid;
 		RETURN OLD;
@@ -641,7 +718,7 @@ BEGIN
 		IF NOT FOUND THEN
 			RETURN NULL;
 		END IF;
-		-- then delete the associated note record
+		-- then delete any associated note record
 		DELETE FROM vw_note
 		WHERE ref_note_uuid = OLD.material_type_uuid;
 		RETURN OLD;
@@ -688,7 +765,7 @@ BEGIN
 		IF NOT FOUND THEN
 			RETURN NULL;
 		END IF;
-		-- then delete the associated note record
+		-- then delete any associated note record
 		DELETE FROM vw_note
 		WHERE ref_note_uuid = OLD.material_refname_def_uuid;
 		RETURN OLD;
@@ -735,7 +812,7 @@ BEGIN
 		IF NOT FOUND THEN
 			RETURN NULL;
 		END IF;
-		-- then delete the associated note record
+		-- then delete any associated note record
 		DELETE FROM vw_note
 		WHERE ref_note_uuid = OLD.material_refname_def_uuid;
 		RETURN OLD;
@@ -790,7 +867,7 @@ BEGIN
 		IF NOT FOUND THEN
 			RETURN NULL;
 		END IF;
-		-- then delete the associated note record
+		-- then delete any associated note record
 		DELETE FROM vw_note
 		WHERE ref_note_uuid = OLD.property_def_uuid;
 		RETURN OLD;
@@ -853,7 +930,7 @@ BEGIN
 		IF NOT FOUND THEN
 			RETURN NULL;
 		END IF;
-		-- then delete the associated note record
+		-- then delete any associated note record
 		DELETE FROM vw_note
 		WHERE ref_note_uuid = OLD.property_uuid;
 		RETURN OLD;
@@ -924,7 +1001,7 @@ BEGIN
 		IF NOT FOUND THEN
 			RETURN NULL;
 		END IF;
-		-- then delete the associated note record
+		-- then delete any associated note record
 		DELETE FROM vw_note
 		WHERE ref_note_uuid = OLD.property_uuid;
 		RETURN OLD;
@@ -997,7 +1074,7 @@ BEGIN
 		IF NOT FOUND THEN
 			RETURN NULL;
 		END IF;
-		-- then delete the associated note record
+		-- then delete any associated note record
 		DELETE FROM vw_note
 		WHERE ref_note_uuid = OLD.property_def_uuid;
 		RETURN OLD;
@@ -1055,7 +1132,7 @@ BEGIN
 		IF NOT FOUND THEN
 			RETURN NULL;
 		END IF;
-		-- then delete the associated note record
+		-- then delete any associated note record
 		DELETE FROM vw_note
 		WHERE ref_note_uuid = OLD.property_uuid;
 		RETURN OLD;
@@ -1109,7 +1186,7 @@ BEGIN
 		IF NOT FOUND THEN
 			RETURN NULL;
 		END IF;
-		-- then delete the associated note record
+		-- then delete any associated note record
 		DELETE FROM vw_note
 		WHERE ref_note_uuid = OLD.material_refname_def_uuid;
 		RETURN OLD;
@@ -1160,7 +1237,7 @@ BEGIN
 		IF NOT FOUND THEN
 			RETURN NULL;
 		END IF;
-		-- then delete the associated note record
+		-- then delete any associated note record
 		DELETE FROM vw_note
 		WHERE ref_note_uuid = OLD.parameter_def_uuid;
 		RETURN OLD;
@@ -1436,7 +1513,7 @@ BEGIN
 		IF NOT FOUND THEN
 			RETURN NULL;
 		END IF;
-		-- then delete the associated note record
+		-- then delete any associated note record
 		DELETE FROM vw_note
 		WHERE ref_note_uuid = OLD.material_type_uuid;
 		RETURN OLD;
