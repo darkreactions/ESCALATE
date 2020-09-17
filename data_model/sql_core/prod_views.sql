@@ -995,11 +995,14 @@ SELECT
 	pr.actor_uuid,
     act.description as actor_description,
 	pr.status_uuid,
-    st.description as statsus_description,
+    st.description as status_description,
 	pr.add_date,
-	pr.mod_date
+	pr.mod_date,
+    px.ref_parameter_uuid,
+    px.parameter_x_uuid
 FROM parameter pr
 LEFT JOIN parameter_def pd on pr.parameter_def_uuid = pd.parameter_def_uuid
+LEFT JOIN parameter_x px on pr.parameter_uuid = px.parameter_uuid
 LEFT JOIN actor act on pr.actor_uuid = act.actor_uuid
 LEFT JOIN status st on pd.status_uuid = st.status_uuid;
 

@@ -1473,10 +1473,11 @@ Returns:		void
 Author:			M.Tynes
 Date:			2020.09.18
 Description:	trigger proc that deletes, inserts or updates parameter record based on TG_OP (trigger operation)
-Notes:		    
+Notes:
  
-Example:		insert into vw_parameter (parameter_def_uuid, parameter_val, actor_uuid, status_uuid ) values (
+Example:		insert into vw_parameter (parameter_def_uuid, ref_parameter_uuid, parameter_val, actor_uuid, status_uuid ) values (
 											(select parameter_def_uuid from vw_parameter_def where description = 'beard_moisturize_dur'),
+                                            (select person_uuid from vw_person where last_name = 'Pendleton'),
 											(select put_val (
 												(select valtype_uuid from vw_parameter_def where description = 'beard_moisturize_dur'),
 												'10',
@@ -1489,14 +1490,17 @@ Example:		insert into vw_parameter (parameter_def_uuid, parameter_val, actor_uui
 												    '36',
 												    (select valunit from vw_parameter_def where description = 'beard_moisturize_dur')))
                                                 where parameter_def_description = 'beard_moisturize_dur'
- 				delete from vw_parameter where parameter_def_description = 'beard_moisturize_dur';
+ 				delete from vw_parameter where parameter_def_description = 'beard_moisturize_dur' AND ref_parameter_uuid = (select person_uuid from vw_person where last_name = 'Pendleton');
  */
 CREATE OR REPLACE FUNCTION upsert_parameter()
 	RETURNS TRIGGER
 	AS $$
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
-	    -- first delete the parameter record
+	    -- first delete parameter_x record
+		DELETE FROM parameter_x
+		WHERE parameter_x_uuid = OLD.parameter_x_uuid;
+	    -- then delete the parameter record
 		DELETE FROM parameter
 		WHERE parameter_uuid = OLD.parameter_uuid;
 		IF NOT FOUND THEN
@@ -1526,6 +1530,8 @@ BEGIN
 			INSERT INTO parameter (parameter_def_uuid, parameter_val, actor_uuid, status_uuid)
 				VALUES(NEW.parameter_def_uuid, NEW.parameter_val, NEW.actor_uuid, NEW.status_uuid)
 				returning parameter_uuid into NEW.parameter_uuid;
+			INSERT INTO parameter_x (parameter_uuid, ref_parameter_uuid)
+			    VALUES(NEW.parameter_uuid, NEW.ref_parameter_uuid);
 			RETURN NEW;
 		END IF;
 		RETURN NEW;
