@@ -1473,7 +1473,7 @@ Returns:		void
 Author:			M.Tynes
 Date:			2020.09.18
 Description:	trigger proc that deletes, inserts or updates parameter record based on TG_OP (trigger operation)
-Notes:		    The actor description from def appears to override the one provided here. We need to resolve this.
+Notes:		    
  
 Example:		insert into vw_parameter (parameter_def_uuid, parameter_val, actor_uuid, status_uuid ) values (
 											(select parameter_def_uuid from vw_parameter_def where description = 'beard_moisturize_dur'),
