@@ -1000,7 +1000,7 @@ SELECT
 	pr.mod_date
 FROM parameter pr
 LEFT JOIN parameter_def pd on pr.parameter_def_uuid = pd.parameter_def_uuid
-LEFT JOIN actor act on pd.actor_uuid = act.actor_uuid
+LEFT JOIN actor act on pr.actor_uuid = act.actor_uuid
 LEFT JOIN status st on pd.status_uuid = st.status_uuid;
 
 DROP TRIGGER IF EXISTS trigger_parameter_upsert ON vw_parameter;
