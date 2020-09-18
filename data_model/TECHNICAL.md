@@ -541,6 +541,7 @@ run_descriptor (p_descriptor_def_uuid uuid, p_alias_name varchar, p_command_opt 
 load_mol_images ( p_systemtool_uuid uuid, p_actor_uuid uuid ) RETURNS bool
 get_charge_count ( p_mol_smiles varchar ) RETURNS int
 math_op (p_in_num numeric, p_op text, p_in_opt_num numeric default null) returns numeric
+delete_assigned_recs (p_ref_uuid uuid) RETURNS TABLE (entity text, ref_uuid uuid)
 upsert_organization() RETURNS TRIGGER
 upsert_person() RETURNS TRIGGER
 upsert_systemtool() RETURNS TRIGGER
@@ -832,12 +833,13 @@ __vw\_tag__`CRUD`<br/>
 > tag\_type\_description (v) <br/>
 
 ```
--- insert new tag
- insert into vw_tag (display_text, description, tag_type_uuid, actor_uuid) values ('invalid', 'invalid experiment', null, (select actor_uuid from vw_actor where person_last_name = 'Alves'));
- -- update tag description
- update vw_tag set description = 'invalid experiment with stuff added', tag_type_uuid = (select tag_type_uuid from vw_tag_type where short_description = 'experiment') where tag_uuid = (select tag_uuid from vw_tag where (display_text = 'invalid'));
--- delete tag; any notes attached to this record are automatically deleted	
-delete from vw_tag where tag_uuid in (select tag_uuid from vw_tag where (display_text = 'invalid'));
+-- insert new tag  (tag_uuid = NULL, ref_tag_uuid = NULL)
+insert into vw_tag (display_text, description, actor_uuid, tag_type_uuid) 
+	values ('invalid', 'invalid experiment', (select actor_uuid from vw_actor where person_last_name = 'Alves'), null);
+update vw_tag set description = 'invalid experiment with stuff added', 
+ 	tag_type_uuid = (select tag_type_uuid from vw_tag_type where type = 'experiment') 
+ 	where tag_uuid = (select tag_uuid from vw_tag where (display_text = 'invalid'));
+ delete from vw_tag where tag_uuid = (select tag_uuid from vw_tag where (display_text = 'invalid' and type = 'experiment'));
 ```
 
 <br/>
@@ -848,14 +850,17 @@ __vw\_tag_assign__`CRUD`<br/>
 > tag\_x\_uuid (v) <br/>
 > ref\_tag\_uuid (r)
 > tag\_uuid (r) <br/>
+> display\_text (v) <br/>
+> type (v) <br/>
 > add\_date (v) <br/> 
 > mod\_date (v) <br/>
 
 ```
--- insert new tag_x (tag_uuid, ref_tag_uuid) that ties tag to table record 
- insert into vw_tag_x (tag_uuid, ref_tag_uuid) values ((select tag_uuid from vw_tag where (display_text = 'invalid')), (select actor_uuid from vw_actor where person_last_name = 'Alves') );
- -- delete tag_x
- delete from vw_tag_x where tag_uuid = (select tag_uuid from vw_tag where (display_text = 'invalid') and ref_tag_uuid = (select actor_uuid from vw_actor where person_last_name = 'Alves') );
+-- insert new tag_assign (ref_tag) 
+insert into vw_tag_assign (tag_uuid, ref_tag_uuid) values ((select tag_uuid from vw_tag 
+ 	where (display_text = 'inactive' and vw_tag.type = 'actor')), (select actor_uuid from vw_actor where person_last_name = 'Alves') );
+delete from vw_tag_assign where tag_uuid = (select tag_uuid from vw_tag 
+ 	where (display_text = 'inactive' and vw_tag.type = 'actor') and ref_tag_uuid = (select actor_uuid from vw_actor where person_last_name = 'Alves') );
 ```
 
 <br/>

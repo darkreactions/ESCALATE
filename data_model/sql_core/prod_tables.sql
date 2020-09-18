@@ -1,3 +1,4 @@
+--======================================================================
 /*
 Name:			prod_tables
 Parameters:		none
@@ -11,6 +12,7 @@ Notes:			triggers, foreign keys and other constraints are in other sql files
  				20200130: add measure, measure_type back in, and also add the xref table 
 				 measure_x
  */
+--======================================================================
 
 -- DROP SCHEMA dev cascade;
 -- CREATE SCHEMA dev;

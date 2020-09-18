@@ -1,3 +1,4 @@
+--======================================================================
 /*
 Name:			prod_views
 Parameters:		none
@@ -7,6 +8,8 @@ Date:			2020.01.23
 Description:	create the production views for ESCALATEv3
 Notes:				
  */
+--======================================================================
+
  
 --=====================================
 -- VIEWS
@@ -193,8 +196,8 @@ SELECT
 	tx.tag_uuid,
 	tg.display_text,
 	tt.type,
-	tg.add_date,
-	tg.mod_date
+	tx.add_date,
+	tx.mod_date
 FROM
 	tag_x tx
 	LEFT JOIN tag tg ON tx.tag_uuid = tg.tag_uuid

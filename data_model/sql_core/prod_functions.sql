@@ -1,3 +1,4 @@
+--======================================================================
 /*
 Name:			prod_functions
 Parameters:		none
@@ -7,7 +8,7 @@ Date:			2019.12.02
 Description:	contain the core functions used in ESCALATE sql
 Notes:				
 */
---=====================================
+--======================================================================
 
 
 ---------------------------------------
@@ -1450,5 +1451,61 @@ ELSE
 	RETURN NULL;
 	END CASE;
 	END;
+$$
+LANGUAGE plpgsql;
+
+
+
+
+/*
+Name:			delete_assigned_recs (p_ref_uuid uuid) 
+Parameters:		p_ref_uuid = the reference uuid used to identify the associated records
+Returns:		
+Author:			G. Cattabriga
+Date:			2020.09.18
+Description:	removes associated records to p_ref_uuid for the following entities: note, tag, udf 
+Notes:			
+Example:		insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) 
+						values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null) returning *;
+				insert into vw_note (notetext, actor_uuid, ref_note_uuid) 
+						values ('test note for Lester the Actor', (select actor_uuid from vw_actor where person_last_name = 'Tester'), 
+						(select actor_uuid from vw_actor where person_last_name = 'Tester'));
+				insert into vw_tag_assign (tag_uuid, ref_tag_uuid) 
+						values ((select tag_uuid from vw_tag where (display_text = 'do_not_use' and type = 'actor')), 
+						(select actor_uuid from vw_actor where person_last_name = 'Tester'));
+				insert into vw_udf (ref_udf_uuid, udf_def_uuid, udf_val_val) values
+					((select actor_uuid from vw_actor where person_last_name = 'Tester'), 
+					(select udf_def_uuid from vw_udf_def where description = 'batch count'),
+					'123 -> batch no. test');
+				select delete_assigned_recs ((select actor_uuid from vw_actor where description = 'Lester Tester'));				
+*/
+-- DROP FUNCTION IF EXISTS delete_assigned_recs (p_ref_uuid uuid) cascade;
+CREATE OR REPLACE FUNCTION delete_assigned_recs (p_ref_uuid uuid)
+	RETURNS TABLE (entity text, ref_uuid uuid)
+	AS $$
+DECLARE
+	_note_uuid uuid;
+	_tag_uuid uuid;
+	_udf_uuid uuid;
+BEGIN
+	create temp table _tbldel (entity text, ref_uuid uuid);
+	delete from vw_note WHERE ref_note_uuid = p_ref_uuid returning note_uuid into _note_uuid;
+ 	delete from vw_tag_assign WHERE ref_tag_uuid = p_ref_uuid returning tag_uuid into _tag_uuid;
+	delete from vw_udf WHERE ref_udf_uuid = p_ref_uuid returning udf_uuid into _udf_uuid;
+
+	IF _note_uuid IS NOT NULL THEN
+		INSERT INTO _tbldel (entity, ref_uuid) values('note', _note_uuid);
+	END IF;
+	IF _tag_uuid IS NOT NULL THEN
+		INSERT INTO _tbldel (entity, ref_uuid) values('tag', _tag_uuid);
+	END IF;
+	IF _udf_uuid IS NOT NULL THEN
+		INSERT INTO _tbldel (entity, ref_uuid) values('udf', _udf_uuid);
+	END IF;
+
+    RETURN QUERY SELECT * from _tbldel; 
+       
+    drop table _tbldel;
+END;
 $$
 LANGUAGE plpgsql;
