@@ -99,6 +99,7 @@ CREATE SCHEMA dev;
 CREATE EXTENSION if not exists ltree;
 CREATE EXTENSION if not exists tablefunc;
 CREATE EXTENSION if not exists "uuid-ossp";
+CREATE EXTENSION IF not exists hstore;
 ```
 <br/>
 
@@ -139,7 +140,7 @@ or
 	CREATE EXTENSION if not exists ltree with schema dev;
 	CREATE EXTENSION if not exists tablefunc with schema dev;
 	CREATE EXTENSION if not exists "uuid-ossp" with schema dev;
-	CREATE EXTENSION IF NOT EXISTS hstore with schema dev;
+	CREATE EXTENSION if not exists hstore with schema dev;
 	```
 
 * Populate the load tables with existing perovskite experimental data using SQL code found in the repo 'sql_dataload' subdirectory:
@@ -160,31 +161,25 @@ or
 
 * Create the core model tables, primary keys, foreign keys and constraints and views using SQL code found in the repo 'sql_core' subdirectory:
 
+	**Option 1** - the easiest way (and that creates a log) is to execute the following shell script:
+	
 	```
-	prod_create_tables.sql
+	rebuild_schema_dev.sh
 	```
+which is found in the sql_core subdirectory.
 
-* Create the core functions:
-
-	```
-	prod_create_functions.sql
-	```
-
-* Create the core views:
+	**Option 2** - or you could run each SQL file individually:
 
 	```
-	prod_create_views.sql
-	```
-
-
-* Populate the core tables:
-
-	```
+	prod_tables.sql
+	prod_functions.sql
+	prod_upserts.sql
+	prod_views.sql	
 	prod_initialize_coretables.sql
 	prod_update_1_material.sql
 	prod_update_2_inventory.sql
-	prod_update_3_descriptor.sql
-	```
+	prod_update_3_calculation.sql	
+	``
 
 <br/>
 
@@ -197,16 +192,16 @@ Record count of selected core tables:
 
 ```
 select count(*) from actor;
-> 16
+> 25
 
 select count(*) from material;
-> 108
+> 112
 > 
 select count(*) from inventory;
 > 131
 > 
 select count(*) from calculation;
-> 8025
+> 8325
 ```
 
 Check view vw_actor:
