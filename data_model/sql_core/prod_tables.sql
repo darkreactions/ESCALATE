@@ -640,11 +640,6 @@ CREATE TABLE calculation_def (
 );
 
 
-select short_name, calc_definition, description, actor_description, systemtool_name, systemtool_version from vw_calculation_def where short_name = 'atomcount_c_standardize';
-
-
-
-
 ---------------------------------------
 -- Table structure for calculation
 ---------------------------------------
