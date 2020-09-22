@@ -88,6 +88,7 @@ DROP FUNCTION IF EXISTS get_chemaxon_version () cascade;
 DROP FUNCTION IF EXISTS run_descriptor () cascade;
 DROP FUNCTION IF EXISTS get_charge_count () cascade;
 DROP FUNCTION IF EXISTS math_op () cascade;
+DROP FUNCTION IF EXISTS delete_assigned_recs () cascade;
 DROP FUNCTION IF EXISTS upsert_actor () cascade;
 DROP FUNCTION IF EXISTS upsert_actor_pref () cascade;
 DROP FUNCTION IF EXISTS upsert_calculation () cascade;
@@ -637,6 +638,11 @@ CREATE TABLE calculation_def (
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
+
+
+select short_name, calc_definition, description, actor_description, systemtool_name, systemtool_version from vw_calculation_def where short_name = 'atomcount_c_standardize';
+
+
 
 
 ---------------------------------------

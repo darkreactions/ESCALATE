@@ -70,7 +70,7 @@ create view vw_material_ref_json as
 
 
 create view vw_material_ref_prop_json as 
-	SELECT
+	SELECT distinct
 		material_name,
 		prop->>'name' as property_name
  	FROM vw_material_ref_json ref, json_array_elements(material_property) prop;
