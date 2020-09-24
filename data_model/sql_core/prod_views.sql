@@ -1046,28 +1046,37 @@ EXECUTE PROCEDURE upsert_parameter ( );
  EXECUTE PROCEDURE upsert_action_def ( );
 
 
+
 CREATE OR REPLACE VIEW vw_action_def_json AS
-SELECT action_def_uuid,
-        description,
-        json_agg(
-                 json_build_object(
-                     'parameter_name', parameter_description,
-                     'parameter_type', parameter_val_type_description,
-                     'parameter_unit', parameter_unit,
-                     'parameter_uuid', parameter_def_uuid
-                     )
-                 ) AS parameter_def_json
- FROM
-     (select 'action_def' as action_def, 
-             description,
-             action_def_uuid,
-             'parameter_def' as parameter_def,
-             parameter_def_uuid,
-             parameter_description,
-             parameter_val_type_description,
-             parameter_unit
-      from vw_action_def) as p
- GROUP BY action_def_uuid, description;
+SELECT
+	json_build_object('action_def', 
+		json_agg(
+			json_build_object(
+				'description', a.description, 
+				'uuid', a.action_def_uuid, 
+				'parameter_def', param
+			)
+		)
+	) actions
+FROM
+	vw_action_def a
+	LEFT JOIN (
+		SELECT
+			action_def_uuid,
+			json_agg(
+				json_build_object(
+					'description', p.parameter_description, 
+					'val_type', p.parameter_val_type_description, 
+					'unit', p.parameter_unit, 
+					'uuid', p.parameter_def_uuid
+				)
+			) param
+		FROM
+			vw_action_def p
+		GROUP BY
+			action_def_uuid
+	) p 
+ON a.action_def_uuid = p.action_def_uuid;
 
 
 
