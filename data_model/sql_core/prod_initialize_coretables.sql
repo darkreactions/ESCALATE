@@ -213,7 +213,7 @@ COMMIT;
 -- Populate some UDFs
 -- ----------------------------
 BEGIN;
-INSERT INTO vw_udf_def (description, valtype_uuid, unit)
+INSERT INTO vw_udf_def (description, val_type_uuid, unit)
 VALUES 
 	('experiment version', (select type_def_uuid from vw_type_def where category = 'data' and description = 'text'), null),
 	('generation version', (select type_def_uuid from vw_type_def where category = 'data' and description = 'text'), null),

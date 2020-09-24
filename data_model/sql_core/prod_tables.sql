@@ -229,6 +229,7 @@ DROP TABLE IF EXISTS workflow_state_def cascade;
 DROP TABLE IF EXISTS workflow_state cascade;
 DROP TABLE IF EXISTS workflow_type cascade;
 DROP TABLE IF EXISTS action_def cascade;
+DROP TABLE IF EXISTS action_parameter_def_x cascade;
 DROP TABLE IF EXISTS action cascade;
 DROP TABLE IF EXISTS action_condition cascade;
 DROP TABLE IF EXISTS status cascade;
@@ -559,7 +560,7 @@ CREATE TABLE property_def (
 	property_def_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default",
 	short_description varchar COLLATE "pg_catalog"."default" NOT NULL,
-	valtype_uuid uuid,
+	val_type_uuid uuid,
 	valunit varchar,
 	actor_uuid uuid,
 	status_uuid uuid,
@@ -574,7 +575,7 @@ CREATE TABLE property_def (
 CREATE TABLE parameter_def (
 	parameter_def_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default" NOT NULL,
-	valtype_uuid uuid,
+	val_type_uuid uuid,
 	valunit varchar,
 	actor_uuid uuid,
 	status_uuid uuid,
@@ -862,8 +863,8 @@ CREATE TABLE udf_x (
 -- ----------------------------
 CREATE TABLE udf (
 	udf_uuid uuid DEFAULT uuid_generate_v4 (),
-	udf_def_uuid uuid,
-	udf_val val,
+	udf_def_uuid uuid NOT NULL,
+	udf_val val NOT NULL,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -873,8 +874,8 @@ CREATE TABLE udf (
 -- ----------------------------
 CREATE TABLE udf_def (
 	udf_def_uuid uuid DEFAULT uuid_generate_v4 (),
-	description varchar COLLATE "pg_catalog"."default",
-	valtype_uuid uuid,
+	description varchar COLLATE "pg_catalog"."default" NOT NULL,
+	val_type_uuid uuid NOT NULL,
 	unit varchar,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
@@ -957,6 +958,19 @@ CREATE TABLE action_def (
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
+
+
+---------------------------------------
+ -- Table structure for action_parameter_def_x
+ ---------------------------------------
+ CREATE TABLE action_parameter_def_x (
+     action_parameter_def_x_uuid uuid DEFAULT uuid_generate_v4 (),
+ 	parameter_def_uuid uuid NOT NULL,
+ 	action_def_uuid uuid NOT NULL,
+ 	add_date timestamptz NOT NULL DEFAULT NOW(),
+ 	mod_date timestamptz NOT NULL DEFAULT NOW()
+ );
+
 
  ---------------------------------------
 -- Table structure for workflow_action
@@ -1335,6 +1349,13 @@ ALTER TABLE action_def
 CLUSTER action_def
 USING "pk_action_def_action_def_uuid";
 
+-- action_parameter_def_x constraints
+ ALTER TABLE action_parameter_def_x
+ 	ADD CONSTRAINT "pk_action_parameter_def_x_action_parameter_def_x_uuid" PRIMARY KEY (action_parameter_def_x_uuid),
+ 		ADD CONSTRAINT "un_action_parameter_def_x_def" UNIQUE (parameter_def_uuid, action_def_uuid);
+ CLUSTER action_parameter_def_x
+ USING "pk_action_parameter_def_x_action_parameter_def_x_uuid";
+
 -- action primary key and constraints
 ALTER TABLE action
 	ADD CONSTRAINT "pk_action_action_uuid" PRIMARY KEY (action_uuid);
@@ -1467,7 +1488,7 @@ ALTER TABLE property
 ALTER TABLE property_def 
  ADD CONSTRAINT fk_property_def_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
 	ADD CONSTRAINT fk_property_def_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid),
-			ADD CONSTRAINT fk_property_def_valtype_1 FOREIGN KEY (valtype_uuid) REFERENCES type_def (type_def_uuid);
+			ADD CONSTRAINT fk_property_def_val_type_1 FOREIGN KEY (val_type_uuid) REFERENCES type_def (type_def_uuid);
 
 ALTER TABLE property_x 
  ADD CONSTRAINT fk_property_x_material_1 FOREIGN KEY (material_uuid) REFERENCES material (material_uuid),
@@ -1481,7 +1502,7 @@ ALTER TABLE parameter
 ALTER TABLE parameter_def 
  ADD CONSTRAINT fk_parameter_def_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
 	ADD CONSTRAINT fk_parameter_def_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid),
-			ADD CONSTRAINT fk_parameter_def_valtype_1 FOREIGN KEY (valtype_uuid) REFERENCES type_def (type_def_uuid);
+			ADD CONSTRAINT fk_parameter_def_val_type_1 FOREIGN KEY (val_type_uuid) REFERENCES type_def (type_def_uuid);
 
 ALTER TABLE parameter_x 
 	ADD CONSTRAINT fk_parameter_x_parameter_1 FOREIGN KEY (parameter_uuid) REFERENCES parameter (parameter_uuid);
@@ -1554,6 +1575,9 @@ ALTER TABLE udf
 ALTER TABLE udf_x
 	ADD CONSTRAINT fk_udf_x_udf_1 FOREIGN KEY (udf_uuid) REFERENCES udf (udf_uuid);
 
+ALTER TABLE udf_def
+	ADD CONSTRAINT fk_udf_def_udf_def_1 FOREIGN KEY (val_type_uuid) REFERENCES type_def (type_def_uuid);
+
 ALTER TABLE workflow
 	ADD CONSTRAINT fk_workflow_experiment_1 FOREIGN KEY (experiment_uuid) REFERENCES experiment (experiment_uuid),
 		ADD CONSTRAINT fk_workflow_type_1 FOREIGN KEY (workflow_type_uuid) REFERENCES workflow_type (workflow_type_uuid),		
@@ -1576,6 +1600,10 @@ ALTER TABLE workflow_state
 ALTER TABLE action_def
 	ADD CONSTRAINT fk_action_def_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
 		ADD CONSTRAINT fk_action_def_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+
+ALTER TABLE action_parameter_def_x
+ 	ADD CONSTRAINT fk_action_parameter_def_x_action_def_1 FOREIGN KEY (action_def_uuid) REFERENCES action_def (action_def_uuid),
+         ADD CONSTRAINT fk_action_parameter_def_x_parameter_def_1 FOREIGN KEY (parameter_def_uuid) REFERENCES parameter_def (parameter_def_uuid);
 
 ALTER TABLE action
 	ADD CONSTRAINT fk_action_action_def_1 FOREIGN KEY (action_def_uuid) REFERENCES action_def (action_def_uuid),
@@ -1612,3 +1640,12 @@ COMMENT ON COLUMN organization.website_url IS 'organization url';
 COMMENT ON COLUMN organization.phone IS 'primary organization phone';
 COMMENT ON COLUMN organization.add_date IS 'date this record added';
 COMMENT ON COLUMN organization.mod_date IS 'date this record updated';
+
+COMMENT ON TABLE udf_def IS 'user defined field definitions; can be a container for any date type (val_type) defined in type_def';
+COMMENT ON COLUMN udf_def.udf_def_uuid IS 'uuid for this udf_def record';
+COMMENT ON COLUMN udf_def.description IS 'a unique description of this udf definition record';
+COMMENT ON COLUMN udf_def.val_type_uuid IS 'reference to the data type of this udf definition as defined in type_def table';
+COMMENT ON COLUMN udf_def.unit IS 'option description of value unit';
+COMMENT ON COLUMN udf_def.add_date IS 'date this record added';
+COMMENT ON COLUMN udf_def.mod_date IS 'date this record modfified';
+

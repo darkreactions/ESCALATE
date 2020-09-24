@@ -161,9 +161,8 @@ Date:			2020.06.22
 Description:	trigger proc that deletes, inserts or updates udf_def record based on TG_OP (trigger operation)
 Notes:				
  
-Example:		insert into vw_udf_def (description, valtype_uuid) values ('user defined 1', null);
- 				update vw_udf_def set valtype_uuid = (select type_def_uuid from vw_type_def where category = 'data' and description = 'text') where
- 					udf_def_uuid = (select udf_def_uuid from vw_udf_def where (description = 'user defined 1'));
+Example:		insert into vw_udf_def (description, val_type_uuid) 
+					values ('user defined 1', (select type_def_uuid from vw_type_def where category = 'data' and description = 'text'));
 				update vw_udf_def set unit = 'test-unit' where
  					udf_def_uuid = (select udf_def_uuid from vw_udf_def where (description = 'user defined 1'));
  				delete from vw_udf_def where udf_def_uuid = (select udf_def_uuid from udf_def where (description = 'user defined 1'));
@@ -187,7 +186,7 @@ BEGIN
 		UPDATE
 			udf_def
 		SET
-			valtype_uuid = NEW.valtype_uuid,
+			val_type_uuid = NEW.val_type_uuid,
 			description = NEW.description,
 			unit = NEW.unit,
 			mod_date = now()
@@ -195,8 +194,8 @@ BEGIN
 			udf_def.udf_def_uuid = NEW.udf_def_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO udf_def (description, valtype_uuid, unit)
-			VALUES(NEW.description, NEW.valtype_uuid, NEW.unit) returning udf_def_uuid into NEW.udf_def_uuid;
+		INSERT INTO udf_def (description, val_type_uuid, unit)
+			VALUES(NEW.description, NEW.val_type_uuid, NEW.unit) returning udf_def_uuid into NEW.udf_def_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1427,6 +1426,10 @@ Example:		insert into vw_parameter_def (description, valtype_uuid, valunit, acto
                                              ('beard_moisturize_dur', (select get_type_def ('data', 'num')), 'hours', (select actor_uuid from vw_actor where description = 'HC'));
 				update vw_parameter_def set status_uuid = (select status_uuid from vw_status where description = 'active') where description = 'beard_moisturize_dur';
  				delete from vw_parameter_def where description = 'beard_moisturize_dur';
+              	insert into vw_parameter_def (description, val_type_uuid, valunit, actor_uuid) values
+                              ('duration', (select get_type_def ('data', 'num')), 'hours', (select actor_uuid from vw_actor where description = 'HC')),
+                              ('speed', (select get_type_def ('data', 'num')), 'rpm', (select actor_uuid from vw_actor where description = 'HC')),
+                              ('temperature', (select get_type_def ('data', 'num')), 'degC', (select actor_uuid from vw_actor where description = 'HC'));
  */
 CREATE OR REPLACE FUNCTION upsert_parameter_def ()
 	RETURNS TRIGGER
@@ -1456,13 +1459,106 @@ BEGIN
 			parameter_def.parameter_def_uuid = NEW.parameter_def_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-	    INSERT INTO parameter_def (description, valtype_uuid, valunit, actor_uuid, status_uuid)
-			VALUES(NEW.description, NEW.valtype_uuid, NEW.valunit, NEW.actor_uuid, NEW.status_uuid) returning parameter_def_uuid into NEW.parameter_def_uuid;
+	    INSERT INTO parameter_def (description, val_type_uuid, valunit, actor_uuid, status_uuid)
+			VALUES(NEW.description, NEW.val_type_uuid, NEW.valunit, NEW.actor_uuid, NEW.status_uuid) returning parameter_def_uuid into NEW.parameter_def_uuid;
 		RETURN NEW;
 	END IF;
 END;
 $$
 LANGUAGE plpgsql;
+
+
+/*
+ Name:			upsert_action_def()
+ Parameters:
+
+ Returns:		void
+ Author:		M. Tynes
+ Date:			2020.09.22
+ Description:	trigger proc that deletes, inserts or updates action_def record based on TG_OP (trigger operation)
+ Notes:
+
+ Example:		insert into vw_action_def (description, actor_uuid) values
+                                           ('moisturize_beard', (select actor_uuid from vw_actor where description = 'Ian Pendleton'));
+ 				update vw_action_def set status_uuid = (select status_uuid from vw_status where description = 'active') where description = 'moisturize_beard';
+  				delete from vw_action_def where description = 'moisturize_beard';
+
+                insert into vw_action_def (description, actor_uuid) values
+                                           ('heat_stir', (select actor_uuid from vw_actor where description = 'Ian Pendleton'));
+  */
+ CREATE OR REPLACE FUNCTION upsert_action_def ()
+ 	RETURNS TRIGGER
+ 	AS $$
+ BEGIN
+ 	IF(TG_OP = 'DELETE') THEN
+ 	    -- first delete the property_def record
+ 		DELETE FROM action_def
+ 		WHERE action_def_uuid = OLD.action_def_uuid;
+ 		IF NOT FOUND THEN
+ 			RETURN NULL;
+ 		END IF;
+ 		-- delete any assigned records
+ 		PERFORM delete_assigned_recs (OLD.action_def_uuid);
+ 		RETURN OLD;
+ 	ELSIF (TG_OP = 'UPDATE') THEN
+ 	    UPDATE
+ 			action_def
+ 		SET
+ 			description = NEW.description,
+ 			actor_uuid = NEW.actor_uuid,
+ 			status_uuid = NEW.status_uuid,
+ 			mod_date = now()
+ 		WHERE
+ 			action_def.action_def_uuid = NEW.action_def_uuid;
+ 		RETURN NEW;
+ 	ELSIF (TG_OP = 'INSERT') THEN
+ 	    INSERT INTO action_def (description, actor_uuid, status_uuid)
+ 			VALUES(NEW.description, NEW.actor_uuid, NEW.status_uuid)
+ 			returning action_def_uuid into NEW.action_def_uuid;
+ 		RETURN NEW;
+ 	END IF;
+ END;
+ $$
+ LANGUAGE plpgsql;
+
+
+/*
+ Name:			upsert_action_parameter_def_assign()
+ Parameters:		trigger proc that deletes, inserts or updates action_parameter_def_x record based on TG_OP (trigger operation)
+ Returns:		void
+ Author:			G. Cattabriga
+ Date:			2020.06.22
+ Description:	trigger proc that deletes, inserts or updates action_parameter_def_x record based on TG_OP (trigger operation)
+ Notes:			requires both ref_action_parameter_def_uuid and action_parameter_def_uuid
+
+ Example:        insert into vw_action_parameter_def_assign (action_def_uuid, parameter_def_uuid)
+                                                     VALUES ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
+                                                             (select parameter_def_uuid from vw_parameter_def where description = 'duration')),
+                                                            ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
+                                                             (select parameter_def_uuid from vw_parameter_def where description = 'temperature')),
+                                                            ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
+                                                             (select parameter_def_uuid from vw_parameter_def where description = 'speed'));
+
+  */
+ CREATE OR REPLACE FUNCTION upsert_action_parameter_def_assign ()
+ 	RETURNS TRIGGER
+ 	AS $$
+ BEGIN
+ 	IF(TG_OP = 'DELETE') THEN
+ 		DELETE FROM action_parameter_def_x
+ 		WHERE (action_def_uuid = OLD.action_def_uuid)
+ 			and(parameter_def_uuid = OLD.parameter_def_uuid);
+ 		RETURN OLD;
+ 	ELSIF (TG_OP = 'UPDATE') THEN
+ 		RETURN NEW;
+ 	ELSIF (TG_OP = 'INSERT') THEN
+ 		INSERT INTO action_parameter_def_x (action_def_uuid, parameter_def_uuid)
+ 		VALUES(NEW.action_def_uuid, NEW.parameter_def_uuid);
+ 		RETURN NEW;
+ 	END IF;
+ END;
+ $$
+ LANGUAGE plpgsql;
 
 
 /*
@@ -1539,6 +1635,7 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
+
 
 
 /*

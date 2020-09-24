@@ -218,15 +218,15 @@ CREATE OR REPLACE VIEW vw_udf_def AS
 SELECT
 	ud.udf_def_uuid,
 	ud.description,
-	ud.valtype_uuid,
-	td.category as valtype_category,
-	td.description as valtype_description,
+	ud.val_type_uuid,
+	td.category as val_type_category,
+	td.description as val_type_description,
 	ud.unit,
 	ud.add_date,
 	ud.mod_date
 FROM
 	udf_def ud
-	LEFT JOIN type_def td on ud.valtype_uuid = td.type_def_uuid;
+	LEFT JOIN type_def td on ud.val_type_uuid = td.type_def_uuid;
 
 DROP TRIGGER IF EXISTS trigger_udf_def_upsert ON vw_udf_def;
 CREATE TRIGGER trigger_udf_def_upsert INSTEAD OF INSERT
@@ -237,7 +237,7 @@ EXECUTE PROCEDURE upsert_udf_def ( );
 
 
 ----------------------------------------
--- view of udf; links to notes
+-- view of udf
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_udf AS
 SELECT
@@ -257,7 +257,7 @@ FROM
 	udf ud
 	LEFT JOIN udf_x udx on ud.udf_uuid = udx.udf_uuid
 	LEFT JOIN udf_def udef on ud.udf_def_uuid = udef.udf_def_uuid
-	LEFT JOIN type_def td on udef.valtype_uuid = td.type_def_uuid;
+	LEFT JOIN type_def td on udef.val_type_uuid = td.type_def_uuid;
 
 DROP TRIGGER IF EXISTS trigger_udf_upsert ON vw_udf;
 CREATE TRIGGER trigger_udf_upsert INSTEAD OF INSERT
@@ -803,7 +803,7 @@ SELECT
 	pd.property_def_uuid,
 	pd.description,
 	pd.short_description,
-	pd.valtype_uuid,
+	pd.val_type_uuid,
 	pd.valunit,
 	pd.actor_uuid,
 	act.description as actor_description,
@@ -961,8 +961,8 @@ CREATE OR REPLACE VIEW vw_parameter_def AS
 SELECT 
     pd.parameter_def_uuid,
     pd.description,
-	pd.valtype_uuid,
-	td.description as valtype_description,
+	pd.val_type_uuid,
+	td.description as val_type_description,
 	pd.valunit,
 	pd.actor_uuid,
 	act.description as actor_description,
@@ -973,7 +973,7 @@ SELECT
 FROM parameter_def pd
 LEFT JOIN vw_actor act ON act.actor_uuid = pd.actor_uuid
 LEFT JOIN status st ON pd.status_uuid = st.status_uuid
-LEFT JOIN type_def td ON pd.valtype_uuid = td.type_def_uuid;
+LEFT JOIN type_def td ON pd.val_type_uuid = td.type_def_uuid;
 
 DROP TRIGGER IF EXISTS trigger_parameter_def_upsert ON vw_parameter_def;
 CREATE TRIGGER trigger_parameter_def_upsert INSTEAD OF INSERT
@@ -1012,6 +1012,104 @@ OR UPDATE
 OR DELETE ON vw_parameter
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_parameter ( );
+
+
+----------------------------------------
+ -- view action_def
+ ----------------------------------------
+ CREATE OR REPLACE VIEW vw_action_def AS
+ SELECT
+     ad.action_def_uuid,
+     ad.description,
+ 	ad.actor_uuid,
+ 	act.description as actor_description,
+ 	ad.status_uuid,
+ 	st.description as status_description,
+ 	ad.add_date,
+ 	ad.mod_date,
+     ap.parameter_def_uuid,
+     pd.description as parameter_description,
+     pd.val_type_uuid as parameter_val_type_uuid,
+     pd.val_type_description as parameter_val_type_description,
+     pd.valunit as parameter_unit
+ FROM action_def ad
+ LEFT JOIN vw_actor act ON act.actor_uuid = ad.actor_uuid
+ LEFT JOIN action_parameter_def_x ap ON ad.action_def_uuid = ap.action_def_uuid
+ LEFT JOIN vw_parameter_def pd ON ap.parameter_def_uuid = pd.parameter_def_uuid
+ LEFT JOIN status st ON ad.status_uuid = st.status_uuid;
+
+ DROP TRIGGER IF EXISTS trigger_action_def_upsert ON vw_action_def;
+ CREATE TRIGGER trigger_action_def_upsert INSTEAD OF INSERT
+ OR UPDATE
+ OR DELETE ON vw_action_def
+ FOR EACH ROW
+ EXECUTE PROCEDURE upsert_action_def ( );
+
+
+CREATE OR REPLACE VIEW vw_action_def_json AS
+SELECT action_def_uuid,
+        description,
+        json_agg(
+                 json_build_object(
+                     'parameter_name', parameter_description,
+                     'parameter_type', parameter_val_type_description,
+                     'parameter_unit', parameter_unit,
+                     'parameter_uuid', parameter_def_uuid
+                     )
+                 ) AS parameter_def_json
+ FROM
+     (select 'action_def' as action_def, 
+             description,
+             action_def_uuid,
+             'parameter_def' as parameter_def,
+             parameter_def_uuid,
+             parameter_description,
+             parameter_val_type_description,
+             parameter_unit
+      from vw_action_def) as p
+ GROUP BY action_def_uuid, description;
+
+
+SELECT ,
+        json_agg(
+                 json_build_object(
+                     'parameter_name', parameter_description,
+                     'parameter_type', parameter_val_type_description,
+                     'parameter_unit', parameter_unit,
+                     'parameter_uuid', parameter_def_uuid
+                     )
+                 ) AS parameter_def_json
+ FROM
+     (select 'action_def' as action_def, 
+             description,
+             action_def_uuid,
+             'parameter_def' as parameter_def,
+             parameter_def_uuid,
+             parameter_description,
+             parameter_val_type_description,
+             parameter_unit
+      from vw_action_def) as p
+ GROUP BY action_def_uuid, description;
+
+
+
+
+ CREATE OR REPLACE VIEW vw_action_parameter_def_assign AS
+ SELECT
+    action_parameter_def_x_uuid,
+ 	parameter_def_uuid,
+ 	action_def_uuid,
+ 	add_date,
+ 	mod_date
+ FROM action_parameter_def_x;
+
+ DROP TRIGGER IF EXISTS trigger_action_parameter_def_assign_upsert ON vw_action_parameter_def_assign;
+ CREATE TRIGGER trigger_action_parameter_def_assign_upsert INSTEAD OF INSERT
+ OR UPDATE
+ OR DELETE ON vw_action_parameter_def_assign
+ FOR EACH ROW
+ EXECUTE PROCEDURE upsert_action_parameter_def_assign ( );
+
 
 ----------------------------------------
 -- view workflow_type
