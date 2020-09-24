@@ -1070,29 +1070,6 @@ SELECT action_def_uuid,
  GROUP BY action_def_uuid, description;
 
 
-SELECT ,
-        json_agg(
-                 json_build_object(
-                     'parameter_name', parameter_description,
-                     'parameter_type', parameter_val_type_description,
-                     'parameter_unit', parameter_unit,
-                     'parameter_uuid', parameter_def_uuid
-                     )
-                 ) AS parameter_def_json
- FROM
-     (select 'action_def' as action_def, 
-             description,
-             action_def_uuid,
-             'parameter_def' as parameter_def,
-             parameter_def_uuid,
-             parameter_description,
-             parameter_val_type_description,
-             parameter_unit
-      from vw_action_def) as p
- GROUP BY action_def_uuid, description;
-
-
-
 
  CREATE OR REPLACE VIEW vw_action_parameter_def_assign AS
  SELECT
