@@ -1426,10 +1426,16 @@ Example:		insert into vw_parameter_def (description, valtype_uuid, valunit, acto
                                              ('beard_moisturize_dur', (select get_type_def ('data', 'num')), 'hours', (select actor_uuid from vw_actor where description = 'HC'));
 				update vw_parameter_def set status_uuid = (select status_uuid from vw_status where description = 'active') where description = 'beard_moisturize_dur';
  				delete from vw_parameter_def where description = 'beard_moisturize_dur';
-              	insert into vw_parameter_def (description, val_type_uuid, valunit, actor_uuid) values
-                              ('duration', (select get_type_def ('data', 'num')), 'hours', (select actor_uuid from vw_actor where description = 'HC')),
-                              ('speed', (select get_type_def ('data', 'num')), 'rpm', (select actor_uuid from vw_actor where description = 'HC')),
-                              ('temperature', (select get_type_def ('data', 'num')), 'degC', (select actor_uuid from vw_actor where description = 'HC'));
+              	insert into vw_parameter_def (description, val_type_uuid, valunit, actor_uuid, status_uuid) values
+                              ('duration', (select get_type_def ('data', 'num')), 'hours', 
+                              	(select actor_uuid from vw_actor where description = 'HC'), 
+                              	(select status_uuid from vw_status where description = 'active')),
+                              ('speed', (select get_type_def ('data', 'num')), 'rpm', 
+                              	(select actor_uuid from vw_actor where description = 'HC'),
+                              	(select status_uuid from vw_status where description = 'active')),
+                              ('temperature', (select get_type_def ('data', 'num')), 'degC', 
+                              	(select actor_uuid from vw_actor where description = 'HC'),
+                              	(select status_uuid from vw_status where description = 'active'));
  */
 CREATE OR REPLACE FUNCTION upsert_parameter_def ()
 	RETURNS TRIGGER
@@ -1483,8 +1489,11 @@ LANGUAGE plpgsql;
  				update vw_action_def set status_uuid = (select status_uuid from vw_status where description = 'active') where description = 'moisturize_beard';
   				delete from vw_action_def where description = 'moisturize_beard';
 
-                insert into vw_action_def (description, actor_uuid) values
-                                           ('heat_stir', (select actor_uuid from vw_actor where description = 'Ian Pendleton'));
+                insert into vw_action_def (description, actor_uuid, status_uuid) values
+                                           ('heat_stir', (select actor_uuid from vw_actor where description = 'Ian Pendleton'),
+                                           	(select status_uuid from vw_status where description = 'active')),
+                                           ('heat', (select actor_uuid from vw_actor where description = 'Ian Pendleton'),
+                                           	(select status_uuid from vw_status where description = 'active'));
   */
  CREATE OR REPLACE FUNCTION upsert_action_def ()
  	RETURNS TRIGGER
@@ -1537,7 +1546,11 @@ LANGUAGE plpgsql;
                                                             ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
                                                              (select parameter_def_uuid from vw_parameter_def where description = 'temperature')),
                                                             ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
-                                                             (select parameter_def_uuid from vw_parameter_def where description = 'speed'));
+                                                             (select parameter_def_uuid from vw_parameter_def where description = 'speed')),
+                                                             ((select action_def_uuid from vw_action_def where description = 'heat'),
+                                                             (select parameter_def_uuid from vw_parameter_def where description = 'duration')),
+                                                            ((select action_def_uuid from vw_action_def where description = 'heat'),
+                                                             (select parameter_def_uuid from vw_parameter_def where description = 'temperature'));
 
   */
  CREATE OR REPLACE FUNCTION upsert_action_parameter_def_assign ()

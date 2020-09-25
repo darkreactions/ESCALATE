@@ -1016,48 +1016,79 @@ EXECUTE PROCEDURE upsert_parameter ( );
 
 ----------------------------------------
  -- view action_def
- ----------------------------------------
- CREATE OR REPLACE VIEW vw_action_def AS
+----------------------------------------
+CREATE OR REPLACE VIEW vw_action_def AS
+SELECT
+     ad.action_def_uuid,
+     ad.description,
+     ad.actor_uuid,
+     act.description as actor_description,
+     ad.status_uuid,
+     st.description as status_description,
+     ad.add_date,
+     ad.mod_date
+FROM action_def ad
+LEFT JOIN vw_actor act ON act.actor_uuid = ad.actor_uuid
+LEFT JOIN status st ON ad.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_action_def_upsert ON vw_action_def;
+CREATE TRIGGER trigger_action_def_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_action_def
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_action_def ( );
+
+
+----------------------------------------
+ -- view action_parameter_def
+----------------------------------------
+ CREATE OR REPLACE VIEW vw_action_parameter_def AS
  SELECT
      ad.action_def_uuid,
      ad.description,
- 	ad.actor_uuid,
- 	act.description as actor_description,
- 	ad.status_uuid,
- 	st.description as status_description,
- 	ad.add_date,
- 	ad.mod_date,
+     ad.actor_uuid,
+     act.description as actor_description,
+     ad.status_uuid,
+     st.description as status_description,
+     ad.add_date,
+     ad.mod_date,
      ap.parameter_def_uuid,
      pd.description as parameter_description,
      pd.val_type_uuid as parameter_val_type_uuid,
      pd.val_type_description as parameter_val_type_description,
-     pd.valunit as parameter_unit
+     pd.valunit as parameter_unit,
+     pd.actor_uuid as parameter_actor_uuid,
+     pd.actor_description as parameter_actor_description,
+     pd.status_uuid as parameter_status_uuid,
+     pd.status_description as paramater_status_description,
+     pd.add_date as parameter_add_date,
+     pd.mod_date as paramter_mod_date
  FROM action_def ad
  LEFT JOIN vw_actor act ON act.actor_uuid = ad.actor_uuid
  LEFT JOIN action_parameter_def_x ap ON ad.action_def_uuid = ap.action_def_uuid
  LEFT JOIN vw_parameter_def pd ON ap.parameter_def_uuid = pd.parameter_def_uuid
  LEFT JOIN status st ON ad.status_uuid = st.status_uuid;
 
- DROP TRIGGER IF EXISTS trigger_action_def_upsert ON vw_action_def;
- CREATE TRIGGER trigger_action_def_upsert INSTEAD OF INSERT
- OR UPDATE
- OR DELETE ON vw_action_def
- FOR EACH ROW
- EXECUTE PROCEDURE upsert_action_def ( );
 
 
-
-CREATE OR REPLACE VIEW vw_action_def_json AS
-SELECT
+----------------------------------------
+ -- view action_parameter_def_json
+----------------------------------------
+CREATE OR REPLACE VIEW vw_action_parameter_def_json AS
+SELECT 
 	json_build_object('action_def', 
 		json_agg(
 			json_build_object(
 				'description', a.description, 
-				'uuid', a.action_def_uuid, 
+				'uuid', a.action_def_uuid,
+				'actor', a.actor_description,
+				'status', a.status_description,
+				'add_date', a.add_date,
+				'mod_date', a.mod_date,
 				'parameter_def', param
 			)
 		)
-	) actions
+	) action_def
 FROM
 	vw_action_def a
 	LEFT JOIN (
@@ -1066,35 +1097,41 @@ FROM
 			json_agg(
 				json_build_object(
 					'description', p.parameter_description, 
+					'uuid', p.parameter_def_uuid,
 					'val_type', p.parameter_val_type_description, 
-					'unit', p.parameter_unit, 
-					'uuid', p.parameter_def_uuid
+					'unit', p.parameter_unit,
+					'actor', p.actor_description,
+					'status', p.status_description,
+					'add_date', p.add_date,
+					'mod_date', p.mod_date 
 				)
 			) param
 		FROM
-			vw_action_def p
+			vw_action_parameter_def p
 		GROUP BY
 			action_def_uuid
 	) p 
 ON a.action_def_uuid = p.action_def_uuid;
 
 
-
- CREATE OR REPLACE VIEW vw_action_parameter_def_assign AS
- SELECT
+----------------------------------------
+ -- view action_parameter_def_assign
+----------------------------------------
+CREATE OR REPLACE VIEW vw_action_parameter_def_assign AS
+SELECT
     action_parameter_def_x_uuid,
  	parameter_def_uuid,
  	action_def_uuid,
  	add_date,
  	mod_date
- FROM action_parameter_def_x;
+FROM action_parameter_def_x;
 
- DROP TRIGGER IF EXISTS trigger_action_parameter_def_assign_upsert ON vw_action_parameter_def_assign;
- CREATE TRIGGER trigger_action_parameter_def_assign_upsert INSTEAD OF INSERT
- OR UPDATE
- OR DELETE ON vw_action_parameter_def_assign
- FOR EACH ROW
- EXECUTE PROCEDURE upsert_action_parameter_def_assign ( );
+DROP TRIGGER IF EXISTS trigger_action_parameter_def_assign_upsert ON vw_action_parameter_def_assign;
+CREATE TRIGGER trigger_action_parameter_def_assign_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_action_parameter_def_assign
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_action_parameter_def_assign ( );
 
 
 ----------------------------------------
