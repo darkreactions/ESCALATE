@@ -1088,7 +1088,7 @@ SELECT
 				'parameter_def', param
 			)
 		)
-	) action_def
+	) action_parameter_def_json
 FROM
 	vw_action_def a
 	LEFT JOIN (
