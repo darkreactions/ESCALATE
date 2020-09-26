@@ -1060,9 +1060,9 @@ EXECUTE PROCEDURE upsert_action_def ( );
      pd.actor_uuid as parameter_actor_uuid,
      pd.actor_description as parameter_actor_description,
      pd.status_uuid as parameter_status_uuid,
-     pd.status_description as paramater_status_description,
+     pd.status_description as parameter_status_description,
      pd.add_date as parameter_add_date,
-     pd.mod_date as paramter_mod_date
+     pd.mod_date as parameter_mod_date
  FROM action_def ad
  LEFT JOIN vw_actor act ON act.actor_uuid = ad.actor_uuid
  LEFT JOIN action_parameter_def_x ap ON ad.action_def_uuid = ap.action_def_uuid
@@ -1100,10 +1100,10 @@ FROM
 					'uuid', p.parameter_def_uuid,
 					'val_type', p.parameter_val_type_description, 
 					'unit', p.parameter_unit,
-					'actor', p.actor_description,
-					'status', p.status_description,
-					'add_date', p.add_date,
-					'mod_date', p.mod_date 
+					'actor', p.parameter_actor_description,
+					'status', p.parameter_status_description,
+					'add_date', p.parameter_add_date,
+					'mod_date', p.parameter_mod_date 
 				)
 			) param
 		FROM
