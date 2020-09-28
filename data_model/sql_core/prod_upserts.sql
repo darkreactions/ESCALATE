@@ -441,9 +441,9 @@ Description:	trigger proc that deletes, inserts or updates edocument record base
 Notes:				
  
 Example:		-- just insert the document, with no association to an entity
-				insert into vw_edocument (title, description, filename, source, edocument, doc_type, doc_ver,
+				insert into vw_edocument (title, description, filename, source, edocument, doc_type_uuid, doc_ver,
 					actor_uuid, status_uuid, ref_edocument_uuid) 
-					values ('Test document 1', 'This is a test document', null, null, 'a bunch of text cast as a blob'::bytea, 'blob_text'::val_type, null,
+					values ('Test document 1', 'This is a test document', null, null, 'a bunch of text cast as a blob'::bytea, (select type_def_uuid from vw_type_def where category = 'file' and description = 'text'), null,
 					(select actor_uuid from vw_actor where description = 'Gary Cattabriga'), (select status_uuid from vw_status where description = 'active'),
 					null);
 				-- now associate the edocument to an actor
@@ -482,7 +482,7 @@ BEGIN
 			filename = NEW.filename,
 			source = NEW.source,
 			edocument = NEW.edocument,
-			doc_type = NEW.doc_type,
+			doc_type_uuid = NEW.doc_type_uuid,
 			doc_ver = NEW.doc_ver,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
@@ -493,8 +493,8 @@ BEGIN
 				VALUES(NEW.ref_edocument_uuid, NEW.edocument_uuid) ON CONFLICT DO NOTHING;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO edocument (title, description, filename, source, edocument, doc_type, doc_ver, actor_uuid, status_uuid)
-			VALUES(NEW.title, NEW.description, NEW.filename, NEW.source, NEW.edocument, NEW.doc_type, NEW.doc_ver,
+		INSERT INTO edocument (title, description, filename, source, edocument, doc_type_uuid, doc_ver, actor_uuid, status_uuid)
+			VALUES(NEW.title, NEW.description, NEW.filename, NEW.source, NEW.edocument, NEW.doc_type_uuid, NEW.doc_ver,
 			NEW.actor_uuid, NEW.status_uuid)
 		RETURNING edocument_uuid INTO NEW.edocument_uuid;
 		IF NEW.ref_edocument_uuid IS NOT NULL THEN
@@ -988,7 +988,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO material_refname_def (description)
-			VALUES(NEW.description) returning material_refname_uuid into NEW.material_refname_uuid;
+			VALUES(NEW.description) returning material_refname_def_uuid into NEW.material_refname_def_uuid;
 		RETURN NEW;
 	END IF;
 END;

@@ -700,51 +700,6 @@ LANGUAGE plpgsql;
 
 
 /*
-Name:			get_actor ()
-Parameters:		none
-Returns:		actor_uuid, org_uuid, person_uuid, systemtool_uuid, description, org_description, person_lastfirst, systemtool_description
-Author:			G. Cattabriga
-Date:			2019.12.12
-Description:	returns key info on the actor
-Notes:			the person_lastfirst is a concat of person.last_name + ',' + person.first_name
-							
-Example:		SELECT * FROM get_actor () where description like '%ChemAxon: standardize%';
-*/
--- DROP FUNCTION IF EXISTS get_actor ();
-CREATE OR REPLACE FUNCTION get_actor ()
-	RETURNS TABLE (
-		actor_uuid uuid, organization_uuid int8, person_uuid int8, systemtool_uuid int8, description varchar, status varchar, notetext varchar, org_description varchar, person_lastfirst varchar, systemtool_name varchar, systemtool_version varchar)
-	AS $$
-BEGIN
-	RETURN QUERY
-	SELECT
-		act.actor_uuid,
-		org.organization_uuid,
-		per.person_uuid,
-		st.systemtool_uuid,
-		act.description,
-		stt.description,
-		nt.notetext AS actor_notetext,
-		org.full_name,
-		CASE WHEN per.person_uuid IS NOT NULL THEN
-			cast(concat(per.lastname, ', ', per.firstname) AS varchar)
-		END AS lastfirst,
-		st.systemtool_name,
-		st.ver
-	FROM
-		actor act
-	LEFT JOIN organization org ON act.organization_uuid = org.organization_uuid
-	LEFT JOIN person per ON act.person_uuid = per.person_uuid
-	LEFT JOIN systemtool st ON act.systemtool_uuid = st.systemtool_uuid
-	LEFT JOIN status stt ON act.status_uuid = stt.status_uuid
-	LEFT JOIN note nt ON act.note_uuid = nt.note_uuid;
-END;
-$$
-LANGUAGE plpgsql;
-
-
-
-/*
 Name:			get_calculation_def ()
 Parameters:		p_descrp = string used in search over description columns: short_name, calc_definition, description
 Returns:		calculation_def_uuid, short_name, systemtool_name, in_type_uuid, out_type_uuid, systemtool_ver
@@ -1008,10 +963,10 @@ Example:		SELECT get_val (concat('(',
 				SELECT get_val (concat('(',
 					(select type_def_uuid from vw_type_def where category = 'data' and description ='num'),
 					',,,,,,266.99,,,,,)')::val);
-				SELECT v_type from get_val (concat('(',
+				SELECT val_type from get_val (concat('(',
 					(select type_def_uuid from vw_type_def where category = 'data' and description ='num'),
 					',,,,,,266.99,,,,,)')::val);
-				SELECT v_val from get_val (concat('(',
+				SELECT val_val from get_val (concat('(',
 					(select type_def_uuid from vw_type_def where category = 'data' and description ='num'),
 					',,,,,,266.99,,,,,)')::val);
 				SELECT get_val (concat('(',
@@ -1128,7 +1083,7 @@ Example:		SELECT put_val ((select get_type_def ('data', 'text')),'[I-].[NH3+](CC
 				SELECT put_val ((select get_type_def ('data', 'array_num')), '{1.01,2,3,404.237}', 'ergs');
 				SELECT put_val ((select get_type_def ('data', 'bool')), 'FALSE', null);
 				SELECT put_val ((select get_type_def ('data', 'array_bool')), '{FALSE,TRUE,TRUE,FALSE}', null);
-				select get_val((SELECT put_val ((select get_type_def ('data', 'int')), 5, 'ergs')));
+				select get_val((SELECT put_val ((select get_type_def ('data', 'int')), '5', 'ergs')));
 				select get_val((SELECT put_val ((select get_type_def ('data', 'array_int')), '{1,2,3,4}', 'ergs')));				
 */
 -- DROP FUNCTION IF EXISTS put_val (p_type_uuid uuid, p_val text, p_unit text ) cascade;
@@ -1178,7 +1133,7 @@ Date:			2020.02.18
 Description:	returns the directory chemaxon tool is located; uses actor_pref 
 Notes:				
 							
-Example:		select get_chemaxon_directory((select systemtool_uuid from systemtool where systemtool_name = 'standardize'), (SELECT actor_uuid FROM get_actor () where person_lastfirst like 'Cattabriga, Gary')); (returns the version for cxcalc for actor GC) 
+Example:		select get_chemaxon_directory((select systemtool_uuid from systemtool where systemtool_name = 'standardize'), (SELECT actor_uuid FROM vw_actor where person_last_first like 'Cattabriga, Gary')); (returns the version for cxcalc for actor GC) 
 */
 -- DROP FUNCTION IF EXISTS get_chemaxon_directory ( p_systemtool_uuid int8, p_actor int8 ) cascade;
 CREATE OR REPLACE FUNCTION get_chemaxon_directory (p_systemtool_uuid uuid, p_actor_uuid uuid)

@@ -1371,7 +1371,7 @@ USING "pk_action_condition_action_condition_uuid";
 -- status primary key and constraints
 ALTER TABLE status
 	ADD CONSTRAINT "pk_status_status_uuid" PRIMARY KEY (status_uuid),
-			ADD CONSTRAINT "un_status" UNIQUE (description);;
+			ADD CONSTRAINT "un_status" UNIQUE (description);
 CLUSTER status
 USING "pk_status_status_uuid";
 
