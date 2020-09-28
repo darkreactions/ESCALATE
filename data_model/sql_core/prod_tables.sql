@@ -958,6 +958,18 @@ CREATE TABLE action_def (
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
 
+
+---------------------------------------
+-- Table structure for action_parameter_def_x
+---------------------------------------
+CREATE TABLE action_parameter_def_x (
+    action_parameter_def_x_uuid uuid DEFAULT uuid_generate_v4 (),
+	parameter_def_uuid uuid NOT NULL,
+	action_def_uuid uuid NOT NULL,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
  ---------------------------------------
 -- Table structure for workflow_action
 ---------------------------------------
@@ -1335,6 +1347,13 @@ ALTER TABLE action_def
 CLUSTER action_def
 USING "pk_action_def_action_def_uuid";
 
+-- action_parameter_def_x constraints
+ALTER TABLE action_parameter_def_x
+	ADD CONSTRAINT "pk_action_parameter_def_x_action_parameter_def_x_uuid" PRIMARY KEY (action_parameter_def_x_uuid),
+		ADD CONSTRAINT "un_action_parameter_def_x_def" UNIQUE (parameter_def_uuid, action_def_uuid);
+CLUSTER action_parameter_def_x
+USING "pk_action_parameter_def_x_action_parameter_def_x_uuid";
+
 -- action primary key and constraints
 ALTER TABLE action
 	ADD CONSTRAINT "pk_action_action_uuid" PRIMARY KEY (action_uuid);
@@ -1576,6 +1595,10 @@ ALTER TABLE workflow_state
 ALTER TABLE action_def
 	ADD CONSTRAINT fk_action_def_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
 		ADD CONSTRAINT fk_action_def_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+
+ALTER TABLE action_parameter_def_x
+	ADD CONSTRAINT fk_action_parameter_def_x_action_def_1 FOREIGN KEY (action_def_uuid) REFERENCES action_def (action_def_uuid),
+        ADD CONSTRAINT fk_action_parameter_def_x_parameter_def_1 FOREIGN KEY (parameter_def_uuid) REFERENCES parameter_def (parameter_def_uuid);
 
 ALTER TABLE action
 	ADD CONSTRAINT fk_action_action_def_1 FOREIGN KEY (action_def_uuid) REFERENCES action_def (action_def_uuid),
