@@ -256,7 +256,7 @@ BEGIN
 		END IF;
 		INSERT INTO udf (udf_def_uuid, udf_val)
 			VALUES(NEW.udf_def_uuid, 
-				(select put_val ((select valtype_uuid from vw_udf_def where udf_def_uuid = NEW.udf_def_uuid), 
+				(select put_val ((select val_type_uuid from vw_udf_def where udf_def_uuid = NEW.udf_def_uuid), 
 					NEW.udf_val_val, 
 					(select unit from vw_udf_def where udf_def_uuid = NEW.udf_def_uuid)))) returning udf_uuid into NEW.udf_uuid;
 		INSERT INTO udf_x (ref_udf_uuid, udf_uuid)
@@ -1052,7 +1052,7 @@ Date:			2020.08.03
 Description:	trigger proc that deletes, inserts or updates property_def record based on TG_OP (trigger operation)
 Notes:				
  
-Example:		insert into vw_property_def (description, short_description, valtype_uuid, valunit, actor_uuid, status_uuid ) values 
+Example:		insert into vw_property_def (description, short_description, val_type_uuid, valunit, actor_uuid, status_uuid ) values 
 											('particle-size {min, max}', 'particle-size', 
 											(select get_type_def ('data', 'array_num')), 
 											'mesh', 
@@ -1083,7 +1083,7 @@ BEGIN
 		SET
 			description = NEW.description,
 			short_description = NEW.short_description,
-			valtype_uuid = NEW.valtype_uuid,
+			val_type_uuid = NEW.val_type_uuid,
 			valunit = NEW.valunit,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
@@ -1092,8 +1092,8 @@ BEGIN
 			property_def.property_def_uuid = NEW.property_def_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO property_def (description, short_description, valtype_uuid, valunit, actor_uuid, status_uuid)
-			VALUES(NEW.description, NEW.short_description, NEW.valtype_uuid, NEW.valunit, NEW.actor_uuid, NEW.status_uuid) returning property_def_uuid into NEW.property_def_uuid;
+		INSERT INTO property_def (description, short_description, val_type_uuid, valunit, actor_uuid, status_uuid)
+			VALUES(NEW.description, NEW.short_description, NEW.val_type_uuid, NEW.valunit, NEW.actor_uuid, NEW.status_uuid) returning property_def_uuid into NEW.property_def_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1114,14 +1114,14 @@ Notes:			AVOID THIS FUNCTION as it will isolate property records
 Example:		insert into vw_property (property_def_uuid, property_val, actor_uuid, status_uuid ) values (
 											(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
 											(select put_val (
-												(select valtype_uuid from vw_property_def where short_description = 'particle-size'),
+												(select val_type_uuid from vw_property_def where short_description = 'particle-size'),
 												'{100, 200}'::int[],
 												(select valunit from vw_property_def where short_description = 'particle-size'))), 
 											(select actor_uuid from vw_actor where org_short_name = 'LANL'),
 											(select status_uuid from vw_status where description = 'active')
 											);
  				delete from vw_property where (property_val = (select put_val (
-												(select valtype_uuid from vw_property_def where short_description = 'particle-size'),
+												(select val_type_uuid from vw_property_def where short_description = 'particle-size'),
 												'{100, 200}'::int[],
 												(select valunit from vw_property_def where short_description = 'particle-size'))));
  */
@@ -1228,7 +1228,7 @@ BEGIN
 			END IF;
 			INSERT INTO property (property_def_uuid, property_val, actor_uuid, status_uuid)
 				VALUES(NEW.property_def_uuid, 
-					(select put_val ((select valtype_uuid from vw_property_def where property_def_uuid = NEW.property_def_uuid), 
+					(select put_val ((select val_type_uuid from vw_property_def where property_def_uuid = NEW.property_def_uuid), 
 					NEW.val_val, 
 					(select valunit from vw_property_def where property_def_uuid = NEW.property_def_uuid))),	
 				NEW.property_actor_uuid, NEW.property_status_uuid)
@@ -1422,7 +1422,7 @@ Date:			2020.09.15
 Description:	trigger proc that deletes, inserts or updates parameter_def record based on TG_OP (trigger operation)
 Notes:				
  
-Example:		insert into vw_parameter_def (description, valtype_uuid, valunit, actor_uuid) values
+Example:		insert into vw_parameter_def (description, val_type_uuid, valunit, actor_uuid) values
                                              ('beard_moisturize_dur', (select get_type_def ('data', 'num')), 'hours', (select actor_uuid from vw_actor where description = 'HC'));
 				update vw_parameter_def set status_uuid = (select status_uuid from vw_status where description = 'active') where description = 'beard_moisturize_dur';
  				delete from vw_parameter_def where description = 'beard_moisturize_dur';
@@ -1456,7 +1456,7 @@ BEGIN
 			parameter_def
 		SET
 			description = NEW.description,
-			valtype_uuid = NEW.valtype_uuid,
+			val_type_uuid = NEW.val_type_uuid,
 			valunit = NEW.valunit,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
@@ -1588,14 +1588,14 @@ Example:		insert into vw_parameter (parameter_def_uuid, ref_parameter_uuid, para
 											(select parameter_def_uuid from vw_parameter_def where description = 'beard_moisturize_dur'),
                                             (select person_uuid from vw_person where last_name = 'Pendleton'),
 											(select put_val (
-												(select valtype_uuid from vw_parameter_def where description = 'beard_moisturize_dur'),
+												(select val_type_uuid from vw_parameter_def where description = 'beard_moisturize_dur'),
 												'10',
 												(select valunit from vw_parameter_def where description = 'beard_moisturize_dur'))),
 											(select actor_uuid from vw_actor where org_short_name = 'LANL'),
 											(select status_uuid from vw_status where description = 'active')
 											);
 				update vw_parameter set parameter_val = (select put_val (
-                                                    (select valtype_uuid from vw_parameter_def where description = 'beard_moisturize_dur'),
+                                                    (select val_type_uuid from vw_parameter_def where description = 'beard_moisturize_dur'),
 												    '36',
 												    (select valunit from vw_parameter_def where description = 'beard_moisturize_dur')))
                                                 where parameter_def_description = 'beard_moisturize_dur'
