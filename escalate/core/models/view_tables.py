@@ -668,7 +668,7 @@ class PropertyDef(models.Model):
                                          null=True,
                                          db_column='short_description')
     val_type = models.ForeignKey('TypeDef',
-                                 db_column='valtype_uuid',
+                                 db_column='val_type_uuid',
                                  on_delete=models.DO_NOTHING,
                                  blank=True,
                                  null=True)
