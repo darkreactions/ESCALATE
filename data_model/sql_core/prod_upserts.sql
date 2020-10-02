@@ -1482,7 +1482,7 @@ LANGUAGE plpgsql;
  Author:		M. Tynes
  Date:			2020.09.22
  Description:	trigger proc that deletes, inserts or updates action_def record based on TG_OP (trigger operation)
- Notes:
+ Notes:         Deletes elements in vw_action_parameter_def_assign
 
  Example:		insert into vw_action_def (description, actor_uuid) values
                                            ('moisturize_beard', (select actor_uuid from vw_actor where description = 'Ian Pendleton'));
@@ -1493,14 +1493,18 @@ LANGUAGE plpgsql;
                                            ('heat_stir', (select actor_uuid from vw_actor where description = 'Ian Pendleton'),
                                            	(select status_uuid from vw_status where description = 'active')),
                                            ('heat', (select actor_uuid from vw_actor where description = 'Ian Pendleton'),
-                                           	(select status_uuid from vw_status where description = 'active'));
+                                        	(select status_uuid from vw_status where description = 'active'));
+                delete from vw_action_def where description = 'heat_stir';
+                delete from vw_action_def where description = 'heat';
   */
  CREATE OR REPLACE FUNCTION upsert_action_def ()
  	RETURNS TRIGGER
  	AS $$
  BEGIN
  	IF(TG_OP = 'DELETE') THEN
- 	    -- first delete the property_def record
+ 	    -- un-assign parameter defs from this action def
+ 	    DELETE FROM vw_action_parameter_def_assign where action_def_uuid = OLD.action_def_uuid;
+ 	    -- delete the action_def record
  		DELETE FROM action_def
  		WHERE action_def_uuid = OLD.action_def_uuid;
  		IF NOT FOUND THEN
@@ -1551,6 +1555,7 @@ LANGUAGE plpgsql;
                                                              (select parameter_def_uuid from vw_parameter_def where description = 'duration')),
                                                             ((select action_def_uuid from vw_action_def where description = 'heat'),
                                                              (select parameter_def_uuid from vw_parameter_def where description = 'temperature'));
+
 
   */
  CREATE OR REPLACE FUNCTION upsert_action_parameter_def_assign ()
