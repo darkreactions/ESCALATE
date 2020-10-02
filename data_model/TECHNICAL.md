@@ -87,6 +87,10 @@ val AS (
 ### Core Tables (non ETL)
 
 ```
+action
+action_condition
+action_def
+action_parameter_def_x
 actor
 actor_pref
 bom
@@ -119,6 +123,10 @@ outcome
 outcome_type
 outcome_x
 person
+parameter
+parameter_def
+parameter_def_x
+parameter_x
 property
 property_def
 property_x
@@ -542,6 +550,8 @@ load_mol_images ( p_systemtool_uuid uuid, p_actor_uuid uuid ) RETURNS bool
 get_charge_count ( p_mol_smiles varchar ) RETURNS int
 math_op (p_in_num numeric, p_op text, p_in_opt_num numeric default null) returns numeric
 delete_assigned_recs (p_ref_uuid uuid) RETURNS TABLE (entity text, ref_uuid uuid)
+upsert_action_def() RETURNS TRIGGER
+upsert_action_parameter_def_assign() RETURNS TRIGGER
 upsert_organization() RETURNS TRIGGER
 upsert_person() RETURNS TRIGGER
 upsert_systemtool() RETURNS TRIGGER
@@ -555,6 +565,8 @@ upsert_status () RETURNS TRIGGER
 upsert_material_type () RETURNS TRIGGER
 upsert_material_refname_def () RETURNS TRIGGER
 upsert_material () RETURNS TRIGGER
+upsert_parameter()  RETURNS TRIGGER
+upsert_parameter_def()  RETURNS TRIGGER
 upsert_property_def () RETURNS TRIGGER
 upsert_property () RETURNS TRIGGER
 upsert_material_property () RETURNS TRIGGER
@@ -578,6 +590,10 @@ Below are a list of the views with high-level description, followed by column na
 ```
 sys_audit_tableslist
 vw_actor
+vw_action_def
+vw_action_parameter_def
+vw_action_parameter_def_assign
+vw_action_parameter_def_json
 vw_actor_pref
 vw_calculation
 vw_calculation_def
@@ -597,6 +613,8 @@ vw_material_refname_def
 vw_material_type
 vw_note
 vw_organization
+vw_parameter
+vw_parameter_def
 vw_person
 vw_property
 vw_property_def
@@ -628,9 +646,15 @@ columns visible in forms are denoted with a `v`,<br/>
 columns updatable are denoted with a `u`<br/>
 Examples<br/><br/>
 
+__vw_action_def__ `CRUD`<br/>
+*upsert\_action\_def()*
+
+> action_def_uuid (v) <br/>description (v u) <br/>actor_uuid (v u) <br/>actor_description (v) <br/>status_uuid (v u) <br/>status_description (v) <br/>add\_date (v) <br/>
+> mod\_date (v) <br/>
 
 __vw_actor__`CRUD`<br/>
 *upsert\_actor ()*
+
 > actor\_uuid (v) <br/>
 > organization\_uuid (v u) <br/>
 > person\_uuid (v u) <br/>
