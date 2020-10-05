@@ -14,7 +14,7 @@
 {% block content %}
 <div class="container">
 
-    <table class="table table-bordered table-hover">
+    <table class="table table-bordered table-hover" id="table_col_sort">
         <thead>
             <tr>
                 {% for header in table_columns %}
@@ -48,5 +48,14 @@
 
 </div>
 {% endblock %}
+{% block js %}
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.10.22/b-1.6.4/datatables.min.css"/>
 
+  <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.22/b-1.6.4/datatables.min.js"></script>
+  <script>
+    $(document).ready( function () {
+      $('#table_col_sort').DataTable();
+  } );
+  </script>
+{% endblock %}
 {% block delete_url %}"/{{ title|lower }}/" + pk + "/delete" {% endblock %}
