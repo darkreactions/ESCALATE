@@ -6,7 +6,7 @@ from django.views.generic.list import ListView
 from core.models import Note, Actor, Tag_X, Tag
 from core.forms import NoteForm, TagSelectForm
 from django.forms import modelformset_factory
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 
 # class with generic classes to use in models
 
@@ -43,15 +43,36 @@ class GenericModelList(GenericListView):
 
     paginate_by = 10
 
+
+    def header_to_order_field(self, field_raw):
+        #maybe make order_field param column_necessary_fields[table_columns[0]][0] by default
+        return self.column_necessary_fields[field_raw][0]
+
+    def order_field_to_header(self, order_field):
+        descending = False
+        if order_field[0] == "-":
+            descending = True
+            order_field = order_field[1:]
+        for header, necessary_fields in self.column_necessary_fields.items():
+            if order_field in necessary_fields:
+                return header + "_des" if descending else header + "_asc"
+        return None
+
+
     def get_queryset(self):
         filter_val = self.request.GET.get('filter', self.field_contains)
-        ordering = self.request.GET.get('ordering', self.order_field)
+        new_order = self.request.session.get(f'{self.context_object_name}_order',None)
+        if new_order != None:
+            order_field = new_order
+        else:
+            order_field = self.order_field
+        ordering = self.request.GET.get('ordering', order_field)
 
         #print(f'Order field: {self.order_field} in model {self.model}')
 
         # same as <field want to order by>__icontains = filter_val
         filter_kwargs = {'{}__{}'.format(
-            self.order_field, 'icontains'): filter_val}
+            "".join(order_field.split('-')), 'icontains'): filter_val}
 
         if filter_val != None:
             new_queryset = self.model.objects.filter(
@@ -107,6 +128,25 @@ class GenericModelList(GenericListView):
         # get rid of underscores with spaces and capitalize
         context['title'] = model_name.replace('_', ' ').capitalize()
         return context
+
+    def post(self, request, *args, **kwargs):
+        if request.POST.get('sort',None) != None:
+            print(request.POST)
+            print(request.POST.get('sort',None))
+            order_raw = request.POST.get('sort').split('_')
+            header, order, *_rest = order_raw
+            if order == 'des':
+                request.session[f'{self.context_object_name}_order'] = "-" + self.header_to_order_field(header)
+            else:
+                request.session[f'{self.context_object_name}_order'] = self.header_to_order_field(header)
+
+
+        # break up cases on which one was clicked
+        # should be one of table_columns
+        # find index
+        # go to same index in column_necessary_fields
+        # order by 0th field for that one
+        return HttpResponseRedirect(reverse(f'{self.context_object_name[:-1]}_list'))
 
 
 class GenericModelEdit:

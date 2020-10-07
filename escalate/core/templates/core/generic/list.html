@@ -13,12 +13,20 @@
 
 {% block content %}
 <div class="container">
-
-    <table class="table table-bordered table-hover" id="table_col_sort">
+  <form method="post">{% csrf_token %}
+    <table class="table table-bordered table-hover">
         <thead>
             <tr>
                 {% for header in table_columns %}
-                <th>{{ header }}</th>
+                <th class="text-nowrap">
+                  {{ header }}
+                    <button type="submit" name="sort" value="{{header}}_asc" onclick="this.form.submit()">
+                      <img src="{% static 'green_up_arrow.jpeg' %}" style="height:15px">
+                    </button>
+                    <button type="submit" name="sort" value="{{header}}_des" onclick="this.form.submit()">
+                      <img src="{% static 'red_down_arrow.jpeg' %}" style="height:15px">
+                    </button>
+                </th>
                 {% endfor %}
             </tr>
         </thead>
@@ -45,17 +53,8 @@
             {% endfor %}
         </tbody>
     </table>
-
+  </form>
 </div>
 {% endblock %}
-{% block js %}
-  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.10.22/b-1.6.4/datatables.min.css"/>
 
-  <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.22/b-1.6.4/datatables.min.js"></script>
-  <script>
-    $(document).ready( function () {
-      $('#table_col_sort').DataTable();
-  } );
-  </script>
-{% endblock %}
 {% block delete_url %}"/{{ title|lower }}/" + pk + "/delete" {% endblock %}
