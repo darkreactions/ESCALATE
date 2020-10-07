@@ -48,17 +48,6 @@ class GenericModelList(GenericListView):
         #maybe make order_field param column_necessary_fields[table_columns[0]][0] by default
         return self.column_necessary_fields[field_raw][0]
 
-    def order_field_to_header(self, order_field):
-        descending = False
-        if order_field[0] == "-":
-            descending = True
-            order_field = order_field[1:]
-        for header, necessary_fields in self.column_necessary_fields.items():
-            if order_field in necessary_fields:
-                return header + "_des" if descending else header + "_asc"
-        return None
-
-
     def get_queryset(self):
         filter_val = self.request.GET.get('filter', self.field_contains)
         new_order = self.request.session.get(f'{self.context_object_name}_order',None)
@@ -131,8 +120,6 @@ class GenericModelList(GenericListView):
 
     def post(self, request, *args, **kwargs):
         if request.POST.get('sort',None) != None:
-            print(request.POST)
-            print(request.POST.get('sort',None))
             order_raw = request.POST.get('sort').split('_')
             header, order, *_rest = order_raw
             if order == 'des':
