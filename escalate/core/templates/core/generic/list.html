@@ -34,7 +34,7 @@
         </thead>
         <tbody>
             {% for row_info in table_data %}
-            <tr>
+            <tr class="text-nowrap">
                 {% for col_data in row_info.table_row_data %}
                 <td>{{ col_data }}</td>
                 {% endfor %}
