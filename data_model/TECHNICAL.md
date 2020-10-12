@@ -649,8 +649,50 @@ Examples<br/><br/>
 __vw_action_def__ `CRUD`<br/>
 *upsert\_action\_def()*
 
-> action_def_uuid (v) <br/>description (v u) <br/>actor_uuid (v u) <br/>actor_description (v) <br/>status_uuid (v u) <br/>status_description (v) <br/>add\_date (v) <br/>
+> action_def_uuid (v) <br/>
+> description (v u) <br/>
+> actor_uuid (v u) <br/>
+> actor_description (v) <br/> 
+> status_uuid (v u) <br/>
+> status_description (v) <br/>
+> add\_date (v) <br/>
 > mod\_date (v) <br/>
+
+__vw_parameter_def__ `CRUD`<br/>
+*upsert\_parameter\_def()*
+
+> parameter_def_uuid (v) <br/>
+> description (v u) <br/>
+> val_type_uuid (v u) <br/>
+> valunit (v u) <br/>
+> actor_uuid (v u) <br/>
+> actor_description (v) <br/> 
+> status_uuid (v u) <br/>
+> status_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+
+__vw_action_parameter_def__ `CRUD` <br/>
+*upsert\_action_parameter\_def()*
+
+> action_parameter_def_x_uuid (v) <br/>
+> action_def_uuid (v, u) <br/>
+> description (v) <br/>
+> actor_uuid (v u) <br/>
+> actor_description (v) <br/> 
+> status_uuid (v u) <br/>
+> status_description (v) <br/>
+> parameter_def_uuid (v, u) <br/>
+> parameter_description (v) <br/>
+> parameter_val_type_uuid (v) <br/>
+> parameter_val_type_description (v) <br/>
+> parameter_unit (v) <br/>
+> parameter_actor_uuid (v u) <br/>
+> parameter_actor_description (v) <br/> 
+> parameter_status_uuid (v u) <br/>
+> parameter_status_description (v) <br/>
+> parameter_add\_date (v) <br/>
+> parameter_mod\_date (v) <br/>
 
 __vw_actor__`CRUD`<br/>
 *upsert\_actor ()*
