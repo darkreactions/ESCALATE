@@ -1157,6 +1157,120 @@ FOR EACH ROW
 EXECUTE PROCEDURE upsert_workflow_type ( );
 
 
+----------------------------------------
+ -- view action
+----------------------------------------
+CREATE OR REPLACE VIEW vw_action AS
+SELECT
+    act.action_uuid,
+    act.action_def_uuid,
+    act.description as action_description,
+    ad.description as action_def_description,
+    act.start_date,
+    act.end_date,
+    act.duration,
+    act.repeating,
+    act.ref_parameter_uuid,
+    act.calculation_def_uuid,
+    act.source_material_uuid,
+    act.destination_material_uuid,
+    act.actor_uuid,
+    actor.description as actor_description,
+    act.status_uuid,
+    st.description as status_description,
+    act.add_date,
+    act.mod_date
+FROM action act
+LEFT JOIN vw_action_def ad ON act.action_def_uuid = ad.action_def_uuid
+LEFT JOIN vw_actor actor ON act.actor_uuid = actor.actor_uuid
+LEFT JOIN vw_status st ON act.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_action_upsert ON vw_action;
+CREATE TRIGGER trigger_action_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_action
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_action ( );
+
+
+----------------------------------------
+ -- view action_parameter
+----------------------------------------
+CREATE OR REPLACE VIEW vw_action_parameter AS
+SELECT
+    act.action_uuid,
+    act.action_def_uuid,
+    act.action_description,
+    act.action_def_description,
+    p.parameter_def_uuid,
+    p.parameter_def_description,
+    p.val_type_description,
+    p.valunit,
+    p.parameter_val,
+    p.actor_uuid,
+    actor.description as actor_description,
+    p.status_uuid,
+    st.description as status_description,
+    p.add_date,
+    p.mod_date
+FROM vw_action act
+LEFT JOIN vw_parameter p ON act.action_uuid = p.ref_parameter_uuid
+LEFT JOIN vw_actor actor ON p.actor_uuid = actor.actor_uuid
+LEFT JOIN vw_status st   ON p.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_action_parameter_upsert ON vw_action_parameter;
+CREATE TRIGGER trigger_action_parameter_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_action_parameter
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_action_parameter ( );
+
+
+----------------------------------------
+ -- view action_parameter_json
+----------------------------------------
+CREATE OR REPLACE VIEW vw_action_parameter_json AS
+SELECT
+	json_build_object('action',
+		json_agg(
+			json_build_object(
+			    'action_description', a.action_description,
+			    'action_def_description', a.action_def_description,
+			    'action_uuid', a.action_uuid,
+			    'action_def_uuid', a.action_def_uuid,
+				'actor', a.actor_description,
+				'status', a.status_description,
+				'add_date', a.add_date,
+				'mod_date', a.mod_date,
+				'parameter', param
+			)
+		)
+	) action_parameter_json
+FROM
+    vw_action a
+	LEFT JOIN (
+		SELECT
+			action_uuid,
+			json_agg(
+				json_build_object(
+				    --'action_uuid', p.action_uuid,
+					'parameter_def_description', p.parameter_def_description,
+					'parameter_def_uuid', p.parameter_def_uuid,
+				    'parameter_value', (select get_val_json(p.parameter_val)),
+					'actor', p.actor_description,
+					'status', p.status_description,
+					'add_date', p.add_date,
+					'mod_date', p.mod_date
+				)
+			) param
+		FROM
+			vw_action_parameter p
+		GROUP BY
+			action_uuid
+	) p
+ON a.action_uuid = p.action_uuid;
+
+
 
 
 
