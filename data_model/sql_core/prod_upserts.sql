@@ -1656,6 +1656,150 @@ $$
 LANGUAGE plpgsql;
 
 
+/*
+    Name:			upsert_action()
+    Parameters:
+    Returns:		void
+    Author:			M.Tynes
+    Date:			2020.10.07
+    Description:	trigger proc that deletes, inserts or updates action record based on TG_OP (trigger operation)
+    Notes: WIP
+    Example:
+        insert into vw_action (action_def_uuid, action_description)
+            values ((select action_def_uuid from vw_action_def where description = 'heat'), 'test');
+        update vw_action set actor_uuid = (select actor_uuid from vw_actor where description = 'Ian Pendleton')
+            where action_description = 'test';
+        delete from vw_action where action_description = 'test';
+*/
+CREATE OR REPLACE FUNCTION upsert_action()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+	    -- then delete the action record
+		DELETE FROM action
+		WHERE action_uuid = OLD.action_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- delete any assigned records
+		PERFORM delete_assigned_recs (OLD.action_uuid);
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+	    UPDATE
+			action
+		SET
+		    action_def_uuid = NEW.action_def_uuid,
+            description = NEW.action_description,
+            start_date = NEW.start_date,
+            end_date = NEW.end_date,
+            duration = NEW.duration,
+            repeating = NEW.repeating,
+            ref_parameter_uuid = NEW.ref_parameter_uuid,
+            calculation_def_uuid = NEW.calculation_def_uuid,
+            source_material_uuid = NEW.source_material_uuid,
+            destination_material_uuid = NEW.destination_material_uuid,
+            actor_uuid = NEW.actor_uuid,
+            status_uuid = NEW.status_uuid,
+            mod_date = now()
+		WHERE
+			action.action_uuid = NEW.action_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+        IF (select exists
+                (select action_def_uuid
+                 from vw_action_def
+                 where action_def_uuid = NEW.action_def_uuid)
+            )
+        THEN
+			INSERT INTO action (action_def_uuid, description, start_date, end_date, duration, repeating,
+			                    ref_parameter_uuid, calculation_def_uuid, source_material_uuid, destination_material_uuid,
+			                    actor_uuid, status_uuid)
+				VALUES (NEW.action_def_uuid, NEW.action_description, NEW.start_date, NEW.end_date, NEW.duration, NEW.repeating,
+				        NEW.ref_parameter_uuid, NEW.calculation_def_uuid, NEW.source_material_uuid,
+				        NEW.destination_material_uuid, NEW.actor_uuid, NEW.status_uuid)
+				returning action_uuid into NEW.action_uuid;
+			RETURN NEW;
+		END IF;
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+/*
+    Name:			upsert_action_parameter()
+    Parameters:
+    Returns:		void
+    Author:			M.Tynes
+    Date:			2020.10.13
+    Description:	trigger proc that deletes, inserts or updates action_parameter record based on TG_OP (trigger operation)
+    Notes:          Will fail silently if action def not associated w/ specified parameter def
+    Example:
+        --First create action instance:
+        insert into vw_action (action_def_uuid, action_description) values (
+            (select action_def_uuid from vw_action_def where description = 'heat'),
+            'test');
+        --Then create a parameter
+        insert into vw_action_parameter (action_uuid, parameter_def_uuid, parameter_val) values (
+                                    (select action_uuid from vw_action where action_description = 'test'),
+                                    (select parameter_def_uuid from vw_parameter_def where description = 'duration'),
+                                    (select put_val (
+                                    (select val_type_uuid from vw_parameter_def where description = 'duration'),
+                                        '10',
+                                        (select valunit from vw_parameter_def where description = 'duration'))
+                                    )
+                                );
+        update vw_action_parameter set actor_uuid = (select actor_uuid from vw_actor where description = 'Ian Pendleton')
+            where action_description = 'test';
+        -- This one shouldnt work: heat has no associated speed
+        insert into vw_action_parameter (action_uuid, parameter_def_uuid, parameter_val) values (
+                                        (select action_uuid from vw_action where action_description = 'test'),
+                                        (select parameter_def_uuid from vw_parameter_def where description = 'speed'),
+                                        (select put_val (
+                                        (select val_type_uuid from vw_parameter_def where description = 'speed'),
+                                            '10',
+                                            (select valunit from vw_parameter_def where description = 'speed'))
+                                        )
+                                    );
+        delete from vw_action_parameter where action_description = 'test';
+*/
+CREATE OR REPLACE FUNCTION upsert_action_parameter()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+	    DELETE
+	    FROM vw_parameter
+	    WHERE ref_parameter_uuid = OLD.action_uuid;
+	RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			parameter
+		SET
+		    parameter_val = NEW.parameter_val,
+            actor_uuid = NEW.actor_uuid,
+            status_uuid = NEW.status_uuid,
+            mod_date = now();
+	    RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+        IF (NEW.parameter_def_uuid IN
+        -- only create action parameters when the action and parameter definitions are already associated
+                (select parameter_def_uuid
+                 from vw_action_parameter_def
+                 where action_def_uuid = (select action_def_uuid from vw_action where action_uuid = NEW.action_uuid))
+            )
+        THEN
+            INSERT INTO vw_parameter (parameter_def_uuid, parameter_val, ref_parameter_uuid, actor_uuid, status_uuid)
+                VALUES (NEW.parameter_def_uuid, NEW.parameter_val, NEW.action_uuid, NEW.actor_uuid, NEW.status_uuid);
+		END IF;
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
 
 /*
 Name:			upsert_workflow_type()
