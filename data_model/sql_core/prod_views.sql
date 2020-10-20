@@ -1037,21 +1037,6 @@ OR DELETE ON vw_action_def
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_action_def ( );
 
- 
-----------------------------------------
- -- view action
-----------------------------------------
-CREATE OR REPLACE VIEW vw_action AS
-SELECT
-     ad.action_uuid,
-     ad.description,
-     ad.action_def_uuid,
-     ad.actor_uuid,
-     ad.status_uuid,
-     ad.add_date,
-     ad.mod_date
-FROM action ad;
-
 
 
 ----------------------------------------
@@ -1084,6 +1069,41 @@ FROM action ad;
  LEFT JOIN vw_parameter_def pd ON ap.parameter_def_uuid = pd.parameter_def_uuid
  LEFT JOIN status st ON ad.status_uuid = st.status_uuid;
 
+
+----------------------------------------
+ -- view action
+----------------------------------------
+CREATE OR REPLACE VIEW vw_action AS
+SELECT
+    act.action_uuid,
+    act.action_def_uuid,
+    act.description as action_description,
+    ad.description as action_def_description,
+    act.start_date,
+    act.end_date,
+    act.duration,
+    act.repeating,
+    act.ref_parameter_uuid,
+    act.calculation_def_uuid,
+    act.source_material_uuid,
+    act.destination_material_uuid,
+    act.actor_uuid,
+    actor.description as actor_description,
+    act.status_uuid,
+    st.description as status_description,
+    act.add_date,
+    act.mod_date
+FROM action act
+LEFT JOIN vw_action_def ad ON act.action_def_uuid = ad.action_def_uuid
+LEFT JOIN vw_actor actor ON act.actor_uuid = actor.actor_uuid
+LEFT JOIN vw_status st ON act.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_action_upsert ON vw_action;
+CREATE TRIGGER trigger_action_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_action
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_action ( );
 
 
 ----------------------------------------
@@ -1147,6 +1167,8 @@ OR UPDATE
 OR DELETE ON vw_action_parameter_def_assign
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_action_parameter_def_assign ( );
+
+
 
 	
 ----------------------------------------
