@@ -1254,18 +1254,19 @@ Date:			2020.08.17
 Description:	trigger proc that deletes, inserts or updates calculation_def record based on TG_OP (trigger operation)
 Notes:				
  
-Example:		insert into vw_calculation_def (short_name, calc_definition, systemtool_uuid, description, in_source, in_type_uuid, in_opt_source, in_opt_type_uuid, 						out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid ) 
+Example:		insert into vw_calculation_def (short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid, 	
+					in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid ) 
 					values ('test_calc_def', 'function param1 param2', 
 					(select systemtool_uuid from vw_actor where description = 'Molecule Standardizer'),
-					'testing calculation definition upsert', 'standardize', 
+					'testing calculation definition upsert', 
+					(select calculation_def_uuid from vw_calculation_def where short_name = 'standardize'), 
 					(select type_def_uuid from vw_type_def where category = 'data' and description = 'text'),
 					null, null, 
 					(select type_def_uuid from vw_type_def where category = 'data' and description = 'int'),
 					null, (select actor_uuid from vw_actor where description = 'Gary Cattabriga'),
 					(select status_uuid from vw_status where description = 'active')		
 					) returning *;
-
-	
+				delete from vw_calculation_def where short_name = 'test_calc_def';
  */
 CREATE OR REPLACE FUNCTION upsert_calculation_def ()
 	RETURNS TRIGGER
@@ -1291,7 +1292,7 @@ BEGIN
 			description = NEW.description,
 			in_source_uuid = NEW.in_source_uuid,
 			in_type_uuid = NEW.in_type_uuid,
-			in_opt_source = NEW.in_opt_source,
+			in_opt_source_uuid = NEW.in_opt_source_uuid,
 			in_opt_type_uuid = NEW.in_opt_type_uuid,	
 			out_type_uuid = NEW.out_type_uuid,		
 			calculation_class_uuid = NEW.calculation_class_uuid,
@@ -1302,8 +1303,8 @@ BEGIN
 			calculation_def.calculation_def_uuid = NEW.calculation_def_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO calculation_def (short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source, in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid)
-			VALUES(NEW.short_name, NEW.calc_definition, NEW.systemtool_uuid, NEW.description, NEW.in_source, NEW.in_type_uuid, NEW.in_opt_source, NEW.in_opt_type_uuid, NEW.out_type_uuid, NEW.calculation_class_uuid, NEW.actor_uuid, NEW.status_uuid) returning calculation_def_uuid into NEW.calculation_def_uuid;
+		INSERT INTO calculation_def (short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid, in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid)
+			VALUES(NEW.short_name, NEW.calc_definition, NEW.systemtool_uuid, NEW.description, NEW.in_source_uuid, NEW.in_type_uuid, NEW.in_opt_source_uuid, NEW.in_opt_type_uuid, NEW.out_type_uuid, NEW.calculation_class_uuid, NEW.actor_uuid, NEW.status_uuid) returning calculation_def_uuid into NEW.calculation_def_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1533,14 +1534,14 @@ LANGUAGE plpgsql;
 
 /*
  Name:			upsert_action_parameter_def_assign()
- Parameters:		trigger proc that deletes, inserts or updates action_parameter_def_x record based on TG_OP (trigger operation)
+ Parameters:	trigger proc that deletes, inserts or updates action_parameter_def_x record based on TG_OP (trigger operation)
  Returns:		void
- Author:			G. Cattabriga
+ Author:		G. Cattabriga
  Date:			2020.06.22
  Description:	trigger proc that deletes, inserts or updates action_parameter_def_x record based on TG_OP (trigger operation)
  Notes:			requires both ref_action_parameter_def_uuid and action_parameter_def_uuid
 
- Example:        insert into vw_action_parameter_def_assign (action_def_uuid, parameter_def_uuid)
+ Example:       insert into vw_action_parameter_def_assign (action_def_uuid, parameter_def_uuid)
                                                      VALUES ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
                                                              (select parameter_def_uuid from vw_parameter_def where description = 'duration')),
                                                             ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
@@ -1551,12 +1552,11 @@ LANGUAGE plpgsql;
                                                              (select parameter_def_uuid from vw_parameter_def where description = 'duration')),
                                                             ((select action_def_uuid from vw_action_def where description = 'heat'),
                                                              (select parameter_def_uuid from vw_parameter_def where description = 'temperature'));
-
   */
- CREATE OR REPLACE FUNCTION upsert_action_parameter_def_assign ()
+CREATE OR REPLACE FUNCTION upsert_action_parameter_def_assign ()
  	RETURNS TRIGGER
  	AS $$
- BEGIN
+BEGIN
  	IF(TG_OP = 'DELETE') THEN
  		DELETE FROM action_parameter_def_x
  		WHERE (action_def_uuid = OLD.action_def_uuid)
@@ -1569,9 +1569,9 @@ LANGUAGE plpgsql;
  		VALUES(NEW.action_def_uuid, NEW.parameter_def_uuid);
  		RETURN NEW;
  	END IF;
- END;
- $$
- LANGUAGE plpgsql;
+END;
+$$
+LANGUAGE plpgsql;
 
 
 /*
@@ -1695,3 +1695,102 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
+
+
+/*
+Name:			upsert_condition_def()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.10.06
+Description:	trigger proc that deletes, inserts or updates condition_def record based on TG_OP (trigger operation)
+Notes:			think of the conditions (and related calculation) as stack-based -> LIFO ala forth	
+Example:		insert into vw_condition_def (description, actor_uuid) values
+                                           ('temp > threshold ?', (select actor_uuid from vw_actor where description = 'T Testuser'));
+ 				update vw_condition_def set status_uuid = (select status_uuid from vw_status where description = 'active') where description = 'temp > threshold ?';
+  				delete from vw_condition_def where description = 'temp > threshold ?';
+*/
+CREATE OR REPLACE FUNCTION upsert_condition_def ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+	    -- first delete the condition_def record
+		DELETE FROM condition_def
+		WHERE condition_def_uuid = OLD.condition_def_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- delete any assigned records
+		PERFORM delete_assigned_recs (OLD.condition_def_uuid);
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+	    UPDATE
+			condition_def
+		SET
+			description = NEW.description,
+			actor_uuid = NEW.actor_uuid,
+			status_uuid = NEW.status_uuid,
+			mod_date = now()
+		WHERE
+			condition_def.condition_def_uuid = NEW.condition_def_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+	    INSERT INTO condition_def (description, actor_uuid, status_uuid)
+			VALUES(NEW.description, NEW.actor_uuid, NEW.status_uuid) returning condition_def_uuid into NEW.condition_def_uuid;
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+ 
+/*
+Name:			upsert_condition_calculation_def_assign()
+Parameters:		trigger proc that deletes, inserts or updates action_parameter_def_x record based on TG_OP (trigger operation)
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.10.06
+Description:	trigger proc that deletes, inserts or updates condition_calculation_def_x record based on TG_OP (trigger operation)
+Notes:			requires condition_def_uuid and calculation_def_uuid
+
+Example:       	-- first create a calculation
+				insert into vw_calculation_def 
+					(short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid, 		
+					in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid ) 
+				values ('greater_than', 'pop A, pop B, >', 
+					(select systemtool_uuid from vw_actor where systemtool_name = 'escalate'),
+					'B > A ? (pop B, pop A, >?) returning true or false', null, null, null, null,
+					(select type_def_uuid from vw_type_def where category = 'data' and description = 'bool'),
+					null, (select actor_uuid from vw_actor where description = 'T Testuser'),
+					(select status_uuid from vw_status where description = 'active')		
+					);
+				insert into vw_condition_calculation_def_assign (condition_def_uuid, calculation_def_uuid)
+					VALUES ((select condition_def_uuid from vw_condition_def where description = 'temp > threshold ?'),
+						(select calculation_def_uuid from vw_calculation_def where short_name = 'greater_than'));	
+				delete from vw_condition_calculation_def_assign where
+					condition_def_uuid = (select condition_def_uuid from vw_condition_def where description = 'temp > threshold ?') and
+					calculation_def_uuid = (select calculation_def_uuid from vw_calculation_def where short_name = 'greater_than');
+				delete from vw_calculation_def where short_name = 'greater_than';	
+*/
+CREATE OR REPLACE FUNCTION upsert_condition_calculation_def_assign()
+ 	RETURNS TRIGGER
+ 	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+ 		DELETE FROM condition_calculation_def_x
+ 		WHERE (condition_def_uuid = OLD.condition_def_uuid)
+ 			and(calculation_def_uuid = OLD.calculation_def_uuid);
+ 		RETURN OLD;
+ 	ELSIF (TG_OP = 'UPDATE') THEN
+ 		RETURN NEW;
+ 	ELSIF (TG_OP = 'INSERT') THEN
+ 		INSERT INTO condition_calculation_def_x (condition_def_uuid, calculation_def_uuid)
+ 		VALUES(NEW.condition_def_uuid, NEW.calculation_def_uuid);
+ 		RETURN NEW;
+ 	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+

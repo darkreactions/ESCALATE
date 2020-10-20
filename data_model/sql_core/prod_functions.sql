@@ -1464,3 +1464,148 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
+
+
+/*
+Name:			stack_clear () 
+Parameters:		
+Returns:		number of stack items deleted
+Author:			G. Cattabriga
+Date:			2020.10.13
+Description:	delete all items in the LIFO stack (calculation_stack); reset id (serial) to 1
+Notes:			
+Example:		select stack_clear ();				
+*/
+-- DROP FUNCTION IF EXISTS stack_clear () cascade;
+CREATE OR REPLACE FUNCTION stack_clear ()
+	RETURNS int
+	AS $$
+DECLARE
+	_cnt int;
+BEGIN
+	SELECT count(*) from calculation_stack into _cnt; 
+	DELETE FROM calculation_stack;
+	ALTER SEQUENCE calculation_stack_calculation_stack_id_seq RESTART WITH 1;
+	RETURN _cnt;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			stack_push (p_val val) 
+Parameters:		p_val = value (val) pushing onto the stack
+Returns:		id (index) of calculation_stack
+Author:			G. Cattabriga
+Date:			2020.10.10
+Description:	pushes value (p_val) onto stack (calculation_stack) 
+Notes:			to remove 'top' stack value, use: stack_pop () 
+Example:		select stack_push ((SELECT put_val ((select get_type_def ('data', 'int')::uuid), '100', 'C'))::val);
+				select stack_push ((SELECT put_val ((select get_type_def ('data', 'int')::uuid), '50', 'C'))::val);
+				select stack_push ((SELECT put_val ((select get_type_def ('data', 'int')::uuid), '10', 'C'))::val);				
+*/
+-- DROP FUNCTION IF EXISTS stack_push (p_val val) cascade;
+CREATE OR REPLACE FUNCTION stack_push (p_val val)
+	RETURNS int4
+	AS $$
+DECLARE
+	_id int4;	
+BEGIN
+	IF get_val(p_val) IS NOT NULL THEN 
+		INSERT into calculation_stack (stack_val) values (p_val) returning calculation_stack_id into _id;
+	END IF;
+	RETURN _id; 
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			stack_pop () 
+Parameters:		
+Returns:		value (val) of top stack item (LIFO)
+Author:			G. Cattabriga
+Date:			2020.10.10
+Description:	pops value off from stack (calculation_stack) in LIFO manner 
+Notes:			this will get the 'newest' (max calculation_stack_id) item from the stack and delete
+Example:		select stack_pop ();				
+*/
+-- DROP FUNCTION IF EXISTS stack_pop () cascade;
+CREATE OR REPLACE FUNCTION stack_pop ()
+	RETURNS val
+	AS $$
+DECLARE
+	_val text;
+BEGIN
+	IF (select count(*) from calculation_stack) > 0 THEN 
+		SELECT stack_val::text from calculation_stack  WHERE calculation_stack_id = (SELECT MAX(calculation_stack_id) FROM calculation_stack) into _val; 
+		DELETE FROM calculation_stack WHERE calculation_stack_id = (SELECT MAX(calculation_stack_id) FROM calculation_stack);
+		RETURN _val::val;
+	ELSE
+		RETURN NULL;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+
+/*
+Name:			stack_dup () 
+Parameters:		
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.10.13
+Description:	duplicates the top value - pops val, then pushes twice 
+Notes:			
+Example:		select stack_clear ();
+				select stack_push ((SELECT put_val ((select get_type_def ('data', 'int')::uuid), '1', 'C'))::val);
+				select stack_push ((SELECT put_val ((select get_type_def ('data', 'int')::uuid), '2', 'C'))::val);
+				select stack_push ((SELECT put_val ((select get_type_def ('data', 'int')::uuid), '3', 'C'))::val);	
+				select stack_dup ();				
+*/
+-- DROP FUNCTION IF EXISTS stack_dup () cascade;
+CREATE OR REPLACE FUNCTION stack_dup ()
+	RETURNS void
+	AS $$
+DECLARE
+	_val text;
+BEGIN
+	SELECT stack_pop () into _val; 
+	PERFORM stack_push (_val::val);
+	PERFORM stack_push (_val::val);
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			stack_swap () 
+Parameters:		
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.10.13
+Description:	swaps the two top values - pops val, pops val, then push, push 
+Notes:			
+Example:		select stack_clear ();
+				select stack_push ((SELECT put_val ((select get_type_def ('data', 'int')::uuid), '1', 'C'))::val);
+				select stack_push ((SELECT put_val ((select get_type_def ('data', 'int')::uuid), '2', 'C'))::val);
+				select stack_push ((SELECT put_val ((select get_type_def ('data', 'int')::uuid), '3', 'C'))::val);	
+				select stack_swap ();				
+*/
+-- DROP FUNCTION IF EXISTS stack_swap () cascade;
+CREATE OR REPLACE FUNCTION stack_swap ()
+	RETURNS void
+	AS $$
+DECLARE
+	_val1 text;
+	_val2 text;
+BEGIN
+	SELECT stack_pop () into _val1; 
+	SELECT stack_pop () into _val2; 
+	PERFORM stack_push (_val1::val);
+	PERFORM stack_push (_val2::val);	
+END;
+$$
+LANGUAGE plpgsql;
+

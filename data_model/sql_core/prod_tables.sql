@@ -24,6 +24,8 @@ Notes:			triggers, foreign keys and other constraints are in other sql files
 -- CREATE EXTENSION if not exists "uuid-ossp" with schema dev;
 -- CREATE EXTENSION IF NOT EXISTS hstore with schema dev;
 -- set search_path = dev, public;
+
+DROP EXTENSION IF EXISTS pgtap CASCADE;
  
  --=====================================
  -- DROP TYPES 
@@ -208,6 +210,7 @@ DROP TABLE IF EXISTS calculation_class cascade;
 DROP TABLE IF EXISTS calculation_def cascade;
 DROP TABLE IF EXISTS calculation cascade;
 DROP TABLE IF EXISTS calculation_eval cascade;
+DROP TABLE IF EXISTS calculation_stack cascade;
 DROP TABLE IF EXISTS inventory cascade;
 DROP TABLE IF EXISTS measure cascade;
 DROP TABLE IF EXISTS measure_x cascade;
@@ -224,10 +227,14 @@ DROP TABLE IF EXISTS udf cascade;
 DROP TABLE IF EXISTS udf_x cascade;
 DROP TABLE IF EXISTS udf_def cascade;
 DROP TABLE IF EXISTS workflow cascade;
+DROP TABLE IF EXISTS workflow_def cascade;
 DROP TABLE IF EXISTS workflow_step cascade;
-DROP TABLE IF EXISTS workflow_state_def cascade;
+DROP TABLE IF EXISTS workflow_step_object cascade;
 DROP TABLE IF EXISTS workflow_state cascade;
 DROP TABLE IF EXISTS workflow_type cascade;
+DROP TABLE IF EXISTS condition cascade;
+DROP TABLE IF EXISTS condition_def cascade;
+DROP TABLE IF EXISTS condition_calculation_def_x cascade;
 DROP TABLE IF EXISTS action_def cascade;
 DROP TABLE IF EXISTS action_parameter_def_x cascade;
 DROP TABLE IF EXISTS action cascade;
@@ -673,6 +680,17 @@ CREATE TABLE calculation_eval (
 );
 
 ---------------------------------------
+-- Table structure for calculation_stack
+-- use for stack-based calcs (filo) 
+-- drop table calculation_stack;
+---------------------------------------
+CREATE TABLE calculation_stack (
+	calculation_stack_id  serial primary key,
+	stack_val val,
+	add_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+---------------------------------------
 -- Table structure for inventory
 ---------------------------------------
 CREATE TABLE inventory (
@@ -882,6 +900,29 @@ CREATE TABLE udf_def (
 );
 
 
+---------------------------------------
+-- Table structure for workflow_type
+---------------------------------------
+CREATE TABLE workflow_type (
+	workflow_type_uuid uuid DEFAULT uuid_generate_v4 (),
+	description varchar COLLATE "pg_catalog"."default" NOT NULL,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+-- ----------------------------
+-- Table structure for workflow_def
+-- ----------------------------
+CREATE TABLE workflow_def (
+	workflow_def_uuid uuid DEFAULT uuid_generate_v4 (),
+	workflow_type_uuid uuid,
+	description varchar COLLATE "pg_catalog"."default",
+	actor_uuid uuid,
+	status_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
 -- ----------------------------
 -- Table structure for workflow
 -- ----------------------------
@@ -898,6 +939,17 @@ CREATE TABLE workflow (
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
 
+-- ----------------------------
+-- Table structure for workflow_step_object
+-- analgous to actor i.e. actions or conditions inserted
+-- ----------------------------
+CREATE TABLE workflow_step_object (
+	workflow_step_object_uuid uuid DEFAULT uuid_generate_v4 (),
+	action_uuid uuid,
+	condition_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
 
 -- ----------------------------
 -- Table structure for workflow_step
@@ -905,24 +957,13 @@ CREATE TABLE workflow (
 CREATE TABLE workflow_step (
 	workflow_step_uuid uuid DEFAULT uuid_generate_v4 (),
 	workflow_uuid uuid,
-	seq int8 NOT NULL,
-	action_uuid uuid NOT NULL,
-	action_condition_uuid uuid,
+	workflow_step_object_uuid uuid,
+	initial_uuid uuid,
+	terminal_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
 
----------------------------------------
--- Table structure for workflow_state_def
----------------------------------------
-CREATE TABLE workflow_state_def (
-	workflow_state_def_uuid uuid DEFAULT uuid_generate_v4 (),
-	description varchar COLLATE "pg_catalog"."default" NOT NULL,
-	status_uuid uuid,
-	actor_uuid uuid,
-	add_date timestamptz NOT NULL DEFAULT NOW(),
-	mod_date timestamptz NOT NULL DEFAULT NOW()
-);
 
 -- ----------------------------
 -- Table structure for workflow_state
@@ -930,25 +971,12 @@ CREATE TABLE workflow_state_def (
 CREATE TABLE workflow_state (
 	workflow_state_uuid uuid DEFAULT uuid_generate_v4 (),
 	workflow_step_uuid uuid,
-	workflow_state_def_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
 
-
 ---------------------------------------
--- Table structure for workflow_type
----------------------------------------
-CREATE TABLE workflow_type (
-	workflow_type_uuid uuid DEFAULT uuid_generate_v4 (),
-	description varchar COLLATE "pg_catalog"."default" NOT NULL,
-	add_date timestamptz NOT NULL DEFAULT NOW(),
-	mod_date timestamptz NOT NULL DEFAULT NOW()
-);
-
-
----------------------------------------
--- Table structure for workflow_action_def
+-- Table structure for action_def
 ---------------------------------------
 CREATE TABLE action_def (
 	action_def_uuid uuid DEFAULT uuid_generate_v4 (),
@@ -964,7 +992,7 @@ CREATE TABLE action_def (
  -- Table structure for action_parameter_def_x
  ---------------------------------------
  CREATE TABLE action_parameter_def_x (
-     action_parameter_def_x_uuid uuid DEFAULT uuid_generate_v4 (),
+    action_parameter_def_x_uuid uuid DEFAULT uuid_generate_v4 (),
  	parameter_def_uuid uuid NOT NULL,
  	action_def_uuid uuid NOT NULL,
  	add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -993,12 +1021,37 @@ CREATE TABLE action (
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
 
+
 ---------------------------------------
--- Table structure for workflow_action_condition
+-- Table structure for condition_def
 ---------------------------------------
-CREATE TABLE action_condition (
-	action_condition_uuid uuid DEFAULT uuid_generate_v4 (),
-	calculation_def_uuid uuid,
+CREATE TABLE condition_def (
+	condition_def_uuid uuid DEFAULT uuid_generate_v4 (),
+	description varchar COLLATE "pg_catalog"."default" NOT NULL,
+	actor_uuid uuid,
+	status_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+---------------------------------------
+ -- Table structure for condition_calculation_def_x
+ ---------------------------------------
+ CREATE TABLE condition_calculation_def_x (
+    condition_calculation_def_x_uuid uuid DEFAULT uuid_generate_v4 (),
+  	condition_def_uuid uuid NOT NULL,	
+ 	calculation_def_uuid uuid NOT NULL,
+ 	add_date timestamptz NOT NULL DEFAULT NOW(),
+ 	mod_date timestamptz NOT NULL DEFAULT NOW()
+ );
+
+
+---------------------------------------
+-- Table structure for condition
+---------------------------------------
+CREATE TABLE condition (
+	condition_uuid uuid DEFAULT uuid_generate_v4 (),
+	condition_def_uuid uuid,
 	in_val val,
 	in_opt_val val,
 	out_val val,
@@ -1317,18 +1370,28 @@ USING GIST (parent_path);
 CLUSTER workflow
 USING "pk_workflow_workflow_uuid";
 
--- workflow_step primary key and constraints
+-- workflow_def primary key and constraints
+ALTER TABLE workflow_def
+	ADD CONSTRAINT "pk_workflow_def_workflow_def_uuid" PRIMARY KEY (workflow_def_uuid);
+CLUSTER workflow_def
+USING "pk_workflow_def_workflow_def_uuid";
+
+-- workflow_step_object_def primary key and constraints
+ALTER TABLE workflow_step_object
+	ADD CONSTRAINT "pk_workflow_step_object_workflow_step_object_uuid" PRIMARY KEY (workflow_step_object_uuid),
+		ADD CONSTRAINT "un_workflow_step_object" UNIQUE (action_uuid, condition_uuid);
+CLUSTER workflow_step_object
+USING "pk_workflow_step_object_workflow_step_object_uuid";
+
+-- workflow_step_def primary key and constraints
 ALTER TABLE workflow_step
-	ADD CONSTRAINT "pk_workflow_step_workflow_step_uuid" PRIMARY KEY (workflow_step_uuid);
+	ADD CONSTRAINT "pk_workflow_step_workflow_step_uuid" PRIMARY KEY (workflow_step_uuid),
+		ADD CONSTRAINT "un_workflow_step" UNIQUE (workflow_step_object_uuid, initial_uuid, terminal_uuid),
+			ADD CONSTRAINT "un_workflow_step_initial" UNIQUE (workflow_step_object_uuid, initial_uuid),
+				ADD CONSTRAINT "un_workflow_step_terminal" UNIQUE (workflow_step_object_uuid, terminal_uuid);
 CLUSTER workflow_step
 USING "pk_workflow_step_workflow_step_uuid";
 
--- workflow_state_def primary key and constraints
-ALTER TABLE workflow_state_def
-	ADD CONSTRAINT "pk_workflow_state_def_workflow_state_def_uuid" PRIMARY KEY (workflow_state_def_uuid),
-		ADD CONSTRAINT "un_workflow_state_def" UNIQUE (description);
-CLUSTER workflow_state_def
-USING "pk_workflow_state_def_workflow_state_def_uuid";
 
 -- workflow_state primary key and constraints
 ALTER TABLE workflow_state
@@ -1362,11 +1425,25 @@ ALTER TABLE action
 CLUSTER action
 USING "pk_action_action_uuid";
 
--- workflow_action_condition primary key and constraints
-ALTER TABLE action_condition
-	ADD CONSTRAINT "pk_action_condition_action_condition_uuid" PRIMARY KEY (action_condition_uuid);
-CLUSTER action_condition
-USING "pk_action_condition_action_condition_uuid";
+-- condition_def primary key and constraints
+ALTER TABLE condition_def
+	ADD CONSTRAINT "pk_condition_def_condition_def_uuid" PRIMARY KEY (condition_def_uuid),
+		ADD CONSTRAINT "un_condition_def" UNIQUE (description);
+CLUSTER condition_def
+USING "pk_condition_def_condition_def_uuid";
+
+-- condition_calculation_def_x constraints
+ ALTER TABLE condition_calculation_def_x
+ 	ADD CONSTRAINT "pk_condition_calculation_def_x_condition_calculation_def_x_uuid" PRIMARY KEY (condition_calculation_def_x_uuid),
+ 		ADD CONSTRAINT "un_condition_calculation_def_x" UNIQUE (condition_def_uuid, calculation_def_uuid);
+ CLUSTER condition_calculation_def_x
+ USING "pk_condition_calculation_def_x_condition_calculation_def_x_uuid";
+
+-- condition primary key and constraints
+ALTER TABLE condition
+	ADD CONSTRAINT "pk_condition_condition_uuid" PRIMARY KEY (condition_uuid);
+CLUSTER condition
+USING "pk_condition_condition_uuid";
 
 -- status primary key and constraints
 ALTER TABLE status
@@ -1584,18 +1661,19 @@ ALTER TABLE workflow
 			ADD CONSTRAINT fk_workflow_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
 				ADD CONSTRAINT fk_workflow_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
-ALTER TABLE workflow_step
-	ADD CONSTRAINT fk_workflow_step_workflow_1 FOREIGN KEY (workflow_uuid) REFERENCES workflow (workflow_uuid),
-		ADD CONSTRAINT fk_workflow_step_workflow_action_1 FOREIGN KEY (action_uuid) REFERENCES action (action_uuid),
-			ADD CONSTRAINT fk_workflow_step_action_condition_1 FOREIGN KEY (action_condition_uuid) REFERENCES action_condition (action_condition_uuid);
+ALTER TABLE workflow_step_object
+	ADD CONSTRAINT fk_workflow_step_object_action_1 FOREIGN KEY (action_uuid) REFERENCES action (action_uuid),
+		ADD CONSTRAINT fk_workflow_step_object_condition_1 FOREIGN KEY (condition_uuid) REFERENCES condition (condition_uuid);
 
-ALTER TABLE workflow_state_def
-	ADD CONSTRAINT fk_workflow_state_def_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
-		ADD CONSTRAINT fk_workflow_state_def_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+ALTER TABLE workflow_step
+	ADD CONSTRAINT fk_workflow_step_workflow_step_1 FOREIGN KEY (workflow_uuid) REFERENCES workflow (workflow_uuid),
+		ADD CONSTRAINT fk_workflow_step_workflow_step_object_1 FOREIGN KEY (workflow_step_object_uuid) REFERENCES workflow_step_object (workflow_step_object_uuid),
+			ADD CONSTRAINT fk_workflow_step_initial_1 FOREIGN KEY (initial_uuid) REFERENCES workflow_step_object (workflow_step_object_uuid),
+				ADD CONSTRAINT fk_workflow_step_terminal_1 FOREIGN KEY (terminal_uuid) REFERENCES workflow_step_object (workflow_step_object_uuid);
 
 ALTER TABLE workflow_state
 	ADD CONSTRAINT fk_workflow_state_workflow_step_1 FOREIGN KEY (workflow_step_uuid) REFERENCES workflow_step (workflow_step_uuid),
-		ADD CONSTRAINT fk_workflow_state_workflow_state_def_1 FOREIGN KEY (workflow_state_def_uuid) REFERENCES workflow_state_def (workflow_state_def_uuid);;
+		ADD CONSTRAINT fk_workflow_state_workflow_state_1 FOREIGN KEY (workflow_state_uuid) REFERENCES workflow_state (workflow_state_uuid);;
 	
 ALTER TABLE action_def
 	ADD CONSTRAINT fk_action_def_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
@@ -1613,10 +1691,18 @@ ALTER TABLE action
 					ADD CONSTRAINT fk_action_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
 						ADD CONSTRAINT fk_action_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);			
 
-ALTER TABLE action_condition
-	ADD CONSTRAINT fk_action_condition_calculation_def_1 FOREIGN KEY (calculation_def_uuid) REFERENCES calculation_def (calculation_def_uuid),
-		ADD CONSTRAINT fk_action_condition_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
-			ADD CONSTRAINT fk_action_condition_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+ALTER TABLE condition_def
+	ADD CONSTRAINT fk_condition_def_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+		ADD CONSTRAINT fk_condition_def_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+
+ALTER TABLE condition_calculation_def_x
+	ADD CONSTRAINT fk_condition_calulation_def_x_condition_def_1 FOREIGN KEY (condition_def_uuid) REFERENCES condition_def (condition_def_uuid),
+		ADD CONSTRAINT fk_condition_calculation_def_x_calculation_def_1 FOREIGN KEY (calculation_def_uuid) REFERENCES calculation_def (calculation_def_uuid);
+		
+ALTER TABLE condition
+	ADD CONSTRAINT fk_condition_condition_def_1 FOREIGN KEY (condition_def_uuid) REFERENCES condition_def (condition_def_uuid),
+		ADD CONSTRAINT fk_condition_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+			ADD CONSTRAINT fk_condition_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
 
 --=====================================

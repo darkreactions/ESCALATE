@@ -50,7 +50,8 @@ COMMIT;
 -- ----------------------------
 BEGIN;
 INSERT INTO vw_organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone) 
-VALUES 
+VALUES
+	('Test Organization', 'TestCo', 'XX', '123 Main St.', NULL, 'Test City', 'XX', '99999', 'US','http://http://info.cern.ch', NULL), 
 	('College', 'Haverford College', 'HC', '370 Lancaster Ave.', NULL, 'Haverford', 'PA', '19041', 'US','http://www.haverford.edu', NULL),
 	('Laboratory', 'Lawrence Berkeley National Laboratory', 'LBL', '1 Cyclotron Rd.', NULL, 'Berkeley', 'CA', '94720', 'US', 'https://www.lbl.gov', NULL),
 	('Chemical vendor', 'Sigma-Aldrich', 'Sigma-Aldrich', '3050 Spruce St.', NULL, 'St Louis', 'MO', '63103', 'US', 'http://www.sigmaaldrich.com', NULL),
@@ -110,6 +111,8 @@ COMMIT;
 BEGIN;
 INSERT INTO vw_person (first_name, last_name, email, organization_uuid)
 VALUES 
+	('T', 'Testuser', null, 
+		(select organization_uuid from organization where short_name = 'XX')),
 	('Mansoor', 'Nellikkal', 'maninajeeb@haverford.edu', 
 		(select organization_uuid from organization where short_name = 'HC')),
 	('Zhi', 'Li', 'zhili@lbl.gov', 
@@ -118,6 +121,8 @@ VALUES
 		(select organization_uuid from organization where short_name = 'HC')),
 	('Ian', 'Pendleton', 'ipendleton@haverford.edu', 
 		(select organization_uuid from organization where short_name = 'HC')),
+	('Mike', 'Tynes', null, 
+		(select organization_uuid from organization where short_name = 'HC')),
 	('Minji', 'Lee', 'minjil.ee@lbl.gov', 
 		(select organization_uuid from organization where short_name = 'LBL')),
 	('Wesley', 'Wang', null, 
@@ -125,7 +130,7 @@ VALUES
 	('Philip', 'Nega', 'pnega@lbl.gov', 
 		(select organization_uuid from organization where short_name = 'LBL')),	
 	('Matt', 'Castillo', null, 
-		(select organization_uuid from organization where short_name = 'LBL')),	
+		(select organization_uuid from organization where short_name = 'LBL')),		
 	('Liana', 'Alves', null, 
 		(select organization_uuid from organization where short_name = 'HC'))
 ;
