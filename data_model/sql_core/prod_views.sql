@@ -992,6 +992,8 @@ SELECT
 	pr.parameter_def_uuid,
     pd.description as parameter_def_description,
 	pr.parameter_val,
+    pd.val_type_description,
+    pd.valunit,
 	pr.actor_uuid,
     act.description as actor_description,
 	pr.status_uuid,
@@ -1001,7 +1003,7 @@ SELECT
     px.ref_parameter_uuid,
     px.parameter_x_uuid
 FROM parameter pr
-LEFT JOIN parameter_def pd on pr.parameter_def_uuid = pd.parameter_def_uuid
+LEFT JOIN vw_parameter_def pd on pr.parameter_def_uuid = pd.parameter_def_uuid
 LEFT JOIN parameter_x px on pr.parameter_uuid = px.parameter_uuid
 LEFT JOIN actor act on pr.actor_uuid = act.actor_uuid
 LEFT JOIN status st on pd.status_uuid = st.status_uuid;
@@ -1206,6 +1208,9 @@ SELECT
     p.parameter_def_description,
     p.val_type_description,
     p.valunit,
+--     vl.val_type as vtype,
+--     vl.val_unit as vunit,
+--     vl.val_val as val,
     p.parameter_val,
     p.actor_uuid,
     actor.description as actor_description,
@@ -1217,6 +1222,8 @@ FROM vw_action act
 LEFT JOIN vw_parameter p ON act.action_uuid = p.ref_parameter_uuid
 LEFT JOIN vw_actor actor ON p.actor_uuid = actor.actor_uuid
 LEFT JOIN vw_status st   ON p.status_uuid = st.status_uuid;
+-- still testing
+-- LEFT JOIN LATERAL (select * from get_val (p.parameter_val)) vl ON true;
 
 DROP TRIGGER IF EXISTS trigger_action_parameter_upsert ON vw_action_parameter;
 CREATE TRIGGER trigger_action_parameter_upsert INSTEAD OF INSERT
