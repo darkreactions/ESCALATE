@@ -964,9 +964,11 @@ CREATE TABLE action_def (
  -- Table structure for action_parameter_def_x
  ---------------------------------------
  CREATE TABLE action_parameter_def_x (
-     action_parameter_def_x_uuid uuid DEFAULT uuid_generate_v4 (),
+    action_parameter_def_x_uuid uuid DEFAULT uuid_generate_v4 (),
  	parameter_def_uuid uuid NOT NULL,
  	action_def_uuid uuid NOT NULL,
+ 	default_val val,
+ 	required bool DEFAULT true,
  	add_date timestamptz NOT NULL DEFAULT NOW(),
  	mod_date timestamptz NOT NULL DEFAULT NOW()
  );

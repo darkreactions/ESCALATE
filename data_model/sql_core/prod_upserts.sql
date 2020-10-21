@@ -1570,8 +1570,11 @@ LANGUAGE plpgsql;
  	ELSIF (TG_OP = 'UPDATE') THEN
  		RETURN NEW;
  	ELSIF (TG_OP = 'INSERT') THEN
- 		INSERT INTO action_parameter_def_x (action_def_uuid, parameter_def_uuid)
- 		VALUES(NEW.action_def_uuid, NEW.parameter_def_uuid);
+ 		INSERT INTO action_parameter_def_x (action_def_uuid, parameter_def_uuid, default_val, required)
+ 		VALUES(NEW.action_def_uuid,
+ 		       NEW.parameter_def_uuid,
+ 		       NEW.default_val,
+ 		       NEW.required);
  		RETURN NEW;
  	END IF;
  END;

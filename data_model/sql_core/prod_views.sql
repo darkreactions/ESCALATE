@@ -1055,6 +1055,8 @@ EXECUTE PROCEDURE upsert_action_def ( );
      ad.add_date,
      ad.mod_date,
      ap.parameter_def_uuid,
+     ap.default_val,
+     ap.required,
      pd.description as parameter_description,
      pd.val_type_uuid as parameter_val_type_uuid,
      pd.val_type_description as parameter_val_type_description,
@@ -1070,8 +1072,6 @@ EXECUTE PROCEDURE upsert_action_def ( );
  LEFT JOIN action_parameter_def_x ap ON ad.action_def_uuid = ap.action_def_uuid
  LEFT JOIN vw_parameter_def pd ON ap.parameter_def_uuid = pd.parameter_def_uuid
  LEFT JOIN status st ON ad.status_uuid = st.status_uuid;
-
-
 
 ----------------------------------------
  -- view action_parameter_def_json
@@ -1102,6 +1102,8 @@ FROM
 					'uuid', p.parameter_def_uuid,
 					'val_type', p.parameter_val_type_description, 
 					'unit', p.parameter_unit,
+				    'default_value', (select get_val_json(p.default_val)),
+				    'required', p.required,
 					'actor', p.parameter_actor_description,
 					'status', p.parameter_status_description,
 					'add_date', p.parameter_add_date,
@@ -1115,7 +1117,6 @@ FROM
 	) p 
 ON a.action_def_uuid = p.action_def_uuid;
 
-
 ----------------------------------------
  -- view action_parameter_def_assign
 ----------------------------------------
@@ -1124,6 +1125,8 @@ SELECT
     action_parameter_def_x_uuid,
  	parameter_def_uuid,
  	action_def_uuid,
+    default_val, -- default val and required will have to live somewhere else permanently
+    required,
  	add_date,
  	mod_date
 FROM action_parameter_def_x;
