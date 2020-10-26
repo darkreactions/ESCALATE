@@ -620,6 +620,9 @@ delete from vw_condition_def where description = 'temp > threshold ?';
 Name:			upsert_condition_calculation_def_assign()
 Notes:
 */
+insert into vw_condition_def (description, actor_uuid, status_uuid) values
+	('temp > threshold ?', (select actor_uuid from vw_actor where description = 'Test123'),
+	(select status_uuid from vw_status where description = 'dev_test'));
 insert into vw_calculation_def 
 	(short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid, 		
 	in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid ) 
@@ -637,6 +640,7 @@ delete from vw_condition_calculation_def_assign where
 	condition_def_uuid = (select condition_def_uuid from vw_condition_def where description = 'temp > threshold ?') and
 	calculation_def_uuid = (select calculation_def_uuid from vw_calculation_def where short_name = 'greater_than');
 delete from vw_calculation_def where short_name = 'greater_than';
+delete from vw_condition_def where description = 'temp > threshold ?';
 
 
 /*
