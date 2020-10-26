@@ -1366,6 +1366,62 @@ LANGUAGE plpgsql;
 
 
 /*
+Name:			upsert_workflow_def()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.08.20
+Description:	trigger proc that deletes, inserts or updates workflow_def record based on TG_OP (trigger operation)
+Notes:				
+ 
+Example:		insert into vw_workflow_def (workflow_type_uuid, description, actor_uuid, status_uuid) 
+					values (
+						(select workflow_type_uuid from vw_workflow_type where description = 'template'),
+						'workflow_def_test',
+						(select actor_uuid from vw_actor where description = 'T Testuser'),
+						null);
+				update vw_workflow_def set status_uuid = (select status_uuid from vw_status where description = 'active') where description = 'workflow_def_test'; 
+ 				delete from vw_workflow_def where workflow_def_uuid = (select workflow_def_uuid from vw_workflow_def where description = 'workflow_def_test');
+ */
+CREATE OR REPLACE FUNCTION upsert_workflow_def ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		-- first delete the material_refname_def record
+		DELETE FROM workflow_def
+		WHERE workflow_def_uuid = OLD.workflow_def_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- delete any assigned records
+		PERFORM delete_assigned_recs (OLD.workflow_def_uuid);
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			workflow_def		
+		SET
+			workflow_type_uuid = NEW.workflow_type_uuid,
+			description = NEW.description,
+			actor_uuid = NEW.actor_uuid,
+			status_uuid = NEW.status_uuid,
+			mod_date = now()
+		WHERE
+			workflow_def.workflow_def_uuid = NEW.workflow_def_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO workflow_def (workflow_type_uuid, description, actor_uuid, status_uuid)
+			VALUES(NEW.workflow_type_uuid, NEW.description, NEW.actor_uuid, NEW.status_uuid) returning workflow_def_uuid into NEW.workflow_def_uuid;
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+
+/*
 Name:			upsert_workflow()
 Parameters:		
 
@@ -1375,8 +1431,15 @@ Date:			2020.08.20
 Description:	trigger proc that deletes, inserts or updates workflow record based on TG_OP (trigger operation)
 Notes:				
  
-Example:		insert into vw_workflow (workflow_description) values ('workflow_test');
- 				delete from vw_workflow where workflow_uuid = ;
+Example:		insert into vw_workflow (workflow_def_uuid, description, experiment_uuid, actor_uuid, status_uuid) 
+					values (
+						(select workflow_def_uuid from vw_workflow_def where description = 'workflow_def_test'),
+						'workflow_test',
+						null,
+						(select actor_uuid from vw_actor where description = 'T Testuser'),
+						null);
+				update vw_workflow set status_uuid = (select status_uuid from vw_status where description = 'active') where description = 'workflow_test'; 
+ 				delete from vw_workflow where description = 'workflow_test' ;
  */
 CREATE OR REPLACE FUNCTION upsert_workflow ()
 	RETURNS TRIGGER
@@ -1396,7 +1459,9 @@ BEGIN
 		UPDATE
 			workflow		
 		SET
+			workflow_def_uuid = NEW.workflow_def_uuid,
 			description = NEW.description,
+			experiment_uuid = NEW.experiment_uuid,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
 			mod_date = now()
@@ -1404,8 +1469,8 @@ BEGIN
 			workflow.workflow_uuid = NEW.workflow_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO workflow (description, actor_uuid, status_uuid)
-			VALUES(NEW.description, NEW.actor_uuid, NEW.status_uuid) returning workflow_uuid into NEW.workflow_uuid;
+		INSERT INTO workflow (workflow_def_uuid, description, experiment_uuid, actor_uuid, status_uuid)
+			VALUES(NEW.workflow_def_uuid, NEW.description, NEW.experiment_uuid, NEW.actor_uuid, NEW.status_uuid) returning workflow_uuid into NEW.workflow_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1940,6 +2005,66 @@ BEGIN
  		VALUES(NEW.condition_def_uuid, NEW.calculation_def_uuid);
  		RETURN NEW;
  	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			upsert_experiment()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.10.20
+Description:	trigger proc that deletes, inserts or updates experiment record based on TG_OP (trigger operation)
+Notes:				
+ 
+Example:		insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operator_uuid, lab_uuid, status_uuid) 
+					values (
+						'test_red_uid', 'test_experiment',
+						null,
+						(select actor_uuid from vw_actor where description = 'HC'),						
+						(select actor_uuid from vw_actor where description = 'T Testuser'),
+						(select actor_uuid from vw_actor where description = 'HC'),
+						null);
+				update vw_experiment set status_uuid = (select status_uuid from vw_status where description = 'active') where description = 'test_experiment'; 
+ 				delete from vw_experiment where description = 'test_experiment';
+ */
+CREATE OR REPLACE FUNCTION upsert_experiment ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		-- first delete the material_refname_def record
+		DELETE FROM experiment
+		WHERE experiment_uuid = OLD.experiment_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- delete any assigned records
+		PERFORM delete_assigned_recs (OLD.experiment_uuid);
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			experiment		
+		SET
+			ref_uid = NEW.ref_uid,
+			description = NEW.description,
+			parent_uuid = NEW.parent_uuid,
+			owner_uuid = NEW.owner_uuid,
+			operator_uuid = NEW.operator_uuid,			
+			lab_uuid = NEW.lab_uuid,			
+			status_uuid = NEW.status_uuid,
+			mod_date = now()
+		WHERE
+			experiment.experiment_uuid = NEW.experiment_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO experiment (ref_uid, description, parent_uuid, owner_uuid, operator_uuid, lab_uuid, status_uuid)
+			VALUES(NEW.ref_uid, NEW.description, NEW.parent_uuid, NEW.owner_uuid, NEW.operator_uuid, NEW.lab_uuid, NEW.status_uuid) returning experiment_uuid into NEW.experiment_uuid;
+		RETURN NEW;
+	END IF;
 END;
 $$
 LANGUAGE plpgsql;

@@ -989,21 +989,21 @@ CREATE OR REPLACE VIEW vw_parameter AS
 SELECT
 	pr.parameter_uuid,
 	pr.parameter_def_uuid,
-    pd.description as parameter_def_description,
+	pd.description as parameter_def_description,
 	pr.parameter_val,
 	pr.actor_uuid,
-    act.description as actor_description,
+	act.description as actor_description,
 	pr.status_uuid,
-    st.description as status_description,
+	st.description as status_description,
 	pr.add_date,
 	pr.mod_date,
-    px.ref_parameter_uuid,
-    px.parameter_x_uuid
+	px.ref_parameter_uuid,
+	px.parameter_x_uuid
 FROM parameter pr
 LEFT JOIN parameter_def pd on pr.parameter_def_uuid = pd.parameter_def_uuid
 LEFT JOIN parameter_x px on pr.parameter_uuid = px.parameter_uuid
 LEFT JOIN actor act on pr.actor_uuid = act.actor_uuid
-LEFT JOIN status st on pr.status_uuid = st.status_uuid;
+LEFT JOIN status st on pd.status_uuid = st.status_uuid;
 
 DROP TRIGGER IF EXISTS trigger_parameter_upsert ON vw_parameter;
 CREATE TRIGGER trigger_parameter_upsert INSTEAD OF INSERT
@@ -1169,8 +1169,82 @@ FOR EACH ROW
 EXECUTE PROCEDURE upsert_action_parameter_def_assign ( );
 
 
+----------------------------------------
+-- view action_parameter
+----------------------------------------
+CREATE OR REPLACE VIEW vw_action_parameter AS
+SELECT
+	act.action_uuid,
+	act.action_def_uuid,
+	act.action_description,
+	act.action_def_description,
+	p.parameter_def_uuid,
+	p.parameter_def_description,
+	p.parameter_val,
+	p.actor_uuid,
+	actor.description as actor_description,
+	p.status_uuid,
+	st.description as status_description,
+	p.add_date,
+	p.mod_date
+FROM vw_action act
+LEFT JOIN vw_parameter p ON act.action_uuid = p.ref_parameter_uuid
+LEFT JOIN vw_actor actor ON p.actor_uuid = actor.actor_uuid
+LEFT JOIN vw_status st  ON p.status_uuid = st.status_uuid;
 
-	
+DROP TRIGGER IF EXISTS trigger_action_parameter_upsert ON vw_action_parameter;
+CREATE TRIGGER trigger_action_parameter_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_action_parameter
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_action_parameter ( );
+
+
+----------------------------------------
+-- view action_parameter_json
+----------------------------------------
+CREATE OR REPLACE VIEW vw_action_parameter_json AS
+SELECT
+	json_build_object('action',
+		json_agg(
+			json_build_object(
+'action_description', a.action_description,
+'action_def_description', a.action_def_description,
+'action_uuid', a.action_uuid,
+'action_def_uuid', a.action_def_uuid,
+'actor', a.actor_description,
+'status', a.status_description,
+'add_date', a.add_date,
+'mod_date', a.mod_date,
+'parameter', param
+			)
+		)
+	) action_parameter_json
+FROM
+    vw_action a
+LEFT JOIN (
+SELECT
+			action_uuid,
+			json_agg(
+				json_build_object(
+--'action_uuid', p.action_uuid,
+'parameter_def_description', p.parameter_def_description,
+'parameter_def_uuid', p.parameter_def_uuid,
+'parameter_value', (select get_val_json(p.parameter_val)),
+'actor', p.actor_description,
+'status', p.status_description,
+'add_date', p.add_date,
+'mod_date', p.mod_date
+				)
+			) param
+FROM
+			vw_action_parameter p
+GROUP BY
+			action_uuid
+	) p
+ON a.action_uuid = p.action_uuid;
+
+
 ----------------------------------------
 -- view condition_def
 -- DROP VIEW vw_condition_def
@@ -1243,6 +1317,41 @@ EXECUTE PROCEDURE upsert_condition_calculation_def_assign();
 
 
 ----------------------------------------
+-- view experiment
+-- DROP VIEW vw_experiment cascade
+----------------------------------------
+CREATE OR REPLACE VIEW vw_experiment AS
+SELECT
+	ex.experiment_uuid,
+	ex.ref_uid,
+	ex.description,
+	ex.parent_uuid,
+	ex.parent_path,
+	ex.owner_uuid,
+	aown.description as owner_description,
+	ex.operator_uuid,
+	aop.description as operator_description,
+	ex.lab_uuid,
+	alab.description as lab_description,
+	ex.status_uuid,
+	st.description as status_description,
+	ex.add_date,
+	ex.mod_date
+FROM experiment ex
+LEFT JOIN vw_actor aown ON ex.owner_uuid = aown.actor_uuid
+LEFT JOIN vw_actor aop ON ex.owner_uuid = aop.actor_uuid
+LEFT JOIN vw_actor alab ON ex.owner_uuid = alab.actor_uuid
+LEFT JOIN status st ON ex.status_uuid = st.status_uuid
+;
+
+DROP TRIGGER IF EXISTS trigger_experiment_upsert ON vw_experiment;
+CREATE TRIGGER trigger_experiment_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_experiment
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_experiment ( );
+
+----------------------------------------
 -- view workflow_type
 -- DROP VIEW vw_workflow_type
 ----------------------------------------
@@ -1277,7 +1386,7 @@ SELECT
 	wd.description,
 	wd.actor_uuid,
     act.description as actor_description,	
-	wd.status_uuid uuid,
+	wd.status_uuid,
 	st.description as status_description,
 	wd.add_date,
 	wd.mod_date
@@ -1286,6 +1395,49 @@ FROM
 LEFT JOIN vw_actor act ON wd.actor_uuid = act.actor_uuid
 LEFT JOIN vw_workflow_type wt ON wd.workflow_type_uuid = wt.workflow_type_uuid
 LEFT JOIN status st ON wd.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_workflow_def_upsert ON vw_workflow_def;
+CREATE TRIGGER trigger_workflow_def_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_workflow_def
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_workflow_def ( );
+
+
+----------------------------------------
+-- view workflow
+-- DROP VIEW vw_workflow
+----------------------------------------
+CREATE OR REPLACE VIEW vw_workflow AS
+SELECT
+	wf.workflow_uuid,
+	wf.description,
+	wf.workflow_def_uuid,
+	wd.description as workflow_def_description,
+	wd.workflow_type_uuid,
+	wt.description as workflow_type_description,
+	wf.experiment_uuid,
+	ex.description as experiment_description,
+	wd.actor_uuid,
+    act.description as actor_description,	
+	wd.status_uuid,
+	st.description as status_description, 
+	wd.add_date,
+	wd.mod_date
+FROM
+	workflow wf
+LEFT JOIN vw_workflow_def wd ON wf.workflow_def_uuid = wd.workflow_def_uuid
+LEFT JOIN vw_workflow_type wt ON wd.workflow_type_uuid = wt.workflow_type_uuid
+LEFT JOIN vw_experiment ex ON wf.experiment_uuid = ex.experiment_uuid
+LEFT JOIN vw_actor act ON wf.actor_uuid = act.actor_uuid
+LEFT JOIN status st ON wf.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_workflow_upsert ON vw_workflow;
+CREATE TRIGGER trigger_workflow_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_workflow
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_workflow ( );
 
 
 ----------------------------------------

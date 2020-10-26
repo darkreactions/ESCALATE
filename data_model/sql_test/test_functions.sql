@@ -513,7 +513,7 @@ insert into vw_calculation_def (short_name, calc_definition, systemtool_uuid, de
 		(select type_def_uuid from vw_type_def where category = 'data' and description = 'text'),
 		null, null, 
 		(select type_def_uuid from vw_type_def where category = 'data' and description = 'int'),
-		null, (select actor_uuid from vw_actor where description = 'Gary Cattabriga'),
+		null, (select actor_uuid from vw_actor where description = 'Test123'),
 		(select status_uuid from vw_status where description = 'active')		
 		);
 delete from vw_calculation_def where short_name = 'test_calc_def';
@@ -611,8 +611,8 @@ Name:			upsert_condition_def()
 Notes:				
 */		
 insert into vw_condition_def (description, actor_uuid) values
-	('temp > threshold ?', (select actor_uuid from vw_actor where description = 'Ian Pendleton'));
-update vw_condition_def set status_uuid = (select status_uuid from vw_status where description = 'active') where description = 'temp > threshold ?';
+	('temp > threshold ?', (select actor_uuid from vw_actor where description = 'Test123'));
+update vw_condition_def set status_uuid = (select status_uuid from vw_status where description = 'dev_test') where description = 'temp > threshold ?';
 delete from vw_condition_def where description = 'temp > threshold ?';
 
 
@@ -627,8 +627,8 @@ insert into vw_calculation_def
 		(select systemtool_uuid from vw_actor where systemtool_name = 'escalate'),
 		'B > A ? (pop B, pop A, >?) returning true or false', null, null, null, null,
 		(select type_def_uuid from vw_type_def where category = 'data' and description = 'bool'),
-		null, (select actor_uuid from vw_actor where description = 'T Testuser'),
-		(select status_uuid from vw_status where description = 'active')		
+		null, (select actor_uuid from vw_actor where description = 'Test123'),
+		(select status_uuid from vw_status where description = 'dev_test')		
 		);
 insert into vw_condition_calculation_def_assign (condition_def_uuid, calculation_def_uuid)
 	VALUES ((select condition_def_uuid from vw_condition_def where description = 'temp > threshold ?'),
@@ -638,11 +638,59 @@ delete from vw_condition_calculation_def_assign where
 	calculation_def_uuid = (select calculation_def_uuid from vw_calculation_def where short_name = 'greater_than');
 delete from vw_calculation_def where short_name = 'greater_than';
 
+
+/*
+Name:			upsert_workflow_def()
+Notes:
+*/
+insert into vw_workflow_def (workflow_type_uuid, description, actor_uuid, status_uuid) 
+	values (
+		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
+		'workflow_def_test',
+		(select actor_uuid from vw_actor where description = 'Test123'),
+		null);
+update vw_workflow_def set status_uuid = (select status_uuid from vw_status where description = 'dev_test') where description = 'workflow_def_test'; 
+delete from vw_workflow_def where workflow_def_uuid = (select workflow_def_uuid from vw_workflow_def where description = 'workflow_def_test');
+
+/*
+Name:			upsert_workflow_def()
+Notes:
+*/
+insert into vw_workflow (workflow_def_uuid, description, experiment_uuid, actor_uuid, status_uuid) 
+	values (
+		(select workflow_def_uuid from vw_workflow_def where description = 'workflow_def_test'),
+		'workflow_test',
+		null,
+		(select actor_uuid from vw_actor where description = 'Test123'),
+		null);
+update vw_workflow set status_uuid = (select status_uuid from vw_status where description = 'dev_test') where description = 'workflow_test'; 
+delete from vw_workflow where description = 'workflow_test' ;
+
+
+/*
+Name:			upsert_experiment()
+Notes:
+*/
+insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operator_uuid, lab_uuid, status_uuid) 
+	values (
+		'test_red_uid', 'test_experiment',
+		null,
+		(select actor_uuid from vw_actor where description = 'HC'),						
+		(select actor_uuid from vw_actor where description = 'T Testuser'),
+		(select actor_uuid from vw_actor where description = 'HC'),
+		null);
+update vw_experiment set status_uuid = (select status_uuid from vw_status where description = 'active') where description = 'test_experiment'; 
+delete from vw_experiment where description = 'test_experiment';
+
+
+
+
 ------------------------------------------------------------------------
 -- clean up a test actor (person) and test status
 delete from vw_actor where actor_uuid in (select actor_uuid from vw_actor where person_last_name = 'Test123');
 delete from vw_status where status_uuid = (select status_uuid from vw_status where (description = 'dev_test'));
 ------------------------------------------------------------------------
+
 
 
 

@@ -928,9 +928,9 @@ CREATE TABLE workflow_def (
 -- ----------------------------
 CREATE TABLE workflow (
 	workflow_uuid uuid DEFAULT uuid_generate_v4 (),
-	workflow_type_uuid uuid,
+	workflow_def_uuid uuid,
 	description varchar COLLATE "pg_catalog"."default",
-	experiment_uuid uuid NOT NULL, 
+	experiment_uuid uuid, 
 	parent_uuid uuid,
 	parent_path ltree,
 	actor_uuid uuid,
@@ -1655,9 +1655,14 @@ ALTER TABLE udf_x
 ALTER TABLE udf_def
 	ADD CONSTRAINT fk_udf_def_udf_def_1 FOREIGN KEY (val_type_uuid) REFERENCES type_def (type_def_uuid);
 
+ALTER TABLE workflow_def
+	ADD CONSTRAINT fk_workflow_type_1 FOREIGN KEY (workflow_type_uuid) REFERENCES workflow_type (workflow_type_uuid),	
+		ADD CONSTRAINT fk_workflow_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+			ADD CONSTRAINT fk_workflow_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+
 ALTER TABLE workflow
 	ADD CONSTRAINT fk_workflow_experiment_1 FOREIGN KEY (experiment_uuid) REFERENCES experiment (experiment_uuid),
-		ADD CONSTRAINT fk_workflow_type_1 FOREIGN KEY (workflow_type_uuid) REFERENCES workflow_type (workflow_type_uuid),		
+		ADD CONSTRAINT fk_workflow_def_1 FOREIGN KEY (workflow_def_uuid) REFERENCES workflow_def (workflow_def_uuid),		
 			ADD CONSTRAINT fk_workflow_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
 				ADD CONSTRAINT fk_workflow_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
