@@ -9,7 +9,7 @@ PGOPTIONS="--search_path=dev"
 export PGOPTIONS
 
 rm rebuild_dev.log 
-rm test_dev.log
+(cd ../sql_test && rm test_dev.log)
 
 echo "creating tables..."
 psql -d escalate -U escalate -f prod_tables.sql  > rebuild_dev.log 2>&1
@@ -43,7 +43,7 @@ awk 'BEGIN { count=0 } /ERROR:/ {print $0;count++ } END { print "error count: ",
 
 ## run SQL function tests
 echo "running tests..."
-psql -d escalate -U escalate -f test_functions.sql >> test_dev.log 2>&1
+(cd ../sql_test && psql -d escalate -U escalate -f test_functions.sql >> test_dev.log 2>&1)
 echo "done (test_dev.log)"
-awk 'BEGIN { count=0 } /ERROR:/ {print $0;count++ } END { print "error count: ", count }' test_dev.log
+(cd ../sql_test && awk 'BEGIN { count=0 } /ERROR:/ {print $0;count++ } END { print "error count: ", count }' test_dev.log)
 
