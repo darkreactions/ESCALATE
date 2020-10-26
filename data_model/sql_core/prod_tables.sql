@@ -575,8 +575,8 @@ CREATE TABLE property_def (
 CREATE TABLE parameter_def (
 	parameter_def_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default" NOT NULL,
-	val_type_uuid uuid,
-	valunit varchar,
+	default_val val,           -- parameter type and units are stored here
+	required boolean NOT NULL, -- default set in upsert
 	actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -967,8 +967,6 @@ CREATE TABLE action_def (
     action_parameter_def_x_uuid uuid DEFAULT uuid_generate_v4 (),
  	parameter_def_uuid uuid NOT NULL,
  	action_def_uuid uuid NOT NULL,
- 	default_val val,
- 	required bool DEFAULT true,
  	add_date timestamptz NOT NULL DEFAULT NOW(),
  	mod_date timestamptz NOT NULL DEFAULT NOW()
  );
@@ -1651,3 +1649,5 @@ COMMENT ON COLUMN udf_def.unit IS 'option description of value unit';
 COMMENT ON COLUMN udf_def.add_date IS 'date this record added';
 COMMENT ON COLUMN udf_def.mod_date IS 'date this record modfified';
 
+COMMENT ON TABLE parameter_def IS 'template for a parameter';
+COMMENT ON COLUMN parameter_def.default_val IS 'this includes the type and units for the parameter';

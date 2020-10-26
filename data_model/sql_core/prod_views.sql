@@ -958,12 +958,15 @@ LEFT JOIN status st ON inv.status_uuid = st.status_uuid;
 -- view parameter_def
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_parameter_def AS
-SELECT 
+SELECT
     pd.parameter_def_uuid,
     pd.description,
-	pd.val_type_uuid,
 	td.description as val_type_description,
-	pd.valunit,
+	( pd.default_val ).v_type_uuid AS val_type_uuid,
+	(select val_val from get_val ( pd.default_val )) AS default_val_val,
+	( pd.default_val ).v_unit AS valunit,
+    pd.default_val,
+    pd.required,
 	pd.actor_uuid,
 	act.description as actor_description,
 	pd.status_uuid,
@@ -973,7 +976,7 @@ SELECT
 FROM parameter_def pd
 LEFT JOIN vw_actor act ON act.actor_uuid = pd.actor_uuid
 LEFT JOIN status st ON pd.status_uuid = st.status_uuid
-LEFT JOIN type_def td ON pd.val_type_uuid = td.type_def_uuid;
+LEFT JOIN type_def td ON ( pd.default_val ).v_type_uuid = td.type_def_uuid;
 
 DROP TRIGGER IF EXISTS trigger_parameter_def_upsert ON vw_parameter_def;
 CREATE TRIGGER trigger_parameter_def_upsert INSTEAD OF INSERT
@@ -1055,9 +1058,9 @@ EXECUTE PROCEDURE upsert_action_def ( );
      ad.add_date,
      ad.mod_date,
      ap.parameter_def_uuid,
-     ap.default_val,
-     ap.required,
      pd.description as parameter_description,
+     pd.default_val,
+     pd.required,
      pd.val_type_uuid as parameter_val_type_uuid,
      pd.val_type_description as parameter_val_type_description,
      pd.valunit as parameter_unit,
@@ -1100,14 +1103,12 @@ FROM
 				json_build_object(
 					'description', p.parameter_description, 
 					'uuid', p.parameter_def_uuid,
-					'val_type', p.parameter_val_type_description, 
-					'unit', p.parameter_unit,
-				    'default_value', (select get_val_json(p.default_val)),
 				    'required', p.required,
+				    'default_value', (select get_val_json(p.default_val)),
 					'actor', p.parameter_actor_description,
 					'status', p.parameter_status_description,
 					'add_date', p.parameter_add_date,
-					'mod_date', p.parameter_mod_date 
+					'mod_date', p.parameter_mod_date
 				)
 			) param
 		FROM
@@ -1125,8 +1126,6 @@ SELECT
     action_parameter_def_x_uuid,
  	parameter_def_uuid,
  	action_def_uuid,
-    default_val, -- default val and required will have to live somewhere else permanently
-    required,
  	add_date,
  	mod_date
 FROM action_parameter_def_x;
@@ -1207,13 +1206,11 @@ SELECT
     act.action_def_uuid,
     act.action_description,
     act.action_def_description,
+    p.parameter_uuid,
     p.parameter_def_uuid,
     p.parameter_def_description,
     p.val_type_description,
     p.valunit,
---     vl.val_type as vtype,
---     vl.val_unit as vunit,
---     vl.val_val as val,
     p.parameter_val,
     p.actor_uuid,
     actor.description as actor_description,
@@ -1225,8 +1222,6 @@ FROM vw_action act
 LEFT JOIN vw_parameter p ON act.action_uuid = p.ref_parameter_uuid
 LEFT JOIN vw_actor actor ON p.actor_uuid = actor.actor_uuid
 LEFT JOIN vw_status st   ON p.status_uuid = st.status_uuid;
--- still testing
--- LEFT JOIN LATERAL (select * from get_val (p.parameter_val)) vl ON true;
 
 DROP TRIGGER IF EXISTS trigger_action_parameter_upsert ON vw_action_parameter;
 CREATE TRIGGER trigger_action_parameter_upsert INSTEAD OF INSERT
@@ -1234,7 +1229,6 @@ OR UPDATE
 OR DELETE ON vw_action_parameter
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_action_parameter ( );
-
 
 ----------------------------------------
  -- view action_parameter_json
