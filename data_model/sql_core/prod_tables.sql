@@ -960,6 +960,7 @@ CREATE TABLE workflow_step (
 	workflow_step_object_uuid uuid,
 	initial_uuid uuid,
 	terminal_uuid uuid,
+	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -1051,10 +1052,9 @@ CREATE TABLE condition_def (
 ---------------------------------------
 CREATE TABLE condition (
 	condition_uuid uuid DEFAULT uuid_generate_v4 (),
-	condition_def_uuid uuid,
-	in_val val,
-	in_opt_val val,
-	out_val val,
+	condition_calculation_def_x_uuid uuid,
+	in_val val[],
+	out_val val[],
 	actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -1705,7 +1705,7 @@ ALTER TABLE condition_calculation_def_x
 		ADD CONSTRAINT fk_condition_calculation_def_x_calculation_def_1 FOREIGN KEY (calculation_def_uuid) REFERENCES calculation_def (calculation_def_uuid);
 		
 ALTER TABLE condition
-	ADD CONSTRAINT fk_condition_condition_def_1 FOREIGN KEY (condition_def_uuid) REFERENCES condition_def (condition_def_uuid),
+	ADD CONSTRAINT fk_condition_condition_calculation_def_x_1 FOREIGN KEY (condition_calculation_def_x_uuid) REFERENCES condition_calculation_def_x (condition_calculation_def_x_uuid),
 		ADD CONSTRAINT fk_condition_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
 			ADD CONSTRAINT fk_condition_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
