@@ -1180,23 +1180,31 @@ EXECUTE PROCEDURE upsert_action_parameter_def_assign ( );
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_action_parameter AS
 SELECT
-	act.action_uuid,
-	act.action_def_uuid,
-	act.action_description,
-	act.action_def_description,
+	a.action_uuid,
+	a.action_def_uuid,
+	a.action_description,
+	a.action_def_description,
+	a.actor_uuid as action_actor_uuid,
+	acta.description as action_actor_description,
+	a.status_uuid as action_status_uuid,
+	sta.description as action_status_description,
+	a.add_date as action_add_date,
+	a.mod_date as action_mod_date,	
 	p.parameter_def_uuid,
 	p.parameter_def_description,
 	p.parameter_val,
-	p.actor_uuid,
-	actor.description as actor_description,
-	p.status_uuid,
-	st.description as status_description,
-	p.add_date,
-	p.mod_date
-FROM vw_action act
-LEFT JOIN vw_parameter p ON act.action_uuid = p.ref_parameter_uuid
-LEFT JOIN vw_actor actor ON p.actor_uuid = actor.actor_uuid
-LEFT JOIN vw_status st  ON p.status_uuid = st.status_uuid;
+	p.actor_uuid as parameter_actor_uuid,
+	actp.description as parameter_actor_description,
+	p.status_uuid as parameter_status_uuid,
+	stp.description as parameter_status_description,	
+	p.add_date as parameter_add_date,
+	p.mod_date as parameter_mod_date
+FROM vw_action a
+LEFT JOIN vw_actor acta ON a.actor_uuid = acta.actor_uuid
+LEFT JOIN vw_status sta  ON a.status_uuid = sta.status_uuid
+LEFT JOIN vw_parameter p ON a.action_uuid = p.ref_parameter_uuid
+LEFT JOIN vw_actor actp ON p.actor_uuid = actp.actor_uuid
+LEFT JOIN vw_status stp  ON p.status_uuid = stp.status_uuid;
 
 DROP TRIGGER IF EXISTS trigger_action_parameter_upsert ON vw_action_parameter;
 CREATE TRIGGER trigger_action_parameter_upsert INSTEAD OF INSERT
@@ -1218,10 +1226,10 @@ SELECT
 'action_def_description', a.action_def_description,
 'action_uuid', a.action_uuid,
 'action_def_uuid', a.action_def_uuid,
-'actor', a.actor_description,
-'status', a.status_description,
-'add_date', a.add_date,
-'mod_date', a.mod_date,
+'action_actor', a.actor_description,
+'action_status', a.status_description,
+'action_add_date', a.add_date,
+'action_mod_date', a.mod_date,
 'parameter', param
 			)
 		)
@@ -1237,11 +1245,10 @@ SELECT
 'parameter_def_description', p.parameter_def_description,
 'parameter_def_uuid', p.parameter_def_uuid,
 'parameter_value', (select get_val_json(p.parameter_val)),
-'actor', p.actor_description,
-'status', p.status_description,
-'add_date', p.add_date,
-'mod_date', p.mod_date
-				)
+'parameter_actor', p.parameter_actor_description,
+'parameter_status', p.parameter_status_description,
+'parameter_add_date', p.parameter_add_date,
+'parameter_mod_date', p.parameter_mod_date)
 			) param
 FROM
 			vw_action_parameter p
