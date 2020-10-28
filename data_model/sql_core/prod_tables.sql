@@ -1672,8 +1672,8 @@ ALTER TABLE workflow_step_object
 ALTER TABLE workflow_step
 	ADD CONSTRAINT fk_workflow_step_workflow_step_1 FOREIGN KEY (workflow_uuid) REFERENCES workflow (workflow_uuid),
 		ADD CONSTRAINT fk_workflow_step_workflow_step_object_1 FOREIGN KEY (workflow_step_object_uuid) REFERENCES workflow_step_object (workflow_step_object_uuid),
-			ADD CONSTRAINT fk_workflow_step_initial_1 FOREIGN KEY (initial_uuid) REFERENCES workflow_step_object (workflow_step_object_uuid),
-				ADD CONSTRAINT fk_workflow_step_terminal_1 FOREIGN KEY (terminal_uuid) REFERENCES workflow_step_object (workflow_step_object_uuid);
+			ADD CONSTRAINT fk_workflow_step_initial_1 FOREIGN KEY (initial_uuid) REFERENCES workflow_step (workflow_step_uuid),
+				ADD CONSTRAINT fk_workflow_step_terminal_1 FOREIGN KEY (terminal_uuid) REFERENCES workflow_step (workflow_step_uuid);
 
 ALTER TABLE workflow_state
 	ADD CONSTRAINT fk_workflow_state_workflow_step_1 FOREIGN KEY (workflow_step_uuid) REFERENCES workflow_step (workflow_step_uuid),

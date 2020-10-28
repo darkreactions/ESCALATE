@@ -1189,7 +1189,8 @@ SELECT
 	a.status_uuid as action_status_uuid,
 	sta.description as action_status_description,
 	a.add_date as action_add_date,
-	a.mod_date as action_mod_date,	
+	a.mod_date as action_mod_date,
+	p.parameter_uuid,	
 	p.parameter_def_uuid,
 	p.parameter_def_description,
 	p.parameter_val,
@@ -1222,15 +1223,17 @@ SELECT
 	json_build_object('action',
 		json_agg(
 			json_build_object(
-'action_description', a.action_description,
-'action_def_description', a.action_def_description,
-'action_uuid', a.action_uuid,
-'action_def_uuid', a.action_def_uuid,
-'action_actor', a.actor_description,
-'action_status', a.status_description,
-'action_add_date', a.add_date,
-'action_mod_date', a.mod_date,
-'parameter', param
+				'action_uuid', a.action_uuid,
+				'action_description', a.action_description,
+				'action_def_uuid', a.action_def_uuid,
+				'action_def_description', a.action_def_description,
+				'action_actor_uuid', a.actor_uuid,				
+				'action_actor', a.actor_description,
+				'action_status_uuid', a.status_uuid,
+				'action_status', a.status_description,
+				'action_add_date', a.add_date,
+				'action_mod_date', a.mod_date,
+				'parameter', param
 			)
 		)
 	) action_parameter_json
@@ -1242,13 +1245,15 @@ SELECT
 			json_agg(
 				json_build_object(
 --'action_uuid', p.action_uuid,
-'parameter_def_description', p.parameter_def_description,
-'parameter_def_uuid', p.parameter_def_uuid,
-'parameter_value', (select get_val_json(p.parameter_val)),
-'parameter_actor', p.parameter_actor_description,
-'parameter_status', p.parameter_status_description,
-'parameter_add_date', p.parameter_add_date,
-'parameter_mod_date', p.parameter_mod_date)
+				'parameter_def_description', p.parameter_def_description,
+				'parameter_def_uuid', p.parameter_def_uuid,
+				'parameter_value', (select get_val_json(p.parameter_val)),
+				'parameter_actor_uuid', p.parameter_actor_uuid,				
+				'parameter_actor', p.parameter_actor_description,
+				'parameter_status_uuid', p.parameter_status_uuid,				
+				'parameter_status', p.parameter_status_description,
+				'parameter_add_date', p.parameter_add_date,
+				'parameter_mod_date', p.parameter_mod_date)
 			) param
 FROM
 			vw_action_parameter p
@@ -1317,12 +1322,15 @@ CREATE OR REPLACE VIEW vw_condition AS
 SELECT
     cd.condition_uuid,
     cd.condition_calculation_def_x_uuid,
+    cc.condition_def_uuid,
     cc.condition_description,
     cc.calculation_description,
 	cd.in_val,
 	cd.out_val,
 	cd.actor_uuid,
+	act.description as actor_description,
 	cd.status_uuid,
+	st.description as status_description,
     cd.add_date,
 	cd.mod_date
 FROM condition cd
@@ -1336,6 +1344,93 @@ OR UPDATE
 OR DELETE ON vw_condition
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_condition();
+
+
+----------------------------------------
+-- view condition
+-- DROP VIEW vw_condition_calculation
+----------------------------------------
+CREATE OR REPLACE VIEW vw_condition_calculation AS
+SELECT
+    cd.condition_uuid,
+    cd.condition_description,
+	cd.in_val,
+	cd.out_val,
+	cd.actor_uuid as condition_actor_uuid,
+	act.description as condition_actor_description,
+	cd.status_uuid as condition_status_uuid,
+	st.description as condition_status_description,
+    cd.add_date as condition_add_date,
+	cd.mod_date as condition_mod_date,
+	cald.calculation_def_uuid,
+	cald.short_name as calculation_short_name,
+	cald.calc_definition as calculation_calc_definition,
+	cald.description as calculation_description,
+	cald.actor_uuid as calculation_actor_uuid,
+	actc.description as calculation_actor_description,
+	cald.status_uuid as calculation_status_uuid,
+	stc.description as calculation_status_description,
+	cald.add_date as calculation_add_date,
+	cald.mod_date as calculation_mod_date
+FROM condition c
+LEFT JOIN vw_condition_calculation_def_assign cc ON c.condition_calculation_def_x_uuid = cc.condition_calculation_def_x_uuid
+LEFT JOIN vw_condition cd ON c.condition_uuid = cd.condition_uuid
+LEFT JOIN vw_calculation_def cald ON cc.calculation_def_uuid = cald.calculation_def_uuid
+LEFT JOIN vw_actor act ON cd.actor_uuid = act.actor_uuid
+LEFT JOIN status st ON cd.status_uuid = st.status_uuid
+LEFT JOIN vw_actor actc ON cd.actor_uuid = actc.actor_uuid
+LEFT JOIN status stc ON cd.status_uuid = stc.status_uuid
+;	
+
+----------------------------------------
+-- view condition_calculation_json
+-- drop view condition_calculation_json
+----------------------------------------
+CREATE OR REPLACE VIEW vw_condition_calculation_json AS
+SELECT
+	json_build_object('condition',
+	json_agg(
+		json_build_object(
+			'condition_uuid', c.condition_uuid,
+			'condition_description', c.condition_description,
+			'condition_def_uuid', c.condition_def_uuid,
+			'condition_actor_uuid', c.actor_uuid,
+			'condition_actor', c.actor_description,
+			'condition_status_uuid', c.actor_uuid,
+			'condition_status', c.status_description,
+			'condition_add_date', c.add_date,
+			'condition_mod_date', c.mod_date,
+			'calculation', calc
+			)
+		)
+	) condition_calculation_json
+FROM
+    vw_condition c
+LEFT JOIN (
+SELECT
+	condition_uuid,
+	json_agg(
+		json_build_object(
+			'calculation_def_uuid', p.calculation_def_uuid,
+			'calculation_short_name', p.calculation_short_name,
+			'calculation_calc_definition', p.calculation_calc_definition,
+			'calculation_description', p.calculation_description,
+			'calculation_in_val', (select get_val_json(p.in_val[1])),
+			'calculation_out_val', (select get_val_json(p.out_val[1])),
+			'calculation_actor_uuid', p.calculation_actor_uuid,
+			'calculation_actor', p.calculation_actor_description,
+			'calculation_status_uuid', p.calculation_status_uuid,
+			'calculation_status', p.calculation_status_description,
+			'calculation_add_date', p.calculation_add_date,
+			'calculation_mod_date', p.calculation_mod_date)
+			) calc
+FROM
+			vw_condition_calculation p
+GROUP BY
+			condition_uuid
+	) p
+ON c.condition_uuid = p.condition_uuid;
+
 
 ----------------------------------------
 -- view experiment
@@ -1434,6 +1529,7 @@ CREATE OR REPLACE VIEW vw_workflow AS
 SELECT
 	wf.workflow_uuid,
 	wf.description,
+	wf.parent_uuid,
 	wf.workflow_def_uuid,
 	wd.description as workflow_def_description,
 	wd.workflow_type_uuid,
@@ -1472,19 +1568,27 @@ SELECT
 	CASE
 		when wso.action_uuid is not null then 'action'
 		when wso.condition_uuid is not null then 'condition'
+		else 'node'
 	end as step_object_type,
 	wso.action_uuid,
-	ad.description as action_description,
+	a.action_description,	
+	a.action_def_description,
 	wso.condition_uuid,
-	cd.description as condition_description,
+	c.condition_description,
+	c.calculation_description,	
 	wso.add_date,
 	wso.mod_date
 FROM workflow_step_object wso
 LEFT JOIN vw_action a ON wso.action_uuid = a.action_uuid
-LEFT JOIN vw_action_def ad ON a.action_def_uuid = ad.action_def_uuid
 LEFT JOIN vw_condition c ON wso.condition_uuid = c.condition_uuid
-LEFT JOIN vw_condition_calculation_def_assign cc ON c.condition_calculation_def_x_uuid = cc.condition_calculation_def_x_uuid
-LEFT JOIN vw_condition_def cd ON cc.condition_def_uuid = cd.condition_def_uuid;
+LEFT JOIN vw_condition_calculation_def_assign cc ON c.condition_calculation_def_x_uuid = cc.condition_calculation_def_x_uuid;
+
+DROP TRIGGER IF EXISTS trigger_workflow_step_upsert ON vw_workflow_step_object;
+CREATE TRIGGER trigger_workflow_step_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_workflow_step_object
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_workflow_step_object ( );
 
 
 ----------------------------------------
@@ -1497,6 +1601,10 @@ SELECT
 	wsd.workflow_uuid,
 	wsd.workflow_step_object_uuid,
 	wso.step_object_type as step_object_type,
+	CASE
+		when wso.action_uuid is not null then wso.action_description
+		when wso.condition_uuid is not null then wso.condition_description
+	end as step_object_description,
 	wso.action_uuid,
 	wso.action_description,
 	wso.condition_uuid,

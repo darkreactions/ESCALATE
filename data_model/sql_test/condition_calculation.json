@@ -1,0 +1,38 @@
+{
+   "condition":[
+      {
+         "condition_uuid":"0ea6e96e-9cd4-4cb8-8a84-1154b9285b72",
+         "condition_description":"temp > threshold ?",
+         "condition_def_uuid":"64bfc01c-c058-42dc-912b-eccf39c9bc70",
+         "condition_actor_uuid":"1588ee64-7c5c-4d87-b551-359809010551",
+         "condition_actor":"T Testuser",
+         "condition_status_uuid":"1588ee64-7c5c-4d87-b551-359809010551",
+         "condition_status":"dev_test",
+         "condition_add_date":"2020-10-28T09:59:58.446071-04:00",
+         "condition_mod_date":"2020-10-28T09:59:58.446071-04:00",
+         "calculation":[
+            {
+               "calculation_def_uuid":"1dfcd83e-3045-4002-abe1-08fe3a5bb771",
+               "calculation_short_name":"greater_than",
+               "calculation_calc_definition":"pop A, pop B, >",
+               "calculation_description":"B > A ? (pop B, pop A, >?) returning true or false",
+               "calculation_in_val":{
+                  "data_type":"num",
+                  "value":100,
+                  "unit":"C"
+               },
+               "calculation_out_val":{
+                  "data_type":"bool",
+                  "value":false
+               },
+               "calculation_actor_uuid":"68701f3c-9a9f-4ec3-9b3e-aada72a953c7",
+               "calculation_actor":"T Testuser",
+               "calculation_status_uuid":"348470f0-d297-4ae0-b113-78c97366ba15",
+               "calculation_status":"dev_test",
+               "calculation_add_date":"2020-10-28T09:59:58.440606-04:00",
+               "calculation_mod_date":"2020-10-28T09:59:58.440606-04:00"
+            }
+         ]
+      }
+   ]
+}

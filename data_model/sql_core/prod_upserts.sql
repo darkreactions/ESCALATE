@@ -1533,6 +1533,69 @@ LANGUAGE plpgsql;
 
 
 /*
+Name:			upsert_workflow_step_object()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.08.20
+Description:	trigger proc that deletes, inserts or updates workflow_step_object records based on TG_OP (trigger operation)
+Notes:				
+ 
+Example:		insert into vw_workflow_step_object (action_uuid) 
+					values (
+						(select action_uuid from vw_action where action_description = 'example_heat'));
+				insert into vw_workflow_step_object (condition_uuid) 
+					values (
+						(select condition_uuid from vw_condition where  condition_description = 'temp > threshold ?'));
+				insert into vw_workflow_step_object (action_uuid) 
+					values (
+						(select action_uuid from vw_action where action_description = 'example_heat'));
+				insert into vw_workflow_step_object (action_uuid) 
+					values (
+						(select action_uuid from vw_action where action_description = 'start'));
+				insert into vw_workflow_step_object (action_uuid) 
+					values (
+						(select action_uuid from vw_action where action_description = 'end'));
+*/
+CREATE OR REPLACE FUNCTION upsert_workflow_step_object ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		DELETE FROM workflow_step_object
+		WHERE workflow_step_object_uuid = OLD.workflow_step_object_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			workflow_step_object		
+		SET
+			action_uuid = NEW.action_uuid,
+			condition_uuid = NEW.condition_uuid,
+			mod_date = now()
+		WHERE
+			workflow_step_object.workflow_step_object_uuid = NEW.workflow_step_object_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		IF NEW.action_uuid IS NOT NULL THEN
+			INSERT INTO workflow_step_object (action_uuid) 
+				VALUES (NEW.action_uuid) returning workflow_step_object_uuid into NEW.workflow_step_object_uuid;
+		ELSIF NEW.condition_uuid IS NOT NULL THEN
+			INSERT INTO workflow_step_object (condition_uuid) 
+				VALUES (NEW.condition_uuid) returning workflow_step_object_uuid into NEW.workflow_step_object_uuid;	
+		END IF;	
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+
+/*
 Name:			upsert_workflow_step()
 Parameters:		
 
@@ -1545,12 +1608,73 @@ Notes:
 Example:		insert into vw_workflow_step (workflow_uuid, action_uuid, condition_uuid, initial_uuid, terminal_uuid, status_uuid) 
 					values (
 						(select workflow_uuid from vw_workflow where description = 'workflow_test'),
-						(select action_uuid from vw_action_parameter where action_description = 'test action'),
-						null,
-						null,
-						null,
+						(select action_uuid from vw_action where action_description = 'start'),
+						null, null, null,
 						(select status_uuid from vw_status where description = 'active')
 						);
+				insert into vw_workflow_step (workflow_uuid, action_uuid, condition_uuid, initial_uuid, terminal_uuid, status_uuid) 
+					values (
+						(select workflow_uuid from vw_workflow where description = 'workflow_test'),
+						(select action_uuid from vw_action where action_description = 'example_heat_stir'),
+						null, null, null,
+						(select status_uuid from vw_status where description = 'active')
+						);
+				insert into vw_workflow_step (workflow_uuid, action_uuid, condition_uuid, initial_uuid, terminal_uuid, status_uuid) 
+					values (
+						(select workflow_uuid from vw_workflow where description = 'workflow_test'),
+						null,
+						(select condition_uuid from vw_condition where condition_description = 'temp > threshold ?'),
+						null, null,
+						(select status_uuid from vw_status where description = 'active')
+						);
+				insert into vw_workflow_step (workflow_uuid, action_uuid, condition_uuid, initial_uuid, terminal_uuid, status_uuid) 
+					values (
+						(select workflow_uuid from vw_workflow where description = 'workflow_test'),
+						(select action_uuid from vw_action where action_description = 'example_heat'),
+						null, null, null,
+						(select status_uuid from vw_status where description = 'active')
+						);
+				insert into vw_workflow_step (workflow_uuid, action_uuid, condition_uuid, initial_uuid, terminal_uuid, status_uuid) 
+					values (
+						(select workflow_uuid from vw_workflow where description = 'workflow_test'),
+						(select action_uuid from vw_action where action_description = 'end'),
+						null, null, null,
+						(select status_uuid from vw_status where description = 'active')
+						);
+				update vw_workflow_step 
+					set terminal_uuid = 
+						(select workflow_step_uuid from vw_workflow_step where step_object_type = 'action' and step_object_description = 'example_heat_stir')
+					where 
+						step_object_type = 'action' and step_object_description = 'start';
+				update vw_workflow_step 
+					set 
+						initial_uuid = 
+							(select workflow_step_uuid from vw_workflow_step where step_object_type = 'action' and step_object_description = 'start'),
+						terminal_uuid = 
+							(select workflow_step_uuid from vw_workflow_step where step_object_type = 'condition' and step_object_description = 'temp > threshold ?')
+					where 
+						step_object_type = 'action' and step_object_description = 'example_heat_stir';
+				update vw_workflow_step 
+					set 
+						initial_uuid = 
+							(select workflow_step_uuid from vw_workflow_step where step_object_type = 'action' and step_object_description = 'example_heat_stir'),
+						terminal_uuid = 
+							(select workflow_step_uuid from vw_workflow_step where step_object_type = 'action' and step_object_description = 'example_heat')		
+					where 
+						step_object_type = 'condition' and step_object_description = 'temp > threshold ?';  		
+				update vw_workflow_step 
+					set 
+						initial_uuid = 
+							(select workflow_step_uuid from vw_workflow_step where step_object_type = 'condition' and step_object_description = 'temp > threshold ?'),		
+						terminal_uuid = 
+							(select workflow_step_uuid from vw_workflow_step where step_object_type = 'action' and step_object_description = 'end')
+					where 
+						step_object_type = 'action' and step_object_description = 'example_heat';
+				update vw_workflow_step 
+					set initial_uuid = 
+						(select workflow_step_uuid from vw_workflow_step where step_object_type = 'action' and step_object_description = 'example_heat')
+					where 
+						step_object_type = 'action' and step_object_description = 'end';
  				delete from vw_workflow_step where workflow_step_uuid =  ;
  */
 CREATE OR REPLACE FUNCTION upsert_workflow_step ()
@@ -1570,7 +1694,7 @@ BEGIN
 		SET
 			workflow_uuid = NEW.workflow_uuid,
 			workflow_step_object_uuid = NEW.workflow_step_object_uuid,
-			initial_uuid = NEW.inital_uuid,
+			initial_uuid = NEW.initial_uuid,
 			terminal_uuid = NEW.terminal_uuid,
 			status_uuid = NEW.status_uuid,
 			mod_date = now()
@@ -1579,12 +1703,50 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		IF NEW.action_uuid IS NOT NULL THEN
-			INSERT INTO workflow_step_object (action_uuid) VALUES (NEW.action_uuid) returning workflow_step_object_uuid into NEW.workflow_step_object_uuid;
+			INSERT INTO vw_workflow_step_object (action_uuid) VALUES (NEW.action_uuid) returning workflow_step_object_uuid into NEW.workflow_step_object_uuid;
 		ELSIF NEW.condition_uuid IS NOT NULL THEN
-			INSERT INTO workflow_step_object (condition_uuid) VALUES (NEW.condition_uuid) returning workflow_step_object_uuid into NEW.workflow_step_object_uuid;	
+			INSERT INTO vw_workflow_step_object (condition_uuid) VALUES (NEW.condition_uuid) returning workflow_step_object_uuid into NEW.workflow_step_object_uuid;	
 		END IF;	
 		INSERT INTO workflow_step (workflow_uuid, workflow_step_object_uuid, initial_uuid, terminal_uuid, status_uuid)
 			VALUES(NEW.workflow_uuid, NEW.workflow_step_object_uuid, NEW.initial_uuid, NEW.terminal_uuid, NEW.status_uuid) returning workflow_step_uuid into NEW.workflow_step_uuid;
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			upsert_workflow_step_link()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.08.20
+Description:	trigger proc that deletes, inserts or updates workflow_step_link records based on TG_OP (trigger operation)
+Notes:			this will link each action, condition to each other; from terminal of one object to initial to another	
+ 
+Example:		
+ */
+CREATE OR REPLACE FUNCTION upsert_workflow_step_link ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			workflow_step		
+		SET
+			initial_uuid = NEW.initial_uuid,
+			terminal_uuid = NEW.terminal_uuid,
+			mod_date = now()
+		WHERE
+			workflow_step.workflow_step_uuid = NEW.workflow_step_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO workflow_step (initial_uuid, terminal_uuid)
+			VALUES(NEW.initial_uuid, NEW.terminal_uuid) returning workflow_step_uuid into NEW.workflow_step_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1985,8 +2147,8 @@ BEGIN
 			parameter
 		SET
 		    parameter_val = NEW.parameter_val,
-            actor_uuid = NEW.actor_uuid,
-            status_uuid = NEW.status_uuid,
+            actor_uuid = NEW.parameter_actor_uuid,
+            status_uuid = NEW.parameter_status_uuid,
             mod_date = now()
 		WHERE
 		    parameter_uuid = NEW.parameter_uuid;
