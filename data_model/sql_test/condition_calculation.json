@@ -1,18 +1,18 @@
 {
    "condition":[
       {
-         "condition_uuid":"0ea6e96e-9cd4-4cb8-8a84-1154b9285b72",
+         "condition_uuid":"5d1d3c05-69f4-43b4-8a80-abb98f9e50d5",
          "condition_description":"temp > threshold ?",
-         "condition_def_uuid":"64bfc01c-c058-42dc-912b-eccf39c9bc70",
-         "condition_actor_uuid":"1588ee64-7c5c-4d87-b551-359809010551",
+         "condition_def_uuid":"5e0cc7de-a0b2-4c14-9772-bd004150965f",
+         "condition_actor_uuid":"2f662071-9a8a-48f6-8839-f4e0d1f92b6a",
          "condition_actor":"T Testuser",
-         "condition_status_uuid":"1588ee64-7c5c-4d87-b551-359809010551",
+         "condition_status_uuid":"2f662071-9a8a-48f6-8839-f4e0d1f92b6a",
          "condition_status":"dev_test",
-         "condition_add_date":"2020-10-28T09:59:58.446071-04:00",
-         "condition_mod_date":"2020-10-28T09:59:58.446071-04:00",
+         "condition_add_date":"2020-10-28T10:52:49.525302-04:00",
+         "condition_mod_date":"2020-10-28T10:52:49.525302-04:00",
          "calculation":[
             {
-               "calculation_def_uuid":"1dfcd83e-3045-4002-abe1-08fe3a5bb771",
+               "calculation_def_uuid":"0f17c901-e42c-4eeb-806a-a1d30b8d964a",
                "calculation_short_name":"greater_than",
                "calculation_calc_definition":"pop A, pop B, >",
                "calculation_description":"B > A ? (pop B, pop A, >?) returning true or false",
@@ -25,12 +25,12 @@
                   "data_type":"bool",
                   "value":false
                },
-               "calculation_actor_uuid":"68701f3c-9a9f-4ec3-9b3e-aada72a953c7",
+               "calculation_actor_uuid":"26ffeac8-ee0f-4aa7-a758-81f51763b533",
                "calculation_actor":"T Testuser",
-               "calculation_status_uuid":"348470f0-d297-4ae0-b113-78c97366ba15",
+               "calculation_status_uuid":"272dda54-c9aa-4225-9b0c-c0c979b8c625",
                "calculation_status":"dev_test",
-               "calculation_add_date":"2020-10-28T09:59:58.440606-04:00",
-               "calculation_mod_date":"2020-10-28T09:59:58.440606-04:00"
+               "calculation_add_date":"2020-10-28T10:52:49.521014-04:00",
+               "calculation_mod_date":"2020-10-28T10:52:49.521014-04:00"
             }
          ]
       }

@@ -789,7 +789,7 @@ insert into vw_workflow (workflow_def_uuid, description, experiment_uuid, actor_
 		(select actor_uuid from vw_actor where description = 'Dev Test123'),
 		(select status_uuid from vw_status where description = 'dev_test'));
 
--- create action_def, paramater_def, action_parameter_def_assign, action
+-- create action_def, parameter_def, action_parameter_def_assign, action
 insert into vw_action_def (description, actor_uuid, status_uuid) values
 	('heat_stir', (select actor_uuid from vw_actor where description = 'Dev Test123'),
     (select status_uuid from vw_status where description = 'dev_test')),
@@ -881,7 +881,7 @@ insert into vw_workflow_step_object (action_uuid)
 						(select condition_uuid from vw_condition where  condition_description = 'temp > threshold ?'));
 				insert into vw_workflow_step_object (action_uuid) 
 					values (
-						(select action_uuid from vw_action where action_description = 'example_heat'));
+						(select action_uuid from vw_action where action_description = 'example_heat_stir'));
 				insert into vw_workflow_step_object (action_uuid) 
 					values (
 						(select action_uuid from vw_action where action_description = 'start'));
@@ -960,10 +960,10 @@ update vw_workflow_step
 
 -- generate the workflow linked list orders from start to end in json
 WITH RECURSIVE wf(workflow_step_uuid, step_object_uuid, step_object_type, step_object_description, terminal_uuid) AS (
-    SELECT w1.workflow_step_uuid,  w1.workflow_step_object_uuid as step_object_uuid,  w1.step_object_type, w1.step_object_description, w1.terminal_uuid
+    SELECT w1.workflow_step_uuid,  w1.step_object_uuid,  w1.step_object_type, w1.step_object_description, w1.terminal_uuid
     FROM vw_workflow_step w1 WHERE workflow_step_uuid = (select workflow_step_uuid from vw_workflow_step where action_description = 'start')
     UNION ALL
-    SELECT w2.workflow_step_uuid, w2.workflow_step_object_uuid as step_object_uuid, w2.step_object_type, w2.step_object_description, w2.terminal_uuid
+    SELECT w2.workflow_step_uuid, w2.step_object_uuid as step_object_uuid, w2.step_object_type, w2.step_object_description, w2.terminal_uuid
     FROM vw_workflow_step w2
     JOIN wf ON wf.terminal_uuid = w2.workflow_step_uuid
 )

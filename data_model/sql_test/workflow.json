@@ -2,40 +2,40 @@
    "workflow":[
       {
          "worflow_order":1,
-         "workflow_step_uuid":"e7ca07f8-ec1f-498f-8fb6-684c49f78df8",
-         "workflow_step_object_uuid":"89dac1ad-4026-4278-adbe-ef26346c5742",
+         "workflow_step_uuid":"96cc4fb1-2aab-42b4-82b0-6070e48bdb1c",
+         "workflow_step_object_uuid":"ae683aa8-14fa-452a-ab10-56b92446f620",
          "workflow_step_object_type":"action",
          "workflow_step_object_description":"start",
-         "workflow_step_object_terminal_uuid":"b6cba458-7fdc-460c-b0f8-32cae4ab0e65"
+         "workflow_step_object_terminal_uuid":"9b18367f-708f-46af-bfa3-8541a320686e"
       },
       {
          "worflow_order":2,
-         "workflow_step_uuid":"b6cba458-7fdc-460c-b0f8-32cae4ab0e65",
-         "workflow_step_object_uuid":"d7b675d1-0fd8-4ce1-8261-33e5c2707e37",
+         "workflow_step_uuid":"9b18367f-708f-46af-bfa3-8541a320686e",
+         "workflow_step_object_uuid":"76dd0348-0aa0-4a6d-b4b1-2a760d82bd5d",
          "workflow_step_object_type":"action",
          "workflow_step_object_description":"example_heat",
-         "workflow_step_object_terminal_uuid":"bfb94741-4cec-414d-8a55-6044a16829a7"
+         "workflow_step_object_terminal_uuid":"2e137741-9e38-4fb6-bc6d-ba1595fffc4a"
       },
       {
          "worflow_order":3,
-         "workflow_step_uuid":"bfb94741-4cec-414d-8a55-6044a16829a7",
-         "workflow_step_object_uuid":"5d1df716-e20f-45c9-a268-73c46c42e014",
+         "workflow_step_uuid":"2e137741-9e38-4fb6-bc6d-ba1595fffc4a",
+         "workflow_step_object_uuid":"5d1d3c05-69f4-43b4-8a80-abb98f9e50d5",
          "workflow_step_object_type":"condition",
          "workflow_step_object_description":"temp > threshold ?",
-         "workflow_step_object_terminal_uuid":"f8cc062a-d370-4414-85c8-bf3b3e9e49ef"
+         "workflow_step_object_terminal_uuid":"f0d63830-633f-467e-93e2-6821df8ae25b"
       },
       {
          "worflow_order":4,
-         "workflow_step_uuid":"f8cc062a-d370-4414-85c8-bf3b3e9e49ef",
-         "workflow_step_object_uuid":"d481be04-c201-465b-97f7-8ae85ca52336",
+         "workflow_step_uuid":"f0d63830-633f-467e-93e2-6821df8ae25b",
+         "workflow_step_object_uuid":"959ac9a0-61ba-49cd-a9fd-2e345328ca0e",
          "workflow_step_object_type":"action",
          "workflow_step_object_description":"example_heat_stir",
-         "workflow_step_object_terminal_uuid":"2e543e1b-bfb9-4a9b-ba34-00ac3b5e8d3b"
+         "workflow_step_object_terminal_uuid":"7d9091f2-3daa-45f6-8ca7-b1836d48ca61"
       },
       {
          "worflow_order":5,
-         "workflow_step_uuid":"2e543e1b-bfb9-4a9b-ba34-00ac3b5e8d3b",
-         "workflow_step_object_uuid":"44b2e2e2-32d6-4875-8d83-386243ae7ec7",
+         "workflow_step_uuid":"7d9091f2-3daa-45f6-8ca7-b1836d48ca61",
+         "workflow_step_object_uuid":"3a301c38-a5f7-49f7-a406-a1ecdd93ce3f",
          "workflow_step_object_type":"action",
          "workflow_step_object_description":"end",
          "workflow_step_object_terminal_uuid":null

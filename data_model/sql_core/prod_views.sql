@@ -1605,6 +1605,10 @@ SELECT
 		when wso.action_uuid is not null then wso.action_description
 		when wso.condition_uuid is not null then wso.condition_description
 	end as step_object_description,
+	CASE
+		when wso.action_uuid is not null then wso.action_uuid
+		when wso.condition_uuid is not null then wso.condition_uuid
+	end as step_object_uuid,
 	wso.action_uuid,
 	wso.action_description,
 	wso.condition_uuid,
