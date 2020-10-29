@@ -14,7 +14,7 @@ BEGIN {
 	if ($1 == "CREATE" && $2 == "TABLE" && !(flag))
 	{
 		tablename = $3
-		print "COMMENT ON TABLE",$3,"IS ''"
+		print "COMMENT ON TABLE",$3,"IS '';"
 		flag = 1
 	}
 	else if ($0 == ");" && (flag))
@@ -24,7 +24,7 @@ BEGIN {
 	}
 	else if (flag)
 	{
-		print "COMMENT ON COLUMN",tablename"."$1,"IS ''"
+		print "COMMENT ON COLUMN",tablename"."$1,"IS '';"
 	}
 	else 
 		next

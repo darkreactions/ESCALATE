@@ -235,13 +235,13 @@ CREATE TABLE action_def (
 );
 
 
- CREATE TABLE action_parameter_def_x (
+CREATE TABLE action_parameter_def_x (
     action_parameter_def_x_uuid uuid DEFAULT uuid_generate_v4 (),
  	parameter_def_uuid uuid NOT NULL,
  	action_def_uuid uuid NOT NULL,
  	add_date timestamptz NOT NULL DEFAULT NOW(),
  	mod_date timestamptz NOT NULL DEFAULT NOW()
- );
+);
 
 
 CREATE TABLE actor (
@@ -366,7 +366,7 @@ CREATE TABLE condition_calculation_def_x (
  	calculation_def_uuid uuid NOT NULL,
  	add_date timestamptz NOT NULL DEFAULT NOW(),
  	mod_date timestamptz NOT NULL DEFAULT NOW()
- );
+);
 
 
 CREATE TABLE edocument (
@@ -426,7 +426,6 @@ CREATE TABLE inventory (
 	part_no varchar,
 	onhand_amt numeric,
 	unit varchar,
-	-- measure_uuid int8,
 	expiration_date timestamptz DEFAULT NULL,
 	inventory_location varchar(255) COLLATE "pg_catalog"."default",
 	status_uuid uuid,
@@ -459,7 +458,6 @@ CREATE TABLE material_x (
 CREATE TABLE material_refname (
 	material_refname_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default",
-	-- material_uuid int8,
 	blob_value bytea,
 	blob_type varchar,
 	material_refname_def_uuid uuid,
@@ -868,7 +866,7 @@ CREATE TABLE workflow_type (
 -- ----------------------------
 -- Table for [internal] escalate use only
 -- ----------------------------
-CREATE TABLE escalate_change_log (
+-- CREATE TABLE escalate_change_log (
  change_log_uuid uuid DEFAULT uuid_generate_v4 (),
  issue varchar COLLATE "pg_catalog"."default",
  object_type varchar COLLATE "pg_catalog"."default",
@@ -878,14 +876,14 @@ CREATE TABLE escalate_change_log (
  status varchar COLLATE "pg_catalog"."default",
  create_date timestamptz NOT NULL DEFAULT NOW(),
  close_date timestamptz NOT NULL DEFAULT NOW()
-);
+-- );
 
-CREATE TABLE escalate_version (
+-- CREATE TABLE escalate_version (
  ver_uuid uuid DEFAULT uuid_generate_v4 (),
  short_name varchar COLLATE "pg_catalog"."default",
  description varchar COLLATE "pg_catalog"."default",	
  add_date timestamptz NOT NULL DEFAULT NOW()
-);
+-- );
  */
  
 --======================================================================
@@ -1524,320 +1522,317 @@ ALTER TABLE workflow_step_object
 -- TABLE AND COLUMN COMMENTS
 --======================================================================
 --======================================================================
-COMMENT ON TABLE action IS ''
-COMMENT ON COLUMN action.action_uuid IS ''
-COMMENT ON COLUMN action.action_def_uuid IS ''
-COMMENT ON COLUMN action.description IS ''
-COMMENT ON COLUMN action.start_date IS ''
-COMMENT ON COLUMN action.end_date IS ''
-COMMENT ON COLUMN action.duration IS ''
-COMMENT ON COLUMN action.repeating IS ''
-COMMENT ON COLUMN action.ref_parameter_uuid IS ''
-COMMENT ON COLUMN action.calculation_def_uuid IS ''
-COMMENT ON COLUMN action.source_material_uuid IS ''
-COMMENT ON COLUMN action.destination_material_uuid IS ''
-COMMENT ON COLUMN action.actor_uuid IS ''
-COMMENT ON COLUMN action.status_uuid IS ''
-COMMENT ON COLUMN action.add_date IS ''
-COMMENT ON COLUMN action.mod_date IS ''
+COMMENT ON TABLE action IS '';
+COMMENT ON COLUMN action.action_uuid IS '';
+COMMENT ON COLUMN action.action_def_uuid IS '';
+COMMENT ON COLUMN action.description IS '';
+COMMENT ON COLUMN action.start_date IS '';
+COMMENT ON COLUMN action.end_date IS '';
+COMMENT ON COLUMN action.duration IS '';
+COMMENT ON COLUMN action.repeating IS '';
+COMMENT ON COLUMN action.ref_parameter_uuid IS '';
+COMMENT ON COLUMN action.calculation_def_uuid IS '';
+COMMENT ON COLUMN action.source_material_uuid IS '';
+COMMENT ON COLUMN action.destination_material_uuid IS '';
+COMMENT ON COLUMN action.actor_uuid IS '';
+COMMENT ON COLUMN action.status_uuid IS '';
+COMMENT ON COLUMN action.add_date IS '';
+COMMENT ON COLUMN action.mod_date IS '';
 
 
-COMMENT ON TABLE action_def IS ''
-COMMENT ON COLUMN action_def.action_def_uuid IS ''
-COMMENT ON COLUMN action_def.description IS ''
-COMMENT ON COLUMN action_def.status_uuid IS ''
-COMMENT ON COLUMN action_def.actor_uuid IS ''
-COMMENT ON COLUMN action_def.add_date IS ''
-COMMENT ON COLUMN action_def.mod_date IS ''
+COMMENT ON TABLE action_def IS '';
+COMMENT ON COLUMN action_def.action_def_uuid IS '';
+COMMENT ON COLUMN action_def.description IS '';
+COMMENT ON COLUMN action_def.status_uuid IS '';
+COMMENT ON COLUMN action_def.actor_uuid IS '';
+COMMENT ON COLUMN action_def.add_date IS '';
+COMMENT ON COLUMN action_def.mod_date IS '';
 
 
-COMMENT ON TABLE action_parameter_def_x IS ''
-COMMENT ON COLUMN action_parameter_def_x.action_parameter_def_x_uuid IS ''
-COMMENT ON COLUMN action_parameter_def_x.parameter_def_uuid IS ''
-COMMENT ON COLUMN action_parameter_def_x.action_def_uuid IS ''
-COMMENT ON COLUMN action_parameter_def_x.add_date IS ''
-COMMENT ON COLUMN action_parameter_def_x.mod_date IS ''
-COMMENT ON COLUMN action_parameter_def_x.); IS ''
-COMMENT ON COLUMN action_parameter_def_x. IS ''
-COMMENT ON COLUMN action_parameter_def_x. IS ''
-COMMENT ON COLUMN action_parameter_def_x.CREATE IS ''
-COMMENT ON COLUMN action_parameter_def_x.actor_uuid IS ''
-COMMENT ON COLUMN action_parameter_def_x.person_uuid IS ''
-COMMENT ON COLUMN action_parameter_def_x.organization_uuid IS ''
-COMMENT ON COLUMN action_parameter_def_x.systemtool_uuid IS ''
-COMMENT ON COLUMN action_parameter_def_x.description IS ''
-COMMENT ON COLUMN action_parameter_def_x.status_uuid IS ''
-COMMENT ON COLUMN action_parameter_def_x.add_date IS ''
-COMMENT ON COLUMN action_parameter_def_x.mod_date IS ''
+COMMENT ON TABLE action_parameter_def_x IS '';
+COMMENT ON COLUMN action_parameter_def_x.action_parameter_def_x_uuid IS '';
+COMMENT ON COLUMN action_parameter_def_x.parameter_def_uuid IS '';
+COMMENT ON COLUMN action_parameter_def_x.action_def_uuid IS '';
+COMMENT ON COLUMN action_parameter_def_x.add_date IS '';
+COMMENT ON COLUMN action_parameter_def_x.mod_date IS '';
 
 
-COMMENT ON TABLE actor_pref IS ''
-COMMENT ON COLUMN actor_pref.actor_pref_uuid IS ''
-COMMENT ON COLUMN actor_pref.actor_uuid IS ''
-COMMENT ON COLUMN actor_pref.pkey IS ''
-COMMENT ON COLUMN actor_pref.pvalue IS ''
-COMMENT ON COLUMN actor_pref.add_date IS ''
-COMMENT ON COLUMN actor_pref.mod_date IS ''
+COMMENT ON TABLE actor IS '';
+COMMENT ON COLUMN actor.actor_uuid IS '';
+COMMENT ON COLUMN actor.person_uuid IS '';
+COMMENT ON COLUMN actor.organization_uuid IS '';
+COMMENT ON COLUMN actor.systemtool_uuid IS '';
+COMMENT ON COLUMN actor.description IS '';
+COMMENT ON COLUMN actor.status_uuid IS '';
+COMMENT ON COLUMN actor.add_date IS '';
+COMMENT ON COLUMN actor.mod_date IS '';
 
 
-COMMENT ON TABLE bom IS ''
-COMMENT ON COLUMN bom.bom_uuid IS ''
-COMMENT ON COLUMN bom.experiment_uuid IS ''
-COMMENT ON COLUMN bom.material_uuid IS ''
-COMMENT ON COLUMN bom.measure_x_uuid IS ''
-COMMENT ON COLUMN bom.actor_uuid IS ''
-COMMENT ON COLUMN bom.status_uuid IS ''
-COMMENT ON COLUMN bom.add_date IS ''
-COMMENT ON COLUMN bom.mod_date IS ''
+COMMENT ON TABLE actor_pref IS '';
+COMMENT ON COLUMN actor_pref.actor_pref_uuid IS '';
+COMMENT ON COLUMN actor_pref.actor_uuid IS '';
+COMMENT ON COLUMN actor_pref.pkey IS '';
+COMMENT ON COLUMN actor_pref.pvalue IS '';
+COMMENT ON COLUMN actor_pref.add_date IS '';
+COMMENT ON COLUMN actor_pref.mod_date IS '';
 
 
-COMMENT ON TABLE calculation IS ''
-COMMENT ON COLUMN calculation.calculation_uuid IS ''
-COMMENT ON COLUMN calculation.calculation_def_uuid IS ''
-COMMENT ON COLUMN calculation.calculation_alias_name IS ''
-COMMENT ON COLUMN calculation.in_val IS ''
-COMMENT ON COLUMN calculation.in_opt_val IS ''
-COMMENT ON COLUMN calculation.out_val IS ''
-COMMENT ON COLUMN calculation.status_uuid IS ''
-COMMENT ON COLUMN calculation.actor_uuid IS ''
-COMMENT ON COLUMN calculation.add_date IS ''
-COMMENT ON COLUMN calculation.mod_date IS ''
+COMMENT ON TABLE bom IS '';
+COMMENT ON COLUMN bom.bom_uuid IS '';
+COMMENT ON COLUMN bom.experiment_uuid IS '';
+COMMENT ON COLUMN bom.material_uuid IS '';
+COMMENT ON COLUMN bom.measure_x_uuid IS '';
+COMMENT ON COLUMN bom.actor_uuid IS '';
+COMMENT ON COLUMN bom.status_uuid IS '';
+COMMENT ON COLUMN bom.add_date IS '';
+COMMENT ON COLUMN bom.mod_date IS '';
 
 
-COMMENT ON TABLE calculation_class IS ''
-COMMENT ON COLUMN calculation_class.calculation_class_uuid IS ''
-COMMENT ON COLUMN calculation_class.description IS ''
-COMMENT ON COLUMN calculation_class.add_date IS ''
-COMMENT ON COLUMN calculation_class.mod_date IS ''
+COMMENT ON TABLE calculation IS '';
+COMMENT ON COLUMN calculation.calculation_uuid IS '';
+COMMENT ON COLUMN calculation.calculation_def_uuid IS '';
+COMMENT ON COLUMN calculation.calculation_alias_name IS '';
+COMMENT ON COLUMN calculation.in_val IS '';
+COMMENT ON COLUMN calculation.in_opt_val IS '';
+COMMENT ON COLUMN calculation.out_val IS '';
+COMMENT ON COLUMN calculation.status_uuid IS '';
+COMMENT ON COLUMN calculation.actor_uuid IS '';
+COMMENT ON COLUMN calculation.add_date IS '';
+COMMENT ON COLUMN calculation.mod_date IS '';
 
 
-COMMENT ON TABLE calculation_def IS ''
-COMMENT ON COLUMN calculation_def.calculation_def_uuid IS ''
-COMMENT ON COLUMN calculation_def.short_name IS ''
-COMMENT ON COLUMN calculation_def.calc_definition IS ''
-COMMENT ON COLUMN calculation_def.systemtool_uuid IS ''
-COMMENT ON COLUMN calculation_def.description IS ''
-COMMENT ON COLUMN calculation_def.in_source_uuid IS ''
-COMMENT ON COLUMN calculation_def.in_type_uuid IS ''
-COMMENT ON COLUMN calculation_def.in_opt_source_uuid IS ''
-COMMENT ON COLUMN calculation_def.in_opt_type_uuid IS ''
-COMMENT ON COLUMN calculation_def.out_type_uuid IS ''
-COMMENT ON COLUMN calculation_def.calculation_class_uuid IS ''
-COMMENT ON COLUMN calculation_def.actor_uuid IS ''
-COMMENT ON COLUMN calculation_def.status_uuid IS ''
-COMMENT ON COLUMN calculation_def.add_date IS ''
-COMMENT ON COLUMN calculation_def.mod_date IS ''
+COMMENT ON TABLE calculation_class IS '';
+COMMENT ON COLUMN calculation_class.calculation_class_uuid IS '';
+COMMENT ON COLUMN calculation_class.description IS '';
+COMMENT ON COLUMN calculation_class.add_date IS '';
+COMMENT ON COLUMN calculation_class.mod_date IS '';
 
 
-COMMENT ON TABLE calculation_eval IS ''
-COMMENT ON COLUMN calculation_eval.calculation_eval_id IS ''
-COMMENT ON COLUMN calculation_eval.calculation_def_uuid IS ''
-COMMENT ON COLUMN calculation_eval.in_val IS ''
-COMMENT ON COLUMN calculation_eval.in_opt_val IS ''
-COMMENT ON COLUMN calculation_eval.out_val IS ''
-COMMENT ON COLUMN calculation_eval.calculation_alias_name IS ''
-COMMENT ON COLUMN calculation_eval.actor_uuid IS ''
-COMMENT ON COLUMN calculation_eval.add_date IS ''
+COMMENT ON TABLE calculation_def IS '';
+COMMENT ON COLUMN calculation_def.calculation_def_uuid IS '';
+COMMENT ON COLUMN calculation_def.short_name IS '';
+COMMENT ON COLUMN calculation_def.calc_definition IS '';
+COMMENT ON COLUMN calculation_def.systemtool_uuid IS '';
+COMMENT ON COLUMN calculation_def.description IS '';
+COMMENT ON COLUMN calculation_def.in_source_uuid IS '';
+COMMENT ON COLUMN calculation_def.in_type_uuid IS '';
+COMMENT ON COLUMN calculation_def.in_opt_source_uuid IS '';
+COMMENT ON COLUMN calculation_def.in_opt_type_uuid IS '';
+COMMENT ON COLUMN calculation_def.out_type_uuid IS '';
+COMMENT ON COLUMN calculation_def.calculation_class_uuid IS '';
+COMMENT ON COLUMN calculation_def.actor_uuid IS '';
+COMMENT ON COLUMN calculation_def.status_uuid IS '';
+COMMENT ON COLUMN calculation_def.add_date IS '';
+COMMENT ON COLUMN calculation_def.mod_date IS '';
 
 
-COMMENT ON TABLE calculation_stack IS ''
-COMMENT ON COLUMN calculation_stack.calculation_stack_id IS ''
-COMMENT ON COLUMN calculation_stack.stack_val IS ''
-COMMENT ON COLUMN calculation_stack.add_date IS ''
+COMMENT ON TABLE calculation_eval IS '';
+COMMENT ON COLUMN calculation_eval.calculation_eval_id IS '';
+COMMENT ON COLUMN calculation_eval.calculation_def_uuid IS '';
+COMMENT ON COLUMN calculation_eval.in_val IS '';
+COMMENT ON COLUMN calculation_eval.in_opt_val IS '';
+COMMENT ON COLUMN calculation_eval.out_val IS '';
+COMMENT ON COLUMN calculation_eval.calculation_alias_name IS '';
+COMMENT ON COLUMN calculation_eval.actor_uuid IS '';
+COMMENT ON COLUMN calculation_eval.add_date IS '';
 
 
-COMMENT ON TABLE condition IS ''
-COMMENT ON COLUMN condition.condition_uuid IS ''
-COMMENT ON COLUMN condition.condition_calculation_def_x_uuid IS ''
-COMMENT ON COLUMN condition.in_val IS ''
-COMMENT ON COLUMN condition.out_val IS ''
-COMMENT ON COLUMN condition.actor_uuid IS ''
-COMMENT ON COLUMN condition.status_uuid IS ''
-COMMENT ON COLUMN condition.add_date IS ''
-COMMENT ON COLUMN condition.mod_date IS ''
+COMMENT ON TABLE calculation_stack IS '';
+COMMENT ON COLUMN calculation_stack.calculation_stack_id IS '';
+COMMENT ON COLUMN calculation_stack.stack_val IS '';
+COMMENT ON COLUMN calculation_stack.add_date IS '';
 
 
-COMMENT ON TABLE condition_def IS ''
-COMMENT ON COLUMN condition_def.condition_def_uuid IS ''
-COMMENT ON COLUMN condition_def.description IS ''
-COMMENT ON COLUMN condition_def.actor_uuid IS ''
-COMMENT ON COLUMN condition_def.status_uuid IS ''
-COMMENT ON COLUMN condition_def.add_date IS ''
-COMMENT ON COLUMN condition_def.mod_date IS ''
+COMMENT ON TABLE condition IS '';
+COMMENT ON COLUMN condition.condition_uuid IS '';
+COMMENT ON COLUMN condition.condition_calculation_def_x_uuid IS '';
+COMMENT ON COLUMN condition.in_val IS '';
+COMMENT ON COLUMN condition.out_val IS '';
+COMMENT ON COLUMN condition.actor_uuid IS '';
+COMMENT ON COLUMN condition.status_uuid IS '';
+COMMENT ON COLUMN condition.add_date IS '';
+COMMENT ON COLUMN condition.mod_date IS '';
 
 
-COMMENT ON TABLE condition_calculation_def_x IS ''
-COMMENT ON COLUMN condition_calculation_def_x.condition_calculation_def_x_uuid IS ''
-COMMENT ON COLUMN condition_calculation_def_x.condition_def_uuid IS ''
-COMMENT ON COLUMN condition_calculation_def_x.calculation_def_uuid IS ''
-COMMENT ON COLUMN condition_calculation_def_x.add_date IS ''
-COMMENT ON COLUMN condition_calculation_def_x.mod_date IS ''
-COMMENT ON COLUMN condition_calculation_def_x.); IS ''
-COMMENT ON COLUMN condition_calculation_def_x. IS ''
-COMMENT ON COLUMN condition_calculation_def_x. IS ''
-COMMENT ON COLUMN condition_calculation_def_x.CREATE IS ''
-COMMENT ON COLUMN condition_calculation_def_x.edocument_uuid IS ''
-COMMENT ON COLUMN condition_calculation_def_x.title IS ''
-COMMENT ON COLUMN condition_calculation_def_x.description IS ''
-COMMENT ON COLUMN condition_calculation_def_x.filename IS ''
-COMMENT ON COLUMN condition_calculation_def_x.source IS ''
-COMMENT ON COLUMN condition_calculation_def_x.edocument IS ''
-COMMENT ON COLUMN condition_calculation_def_x.doc_type_uuid IS ''
-COMMENT ON COLUMN condition_calculation_def_x.doc_ver IS ''
-COMMENT ON COLUMN condition_calculation_def_x.actor_uuid IS ''
-COMMENT ON COLUMN condition_calculation_def_x.status_uuid IS ''
-COMMENT ON COLUMN condition_calculation_def_x.add_date IS ''
-COMMENT ON COLUMN condition_calculation_def_x.mod_date IS ''
+COMMENT ON TABLE condition_def IS '';
+COMMENT ON COLUMN condition_def.condition_def_uuid IS '';
+COMMENT ON COLUMN condition_def.description IS '';
+COMMENT ON COLUMN condition_def.actor_uuid IS '';
+COMMENT ON COLUMN condition_def.status_uuid IS '';
+COMMENT ON COLUMN condition_def.add_date IS '';
+COMMENT ON COLUMN condition_def.mod_date IS '';
 
 
-COMMENT ON TABLE edocument_x IS ''
-COMMENT ON COLUMN edocument_x.edocument_x_uuid IS ''
-COMMENT ON COLUMN edocument_x.ref_edocument_uuid IS ''
-COMMENT ON COLUMN edocument_x.edocument_uuid IS ''
-COMMENT ON COLUMN edocument_x.add_date IS ''
-COMMENT ON COLUMN edocument_x.mod_date IS ''
+COMMENT ON TABLE condition_calculation_def_x IS '';
+COMMENT ON COLUMN condition_calculation_def_x.condition_calculation_def_x_uuid IS '';
+COMMENT ON COLUMN condition_calculation_def_x.condition_def_uuid IS '';
+COMMENT ON COLUMN condition_calculation_def_x.calculation_def_uuid IS '';
+COMMENT ON COLUMN condition_calculation_def_x.add_date IS '';
+COMMENT ON COLUMN condition_calculation_def_x.mod_date IS '';
 
 
-COMMENT ON TABLE experiment IS ''
-COMMENT ON COLUMN experiment.experiment_uuid IS ''
-COMMENT ON COLUMN experiment.ref_uid IS ''
-COMMENT ON COLUMN experiment.description IS ''
-COMMENT ON COLUMN experiment.parent_uuid IS ''
-COMMENT ON COLUMN experiment.parent_path IS ''
-COMMENT ON COLUMN experiment.owner_uuid IS ''
-COMMENT ON COLUMN experiment.operator_uuid IS ''
-COMMENT ON COLUMN experiment.lab_uuid IS ''
-COMMENT ON COLUMN experiment.status_uuid IS ''
-COMMENT ON COLUMN experiment.add_date IS ''
-COMMENT ON COLUMN experiment.mod_date IS ''
+COMMENT ON TABLE edocument IS '';
+COMMENT ON COLUMN edocument.edocument_uuid IS '';
+COMMENT ON COLUMN edocument.title IS '';
+COMMENT ON COLUMN edocument.description IS '';
+COMMENT ON COLUMN edocument.filename IS '';
+COMMENT ON COLUMN edocument.source IS '';
+COMMENT ON COLUMN edocument.edocument IS '';
+COMMENT ON COLUMN edocument.doc_type_uuid IS '';
+COMMENT ON COLUMN edocument.doc_ver IS '';
+COMMENT ON COLUMN edocument.actor_uuid IS '';
+COMMENT ON COLUMN edocument.status_uuid IS '';
+COMMENT ON COLUMN edocument.add_date IS '';
+COMMENT ON COLUMN edocument.mod_date IS '';
 
 
-COMMENT ON TABLE experiment_workflow IS ''
-COMMENT ON COLUMN experiment_workflow.experiment_workflow_uuid IS ''
-COMMENT ON COLUMN experiment_workflow.experiment_uuid IS ''
-COMMENT ON COLUMN experiment_workflow.workflow_uuid IS ''
-COMMENT ON COLUMN experiment_workflow.add_date IS ''
-COMMENT ON COLUMN experiment_workflow.mod_date IS ''
+COMMENT ON TABLE edocument_x IS '';
+COMMENT ON COLUMN edocument_x.edocument_x_uuid IS '';
+COMMENT ON COLUMN edocument_x.ref_edocument_uuid IS '';
+COMMENT ON COLUMN edocument_x.edocument_uuid IS '';
+COMMENT ON COLUMN edocument_x.add_date IS '';
+COMMENT ON COLUMN edocument_x.mod_date IS '';
 
 
-COMMENT ON TABLE inventory IS ''
-COMMENT ON COLUMN inventory.inventory_uuid IS ''
-COMMENT ON COLUMN inventory.description IS ''
-COMMENT ON COLUMN inventory.material_uuid IS ''
-COMMENT ON COLUMN inventory.actor_uuid IS ''
-COMMENT ON COLUMN inventory.part_no IS ''
-COMMENT ON COLUMN inventory.onhand_amt IS ''
-COMMENT ON COLUMN inventory.unit IS ''
-COMMENT ON COLUMN inventory.-- IS ''
-COMMENT ON COLUMN inventory.expiration_date IS ''
-COMMENT ON COLUMN inventory.inventory_location IS ''
-COMMENT ON COLUMN inventory.status_uuid IS ''
-COMMENT ON COLUMN inventory.add_date IS ''
-COMMENT ON COLUMN inventory.mod_date IS ''
+COMMENT ON TABLE experiment IS '';
+COMMENT ON COLUMN experiment.experiment_uuid IS '';
+COMMENT ON COLUMN experiment.ref_uid IS '';
+COMMENT ON COLUMN experiment.description IS '';
+COMMENT ON COLUMN experiment.parent_uuid IS '';
+COMMENT ON COLUMN experiment.parent_path IS '';
+COMMENT ON COLUMN experiment.owner_uuid IS '';
+COMMENT ON COLUMN experiment.operator_uuid IS '';
+COMMENT ON COLUMN experiment.lab_uuid IS '';
+COMMENT ON COLUMN experiment.status_uuid IS '';
+COMMENT ON COLUMN experiment.add_date IS '';
+COMMENT ON COLUMN experiment.mod_date IS '';
 
 
-COMMENT ON TABLE material IS ''
-COMMENT ON COLUMN material.material_uuid IS ''
-COMMENT ON COLUMN material.description IS ''
-COMMENT ON COLUMN material.parent_uuid IS ''
-COMMENT ON COLUMN material.parent_path IS ''
-COMMENT ON COLUMN material.actor_uuid IS ''
-COMMENT ON COLUMN material.status_uuid IS ''
-COMMENT ON COLUMN material.add_date IS ''
-COMMENT ON COLUMN material.mod_date IS ''
+COMMENT ON TABLE experiment_workflow IS '';
+COMMENT ON COLUMN experiment_workflow.experiment_workflow_uuid IS '';
+COMMENT ON COLUMN experiment_workflow.experiment_uuid IS '';
+COMMENT ON COLUMN experiment_workflow.workflow_uuid IS '';
+COMMENT ON COLUMN experiment_workflow.add_date IS '';
+COMMENT ON COLUMN experiment_workflow.mod_date IS '';
 
 
-COMMENT ON TABLE material_x IS ''
-COMMENT ON COLUMN material_x.material_x_uuid IS ''
-COMMENT ON COLUMN material_x.material_uuid IS ''
-COMMENT ON COLUMN material_x.ref_material_uuid IS ''
-COMMENT ON COLUMN material_x.add_date IS ''
-COMMENT ON COLUMN material_x.mod_date IS ''
+COMMENT ON TABLE inventory IS '';
+COMMENT ON COLUMN inventory.inventory_uuid IS '';
+COMMENT ON COLUMN inventory.description IS '';
+COMMENT ON COLUMN inventory.material_uuid IS '';
+COMMENT ON COLUMN inventory.actor_uuid IS '';
+COMMENT ON COLUMN inventory.part_no IS '';
+COMMENT ON COLUMN inventory.onhand_amt IS '';
+COMMENT ON COLUMN inventory.unit IS '';
+COMMENT ON COLUMN inventory.expiration_date IS '';
+COMMENT ON COLUMN inventory.inventory_location IS '';
+COMMENT ON COLUMN inventory.status_uuid IS '';
+COMMENT ON COLUMN inventory.add_date IS '';
+COMMENT ON COLUMN inventory.mod_date IS '';
 
 
-COMMENT ON TABLE material_refname IS ''
-COMMENT ON COLUMN material_refname.material_refname_uuid IS ''
-COMMENT ON COLUMN material_refname.description IS ''
-COMMENT ON COLUMN material_refname.-- IS ''
-COMMENT ON COLUMN material_refname.blob_value IS ''
-COMMENT ON COLUMN material_refname.blob_type IS ''
-COMMENT ON COLUMN material_refname.material_refname_def_uuid IS ''
-COMMENT ON COLUMN material_refname.reference IS ''
-COMMENT ON COLUMN material_refname.status_uuid IS ''
-COMMENT ON COLUMN material_refname.add_date IS ''
-COMMENT ON COLUMN material_refname.mod_date IS ''
+COMMENT ON TABLE material IS '';
+COMMENT ON COLUMN material.material_uuid IS '';
+COMMENT ON COLUMN material.description IS '';
+COMMENT ON COLUMN material.parent_uuid IS '';
+COMMENT ON COLUMN material.parent_path IS '';
+COMMENT ON COLUMN material.actor_uuid IS '';
+COMMENT ON COLUMN material.status_uuid IS '';
+COMMENT ON COLUMN material.add_date IS '';
+COMMENT ON COLUMN material.mod_date IS '';
 
 
-COMMENT ON TABLE material_refname_def IS ''
-COMMENT ON COLUMN material_refname_def.material_refname_def_uuid IS ''
-COMMENT ON COLUMN material_refname_def.description IS ''
-COMMENT ON COLUMN material_refname_def.add_date IS ''
-COMMENT ON COLUMN material_refname_def.mod_date IS ''
+COMMENT ON TABLE material_x IS '';
+COMMENT ON COLUMN material_x.material_x_uuid IS '';
+COMMENT ON COLUMN material_x.material_uuid IS '';
+COMMENT ON COLUMN material_x.ref_material_uuid IS '';
+COMMENT ON COLUMN material_x.add_date IS '';
+COMMENT ON COLUMN material_x.mod_date IS '';
 
 
-COMMENT ON TABLE material_refname_x IS ''
-COMMENT ON COLUMN material_refname_x.material_refname_x_uuid IS ''
-COMMENT ON COLUMN material_refname_x.material_uuid IS ''
-COMMENT ON COLUMN material_refname_x.material_refname_uuid IS ''
-COMMENT ON COLUMN material_refname_x.add_date IS ''
-COMMENT ON COLUMN material_refname_x.mod_date IS ''
+COMMENT ON TABLE material_refname IS '';
+COMMENT ON COLUMN material_refname.material_refname_uuid IS '';
+COMMENT ON COLUMN material_refname.description IS '';
+COMMENT ON COLUMN material_refname.blob_value IS '';
+COMMENT ON COLUMN material_refname.blob_type IS '';
+COMMENT ON COLUMN material_refname.material_refname_def_uuid IS '';
+COMMENT ON COLUMN material_refname.reference IS '';
+COMMENT ON COLUMN material_refname.status_uuid IS '';
+COMMENT ON COLUMN material_refname.add_date IS '';
+COMMENT ON COLUMN material_refname.mod_date IS '';
 
 
-COMMENT ON TABLE material_type IS ''
-COMMENT ON COLUMN material_type.material_type_uuid IS ''
-COMMENT ON COLUMN material_type.description IS ''
-COMMENT ON COLUMN material_type.add_date IS ''
-COMMENT ON COLUMN material_type.mod_date IS ''
+COMMENT ON TABLE material_refname_def IS '';
+COMMENT ON COLUMN material_refname_def.material_refname_def_uuid IS '';
+COMMENT ON COLUMN material_refname_def.description IS '';
+COMMENT ON COLUMN material_refname_def.add_date IS '';
+COMMENT ON COLUMN material_refname_def.mod_date IS '';
 
 
-COMMENT ON TABLE material_type_x IS ''
-COMMENT ON COLUMN material_type_x.material_type_x_uuid IS ''
-COMMENT ON COLUMN material_type_x.material_uuid IS ''
-COMMENT ON COLUMN material_type_x.material_type_uuid IS ''
-COMMENT ON COLUMN material_type_x.add_date IS ''
-COMMENT ON COLUMN material_type_x.mod_date IS ''
+COMMENT ON TABLE material_refname_x IS '';
+COMMENT ON COLUMN material_refname_x.material_refname_x_uuid IS '';
+COMMENT ON COLUMN material_refname_x.material_uuid IS '';
+COMMENT ON COLUMN material_refname_x.material_refname_uuid IS '';
+COMMENT ON COLUMN material_refname_x.add_date IS '';
+COMMENT ON COLUMN material_refname_x.mod_date IS '';
 
 
-COMMENT ON TABLE measure IS ''
-COMMENT ON COLUMN measure.measure_uuid IS ''
-COMMENT ON COLUMN measure.measure_type_uuid IS ''
-COMMENT ON COLUMN measure.description IS ''
-COMMENT ON COLUMN measure.amount IS ''
-COMMENT ON COLUMN measure.unit IS ''
-COMMENT ON COLUMN measure.actor_uuid IS ''
-COMMENT ON COLUMN measure.add_date IS ''
-COMMENT ON COLUMN measure.mod_date IS ''
+COMMENT ON TABLE material_type IS '';
+COMMENT ON COLUMN material_type.material_type_uuid IS '';
+COMMENT ON COLUMN material_type.description IS '';
+COMMENT ON COLUMN material_type.add_date IS '';
+COMMENT ON COLUMN material_type.mod_date IS '';
 
 
-COMMENT ON TABLE measure_type IS ''
-COMMENT ON COLUMN measure_type.measure_type_uuid IS ''
-COMMENT ON COLUMN measure_type.description IS ''
-COMMENT ON COLUMN measure_type.add_date IS ''
-COMMENT ON COLUMN measure_type.mod_date IS ''
+COMMENT ON TABLE material_type_x IS '';
+COMMENT ON COLUMN material_type_x.material_type_x_uuid IS '';
+COMMENT ON COLUMN material_type_x.material_uuid IS '';
+COMMENT ON COLUMN material_type_x.material_type_uuid IS '';
+COMMENT ON COLUMN material_type_x.add_date IS '';
+COMMENT ON COLUMN material_type_x.mod_date IS '';
 
 
-COMMENT ON TABLE measure_x IS ''
-COMMENT ON COLUMN measure_x.measure_x_uuid IS ''
-COMMENT ON COLUMN measure_x.ref_measure_uuid IS ''
-COMMENT ON COLUMN measure_x.measure_uuid IS ''
-COMMENT ON COLUMN measure_x.add_date IS ''
-COMMENT ON COLUMN measure_x.mod_date IS ''
+COMMENT ON TABLE measure IS '';
+COMMENT ON COLUMN measure.measure_uuid IS '';
+COMMENT ON COLUMN measure.measure_type_uuid IS '';
+COMMENT ON COLUMN measure.description IS '';
+COMMENT ON COLUMN measure.amount IS '';
+COMMENT ON COLUMN measure.unit IS '';
+COMMENT ON COLUMN measure.actor_uuid IS '';
+COMMENT ON COLUMN measure.add_date IS '';
+COMMENT ON COLUMN measure.mod_date IS '';
 
 
-COMMENT ON TABLE note IS ''
-COMMENT ON COLUMN note.note_uuid IS ''
-COMMENT ON COLUMN note.notetext IS ''
-COMMENT ON COLUMN note.actor_uuid IS ''
-COMMENT ON COLUMN note.add_date IS ''
-COMMENT ON COLUMN note.mod_date IS ''
+COMMENT ON TABLE measure_type IS '';
+COMMENT ON COLUMN measure_type.measure_type_uuid IS '';
+COMMENT ON COLUMN measure_type.description IS '';
+COMMENT ON COLUMN measure_type.add_date IS '';
+COMMENT ON COLUMN measure_type.mod_date IS '';
 
 
-COMMENT ON TABLE note_x IS ''
-COMMENT ON COLUMN note_x.note_x_uuid IS ''
-COMMENT ON COLUMN note_x.ref_note_uuid IS ''
-COMMENT ON COLUMN note_x.note_uuid IS ''
-COMMENT ON COLUMN note_x.add_date IS ''
-COMMENT ON COLUMN note_x.mod_date IS ''
+COMMENT ON TABLE measure_x IS '';
+COMMENT ON COLUMN measure_x.measure_x_uuid IS '';
+COMMENT ON COLUMN measure_x.ref_measure_uuid IS '';
+COMMENT ON COLUMN measure_x.measure_uuid IS '';
+COMMENT ON COLUMN measure_x.add_date IS '';
+COMMENT ON COLUMN measure_x.mod_date IS '';
+
+
+COMMENT ON TABLE note IS '';
+COMMENT ON COLUMN note.note_uuid IS '';
+COMMENT ON COLUMN note.notetext IS '';
+COMMENT ON COLUMN note.actor_uuid IS '';
+COMMENT ON COLUMN note.add_date IS '';
+COMMENT ON COLUMN note.mod_date IS '';
+
+
+COMMENT ON TABLE note_x IS '';
+COMMENT ON COLUMN note_x.note_x_uuid IS '';
+COMMENT ON COLUMN note_x.ref_note_uuid IS '';
+COMMENT ON COLUMN note_x.note_uuid IS '';
+COMMENT ON COLUMN note_x.add_date IS '';
+COMMENT ON COLUMN note_x.mod_date IS '';
+
 
 COMMENT ON TABLE organization IS 'organization information for ESCALATE person and system tool; can be component of actor';
 COMMENT ON COLUMN organization.organization_uuid IS 'uuid for this organization record';
@@ -1858,268 +1853,267 @@ COMMENT ON COLUMN organization.add_date IS 'date this record added';
 COMMENT ON COLUMN organization.mod_date IS 'date this record updated';
 
 
-COMMENT ON TABLE outcome IS ''
-COMMENT ON COLUMN outcome.outcome_uuid IS ''
-COMMENT ON COLUMN outcome.outcome_ref_uuid IS ''
-COMMENT ON COLUMN outcome.actor_uuid IS ''
-COMMENT ON COLUMN outcome.outcome_type_uuid IS ''
-COMMENT ON COLUMN outcome.add_date IS ''
-COMMENT ON COLUMN outcome.mod_date IS ''
+COMMENT ON TABLE outcome IS '';
+COMMENT ON COLUMN outcome.outcome_uuid IS '';
+COMMENT ON COLUMN outcome.outcome_ref_uuid IS '';
+COMMENT ON COLUMN outcome.actor_uuid IS '';
+COMMENT ON COLUMN outcome.outcome_type_uuid IS '';
+COMMENT ON COLUMN outcome.add_date IS '';
+COMMENT ON COLUMN outcome.mod_date IS '';
 
 
-COMMENT ON TABLE outcome_type IS ''
-COMMENT ON COLUMN outcome_type.outcome_type_uuid IS ''
-COMMENT ON COLUMN outcome_type.description IS ''
-COMMENT ON COLUMN outcome_type.actor_uuid IS ''
-COMMENT ON COLUMN outcome_type.add_date IS ''
-COMMENT ON COLUMN outcome_type.mod_date IS ''
+COMMENT ON TABLE outcome_type IS '';
+COMMENT ON COLUMN outcome_type.outcome_type_uuid IS '';
+COMMENT ON COLUMN outcome_type.description IS '';
+COMMENT ON COLUMN outcome_type.actor_uuid IS '';
+COMMENT ON COLUMN outcome_type.add_date IS '';
+COMMENT ON COLUMN outcome_type.mod_date IS '';
 
 
-COMMENT ON TABLE outcome_x IS ''
-COMMENT ON COLUMN outcome_x.outcome_x_uuid IS ''
-COMMENT ON COLUMN outcome_x.outcome_ref_uuid IS ''
-COMMENT ON COLUMN outcome_x.outcome_uuid IS ''
-COMMENT ON COLUMN outcome_x.add_date IS ''
-COMMENT ON COLUMN outcome_x.mod_date IS ''
+COMMENT ON TABLE outcome_x IS '';
+COMMENT ON COLUMN outcome_x.outcome_x_uuid IS '';
+COMMENT ON COLUMN outcome_x.outcome_ref_uuid IS '';
+COMMENT ON COLUMN outcome_x.outcome_uuid IS '';
+COMMENT ON COLUMN outcome_x.add_date IS '';
+COMMENT ON COLUMN outcome_x.mod_date IS '';
 
 
-COMMENT ON TABLE parameter IS ''
-COMMENT ON COLUMN parameter.parameter_uuid IS ''
-COMMENT ON COLUMN parameter.parameter_def_uuid IS ''
-COMMENT ON COLUMN parameter.parameter_val IS ''
-COMMENT ON COLUMN parameter.actor_uuid IS ''
-COMMENT ON COLUMN parameter.status_uuid IS ''
-COMMENT ON COLUMN parameter.add_date IS ''
-COMMENT ON COLUMN parameter.mod_date IS ''
+COMMENT ON TABLE parameter IS '';
+COMMENT ON COLUMN parameter.parameter_uuid IS '';
+COMMENT ON COLUMN parameter.parameter_def_uuid IS '';
+COMMENT ON COLUMN parameter.parameter_val IS '';
+COMMENT ON COLUMN parameter.actor_uuid IS '';
+COMMENT ON COLUMN parameter.status_uuid IS '';
+COMMENT ON COLUMN parameter.add_date IS '';
+COMMENT ON COLUMN parameter.mod_date IS '';
 
 
-COMMENT ON TABLE parameter_def IS 'template for a parameter'
-COMMENT ON COLUMN parameter_def.parameter_def_uuid IS ''
-COMMENT ON COLUMN parameter_def.description IS ''
-COMMENT ON COLUMN parameter_def.default_val IS 'this includes the type and units for the parameter'
-COMMENT ON COLUMN parameter_def.required IS ''
-COMMENT ON COLUMN parameter_def.actor_uuid IS ''
-COMMENT ON COLUMN parameter_def.status_uuid IS ''
-COMMENT ON COLUMN parameter_def.add_date IS ''
-COMMENT ON COLUMN parameter_def.mod_date IS ''
+COMMENT ON TABLE parameter_def IS 'template for a parameter';
+COMMENT ON COLUMN parameter_def.parameter_def_uuid IS '';
+COMMENT ON COLUMN parameter_def.description IS '';
+COMMENT ON COLUMN parameter_def.default_val IS 'this includes the type and units for the parameter';
+COMMENT ON COLUMN parameter_def.required IS '';
+COMMENT ON COLUMN parameter_def.actor_uuid IS '';
+COMMENT ON COLUMN parameter_def.status_uuid IS '';
+COMMENT ON COLUMN parameter_def.add_date IS '';
+COMMENT ON COLUMN parameter_def.mod_date IS '';
 
 
-COMMENT ON TABLE parameter_x IS ''
-COMMENT ON COLUMN parameter_x.parameter_x_uuid IS ''
-COMMENT ON COLUMN parameter_x.ref_parameter_uuid IS ''
-COMMENT ON COLUMN parameter_x.parameter_uuid IS ''
-COMMENT ON COLUMN parameter_x.add_date IS ''
-COMMENT ON COLUMN parameter_x.mod_date IS ''
+COMMENT ON TABLE parameter_x IS '';
+COMMENT ON COLUMN parameter_x.parameter_x_uuid IS '';
+COMMENT ON COLUMN parameter_x.ref_parameter_uuid IS '';
+COMMENT ON COLUMN parameter_x.parameter_uuid IS '';
+COMMENT ON COLUMN parameter_x.add_date IS '';
+COMMENT ON COLUMN parameter_x.mod_date IS '';
 
 
-COMMENT ON TABLE person IS ''
-COMMENT ON COLUMN person.person_uuid IS ''
-COMMENT ON COLUMN person.first_name IS ''
-COMMENT ON COLUMN person.last_name IS ''
-COMMENT ON COLUMN person.middle_name IS ''
-COMMENT ON COLUMN person.address1 IS ''
-COMMENT ON COLUMN person.address2 IS ''
-COMMENT ON COLUMN person.city IS ''
-COMMENT ON COLUMN person.state_province IS ''
-COMMENT ON COLUMN person.zip IS ''
-COMMENT ON COLUMN person.country IS ''
-COMMENT ON COLUMN person.phone IS ''
-COMMENT ON COLUMN person.email IS ''
-COMMENT ON COLUMN person.title IS ''
-COMMENT ON COLUMN person.suffix IS ''
-COMMENT ON COLUMN person.organization_uuid IS ''
-COMMENT ON COLUMN person.add_date IS ''
-COMMENT ON COLUMN person.mod_date IS ''
+COMMENT ON TABLE person IS '';
+COMMENT ON COLUMN person.person_uuid IS '';
+COMMENT ON COLUMN person.first_name IS '';
+COMMENT ON COLUMN person.last_name IS '';
+COMMENT ON COLUMN person.middle_name IS '';
+COMMENT ON COLUMN person.address1 IS '';
+COMMENT ON COLUMN person.address2 IS '';
+COMMENT ON COLUMN person.city IS '';
+COMMENT ON COLUMN person.state_province IS '';
+COMMENT ON COLUMN person.zip IS '';
+COMMENT ON COLUMN person.country IS '';
+COMMENT ON COLUMN person.phone IS '';
+COMMENT ON COLUMN person.email IS '';
+COMMENT ON COLUMN person.title IS '';
+COMMENT ON COLUMN person.suffix IS '';
+COMMENT ON COLUMN person.organization_uuid IS '';
+COMMENT ON COLUMN person.add_date IS '';
+COMMENT ON COLUMN person.mod_date IS '';
 
 
-COMMENT ON TABLE property IS ''
-COMMENT ON COLUMN property.property_uuid IS ''
-COMMENT ON COLUMN property.property_def_uuid IS ''
-COMMENT ON COLUMN property.property_val IS ''
-COMMENT ON COLUMN property.actor_uuid IS ''
-COMMENT ON COLUMN property.status_uuid IS ''
-COMMENT ON COLUMN property.add_date IS ''
-COMMENT ON COLUMN property.mod_date IS ''
+COMMENT ON TABLE property IS '';
+COMMENT ON COLUMN property.property_uuid IS '';
+COMMENT ON COLUMN property.property_def_uuid IS '';
+COMMENT ON COLUMN property.property_val IS '';
+COMMENT ON COLUMN property.actor_uuid IS '';
+COMMENT ON COLUMN property.status_uuid IS '';
+COMMENT ON COLUMN property.add_date IS '';
+COMMENT ON COLUMN property.mod_date IS '';
 
 
-COMMENT ON TABLE property_def IS ''
-COMMENT ON COLUMN property_def.property_def_uuid IS ''
-COMMENT ON COLUMN property_def.description IS ''
-COMMENT ON COLUMN property_def.short_description IS ''
-COMMENT ON COLUMN property_def.val_type_uuid IS ''
-COMMENT ON COLUMN property_def.valunit IS ''
-COMMENT ON COLUMN property_def.actor_uuid IS ''
-COMMENT ON COLUMN property_def.status_uuid IS ''
-COMMENT ON COLUMN property_def.add_date IS ''
-COMMENT ON COLUMN property_def.mod_date IS ''
+COMMENT ON TABLE property_def IS '';
+COMMENT ON COLUMN property_def.property_def_uuid IS '';
+COMMENT ON COLUMN property_def.description IS '';
+COMMENT ON COLUMN property_def.short_description IS '';
+COMMENT ON COLUMN property_def.val_type_uuid IS '';
+COMMENT ON COLUMN property_def.valunit IS '';
+COMMENT ON COLUMN property_def.actor_uuid IS '';
+COMMENT ON COLUMN property_def.status_uuid IS '';
+COMMENT ON COLUMN property_def.add_date IS '';
+COMMENT ON COLUMN property_def.mod_date IS '';
 
 
-COMMENT ON TABLE property_x IS ''
-COMMENT ON COLUMN property_x.property_x_uuid IS ''
-COMMENT ON COLUMN property_x.material_uuid IS ''
-COMMENT ON COLUMN property_x.property_uuid IS ''
-COMMENT ON COLUMN property_x.add_date IS ''
-COMMENT ON COLUMN property_x.mod_date IS ''
+COMMENT ON TABLE property_x IS '';
+COMMENT ON COLUMN property_x.property_x_uuid IS '';
+COMMENT ON COLUMN property_x.material_uuid IS '';
+COMMENT ON COLUMN property_x.property_uuid IS '';
+COMMENT ON COLUMN property_x.add_date IS '';
+COMMENT ON COLUMN property_x.mod_date IS '';
 
 
-COMMENT ON TABLE status IS ''
-COMMENT ON COLUMN status.status_uuid IS ''
-COMMENT ON COLUMN status.description IS ''
-COMMENT ON COLUMN status.add_date IS ''
-COMMENT ON COLUMN status.mod_date IS ''
+COMMENT ON TABLE status IS '';
+COMMENT ON COLUMN status.status_uuid IS '';
+COMMENT ON COLUMN status.description IS '';
+COMMENT ON COLUMN status.add_date IS '';
+COMMENT ON COLUMN status.mod_date IS '';
 
 
-COMMENT ON TABLE systemtool IS ''
-COMMENT ON COLUMN systemtool.systemtool_uuid IS ''
-COMMENT ON COLUMN systemtool.systemtool_name IS ''
-COMMENT ON COLUMN systemtool.description IS ''
-COMMENT ON COLUMN systemtool.systemtool_type_uuid IS ''
-COMMENT ON COLUMN systemtool.vendor_organization_uuid IS ''
-COMMENT ON COLUMN systemtool.model IS ''
-COMMENT ON COLUMN systemtool.serial IS ''
-COMMENT ON COLUMN systemtool.ver IS ''
-COMMENT ON COLUMN systemtool.add_date IS ''
-COMMENT ON COLUMN systemtool.mod_date IS ''
+COMMENT ON TABLE systemtool IS '';
+COMMENT ON COLUMN systemtool.systemtool_uuid IS '';
+COMMENT ON COLUMN systemtool.systemtool_name IS '';
+COMMENT ON COLUMN systemtool.description IS '';
+COMMENT ON COLUMN systemtool.systemtool_type_uuid IS '';
+COMMENT ON COLUMN systemtool.vendor_organization_uuid IS '';
+COMMENT ON COLUMN systemtool.model IS '';
+COMMENT ON COLUMN systemtool.serial IS '';
+COMMENT ON COLUMN systemtool.ver IS '';
+COMMENT ON COLUMN systemtool.add_date IS '';
+COMMENT ON COLUMN systemtool.mod_date IS '';
 
 
-COMMENT ON TABLE systemtool_type IS ''
-COMMENT ON COLUMN systemtool_type.systemtool_type_uuid IS ''
-COMMENT ON COLUMN systemtool_type.description IS ''
-COMMENT ON COLUMN systemtool_type.add_date IS ''
-COMMENT ON COLUMN systemtool_type.mod_date IS ''
+COMMENT ON TABLE systemtool_type IS '';
+COMMENT ON COLUMN systemtool_type.systemtool_type_uuid IS '';
+COMMENT ON COLUMN systemtool_type.description IS '';
+COMMENT ON COLUMN systemtool_type.add_date IS '';
+COMMENT ON COLUMN systemtool_type.mod_date IS '';
 
 
-COMMENT ON TABLE sys_audit IS ''
-COMMENT ON COLUMN sys_audit.event_id IS ''
-COMMENT ON COLUMN sys_audit.schema_name IS ''
-COMMENT ON COLUMN sys_audit.table_name IS ''
-COMMENT ON COLUMN sys_audit.relid IS ''
-COMMENT ON COLUMN sys_audit.session_user_name IS ''
-COMMENT ON COLUMN sys_audit.action_tstamp_tx IS ''
-COMMENT ON COLUMN sys_audit.action_tstamp_stm IS ''
-COMMENT ON COLUMN sys_audit.action_tstamp_clk IS ''
-COMMENT ON COLUMN sys_audit.transaction_id IS ''
-COMMENT ON COLUMN sys_audit.application_name IS ''
-COMMENT ON COLUMN sys_audit.client_addr IS ''
-COMMENT ON COLUMN sys_audit.client_port IS ''
-COMMENT ON COLUMN sys_audit.client_query IS ''
-COMMENT ON COLUMN sys_audit.action IS ''
-COMMENT ON COLUMN sys_audit.row_data IS ''
-COMMENT ON COLUMN sys_audit.changed_fields IS ''
-COMMENT ON COLUMN sys_audit.statement_only IS ''
+COMMENT ON TABLE sys_audit IS '';
+COMMENT ON COLUMN sys_audit.event_id IS '';
+COMMENT ON COLUMN sys_audit.schema_name IS '';
+COMMENT ON COLUMN sys_audit.table_name IS '';
+COMMENT ON COLUMN sys_audit.relid IS '';
+COMMENT ON COLUMN sys_audit.session_user_name IS '';
+COMMENT ON COLUMN sys_audit.action_tstamp_tx IS '';
+COMMENT ON COLUMN sys_audit.action_tstamp_stm IS '';
+COMMENT ON COLUMN sys_audit.action_tstamp_clk IS '';
+COMMENT ON COLUMN sys_audit.transaction_id IS '';
+COMMENT ON COLUMN sys_audit.application_name IS '';
+COMMENT ON COLUMN sys_audit.client_addr IS '';
+COMMENT ON COLUMN sys_audit.client_port IS '';
+COMMENT ON COLUMN sys_audit.client_query IS '';
+COMMENT ON COLUMN sys_audit.action IS '';
+COMMENT ON COLUMN sys_audit.row_data IS '';
+COMMENT ON COLUMN sys_audit.changed_fields IS '';
+COMMENT ON COLUMN sys_audit.statement_only IS '';
 
 
-COMMENT ON TABLE tag IS ''
-COMMENT ON COLUMN tag.tag_uuid IS ''
-COMMENT ON COLUMN tag.tag_type_uuid IS ''
-COMMENT ON COLUMN tag.display_text IS ''
-COMMENT ON COLUMN tag.description IS ''
-COMMENT ON COLUMN tag.actor_uuid IS ''
-COMMENT ON COLUMN tag.add_date IS ''
-COMMENT ON COLUMN tag.mod_date IS ''
+COMMENT ON TABLE tag IS '';
+COMMENT ON COLUMN tag.tag_uuid IS '';
+COMMENT ON COLUMN tag.tag_type_uuid IS '';
+COMMENT ON COLUMN tag.display_text IS '';
+COMMENT ON COLUMN tag.description IS '';
+COMMENT ON COLUMN tag.actor_uuid IS '';
+COMMENT ON COLUMN tag.add_date IS '';
+COMMENT ON COLUMN tag.mod_date IS '';
 
 
-COMMENT ON TABLE tag_type IS ''
-COMMENT ON COLUMN tag_type.tag_type_uuid IS ''
-COMMENT ON COLUMN tag_type.type IS ''
-COMMENT ON COLUMN tag_type.description IS ''
-COMMENT ON COLUMN tag_type.add_date IS ''
-COMMENT ON COLUMN tag_type.mod_date IS ''
+COMMENT ON TABLE tag_type IS '';
+COMMENT ON COLUMN tag_type.tag_type_uuid IS '';
+COMMENT ON COLUMN tag_type.type IS '';
+COMMENT ON COLUMN tag_type.description IS '';
+COMMENT ON COLUMN tag_type.add_date IS '';
+COMMENT ON COLUMN tag_type.mod_date IS '';
 
 
-COMMENT ON TABLE tag_x IS ''
-COMMENT ON COLUMN tag_x.tag_x_uuid IS ''
-COMMENT ON COLUMN tag_x.ref_tag_uuid IS ''
-COMMENT ON COLUMN tag_x.tag_uuid IS ''
-COMMENT ON COLUMN tag_x.add_date IS ''
-COMMENT ON COLUMN tag_x.mod_date IS ''
+COMMENT ON TABLE tag_x IS '';
+COMMENT ON COLUMN tag_x.tag_x_uuid IS '';
+COMMENT ON COLUMN tag_x.ref_tag_uuid IS '';
+COMMENT ON COLUMN tag_x.tag_uuid IS '';
+COMMENT ON COLUMN tag_x.add_date IS '';
+COMMENT ON COLUMN tag_x.mod_date IS '';
 
 
-COMMENT ON TABLE type_def IS ''
-COMMENT ON COLUMN type_def.type_def_uuid IS ''
-COMMENT ON COLUMN type_def.category IS ''
-COMMENT ON COLUMN type_def.description IS ''
-COMMENT ON COLUMN type_def.add_date IS ''
-COMMENT ON COLUMN type_def.mod_date IS ''
+COMMENT ON TABLE type_def IS '';
+COMMENT ON COLUMN type_def.type_def_uuid IS '';
+COMMENT ON COLUMN type_def.category IS '';
+COMMENT ON COLUMN type_def.description IS '';
+COMMENT ON COLUMN type_def.add_date IS '';
+COMMENT ON COLUMN type_def.mod_date IS '';
 
 
-COMMENT ON TABLE udf IS ''
-COMMENT ON COLUMN udf.udf_uuid IS ''
-COMMENT ON COLUMN udf.udf_def_uuid IS ''
-COMMENT ON COLUMN udf.udf_val IS ''
-COMMENT ON COLUMN udf.add_date IS ''
-COMMENT ON COLUMN udf.mod_date IS ''
+COMMENT ON TABLE udf IS '';
+COMMENT ON COLUMN udf.udf_uuid IS '';
+COMMENT ON COLUMN udf.udf_def_uuid IS '';
+COMMENT ON COLUMN udf.udf_val IS '';
+COMMENT ON COLUMN udf.add_date IS '';
+COMMENT ON COLUMN udf.mod_date IS '';
 
 
-COMMENT ON TABLE udf_def IS 'user defined field definitions; can be a container for any date type (val_type) defined in type_def';
-COMMENT ON COLUMN udf_def.udf_def_uuid IS 'uuid for this udf_def record';
-COMMENT ON COLUMN udf_def.description IS 'a unique description of this udf definition record';
-COMMENT ON COLUMN udf_def.val_type_uuid IS 'reference to the data type of this udf definition as defined in type_def table';
-COMMENT ON COLUMN udf_def.unit IS 'option description of value unit';
-COMMENT ON COLUMN udf_def.add_date IS 'date this record added';
-COMMENT ON COLUMN udf_def.mod_date IS 'date this record modfified';
+COMMENT ON TABLE udf_def IS '';
+COMMENT ON COLUMN udf_def.udf_def_uuid IS '';
+COMMENT ON COLUMN udf_def.description IS '';
+COMMENT ON COLUMN udf_def.val_type_uuid IS '';
+COMMENT ON COLUMN udf_def.unit IS '';
+COMMENT ON COLUMN udf_def.add_date IS '';
+COMMENT ON COLUMN udf_def.mod_date IS '';
 
 
-COMMENT ON TABLE udf_x IS ''
-COMMENT ON COLUMN udf_x.udf_x_uuid IS ''
-COMMENT ON COLUMN udf_x.ref_udf_uuid IS ''
-COMMENT ON COLUMN udf_x.udf_uuid IS ''
-COMMENT ON COLUMN udf_x.add_date IS ''
-COMMENT ON COLUMN udf_x.mod_date IS ''
+COMMENT ON TABLE udf_x IS '';
+COMMENT ON COLUMN udf_x.udf_x_uuid IS '';
+COMMENT ON COLUMN udf_x.ref_udf_uuid IS '';
+COMMENT ON COLUMN udf_x.udf_uuid IS '';
+COMMENT ON COLUMN udf_x.add_date IS '';
+COMMENT ON COLUMN udf_x.mod_date IS '';
 
 
-COMMENT ON TABLE workflow IS ''
-COMMENT ON COLUMN workflow.workflow_uuid IS ''
-COMMENT ON COLUMN workflow.workflow_def_uuid IS ''
-COMMENT ON COLUMN workflow.description IS ''
-COMMENT ON COLUMN workflow.experiment_uuid IS ''
-COMMENT ON COLUMN workflow.parent_uuid IS ''
-COMMENT ON COLUMN workflow.parent_path IS ''
-COMMENT ON COLUMN workflow.actor_uuid IS ''
-COMMENT ON COLUMN workflow.status_uuid IS ''
-COMMENT ON COLUMN workflow.add_date IS ''
-COMMENT ON COLUMN workflow.mod_date IS ''
+COMMENT ON TABLE workflow IS '';
+COMMENT ON COLUMN workflow.workflow_uuid IS '';
+COMMENT ON COLUMN workflow.workflow_def_uuid IS '';
+COMMENT ON COLUMN workflow.description IS '';
+COMMENT ON COLUMN workflow.experiment_uuid IS '';
+COMMENT ON COLUMN workflow.parent_uuid IS '';
+COMMENT ON COLUMN workflow.parent_path IS '';
+COMMENT ON COLUMN workflow.actor_uuid IS '';
+COMMENT ON COLUMN workflow.status_uuid IS '';
+COMMENT ON COLUMN workflow.add_date IS '';
+COMMENT ON COLUMN workflow.mod_date IS '';
 
 
-COMMENT ON TABLE workflow_def IS ''
-COMMENT ON COLUMN workflow_def.workflow_def_uuid IS ''
-COMMENT ON COLUMN workflow_def.workflow_type_uuid IS ''
-COMMENT ON COLUMN workflow_def.description IS ''
-COMMENT ON COLUMN workflow_def.actor_uuid IS ''
-COMMENT ON COLUMN workflow_def.status_uuid IS ''
-COMMENT ON COLUMN workflow_def.add_date IS ''
-COMMENT ON COLUMN workflow_def.mod_date IS ''
+COMMENT ON TABLE workflow_def IS '';
+COMMENT ON COLUMN workflow_def.workflow_def_uuid IS '';
+COMMENT ON COLUMN workflow_def.workflow_type_uuid IS '';
+COMMENT ON COLUMN workflow_def.description IS '';
+COMMENT ON COLUMN workflow_def.actor_uuid IS '';
+COMMENT ON COLUMN workflow_def.status_uuid IS '';
+COMMENT ON COLUMN workflow_def.add_date IS '';
+COMMENT ON COLUMN workflow_def.mod_date IS '';
 
 
-COMMENT ON TABLE workflow_state IS ''
-COMMENT ON COLUMN workflow_state.workflow_state_uuid IS ''
-COMMENT ON COLUMN workflow_state.workflow_step_uuid IS ''
-COMMENT ON COLUMN workflow_state.add_date IS ''
-COMMENT ON COLUMN workflow_state.mod_date IS ''
+COMMENT ON TABLE workflow_state IS '';
+COMMENT ON COLUMN workflow_state.workflow_state_uuid IS '';
+COMMENT ON COLUMN workflow_state.workflow_step_uuid IS '';
+COMMENT ON COLUMN workflow_state.add_date IS '';
+COMMENT ON COLUMN workflow_state.mod_date IS '';
 
 
-COMMENT ON TABLE workflow_step_object IS ''
-COMMENT ON COLUMN workflow_step_object.workflow_step_object_uuid IS ''
-COMMENT ON COLUMN workflow_step_object.action_uuid IS ''
-COMMENT ON COLUMN workflow_step_object.condition_uuid IS ''
-COMMENT ON COLUMN workflow_step_object.add_date IS ''
-COMMENT ON COLUMN workflow_step_object.mod_date IS ''
+COMMENT ON TABLE workflow_step_object IS '';
+COMMENT ON COLUMN workflow_step_object.workflow_step_object_uuid IS '';
+COMMENT ON COLUMN workflow_step_object.action_uuid IS '';
+COMMENT ON COLUMN workflow_step_object.condition_uuid IS '';
+COMMENT ON COLUMN workflow_step_object.add_date IS '';
+COMMENT ON COLUMN workflow_step_object.mod_date IS '';
 
 
-COMMENT ON TABLE workflow_step IS ''
-COMMENT ON COLUMN workflow_step.workflow_step_uuid IS ''
-COMMENT ON COLUMN workflow_step.workflow_uuid IS ''
-COMMENT ON COLUMN workflow_step.workflow_step_object_uuid IS ''
-COMMENT ON COLUMN workflow_step.initial_uuid IS ''
-COMMENT ON COLUMN workflow_step.terminal_uuid IS ''
-COMMENT ON COLUMN workflow_step.status_uuid IS ''
-COMMENT ON COLUMN workflow_step.add_date IS ''
-COMMENT ON COLUMN workflow_step.mod_date IS ''
+COMMENT ON TABLE workflow_step IS '';
+COMMENT ON COLUMN workflow_step.workflow_step_uuid IS '';
+COMMENT ON COLUMN workflow_step.workflow_uuid IS '';
+COMMENT ON COLUMN workflow_step.workflow_step_object_uuid IS '';
+COMMENT ON COLUMN workflow_step.initial_uuid IS '';
+COMMENT ON COLUMN workflow_step.terminal_uuid IS '';
+COMMENT ON COLUMN workflow_step.status_uuid IS '';
+COMMENT ON COLUMN workflow_step.add_date IS '';
+COMMENT ON COLUMN workflow_step.mod_date IS '';
 
 
-COMMENT ON TABLE workflow_type IS ''
-COMMENT ON COLUMN workflow_type.workflow_type_uuid IS ''
-COMMENT ON COLUMN workflow_type.description IS ''
-COMMENT ON COLUMN workflow_type.add_date IS ''
-COMMENT ON COLUMN workflow_type.mod_date IS ''
-
+COMMENT ON TABLE workflow_type IS '';
+COMMENT ON COLUMN workflow_type.workflow_type_uuid IS '';
+COMMENT ON COLUMN workflow_type.description IS '';
+COMMENT ON COLUMN workflow_type.add_date IS '';
+COMMENT ON COLUMN workflow_type.mod_date IS '';
