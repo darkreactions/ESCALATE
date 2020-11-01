@@ -14,15 +14,13 @@ class DynamicFieldsModelSerializer(HyperlinkedModelSerializer):
 
     def __init__(self, *args, **kwargs):
         # Don't pass the 'fields' arg up to the superclass
-        if 'fields' in kwargs['context']['request'].GET:
-            fields = kwargs['context']['request'].GET['fields'].split(",")
-        else:
-            fields = None
 
-        if 'exclude' in kwargs['context']['request'].GET:
-            exclude = kwargs['context']['request'].GET['exclude'].split(",")
-        else:
-            exclude = None
+        fields = exclude = None
+        if kwargs.get('context'):
+            if 'fields' in kwargs['context']['request'].GET:
+                fields = kwargs['context']['request'].GET['fields'].split(",")
+            if 'exclude' in kwargs['context']['request'].GET:
+                exclude = kwargs['context']['request'].GET['exclude'].split(",")
 
         # Instantiate the superclass normally
         super(DynamicFieldsModelSerializer, self).__init__(*args, **kwargs)
@@ -68,3 +66,13 @@ class ExperimentMeasureCalculationSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = core.models.ExperimentMeasureCalculation
         fields = ('uid', 'row_to_json')
+
+class ActionParameterDefAssignSerializer(DynamicFieldsModelSerializer):
+    parameter_def = ParameterDefSerializer(read_only=True)
+    action_def = ActionDefSerializer(read_only=True)
+    class Meta:
+        model = core.models.ActionParameterDefAssign
+        fields = ['action_def_uuid',
+                  'parameter_def_uuid',
+                  'action_def',
+                  'parameter_def']

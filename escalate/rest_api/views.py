@@ -120,3 +120,15 @@ def download_blob(request, uuid):
 
     #response['Content-Disposition'] = 'attachment; filename=blob.pdf'
     return response
+
+# # my little custom view
+# def action_parameter_def_list(request):
+#     if request.method == "GET":
+#         action_defs = core.models.ActionDef.objects.all()
+#         parameter_defs = core.models.ParameterDef.objects.all()
+#         apda = ActionParameterDefAssign.objects.all()\
+#             .select_related('parameter_def_uuid')\
+#             .select_related('action_def_uuid')
+#     else:
+#         pass
+

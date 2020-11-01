@@ -28,7 +28,9 @@ view_names = ['Systemtool', 'SystemtoolType', 'Actor', 'Inventory', 'InventoryMa
 
 GET_only_views = ['TypeDef']
 
-custom_serializer_views = ['Edocument', 'ExperimentMeasureCalculation']
+custom_serializer_views = ['Edocument',
+                           'ExperimentMeasureCalculation',
+                           'ActionParameterDefAssign']
 
 perform_create_views = ['PropertyDef', "MaterialProperty"]
 

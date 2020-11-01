@@ -881,3 +881,25 @@ class ActionDef(models.Model):
     class Meta:
         managed = False
         db_table = 'vw_action_def'
+
+
+class ActionParameterDefAssign(models.Model):
+    action_parameter_def_x_uuid = models.UUIDField(primary_key=True,
+                                          db_column='action_parameter_def_x_uuid')
+    parameter_def_uuid = models.ForeignKey('ParameterDef',
+                                 db_column='parameter_def_uuid',
+                                 on_delete=models.DO_NOTHING,
+                                 blank=True,
+                                 null=True)
+    action_def_uuid = models.ForeignKey('ActionDef',
+                                 db_column='action_def_uuid',
+                                 on_delete=models.DO_NOTHING,
+                                 blank=True,
+                                 null=True)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'vw_action_parameter_def_assign'
+
