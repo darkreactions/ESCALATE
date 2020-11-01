@@ -23,7 +23,8 @@ view_names = ['Systemtool', 'SystemtoolType', 'Actor', 'Inventory', 'InventoryMa
               'LatestSystemtool', 'Calculation', 'CalculationDef',
               'Material', 'MaterialCalculationJson', 'MaterialRefnameDef',
               'MaterialType', 'Note', 'Note_x', 'Organization', 'Person',
-              'Status', 'Tag', 'TagType', 'PropertyDef', 'MaterialProperty', 'TypeDef']
+              'Status', 'Tag', 'TagType', 'PropertyDef', 'MaterialProperty', 'TypeDef',
+              'ParameterDef', 'ActionDef']
 
 GET_only_views = ['TypeDef']
 
