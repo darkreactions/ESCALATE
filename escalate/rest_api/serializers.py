@@ -67,12 +67,9 @@ class ExperimentMeasureCalculationSerializer(DynamicFieldsModelSerializer):
         model = core.models.ExperimentMeasureCalculation
         fields = ('uid', 'row_to_json')
 
-class ActionParameterDefAssignSerializer(DynamicFieldsModelSerializer):
-    parameter_def = ParameterDefSerializer(read_only=True)
-    action_def = ActionDefSerializer(read_only=True)
+
+class ActionDefSerializer(DynamicFieldsModelSerializer):
+    parameter_def = ActionParameterDefSerializer(read_only=True, many=True)
     class Meta:
-        model = core.models.ActionParameterDefAssign
-        fields = ['action_def_uuid',
-                  'parameter_def_uuid',
-                  'action_def',
-                  'parameter_def']
+        model = core.models.ActionDef
+        fields = 'action_def_uuid', 'description', 'parameter_def'

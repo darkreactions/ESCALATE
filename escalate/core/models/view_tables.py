@@ -883,23 +883,60 @@ class ActionDef(models.Model):
         db_table = 'vw_action_def'
 
 
-class ActionParameterDefAssign(models.Model):
+class ActionParameterDef(models.Model):
     action_parameter_def_x_uuid = models.UUIDField(primary_key=True,
                                           db_column='action_parameter_def_x_uuid')
-    parameter_def_uuid = models.ForeignKey('ParameterDef',
-                                 db_column='parameter_def_uuid',
-                                 on_delete=models.DO_NOTHING,
-                                 blank=True,
-                                 null=True)
     action_def_uuid = models.ForeignKey('ActionDef',
-                                 db_column='action_def_uuid',
-                                 on_delete=models.DO_NOTHING,
-                                 blank=True,
-                                 null=True)
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='action_def_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    description = models.CharField(max_length=255,
+                                    blank=True,
+                                    null=True,
+                                    db_column='description',
+                                    editable=False)
+    actor_uuid = models.ForeignKey('Actor',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='actor_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    actor_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='actor_description',
+                                            editable=False)
+    status_uuid = models.ForeignKey('Status',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='status_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    status_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='status_description',
+                                            editable=False)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
-
+    parameter_def_uuid = models.ForeignKey('ParameterDef',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='parameter_def_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    parameter_description = models.CharField(max_length=255,
+                                               blank=True,
+                                               null=True,
+                                               db_column='parameter_description',
+                                               editable=False)
+    parameter_val_type_uuid = models.ForeignKey('TypeDef',
+                                      db_column='parameter_val_type_uuid',
+                                      on_delete=models.DO_NOTHING,
+                                      blank=True,
+                                      null=True)
     class Meta:
         managed = False
-        db_table = 'vw_action_parameter_def_assign'
-
+        db_table = 'vw_action_parameter_def'
