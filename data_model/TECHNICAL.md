@@ -625,8 +625,10 @@ load_mol_images ( p_systemtool_uuid uuid, p_actor_uuid uuid ) RETURNS bool
 get_charge_count ( p_mol_smiles varchar ) RETURNS int
 math_op (p_in_num numeric, p_op text, p_in_opt_num numeric default null) returns numeric
 delete_assigned_recs (p_ref_uuid uuid) RETURNS TABLE (entity text, ref_uuid uuid)
+upsert_action() RETURNS TRIGGER
 upsert_action_def() RETURNS TRIGGER
 upsert_action_parameter_def_assign() RETURNS TRIGGER
+upsert_action_parameter() RETURNS TRIGGER
 upsert_organization() RETURNS TRIGGER
 upsert_person() RETURNS TRIGGER
 upsert_systemtool() RETURNS TRIGGER
