@@ -93,16 +93,29 @@ action_def
 action_parameter_def_x
 actor
 actor_pref
+auth_group
+auth_group_permissions
+auth_permission
+authtoken_token
 bom
 calculation
 calculation_class
 calculation_def
 calculation_eval
+calculation_stack
+condition
+condition_calculation_def_x
+condition_def
+core_customer
+core_customer_groups
+core_customer_user_permissions
 edocument
 edocument_x
 escalate_change_log
 escalate_version
 experiment
+experiment_inventory
+experiment_udf
 experiment_workflow
 files
 inventory
@@ -122,11 +135,11 @@ organization
 outcome
 outcome_type
 outcome_x
-person
 parameter
 parameter_def
 parameter_def_x
 parameter_x
+person
 property
 property_def
 property_x
@@ -139,15 +152,17 @@ tag_type
 tag_x
 type_def
 udf
-udf_x
 udf_def
+udf_x
 workflow
 workflow_action
 workflow_action_condition
 workflow_action_def
+workflow_def
 workflow_state
 workflow_state_def
 workflow_step
+workflow_step_object
 workflow_type
 
 ```
@@ -157,36 +172,28 @@ workflow_type
 
 ```
 CREATE INDEX "ix_sys_audit_relid" ON sys_audit (relid);
-
 CREATE INDEX "ix_sys_audit_action_tstamp_tx_stm" ON sys_audit (action_tstamp_stm);
-
 CREATE INDEX "ix_sys_audit_action" ON sys_audit (action);
 
-ALTER TABLE organization
-	ADD CONSTRAINT "pk_organization_organization_uuid" PRIMARY KEY (organization_uuid),
-		ADD CONSTRAINT "un_organization" UNIQUE (full_name);
-CREATE INDEX "ix_organization_parent_path" ON organization
-USING GIST (parent_path);
-CREATE INDEX "ix_organization_parent_uuid" ON organization (parent_uuid);
-CLUSTER organization
-USING "pk_organization_organization_uuid";
+ALTER TABLE action
+	ADD CONSTRAINT "pk_action_action_uuid" PRIMARY KEY (action_uuid);
+CLUSTER action
+USING "pk_action_action_uuid";
 
-ALTER TABLE person
-	ADD CONSTRAINT "pk_person_person_uuid" PRIMARY KEY (person_uuid);
-CREATE UNIQUE INDEX "un_person" ON person (coalesce(last_name, NULL), coalesce(first_name, NULL), coalesce(middle_name, NULL));
-CLUSTER person
-USING "pk_person_person_uuid";
 
-ALTER TABLE systemtool
-	ADD CONSTRAINT "pk_systemtool_systemtool_uuid" PRIMARY KEY (systemtool_uuid),
-		ADD CONSTRAINT "un_systemtool" UNIQUE (systemtool_name, systemtool_type_uuid, vendor_organization_uuid, ver);
-CLUSTER systemtool
-USING "pk_systemtool_systemtool_uuid";
+ALTER TABLE action_def
+	ADD CONSTRAINT "pk_action_def_action_def_uuid" PRIMARY KEY (action_def_uuid),
+		ADD CONSTRAINT "un_action_def" UNIQUE (description);
+CLUSTER action_def
+USING "pk_action_def_action_def_uuid";
 
-ALTER TABLE systemtool_type
-	ADD CONSTRAINT "pk_systemtool_systemtool_type_uuid" PRIMARY KEY (systemtool_type_uuid);
-CLUSTER systemtool_type
-USING "pk_systemtool_systemtool_type_uuid";
+
+ ALTER TABLE action_parameter_def_x
+ 	ADD CONSTRAINT "pk_action_parameter_def_x_action_parameter_def_x_uuid" PRIMARY KEY (action_parameter_def_x_uuid),
+ 		ADD CONSTRAINT "un_action_parameter_def_x_def" UNIQUE (parameter_def_uuid, action_def_uuid);
+ CLUSTER action_parameter_def_x
+ USING "pk_action_parameter_def_x_action_parameter_def_x_uuid";
+
 
 ALTER TABLE actor
 	ADD CONSTRAINT "pk_actor_uuid" PRIMARY KEY (actor_uuid);
@@ -194,10 +201,81 @@ CREATE UNIQUE INDEX "un_actor" ON actor (coalesce(person_uuid, NULL), coalesce(o
 CLUSTER actor
 USING "pk_actor_uuid";
 
+
 ALTER TABLE actor_pref
 	ADD CONSTRAINT "pk_actor_pref_uuid" PRIMARY KEY (actor_pref_uuid);
 CLUSTER actor_pref
 USING "pk_actor_pref_uuid";
+
+
+ALTER TABLE bom
+	ADD CONSTRAINT "pk_bom_bom_uuid" PRIMARY KEY (bom_uuid),
+		ADD CONSTRAINT "un_bom_experiment_material" UNIQUE (experiment_uuid, material_uuid);
+CREATE INDEX "ix_bom_experiment_uuid" ON bom (experiment_uuid);
+CLUSTER bom
+USING "pk_bom_bom_uuid";
+
+
+ALTER TABLE calculation
+	ADD CONSTRAINT "pk_calculation_calculation_uuid" PRIMARY KEY (calculation_uuid),
+		ADD CONSTRAINT "un_calculation" UNIQUE (calculation_def_uuid, in_val, in_opt_val);
+CLUSTER calculation
+USING "pk_calculation_calculation_uuid";
+
+
+ALTER TABLE calculation_class
+	ADD CONSTRAINT "pk_calculation_class_calculation_class_uuid" PRIMARY KEY (calculation_class_uuid);
+CLUSTER calculation_class
+USING "pk_calculation_class_calculation_class_uuid";
+
+
+ALTER TABLE calculation_def
+	ADD CONSTRAINT "pk_calculation_calculation_def_uuid" PRIMARY KEY (calculation_def_uuid),
+		ADD CONSTRAINT "un_calculation_def" UNIQUE (actor_uuid, short_name, calc_definition);
+CLUSTER calculation_def
+USING "pk_calculation_calculation_def_uuid";
+
+
+ALTER TABLE calculation_eval
+	ADD CONSTRAINT "pk_calculation_eval_calculation_eval_id" PRIMARY KEY (calculation_eval_id),
+		ADD CONSTRAINT "un_calculation_eval" UNIQUE (calculation_def_uuid, in_val, in_opt_val);
+CLUSTER calculation_eval
+USING "pk_calculation_eval_calculation_eval_id";
+
+
+ALTER TABLE condition
+	ADD CONSTRAINT "pk_condition_condition_uuid" PRIMARY KEY (condition_uuid);
+CLUSTER condition
+USING "pk_condition_condition_uuid";
+
+
+ALTER TABLE condition_def
+	ADD CONSTRAINT "pk_condition_def_condition_def_uuid" PRIMARY KEY (condition_def_uuid),
+		ADD CONSTRAINT "un_condition_def" UNIQUE (description);
+CLUSTER condition_def
+USING "pk_condition_def_condition_def_uuid";
+
+
+ALTER TABLE condition_calculation_def_x
+ 	ADD CONSTRAINT "pk_condition_calculation_def_x_condition_calculation_def_x_uuid" PRIMARY KEY (condition_calculation_def_x_uuid),
+ 		ADD CONSTRAINT "un_condition_calculation_def_x" UNIQUE (condition_def_uuid, calculation_def_uuid);
+CLUSTER condition_calculation_def_x
+USING "pk_condition_calculation_def_x_condition_calculation_def_x_uuid";
+
+
+ALTER TABLE edocument
+	ADD CONSTRAINT "pk_edocument_edocument_uuid" PRIMARY KEY (edocument_uuid),
+		ADD CONSTRAINT "un_edocument" UNIQUE (title, doc_ver);
+CLUSTER edocument
+USING "pk_edocument_edocument_uuid";
+
+
+ALTER TABLE edocument_x
+	ADD CONSTRAINT "pk_edocument_x_edocument_x_uuid" PRIMARY KEY (edocument_x_uuid),
+		ADD CONSTRAINT "un_edocument_x" UNIQUE (ref_edocument_uuid, edocument_uuid);
+CLUSTER edocument_x
+USING "pk_edocument_x_edocument_x_uuid";
+
 
 ALTER TABLE experiment
 	ADD CONSTRAINT "pk_experiment_experiment_uuid" PRIMARY KEY (experiment_uuid);
@@ -207,12 +285,20 @@ CREATE INDEX "ix_experiment_parent_uuid" ON experiment (parent_uuid);
 CLUSTER experiment
 USING "pk_experiment_experiment_uuid";
 
+
 ALTER TABLE experiment_workflow
 	ADD CONSTRAINT "pk_experiment_workflow_uuid" PRIMARY KEY (experiment_workflow_uuid);
 CLUSTER experiment_workflow
 USING "pk_experiment_workflow_uuid";
 
--- material constraints
+
+ALTER TABLE inventory
+	ADD CONSTRAINT "pk_inventory_inventory_uuid" PRIMARY KEY (inventory_uuid),
+		ADD CONSTRAINT "un_inventory" UNIQUE (material_uuid, actor_uuid, add_date);
+CLUSTER inventory
+USING "pk_inventory_inventory_uuid";
+
+
 ALTER TABLE material
 	ADD CONSTRAINT "pk_material_material_uuid" PRIMARY KEY (material_uuid),
 		ADD CONSTRAINT "un_material" UNIQUE (description, parent_uuid, status_uuid);
@@ -223,32 +309,6 @@ CREATE INDEX "ix_material_parent_uuid" ON material (parent_uuid);
 CLUSTER material
 USING "pk_material_material_uuid";
 
--- bom (bill of materials) constraints
-ALTER TABLE bom
-	ADD CONSTRAINT "pk_bom_bom_uuid" PRIMARY KEY (bom_uuid),
-		ADD CONSTRAINT "un_bom_experiment_material" UNIQUE (experiment_uuid, material_uuid);
-CREATE INDEX "ix_bom_experiment_uuid" ON bom (experiment_uuid);
-CLUSTER bom
-USING "pk_bom_bom_uuid";
-
--- material_x constraints
-ALTER TABLE material_x
-	ADD CONSTRAINT "pk_material_x_material_x_uuid" PRIMARY KEY (material_x_uuid),
-		ADD CONSTRAINT "un_material_x" UNIQUE (material_uuid, ref_material_uuid);
-CLUSTER material_x
-USING "pk_material_x_material_x_uuid";
-
-ALTER TABLE material_type
-	ADD CONSTRAINT "pk_material_type_material_type_uuid" PRIMARY KEY (material_type_uuid),
-		ADD CONSTRAINT "un_material_type" UNIQUE (description);
-CLUSTER material_type
-USING "pk_material_type_material_type_uuid";
-
-ALTER TABLE material_type_x
-	ADD CONSTRAINT "pk_material_type_x_material_type_x_uuid" PRIMARY KEY (material_type_x_uuid),
-		ADD CONSTRAINT "un_material_type_x" UNIQUE (material_uuid, material_type_uuid);
-CLUSTER material_type_x
-USING "pk_material_type_x_material_type_x_uuid";
 
 ALTER TABLE material_refname
 	ADD CONSTRAINT "pk_material_refname_material_refname_uuid" PRIMARY KEY (material_refname_uuid),
@@ -256,85 +316,40 @@ ALTER TABLE material_refname
 CLUSTER material_refname
 USING "pk_material_refname_material_refname_uuid";
 
-ALTER TABLE material_refname_x
-	ADD CONSTRAINT "pk_material_refname_x_material_refname_x_uuid" PRIMARY KEY (material_refname_x_uuid),
-		ADD CONSTRAINT "un_material_refname_x" UNIQUE (material_uuid, material_refname_uuid);
-CLUSTER material_refname_x
-USING "pk_material_refname_x_material_refname_x_uuid";
 
 ALTER TABLE material_refname_def
 	ADD CONSTRAINT "pk_material_refname_def_material_refname_def_uuid" PRIMARY KEY (material_refname_def_uuid);
 CLUSTER material_refname_def
 USING "pk_material_refname_def_material_refname_def_uuid";
 
--- property (of materials) constraints
-ALTER TABLE property
-	ADD CONSTRAINT "pk_property_property_uuid" PRIMARY KEY (property_uuid);
-CLUSTER property
-USING "pk_property_property_uuid";
 
--- property_def (of materials) constraints
-ALTER TABLE property_def
-	ADD CONSTRAINT "pk_property_def_property_def_uuid" PRIMARY KEY (property_def_uuid),
-		ADD CONSTRAINT "un_property_def" UNIQUE (short_description);
-CLUSTER property_def
-USING "pk_property_def_property_def_uuid";
+ALTER TABLE material_refname_x
+	ADD CONSTRAINT "pk_material_refname_x_material_refname_x_uuid" PRIMARY KEY (material_refname_x_uuid),
+		ADD CONSTRAINT "un_material_refname_x" UNIQUE (material_uuid, material_refname_uuid);
+CLUSTER material_refname_x
+USING "pk_material_refname_x_material_refname_x_uuid";
 
--- property_x (of materials) constraints
-ALTER TABLE property_x
-	ADD CONSTRAINT "pk_property_x_property_x_uuid" PRIMARY KEY (property_x_uuid),
-		ADD CONSTRAINT "un_property_x_def" UNIQUE (material_uuid, property_uuid);
-CLUSTER property_x
-USING "pk_property_x_property_x_uuid";
 
--- parameter constraints
-ALTER TABLE parameter
-	ADD CONSTRAINT "pk_parameter_parameter_uuid" PRIMARY KEY (parameter_uuid);
-CLUSTER parameter
-USING "pk_parameter_parameter_uuid";
+ALTER TABLE material_type
+	ADD CONSTRAINT "pk_material_type_material_type_uuid" PRIMARY KEY (material_type_uuid),
+		ADD CONSTRAINT "un_material_type" UNIQUE (description);
+CLUSTER material_type
+USING "pk_material_type_material_type_uuid";
 
--- parameter_def constraints
-ALTER TABLE parameter_def
-	ADD CONSTRAINT "pk_parameter_def_parameter_def_uuid" PRIMARY KEY (parameter_def_uuid),
-		ADD CONSTRAINT "un_parameter_def" UNIQUE (description);
-CLUSTER parameter_def
-USING "pk_parameter_def_parameter_def_uuid";
 
--- parameter_x constraints
-ALTER TABLE parameter_x
-	ADD CONSTRAINT "pk_parameter_x_parameter_x_uuid" PRIMARY KEY (parameter_x_uuid),
-		ADD CONSTRAINT "un_parameter_x_def" UNIQUE (ref_parameter_uuid, parameter_uuid);
-CLUSTER parameter_x
-USING "pk_parameter_x_parameter_x_uuid";
+ALTER TABLE material_type_x
+	ADD CONSTRAINT "pk_material_type_x_material_type_x_uuid" PRIMARY KEY (material_type_x_uuid),
+		ADD CONSTRAINT "un_material_type_x" UNIQUE (material_uuid, material_type_uuid);
+CLUSTER material_type_x
+USING "pk_material_type_x_material_type_x_uuid";
 
-ALTER TABLE calculation_class
-	ADD CONSTRAINT "pk_calculation_class_calculation_class_uuid" PRIMARY KEY (calculation_class_uuid);
-CLUSTER calculation_class
-USING "pk_calculation_class_calculation_class_uuid";
 
-ALTER TABLE calculation_def
-	ADD CONSTRAINT "pk_calculation_calculation_def_uuid" PRIMARY KEY (calculation_def_uuid),
-		ADD CONSTRAINT "un_calculation_def" UNIQUE (actor_uuid, short_name, calc_definition);
-CLUSTER calculation_def
-USING "pk_calculation_calculation_def_uuid";
+ALTER TABLE material_x
+	ADD CONSTRAINT "pk_material_x_material_x_uuid" PRIMARY KEY (material_x_uuid),
+		ADD CONSTRAINT "un_material_x" UNIQUE (material_uuid, ref_material_uuid);
+CLUSTER material_x
+USING "pk_material_x_material_x_uuid";
 
-ALTER TABLE calculation
-	ADD CONSTRAINT "pk_calculation_calculation_uuid" PRIMARY KEY (calculation_uuid),
-		ADD CONSTRAINT "un_calculation" UNIQUE (calculation_def_uuid, in_val, in_opt_val);
-CLUSTER calculation
-USING "pk_calculation_calculation_uuid";
-
-ALTER TABLE calculation_eval
-	ADD CONSTRAINT "pk_calculation_eval_calculation_eval_id" PRIMARY KEY (calculation_eval_id),
-		ADD CONSTRAINT "un_calculation_eval" UNIQUE (calculation_def_uuid, in_val, in_opt_val);
-CLUSTER calculation_eval
-USING "pk_calculation_eval_calculation_eval_id";
-
-ALTER TABLE inventory
-	ADD CONSTRAINT "pk_inventory_inventory_uuid" PRIMARY KEY (inventory_uuid),
-		ADD CONSTRAINT "un_inventory" UNIQUE (material_uuid, actor_uuid, add_date);
-CLUSTER inventory
-USING "pk_inventory_inventory_uuid";
 
 ALTER TABLE measure
 	ADD CONSTRAINT "pk_measure_measure_uuid" PRIMARY KEY (measure_uuid),
@@ -342,21 +357,25 @@ ALTER TABLE measure
 CLUSTER measure
 USING "pk_measure_measure_uuid";
 
-ALTER TABLE measure_x
-	ADD CONSTRAINT "pk_measure_x_measure_x_uuid" PRIMARY KEY (measure_x_uuid),
-		ADD CONSTRAINT "un_measure_x" UNIQUE (ref_measure_uuid, measure_uuid);
-CLUSTER measure_x
-USING "pk_measure_x_measure_x_uuid";
 
 ALTER TABLE measure_type
 	ADD CONSTRAINT "pk_measure_type_measure_type_uuid" PRIMARY KEY (measure_type_uuid);
 CLUSTER measure_type
 USING "pk_measure_type_measure_type_uuid";
 
+
+ALTER TABLE measure_x
+	ADD CONSTRAINT "pk_measure_x_measure_x_uuid" PRIMARY KEY (measure_x_uuid),
+		ADD CONSTRAINT "un_measure_x" UNIQUE (ref_measure_uuid, measure_uuid);
+CLUSTER measure_x
+USING "pk_measure_x_measure_x_uuid";
+
+
 ALTER TABLE note
 	ADD CONSTRAINT "pk_note_note_uuid" PRIMARY KEY (note_uuid);
 CLUSTER note
 USING "pk_note_note_uuid";
+
 
 ALTER TABLE note_x
 	ADD CONSTRAINT "pk_note_x_note_x_uuid" PRIMARY KEY (note_x_uuid),
@@ -364,17 +383,83 @@ ALTER TABLE note_x
 CLUSTER note_x
 USING "pk_note_x_note_x_uuid";
 
-ALTER TABLE edocument
-	ADD CONSTRAINT "pk_edocument_edocument_uuid" PRIMARY KEY (edocument_uuid),
-		ADD CONSTRAINT "un_edocument" UNIQUE (title, doc_ver);
-CLUSTER edocument
-USING "pk_edocument_edocument_uuid";
 
-ALTER TABLE edocument_x
-	ADD CONSTRAINT "pk_edocument_x_edocument_x_uuid" PRIMARY KEY (edocument_x_uuid),
-		ADD CONSTRAINT "un_edocument_x" UNIQUE (ref_edocument_uuid, edocument_uuid);
-CLUSTER edocument_x
-USING "pk_edocument_x_edocument_x_uuid";
+ALTER TABLE organization
+	ADD CONSTRAINT "pk_organization_organization_uuid" PRIMARY KEY (organization_uuid),
+		ADD CONSTRAINT "un_organization" UNIQUE (full_name);
+CREATE INDEX "ix_organization_parent_path" ON organization
+USING GIST (parent_path);
+CREATE INDEX "ix_organization_parent_uuid" ON organization (parent_uuid);
+CLUSTER organization
+USING "pk_organization_organization_uuid";
+
+
+ALTER TABLE parameter
+	ADD CONSTRAINT "pk_parameter_parameter_uuid" PRIMARY KEY (parameter_uuid);
+CLUSTER parameter
+USING "pk_parameter_parameter_uuid";
+
+
+ALTER TABLE parameter_def
+	ADD CONSTRAINT "pk_parameter_def_parameter_def_uuid" PRIMARY KEY (parameter_def_uuid),
+		ADD CONSTRAINT "un_parameter_def" UNIQUE (description);
+CLUSTER parameter_def
+USING "pk_parameter_def_parameter_def_uuid";
+
+
+ALTER TABLE parameter_x
+	ADD CONSTRAINT "pk_parameter_x_parameter_x_uuid" PRIMARY KEY (parameter_x_uuid),
+		ADD CONSTRAINT "un_parameter_x_def" UNIQUE (ref_parameter_uuid, parameter_uuid);
+CLUSTER parameter_x
+USING "pk_parameter_x_parameter_x_uuid";
+
+
+ALTER TABLE person
+	ADD CONSTRAINT "pk_person_person_uuid" PRIMARY KEY (person_uuid);
+CREATE UNIQUE INDEX "un_person" ON person (coalesce(last_name, NULL), coalesce(first_name, NULL), coalesce(middle_name, NULL));
+CLUSTER person
+USING "pk_person_person_uuid";
+
+
+ALTER TABLE property
+	ADD CONSTRAINT "pk_property_property_uuid" PRIMARY KEY (property_uuid);
+CLUSTER property
+USING "pk_property_property_uuid";
+
+
+ALTER TABLE property_def
+	ADD CONSTRAINT "pk_property_def_property_def_uuid" PRIMARY KEY (property_def_uuid),
+		ADD CONSTRAINT "un_property_def" UNIQUE (short_description);
+CLUSTER property_def
+USING "pk_property_def_property_def_uuid";
+
+
+ALTER TABLE property_x
+	ADD CONSTRAINT "pk_property_x_property_x_uuid" PRIMARY KEY (property_x_uuid),
+		ADD CONSTRAINT "un_property_x_def" UNIQUE (material_uuid, property_uuid);
+CLUSTER property_x
+USING "pk_property_x_property_x_uuid";
+
+
+ALTER TABLE status
+	ADD CONSTRAINT "pk_status_status_uuid" PRIMARY KEY (status_uuid),
+			ADD CONSTRAINT "un_status" UNIQUE (description);
+CLUSTER status
+USING "pk_status_status_uuid";
+
+
+ALTER TABLE systemtool
+	ADD CONSTRAINT "pk_systemtool_systemtool_uuid" PRIMARY KEY (systemtool_uuid),
+		ADD CONSTRAINT "un_systemtool" UNIQUE (systemtool_name, systemtool_type_uuid, vendor_organization_uuid, ver);
+CLUSTER systemtool
+USING "pk_systemtool_systemtool_uuid";
+
+
+ALTER TABLE systemtool_type
+	ADD CONSTRAINT "pk_systemtool_systemtool_type_uuid" PRIMARY KEY (systemtool_type_uuid);
+CLUSTER systemtool_type
+USING "pk_systemtool_systemtool_type_uuid";
+
 
 ALTER TABLE tag
 	ADD CONSTRAINT "pk_tag_tag_uuid" PRIMARY KEY (tag_uuid),
@@ -382,17 +467,20 @@ ALTER TABLE tag
 CLUSTER tag
 USING "pk_tag_tag_uuid";
 
+
+ALTER TABLE tag_type
+	ADD CONSTRAINT "pk_tag_tag_type_uuid" PRIMARY KEY (tag_type_uuid),
+		ADD CONSTRAINT "un_tag_type" UNIQUE (type);
+CLUSTER tag_type
+USING "pk_tag_tag_type_uuid";
+
+
 ALTER TABLE tag_x
 	ADD CONSTRAINT "pk_tag_x_tag_x_uuid" PRIMARY KEY (tag_x_uuid),
 		ADD CONSTRAINT "un_tag_x" UNIQUE (ref_tag_uuid, tag_uuid);
 CLUSTER tag_x
 USING "pk_tag_x_tag_x_uuid";
 
-ALTER TABLE tag_type
-	ADD CONSTRAINT "pk_tag_tag_type_uuid" PRIMARY KEY (tag_type_uuid),
-		ADD CONSTRAINT "un_tag_type" UNIQUE (short_description);
-CLUSTER tag_type
-USING "pk_tag_tag_type_uuid";
 
 ALTER TABLE type_def
 	ADD CONSTRAINT "pk_type_def_type_def_uuid" PRIMARY KEY (type_def_uuid),
@@ -400,16 +488,12 @@ ALTER TABLE type_def
 CLUSTER type_def
 USING "pk_type_def_type_def_uuid";
 
+
 ALTER TABLE udf
 	ADD CONSTRAINT "pk_udf_udf_uuid" PRIMARY KEY (udf_uuid);
 CLUSTER udf
 USING "pk_udf_udf_uuid";
 
-ALTER TABLE udf_x
-	ADD CONSTRAINT "pk_udf_x_udf_x_uuid" PRIMARY KEY (udf_x_uuid),
-		ADD CONSTRAINT "un_udf_x" UNIQUE (ref_udf_uuid, udf_uuid);
-CLUSTER udf_x
-USING "pk_udf_x_udf_x_uuid";
 
 ALTER TABLE udf_def
 	ADD CONSTRAINT "pk_udf_def_udf_def_uuid" PRIMARY KEY (udf_def_uuid),
@@ -417,7 +501,14 @@ ALTER TABLE udf_def
 CLUSTER udf_def
 USING "pk_udf_def_udf_def_uuid";
 
--- workflow primary key and constraints
+
+ALTER TABLE udf_x
+	ADD CONSTRAINT "pk_udf_x_udf_x_uuid" PRIMARY KEY (udf_x_uuid),
+		ADD CONSTRAINT "un_udf_x" UNIQUE (ref_udf_uuid, udf_uuid);
+CLUSTER udf_x
+USING "pk_udf_x_udf_x_uuid";
+
+
 ALTER TABLE workflow
 	ADD CONSTRAINT "pk_workflow_workflow_uuid" PRIMARY KEY (workflow_uuid);
 CREATE INDEX "ix_workflow_experiment_uuid" ON workflow (experiment_uuid);
@@ -426,56 +517,40 @@ USING GIST (parent_path);
 CLUSTER workflow
 USING "pk_workflow_workflow_uuid";
 
--- workflow_step primary key and constraints
-ALTER TABLE workflow_step
-	ADD CONSTRAINT "pk_workflow_step_workflow_step_uuid" PRIMARY KEY (workflow_step_uuid);
-CLUSTER workflow_step
-USING "pk_workflow_step_workflow_step_uuid";
 
--- workflow_state_def primary key and constraints
-ALTER TABLE workflow_state_def
-	ADD CONSTRAINT "pk_workflow_state_def_workflow_state_def_uuid" PRIMARY KEY (workflow_state_def_uuid),
-		ADD CONSTRAINT "un_workflow_state_def" UNIQUE (description);
-CLUSTER workflow_state_def
-USING "pk_workflow_state_def_workflow_state_def_uuid";
+ALTER TABLE workflow_def
+	ADD CONSTRAINT "pk_workflow_def_workflow_def_uuid" PRIMARY KEY (workflow_def_uuid);
+CLUSTER workflow_def
+USING "pk_workflow_def_workflow_def_uuid";
 
--- workflow_state primary key and constraints
+
 ALTER TABLE workflow_state
 	ADD CONSTRAINT "pk_workflow_state_workflow_state_uuid" PRIMARY KEY (workflow_state_uuid);
 CLUSTER workflow_state
 USING "pk_workflow_state_workflow_state_uuid";
+
+
+ALTER TABLE workflow_step
+	ADD CONSTRAINT "pk_workflow_step_workflow_step_uuid" PRIMARY KEY (workflow_step_uuid),
+		ADD CONSTRAINT "un_workflow_step" UNIQUE (workflow_step_object_uuid, initial_uuid, terminal_uuid),
+			ADD CONSTRAINT "un_workflow_step_initial" UNIQUE (workflow_step_object_uuid, initial_uuid),
+				ADD CONSTRAINT "un_workflow_step_terminal" UNIQUE (workflow_step_object_uuid, terminal_uuid);
+CLUSTER workflow_step
+USING "pk_workflow_step_workflow_step_uuid";
+
+
+ALTER TABLE workflow_step_object
+	ADD CONSTRAINT "pk_workflow_step_object_workflow_step_object_uuid" PRIMARY KEY (workflow_step_object_uuid),
+		ADD CONSTRAINT "un_workflow_step_object" UNIQUE (action_uuid, condition_uuid);
+CLUSTER workflow_step_object
+USING "pk_workflow_step_object_workflow_step_object_uuid";
+
 
 ALTER TABLE workflow_type
 	ADD CONSTRAINT "pk_workflow_type_workflow_type_uuid" PRIMARY KEY (workflow_type_uuid),
 		ADD CONSTRAINT "un_workflow_type" UNIQUE (description);
 CLUSTER workflow_type
 USING "pk_workflow_type_workflow_type_uuid";
-
--- action_def primary key and constraints
-ALTER TABLE action_def
-	ADD CONSTRAINT "pk_action_def_action_def_uuid" PRIMARY KEY (action_def_uuid),
-		ADD CONSTRAINT "un_action_def" UNIQUE (description);
-CLUSTER action_def
-USING "pk_action_def_action_def_uuid";
-
--- action primary key and constraints
-ALTER TABLE action
-	ADD CONSTRAINT "pk_action_action_uuid" PRIMARY KEY (action_uuid);
-CLUSTER action
-USING "pk_action_action_uuid";
-
--- workflow_action_condition primary key and constraints
-ALTER TABLE action_condition
-	ADD CONSTRAINT "pk_action_condition_action_condition_uuid" PRIMARY KEY (action_condition_uuid);
-CLUSTER action_condition
-USING "pk_action_condition_action_condition_uuid";
-
--- status primary key and constraints
-ALTER TABLE status
-	ADD CONSTRAINT "pk_status_status_uuid" PRIMARY KEY (status_uuid),
-			ADD CONSTRAINT "un_status" UNIQUE (description);;
-CLUSTER status
-USING "pk_status_status_uuid";
 ```
 
 
