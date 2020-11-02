@@ -664,16 +664,21 @@ Below are a list of the views with high-level description, followed by column na
 
 ```
 sys_audit_tableslist
-vw_actor
+vw_action
 vw_action_def
+vw_action_parameter
 vw_action_parameter_def
 vw_action_parameter_def_assign
 vw_action_parameter_def_json
+vw_action_parameter_json
+vw_actor
 vw_actor_pref
 vw_calculation
 vw_calculation_def
+--@garyc can add condition docs
 vw_edocument
 vw_edocument_assign
+--@garyc can add experiment
 vw_experiment_measure_calculation
 vw_experiment_measure_calculation_json
 vw_inventory
@@ -701,6 +706,7 @@ vw_tag_type
 vw_type_def
 vw_udf_def
 vw_udf
+--@garyc can add workflow views
 vw_workflow_type
 
 ```
@@ -721,6 +727,58 @@ columns visible in forms are denoted with a `v`,<br/>
 columns updatable are denoted with a `u`<br/>
 Examples<br/><br/>
 
+__vw_action__ `CRUD`<br/>
+*upsert\_action()*
+
+> action_uuid (v) <br/>
+> action_def_uuid (v u) <br/>
+> action_description (v u) <br/>
+> action_def_description (v) <br/>
+> start_date (v u) <br/>
+> end_date (v u) <br/>
+> duration (v u) <br/>
+> repeating (v u) <br/>
+> ref_parameter_uuid (v u) <br/>
+> calculation_def_uuid (v u) <br/>
+> source_material_uuid (v u) <br/>
+> destination_material_uuid (v u) <br/>
+> actor_uuid (v u) <br/>
+> actor_description (v) <br/>
+> status_uuid (v u) <br/>
+> status_description (v) <br/>
+> add_date (v) <br/>
+> mod_date (v) <br/>
+
+```
+Note:   On INSERT, creates:
+		1. An item in the vw_action that points back to an action_def.
+		2. k items in the vw_action_parameter where k is the # of parameter_defs 
+		assigned to action_def
+	    The items in vw_action_parameter are created with the respective default values 
+	    from vw_parameter_def,
+	    which can be updated through vw_action_parameter.
+```
+```
+Example:
+insert into vw_action (action_def_uuid, action_description, status_uuid)
+    values (
+	(select action_def_uuid from vw_action_def where description = 'heat_stir'), 
+	'example_heat_stir',
+	(select status_uuid from vw_status where description = 'active'));
+update vw_action set actor_uuid = (select actor_uuid from vw_actor where description = 'Ian Pendleton')
+    where action_description = 'example_heat_stir';
+	insert into vw_action (action_def_uuid, action_description, actor_uuid, status_uuid)
+    values (
+	(select action_def_uuid from vw_action_def where description = 'heat'), 
+	'example_heat',
+	(select actor_uuid from vw_actor where description = 'Ian Pendleton'),
+	(select status_uuid from vw_status where description = 'active'));
+-- note: you may want to play around with vw_action_parameter before running this delete
+delete from vw_action where action_description = 'example_heat_stir';
+delete from vw_action where action_description = 'example_heat';
+```
+
+
 __vw_action_def__ `CRUD`<br/>
 *upsert\_action\_def()*
 
@@ -731,7 +789,64 @@ __vw_action_def__ `CRUD`<br/>
 > status_uuid (v u) <br/>
 > status_description (v) <br/>
 > add\_date (v) <br/>
-> mod\_date (v) <br/>
+> mod\_date (v) <br/> 
+
+```
+ Note: Deletes elements in vw_action_parameter_def_assign
+```
+```
+ Example: 
+ insert into vw_action_def (description, actor_uuid, status_uuid) values
+			   ('heat_stir', (select actor_uuid from vw_actor where description = 'Ian Pendleton'),
+				(select status_uuid from vw_status where description = 'active')),
+			   ('heat', (select actor_uuid from vw_actor where description = 'Ian Pendleton'),
+				(select status_uuid from vw_status where description = 'active'));
+delete from vw_action_def where description in ('heat_stir', 'heat');
+```
+
+__vw_action_parameter__ `CRUD`<br/>
+*upsert\_action\_def()*
+
+> action_uuid (v) <br/>
+> action_def_uuid (v) <br/>
+> action_description (v) <br/>
+> action_def_description (v) <br/>
+> action_actor_uuid (v) <br/>
+> action_actor_description (v) <br/>
+> action_status_uuid (v) <br/>
+> action_status_description (v) <br/>
+> action_add_date (v) <br/>
+> action_mod_date (v) <br/>
+> parameter_uuid (v) <br/>
+> parameter_def_uuid (v) <br/>
+> parameter_def_description (v) <br/>
+> parameter_val (v, u) <br/>
+> parameter_actor_uuid (v, u) <br/>
+> parameter_actor_description (v) <br/>
+> parameter_status_uuid (v, u) <br/>
+> parameter_status_description (v) <br/>
+> parameter_add_date (v) <br/>
+> parameter_mod_date (v) <br/> 
+
+```
+Note: Will fail silently if action def not associated w/ specified parameter def.
+```
+```
+-- this creates three action parameters implicitly
+insert into vw_action (action_def_uuid, action_description)
+    values ((select action_def_uuid from vw_action_def where description = 'heat_stir'), 'example_heat_stir');
+-- which can be modified explicitly:
+update vw_action_parameter
+    set parameter_val = (select put_val (
+    (select val_type_uuid from vw_parameter_def where description = 'speed'),
+     '8888',
+    (select valunit from vw_parameter_def where description = 'speed'))
+    )
+    where (action_description = 'example_heat_stir' AND parameter_def_description = 'speed');
+-- cleanup
+delete from vw_action_parameter where action_description = 'example_heat_stir';
+
+```
 
 __vw_parameter_def__ `CRUD`<br/>
 *upsert\_parameter\_def()*
@@ -775,6 +890,7 @@ __vw_action_parameter_def_assign__ `CRUD` <br/>
 > action_parameter_def_assign_x_uuid (v) <br/>
 > action_def_uuid (v, u) <br/>
 > parameter_def_uuid (v, u) <br/>
+
 
 __vw_parameter__ `CRUD`<br/>
 *upsert\_parameter()*
