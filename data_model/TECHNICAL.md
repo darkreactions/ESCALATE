@@ -853,14 +853,52 @@ __vw_parameter_def__ `CRUD`<br/>
 
 > parameter_def_uuid (v) <br/>
 > description (v u) <br/>
-> val_type_uuid (v u) <br/>
-> valunit (v u) <br/>
+> val_type_description (v) <br/>
+> val_type_uuid (v) <br/>
+> default_val_val (v) <br/>
+> valunit (v) <br/>
+> default_val (v u) <br/>
+> required (v) <br/>
 > actor_uuid (v u) <br/>
-> actor_description (v) <br/> 
+> actor_description (v) <br/>
 > status_uuid (v u) <br/>
 > status_description (v) <br/>
-> add\_date (v) <br/>
-> mod\_date (v) <br/>
+> add_date (v) <br/>
+> mod_date (v) <br/> 
+
+```
+Note: Default val determines the datatype and unit of the parameter def
+```
+```
+Example:		
+insert into vw_parameter_def (description, default_val)
+	    values
+	    ('duration',
+	      (select put_val(
+		  (select get_type_def ('data', 'num')),
+		     '0',
+		     'mins')
+	       )
+	    ),
+	    ('speed',
+	     (select put_val (
+	       (select get_type_def ('data', 'num')),
+	       '0',
+	       'rpm')
+	      )
+	    ),
+	    ('temperature',
+	     (select put_val(
+	       (select get_type_def ('data', 'num')),
+		 '0',
+		 'degC'))
+	    );
+update vw_parameter_def
+    set status_uuid = (select status_uuid from vw_status where description = 'active')
+    where description = 'temperature';
+delete from vw_parameter_def where description in ('duration', 'speed', 'temperature');
+```
+
 
 __vw_action_parameter_def__ `R` <br/>
 *upsert\_action_parameter\_def()*
