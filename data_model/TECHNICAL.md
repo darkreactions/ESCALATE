@@ -903,32 +903,64 @@ delete from vw_parameter_def where description in ('duration', 'speed', 'tempera
 __vw_action_parameter_def__ `R` <br/>
 *upsert\_action_parameter\_def()*
 
-> action_parameter_def_x_uuid (v) <br/>
 > action_def_uuid (v) <br/>
 > description (v) <br/>
 > actor_uuid (v) <br/>
-> actor_description (v) <br/> 
+> actor_description (v) <br/>
 > status_uuid (v) <br/>
 > status_description (v) <br/>
+> add_date (v) <br/>
+> mod_date (v) <br/>
 > parameter_def_uuid (v) <br/>
 > parameter_description (v) <br/>
+> default_val (v) <br/>
+> required (v) <br/>
 > parameter_val_type_uuid (v) <br/>
 > parameter_val_type_description (v) <br/>
 > parameter_unit (v) <br/>
 > parameter_actor_uuid (v) <br/>
-> parameter_actor_description (v) <br/> 
+> parameter_actor_description (v) <br/>
 > parameter_status_uuid (v) <br/>
 > parameter_status_description (v) <br/>
-> parameter_add\_date (v) <br/>
-> parameter_mod\_date (v) <br/>
+> parameter_add_date (v) <br/>
+> parameter_mod_date (v) <br/>
 
-__vw_action_parameter_def_assign__ `CRUD` <br/>
+
+__vw_action_parameter_def_assign__ `CRD` <br/>
 *upsert\_action_parameter\_def_assign()*
 
 > action_parameter_def_assign_x_uuid (v) <br/>
+> action_parameter_def_x_uuid (v) <br/> 
 > action_def_uuid (v, u) <br/>
 > parameter_def_uuid (v, u) <br/>
+> add_date (v) <br/>
+> mod_date (v) <br/>
 
+```
+Notes: 
+	* not updatable
+	* binds action def to parameter def -- requires both uuids
+```
+```
+ Example:       
+ insert into vw_action_parameter_def_assign (action_def_uuid, parameter_def_uuid)
+     values ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
+	     (select parameter_def_uuid from vw_parameter_def where description = 'duration')),
+	    ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
+	     (select parameter_def_uuid from vw_parameter_def where description = 'temperature')),
+	    ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
+	     (select parameter_def_uuid from vw_parameter_def where description = 'speed')),
+	     ((select action_def_uuid from vw_action_def where description = 'heat'),
+	     (select parameter_def_uuid from vw_parameter_def where description = 'duration')),
+	    ((select action_def_uuid from vw_action_def where description = 'heat'),
+	     (select parameter_def_uuid from vw_parameter_def where description = 'temperature'));
+delete
+    from vw_action_parameter_def_assign
+    where action_def_uuid = (select action_def_uuid from vw_action_def where description = 'heat_stir')
+    and parameter_def_uuid in (select parameter_def_uuid
+			       from vw_parameter_def
+			       where description in ('speed', 'duration', 'temperature'));
+```
 
 __vw_parameter__ `CRUD`<br/>
 *upsert\_parameter()*
@@ -937,6 +969,8 @@ __vw_parameter__ `CRUD`<br/>
 > parameter_def_uuid (v u) <br/>
 > parameter_def_description (v) <br/>
 > parameter_val (v u) <br/>
+> val_type_description (v) <br/>
+> valunit (v) <br/>
 > actor_uuid (v u) <br/>
 > actor_description (v) <br/> 
 > status_uuid (v u) <br/>
@@ -945,6 +979,31 @@ __vw_parameter__ `CRUD`<br/>
 > mod\_date (v) <br/>
 > ref_parameter_uuid (v) <br/>
 > parameter_x_uuid (v) <br/>
+
+```
+Notes: Preferred use is through vw_action_parameter
+```
+```
+Example:		
+insert into vw_parameter (parameter_def_uuid, ref_parameter_uuid, parameter_val, actor_uuid, status_uuid ) 
+values (
+	(select parameter_def_uuid from vw_parameter_def where description = 'duration'),
+	(select action_def_uuid from vw_action_def where description = 'heat'),
+	(select put_val (
+		(select val_type_uuid from vw_parameter_def where description = 'duration'),
+		'10',
+		(select valunit from vw_parameter_def where description = 'duration'))),
+	(select actor_uuid from vw_actor where org_short_name = 'LANL'),
+	(select status_uuid from vw_status where description = 'active')
+	);
+update vw_parameter set parameter_val = (select put_val (
+		    (select val_type_uuid from vw_parameter_def where description = 'duration'),
+		    '36',
+		    (select valunit from vw_parameter_def where description = 'duration')))
+		where parameter_def_description = 'duration'
+		and ref_parameter_uuid = (select action_def_uuid from vw_action_def where description = 'heat');
+delete from vw_parameter where parameter_def_description = 'duration' AND ref_parameter_uuid = (select action_def_uuid from vw_action_def where description = 'heat');
+```
 
 __vw_actor__`CRUD`<br/>
 *upsert\_actor ()*
