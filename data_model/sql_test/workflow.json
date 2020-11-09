@@ -1,44 +1,15 @@
 {
    "workflow":[
       {
-         "worflow_order":1,
-         "workflow_step_uuid":"96cc4fb1-2aab-42b4-82b0-6070e48bdb1c",
-         "workflow_step_object_uuid":"ae683aa8-14fa-452a-ab10-56b92446f620",
-         "workflow_step_object_type":"action",
-         "workflow_step_object_description":"start",
-         "workflow_step_object_terminal_uuid":"9b18367f-708f-46af-bfa3-8541a320686e"
-      },
-      {
-         "worflow_order":2,
-         "workflow_step_uuid":"9b18367f-708f-46af-bfa3-8541a320686e",
-         "workflow_step_object_uuid":"76dd0348-0aa0-4a6d-b4b1-2a760d82bd5d",
-         "workflow_step_object_type":"action",
-         "workflow_step_object_description":"example_heat",
-         "workflow_step_object_terminal_uuid":"2e137741-9e38-4fb6-bc6d-ba1595fffc4a"
-      },
-      {
-         "worflow_order":3,
-         "workflow_step_uuid":"2e137741-9e38-4fb6-bc6d-ba1595fffc4a",
-         "workflow_step_object_uuid":"5d1d3c05-69f4-43b4-8a80-abb98f9e50d5",
-         "workflow_step_object_type":"condition",
-         "workflow_step_object_description":"temp > threshold ?",
-         "workflow_step_object_terminal_uuid":"f0d63830-633f-467e-93e2-6821df8ae25b"
-      },
-      {
-         "worflow_order":4,
-         "workflow_step_uuid":"f0d63830-633f-467e-93e2-6821df8ae25b",
-         "workflow_step_object_uuid":"959ac9a0-61ba-49cd-a9fd-2e345328ca0e",
-         "workflow_step_object_type":"action",
-         "workflow_step_object_description":"example_heat_stir",
-         "workflow_step_object_terminal_uuid":"7d9091f2-3daa-45f6-8ca7-b1836d48ca61"
-      },
-      {
-         "worflow_order":5,
-         "workflow_step_uuid":"7d9091f2-3daa-45f6-8ca7-b1836d48ca61",
-         "workflow_step_object_uuid":"3a301c38-a5f7-49f7-a406-a1ecdd93ce3f",
-         "workflow_step_object_type":"action",
-         "workflow_step_object_description":"end",
-         "workflow_step_object_terminal_uuid":null
+         "workflow_uuid":"4ed42b60-ce45-4338-94fc-fd446f985e27",
+         "workflow_description":"test_workflow",
+         "workflow_parent_uuid":null,
+         "workflow_actor_uuid":"975ae48a-2526-4435-aea5-5bb6625e0a5c",
+         "workflow_actor_description":"Dev Test123",
+         "workflow_status_uuid":"e4d1f2e5-fef7-4849-ae62-e5533438044b",
+         "workflow_status_description":"dev_test",
+         "workflow_add_date":"2020-11-09T07:56:08.547754-05:00",
+         "workflow_mod_date":"2020-11-09T07:56:08.547754-05:00"
       }
    ]
 }

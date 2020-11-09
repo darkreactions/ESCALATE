@@ -715,33 +715,46 @@ delete from vw_experiment where description = 'test_experiment';
 
 
 /*
-Name:			upsert_workflow_def()
-Notes:
-*/
-insert into vw_workflow_def (workflow_type_uuid, description, actor_uuid, status_uuid) 
-	values (
-		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
-		'workflow_def_test',
-		(select actor_uuid from vw_actor where description = 'Dev Test123'),
-		null);
-update vw_workflow_def set status_uuid = (select status_uuid from vw_status where description = 'dev_test') where description = 'workflow_def_test'; 
-delete from vw_workflow_def where workflow_def_uuid = (select workflow_def_uuid from vw_workflow_def where description = 'workflow_def_test');
-
-/*
 Name:			upsert_workflow()
 Notes:
 */
-insert into vw_workflow (workflow_def_uuid, description, experiment_uuid, actor_uuid, status_uuid) 
+insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid) 
 	values (
-		(select workflow_def_uuid from vw_workflow_def where description = 'workflow_def_test'),
+		(select workflow_type_uuid from vw_workflow_type where description = 'workflow_def_test'),
 		'workflow_test',
-		(select experiment_uuid from vw_experiment where description = 'test_experiment'),
-		(select actor_uuid from vw_actor where description = 'Dev Test123'),
+		(select actor_uuid from vw_actor where description = 'T Testuser'),
 		null);
-update vw_workflow set status_uuid = (select status_uuid from vw_status where description = 'dev_test') where description = 'workflow_test'; 
-delete from vw_workflow where description = 'workflow_test';
+update vw_workflow set status_uuid = (select status_uuid from vw_status where description = 'active') where description = 'workflow_test'; 
+delete from vw_workflow where description = 'workflow_test' ;
 
 
+/*
+Name:			upsert_experiment_workflow()
+Notes:
+*/
+insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operator_uuid, lab_uuid, status_uuid) 
+	values (
+		'test_uid', 'test_experiment',
+		null,
+		(select actor_uuid from vw_actor where description = 'HC'),						
+		(select actor_uuid from vw_actor where description = 'T Testuser'),
+		(select actor_uuid from vw_actor where description = 'HC'),
+		null);
+insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid) 
+	values (
+		(select workflow_type_uuid from vw_workflow_type where description = 'workflowtype_test'),
+		'workflow_test',
+		(select actor_uuid from vw_actor where description = 'T Testuser'),
+		null);
+insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid) 
+	values (
+		1, 
+		(select experiment_uuid from vw_experiment where description = 'test_experiment'),
+		(select workflow_uuid from vw_workflow where description = 'test_workflow'));
+delete from vw_experiment_workflow 
+ 		where experiment_uuid = (select experiment_uuid from vw_experiment where description = 'test_experiment');
+delete from vw_workflow where description = 'workflow_test' ;
+delete from vw_experiment where description = 'test_experiment';
 
 
 ------------------------------------------------------------------------
@@ -767,27 +780,25 @@ insert into vw_status (description) values ('dev_test');
 -- set up experiment
 insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operator_uuid, lab_uuid, status_uuid) 
 	values (
-		'test_red_uid', 'test_experiment',
+		'test_uid', 'test_experiment',
 		null,
 		(select actor_uuid from vw_actor where description = 'HC'),						
 		(select actor_uuid from vw_actor where description = 'Dev Test123'),
 		(select actor_uuid from vw_actor where description = 'HC'),
 		(select status_uuid from vw_status where description = 'dev_test'));
-
--- create a workflow_def and workflow
-insert into vw_workflow_def (workflow_type_uuid, description, actor_uuid, status_uuid) 
+-- create a workflow
+insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid) 
 	values (
 		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
-		'workflow_def_test',
+		'test_workflow',
 		(select actor_uuid from vw_actor where description = 'Dev Test123'),
 		(select status_uuid from vw_status where description = 'dev_test'));
-insert into vw_workflow (workflow_def_uuid, description, experiment_uuid, actor_uuid, status_uuid) 
+-- associate it with an experiment
+insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid) 
 	values (
-		(select workflow_def_uuid from vw_workflow_def where description = 'workflow_def_test'),
-		'workflow_test',
+		1, 
 		(select experiment_uuid from vw_experiment where description = 'test_experiment'),
-		(select actor_uuid from vw_actor where description = 'Dev Test123'),
-		(select status_uuid from vw_status where description = 'dev_test'));
+		(select workflow_uuid from vw_workflow where description = 'test_workflow'));
 
 -- create action_def, parameter_def, action_parameter_def_assign, action
 insert into vw_action_def (description, actor_uuid, status_uuid) values
@@ -873,115 +884,70 @@ insert into vw_condition (condition_calculation_def_x_uuid, in_val, out_val, act
 		(select actor_uuid from vw_actor where description = 'T Testuser'),
 		(select status_uuid from vw_status where description = 'dev_test'));
 -- set up the workflow step object (from actions and conditions)
-insert into vw_workflow_step_object (action_uuid) 
-					values (
-						(select action_uuid from vw_action where action_description = 'example_heat'));
-				insert into vw_workflow_step_object (condition_uuid) 
-					values (
-						(select condition_uuid from vw_condition where  condition_description = 'temp > threshold ?'));
-				insert into vw_workflow_step_object (action_uuid) 
-					values (
-						(select action_uuid from vw_action where action_description = 'example_heat_stir'));
-				insert into vw_workflow_step_object (action_uuid) 
-					values (
-						(select action_uuid from vw_action where action_description = 'start'));
-				insert into vw_workflow_step_object (action_uuid) 
-					values (
-						(select action_uuid from vw_action where action_description = 'end'));
--- first add the objects to the workflow, as steps
-insert into vw_workflow_step (workflow_uuid, action_uuid, condition_uuid, initial_uuid, terminal_uuid, status_uuid) 
+insert into vw_workflow_object (action_uuid) 
 	values (
-		(select workflow_uuid from vw_workflow where description = 'workflow_test'),
-		(select action_uuid from vw_action where action_description = 'start'),
-		null, null, null,
-		(select status_uuid from vw_status where description = 'active'));
-insert into vw_workflow_step (workflow_uuid, action_uuid, condition_uuid, initial_uuid, terminal_uuid, status_uuid) 
+		(select action_uuid from vw_action where action_description = 'example_heat'));
+insert into vw_workflow_object (condition_uuid) 
 	values (
-		(select workflow_uuid from vw_workflow where description = 'workflow_test'),
-		(select action_uuid from vw_action where action_description = 'example_heat_stir'),
-		null, null, null,
-		(select status_uuid from vw_status where description = 'active'));
-insert into vw_workflow_step (workflow_uuid, action_uuid, condition_uuid, initial_uuid, terminal_uuid, status_uuid) 
+		(select condition_uuid from vw_condition where  condition_description = 'temp > threshold ?'));
+insert into vw_workflow_object (action_uuid) 
 	values (
-		(select workflow_uuid from vw_workflow where description = 'workflow_test'),
+		(select action_uuid from vw_action where action_description = 'example_heat_stir'));
+insert into vw_workflow_object (action_uuid) 
+	values (
+		(select action_uuid from vw_action where action_description = 'start'));
+insert into vw_workflow_object (action_uuid) 
+	values (
+		(select action_uuid from vw_action where action_description = 'end'));
+-- now define the path(s) between object -> workflow_step
+insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid) 
+	values (
+		(select workflow_uuid from vw_workflow where description = 'test_workflow'),
+		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'start')),
 		null,
+		(select status_uuid from vw_status where description = 'active'));
+insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid) 
+	values (
+		(select workflow_uuid from vw_workflow where description = 'test_workflow'),
+		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'example_heat_stir')),
+		(select workflow_step_uuid from vw_workflow_step where (object_type = 'action' and object_description = 'start')),						
+		(select status_uuid from vw_status where description = 'active'));
+insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)  
+	values (
+		(select workflow_uuid from vw_workflow where description = 'test_workflow'),
+		(select workflow_object_uuid from vw_workflow_object where (object_type = 'condition' and object_description = 'temp > threshold ?')),	
+		(select workflow_step_uuid from vw_workflow_step where (object_type = 'action' and object_description = 'example_heat_stir')),					
+		(select status_uuid from vw_status where description = 'active'));
+insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid) 
+	values (
+		(select workflow_uuid from vw_workflow where description = 'test_workflow'),
+		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'example_heat_stir')),
+		(select workflow_step_uuid from vw_workflow_step where (object_type = 'condition' and object_description = 'temp > threshold ?')),						
+		(select status_uuid from vw_status where description = 'active'));
+insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)  
+	values (
+		(select workflow_uuid from vw_workflow where description = 'test_workflow'),
+		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'example_heat')),	
+		(select workflow_step_uuid from vw_workflow_step where (object_type = 'condition' and object_description = 'temp > threshold ?')),					
+		(select status_uuid from vw_status where description = 'active'));
+insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)  
+	values (
+		(select workflow_uuid from vw_workflow where description = 'test_workflow'),
+		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'end')),	
+		(select workflow_step_uuid from vw_workflow_step where (object_type = 'action' and object_description = 'example_heat')),					
+		(select status_uuid from vw_status where description = 'active'));
+-- define the condition criteria path values (val) 
+insert into vw_condition_path (condition_uuid, condition_out_val, workflow_step_uuid)
+	values (
 		(select condition_uuid from vw_condition where condition_description = 'temp > threshold ?'),
-		null, null,
-		(select status_uuid from vw_status where description = 'active'));
-insert into vw_workflow_step (workflow_uuid, action_uuid, condition_uuid, initial_uuid, terminal_uuid, status_uuid) 
+		((SELECT put_val ((select get_type_def ('data', 'bool')), 'FALSE', null))),
+		(select workflow_step_uuid from vw_workflow_step 
+			where (object_description = 'example_heat_stir' and parent_object_description = 'temp > threshold ?')));
+insert into vw_condition_path (condition_uuid, condition_out_val, workflow_step_uuid)
 	values (
-		(select workflow_uuid from vw_workflow where description = 'workflow_test'),
-		(select action_uuid from vw_action where action_description = 'example_heat'),
-		null, null, null,
-		(select status_uuid from vw_status where description = 'active'));
-insert into vw_workflow_step (workflow_uuid, action_uuid, condition_uuid, initial_uuid, terminal_uuid, status_uuid) 
-	values (
-		(select workflow_uuid from vw_workflow where description = 'workflow_test'),
-		(select action_uuid from vw_action where action_description = 'end'),
-		null, null, null,
-		(select status_uuid from vw_status where description = 'active'));
--- then make the associated links between the workflow objects 
-update vw_workflow_step 
-	set terminal_uuid = 
-		(select workflow_step_uuid from vw_workflow_step where step_object_type = 'action' and step_object_description = 'example_heat')
-	where 
-		step_object_type = 'action' and step_object_description = 'start';
-update vw_workflow_step 
-	set 
-		initial_uuid = 
-			(select workflow_step_uuid from vw_workflow_step where step_object_type = 'action' and step_object_description = 'start'),
-		terminal_uuid = 
-			(select workflow_step_uuid from vw_workflow_step where step_object_type = 'condition' and step_object_description = 'temp > threshold ?')
-	where 
-		step_object_type = 'action' and step_object_description = 'example_heat';
-update vw_workflow_step 
-	set 
-		initial_uuid = 
-			(select workflow_step_uuid from vw_workflow_step where step_object_type = 'action' and step_object_description = 'example_heat'),
-		terminal_uuid = 
-			(select workflow_step_uuid from vw_workflow_step where step_object_type = 'action' and step_object_description = 'example_heat_stir')		
-	where 
-		step_object_type = 'condition' and step_object_description = 'temp > threshold ?';  		
-update vw_workflow_step 
-	set 
-		initial_uuid = 
-			(select workflow_step_uuid from vw_workflow_step where step_object_type = 'condition' and step_object_description = 'temp > threshold ?'),		
-		terminal_uuid = 
-			(select workflow_step_uuid from vw_workflow_step where step_object_type = 'action' and step_object_description = 'end')
-	where 
-		step_object_type = 'action' and step_object_description = 'example_heat_stir';
-update vw_workflow_step 
-	set 
-		initial_uuid = 
-			(select workflow_step_uuid from vw_workflow_step where step_object_type = 'action' and step_object_description = 'example_heat_stir')
-	where 
-		step_object_type = 'action' and step_object_description = 'end';
-
-
--- generate the workflow linked list orders from start to end in json
-WITH RECURSIVE wf(workflow_step_uuid, step_object_uuid, step_object_type, step_object_description, terminal_uuid) AS (
-    SELECT w1.workflow_step_uuid,  w1.step_object_uuid,  w1.step_object_type, w1.step_object_description, w1.terminal_uuid
-    FROM vw_workflow_step w1 WHERE workflow_step_uuid = (select workflow_step_uuid from vw_workflow_step where action_description = 'start')
-    UNION ALL
-    SELECT w2.workflow_step_uuid, w2.step_object_uuid as step_object_uuid, w2.step_object_type, w2.step_object_description, w2.terminal_uuid
-    FROM vw_workflow_step w2
-    JOIN wf ON wf.terminal_uuid = w2.workflow_step_uuid
-)
-SELECT  
-	json_build_object('workflow',
-	json_agg(
-		json_build_object(
-			'worflow_order', n.ord,
-			'workflow_step_uuid', n.workflow_step_uuid,
-			'workflow_step_object_uuid', n.step_object_uuid,
-			'workflow_step_object_type', n.step_object_type,
-			'workflow_step_object_description', n.step_object_description,
-			'workflow_step_object_terminal_uuid', n.terminal_uuid
-			)
-		)
-	)
-FROM 
-	(select row_number() over () as ord, * from wf) n;
-
+		(select condition_uuid from vw_condition where condition_description = 'temp > threshold ?'),
+		((SELECT put_val ((select get_type_def ('data', 'bool')), 'TRUE', null))),
+		(select workflow_step_uuid from vw_workflow_step 
+			where (object_description = 'example_heat' and parent_object_description = 'temp > threshold ?')));
 
 
