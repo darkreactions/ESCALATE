@@ -958,7 +958,6 @@ LEFT JOIN status st ON inv.status_uuid = st.status_uuid;
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_parameter_def AS
 SELECT
-	row_number() over() as id,
     pd.parameter_def_uuid,
     pd.description,
 	td.description as val_type_description,
