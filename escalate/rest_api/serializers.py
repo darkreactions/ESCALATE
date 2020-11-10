@@ -74,3 +74,11 @@ class ActionDefSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = core.models.ActionDef
         fields = '__all__'
+
+
+class ActionSerializer(DynamicFieldsModelSerializer):
+    parameter = ParameterSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = core.models.Action
+        fields = '__all__'
