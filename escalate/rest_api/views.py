@@ -105,7 +105,7 @@ for view_name in view_names:
     create_view(view_name)
 
 create_view('Edocument')
-create_view('ActionDef')
+
 
 
 # Download file view

@@ -848,6 +848,7 @@ class ParameterDef(models.Model):
 class ActionDef(models.Model):
     action_def_uuid = models.UUIDField(primary_key=True,
                                           db_column='action_def_uuid')
+    parameter_def = models.ManyToManyField('ParameterDef', through='ActionParameterDefAssign')
     description = models.CharField(max_length=255,
                                     blank=True,
                                     null=True,
@@ -884,14 +885,17 @@ class ActionDef(models.Model):
 
 
 class ActionParameterDef(models.Model):
-    action_parameter_def_x_uuid = models.UUIDField(primary_key=True,
-                                          db_column='action_parameter_def_x_uuid')
+    # id = models.AutoField(primary_key=True)
+    action_parameter_def_x_uuid = models.UUIDField(primary_key=True, db_column='action_parameter_def_x_uuid')
+    # action_def_uuid = models.UUIDField(primary_key=True,
+     #                                     db_column='action_def_uuid')
     action_def_uuid = models.ForeignKey('ActionDef',
                                    on_delete=models.DO_NOTHING,
                                    db_column='action_def_uuid',
                                    blank=True,
                                    null=True,
-                                   editable=False)
+                                   editable=False, related_name='action_parameter_def')
+    
     description = models.CharField(max_length=255,
                                     blank=True,
                                     null=True,
@@ -921,12 +925,16 @@ class ActionParameterDef(models.Model):
                                             editable=False)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
+    #parameter_def_uuid = models.UUIDField(primary_key=True,
+    #                                      db_column='parameter_def_uuid')
+    
     parameter_def_uuid = models.ForeignKey('ParameterDef',
                                    on_delete=models.DO_NOTHING,
                                    db_column='parameter_def_uuid',
                                    blank=True,
                                    null=True,
                                    editable=False)
+    
     parameter_description = models.CharField(max_length=255,
                                                blank=True,
                                                null=True,
@@ -940,3 +948,25 @@ class ActionParameterDef(models.Model):
     class Meta:
         managed = False
         db_table = 'vw_action_parameter_def'
+        unique_together = ['action_def_uuid', 'parameter_def_uuid']
+
+
+class ActionParameterDefAssign(models.Model):
+    action_parameter_def_x_uuid = models.UUIDField(primary_key=True, db_column='action_parameter_def_x_uuid')
+    parameter_def_uuid = models.ForeignKey('ParameterDef', 
+                                           on_delete=models.DO_NOTHING, 
+                                           blank=True,
+                                           null=True,
+                                           editable=False,
+                                           db_column='parameter_def_uuid',
+                                           related_name='action_parameter_def')
+    action_def_uuid = models.ForeignKey('ActionDef', on_delete=models.DO_NOTHING,
+                                        blank=True,
+                                        null=True,
+                                        editable=False, db_column='action_def_uuid',)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'vw_action_parameter_def_assign'

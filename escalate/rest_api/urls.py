@@ -1,3 +1,4 @@
+#from escalate.core.models.view_tables import ActionParameterDef
 from django.urls import path, include, re_path
 from django.views.generic import TemplateView
 from rest_framework.urlpatterns import format_suffix_patterns
@@ -18,7 +19,9 @@ rest_urlpatterns = [
     path('api/experimentmeasurecalculation/', views.ExperimentMeasureCalculationList.as_view(),
          name='experimentmeasurecalculation-list'),
     path('api/experimentmeasurecalculation/<str:pk>/',
-         views.ExperimentMeasureCalculationDetail.as_view(), name='experimentmeasurecalculation-detail')
+         views.ExperimentMeasureCalculationDetail.as_view(), name='experimentmeasurecalculation-detail'),
+    #path('api/actionparameterdef/<int:pk>/',views.ActionParameterDefDetail.as_view(), name='actionparameterdef-detail')
+
 ]
 
 for view in view_names+custom_serializer_views:

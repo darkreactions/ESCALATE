@@ -1,6 +1,6 @@
 from core.models import (Actor, Material, Inventory,
                          Person, Organization, Note)
-from rest_framework.serializers import HyperlinkedModelSerializer, CharField, SerializerMethodField, ReadOnlyField
+from rest_framework.serializers import HyperlinkedModelSerializer, CharField, SerializerMethodField, ReadOnlyField, HyperlinkedRelatedField
 from rest_framework.reverse import reverse
 import core.models
 from .utils import view_names
@@ -69,7 +69,8 @@ class ExperimentMeasureCalculationSerializer(DynamicFieldsModelSerializer):
 
 
 class ActionDefSerializer(DynamicFieldsModelSerializer):
-    parameter_def = ActionParameterDefSerializer(read_only=True, many=True)
+    parameter_def = ParameterDefSerializer(read_only=True, many=True)
+    
     class Meta:
         model = core.models.ActionDef
-        fields = 'action_def_uuid', 'description', 'parameter_def'
+        fields = '__all__'

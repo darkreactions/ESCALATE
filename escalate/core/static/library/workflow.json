@@ -1,0 +1,1189 @@
+{
+  "workflow": {
+    "activities": [
+      {
+        "id": "bc994f79-83da-47f6-8d5a-0891171b3664",
+        "type": "ReceiveHttpRequest",
+        "left": 79,
+        "top": 177,
+        "state": {},
+        "blocking": false,
+        "executed": false,
+        "faulted": false
+      },
+      {
+        "id": "d61066d7-6d16-4bd0-a396-769828353c97",
+        "type": "WriteLine",
+        "left": 533,
+        "top": 282,
+        "state": {},
+        "blocking": false,
+        "executed": false,
+        "faulted": false
+      },
+      {
+        "id": "16b6b1e8-6254-4019-9885-f8705742b03b",
+        "type": "SendEmail",
+        "left": 511,
+        "top": 468,
+        "state": {},
+        "blocking": false,
+        "executed": false,
+        "faulted": false
+      }
+    ],
+    "connections": [
+      {
+        "sourceActivityId": "bc994f79-83da-47f6-8d5a-0891171b3664",
+        "destinationActivityId": "d61066d7-6d16-4bd0-a396-769828353c97",
+        "outcome": "Done"
+      },
+      {
+        "sourceActivityId": "d61066d7-6d16-4bd0-a396-769828353c97",
+        "destinationActivityId": "16b6b1e8-6254-4019-9885-f8705742b03b",
+        "outcome": "Done"
+      }
+    ]
+  },
+  "activity": [
+    {
+      "type": "ReadLine",
+      "displayName": "Read Line",
+      "description": "Read text from standard in.",
+      "runtimeDescription": "a => !!a.state.variableName ? `Read text from standard in and store into <strong>${ a.state.variableName }</strong>.` : 'Read text from standard in.'",
+      "category": "Console",
+      "icon": "fas fa-terminal",
+      "outcomes": ["Done"],
+      "properties": [
+        {
+          "name": "variableName",
+          "type": "text",
+          "label": "Variable Name",
+          "hint": "The name of the variable to store the value into.",
+          "options": {}
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "type": "WriteLine",
+      "displayName": "Write Line",
+      "description": "Write text to standard out.",
+      "runtimeDescription": "x => !!x.state.textExpression ? `Write <strong>${ x.state.textExpression.expression }</strong> to standard out.` : x.definition.description",
+      "category": "Console",
+      "icon": "fas fa-terminal",
+      "outcomes": ["Done"],
+      "properties": [
+        {
+          "name": "textExpression",
+          "type": "expression",
+          "label": "Text Expression",
+          "hint": "The text to write.",
+          "options": {}
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "type": "ForEach",
+      "displayName": "For Each",
+      "description": "Iterate over a collection.",
+      "category": "Control Flow",
+      "icon": "far fa-circle",
+      "outcomes": "[ 'Done', 'Iterate' ]",
+      "properties": [
+        {
+          "name": "collectionExpression",
+          "type": "expression",
+          "label": "Collection Expression",
+          "hint": "Enter an expression that evaluates to an array of items to iterate over.",
+          "options": {}
+        },
+        {
+          "name": "iteratorName",
+          "type": "text",
+          "label": "Iterator Name",
+          "hint": "Enter a name for the iterator variable.",
+          "options": {}
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "type": "Fork",
+      "displayName": "Fork",
+      "description": "Fork workflow execution into multiple branches.",
+      "category": "Control Flow",
+      "icon": "fas fa-code-branch fa-rotate-180",
+      "outcomes": "x => x.state.branches",
+      "properties": [
+        {
+          "name": "branches",
+          "type": "list",
+          "label": "Branches",
+          "hint": "Enter one or more names representing branches, separated with a comma. Example: Branch 1, Branch 2",
+          "options": {}
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "type": "IfElse",
+      "displayName": "If/Else",
+      "description": "Evaluate a Boolean expression and continue execution depending on the result.",
+      "runtimeDescription": "x => !!x.state.expression ? `Evaluate <strong>${ x.state.expression.expression }</strong> and continue execution depending on the result.` : x.definition.description",
+      "category": "Control Flow",
+      "outcomes": ["True", "False"],
+      "properties": [
+        {
+          "name": "conditionExpression",
+          "type": "expression",
+          "label": "Condition Expression",
+          "hint": "The expression to evaluate. The evaluated value will be used to switch on.",
+          "options": {}
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "type": "Join",
+      "displayName": "Join",
+      "description": "Merge workflow execution back into a single branch.",
+      "runtimeDescription": "x => !!x.state.joinMode ? `Merge workflow execution back into a single branch using mode <strong>${ x.state.joinMode }</strong>` : x.definition.description",
+      "category": "Control Flow",
+      "icon": "fas fa-code-branch",
+      "outcomes": ["Done"],
+      "properties": [
+        {
+          "name": "mode",
+          "type": "select",
+          "label": "Mode",
+          "hint": "Either 'WaitAll' or 'WaitAny'",
+          "options": {
+            "items": ["WaitAll", "WaitAny"]
+          }
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "type": "Switch",
+      "displayName": "Switch",
+      "description": "Switch execution based on a given expression.",
+      "runtimeDescription": "x => !!x.state.expression ? `Switch execution based on <strong>${ x.state.expression.expression }</strong>.` : x.definition.description",
+      "category": "Control Flow",
+      "icon": "far fa-list-alt",
+      "outcomes": "x => x.state.cases.map(c => c.toString())",
+      "properties": [
+        {
+          "name": "expression",
+          "type": "expression",
+          "label": "Expression",
+          "hint": "The expression to evaluate. The evaluated value will be used to switch on.",
+          "options": {}
+        },
+        {
+          "name": "cases",
+          "type": "list",
+          "label": "Cases",
+          "hint": "A comma-separated list of possible outcomes of the expression.",
+          "options": {}
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "type": "While",
+      "displayName": "While",
+      "description": "Execute while a given condition is true.",
+      "category": "Control Flow",
+      "icon": "far fa-circle",
+      "outcomes": ["Done"],
+      "properties": [
+        {
+          "name": "conditionExpression",
+          "type": "expression",
+          "label": "Condition Expression",
+          "hint": "Enter an expression that evaluates to a boolean value.",
+          "options": {}
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "type": "SendEmail",
+      "displayName": "Send Email",
+      "description": "Send an email message.",
+      "category": "Email",
+      "outcomes": ["Done"],
+      "properties": [
+        {
+          "name": "from",
+          "type": "expression",
+          "label": "From",
+          "hint": "The sender's email address.",
+          "options": {}
+        },
+        {
+          "name": "to",
+          "type": "expression",
+          "label": "To",
+          "hint": "The recipient's email address.",
+          "options": {}
+        },
+        {
+          "name": "subject",
+          "type": "expression",
+          "label": "Subject",
+          "hint": "The subject of the email message.",
+          "options": {}
+        },
+        {
+          "name": "body",
+          "type": "expression",
+          "label": "Body",
+          "hint": "The body of the email message.",
+          "options": {
+            "multiline": true
+          }
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "type": "ReceiveHttpRequest",
+      "displayName": "Receive HTTP Request",
+      "description": "Receive an incoming HTTP request.",
+      "runtimeDescription": "x => !!x.state.path ? `Handle <strong>${ x.state.method } ${ x.state.path }</strong>.` : x.definition.description",
+      "category": "HTTP",
+      "outcomes": ["Done"],
+      "properties": [
+        {
+          "name": "path",
+          "type": "text",
+          "label": "Path",
+          "hint": "The relative path that triggers this activity.",
+          "options": {}
+        },
+        {
+          "name": "method",
+          "type": "select",
+          "label": "Method",
+          "hint": "The HTTP method that triggers this activity.",
+          "options": {
+            "items": [
+              "GET",
+              "POST",
+              "PUT",
+              "DELETE",
+              "PATCH",
+              "OPTIONS",
+              "HEAD"
+            ]
+          }
+        },
+        {
+          "name": "readContent",
+          "type": "boolean",
+          "label": "Read Content",
+          "hint": "A value indicating whether the HTTP request content body should be read and stored as part of the HTTP request model. The stored format depends on the content-type header.",
+          "options": {}
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "type": "Redirect",
+      "displayName": "Redirect",
+      "description": "Write an HTTP redirect response.",
+      "category": "HTTP",
+      "outcomes": ["Done"],
+      "properties": [
+        {
+          "name": "location",
+          "type": "expression",
+          "label": "Location",
+          "hint": "The URL to redirect to (HTTP 302).",
+          "options": {}
+        },
+        {
+          "name": "permanent",
+          "type": "boolean",
+          "label": "Permanent",
+          "hint": "Tick this box to indicate if the redirect is permanent (HTTP 301).",
+          "options": {}
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "type": "SendHttpRequest",
+      "displayName": "Send HTTP Request",
+      "description": "Send an HTTP request.",
+      "runtimeDescription": "x => !!x.state.url ? `Send HTTP <strong>${ x.state.method } ${ x.state.url.expression }</strong>.` : x.definition.description",
+      "category": "HTTP",
+      "outcomes": "x => !!x.state.supportedStatusCodes ? x.state.supportedStatusCodes : []",
+      "properties": [
+        {
+          "name": "url",
+          "type": "expression",
+          "label": "Url",
+          "hint": "The URL to send the HTTP request to.",
+          "options": {}
+        },
+        {
+          "name": "method",
+          "type": "select",
+          "label": "Method",
+          "hint": "The HTTP method to use when making the request.",
+          "options": {
+            "items": [
+              "GET",
+              "POST",
+              "PUT",
+              "DELETE",
+              "PATCH",
+              "OPTIONS",
+              "HEAD"
+            ]
+          }
+        },
+        {
+          "name": "content",
+          "type": "expression",
+          "label": "Content",
+          "hint": "The HTTP content to send along with the request.",
+          "options": {
+            "multiline": true
+          }
+        },
+        {
+          "name": "contentType",
+          "type": "select",
+          "label": "Content Type",
+          "hint": "The content type to send with the request (if applicable).",
+          "options": {
+            "items": [
+              "text/plain",
+              "text/html",
+              "application/json",
+              "application/xml"
+            ]
+          }
+        },
+        {
+          "name": "authorization",
+          "type": "expression",
+          "label": "Authorization",
+          "hint": "The Authorization header value to send.",
+          "options": {}
+        },
+        {
+          "name": "requestHeaders",
+          "type": "expression",
+          "label": "Request Headers",
+          "hint": "The headers to send along with the request. One 'header: value' pair per line.",
+          "options": {}
+        },
+        {
+          "name": "readContent",
+          "type": "boolean",
+          "label": "Read Content",
+          "hint": "Check to read the content of the response.",
+          "options": {}
+        },
+        {
+          "name": "supportedStatusCodes",
+          "type": "list",
+          "label": "Supported Status Codes",
+          "hint": "A list of possible HTTP status codes to handle, comma-separated. Example: 200, 400, 404",
+          "options": {}
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "type": "WriteHttpResponse",
+      "displayName": "Write HTTP Response",
+      "description": "Write an HTTP response.",
+      "runtimeDescription": "x => !!x.state.statusCode ? `Send an HTTP <strong>${ x.state.statusCode }</strong> - <strong>${ x.state.contentType }</strong> response` : x.definition.description",
+      "category": "HTTP",
+      "outcomes": ["Done"],
+      "properties": [
+        {
+          "name": "statusCode",
+          "type": "select",
+          "label": "Status Code",
+          "hint": "The HTTP status code to write.",
+          "options": {
+            "items": [
+              {
+                "label": "2xx",
+                "options": [200, 201, 202, 203, 204]
+              },
+              {
+                "label": "3xx",
+                "options": [301, 302, 304, 307, 308]
+              },
+              {
+                "label": "4xx",
+                "options": [
+                  400,
+                  401,
+                  402,
+                  403,
+                  404,
+                  405,
+                  409,
+                  410,
+                  412,
+                  413,
+                  415,
+                  417,
+                  418,
+                  420,
+                  428,
+                  429
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "content",
+          "type": "expression",
+          "label": "Content",
+          "hint": "The HTTP content to write.",
+          "options": {
+            "multiline": true
+          }
+        },
+        {
+          "name": "contentType",
+          "type": "select",
+          "label": "Content Type",
+          "hint": "The HTTP content type header to write.",
+          "options": {
+            "items": [
+              "text/plain",
+              "text/html",
+              "application/json",
+              "application/xml"
+            ]
+          }
+        },
+        {
+          "name": "responseHeaders",
+          "type": "expression",
+          "label": "Response Headers",
+          "hint": "The headers to send along with the response. One 'header: value' pair per line.",
+          "options": {}
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "type": "CronEvent",
+      "displayName": "Cron Event",
+      "description": "Triggers periodically based on a specified CRON expression.",
+      "runtimeDescription": "x => !!x.state.cronExpression ? `<strong>${ x.state.cronExpression.expression }</strong>.` : x.definition.description",
+      "category": "Timers",
+      "outcomes": ["Done"],
+      "properties": [
+        {
+          "name": "cronExpression",
+          "type": "expression",
+          "label": "Cron Expression",
+          "hint": "Specify a CRON expression. See https://crontab.guru/ for help.",
+          "options": {}
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "type": "InstantEvent",
+      "displayName": "Instant Event",
+      "description": "Triggers at a specified moment in time.",
+      "category": "Timers",
+      "outcomes": ["Done"],
+      "properties": [
+        {
+          "name": "instantExpression",
+          "type": "expression",
+          "label": "Instant Expression",
+          "hint": "An expression that evaluates to a NodaTime Instant",
+          "options": {}
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "type": "TimerEvent",
+      "displayName": "Timer Event",
+      "description": "Triggers at a specified interval.",
+      "category": "Timers",
+      "outcomes": ["Done"],
+      "properties": [
+        {
+          "name": "timeoutExpression",
+          "type": "expression",
+          "label": "Timeout Expression",
+          "hint": "An expression that evaluates to a TimeSpan value",
+          "options": {}
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "type": "UserTask",
+      "displayName": "User Task",
+      "description": "Triggers when a user action is received.",
+      "category": "User Tasks",
+      "outcomes": ["Done"],
+      "properties": [
+        {
+          "name": "actions",
+          "type": "list",
+          "label": "Actions",
+          "hint": "Enter a comma-separated list of available actions",
+          "options": {}
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "type": "Correlate",
+      "displayName": "Correlate",
+      "description": "Set the CorrelationId of the workflow to a given value.",
+      "category": "Workflows",
+      "icon": "fas fa-link",
+      "outcomes": ["Done"],
+      "properties": [
+        {
+          "name": "valueExpression",
+          "type": "expression",
+          "label": "Value Expression",
+          "hint": "An expression that evaluates to the value to store as the correlation ID.",
+          "options": {}
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "type": "Finish",
+      "displayName": "Finish",
+      "description": "Removes any blocking activities and sets the status of the workflow to Finished.",
+      "category": "Workflows",
+      "icon": "fas fa-flag-checkered",
+      "outcomes": ["Done"],
+      "properties": [
+        {
+          "name": "workflowOutput",
+          "type": "expression",
+          "label": "Workflow Output",
+          "hint": "An expression that evaluates to a dictionary to be set as the workflow's output.'",
+          "options": {}
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "type": "Signaled",
+      "displayName": "Signaled",
+      "description": "Halt workflow execution until the specified signal is received.",
+      "category": "Workflows",
+      "icon": "fas fa-traffic-light",
+      "outcomes": ["Done"],
+      "properties": [
+        {
+          "name": "signal",
+          "type": "expression",
+          "label": "Signal",
+          "hint": "An expression that evaluates to the name of the signal to wait for.",
+          "options": {}
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "type": "Start",
+      "displayName": "Start",
+      "description": "The start of the workflow.",
+      "category": "Workflows",
+      "icon": "far fa-flag",
+      "outcomes": ["Done"],
+      "properties": [
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "type": "TriggerSignal",
+      "displayName": "Trigger Signal",
+      "description": "Trigger the specified signal.",
+      "category": "Workflows",
+      "icon": "fas fa-broadcast-tower",
+      "outcomes": ["Done"],
+      "properties": [
+        {
+          "name": "signal",
+          "type": "expression",
+          "label": "Signal",
+          "hint": "An expression that evaluates to the name of the signal to trigger.",
+          "options": {}
+        },
+        {
+          "name": "input",
+          "type": "expression",
+          "label": "Input",
+          "hint": "An expression that evaluates to a dictionary to be provided as input when signaling.",
+          "options": {}
+        },
+        {
+          "name": "correlationId",
+          "type": "expression",
+          "label": "Correlation Id",
+          "hint": "An expression that evaluates to the correlation ID to use when signaling.",
+          "options": {}
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "type": "TriggerWorkflow",
+      "displayName": "Trigger Workflow",
+      "description": "Trigger all workflows that start with or are blocked on the specified activity type.",
+      "category": "Workflows",
+      "icon": "fas fa-sitemap",
+      "outcomes": ["Done"],
+      "properties": [
+        {
+          "name": "activityType",
+          "type": "expression",
+          "label": "Activity Type",
+          "hint": "An expression that evaluates to the activity type to use when triggering workflows.",
+          "options": {}
+        },
+        {
+          "name": "input",
+          "type": "expression",
+          "label": "Input",
+          "hint": "An expression that evaluates to a dictionary to be provided as input when triggering workflows.",
+          "options": {}
+        },
+        {
+          "name": "correlationId",
+          "type": "expression",
+          "label": "Correlation Id",
+          "hint": "An expression that evaluates to the correlation ID to use when triggering workflows.",
+          "options": {}
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "type": "SetVariable",
+      "displayName": "Set Variable",
+      "description": "Set variable on the workflow.",
+      "runtimeDescription": "x => !!x.state.variableName ? `<strong>${x.state.variableName}</strong> = <strong>${x.state.valueExpression.expression}</strong><br/>${x.state.valueExpression.syntax}` : x.definition.description",
+      "category": "Primitives",
+      "outcomes": ["Done"],
+      "properties": [
+        {
+          "name": "variableName",
+          "type": "text",
+          "label": "Variable Name",
+          "hint": "The name of the variable to store the value into.",
+          "options": {}
+        },
+        {
+          "name": "valueExpression",
+          "type": "expression",
+          "label": "Value Expression",
+          "hint": "An expression that evaluates to the value to store in the variable.",
+          "options": {}
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+          "options": {}
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title",
+          "hint": "Optionally provide a custom title for this activity.",
+          "options": {}
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "hint": "Optionally provide a custom description for this activity.",
+          "options": {}
+        }
+      ]
+    }
+  ]
+}
