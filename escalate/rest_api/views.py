@@ -107,6 +107,7 @@ for view_name in view_names:
 create_view('Edocument')
 
 
+
 # Download file view
 def download_blob(request, uuid):
     edoc = core.models.Edocument.objects.get(uuid=uuid)

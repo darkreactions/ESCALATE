@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from core.models import (CustomUser, Person, Material, Inventory, Actor, Note,
-                         Organization, LatestSystemtool, SystemtoolType,
+                         Organization, Systemtool, SystemtoolType,
                          UdfDef, Status, Tag, Tag_X, TagType, MaterialType,
                          Edocument)
 
@@ -304,7 +304,7 @@ class OrganizationForm(forms.ModelForm):
 
 class LatestSystemtoolForm(forms.ModelForm):
     class Meta:
-        model = LatestSystemtool
+        model = Systemtool
         fields = ['systemtool_name', 'description', 'systemtool_type_uuid',
                   'vendor_organization_uuid', 'model', 'serial', 'ver']
         field_classes = {
@@ -363,10 +363,10 @@ class SystemtoolTypeForm(forms.ModelForm):
 class UdfDefForm(forms.ModelForm):
     class Meta:
         model = UdfDef
-        fields = ['description', 'valtype']
+        fields = ['description', 'val_type_description']
         labels = {
             'description': 'Description',
-            'valtype': 'Value type'
+            'val_type_description': 'Value type'
         }
         CHOICES = (('1', 'int'), ('2', 'array_int'), ('3', 'num'), ('4', 'array_num'),
                    ('5', 'text'), ('6', 'array_text'), ('7',
@@ -378,7 +378,7 @@ class UdfDefForm(forms.ModelForm):
                 'rows': '3',
                 'placeholder': 'Your system tool type description'
             }),
-            'valtype': forms.Select(attrs={
+            'val_type_description': forms.Select(attrs={
                 'placeholder': 'Ex: text, image'}, choices=CHOICES)
         }
 
@@ -423,13 +423,13 @@ class TagForm(forms.ModelForm):
 class TagTypeForm(forms.ModelForm):
     class Meta:
         model = TagType
-        fields = ['short_description', 'description']
+        fields = ['type', 'description']
         labels = {
-            'short_description': 'Tag Type Short Description',
+            'type': 'Tag Type Short Description',
             'description': 'Tag Type Long Description'
         }
         widgets = {
-            'short_description': forms.TextInput(attrs={
+            'type': forms.TextInput(attrs={
                 'placeholder': 'Enter your name of the tag type'}),
             'description': forms.Textarea(attrs={
                 'cols': '10',

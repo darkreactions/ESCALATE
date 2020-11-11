@@ -1,6 +1,6 @@
 from django.urls import path, include
 import core.views
-from .views import (LoginView, CreateUserView, MainMenuView,
+from .views import (LoginView, CreateUserView, MainMenuView, WorkflowView,
                     ModelTagCreate, ModelTagUpdate, logout_view)
 from core.utils import view_names, camel_to_snake
 from django.contrib.staticfiles.storage import staticfiles_storage
@@ -16,6 +16,7 @@ urlpatterns = [
     path('', LoginView.as_view(), name='login'),
     path('create_user/', CreateUserView.as_view(), name='create_user'),
     path('main_menu/', MainMenuView.as_view(), name='main_menu'),
+    path('workflow/', WorkflowView.as_view(), name='workflow'),
     path('logout/', logout_view, name='logout')
 ]
 

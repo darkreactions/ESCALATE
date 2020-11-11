@@ -20,14 +20,18 @@ def camel_case_uuid(text):
 
 
 view_names = ['Systemtool', 'SystemtoolType', 'Actor', 'Inventory', 'InventoryMaterial',
-              'LatestSystemtool', 'Calculation', 'CalculationDef',
+               'Calculation', 'CalculationDef',
               'Material', 'MaterialCalculationJson', 'MaterialRefnameDef',
               'MaterialType', 'Note', 'Note_x', 'Organization', 'Person',
-              'Status', 'Tag', 'TagType', 'PropertyDef', 'MaterialProperty', 'TypeDef']
+              'Status', 'TagType', 'PropertyDef', 'MaterialProperty', 'TypeDef',
+              'ParameterDef',]
 
 GET_only_views = ['TypeDef']
 
-custom_serializer_views = ['Edocument', 'ExperimentMeasureCalculation']
+custom_serializer_views = ['Tag',
+                           'Edocument',
+                           'ExperimentMeasureCalculation',
+                           'ActionDef']
 
 perform_create_views = ['PropertyDef', "MaterialProperty"]
 

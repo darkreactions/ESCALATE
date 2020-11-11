@@ -23,7 +23,7 @@ methods = {
         'success_url': reverse_lazy('material_list'),
     },
     'Systemtool': {
-        'model': core.models.LatestSystemtool,
+        'model': core.models.Systemtool,
         'context_object_name': 'systemtool',
         'form_class': core.forms.LatestSystemtoolForm,
         'success_url': reverse_lazy('systemtool_list'),

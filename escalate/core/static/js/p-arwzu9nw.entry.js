@@ -1,0 +1,1 @@
+import{r as t,h as s}from"./p-5341f061.js";class e{constructor(s){t(this,s)}render(){const t=this.name;return s("host",null,s("label",{htmlFor:t},this.label),s("input",{id:t,name:t,type:"text",class:"form-control",value:this.value}),s("small",{class:"form-text text-muted"},this.hint))}static get style(){return""}}export{e as wf_text_field};
