@@ -1,6 +1,6 @@
 from core.models import (Actor, Material, Inventory,
                          Person, Organization, Note)
-from rest_framework.serializers import HyperlinkedModelSerializer, CharField, SerializerMethodField, ReadOnlyField, HyperlinkedRelatedField
+from rest_framework.serializers import HyperlinkedModelSerializer, CharField, SerializerMethodField, ReadOnlyField, HyperlinkedRelatedField, ModelSerializer
 from rest_framework.reverse import reverse
 import core.models
 from .utils import view_names
@@ -11,7 +11,7 @@ class DynamicFieldsModelSerializer(HyperlinkedModelSerializer):
     A ModelSerializer that takes an additional `fields` and 'exclude' arguments that
     controls which fields should be displayed.
     """
-
+    
     def __init__(self, *args, **kwargs):
         # Don't pass the 'fields' arg up to the superclass
 
@@ -39,21 +39,31 @@ class DynamicFieldsModelSerializer(HyperlinkedModelSerializer):
                 if field_name in self.fields:
                     self.fields.pop(field_name)
 
+class TagSerializer(ModelSerializer):
+    class Meta:
+        model = core.models.Tag
+        fields = '__all__'
 
-for model_name in view_names:
-    meta_class = type('Meta', (), {'model': getattr(core.models, model_name),
-                                   'fields': '__all__'})
-    globals()[model_name+'Serializer'] = type(model_name+'Serializer', tuple([DynamicFieldsModelSerializer]),
-                                              {'Meta': meta_class})
+class TagNoteSerializer(DynamicFieldsModelSerializer):
+    tags = SerializerMethodField()
+
+    def get_tags(self, obj):
+        tags = core.models.Tag.objects.filter(tag_x__ref_tag_uuid=obj.uuid)
+        result_serializer = TagSerializer(tags, many=True)
+        
+        
+        return result_serializer.data
 
 
-class EdocumentSerializer(DynamicFieldsModelSerializer):
+class EdocumentSerializer(TagNoteSerializer, DynamicFieldsModelSerializer):
     download_link = SerializerMethodField()
-
+    
+    
     class Meta:
         model = core.models.Edocument
         fields = ('uuid', 'title', 'description', 'filename',
-                  'source', 'edoc_type', 'download_link', 'actor_uuid', 'actor_description')
+                  'source', 'edoc_type', 'download_link', 'actor_uuid', 'actor_description', 'tags')
+
 
     def get_download_link(self, obj):
         result = '{}'.format(reverse('edoc_download',
@@ -67,6 +77,11 @@ class ExperimentMeasureCalculationSerializer(DynamicFieldsModelSerializer):
         model = core.models.ExperimentMeasureCalculation
         fields = ('uid', 'row_to_json')
 
+for model_name in view_names:
+    meta_class = type('Meta', (), {'model': getattr(core.models, model_name),
+                                   'fields': '__all__'})
+    globals()[model_name+'Serializer'] = type(model_name+'Serializer', tuple([TagNoteSerializer, DynamicFieldsModelSerializer]),
+                                              {'Meta': meta_class})
 
 class ActionDefSerializer(DynamicFieldsModelSerializer):
     parameter_def = ParameterDefSerializer(read_only=True, many=True)

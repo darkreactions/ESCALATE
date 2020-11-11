@@ -11,7 +11,7 @@ from django.utils.timezone import now
 
 managed_value = False
 
-
+"""
 class Systemtool(models.Model):
     systemtool_uuid = models.UUIDField(primary_key=True)
     systemtool_name = models.CharField(max_length=255)
@@ -34,3 +34,4 @@ class Systemtool(models.Model):
 
     def __str__(self):
         return "{} {}".format(self.systemtool_name, self.model)
+"""

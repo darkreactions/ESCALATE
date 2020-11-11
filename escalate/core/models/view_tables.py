@@ -1,10 +1,13 @@
 from django.db import models
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 #from django.contrib.postgres.fields import JSONField
 from django.db.models import JSONField
 managed_value = False
 
 
 class Actor(models.Model):
+#class Actor(CommonData):
     uuid = models.UUIDField(primary_key=True, db_column='actor_uuid')
     organization_uuid = models.ForeignKey('Organization',
                                           on_delete=models.DO_NOTHING,
@@ -149,7 +152,7 @@ class InventoryMaterial(models.Model):
         return "{} : {}".format(self.inventory_description, self.material_name)
 
 
-class LatestSystemtool(models.Model):
+class Systemtool(models.Model):
     uuid = models.UUIDField(primary_key=True,
                             db_column='systemtool_uuid')
     systemtool_name = models.CharField(max_length=255, null=True)
@@ -197,8 +200,8 @@ class Calculation(models.Model):
     uuid = models.UUIDField(primary_key=True,
                             db_column='calculation_uuid')
     in_val = models.TextField(blank=True, null=True)
-    in_type = models.CharField(max_length=255, blank=True, null=True)
-    in_val_type = models.TextField(blank=True, null=True)
+    in_val_type_uuid = models.UUIDField()
+    #in_val_type = models.TextField(blank=True, null=True)
     in_val_value = models.TextField(blank=True, null=True)
     in_val_unit = models.TextField(blank=True, null=True)
     in_val_edocument = models.ForeignKey('Edocument',
@@ -513,21 +516,21 @@ class Tag(models.Model):
     uuid = models.UUIDField(primary_key=True, db_column='tag_uuid')
     display_text = models.CharField(max_length=255,  null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
+    actor_uuid = models.ForeignKey('Actor', models.DO_NOTHING,
+                                   db_column='actor_uuid',
+                                   blank=True, null=True)
+    actor_description = models.CharField(max_length=255, blank=True, null=True)
+    
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
     tag_type_uuid = models.ForeignKey('TagType', models.DO_NOTHING,
                                       db_column='tag_type_uuid',
                                       blank=True, null=True)
-    tag_type_short_descr = models.CharField(
+    type = models.CharField(
         max_length=255, blank=True, null=True)
-    tag_type_description = models.CharField(
+    type_description = models.CharField(
         max_length=255, blank=True, null=True)
-
-    actor_uuid = models.ForeignKey('Actor', models.DO_NOTHING,
-                                   db_column='actor_uuid',
-                                   blank=True, null=True)
-    actor_description = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -541,13 +544,16 @@ class Tag_X(models.Model):
     uuid = models.UUIDField(primary_key=True, db_column='tag_x_uuid')
     ref_tag_uuid = models.UUIDField()
     tag_uuid = models.ForeignKey('Tag', models.DO_NOTHING,
+                                 blank=True,
+                                 null=True,
+                                 editable=False,
                                  db_column='tag_uuid')
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
-        db_table = 'vw_tag_x'
+        db_table = 'vw_tag_assign'
 
     def __str__(self):
         return "{}".format(self.uuid)
@@ -555,7 +561,7 @@ class Tag_X(models.Model):
 
 class TagType(models.Model):
     uuid = models.UUIDField(primary_key=True, db_column='tag_type_uuid')
-    short_description = models.CharField(max_length=255,  null=True)
+    type = models.CharField(max_length=255,  null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
@@ -565,7 +571,7 @@ class TagType(models.Model):
         db_table = 'vw_tag_type'
 
     def __str__(self):
-        return "{}".format(self.short_description)
+        return "{}".format(self.type)
 
 
 class Edocument(models.Model):
@@ -579,7 +585,7 @@ class Edocument(models.Model):
     source = models.CharField(
         max_length=255, blank=True, null=True, db_column='source')
     edoc_type = models.CharField(max_length=255, blank=True,
-                                 null=True, db_column='doc_type')
+                                 null=True, db_column='doc_type_description')
     edocument = models.BinaryField(blank=True, null=True)
     edoc_ver = models.CharField(max_length=255, blank=True,
                                 null=True, db_column='doc_ver')
@@ -618,10 +624,17 @@ class UdfDef(models.Model):
     uuid = models.UUIDField(primary_key=True, db_column='udf_def_uuid')
     description = models.CharField(
         max_length=255,  null=True)
-    valtype = models.CharField(
+    val_type_uuid = models.ForeignKey('TypeDef',
+                                 db_column='val_type_uuid',
+                                 on_delete=models.DO_NOTHING,
+                                 blank=True,
+                                 null=True)
+    val_type_description = models.CharField(
         max_length=255, blank=True, null=True)
-    add_date = models.DateTimeField()
-    mod_date = models.DateTimeField()
+    unit = models.CharField(
+        max_length=255, blank=True, null=True)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
@@ -710,7 +723,9 @@ class PropertyDef(models.Model):
 
 class MaterialProperty(models.Model):
 
-    property_x_uuid = models.UUIDField(primary_key=True,
+    #property_x_uuid = models.UUIDField(primary_key=True,
+    #                                   db_column='property_x_uuid')
+    uuid = models.UUIDField(primary_key=True,
                                        db_column='property_x_uuid')
     material_uuid = models.ForeignKey('Material',
                                       db_column='material_uuid',
@@ -778,7 +793,9 @@ class MaterialProperty(models.Model):
 
 
 class ParameterDef(models.Model):
-    parameter_def_uuid = models.UUIDField(primary_key=True,
+    #parameter_def_uuid = models.UUIDField(primary_key=True,
+    #                                      db_column='parameter_def_uuid')
+    uuid = models.UUIDField(primary_key=True,
                                           db_column='parameter_def_uuid')
     description = models.CharField(max_length=255,
                                     blank=True,
@@ -846,7 +863,9 @@ class ParameterDef(models.Model):
 
 
 class ActionDef(models.Model):
-    action_def_uuid = models.UUIDField(primary_key=True,
+    #action_def_uuid = models.UUIDField(primary_key=True,
+    #                                      db_column='action_def_uuid')
+    uuid = models.UUIDField(primary_key=True,
                                           db_column='action_def_uuid')
     parameter_def = models.ManyToManyField('ParameterDef', through='ActionParameterDefAssign')
     description = models.CharField(max_length=255,
@@ -885,10 +904,8 @@ class ActionDef(models.Model):
 
 
 class ActionParameterDef(models.Model):
-    # id = models.AutoField(primary_key=True)
-    action_parameter_def_x_uuid = models.UUIDField(primary_key=True, db_column='action_parameter_def_x_uuid')
-    # action_def_uuid = models.UUIDField(primary_key=True,
-     #                                     db_column='action_def_uuid')
+    #action_parameter_def_x_uuid = models.UUIDField(primary_key=True, db_column='action_parameter_def_x_uuid')
+    uuid = models.UUIDField(primary_key=True, db_column='action_parameter_def_x_uuid')
     action_def_uuid = models.ForeignKey('ActionDef',
                                    on_delete=models.DO_NOTHING,
                                    db_column='action_def_uuid',
@@ -952,7 +969,8 @@ class ActionParameterDef(models.Model):
 
 
 class ActionParameterDefAssign(models.Model):
-    action_parameter_def_x_uuid = models.UUIDField(primary_key=True, db_column='action_parameter_def_x_uuid')
+    #action_parameter_def_x_uuid = models.UUIDField(primary_key=True, db_column='action_parameter_def_x_uuid')
+    uuid = models.UUIDField(primary_key=True, db_column='action_parameter_def_x_uuid')
     parameter_def_uuid = models.ForeignKey('ParameterDef', 
                                            on_delete=models.DO_NOTHING, 
                                            blank=True,
