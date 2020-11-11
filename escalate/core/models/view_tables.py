@@ -988,3 +988,140 @@ class ActionParameterDefAssign(models.Model):
     class Meta:
         managed = False
         db_table = 'vw_action_parameter_def_assign'
+
+
+class ActionParameterAssign(models.Model):
+    action_parameter_x_uuid = models.UUIDField(primary_key=True, db_column='action_parameter_x_uuid')
+    parameter_uuid = models.ForeignKey('Parameter',
+                                       on_delete=models.DO_NOTHING,
+                                       blank=True,
+                                       null=True,
+                                       editable=False,
+                                       db_column='parameter_uuid',
+                                       related_name='parameter')
+    action_uuid = models.ForeignKey('Action',
+                                    on_delete=models.DO_NOTHING,
+                                    blank=True,
+                                    null=True,
+                                    editable=False,
+                                    db_column='action_uuid')
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'vw_action_parameter' # todo, make a complimentary assign view for ap instances
+
+
+class Action(models.Model):
+    action_uuid = models.UUIDField(primary_key=True,
+                                   db_column='action_uuid')
+    parameter = models.ManyToManyField('Parameter', through='ActionParameterAssign')
+    description = models.CharField(max_length=255,
+                                   blank=True,
+                                   null=True,
+                                   db_column='action_description',
+                                   editable=False)
+    action_def = models.ForeignKey('ActionDef',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='action_def_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    actor_uuid = models.ForeignKey('Actor',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='actor_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    actor_description = models.CharField(max_length=255,
+                                         blank=True,
+                                         null=True,
+                                         db_column='actor_description',
+                                         editable=False)
+    status_uuid = models.ForeignKey('Status',
+                                    on_delete=models.DO_NOTHING,
+                                    db_column='status_uuid',
+                                    blank=True,
+                                    null=True,
+                                    editable=False)
+    status_description = models.CharField(max_length=255,
+                                          blank=True,
+                                          null=True,
+                                          db_column='status_description',
+                                          editable=False)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'vw_action'
+
+class Parameter(models.Model):
+    uuid = models.UUIDField(primary_key=True,
+                                     db_column='parameter_uuid')
+    action_uuid = models.ForeignKey('Action',
+                                    db_column='action_uuid',
+                                    on_delete=models.DO_NOTHING,
+                                    blank=True,
+                                    null=True,
+                                    editable=False,
+                                    related_name='action')
+    parameter_def_uuid = models.ForeignKey('ParameterDef',
+                                           db_column='parameter_def_uuid',
+                                           on_delete=models.DO_NOTHING,
+                                           blank=True,
+                                           null=True,
+                                           editable=False)
+    parameter_def_description = models.CharField(max_length=255,
+                                                blank=True,
+                                                null=True,
+                                                db_column='parameter_def_description',
+                                                editable=False)
+    parameter_val = models.CharField(max_length=255,
+                                     blank=True,
+                                     null=True,
+                                     db_column='parameter_val',
+                                     editable=False)
+    # val_type_description  = models.CharField(max_length=255,
+    #                                          blank=True,
+    #                                          null=True,
+    #                                          db_column='val_type_description',
+    #                                          editable=False)
+    # valunit  = models.CharField(max_length=255,
+    #                             blank=True,
+    #                             null=True,
+    #                             db_column='valunit',
+    #                             editable=False)
+    actor_uuid = models.ForeignKey('Actor',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='parameter_actor_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    actor_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='parameter_actor_description',
+                                            editable=False)
+    status_uuid = models.ForeignKey('Status',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='parameter_status_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    status_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='parameter_status_description',
+                                            editable=False)
+    add_date = models.DateTimeField(auto_now_add=True, db_column='parameter_add_date')
+    mod_date = models.DateTimeField(auto_now=True, db_column='parameter_mod_date')
+
+    class Meta:
+        managed = False
+        db_table = 'vw_action_parameter' # todo: discuss the asymmetry here w/ g+s
+
+
+
+
