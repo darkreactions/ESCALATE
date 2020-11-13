@@ -199,26 +199,40 @@ class SystemtoolType(models.Model):
 class Calculation(models.Model):
     uuid = models.UUIDField(primary_key=True,
                             db_column='calculation_uuid')
+
+    # in
     in_val = models.TextField(blank=True, null=True)
-    in_val_type_uuid = models.UUIDField()
-    #in_val_type = models.TextField(blank=True, null=True)
+    in_val_type = models.ForeignKey('TypeDef',
+                                         models.DO_NOTHING,
+                                         db_column='in_val_type_uuid',
+                                         related_name='in_val_type')
     in_val_value = models.TextField(blank=True, null=True)
     in_val_unit = models.TextField(blank=True, null=True)
     in_val_edocument = models.ForeignKey('Edocument',
                                          models.DO_NOTHING,
                                          db_column='in_val_edocument_uuid',
                                          related_name='in_val_edocument')
+
+    # in opt
     in_opt_val = models.TextField(blank=True, null=True)
-    in_opt_val_type = models.TextField(blank=True, null=True)
     in_opt_val_value = models.TextField(blank=True, null=True)
+    in_opt_val_type = models.ForeignKey('TypeDef',
+                                        models.DO_NOTHING,
+                                        related_name='in_opt_val_type',
+                                        db_column='in_opt_val_type_uuid',
+                                        blank=True, null=True)
     in_opt_val_unit = models.TextField(blank=True, null=True)
     in_opt_val_edocument = models.ForeignKey('Edocument',
                                              models.DO_NOTHING,
                                              db_column='in_opt_val_edocument_uuid',
                                              related_name='in_opt_val_edocument')
-
+    # out
     out_val = models.TextField(blank=True, null=True)
-    out_val_type = models.TextField(blank=True, null=True)
+    out_val_type = models.ForeignKey('TypeDef',
+                                     models.DO_NOTHING,
+                                     related_name='out_val_type',
+                                     db_column='out_val_type_uuid',
+                                     blank=True, null=True)
     out_val_value = models.TextField(blank=True, null=True)
     out_val_unit = models.TextField(blank=True, null=True)
     out_val_edocument = models.ForeignKey('Edocument',
@@ -242,8 +256,6 @@ class Calculation(models.Model):
     calc_definition = models.CharField(max_length=255, blank=True, null=True)
 
     description = models.CharField(max_length=1023, blank=True, null=True)
-
-    out_type = models.CharField(max_length=255, blank=True, null=True)
 
     systemtool = models.ForeignKey('Systemtool',
                                    models.DO_NOTHING,
@@ -274,8 +286,17 @@ class CalculationDef(models.Model):
     short_name = models.CharField(max_length=255, blank=True, null=True)
     calc_definition = models.CharField(max_length=255, blank=True, null=True)
     description = models.CharField(max_length=1023, blank=True, null=True)
-    in_type = models.CharField(max_length=255, blank=True, null=True)
-    out_type = models.CharField(max_length=255, blank=True, null=True)
+    in_type = models.ForeignKey('TypeDef',
+                                models.DO_NOTHING,
+                                db_column='in_type_uuid',
+                                related_name='in_type')
+    in_type_description = models.CharField(max_length=255, blank=True, null=True)
+    out_type = models.ForeignKey('TypeDef',
+                                 models.DO_NOTHING,
+                                 blank=True, null=True,
+                                 db_column='out_type_uuid',
+                                 related_name='out_type')
+    out_type_description = models.CharField(max_length=255, blank=True, null=True)
     systemtool = models.ForeignKey('Systemtool',
                                    models.DO_NOTHING,
                                    db_column='systemtool_uuid')
