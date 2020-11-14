@@ -24,7 +24,7 @@ view_names = ['Systemtool', 'SystemtoolType', 'Actor', 'Inventory', 'InventoryMa
               'Material', 'MaterialCalculationJson', 'MaterialRefnameDef',
               'MaterialType', 'Note', 'Note_x', 'Organization', 'Person',
               'Status', 'TagType', 'PropertyDef', 'MaterialProperty', 'TypeDef',
-              'ParameterDef', 'Condition', 'Parameter', 'WorkflowType',
+              'ParameterDef', 'Condition', 'ConditionDef', 'Parameter', 'WorkflowType',
               'WorkflowStep', 'WorkflowObject']
 
 GET_only_views = ['TypeDef']

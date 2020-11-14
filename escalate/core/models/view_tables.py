@@ -925,12 +925,18 @@ class ActionDef(models.Model):
 
 
 class Condition(models.Model):
-    # todo: add related tables
+    # todo: link to condition calculation
     uuid = models.UUIDField(primary_key=True, db_column='condition_uuid')
     condition_description = models.CharField(max_length=255,
                                             blank=True,
                                             null=True,
                                             editable=False)
+    condition_def = models.ForeignKey('ConditionDef', models.DO_NOTHING,
+                                      db_column='condition_def_uuid')
+    calculation_description = models.CharField(max_length=255,
+                                blank=True,
+                                null=True,
+                                editable=False)
     in_val = models.CharField(max_length=255,
                                 blank=True,
                                 null=True,
@@ -939,9 +945,65 @@ class Condition(models.Model):
                                 blank=True,
                                 null=True,
                                 editable=False)
+    actor_uuid = models.ForeignKey('Actor',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='actor_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    actor_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='actor_description',
+                                            editable=False)
+    status_uuid = models.ForeignKey('Status',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='status_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    status_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='status_description',
+                                            editable=False)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
     class Meta:
         managed=False
         db_table='vw_condition'
+
+class ConditionDef(models.Model):
+
+    uuid = uuid = models.UUIDField(primary_key=True, db_column='condition_def_uuid')
+    description = models.CharField(max_length=255,
+                                   blank=True,
+                                   null=True,
+                                   db_column='description',
+                                   editable=False)
+    actor_uuid = models.ForeignKey('Actor',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='actor_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    actor_description = models.CharField(max_length=255,
+                                         blank=True,
+                                         null=True,
+                                         db_column='actor_description',
+                                         editable=False)
+    status_uuid = models.ForeignKey('Status',
+                                    on_delete=models.DO_NOTHING,
+                                    db_column='status_uuid',
+                                    blank=True,
+                                    null=True,
+                                    editable=False)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed=False
+        db_table='vw_condition_def'
 
 class ActionParameterDef(models.Model):
     #action_parameter_def_x_uuid = models.UUIDField(primary_key=True, db_column='action_parameter_def_x_uuid')
