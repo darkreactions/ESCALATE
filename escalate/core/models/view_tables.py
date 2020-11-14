@@ -1122,14 +1122,12 @@ class Action(models.Model):
     description = models.CharField(max_length=255,
                                    blank=True,
                                    null=True,
-                                   db_column='action_description',
-                                   editable=False)
+                                   db_column='action_description')
     action_def = models.ForeignKey('ActionDef',
                                    on_delete=models.DO_NOTHING,
                                    db_column='action_def_uuid',
                                    blank=True,
-                                   null=True,
-                                   editable=False)
+                                   null=True,)
     actor_uuid = models.ForeignKey('Actor',
                                    on_delete=models.DO_NOTHING,
                                    db_column='actor_uuid',
@@ -1145,8 +1143,7 @@ class Action(models.Model):
                                     on_delete=models.DO_NOTHING,
                                     db_column='status_uuid',
                                     blank=True,
-                                    null=True,
-                                    editable=False)
+                                    null=True)
     status_description = models.CharField(max_length=255,
                                           blank=True,
                                           null=True,
@@ -1183,8 +1180,7 @@ class Parameter(models.Model):
     parameter_val = models.CharField(max_length=255,
                                      blank=True,
                                      null=True,
-                                     db_column='parameter_val',
-                                     editable=False)
+                                     db_column='parameter_val')
     # val_type_description  = models.CharField(max_length=255,
     #                                          blank=True,
     #                                          null=True,
