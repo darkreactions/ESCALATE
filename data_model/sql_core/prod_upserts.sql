@@ -1947,6 +1947,13 @@ BEGIN
 			action.action_uuid = NEW.action_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
+
+	    -- default uuid (if django hasnt created one, create one)
+	    IF NEW.action_uuid IS NULL
+        THEN
+            select (select uuid_generate_v4()) into NEW.action_uuid;
+        END IF;
+
         -- check if action def exists
 	    IF (select exists
                 (select action_def_uuid
@@ -1955,10 +1962,10 @@ BEGIN
             )
         THEN
             -- first create action instance
-			INSERT INTO action (action_def_uuid, description, start_date, end_date, duration, repeating,
+			INSERT INTO action (action_uuid, action_def_uuid, description, start_date, end_date, duration, repeating,
 			                    ref_parameter_uuid, calculation_def_uuid, source_material_uuid, destination_material_uuid,
 			                    actor_uuid, status_uuid)
-				VALUES (NEW.action_def_uuid, NEW.action_description, NEW.start_date, NEW.end_date, NEW.duration, NEW.repeating,
+				VALUES (NEW.action_uuid, NEW.action_def_uuid, NEW.action_description, NEW.start_date, NEW.end_date, NEW.duration, NEW.repeating,
 				        NEW.ref_parameter_uuid, NEW.calculation_def_uuid, NEW.source_material_uuid,
 				        NEW.destination_material_uuid, NEW.actor_uuid, NEW.status_uuid)
 				returning action_uuid into NEW.action_uuid;

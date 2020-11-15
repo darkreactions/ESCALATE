@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -1121,7 +1123,8 @@ class ActionParameterAssign(models.Model):
 
 class Action(models.Model):
     action_uuid = models.UUIDField(primary_key=True,
-                                   db_column='action_uuid')
+                                   db_column='action_uuid',
+                                   default=uuid.uuid4)
     parameter = models.ManyToManyField('Parameter', through='ActionParameterAssign')
     description = models.CharField(max_length=255,
                                    blank=True,
