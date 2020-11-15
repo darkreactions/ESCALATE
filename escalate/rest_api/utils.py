@@ -1,5 +1,17 @@
 import re
 
+from django.db import connection as con
+cur = con.cursor()
+
+def get_val(val):
+    """breaks val tuple into constituent parts"""
+    cur.execute(f"select get_val ('{val}'::val);")
+    result = cur.fetchone()
+    val_type = val_unit = val_val = None
+    if result is not None:
+        tuple_str = result[0]
+        val_type, val_unit, val_val = tuple_str.strip(')(').split(',')
+    return val_type, val_unit, val_val
 
 def camel_case(text):
     #data = re.findall(r'[A-Z](?:[a-z]+|[A-Z]*(?=[A-Z]|$))', text)
