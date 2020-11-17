@@ -425,10 +425,10 @@ class Note(models.Model):
     edocument_type = models.CharField(max_length=255, blank=True, null=True)"""
     actor_uuid = models.ForeignKey('Actor', models.DO_NOTHING,
                                    db_column='actor_uuid')
-    note_x_uuid = models.ForeignKey(
-        'Note_x', models.DO_NOTHING, db_column='note_x_uuid')
+    # note_x_uuid = models.ForeignKey('Note_x', models.DO_NOTHING,
+    #                                 db_column='note_x_uuid')
     actor_description = models.CharField(max_length=255, blank=True, null=True)
-    ref_note_uuid = models.UUIDField()
+    # ref_note_uuid = models.UUIDField()
 
     class Meta:
         managed = False
@@ -440,13 +440,14 @@ class Note(models.Model):
 
 class Note_x(models.Model):
     uuid = models.UUIDField(primary_key=True, db_column='note_x_uuid')
-
-    add_date = models.DateTimeField()
-    mod_date = models.DateTimeField()
-    note_uuid = models.ForeignKey('Note', models.DO_NOTHING,
-                                  db_column='note_uuid')
     ref_note_uuid = models.UUIDField()
-
+    note_uuid = models.ForeignKey('Note', models.DO_NOTHING,
+                                  blank=True,
+                                  null=True,
+                                  editable=False,
+                                  db_column='note_uuid')
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
     class Meta:
         managed = False
         db_table = 'note_x'
@@ -571,7 +572,6 @@ class Tag_X(models.Model):
                                  db_column='tag_uuid')
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
-
     class Meta:
         managed = False
         db_table = 'vw_tag_assign'
