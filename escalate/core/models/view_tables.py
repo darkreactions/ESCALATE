@@ -924,6 +924,87 @@ class ActionDef(models.Model):
         db_table = 'vw_action_def'
 
 
+class Condition(models.Model):
+    # todo: link to condition calculation
+    uuid = models.UUIDField(primary_key=True, db_column='condition_uuid')
+    condition_description = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            editable=False)
+    condition_def = models.ForeignKey('ConditionDef', models.DO_NOTHING,
+                                      db_column='condition_def_uuid')
+    calculation_description = models.CharField(max_length=255,
+                                blank=True,
+                                null=True,
+                                editable=False)
+    in_val = models.CharField(max_length=255,
+                                blank=True,
+                                null=True,
+                                editable=False)
+    out_val = models.CharField(max_length=255,
+                                blank=True,
+                                null=True,
+                                editable=False)
+    actor_uuid = models.ForeignKey('Actor',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='actor_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    actor_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='actor_description',
+                                            editable=False)
+    status_uuid = models.ForeignKey('Status',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='status_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    status_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='status_description',
+                                            editable=False)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+    class Meta:
+        managed=False
+        db_table='vw_condition'
+
+class ConditionDef(models.Model):
+
+    uuid = uuid = models.UUIDField(primary_key=True, db_column='condition_def_uuid')
+    description = models.CharField(max_length=255,
+                                   blank=True,
+                                   null=True,
+                                   db_column='description',
+                                   editable=False)
+    actor_uuid = models.ForeignKey('Actor',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='actor_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    actor_description = models.CharField(max_length=255,
+                                         blank=True,
+                                         null=True,
+                                         db_column='actor_description',
+                                         editable=False)
+    status_uuid = models.ForeignKey('Status',
+                                    on_delete=models.DO_NOTHING,
+                                    db_column='status_uuid',
+                                    blank=True,
+                                    null=True,
+                                    editable=False)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed=False
+        db_table='vw_condition_def'
+
 class ActionParameterDef(models.Model):
     #action_parameter_def_x_uuid = models.UUIDField(primary_key=True, db_column='action_parameter_def_x_uuid')
     uuid = models.UUIDField(primary_key=True, db_column='action_parameter_def_x_uuid')
@@ -1144,5 +1225,176 @@ class Parameter(models.Model):
         db_table = 'vw_action_parameter' # todo: discuss the asymmetry here w/ g+s
 
 
+class WorkflowType(models.Model):
+    uuid = models.UUIDField(primary_key=True,
+                            db_column='workflow_type_uuid')
+    description = models.CharField(max_length=255,
+                                     blank=True,
+                                     null=True,
+                                     db_column='description',
+                                     editable=False)
+    add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
+    mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
+
+    class Meta:
+        managed = False
+        db_table = 'vw_workflow_type'
 
 
+class Workflow(models.Model):
+    uuid = models.UUIDField(primary_key=True,
+                            db_column='workflow_uuid')
+    step = models.ManyToManyField('WorkflowStep', through='WorkflowStep')
+    description = models.CharField(max_length=255,
+                                     blank=True,
+                                     null=True,
+                                     db_column='description',
+                                     editable=False)
+    parent_uuid = models.ForeignKey('Workflow', models.DO_NOTHING,
+                                    blank=True, null=True,
+                                    db_column='parent_uuid')
+    workflow_type = models.ForeignKey('WorkflowType', models.DO_NOTHING,
+                                      blank=True, null=True,
+                                      db_column='workflow_type_uuid')
+    workflow_type_description = models.CharField(max_length=255,
+                                     blank=True,
+                                     null=True,
+                                     editable=False)
+    actor = models.ForeignKey('Actor',
+                               on_delete=models.DO_NOTHING,
+                               db_column='actor_uuid',
+                               blank=True,
+                               null=True,
+                               editable=False)
+    actor_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='actor_description',
+                                            editable=False)
+    status = models.ForeignKey('Status',
+                               on_delete=models.DO_NOTHING,
+                               db_column='status_uuid',
+                               blank=True,
+                               null=True,
+                               editable=False)
+    status_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='status_description',
+                                            editable=False)
+    add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
+    mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
+
+    class Meta:
+        managed = False
+        db_table = 'vw_workflow'
+
+class WorkflowStep(models.Model):
+    uuid = models.UUIDField(primary_key=True,
+                            db_column='workflow_step_uuid')
+    workflow_uuid = models.ForeignKey('Workflow', models.DO_NOTHING,
+                                      db_column='workflow_uuid',
+                                      related_name='workflow_uuid')
+    workflow_description = models.CharField(max_length=255,
+                                             blank=True,
+                                             null=True,
+                                             editable=False)
+    parent_uuid = models.ForeignKey('WorkflowStep', models.DO_NOTHING,
+                                    blank=True, null=True, editable=False,
+                                    db_column='parent_uuid')
+    parent_object_type = models.CharField(max_length=255,
+                                     blank=True,
+                                     null=True,
+                                     editable=False)
+    parent_object_description = models.CharField(max_length=255,
+                                     blank=True,
+                                     null=True,
+                                     editable=False)
+    parent_path = models.CharField(max_length=255,
+                                     blank=True,
+                                     null=True,
+                                     editable=False)
+    conditional_val = models.CharField(max_length=255,
+                                     blank=True,
+                                     null=True,
+                                     editable=False)
+    conditional_value = models.CharField(max_length=255,
+                                     blank=True,
+                                     null=True,
+                                     editable=False)
+    status = models.ForeignKey('Status',
+                               on_delete=models.DO_NOTHING,
+                               db_column='status_uuid',
+                               blank=True,
+                               null=True,
+                               editable=False)
+    status_description = models.CharField(max_length=255,
+                                          blank=True,
+                                          null=True,
+                                          db_column='status_description',
+                                          editable=False)
+    add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
+    mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
+
+    workflow_object_uuid = models.ForeignKey('WorkflowObject', models.DO_NOTHING,
+                                             db_column='workflow_object_uuid')
+    # unclear how to make this an fk for django...
+    object_uuid = models.CharField(max_length=255,
+                                     blank=True,
+                                     null=True,
+                                     db_column='object_uuid',
+                                     editable=False)
+    object_type = models.CharField(max_length=255,
+                                 blank=True,
+                                 null=True,
+                                 db_column='object_type',
+                                 editable=False)
+    object_description = models.CharField(max_length=255,
+                                 blank=True,
+                                 null=True,
+                                 db_column='object_description',
+                                 editable=False)
+    object_def_description = models.CharField(max_length=255,
+                                 blank=True,
+                                 null=True,
+                                 db_column='object_def_description',
+                                 editable=False)
+    # object_add_date
+    # object_mod_date
+    class Meta:
+        managed = False
+        db_table = 'vw_workflow_step'
+
+
+class WorkflowObject(models.Model):
+    uuid = models.UUIDField(primary_key=True, db_column='workflow_object_uuid')
+    action_uuid = models.ForeignKey('Action', models.DO_NOTHING,
+                                    blank=True, null=True, editable=False,
+                                    related_name='wf_action_uuid',
+                                    db_column='action_uuid')
+    condition_uuid = models.ForeignKey('Condition', models.DO_NOTHING,
+                                       blank=True, null=True, editable=False,
+                                       related_name='wf_condition_uuid',
+                                       db_column='condition_uuid')
+    object_uuid = models.CharField(max_length=255,
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    object_type = models.CharField(max_length=255,
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    object_description = models.CharField(max_length=255,
+                                           blank=True,
+                                           null=True,
+                                           editable=False)
+    object_def_description = models.CharField(max_length=255,
+                                           blank=True,
+                                           null=True,
+                                           editable=False)
+    add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
+    mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
+
+    class Meta:
+        managed = False
+        db_table = 'vw_workflow_object'

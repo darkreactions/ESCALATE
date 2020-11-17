@@ -108,3 +108,10 @@ class ActionSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = core.models.Action
         fields = '__all__'
+
+
+class WorkflowSerializer(DynamicFieldsModelSerializer):
+    step = WorkflowStepSerializer(read_only=True, many=True)
+    class Meta:
+        model = core.models.Workflow
+        fields = '__all__'
