@@ -43,7 +43,7 @@ methods = {
 
     },
     'Systemtool': {
-        'model': core.models.LatestSystemtool,
+        'model': core.models.Systemtool,
         'context_object_name': 'systemtools',
         'table_columns': ['Name', 'Description',
                           'System Tool Type', 'Vendor Organization', 'Actions'],
@@ -129,7 +129,7 @@ methods = {
         'context_object_name': 'tag_types',
         'table_columns': ['Type', 'Description', 'Actions'],
         'column_necessary_fields': {
-            'Type': ['type'],
+            'Short Description': ['type'],
             'Description': ['description']
         },
         'order_field': 'type',
@@ -141,7 +141,7 @@ methods = {
         'table_columns': ['Description', 'Value Type', 'Actions'],
         'column_necessary_fields': {
             'Description': ['description'],
-            'Value Type': ['valtype']
+            'Value Type': ['val_type_description']
         },
         'order_field': 'description',
         'field_contains': '',

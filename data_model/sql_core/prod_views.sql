@@ -110,7 +110,6 @@ FOR EACH ROW
 EXECUTE PROCEDURE upsert_edocument ( );
 
 
-
 ----------------------------------------
 -- view of note; links to edocument and actor
 ----------------------------------------
@@ -958,12 +957,15 @@ LEFT JOIN status st ON inv.status_uuid = st.status_uuid;
 -- view parameter_def
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_parameter_def AS
-SELECT 
+SELECT
     pd.parameter_def_uuid,
     pd.description,
-	pd.val_type_uuid,
 	td.description as val_type_description,
-	pd.valunit,
+	( pd.default_val ).v_type_uuid AS val_type_uuid,
+	(select val_val from get_val ( pd.default_val )) AS default_val_val,
+	( pd.default_val ).v_unit AS valunit,
+    pd.default_val,
+    pd.required,
 	pd.actor_uuid,
 	act.description as actor_description,
 	pd.status_uuid,
@@ -971,9 +973,9 @@ SELECT
 	pd.add_date,
 	pd.mod_date
 FROM parameter_def pd
-LEFT JOIN vw_actor act ON act.actor_uuid = pd.actor_uuid
+LEFT JOIN vw_actor act ON pd.actor_uuid = act.actor_uuid
 LEFT JOIN status st ON pd.status_uuid = st.status_uuid
-LEFT JOIN type_def td ON pd.val_type_uuid = td.type_def_uuid;
+LEFT JOIN type_def td ON ( pd.default_val ).v_type_uuid = td.type_def_uuid;
 
 DROP TRIGGER IF EXISTS trigger_parameter_def_upsert ON vw_parameter_def;
 CREATE TRIGGER trigger_parameter_def_upsert INSTEAD OF INSERT
@@ -990,18 +992,20 @@ CREATE OR REPLACE VIEW vw_parameter AS
 SELECT
 	pr.parameter_uuid,
 	pr.parameter_def_uuid,
-    pd.description as parameter_def_description,
+	pd.description as parameter_def_description,
 	pr.parameter_val,
+    pd.val_type_description,
+    pd.valunit,
 	pr.actor_uuid,
-    act.description as actor_description,
+	act.description as actor_description,
 	pr.status_uuid,
-    st.description as status_description,
+	st.description as status_description,
 	pr.add_date,
 	pr.mod_date,
-    px.ref_parameter_uuid,
-    px.parameter_x_uuid
+	px.ref_parameter_uuid,
+	px.parameter_x_uuid
 FROM parameter pr
-LEFT JOIN parameter_def pd on pr.parameter_def_uuid = pd.parameter_def_uuid
+LEFT JOIN vw_parameter_def pd on pr.parameter_def_uuid = pd.parameter_def_uuid
 LEFT JOIN parameter_x px on pr.parameter_uuid = px.parameter_uuid
 LEFT JOIN actor act on pr.actor_uuid = act.actor_uuid
 LEFT JOIN status st on pd.status_uuid = st.status_uuid;
@@ -1028,7 +1032,7 @@ SELECT
      ad.add_date,
      ad.mod_date
 FROM action_def ad
-LEFT JOIN vw_actor act ON act.actor_uuid = ad.actor_uuid
+LEFT JOIN vw_actor act ON ad.actor_uuid = act.actor_uuid
 LEFT JOIN status st ON ad.status_uuid = st.status_uuid;
 
 DROP TRIGGER IF EXISTS trigger_action_def_upsert ON vw_action_def;
@@ -1038,12 +1042,12 @@ OR DELETE ON vw_action_def
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_action_def ( );
 
-
 ----------------------------------------
  -- view action_parameter_def
 ----------------------------------------
  CREATE OR REPLACE VIEW vw_action_parameter_def AS
  SELECT
+     ap.action_parameter_def_x_uuid,
      ad.action_def_uuid,
      ad.description,
      ad.actor_uuid,
@@ -1054,6 +1058,8 @@ EXECUTE PROCEDURE upsert_action_def ( );
      ad.mod_date,
      ap.parameter_def_uuid,
      pd.description as parameter_description,
+     pd.default_val,
+     pd.required,
      pd.val_type_uuid as parameter_val_type_uuid,
      pd.val_type_description as parameter_val_type_description,
      pd.valunit as parameter_unit,
@@ -1064,11 +1070,46 @@ EXECUTE PROCEDURE upsert_action_def ( );
      pd.add_date as parameter_add_date,
      pd.mod_date as parameter_mod_date
  FROM action_def ad
- LEFT JOIN vw_actor act ON act.actor_uuid = ad.actor_uuid
- LEFT JOIN action_parameter_def_x ap ON ad.action_def_uuid = ap.action_def_uuid
+ LEFT JOIN vw_actor act ON ad.actor_uuid = act.actor_uuid
+ INNER JOIN action_parameter_def_x ap ON ad.action_def_uuid = ap.action_def_uuid
  LEFT JOIN vw_parameter_def pd ON ap.parameter_def_uuid = pd.parameter_def_uuid
  LEFT JOIN status st ON ad.status_uuid = st.status_uuid;
 
+
+----------------------------------------
+ -- view action
+----------------------------------------
+CREATE OR REPLACE VIEW vw_action AS
+SELECT
+    act.action_uuid,
+    act.action_def_uuid,
+    act.description as action_description,
+    ad.description as action_def_description,
+    act.start_date,
+    act.end_date,
+    act.duration,
+    act.repeating,
+    act.ref_parameter_uuid,
+    act.calculation_def_uuid,
+    act.source_material_uuid,
+    act.destination_material_uuid,
+    act.actor_uuid,
+    actor.description as actor_description,
+    act.status_uuid,
+    st.description as status_description,
+    act.add_date,
+    act.mod_date
+FROM action act
+LEFT JOIN vw_action_def ad ON act.action_def_uuid = ad.action_def_uuid
+LEFT JOIN vw_actor actor ON act.actor_uuid = actor.actor_uuid
+LEFT JOIN vw_status st ON act.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_action_upsert ON vw_action;
+CREATE TRIGGER trigger_action_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_action
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_action ( );
 
 
 ----------------------------------------
@@ -1098,12 +1139,12 @@ FROM
 				json_build_object(
 					'description', p.parameter_description, 
 					'uuid', p.parameter_def_uuid,
-					'val_type', p.parameter_val_type_description, 
-					'unit', p.parameter_unit,
+				    'required', p.required,
+				    'default_value', (select get_val_json(p.default_val)),
 					'actor', p.parameter_actor_description,
 					'status', p.parameter_status_description,
 					'add_date', p.parameter_add_date,
-					'mod_date', p.parameter_mod_date 
+					'mod_date', p.parameter_mod_date
 				)
 			) param
 		FROM
@@ -1113,7 +1154,7 @@ FROM
 	) p 
 ON a.action_def_uuid = p.action_def_uuid;
 
-
+        
 ----------------------------------------
  -- view action_parameter_def_assign
 ----------------------------------------
@@ -1126,12 +1167,330 @@ SELECT
  	mod_date
 FROM action_parameter_def_x;
 
-DROP TRIGGER IF EXISTS trigger_action_parameter_def_assign_upsert ON vw_action_parameter_def_assign;
-CREATE TRIGGER trigger_action_parameter_def_assign_upsert INSTEAD OF INSERT
+DROP TRIGGER IF EXISTS trigger_action_parameter_def_assign ON vw_action_parameter_def_assign;
+CREATE TRIGGER trigger_action_parameter_def_assign INSTEAD OF INSERT
 OR UPDATE
 OR DELETE ON vw_action_parameter_def_assign
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_action_parameter_def_assign ( );
+
+
+----------------------------------------
+-- view action_parameter
+----------------------------------------
+CREATE OR REPLACE VIEW vw_action_parameter AS
+SELECT
+	a.action_uuid,
+	a.action_def_uuid,
+	a.action_description,
+	a.action_def_description,
+	a.actor_uuid as action_actor_uuid,
+	acta.description as action_actor_description,
+	a.status_uuid as action_status_uuid,
+	sta.description as action_status_description,
+	a.add_date as action_add_date,
+	a.mod_date as action_mod_date,
+	p.parameter_uuid,	
+	p.parameter_def_uuid,
+	p.parameter_def_description,
+	p.parameter_val,
+	p.actor_uuid as parameter_actor_uuid,
+	actp.description as parameter_actor_description,
+	p.status_uuid as parameter_status_uuid,
+	stp.description as parameter_status_description,	
+	p.add_date as parameter_add_date,
+	p.mod_date as parameter_mod_date
+FROM vw_action a
+LEFT JOIN vw_actor acta ON a.actor_uuid = acta.actor_uuid
+LEFT JOIN vw_status sta  ON a.status_uuid = sta.status_uuid
+LEFT JOIN vw_parameter p ON a.action_uuid = p.ref_parameter_uuid
+LEFT JOIN vw_actor actp ON p.actor_uuid = actp.actor_uuid
+LEFT JOIN vw_status stp  ON p.status_uuid = stp.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_action_parameter_upsert ON vw_action_parameter;
+CREATE TRIGGER trigger_action_parameter_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_action_parameter
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_action_parameter ( );
+
+
+----------------------------------------
+-- view action_parameter_json
+----------------------------------------
+CREATE OR REPLACE VIEW vw_action_parameter_json AS
+SELECT
+	json_build_object('action',
+		json_agg(
+			json_build_object(
+				'action_uuid', a.action_uuid,
+				'action_description', a.action_description,
+				'action_def_uuid', a.action_def_uuid,
+				'action_def_description', a.action_def_description,
+				'action_actor_uuid', a.actor_uuid,				
+				'action_actor', a.actor_description,
+				'action_status_uuid', a.status_uuid,
+				'action_status', a.status_description,
+				'action_add_date', a.add_date,
+				'action_mod_date', a.mod_date,
+				'parameter', param
+			)
+		)
+	) action_parameter_json
+FROM
+    vw_action a
+LEFT JOIN (
+SELECT
+			action_uuid,
+			json_agg(
+				json_build_object(
+--'action_uuid', p.action_uuid,
+				'parameter_def_description', p.parameter_def_description,
+				'parameter_def_uuid', p.parameter_def_uuid,
+				'parameter_value', (select get_val_json(p.parameter_val)),
+				'parameter_actor_uuid', p.parameter_actor_uuid,				
+				'parameter_actor', p.parameter_actor_description,
+				'parameter_status_uuid', p.parameter_status_uuid,				
+				'parameter_status', p.parameter_status_description,
+				'parameter_add_date', p.parameter_add_date,
+				'parameter_mod_date', p.parameter_mod_date)
+			) param
+FROM
+			vw_action_parameter p
+GROUP BY
+			action_uuid
+	) p
+ON a.action_uuid = p.action_uuid;
+
+
+----------------------------------------
+-- view condition_def
+-- DROP VIEW vw_condition_def
+----------------------------------------
+CREATE OR REPLACE VIEW vw_condition_def AS
+SELECT
+    cd.condition_def_uuid,
+    cd.description,
+    cd.actor_uuid,
+    act.description as actor_description,
+    cd.status_uuid,
+    st.description as status_description,
+    cd.add_date,
+	cd.mod_date
+FROM condition_def cd
+LEFT JOIN vw_actor act ON cd.actor_uuid = act.actor_uuid
+LEFT JOIN status st ON cd.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_action_condition_def ON vw_condition_def;
+CREATE TRIGGER trigger_condition_def_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_condition_def
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_condition_def ( );
+
+	
+----------------------------------------
+-- view condition_calculation_def_x
+-- DROP VIEW vw_condition_calculation_def_x
+----------------------------------------
+CREATE OR REPLACE VIEW vw_condition_calculation_def_assign AS
+SELECT
+    ccd.condition_calculation_def_x_uuid,
+	ccd.condition_def_uuid,
+	cn.description as condition_description,
+	ccd.calculation_def_uuid,
+	cl.description as calculation_description,
+    ccd.add_date,
+	ccd.mod_date
+FROM condition_calculation_def_x ccd
+LEFT JOIN vw_condition_def cn ON ccd.condition_def_uuid = cn.condition_def_uuid
+LEFT JOIN vw_calculation_def cl ON ccd.calculation_def_uuid = cl.calculation_def_uuid;
+
+DROP TRIGGER IF EXISTS trigger_condition_calculation_def_assign ON vw_condition_calculation_def_assign;
+CREATE TRIGGER trigger_condition_calculation_def_assign INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_condition_calculation_def_assign
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_condition_calculation_def_assign();
+
+
+----------------------------------------
+-- view condition
+-- DROP VIEW vw_condition
+----------------------------------------
+CREATE OR REPLACE VIEW vw_condition AS
+SELECT
+    cd.condition_uuid,
+    cd.condition_calculation_def_x_uuid,
+    cc.condition_def_uuid,
+    cc.condition_description,
+    cc.calculation_description,
+	cd.in_val,
+	cd.out_val,
+	cd.actor_uuid,
+	act.description as actor_description,
+	cd.status_uuid,
+	st.description as status_description,
+    cd.add_date,
+	cd.mod_date
+FROM condition cd
+LEFT JOIN vw_condition_calculation_def_assign cc ON cd.condition_calculation_def_x_uuid = cc.condition_calculation_def_x_uuid 
+LEFT JOIN vw_actor act ON cd.actor_uuid = act.actor_uuid
+LEFT JOIN status st ON cd.status_uuid = st.status_uuid;	
+
+DROP TRIGGER IF EXISTS trigger_condition ON vw_condition;
+CREATE TRIGGER trigger_condition INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_condition
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_condition();
+
+
+----------------------------------------
+-- view condition
+-- DROP VIEW vw_condition_calculation
+----------------------------------------
+CREATE OR REPLACE VIEW vw_condition_calculation AS
+SELECT
+    cd.condition_uuid,
+    cd.condition_description,
+	cd.in_val,
+	cd.out_val,
+	cd.actor_uuid as condition_actor_uuid,
+	act.description as condition_actor_description,
+	cd.status_uuid as condition_status_uuid,
+	st.description as condition_status_description,
+    cd.add_date as condition_add_date,
+	cd.mod_date as condition_mod_date,
+	cald.calculation_def_uuid,
+	cald.short_name as calculation_short_name,
+	cald.calc_definition as calculation_calc_definition,
+	cald.description as calculation_description,
+	cald.actor_uuid as calculation_actor_uuid,
+	actc.description as calculation_actor_description,
+	cald.status_uuid as calculation_status_uuid,
+	stc.description as calculation_status_description,
+	cald.add_date as calculation_add_date,
+	cald.mod_date as calculation_mod_date
+FROM condition c
+LEFT JOIN vw_condition_calculation_def_assign cc ON c.condition_calculation_def_x_uuid = cc.condition_calculation_def_x_uuid
+LEFT JOIN vw_condition cd ON c.condition_uuid = cd.condition_uuid
+LEFT JOIN vw_calculation_def cald ON cc.calculation_def_uuid = cald.calculation_def_uuid
+LEFT JOIN vw_actor act ON cd.actor_uuid = act.actor_uuid
+LEFT JOIN status st ON cd.status_uuid = st.status_uuid
+LEFT JOIN vw_actor actc ON cd.actor_uuid = actc.actor_uuid
+LEFT JOIN status stc ON cd.status_uuid = stc.status_uuid
+;	
+
+
+----------------------------------------
+-- view condition_path
+-- DROP VIEW vw_condition_path
+----------------------------------------
+CREATE OR REPLACE VIEW vw_condition_path AS
+SELECT
+    cp.condition_path_uuid,
+    cp.condition_uuid,
+	cp.condition_out_val,
+	cp.workflow_step_uuid,
+    cp.add_date,
+	cp.mod_date
+FROM condition_path cp
+LEFT JOIN vw_condition c ON cp.condition_uuid = c.condition_uuid
+LEFT JOIN workflow_step ws ON cp.workflow_step_uuid = ws.workflow_step_uuid;	
+
+DROP TRIGGER IF EXISTS trigger_condition_path ON vw_condition_path;
+CREATE TRIGGER trigger_condition_path INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_condition_path
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_condition_path();
+
+
+----------------------------------------
+-- view condition_calculation_json
+-- drop view vw_condition_calculation_json
+----------------------------------------
+CREATE OR REPLACE VIEW vw_condition_calculation_json AS
+SELECT
+	json_build_object('condition',
+	json_agg(
+		json_build_object(
+			'condition_uuid', c.condition_uuid,
+			'condition_description', c.condition_description,
+			'condition_def_uuid', c.condition_def_uuid,
+			'condition_actor_uuid', c.actor_uuid,
+			'condition_actor_description', c.actor_description,
+			'condition_status_uuid', c.actor_uuid,
+			'condition_status_description', c.status_description,
+			'condition_add_date', c.add_date,
+			'condition_mod_date', c.mod_date,
+			'calculation', calc
+			)
+		)
+	) condition_calculation_json
+FROM
+    vw_condition c
+LEFT JOIN (
+SELECT
+	condition_uuid,
+	json_agg(
+		json_build_object(
+			'calculation_def_uuid', p.calculation_def_uuid,
+			'calculation_short_name', p.calculation_short_name,
+			'calculation_calc_definition', p.calculation_calc_definition,
+			'calculation_description', p.calculation_description,
+			'calculation_in_val', (select get_val_json(p.in_val[1])),
+			'calculation_out_val', (select get_val_json(p.out_val[1])),
+			'calculation_actor_uuid', p.calculation_actor_uuid,
+			'calculation_actor_description', p.calculation_actor_description,
+			'calculation_status_uuid', p.calculation_status_uuid,
+			'calculation_status_description', p.calculation_status_description,
+			'calculation_add_date', p.calculation_add_date,
+			'calculation_mod_date', p.calculation_mod_date)
+			) calc
+FROM
+			vw_condition_calculation p
+GROUP BY
+			condition_uuid
+	) p
+ON c.condition_uuid = p.condition_uuid;
+
+
+----------------------------------------
+-- view experiment
+-- DROP VIEW vw_experiment cascade
+----------------------------------------
+CREATE OR REPLACE VIEW vw_experiment AS
+SELECT
+	ex.experiment_uuid,
+	ex.ref_uid,
+	ex.description,
+	ex.parent_uuid,
+	ex.parent_path,
+	ex.owner_uuid,
+	aown.description as owner_description,
+	ex.operator_uuid,
+	aop.description as operator_description,
+	ex.lab_uuid,
+	alab.description as lab_description,
+	ex.status_uuid,
+	st.description as status_description,
+	ex.add_date,
+	ex.mod_date
+FROM experiment ex
+LEFT JOIN vw_actor aown ON ex.owner_uuid = aown.actor_uuid
+LEFT JOIN vw_actor aop ON ex.owner_uuid = aop.actor_uuid
+LEFT JOIN vw_actor alab ON ex.owner_uuid = alab.actor_uuid
+LEFT JOIN status st ON ex.status_uuid = st.status_uuid
+;
+
+DROP TRIGGER IF EXISTS trigger_experiment_upsert ON vw_experiment;
+CREATE TRIGGER trigger_experiment_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_experiment
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_experiment ( );
 
 
 ----------------------------------------
@@ -1157,7 +1516,550 @@ FOR EACH ROW
 EXECUTE PROCEDURE upsert_workflow_type ( );
 
 
+----------------------------------------
+-- view workflow
+-- DROP VIEW vw_workflow
+----------------------------------------
+CREATE OR REPLACE VIEW vw_workflow AS
+SELECT
+	wf.workflow_uuid,
+	wf.description,
+	wf.parent_uuid,
+	wf.workflow_type_uuid,
+	wt.description as workflow_type_description,
+	wf.actor_uuid,
+    act.description as actor_description,	
+	wf.status_uuid,
+	st.description as status_description, 
+	wf.add_date,
+	wf.mod_date
+FROM
+	workflow wf
+LEFT JOIN vw_workflow_type wt ON wf.workflow_type_uuid = wt.workflow_type_uuid
+LEFT JOIN vw_actor act ON wf.actor_uuid = act.actor_uuid
+LEFT JOIN status st ON wf.status_uuid = st.status_uuid;
 
+DROP TRIGGER IF EXISTS trigger_workflow_upsert ON vw_workflow;
+CREATE TRIGGER trigger_workflow_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_workflow
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_workflow ( );
+
+
+----------------------------------------
+-- view experiment_experiment
+-- DROP VIEW vw_experiment_workflow cascade
+----------------------------------------
+CREATE OR REPLACE VIEW vw_experiment_workflow AS
+SELECT
+	ew.experiment_workflow_uuid,
+	e.experiment_uuid,
+	e.ref_uid as experiment_ref_uid,
+	e.description as experiment_description,
+	e.parent_uuid as experiment_parent_uuid,
+	e.owner_uuid as experiment_owner_uuid,
+	e.owner_description as experiment_owner_description,
+	e.operator_uuid as experiment_operator_uuid,
+	e.operator_description as experiment_operator_description,
+	e.lab_uuid as experiment_lab_uuid,
+	e.lab_description as experiment_lab_description,
+	e.status_uuid as experiment_status_uuid,
+	e.status_description as experiment_status_description,
+	e.add_date as experiment_add_date,
+	e.mod_date as experiment_mod_date,
+	ew.experiment_workflow_seq,
+	w.workflow_uuid as workflow_uuid,
+	w.description as workflow_description,
+	w.workflow_type_uuid,
+	w.workflow_type_description,
+	w.actor_uuid as workflow_actor_uuid,
+	w.actor_description as workflow_actor_description,
+	w.status_uuid as workflow_status_uuid,
+	w.status_description as workflow_status_description,
+	w.add_date as workflow_add_date,
+	w.mod_date as workflow_mod_date
+FROM experiment_workflow ew 
+LEFT JOIN vw_experiment e ON ew.experiment_uuid = e.experiment_uuid 
+LEFT JOIN vw_workflow w ON ew.workflow_uuid = w.workflow_uuid;
+
+
+DROP TRIGGER IF EXISTS trigger_experiment_workflow_upsert ON vw_experiment_workflow;
+CREATE TRIGGER trigger_experiment_workflow_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_experiment_workflow
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_experiment_workflow ( );
+
+----------------------------------------
+-- view workflow_object
+-- DROP VIEW vw_workflow_object
+----------------------------------------
+CREATE OR REPLACE VIEW vw_workflow_object AS
+SELECT
+	wo.workflow_object_uuid,
+	wo.action_uuid,
+	wo.condition_uuid,
+	CASE
+		when wo.action_uuid is not null then wo.action_uuid
+		when wo.condition_uuid is not null then wo.condition_uuid
+	end as object_uuid,	
+	CASE
+		when wo.action_uuid is not null then 'action'
+		when wo.condition_uuid is not null then 'condition'
+		else 'node'
+	end as object_type,
+	CASE
+		when wo.action_uuid is not null then a.action_description
+		when wo.condition_uuid is not null then c.condition_description
+	end as object_description,	
+	CASE
+		when wo.action_uuid is not null then a.action_def_description
+		when wo.condition_uuid is not null then c.calculation_description
+	end as object_def_description,
+	wo.add_date,
+	wo.mod_date
+FROM workflow_object wo
+LEFT JOIN vw_action a ON wo.action_uuid = a.action_uuid
+LEFT JOIN vw_condition c ON wo.condition_uuid = c.condition_uuid
+LEFT JOIN vw_condition_calculation_def_assign cc ON c.condition_calculation_def_x_uuid = cc.condition_calculation_def_x_uuid
+LEFT JOIN vw_status st ON wo.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_workflow_object_upsert ON vw_workflow_object;
+CREATE TRIGGER trigger_workflow_object_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_workflow_object
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_workflow_object ( );
+
+
+----------------------------------------
+-- view workflow_step
+-- DROP VIEW vw_workflow_step
+----------------------------------------
+CREATE OR REPLACE VIEW vw_workflow_step AS
+SELECT
+	ws.workflow_step_uuid,
+	ws.workflow_uuid,
+	wf.description as workflow_description,
+	ws.parent_uuid,
+	wfo.object_type as parent_object_type,
+	wfo.object_description as parent_object_description,
+	ws.parent_path,	
+	cp.condition_out_val as conditional_val,
+	(select val_val from get_val ( cp.condition_out_val )) AS conditional_value,
+	ws.status_uuid,
+	st.description as status_description,
+	ws.add_date,
+	ws.mod_date,
+	ws.workflow_object_uuid,
+	wo.object_uuid,
+	wo.object_type,
+	wo.object_description,
+    wo.object_def_description,
+	wo.add_date as object_add_date,
+	wo.mod_date as object_mod_date
+FROM workflow_step ws
+LEFT JOIN workflow_step ws2 ON ws.parent_uuid = ws2.workflow_step_uuid
+LEFT JOIN vw_workflow_object wfo ON ws2.workflow_object_uuid = wfo.workflow_object_uuid
+LEFT JOIN vw_condition_path cp ON ws.workflow_step_uuid = cp.workflow_step_uuid
+LEFT JOIN vw_workflow wf ON ws.workflow_uuid = wf.workflow_uuid
+LEFT JOIN vw_workflow_object wo ON ws.workflow_object_uuid = wo.workflow_object_uuid
+LEFT JOIN vw_status st ON ws.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_workflow_step_upsert ON vw_workflow_step;
+CREATE TRIGGER trigger_workflow_step_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_workflow_step
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_workflow_step ( );
+
+
+----------------------------------------
+-- view workflow_step_json
+-- DROP VIEW vw_workflow_step_json
+----------------------------------------
+CREATE OR REPLACE VIEW vw_workflow_step_json AS
+SELECT * FROM
+	(WITH RECURSIVE wf(workflow_step_uuid,  workflow_uuid, workflow_description, workflow_object_uuid, 
+		parent_uuid, parent_object_type, parent_object_description, conditional_val, conditional_value, 
+		object_uuid, object_type, object_description, status_uuid, status_description) AS (
+	    SELECT  w1.workflow_step_uuid,  w1.workflow_uuid, w1.workflow_description, w1.workflow_object_uuid,
+	    w1.parent_uuid, w1.parent_object_type, w1.parent_object_description, w1.conditional_val, w1.conditional_value, 
+	    w1.object_uuid, w1.object_type, w1.object_description, w1.status_uuid, w1.status_description
+	    FROM vw_workflow_step w1 WHERE workflow_step_uuid = (select workflow_step_uuid from vw_workflow_step 
+	    	where (parent_uuid is null))
+	    UNION ALL
+	    SELECT w2.workflow_step_uuid,  w2. workflow_uuid, w2.workflow_description, w2.workflow_object_uuid, 
+	    w2.parent_uuid, w2.parent_object_type, w2.parent_object_description, w2.conditional_val, w2.conditional_value, 
+	    w2.object_uuid, w2.object_type, w2.object_description, w2.status_uuid, w2.status_description
+	    FROM vw_workflow_step w2
+	    JOIN wf ON w2.parent_uuid = wf.workflow_step_uuid
+	)
+	SELECT  
+		json_build_object('workflow_step',
+		json_agg(
+			json_build_object(
+				'workflow_step_order', n.ord,
+				'workflow_uuid', n.workflow_uuid,
+				'workflow_description', n.workflow_description,				
+				'workflow_step_uuid', n.workflow_step_uuid,
+				'workflow_step_parent_uuid', n.parent_uuid,
+				'workflow_step_parent_object_type', n.parent_object_type,
+				'workflow_step_parent_object_description', n.parent_object_description,
+				'workflow_conditional_val', n.conditional_val,
+				'workflow_conditional_value', n.conditional_value,
+				'workflow_step_object_uuid', n.object_uuid,
+				'workflow_step_object_type', n.object_type,
+				'workflow_step_object_description', n.object_description,
+				'workflow_step_status_uuid', n.status_uuid,
+				'workflow_step_status_description', n.status_description
+				)
+			)
+		)
+	FROM 
+		(select row_number() over () as ord, * from wf) n) w;
+
+
+----------------------------------------
+-- view workflow_step_object_json
+-- DROP VIEW vw_workflow_step_object_json
+----------------------------------------
+CREATE OR REPLACE VIEW vw_workflow_step_object_json AS
+WITH RECURSIVE wf(workflow_step_uuid,  workflow_uuid, workflow_description, workflow_object_uuid, 
+		parent_uuid, parent_object_type, parent_object_description, conditional_val, conditional_value, 
+		object_uuid, object_type, object_description, status_uuid, status_description) AS (
+	    SELECT  w1.workflow_step_uuid,  w1.workflow_uuid, w1.workflow_description, w1.workflow_object_uuid,
+	    w1.parent_uuid, w1.parent_object_type, w1.parent_object_description, w1.conditional_val, w1.conditional_value, 
+	    w1.object_uuid, w1.object_type, w1.object_description, w1.status_uuid, w1.status_description
+	    FROM vw_workflow_step w1 WHERE workflow_step_uuid = (select workflow_step_uuid from vw_workflow_step 
+	    	where (parent_uuid is null))
+	    UNION ALL
+	    SELECT w2.workflow_step_uuid,  w2. workflow_uuid, w2.workflow_description, w2.workflow_object_uuid, 
+	    w2.parent_uuid, w2.parent_object_type, w2.parent_object_description, w2.conditional_val, w2.conditional_value, 
+	    w2.object_uuid, w2.object_type, w2.object_description, w2.status_uuid, w2.status_description
+	    FROM vw_workflow_step w2
+	    JOIN wf ON w2.parent_uuid = wf.workflow_step_uuid
+	)
+	SELECT 
+		json_build_object('workflow_step',
+		json_agg(
+			json_build_object(
+				'workflow_step_uuid', n.workflow_step_uuid,
+				'worflow_step_order', n.ord,
+				'workflow_uuid', n.workflow_uuid,
+				'workflow_description', n.workflow_description,
+				'workflow_step_status_uuid', n.status_uuid,
+				'workflow_step_status_description', n.status_description,				
+				'workflow_step_parent_uuid', n.parent_uuid,
+				'workflow_step_parent_object_type', n.parent_object_type,
+				'workflow_step_parent_object_description', n.parent_object_description,
+				'workflow_conditional_val', n.conditional_val,
+				'workflow_conditional_value', n.conditional_value,
+				'object', wfs)
+			)
+		)
+	FROM 
+		(select row_number() over () as ord, * from wf) n
+JOIN (
+	SELECT
+		workflow_step_uuid,
+		json_agg(
+		json_build_object(
+			'workflow_object_uuid', ws.workflow_object_uuid,
+			'object_uuid', ws.object_uuid,
+			'object_type', ws.object_type,
+			'object_description', ws.object_description,
+			'object_def_description', ws.object_def_description,
+			'object_add_date', ws.object_add_date,
+			'object_mod_date', ws.object_mod_date)
+		) wfs
+	FROM vw_workflow_step ws
+	GROUP BY workflow_step_uuid
+) wo
+ON n.workflow_step_uuid = wo.workflow_step_uuid;
+
+
+----------------------------------------
+-- view workflow_json
+-- DROP VIEW vw_workflow_json
+----------------------------------------
+CREATE OR REPLACE VIEW vw_workflow_json AS
+SELECT
+	json_build_object('workflow',
+		json_agg(
+			json_build_object(
+				'workflow_uuid', w.workflow_uuid,
+				'workflow_description', w.description,
+				'workflow_parent_uuid', w.parent_uuid,
+				'workflow_actor_uuid', w.actor_uuid,				
+				'workflow_actor_description', w.actor_description,
+				'workflow_status_uuid', w.status_uuid,
+				'workflow_status_description', w.status_description,
+				'workflow_add_date', w.add_date,
+				'workflow_mod_date', w.mod_date				
+			)
+		)
+	) workflow_json
+FROM
+    vw_workflow w;
+
+
+----------------------------------------
+-- view experiment_workflow_json
+-- drop view vw_experiment_workflow_json
+----------------------------------------
+CREATE OR REPLACE VIEW vw_experiment_workflow_json AS
+SELECT
+	json_build_object('experiment',
+	json_agg(
+		json_build_object(
+			'experiment_uuid', e.experiment_uuid,
+			'experiment_ref_uid', e.ref_uid,
+			'experiment_description', e.description,
+			'experiment_parent_uuid', e.parent_uuid,
+			'experiment_owner_uuid', e.owner_uuid,
+			'experiment_owner_description', e.owner_description,
+			'experiment_operator_uuid', e.operator_uuid,
+			'experiment_operator_description', e.operator_description,
+			'experiment_lab_uuid', e.lab_uuid,
+			'experiment_lab_description', e.lab_description,
+			'experiment_status_uuid', e.status_uuid,
+			'experiment_status_description', e.status_description,
+			'experiment_add_date', e.add_date,
+			'experiment_mod_date', e.mod_date,
+			'workflow', wf)
+		)
+	) experiment_workflow_json
+FROM
+    vw_experiment e
+JOIN (
+SELECT
+	experiment_uuid,
+	json_agg(
+		json_build_object(
+			'workflow_seq', p.experiment_workflow_seq,		
+			'workflow_uuid', p.workflow_uuid,
+			'workflow_description', p.workflow_description,
+			'workflow_type_uuid', p.workflow_type_uuid,
+			'workflow_type_description', p.workflow_type_description,
+			'workflow_actor_uuid', p.workflow_actor_uuid,
+			'workflow_actor_description', p.workflow_actor_description,
+			'workflow_status_uuid', p.workflow_status_uuid,
+			'workflow_status_description', p.workflow_status_description,
+			'workflow_add_date', p.workflow_add_date,
+			'workflow_mod_date', p.workflow_mod_date)
+			) wf
+FROM
+			vw_experiment_workflow p
+GROUP BY
+			experiment_uuid
+	) p
+ON e.experiment_uuid = p.experiment_uuid;
+
+
+----------------------------------------
+-- view experiment_workflow_step_json
+-- drop view vw_experiment_workflow_step_json
+----------------------------------------
+CREATE OR REPLACE VIEW vw_experiment_workflow_step_json AS
+SELECT
+	json_build_object('experiment',
+	json_agg(
+		json_build_object(
+			'experiment_uuid', e.experiment_uuid,
+			'experiment_ref_uid', e.experiment_ref_uid,
+			'experiment_description', e.experiment_description,
+			'experiment_parent_uuid', e.experiment_parent_uuid,
+			'experiment_owner_uuid', e.experiment_owner_uuid,
+			'experiment_owner_description', e.experiment_owner_description,
+			'experiment_operator_uuid', e.experiment_operator_uuid,
+			'experiment_operator_description', e.experiment_operator_description,
+			'experiment_lab_uuid', e.experiment_lab_uuid,
+			'experiment_lab_description', e.experiment_lab_description,
+			'experiment_status_uuid', e.experiment_status_uuid,
+			'experiment_status_description', e.experiment_status_description,
+			'experiment_add_date', e.experiment_add_date,
+			'experiment_mod_date', e.experiment_mod_date,
+			'workflow', wf
+			)
+		)
+	) experiment_workflow_json
+FROM
+    vw_experiment_workflow e
+JOIN (
+	SELECT
+		p.experiment_uuid,
+		json_agg(
+			json_build_object(
+				'workflow_seq', p.experiment_workflow_seq,		
+				'workflow_uuid', p.workflow_uuid,
+				'workflow_description', p.workflow_description,
+				'workflow_type_uuid', p.workflow_type_uuid,
+				'workflow_type_description', p.workflow_type_description,
+				'workflow_actor_uuid', p.workflow_actor_uuid,
+				'workflow_actor_description', p.workflow_actor_description,
+				'workflow_status_uuid', p.workflow_status_uuid,
+				'workflow_status_description', p.workflow_status_description,
+				'workflow_add_date', p.workflow_add_date,
+				'workflow_mod_date', p.workflow_mod_date,
+				'workflow_step', wfs)
+				) wf
+	FROM
+		vw_experiment_workflow p
+	LEFT JOIN 
+		(SELECT * FROM
+			(WITH RECURSIVE wf(workflow_step_uuid,  workflow_uuid, workflow_description, workflow_object_uuid, 
+				parent_uuid, parent_object_type, parent_object_description, conditional_val, conditional_value, 
+				object_uuid, object_type, object_description, status_uuid, status_description) AS (
+			    SELECT  w1.workflow_step_uuid,  w1.workflow_uuid, w1.workflow_description, w1.workflow_object_uuid,
+			    w1.parent_uuid, w1.parent_object_type, w1.parent_object_description, w1.conditional_val, w1.conditional_value, 
+			    w1.object_uuid, w1.object_type, w1.object_description, w1.status_uuid, w1.status_description
+			    FROM vw_workflow_step w1 WHERE workflow_step_uuid = (select workflow_step_uuid from vw_workflow_step 
+			    	where (parent_uuid is null))
+			    UNION ALL
+			    SELECT w2.workflow_step_uuid,  w2. workflow_uuid, w2.workflow_description, w2.workflow_object_uuid, 
+			    w2.parent_uuid, w2.parent_object_type, w2.parent_object_description, w2.conditional_val, w2.conditional_value, 
+			    w2.object_uuid, w2.object_type, w2.object_description, w2.status_uuid, w2.status_description
+			    FROM vw_workflow_step w2
+			    JOIN wf ON w2.parent_uuid = wf.workflow_step_uuid
+			)
+			SELECT
+				workflow_uuid, 
+				json_build_object('workflow_step',
+				json_agg(
+					json_build_object(
+						'workflow_step_order', n.ord,
+						'workflow_uuid', n.workflow_uuid,
+						'workflow_description', n.workflow_description,				
+						'workflow_step_uuid', n.workflow_step_uuid,
+						'workflow_step_parent_uuid', n.parent_uuid,
+						'workflow_step_parent_object_type', n.parent_object_type,
+						'workflow_step_parent_object_description', n.parent_object_description,
+						'workflow_conditional_val', n.conditional_val,
+						'workflow_conditional_value', n.conditional_value,
+						'workflow_step_object_uuid', n.object_uuid,
+						'workflow_step_object_type', n.object_type,
+						'workflow_step_object_description', n.object_description,
+						'workflow_step_status_uuid', n.status_uuid,
+						'workflow_step_status_description', n.status_description)
+					)
+				) wfs
+			FROM 
+				(select row_number() over () as ord, * from wf) n
+			GROUP BY workflow_uuid) p ) w
+	ON p.workflow_uuid = w.workflow_uuid				
+	GROUP BY p.experiment_uuid) p
+ON e.experiment_uuid = p.experiment_uuid;
+
+
+----------------------------------------
+-- view experiment_workflow_step_object_json
+-- drop view vw_experiment_workflow_step_object_json
+----------------------------------------
+CREATE OR REPLACE VIEW vw_experiment_workflow_step_object_json AS
+SELECT
+	json_build_object('experiment',
+	json_agg(
+		json_build_object(
+			'experiment_uuid', e.experiment_uuid,
+			'experiment_ref_uid', e.experiment_ref_uid,
+			'experiment_description', e.experiment_description,
+			'experiment_parent_uuid', e.experiment_parent_uuid,
+			'experiment_owner_uuid', e.experiment_owner_uuid,
+			'experiment_owner_description', e.experiment_owner_description,
+			'experiment_operator_uuid', e.experiment_operator_uuid,
+			'experiment_operator_description', e.experiment_operator_description,
+			'experiment_lab_uuid', e.experiment_lab_uuid,
+			'experiment_lab_description', e.experiment_lab_description,
+			'experiment_status_uuid', e.experiment_status_uuid,
+			'experiment_status_description', e.experiment_status_description,
+			'experiment_add_date', e.experiment_add_date,
+			'experiment_mod_date', e.experiment_mod_date,
+			'workflow', wf
+			)
+		)
+	) experiment_workflow_json
+FROM
+    vw_experiment_workflow e
+JOIN (
+	SELECT
+		p.experiment_uuid,
+		json_agg(
+			json_build_object(
+				'workflow_seq', p.experiment_workflow_seq,		
+				'workflow_uuid', p.workflow_uuid,
+				'workflow_description', p.workflow_description,
+				'workflow_type_uuid', p.workflow_type_uuid,
+				'workflow_type_description', p.workflow_type_description,
+				'workflow_actor_uuid', p.workflow_actor_uuid,
+				'workflow_actor_description', p.workflow_actor_description,
+				'workflow_status_uuid', p.workflow_status_uuid,
+				'workflow_status_description', p.workflow_status_description,
+				'workflow_add_date', p.workflow_add_date,
+				'workflow_mod_date', p.workflow_mod_date,
+				'workflow_step', wfso)
+				) wf
+	FROM
+		vw_experiment_workflow p
+	LEFT JOIN 
+	(
+		WITH RECURSIVE wf(workflow_step_uuid,  workflow_uuid, workflow_description, workflow_object_uuid, 
+				parent_uuid, parent_object_type, parent_object_description, conditional_val, conditional_value, 
+				object_uuid, object_type, object_description, status_uuid, status_description) AS (
+			    SELECT  w1.workflow_step_uuid,  w1.workflow_uuid, w1.workflow_description, w1.workflow_object_uuid,
+			    w1.parent_uuid, w1.parent_object_type, w1.parent_object_description, w1.conditional_val, w1.conditional_value, 
+			    w1.object_uuid, w1.object_type, w1.object_description, w1.status_uuid, w1.status_description
+			    FROM vw_workflow_step w1 WHERE workflow_step_uuid = (select workflow_step_uuid from vw_workflow_step 
+			    	where (parent_uuid is null))
+			    UNION ALL
+			    SELECT w2.workflow_step_uuid,  w2. workflow_uuid, w2.workflow_description, w2.workflow_object_uuid, 
+			    w2.parent_uuid, w2.parent_object_type, w2.parent_object_description, w2.conditional_val, w2.conditional_value, 
+			    w2.object_uuid, w2.object_type, w2.object_description, w2.status_uuid, w2.status_description
+			    FROM vw_workflow_step w2
+			    JOIN wf ON w2.parent_uuid = wf.workflow_step_uuid
+			)
+			SELECT
+			 	workflow_uuid,
+				json_agg(
+					json_build_object(
+						'workflow_step_uuid', n.workflow_step_uuid,
+						'worflow_step_order', n.ord,
+						'workflow_uuid', n.workflow_uuid,
+						'workflow_description', n.workflow_description,
+						'workflow_step_status_uuid', n.status_uuid,
+						'workflow_step_status_description', n.status_description,				
+						'workflow_step_parent_uuid', n.parent_uuid,
+						'workflow_step_parent_object_type', n.parent_object_type,
+						'workflow_step_parent_object_description', n.parent_object_description,
+						'workflow_conditional_val', n.conditional_val,
+						'workflow_conditional_value', n.conditional_value,
+						'object', wfs)
+				) wfso
+			FROM 
+				(select row_number() over () as ord, * from wf) n
+		JOIN (
+			SELECT
+				workflow_step_uuid,
+				json_agg(
+				json_build_object(
+					'workflow_object_uuid', ws.workflow_object_uuid,
+					'object_uuid', ws.object_uuid,
+					'object_type', ws.object_type,
+					'object_description', ws.object_description,
+					'object_def_description', ws.object_def_description,
+					'object_add_date', ws.object_add_date,
+					'object_mod_date', ws.object_mod_date)
+				) wfs
+			FROM vw_workflow_step ws
+			GROUP BY workflow_step_uuid
+		) wo
+		ON n.workflow_step_uuid = wo.workflow_step_uuid
+		GROUP BY workflow_uuid	
+	) w
+	ON p.workflow_uuid = w.workflow_uuid				
+	GROUP BY p.experiment_uuid) p
+ON e.experiment_uuid = p.experiment_uuid;
 
 
 

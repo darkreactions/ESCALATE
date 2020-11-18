@@ -1,0 +1,45 @@
+{"activities": [
+    {
+      "id": "bc994f79-83da-47f6-8d5a-0891171b3664",
+      "type": "ReceiveHttpRequest",
+      "left": 79,
+      "top": 177,
+      "state": {},
+      "blocking": false,
+      "executed": false,
+      "faulted": false
+    },
+    {
+      "id": "d61066d7-6d16-4bd0-a396-769828353c97",
+      "type": "WriteLine",
+      "left": 533,
+      "top": 282,
+      "state": {},
+      "blocking": false,
+      "executed": false,
+      "faulted": false
+    },
+    {
+      "id": "16b6b1e8-6254-4019-9885-f8705742b03b",
+      "type": "SendEmail",
+      "left": 511,
+      "top": 468,
+      "state": {},
+      "blocking": false,
+      "executed": false,
+      "faulted": false
+    }
+  ],
+  "connections": [
+    {
+      "sourceActivityId": "bc994f79-83da-47f6-8d5a-0891171b3664",
+      "destinationActivityId": "d61066d7-6d16-4bd0-a396-769828353c97",
+      "outcome": "Done"
+    },
+    {
+      "sourceActivityId": "d61066d7-6d16-4bd0-a396-769828353c97",
+      "destinationActivityId": "16b6b1e8-6254-4019-9885-f8705742b03b",
+      "outcome": "Done"
+    }
+  ]
+}

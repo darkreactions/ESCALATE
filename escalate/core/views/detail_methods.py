@@ -57,7 +57,7 @@ methods = {
         },
     },
     'Systemtool': {
-        'model': core.models.LatestSystemtool,
+        'model': core.models.Systemtool,
         'model_name': 'systemtool',
         'detail_fields': ['Systemtool Name', 'Systemtool Description', 'Systemtool Type',
                           'Systemtool Vendor', 'Systemtool Model', 'Systemtool Serial',
@@ -148,7 +148,7 @@ methods = {
             'Actor': ['description'],
             'Add Date': ['add_date'],
             'Last Modification Date': ['mod_date'],
-            # 'Tag Type': ['tag_type_short_descr'],
+            'Tag Type': ['type'],
             'Tag Type Description': ['type_description']
         },
     },
@@ -158,7 +158,7 @@ methods = {
         'detail_fields': ['Type', 'Long Description', 'Add Date',
                           'Last Modification Date'],
         'detail_fields_need_fields': {
-            'Type': ['type'],
+            'Short Description': ['type'],
             'Long Description': ['description'],
             'Add Date': ['add_date'],
             'Last Modification Date': ['mod_date']
@@ -171,7 +171,7 @@ methods = {
                           'Add Date', 'Last Modification Date'],
         'detail_fields_need_fields': {
             'Description': ['description'],
-            'Value Type': ['valtype'],
+            'Value Type': ['val_type_description'],
             'Add Date': ['add_date'],
             'Last Modification Date': ['mod_date']
         },

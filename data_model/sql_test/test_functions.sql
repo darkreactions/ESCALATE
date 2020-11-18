@@ -504,6 +504,19 @@ delete from vw_property_def where short_description = 'devtest property';
 Name:			upsert_calculation_def()
 Notes:				
 */ 
+insert into vw_calculation_def (short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid, 	
+	in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid ) 
+	values ('test_calc_def', 'function param1 param2', 
+		(select systemtool_uuid from vw_actor where description = 'Molecule Standardizer'),
+		'testing calculation definition upsert', 
+		(select calculation_def_uuid from vw_calculation_def where short_name = 'standardize'), 
+		(select type_def_uuid from vw_type_def where category = 'data' and description = 'text'),
+		null, null, 
+		(select type_def_uuid from vw_type_def where category = 'data' and description = 'int'),
+		null, (select actor_uuid from vw_actor where description = 'Dev Test123'),
+		(select status_uuid from vw_status where description = 'dev_test')		
+		);
+delete from vw_calculation_def where short_name = 'test_calc_def';
 
 
 /*
@@ -512,83 +525,236 @@ Notes:
 */ 
  
 /*
-Name:			upsert_workflow()
+Name:			upsert_workflow_def()
 Notes:				
 */
+
+
+/*
+Name:			upsert_action_def()
+Notes:
+*/
+insert into vw_action_def (description, actor_uuid, status_uuid) values
+	('heat_stir', (select actor_uuid from vw_actor where description = 'Dev Test123'),
+    (select status_uuid from vw_status where description = 'dev_test')),
+    ('heat', (select actor_uuid from vw_actor where description = 'Dev Test123'),
+    (select status_uuid from vw_status where description = 'dev_test'));
+
+
 
 /*
 Name:			upsert_parameter_def()
 Notes:				
 */ 
-insert into vw_parameter_def (description, val_type_uuid, valunit, actor_uuid) values
-	('devtest_param', (select get_type_def ('data', 'num')), 'hours', (select actor_uuid from vw_actor where person_last_name = 'Test123'));
-update vw_parameter_def set status_uuid = (select status_uuid from vw_status where description = 'dev_test') where description = 'devtest_param';
-delete from vw_parameter_def where description = 'devtest_param';
+insert into vw_parameter_def (description, default_val)
+	values
+    	('duration',
+        (select put_val(
+        (select get_type_def ('data', 'num')), '0', 'mins'))
+        ),
+        ('speed',
+        (select put_val ((select get_type_def ('data', 'num')),'0','rpm'))
+        ),
+        ('temperature',
+        (select put_val((select get_type_def ('data', 'num')), '0', 'degC'))
+		);
+update vw_parameter_def
+	set status_uuid = (select status_uuid from vw_status where description = 'dev_test')
+    where description = 'temperature';
+
 
 
 /*
- Name:			upsert_action_def()
- Notes:
+Name:			upsert_action_parameter_def_assign()
+Notes:			
 */
-insert into vw_action_def (description, actor_uuid) values
-	('devtest_actiondef', (select actor_uuid from vw_actor where person_last_name = 'Test123'));
-update vw_action_def set status_uuid = (select status_uuid from vw_status where description = 'dev_test') where description = 'devtest_actiondef';
-delete from vw_action_def where description = 'devtest_actiondef';
-
-
-/*
- Name:			upsert_action_parameter_def_assign()
- Notes:			
-*/
-insert into vw_parameter_def (description, val_type_uuid, valunit, actor_uuid) values
-	('devtest_param', (select get_type_def ('data', 'num')), 'hours', (select actor_uuid from vw_actor where person_last_name = 'Test123'));
-insert into vw_action_def (description, actor_uuid) values
-	('devtest_actiondef', (select actor_uuid from vw_actor where person_last_name = 'Test123'));
 insert into vw_action_parameter_def_assign (action_def_uuid, parameter_def_uuid)
-	VALUES (
-		(select action_def_uuid from vw_action_def where description = 'devtest_actiondef'), 
-		(select parameter_def_uuid from vw_parameter_def where description = 'devtest_param')
-	);
-delete from vw_action_parameter_def_assign where 
-	action_def_uuid = (select action_def_uuid from vw_action_def where description = 'devtest_actiondef') AND
-	parameter_def_uuid = (select parameter_def_uuid from vw_parameter_def where description = 'devtest_param');
-delete from vw_action_def where description = 'devtest_actiondef';
-delete from vw_parameter_def where description = 'devtest_param';
+	values ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
+    	(select parameter_def_uuid from vw_parameter_def where description = 'duration')),
+        ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
+        (select parameter_def_uuid from vw_parameter_def where description = 'temperature')),
+        ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
+        (select parameter_def_uuid from vw_parameter_def where description = 'speed')),
+        ((select action_def_uuid from vw_action_def where description = 'heat'),
+        (select parameter_def_uuid from vw_parameter_def where description = 'duration')),
+        ((select action_def_uuid from vw_action_def where description = 'heat'),
+        (select parameter_def_uuid from vw_parameter_def where description = 'temperature'));
+
 
 
 /*
 Name:			upsert_parameter()
-Notes:
-*/ 
-insert into vw_parameter_def (description, val_type_uuid, valunit, actor_uuid) values
-	('devtest_param', (select get_type_def ('data', 'num')), 'hours', (select actor_uuid from vw_actor where person_last_name = 'Test123'));
+Notes:			Preferred use is through upsert_action_parameter
+*/
+/* 
 insert into vw_parameter (parameter_def_uuid, ref_parameter_uuid, parameter_val, actor_uuid, status_uuid ) values (
-	(select parameter_def_uuid from vw_parameter_def where description = 'devtest_param'),
-	(select actor_uuid from vw_actor where person_last_name = 'Test123'),
+	(select parameter_def_uuid from vw_parameter_def where description = 'duration'),
+    (select actor_uuid from vw_actor where description = 'Dev Test123'),
 	(select put_val (
-		(select val_type_uuid from vw_parameter_def where description = 'devtest_param'),
+		(select val_type_uuid from vw_parameter_def where description = 'duration'),
 		'10',
-		(select valunit from vw_parameter_def where description = 'devtest_param'))
-	),
-	(select actor_uuid from vw_actor where person_last_name = 'Test123'),
-	(select status_uuid from vw_status where description = 'devtest_param')
+		(select valunit from vw_parameter_def where description = 'duration'))),
+	(select actor_uuid from vw_actor where org_short_name = 'LANL'),
+	(select status_uuid from vw_status where description = 'dev_test')
 );
 update vw_parameter set parameter_val = (select put_val (
-    (select val_type_uuid from vw_parameter_def where description = 'devtest_param'),
+	(select val_type_uuid from vw_parameter_def where description = 'duration'),
 	'36',
-	(select valunit from vw_parameter_def where description = 'devtest_param')))
-	where parameter_def_description = 'devtest_param';
-delete from vw_parameter where parameter_def_description = 'devtest_param' AND 
-	ref_parameter_uuid = (select actor_uuid from vw_actor where person_last_name = 'Test123');
-delete from vw_parameter_def where description = 'devtest_param';
+	(select valunit from vw_parameter_def where description = 'duration')))
+    where parameter_def_description = 'duration';
+*/
+
+
+/*
+Name:			upsert_action()                     
+Notes:          
+*/
+insert into vw_action (action_def_uuid, action_description, status_uuid)
+	values (
+    	(select action_def_uuid from vw_action_def where description = 'heat_stir'), 
+        'example_heat_stir',
+        (select status_uuid from vw_status where description = 'active'));
+update vw_action set actor_uuid = (select actor_uuid from vw_actor where description = 'Dev Test123')
+	where action_description = 'example_heat_stir';
+insert into vw_action (action_def_uuid, action_description, actor_uuid, status_uuid)
+	values (
+    	(select action_def_uuid from vw_action_def where description = 'heat'), 
+        'example_heat',
+        (select actor_uuid from vw_actor where description = 'Dev Test123'),
+        (select status_uuid from vw_status where description = 'active'));
+
+
+
+/*
+Name:			upsert_action_parameter()
+Notes:
+*/
+update vw_action_parameter
+	set parameter_val = (select put_val (
+    	(select val_type_uuid from vw_parameter_def where description = 'speed'),
+        '8888',
+		(select valunit from vw_parameter_def where description = 'speed'))
+		)
+where (action_description = 'example_heat_stir' AND parameter_def_description = 'speed');
+
+-- clean up the action, parameter functions above
+delete from vw_action_parameter where action_description = 'example_heat_stir';
+delete from vw_action where action_description = 'example_heat_stir';
+delete from vw_action where action_description = 'example_heat';
+delete from vw_parameter where parameter_def_description = 'duration' AND ref_parameter_uuid = (select actor_uuid from vw_actor where description = 'Dev Test123');
+delete from vw_action_parameter_def_assign
+	where action_def_uuid = (select action_def_uuid from vw_action_def where description = 'heat_stir')
+    	and parameter_def_uuid in 
+    		(select parameter_def_uuid from vw_parameter_def 
+    			where description in ('speed', 'duration', 'temperature'));
+delete from vw_action_def where description in ('heat_stir', 'heat');
+delete from vw_parameter_def where description in ('duration', 'speed', 'temperature');
 
 
 /*
 Name:			upsert_workflow_type()
 Notes:				
 */ 
--- insert into vw_workflow_type (description) values ('workflowtype_test');
--- delete from vw_workflow_type where workflow_type_uuid = (select workflow_type_uuid from vw_workflow_type where (description = 'workflowtype_test'));
+insert into vw_workflow_type (description) values ('workflowtype_test');
+delete from vw_workflow_type where workflow_type_uuid = (select workflow_type_uuid from vw_workflow_type where (description = 'workflowtype_test'));
+
+
+
+/*
+Name:			upsert_condition_def()
+Notes:				
+*/		
+insert into vw_condition_def (description, actor_uuid) values
+	('temp > threshold ?', (select actor_uuid from vw_actor where description = 'Dev Test123'));
+update vw_condition_def set status_uuid = (select status_uuid from vw_status where description = 'dev_test') where description = 'temp > threshold ?';
+delete from vw_condition_def where description = 'temp > threshold ?';
+
+
+/*
+Name:			upsert_condition_calculation_def_assign()
+Notes:
+*/
+insert into vw_condition_def (description, actor_uuid, status_uuid) values
+	('temp > threshold ?', (select actor_uuid from vw_actor where description = 'Dev Test123'),
+	(select status_uuid from vw_status where description = 'dev_test'));
+insert into vw_calculation_def 
+	(short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid, 		
+	in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid ) 
+	values ('greater_than', 'pop A, pop B, >', 
+		(select systemtool_uuid from vw_actor where systemtool_name = 'escalate'),
+		'B > A ? (pop B, pop A, >?) returning true or false', null, null, null, null,
+		(select type_def_uuid from vw_type_def where category = 'data' and description = 'bool'),
+		null, (select actor_uuid from vw_actor where description = 'Dev Test123'),
+		(select status_uuid from vw_status where description = 'dev_test')		
+		);
+insert into vw_condition_calculation_def_assign (condition_def_uuid, calculation_def_uuid)
+	VALUES ((select condition_def_uuid from vw_condition_def where description = 'temp > threshold ?'),
+		(select calculation_def_uuid from vw_calculation_def where short_name = 'greater_than'));	
+delete from vw_condition_calculation_def_assign where
+	condition_def_uuid = (select condition_def_uuid from vw_condition_def where description = 'temp > threshold ?') and
+	calculation_def_uuid = (select calculation_def_uuid from vw_calculation_def where short_name = 'greater_than');
+delete from vw_calculation_def where short_name = 'greater_than';
+delete from vw_condition_def where description = 'temp > threshold ?';
+
+
+
+/*
+Name:			upsert_experiment()
+Notes:
+*/
+insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operator_uuid, lab_uuid, status_uuid) 
+	values (
+		'test_red_uid', 'test_experiment',
+		null,
+		(select actor_uuid from vw_actor where description = 'HC'),						
+		(select actor_uuid from vw_actor where description = 'T Testuser'),
+		(select actor_uuid from vw_actor where description = 'HC'),
+		null);
+update vw_experiment set status_uuid = (select status_uuid from vw_status where description = 'active') where description = 'test_experiment'; 
+delete from vw_experiment where description = 'test_experiment';
+
+
+/*
+Name:			upsert_workflow()
+Notes:
+*/
+insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid) 
+	values (
+		(select workflow_type_uuid from vw_workflow_type where description = 'workflow_def_test'),
+		'workflow_test',
+		(select actor_uuid from vw_actor where description = 'T Testuser'),
+		null);
+update vw_workflow set status_uuid = (select status_uuid from vw_status where description = 'active') where description = 'workflow_test'; 
+delete from vw_workflow where description = 'workflow_test' ;
+
+
+/*
+Name:			upsert_experiment_workflow()
+Notes:
+*/
+insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operator_uuid, lab_uuid, status_uuid) 
+	values (
+		'test_uid', 'test_experiment',
+		null,
+		(select actor_uuid from vw_actor where description = 'HC'),						
+		(select actor_uuid from vw_actor where description = 'T Testuser'),
+		(select actor_uuid from vw_actor where description = 'HC'),
+		null);
+insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid) 
+	values (
+		(select workflow_type_uuid from vw_workflow_type where description = 'workflowtype_test'),
+		'workflow_test',
+		(select actor_uuid from vw_actor where description = 'T Testuser'),
+		null);
+insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid) 
+	values (
+		1, 
+		(select experiment_uuid from vw_experiment where description = 'test_experiment'),
+		(select workflow_uuid from vw_workflow where description = 'test_workflow'));
+delete from vw_experiment_workflow 
+ 		where experiment_uuid = (select experiment_uuid from vw_experiment where description = 'test_experiment');
+delete from vw_workflow where description = 'workflow_test' ;
+delete from vw_experiment where description = 'test_experiment';
 
 
 ------------------------------------------------------------------------
@@ -596,3 +762,192 @@ Notes:
 delete from vw_actor where actor_uuid in (select actor_uuid from vw_actor where person_last_name = 'Test123');
 delete from vw_status where status_uuid = (select status_uuid from vw_status where (description = 'dev_test'));
 ------------------------------------------------------------------------
+
+
+
+--======================================================================
+--======================================================================
+-- scratch area to set up specific scenerios for further dev and testing
+--
+--        !!!! REMEMBER TO COMMENT OUT OR REMOVE WHEN DONE !!!!
+--======================================================================
+--======================================================================
+-- set up a test actor (person) and test status to be used throughout
+insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) 
+	values ('Test123','Dev','Temp','123 Testing Ln',null,'Test City','NY',null,null,null,null,null,null,null);
+insert into vw_status (description) values ('dev_test');
+
+-- set up experiment
+insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operator_uuid, lab_uuid, status_uuid) 
+	values (
+		'test_uid', 'test_experiment',
+		null,
+		(select actor_uuid from vw_actor where description = 'HC'),						
+		(select actor_uuid from vw_actor where description = 'Dev Test123'),
+		(select actor_uuid from vw_actor where description = 'HC'),
+		(select status_uuid from vw_status where description = 'dev_test'));
+-- create a workflow
+insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid) 
+	values (
+		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
+		'test_workflow',
+		(select actor_uuid from vw_actor where description = 'Dev Test123'),
+		(select status_uuid from vw_status where description = 'dev_test'));
+-- associate it with an experiment
+insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid) 
+	values (
+		1, 
+		(select experiment_uuid from vw_experiment where description = 'test_experiment'),
+		(select workflow_uuid from vw_workflow where description = 'test_workflow'));
+
+-- create action_def, parameter_def, action_parameter_def_assign, action
+insert into vw_action_def (description, actor_uuid, status_uuid) values
+	('heat_stir', (select actor_uuid from vw_actor where description = 'Dev Test123'),
+    (select status_uuid from vw_status where description = 'dev_test')),
+    ('heat', (select actor_uuid from vw_actor where description = 'Dev Test123'),
+    (select status_uuid from vw_status where description = 'dev_test')),
+    ('start_node', (select actor_uuid from vw_actor where description = 'Dev Test123'),
+    (select status_uuid from vw_status where description = 'dev_test')),
+    ('end_node', (select actor_uuid from vw_actor where description = 'Dev Test123'),
+    (select status_uuid from vw_status where description = 'dev_test'));
+insert into vw_parameter_def (description, default_val, actor_uuid, status_uuid)
+	values
+    	('duration',
+        (select put_val(
+        (select get_type_def ('data', 'num')), '0', 'mins')),
+        (select actor_uuid from vw_actor where description = 'Dev Test123'),
+		(select status_uuid from vw_status where description = 'dev_test')),
+        ('speed',
+        (select put_val ((select get_type_def ('data', 'num')),'0','rpm')),
+        (select actor_uuid from vw_actor where description = 'Dev Test123'),
+		(select status_uuid from vw_status where description = 'dev_test')),
+        ('temperature',
+        (select put_val((select get_type_def ('data', 'num')), '0', 'degC')),
+        (select actor_uuid from vw_actor where description = 'Dev Test123'),
+		(select status_uuid from vw_status where description = 'dev_test'));
+insert into vw_action_parameter_def_assign (action_def_uuid, parameter_def_uuid)
+	values ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
+    	(select parameter_def_uuid from vw_parameter_def where description = 'duration')),
+        ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
+        (select parameter_def_uuid from vw_parameter_def where description = 'temperature')),
+        ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
+        (select parameter_def_uuid from vw_parameter_def where description = 'speed')),
+        ((select action_def_uuid from vw_action_def where description = 'heat'),
+        (select parameter_def_uuid from vw_parameter_def where description = 'duration')),
+        ((select action_def_uuid from vw_action_def where description = 'heat'),
+        (select parameter_def_uuid from vw_parameter_def where description = 'temperature'));
+insert into vw_action (action_def_uuid, action_description, actor_uuid, status_uuid)
+	values (
+    	(select action_def_uuid from vw_action_def where description = 'heat_stir'), 
+        'example_heat_stir',
+        (select actor_uuid from vw_actor where description = 'Dev Test123'),
+        (select status_uuid from vw_status where description = 'dev_test'));
+insert into vw_action (action_def_uuid, action_description, actor_uuid, status_uuid)
+	values (
+    	(select action_def_uuid from vw_action_def where description = 'heat'), 
+        'example_heat',
+        (select actor_uuid from vw_actor where description = 'Dev Test123'),
+        (select status_uuid from vw_status where description = 'dev_test'));
+insert into vw_action (action_def_uuid, action_description, actor_uuid, status_uuid)
+	values (
+    	(select action_def_uuid from vw_action_def where description = 'start_node'), 
+        'start',
+        (select actor_uuid from vw_actor where description = 'Dev Test123'),
+        (select status_uuid from vw_status where description = 'dev_test'));
+insert into vw_action (action_def_uuid, action_description, actor_uuid, status_uuid)
+	values (
+    	(select action_def_uuid from vw_action_def where description = 'end_node'), 
+        'end',
+        (select actor_uuid from vw_actor where description = 'Dev Test123'),
+        (select status_uuid from vw_status where description = 'dev_test'));
+-- upsert condition, condition-calculation
+insert into vw_condition_def (description, actor_uuid, status_uuid) values
+	('temp > threshold ?', (select actor_uuid from vw_actor where description = 'Dev Test123'),
+	(select status_uuid from vw_status where description = 'dev_test'));
+insert into vw_calculation_def 
+	(short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid, 		
+	in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid ) 
+	values ('greater_than', 'pop A, pop B, >', 
+		(select systemtool_uuid from vw_actor where systemtool_name = 'escalate'),
+		'B > A ? (pop B, pop A, >?) returning true or false', null, null, null, null,
+		(select type_def_uuid from vw_type_def where category = 'data' and description = 'bool'),
+		null, (select actor_uuid from vw_actor where description = 'Dev Test123'),
+		(select status_uuid from vw_status where description = 'dev_test'));
+insert into vw_condition_calculation_def_assign (condition_def_uuid, calculation_def_uuid)
+	VALUES ((select condition_def_uuid from vw_condition_def where description = 'temp > threshold ?'),
+		(select calculation_def_uuid from vw_calculation_def where short_name = 'greater_than'));
+insert into vw_condition (condition_calculation_def_x_uuid, in_val, out_val, actor_uuid, status_uuid)
+	values (
+		(select condition_calculation_def_x_uuid from vw_condition_calculation_def_assign where condition_description = 'temp > threshold ?'),
+		(ARRAY[(SELECT put_val ((select get_type_def ('data', 'num')), '100', 'C'))]), 
+		(ARRAY[(SELECT put_val ((select get_type_def ('data', 'bool')), 'false', null))]),
+		(select actor_uuid from vw_actor where description = 'T Testuser'),
+		(select status_uuid from vw_status where description = 'dev_test'));
+-- set up the workflow step object (from actions and conditions)
+insert into vw_workflow_object (action_uuid) 
+	values (
+		(select action_uuid from vw_action where action_description = 'example_heat'));
+insert into vw_workflow_object (condition_uuid) 
+	values (
+		(select condition_uuid from vw_condition where  condition_description = 'temp > threshold ?'));
+insert into vw_workflow_object (action_uuid) 
+	values (
+		(select action_uuid from vw_action where action_description = 'example_heat_stir'));
+insert into vw_workflow_object (action_uuid) 
+	values (
+		(select action_uuid from vw_action where action_description = 'start'));
+insert into vw_workflow_object (action_uuid) 
+	values (
+		(select action_uuid from vw_action where action_description = 'end'));
+-- now define the path(s) between object -> workflow_step
+insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid) 
+	values (
+		(select workflow_uuid from vw_workflow where description = 'test_workflow'),
+		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'start')),
+		null,
+		(select status_uuid from vw_status where description = 'active'));
+insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid) 
+	values (
+		(select workflow_uuid from vw_workflow where description = 'test_workflow'),
+		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'example_heat_stir')),
+		(select workflow_step_uuid from vw_workflow_step where (object_type = 'action' and object_description = 'start')),						
+		(select status_uuid from vw_status where description = 'active'));
+insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)  
+	values (
+		(select workflow_uuid from vw_workflow where description = 'test_workflow'),
+		(select workflow_object_uuid from vw_workflow_object where (object_type = 'condition' and object_description = 'temp > threshold ?')),	
+		(select workflow_step_uuid from vw_workflow_step where (object_type = 'action' and object_description = 'example_heat_stir')),					
+		(select status_uuid from vw_status where description = 'active'));
+insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid) 
+	values (
+		(select workflow_uuid from vw_workflow where description = 'test_workflow'),
+		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'example_heat_stir')),
+		(select workflow_step_uuid from vw_workflow_step where (object_type = 'condition' and object_description = 'temp > threshold ?')),						
+		(select status_uuid from vw_status where description = 'active'));
+insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)  
+	values (
+		(select workflow_uuid from vw_workflow where description = 'test_workflow'),
+		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'example_heat')),	
+		(select workflow_step_uuid from vw_workflow_step where (object_type = 'condition' and object_description = 'temp > threshold ?')),					
+		(select status_uuid from vw_status where description = 'active'));
+insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)  
+	values (
+		(select workflow_uuid from vw_workflow where description = 'test_workflow'),
+		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'end')),	
+		(select workflow_step_uuid from vw_workflow_step where (object_type = 'action' and object_description = 'example_heat')),					
+		(select status_uuid from vw_status where description = 'active'));
+-- define the condition criteria path values (val) 
+insert into vw_condition_path (condition_uuid, condition_out_val, workflow_step_uuid)
+	values (
+		(select condition_uuid from vw_condition where condition_description = 'temp > threshold ?'),
+		((SELECT put_val ((select get_type_def ('data', 'bool')), 'FALSE', null))),
+		(select workflow_step_uuid from vw_workflow_step 
+			where (object_description = 'example_heat_stir' and parent_object_description = 'temp > threshold ?')));
+insert into vw_condition_path (condition_uuid, condition_out_val, workflow_step_uuid)
+	values (
+		(select condition_uuid from vw_condition where condition_description = 'temp > threshold ?'),
+		((SELECT put_val ((select get_type_def ('data', 'bool')), 'TRUE', null))),
+		(select workflow_step_uuid from vw_workflow_step 
+			where (object_description = 'example_heat' and parent_object_description = 'temp > threshold ?')));
+
+

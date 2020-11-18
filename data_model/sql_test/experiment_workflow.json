@@ -1,0 +1,35 @@
+{
+   "experiment":[
+      {
+         "experiment_uuid":"532eb835-4ae2-4211-9f8f-eea70d3d4b4c",
+         "experiment_ref_uid":"test_uid",
+         "experiment_description":"test_experiment",
+         "experiment_parent_uuid":null,
+         "experiment_owner_uuid":"1813e5de-37b3-4163-b912-e7371754c88e",
+         "experiment_owner_description":"HC",
+         "experiment_operator_uuid":"975ae48a-2526-4435-aea5-5bb6625e0a5c",
+         "experiment_operator_description":"HC",
+         "experiment_lab_uuid":"1813e5de-37b3-4163-b912-e7371754c88e",
+         "experiment_lab_description":"HC",
+         "experiment_status_uuid":"e4d1f2e5-fef7-4849-ae62-e5533438044b",
+         "experiment_status_description":"dev_test",
+         "experiment_add_date":"2020-11-09T07:56:08.54588-05:00",
+         "experiment_mod_date":"2020-11-09T07:56:08.54588-05:00",
+         "workflow":[
+            {
+               "workflow_seq":1,
+               "workflow_uuid":"4ed42b60-ce45-4338-94fc-fd446f985e27",
+               "workflow_description":"test_workflow",
+               "workflow_type_uuid":"30b96542-df6d-4130-879c-624b2a979a0a",
+               "workflow_type_description":"template",
+               "workflow_actor_uuid":"975ae48a-2526-4435-aea5-5bb6625e0a5c",
+               "workflow_actor_description":"Dev Test123",
+               "workflow_status_uuid":"e4d1f2e5-fef7-4849-ae62-e5533438044b",
+               "workflow_status_description":"dev_test",
+               "workflow_add_date":"2020-11-09T07:56:08.547754-05:00",
+               "workflow_mod_date":"2020-11-09T07:56:08.547754-05:00"
+            }
+         ]
+      }
+   ]
+}

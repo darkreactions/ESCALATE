@@ -1,5 +1,17 @@
 import re
 
+from django.db import connection as con
+cur = con.cursor()
+
+def get_val(val):
+    """breaks val tuple into constituent parts"""
+    cur.execute(f"select get_val ('{val}'::val);")
+    result = cur.fetchone()
+    val_type = val_unit = val_val = None
+    if result is not None:
+        tuple_str = result[0]
+        val_type, val_unit, val_val = tuple_str.strip(')(').split(',')
+    return val_type, val_unit, val_val
 
 def camel_case(text):
     #data = re.findall(r'[A-Z](?:[a-z]+|[A-Z]*(?=[A-Z]|$))', text)
@@ -20,14 +32,19 @@ def camel_case_uuid(text):
 
 
 view_names = ['Systemtool', 'SystemtoolType', 'Actor', 'Inventory', 'InventoryMaterial',
-              'LatestSystemtool', 'Calculation', 'CalculationDef',
+               'Calculation', 'CalculationDef',
               'Material', 'MaterialCalculationJson', 'MaterialRefnameDef',
-              'MaterialType', 'Note', 'Note_x', 'Organization', 'Person',
-              'Status', 'Tag', 'TagType', 'PropertyDef', 'MaterialProperty', 'TypeDef']
+              'MaterialType', 'Note_x', 'Organization', 'Person',
+              'Status', 'TagType', 'PropertyDef', 'MaterialProperty', 'TypeDef',
+              'ParameterDef', 'Condition', 'ConditionDef', 'Parameter', 'WorkflowType',
+              'WorkflowStep', 'WorkflowObject']
 
 GET_only_views = ['TypeDef']
 
-custom_serializer_views = ['Edocument', 'ExperimentMeasureCalculation']
+custom_serializer_views = ['Tag', 'Note',
+                           'Edocument',
+                           'ExperimentMeasureCalculation',
+                           'ActionDef', 'Action', 'Workflow']
 
 perform_create_views = ['PropertyDef', "MaterialProperty"]
 

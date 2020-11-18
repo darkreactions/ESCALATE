@@ -249,6 +249,7 @@ DECLARE
 BEGIN
 	-- create a temp table so we can reference
 	EXECUTE format('CREATE TEMP TABLE ttable ON COMMIT DROP AS SELECT * FROM %I', _loadtable);
+
 	-- load in the [parent] experiments
 	INSERT INTO experiment (description, ref_uid, owner_uuid, operator_uuid, lab_uuid, add_date, status_uuid)
 SELECT DISTINCT

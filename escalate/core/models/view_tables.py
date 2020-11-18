@@ -1,10 +1,13 @@
 from django.db import models
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 #from django.contrib.postgres.fields import JSONField
 from django.db.models import JSONField
 managed_value = False
 
 
 class Actor(models.Model):
+#class Actor(CommonData):
     uuid = models.UUIDField(primary_key=True, db_column='actor_uuid')
     organization_uuid = models.ForeignKey('Organization',
                                           on_delete=models.DO_NOTHING,
@@ -149,7 +152,7 @@ class InventoryMaterial(models.Model):
         return "{} : {}".format(self.inventory_description, self.material_name)
 
 
-class LatestSystemtool(models.Model):
+class Systemtool(models.Model):
     uuid = models.UUIDField(primary_key=True,
                             db_column='systemtool_uuid')
     systemtool_name = models.CharField(max_length=255, null=True)
@@ -196,26 +199,40 @@ class SystemtoolType(models.Model):
 class Calculation(models.Model):
     uuid = models.UUIDField(primary_key=True,
                             db_column='calculation_uuid')
+
+    # in
     in_val = models.TextField(blank=True, null=True)
-    in_type = models.CharField(max_length=255, blank=True, null=True)
-    in_val_type = models.TextField(blank=True, null=True)
+    in_val_type = models.ForeignKey('TypeDef',
+                                         models.DO_NOTHING,
+                                         db_column='in_val_type_uuid',
+                                         related_name='in_val_type')
     in_val_value = models.TextField(blank=True, null=True)
     in_val_unit = models.TextField(blank=True, null=True)
     in_val_edocument = models.ForeignKey('Edocument',
                                          models.DO_NOTHING,
                                          db_column='in_val_edocument_uuid',
                                          related_name='in_val_edocument')
+
+    # in opt
     in_opt_val = models.TextField(blank=True, null=True)
-    in_opt_val_type = models.TextField(blank=True, null=True)
     in_opt_val_value = models.TextField(blank=True, null=True)
+    in_opt_val_type = models.ForeignKey('TypeDef',
+                                        models.DO_NOTHING,
+                                        related_name='in_opt_val_type',
+                                        db_column='in_opt_val_type_uuid',
+                                        blank=True, null=True)
     in_opt_val_unit = models.TextField(blank=True, null=True)
     in_opt_val_edocument = models.ForeignKey('Edocument',
                                              models.DO_NOTHING,
                                              db_column='in_opt_val_edocument_uuid',
                                              related_name='in_opt_val_edocument')
-
+    # out
     out_val = models.TextField(blank=True, null=True)
-    out_val_type = models.TextField(blank=True, null=True)
+    out_val_type = models.ForeignKey('TypeDef',
+                                     models.DO_NOTHING,
+                                     related_name='out_val_type',
+                                     db_column='out_val_type_uuid',
+                                     blank=True, null=True)
     out_val_value = models.TextField(blank=True, null=True)
     out_val_unit = models.TextField(blank=True, null=True)
     out_val_edocument = models.ForeignKey('Edocument',
@@ -239,8 +256,6 @@ class Calculation(models.Model):
     calc_definition = models.CharField(max_length=255, blank=True, null=True)
 
     description = models.CharField(max_length=1023, blank=True, null=True)
-
-    out_type = models.CharField(max_length=255, blank=True, null=True)
 
     systemtool = models.ForeignKey('Systemtool',
                                    models.DO_NOTHING,
@@ -271,8 +286,17 @@ class CalculationDef(models.Model):
     short_name = models.CharField(max_length=255, blank=True, null=True)
     calc_definition = models.CharField(max_length=255, blank=True, null=True)
     description = models.CharField(max_length=1023, blank=True, null=True)
-    in_type = models.CharField(max_length=255, blank=True, null=True)
-    out_type = models.CharField(max_length=255, blank=True, null=True)
+    in_type = models.ForeignKey('TypeDef',
+                                models.DO_NOTHING,
+                                db_column='in_type_uuid',
+                                related_name='in_type')
+    in_type_description = models.CharField(max_length=255, blank=True, null=True)
+    out_type = models.ForeignKey('TypeDef',
+                                 models.DO_NOTHING,
+                                 blank=True, null=True,
+                                 db_column='out_type_uuid',
+                                 related_name='out_type')
+    out_type_description = models.CharField(max_length=255, blank=True, null=True)
     systemtool = models.ForeignKey('Systemtool',
                                    models.DO_NOTHING,
                                    db_column='systemtool_uuid')
@@ -401,10 +425,10 @@ class Note(models.Model):
     edocument_type = models.CharField(max_length=255, blank=True, null=True)"""
     actor_uuid = models.ForeignKey('Actor', models.DO_NOTHING,
                                    db_column='actor_uuid')
-    note_x_uuid = models.ForeignKey(
-        'Note_x', models.DO_NOTHING, db_column='note_x_uuid')
+    # note_x_uuid = models.ForeignKey('Note_x', models.DO_NOTHING,
+    #                                 db_column='note_x_uuid')
     actor_description = models.CharField(max_length=255, blank=True, null=True)
-    ref_note_uuid = models.UUIDField()
+    # ref_note_uuid = models.UUIDField()
 
     class Meta:
         managed = False
@@ -416,13 +440,14 @@ class Note(models.Model):
 
 class Note_x(models.Model):
     uuid = models.UUIDField(primary_key=True, db_column='note_x_uuid')
-
-    add_date = models.DateTimeField()
-    mod_date = models.DateTimeField()
-    note_uuid = models.ForeignKey('Note', models.DO_NOTHING,
-                                  db_column='note_uuid')
     ref_note_uuid = models.UUIDField()
-
+    note_uuid = models.ForeignKey('Note', models.DO_NOTHING,
+                                  blank=True,
+                                  null=True,
+                                  editable=False,
+                                  db_column='note_uuid')
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
     class Meta:
         managed = False
         db_table = 'note_x'
@@ -513,6 +538,11 @@ class Tag(models.Model):
     uuid = models.UUIDField(primary_key=True, db_column='tag_uuid')
     display_text = models.CharField(max_length=255,  null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
+    actor_uuid = models.ForeignKey('Actor', models.DO_NOTHING,
+                                   db_column='actor_uuid',
+                                   blank=True, null=True)
+    actor_description = models.CharField(max_length=255, blank=True, null=True)
+    
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -523,11 +553,6 @@ class Tag(models.Model):
         max_length=255, blank=True, null=True)
     type_description = models.CharField(
         max_length=255, blank=True, null=True)
-
-    actor_uuid = models.ForeignKey('Actor', models.DO_NOTHING,
-                                   db_column='actor_uuid',
-                                   blank=True, null=True)
-    actor_description = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -541,13 +566,15 @@ class Tag_X(models.Model):
     uuid = models.UUIDField(primary_key=True, db_column='tag_x_uuid')
     ref_tag_uuid = models.UUIDField()
     tag_uuid = models.ForeignKey('Tag', models.DO_NOTHING,
+                                 blank=True,
+                                 null=True,
+                                 editable=False,
                                  db_column='tag_uuid')
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
-
     class Meta:
         managed = False
-        db_table = 'vw_tag_x'
+        db_table = 'vw_tag_assign'
 
     def __str__(self):
         return "{}".format(self.uuid)
@@ -578,7 +605,7 @@ class Edocument(models.Model):
                                 db_column='filename')
     source = models.CharField(
         max_length=255, blank=True, null=True, db_column='source')
-    doc_type = models.CharField(max_length=255, blank=True,
+    edoc_type = models.CharField(max_length=255, blank=True,
                                  null=True, db_column='doc_type_description')
     edocument = models.BinaryField(blank=True, null=True)
     doc_ver = models.CharField(max_length=255, blank=True,
@@ -618,10 +645,17 @@ class UdfDef(models.Model):
     uuid = models.UUIDField(primary_key=True, db_column='udf_def_uuid')
     description = models.CharField(
         max_length=255,  null=True)
-    valtype = models.CharField(
+    val_type_uuid = models.ForeignKey('TypeDef',
+                                 db_column='val_type_uuid',
+                                 on_delete=models.DO_NOTHING,
+                                 blank=True,
+                                 null=True)
+    val_type_description = models.CharField(
         max_length=255, blank=True, null=True)
-    add_date = models.DateTimeField()
-    mod_date = models.DateTimeField()
+    unit = models.CharField(
+        max_length=255, blank=True, null=True)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
@@ -710,7 +744,9 @@ class PropertyDef(models.Model):
 
 class MaterialProperty(models.Model):
 
-    property_x_uuid = models.UUIDField(primary_key=True,
+    #property_x_uuid = models.UUIDField(primary_key=True,
+    #                                   db_column='property_x_uuid')
+    uuid = models.UUIDField(primary_key=True,
                                        db_column='property_x_uuid')
     material_uuid = models.ForeignKey('Material',
                                       db_column='material_uuid',
@@ -775,3 +811,590 @@ class MaterialProperty(models.Model):
     class Meta:
         managed = False
         db_table = 'vw_material_property'
+
+
+class ParameterDef(models.Model):
+    #parameter_def_uuid = models.UUIDField(primary_key=True,
+    #                                      db_column='parameter_def_uuid')
+    uuid = models.UUIDField(primary_key=True,
+                                          db_column='parameter_def_uuid')
+    description = models.CharField(max_length=255,
+                                    blank=True,
+                                    null=True,
+                                    db_column='description',
+                                    editable=False)
+    val_type_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='val_type_description',
+                                            editable=False)
+    val_type_uuid = models.ForeignKey('TypeDef',
+                                 db_column='val_type_uuid',
+                                 on_delete=models.DO_NOTHING,
+                                 blank=True,
+                                 null=True)
+    default_val_val  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='default_val_val',
+                                            editable=False)
+    valunit  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='valunit',
+                                            editable=False)
+    default_val  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='default_val',
+                                            editable=False)
+    required  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='required',
+                                            editable=False)
+    actor_uuid = models.ForeignKey('Actor',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='actor_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    actor_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='actor_description',
+                                            editable=False)
+    status_uuid = models.ForeignKey('Status',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='status_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    status_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='status_description',
+                                            editable=False)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'vw_parameter_def'
+
+
+class ActionDef(models.Model):
+    #action_def_uuid = models.UUIDField(primary_key=True,
+    #                                      db_column='action_def_uuid')
+    uuid = models.UUIDField(primary_key=True,
+                                          db_column='action_def_uuid')
+    parameter_def = models.ManyToManyField('ParameterDef', through='ActionParameterDefAssign')
+    description = models.CharField(max_length=255,
+                                    blank=True,
+                                    null=True,
+                                    db_column='description',
+                                    editable=False)
+    actor_uuid = models.ForeignKey('Actor',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='actor_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    actor_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='actor_description',
+                                            editable=False)
+    status_uuid = models.ForeignKey('Status',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='status_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    status_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='status_description',
+                                            editable=False)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.description}"
+
+    class Meta:
+        managed = False
+        db_table = 'vw_action_def'
+
+
+class Condition(models.Model):
+    # todo: link to condition calculation
+    uuid = models.UUIDField(primary_key=True, db_column='condition_uuid')
+    condition_description = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            editable=False)
+    condition_def = models.ForeignKey('ConditionDef', models.DO_NOTHING,
+                                      db_column='condition_def_uuid')
+    calculation_description = models.CharField(max_length=255,
+                                blank=True,
+                                null=True,
+                                editable=False)
+    in_val = models.CharField(max_length=255,
+                                blank=True,
+                                null=True,
+                                editable=False)
+    out_val = models.CharField(max_length=255,
+                                blank=True,
+                                null=True,
+                                editable=False)
+    actor_uuid = models.ForeignKey('Actor',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='actor_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    actor_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='actor_description',
+                                            editable=False)
+    status_uuid = models.ForeignKey('Status',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='status_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    status_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='status_description',
+                                            editable=False)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed=False
+        db_table='vw_condition'
+
+class ConditionDef(models.Model):
+
+    uuid = uuid = models.UUIDField(primary_key=True, db_column='condition_def_uuid')
+    description = models.CharField(max_length=255,
+                                   blank=True,
+                                   null=True,
+                                   db_column='description',
+                                   editable=False)
+    actor_uuid = models.ForeignKey('Actor',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='actor_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    actor_description = models.CharField(max_length=255,
+                                         blank=True,
+                                         null=True,
+                                         db_column='actor_description',
+                                         editable=False)
+    status_uuid = models.ForeignKey('Status',
+                                    on_delete=models.DO_NOTHING,
+                                    db_column='status_uuid',
+                                    blank=True,
+                                    null=True,
+                                    editable=False)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed=False
+        db_table='vw_condition_def'
+
+class ActionParameterDef(models.Model):
+    #action_parameter_def_x_uuid = models.UUIDField(primary_key=True, db_column='action_parameter_def_x_uuid')
+    uuid = models.UUIDField(primary_key=True, db_column='action_parameter_def_x_uuid')
+    action_def_uuid = models.ForeignKey('ActionDef',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='action_def_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False, related_name='action_parameter_def')
+    
+    description = models.CharField(max_length=255,
+                                    blank=True,
+                                    null=True,
+                                    db_column='description',
+                                    editable=False)
+    actor_uuid = models.ForeignKey('Actor',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='actor_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    actor_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='actor_description',
+                                            editable=False)
+    status_uuid = models.ForeignKey('Status',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='status_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    status_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='status_description',
+                                            editable=False)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+    #parameter_def_uuid = models.UUIDField(primary_key=True,
+    #                                      db_column='parameter_def_uuid')
+    
+    parameter_def_uuid = models.ForeignKey('ParameterDef',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='parameter_def_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    
+    parameter_description = models.CharField(max_length=255,
+                                               blank=True,
+                                               null=True,
+                                               db_column='parameter_description',
+                                               editable=False)
+    parameter_val_type_uuid = models.ForeignKey('TypeDef',
+                                      db_column='parameter_val_type_uuid',
+                                      on_delete=models.DO_NOTHING,
+                                      blank=True,
+                                      null=True)
+    class Meta:
+        managed = False
+        db_table = 'vw_action_parameter_def'
+        unique_together = ['action_def_uuid', 'parameter_def_uuid']
+
+
+class ActionParameterDefAssign(models.Model):
+    #action_parameter_def_x_uuid = models.UUIDField(primary_key=True, db_column='action_parameter_def_x_uuid')
+    uuid = models.UUIDField(primary_key=True, db_column='action_parameter_def_x_uuid')
+    parameter_def_uuid = models.ForeignKey('ParameterDef', 
+                                           on_delete=models.DO_NOTHING, 
+                                           blank=True,
+                                           null=True,
+                                           editable=False,
+                                           db_column='parameter_def_uuid',
+                                           related_name='action_parameter_def')
+    action_def_uuid = models.ForeignKey('ActionDef', on_delete=models.DO_NOTHING,
+                                        blank=True,
+                                        null=True,
+                                        editable=False, db_column='action_def_uuid',)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'vw_action_parameter_def_assign'
+
+
+class ActionParameterAssign(models.Model):
+    action_parameter_x_uuid = models.UUIDField(primary_key=True, db_column='action_parameter_x_uuid')
+    parameter_uuid = models.ForeignKey('Parameter',
+                                       on_delete=models.DO_NOTHING,
+                                       blank=True,
+                                       null=True,
+                                       editable=False,
+                                       db_column='parameter_uuid',
+                                       related_name='parameter')
+    action_uuid = models.ForeignKey('Action',
+                                    on_delete=models.DO_NOTHING,
+                                    blank=True,
+                                    null=True,
+                                    editable=False,
+                                    db_column='action_uuid')
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'vw_action_parameter' # todo, make a complimentary assign view for ap instances
+
+
+class Action(models.Model):
+    action_uuid = models.UUIDField(primary_key=True,
+                                   db_column='action_uuid')
+    parameter = models.ManyToManyField('Parameter', through='ActionParameterAssign')
+    description = models.CharField(max_length=255,
+                                   blank=True,
+                                   null=True,
+                                   db_column='action_description')
+    action_def = models.ForeignKey('ActionDef',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='action_def_uuid',
+                                   blank=True,
+                                   null=True,)
+    actor_uuid = models.ForeignKey('Actor',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='actor_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    actor_description = models.CharField(max_length=255,
+                                         blank=True,
+                                         null=True,
+                                         db_column='actor_description',
+                                         editable=False)
+    status_uuid = models.ForeignKey('Status',
+                                    on_delete=models.DO_NOTHING,
+                                    db_column='status_uuid',
+                                    blank=True,
+                                    null=True)
+    status_description = models.CharField(max_length=255,
+                                          blank=True,
+                                          null=True,
+                                          db_column='status_description',
+                                          editable=False)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'vw_action'
+
+class Parameter(models.Model):
+    uuid = models.UUIDField(primary_key=True,
+                                     db_column='parameter_uuid')
+    action_uuid = models.ForeignKey('Action',
+                                    db_column='action_uuid',
+                                    on_delete=models.DO_NOTHING,
+                                    blank=True,
+                                    null=True,
+                                    editable=False,
+                                    related_name='action')
+    parameter_def_uuid = models.ForeignKey('ParameterDef',
+                                           db_column='parameter_def_uuid',
+                                           on_delete=models.DO_NOTHING,
+                                           blank=True,
+                                           null=True,
+                                           editable=False)
+    parameter_def_description = models.CharField(max_length=255,
+                                                blank=True,
+                                                null=True,
+                                                db_column='parameter_def_description',
+                                                editable=False)
+    parameter_val = models.CharField(max_length=255,
+                                     blank=True,
+                                     null=True,
+                                     db_column='parameter_val')
+    # val_type_description  = models.CharField(max_length=255,
+    #                                          blank=True,
+    #                                          null=True,
+    #                                          db_column='val_type_description',
+    #                                          editable=False)
+    # valunit  = models.CharField(max_length=255,
+    #                             blank=True,
+    #                             null=True,
+    #                             db_column='valunit',
+    #                             editable=False)
+    actor_uuid = models.ForeignKey('Actor',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='parameter_actor_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    actor_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='parameter_actor_description',
+                                            editable=False)
+    status_uuid = models.ForeignKey('Status',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='parameter_status_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    status_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='parameter_status_description',
+                                            editable=False)
+    add_date = models.DateTimeField(auto_now_add=True, db_column='parameter_add_date')
+    mod_date = models.DateTimeField(auto_now=True, db_column='parameter_mod_date')
+
+    class Meta:
+        managed = False
+        db_table = 'vw_action_parameter' # todo: discuss the asymmetry here w/ g+s
+
+
+class WorkflowType(models.Model):
+    uuid = models.UUIDField(primary_key=True,
+                            db_column='workflow_type_uuid')
+    description = models.CharField(max_length=255,
+                                     blank=True,
+                                     null=True,
+                                     db_column='description',
+                                     editable=False)
+    add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
+    mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
+
+    class Meta:
+        managed = False
+        db_table = 'vw_workflow_type'
+
+
+class Workflow(models.Model):
+    uuid = models.UUIDField(primary_key=True,
+                            db_column='workflow_uuid')
+    step = models.ManyToManyField('WorkflowStep', through='WorkflowStep')
+    description = models.CharField(max_length=255,
+                                     blank=True,
+                                     null=True,
+                                     db_column='description',
+                                     editable=False)
+    parent_uuid = models.ForeignKey('Workflow', models.DO_NOTHING,
+                                    blank=True, null=True,
+                                    db_column='parent_uuid')
+    workflow_type = models.ForeignKey('WorkflowType', models.DO_NOTHING,
+                                      blank=True, null=True,
+                                      db_column='workflow_type_uuid')
+    workflow_type_description = models.CharField(max_length=255,
+                                     blank=True,
+                                     null=True,
+                                     editable=False)
+    actor = models.ForeignKey('Actor',
+                               on_delete=models.DO_NOTHING,
+                               db_column='actor_uuid',
+                               blank=True,
+                               null=True,
+                               editable=False)
+    actor_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='actor_description',
+                                            editable=False)
+    status = models.ForeignKey('Status',
+                               on_delete=models.DO_NOTHING,
+                               db_column='status_uuid',
+                               blank=True,
+                               null=True,
+                               editable=False)
+    status_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='status_description',
+                                            editable=False)
+    add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
+    mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
+
+    class Meta:
+        managed = False
+        db_table = 'vw_workflow'
+
+class WorkflowStep(models.Model):
+    uuid = models.UUIDField(primary_key=True,
+                            db_column='workflow_step_uuid')
+    workflow_uuid = models.ForeignKey('Workflow', models.DO_NOTHING,
+                                      db_column='workflow_uuid',
+                                      related_name='workflow_uuid')
+    workflow_description = models.CharField(max_length=255,
+                                             blank=True,
+                                             null=True,
+                                             editable=False)
+    parent_uuid = models.ForeignKey('WorkflowStep', models.DO_NOTHING,
+                                    blank=True, null=True, editable=False,
+                                    db_column='parent_uuid')
+    parent_object_type = models.CharField(max_length=255,
+                                     blank=True,
+                                     null=True,
+                                     editable=False)
+    parent_object_description = models.CharField(max_length=255,
+                                     blank=True,
+                                     null=True,
+                                     editable=False)
+    parent_path = models.CharField(max_length=255,
+                                     blank=True,
+                                     null=True,
+                                     editable=False)
+    conditional_val = models.CharField(max_length=255,
+                                     blank=True,
+                                     null=True,
+                                     editable=False)
+    conditional_value = models.CharField(max_length=255,
+                                     blank=True,
+                                     null=True,
+                                     editable=False)
+    status = models.ForeignKey('Status',
+                               on_delete=models.DO_NOTHING,
+                               db_column='status_uuid',
+                               blank=True,
+                               null=True,
+                               editable=False)
+    status_description = models.CharField(max_length=255,
+                                          blank=True,
+                                          null=True,
+                                          db_column='status_description',
+                                          editable=False)
+    add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
+    mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
+
+    workflow_object_uuid = models.ForeignKey('WorkflowObject', models.DO_NOTHING,
+                                             db_column='workflow_object_uuid')
+    # unclear how to make this an fk for django...
+    object_uuid = models.CharField(max_length=255,
+                                     blank=True,
+                                     null=True,
+                                     db_column='object_uuid',
+                                     editable=False)
+    object_type = models.CharField(max_length=255,
+                                 blank=True,
+                                 null=True,
+                                 db_column='object_type',
+                                 editable=False)
+    object_description = models.CharField(max_length=255,
+                                 blank=True,
+                                 null=True,
+                                 db_column='object_description',
+                                 editable=False)
+    object_def_description = models.CharField(max_length=255,
+                                 blank=True,
+                                 null=True,
+                                 db_column='object_def_description',
+                                 editable=False)
+    # object_add_date
+    # object_mod_date
+    class Meta:
+        managed = False
+        db_table = 'vw_workflow_step'
+
+
+class WorkflowObject(models.Model):
+    uuid = models.UUIDField(primary_key=True, db_column='workflow_object_uuid')
+    action_uuid = models.ForeignKey('Action', models.DO_NOTHING,
+                                    blank=True, null=True, editable=False,
+                                    related_name='wf_action_uuid',
+                                    db_column='action_uuid')
+    condition_uuid = models.ForeignKey('Condition', models.DO_NOTHING,
+                                       blank=True, null=True, editable=False,
+                                       related_name='wf_condition_uuid',
+                                       db_column='condition_uuid')
+    object_uuid = models.CharField(max_length=255,
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    object_type = models.CharField(max_length=255,
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    object_description = models.CharField(max_length=255,
+                                           blank=True,
+                                           null=True,
+                                           editable=False)
+    object_def_description = models.CharField(max_length=255,
+                                           blank=True,
+                                           null=True,
+                                           editable=False)
+    add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
+    mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
+
+    class Meta:
+        managed = False
+        db_table = 'vw_workflow_object'
