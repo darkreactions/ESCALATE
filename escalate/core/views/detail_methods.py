@@ -140,24 +140,25 @@ methods = {
         'model': core.models.Tag,
         'model_name': 'tag',
         'detail_fields': ['Tag Name', 'Description', 'Actor', 'Add Date', 'Last Modification Date',
-                          'Tag Type', 'Tag Type Description'],
+                        #   'Tag Type', 
+                          'Tag Type Description'],
         'detail_fields_need_fields': {
             'Tag Name': ['display_text'],
             'Description': ['description'],
             'Actor': ['description'],
             'Add Date': ['add_date'],
             'Last Modification Date': ['mod_date'],
-            'Tag Type': ['tag_type_short_descr'],
-            'Tag Type Description': ['tag_type_description']
+            # 'Tag Type': ['tag_type_short_descr'],
+            'Tag Type Description': ['type_description']
         },
     },
     'TagType': {
         'model': core.models.TagType,
         'model_name': 'tag_type',
-        'detail_fields': ['Short Description', 'Long Description', 'Add Date',
+        'detail_fields': ['Type', 'Long Description', 'Add Date',
                           'Last Modification Date'],
         'detail_fields_need_fields': {
-            'Short Description': ['short_description'],
+            'Type': ['type'],
             'Long Description': ['description'],
             'Add Date': ['add_date'],
             'Last Modification Date': ['mod_date']

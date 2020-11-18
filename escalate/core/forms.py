@@ -423,13 +423,13 @@ class TagForm(forms.ModelForm):
 class TagTypeForm(forms.ModelForm):
     class Meta:
         model = TagType
-        fields = ['short_description', 'description']
+        fields = ['type', 'description']
         labels = {
-            'short_description': 'Tag Type Short Description',
+            'type': 'Tag Type Short Description',
             'description': 'Tag Type Long Description'
         }
         widgets = {
-            'short_description': forms.TextInput(attrs={
+            'type': forms.TextInput(attrs={
                 'placeholder': 'Enter your name of the tag type'}),
             'description': forms.Textarea(attrs={
                 'cols': '10',

@@ -519,9 +519,9 @@ class Tag(models.Model):
     tag_type_uuid = models.ForeignKey('TagType', models.DO_NOTHING,
                                       db_column='tag_type_uuid',
                                       blank=True, null=True)
-    tag_type_short_descr = models.CharField(
+    type = models.CharField(
         max_length=255, blank=True, null=True)
-    tag_type_description = models.CharField(
+    type_description = models.CharField(
         max_length=255, blank=True, null=True)
 
     actor_uuid = models.ForeignKey('Actor', models.DO_NOTHING,
@@ -555,7 +555,7 @@ class Tag_X(models.Model):
 
 class TagType(models.Model):
     uuid = models.UUIDField(primary_key=True, db_column='tag_type_uuid')
-    short_description = models.CharField(max_length=255,  null=True)
+    type = models.CharField(max_length=255,  null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
@@ -565,7 +565,7 @@ class TagType(models.Model):
         db_table = 'vw_tag_type'
 
     def __str__(self):
-        return "{}".format(self.short_description)
+        return "{}".format(self.type)
 
 
 class Edocument(models.Model):
@@ -578,10 +578,10 @@ class Edocument(models.Model):
                                 db_column='filename')
     source = models.CharField(
         max_length=255, blank=True, null=True, db_column='source')
-    edoc_type = models.CharField(max_length=255, blank=True,
-                                 null=True, db_column='doc_type')
+    doc_type = models.CharField(max_length=255, blank=True,
+                                 null=True, db_column='doc_type_description')
     edocument = models.BinaryField(blank=True, null=True)
-    edoc_ver = models.CharField(max_length=255, blank=True,
+    doc_ver = models.CharField(max_length=255, blank=True,
                                 null=True, db_column='doc_ver')
     actor_uuid = models.ForeignKey(
         'Actor', models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True)

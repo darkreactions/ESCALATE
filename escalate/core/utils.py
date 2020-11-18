@@ -2,7 +2,7 @@
 
 view_names = ['Material', 'Inventory', 'Actor', 'Organization', 'Person',
               'Systemtool', 'SystemtoolType', 'UdfDef', 'Status', 'Tag',
-              'TagType', 'MaterialType', ]
+              'TagType', 'MaterialType',]
 
 
 def camel_to_snake(name):

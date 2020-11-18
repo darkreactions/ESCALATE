@@ -5,7 +5,7 @@ from .views import (LoginView, CreateUserView, MainMenuView,
 from core.utils import view_names, camel_to_snake
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.views.generic.base import RedirectView
-
+from core.views.edocument import EdocumentList
 
 urlpatterns = [
     path('favicon.ico', RedirectView.as_view(
@@ -44,6 +44,17 @@ def add_urls(model_name, pattern_list):
 
 for model_name in view_names:
     urlpatterns = add_urls(model_name, urlpatterns)
+
+urlpatterns += [
+    path('edocument_list/', EdocumentList.as_view(), name='edocument_list'),
+#     path('material/', MaterialCreate.as_view(), name='material_add'),
+#     path('material/<uuid:pk>',
+#          MaterialUpdate.as_view(), name='material_update'),
+#     path('material/<uuid:pk>/delete',
+#          MaterialDelete.as_view(), name='material_delete'),
+#     path('material/<uuid:pk>/view',
+#          MaterialView.as_view(), name='material_view')
+]
 
 """
 # Materials

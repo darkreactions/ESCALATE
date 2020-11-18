@@ -127,12 +127,12 @@ methods = {
     'TagType': {
         'model': core.models.TagType,
         'context_object_name': 'tag_types',
-        'table_columns': ['Short Description', 'Description', 'Actions'],
+        'table_columns': ['Type', 'Description', 'Actions'],
         'column_necessary_fields': {
-            'Short Description': ['short_description'],
+            'Type': ['type'],
             'Description': ['description']
         },
-        'order_field': 'short_description',
+        'order_field': 'type',
         'field_contains': '',
     },
     'UdfDef': {

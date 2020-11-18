@@ -18,7 +18,7 @@ for method_name in list_methods:
 
 @pytest.fixture
 def login():
-    client.post('', {'username': 'vshekar', 'password': 'copperhead123'})
+    client.post('', {'username': 'ikhovryak', 'password': 'safari77'})
 
 
 def test_details():
