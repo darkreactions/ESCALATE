@@ -6,9 +6,22 @@ from django.db.models import JSONField
 managed_value = False
 
 
+class RetUUIDField(models.UUIDField):
+    """A UUID field which populates with the UUID from Postgres on CREATE.
+    
+    **Use this instead of models.UUIDField**
+    
+    Our tables are managed by postgres, not django. Without this field, 
+    django would have no direct way of knowing the UUID of newly created resources, 
+    which would lead to errors. 
+    """
+    db_returning=True
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
 class Actor(models.Model):
 #class Actor(CommonData):
-    uuid = models.UUIDField(primary_key=True, db_column='actor_uuid')
+    uuid = RetUUIDField(primary_key=True, db_column='actor_uuid')
     organization_uuid = models.ForeignKey('Organization',
                                           on_delete=models.DO_NOTHING,
                                           blank=True, null=True,
@@ -66,7 +79,7 @@ class Actor(models.Model):
 
 
 class Inventory(models.Model):
-    uuid = models.UUIDField(
+    uuid = RetUUIDField(
         primary_key=True, db_column='inventory_uuid')
     inventory_description = models.CharField(
         max_length=255, blank=True, null=True)
@@ -104,7 +117,7 @@ class Inventory(models.Model):
 
 
 class InventoryMaterial(models.Model):
-    uuid = models.UUIDField(primary_key=True, db_column='inventory_uuid')
+    uuid = RetUUIDField(primary_key=True, db_column='inventory_uuid')
     inventory_description = models.CharField(max_length=255,
                                              blank=True, null=True)
     inventory_part_no = models.CharField(max_length=255,
@@ -153,7 +166,7 @@ class InventoryMaterial(models.Model):
 
 
 class Systemtool(models.Model):
-    uuid = models.UUIDField(primary_key=True,
+    uuid = RetUUIDField(primary_key=True,
                             db_column='systemtool_uuid')
     systemtool_name = models.CharField(max_length=255, null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
@@ -183,7 +196,7 @@ class Systemtool(models.Model):
 
 class SystemtoolType(models.Model):
     #systemtool_type_id = models.BigAutoField()
-    uuid = models.UUIDField(primary_key=True, db_column='systemtool_type_uuid')
+    uuid = RetUUIDField(primary_key=True, db_column='systemtool_type_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
@@ -197,7 +210,7 @@ class SystemtoolType(models.Model):
 
 
 class Calculation(models.Model):
-    uuid = models.UUIDField(primary_key=True,
+    uuid = RetUUIDField(primary_key=True,
                             db_column='calculation_uuid')
 
     # in
@@ -281,7 +294,7 @@ class Calculation(models.Model):
 
 
 class CalculationDef(models.Model):
-    uuid = models.UUIDField(
+    uuid = RetUUIDField(
         primary_key=True, db_column='calculation_def_uuid')
     short_name = models.CharField(max_length=255, blank=True, null=True)
     calc_definition = models.CharField(max_length=255, blank=True, null=True)
@@ -320,7 +333,7 @@ class CalculationDef(models.Model):
 
 
 class Material(models.Model):
-    uuid = models.UUIDField(primary_key=True,
+    uuid = RetUUIDField(primary_key=True,
                             db_column='material_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
     parent_uuid = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
@@ -355,9 +368,9 @@ class Material(models.Model):
 
 
 class MaterialCalculationJson(models.Model):
-    uuid = models.UUIDField(primary_key=True,
+    uuid = RetUUIDField(primary_key=True,
                             db_column='material_uuid')
-    material_status_uuid = models.UUIDField()
+    material_status_uuid = RetUUIDField()
     material_status_description = models.CharField(
         max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
@@ -385,7 +398,7 @@ class MaterialCalculationJson(models.Model):
 
 
 class MaterialRefnameDef(models.Model):
-    uuid = models.UUIDField(
+    uuid = RetUUIDField(
         primary_key=True, db_column='material_refname_def_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
@@ -400,7 +413,7 @@ class MaterialRefnameDef(models.Model):
 
 
 class MaterialType(models.Model):
-    uuid = models.UUIDField(primary_key=True, db_column='material_type_uuid')
+    uuid = RetUUIDField(primary_key=True, db_column='material_type_uuid')
     description = models.TextField(blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
@@ -414,7 +427,7 @@ class MaterialType(models.Model):
 
 
 class Note(models.Model):
-    uuid = models.UUIDField(primary_key=True, db_column='note_uuid')
+    uuid = RetUUIDField(primary_key=True, db_column='note_uuid')
     notetext = models.TextField(blank=True, null=True,
                                 verbose_name='Note Text')
     add_date = models.DateTimeField()
@@ -428,7 +441,7 @@ class Note(models.Model):
     # note_x_uuid = models.ForeignKey('Note_x', models.DO_NOTHING,
     #                                 db_column='note_x_uuid')
     actor_description = models.CharField(max_length=255, blank=True, null=True)
-    # ref_note_uuid = models.UUIDField()
+    # ref_note_uuid = RetUUIDField()
 
     class Meta:
         managed = False
@@ -439,8 +452,8 @@ class Note(models.Model):
 
 
 class Note_x(models.Model):
-    uuid = models.UUIDField(primary_key=True, db_column='note_x_uuid')
-    ref_note_uuid = models.UUIDField()
+    uuid = RetUUIDField(primary_key=True, db_column='note_x_uuid')
+    ref_note_uuid = RetUUIDField()
     note_uuid = models.ForeignKey('Note', models.DO_NOTHING,
                                   blank=True,
                                   null=True,
@@ -457,7 +470,7 @@ class Note_x(models.Model):
 
 
 class Organization(models.Model):
-    uuid = models.UUIDField(primary_key=True, db_column='organization_uuid')
+    uuid = RetUUIDField(primary_key=True, db_column='organization_uuid')
     description = models.CharField(max_length=255)
     full_name = models.CharField(max_length=255)
     short_name = models.CharField(max_length=255, blank=True, null=True)
@@ -487,7 +500,7 @@ class Organization(models.Model):
 
 
 class Person(models.Model):
-    uuid = models.UUIDField(primary_key=True, db_column='person_uuid')
+    uuid = RetUUIDField(primary_key=True, db_column='person_uuid')
     first_name = models.CharField(
         max_length=255)
     last_name = models.CharField(max_length=255)
@@ -521,7 +534,7 @@ class Person(models.Model):
 
 
 class Status(models.Model):
-    uuid = models.UUIDField(primary_key=True, db_column='status_uuid')
+    uuid = RetUUIDField(primary_key=True, db_column='status_uuid')
     description = models.CharField(max_length=255, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
@@ -535,7 +548,7 @@ class Status(models.Model):
 
 
 class Tag(models.Model):
-    uuid = models.UUIDField(primary_key=True, db_column='tag_uuid')
+    uuid = RetUUIDField(primary_key=True, db_column='tag_uuid')
     display_text = models.CharField(max_length=255,  null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     actor_uuid = models.ForeignKey('Actor', models.DO_NOTHING,
@@ -563,8 +576,8 @@ class Tag(models.Model):
 
 
 class Tag_X(models.Model):
-    uuid = models.UUIDField(primary_key=True, db_column='tag_x_uuid')
-    ref_tag_uuid = models.UUIDField()
+    uuid = RetUUIDField(primary_key=True, db_column='tag_x_uuid')
+    ref_tag_uuid = RetUUIDField()
     tag_uuid = models.ForeignKey('Tag', models.DO_NOTHING,
                                  blank=True,
                                  null=True,
@@ -581,7 +594,7 @@ class Tag_X(models.Model):
 
 
 class TagType(models.Model):
-    uuid = models.UUIDField(primary_key=True, db_column='tag_type_uuid')
+    uuid = RetUUIDField(primary_key=True, db_column='tag_type_uuid')
     type = models.CharField(max_length=255,  null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
@@ -596,7 +609,7 @@ class TagType(models.Model):
 
 
 class Edocument(models.Model):
-    uuid = models.UUIDField(primary_key=True, db_column='edocument_uuid')
+    uuid = RetUUIDField(primary_key=True, db_column='edocument_uuid')
     title = models.CharField(max_length=255, blank=True,
                              null=True, db_column='title')
     description = models.CharField(max_length=255, blank=True, null=True,
@@ -642,7 +655,7 @@ class UdfDef(models.Model):
     """
 
     """
-    uuid = models.UUIDField(primary_key=True, db_column='udf_def_uuid')
+    uuid = RetUUIDField(primary_key=True, db_column='udf_def_uuid')
     description = models.CharField(
         max_length=255,  null=True)
     val_type_uuid = models.ForeignKey('TypeDef',
@@ -668,7 +681,7 @@ class UdfDef(models.Model):
 
 class TypeDef(models.Model):
 
-    uuid = models.UUIDField(primary_key=True,
+    uuid = RetUUIDField(primary_key=True,
                             db_column='type_def_uuid')
 
     category = models.CharField(max_length=255,
@@ -691,7 +704,7 @@ class TypeDef(models.Model):
 
 class PropertyDef(models.Model):
 
-    uuid = models.UUIDField(primary_key=True,
+    uuid = RetUUIDField(primary_key=True,
                             db_column='property_def_uuid')
     description = models.CharField(max_length=255,
                                    blank=True,
@@ -744,9 +757,9 @@ class PropertyDef(models.Model):
 
 class MaterialProperty(models.Model):
 
-    #property_x_uuid = models.UUIDField(primary_key=True,
+    #property_x_uuid = RetUUIDField(primary_key=True,
     #                                   db_column='property_x_uuid')
-    uuid = models.UUIDField(primary_key=True,
+    uuid = RetUUIDField(primary_key=True,
                                        db_column='property_x_uuid')
     material_uuid = models.ForeignKey('Material',
                                       db_column='material_uuid',
@@ -814,9 +827,9 @@ class MaterialProperty(models.Model):
 
 
 class ParameterDef(models.Model):
-    #parameter_def_uuid = models.UUIDField(primary_key=True,
+    #parameter_def_uuid = RetUUIDField(primary_key=True,
     #                                      db_column='parameter_def_uuid')
-    uuid = models.UUIDField(primary_key=True,
+    uuid = RetUUIDField(primary_key=True,
                                           db_column='parameter_def_uuid')
     description = models.CharField(max_length=255,
                                     blank=True,
@@ -884,10 +897,7 @@ class ParameterDef(models.Model):
 
 
 class ActionDef(models.Model):
-    #action_def_uuid = models.UUIDField(primary_key=True,
-    #                                      db_column='action_def_uuid')
-    uuid = models.UUIDField(primary_key=True,
-                                          db_column='action_def_uuid')
+    uuid = RetUUIDField(primary_key=True, db_column='action_def_uuid')
     parameter_def = models.ManyToManyField('ParameterDef', through='ActionParameterDefAssign')
     description = models.CharField(max_length=255,
                                     blank=True,
@@ -929,7 +939,7 @@ class ActionDef(models.Model):
 
 class Condition(models.Model):
     # todo: link to condition calculation
-    uuid = models.UUIDField(primary_key=True, db_column='condition_uuid')
+    uuid = RetUUIDField(primary_key=True, db_column='condition_uuid')
     condition_description = models.CharField(max_length=255,
                                             blank=True,
                                             null=True,
@@ -979,7 +989,7 @@ class Condition(models.Model):
 
 class ConditionDef(models.Model):
 
-    uuid = uuid = models.UUIDField(primary_key=True, db_column='condition_def_uuid')
+    uuid = uuid = RetUUIDField(primary_key=True, db_column='condition_def_uuid')
     description = models.CharField(max_length=255,
                                    blank=True,
                                    null=True,
@@ -1010,8 +1020,8 @@ class ConditionDef(models.Model):
         db_table='vw_condition_def'
 
 class ActionParameterDef(models.Model):
-    #action_parameter_def_x_uuid = models.UUIDField(primary_key=True, db_column='action_parameter_def_x_uuid')
-    uuid = models.UUIDField(primary_key=True, db_column='action_parameter_def_x_uuid')
+    #action_parameter_def_x_uuid = RetUUIDField(primary_key=True, db_column='action_parameter_def_x_uuid')
+    uuid = RetUUIDField(primary_key=True, db_column='action_parameter_def_x_uuid')
     action_def_uuid = models.ForeignKey('ActionDef',
                                    on_delete=models.DO_NOTHING,
                                    db_column='action_def_uuid',
@@ -1048,7 +1058,7 @@ class ActionParameterDef(models.Model):
                                             editable=False)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
-    #parameter_def_uuid = models.UUIDField(primary_key=True,
+    #parameter_def_uuid = RetUUIDField(primary_key=True,
     #                                      db_column='parameter_def_uuid')
     
     parameter_def_uuid = models.ForeignKey('ParameterDef',
@@ -1075,8 +1085,8 @@ class ActionParameterDef(models.Model):
 
 
 class ActionParameterDefAssign(models.Model):
-    #action_parameter_def_x_uuid = models.UUIDField(primary_key=True, db_column='action_parameter_def_x_uuid')
-    uuid = models.UUIDField(primary_key=True, db_column='action_parameter_def_x_uuid')
+    #action_parameter_def_x_uuid = RetUUIDField(primary_key=True, db_column='action_parameter_def_x_uuid')
+    uuid = RetUUIDField(primary_key=True, db_column='action_parameter_def_x_uuid')
     parameter_def_uuid = models.ForeignKey('ParameterDef', 
                                            on_delete=models.DO_NOTHING, 
                                            blank=True,
@@ -1097,7 +1107,7 @@ class ActionParameterDefAssign(models.Model):
 
 
 class ActionParameterAssign(models.Model):
-    action_parameter_x_uuid = models.UUIDField(primary_key=True, db_column='action_parameter_x_uuid')
+    action_parameter_x_uuid = RetUUIDField(primary_key=True, db_column='action_parameter_x_uuid')
     parameter_uuid = models.ForeignKey('Parameter',
                                        on_delete=models.DO_NOTHING,
                                        blank=True,
@@ -1120,7 +1130,7 @@ class ActionParameterAssign(models.Model):
 
 
 class Action(models.Model):
-    action_uuid = models.UUIDField(primary_key=True,
+    action_uuid = RetUUIDField(primary_key=True,
                                    db_column='action_uuid')
     parameter = models.ManyToManyField('Parameter', through='ActionParameterAssign')
     description = models.CharField(max_length=255,
@@ -1161,7 +1171,7 @@ class Action(models.Model):
         db_table = 'vw_action'
 
 class Parameter(models.Model):
-    uuid = models.UUIDField(primary_key=True,
+    uuid = RetUUIDField(primary_key=True,
                                      db_column='parameter_uuid')
     action_uuid = models.ForeignKey('Action',
                                     db_column='action_uuid',
@@ -1226,7 +1236,7 @@ class Parameter(models.Model):
 
 
 class WorkflowType(models.Model):
-    uuid = models.UUIDField(primary_key=True,
+    uuid = RetUUIDField(primary_key=True,
                             db_column='workflow_type_uuid')
     description = models.CharField(max_length=255,
                                      blank=True,
@@ -1242,7 +1252,7 @@ class WorkflowType(models.Model):
 
 
 class Workflow(models.Model):
-    uuid = models.UUIDField(primary_key=True,
+    uuid = RetUUIDField(primary_key=True,
                             db_column='workflow_uuid')
     step = models.ManyToManyField('WorkflowStep', through='WorkflowStep')
     description = models.CharField(max_length=255,
@@ -1290,7 +1300,7 @@ class Workflow(models.Model):
         db_table = 'vw_workflow'
 
 class WorkflowStep(models.Model):
-    uuid = models.UUIDField(primary_key=True,
+    uuid = RetUUIDField(primary_key=True,
                             db_column='workflow_step_uuid')
     workflow_uuid = models.ForeignKey('Workflow', models.DO_NOTHING,
                                       db_column='workflow_uuid',
@@ -1367,7 +1377,7 @@ class WorkflowStep(models.Model):
 
 
 class WorkflowObject(models.Model):
-    uuid = models.UUIDField(primary_key=True, db_column='workflow_object_uuid')
+    uuid = RetUUIDField(primary_key=True, db_column='workflow_object_uuid')
     action_uuid = models.ForeignKey('Action', models.DO_NOTHING,
                                     blank=True, null=True, editable=False,
                                     related_name='wf_action_uuid',
