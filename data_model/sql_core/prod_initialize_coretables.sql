@@ -46,6 +46,15 @@ COMMIT;
 
 
 -- ----------------------------
+-- Records of measure_type
+-- ----------------------------
+BEGIN;
+	insert into vw_measure_type (description) values ('manual');
+	insert into vw_measure_type (description) values ('robot');
+COMMIT;
+
+
+-- ----------------------------
 -- Records of organization
 -- ----------------------------
 BEGIN;

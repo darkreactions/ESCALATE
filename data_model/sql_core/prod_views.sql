@@ -477,9 +477,7 @@ SELECT
 FROM
 	systemtool vst
 LEFT JOIN organization org ON vst.vendor_organization_uuid = org.organization_uuid
-LEFT JOIN systemtool_type stt ON vst.systemtool_type_uuid = stt.systemtool_type_uuid
-;
-
+LEFT JOIN systemtool_type stt ON vst.systemtool_type_uuid = stt.systemtool_type_uuid;
 
 DROP TRIGGER IF EXISTS trigger_systemtool_upsert ON vw_systemtool;
 CREATE TRIGGER trigger_systemtool_upsert INSTEAD OF INSERT
@@ -487,6 +485,201 @@ OR UPDATE
 OR DELETE ON vw_systemtool
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_systemtool ( );
+
+
+----------------------------------------
+-- view measure_type
+-- DROP VIEW vw_measure_type cascade
+----------------------------------------
+CREATE OR REPLACE VIEW vw_measure_type AS
+SELECT
+	mt.measure_type_uuid,
+	mt.description,
+	mt.actor_uuid,
+	act.description as actor_description,
+	mt.status_uuid,
+	st.description as status_description,
+	mt.add_date,
+	mt.mod_date
+FROM
+	measure_type mt
+LEFT JOIN vw_actor act ON mt.actor_uuid = act.actor_uuid
+LEFT JOIN status st ON mt.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_measure_type_upsert ON vw_measure_type;
+CREATE TRIGGER trigger_measure_type_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_measure_type
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_measure_type ( );
+
+
+----------------------------------------
+-- view measure
+-- DROP VIEW vw_measure cascade
+----------------------------------------
+CREATE OR REPLACE VIEW vw_measure AS
+SELECT
+	m.measure_uuid,
+	m.measure_type_uuid,
+	mx.ref_measure_uuid,
+	m.description,
+	m.amount,
+	( m.amount ).v_type_uuid AS amount_type_uuid,
+	(select val_val from get_val ( m.amount )) AS amount_value,
+	( m.amount ).v_unit AS amount_unit,
+	m.actor_uuid,
+	act.description as actor_description,
+	m.status_uuid,
+	st.description as status_description,
+	m.add_date,
+	m.mod_date
+FROM
+	measure m
+LEFT JOIN measure_x mx ON m.measure_uuid = mx.measure_uuid
+LEFT JOIN vw_actor act ON m.actor_uuid = act.actor_uuid
+LEFT JOIN status st ON m.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_measure_upsert ON vw_measure;
+CREATE TRIGGER trigger_measure_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_measure
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_measure ( );
+
+
+----------------------------------------
+-- view experiment
+-- DROP VIEW vw_experiment cascade
+----------------------------------------
+CREATE OR REPLACE VIEW vw_experiment AS
+SELECT
+	ex.experiment_uuid,
+	ex.ref_uid,
+	ex.description,
+	ex.parent_uuid,
+	ex.parent_path,
+	ex.owner_uuid,
+	aown.description as owner_description,
+	ex.operator_uuid,
+	aop.description as operator_description,
+	ex.lab_uuid,
+	alab.description as lab_description,
+	ex.status_uuid,
+	st.description as status_description,
+	ex.add_date,
+	ex.mod_date
+FROM experiment ex
+LEFT JOIN vw_actor aown ON ex.owner_uuid = aown.actor_uuid
+LEFT JOIN vw_actor aop ON ex.owner_uuid = aop.actor_uuid
+LEFT JOIN vw_actor alab ON ex.owner_uuid = alab.actor_uuid
+LEFT JOIN status st ON ex.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_experiment_upsert ON vw_experiment;
+CREATE TRIGGER trigger_experiment_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_experiment
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_experiment ( );
+
+
+----------------------------------------
+-- view workflow_type
+-- DROP VIEW vw_workflow_type
+----------------------------------------
+CREATE OR REPLACE VIEW vw_workflow_type AS
+SELECT
+	wt.workflow_type_uuid,
+	wt.description,
+	wt.add_date,
+	wt.mod_date
+FROM
+	workflow_type wt
+ORDER BY
+	2;
+
+DROP TRIGGER IF EXISTS trigger_workflow_type_upsert ON vw_workflow_type;
+CREATE TRIGGER trigger_workflow_type_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_workflow_type
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_workflow_type ( );
+
+
+----------------------------------------
+-- view workflow
+-- DROP VIEW vw_workflow
+----------------------------------------
+CREATE OR REPLACE VIEW vw_workflow AS
+SELECT
+	wf.workflow_uuid,
+	wf.description,
+	wf.parent_uuid,
+	wf.workflow_type_uuid,
+	wt.description as workflow_type_description,
+	wf.actor_uuid,
+    act.description as actor_description,	
+	wf.status_uuid,
+	st.description as status_description, 
+	wf.add_date,
+	wf.mod_date
+FROM
+	workflow wf
+LEFT JOIN vw_workflow_type wt ON wf.workflow_type_uuid = wt.workflow_type_uuid
+LEFT JOIN vw_actor act ON wf.actor_uuid = act.actor_uuid
+LEFT JOIN status st ON wf.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_workflow_upsert ON vw_workflow;
+CREATE TRIGGER trigger_workflow_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_workflow
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_workflow ( );
+
+
+----------------------------------------
+-- view experiment_workflow
+-- DROP VIEW vw_experiment_workflow cascade
+----------------------------------------
+CREATE OR REPLACE VIEW vw_experiment_workflow AS
+SELECT
+	ew.experiment_workflow_uuid,
+	e.experiment_uuid,
+	e.ref_uid as experiment_ref_uid,
+	e.description as experiment_description,
+	e.parent_uuid as experiment_parent_uuid,
+	e.owner_uuid as experiment_owner_uuid,
+	e.owner_description as experiment_owner_description,
+	e.operator_uuid as experiment_operator_uuid,
+	e.operator_description as experiment_operator_description,
+	e.lab_uuid as experiment_lab_uuid,
+	e.lab_description as experiment_lab_description,
+	e.status_uuid as experiment_status_uuid,
+	e.status_description as experiment_status_description,
+	e.add_date as experiment_add_date,
+	e.mod_date as experiment_mod_date,
+	ew.experiment_workflow_seq,
+	w.workflow_uuid as workflow_uuid,
+	w.description as workflow_description,
+	w.workflow_type_uuid,
+	w.workflow_type_description,
+	w.actor_uuid as workflow_actor_uuid,
+	w.actor_description as workflow_actor_description,
+	w.status_uuid as workflow_status_uuid,
+	w.status_description as workflow_status_description,
+	w.add_date as workflow_add_date,
+	w.mod_date as workflow_mod_date
+FROM experiment_workflow ew 
+LEFT JOIN vw_experiment e ON ew.experiment_uuid = e.experiment_uuid 
+LEFT JOIN vw_workflow w ON ew.workflow_uuid = w.workflow_uuid;
+
+
+DROP TRIGGER IF EXISTS trigger_experiment_workflow_upsert ON vw_experiment_workflow;
+CREATE TRIGGER trigger_experiment_workflow_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_experiment_workflow
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_experiment_workflow ( );
 
 
 ----------------------------------------
@@ -631,6 +824,97 @@ EXECUTE PROCEDURE upsert_material_type ( );
 
 ----------------------------------------
 -- get materials, all status
+-- DROP VIEW vw_material
+----------------------------------------
+CREATE OR REPLACE VIEW vw_material AS
+SELECT
+	mat.material_uuid,
+	mat.description AS description,
+	mat.consumable,
+	CASE
+		when (select 1 from material_composite where composite_uuid = mat.material_uuid limit 1) is not null then true
+		else false
+	END as composite_flg,
+	mat.actor_uuid AS actor_uuid,
+	act.description AS actor_description,
+	mat.status_uuid AS status_uuid,
+	st.description AS status_description,
+	mat.add_date,
+	mat.mod_date
+FROM
+	material mat
+LEFT JOIN actor act ON mat.actor_uuid = act.actor_uuid
+LEFT JOIN status st ON mat.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_material_upsert ON vw_material;
+CREATE TRIGGER trigger_material_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_material
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_material ( );
+
+
+----------------------------------------
+-- view of material_composite
+-- DROP VIEW vw_material_composite
+----------------------------------------
+CREATE OR REPLACE VIEW vw_material_composite AS
+SELECT
+	mc.material_composite_uuid,
+	mc.composite_uuid,
+	m0.description as composite_description,
+	CASE
+		when (select 1 from material_composite where composite_uuid = mc.component_uuid limit 1) is not null then true
+		else false
+	END as composite_flg,
+	mc.component_uuid,
+	m1.description as component_description,
+	mc.addressable,	
+	mc.actor_uuid,
+	mc.status_uuid,
+	mc.add_date,
+	mc.mod_date
+FROM
+	material_composite mc
+LEFT JOIN material m0 ON mc.composite_uuid = m0.material_uuid
+LEFT JOIN material m1 ON mc.component_uuid = m1.material_uuid;
+
+DROP TRIGGER IF EXISTS trigger_material_composite_upsert ON vw_material_composite;
+CREATE TRIGGER trigger_material_composite_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_material_composite
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_material_composite ( );
+
+
+----------------------------------------
+-- view material_x -> material_type_assign
+-- DROP VIEW vw_material_type_assign
+----------------------------------------
+CREATE OR REPLACE VIEW vw_material_type_assign AS
+SELECT
+	mtx.material_type_x_uuid,
+	mtx.material_uuid,
+	m.description as material_description,
+	mtx.material_type_uuid,	
+	mt.description as material_type_description,
+	mtx.add_date,
+	mtx.mod_date
+FROM
+	material_type_x mtx
+LEFT JOIN material_type mt ON mtx.material_type_uuid = mt.material_type_uuid
+LEFT JOIN material m ON mtx.material_uuid = m.material_uuid;
+
+DROP TRIGGER IF EXISTS trigger_material_type_assign_upsert ON vw_material_type_assign;
+CREATE TRIGGER trigger_material_type_assign_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_material_type_assign
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_material_type_assign ( );
+
+
+----------------------------------------
+-- get materials, all status
 -- DROP VIEW vw_material_raw
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_material_raw AS
@@ -644,7 +928,6 @@ SELECT
 	mr.material_refname_def_uuid,
 	mrt.description AS material_refname_def,
 	mr.description AS material_refname_description,
-	mat.parent_uuid,
 	mat.add_date,
 	mat.mod_date
 FROM
@@ -661,21 +944,21 @@ mr.description;
 
 
 ----------------------------------------
--- get materials, all status as a crosstab, with refname types
--- DROP VIEW vw_material cascade;
+-- get materials and assoc refnames, all status 
+-- as a crosstab, with refname types
+-- DROP VIEW vw_material_refname cascade;
 ----------------------------------------
-CREATE OR REPLACE VIEW vw_material AS
+CREATE OR REPLACE VIEW vw_material_refname AS
 SELECT
 	*
 FROM
 	crosstab (
-		'select material_uuid, description, parent_uuid, status_uuid, status_description, add_date, mod_date, material_refname_def, material_refname_description
+		'select material_uuid, description, status_uuid, status_description, add_date, mod_date, material_refname_def, material_refname_description
 				   from vw_material_raw where material_type_description = ''catalog'' order by 1, 3',
 		'select distinct material_refname_def
 				   from vw_material_raw where material_refname_def is not null order by 1' ) AS ct (
 		material_uuid uuid,
 		description varchar,
-		parent_uuid uuid,
 		material_status_uuid uuid,
 		material_status_description varchar,
 		add_date timestamptz,
@@ -744,8 +1027,8 @@ FROM (
 		material_uuid,
 		get_calculation (smiles ) AS calculation_uuid
 	FROM
-		vw_material ) vmc
-JOIN vw_material mat ON vmc.material_uuid = mat.material_uuid
+		vw_material_refname ) vmc
+JOIN vw_material_refname mat ON vmc.material_uuid = mat.material_uuid
 JOIN vw_calculation cal ON vmc.calculation_uuid = cal.calculation_uuid;
 
 
@@ -791,7 +1074,7 @@ FROM (
 		material_uuid
 	ORDER BY
 		material_uuid ) mc
-LEFT JOIN vw_material vm ON mc.material_uuid = vm.material_uuid;
+LEFT JOIN vw_material_refname vm ON mc.material_uuid = vm.material_uuid;
 
 
 ----------------------------------------
@@ -851,14 +1134,13 @@ EXECUTE PROCEDURE upsert_property ( );
 
 
 ----------------------------------------
--- view property
+-- view matierial_property
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_material_property AS
 SELECT
 	px.property_x_uuid,
 	mat.material_uuid,
 	mat.description,
-	mat.parent_uuid,
 	pr.property_uuid,
 	pr.property_def_uuid,
 	pd.description as property_description,
@@ -870,9 +1152,9 @@ SELECT
 	(pr.property_val).v_unit as val_unit,
 	vl.val_val,	
 	pr.actor_uuid as property_actor_uuid,
-	act.description as actor_description,
+	act.description as property_actor_description,
 	pr.status_uuid as property_status_uuid,
-	st.description as status_description,
+	st.description as property_status_description,
 	pr.add_date,
 	pr.mod_date
 FROM vw_material mat
@@ -892,30 +1174,73 @@ EXECUTE PROCEDURE upsert_material_property ( );
 
 
 ----------------------------------------
+-- view material_composite_property
+----------------------------------------
+CREATE OR REPLACE VIEW vw_material_composite_property AS
+SELECT
+	mc.material_composite_uuid,
+	mc.composite_uuid,
+	mc.composite_description,
+	mc.component_uuid,
+	mc.component_description,
+	pr.property_uuid,
+	pr.property_def_uuid,
+	pd.description as property_description,
+	pd.short_description as property_short_description,	
+	-- pr.property_val,
+	-- break out the val fields
+	(pr.property_val).v_type_uuid,
+	vl.val_type,
+	(pr.property_val).v_unit as val_unit,
+	vl.val_val,	
+	pr.actor_uuid as property_actor_uuid,
+	act.description as property_actor_description,
+	pr.status_uuid as property_status_uuid,
+	st.description as property_status_description,
+	pr.add_date,
+	pr.mod_date
+FROM vw_material_composite mc
+LEFT JOIN property_x px on mc.material_composite_uuid = px.material_uuid
+LEFT JOIN property pr on px.property_uuid = pr.property_uuid
+LEFT JOIN property_def pd on pr.property_def_uuid = pd.property_def_uuid
+LEFT JOIN actor act on pr.actor_uuid = act.actor_uuid
+LEFT JOIN status st on pr.status_uuid = st.status_uuid
+LEFT JOIN LATERAL (select * from get_val (pr.property_val)) vl ON true;
+
+
+----------------------------------------
 -- view inventory; with links to material, actor, status, edocument, note
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_inventory AS
 SELECT
 	inv.inventory_uuid,
-	inv.description as inventory_description,
+	inv.description,
+	inv.material_uuid,
+	mat.description AS material_description,
+	mat.consumable as material_consumable,
+	mat.composite_flg as material_composite_flg,
 	inv.part_no,
 	inv.onhand_amt,
-	inv.unit,
-	inv.add_date,
-	inv.mod_date,
 	inv.expiration_date,
-	inv.inventory_location,
-	st.status_uuid AS status_uuid,
+	inv.location,
+	inv.actor_uuid,
+	act.description as actor_description,
+	inv.status_uuid AS status_uuid,
 	st.description AS status_description,
-	mat.material_uuid,
-	mat.description AS material_description,
-	act.actor_uuid,
-	act.description as actor_description
+	inv.add_date,
+	inv.mod_date
 FROM
 	inventory inv
-LEFT JOIN material mat ON inv.material_uuid = mat.material_uuid
+LEFT JOIN vw_material mat ON inv.material_uuid = mat.material_uuid
 LEFT JOIN actor act ON inv.actor_uuid = act.actor_uuid
 LEFT JOIN status st ON inv.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_inventory_upsert ON vw_inventory;
+CREATE TRIGGER trigger_inventory_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_inventory
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_inventory ( );
 
 
 ----------------------------------------
@@ -927,10 +1252,9 @@ SELECT
 	inv.description AS inventory_description,
 	inv.part_no AS inventory_part_no,
 	inv.onhand_amt AS inventory_onhand_amt,
-	inv.unit AS inventory_unit,
 	inv.add_date AS inventory_add_date,
 	inv.expiration_date AS inventory_expiration_date,
-	inv.inventory_location,
+	inv.location AS inventory_location,
 	st.status_uuid AS inventory_status_uuid,	
 	st.description AS inventory_status_description,
 	inv.actor_uuid,
@@ -948,7 +1272,7 @@ SELECT
 	mat.smiles AS material_smiles
 FROM
 	inventory inv
-LEFT JOIN vw_material mat ON inv.material_uuid = mat.material_uuid
+LEFT JOIN vw_material_refname mat ON inv.material_uuid = mat.material_uuid
 LEFT JOIN vw_actor act ON inv.actor_uuid = act.actor_uuid
 LEFT JOIN status st ON inv.status_uuid = st.status_uuid;
 
@@ -1083,6 +1407,7 @@ CREATE OR REPLACE VIEW vw_action AS
 SELECT
     act.action_uuid,
     act.action_def_uuid,
+    act.workflow_uuid,
     act.description as action_description,
     ad.description as action_def_description,
     act.start_date,
@@ -1100,6 +1425,7 @@ SELECT
     act.add_date,
     act.mod_date
 FROM action act
+LEFT JOIN vw_workflow wf ON act.workflow_uuid = wf.workflow_uuid
 LEFT JOIN vw_action_def ad ON act.action_def_uuid = ad.action_def_uuid
 LEFT JOIN vw_actor actor ON act.actor_uuid = actor.actor_uuid
 LEFT JOIN vw_status st ON act.status_uuid = st.status_uuid;
@@ -1458,146 +1784,13 @@ ON c.condition_uuid = p.condition_uuid;
 
 
 ----------------------------------------
--- view experiment
--- DROP VIEW vw_experiment cascade
-----------------------------------------
-CREATE OR REPLACE VIEW vw_experiment AS
-SELECT
-	ex.experiment_uuid,
-	ex.ref_uid,
-	ex.description,
-	ex.parent_uuid,
-	ex.parent_path,
-	ex.owner_uuid,
-	aown.description as owner_description,
-	ex.operator_uuid,
-	aop.description as operator_description,
-	ex.lab_uuid,
-	alab.description as lab_description,
-	ex.status_uuid,
-	st.description as status_description,
-	ex.add_date,
-	ex.mod_date
-FROM experiment ex
-LEFT JOIN vw_actor aown ON ex.owner_uuid = aown.actor_uuid
-LEFT JOIN vw_actor aop ON ex.owner_uuid = aop.actor_uuid
-LEFT JOIN vw_actor alab ON ex.owner_uuid = alab.actor_uuid
-LEFT JOIN status st ON ex.status_uuid = st.status_uuid
-;
-
-DROP TRIGGER IF EXISTS trigger_experiment_upsert ON vw_experiment;
-CREATE TRIGGER trigger_experiment_upsert INSTEAD OF INSERT
-OR UPDATE
-OR DELETE ON vw_experiment
-FOR EACH ROW
-EXECUTE PROCEDURE upsert_experiment ( );
-
-
-----------------------------------------
--- view workflow_type
--- DROP VIEW vw_workflow_type
-----------------------------------------
-CREATE OR REPLACE VIEW vw_workflow_type AS
-SELECT
-	wt.workflow_type_uuid,
-	wt.description,
-	wt.add_date,
-	wt.mod_date
-FROM
-	workflow_type wt
-ORDER BY
-	2;
-
-DROP TRIGGER IF EXISTS trigger_workflow_type_upsert ON vw_workflow_type;
-CREATE TRIGGER trigger_workflow_type_upsert INSTEAD OF INSERT
-OR UPDATE
-OR DELETE ON vw_workflow_type
-FOR EACH ROW
-EXECUTE PROCEDURE upsert_workflow_type ( );
-
-
-----------------------------------------
--- view workflow
--- DROP VIEW vw_workflow
-----------------------------------------
-CREATE OR REPLACE VIEW vw_workflow AS
-SELECT
-	wf.workflow_uuid,
-	wf.description,
-	wf.parent_uuid,
-	wf.workflow_type_uuid,
-	wt.description as workflow_type_description,
-	wf.actor_uuid,
-    act.description as actor_description,	
-	wf.status_uuid,
-	st.description as status_description, 
-	wf.add_date,
-	wf.mod_date
-FROM
-	workflow wf
-LEFT JOIN vw_workflow_type wt ON wf.workflow_type_uuid = wt.workflow_type_uuid
-LEFT JOIN vw_actor act ON wf.actor_uuid = act.actor_uuid
-LEFT JOIN status st ON wf.status_uuid = st.status_uuid;
-
-DROP TRIGGER IF EXISTS trigger_workflow_upsert ON vw_workflow;
-CREATE TRIGGER trigger_workflow_upsert INSTEAD OF INSERT
-OR UPDATE
-OR DELETE ON vw_workflow
-FOR EACH ROW
-EXECUTE PROCEDURE upsert_workflow ( );
-
-
-----------------------------------------
--- view experiment_experiment
--- DROP VIEW vw_experiment_workflow cascade
-----------------------------------------
-CREATE OR REPLACE VIEW vw_experiment_workflow AS
-SELECT
-	ew.experiment_workflow_uuid,
-	e.experiment_uuid,
-	e.ref_uid as experiment_ref_uid,
-	e.description as experiment_description,
-	e.parent_uuid as experiment_parent_uuid,
-	e.owner_uuid as experiment_owner_uuid,
-	e.owner_description as experiment_owner_description,
-	e.operator_uuid as experiment_operator_uuid,
-	e.operator_description as experiment_operator_description,
-	e.lab_uuid as experiment_lab_uuid,
-	e.lab_description as experiment_lab_description,
-	e.status_uuid as experiment_status_uuid,
-	e.status_description as experiment_status_description,
-	e.add_date as experiment_add_date,
-	e.mod_date as experiment_mod_date,
-	ew.experiment_workflow_seq,
-	w.workflow_uuid as workflow_uuid,
-	w.description as workflow_description,
-	w.workflow_type_uuid,
-	w.workflow_type_description,
-	w.actor_uuid as workflow_actor_uuid,
-	w.actor_description as workflow_actor_description,
-	w.status_uuid as workflow_status_uuid,
-	w.status_description as workflow_status_description,
-	w.add_date as workflow_add_date,
-	w.mod_date as workflow_mod_date
-FROM experiment_workflow ew 
-LEFT JOIN vw_experiment e ON ew.experiment_uuid = e.experiment_uuid 
-LEFT JOIN vw_workflow w ON ew.workflow_uuid = w.workflow_uuid;
-
-
-DROP TRIGGER IF EXISTS trigger_experiment_workflow_upsert ON vw_experiment_workflow;
-CREATE TRIGGER trigger_experiment_workflow_upsert INSTEAD OF INSERT
-OR UPDATE
-OR DELETE ON vw_experiment_workflow
-FOR EACH ROW
-EXECUTE PROCEDURE upsert_experiment_workflow ( );
-
-----------------------------------------
 -- view workflow_object
 -- DROP VIEW vw_workflow_object
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_workflow_object AS
 SELECT
 	wo.workflow_object_uuid,
+	wo.workflow_uuid,
 	wo.action_uuid,
 	wo.condition_uuid,
 	CASE
@@ -2062,6 +2255,73 @@ JOIN (
 ON e.experiment_uuid = p.experiment_uuid;
 
 
+----------------------------------------
+-- view bom (bill of materials)
+----------------------------------------
+CREATE OR REPLACE VIEW vw_bom AS
+SELECT
+	b.bom_uuid,
+	b.experiment_uuid,
+	exp.description as experiment_description,
+	b.description,
+	b.actor_uuid,
+	act.description as actor_description,
+	b.status_uuid,	
+	st.description AS status_description,
+	b.add_date,
+	b.mod_date
+FROM
+	bom b
+LEFT JOIN vw_experiment exp ON b.experiment_uuid = exp.experiment_uuid
+LEFT JOIN vw_actor act ON b.actor_uuid = act.actor_uuid
+LEFT JOIN status st ON b.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_bom_upsert ON vw_bom;
+CREATE TRIGGER trigger_bom_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_bom
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_bom ( );
+
+
+----------------------------------------
+-- view bom_material
+----------------------------------------
+CREATE OR REPLACE VIEW vw_bom_material AS
+SELECT
+	bm.bom_material_uuid,
+	bm.bom_uuid,
+	b.description as bom_description,
+	bm.inventory_uuid,
+	i.inventory_description,
+	bm.material_composite_uuid,
+	mc.component_description,
+	bm.alloc_amt_val,
+	bm.used_amt_val,
+	bm.putback_amt_val,
+	b.experiment_uuid,
+	exp.description as experiment_description,
+	bm.actor_uuid,
+	act.description as actor_description,
+	bm.status_uuid,	
+	st.description AS status_description,
+	b.add_date,
+	b.mod_date
+FROM
+	bom_material bm
+LEFT JOIN vw_bom b ON bm.bom_uuid = b.bom_uuid
+LEFT JOIN vw_inventory_material i ON bm.inventory_uuid = i.inventory_uuid
+LEFT JOIN vw_material_composite mc ON bm.material_composite_uuid = mc.material_composite_uuid
+LEFT JOIN vw_experiment exp ON b.experiment_uuid = exp.experiment_uuid
+LEFT JOIN vw_actor act ON bm.actor_uuid = act.actor_uuid
+LEFT JOIN status st ON bm.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_bom_material_upsert ON vw_bom_material;
+CREATE TRIGGER trigger_bom_material_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_bom_material
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_bom_material ( );
 
 -- =======================================
 -- TESTING ONLY

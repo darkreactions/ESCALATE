@@ -903,6 +903,129 @@ $$
 LANGUAGE plpgsql;
 
 
+/*
+Name:			upsert_measure_type()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.11.01
+Description:	trigger proc that deletes, inserts or updates measure_type record based on TG_OP (trigger operation)
+Notes:				
+ 
+Example:		insert into vw_measure_type (description, actor_uuid, status_uuid) values 
+					('TEST measure type',
+					(select actor_uuid from vw_actor where org_short_name = 'HC'),
+					null);
+				update vw_measure_type set 
+						status_uuid = (select status_uuid from vw_status where description = 'active') where (description = 'TEST measure type');
+				delete from vw_measure_type where measure_type_uuid = (select measure_type_uuid from vw_measure_type where (description = 'TEST measure type'));
+ */
+CREATE OR REPLACE FUNCTION upsert_measure_type ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		-- first delete the measure_type record
+		DELETE FROM measure_type
+		WHERE measure_type_uuid = OLD.measure_type_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- delete any assigned records
+		PERFORM delete_assigned_recs (OLD.measure_type_uuid);
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			measure_type
+		SET
+			description = NEW.description,
+			actor_uuid = NEW.actor_uuid,
+			status_uuid = NEW.status_uuid,
+			mod_date = now()
+		WHERE
+			measure_type.measure_type_uuid = NEW.measure_type_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO measure_type (description, actor_uuid, status_uuid)
+			VALUES(NEW.description, NEW.actor_uuid, NEW.status_uuid) returning measure_type_uuid into NEW.measure_type_uuid;
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			upsert_measure()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.11.01
+Description:	trigger proc that deletes, inserts or updates measure record based on TG_OP (trigger operation)
+Notes:			this must be associated with an entity (i.e. ref_measure_uuid cannot be NULL)	
+ 
+Example:		insert into vw_measure (measure_type_uuid, ref_measure_uuid, description, amount, actor_uuid, status_uuid) values 
+					((select measure_type_uuid from vw_measure_type where description = 'manual'),
+					(select material_uuid from vw_material where description = 'Formic Acid'),
+					'TEST measure',
+					(select put_val(
+                          (select get_type_def ('data', 'num')),
+                             '3.1415926535',
+                             'slice')),
+					(select actor_uuid from vw_actor where org_short_name = 'HC'),
+					null);
+				update vw_measure set 
+						status_uuid = (select status_uuid from vw_status where description = 'active') where (description = 'TEST measure');
+				delete from vw_measure where measure_uuid = (select measure_uuid from vw_measure where description = 'TEST measure');
+ */
+CREATE OR REPLACE FUNCTION upsert_measure ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		-- first delete the measure_x record
+		DELETE FROM measure_x
+		WHERE measure_uuid = OLD.measure_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		DELETE FROM measure
+		WHERE measure_uuid = OLD.measure_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- delete any assigned records
+		PERFORM delete_assigned_recs (OLD.measure_uuid);
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			measure
+		SET
+			measure_type_uuid = NEW.measure_type_uuid,
+			description = NEW.description,
+			amount = NEW.amount,
+			actor_uuid = NEW.actor_uuid,
+			status_uuid = NEW.status_uuid,
+			mod_date = now()
+		WHERE
+			measure.measure_uuid = NEW.measure_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		IF (NEW.ref_measure_uuid is not null) THEN
+			INSERT INTO measure (measure_type_uuid, description, amount, actor_uuid, status_uuid)
+				VALUES(NEW.measure_type_uuid, NEW.description, NEW.amount, NEW.actor_uuid, NEW.status_uuid) returning measure_uuid into NEW.measure_uuid;
+			INSERT INTO measure_x (ref_measure_uuid, measure_uuid)
+				VALUES (NEW.ref_measure_uuid, NEW.measure_uuid);
+			RETURN NEW;
+		END IF;
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
 
 /*
 Name:			upsert_material_type()
@@ -1006,8 +1129,8 @@ Date:			2020.07.20
 Description:	trigger proc that deletes, inserts or updates material record based on TG_OP (trigger operation)
 Notes:				
  
-Example:		insert into vw_material (material_description) values ('materialrefnamedef_test');
- 				delete from vw_material_refname_def where material_refname_def_uuid = (select material_refname_def_uuid from vw_material_refname_def where (description = 'materialrefnamedef_test'));
+Example:		insert into vw_material (description) values ('materialrefnamedef_test');
+ 				delete from vw_material where material_uuid = (select material_uuid from vw_material where (description = 'materialrefnamedef_test'));
  */
 CREATE OR REPLACE FUNCTION upsert_material ()
 	RETURNS TRIGGER
@@ -1027,18 +1150,129 @@ BEGIN
 			material
 		SET
 			description = NEW.description,
+			consumable = NEW.consumable,
+			actor_uuid = NEW.actor_uuid,
+			status_uuid = NEW.status_uuid,
 			mod_date = now()
 		WHERE
 			material.material_uuid = NEW.material_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO material (description)
-			VALUES(NEW.description) returning material_uuid into NEW.material_uuid;
+		IF NEW.consumable is null 
+			THEN NEW.consumable = TRUE; 
+		END IF;
+		INSERT INTO material (description, consumable, actor_uuid, status_uuid)
+			VALUES(NEW.description, NEW.consumable, NEW.actor_uuid, NEW.status_uuid) returning material_uuid into NEW.material_uuid;
 		RETURN NEW;
 	END IF;
 END;
 $$
 LANGUAGE plpgsql;
+
+
+/*
+Name:			upsert_material_composite()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.11.23
+Description:	trigger proc that deletes, inserts or updates material_composite record based on TG_OP (trigger operation)
+Notes:			this associates a component material to it's composite (parent)	
+ 
+Example:		insert into vw_material (description) values ('plate well');
+				insert into vw_material (description) values ('24 well plate');
+				insert into vw_material_composite (composite_uuid, component_uuid, addressable, actor_uuid, status_uuid) values
+					((select material_uuid from vw_material where description = '24 well plate'),
+					(select material_uuid from vw_material where description = 'plate well'),
+					TRUE,
+					(select actor_uuid from vw_actor where description = 'T Testuser')
+					(select status_uuid from vw_status where description = 'active')
+					);
+				delete from vw_material_composite where composite_uuid = (select material_uuid from vw_material where description = '24 well plate');
+ 				delete from vw_material where material_uuid = (select material_uuid from vw_material where description = '24 well plate');
+				delete from vw_material where material_uuid = (select material_uuid from vw_material where description = 'plate well');
+ */
+CREATE OR REPLACE FUNCTION upsert_material_composite ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		DELETE FROM material_composite
+		WHERE material_composite_uuid = OLD.material_composite_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			material_composite
+		SET
+			composite_uuid = NEW.composite_uuid,
+			component_uuid = NEW.component_uuid,
+			addressable = NEW.addressable,
+			actor_uuid = NEW.actor_uuid,
+			status_uuid = NEW.status_uuid,
+			mod_date = now()
+		WHERE
+			material_composite.material_composite_uuid = NEW.material_composite_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO material_composite (composite_uuid, component_uuid, addressable, actor_uuid, status_uuid)
+			VALUES(NEW.composite_uuid, NEW.component_uuid, NEW.addressable, NEW.actor_uuid, NEW.status_uuid) returning material_composite_uuid into NEW.material_composite_uuid;
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			upsert_material_type_assign()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.10.20
+Description:	trigger proc that deletes, inserts or updates material_type_x record based on TG_OP (trigger operation)
+Notes:				
+ 
+Example:		insert into vw_material_type_assign (material_uuid, material_type_uuid) values 
+					((select material_uuid from vw_material where description = 'Hydrochloric acid'),
+					(select material_type_uuid from vw_material_type where description = 'solvent'));
+ 				delete from vw_material_type_assign where material_uuid = (select material_uuid from vw_material where description = 'Hydrochloric acid') and
+ 					material_type_uuid = (select material_type_uuid from vw_material_type where description = 'solvent');
+ */
+CREATE OR REPLACE FUNCTION upsert_material_type_assign ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		DELETE FROM material_type_x
+		WHERE material_type_x_uuid = OLD.material_type_x_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			material_type_x
+		SET
+			material_uuid = NEW.material_uuid,
+			material_type_uuid = NEW.material_type_uuid,
+			mod_date = now()
+		WHERE
+			material_type_x.material_type_x_uuid = NEW.material_type_x_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO material_type_x (material_uuid, material_type_uuid)
+			VALUES(NEW.material_uuid, NEW.material_type_uuid) returning material_uuid into NEW.material_uuid;
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
 
 
 /*
@@ -1241,6 +1475,73 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
+
+
+/*
+Name:			upsert_inventory()
+Parameters:		
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.10.30
+Description:	trigger proc that deletes, inserts or updates inventory record based on TG_OP (trigger operation)
+Notes:				
+ 
+Example:		insert into vw_inventory (description, material_uuid, actor_uuid, part_no, onhand_amt, expiration_date, location, status_uuid) 
+				values ('24 well plate',
+				(select material_uuid from vw_material where description = '24 well plate'),
+				(select actor_uuid from vw_actor where description = 'T Testuser'),
+				'xxx_123_24',
+				(select put_val(
+                          (select get_type_def ('data', 'int')),
+                             '3',
+                             '')),
+                '2021-12-31',
+                'Shelf 3, Bin 2',
+				(select status_uuid from vw_status where description = 'active')
+				);
+ */
+CREATE OR REPLACE FUNCTION upsert_inventory ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		DELETE FROM inventory
+		WHERE inventory_uuid = OLD.inventory_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- delete any assigned records
+		PERFORM delete_assigned_recs (OLD.inventory_uuid);
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			inventory
+		SET
+			description = NEW.description,
+			material_uuid = NEW.material_uuid,
+			part_no = NEW.part_no,
+			onhand_amt = NEW.onhand_amt,
+			location = NEW.location,
+			actor_uuid = NEW.actor_uuid,
+			status_uuid = NEW.status_uuid,
+			mod_date = now()
+		WHERE
+			inventory.inventory_uuid = NEW.inventory_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO inventory (description, material_uuid, part_no, onhand_amt, expiration_date, location, actor_uuid, status_uuid)
+			VALUES(NEW.description, NEW.material_uuid, NEW.part_no, NEW.onhand_amt, NEW.expiration_date, NEW.location, NEW.actor_uuid, NEW.status_uuid) returning inventory_uuid into NEW.inventory_uuid;
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+
+
+
+
 
 
 /*
@@ -1483,19 +1784,19 @@ Date:			2020.08.20
 Description:	trigger proc that deletes, inserts or updates workflow_object records based on TG_OP (trigger operation)
 Notes:				
  
-Example:		insert into vw_workflow_object (action_uuid) 
+Example:		insert into vw_workflow_object (workflow_uuid, action_uuid) 
 					values (
 						(select action_uuid from vw_action where action_description = 'example_heat'));
-				insert into vw_workflow_object (condition_uuid) 
+				insert into vw_workflow_object (workflow_uuid, condition_uuid) 
 					values (
 						(select condition_uuid from vw_condition where  condition_description = 'temp > threshold ?'));
-				insert into vw_workflow_object (action_uuid) 
+				insert into vw_workflow_object (workflow_uuid, action_uuid) 
 					values (
 						(select action_uuid from vw_action where action_description = 'example_heat_stir'));
-				insert into vw_workflow_object (action_uuid) 
+				insert into vw_workflow_object (workflow_uuid, action_uuid) 
 					values (
 						(select action_uuid from vw_action where action_description = 'start'));
-				insert into vw_workflow_object (action_uuid) 
+				insert into vw_workflow_object (workflow_uuid, action_uuid) 
 					values (
 						(select action_uuid from vw_action where action_description = 'end'));
 				update vw_workflow_object set status_uuid = (select status_uuid from vw_status 
@@ -1517,6 +1818,7 @@ BEGIN
 		UPDATE
 			workflow_object		
 		SET
+			workflow_uuid = NEW.workflow_uuid,
 			action_uuid = NEW.action_uuid,
 			condition_uuid = NEW.condition_uuid,
 			mod_date = now()
@@ -1525,11 +1827,11 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		IF NEW.action_uuid IS NOT NULL THEN
-			INSERT INTO workflow_object (action_uuid) 
-				VALUES (NEW.action_uuid) returning workflow_object_uuid into NEW.workflow_object_uuid;
+			INSERT INTO workflow_object (workflow_uuid, action_uuid) 
+				VALUES (NEW.workflow_uuid, NEW.action_uuid) returning workflow_object_uuid into NEW.workflow_object_uuid;
 		ELSIF NEW.condition_uuid IS NOT NULL THEN
-			INSERT INTO workflow_object (condition_uuid) 
-				VALUES (NEW.condition_uuid) returning workflow_object_uuid into NEW.workflow_object_uuid;	
+			INSERT INTO workflow_object (workflow_uuid, condition_uuid) 
+				VALUES (NEW.workflow_uuid, NEW.condition_uuid) returning workflow_object_uuid into NEW.workflow_object_uuid;	
 		END IF;	
 		RETURN NEW;
 	END IF;
@@ -1891,17 +2193,21 @@ LANGUAGE plpgsql;
                         2. k items in the vw_action_parameter where k is the # of parameter_defs assigned to action_def
                     The items in vw_action_parameter are created with the respective default values from vw_parameter_def,
                     which can be updated through vw_action_parameter.
+                    Add workflow_uuid. An instantiated action needs to be associated with a workflow, otherwise there will be conflicts
+                    with actions that are associated with more than one workflow.
     Example:
-        insert into vw_action (action_def_uuid, action_description, status_uuid)
+        insert into vw_action (action_def_uuid, workflow_uuid, action_description, status_uuid)
             values (
-            	(select action_def_uuid from vw_action_def where description = 'heat_stir'), 
+            	(select action_def_uuid from vw_action_def where description = 'heat_stir'),
+            	(select workflow_uuid from vw_workflow where description = 'workflow_test'), 
             	'example_heat_stir',
             	(select status_uuid from vw_status where description = 'active'));
         update vw_action set actor_uuid = (select actor_uuid from vw_actor where description = 'Ian Pendleton')
             where action_description = 'example_heat_stir';
-		insert into vw_action (action_def_uuid, action_description, actor_uuid, status_uuid)
+		insert into vw_action (action_def_uuid, workflow_uuid, action_description, actor_uuid, status_uuid)
             values (
-            	(select action_def_uuid from vw_action_def where description = 'heat'), 
+            	(select action_def_uuid from vw_action_def where description = 'heat'),
+            	(select workflow_uuid from vw_workflow where description = 'workflow_test'),            	 
             	'example_heat',
             	(select actor_uuid from vw_actor where description = 'Ian Pendleton'),
             	(select status_uuid from vw_status where description = 'active'));
@@ -1931,6 +2237,7 @@ BEGIN
 			action
 		SET
 		    action_def_uuid = NEW.action_def_uuid,
+		    workflow_uuid = NEW.workflow_uuid,
             description = NEW.action_description,
             start_date = NEW.start_date,
             end_date = NEW.end_date,
@@ -1955,10 +2262,10 @@ BEGIN
             )
         THEN
             -- first create action instance
-			INSERT INTO action (action_def_uuid, description, start_date, end_date, duration, repeating,
+			INSERT INTO action (action_def_uuid, workflow_uuid, description, start_date, end_date, duration, repeating,
 			                    ref_parameter_uuid, calculation_def_uuid, source_material_uuid, destination_material_uuid,
 			                    actor_uuid, status_uuid)
-				VALUES (NEW.action_def_uuid, NEW.action_description, NEW.start_date, NEW.end_date, NEW.duration, NEW.repeating,
+				VALUES (NEW.action_def_uuid, NEW.workflow_uuid, NEW.action_description, NEW.start_date, NEW.end_date, NEW.duration, NEW.repeating,
 				        NEW.ref_parameter_uuid, NEW.calculation_def_uuid, NEW.source_material_uuid,
 				        NEW.destination_material_uuid, NEW.actor_uuid, NEW.status_uuid)
 				returning action_uuid into NEW.action_uuid;
@@ -2388,3 +2695,128 @@ END;
 $$
 LANGUAGE plpgsql;
 
+
+/*
+Name:			upsert_bom()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.11.01
+Description:	trigger proc that deletes, inserts or updates experiment record based on TG_OP (trigger operation)
+Notes:				
+ 
+Example:		insert into vw_bom (experiment_uuid, description, actor_uuid, status_uuid) 
+					values (
+						(select experiment_uuid from vw_experiment where description = 'test_experiment'),
+						'test_bom',					
+						(select actor_uuid from vw_actor where description = 'T Testuser'),
+						(select status_uuid from vw_status where description = 'test'));
+				update vw_bom set status_uuid = (select status_uuid from vw_status where description = 'active') where description = 'test_bom'; 
+ 				delete from vw_bom where description = 'test_bom';
+ */
+CREATE OR REPLACE FUNCTION upsert_bom ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		DELETE FROM bom
+		WHERE bom_uuid = OLD.bom_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- delete any assigned records
+		PERFORM delete_assigned_recs (OLD.bom_uuid);
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			bom		
+		SET
+			experiment_uuid = NEW.experiment_uuid,
+			description = NEW.description,
+			actor_uuid = NEW.actor_uuid,			
+			status_uuid = NEW.status_uuid,
+			mod_date = now()
+		WHERE
+			bom.bom_uuid = NEW.bom_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO bom (experiment_uuid, description, actor_uuid, status_uuid)
+			VALUES(NEW.experiment_uuid, NEW.description, NEW.actor_uuid, NEW.status_uuid) returning bom_uuid into NEW.bom_uuid;
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			upsert_bom_material()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.11.01
+Description:	trigger proc that deletes, inserts or updates experiment record based on TG_OP (trigger operation)
+Notes:			the amounts refer to measures	
+ 
+Example:		insert into vw_bom_material (bom_uuid, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) 
+					values (
+						(select bom_uuid from vw_bom where description = 'test_bom'),
+						(select inventory_uuid from vw_inventory where description = 'HCL'),
+						(select put_val((select get_type_def ('data', 'num')), '500.00','mL')),
+						null, null,				
+						(select actor_uuid from vw_actor where description = 'T Testuser'),
+						(select status_uuid from vw_status where description = 'test'));
+				update vw_bom_material set status_uuid = (select status_uuid from vw_status where description = 'active') 
+					where inventory_uuid = (select inventory_uuid from vw_inventory where description = 'HCL'); 
+				update vw_bom_material set used_amt_val = (select put_val((select get_type_def ('data', 'num')), '487.21','mL')) 
+					where inventory_uuid = (select inventory_uuid from vw_inventory where description = 'HCL'); 					
+ 				delete from vw_bom_material where inventory_uuid = (select inventory_uuid from vw_inventory where description = 'HCL);
+ */	
+CREATE OR REPLACE FUNCTION upsert_bom_material ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		DELETE FROM bom_material
+		WHERE bom_material_uuid = OLD.bom_material_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- delete any assigned records
+		PERFORM delete_assigned_recs (OLD.bom_material_uuid);
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			bom_material		
+		SET
+			bom_uuid = NEW.bom_uuid,
+			inventory_uuid = NEW.inventory_uuid,
+			material_composite_uuid = NEW.material_composite_uuid,
+			alloc_amt_val = NEW.alloc_amt_val,
+			used_amt_val = NEW.used_amt_val,		
+			putback_amt_val = NEW.putback_amt_val,		
+			actor_uuid = NEW.actor_uuid,			
+			status_uuid = NEW.status_uuid,
+			mod_date = now()
+		WHERE
+			bom_material.bom_material_uuid = NEW.bom_material_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO bom_material (bom_uuid, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid)
+			VALUES(NEW.bom_uuid, NEW.inventory_uuid,  NEW.alloc_amt_val, NEW.used_amt_val, NEW.putback_amt_val, NEW.actor_uuid, NEW.status_uuid) returning bom_material_uuid into NEW.bom_material_uuid;
+		-- check to see if it's a non-consumable and composite so we can bring the [addressable ]composites into the BOM 
+		IF not (select material_consumable from vw_inventory where inventory_uuid = NEW.inventory_uuid) and 
+			(select material_composite_flg from vw_inventory where inventory_uuid = NEW.inventory_uuid) THEN
+			INSERT INTO bom_material (bom_uuid, inventory_uuid, material_composite_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid)
+				select NEW.bom_uuid, NEW.inventory_uuid, material_composite_uuid, NEW.alloc_amt_val, NEW.used_amt_val, NEW.putback_amt_val, NEW.actor_uuid, NEW.status_uuid
+		  		from vw_material_composite where 
+						composite_uuid = (SELECT material_uuid from vw_inventory where 
+						inventory_uuid = NEW.inventory_uuid);
+		END IF;
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;

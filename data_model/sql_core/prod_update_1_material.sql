@@ -3,7 +3,7 @@ Name:			prod_update_1_material
 Parameters:		none
 Returns:			
 Author:			G. Cattabriga
-Date:			2020.12.02
+Date:			2019.12.02
 Description:	load data from load_chem_inventory into material tables; material_type, material, material_refname, material_refname_x
 Notes:				
 */
@@ -16,12 +16,15 @@ insert into vw_material_type (description)
 	FROM load_chem_inventory
 	group by ccat;
 -- ones not identified in the inventory (yet)
-insert into vw_material_type (description) values ('a-cation'); 
-insert into vw_material_type (description) values ('b-cation'); 
-insert into vw_material_type (description) values ('halide'); 
-insert into vw_material_type (description) values ('antisovent'); 
-insert into vw_material_type (description) values ('reference');
-insert into vw_material_type (description) values ('catalog');
+insert into vw_material_type (description) 
+values 
+	('a-cation'),
+	('b-cation'),
+	('halide'),
+	('antisolvent'),
+	('reference'),
+	('catalog'),
+	('plate');
 
 
 INSERT INTO material_refname_def (description)

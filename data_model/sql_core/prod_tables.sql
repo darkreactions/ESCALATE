@@ -111,20 +111,20 @@ $do$;
 --======================================================================
 --======================================================================
 DROP TABLE IF EXISTS action cascade;
-DROP TABLE IF EXISTS action_condition cascade;
 DROP TABLE IF EXISTS action_def cascade;
 DROP TABLE IF EXISTS action_parameter_def_x cascade;
 DROP TABLE IF EXISTS actor cascade;
 DROP TABLE IF EXISTS actor_pref cascade;
 DROP TABLE IF EXISTS bom cascade; 
+DROP TABLE IF EXISTS bom_material cascade; 
 DROP TABLE IF EXISTS calculation cascade;
 DROP TABLE IF EXISTS calculation_class cascade;
 DROP TABLE IF EXISTS calculation_def cascade;
 DROP TABLE IF EXISTS calculation_eval cascade;
 DROP TABLE IF EXISTS calculation_stack cascade;
 DROP TABLE IF EXISTS condition cascade;
-DROP TABLE IF EXISTS condition_def cascade;
 DROP TABLE IF EXISTS condition_calculation_def_x cascade;
+DROP TABLE IF EXISTS condition_def cascade;
 DROP TABLE IF EXISTS condition_path cascade;
 DROP TABLE IF EXISTS edocument cascade;
 DROP TABLE IF EXISTS edocument_x cascade;
@@ -132,15 +132,16 @@ DROP TABLE IF EXISTS experiment cascade;
 DROP TABLE IF EXISTS experiment_workflow cascade;
 DROP TABLE IF EXISTS inventory cascade;
 DROP TABLE IF EXISTS material cascade;
-DROP TABLE IF EXISTS material_x cascade;
+DROP TABLE IF EXISTS material_composite cascade;
+DROP TABLE IF EXISTS material_refname cascade;
+DROP TABLE IF EXISTS material_refname_def cascade;
+DROP TABLE IF EXISTS material_refname_x cascade;
 DROP TABLE IF EXISTS material_type cascade;
 DROP TABLE IF EXISTS material_type_x cascade;
-DROP TABLE IF EXISTS material_refname cascade;
-DROP TABLE IF EXISTS material_refname_x cascade;
-DROP TABLE IF EXISTS material_refname_def cascade;
+DROP TABLE IF EXISTS material_x cascade;
 DROP TABLE IF EXISTS measure cascade;
-DROP TABLE IF EXISTS measure_x cascade;
 DROP TABLE IF EXISTS measure_type cascade;
+DROP TABLE IF EXISTS measure_x cascade;
 DROP TABLE IF EXISTS note cascade;
 DROP TABLE IF EXISTS note_x cascade;
 DROP TABLE IF EXISTS organization cascade;
@@ -208,6 +209,7 @@ CREATE TYPE val AS (
 CREATE TABLE action (
 	action_uuid uuid DEFAULT uuid_generate_v4 (),
 	action_def_uuid uuid,
+	workflow_uuid uuid,
 	description varchar COLLATE "pg_catalog"."default" NOT NULL,
 	start_date timestamptz,
 	end_date timestamptz,
@@ -268,8 +270,22 @@ CREATE TABLE actor_pref (
 CREATE TABLE bom (
 	bom_uuid uuid DEFAULT uuid_generate_v4 (),
 	experiment_uuid uuid NOT NULL,
-	material_uuid uuid NOT NULL,
-	measure_x_uuid uuid,
+	description varchar COLLATE "pg_catalog"."default",
+	actor_uuid uuid, 
+	status_uuid uuid, 
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
+CREATE TABLE bom_material (
+	bom_material_uuid uuid DEFAULT uuid_generate_v4 (),
+	bom_uuid uuid NOT NULL,
+	inventory_uuid uuid NOT NULL,
+	material_composite_uuid uuid,
+	alloc_amt_val val,
+	used_amt_val val,
+	putback_amt_val val,
 	actor_uuid uuid, 
 	status_uuid uuid, 
 	add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -432,12 +448,11 @@ CREATE TABLE inventory (
 	inventory_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar,
 	material_uuid uuid NOT NULL,
-	actor_uuid uuid,
 	part_no varchar,
-	onhand_amt numeric,
-	unit varchar,
+	onhand_amt val,
 	expiration_date timestamptz DEFAULT NULL,
-	inventory_location varchar(255) COLLATE "pg_catalog"."default",
+	location varchar(255) COLLATE "pg_catalog"."default",
+	actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
@@ -447,8 +462,19 @@ CREATE TABLE inventory (
 CREATE TABLE material (
 	material_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default" NOT NULL,
-	parent_uuid uuid,
-	parent_path ltree,
+	consumable BOOLEAN NOT NULL DEFAULT TRUE,
+	actor_uuid uuid,
+	status_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
+CREATE TABLE material_composite (
+	material_composite_uuid uuid DEFAULT uuid_generate_v4 (),
+	composite_uuid uuid NOT NULL,
+	component_uuid uuid NOT NULL,
+	addressable BOOLEAN NOT NULL DEFAULT FALSE,
 	actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -498,6 +524,8 @@ CREATE TABLE material_refname_x (
 CREATE TABLE material_type (
 	material_type_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default" NOT NULL,
+	actor_uuid uuid,
+	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -517,8 +545,8 @@ CREATE TABLE measure (
 	measure_type_uuid uuid,
 	description varchar COLLATE "pg_catalog"."default",
 	amount val,
-	unit varchar COLLATE "pg_catalog"."default",
 	actor_uuid uuid,
+	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -527,6 +555,8 @@ CREATE TABLE measure (
 CREATE TABLE measure_type (
 	measure_type_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default",
+	actor_uuid uuid,
+	status_uuid uuid,	
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -896,7 +926,8 @@ CREATE INDEX "ix_sys_audit_action_tstamp_tx_stm" ON sys_audit (action_tstamp_stm
 CREATE INDEX "ix_sys_audit_action" ON sys_audit (action);
 
 ALTER TABLE action
-	ADD CONSTRAINT "pk_action_action_uuid" PRIMARY KEY (action_uuid);
+	ADD CONSTRAINT "pk_action_action_uuid" PRIMARY KEY (action_uuid),
+		ADD CONSTRAINT "un_action" UNIQUE (description);
 CLUSTER action
 USING "pk_action_action_uuid";
 
@@ -929,11 +960,17 @@ USING "pk_actor_pref_uuid";
 
 
 ALTER TABLE bom
-	ADD CONSTRAINT "pk_bom_bom_uuid" PRIMARY KEY (bom_uuid),
-		ADD CONSTRAINT "un_bom_experiment_material" UNIQUE (experiment_uuid, material_uuid);
+	ADD CONSTRAINT "pk_bom_bom_uuid" PRIMARY KEY (bom_uuid);
 CREATE INDEX "ix_bom_experiment_uuid" ON bom (experiment_uuid);
 CLUSTER bom
 USING "pk_bom_bom_uuid";
+
+
+ALTER TABLE bom_material
+	ADD CONSTRAINT "pk_bom_material_bom_material_uuid" PRIMARY KEY (bom_material_uuid);
+CREATE INDEX "ix_bom_material_bom_uuid" ON bom_material (bom_uuid);
+CLUSTER bom_material
+USING "pk_bom_material_bom_material_uuid";
 
 
 ALTER TABLE calculation
@@ -1028,13 +1065,16 @@ USING "pk_inventory_inventory_uuid";
 
 ALTER TABLE material
 	ADD CONSTRAINT "pk_material_material_uuid" PRIMARY KEY (material_uuid),
-		ADD CONSTRAINT "un_material" UNIQUE (description, parent_uuid, status_uuid);
--- CREATE UNIQUE INDEX "un_material" ON material (coalesce(description, NULL), coalesce(parent_uuid, NULL), coalesce(status_uuid, NULL));
-CREATE INDEX "ix_material_parent_path" ON material
-USING GIST (parent_path);
-CREATE INDEX "ix_material_parent_uuid" ON material (parent_uuid);
+		ADD CONSTRAINT "un_material" UNIQUE (description);
 CLUSTER material
 USING "pk_material_material_uuid";
+
+
+ALTER TABLE material_composite
+	ADD CONSTRAINT "pk_material_composite_material_composite_uuid" PRIMARY KEY (material_composite_uuid),
+		ADD CONSTRAINT "un_material_composite" CHECK (composite_uuid <> component_uuid);
+CLUSTER material_composite
+USING "pk_material_composite_material_composite_uuid";
 
 
 ALTER TABLE material_refname
@@ -1303,11 +1343,12 @@ ALTER TABLE action_parameter_def_x
 
 ALTER TABLE action
 	ADD CONSTRAINT fk_action_action_def_1 FOREIGN KEY (action_def_uuid) REFERENCES action_def (action_def_uuid),
-		ADD CONSTRAINT fk_action_calculation_def_1 FOREIGN KEY (calculation_def_uuid) REFERENCES calculation_def (calculation_def_uuid),
-			ADD CONSTRAINT fk_action_source_material_1 FOREIGN KEY (source_material_uuid) REFERENCES material (material_uuid),
-				ADD CONSTRAINT fk_action_destination_material_1 FOREIGN KEY (destination_material_uuid) REFERENCES material (material_uuid),
-					ADD CONSTRAINT fk_action_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
-						ADD CONSTRAINT fk_action_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);	
+		ADD CONSTRAINT fk_action_workflow_1 FOREIGN KEY (workflow_uuid) REFERENCES workflow (workflow_uuid),
+			ADD CONSTRAINT fk_action_calculation_def_1 FOREIGN KEY (calculation_def_uuid) REFERENCES calculation_def (calculation_def_uuid),
+				ADD CONSTRAINT fk_action_source_material_1 FOREIGN KEY (source_material_uuid) REFERENCES material (material_uuid),
+					ADD CONSTRAINT fk_action_destination_material_1 FOREIGN KEY (destination_material_uuid) REFERENCES material (material_uuid),
+						ADD CONSTRAINT fk_action_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+							ADD CONSTRAINT fk_action_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);	
 
 
 ALTER TABLE actor
@@ -1325,6 +1366,14 @@ ALTER TABLE bom
 	ADD CONSTRAINT fk_bom_experiment_1 FOREIGN KEY (experiment_uuid) REFERENCES experiment (experiment_uuid),
 		ADD CONSTRAINT fk_bom_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
 			ADD CONSTRAINT fk_bom_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+
+
+ALTER TABLE bom_material
+	ADD CONSTRAINT fk_bom_material_bom_1 FOREIGN KEY (bom_uuid) REFERENCES bom (bom_uuid),
+		ADD CONSTRAINT fk_bom_material_inventory_1 FOREIGN KEY (inventory_uuid) REFERENCES inventory (inventory_uuid),
+			ADD CONSTRAINT fk_bom_material_material_composite_1 FOREIGN KEY (material_composite_uuid) REFERENCES material_composite (material_composite_uuid),					
+				ADD CONSTRAINT fk_bom_material_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+					ADD CONSTRAINT fk_bom_material_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
 
 ALTER TABLE calculation
@@ -1394,8 +1443,14 @@ ALTER TABLE inventory
 
 ALTER TABLE material
  ADD CONSTRAINT fk_material_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
-	ADD CONSTRAINT fk_material_material_1 FOREIGN KEY (parent_uuid) REFERENCES material (material_uuid),
-		ADD CONSTRAINT fk_material_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+	ADD CONSTRAINT fk_material_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+
+
+ALTER TABLE material_composite
+ ADD CONSTRAINT fk_material_composite_composite_1 FOREIGN KEY (composite_uuid) REFERENCES material (material_uuid),
+	ADD CONSTRAINT fk_material_composite_component_1 FOREIGN KEY (component_uuid) REFERENCES material (material_uuid),
+ 		ADD CONSTRAINT fk_material_composite_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+			ADD CONSTRAINT fk_material_composite_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
 
 ALTER TABLE material_refname
@@ -1409,8 +1464,7 @@ ALTER TABLE material_refname_x
 
 
 ALTER TABLE material_type_x
-	ADD CONSTRAINT fk_material_type_x_material_1 FOREIGN KEY (material_uuid) REFERENCES material (material_uuid),
-		ADD CONSTRAINT fk_material_type_x_material_type_1 FOREIGN KEY (material_type_uuid) REFERENCES material_type (material_type_uuid);
+	ADD CONSTRAINT fk_material_type_x_material_type_1 FOREIGN KEY (material_type_uuid) REFERENCES material_type (material_type_uuid);
 
 
 ALTER TABLE material_x
@@ -1468,7 +1522,6 @@ ALTER TABLE property_def
 			ADD CONSTRAINT fk_property_def_val_type_1 FOREIGN KEY (val_type_uuid) REFERENCES type_def (type_def_uuid);
 
 ALTER TABLE property_x 
- ADD CONSTRAINT fk_property_x_material_1 FOREIGN KEY (material_uuid) REFERENCES material (material_uuid),
 	ADD CONSTRAINT fk_property_x_property_1 FOREIGN KEY (property_uuid) REFERENCES property (property_uuid);
 
 
@@ -1585,12 +1638,25 @@ COMMENT ON COLUMN actor_pref.mod_date IS '';
 COMMENT ON TABLE bom IS '';
 COMMENT ON COLUMN bom.bom_uuid IS '';
 COMMENT ON COLUMN bom.experiment_uuid IS '';
-COMMENT ON COLUMN bom.material_uuid IS '';
-COMMENT ON COLUMN bom.measure_x_uuid IS '';
+COMMENT ON COLUMN bom.description IS '';
 COMMENT ON COLUMN bom.actor_uuid IS '';
 COMMENT ON COLUMN bom.status_uuid IS '';
 COMMENT ON COLUMN bom.add_date IS '';
 COMMENT ON COLUMN bom.mod_date IS '';
+
+
+COMMENT ON TABLE bom_material IS '';
+COMMENT ON COLUMN bom_material.bom_material_uuid IS '';
+COMMENT ON COLUMN bom_material.bom_uuid IS '';
+COMMENT ON COLUMN bom_material.inventory_uuid IS '';
+COMMENT ON COLUMN bom_material.material_composite_uuid IS '';
+COMMENT ON COLUMN bom_material.alloc_amt_val IS '';
+COMMENT ON COLUMN bom_material.used_amt_val IS '';
+COMMENT ON COLUMN bom_material.putback_amt_val IS '';
+COMMENT ON COLUMN bom_material.actor_uuid IS '';
+COMMENT ON COLUMN bom_material.status_uuid IS '';
+COMMENT ON COLUMN bom_material.add_date IS '';
+COMMENT ON COLUMN bom_material.mod_date IS '';
 
 
 COMMENT ON TABLE calculation IS '';
@@ -1726,12 +1792,11 @@ COMMENT ON TABLE inventory IS '';
 COMMENT ON COLUMN inventory.inventory_uuid IS '';
 COMMENT ON COLUMN inventory.description IS '';
 COMMENT ON COLUMN inventory.material_uuid IS '';
-COMMENT ON COLUMN inventory.actor_uuid IS '';
 COMMENT ON COLUMN inventory.part_no IS '';
 COMMENT ON COLUMN inventory.onhand_amt IS '';
-COMMENT ON COLUMN inventory.unit IS '';
 COMMENT ON COLUMN inventory.expiration_date IS '';
-COMMENT ON COLUMN inventory.inventory_location IS '';
+COMMENT ON COLUMN inventory.location IS '';
+COMMENT ON COLUMN inventory.actor_uuid IS '';
 COMMENT ON COLUMN inventory.status_uuid IS '';
 COMMENT ON COLUMN inventory.add_date IS '';
 COMMENT ON COLUMN inventory.mod_date IS '';
@@ -1740,12 +1805,22 @@ COMMENT ON COLUMN inventory.mod_date IS '';
 COMMENT ON TABLE material IS '';
 COMMENT ON COLUMN material.material_uuid IS '';
 COMMENT ON COLUMN material.description IS '';
-COMMENT ON COLUMN material.parent_uuid IS '';
-COMMENT ON COLUMN material.parent_path IS '';
+COMMENT ON COLUMN material.consumable IS '';
 COMMENT ON COLUMN material.actor_uuid IS '';
 COMMENT ON COLUMN material.status_uuid IS '';
 COMMENT ON COLUMN material.add_date IS '';
 COMMENT ON COLUMN material.mod_date IS '';
+
+
+COMMENT ON TABLE material_composite IS '';
+COMMENT ON COLUMN material_composite.material_composite_uuid IS '';
+COMMENT ON COLUMN material_composite.composite_uuid IS '';
+COMMENT ON COLUMN material_composite.component_uuid IS '';
+COMMENT ON COLUMN material_composite.addressable IS '';
+COMMENT ON COLUMN material_composite.actor_uuid IS '';
+COMMENT ON COLUMN material_composite.status_uuid IS '';
+COMMENT ON COLUMN material_composite.add_date IS '';
+COMMENT ON COLUMN material_composite.mod_date IS '';
 
 
 COMMENT ON TABLE material_x IS '';
@@ -1803,7 +1878,6 @@ COMMENT ON COLUMN measure.measure_uuid IS '';
 COMMENT ON COLUMN measure.measure_type_uuid IS '';
 COMMENT ON COLUMN measure.description IS '';
 COMMENT ON COLUMN measure.amount IS '';
-COMMENT ON COLUMN measure.unit IS '';
 COMMENT ON COLUMN measure.actor_uuid IS '';
 COMMENT ON COLUMN measure.add_date IS '';
 COMMENT ON COLUMN measure.mod_date IS '';
@@ -1812,6 +1886,8 @@ COMMENT ON COLUMN measure.mod_date IS '';
 COMMENT ON TABLE measure_type IS '';
 COMMENT ON COLUMN measure_type.measure_type_uuid IS '';
 COMMENT ON COLUMN measure_type.description IS '';
+COMMENT ON COLUMN measure_type.actor_uuid IS '';
+COMMENT ON COLUMN measure_type.status_uuid IS '';
 COMMENT ON COLUMN measure_type.add_date IS '';
 COMMENT ON COLUMN measure_type.mod_date IS '';
 
