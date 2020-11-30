@@ -1366,12 +1366,12 @@ OR DELETE ON vw_action_def
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_action_def ( );
 
-
 ----------------------------------------
  -- view action_parameter_def
 ----------------------------------------
  CREATE OR REPLACE VIEW vw_action_parameter_def AS
  SELECT
+     ap.action_parameter_def_x_uuid,
      ad.action_def_uuid,
      ad.description,
      ad.actor_uuid,
@@ -1395,7 +1395,7 @@ EXECUTE PROCEDURE upsert_action_def ( );
      pd.mod_date as parameter_mod_date
  FROM action_def ad
  LEFT JOIN vw_actor act ON ad.actor_uuid = act.actor_uuid
- LEFT JOIN action_parameter_def_x ap ON ad.action_def_uuid = ap.action_def_uuid
+ INNER JOIN action_parameter_def_x ap ON ad.action_def_uuid = ap.action_def_uuid
  LEFT JOIN vw_parameter_def pd ON ap.parameter_def_uuid = pd.parameter_def_uuid
  LEFT JOIN status st ON ad.status_uuid = st.status_uuid;
 
