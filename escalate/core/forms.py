@@ -96,28 +96,42 @@ class PersonForm(forms.ModelForm):
 class MaterialForm(forms.ModelForm):
     class Meta:
         model = Material
-        fields = ['chemical_name', 'abbreviation', 'inchi', 'inchikey',
-                  'molecular_formula', 'smiles',
-                  'status']
-        field_classes = {
-            'create_date': forms.SplitDateTimeField,
+        fields = ['status']
+        """
             'abbreviation': forms.CharField,
             'chemical_name': forms.CharField,
             'inchi': forms.CharField,
             'inchikey': forms.CharField,
             'molecular_formula': forms.CharField,
             'smiles': forms.CharField
+        """
+        field_classes = {
+            'create_date': forms.SplitDateTimeField,
+            
         }
-        labels = {
-            'create_date': 'Create date',
-            'abbreviation': 'Abbreviation',
+        """
+                    'abbreviation': 'Abbreviation',
             'chemical_name': 'Chemical name',
             'inchi': 'International Chemical Identifier (InChI)',
             'inchikey': 'International Chemical Identifier key (InChI key)',
             'molecular_formula': 'Molecular formula',
             'smiles': 'Smiles',
+        """
+        labels = {
+            'create_date': 'Create date',
             'material_status': 'Status'
         }
+        """
+        'abbreviation': forms.TextInput(attrs={'placeholder': 'Ex: Water'}),
+            'chemical_name': forms.TextInput(attrs={
+                'placeholder': 'Ex: Dihydrogen Monoxide'}),
+            'inchi': forms.TextInput(attrs={'placeholder': 'Ex: 1S/H2O/h1H2'}),
+            'inchikey': forms.TextInput(attrs={
+                'placeholder': 'Ex: XLYOFNOQVPJJNP-UHFFFAOYSA-N'}),
+            'molecular_formula': forms.TextInput(attrs={
+                'placeholder': 'Ex: H2O'}),
+            'smiles': forms.TextInput(attrs={'placeholder': 'Ex: O'}),
+        """
         widgets = {
             'create_date': forms.SplitDateTimeWidget(
                 date_format='%d-%m-%Y',
@@ -129,15 +143,7 @@ class MaterialForm(forms.ModelForm):
                     'placeholder': 'HH-MM'
                 }
             ),
-            'abbreviation': forms.TextInput(attrs={'placeholder': 'Ex: Water'}),
-            'chemical_name': forms.TextInput(attrs={
-                'placeholder': 'Ex: Dihydrogen Monoxide'}),
-            'inchi': forms.TextInput(attrs={'placeholder': 'Ex: 1S/H2O/h1H2'}),
-            'inchikey': forms.TextInput(attrs={
-                'placeholder': 'Ex: XLYOFNOQVPJJNP-UHFFFAOYSA-N'}),
-            'molecular_formula': forms.TextInput(attrs={
-                'placeholder': 'Ex: H2O'}),
-            'smiles': forms.TextInput(attrs={'placeholder': 'Ex: O'}),
+            
             'material_status': forms.Select(attrs=dropdown_attrs),
         }
 
@@ -146,16 +152,15 @@ class InventoryForm(forms.ModelForm):
     class Meta:
         model = Inventory
         fields = ['material', 'actor', 'part_no',
-                  'onhand_amt', 'unit', 'expiration_date',
-                  'inventory_location', 'status']
+                  'onhand_amt',  'expiration_date',
+                  'location', 'status']
 
         field_classes = {
             'description': forms.CharField,
             'part_no': forms.CharField,
-            'onhand_amt': forms.DecimalField,
-            'unit': forms.CharField,
+            'onhand_amt': forms.CharField,
             'expiration_date': forms.SplitDateTimeField,
-            'inventory_location': forms.CharField
+            'location': forms.CharField
         }
         labels = {
             'description': 'Description',
@@ -163,9 +168,8 @@ class InventoryForm(forms.ModelForm):
             'actor': 'Actor',
             'part_no': 'Part Number',
             'onhand_amt': 'On hand amount',
-            'unit': 'Unit',
             'expiration_date': 'Expiration date',
-            'inventory_location': 'Inventory location'
+            'location': 'Inventory location'
         }
         widgets = {
             'material': forms.Select(attrs=dropdown_attrs),
@@ -175,10 +179,7 @@ class InventoryForm(forms.ModelForm):
                                                  'placeholder': 'Description'}),
 
             'part_no': forms.TextInput(attrs={'placeholder': 'Part number'}),
-            'onhand_amt': forms.NumberInput(attrs={'value': '0.01',
-                                                   'min': '0.00',
-                                                   'step': '0.01'}),
-            'unit': forms.TextInput(attrs={'placeholder': 'Ex: g for grams'}),
+            'onhand_amt': forms.TextInput(attrs={'placeholder': 'On hand amount'}),
             'expiration_date': forms.SplitDateTimeWidget(
                 date_format='%d-%m-%Y',
                 date_attrs={
@@ -189,7 +190,7 @@ class InventoryForm(forms.ModelForm):
                     'placeholder': 'HH-MM'
                 }
             ),
-            'inventory_location': forms.TextInput(attrs={
+            'location': forms.TextInput(attrs={
                 'placeholder': 'Location'}),
             'status': forms.Select(attrs=dropdown_attrs),
         }

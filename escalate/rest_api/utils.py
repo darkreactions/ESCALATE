@@ -34,7 +34,7 @@ view_names = ['Actor', 'Organization', 'Status', 'Systemtool', 'SystemtoolType',
                'Calculation', 'CalculationDef',
               'Material', 'MaterialCalculationJson', 'MaterialRefnameDef',
               'MaterialType', 'Note_x', 'Person',
-              'TagType', 'PropertyDef', 'MaterialProperty', 'TypeDef',
+              'TagType', 'Property', 'PropertyDef', 'MaterialProperty', 'TypeDef',
               'ParameterDef', 'Condition', 'ConditionDef', 'Parameter', 'WorkflowType',
               'WorkflowStep', 'WorkflowObject', 'UdfDef']
 

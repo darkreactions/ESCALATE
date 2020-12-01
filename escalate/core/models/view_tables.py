@@ -84,14 +84,14 @@ class Actor(models.Model):
 class Inventory(models.Model):
     uuid = RetUUIDField(
         primary_key=True, db_column='inventory_uuid')
-    inventory_description = models.CharField(
+    description = models.CharField(
         max_length=255, blank=True, null=True)
     part_no = models.CharField(max_length=255, blank=True, null=True)
-    onhand_amt = models.FloatField(blank=True, null=True)
-    unit = models.CharField(max_length=255, blank=True, null=True)
+    onhand_amt = models.CharField(max_length=255, blank=True, null=True)
+    # unit = models.CharField(max_length=255, blank=True, null=True)
     # create_date = models.DateTimeField(blank=True, null=True)
     expiration_date = models.DateTimeField(blank=True, null=True)
-    inventory_location = models.CharField(max_length=255,
+    location = models.CharField(max_length=255,
                                           blank=True, null=True)
     status = models.ForeignKey('Status', on_delete=models.DO_NOTHING,
                                     blank=True, null=True, 
@@ -120,7 +120,7 @@ class Inventory(models.Model):
         db_table = 'vw_inventory'
 
     def __str__(self):
-        return "{}".format(self.inventory_description)
+        return "{}".format(self.description)
 
 
 class InventoryMaterial(models.Model):
@@ -129,8 +129,8 @@ class InventoryMaterial(models.Model):
                                              blank=True, null=True)
     inventory_part_no = models.CharField(max_length=255,
                                          blank=True, null=True)
-    inventory_onhand_amt = models.FloatField(blank=True, null=True)
-    inventory_unit = models.CharField(max_length=255, blank=True, null=True)
+    inventory_onhand_amt = models.CharField(max_length=255, blank=True, null=True)
+    # inventory_unit = models.CharField(max_length=255, blank=True, null=True)
     inventory_expiration_date = models.DateTimeField(blank=True, null=True)
     inventory_add_date = models.DateTimeField()
     inventory_location = models.CharField(
@@ -141,9 +141,9 @@ class InventoryMaterial(models.Model):
     inventory_status_description = models.CharField(
         max_length=255, blank=True, null=True)
 
-    actor_uuid = models.ForeignKey('Actor', models.DO_NOTHING,
+    actor = models.ForeignKey('Actor', models.DO_NOTHING,
                                    db_column='actor_uuid',
-                                   blank=True, null=True)
+                                   blank=True, null=True, related_name='inventory_material_actor')
     actor_description = models.CharField(max_length=255, blank=True, null=True)
     org_full_name = models.CharField(max_length=255, blank=True, null=True)
     material = models.ForeignKey('Material', models.DO_NOTHING,
@@ -348,42 +348,31 @@ class Material(models.Model):
     uuid = RetUUIDField(primary_key=True,
                             db_column='material_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
-    parent = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
-                                    blank=True, null=True, db_column='parent_uuid', related_name='material_parent')
+    #parent = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
+    #                                blank=True, null=True, db_column='parent_uuid', related_name='material_parent')
 
     status = models.ForeignKey('Status', on_delete=models.DO_NOTHING,
-                                             blank=True, null=True, db_column='material_status_uuid',
+                                             blank=True, null=True, db_column='status_uuid',
                                              related_name='material_status')
-    material_status_description = models.CharField(
+    status_description = models.CharField(
         max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
-
-    abbreviation = models.CharField(
-        db_column='abbreviation', max_length=255, blank=True, null=True)
-    chemical_name = models.CharField(
-        db_column='chemical_name', max_length=255, blank=True, null=True)
-    inchi = models.CharField(
-        db_column='inchi', max_length=255, blank=True, null=True)
-    inchikey = models.CharField(
-        db_column='inchikey', max_length=255, blank=True, null=True)
-    molecular_formula = models.CharField(
-        db_column='molecular_formula', max_length=255, blank=True, null=True)
-    smiles = models.CharField(
-        db_column='smiles', max_length=255, blank=True, null=True)
-
+    actor = models.ForeignKey(
+        'Actor', models.DO_NOTHING, blank=True, null=True, db_column='actor_uuid', related_name='material_actor')
+    
     class Meta:
         managed = False
         db_table = 'vw_material'
 
     def __str__(self):
-        return "{}".format(self.chemical_name)
+        return "{}".format(self.description)
 
 
 class MaterialCalculationJson(models.Model):
     uuid = RetUUIDField(primary_key=True,
                             db_column='material_uuid')
-    material_status_uuid = RetUUIDField()
+    material_status = RetUUIDField(db_column='material_status_uuid')
     material_status_description = models.CharField(
         max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
@@ -459,7 +448,7 @@ class Note(models.Model):
 
 class Note_x(models.Model):
     uuid = RetUUIDField(primary_key=True, db_column='note_x_uuid')
-    ref_note_uuid = RetUUIDField()
+    ref_note = RetUUIDField(db_column='ref_note_uuid')
     note = models.ForeignKey('Note', models.DO_NOTHING,
                                   blank=True,
                                   null=True,
@@ -586,7 +575,7 @@ class Tag(models.Model):
 
 class Tag_X(models.Model):
     uuid = RetUUIDField(primary_key=True, db_column='tag_x_uuid')
-    ref_tag_uuid = RetUUIDField()
+    ref_tag = RetUUIDField(db_column='ref_tag_uuid')
     tag = models.ForeignKey('Tag', models.DO_NOTHING,
                                  blank=True,
                                  null=True,
@@ -711,6 +700,55 @@ class TypeDef(models.Model):
         return self.description
 
 
+class Property(models.Model):
+    uuid = RetUUIDField(primary_key=True,
+                            db_column='property_uuid')
+    
+    property_def = models.ForeignKey('PropertyDef',
+                                 db_column='property_def_uuid',
+                                 on_delete=models.DO_NOTHING,
+                                 blank=True,
+                                 null=True, related_name='property_property_def')
+    short_description = models.CharField(max_length=255,
+                                   blank=True,
+                                   null=True,
+                                   db_column='short_description')
+    property_val = models.CharField(max_length=255,
+                                   blank=True,
+                                   null=True,
+                                   db_column='property_val')
+    actor = models.ForeignKey('Actor',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='actor_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False, related_name='property_actor')
+    actor_description = models.CharField(max_length=255,
+                                         blank=True,
+                                         null=True,
+                                         db_column='actor_description',
+                                         editable=False)
+    status = models.ForeignKey('Status',
+                                    on_delete=models.DO_NOTHING,
+                                    blank=True,
+                                    null=True,
+                                    db_column='status_uuid', related_name='property_status')
+    status_description = models.CharField(max_length=255,
+                                          blank=True,
+                                          null=True,
+                                          db_column='status_description',
+                                          editable=False)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'vw_property'
+
+    def __str__(self):
+        return "{}".format(self.short_description)
+    
+
 class PropertyDef(models.Model):
 
     uuid = RetUUIDField(primary_key=True,
@@ -777,13 +815,13 @@ class MaterialProperty(models.Model):
                                             null=True,
                                             db_column='description',
                                             editable=False)
-    parent = models.ForeignKey('Material',
+    property = models.ForeignKey('Property',
                                     on_delete=models.DO_NOTHING,
-                                    db_column='parent_uuid',
+                                    db_column='property_uuid',
                                     blank=True,
                                     null=True,
                                     editable=False,
-                                    related_name='material_property_parent')
+                                    related_name='material_property_property')
     property_def = models.ForeignKey('PropertyDef',
                                           on_delete=models.DO_NOTHING,
                                           db_column='property_def_uuid',
@@ -812,7 +850,7 @@ class MaterialProperty(models.Model):
     actor_description = models.CharField(max_length=255,
                                          blank=True,
                                          null=True,
-                                         db_column='actor_description',
+                                         db_column='property_actor_description',
                                          editable=False)
     status = models.ForeignKey('Status',
                                     on_delete=models.DO_NOTHING,
@@ -823,7 +861,7 @@ class MaterialProperty(models.Model):
     status_description = models.CharField(max_length=255,
                                           blank=True,
                                           null=True,
-                                          db_column='status_description',
+                                          db_column='property_status_description',
                                           editable=False)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
@@ -1302,7 +1340,7 @@ class WorkflowStep(models.Model):
                                              blank=True,
                                              null=True,
                                              editable=False)
-    parent_uuid = models.ForeignKey('WorkflowStep', models.DO_NOTHING,
+    parent = models.ForeignKey('WorkflowStep', models.DO_NOTHING,
                                     blank=True, null=True, editable=False,
                                     db_column='parent_uuid', related_name='workflow_step_parent')
     parent_object_type = models.CharField(max_length=255,

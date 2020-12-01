@@ -15,18 +15,13 @@ from .utils import perform_create_views, view_names, custom_serializer_views
 
 from .rest_docs import rest_docs
 
-class PersonViewSet(viewsets.ModelViewSet):
-    serializer_class = PersonSerializer
-    queryset = Person.objects.all()
-
-
 def save_actor_on_post(self, serializer):
     """Save the person POSTing as the actor associated with a resource being created
 
     Use this to overload perform_create on a view.
     """
-    actor = core.models.Actor.objects.get(person_uuid=self.request.user.person)
-    serializer.save(actor_uuid=actor, actor_description=actor.description)
+    actor = core.models.Actor.objects.get(person=self.request.user.person)
+    serializer.save(actor=actor, actor_description=actor.description)
 
 def create_viewset(model_name):
     model = getattr(core.models, model_name)

@@ -49,21 +49,21 @@ class ModelTagEdit():
             if self.TagFormSet != None:
                 formset = self.TagFormSet(request.POST,prefix='tag')
                 actor = Actor.objects.get(
-                    person_uuid=request.user.person.pk)
+                    person=request.user.person.pk)
                 # Loop through every tag form
                 for form in formset:
                     # Only if the form has changed make an update, otherwise ignore
                     if form.has_changed() and form.is_valid():
                         if request.user.is_authenticated:
                             tag = form.save(commit=False)
-                            tag.actor_uuid = actor
+                            tag.actor = actor
                             tag.save()
                             if form not in formset.deleted_forms:
                             # if tag not being deleted make tag_x to relate the tag and
                             # the person being tagged
                                 tag_x = Tag_X()
-                                tag_x.tag_uuid=Tag.objects.get(display_text=tag.display_text)
-                                tag_x.ref_tag_uuid=model_pk
+                                tag_x.tag=Tag.objects.get(display_text=tag.display_text)
+                                tag_x.ref_tag=model_pk
                                 tag_x.add_date=tag.add_date
                                 tag_x.mod_date=tag.mod_date
                                 tag_x.save()
