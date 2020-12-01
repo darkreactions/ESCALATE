@@ -55,11 +55,11 @@ class TagNoteSerializer(DynamicFieldsModelSerializer):
     tags = SerializerMethodField()
     notes = SerializerMethodField()
     def get_notes(self, obj):
-        notes = core.models.Note.objects.filter(note_x__ref_note_uuid=obj.uuid)
+        notes = core.models.Note.objects.filter(note_x_note__ref_note_uuid=obj.uuid)
         result_serializer = NoteSerializer(notes, many=True)
         return result_serializer.data
     def get_tags(self, obj):
-        tags = core.models.Tag.objects.filter(tag_x__ref_tag_uuid=obj.uuid)
+        tags = core.models.Tag.objects.filter(tag_x_tag__ref_tag_uuid=obj.uuid)
         result_serializer = TagSerializer(tags, many=True)
         return result_serializer.data
 

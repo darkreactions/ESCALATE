@@ -1,10 +1,11 @@
 import re
 
 from django.db import connection as con
-cur = con.cursor()
+
 
 def get_val(val):
     """breaks val tuple into constituent parts"""
+    cur = con.cursor()
     cur.execute(f"select get_val ('{val}'::val);")
     result = cur.fetchone()
     val_type = val_unit = val_val = None
@@ -14,15 +15,14 @@ def get_val(val):
     return val_type, val_unit, val_val
 
 def camel_case(text):
-    #data = re.findall(r'[A-Z](?:[a-z]+|[A-Z]*(?=[A-Z]|$))', text)
-    # if data[0] == 'View':
-    #    data[0] = 'vw'
     data = text.lower()
     if 'view' in data[:4]:
         data = data[4:]
-
-    # return '_'.join(data).lower()
     return data
+
+def snake_case(text):
+    components = text.split('_')
+    return ''.join(x.title() for x in components)
 
 
 def camel_case_uuid(text):
@@ -30,14 +30,13 @@ def camel_case_uuid(text):
     # return '_'.join([text, 'uuid'])
     return text
 
-
-view_names = ['Systemtool', 'SystemtoolType', 'Actor', 'Inventory', 'InventoryMaterial',
+view_names = ['Actor', 'Organization', 'Status', 'Systemtool', 'SystemtoolType', 'Inventory', 'InventoryMaterial',
                'Calculation', 'CalculationDef',
               'Material', 'MaterialCalculationJson', 'MaterialRefnameDef',
-              'MaterialType', 'Note_x', 'Organization', 'Person',
-              'Status', 'TagType', 'PropertyDef', 'MaterialProperty', 'TypeDef',
+              'MaterialType', 'Note_x', 'Person',
+              'TagType', 'PropertyDef', 'MaterialProperty', 'TypeDef',
               'ParameterDef', 'Condition', 'ConditionDef', 'Parameter', 'WorkflowType',
-              'WorkflowStep', 'WorkflowObject']
+              'WorkflowStep', 'WorkflowObject', 'UdfDef']
 
 GET_only_views = ['TypeDef']
 
