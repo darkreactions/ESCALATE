@@ -1,8 +1,9 @@
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.shortcuts import redirect
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
-from django.http import Http404, FileResponse
+from django.http import Http404, FileResponse, HttpResponseRedirect
+
 
 
 from core.models import Edocument
@@ -35,9 +36,12 @@ class EdocumentList(GenericListView):
             new_queryset = self.model.objects.all().select_related().order_by(ordering)
         return new_queryset
 
+    def download_trial(self, uuid):
+        return HttpResponseRedirect(reverse('edoc_download', args=(uuid,)))
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        table_columns = ['Title', 'File Type', 'Version', 'Download Link']
+        table_columns = ['Title', 'File Type', 'Version', 'UUID']
         context['table_columns'] = table_columns
         edocument = context['edocument']
         table_data = []
@@ -49,22 +53,14 @@ class EdocumentList(GenericListView):
             table_row_data.append(item.doc_type_description)
             table_row_data.append(item.doc_ver)
 
-            edoc = Edocument.objects.get(uuid=item.uuid)
-            contents = edoc.edocument
-            filename = edoc.filename
-            testfile = tempfile.TemporaryFile()
-            testfile.write(contents)
-            testfile.seek(0)
-            download_link = FileResponse(testfile, as_attachment=True,
-                                    filename=filename)
-
-            table_row_data.append(download_link)
+            table_row_data.append(item.uuid)
 
             # dict containing the data, view and update url, primary key and obj
             # name to use in template
             table_row_info = {
                 'table_row_data': table_row_data,
-                'view_url': redirect('https://google.com'),#reverse_lazy('inventory_view', kwargs={'pk': item.pk}),
+                'download_url': reverse('edoc_download', args=(item.uuid,)),#reverse_lazy('inventory_view', kwargs={'pk': item.pk}),
+                # 'view_url': redirect('https://google.com'),#reverse_lazy('inventory_view', kwargs={'pk': item.pk}),
                 'update_url': redirect('https://google.com'), #reverse_lazy('inventory_update', kwargs={'pk': item.pk}),
                 'obj_name': str(item),
                 'obj_pk': item.pk
