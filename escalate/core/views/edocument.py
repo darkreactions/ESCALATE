@@ -46,7 +46,7 @@ class EdocumentList(GenericListView):
 
             # data for the object we want to display for a row
             table_row_data.append(item.title)
-            table_row_data.append(item.doc_type)
+            table_row_data.append(item.doc_type_description)
             table_row_data.append(item.doc_ver)
 
             edoc = Edocument.objects.get(uuid=item.uuid)
