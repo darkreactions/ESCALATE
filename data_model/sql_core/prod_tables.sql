@@ -180,7 +180,7 @@ DROP TABLE IF EXISTS workflow_type cascade;
 -- CREATE DATA TYPES 
 --======================================================================
 --======================================================================
--- define (enumerate) the value types where hierachy is seperated by '_' with simple data types (int, num, text) as single phrase; treat 'array' like a fifo stack
+-- define (enumerate) the value types where hierarchy is separated by '_' with simple data types (int, num, text) as single phrase; treat 'array' like a fifo stack
 -- CREATE TYPE val_type AS ENUM ('int', 'array_int', 'num', 'array_num', 'text', 'array_text', 'blob_text', 'blob_pdf', 'blob_svg', 'blob_jpg', 'blob_png', 'blob_xrd', 'bool', 'array_bool');
 
 -- define (enumerate) the type_def categories 
@@ -1438,7 +1438,7 @@ ALTER TABLE condition_def
 
 
 ALTER TABLE condition_calculation_def_x
-	ADD CONSTRAINT fk_condition_calulation_def_x_condition_def_1 FOREIGN KEY (condition_def_uuid) REFERENCES condition_def (condition_def_uuid),
+	ADD CONSTRAINT fk_condition_calculation_def_x_condition_def_1 FOREIGN KEY (condition_def_uuid) REFERENCES condition_def (condition_def_uuid),
 		ADD CONSTRAINT fk_condition_calculation_def_x_calculation_def_1 FOREIGN KEY (calculation_def_uuid) REFERENCES calculation_def (calculation_def_uuid);
 
 
@@ -1970,7 +1970,7 @@ COMMENT ON COLUMN note_x.mod_date IS '';
 COMMENT ON TABLE organization IS 'organization information for ESCALATE person and system tool; can be component of actor';
 COMMENT ON COLUMN organization.organization_uuid IS 'uuid for this organization record';
 COMMENT ON COLUMN organization.parent_uuid IS 'reference to parent organization; uses [internal] organization_uuid';
-COMMENT ON COLUMN organization.parent_path IS 'allows a searchable, naviagatable tree structure; currently not being used';
+COMMENT ON COLUMN organization.parent_path IS 'allows a searchable, navigatable tree structure; currently not being used';
 COMMENT ON COLUMN organization.description IS 'free test describing the organization';
 COMMENT ON COLUMN organization.full_name IS 'long (full) version of the org name';
 COMMENT ON COLUMN organization.short_name IS 'short version of the org name; using acronym, initialism, etc';
