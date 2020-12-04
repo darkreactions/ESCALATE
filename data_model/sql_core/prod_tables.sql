@@ -5,7 +5,7 @@ Parameters:		none
 Returns:			
 Author:			G. Cattabriga
 Date:			2020.01.23
-Description:	create the production tables, primary keys and comments for ESCALATEv3
+Description:	create the production tables, primary keys and comments for ESCALATE v3
 Notes:			triggers, foreign keys and other constraints are in other sql files
  				20200123: remove the measure and measure type entities - measure will be part 
  				of the originating entity
@@ -167,6 +167,7 @@ DROP TABLE IF EXISTS udf cascade;
 DROP TABLE IF EXISTS udf_x cascade;
 DROP TABLE IF EXISTS udf_def cascade;
 DROP TABLE IF EXISTS workflow cascade;
+DROP TABLE IF EXISTS workflow_action_set cascade;
 DROP TABLE IF EXISTS workflow_object cascade;
 DROP TABLE IF EXISTS workflow_step cascade;
 DROP TABLE IF EXISTS workflow_state cascade;
@@ -853,6 +854,27 @@ CREATE TABLE workflow (
 );
 
 
+CREATE TABLE workflow_action_set (
+	workflow_action_set_uuid uuid DEFAULT uuid_generate_v4 (),
+	description varchar COLLATE "pg_catalog"."default",
+	workflow_uuid uuid,
+	action_def_uuid uuid,
+	start_date timestamptz,
+	end_date timestamptz,
+	duration numeric,
+	repeating int8,
+	parameter_def_uuid uuid,
+	parameter_val val[],	
+	calculation_def_uuid uuid,
+	source_material_uuid uuid[],
+	destination_material_uuid uuid[], 
+	actor_uuid uuid,
+	status_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
 CREATE TABLE workflow_object (
 	workflow_object_uuid uuid DEFAULT uuid_generate_v4 (),
 	workflow_uuid uuid,
@@ -926,8 +948,7 @@ CREATE INDEX "ix_sys_audit_action_tstamp_tx_stm" ON sys_audit (action_tstamp_stm
 CREATE INDEX "ix_sys_audit_action" ON sys_audit (action);
 
 ALTER TABLE action
-	ADD CONSTRAINT "pk_action_action_uuid" PRIMARY KEY (action_uuid),
-		ADD CONSTRAINT "un_action" UNIQUE (description);
+	ADD CONSTRAINT "pk_action_action_uuid" PRIMARY KEY (action_uuid);
 CLUSTER action
 USING "pk_action_action_uuid";
 
@@ -947,10 +968,11 @@ USING "pk_action_def_action_def_uuid";
 
 
 ALTER TABLE actor
-	ADD CONSTRAINT "pk_actor_uuid" PRIMARY KEY (actor_uuid);
-CREATE UNIQUE INDEX "un_actor" ON actor (coalesce(person_uuid, NULL), coalesce(organization_uuid, NULL), coalesce(systemtool_uuid, NULL));
+    ADD CONSTRAINT "pk_actor_uuid" PRIMARY KEY (actor_uuid);
+CREATE UNIQUE INDEX "un_actor" ON actor (COALESCE(person_uuid, NULL), COALESCE(organization_uuid, NULL),
+                                         COALESCE(systemtool_uuid, NULL));
 CLUSTER actor
-USING "pk_actor_uuid";
+    USING "pk_actor_uuid";
 
 
 ALTER TABLE actor_pref
@@ -1182,10 +1204,11 @@ USING "pk_parameter_x_parameter_x_uuid";
 
 
 ALTER TABLE person
-	ADD CONSTRAINT "pk_person_person_uuid" PRIMARY KEY (person_uuid);
-CREATE UNIQUE INDEX "un_person" ON person (coalesce(last_name, NULL), coalesce(first_name, NULL), coalesce(middle_name, NULL));
+    ADD CONSTRAINT "pk_person_person_uuid" PRIMARY KEY (person_uuid);
+CREATE UNIQUE INDEX "un_person" ON person (COALESCE(last_name, NULL), COALESCE(first_name, NULL),
+                                           COALESCE(middle_name, NULL));
 CLUSTER person
-USING "pk_person_person_uuid";
+    USING "pk_person_person_uuid";
 
 
 ALTER TABLE property
@@ -1284,6 +1307,12 @@ CLUSTER workflow
 USING "pk_workflow_workflow_uuid";
 
 
+ALTER TABLE workflow_action_set
+	ADD CONSTRAINT "pk_workflow_action_set_workflow_action_set_uuid" PRIMARY KEY (workflow_action_set_uuid);
+CLUSTER workflow_action_set
+USING "pk_workflow_action_set_workflow_action_set_uuid";
+
+
 ALTER TABLE workflow_object
 	ADD CONSTRAINT "pk_workflow_object_workflow_object_uuid" PRIMARY KEY (workflow_object_uuid),
 		ADD CONSTRAINT "un_workflow_object" UNIQUE (action_uuid, condition_uuid);
@@ -1345,8 +1374,8 @@ ALTER TABLE action
 	ADD CONSTRAINT fk_action_action_def_1 FOREIGN KEY (action_def_uuid) REFERENCES action_def (action_def_uuid),
 		ADD CONSTRAINT fk_action_workflow_1 FOREIGN KEY (workflow_uuid) REFERENCES workflow (workflow_uuid),
 			ADD CONSTRAINT fk_action_calculation_def_1 FOREIGN KEY (calculation_def_uuid) REFERENCES calculation_def (calculation_def_uuid),
-				ADD CONSTRAINT fk_action_source_material_1 FOREIGN KEY (source_material_uuid) REFERENCES material (material_uuid),
-					ADD CONSTRAINT fk_action_destination_material_1 FOREIGN KEY (destination_material_uuid) REFERENCES material (material_uuid),
+				ADD CONSTRAINT fk_action_source_material_1 FOREIGN KEY (source_material_uuid) REFERENCES bom_material (bom_material_uuid),
+					ADD CONSTRAINT fk_action_destination_material_1 FOREIGN KEY (destination_material_uuid) REFERENCES bom_material (bom_material_uuid),
 						ADD CONSTRAINT fk_action_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
 							ADD CONSTRAINT fk_action_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);	
 
@@ -1557,6 +1586,15 @@ ALTER TABLE workflow
 			ADD CONSTRAINT fk_workflow_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
 
+ALTER TABLE workflow_action_set
+	ADD CONSTRAINT fk_workflow_action_set_workflow_1 FOREIGN KEY (workflow_uuid) REFERENCES  workflow (workflow_uuid),	
+		ADD CONSTRAINT fk_workflow_action_set_action_def_1 FOREIGN KEY (action_def_uuid) REFERENCES  action_def (action_def_uuid),	
+			ADD CONSTRAINT fk_workflow_action_set_parameter_def_1 FOREIGN KEY (parameter_def_uuid) REFERENCES  parameter_def (parameter_def_uuid),	
+				ADD CONSTRAINT fk_workflow_action_set_calculation_def_1 FOREIGN KEY (calculation_def_uuid) REFERENCES  calculation_def (calculation_def_uuid),					
+					ADD CONSTRAINT fk_workflow_action_set_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+						ADD CONSTRAINT fk_workflow_action_set_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+
+
 ALTER TABLE workflow_object
 	ADD CONSTRAINT fk_workflow_object_workflow_1 FOREIGN KEY (workflow_uuid) REFERENCES workflow (workflow_uuid),
 		ADD CONSTRAINT fk_workflow_object_action_1 FOREIGN KEY (action_uuid) REFERENCES action (action_uuid),
@@ -1583,6 +1621,7 @@ ALTER TABLE workflow_step
 COMMENT ON TABLE action IS '';
 COMMENT ON COLUMN action.action_uuid IS '';
 COMMENT ON COLUMN action.action_def_uuid IS '';
+COMMENT ON COLUMN action.workflow_uuid IS '';
 COMMENT ON COLUMN action.description IS '';
 COMMENT ON COLUMN action.start_date IS '';
 COMMENT ON COLUMN action.end_date IS '';
@@ -1742,6 +1781,15 @@ COMMENT ON COLUMN condition_calculation_def_x.add_date IS '';
 COMMENT ON COLUMN condition_calculation_def_x.mod_date IS '';
 
 
+COMMENT ON TABLE condition_path IS '';
+COMMENT ON COLUMN condition_path.condition_path_uuid IS '';
+COMMENT ON COLUMN condition_path.condition_uuid IS '';
+COMMENT ON COLUMN condition_path.condition_out_val IS '';
+COMMENT ON COLUMN condition_path.workflow_step_uuid IS '';
+COMMENT ON COLUMN condition_path.add_date IS '';
+COMMENT ON COLUMN condition_path.mod_date IS '';
+
+
 COMMENT ON TABLE edocument IS '';
 COMMENT ON COLUMN edocument.edocument_uuid IS '';
 COMMENT ON COLUMN edocument.title IS '';
@@ -1861,6 +1909,8 @@ COMMENT ON COLUMN material_refname_x.mod_date IS '';
 COMMENT ON TABLE material_type IS '';
 COMMENT ON COLUMN material_type.material_type_uuid IS '';
 COMMENT ON COLUMN material_type.description IS '';
+COMMENT ON COLUMN material_type.actor_uuid IS '';
+COMMENT ON COLUMN material_type.status_uuid IS '';
 COMMENT ON COLUMN material_type.add_date IS '';
 COMMENT ON COLUMN material_type.mod_date IS '';
 
@@ -1879,6 +1929,7 @@ COMMENT ON COLUMN measure.measure_type_uuid IS '';
 COMMENT ON COLUMN measure.description IS '';
 COMMENT ON COLUMN measure.amount IS '';
 COMMENT ON COLUMN measure.actor_uuid IS '';
+COMMENT ON COLUMN measure.status_uuid IS '';
 COMMENT ON COLUMN measure.add_date IS '';
 COMMENT ON COLUMN measure.mod_date IS '';
 
@@ -1979,6 +2030,56 @@ COMMENT ON COLUMN parameter_def.actor_uuid IS '';
 COMMENT ON COLUMN parameter_def.status_uuid IS '';
 COMMENT ON COLUMN parameter_def.add_date IS '';
 COMMENT ON COLUMN parameter_def.mod_date IS '';
+
+
+COMMENT ON TABLE parameter_x IS '';
+COMMENT ON COLUMN parameter_x.parameter_x_uuid IS '';
+COMMENT ON COLUMN parameter_x.ref_parameter_uuid IS '';
+COMMENT ON COLUMN parameter_x.parameter_uuid IS '';
+COMMENT ON COLUMN parameter_x.add_date IS '';
+COMMENT ON COLUMN parameter_x.mod_date IS '';
+
+
+COMMENT ON TABLE person IS '';
+COMMENT ON COLUMN person.person_uuid IS '';
+COMMENT ON COLUMN person.first_name IS '';
+COMMENT ON COLUMN person.last_name IS '';
+COMMENT ON COLUMN person.middle_name IS '';
+COMMENT ON COLUMN person.address1 IS '';
+COMMENT ON COLUMN person.address2 IS '';
+COMMENT ON COLUMN person.city IS '';
+COMMENT ON COLUMN person.state_province IS '';
+COMMENT ON COLUMN person.zip IS '';
+COMMENT ON COLUMN person.country IS '';
+COMMENT ON COLUMN person.phone IS '';
+COMMENT ON COLUMN person.email IS '';
+COMMENT ON COLUMN person.title IS '';
+COMMENT ON COLUMN person.suffix IS '';
+COMMENT ON COLUMN person.organization_uuid IS '';
+COMMENT ON COLUMN person.add_date IS '';
+COMMENT ON COLUMN person.mod_date IS '';
+
+
+COMMENT ON TABLE property IS '';
+COMMENT ON COLUMN property.property_uuid IS '';
+COMMENT ON COLUMN property.property_def_uuid IS '';
+COMMENT ON COLUMN property.property_val IS '';
+COMMENT ON COLUMN property.actor_uuid IS '';
+COMMENT ON COLUMN property.status_uuid IS '';
+COMMENT ON COLUMN property.add_date IS '';
+COMMENT ON COLUMN property.mod_date IS '';
+
+
+COMMENT ON TABLE property_def IS '';
+COMMENT ON COLUMN property_def.property_def_uuid IS '';
+COMMENT ON COLUMN property_def.description IS '';
+COMMENT ON COLUMN property_def.short_description IS '';
+COMMENT ON COLUMN property_def.val_type_uuid IS '';
+COMMENT ON COLUMN property_def.valunit IS '';
+COMMENT ON COLUMN property_def.actor_uuid IS '';
+COMMENT ON COLUMN property_def.status_uuid IS '';
+COMMENT ON COLUMN property_def.add_date IS '';
+COMMENT ON COLUMN property_def.mod_date IS '';
 
 
 COMMENT ON TABLE parameter_x IS '';
@@ -2147,6 +2248,7 @@ COMMENT ON COLUMN udf_x.mod_date IS '';
 
 COMMENT ON TABLE workflow IS '';
 COMMENT ON COLUMN workflow.workflow_uuid IS '';
+COMMENT ON COLUMN workflow.workflow_type_uuid IS '';
 COMMENT ON COLUMN workflow.description IS '';
 COMMENT ON COLUMN workflow.parent_uuid IS '';
 COMMENT ON COLUMN workflow.parent_path IS '';
@@ -2154,6 +2256,36 @@ COMMENT ON COLUMN workflow.actor_uuid IS '';
 COMMENT ON COLUMN workflow.status_uuid IS '';
 COMMENT ON COLUMN workflow.add_date IS '';
 COMMENT ON COLUMN workflow.mod_date IS '';
+
+
+COMMENT ON TABLE workflow_action_set IS '';
+COMMENT ON COLUMN workflow_action_set.workflow_action_set_uuid IS '';
+COMMENT ON COLUMN workflow_action_set.description IS '';
+COMMENT ON COLUMN workflow_action_set.workflow_uuid IS '';
+COMMENT ON COLUMN workflow_action_set.action_def_uuid IS '';
+COMMENT ON COLUMN workflow_action_set.start_date IS '';
+COMMENT ON COLUMN workflow_action_set.end_date IS '';
+COMMENT ON COLUMN workflow_action_set.duration IS '';
+COMMENT ON COLUMN workflow_action_set.repeating IS '';
+COMMENT ON COLUMN workflow_action_set.parameter_def_uuid IS '';
+COMMENT ON COLUMN workflow_action_set.parameter_val IS '';
+COMMENT ON COLUMN workflow_action_set.calculation_def_uuid IS '';
+COMMENT ON COLUMN workflow_action_set.source_material_uuid IS '';
+COMMENT ON COLUMN workflow_action_set.destination_material_uuid IS '';
+COMMENT ON COLUMN workflow_action_set.actor_uuid IS '';
+COMMENT ON COLUMN workflow_action_set.status_uuid IS '';
+COMMENT ON COLUMN workflow_action_set.add_date IS '';
+COMMENT ON COLUMN workflow_action_set.mod_date IS '';
+
+
+COMMENT ON TABLE workflow_object IS '';
+COMMENT ON COLUMN workflow_object.workflow_object_uuid IS '';
+COMMENT ON COLUMN workflow_object.workflow_uuid IS '';
+COMMENT ON COLUMN workflow_object.action_uuid IS '';
+COMMENT ON COLUMN workflow_object.condition_uuid IS '';
+COMMENT ON COLUMN workflow_object.status_uuid IS '';
+COMMENT ON COLUMN workflow_object.add_date IS '';
+COMMENT ON COLUMN workflow_object.mod_date IS '';
 
 
 COMMENT ON TABLE workflow_state IS '';
@@ -2166,20 +2298,12 @@ COMMENT ON COLUMN workflow_state.mod_date IS '';
 COMMENT ON TABLE workflow_step IS '';
 COMMENT ON COLUMN workflow_step.workflow_step_uuid IS '';
 COMMENT ON COLUMN workflow_step.workflow_uuid IS '';
-COMMENT ON COLUMN workflow_step.workflow_object_uuid IS '';
 COMMENT ON COLUMN workflow_step.parent_uuid IS '';
 COMMENT ON COLUMN workflow_step.parent_path IS '';
+COMMENT ON COLUMN workflow_step.workflow_object_uuid IS '';
 COMMENT ON COLUMN workflow_step.status_uuid IS '';
 COMMENT ON COLUMN workflow_step.add_date IS '';
 COMMENT ON COLUMN workflow_step.mod_date IS '';
-
-
-COMMENT ON TABLE workflow_object IS '';
-COMMENT ON COLUMN workflow_object.workflow_object_uuid IS '';
-COMMENT ON COLUMN workflow_object.action_uuid IS '';
-COMMENT ON COLUMN workflow_object.condition_uuid IS '';
-COMMENT ON COLUMN workflow_object.add_date IS '';
-COMMENT ON COLUMN workflow_object.mod_date IS '';
 
 
 COMMENT ON TABLE workflow_type IS '';

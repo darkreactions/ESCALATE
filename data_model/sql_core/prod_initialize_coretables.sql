@@ -188,6 +188,7 @@ BEGIN;
 insert into vw_workflow_type (description) values ('model');
 insert into vw_workflow_type (description) values ('template');
 insert into vw_workflow_type (description) values ('actual');
+insert into vw_workflow_type (description) values ('workflow_action_set');
 COMMIT;
 
 

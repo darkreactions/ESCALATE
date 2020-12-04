@@ -5,11 +5,11 @@ Parameters:		none
 Returns:		NA
 Author:			G. Cattabriga
 Date:			2020.09.27
-Description:	test [most] functions, [all] upserts. For upserts, perforn all methods
+Description:	test [most] functions, [all] upserts. For upserts, perform all methods
 				(e.g. insert, update, delete)
 Notes:			Make sure to use status = 'dev_test' and actor = 'Test123' for 
-				all upserts. These are 'insert'ed at the beginning of the upsert
-				tests, and 'delete'd at the end	
+				all upserts. These are inserted at the beginning of the upsert
+				tests, and deleted at the end
 
 				2020.09.27:	This version tests ONLY if the function executes 
 							without error. Next version add testing outputs
@@ -35,7 +35,7 @@ select * from get_table_uuids() LIMIT 10;
 
 
 /*
-Name:			get_materialid_bystatus (p_status_arr, p_null_bool)
+Name:			get_material_uuid_bystatus (p_status_arr, p_null_bool)
 Notes:	
 */			
 SELECT * FROM get_material_uuid_bystatus (array['active', 'proto'], TRUE)  LIMIT 1;
@@ -839,12 +839,12 @@ delete from vw_status where status_uuid = (select status_uuid from vw_status whe
 
 --======================================================================
 --======================================================================
--- scratch area to set up specific scenerios for further dev and testing
+-- scratch area to set up specific scenarios for further dev and testing
 --
 --        !!!! REMEMBER TO COMMENT OUT OR REMOVE WHEN DONE !!!!
 --======================================================================
 --======================================================================
--- ===========================================================================
+--======================================================================
 -- set up test org
 -- ===========================================================================
 insert into vw_organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid) values ('Test Laboratory Organization','NewLabCo','NLC','1001 New Lab Lane',null,'Science City','NY','99999',null,null,null,null);
@@ -1180,6 +1180,95 @@ insert into vw_inventory (description, material_uuid, actor_uuid,
 				);
 
 -- ===========================================================================
+-- set up actions, parameter defs
+-- ===========================================================================
+-- upsert condition, condition-calculation
+insert into vw_condition_def (description, actor_uuid, status_uuid) values
+	('temp > threshold ?', (select actor_uuid from vw_actor where description = 'Dev Test123'),
+	(select status_uuid from vw_status where description = 'dev_test'));
+insert into vw_calculation_def 
+	(short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid, 		
+	in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid ) 
+	values ('greater_than', 'pop A, pop B, >', 
+		(select systemtool_uuid from vw_actor where systemtool_name = 'escalate'),
+		'B > A ? (pop B, pop A, >?) returning true or false', null, null, null, null,
+		(select type_def_uuid from vw_type_def where category = 'data' and description = 'bool'),
+		null, (select actor_uuid from vw_actor where description = 'Ion Bond'),
+		(select status_uuid from vw_status where description = 'dev_test'));
+insert into vw_condition_calculation_def_assign (condition_def_uuid, calculation_def_uuid)
+	VALUES ((select condition_def_uuid from vw_condition_def where description = 'temp > threshold ?'),
+		(select calculation_def_uuid from vw_calculation_def where short_name = 'greater_than'));
+insert into vw_condition (condition_calculation_def_x_uuid, in_val, out_val, actor_uuid, status_uuid)
+	values (
+		(select condition_calculation_def_x_uuid from vw_condition_calculation_def_assign where condition_description = 'temp > threshold ?'),
+		(ARRAY[(SELECT put_val ((select get_type_def ('data', 'num')), '100', 'C'))]), 
+		(ARRAY[(SELECT put_val ((select get_type_def ('data', 'bool')), 'false', null))]),
+		(select actor_uuid from vw_actor where description = 'Ion Bond'),
+		(select status_uuid from vw_status where description = 'dev_test'));
+insert into vw_calculation_def 
+	(short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid, 		
+	in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid ) 
+	values ('num_array_index', '[x, y, z], 2 -> y', 
+		(select systemtool_uuid from vw_actor where systemtool_name = 'escalate'),
+		'return numeric from indexed array', null, null, null, null,
+		(select type_def_uuid from vw_type_def where category = 'data' and description = 'num'),
+		null, (select actor_uuid from vw_actor where description = 'Ion Bond'),
+		(select status_uuid from vw_status where description = 'dev_test'));
+
+insert into vw_parameter_def (description, default_val, actor_uuid, status_uuid)
+	values
+	    ('volume',
+        (select put_val((select get_type_def ('data', 'num')), '0', 'mL')),
+        (select actor_uuid from vw_actor where description = 'Ion Bond'),
+		(select status_uuid from vw_status where description = 'dev_test')),
+    	('duration',
+        (select put_val((select get_type_def ('data', 'num')), '0', 'mins')),
+        (select actor_uuid from vw_actor where description = 'Ion Bond'),
+		(select status_uuid from vw_status where description = 'dev_test')),
+        ('speed',
+        (select put_val ((select get_type_def ('data', 'num')),'0','rpm')),
+        (select actor_uuid from vw_actor where description = 'Ion Bond'),
+		(select status_uuid from vw_status where description = 'dev_test')),
+        ('temperature',
+        (select put_val((select get_type_def ('data', 'num')), '0', 'degC')),
+        (select actor_uuid from vw_actor where description = 'Ion Bond'),
+		(select status_uuid from vw_status where description = 'dev_test'));
+
+insert into vw_action_def (description, actor_uuid, status_uuid) values
+	('dispense', (select actor_uuid from vw_actor where description = 'Ion Bond'),
+    (select status_uuid from vw_status where description = 'dev_test')),
+	('heat_stir', (select actor_uuid from vw_actor where description = 'Ion Bond'),
+    (select status_uuid from vw_status where description = 'dev_test')),
+    ('heat', (select actor_uuid from vw_actor where description = 'Ion Bond'),
+    (select status_uuid from vw_status where description = 'dev_test')),
+    ('start_node', (select actor_uuid from vw_actor where description = 'Ion Bond'),
+    (select status_uuid from vw_status where description = 'dev_test')),
+    ('end_node', (select actor_uuid from vw_actor where description = 'Ion Bond'),
+    (select status_uuid from vw_status where description = 'dev_test'));
+-- add a note to dispense action indicating that source is the dispensed material
+-- and destination is the container
+insert into vw_note (notetext, actor_uuid, ref_note_uuid) values 
+	('source material = material to be dispensed, destination material = plate well', 
+	(select actor_uuid from vw_actor where description = 'Ion Bond'), 
+	(select action_def_uuid from vw_action_def where description = 'dispense')); 
+
+insert into vw_action_parameter_def_assign (action_def_uuid, parameter_def_uuid)
+	values 
+		((select action_def_uuid from vw_action_def where description = 'dispense'),
+    	(select parameter_def_uuid from vw_parameter_def where description = 'volume')),
+		((select action_def_uuid from vw_action_def where description = 'heat_stir'),
+    	(select parameter_def_uuid from vw_parameter_def where description = 'duration')),
+        ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
+        (select parameter_def_uuid from vw_parameter_def where description = 'temperature')),
+        ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
+        (select parameter_def_uuid from vw_parameter_def where description = 'speed')),
+        ((select action_def_uuid from vw_action_def where description = 'heat'),
+        (select parameter_def_uuid from vw_parameter_def where description = 'duration')),
+        ((select action_def_uuid from vw_action_def where description = 'heat'),
+        (select parameter_def_uuid from vw_parameter_def where description = 'temperature'));
+
+
+-- ===========================================================================
 -- set up experiment
 -- ===========================================================================
 insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operator_uuid, lab_uuid, status_uuid) 
@@ -1190,22 +1279,6 @@ insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operat
 		(select actor_uuid from vw_actor where description = 'Ion Bond'),
 		(select actor_uuid from vw_actor where description = 'NLC'),
 		(select status_uuid from vw_status where description = 'dev_test'));
-
--- ===========================================================================
--- create a workflow
--- ===========================================================================
-insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid) 
-	values (
-		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
-		'test_workflow',
-		(select actor_uuid from vw_actor where description = 'Ion Bond'),
-		(select status_uuid from vw_status where description = 'dev_test'));
--- associate it with an experiment
-insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid) 
-	values (
-		1, 
-		(select experiment_uuid from vw_experiment where description = 'test_experiment'),
-		(select workflow_uuid from vw_workflow where description = 'test_workflow'));
 
 -- =========================================================================== 
 -- BOM
@@ -1257,61 +1330,26 @@ insert into vw_bom_material (bom_uuid, inventory_uuid, alloc_amt_val, used_amt_v
 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 
-
+/*
 -- ===========================================================================
--- workplan and actions 
--- create action_def, parameter_def, action_parameter_def_assign, action
+-- create a workflow 
 -- ===========================================================================
-insert into vw_action_def (description, actor_uuid, status_uuid) values
-	('dispense', (select actor_uuid from vw_actor where description = 'Ion Bond'),
-    (select status_uuid from vw_status where description = 'dev_test')),
-	('heat_stir', (select actor_uuid from vw_actor where description = 'Ion Bond'),
-    (select status_uuid from vw_status where description = 'dev_test')),
-    ('heat', (select actor_uuid from vw_actor where description = 'Ion Bond'),
-    (select status_uuid from vw_status where description = 'dev_test')),
-    ('start_node', (select actor_uuid from vw_actor where description = 'Ion Bond'),
-    (select status_uuid from vw_status where description = 'dev_test')),
-    ('end_node', (select actor_uuid from vw_actor where description = 'Ion Bond'),
-    (select status_uuid from vw_status where description = 'dev_test'));
--- add a note to dispense action indicating that source is the dispensed material
--- and destination is the container
-insert into vw_note (notetext, actor_uuid, ref_note_uuid) values 
-	('test note 1', 
-	(select actor_uuid from vw_actor where description = 'Ion Bond'), 
-	(select action_def_uuid from vw_action_def where description = 'dispense')); 
-
-insert into vw_parameter_def (description, default_val, actor_uuid, status_uuid)
-	values
-	    ('volume',
-        (select put_val((select get_type_def ('data', 'num')), '0', 'mL')),
-        (select actor_uuid from vw_actor where description = 'Ion Bond'),
-		(select status_uuid from vw_status where description = 'dev_test')),
-    	('duration',
-        (select put_val((select get_type_def ('data', 'num')), '0', 'mins')),
-        (select actor_uuid from vw_actor where description = 'Ion Bond'),
-		(select status_uuid from vw_status where description = 'dev_test')),
-        ('speed',
-        (select put_val ((select get_type_def ('data', 'num')),'0','rpm')),
-        (select actor_uuid from vw_actor where description = 'Ion Bond'),
-		(select status_uuid from vw_status where description = 'dev_test')),
-        ('temperature',
-        (select put_val((select get_type_def ('data', 'num')), '0', 'degC')),
-        (select actor_uuid from vw_actor where description = 'Ion Bond'),
+insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid) 
+	values (
+		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
+		'test_workflow',
+		(select actor_uuid from vw_actor where description = 'Ion Bond'),
 		(select status_uuid from vw_status where description = 'dev_test'));
-insert into vw_action_parameter_def_assign (action_def_uuid, parameter_def_uuid)
-	values 
-		((select action_def_uuid from vw_action_def where description = 'dispense'),
-    	(select parameter_def_uuid from vw_parameter_def where description = 'volume')),
-		((select action_def_uuid from vw_action_def where description = 'heat_stir'),
-    	(select parameter_def_uuid from vw_parameter_def where description = 'duration')),
-        ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
-        (select parameter_def_uuid from vw_parameter_def where description = 'temperature')),
-        ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
-        (select parameter_def_uuid from vw_parameter_def where description = 'speed')),
-        ((select action_def_uuid from vw_action_def where description = 'heat'),
-        (select parameter_def_uuid from vw_parameter_def where description = 'duration')),
-        ((select action_def_uuid from vw_action_def where description = 'heat'),
-        (select parameter_def_uuid from vw_parameter_def where description = 'temperature'));
+-- associate it with an experiment
+insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid) 
+	values (
+		1, 
+		(select experiment_uuid from vw_experiment where description = 'test_experiment'),
+		(select workflow_uuid from vw_workflow where description = 'test_workflow'));
+
+-- ===========================================================================
+-- create actions, conditions and add steps (sequence) to the workflow
+-- ===========================================================================
 insert into vw_action (action_def_uuid, workflow_uuid, action_description, actor_uuid, status_uuid)
 	values (
     	(select action_def_uuid from vw_action_def where description = 'dispense'),
@@ -1326,6 +1364,7 @@ insert into vw_action (action_def_uuid, workflow_uuid, action_description, actor
         'example_heat_stir',
         (select actor_uuid from vw_actor where description = 'Ion Bond'),
         (select status_uuid from vw_status where description = 'dev_test'));
+/*
 insert into vw_action (action_def_uuid, workflow_uuid, action_description, actor_uuid, status_uuid)
 	values (
     	(select action_def_uuid from vw_action_def where description = 'heat'), 
@@ -1333,6 +1372,7 @@ insert into vw_action (action_def_uuid, workflow_uuid, action_description, actor
         'example_heat',
         (select actor_uuid from vw_actor where description = 'Ion Bond'),
         (select status_uuid from vw_status where description = 'dev_test'));
+*/
 insert into vw_action (action_def_uuid, workflow_uuid, action_description, actor_uuid, status_uuid)
 	values (
     	(select action_def_uuid from vw_action_def where description = 'start_node'), 
@@ -1347,29 +1387,7 @@ insert into vw_action (action_def_uuid, workflow_uuid, action_description, actor
         'end',
         (select actor_uuid from vw_actor where description = 'Ion Bond'),
         (select status_uuid from vw_status where description = 'dev_test'));
--- upsert condition, condition-calculation
-insert into vw_condition_def (description, actor_uuid, status_uuid) values
-	('temp > threshold ?', (select actor_uuid from vw_actor where description = 'Dev Test123'),
-	(select status_uuid from vw_status where description = 'dev_test'));
-insert into vw_calculation_def 
-	(short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid, 		
-	in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid ) 
-	values ('greater_than', 'pop A, pop B, >', 
-		(select systemtool_uuid from vw_actor where systemtool_name = 'escalate'),
-		'B > A ? (pop B, pop A, >?) returning true or false', null, null, null, null,
-		(select type_def_uuid from vw_type_def where category = 'data' and description = 'bool'),
-		null, (select actor_uuid from vw_actor where description = 'Ion Bond'),
-		(select status_uuid from vw_status where description = 'dev_test'));
-insert into vw_condition_calculation_def_assign (condition_def_uuid, calculation_def_uuid)
-	VALUES ((select condition_def_uuid from vw_condition_def where description = 'temp > threshold ?'),
-		(select calculation_def_uuid from vw_calculation_def where short_name = 'greater_than'));
-insert into vw_condition (condition_calculation_def_x_uuid, in_val, out_val, actor_uuid, status_uuid)
-	values (
-		(select condition_calculation_def_x_uuid from vw_condition_calculation_def_assign where condition_description = 'temp > threshold ?'),
-		(ARRAY[(SELECT put_val ((select get_type_def ('data', 'num')), '100', 'C'))]), 
-		(ARRAY[(SELECT put_val ((select get_type_def ('data', 'bool')), 'false', null))]),
-		(select actor_uuid from vw_actor where description = 'Ion Bond'),
-		(select status_uuid from vw_status where description = 'dev_test'));
+
 -- set up the workflow step object (from actions and conditions)
 insert into vw_workflow_object (workflow_uuid, action_uuid) 
 	values (
@@ -1438,8 +1456,6 @@ insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, 
 		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'end')),	
 		(select workflow_step_uuid from vw_workflow_step where (object_type = 'action' and object_description = 'example_heat_stir')),					
 		(select status_uuid from vw_status where description = 'active'));
-
-
 -- define the condition criteria path values (val) 
 --insert into vw_condition_path (condition_uuid, condition_out_val, workflow_step_uuid)
 --	values (
@@ -1453,3 +1469,180 @@ insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, 
 --		((SELECT put_val ((select get_type_def ('data', 'bool')), 'TRUE', null))),
 --		(select workflow_step_uuid from vw_workflow_step 
 --			where (object_description = 'example_heat' and parent_object_description = 'temp > threshold ?')));
+
+*/
+--======================================================================
+--======================================================================
+-- scratch area (2) 
+--
+--        !!!! REMEMBER TO COMMENT OUT OR REMOVE WHEN DONE !!!!
+--======================================================================
+--======================================================================
+--======================================================================
+insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operator_uuid, lab_uuid, status_uuid) 
+	values (
+		'test_uid', 'test_experiment_action_set',
+		null,
+		(select actor_uuid from vw_actor where description = 'NLC'),						
+		(select actor_uuid from vw_actor where description = 'Ion Bond'),
+		(select actor_uuid from vw_actor where description = 'NLC'),
+		(select status_uuid from vw_status where description = 'dev_test'));
+
+insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid) 
+	values (
+		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
+		'test_workflow_action_set',
+		(select actor_uuid from vw_actor where description = 'Ion Bond'),
+		(select status_uuid from vw_status where description = 'dev_test'));
+
+-- associate it with an experiment
+insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid)
+    values (
+        1,
+        (select experiment_uuid from vw_experiment where description = 'test_experiment_action_set'),
+        (select workflow_uuid from vw_workflow where description = 'test_workflow_action_set'));
+
+-- create an action_set
+insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
+                                    repeating,
+                                    parameter_def_uuid, parameter_val, source_material_uuid, destination_material_uuid,
+                                    actor_uuid, status_uuid)
+values ('dispense action_set',
+        (select workflow_uuid from vw_workflow where description = 'test_workflow_action_set'),
+        (select action_def_uuid from vw_action_def where description = 'dispense'),
+        null, null, null, null,
+        (select parameter_def_uuid
+         from vw_action_parameter_def
+         where description = 'dispense' and parameter_description = 'volume'),
+        array [(select put_val((select val_type_uuid from vw_parameter_def where description = 'volume'), '10.1',
+                               (select valunit from vw_parameter_def where description = 'volume'))),
+            (select put_val((select val_type_uuid from vw_parameter_def where description = 'volume'), '9.2',
+                            (select valunit from vw_parameter_def where description = 'volume'))),
+            (select put_val((select val_type_uuid from vw_parameter_def where description = 'volume'), '8.3',
+                            (select valunit from vw_parameter_def where description = 'volume')))],
+        array [(select bom_material_uuid from vw_bom_material where bom_material_description = 'HCl-12M')],
+        array [
+            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# B1'),
+            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# B2'),
+            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# B3')],
+        (select actor_uuid from vw_actor where description = 'Ion Bond'),
+        (select status_uuid from vw_status where description = 'dev_test'));
+
+
+/*
+DO
+$do$
+DECLARE
+	descr varchar := 'dispense action_set'; -- this will come from workflow_action_set
+--	source_array uuid[] := array[(select bom_material_uuid from vw_bom_material where bom_material_description = 'HCl-12M')]; -- this will come from workflow_action_set
+	source_array uuid[] := array[
+		(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# A1'),
+		(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# A2'),
+		(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# A3')]; 
+	dest_array uuid[] := array[
+		(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# B1'),
+		(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# B2'),
+		(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# B3')]; -- this will come from workflow_action_set
+	workflow_uuid uuid := (select workflow_uuid from vw_workflow where description = 'test_workflow_action_set'); -- this will come from workflow_action_set
+	action_def_uuid uuid := (select action_def_uuid from vw_action_def where description = 'dispense'); -- this will come from workflow_action_set
+	p_uuid uuid := (select parameter_def_uuid from vw_action_parameter_def where description = 'dispense' and parameter_description = 'volume'); -- this will come from workflow_action_set
+--	p_val val[] := array[(select put_val ((select val_type_uuid from vw_parameter_def where description = 'volume'),'10.1',(select valunit from vw_parameter_def where description = 'volume'))),(select put_val ((select val_type_uuid from vw_parameter_def where description = 'volume'),'9.2',(select valunit from vw_parameter_def where description = 'volume'))), (select put_val ((select val_type_uuid from vw_parameter_def where description = 'volume'),'8.3',(select valunit from vw_parameter_def where description = 'volume')))]; -- this will come from workflow_action_set
+	p_val val[] := array[(select put_val ((select val_type_uuid from vw_parameter_def where description = 'volume'),'50',(select valunit from vw_parameter_def where description = 'volume')))]; -- this will come from workflow_action_set	
+
+	act_uuid uuid := (select actor_uuid from vw_actor where description = 'Ion Bond'); -- this will come from the workflow_action_set
+	sts_uuid uuid := (select status_uuid from vw_status where description = 'dev_test'); -- this will come from the workflow_action_set
+
+	s_uuid uuid;
+	d_uuid uuid;
+	p_val_len int := array_length(p_val, 1);
+	p_val_cnt int := 1;
+	p_action_uuid uuid;
+	p_step_uuid uuid := null;
+	p_object_uuid uuid; 
+	p_src_cnt int := 1;
+
+
+BEGIN
+	-- check to see if this is a one to many (one source to many dest) 
+	-- if more than one element in source array then it's a positional ([1] -> [1]) loop
+	IF (array_length(source_array, 1) = 1) THEN
+		s_uuid := source_array[1];
+		-- go through the loop for every destination material
+		FOREACH d_uuid IN ARRAY dest_array
+		LOOP 
+        	insert into vw_action (action_def_uuid, workflow_uuid, action_description, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid)
+            values (action_def_uuid, workflow_uuid, 
+            	concat(descr, ': ',(select bom_material_description from vw_bom_material where bom_material_uuid = s_uuid), ' -> ', 
+            					(select bom_material_description from vw_bom_material where bom_material_uuid = d_uuid)),
+            	s_uuid, d_uuid, act_uuid, sts_uuid) returning action_uuid into p_action_uuid;
+			-- assign parameter value
+			update vw_action_parameter set 
+				parameter_val = (select put_val (
+            		(select val_type_uuid from vw_parameter_def where parameter_def_uuid = p_uuid),
+             		(select val_val from get_val (p_val[p_val_cnt])),
+            		(select valunit from vw_parameter_def where parameter_def_uuid = p_uuid)))    
+            where action_uuid = p_action_uuid;
+
+			-- create the workflow_object
+			insert into vw_workflow_object (workflow_uuid, action_uuid) 
+				values (workflow_uuid, p_action_uuid) returning workflow_object_uuid into p_object_uuid;
+			
+			-- create the workflow_step
+			insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid) 
+				values (workflow_uuid, p_object_uuid, p_step_uuid, sts_uuid) returning workflow_step_uuid into p_step_uuid;
+
+			-- increment the parameter pointer
+			IF p_val_cnt < p_val_len 
+				THEN p_val_cnt := p_val_cnt + 1; 
+			END IF;	
+		
+		END LOOP;
+	ELSIF (array_length(source_array, 1) > 0 and array_length(dest_array, 1) > 0) THEN
+		-- check to make sure there are 1 or more elements in each array
+		-- this will loop through the source array for as many times as there are assoc dest elements
+		FOREACH s_uuid IN ARRAY source_array
+		LOOP
+			d_uuid := dest_array[p_src_cnt]; 
+        	insert into vw_action (action_def_uuid, workflow_uuid, action_description, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid)
+            values (action_def_uuid, workflow_uuid, 
+            	concat(descr, ': ',(select bom_material_description from vw_bom_material where bom_material_uuid = s_uuid), ' -> ', 
+            					(select bom_material_description from vw_bom_material where bom_material_uuid = d_uuid)),
+            	s_uuid, d_uuid,
+            	(select actor_uuid from vw_actor where description = 'Ion Bond'),
+            	(select status_uuid from vw_status where description = 'dev_test')) returning action_uuid into p_action_uuid;
+			-- assign parameter value
+			update vw_action_parameter set 
+				parameter_val = (select put_val (
+            		(select val_type_uuid from vw_parameter_def where parameter_def_uuid = p_uuid),
+             		(select val_val from get_val (p_val[1])),
+            		(select valunit from vw_parameter_def where parameter_def_uuid = p_uuid)))    
+            where action_uuid = p_action_uuid;
+			
+			-- create the workflow_object
+			insert into vw_workflow_object (workflow_uuid, action_uuid) 
+				values (workflow_uuid, p_action_uuid) returning workflow_object_uuid into p_object_uuid;
+			
+			-- create the workflow_step
+			insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid) 
+				values (workflow_uuid, p_object_uuid, p_step_uuid, sts_uuid) returning workflow_step_uuid into p_step_uuid;
+
+			-- increment the source element pointer; bail if it is greater than the destination count
+			p_src_cnt := p_src_cnt + 1;
+			IF p_src_cnt > array_length(dest_array, 1) THEN
+				EXIT;
+			END IF;
+		END LOOP; 
+	END IF;
+END
+$do$; 
+
+select * from vw_experiment_workflow_step_object_json where experiment_uuid = (select experiment_uuid from vw_experiment where description = 'test_experiment_action_set')
+
+*/
+
+
+
+
+
+
+

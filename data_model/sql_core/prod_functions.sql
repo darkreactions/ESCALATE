@@ -142,10 +142,6 @@ CREATE OR REPLACE FUNCTION if_modified_func ()
 	AS $body$
 DECLARE
 	audit_row sys_audit;
-	include_values boolean;
-	log_diffs boolean;
-	h_old hstore;
-	h_new hstore;
 	excluded_cols text [] = ARRAY []::text [];
 BEGIN
 	IF TG_WHEN <> 'AFTER' THEN
@@ -268,7 +264,7 @@ $body$
 LANGUAGE 'sql';
 
 -----------------------------
--- turn on auditting
+-- turn on auditing
 -----------------------------
 -- SELECT audit_table('person');
 -- SELECT audit_table('organization');
@@ -375,7 +371,6 @@ DECLARE
 	var_file_oid OID;
 	var_record RECORD;
 	var_result BYTEA := '';
-	var_resultt TEXT;
 BEGIN
 	SELECT
 		lo_import(path) INTO var_file_oid;
@@ -438,8 +433,6 @@ Notes:			Not much in the way of validation; only checks to see if there is a non
 CREATE OR REPLACE FUNCTION read_dirfiles (PATH CHARACTER VARYING)
 	RETURNS BOOLEAN
 	AS $$
-DECLARE
-	copycmd TEXT;
 BEGIN
 	IF(PATH = '') THEN
 		RETURN FALSE;
@@ -670,7 +663,7 @@ LANGUAGE plpgsql;
 
 /*
 Name:			get_material_type (p_material_uuid uuid)
-Parameters:		p_material_uuid uuid of material to retreive material_type(s)
+Parameters:		p_material_uuid uuid of material to retrieve material_type(s)
 Returns:		array of material_type descriptions
 Author:			G. Cattabriga
 Date:			2020.04.08
@@ -971,6 +964,9 @@ Example:		SELECT get_val (concat('(',
 					',,,,,,266.99,,,,,)')::val);
 				SELECT get_val (concat('(',
 					(select type_def_uuid from vw_type_def where category = 'data' and description ='int'),
+					',,,,15,,,,,,,)')::val);
+				SELECT val_val from get_val (concat('(',
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='int'),
 					',,,,15,,,,,,,)')::val);			
 				SELECT get_val (concat('(',
 					(select type_def_uuid from vw_type_def where category = 'data' and description ='array_int'),
@@ -1110,7 +1106,7 @@ BEGIN
 	ELSIF _p_type = 'array_text' THEN
 		out_val.v_text = p_val::text[];
 	ELSIF _p_type::text LIKE 'blob%' THEN
-		out_val.v_edocument = p_val::uuid;
+		out_val.v_edocument_uuid = p_val::uuid;
 	ELSIF _p_type = 'bool' THEN
 		out_val.v_bool = p_val::BOOLEAN;
 	ELSIF _p_type = 'array_bool' THEN
@@ -1141,7 +1137,6 @@ CREATE OR REPLACE FUNCTION get_chemaxon_directory (p_systemtool_uuid uuid, p_act
 	AS $$
 DECLARE
 	v_descr_name varchar;
-	v_descr_dir varchar;
 BEGIN
 	SELECT
 		st.systemtool_name INTO v_descr_name
@@ -1205,9 +1200,8 @@ BEGIN
 			WHEN 'generatemd' THEN
 				SELECT ap.pvalue INTO v_descr_dir FROM actor_pref ap WHERE ap.actor_uuid = p_actor_uuid AND ap.pkey = 'CHEMAXON_DIR';		
 	END CASE;
-		EXECUTE format ( 'COPY load_temp FROM PROGRAM ''%s%s -h'' ', v_descr_dir, v_descr_name );
-		RETURN ( SELECT SUBSTRING ( help_string FROM '[0-9]{1,2}[.][0-9]{1,2}[.][0-9]{1,2}' ) FROM load_temp WHERE SUBSTRING ( help_string FROM '[0-9]{1,2}[.][0-9]{1,2}[.][0-9]{1,2}' ) IS NOT NULL );
-	COMMIT;	
+	EXECUTE format ( 'COPY load_temp FROM PROGRAM ''%s%s -h'' ', v_descr_dir, v_descr_name );
+	RETURN ( SELECT SUBSTRING ( help_string FROM '[0-9]{1,2}[.][0-9]{1,2}[.][0-9]{1,2}' ) FROM load_temp WHERE SUBSTRING ( help_string FROM '[0-9]{1,2}[.][0-9]{1,2}[.][0-9]{1,2}' ) IS NOT NULL );
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1252,14 +1246,11 @@ DECLARE
 	v_descr_ver varchar;
 	v_temp_dir varchar;
 	v_temp_in varchar := 'temp_in.txt';
-	v_calc_out_blobval bytea;
-	v_calc_out_blobtype varchar;
-	v_calc_out_numarray numeric [];
 	v_type_out varchar;
 BEGIN
 	-- assign the calculation out_type so we can properly store the calc results into calculation_eval
 	SELECT
-		out_type INTO v_type_out
+		out_type_uuid INTO v_type_out
 	FROM
 		get_calculation_def (ARRAY ['standardize']);
 	DROP TABLE IF EXISTS load_temp_out;
@@ -1312,7 +1303,7 @@ BEGIN
 						systemtool
 					WHERE
 						systemtool_name = v_descr_command), p_actor_uuid);
-	-- copy the inputs from m_desriptor_eval into a text file to be read by the command
+	-- copy the inputs from m_descriptor_eval into a text file to be read by the command
 	-- this is set to work for ONLY single text varchar input
 	EXECUTE format('copy ( select (ev.in_val).v_text from calculation_eval ev) to ''%s%s'' ', v_temp_dir, v_temp_in);
 	-- '/Users/gcattabriga/tmp/temp_chem.txt';
@@ -1320,23 +1311,19 @@ BEGIN
 ELSE
 	RETURN FALSE;
 	END CASE;
-	-- update the calculation_eval table with results from commanc execution; found in load_temp_out temp table
+	-- update the calculation_eval table with results from command execution; found in load_temp_out temp table
 	UPDATE
 		calculation_eval ev
 	SET
 		calculation_def_uuid = p_descriptor_def_uuid,
-		out_val.v_type = v_type_out::val_type,
+		out_val.v_type_uuid = v_type_out::val_type,
 		out_val.v_text = CASE v_type_out
 		WHEN 'text' THEN
 			strout
-		ELSE
-			NULL
 		END,
 		out_val.v_num = CASE v_type_out
 		WHEN 'num' THEN
 			strout::numeric
-		ELSE
-			NULL
 		END,
 		calculation_alias_name = p_alias_name,
 		actor_uuid = p_actor_uuid
@@ -1345,7 +1332,6 @@ ELSE
 	WHERE
 		lto.load_id = ev.eval_id;
 	RETURN TRUE;
-	COMMIT;
 	END;
 $$
 LANGUAGE plpgsql;

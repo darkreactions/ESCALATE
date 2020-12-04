@@ -81,8 +81,6 @@ Example:		-- insert new tag  (tag_uuid = NULL, ref_tag_uuid = NULL)
 CREATE OR REPLACE FUNCTION upsert_tag ()
 	RETURNS TRIGGER
 	AS $$
-DECLARE
-	_tag_uuid uuid;
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
 		DELETE FROM tag
@@ -131,8 +129,6 @@ Example:		-- insert new tag_assign (ref_tag)
 CREATE OR REPLACE FUNCTION upsert_tag_assign ()
 	RETURNS TRIGGER
 	AS $$
-DECLARE
-	_tag_uuid uuid;
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
 		DELETE FROM tag_x
@@ -455,8 +451,6 @@ Example:		-- just insert the document, with no association to an entity
 CREATE OR REPLACE FUNCTION upsert_edocument ()
 	RETURNS TRIGGER
 	AS $$
-DECLARE
-	_edocument_uuid uuid;
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
 		-- first delete the document_x record if exists
@@ -679,7 +673,7 @@ DECLARE
 	_org_description varchar;
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
-		-- first delete the ornanization record
+		-- first delete the organization record
 		DELETE FROM organization
 		WHERE organization_uuid = OLD.organization_uuid;
 		IF NOT FOUND THEN
@@ -1424,8 +1418,6 @@ Example:		insert into vw_material_property (material_uuid, property_def_uuid,
 CREATE OR REPLACE FUNCTION upsert_material_property ()
 	RETURNS TRIGGER
 	AS $$
-DECLARE
-	_property_uuid uuid;
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
 		-- first delete the property_x record
@@ -1665,7 +1657,7 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		IF (select exists (select calculation_def_uuid from vw_calculation_def where calculation_def_uuid = NEW.calculation_def_uuid)) THEN
-			INSERT INTO property (calculation_def_uuid, calculation_alias_name, in_val, in_opt_val, out_val, actor_uuid, status_uuid)
+			INSERT INTO calculation (calculation_def_uuid, calculation_alias_name, in_val, in_opt_val, out_val, actor_uuid, status_uuid)
 				VALUES(NEW.calculation_def_uuid, NEW.in_val, NEW.in_opt_val, NEW.OUT_val, NEW.actor_uuid, NEW.status_uuid) returning calculation_uuid into NEW.calculation_uuid;
 			RETURN NEW;
 		END IF;
@@ -1732,8 +1724,8 @@ Notes:
  
 Example:		insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid) 
 					values (
-						(select workflow_type_uuid from vw_workflow_type where description = 'workflowtype_test'),
-						'workflow_test',
+						(select workflow_type_uuid from vw_workflow_type where description = 'template'),
+						'workflow_test_2',
 						(select actor_uuid from vw_actor where description = 'T Testuser'),
 						null);
 				update vw_workflow set status_uuid = (select status_uuid from vw_status where description = 'active') where description = 'workflow_test'; 
@@ -2220,7 +2212,7 @@ CREATE OR REPLACE FUNCTION upsert_action()
 	AS $$
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
-	    -- delete the asssociated parameter records
+	    -- delete the associated parameter records
 		DELETE FROM vw_parameter 
 		WHERE ref_parameter_uuid = OLD.action_uuid;	
 	    -- then delete the action record
@@ -2443,8 +2435,6 @@ BEGIN
 		SET
 			condition_def_uuid = NEW.condition_def_uuid,
 			calculation_def_uuid = NEW.calculation_def_uuid,
-			actor_uuid = NEW.actor_uuid,
-			status_uuid = NEW.status_uuid,
 			mod_date = now()
 		WHERE
 			condition_calculation_def_x.condition_calculation_def_x_uuid = NEW.condition_calculation_def_x_uuid;
@@ -2480,8 +2470,6 @@ Example:       	insert into vw_condition
 				update vw_condition set 
 					in_val = (ARRAY[(SELECT put_val ((select get_type_def ('data', 'num')), '120', 'C'))]) where condition_description = 'temp > threshold ?'; 
 				delete from vw_condition where condition_description = 'temp > threshold ?';
-
-
 */
 CREATE OR REPLACE FUNCTION upsert_condition()
  	RETURNS TRIGGER
@@ -2656,9 +2644,9 @@ Notes:
  
 Example:		insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid) 
 					values (
-						1, 
+						2, 
 						(select experiment_uuid from vw_experiment where description = 'test_experiment'),
-						(select workflow_uuid from vw_workflow where description = 'test_workflow'));
+						(select workflow_uuid from vw_workflow where description = 'workflow_test_2'));
  				delete from vw_experiment_workflow 
  					where experiment_uuid = (select experiment_uuid from vw_experiment where description = 'test_experiment');
  */
@@ -2677,14 +2665,14 @@ BEGIN
 		RETURN OLD;
 	ELSIF (TG_OP = 'UPDATE') THEN
 		UPDATE
-			experiment		
+			experiment_workflow
 		SET
 			experiment_workflow_seq = NEW.experiment_workflow_seq,
 			experiment_uuid = NEW.experiment_uuid,
 			workflow_uuid = NEW.workflow_uuid,
 			mod_date = now()
 		WHERE
-			experiment.experiment_uuid = NEW.experiment_uuid;
+			experiment_workflow.experiment_uuid = NEW.experiment_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid)
@@ -2815,6 +2803,186 @@ BEGIN
 						composite_uuid = (SELECT material_uuid from vw_inventory where 
 						inventory_uuid = NEW.inventory_uuid);
 		END IF;
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			upsert_workflow_action_set()
+Parameters:		
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.12.01
+Description:	trigger proc that deletes or inserts (no updates!) workflow_action_set record based on TG_OP (trigger operation)
+Notes:			this will build a workflow of repeating action with one-to-many or many-to-many materials, varying parameter (explicit or calculation)	
+ 
+Example:		-- insert a one-to-many workflow_action_set (one source into many destinations)
+				insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid) 
+					values (
+						(select workflow_type_uuid from vw_workflow_type where description = 'template'),
+						'test_workflow_action_set',
+						(select actor_uuid from vw_actor where description = 'Ion Bond'),
+						(select status_uuid from vw_status where description = 'dev_test'));
+				-- associate it with an experiment
+				insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid) 
+					values (
+						1, 
+						(select experiment_uuid from vw_experiment where description = 'test_experiment'),
+						(select workflow_uuid from vw_workflow where description = 'test_workflow_action_set'));
+
+				insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration, repeating, 
+													parameter_def_uuid, parameter_val, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid) values (
+						'dispense action_set',
+						(select workflow_uuid from vw_workflow where description = 'test_workflow_action_set'),
+						(select action_def_uuid from vw_action_def where description = 'dispense'),
+						null, null, null, null,
+						(select parameter_def_uuid from vw_action_parameter_def where description = 'dispense' and parameter_description = 'volume'),
+						array[(select put_val ((select val_type_uuid from vw_parameter_def where description = 'volume'),'10.1',
+													(select valunit from vw_parameter_def where description = 'volume'))),
+												(select put_val ((select val_type_uuid from vw_parameter_def where description = 'volume'),'9.2',
+													(select valunit from vw_parameter_def where description = 'volume'))), 
+												(select put_val ((select val_type_uuid from vw_parameter_def where description = 'volume'),'8.3',
+													(select valunit from vw_parameter_def where description = 'volume')))],
+						array[(select bom_material_uuid from vw_bom_material where bom_material_description = 'HCl-12M')],
+						array[
+							(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# B1'),
+							(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# B2'),
+							(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# B3')],						
+						(select actor_uuid from vw_actor where description = 'Ion Bond'),
+						(select status_uuid from vw_status where description = 'dev_test')
+						); 
+						
+						-- this is a many to many example; with a single parameter value
+						insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration, repeating, 
+													parameter_def_uuid, parameter_val, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid) values (
+						'dispense action_set',
+						(select workflow_uuid from vw_workflow where description = 'test_workflow_action_set'),
+						(select action_def_uuid from vw_action_def where description = 'dispense'),
+						null, null, null, null,
+						(select parameter_def_uuid from vw_action_parameter_def where description = 'dispense' and parameter_description = 'volume'),
+						array[(select put_val ((select val_type_uuid from vw_parameter_def where description = 'volume'),'50',
+													(select valunit from vw_parameter_def where description = 'volume')))],
+						array[
+							(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# A1'),
+							(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# A2'),
+							(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# A3')],
+						array[
+							(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# B1'),
+							(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# B2'),
+							(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# B3')],						
+						(select actor_uuid from vw_actor where description = 'Ion Bond'),
+						(select status_uuid from vw_status where description = 'dev_test')
+						); 	
+						
+						delete from vw_workflow_action_set where workflow_uuid = (select workflow_uuid from vw_workflow where description = 'test_workflow_action_set');			
+ */	
+CREATE OR REPLACE FUNCTION upsert_workflow_action_set()
+	RETURNS TRIGGER
+	AS $$
+DECLARE
+	_s_uuid uuid;
+	_d_uuid uuid;
+	_val_len int := array_length(NEW.parameter_val, 1);
+	_val_cnt int := 1;
+	_action_uuid uuid;
+	_step_uuid uuid := null;
+	_object_uuid uuid; 
+	_src_cnt int := 1;
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		-- working backwards...
+		-- delete the workflow_step
+		delete from workflow_step cascade where workflow_uuid = OLD.workflow_uuid;
+		-- delete the workflow_object 
+		delete from workflow_object where workflow_uuid = OLD.workflow_uuid;	
+		-- delete the vw_action_parameter
+		delete from action where workflow_uuid = OLD.workflow_uuid;
+		-- now delete the workflow_action_set record
+		DELETE FROM workflow_action_set
+		WHERE workflow_action_set_uuid = OLD.workflow_action_set_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- delete any assigned records
+		PERFORM delete_assigned_recs (OLD.workflow_action_set_uuid);
+		RETURN OLD;
+	ELSIF (TG_OP = 'INSERT') THEN
+		-- first insert into workflow_action_set
+		insert into workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration, repeating, 
+											parameter_def_uuid, parameter_val, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid) VALUES
+			(NEW.description, NEW.workflow_uuid, NEW.action_def_uuid, NEW.start_date, NEW.end_date, NEW.duration, NEW.repeating, 
+				NEW.parameter_def_uuid, NEW.parameter_val, NEW.source_material_uuid, NEW.destination_material_uuid, 
+				NEW.actor_uuid, NEW.status_uuid) returning workflow_action_set_uuid into NEW.workflow_action_set_uuid; 
+		
+		-- now build the actions in the workflow
+		-- check to see if this is a one to many (one source to many dest) 
+		-- if more than one element in source array then it's a positional ([1] -> [1]) loop
+		IF (array_length(NEW.source_material_uuid, 1) = 1) THEN
+			_s_uuid := NEW.source_material_uuid[1];
+			-- go through the loop for every destination material
+			FOREACH _d_uuid IN ARRAY NEW.destination_material_uuid
+			LOOP 
+	        	insert into vw_action (action_def_uuid, workflow_uuid, action_description, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid)
+	            values (NEW.action_def_uuid, NEW.workflow_uuid, 
+	            	concat(NEW.description, ': ',(select bom_material_description from vw_bom_material where bom_material_uuid = _s_uuid), ' -> ', 
+	            					(select bom_material_description from vw_bom_material where bom_material_uuid = _d_uuid)),
+	            	_s_uuid, _d_uuid, NEW.actor_uuid, NEW.status_uuid) returning action_uuid into _action_uuid;
+				-- assign parameter value
+				update vw_action_parameter set 
+					parameter_val = (select put_val (
+	            		(select val_type_uuid from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid),
+	             		(select val_val from get_val (NEW.parameter_val[_val_cnt])),
+	            		(select valunit from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid)))    
+	            where action_uuid = _action_uuid;	
+				-- create the workflow_object
+				insert into vw_workflow_object (workflow_uuid, action_uuid) 
+					values (NEW.workflow_uuid, _action_uuid) returning workflow_object_uuid into _object_uuid;				
+				-- create the workflow_step
+				insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid) 
+					values (NEW.workflow_uuid, _object_uuid, _step_uuid, NEW.status_uuid) returning workflow_step_uuid into _step_uuid;	
+				-- increment the parameter pointer
+				IF _val_cnt < _val_len 
+					THEN _val_cnt := _val_cnt + 1; 
+				END IF;	
+			
+			END LOOP;
+		ELSIF (array_length(NEW.source_material_uuid, 1) > 0 and array_length(NEW.destination_material_uuid, 1) > 0) THEN
+			-- check to make sure there are 1 or more elements in each array
+			-- this will loop through the source array for as many times as there are assoc dest elements
+			FOREACH _s_uuid IN ARRAY NEW.source_material_uuid
+			LOOP
+				_d_uuid := NEW.destination_material_uuid[_src_cnt]; 
+	        	insert into vw_action (action_def_uuid, workflow_uuid, action_description, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid)
+	            values (NEW.action_def_uuid, NEW.workflow_uuid, 
+	            	concat(NEW.description, ': ',(select bom_material_description from vw_bom_material where bom_material_uuid = _s_uuid), ' -> ', 
+	            					(select bom_material_description from vw_bom_material where bom_material_uuid = _d_uuid)),
+	            	_s_uuid, _d_uuid,
+	            	(select actor_uuid from vw_actor where description = 'Ion Bond'),
+	            	(select status_uuid from vw_status where description = 'dev_test')) returning action_uuid into _action_uuid;
+				-- assign parameter value
+				update vw_action_parameter set 
+					parameter_val = (select put_val (
+	            		(select val_type_uuid from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid),
+	             		(select val_val from get_val (NEW.parameter_val[1])),
+	            		(select valunit from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid)))    
+	            where action_uuid = _action_uuid;				
+				-- create the workflow_object
+				insert into vw_workflow_object (workflow_uuid, action_uuid) 
+					values (NEW.workflow_uuid, _action_uuid) returning workflow_object_uuid into _object_uuid;
+				-- create the workflow_step
+				insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid) 
+					values (NEW.workflow_uuid, _object_uuid, _step_uuid, NEW.status_uuid) returning workflow_step_uuid into _step_uuid;
+				-- increment the source element pointer; bail if it is greater than the destination count
+				_src_cnt := _src_cnt + 1;
+				IF _src_cnt > array_length(NEW.destination_material_uuid, 1) THEN
+					EXIT;
+				END IF;
+			END LOOP; 
+		END IF;	
 		RETURN NEW;
 	END IF;
 END;
