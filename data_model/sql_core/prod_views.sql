@@ -1857,6 +1857,156 @@ ON c.condition_uuid = p.condition_uuid;
 
 
 ----------------------------------------
+-- view experiment
+-- DROP VIEW vw_experiment cascade
+----------------------------------------
+CREATE OR REPLACE VIEW vw_experiment AS
+SELECT
+	ex.experiment_uuid,
+	ex.ref_uid,
+	ex.description,
+	ex.parent_uuid,
+	ex.parent_path,
+	ex.owner_uuid,
+	aown.description as owner_description,
+	ex.operator_uuid,
+	aop.description as operator_description,
+	ex.lab_uuid,
+	alab.description as lab_description,
+	ex.status_uuid,
+	st.description as status_description,
+	ex.add_date,
+	ex.mod_date
+FROM experiment ex
+LEFT JOIN vw_actor aown ON ex.owner_uuid = aown.actor_uuid
+LEFT JOIN vw_actor aop ON ex.owner_uuid = aop.actor_uuid
+LEFT JOIN vw_actor alab ON ex.owner_uuid = alab.actor_uuid
+LEFT JOIN status st ON ex.status_uuid = st.status_uuid
+;
+
+DROP TRIGGER IF EXISTS trigger_experiment_upsert ON vw_experiment;
+CREATE TRIGGER trigger_experiment_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_experiment
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_experiment ( );
+
+
+CREATE OR REPLACE VIEW vw_exp_spec_def AS
+SELECT
+    es.exp_spec_def_uuid,
+    es.exp_ref_uuid,
+    es.description,
+    es.add_date,
+    es.mod_date
+FROM exp_spec_def es;
+
+
+CREATE OR REPLACE VIEW vw_exp_spec_parameter_def_assign AS
+SELECT
+       espdx.exp_spec_def_uuid,
+       espdx.parameter_def_uuid
+FROM exp_spec_parameter_def_x espdx;
+
+----------------------------------------
+-- view workflow_type
+-- DROP VIEW vw_workflow_type
+----------------------------------------
+CREATE OR REPLACE VIEW vw_workflow_type AS
+SELECT
+	wt.workflow_type_uuid,
+	wt.description,
+	wt.add_date,
+	wt.mod_date
+FROM
+	workflow_type wt
+ORDER BY
+	2;
+
+DROP TRIGGER IF EXISTS trigger_workflow_type_upsert ON vw_workflow_type;
+CREATE TRIGGER trigger_workflow_type_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_workflow_type
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_workflow_type ( );
+
+
+----------------------------------------
+-- view workflow
+-- DROP VIEW vw_workflow
+----------------------------------------
+CREATE OR REPLACE VIEW vw_workflow AS
+SELECT
+	wf.workflow_uuid,
+	wf.description,
+	wf.parent_uuid,
+	wf.workflow_type_uuid,
+	wt.description as workflow_type_description,
+	wf.actor_uuid,
+    act.description as actor_description,	
+	wf.status_uuid,
+	st.description as status_description, 
+	wf.add_date,
+	wf.mod_date
+FROM
+	workflow wf
+LEFT JOIN vw_workflow_type wt ON wf.workflow_type_uuid = wt.workflow_type_uuid
+LEFT JOIN vw_actor act ON wf.actor_uuid = act.actor_uuid
+LEFT JOIN status st ON wf.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_workflow_upsert ON vw_workflow;
+CREATE TRIGGER trigger_workflow_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_workflow
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_workflow ( );
+
+
+----------------------------------------
+-- view experiment_experiment
+-- DROP VIEW vw_experiment_workflow cascade
+----------------------------------------
+CREATE OR REPLACE VIEW vw_experiment_workflow AS
+SELECT
+	ew.experiment_workflow_uuid,
+	e.experiment_uuid,
+	e.ref_uid as experiment_ref_uid,
+	e.description as experiment_description,
+	e.parent_uuid as experiment_parent_uuid,
+	e.owner_uuid as experiment_owner_uuid,
+	e.owner_description as experiment_owner_description,
+	e.operator_uuid as experiment_operator_uuid,
+	e.operator_description as experiment_operator_description,
+	e.lab_uuid as experiment_lab_uuid,
+	e.lab_description as experiment_lab_description,
+	e.status_uuid as experiment_status_uuid,
+	e.status_description as experiment_status_description,
+	e.add_date as experiment_add_date,
+	e.mod_date as experiment_mod_date,
+	ew.experiment_workflow_seq,
+	w.workflow_uuid as workflow_uuid,
+	w.description as workflow_description,
+	w.workflow_type_uuid,
+	w.workflow_type_description,
+	w.actor_uuid as workflow_actor_uuid,
+	w.actor_description as workflow_actor_description,
+	w.status_uuid as workflow_status_uuid,
+	w.status_description as workflow_status_description,
+	w.add_date as workflow_add_date,
+	w.mod_date as workflow_mod_date
+FROM experiment_workflow ew 
+LEFT JOIN vw_experiment e ON ew.experiment_uuid = e.experiment_uuid 
+LEFT JOIN vw_workflow w ON ew.workflow_uuid = w.workflow_uuid;
+
+
+DROP TRIGGER IF EXISTS trigger_experiment_workflow_upsert ON vw_experiment_workflow;
+CREATE TRIGGER trigger_experiment_workflow_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_experiment_workflow
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_experiment_workflow ( );
+
+----------------------------------------
 -- view workflow_object
 -- DROP VIEW vw_workflow_object
 ----------------------------------------

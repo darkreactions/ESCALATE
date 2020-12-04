@@ -2,14 +2,14 @@
 /*
 Name:			prod_tables
 Parameters:		none
-Returns:			
+Returns:
 Author:			G. Cattabriga
 Date:			2020.01.23
 Description:	create the production tables, primary keys and comments for ESCALATE v3
 Notes:			triggers, foreign keys and other constraints are in other sql files
- 				20200123: remove the measure and measure type entities - measure will be part 
+ 				20200123: remove the measure and measure type entities - measure will be part
  				of the originating entity
- 				20200130: add measure, measure_type back in, and also add the xref table 
+ 				20200130: add measure, measure_type back in, and also add the xref table
 				 measure_x
  */
 --======================================================================
@@ -18,7 +18,7 @@ Notes:			triggers, foreign keys and other constraints are in other sql files
 -- CREATE SCHEMA dev;
 --======================================================================
 --======================================================================
- -- EXTENSIONS 
+ -- EXTENSIONS
 --======================================================================
 --======================================================================
 -- CREATE EXTENSION if not exists ltree with schema dev;
@@ -28,13 +28,13 @@ Notes:			triggers, foreign keys and other constraints are in other sql files
 -- set search_path = dev, public;
 
 DROP EXTENSION IF EXISTS pgtap CASCADE;
- 
+
 --======================================================================
 --======================================================================
- -- DROP TYPES 
+ -- DROP TYPES
 --======================================================================
 --======================================================================
-DROP TYPE IF EXISTS val cascade; 
+DROP TYPE IF EXISTS val cascade;
 DROP TYPE IF EXISTS type_def_category cascade;
 
 
@@ -52,7 +52,7 @@ DECLARE
    _sql text;
 BEGIN
 	SELECT INTO _sql
-		string_agg(format('DROP %s %s cascade;', 
+		string_agg(format('DROP %s %s cascade;',
 		CASE prokind
 			WHEN 'f' THEN 'FUNCTION'
 			WHEN 'a' THEN 'AGGREGATE'
@@ -61,13 +61,13 @@ BEGIN
 		, oid::regprocedure), E'\n')
 	FROM   pg_proc
 	WHERE  pronamespace = 'dev'::regnamespace  -- schema name here!
-	AND proname like any (array['get%', 'put%', 'upsert%', 'load_%'])  
+	AND proname like any (array['get%', 'put%', 'upsert%', 'load_%'])
    	-- AND prokind = ANY ('{f,a,p}')         -- optionally filter kinds
    	;
    	IF _sql IS NOT NULL THEN
    	--   RAISE NOTICE '%', _sql;  -- debug / check first
 		EXECUTE _sql;         -- uncomment payload once you are sure
-   	ELSE 
+   	ELSE
 		RAISE NOTICE 'No functions found in schema';
    	END IF;
 END
@@ -89,7 +89,7 @@ DECLARE
    _sql text;
 BEGIN
 	SELECT INTO _sql
-		string_agg(format('DROP VIEW IF EXISTS %s cascade;', 
+		string_agg(format('DROP VIEW IF EXISTS %s cascade;',
 		viewname), E'\n')
 	FROM   pg_catalog.pg_views
 	where schemaname = 'dev'  -- schema name here!
@@ -97,7 +97,7 @@ BEGIN
    	IF _sql IS NOT NULL THEN
    		-- RAISE NOTICE '%', _sql;  -- debug / check first
 		EXECUTE _sql;         -- uncomment payload once you are sure
-   	ELSE 
+   	ELSE
 		RAISE NOTICE 'No views found in schema';
    	END IF;
 END
@@ -107,7 +107,7 @@ $do$;
 
 --======================================================================
 --======================================================================
- -- DROP TABLES 
+ -- DROP TABLES
 --======================================================================
 --======================================================================
 DROP TABLE IF EXISTS action cascade;
@@ -116,7 +116,7 @@ DROP TABLE IF EXISTS action_parameter_def_x cascade;
 DROP TABLE IF EXISTS actor cascade;
 DROP TABLE IF EXISTS actor_pref cascade;
 DROP TABLE IF EXISTS bom cascade; 
-DROP TABLE IF EXISTS bom_material cascade; 
+DROP TABLE IF EXISTS bom_material cascade;
 DROP TABLE IF EXISTS calculation cascade;
 DROP TABLE IF EXISTS calculation_class cascade;
 DROP TABLE IF EXISTS calculation_def cascade;
@@ -151,14 +151,14 @@ DROP TABLE IF EXISTS outcome_x cascade;
 DROP TABLE IF EXISTS parameter cascade;
 DROP TABLE IF EXISTS parameter_def cascade;
 DROP TABLE IF EXISTS parameter_x cascade;
-DROP TABLE IF EXISTS person cascade; 
+DROP TABLE IF EXISTS person cascade;
 DROP TABLE IF EXISTS property cascade;
 DROP TABLE IF EXISTS property_def cascade;
 DROP TABLE IF EXISTS property_x cascade;
 DROP TABLE IF EXISTS status cascade;
 DROP TABLE IF EXISTS systemtool cascade;
 DROP TABLE IF EXISTS systemtool_type cascade;
-DROP TABLE IF EXISTS sys_audit cascade; 
+DROP TABLE IF EXISTS sys_audit cascade;
 DROP TABLE IF EXISTS tag cascade;
 DROP TABLE IF EXISTS tag_type cascade;
 DROP TABLE IF EXISTS tag_x cascade;
@@ -177,13 +177,13 @@ DROP TABLE IF EXISTS workflow_type cascade;
 
 --======================================================================
 --======================================================================
--- CREATE DATA TYPES 
+-- CREATE DATA TYPES
 --======================================================================
 --======================================================================
 -- define (enumerate) the value types where hierarchy is separated by '_' with simple data types (int, num, text) as single phrase; treat 'array' like a fifo stack
 -- CREATE TYPE val_type AS ENUM ('int', 'array_int', 'num', 'array_num', 'text', 'array_text', 'blob_text', 'blob_pdf', 'blob_svg', 'blob_jpg', 'blob_png', 'blob_xrd', 'bool', 'array_bool');
 
--- define (enumerate) the type_def categories 
+-- define (enumerate) the type_def categories
 CREATE TYPE type_def_category AS ENUM ('data', 'file', 'role');
 
 
@@ -199,12 +199,12 @@ CREATE TYPE val AS (
 	v_edocument_uuid uuid,
 	v_source_uuid uuid,
 	v_bool BOOLEAN,
-	v_bool_array BOOLEAN[]	
+	v_bool_array BOOLEAN[]
 );
 
 --======================================================================
 --======================================================================
--- CREATE TABLES 
+-- CREATE TABLES
 --======================================================================
 --======================================================================
 CREATE TABLE action (
@@ -289,7 +289,7 @@ CREATE TABLE bom_material (
 	used_amt_val val,
 	putback_amt_val val,
 	actor_uuid uuid, 
-	status_uuid uuid, 
+	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -379,7 +379,7 @@ CREATE TABLE condition_def (
 
 CREATE TABLE condition_calculation_def_x (
     condition_calculation_def_x_uuid uuid DEFAULT uuid_generate_v4 (),
-  	condition_def_uuid uuid NOT NULL,	
+  	condition_def_uuid uuid NOT NULL,
  	calculation_def_uuid uuid NOT NULL,
  	add_date timestamptz NOT NULL DEFAULT NOW(),
  	mod_date timestamptz NOT NULL DEFAULT NOW()
@@ -881,7 +881,7 @@ CREATE TABLE workflow_object (
 	workflow_uuid uuid,
 	action_uuid uuid,
 	condition_uuid uuid,
-	status_uuid uuid,	
+	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -914,6 +914,36 @@ CREATE TABLE workflow_type (
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
 
+/*
+DROP TABLE exp_spec_def;
+*/
+CREATE TABLE exp_spec_def (
+    exp_spec_def_uuid uuid DEFAULT uuid_generate_v4(),
+    exp_ref_uuid uuid NOT NULL,
+    description varchar COLLATE "pg_catalog"."default" NOT NULL,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
+--DROP TABLE exp_spec_parameter_def CASCADE;
+CREATE TABLE exp_spec_parameter_def(
+    exp_spec_parameter_def_uuid uuid DEFAULT uuid_generate_v4(),
+    description varchar COLLATE "pg_catalog"."default" NOT NULL,
+    exp_spec_def_uuid uuid NOT NULL,
+    parameter_def_uuid uuid NOT NULL,
+    add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE exp_spec_material_def (
+    exp_spec_material_def_uuid uuid DEFAULT uuid_generate_v4(),
+    exp_spec_material_def_name VARCHAR NOT NULL,
+    exp_spec_def_uuid uuid NOT NULL,
+    add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
 
 /*
 -- ----------------------------
@@ -934,11 +964,11 @@ CREATE TABLE workflow_type (
 -- CREATE TABLE escalate_version (
  ver_uuid uuid DEFAULT uuid_generate_v4 (),
  short_name varchar COLLATE "pg_catalog"."default",
- description varchar COLLATE "pg_catalog"."default",	
+ description varchar COLLATE "pg_catalog"."default",
  add_date timestamptz NOT NULL DEFAULT NOW()
 -- );
  */
- 
+
 --======================================================================
 --======================================================================
 -- PRIMARY KEYS and CONSTRAINTS
@@ -1344,23 +1374,42 @@ CLUSTER workflow_type
 USING "pk_workflow_type_workflow_type_uuid";
 
 
+ALTER TABLE exp_spec_def
+	ADD CONSTRAINT "pk_exp_spec_def_exp_spec_def_uuid" PRIMARY KEY (exp_spec_def_uuid);
+		--ADD CONSTRAINT "un_exp_spec_def" UNIQUE (description);
+CLUSTER exp_spec_def
+USING "pk_exp_spec_def_exp_spec_def_uuid";
+
+ALTER TABLE exp_spec_parameter_def
+ADD CONSTRAINT "pk_exp_spec_parameter_def_exp_spec_parameter_def_uuid" PRIMARY KEY (exp_spec_parameter_def_uuid),
+    ADD CONSTRAINT "un_exp_spec_parameter_def_def" UNIQUE (description, exp_spec_def_uuid, parameter_def_uuid);
+CLUSTER exp_spec_parameter_def
+USING "pk_exp_spec_parameter_def_exp_spec_parameter_def_uuid";
+
+
+ALTER TABLE exp_spec_material_def
+	ADD CONSTRAINT "pk_exp_spec_material_def_exp_spec_material_def_uuid" PRIMARY KEY (exp_spec_material_def_uuid);
+CLUSTER exp_spec_material_def
+USING "pk_exp_spec_material_def_exp_spec_material_def_uuid";
+
+
 /*
-ALTER TABLE escalate_change_log 
+ALTER TABLE escalate_change_log
  ADD CONSTRAINT "pk_escalate_change_log_uuid" PRIMARY KEY (change_log_uuid);
 CLUSTER escalate_change_log USING "pk_escalate_change_log_uuid";
 
-ALTER TABLE escalate_version 
+ALTER TABLE escalate_version
  ADD CONSTRAINT "pk_escalate_version_uuid" PRIMARY KEY (ver_uuid),
  ADD CONSTRAINT "un_escalate_version" UNIQUE (ver_uuid, short_name);
 CLUSTER escalate_version USING "pk_escalate_version_uuid";
  */
- 
- 
+
+
 --======================================================================
 --======================================================================
 -- FOREIGN KEYS
 --======================================================================
---======================================================================	
+--======================================================================
 ALTER TABLE action_def
 	ADD CONSTRAINT fk_action_def_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
 		ADD CONSTRAINT fk_action_def_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
@@ -1378,7 +1427,7 @@ ALTER TABLE action
 				ADD CONSTRAINT fk_action_source_material_1 FOREIGN KEY (source_material_uuid) REFERENCES bom_material (bom_material_uuid),
 					ADD CONSTRAINT fk_action_destination_material_1 FOREIGN KEY (destination_material_uuid) REFERENCES bom_material (bom_material_uuid),
 						ADD CONSTRAINT fk_action_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
-							ADD CONSTRAINT fk_action_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);	
+							ADD CONSTRAINT fk_action_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
 
 ALTER TABLE actor
@@ -1418,7 +1467,7 @@ ALTER TABLE calculation_def
 		ADD CONSTRAINT fk_calculation_def_systemtool_1 FOREIGN KEY (systemtool_uuid) REFERENCES systemtool (systemtool_uuid),
 			ADD CONSTRAINT fk_calculation_def_in_type_1 FOREIGN KEY (in_type_uuid) REFERENCES type_def (type_def_uuid),
 				ADD CONSTRAINT fk_calculation_def_in_opt_type_1 FOREIGN KEY (in_opt_type_uuid) REFERENCES type_def (type_def_uuid),
-					ADD CONSTRAINT fk_calculation_def_opt_type_1 FOREIGN KEY (out_type_uuid) REFERENCES type_def (type_def_uuid),				
+					ADD CONSTRAINT fk_calculation_def_opt_type_1 FOREIGN KEY (out_type_uuid) REFERENCES type_def (type_def_uuid),
 						ADD CONSTRAINT fk_calculation_def_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid);
 
 
@@ -1426,7 +1475,7 @@ ALTER TABLE calculation_eval
 	ADD CONSTRAINT fk_calculation_eval_calculation_def_1 FOREIGN KEY (calculation_def_uuid) REFERENCES calculation_def (calculation_def_uuid),
 		ADD CONSTRAINT fk_calculation_eval_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid);
 
-		
+
 ALTER TABLE condition
 	ADD CONSTRAINT fk_condition_condition_calculation_def_x_1 FOREIGN KEY (condition_calculation_def_x_uuid) REFERENCES condition_calculation_def_x (condition_calculation_def_x_uuid),
 		ADD CONSTRAINT fk_condition_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
@@ -1528,12 +1577,12 @@ ALTER TABLE parameter
 		ADD CONSTRAINT fk_parameter_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
 
-ALTER TABLE parameter_def 
+ALTER TABLE parameter_def
  ADD CONSTRAINT fk_parameter_def_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
 	ADD CONSTRAINT fk_parameter_def_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
 
-ALTER TABLE parameter_x 
+ALTER TABLE parameter_x
 	ADD CONSTRAINT fk_parameter_x_parameter_1 FOREIGN KEY (parameter_uuid) REFERENCES parameter (parameter_uuid);
 
 
@@ -1541,17 +1590,18 @@ ALTER TABLE person
 	ADD CONSTRAINT fk_person_organization_1 FOREIGN KEY (organization_uuid) REFERENCES organization (organization_uuid);
 
 
-ALTER TABLE property 
+ALTER TABLE property
  ADD CONSTRAINT fk_property_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
 	ADD CONSTRAINT fk_property_property_def_1 FOREIGN KEY (property_def_uuid) REFERENCES property_def (property_def_uuid),
 		ADD CONSTRAINT fk_property_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
-ALTER TABLE property_def 
+ALTER TABLE property_def
  ADD CONSTRAINT fk_property_def_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
 	ADD CONSTRAINT fk_property_def_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid),
 			ADD CONSTRAINT fk_property_def_val_type_1 FOREIGN KEY (val_type_uuid) REFERENCES type_def (type_def_uuid);
 
-ALTER TABLE property_x 
+
+ALTER TABLE property_x
 	ADD CONSTRAINT fk_property_x_property_1 FOREIGN KEY (property_uuid) REFERENCES property (property_uuid);
 
 
@@ -1582,7 +1632,7 @@ ALTER TABLE udf_x
 
 
 ALTER TABLE workflow
-	ADD CONSTRAINT fk_workflow_type_1 FOREIGN KEY (workflow_type_uuid) REFERENCES  workflow_type (workflow_type_uuid),	
+	ADD CONSTRAINT fk_workflow_type_1 FOREIGN KEY (workflow_type_uuid) REFERENCES  workflow_type (workflow_type_uuid),
 		ADD CONSTRAINT fk_workflow_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
 			ADD CONSTRAINT fk_workflow_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
@@ -1613,6 +1663,16 @@ ALTER TABLE workflow_step
 		ADD CONSTRAINT fk_workflow_step_object_1 FOREIGN KEY (workflow_object_uuid) REFERENCES workflow_object (workflow_object_uuid),
 					ADD CONSTRAINT fk_workflow_step_parent_1 FOREIGN KEY (parent_uuid) REFERENCES workflow_step (workflow_step_uuid);
 
+ALTER TABLE exp_spec_def
+    ADD CONSTRAINT fk_exp_spec_exp_1 FOREIGN KEY (exp_ref_uuid) REFERENCES experiment (experiment_uuid);
+
+
+ALTER TABLE exp_spec_parameter_def
+ 	ADD CONSTRAINT fk_exp_spec_parameter_def_exp_spec_def_1 FOREIGN KEY (exp_spec_def_uuid) REFERENCES exp_spec_def (exp_spec_def_uuid),
+         ADD CONSTRAINT fk_exp_spec_parameter_def_parameter_def_1 FOREIGN KEY (parameter_def_uuid) REFERENCES parameter_def (parameter_def_uuid);
+
+ALTER TABLE exp_spec_material_def
+    ADD CONSTRAINT fk_exp_spec_material_def_exp_spec_def_1 FOREIGN KEY (exp_spec_def_uuid) REFERENCES exp_spec_def (exp_spec_def_uuid);
 
 --======================================================================
 --======================================================================
