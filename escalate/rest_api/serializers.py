@@ -55,11 +55,11 @@ class TagNoteSerializer(DynamicFieldsModelSerializer):
     tags = SerializerMethodField()
     notes = SerializerMethodField()
     def get_notes(self, obj):
-        notes = core.models.Note.objects.filter(note_x__ref_note_uuid=obj.uuid)
+        notes = core.models.Note.objects.filter(note_x_note__ref_note=obj.uuid)
         result_serializer = NoteSerializer(notes, many=True)
         return result_serializer.data
     def get_tags(self, obj):
-        tags = core.models.Tag.objects.filter(tag_x__ref_tag_uuid=obj.uuid)
+        tags = core.models.Tag.objects.filter(tag_x_tag__ref_tag=obj.uuid)
         result_serializer = TagSerializer(tags, many=True)
         return result_serializer.data
 
@@ -73,7 +73,7 @@ class EdocumentSerializer(TagNoteSerializer, DynamicFieldsModelSerializer):
     class Meta:
         model = core.models.Edocument
         fields = ('uuid', 'title', 'description', 'filename',
-                  'source', 'edoc_type', 'download_link', 'actor_uuid', 'actor_description', 'tags')
+                  'source', 'edoc_type', 'download_link', 'actor', 'actor_description', 'tags')
 
 
     def get_download_link(self, obj):

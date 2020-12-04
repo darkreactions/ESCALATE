@@ -17,8 +17,8 @@ class SystemtoolList(GenericModelList):
     column_necessary_fields = {
         'Name': ['systemtool_name'],
         'Description': ['description'],
-        'System Tool Type': ['systemtool_type_uuid'],
-        'Vendor Organization': ['vendor_organization_uuid']
+        'System Tool Type': ['systemtool_type'],
+        'Vendor Organization': ['vendor_organization']
     }
     order_field = 'systemtool_name'
     field_contains = ''

@@ -155,7 +155,7 @@ class GenericModelEdit:
             print('Found context!!!')
             model = context[self.context_object_name]
             context['note_forms'] = self.NoteFormSet(
-                queryset=Note.objects.filter(ref_note_uuid=model.pk), prefix='note')
+                queryset=Note.objects.filter(note_x_note__ref_note=model.pk), prefix='note')
             context['tag_select_form'] = TagSelectForm(model_pk=model.pk)
         else:
             print('DID NOT find context!!!')
@@ -204,11 +204,11 @@ class GenericModelEdit:
             submitted_tags = self.request.POST.getlist('tags')
             # tags from db with a tag_x that connects the model and the tags
             existing_tags = Tag.objects.filter(pk__in=Tag_X.objects.filter(
-                ref_tag_uuid=self.object.pk).values_list('tag_uuid', flat=True))
+                ref_tag=self.object.pk).values_list('tag', flat=True))
             for tag in existing_tags:
                 if tag not in submitted_tags:
                     # delete tag_x for existing tags that are no longer used
-                    Tag_X.objects.filter(tag_uuid=tag).delete()
+                    Tag_X.objects.filter(tag=tag).delete()
             for tag in submitted_tags:
                 # make tag_x for existing tags that are now used
                 if tag not in existing_tags:
@@ -216,15 +216,15 @@ class GenericModelEdit:
                     # get actual tag obj with that uuid
                     tag_obj = Tag.objects.get(pk=tag)
                     tag_x = Tag_X()
-                    tag_x.tag_uuid = tag_obj
-                    tag_x.ref_tag_uuid = self.object.pk
+                    tag_x.tag = tag_obj
+                    tag_x.ref_tag = self.object.pk
                     tag_x.add_date = tag_obj.add_date
                     tag_x.mod_date = tag_obj.mod_date
                     tag_x.save()
 
         if self.NoteFormSet != None:
             actor = Actor.objects.get(
-                person_uuid=self.request.user.person.pk)
+                person=self.request.user.person.pk)
             formset = self.NoteFormSet(self.request.POST, prefix='note')
             # print(request.POST)
             # Loop through every note form
@@ -234,9 +234,9 @@ class GenericModelEdit:
                     if self.request.user.is_authenticated:
                         # Get the appropriate actor and then add it to the note
                         note = form.save(commit=False)
-                        note.actor_uuid = actor
+                        note.actor = actor
                         # Get the appropriate uuid of the record being changed.
-                        note.ref_note_uuid = self.object.pk
+                        note.note_x_note.ref_note = self.object.pk
                         note.save()
             # Delete each note we marked in the formset
             formset.save(commit=False)
@@ -295,7 +295,7 @@ class GenericModelView(DetailView):
             detail_data[field] = obj_detail
 
         # get notes
-        notes_raw = Note.objects.filter(ref_note_uuid=obj.pk)
+        notes_raw = Note.objects.filter(note_x_note__ref_note=obj.pk)
         notes = []
         for note in notes_raw:
             notes.append('-' + note.notetext)
@@ -303,7 +303,7 @@ class GenericModelView(DetailView):
 
         # get tags
         tags_raw = Tag.objects.filter(pk__in=Tag_X.objects.filter(
-            ref_tag_uuid=obj.pk).values_list('tag_uuid', flat=True))
+            ref_tag=obj.pk).values_list('tag', flat=True))
         tags = []
         for tag in tags_raw:
             tags.append(tag.display_text.strip())

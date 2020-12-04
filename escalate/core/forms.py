@@ -35,7 +35,7 @@ class PersonForm(forms.ModelForm):
         model = Person
         fields = ['first_name', 'middle_name', 'last_name', 'address1',
                   'address2', 'city', 'state_province', 'zip', 'country',
-                  'phone', 'email', 'title', 'suffix', 'organization_uuid']
+                  'phone', 'email', 'title', 'suffix', 'organization']
         field_classes = {
 
             'first_name': forms.CharField,
@@ -67,12 +67,12 @@ class PersonForm(forms.ModelForm):
             'email': 'E-mail',
             'title': 'Title',
             'suffix': 'Suffix',
-            'organization_uuid': 'Organization'
+            'organization': 'Organization'
         }
 
         help_texts = {
             'phone': 'Include extension number and/or country code if applicable',
-            'organization_uuid': 'If applicable, select the organization this person belongs to'
+            'organization': 'If applicable, select the organization this person belongs to'
         }
 
         widgets = {
@@ -89,35 +89,49 @@ class PersonForm(forms.ModelForm):
             'email': forms.TextInput(attrs={'placeholder': 'Ex: example@gmail.com'}),
             'title': forms.TextInput(attrs={'placeholder': 'Your title'}),
             'suffix': forms.TextInput(attrs={'placeholder': 'Your suffix'}),
-            'organization_uuid': forms.Select(attrs=dropdown_attrs)
+            'organization': forms.Select(attrs=dropdown_attrs)
         }
 
 
 class MaterialForm(forms.ModelForm):
     class Meta:
         model = Material
-        fields = ['chemical_name', 'abbreviation', 'inchi', 'inchikey',
-                  'molecular_formula', 'smiles',
-                  'material_status_uuid']
-        field_classes = {
-            'create_date': forms.SplitDateTimeField,
+        fields = ['status']
+        """
             'abbreviation': forms.CharField,
             'chemical_name': forms.CharField,
             'inchi': forms.CharField,
             'inchikey': forms.CharField,
             'molecular_formula': forms.CharField,
             'smiles': forms.CharField
+        """
+        field_classes = {
+            'create_date': forms.SplitDateTimeField,
+            
         }
-        labels = {
-            'create_date': 'Create date',
-            'abbreviation': 'Abbreviation',
+        """
+                    'abbreviation': 'Abbreviation',
             'chemical_name': 'Chemical name',
             'inchi': 'International Chemical Identifier (InChI)',
             'inchikey': 'International Chemical Identifier key (InChI key)',
             'molecular_formula': 'Molecular formula',
             'smiles': 'Smiles',
-            'material_status_uuid': 'Status'
+        """
+        labels = {
+            'create_date': 'Create date',
+            'material_status': 'Status'
         }
+        """
+        'abbreviation': forms.TextInput(attrs={'placeholder': 'Ex: Water'}),
+            'chemical_name': forms.TextInput(attrs={
+                'placeholder': 'Ex: Dihydrogen Monoxide'}),
+            'inchi': forms.TextInput(attrs={'placeholder': 'Ex: 1S/H2O/h1H2'}),
+            'inchikey': forms.TextInput(attrs={
+                'placeholder': 'Ex: XLYOFNOQVPJJNP-UHFFFAOYSA-N'}),
+            'molecular_formula': forms.TextInput(attrs={
+                'placeholder': 'Ex: H2O'}),
+            'smiles': forms.TextInput(attrs={'placeholder': 'Ex: O'}),
+        """
         widgets = {
             'create_date': forms.SplitDateTimeWidget(
                 date_format='%d-%m-%Y',
@@ -129,56 +143,43 @@ class MaterialForm(forms.ModelForm):
                     'placeholder': 'HH-MM'
                 }
             ),
-            'abbreviation': forms.TextInput(attrs={'placeholder': 'Ex: Water'}),
-            'chemical_name': forms.TextInput(attrs={
-                'placeholder': 'Ex: Dihydrogen Monoxide'}),
-            'inchi': forms.TextInput(attrs={'placeholder': 'Ex: 1S/H2O/h1H2'}),
-            'inchikey': forms.TextInput(attrs={
-                'placeholder': 'Ex: XLYOFNOQVPJJNP-UHFFFAOYSA-N'}),
-            'molecular_formula': forms.TextInput(attrs={
-                'placeholder': 'Ex: H2O'}),
-            'smiles': forms.TextInput(attrs={'placeholder': 'Ex: O'}),
-            'material_status_uuid': forms.Select(attrs=dropdown_attrs),
+            
+            'material_status': forms.Select(attrs=dropdown_attrs),
         }
 
 
 class InventoryForm(forms.ModelForm):
     class Meta:
         model = Inventory
-        fields = ['material_uuid', 'actor_uuid', 'part_no',
-                  'onhand_amt', 'unit', 'expiration_date',
-                  'inventory_location', 'status_uuid']
+        fields = ['material', 'actor', 'part_no',
+                  'onhand_amt',  'expiration_date',
+                  'location', 'status']
 
         field_classes = {
             'description': forms.CharField,
             'part_no': forms.CharField,
-            'onhand_amt': forms.DecimalField,
-            'unit': forms.CharField,
+            'onhand_amt': forms.CharField,
             'expiration_date': forms.SplitDateTimeField,
-            'inventory_location': forms.CharField
+            'location': forms.CharField
         }
         labels = {
             'description': 'Description',
-            'material_uuid': 'Material',
-            'actor_uuid': 'Actor',
+            'material': 'Material',
+            'actor': 'Actor',
             'part_no': 'Part Number',
             'onhand_amt': 'On hand amount',
-            'unit': 'Unit',
             'expiration_date': 'Expiration date',
-            'inventory_location': 'Inventory location'
+            'location': 'Inventory location'
         }
         widgets = {
-            'material_uuid': forms.Select(attrs=dropdown_attrs),
-            'actor_uuid': forms.Select(attrs=dropdown_attrs),
+            'material': forms.Select(attrs=dropdown_attrs),
+            'actor': forms.Select(attrs=dropdown_attrs),
             'description': forms.Textarea(attrs={'rows': '3',
                                                  'cols': '10',
                                                  'placeholder': 'Description'}),
 
             'part_no': forms.TextInput(attrs={'placeholder': 'Part number'}),
-            'onhand_amt': forms.NumberInput(attrs={'value': '0.01',
-                                                   'min': '0.00',
-                                                   'step': '0.01'}),
-            'unit': forms.TextInput(attrs={'placeholder': 'Ex: g for grams'}),
+            'onhand_amt': forms.TextInput(attrs={'placeholder': 'On hand amount'}),
             'expiration_date': forms.SplitDateTimeWidget(
                 date_format='%d-%m-%Y',
                 date_attrs={
@@ -189,9 +190,9 @@ class InventoryForm(forms.ModelForm):
                     'placeholder': 'HH-MM'
                 }
             ),
-            'inventory_location': forms.TextInput(attrs={
+            'location': forms.TextInput(attrs={
                 'placeholder': 'Location'}),
-            'status_uuid': forms.Select(attrs=dropdown_attrs),
+            'status': forms.Select(attrs=dropdown_attrs),
         }
 
 
@@ -199,23 +200,23 @@ class ActorForm(forms.ModelForm):
     class Meta:
         model = Actor
 
-        fields = ['person_uuid', 'organization_uuid', 'systemtool_uuid',
-                  'description', 'status_uuid']
+        fields = ['person', 'organization', 'systemtool',
+                  'description', 'status']
 
         field_classes = {
             'description': forms.CharField
         }
         labels = {
-            'person_uuid': 'Person',
-            'organization_uuid': 'Organization',
-            'systemtool_uuid': 'Systemtool',
+            'person': 'Person',
+            'organization': 'Organization',
+            'systemtool': 'Systemtool',
             'description': 'Actor description',
-            'status_uuid': 'Actor status'
+            'status': 'Actor status'
         }
         help_texts = {
-            'person_uuid': 'Select if actor is a person',
-            'organization_uuid': 'Select if actor is an organization',
-            'systemtool_uuid': 'Select if actor is a systemtool'
+            'person': 'Select if actor is a person',
+            'organization': 'Select if actor is an organization',
+            'systemtool': 'Select if actor is a systemtool'
         }
         widgets = {
 
@@ -223,10 +224,10 @@ class ActorForm(forms.ModelForm):
                 'rows': '3',
                 'cols': '10',
                 'placeholder': 'Your description'}),
-            'person_uuid': forms.Select(attrs=dropdown_attrs),
-            'organization_uuid': forms.Select(attrs=dropdown_attrs),
-            'systemtool_uuid': forms.Select(attrs=dropdown_attrs),
-            'status_uuid': forms.Select(attrs=dropdown_attrs),
+            'person': forms.Select(attrs=dropdown_attrs),
+            'organization': forms.Select(attrs=dropdown_attrs),
+            'systemtool': forms.Select(attrs=dropdown_attrs),
+            'status': forms.Select(attrs=dropdown_attrs),
 
         }
 
@@ -236,7 +237,7 @@ class OrganizationForm(forms.ModelForm):
         model = Organization
         fields = ['full_name', 'short_name', 'description', 'address1',
                   'address2', 'city', 'state_province', 'zip', 'country',
-                  'website_url', 'phone', 'parent_uuid']
+                  'website_url', 'phone', 'parent']
         field_classes = {
             'full_name': forms.CharField,
             'short_name': forms.CharField,
@@ -263,7 +264,7 @@ class OrganizationForm(forms.ModelForm):
             'country': 'Country',
             'website_url': 'Website URL',
             'phone': 'Phone',
-            'parent_uuid': 'Parent Organization',
+            'parent': 'Parent Organization',
             'parent_org_full_name': 'Parent Organization full name'
 
         }
@@ -298,15 +299,15 @@ class OrganizationForm(forms.ModelForm):
                 'placeholder': 'Ex: https://example.com'}),
             'phone': forms.TextInput(attrs={
                 'placeholder': 'Ex: 1-234-567-8900/12345678900'}),
-            'parent_uuid': forms.Select(attrs=dropdown_attrs),
+            'parent': forms.Select(attrs=dropdown_attrs),
         }
 
 
 class LatestSystemtoolForm(forms.ModelForm):
     class Meta:
         model = Systemtool
-        fields = ['systemtool_name', 'description', 'systemtool_type_uuid',
-                  'vendor_organization_uuid', 'model', 'serial', 'ver']
+        fields = ['systemtool_name', 'description', 'systemtool_type',
+                  'vendor_organization', 'model', 'serial', 'ver']
         field_classes = {
             'systemtool_name': forms.CharField,
             'description': forms.CharField,
@@ -320,8 +321,8 @@ class LatestSystemtoolForm(forms.ModelForm):
             'model': 'Model',
             'serial': 'Serial number',
             'ver': 'Version',
-            'systemtool_type_uuid': 'System tool type',
-            'vendor_organization_uuid': 'Vendor Organization'
+            'systemtool_type': 'System tool type',
+            'vendor_organization': 'Vendor Organization'
         }
        # help_texts = {
       #  }
@@ -340,7 +341,7 @@ class LatestSystemtoolForm(forms.ModelForm):
                 'placeholder': 'Your system tool serial number Ex:Y291325'}),
             'ver': forms.TextInput(attrs={
                 'placeholder': 'Your system tool current version Ex: 1.06'}),
-            'systemtool_type_uuid': forms.Select(attrs=dropdown_attrs),
+            'systemtool_type': forms.Select(attrs=dropdown_attrs),
         }
 
 
@@ -402,12 +403,12 @@ class StatusForm(forms.ModelForm):
 class TagForm(forms.ModelForm):
     class Meta:
         model = Tag
-        fields = ['display_text', 'description', 'actor_uuid', 'tag_type_uuid']
+        fields = ['display_text', 'description', 'actor', 'tag_type']
         labels = {
             'display_text': 'Tag Name',
             'description': 'Tag Description',
-            'actor_uuid': 'Actor',
-            'tag_type_uuid': 'Tag Type Name'
+            'actor': 'Actor',
+            'tag_type': 'Tag Type Name'
         }
         widgets = {
             'display_text': forms.TextInput(attrs={
@@ -464,7 +465,7 @@ class TagSelectForm(forms.Form):
         if 'model_pk' in kwargs:
             model_pk = kwargs.pop('model_pk')
             current_tags = Tag.objects.filter(pk__in=Tag_X.objects.filter(
-                ref_tag_uuid=model_pk).values_list('tag_uuid', flat=True))
+                ref_tag=model_pk).values_list('tag', flat=True))
         else:
             current_tags = Tag.objects.none()
         super(TagSelectForm, self).__init__(*args, **kwargs)

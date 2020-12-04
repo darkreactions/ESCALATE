@@ -29,31 +29,32 @@ methods = {
                           'Part Number', 'On Hand Amount', 'Create Date', 'Expiration Date',
                           'Inventory Location', 'Status'],
         'detail_fields_need_fields': {
-            'Inventory Description': ['inventory_description'],
+            'Inventory Description': ['description'],
             'Actor Description': ['actor_description'],
             'Material Description': ['material_description'],
             'Part Number': ['part_no'],
             'On Hand Amount': ['onhand_amt'],
             'Create Date': ['add_date'],
             'Expiration Date': ['expiration_date'],
-            'Inventory Location': ['inventory_location'],
+            'Inventory Location': ['location'],
             'Status': ['status_description']
         },
     },
     'Material': {
         'model': core.models.Material,
         'model_name': 'material',
-        'detail_fields': ['Chemical Name', 'Abbreviation', 'Molecular Formula', 'InChI',
-                          'InChI Key', 'Smiles', 'Create Date', 'Status'],
+        #'detail_fields': ['Chemical Name', 'Abbreviation', 'Molecular Formula', 'InChI',
+        #                  'InChI Key', 'Smiles', 'Create Date', 'Status'],
+        'detail_fields': ['Create Date', 'Status'],
         'detail_fields_need_fields': {
-            'Chemical Name': ['chemical_name'],
-            'Abbreviation': ['abbreviation'],
-            'Molecular Formula': ['molecular_formula'],
-            'InChI': ['inchi'],
-            'InChI Key': ['inchikey'],
-            'Smiles': ['smiles'],
+            #'Chemical Name': ['chemical_name'],
+            #'Abbreviation': ['abbreviation'],
+            #'Molecular Formula': ['molecular_formula'],
+            #'InChI': ['inchi'],
+            #'InChI Key': ['inchikey'],
+            #'Smiles': ['smiles'],
             'Create Date': ['add_date'],
-            'Status': ['material_status_description']
+            'Status': ['status_description']
         },
     },
     'Systemtool': {

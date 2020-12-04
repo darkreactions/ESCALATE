@@ -7,10 +7,9 @@ from django.shortcuts import render, HttpResponse
 from django.http import Http404, FileResponse
 
 # Rest Imports
-from rest_framework.decorators import api_view
+
 from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.reverse import reverse
+
 from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView, ListCreateAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.mixins import CreateModelMixin
@@ -37,18 +36,7 @@ def save_actor_on_post(self, serializer):
     actor = Actor.objects.get(person_uuid=self.request.user.person)
     serializer.save(actor_uuid=actor, actor_description=actor.description)
 
-@api_view(['GET'])
-@docstring(rest_docs['api_root'])
-def api_root(request, format=None):
 
-    response_object = {}
-
-    for view_name in view_names:
-        name = camel_case(view_name)
-        response_object[name] = reverse(
-            name+'-list', request=request, format=format)
-
-    return Response(response_object)
 
 
 """

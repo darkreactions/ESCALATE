@@ -21,24 +21,25 @@ methods = {
         'context_object_name': 'inventorys',
         'table_columns': ['Description', 'Status', 'Material', 'On Hand Amount', 'Actions'],
         'column_necessary_fields': {
-            'Description': ['inventory_description'],
+            'Description': ['description'],
             'Status': ['status_description'],
             'Material': ['material_description'],
             'On Hand Amount': ['onhand_amt']
         },
-        'order_field': 'inventory_description',
+        'order_field': 'description',
         'field_contains': '',
     },
     'Material': {
         'model': core.models.Material,
         'context_object_name': 'materials',
-        'table_columns': ['Chemical Name', 'Abbreviation', 'Status', 'Actions'],
+        #'table_columns': ['Chemical Name', 'Abbreviation', 'Status', 'Actions'],
+        'table_columns': ['Status', 'Actions'],
         'column_necessary_fields': {
-            'Chemical Name': ['chemical_name'],
-            'Abbreviation': ['abbreviation'],
-            'Status': ['material_status_description']
+            #'Chemical Name': ['chemical_name'],
+            #'Abbreviation': ['abbreviation'],
+            'Status': ['status_description']
         },
-        'order_field': 'chemical_name',
+        'order_field': 'status_description',
         'field_contains': '',
 
     },
@@ -50,8 +51,8 @@ methods = {
         'column_necessary_fields': {
             'Name': ['systemtool_name'],
             'Description': ['description'],
-            'System Tool Type': ['systemtool_type_uuid'],
-            'Vendor Organization': ['vendor_organization_uuid']
+            'System Tool Type': ['systemtool_type'],
+            'Vendor Organization': ['vendor_organization']
         },
         'order_field': 'systemtool_name',
         'field_contains': '',
@@ -119,7 +120,7 @@ methods = {
             'Name': ['display_text'],
             'Description': ['description'],
             'Actor': ['actor_description'],
-            'Tag Type': ['tag_type_uuid']
+            'Tag Type': ['tag_type']
         },
         'order_field': 'display_text',
         'field_contains': '',
