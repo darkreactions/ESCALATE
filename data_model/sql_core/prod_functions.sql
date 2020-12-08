@@ -43,7 +43,7 @@ Parameters:		none
 Returns:		table of column and non-null counts
 Author:			G. Cattabriga
 Date:			2019.01.01
-Description:	counts the number of occurances (non-null) in each row of _table
+Description:	counts the number of occurrences (non-null) in each row of _table
 Notes:
 Example:		select c.t_column_name as col_name, c.t_count as count from get_column_count( 'load_v2_bromides') c;
 
@@ -54,17 +54,17 @@ CREATE OR REPLACE FUNCTION get_column_count (_table varchar)
 	LANGUAGE plpgsql
 	AS $BODY$
 DECLARE
-	p_tabname varchar := $1;
-	v_sql_statement text;
+	_tabname varchar := $1;
+	_sql_statement text;
 BEGIN
 	SELECT
-		STRING_AGG('SELECT ''' || column_name || ''',' || ' count("' || column_name || '")  FROM ' || table_name, ' UNION ALL ') INTO v_sql_statement
+		STRING_AGG('SELECT ''' || column_name || ''',' || ' count("' || column_name || '")  FROM ' || table_name, ' UNION ALL ') INTO _sql_statement
 	FROM
 		information_schema.columns
 	WHERE
-		table_name = p_tabname;
-	IF v_sql_statement IS NOT NULL THEN
-		RETURN QUERY EXECUTE v_sql_statement;
+		table_name = _tabname;
+	IF _sql_statement IS NOT NULL THEN
+		RETURN QUERY EXECUTE _sql_statement;
 	END IF;
 END
 $BODY$;
@@ -76,9 +76,9 @@ $BODY$;
 -- drop trigger_set_timestamp triggers
 DO $$
 DECLARE
-	t text;
+	_t text;
 BEGIN
-	FOR t IN
+	FOR _t IN
 	SELECT
 		table_name
 	FROM
@@ -86,7 +86,7 @@ BEGIN
 	WHERE
 		column_name = 'mod_date'
 		AND table_schema = 'dev' LOOP
-			EXECUTE format('DROP TRIGGER IF EXISTS set_timestamp ON %I', t);
+			EXECUTE format('DROP TRIGGER IF EXISTS set_timestamp ON %I', _t);
 		END LOOP;
 END;
 $$
@@ -95,9 +95,9 @@ LANGUAGE plpgsql;
 -- create trigger_set_timestamp triggers
 DO $$
 DECLARE
-	t text;
+	_t text;
 BEGIN
-	FOR t IN
+	FOR _t IN
 	SELECT
 		table_name
 	FROM
@@ -107,7 +107,7 @@ BEGIN
 		AND table_schema = 'dev' LOOP
 			EXECUTE format('CREATE TRIGGER set_timestamp
                          BEFORE UPDATE ON %I
-                         FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp()', t);
+                         FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp()', _t);
 		END LOOP;
 END;
 $$
@@ -141,13 +141,13 @@ CREATE OR REPLACE FUNCTION if_modified_func ()
 	RETURNS TRIGGER
 	AS $body$
 DECLARE
-	audit_row sys_audit;
-	excluded_cols text [] = ARRAY []::text [];
+	_audit_row sys_audit;
+	_excluded_cols text [] = ARRAY []::text [];
 BEGIN
 	IF TG_WHEN <> 'AFTER' THEN
 		RAISE EXCEPTION 'if_modified_func() may only run as an AFTER trigger';
 	END IF;
-	audit_row = ROW (nextval('sys_audit_event_id_seq'), -- event_id
+	_audit_row = ROW (nextval('sys_audit_event_id_seq'), -- event_id
 		TG_TABLE_SCHEMA::text, -- schema_name
 		TG_TABLE_NAME::text, -- table_name
 		TG_RELID, -- relation OID for much quicker searches
@@ -166,33 +166,32 @@ BEGIN
 		'f' -- statement_only
 );
 	IF NOT TG_ARGV [0]::boolean IS DISTINCT FROM 'f'::boolean THEN
-		audit_row.client_query = NULL;
+		_audit_row.client_query = NULL;
 	END IF;
 	IF TG_ARGV [1] IS NOT NULL THEN
-		excluded_cols = TG_ARGV [1]::text [];
+		_excluded_cols = TG_ARGV [1]::text [];
 	END IF;
 	IF(TG_OP = 'UPDATE' AND TG_LEVEL = 'ROW') THEN
-		audit_row.row_data = hstore (OLD.*) - excluded_cols;
-		audit_row.changed_fields = (hstore (NEW.*) - audit_row.row_data) - excluded_cols;
-		IF audit_row.changed_fields = hstore ('') THEN
+		_audit_row.row_data = hstore (OLD.*) - _excluded_cols;
+		_audit_row.changed_fields = (hstore (NEW.*) - _audit_row.row_data) - _excluded_cols;
+		IF _audit_row.changed_fields = hstore ('') THEN
 			-- All changed fields are ignored. Skip this update.
 			RETURN NULL;
 		END IF;
 	ELSIF (TG_OP = 'DELETE'
 			AND TG_LEVEL = 'ROW') THEN
-		audit_row.row_data = hstore (OLD.*) - excluded_cols;
+		_audit_row.row_data = hstore (OLD.*) - _excluded_cols;
 	ELSIF (TG_OP = 'INSERT'
 			AND TG_LEVEL = 'ROW') THEN
-		audit_row.row_data = hstore (NEW.*) - excluded_cols;
+		_audit_row.row_data = hstore (NEW.*) - _excluded_cols;
 	ELSIF (TG_LEVEL = 'STATEMENT'
 			AND TG_OP IN('INSERT', 'UPDATE', 'DELETE', 'TRUNCATE')) THEN
-		audit_row.statement_only = 't';
+		_audit_row.statement_only = 't';
 	ELSE
 		RAISE EXCEPTION '[if_modified_func] - Trigger func added as trigger for unhandled case: %, %', TG_OP, TG_LEVEL;
-		RETURN NULL;
 	END IF;
 	INSERT INTO sys_audit
-		VALUES(audit_row.*);
+		VALUES(_audit_row.*);
 	RETURN NULL;
 END;
 $body$
@@ -219,7 +218,7 @@ CREATE OR REPLACE FUNCTION audit_table (target_table regclass, audit_rows boolea
 	RETURNS void
 	AS $body$
 DECLARE
-	stm_targets text = 'INSERT OR UPDATE OR DELETE OR TRUNCATE';
+	_stm_targets text = 'INSERT OR UPDATE OR DELETE OR TRUNCATE';
 	_q_txt text;
 	_ignored_cols_snip text = '';
 BEGIN
@@ -232,10 +231,10 @@ BEGIN
 		_q_txt = 'CREATE TRIGGER audit_trigger_row AFTER INSERT OR UPDATE OR DELETE ON ' || target_table || ' FOR EACH ROW EXECUTE PROCEDURE if_modified_func(' || quote_literal(audit_query_text) || _ignored_cols_snip || ');';
 		RAISE NOTICE '%', _q_txt;
 		EXECUTE _q_txt;
-		stm_targets = 'TRUNCATE';
+		_stm_targets = 'TRUNCATE';
 	ELSE
 	END IF;
-	_q_txt = 'CREATE TRIGGER audit_trigger_stm AFTER ' || stm_targets || ' ON ' || target_table || ' FOR EACH STATEMENT EXECUTE PROCEDURE if_modified_func(' || quote_literal(audit_query_text) || ');';
+	_q_txt = 'CREATE TRIGGER audit_trigger_stm AFTER ' || _stm_targets || ' ON ' || target_table || ' FOR EACH STATEMENT EXECUTE PROCEDURE if_modified_func(' || quote_literal(audit_query_text) || ');';
 	RAISE NOTICE '%', _q_txt;
 	EXECUTE _q_txt;
 END;
@@ -329,27 +328,27 @@ CREATE OR REPLACE FUNCTION read_file_utf8 (path CHARACTER VARYING)
 	RETURNS TEXT
 	AS $$
 DECLARE
-	var_file_oid OID;
-	var_record RECORD;
-	var_result BYTEA := '';
-	var_resultt TEXT;
+	_file_oid OID;
+	_record RECORD;
+	_result BYTEA := '';
+	_resultt TEXT;
 BEGIN
 	SELECT
-		lo_import(path) INTO var_file_oid;
-	FOR var_record IN(
+		lo_import(path) INTO _file_oid;
+	FOR _record IN(
 		SELECT
 			data FROM pg_largeobject
 		WHERE
-			loid = var_file_oid
+			loid = _file_oid
 		ORDER BY
 			pageno)
 	LOOP
-		var_result = var_result || var_record.data;
+		_result = _result || _record.data;
 	END LOOP;
 	PERFORM
-		lo_unlink(var_file_oid);
-	var_resultt = regexp_replace(convert_from(var_result, 'utf8'), E'[\\n\\r] +', '', 'g');
-	RETURN var_resultt;
+		lo_unlink(_file_oid);
+	_resultt = regexp_replace(convert_from(_result, 'utf8'), E'[\\n\\r] +', '', 'g');
+	RETURN _resultt;
 END;
 $$
 LANGUAGE plpgsql;
@@ -368,25 +367,25 @@ CREATE OR REPLACE FUNCTION read_file (path CHARACTER VARYING)
 	RETURNS TEXT
 	AS $$
 DECLARE
-	var_file_oid OID;
-	var_record RECORD;
-	var_result BYTEA := '';
+	_file_oid OID;
+	_record RECORD;
+	_result BYTEA := '';
 BEGIN
 	SELECT
-		lo_import(path) INTO var_file_oid;
-	FOR var_record IN(
+		lo_import(path) INTO _file_oid;
+	FOR _record IN(
 		SELECT
 			data FROM pg_largeobject
 		WHERE
-			loid = var_file_oid
+			loid = _file_oid
 		ORDER BY
 			pageno)
 	LOOP
-		var_result = var_result || var_record.data;
+		_result = _result || _record.data;
 	END LOOP;
 	PERFORM
-		lo_unlink(var_file_oid);
-	RETURN var_result;
+		lo_unlink(_file_oid);
+	RETURN _result;
 END;
 $$
 LANGUAGE plpgsql;
@@ -940,7 +939,6 @@ $$
 LANGUAGE plpgsql;
 
 
-
 /*
 Name:			get_val (p_in val)
 Parameters:		p_in = value of composite type 'val'
@@ -1061,7 +1059,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-
 /*
 Name:			put_val (p_type_uuid uuid, p_val anyelement, p_unit text )
 Parameters:		p_type is the data type as defined by val_type enum, p_val is the value to be inserted, p_unit is the unit in text
@@ -1087,36 +1084,79 @@ CREATE OR REPLACE FUNCTION put_val (p_type_uuid uuid, p_val text, p_unit text )
 	RETURNS val
 	AS $$
 DECLARE
-	out_val val;
+	_out_val val;
 	_p_type varchar;
 BEGIN
 	select description into _p_type from vw_type_def where type_def_uuid = p_type_uuid;
-	out_val.v_type_uuid = p_type_uuid;
-	out_val.v_unit = p_unit::text;
+	_out_val.v_type_uuid = p_type_uuid;
+	_out_val.v_unit = p_unit::text;
 	IF _p_type = 'int' THEN
-		out_val.v_int = p_val::int8;
+		_out_val.v_int = p_val::int8;
 	ELSIF _p_type = 'array_int' THEN
-		out_val.v_int_array = p_val::int8[];
+		_out_val.v_int_array = p_val::int8[];
 	ELSIF _p_type = 'num' THEN
-		out_val.v_num = p_val::numeric;
+		_out_val.v_num = p_val::numeric;
 	ELSIF _p_type = 'array_num' THEN
-		out_val.v_num_array = p_val::numeric[];
+		_out_val.v_num_array = p_val::numeric[];
 	ELSIF _p_type = 'text' THEN
-		out_val.v_text = p_val::text;
+		_out_val.v_text = p_val::text;
 	ELSIF _p_type = 'array_text' THEN
-		out_val.v_text = p_val::text[];
+		_out_val.v_text = p_val::text[];
 	ELSIF _p_type::text LIKE 'blob%' THEN
-		out_val.v_edocument_uuid = p_val::uuid;
+		_out_val.v_edocument_uuid = p_val::uuid;
 	ELSIF _p_type = 'bool' THEN
-		out_val.v_bool = p_val::BOOLEAN;
+		_out_val.v_bool = p_val::BOOLEAN;
 	ELSIF _p_type = 'array_bool' THEN
-		out_val.v_bool_array = p_val::BOOLEAN[];
+		_out_val.v_bool_array = p_val::BOOLEAN[];
 	END IF;
-	RETURN out_val;
+	RETURN _out_val;
 END;
 $$
 LANGUAGE plpgsql;
 
+
+/*
+Name:			arr_val_2_val_arr (arr_val val)
+Parameters:		the arr of vals (in a val)
+Returns:		array of val
+Author:			G. Cattabriga
+Date:			12.07.2020
+Description:	function to convert an array (in a val) to an array of val's
+Notes:			will only work with array types: array_bool, array_int, array_num, array_text
+
+Example:        select arr_val_2_val_arr ((select out_val from vw_calculation where short_name = 'LANL_WF1_H2O_5mL_concentration'));
+*/
+-- DROP FUNCTION IF EXISTS arr_val_2_val_arr (arr_val val) cascade;
+CREATE OR REPLACE FUNCTION arr_val_2_val_arr (arr_val val)
+	RETURNS val[]
+	AS $$
+DECLARE
+    _arr_unit text := (select val_unit from get_val(arr_val));
+    _arr_val text[] := (select val_val::text[] from get_val(arr_val));
+    _arr_type text := (select val_unit from get_val(arr_val));
+    _loop_txt text;
+    _out_element int := 1;
+    _out_val val[];
+    _out_type_uuid uuid;
+    _type_def_uuid uuid := arr_val.v_type_uuid;
+BEGIN
+    IF arr_val.v_type_uuid in (select _type_def_uuid from vw_type_def where category = 'data' and description like 'array_%') THEN
+        CASE _arr_type
+            WHEN 'array_bool' THEN _out_type_uuid := (select type_def_uuid from vw_type_def where category = 'data' and description like 'bool');
+            WHEN 'array_int' THEN _out_type_uuid := (select type_def_uuid from vw_type_def where category = 'data' and description like 'int');
+            WHEN 'array_num' THEN _out_type_uuid := (select type_def_uuid from vw_type_def where category = 'data' and description like 'num');
+            ELSE _out_type_uuid := (select type_def_uuid from vw_type_def where category = 'data' and description like 'text');
+        END CASE;
+		FOREACH _loop_txt IN ARRAY _arr_val
+            LOOP
+                _out_val[_out_element] := put_val(_out_type_uuid, _loop_txt, _arr_unit);
+                _out_element := _out_element + 1;
+            END LOOP;
+    END IF;
+	RETURN _out_val;
+END;
+$$
+LANGUAGE plpgsql;
 
 
 /*
@@ -1136,15 +1176,15 @@ CREATE OR REPLACE FUNCTION get_chemaxon_directory (p_systemtool_uuid uuid, p_act
 	RETURNS TEXT
 	AS $$
 DECLARE
-	v_descr_name varchar;
+	_descr_name varchar;
 BEGIN
 	SELECT
-		st.systemtool_name INTO v_descr_name
+		st.systemtool_name INTO _descr_name
 	FROM
 		systemtool st
 	WHERE
 		st.systemtool_uuid = p_systemtool_uuid;
-	CASE v_descr_name
+	CASE _descr_name
 	WHEN 'cxcalc',
 	'standardize',
 	'molconvert' THEN
@@ -1188,19 +1228,19 @@ Example:		select get_chemaxon_version((select systemtool_uuid from systemtool wh
 -- DROP FUNCTION IF EXISTS get_chemaxon_version ( p_systemtool_uuid int8, p_actor_uuid uuid ) cascade;
 CREATE OR REPLACE FUNCTION get_chemaxon_version ( p_systemtool_uuid uuid, p_actor_uuid uuid ) RETURNS TEXT AS $$ 
 DECLARE
-	v_descr_name varchar;
-	v_descr_dir varchar;
+	_descr_name varchar;
+	_descr_dir varchar;
 BEGIN
 	DROP TABLE IF EXISTS load_temp;
 	CREATE TEMP TABLE load_temp ( help_string VARCHAR ) ON COMMIT DROP ;
-	SELECT st.systemtool_name INTO v_descr_name FROM systemtool st WHERE st.systemtool_uuid = p_systemtool_uuid;
-	CASE v_descr_name 
+	SELECT st.systemtool_name INTO _descr_name FROM systemtool st WHERE st.systemtool_uuid = p_systemtool_uuid;
+	CASE _descr_name
 			WHEN 'cxcalc','standardize','molconvert' THEN
-				SELECT ap.pvalue INTO v_descr_dir FROM actor_pref ap WHERE ap.actor_uuid = p_actor_uuid AND ap.pkey = 'MARVINSUITE_DIR';	
+				SELECT ap.pvalue INTO _descr_dir FROM actor_pref ap WHERE ap.actor_uuid = p_actor_uuid AND ap.pkey = 'MARVINSUITE_DIR';
 			WHEN 'generatemd' THEN
-				SELECT ap.pvalue INTO v_descr_dir FROM actor_pref ap WHERE ap.actor_uuid = p_actor_uuid AND ap.pkey = 'CHEMAXON_DIR';		
+				SELECT ap.pvalue INTO _descr_dir FROM actor_pref ap WHERE ap.actor_uuid = p_actor_uuid AND ap.pkey = 'CHEMAXON_DIR';
 	END CASE;
-	EXECUTE format ( 'COPY load_temp FROM PROGRAM ''%s%s -h'' ', v_descr_dir, v_descr_name );
+	EXECUTE format ( 'COPY load_temp FROM PROGRAM ''%s%s -h'' ', _descr_dir, _descr_name );
 	RETURN ( SELECT SUBSTRING ( help_string FROM '[0-9]{1,2}[.][0-9]{1,2}[.][0-9]{1,2}' ) FROM load_temp WHERE SUBSTRING ( help_string FROM '[0-9]{1,2}[.][0-9]{1,2}[.][0-9]{1,2}' ) IS NOT NULL );
 END;
 $$ LANGUAGE plpgsql;
@@ -1240,17 +1280,17 @@ CREATE OR REPLACE FUNCTION run_descriptor (p_descriptor_def_uuid uuid, p_alias_n
 	RETURNS BOOLEAN
 	AS $$
 DECLARE
-	v_descr_dir varchar;
-	v_descr_command varchar;
-	v_descr_param varchar;
-	v_descr_ver varchar;
-	v_temp_dir varchar;
-	v_temp_in varchar := 'temp_in.txt';
-	v_type_out varchar;
+	_descr_dir varchar;
+	_descr_command varchar;
+	_descr_param varchar;
+	_descr_ver varchar;
+	_temp_dir varchar;
+	_temp_in varchar := 'temp_in.txt';
+	_type_out varchar;
 BEGIN
 	-- assign the calculation out_type so we can properly store the calc results into calculation_eval
 	SELECT
-		out_type_uuid INTO v_type_out
+		out_type_uuid INTO _type_out
 	FROM
 		get_calculation_def (ARRAY ['standardize']);
 	DROP TABLE IF EXISTS load_temp_out;
@@ -1261,14 +1301,14 @@ BEGIN
 	--	CREATE TABLE calculation_eval(eval_id serial8, in_val val, out_val val, actor_uuid uuid, create_date timestamptz NOT NULL DEFAULT NOW());
 	-- load the variables with actor preference data; for temp directory and chemaxon directory
 	SELECT
-		INTO v_temp_dir pvalue
+		INTO _temp_dir pvalue
 	FROM
 		actor_pref act
 	WHERE
 		act.actor_uuid = p_actor_uuid
 		AND act.pkey = 'HOME_DIR';
 	SELECT
-		INTO v_descr_dir get_chemaxon_directory ((
+		INTO _descr_dir get_chemaxon_directory ((
 				SELECT
 					systemtool_uuid
 				FROM
@@ -1276,7 +1316,7 @@ BEGIN
 				WHERE
 					mdd.calculation_def_uuid = p_descriptor_def_uuid), p_actor_uuid);
 	SELECT
-		INTO v_descr_command (
+		INTO _descr_command (
 			SELECT
 				st.systemtool_name
 			FROM
@@ -1285,43 +1325,43 @@ BEGIN
 			WHERE
 				mdd.calculation_def_uuid = p_descriptor_def_uuid);
 	SELECT
-		INTO v_descr_param mdd.calc_definition
+		INTO _descr_param mdd.calc_definition
 	FROM
 		calculation_def mdd
 	WHERE
 		mdd.calculation_def_uuid = p_descriptor_def_uuid;
-	CASE v_descr_command
+	CASE _descr_command
 	WHEN 'cxcalc',
 	'standardize',
 	'generatemd' THEN
 		-- load the version of the descriptor function that will be run, this will be a future validation
 		SELECT
-			INTO v_descr_ver get_chemaxon_version ((
+			INTO _descr_ver get_chemaxon_version ((
 					SELECT
 						systemtool_uuid
 					FROM
 						systemtool
 					WHERE
-						systemtool_name = v_descr_command), p_actor_uuid);
-	-- copy the inputs from m_descriptor_eval into a text file to be read by the command
-	-- this is set to work for ONLY single text varchar input
-	EXECUTE format('copy ( select (ev.in_val).v_text from calculation_eval ev) to ''%s%s'' ', v_temp_dir, v_temp_in);
-	-- '/Users/gcattabriga/tmp/temp_chem.txt';
-	EXECUTE format('COPY load_temp_out(strout) FROM PROGRAM ''%s%s %s %s %s%s'' ', v_descr_dir, v_descr_command, p_command_opt, v_descr_param, v_temp_dir, v_temp_in);
-ELSE
-	RETURN FALSE;
+						systemtool_name = _descr_command), p_actor_uuid);
+	    -- copy the inputs from m_descriptor_eval into a text file to be read by the command
+	    -- this is set to work for ONLY single text varchar input
+	    EXECUTE format('copy ( select (ev.in_val).v_text from calculation_eval ev) to ''%s%s'' ', _temp_dir, _temp_in);
+	    -- '/Users/gcattabriga/tmp/temp_chem.txt';
+	    EXECUTE format('COPY load_temp_out(strout) FROM PROGRAM ''%s%s %s %s %s%s'' ', _descr_dir, _descr_command, p_command_opt, _descr_param, _temp_dir, _temp_in);
+    ELSE
+	    RETURN FALSE;
 	END CASE;
 	-- update the calculation_eval table with results from command execution; found in load_temp_out temp table
 	UPDATE
 		calculation_eval ev
 	SET
 		calculation_def_uuid = p_descriptor_def_uuid,
-		out_val.v_type_uuid = v_type_out::val_type,
-		out_val.v_text = CASE v_type_out
+		out_val.v_type_uuid = _type_out::val_type,
+		out_val.v_text = CASE _type_out
 		WHEN 'text' THEN
 			strout
 		END,
-		out_val.v_num = CASE v_type_out
+		out_val.v_num = CASE _type_out
 		WHEN 'num' THEN
 			strout::numeric
 		END,
@@ -1335,7 +1375,6 @@ ELSE
 	END;
 $$
 LANGUAGE plpgsql;
-
 
 
 /*
@@ -1372,11 +1411,13 @@ Parameters:		p_op = basic math operation ('+', '/', '-', '*'. etc)
 Returns:		results of math operation as NUM
 Author:			G. Cattabriga
 Date:			2020.03.13
-Description:	returns the count of [+] charges in a SMILES string 
+Description:	returns the result of a basic math operation
 Notes:			up to caller to cast into desired num type (e.g. int)
-Example:		select math_op(9, '/', 3);
+Example:		select math_op(12, '/', 6);
 				select math_op(101, '*', 11);
 				select math_op(5, '!');
+                select math_op(2, '*', (select math_op(3, '+', 4)));
+                select math_op(array[1, 2, 3], '*', 2);
 */
 -- DROP FUNCTION IF EXISTS math_op (p_op text, p_in_num numeric, p_in_opt_num numeric) cascade;
 CREATE OR REPLACE FUNCTION math_op (p_in_num numeric, p_op text, p_in_opt_num numeric DEFAULT NULL)
@@ -1387,16 +1428,54 @@ DECLARE
 BEGIN
 	CASE WHEN p_op in('/', '*', '+', '-', '%', '^', '!', '|/', '@') THEN
 		EXECUTE format('select %s %s %s', p_in_num, p_op, p_in_opt_num) INTO i;
-	RETURN i;
-ELSE
-	RETURN NULL;
+	    RETURN i;
+    ELSE
+	    RETURN NULL;
 	END CASE;
-	END;
+END;
 $$
 LANGUAGE plpgsql;
 
 
-
+/*
+Name:			math_op_array (p_in_num numeric[], p_op text, p_in_opt_num numeric default null)
+Parameters:		p_op = basic math operation ('+', '/', '-', '*'. etc)
+				p_in_num = numeric array, p_in_opt_num = numeric input values
+Returns:		results of math operation as NUM array num[]
+Author:			G. Cattabriga
+Date:			2020.12.7
+Description:	returns the result of a basic math operation on a numeric operation
+Notes:
+Example:		select math_op_arr(array[101], '*', 11);
+                select math_op_arr(array[12, 6, 4], '/', 12);
+                select math_op_arr(array[12, 6, 4, 2, 1, .1, .01, .001], '/', 12);
+                select math_op_arr((math_op_arr(array[12, 6, 4, 2, 1, .1, .01, .001], '/', 12)), '*', 5);
+                select math_op_arr((math_op_arr((math_op_arr(array[12, 6, 4, 2, 1, .1, .01, .001], '/', 12)), '*', -5)), '+', 5);
+ */
+-- DROP FUNCTION IF EXISTS math_op_arr (p_in_num numeric[], p_op text, p_in_opt_num numeric[]) cascade;
+CREATE OR REPLACE FUNCTION math_op_arr (p_in_num numeric[], p_op text, p_in_opt_num numeric DEFAULT NULL)
+	RETURNS numeric[]
+	AS $$
+DECLARE
+	_i numeric;
+    _inx int := 1;
+    _r numeric;
+    _res numeric[];
+BEGIN
+    IF p_op in('/', '*', '+', '-', '%', '^', '!', '|/', '@') THEN
+        FOREACH _i IN ARRAY p_in_num
+            LOOP
+                EXECUTE format('select %s::numeric %s %s::numeric', _i, p_op, p_in_opt_num) INTO _r;
+                _res[_inx] := _r;
+                _inx := _inx + 1;
+            END LOOP;
+        RETURN _res;
+    ELSE
+        RETURN NULL;
+    END IF;
+END;
+$$
+LANGUAGE plpgsql;
 
 /*
 Name:			delete_assigned_recs (p_ref_uuid uuid) 

@@ -1309,6 +1309,7 @@ CREATE OR REPLACE VIEW vw_bom_material AS
 SELECT
 	bm.bom_material_uuid,
 	bm.bom_uuid,
+    bm.description,
 	b.description as bom_description,
 	bm.inventory_uuid,
 	bm.material_composite_uuid,
@@ -1956,8 +1957,8 @@ SELECT
 	was.parameter_def_uuid,
 	pd.description as parameter_def_description,
 	was.parameter_val,	
-	was.calculation_def_uuid,
-	cd.description as calculation_def_description,
+	was.calculation_uuid,
+	cd.description as calculation_description,
 	was.source_material_uuid,
 	was.destination_material_uuid, 
 	was.actor_uuid,
@@ -1971,7 +1972,7 @@ FROM
 LEFT JOIN vw_workflow wf ON was.workflow_uuid = wf.workflow_uuid
 LEFT JOIN vw_action_def ad ON was.action_def_uuid = ad.action_def_uuid
 LEFT JOIN vw_parameter_def pd ON was.parameter_def_uuid = pd.parameter_def_uuid
-LEFT JOIN vw_calculation_def cd ON was.calculation_def_uuid = cd.calculation_def_uuid
+LEFT JOIN vw_calculation cd ON was.calculation_uuid = cd.calculation_uuid
 LEFT JOIN vw_actor act ON was.actor_uuid = act.actor_uuid
 LEFT JOIN status st ON was.status_uuid = st.status_uuid;
 

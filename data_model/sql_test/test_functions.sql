@@ -953,9 +953,14 @@ insert into vw_property_def (description, short_description, val_type_uuid, valu
 	'', 
 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'dev_test'));
--- first add the plate
+-- add a 24 well plate
 insert into vw_material (description, consumable, actor_uuid, status_uuid) values 
 	('Plate: 24 well', FALSE,
+	(select actor_uuid from vw_actor where description = 'Ion Bond'),
+	(select status_uuid from vw_status where description = 'dev_test'));
+-- add a 48 well plate
+insert into vw_material (description, consumable, actor_uuid, status_uuid) values
+	('Plate: 48 well', FALSE,
 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 -- add plate well
@@ -963,13 +968,21 @@ insert into vw_material (description, consumable, actor_uuid, status_uuid) value
 	('Plate well', FALSE,
 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'dev_test'));
--- assign the parent a well qty property 
+-- assign the 24 plate a well qty property
 insert into vw_material_property (material_uuid, property_def_uuid, 
 	val_val, property_actor_uuid, property_status_uuid ) values (
 	(select material_uuid from vw_material where description = 'Plate: 24 well'),
 	(select property_def_uuid from vw_property_def where short_description = 'plate_well_cnt'), 
 	'24', 
 	(select actor_uuid from vw_actor where description = 'Ion Bond'), 
+	(select status_uuid from vw_status where description = 'dev_test'));
+-- assign the 48 plate a well qty property
+insert into vw_material_property (material_uuid, property_def_uuid,
+	val_val, property_actor_uuid, property_status_uuid ) values (
+	(select material_uuid from vw_material where description = 'Plate: 48 well'),
+	(select property_def_uuid from vw_property_def where short_description = 'plate_well_cnt'),
+	'48',
+	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 -- add some hardware to material so we can use in an experiment (24 well plate)
 -- insert the well location properties A1-D6 (24)
@@ -980,27 +993,28 @@ DECLARE
 	loc_let varchar;
 	loc_num	varchar;
 	ord int := 1;
-	loc_arr_let varchar[] := array['A','C','B','D'];
-	loc_arr_num varchar[] := array['1','2','3','4','5','6'];
+	loc_arr_let varchar[] := array['A','B','C','D','E','F'];
+	loc_arr_num varchar[] := array['1','2','3','4','5','6','7','8'];
 	prop_loc_def uuid := (select property_def_uuid from vw_property_def where short_description = 'well_loc');
 	prop_vol_def uuid := (select property_def_uuid from vw_property_def where short_description = 'well_vol');
 	prop_ord_def uuid := (select property_def_uuid from vw_property_def where short_description = 'well_ord');
 	act uuid := (select actor_uuid from vw_actor where description = 'Ion Bond');
 	st uuid := (select status_uuid from vw_status where description = 'dev_test');
-	plate_uuid uuid := (select material_uuid from vw_material where description = 'Plate: 24 well');
+	plate_24_uuid uuid := (select material_uuid from vw_material where description = 'Plate: 24 well');
+    plate_48_uuid uuid := (select material_uuid from vw_material where description = 'Plate: 48 well');
 	well_uuid uuid;
 	component_uuid uuid;
 BEGIN
-	FOREACH loc_let IN ARRAY loc_arr_let
+	FOREACH loc_let IN ARRAY loc_arr_let[1:4]
 	LOOP
-		FOREACH loc_num IN ARRAY loc_arr_num
+		FOREACH loc_num IN ARRAY loc_arr_num[1:6]
    		LOOP
    			insert into vw_material (description, consumable, actor_uuid, status_uuid) values 
-				(concat('Plate: well# ',loc_let,loc_num), FALSE,
+				(concat('Plate well#: ',loc_let,loc_num), FALSE,
 				(select actor_uuid from vw_actor where description = 'Ion Bond'),
 				(select status_uuid from vw_status where description = 'dev_test')) returning material_uuid into well_uuid;
 			insert into vw_material_composite (composite_uuid, component_uuid, addressable, actor_uuid, status_uuid) values 
-				(plate_uuid, well_uuid, TRUE,
+				(plate_24_uuid, well_uuid, TRUE,
 				(select actor_uuid from vw_actor where description = 'Ion Bond'),
 				(select status_uuid from vw_status where description = 'dev_test')) returning material_composite_uuid into component_uuid;
 			insert into vw_material_property (material_uuid, property_def_uuid, 
@@ -1016,7 +1030,7 @@ BEGIN
 			insert into vw_material_property (material_uuid, property_def_uuid, 
 					val_val, property_actor_uuid, property_status_uuid ) values (
 						component_uuid, prop_vol_def, 
-						'{.5,3}', 
+						'{.5,10}',
 						act, st);
 			ord := ord + 1;
    		END LOOP;
@@ -1267,15 +1281,61 @@ insert into vw_action_parameter_def_assign (action_def_uuid, parameter_def_uuid)
         ((select action_def_uuid from vw_action_def where description = 'heat'),
         (select parameter_def_uuid from vw_parameter_def where description = 'temperature'));
 
+-- ===========================================================================
+-- set up some calculations
+-- ===========================================================================
+-- first one is for determining 12M HCL, Water for various concentrations in 5mL
+-- calc_def's first
+insert into vw_calculation_def
+	(short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid,
+	in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid )
+	values ('LANL_WF1_HCL12M_5mL_concentration', 'math_op_arr((math_op_arr(array[12, 6, 4, 2, 1, .1, .01, .001], ''/'', 12)), ''*'', 5);',
+		(select systemtool_uuid from vw_actor where systemtool_name = 'escalate'),
+		'LANL WF1: return array of mL vols for 12M HCL for 5mL target across concentration array', null, null, null, null,
+		(select type_def_uuid from vw_type_def where category = 'data' and description = 'num_array'),
+		null, (select actor_uuid from vw_actor where description = 'Dev Test123'),
+		(select status_uuid from vw_status where description = 'dev_test')
+		);
+insert into vw_calculation_def
+	(short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid,
+	in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid )
+	values ('LANL_WF1_H2O_5mL_concentration', 'math_op_arr((math_op_arr((math_op_arr(array[12, 6, 4, 2, 1, .1, .01, .001], ''/'', 12)), ''*'', -5)), ''+'', 5);',
+		(select systemtool_uuid from vw_actor where systemtool_name = 'escalate'),
+		'LANL WF1: return array of mL vols for H2O for 5mL target across concentration array', null, null, null, null,
+		(select type_def_uuid from vw_type_def where category = 'data' and description = 'num_array'),
+		null, (select actor_uuid from vw_actor where description = 'Dev Test123'),
+		(select status_uuid from vw_status where description = 'dev_test')
+		);
+-- now calculation for HCL
+insert into calculation (calculation_def_uuid, in_val, in_opt_val, out_val, actor_uuid, status_uuid) values
+(
+    (select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+    (select put_val((select get_type_def ('data', 'array_num')), '{12.0,6.0,4.0,2.0,1.0,.1,.01,.001}','')),
+    null,
+    (select put_val((select get_type_def ('data', 'array_num')), (select math_op_arr((math_op_arr(array[12, 6, 4, 2, 1, .1, .01, .001], '/', 12)), '*', 5))::text, 'mL')),
+ 	(select actor_uuid from vw_actor where description = 'Dev Test123'),
+	(select status_uuid from vw_status where description = 'dev_test')
+);
+-- calculation for H2O
+insert into calculation (calculation_def_uuid, in_val, in_opt_val, out_val, actor_uuid, status_uuid) values
+(
+    (select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_H2O_5mL_concentration'),
+    (select put_val((select get_type_def ('data', 'array_num')), '{12.0,6.0,4.0,2.0,1.0,.1,.01,.001}','')),
+    null,
+    (select put_val((select get_type_def ('data', 'array_num')), (select math_op_arr((math_op_arr((math_op_arr(array[12, 6, 4, 2, 1, .1, .01, .001], '/', 12)), '*', -5)), '+', 5))::text, 'mL')),
+ 	(select actor_uuid from vw_actor where description = 'Dev Test123'),
+	(select status_uuid from vw_status where description = 'dev_test')
+);
+
 
 -- ===========================================================================
 -- set up experiment
 -- ===========================================================================
-insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operator_uuid, lab_uuid, status_uuid) 
+insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operator_uuid, lab_uuid, status_uuid)
 	values (
-		'test_uid', 'test_experiment',
+		'test_uid', 'LANL Test Experiment Template',
 		null,
-		(select actor_uuid from vw_actor where description = 'NLC'),						
+		(select actor_uuid from vw_actor where description = 'NLC'),
 		(select actor_uuid from vw_actor where description = 'Ion Bond'),
 		(select actor_uuid from vw_actor where description = 'NLC'),
 		(select status_uuid from vw_status where description = 'dev_test'));
@@ -1284,45 +1344,50 @@ insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operat
 -- BOM
 -- =========================================================================== 
 insert into vw_bom (experiment_uuid, description, actor_uuid, status_uuid) values 
-	((select experiment_uuid from vw_experiment where description = 'test_experiment'),
-	'test_bom',					
+	((select experiment_uuid from vw_experiment where description = 'LANL Test Experiment Template'),
+	'LANL Test BOM',
 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 -- then add materials (and amounts) to BOM
-insert into vw_bom_material (bom_uuid, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
-	(select bom_uuid from vw_bom where description = 'test_bom'),
+insert into vw_bom_material (bom_uuid, description, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
+	(select bom_uuid from vw_bom where description = 'LANL Test BOM'),
+    'HCl-12M',
 	(select inventory_uuid from vw_inventory where description = 'HCl-12M'),
 	(select put_val((select get_type_def ('data', 'num')), '60.00','mL')),
 	(select put_val((select get_type_def ('data', 'num')), '0.00','mL')),
 	(select put_val((select get_type_def ('data', 'num')), '0.00','mL')),				
 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'dev_test'));
-insert into vw_bom_material (bom_uuid, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
-	(select bom_uuid from vw_bom where description = 'test_bom'),
+insert into vw_bom_material (bom_uuid, description, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
+	(select bom_uuid from vw_bom where description = 'LANL Test BOM'),
+    'H2O',
 	(select inventory_uuid from vw_inventory where description = 'Water'),
 	(select put_val((select get_type_def ('data', 'num')), '60.00','mL')),
 	(select put_val((select get_type_def ('data', 'num')), '0.00','mL')),
 	(select put_val((select get_type_def ('data', 'num')), '0.00','mL')),				
 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'dev_test'));
-insert into vw_bom_material (bom_uuid, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
-	(select bom_uuid from vw_bom where description = 'test_bom'),
+insert into vw_bom_material (bom_uuid, description, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
+	(select bom_uuid from vw_bom where description = 'LANL Test BOM'),
+    'Am-243 Stock',
 	(select inventory_uuid from vw_inventory where description = 'Am-243 Stock'),
 	(select put_val((select get_type_def ('data', 'num')), '1.20','mL')),
 	(select put_val((select get_type_def ('data', 'num')), '0.00','mL')),
 	(select put_val((select get_type_def ('data', 'num')), '0.00','mL')),				
 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'dev_test'));
-insert into vw_bom_material (bom_uuid, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
-	(select bom_uuid from vw_bom where description = 'test_bom'),
+insert into vw_bom_material (bom_uuid, description, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
+	(select bom_uuid from vw_bom where description = 'LANL Test BOM'),
+    'Resin',
 	(select inventory_uuid from vw_inventory where description = 'Resin'),
 	(select put_val((select get_type_def ('data', 'num')), '0.60','g')),
 	(select put_val((select get_type_def ('data', 'num')), '0.00','g')),
 	(select put_val((select get_type_def ('data', 'num')), '0.00','g')),				
 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'dev_test'));
-insert into vw_bom_material (bom_uuid, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
-	(select bom_uuid from vw_bom where description = 'test_bom'),
+insert into vw_bom_material (bom_uuid, description, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
+	(select bom_uuid from vw_bom where description = 'LANL Test BOM'),
+    'Sample Prep Plate',
 	(select inventory_uuid from vw_inventory where description = '24 well plate'),
 	(select put_val((select get_type_def ('data', 'int')), '1','')),
 	null,
@@ -1330,203 +1395,93 @@ insert into vw_bom_material (bom_uuid, inventory_uuid, alloc_amt_val, used_amt_v
 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 
-/*
 -- ===========================================================================
--- create a workflow 
+-- create workflows
 -- ===========================================================================
-insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid) 
+-- create workflow_action_set for H2O
+insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid)
 	values (
 		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
-		'test_workflow',
+		'LANL_WF1a_H2O_SamplePrep',
 		(select actor_uuid from vw_actor where description = 'Ion Bond'),
 		(select status_uuid from vw_status where description = 'dev_test'));
--- associate it with an experiment
-insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid) 
-	values (
-		1, 
-		(select experiment_uuid from vw_experiment where description = 'test_experiment'),
-		(select workflow_uuid from vw_workflow where description = 'test_workflow'));
-
--- ===========================================================================
--- create actions, conditions and add steps (sequence) to the workflow
--- ===========================================================================
-insert into vw_action (action_def_uuid, workflow_uuid, action_description, actor_uuid, status_uuid)
-	values (
-    	(select action_def_uuid from vw_action_def where description = 'dispense'),
-    	(select workflow_uuid from vw_workflow where description = 'test_workflow'), 
-        'example_dispense',
-        (select actor_uuid from vw_actor where description = 'Ion Bond'),
-        (select status_uuid from vw_status where description = 'dev_test'));
-insert into vw_action (action_def_uuid, workflow_uuid, action_description, actor_uuid, status_uuid)
-	values (
-    	(select action_def_uuid from vw_action_def where description = 'heat_stir'), 
-    	(select workflow_uuid from vw_workflow where description = 'test_workflow'), 
-        'example_heat_stir',
-        (select actor_uuid from vw_actor where description = 'Ion Bond'),
-        (select status_uuid from vw_status where description = 'dev_test'));
-/*
-insert into vw_action (action_def_uuid, workflow_uuid, action_description, actor_uuid, status_uuid)
-	values (
-    	(select action_def_uuid from vw_action_def where description = 'heat'), 
-    	(select workflow_uuid from vw_workflow where description = 'test_workflow'), 
-        'example_heat',
-        (select actor_uuid from vw_actor where description = 'Ion Bond'),
-        (select status_uuid from vw_status where description = 'dev_test'));
-*/
-insert into vw_action (action_def_uuid, workflow_uuid, action_description, actor_uuid, status_uuid)
-	values (
-    	(select action_def_uuid from vw_action_def where description = 'start_node'), 
-    	(select workflow_uuid from vw_workflow where description = 'test_workflow'),
-        'start',
-        (select actor_uuid from vw_actor where description = 'Ion Bond'),
-        (select status_uuid from vw_status where description = 'dev_test'));
-insert into vw_action (action_def_uuid, workflow_uuid, action_description, actor_uuid, status_uuid)
-	values (
-    	(select action_def_uuid from vw_action_def where description = 'end_node'),
-    	(select workflow_uuid from vw_workflow where description = 'test_workflow'),  
-        'end',
-        (select actor_uuid from vw_actor where description = 'Ion Bond'),
-        (select status_uuid from vw_status where description = 'dev_test'));
-
--- set up the workflow step object (from actions and conditions)
-insert into vw_workflow_object (workflow_uuid, action_uuid) 
-	values (
-	    (select workflow_uuid from vw_workflow where description = 'test_workflow'), 
-		(select action_uuid from vw_action where action_description = 'example_heat'));
---insert into vw_workflow_object (workflow_uuid, condition_uuid) 
---	values (
---	    (select workflow_uuid from vw_workflow where description = 'test_workflow'), 
---		(select condition_uuid from vw_condition where  condition_description = 'temp > threshold ?'));
-insert into vw_workflow_object (workflow_uuid, action_uuid) 
-	values (
-	    (select workflow_uuid from vw_workflow where description = 'test_workflow'), 
-		(select action_uuid from vw_action where action_description = 'example_heat_stir'));
-insert into vw_workflow_object (workflow_uuid, action_uuid) 
-	values (
-	    (select workflow_uuid from vw_workflow where description = 'test_workflow'), 
-		(select action_uuid from vw_action where action_description = 'example_dispense'));
-insert into vw_workflow_object (workflow_uuid, action_uuid) 
-	values (
-	    (select workflow_uuid from vw_workflow where description = 'test_workflow'), 
-		(select action_uuid from vw_action where action_description = 'start'));
-insert into vw_workflow_object (workflow_uuid, action_uuid) 
-	values (
-	    (select workflow_uuid from vw_workflow where description = 'test_workflow'), 
-		(select action_uuid from vw_action where action_description = 'end'));
--- now define the path(s) between object -> workflow_step
-insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid) 
-	values (
-		(select workflow_uuid from vw_workflow where description = 'test_workflow'),
-		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'start')),
-		null,
-		(select status_uuid from vw_status where description = 'active'));
-insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid) 
-	values (
-		(select workflow_uuid from vw_workflow where description = 'test_workflow'),
-		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'example_dispense')),
-		(select workflow_step_uuid from vw_workflow_step where (object_type = 'action' and object_description = 'start')),
-		(select status_uuid from vw_status where description = 'active'));
-insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid) 
-	values (
-		(select workflow_uuid from vw_workflow where description = 'test_workflow'),
-		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'example_heat_stir')),
-		(select workflow_step_uuid from vw_workflow_step where (object_type = 'action' and object_description = 'example_dispense')),						
-		(select status_uuid from vw_status where description = 'active'));
---insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)  
---	values (
---		(select workflow_uuid from vw_workflow where description = 'test_workflow'),
---		(select workflow_object_uuid from vw_workflow_object where (object_type = 'condition' and object_description = 'temp > threshold ?')),	
---		(select workflow_step_uuid from vw_workflow_step where (object_type = 'action' and object_description = 'example_heat_stir')),					
---		(select status_uuid from vw_status where description = 'active'));
---insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid) 
---	values (
---		(select workflow_uuid from vw_workflow where description = 'test_workflow'),
---		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'example_heat_stir')),
---		(select workflow_step_uuid from vw_workflow_step where (object_type = 'condition' and object_description = 'temp > threshold ?')),						
---		(select status_uuid from vw_status where description = 'active'));
---insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)  
---	values (
---		(select workflow_uuid from vw_workflow where description = 'test_workflow'),
---		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'example_heat')),	
---		(select workflow_step_uuid from vw_workflow_step where (object_type = 'condition' and object_description = 'temp > threshold ?')),					
---		(select status_uuid from vw_status where description = 'active'));
-insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)  
-	values (
-		(select workflow_uuid from vw_workflow where description = 'test_workflow'),
-		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'end')),	
-		(select workflow_step_uuid from vw_workflow_step where (object_type = 'action' and object_description = 'example_heat_stir')),					
-		(select status_uuid from vw_status where description = 'active'));
--- define the condition criteria path values (val) 
---insert into vw_condition_path (condition_uuid, condition_out_val, workflow_step_uuid)
---	values (
---		(select condition_uuid from vw_condition where condition_description = 'temp > threshold ?'),
---		((SELECT put_val ((select get_type_def ('data', 'bool')), 'FALSE', null))),
---		(select workflow_step_uuid from vw_workflow_step 
---			where (object_description = 'example_heat_stir' and parent_object_description = 'temp > threshold ?')));
---insert into vw_condition_path (condition_uuid, condition_out_val, workflow_step_uuid)
---	values (
---		(select condition_uuid from vw_condition where condition_description = 'temp > threshold ?'),
---		((SELECT put_val ((select get_type_def ('data', 'bool')), 'TRUE', null))),
---		(select workflow_step_uuid from vw_workflow_step 
---			where (object_description = 'example_heat' and parent_object_description = 'temp > threshold ?')));
-
-*/
---======================================================================
---======================================================================
--- scratch area (2) 
---
---        !!!! REMEMBER TO COMMENT OUT OR REMOVE WHEN DONE !!!!
---======================================================================
---======================================================================
---======================================================================
-insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operator_uuid, lab_uuid, status_uuid) 
-	values (
-		'test_uid', 'test_experiment_action_set',
-		null,
-		(select actor_uuid from vw_actor where description = 'NLC'),						
-		(select actor_uuid from vw_actor where description = 'Ion Bond'),
-		(select actor_uuid from vw_actor where description = 'NLC'),
-		(select status_uuid from vw_status where description = 'dev_test'));
-
-insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid) 
+-- create workflow_action_set for HCL
+insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid)
 	values (
 		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
-		'test_workflow_action_set',
+		'LANL_WF1b_HCL_SamplePrep',
 		(select actor_uuid from vw_actor where description = 'Ion Bond'),
 		(select status_uuid from vw_status where description = 'dev_test'));
-
--- associate it with an experiment
+-- create workflow_action_set for Rad solution
+insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid)
+	values (
+		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
+		'LANL_WF1c_RAD_SamplePrep',
+		(select actor_uuid from vw_actor where description = 'Ion Bond'),
+		(select status_uuid from vw_status where description = 'dev_test'));
+-- associate wf's with experiment
 insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid)
-    values (
-        1,
-        (select experiment_uuid from vw_experiment where description = 'test_experiment_action_set'),
-        (select workflow_uuid from vw_workflow where description = 'test_workflow_action_set'));
+    values (1,
+        (select experiment_uuid from vw_experiment where description = 'LANL Test Experiment Template'),
+        (select workflow_uuid from vw_workflow where description = 'LANL_WF1a_H2O_SamplePrep')),
+        (2,
+        (select experiment_uuid from vw_experiment where description = 'LANL Test Experiment Template'),
+        (select workflow_uuid from vw_workflow where description = 'LANL_WF1b_HCL_SamplePrep')),
+        (3,
+        (select experiment_uuid from vw_experiment where description = 'LANL Test Experiment Template'),
+        (select workflow_uuid from vw_workflow where description = 'LANL_WF1c_RAD_SamplePrep'));
 
--- create an action_set
+-- create the action_sets
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values ('dispense action_set',
-        (select workflow_uuid from vw_workflow where description = 'test_workflow_action_set'),
+        (select workflow_uuid from vw_workflow where description = 'LANL_WF1a_H2O_SamplePrep'),
         (select action_def_uuid from vw_action_def where description = 'dispense'),
         null, null, null, null,
         (select parameter_def_uuid
          from vw_action_parameter_def
          where description = 'dispense' and parameter_description = 'volume'),
-        array [(select put_val((select val_type_uuid from vw_parameter_def where description = 'volume'), '10.1',
-                               (select valunit from vw_parameter_def where description = 'volume'))),
-            (select put_val((select val_type_uuid from vw_parameter_def where description = 'volume'), '9.2',
-                            (select valunit from vw_parameter_def where description = 'volume'))),
-            (select put_val((select val_type_uuid from vw_parameter_def where description = 'volume'), '8.3',
-                            (select valunit from vw_parameter_def where description = 'volume')))],
-        array [(select bom_material_uuid from vw_bom_material where bom_material_description = 'HCl-12M')],
+        null,
+        (select calculation_uuid from vw_calculation where short_name = 'LANL_WF1_H2O_5mL_concentration'),
+ --       (select arr_val_2_val_arr ((select out_val from vw_calculation where short_name = 'LANL_WF1_H2O_5mL_concentration'))),
+        array [(select bom_material_uuid from vw_bom_material where description = 'H2O')],
         array [
-            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# B1'),
-            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# B2'),
-            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# B3')],
+            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A1'),
+            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A2'),
+            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A3'),
+            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A4'),
+            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A5'),
+            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A6'),
+            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: B1'),
+            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: B2')],
         (select actor_uuid from vw_actor where description = 'Ion Bond'),
         (select status_uuid from vw_status where description = 'dev_test'));
-
-
+insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
+                                    repeating,
+                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    actor_uuid, status_uuid)
+values ('dispense action_set',
+        (select workflow_uuid from vw_workflow where description = 'LANL_WF1b_HCL_SamplePrep'),
+        (select action_def_uuid from vw_action_def where description = 'dispense'),
+        null, null, null, null,
+        (select parameter_def_uuid
+         from vw_action_parameter_def
+         where description = 'dispense' and parameter_description = 'volume'),
+        null,
+        (select calculation_uuid from vw_calculation where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+ --       (select arr_val_2_val_arr ((select out_val from vw_calculation where short_name = 'LANL_WF1_H2O_5mL_concentration'))),
+        array [(select bom_material_uuid from vw_bom_material where description = 'HCl-12M')],
+        array [
+            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A1'),
+            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A2'),
+            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A3'),
+            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A4'),
+            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A5'),
+            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A6'),
+            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: B1'),
+            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: B2')],
+        (select actor_uuid from vw_actor where description = 'Ion Bond'),
+        (select status_uuid from vw_status where description = 'dev_test'));
 

@@ -669,8 +669,8 @@ CREATE OR REPLACE FUNCTION upsert_organization ()
 	RETURNS TRIGGER
 	AS $$
 DECLARE
-	_org_uuid uuid;
 	_org_description varchar;
+	_org_uuid uuid;
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
 		-- first delete the organization record
@@ -735,10 +735,10 @@ CREATE OR REPLACE FUNCTION upsert_person ()
 	RETURNS TRIGGER
 	AS $$
 DECLARE
-	_person_uuid uuid;
 	_person_first_name varchar;
-	_person_middle_name varchar;
 	_person_last_name varchar;
+	_person_middle_name varchar;
+	_person_uuid uuid;
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
 		-- first delete the person record
@@ -806,8 +806,8 @@ CREATE OR REPLACE FUNCTION upsert_systemtool ()
 	RETURNS TRIGGER
 	AS $$
 DECLARE
-	_systemtool_uuid uuid;
 	_systemtool_description varchar;
+	_systemtool_uuid uuid;
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
 		-- first delete the systemtool record
@@ -2780,6 +2780,7 @@ BEGIN
 			bom_material		
 		SET
 			bom_uuid = NEW.bom_uuid,
+		    description = NEW.description,
 			inventory_uuid = NEW.inventory_uuid,
 			material_composite_uuid = NEW.material_composite_uuid,
 			alloc_amt_val = NEW.alloc_amt_val,
@@ -2792,13 +2793,13 @@ BEGIN
 			bom_material.bom_material_uuid = NEW.bom_material_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO bom_material (bom_uuid, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid)
-			VALUES(NEW.bom_uuid, NEW.inventory_uuid,  NEW.alloc_amt_val, NEW.used_amt_val, NEW.putback_amt_val, NEW.actor_uuid, NEW.status_uuid) returning bom_material_uuid into NEW.bom_material_uuid;
+		INSERT INTO bom_material (bom_uuid, description, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid)
+			VALUES(NEW.bom_uuid, NEW.description, NEW.inventory_uuid,  NEW.alloc_amt_val, NEW.used_amt_val, NEW.putback_amt_val, NEW.actor_uuid, NEW.status_uuid) returning bom_material_uuid into NEW.bom_material_uuid;
 		-- check to see if it's a non-consumable and composite so we can bring the [addressable ]composites into the BOM 
 		IF not (select material_consumable from vw_inventory where inventory_uuid = NEW.inventory_uuid) and 
 			(select material_composite_flg from vw_inventory where inventory_uuid = NEW.inventory_uuid) THEN
-			INSERT INTO bom_material (bom_uuid, inventory_uuid, material_composite_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid)
-				select NEW.bom_uuid, NEW.inventory_uuid, material_composite_uuid, NEW.alloc_amt_val, NEW.used_amt_val, NEW.putback_amt_val, NEW.actor_uuid, NEW.status_uuid
+			INSERT INTO bom_material (bom_uuid, description, inventory_uuid, material_composite_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid)
+				select NEW.bom_uuid, component_description, NEW.inventory_uuid, material_composite_uuid, NEW.alloc_amt_val, NEW.used_amt_val, NEW.putback_amt_val, NEW.actor_uuid, NEW.status_uuid
 		  		from vw_material_composite where 
 						composite_uuid = (SELECT material_uuid from vw_inventory where 
 						inventory_uuid = NEW.inventory_uuid);
@@ -2884,14 +2885,17 @@ CREATE OR REPLACE FUNCTION upsert_workflow_action_set()
 	RETURNS TRIGGER
 	AS $$
 DECLARE
-	_s_uuid uuid;
-	_d_uuid uuid;
-	_val_len int := array_length(NEW.parameter_val, 1);
-	_val_cnt int := 1;
 	_action_uuid uuid;
-	_step_uuid uuid := null;
-	_object_uuid uuid; 
+    _calc_arr val[] ;
+    _calc_flg boolean := FALSE;
+	_d_uuid uuid;
+	_object_uuid uuid;
+	_s_uuid uuid;
 	_src_cnt int := 1;
+	_step_uuid uuid := null;
+	_val_cnt int := 1;
+	_val_len int := array_length(NEW.parameter_val, 1);
+
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
 		-- working backwards...
@@ -2911,13 +2915,18 @@ BEGIN
 		PERFORM delete_assigned_recs (OLD.workflow_action_set_uuid);
 		RETURN OLD;
 	ELSIF (TG_OP = 'INSERT') THEN
+	    -- check to see if there is a calculation_uuid so we can transpose it into a calc_array;
+	    IF (NEW.calculation_uuid is not null and NEW.parameter_val is null) THEN
+            _calc_flg := TRUE;
+            _calc_arr := (select arr_val_2_val_arr ((select out_val from vw_calculation where calculation_uuid = NEW.calculation_uuid)));
+            _val_len := array_length(_calc_arr, 1);
+        END IF;
 		-- first insert into workflow_action_set
 		insert into workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration, repeating, 
-											parameter_def_uuid, parameter_val, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid) VALUES
+											parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid) VALUES
 			(NEW.description, NEW.workflow_uuid, NEW.action_def_uuid, NEW.start_date, NEW.end_date, NEW.duration, NEW.repeating, 
-				NEW.parameter_def_uuid, NEW.parameter_val, NEW.source_material_uuid, NEW.destination_material_uuid, 
-				NEW.actor_uuid, NEW.status_uuid) returning workflow_action_set_uuid into NEW.workflow_action_set_uuid; 
-		
+				NEW.parameter_def_uuid, NEW.parameter_val, NEW.calculation_uuid, NEW.source_material_uuid, NEW.destination_material_uuid,
+				NEW.actor_uuid, NEW.status_uuid) returning workflow_action_set_uuid into NEW.workflow_action_set_uuid;
 		-- now build the actions in the workflow
 		-- check to see if this is a one to many (one source to many dest) 
 		-- if more than one element in source array then it's a positional ([1] -> [1]) loop
@@ -2928,16 +2937,25 @@ BEGIN
 			LOOP 
 	        	insert into vw_action (action_def_uuid, workflow_uuid, action_description, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid)
 	            values (NEW.action_def_uuid, NEW.workflow_uuid, 
-	            	concat(NEW.description, ': ',(select bom_material_description from vw_bom_material where bom_material_uuid = _s_uuid), ' -> ', 
+	            	concat(NEW.description, ': ',(select description from vw_bom_material where bom_material_uuid = _s_uuid), ' -> ',
 	            					(select bom_material_description from vw_bom_material where bom_material_uuid = _d_uuid)),
 	            	_s_uuid, _d_uuid, NEW.actor_uuid, NEW.status_uuid) returning action_uuid into _action_uuid;
 				-- assign parameter value
-				update vw_action_parameter set 
-					parameter_val = (select put_val (
-	            		(select val_type_uuid from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid),
-	             		(select val_val from get_val (NEW.parameter_val[_val_cnt])),
-	            		(select valunit from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid)))    
-	            where action_uuid = _action_uuid;	
+	        	IF _calc_flg THEN
+                    update vw_action_parameter set
+                        parameter_val = (select put_val (
+                            (select val_type_uuid from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid),
+                            (select val_val from get_val (_calc_arr[_val_cnt])),
+                            (select valunit from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid)))
+                    where action_uuid = _action_uuid;
+                ELSE
+                    update vw_action_parameter set
+                        parameter_val = (select put_val (
+                            (select val_type_uuid from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid),
+                            (select val_val from get_val (NEW.parameter_val[_val_cnt])),
+                            (select valunit from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid)))
+                    where action_uuid = _action_uuid;
+                END IF;
 				-- create the workflow_object
 				insert into vw_workflow_object (workflow_uuid, action_uuid) 
 					values (NEW.workflow_uuid, _action_uuid) returning workflow_object_uuid into _object_uuid;				
@@ -2947,8 +2965,7 @@ BEGIN
 				-- increment the parameter pointer
 				IF _val_cnt < _val_len 
 					THEN _val_cnt := _val_cnt + 1; 
-				END IF;	
-			
+				END IF;
 			END LOOP;
 		ELSIF (array_length(NEW.source_material_uuid, 1) > 0 and array_length(NEW.destination_material_uuid, 1) > 0) THEN
 			-- check to make sure there are 1 or more elements in each array
@@ -2964,12 +2981,21 @@ BEGIN
 	            	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	            	(select status_uuid from vw_status where description = 'dev_test')) returning action_uuid into _action_uuid;
 				-- assign parameter value
-				update vw_action_parameter set 
-					parameter_val = (select put_val (
-	            		(select val_type_uuid from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid),
-	             		(select val_val from get_val (NEW.parameter_val[1])),
-	            		(select valunit from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid)))    
-	            where action_uuid = _action_uuid;				
+				IF _calc_flg THEN
+                    update vw_action_parameter set
+                        parameter_val = (select put_val (
+                            (select val_type_uuid from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid),
+                            (select val_val from get_val (_calc_arr[1])),
+                            (select valunit from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid)))
+                    where action_uuid = _action_uuid;
+                ELSE
+                    update vw_action_parameter set
+                        parameter_val = (select put_val (
+                            (select val_type_uuid from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid),
+                            (select val_val from get_val (NEW.parameter_val[1])),
+                            (select valunit from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid)))
+                    where action_uuid = _action_uuid;
+                END IF;
 				-- create the workflow_object
 				insert into vw_workflow_object (workflow_uuid, action_uuid) 
 					values (NEW.workflow_uuid, _action_uuid) returning workflow_object_uuid into _object_uuid;

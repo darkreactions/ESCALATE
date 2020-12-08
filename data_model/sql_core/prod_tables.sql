@@ -282,6 +282,7 @@ CREATE TABLE bom (
 CREATE TABLE bom_material (
 	bom_material_uuid uuid DEFAULT uuid_generate_v4 (),
 	bom_uuid uuid NOT NULL,
+	description varchar COLLATE "pg_catalog"."default",
 	inventory_uuid uuid NOT NULL,
 	material_composite_uuid uuid,
 	alloc_amt_val val,
@@ -865,7 +866,7 @@ CREATE TABLE workflow_action_set (
 	repeating int8,
 	parameter_def_uuid uuid,
 	parameter_val val[],	
-	calculation_def_uuid uuid,
+	calculation_uuid uuid,
 	source_material_uuid uuid[],
 	destination_material_uuid uuid[], 
 	actor_uuid uuid,
@@ -1590,7 +1591,7 @@ ALTER TABLE workflow_action_set
 	ADD CONSTRAINT fk_workflow_action_set_workflow_1 FOREIGN KEY (workflow_uuid) REFERENCES  workflow (workflow_uuid),	
 		ADD CONSTRAINT fk_workflow_action_set_action_def_1 FOREIGN KEY (action_def_uuid) REFERENCES  action_def (action_def_uuid),	
 			ADD CONSTRAINT fk_workflow_action_set_parameter_def_1 FOREIGN KEY (parameter_def_uuid) REFERENCES  parameter_def (parameter_def_uuid),	
-				ADD CONSTRAINT fk_workflow_action_set_calculation_def_1 FOREIGN KEY (calculation_def_uuid) REFERENCES  calculation_def (calculation_def_uuid),					
+				ADD CONSTRAINT fk_workflow_action_set_calculation_1 FOREIGN KEY (calculation_uuid) REFERENCES  calculation (calculation_uuid),
 					ADD CONSTRAINT fk_workflow_action_set_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
 						ADD CONSTRAINT fk_workflow_action_set_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
@@ -2269,7 +2270,7 @@ COMMENT ON COLUMN workflow_action_set.duration IS '';
 COMMENT ON COLUMN workflow_action_set.repeating IS '';
 COMMENT ON COLUMN workflow_action_set.parameter_def_uuid IS '';
 COMMENT ON COLUMN workflow_action_set.parameter_val IS '';
-COMMENT ON COLUMN workflow_action_set.calculation_def_uuid IS '';
+COMMENT ON COLUMN workflow_action_set.calculation_uuid IS '';
 COMMENT ON COLUMN workflow_action_set.source_material_uuid IS '';
 COMMENT ON COLUMN workflow_action_set.destination_material_uuid IS '';
 COMMENT ON COLUMN workflow_action_set.actor_uuid IS '';
