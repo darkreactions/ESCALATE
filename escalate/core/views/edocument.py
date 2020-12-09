@@ -6,7 +6,7 @@ from django.http import Http404, FileResponse, HttpResponseRedirect
 
 
 
-from core.models import Edocument
+from core.models import Edocument, Actor
 from core.forms import ActorForm
 from core.views.model_view_generic import GenericListView
 
@@ -36,8 +36,8 @@ class EdocumentList(GenericListView):
             new_queryset = self.model.objects.all().select_related().order_by(ordering)
         return new_queryset
 
-    def download_trial(self, uuid):
-        return HttpResponseRedirect(reverse('edoc_download', args=(uuid,)))
+    # def download_trial(self, uuid):
+    #     return HttpResponseRedirect(reverse('edoc_download', args=(uuid,)))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -60,7 +60,7 @@ class EdocumentList(GenericListView):
             table_row_info = {
                 'table_row_data': table_row_data,
                 'download_url': reverse('edoc_download', args=(item.uuid,)),#reverse_lazy('inventory_view', kwargs={'pk': item.pk}),
-                # 'view_url': redirect('https://google.com'),#reverse_lazy('inventory_view', kwargs={'pk': item.pk}),
+                'view_url': reverse_lazy('edocument_view',  args=(item.uuid,)),#reverse_lazy('inventory_view', kwargs={'pk': item.pk}),
                 'update_url': redirect('https://google.com'), #reverse_lazy('inventory_update', kwargs={'pk': item.pk}),
                 'obj_name': str(item),
                 'obj_pk': item.pk
@@ -88,7 +88,27 @@ class EdocumentList(GenericListView):
     table_columns += ['Actions']
     """
 
+class EdocumentDetailView(DetailView):
 
+    model = Edocument
+    template_name = 'core/generic/detail.html'
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        obj = context['object']
+        detail_data = {}
+        detail_data["UUID"] = obj.uuid
+        detail_data["Title"] = obj.title
+        detail_data["Description"] = obj.description
+        detail_data["Actor"] = obj.actor_description
+        # all_docs = Edocument.objects.filter(ref_document_uuid=obj.uuid)
+        # print(all_docs)
+        context['title'] = obj.title
+        context['detail_data'] = detail_data
+        # context['download_url'] = reverse('edoc_download', args=(obj.uuid,))
+        
+        return context
 
 
 # class ActorEdit(GenericModelEdit):

@@ -110,6 +110,8 @@ class GenericModelList(GenericListView):
                 'obj_name': str(model),
                 'obj_pk': model.pk
             }
+            if model_name=="edocument":
+                table_row_info['download_url'] = reverse('edoc_download', args=(model.pk,))
             table_data.append(table_row_info)
 
         context['add_url'] = reverse_lazy(f'{model_name}_add')
@@ -312,5 +314,7 @@ class GenericModelView(DetailView):
         context['title'] = self.model_name.replace('_', " ").capitalize()
         context['update_url'] = reverse_lazy(
             f'{self.model_name}_update', kwargs={'pk': obj.pk})
+        if self.model_name=="edocument":
+            context['download_url'] = reverse('edoc_download', args=(obj.pk,))
         context['detail_data'] = detail_data
         return context

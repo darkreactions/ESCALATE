@@ -428,7 +428,7 @@ class Note(models.Model):
     # note_x_uuid = models.ForeignKey('Note_x', models.DO_NOTHING,
     #                                 db_column='note_x_uuid')
     actor_description = models.CharField(max_length=255, blank=True, null=True)
-    # ref_note_uuid = models.UUIDField()
+    ref_note_uuid = models.UUIDField()
 
     class Meta:
         managed = False
@@ -620,6 +620,7 @@ class Edocument(models.Model):
         max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
+
 
     class Meta:
         managed = False

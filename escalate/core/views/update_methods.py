@@ -76,5 +76,11 @@ methods = {
         'form_class': core.forms.UdfDefForm,
         'success_url': reverse_lazy('udf_def_list'),
     },
+    'Edocument': {
+        'model': core.models.Edocument,
+        'context_object_name': 'edocument',
+        'form_class': core.forms.UploadEdocForm,
+        'success_url': reverse_lazy('edocument_list'),
+    },
 
 }

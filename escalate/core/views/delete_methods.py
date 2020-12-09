@@ -52,5 +52,9 @@ methods = {
         'model': core.models.UdfDef,
         'success_url': reverse_lazy('udf_def_list'),
     },
+    'Edocument': {
+        'model': core.models.Edocument,
+        'success_url': reverse_lazy('edocument_list'),
+    },
 
 }

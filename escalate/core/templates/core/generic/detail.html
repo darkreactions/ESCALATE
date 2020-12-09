@@ -27,6 +27,11 @@
             <a href="{{ update_url }}" class="btn btn-raised btn-primary active">
                 <i class="fa fa-edit fa-lg"></i>Edit
             </a>
+            {% if download_url %}
+                <a href="{{ download_url }}" class="btn btn-raised btn-primary active">
+                    <i class="fa fa-download fa-lg"></i>Download
+                </a>
+            {% endif %}
         </div>
     </div>
 </div>

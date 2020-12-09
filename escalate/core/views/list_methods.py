@@ -146,5 +146,18 @@ methods = {
         'order_field': 'description',
         'field_contains': '',
     },
+    'Edocument':{
+        'model': core.models.Edocument,
+        'context_object_name': 'edocuments',
+        'table_columns': ['Title', 'File Type', 'Version', 'UUID', 'Actions'],
+        'column_necessary_fields': {
+            'Title':['title'],
+            'File Type':['doc_type_description'],
+            'UUID':['uuid'],
+            'Version': ['doc_ver'],
+        },
+        'order_field': 'title',
+        'field_contains': '',
+    },
 
 }
