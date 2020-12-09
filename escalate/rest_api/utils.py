@@ -31,12 +31,13 @@ def camel_case_uuid(text):
     return text
 
 view_names = ['Actor', 'Organization', 'Status', 'Systemtool', 'SystemtoolType', 'Inventory', 'InventoryMaterial',
-               'Calculation', 'CalculationDef',
-              'Material', 'MaterialCalculationJson', 'MaterialRefnameDef',
+              'Calculation', 'CalculationDef',
+              'Material', 'MaterialComposite', 'MaterialCalculationJson', 'MaterialRefnameDef',
               'MaterialType', 'Note_x', 'Person',
               'TagType', 'Property', 'PropertyDef', 'MaterialProperty', 'TypeDef',
               'ParameterDef', 'Condition', 'ConditionDef', 'Parameter', 'WorkflowType',
-              'WorkflowStep', 'WorkflowObject', 'UdfDef']
+              'WorkflowStep', 'WorkflowObject', 'UdfDef', 'Experiment', 'ExperimentWorkflow',
+              'BillOfMaterials', 'BomMaterial']
 
 GET_only_views = ['TypeDef']
 

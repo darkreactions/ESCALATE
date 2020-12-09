@@ -352,9 +352,8 @@ class Material(models.Model):
     uuid = RetUUIDField(primary_key=True,
                             db_column='material_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
-    #parent = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
-    #                                blank=True, null=True, db_column='parent_uuid', related_name='material_parent')
-
+    consumable = models.BinaryField(blank=True, null=True)
+    composite_flg = models.BinaryField(blank=True, null=True)
     status = models.ForeignKey('Status', on_delete=models.DO_NOTHING,
                                              blank=True, null=True, db_column='status_uuid',
                                              related_name='material_status')
@@ -372,6 +371,88 @@ class Material(models.Model):
     def __str__(self):
         return "{}".format(self.description)
 
+
+class MaterialComposite(models.Model):
+    uuid = RetUUIDField(primary_key=True, db_column='material_composite_uuid')
+    composite = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
+                                  blank=True, null=True, db_column='composite_uuid',
+                                  related_name='composite')
+    composite_description = models.CharField(max_length=255, blank=True, null=True)
+    composite_flg = models.BinaryField(blank=True, null=True)
+    component = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
+                                  blank=True, null=True, db_column='component_uuid',
+                                  related_name='component')
+    component_description = models.CharField(max_length=255, blank=True, null=True)
+    addressable = models.BinaryField(blank=True, null=True)
+
+    actor = models.ForeignKey('Actor',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='actor_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False, related_name='actor')
+    status = models.ForeignKey('Status',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='status_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False, related_name='status')
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+    class Meta:
+        managed = False
+        db_table = 'vw_material_composite'
+
+class BillOfMaterials(models.Model):
+    uuid = RetUUIDField(primary_key=True, db_column='bom_uuid')
+    description = models.CharField(max_length=255, blank=True, null=True)
+    experiment = models.ForeignKey('Experiment', on_delete=models.DO_NOTHING,
+                                   blank=True, null=True, db_column='experiment_uuid',
+                                   related_name='bom_experiment')
+    experiment_description = models.CharField(max_length=255, blank=True, null=True)
+
+    actor = models.ForeignKey('Actor',
+                               on_delete=models.DO_NOTHING,
+                               db_column='actor_uuid',
+                               blank=True,
+                               null=True,
+                               editable=False, related_name='bom_actor')
+    status = models.ForeignKey('Status',
+                               on_delete=models.DO_NOTHING,
+                               db_column='status_uuid',
+                               blank=True,
+                               null=True,
+                               editable=False, related_name='bom_status')
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+
+    class Meta:
+        managed = False
+        db_table = 'vw_bom'
+
+class BomMaterial(models.Model):
+    uuid = RetUUIDField(primary_key=True, db_column='bom_material_uuid')
+    bom = models.ForeignKey('BillOfMaterials', on_delete=models.DO_NOTHING,
+                             blank=True, null=True, db_column='bom_uuid',
+                             related_name='bom_material_bom')
+    description = models.CharField(max_length=255, blank=True, null=True)
+    bom_description =models.CharField(max_length=255, blank=True, null=True)
+    inventory = models.ForeignKey('Inventory', on_delete=models.DO_NOTHING,
+                                   blank=True, null=True, db_column='inventory_uuid',
+                                   related_name='bom_material_inventory')
+    material_composite = models.ForeignKey('MaterialComposite', on_delete=models.DO_NOTHING,
+                                   blank=True, null=True, db_column='material_composite_uuid',
+                                   related_name='bom_material_composite')
+    bom_material_description = models.CharField(max_length=255, blank=True, null=True)
+    alloc_amt_val = models.CharField(max_length=255, blank=True, null=True)
+    used_amt_val = models.CharField(max_length=255, blank=True, null=True)
+    putback_amt_val = models.CharField(max_length=255, blank=True, null=True)
+    experiment_uuid = models.CharField(max_length=255, blank=True, null=True)
+    experiment_description = models.CharField(max_length=255, blank=True, null=True)
+    class Meta:
+        managed = False
+        db_table = 'vw_bom_material'
 
 class MaterialCalculationJson(models.Model):
     uuid = RetUUIDField(primary_key=True,
@@ -651,6 +732,47 @@ class ExperimentMeasureCalculation(models.Model):
     class Meta:
         managed = False
         db_table = 'vw_experiment_measure_calculation_json'
+
+
+class Experiment(models.Model):
+    uuid = RetUUIDField(primary_key=True, db_column='experiment_uuid')
+    ref_uid = models.CharField(max_length=255, db_column='ref_uid')
+    description = models.CharField(max_length=255,  db_column='description')
+    parent = models.ForeignKey('TypeDef', db_column='parent_uuid', on_delete=models.DO_NOTHING, blank=True, null=True)
+    owner = models.ForeignKey('Actor', db_column='owner_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
+                              related_name='owner')
+    owner_description = models.CharField(max_length=255, db_column='owner_description')
+    operator_uuid = models.ForeignKey('Actor', db_column='operator_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
+                                      related_name='operator')
+    operator_description = models.CharField(max_length=255, db_column='operator_description')
+    lab = models.ForeignKey('Actor', db_column='lab_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
+                            related_name='lab')
+    lab_description = models.CharField(max_length=255, db_column='lab_description')
+    status = models.ForeignKey('Status', on_delete=models.DO_NOTHING, db_column='status_uuid', blank=True, null=True,)
+    status_description = models.CharField(max_length=255, blank=True, null=True, db_column='status_description', editable=False)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+    class Meta:
+        managed = False
+        db_table = 'vw_experiment'
+
+
+class ExperimentWorkflow(models.Model):
+    # note: omitted much detail here because should be nested under
+    # experiment, no need for redundancy.
+    uuid = RetUUIDField(primary_key=True, db_column='experiment_workflow_uuid')
+    experiment = models.ForeignKey('Experiment', db_column='experiment_uuid', on_delete=models.DO_NOTHING,
+                                   blank=True, null=True)
+    experiment_ref_uid =  models.CharField(max_length=255)
+    experiment_description = models.CharField(max_length=255)
+    experiment_workflow_seq = models.IntegerField()
+    workflow = models.ForeignKey('Workflow', db_column='workflow_uuid',
+                                 on_delete=models.DO_NOTHING, blank=True, null=True)
+    workflow_type_uuid = models.ForeignKey('WorkflowType', db_column='workflow_type_uuid',
+                                           on_delete=models.DO_NOTHING, blank=True, null=True)
+    class Meta:
+        managed = False
+        db_table = 'vw_experiment_workflow'
 
 
 class UdfDef(models.Model):
