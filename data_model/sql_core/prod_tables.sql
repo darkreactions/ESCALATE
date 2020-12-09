@@ -914,36 +914,6 @@ CREATE TABLE workflow_type (
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
 
-/*
-DROP TABLE exp_spec_def;
-*/
-CREATE TABLE exp_spec_def (
-    exp_spec_def_uuid uuid DEFAULT uuid_generate_v4(),
-    exp_ref_uuid uuid NOT NULL,
-    description varchar COLLATE "pg_catalog"."default" NOT NULL,
-	add_date timestamptz NOT NULL DEFAULT NOW(),
-	mod_date timestamptz NOT NULL DEFAULT NOW()
-);
-
-
---DROP TABLE exp_spec_parameter_def CASCADE;
-CREATE TABLE exp_spec_parameter_def(
-    exp_spec_parameter_def_uuid uuid DEFAULT uuid_generate_v4(),
-    description varchar COLLATE "pg_catalog"."default" NOT NULL,
-    exp_spec_def_uuid uuid NOT NULL,
-    parameter_def_uuid uuid NOT NULL,
-    add_date timestamptz NOT NULL DEFAULT NOW(),
-	mod_date timestamptz NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE exp_spec_material_def (
-    exp_spec_material_def_uuid uuid DEFAULT uuid_generate_v4(),
-    exp_spec_material_def_name VARCHAR NOT NULL,
-    exp_spec_def_uuid uuid NOT NULL,
-    add_date timestamptz NOT NULL DEFAULT NOW(),
-	mod_date timestamptz NOT NULL DEFAULT NOW()
-);
-
 
 /*
 -- ----------------------------
@@ -1374,25 +1344,6 @@ CLUSTER workflow_type
 USING "pk_workflow_type_workflow_type_uuid";
 
 
-ALTER TABLE exp_spec_def
-	ADD CONSTRAINT "pk_exp_spec_def_exp_spec_def_uuid" PRIMARY KEY (exp_spec_def_uuid);
-		--ADD CONSTRAINT "un_exp_spec_def" UNIQUE (description);
-CLUSTER exp_spec_def
-USING "pk_exp_spec_def_exp_spec_def_uuid";
-
-ALTER TABLE exp_spec_parameter_def
-ADD CONSTRAINT "pk_exp_spec_parameter_def_exp_spec_parameter_def_uuid" PRIMARY KEY (exp_spec_parameter_def_uuid),
-    ADD CONSTRAINT "un_exp_spec_parameter_def_def" UNIQUE (description, exp_spec_def_uuid, parameter_def_uuid);
-CLUSTER exp_spec_parameter_def
-USING "pk_exp_spec_parameter_def_exp_spec_parameter_def_uuid";
-
-
-ALTER TABLE exp_spec_material_def
-	ADD CONSTRAINT "pk_exp_spec_material_def_exp_spec_material_def_uuid" PRIMARY KEY (exp_spec_material_def_uuid);
-CLUSTER exp_spec_material_def
-USING "pk_exp_spec_material_def_exp_spec_material_def_uuid";
-
-
 /*
 ALTER TABLE escalate_change_log
  ADD CONSTRAINT "pk_escalate_change_log_uuid" PRIMARY KEY (change_log_uuid);
@@ -1663,16 +1614,6 @@ ALTER TABLE workflow_step
 		ADD CONSTRAINT fk_workflow_step_object_1 FOREIGN KEY (workflow_object_uuid) REFERENCES workflow_object (workflow_object_uuid),
 					ADD CONSTRAINT fk_workflow_step_parent_1 FOREIGN KEY (parent_uuid) REFERENCES workflow_step (workflow_step_uuid);
 
-ALTER TABLE exp_spec_def
-    ADD CONSTRAINT fk_exp_spec_exp_1 FOREIGN KEY (exp_ref_uuid) REFERENCES experiment (experiment_uuid);
-
-
-ALTER TABLE exp_spec_parameter_def
- 	ADD CONSTRAINT fk_exp_spec_parameter_def_exp_spec_def_1 FOREIGN KEY (exp_spec_def_uuid) REFERENCES exp_spec_def (exp_spec_def_uuid),
-         ADD CONSTRAINT fk_exp_spec_parameter_def_parameter_def_1 FOREIGN KEY (parameter_def_uuid) REFERENCES parameter_def (parameter_def_uuid);
-
-ALTER TABLE exp_spec_material_def
-    ADD CONSTRAINT fk_exp_spec_material_def_exp_spec_def_1 FOREIGN KEY (exp_spec_def_uuid) REFERENCES exp_spec_def (exp_spec_def_uuid);
 
 --======================================================================
 --======================================================================

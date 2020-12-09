@@ -1573,7 +1573,6 @@ OR DELETE ON vw_action_parameter_def_assign
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_action_parameter_def_assign ( );
 
-
 ----------------------------------------
 -- view action_parameter
 ----------------------------------------
@@ -1890,23 +1889,6 @@ OR UPDATE
 OR DELETE ON vw_experiment
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_experiment ( );
-
-
-CREATE OR REPLACE VIEW vw_exp_spec_def AS
-SELECT
-    es.exp_spec_def_uuid,
-    es.exp_ref_uuid,
-    es.description,
-    es.add_date,
-    es.mod_date
-FROM exp_spec_def es;
-
-
-CREATE OR REPLACE VIEW vw_exp_spec_parameter_def_assign AS
-SELECT
-       espdx.exp_spec_def_uuid,
-       espdx.parameter_def_uuid
-FROM exp_spec_parameter_def_x espdx;
 
 ----------------------------------------
 -- view workflow_type
