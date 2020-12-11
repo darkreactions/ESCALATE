@@ -50,7 +50,7 @@ for view in view_names+custom_serializer_views:
     name = camel_case(view)
     related_names = [f'{name}_{f.name}' for f in model._meta.get_fields() if isinstance(f, models.ForeignKey)]
     url_names = [f'{f.name}' for f in model._meta.get_fields() if isinstance(f, models.ForeignKey)]
-    print(f'{view} : {url_names}')
+    # print(f'{view} : {url_names}')
     registered = router.register(rf'{name}', getattr(viewsets, view+'ViewSet'), basename=name)
     for i, url in enumerate(url_names):
         related_model_name = model._meta.get_field(url).remote_field.model

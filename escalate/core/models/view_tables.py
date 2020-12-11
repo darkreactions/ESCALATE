@@ -8,23 +8,13 @@ if version.parse(django.__version__) < version.parse('3.1'):
 else:
     from django.db.models import JSONField
 from django.db.models.fields import related
-
+from .core_tables import RetUUIDField
 from .custom_types import ValField
+
 managed_value = False
 
 
-class RetUUIDField(models.UUIDField):
-    """A UUID field which populates with the UUID from Postgres on CREATE.
 
-    **Use this instead of models.UUIDField**
-
-    Our tables are managed by postgres, not django. Without this field,
-    django would have no direct way of knowing the UUID of newly created resources,
-    which would lead to errors.
-    """
-    db_returning=True
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
 class Actor(models.Model):
     uuid = RetUUIDField(primary_key=True, db_column='actor_uuid')
@@ -91,7 +81,8 @@ class Inventory(models.Model):
     description = models.CharField(
         max_length=255, blank=True, null=True)
     part_no = models.CharField(max_length=255, blank=True, null=True)
-    onhand_amt = models.CharField(max_length=255, blank=True, null=True)
+    # onhand_amt = models.CharField(max_length=255, blank=True, null=True)
+    onhand_amt = ValField(max_length=255, blank=True, null=True)
     # unit = models.CharField(max_length=255, blank=True, null=True)
     # create_date = models.DateTimeField(blank=True, null=True)
     expiration_date = models.DateTimeField(blank=True, null=True)
@@ -102,20 +93,20 @@ class Inventory(models.Model):
                                     db_column='status_uuid',
                                     related_name='inventory_status')
     status_description = models.CharField(
-        max_length=255, blank=True, null=True)
+        max_length=255, blank=True, null=True, editable=False)
     material = models.ForeignKey('Material',
                                       models.DO_NOTHING,
                                       db_column='material_uuid',
                                     related_name='inventory_material'
                                       )
     material_description = models.CharField(max_length=255,
-                                            blank=True, null=True)
+                                            blank=True, null=True, editable=False)
     actor = models.ForeignKey('Actor', models.DO_NOTHING,
                                    db_column='actor_uuid',
                                    blank=True, null=True,
                                    related_name='inventory_actor')
     actor_description = models.CharField(max_length=255,
-                                         blank=True, null=True)
+                                         blank=True, null=True, editable=False)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -803,29 +794,6 @@ class UdfDef(models.Model):
 
 
 
-class TypeDef(models.Model):
-
-    uuid = RetUUIDField(primary_key=True,
-                            db_column='type_def_uuid')
-
-    category = models.CharField(max_length=255,
-                                blank=True,
-                                null=True,
-                                db_column='category')
-    description = models.CharField(max_length=255,
-                                   blank=True,
-                                   null=True,
-                                   db_column='description')
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
-    class Meta:
-        managed = False
-        db_table = 'vw_type_def'
-
-    def __str__(self):
-        return self.description
-
-
 class Property(models.Model):
     uuid = RetUUIDField(primary_key=True,
                             db_column='property_uuid')
@@ -1353,7 +1321,7 @@ class Parameter(models.Model):
                                            on_delete=models.DO_NOTHING,
                                            blank=True,
                                            null=True,
-                                           editable=False, related_name='parameter_parameter_def')
+                                           editable=True, related_name='parameter_parameter_def')
     parameter_def_description = models.CharField(max_length=255,
                                                 blank=True,
                                                 null=True,
@@ -1367,7 +1335,7 @@ class Parameter(models.Model):
                                    db_column='parameter_actor_uuid',
                                    blank=True,
                                    null=True,
-                                   editable=False, related_name='parameter_actor')
+                                   editable=True, related_name='parameter_actor')
     actor_description  = models.CharField(max_length=255,
                                             blank=True,
                                             null=True,
@@ -1378,7 +1346,7 @@ class Parameter(models.Model):
                                    db_column='parameter_status_uuid',
                                    blank=True,
                                    null=True,
-                                   editable=False, related_name='parameter_status')
+                                   editable=True, related_name='parameter_status')
     status_description  = models.CharField(max_length=255,
                                             blank=True,
                                             null=True,

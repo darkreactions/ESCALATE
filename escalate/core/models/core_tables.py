@@ -35,3 +35,37 @@ class Systemtool(models.Model):
     def __str__(self):
         return "{} {}".format(self.systemtool_name, self.model)
 """
+class RetUUIDField(models.UUIDField):
+    """A UUID field which populates with the UUID from Postgres on CREATE.
+
+    **Use this instead of models.UUIDField**
+
+    Our tables are managed by postgres, not django. Without this field,
+    django would have no direct way of knowing the UUID of newly created resources,
+    which would lead to errors.
+    """
+    db_returning=True
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+class TypeDef(models.Model):
+
+    uuid = RetUUIDField(primary_key=True,
+                            db_column='type_def_uuid')
+
+    category = models.CharField(max_length=255,
+                                blank=True,
+                                null=True,
+                                db_column='category')
+    description = models.CharField(max_length=255,
+                                   blank=True,
+                                   null=True,
+                                   db_column='description')
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+    class Meta:
+        managed = False
+        db_table = 'vw_type_def'
+
+    def __str__(self):
+        return self.description

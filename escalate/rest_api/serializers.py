@@ -1,10 +1,23 @@
-from core.models import (Actor, Material, Inventory,
-                         Person, Organization, Note)
-from rest_framework.serializers import HyperlinkedModelSerializer, CharField, SerializerMethodField, ReadOnlyField, HyperlinkedRelatedField, ModelSerializer
+#from core.models import (Actor, Material, Inventory,
+#                         Person, Organization, Note)
+from rest_framework.serializers import SerializerMethodField, ModelSerializer, Field, HyperlinkedModelSerializer
 from rest_framework.reverse import reverse
 import core.models
 from .utils import view_names
+from core.models.custom_types import Val, ValField
 
+class ValSerializerField(Field):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        #validator = ValValidator()
+        #self.validators.append(validator)
+
+    def to_representation(self, value):
+        #return value.to_db()
+        return value.__str__()
+    
+    def to_internal_value(self, data):
+        return Val.from_db(data)
 
 class DynamicFieldsModelSerializer(HyperlinkedModelSerializer):
     """
@@ -14,7 +27,7 @@ class DynamicFieldsModelSerializer(HyperlinkedModelSerializer):
     
     def __init__(self, *args, **kwargs):
         # Don't pass the 'fields' arg up to the superclass
-
+        self.serializer_field_mapping[ValField] = ValSerializerField
         fields = exclude = None
         if kwargs.get('context'):
             if 'fields' in kwargs['context']['request'].GET:
@@ -64,8 +77,6 @@ class TagNoteSerializer(DynamicFieldsModelSerializer):
         return result_serializer.data
 
 
-
-
 class EdocumentSerializer(TagNoteSerializer, DynamicFieldsModelSerializer):
     download_link = SerializerMethodField()
     
@@ -94,6 +105,7 @@ for model_name in view_names:
     globals()[model_name+'Serializer'] = type(model_name+'Serializer', tuple([TagNoteSerializer, DynamicFieldsModelSerializer]),
                                               {'Meta': meta_class})
 
+
 class ActionDefSerializer(DynamicFieldsModelSerializer):
     parameter_def = ParameterDefSerializer(read_only=True, many=True)
     
@@ -115,3 +127,5 @@ class WorkflowSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = core.models.Workflow
         fields = '__all__'
+
+#class ParameterSerializer(DynamicFieldsModelSerializer):
