@@ -852,28 +852,32 @@ EXECUTE PROCEDURE upsert_material ( );
 
 ----------------------------------------
 -- view of material_composite
--- DROP VIEW vw_material_composite
+-- DROP VIEW vw_material_composite cascade
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_material_composite AS
-SELECT
+SELECT 
 	mc.material_composite_uuid,
-	mc.composite_uuid,
-	m0.description as composite_description,
-	CASE
-		when (select 1 from material_composite where composite_uuid = mc.component_uuid limit 1) is not null then true
-		else false
-	END as composite_flg,
-	mc.component_uuid,
-	m1.description as component_description,
-	mc.addressable,	
+    mc.composite_uuid,
+    m0.description  AS composite_description,
+    CASE
+    	WHEN ((SELECT 1 FROM material_composite WHERE material_composite.composite_uuid = mc.component_uuid LIMIT 1)) IS NOT NULL THEN 
+    		true
+        ELSE false
+    END AS composite_flg,
+    mc.component_uuid,
+	m1.description  AS component_description,
+	mc.addressable,
 	mc.actor_uuid,
+	act.description AS actor_description,
 	mc.status_uuid,
+	sts.description AS status_description,
 	mc.add_date,
 	mc.mod_date
-FROM
-	material_composite mc
+FROM material_composite mc
 LEFT JOIN material m0 ON mc.composite_uuid = m0.material_uuid
-LEFT JOIN material m1 ON mc.component_uuid = m1.material_uuid;
+LEFT JOIN material m1 ON mc.component_uuid = m1.material_uuid
+LEFT JOIN vw_actor act ON mc.actor_uuid = act.actor_uuid
+LEFT JOIN vw_status sts ON mc.status_uuid = sts.status_uuid;
 
 DROP TRIGGER IF EXISTS trigger_material_composite_upsert ON vw_material_composite;
 CREATE TRIGGER trigger_material_composite_upsert INSTEAD OF INSERT
@@ -1173,7 +1177,7 @@ EXECUTE PROCEDURE upsert_material_property ( );
 -- view material_composite_property
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_material_composite_property AS
-SELECT
+SELECT 
 	mc.material_composite_uuid,
 	mc.composite_uuid,
 	mc.composite_description,
@@ -1181,27 +1185,34 @@ SELECT
 	mc.component_description,
 	pr.property_uuid,
 	pr.property_def_uuid,
-	pd.description as property_description,
-	pd.short_description as property_short_description,	
-	-- pr.property_val,
-	-- break out the val fields
-	(pr.property_val).v_type_uuid,
+	pd.description  AS property_description,
+	pd.short_description AS property_short_description,
+	(pr.property_val).v_type_uuid AS v_type_uuid,
 	vl.val_type,
-	(pr.property_val).v_unit as val_unit,
-	vl.val_val,	
-	pr.actor_uuid as property_actor_uuid,
-	act.description as property_actor_description,
-	pr.status_uuid as property_status_uuid,
-	st.description as property_status_description,
+	(pr.property_val).v_unit AS val_unit,
+	vl.val_val,
+	pr.actor_uuid AS property_actor_uuid,
+	act.description AS property_actor_description,
+	pr.status_uuid AS property_status_uuid,
+	st.description AS property_status_description,
 	pr.add_date,
 	pr.mod_date
 FROM vw_material_composite mc
-LEFT JOIN property_x px on mc.material_composite_uuid = px.material_uuid
-LEFT JOIN property pr on px.property_uuid = pr.property_uuid
-LEFT JOIN property_def pd on pr.property_def_uuid = pd.property_def_uuid
-LEFT JOIN actor act on pr.actor_uuid = act.actor_uuid
-LEFT JOIN status st on pr.status_uuid = st.status_uuid
-LEFT JOIN LATERAL (select * from get_val (pr.property_val)) vl ON true;
+JOIN property_x px ON mc.material_composite_uuid = px.material_uuid
+LEFT JOIN property pr ON px.property_uuid = pr.property_uuid
+LEFT JOIN property_def pd ON pr.property_def_uuid = pd.property_def_uuid
+LEFT JOIN actor act ON pr.actor_uuid = act.actor_uuid
+LEFT JOIN status st ON pr.status_uuid = st.status_uuid
+LEFT JOIN LATERAL ( SELECT get_val.val_type, get_val.val_unit, get_val.val_val FROM get_val(pr.property_val) get_val(val_type, val_unit, val_val)) vl ON true;
+
+
+
+
+
+
+
+
+
 
 
 ----------------------------------------
@@ -1304,38 +1315,59 @@ EXECUTE PROCEDURE upsert_bom ( );
 
 ----------------------------------------
 -- view bom_material
+-- drop view vw_bom_material cascade
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_bom_material AS
 SELECT
 	bm.bom_material_uuid,
 	bm.bom_uuid,
-    bm.description,
-	b.description as bom_description,
+	bm.description,
+	b.description AS bom_description,
 	bm.inventory_uuid,
+	CASE WHEN bm.material_composite_uuid IS NOT NULL THEN
+		NULL::uuid
+	ELSE
+		i.material_uuid
+	END AS material_uuid,
+	mc.composite_uuid,
 	bm.material_composite_uuid,
-	CASE
-		when bm.material_composite_uuid is not null then mc.component_description
-		else i.inventory_description
-	end as bom_material_description,	
+	CASE WHEN bm.material_composite_uuid IS NOT NULL THEN
+		mc.component_description
+	ELSE
+		i.inventory_description
+	END AS bom_material_description,
 	bm.alloc_amt_val,
+	(bm.alloc_amt_val).v_type_uuid AS alloc_amt_type_uuid,
+	aa.val_type AS alloc_amt_type,
+	(bm.alloc_amt_val).v_unit AS alloc_amt_unit,
+	aa.val_val AS alloc_amt,
 	bm.used_amt_val,
+	(bm.used_amt_val).v_type_uuid AS used_amt_type_uuid,
+	ua.val_type AS used_amt_type,
+	(bm.used_amt_val).v_unit AS used_amt_unit,
+	ua.val_val AS used_amt,
 	bm.putback_amt_val,
+	(bm.putback_amt_val).v_type_uuid AS putback_amt_type_uuid,
+	pa.val_type AS putback_amt_type,
+	(bm.putback_amt_val).v_unit AS putback_amt_unit,
+	pa.val_val AS putback_amt,
 	b.experiment_uuid,
-	exp.description as experiment_description,
+	exp.description AS experiment_description,
 	bm.actor_uuid,
-	act.description as actor_description,
-	bm.status_uuid,	
+	act.description AS actor_description,
+	bm.status_uuid,
 	st.description AS status_description,
 	b.add_date,
-	b.mod_date
-FROM
-	bom_material bm
-LEFT JOIN vw_bom b ON bm.bom_uuid = b.bom_uuid
-LEFT JOIN vw_inventory_material i ON bm.inventory_uuid = i.inventory_uuid
-LEFT JOIN vw_material_composite mc ON bm.material_composite_uuid = mc.material_composite_uuid
-LEFT JOIN vw_experiment exp ON b.experiment_uuid = exp.experiment_uuid
-LEFT JOIN vw_actor act ON bm.actor_uuid = act.actor_uuid
-LEFT JOIN status st ON bm.status_uuid = st.status_uuid;
+	b.mod_date FROM bom_material bm
+	LEFT JOIN vw_bom b ON bm.bom_uuid = b.bom_uuid
+	LEFT JOIN vw_inventory_material i ON bm.inventory_uuid = i.inventory_uuid
+	LEFT JOIN vw_material_composite mc ON bm.material_composite_uuid = mc.material_composite_uuid
+	LEFT JOIN vw_experiment exp ON b.experiment_uuid = exp.experiment_uuid
+	LEFT JOIN vw_actor act ON bm.actor_uuid = act.actor_uuid
+	LEFT JOIN status st ON bm.status_uuid = st.status_uuid
+	LEFT JOIN LATERAL (SELECT get_val.val_type, get_val.val_unit, get_val.val_val FROM get_val (bm.alloc_amt_val) get_val (val_type, val_unit, val_val)) aa ON TRUE
+	LEFT JOIN LATERAL (SELECT get_val.val_type, get_val.val_unit, get_val.val_val FROM get_val (bm.used_amt_val) get_val (val_type, val_unit, val_val)) ua ON TRUE
+	LEFT JOIN LATERAL (SELECT get_val.val_type, get_val.val_unit, get_val.val_val FROM get_val (bm.putback_amt_val) get_val (val_type, val_unit, val_val)) pa ON TRUE;
 
 DROP TRIGGER IF EXISTS trigger_bom_material_upsert ON vw_bom_material;
 CREATE TRIGGER trigger_bom_material_upsert INSTEAD OF INSERT
@@ -1787,16 +1819,15 @@ LEFT JOIN status stc ON cd.status_uuid = stc.status_uuid
 -- DROP VIEW vw_condition_path
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_condition_path AS
-SELECT
-    cp.condition_path_uuid,
-    cp.condition_uuid,
-	cp.condition_out_val,
-	cp.workflow_step_uuid,
-    cp.add_date,
-	cp.mod_date
+SELECT cp.condition_path_uuid,
+       cp.condition_uuid,
+       cp.condition_out_val,
+       cp.workflow_step_uuid,
+       cp.add_date,
+       cp.mod_date
 FROM condition_path cp
 LEFT JOIN vw_condition c ON cp.condition_uuid = c.condition_uuid
-LEFT JOIN workflow_step ws ON cp.workflow_step_uuid = ws.workflow_step_uuid;	
+LEFT JOIN workflow_step ws ON cp.workflow_step_uuid = ws.workflow_step_uuid;
 
 DROP TRIGGER IF EXISTS trigger_condition_path ON vw_condition_path;
 CREATE TRIGGER trigger_condition_path INSTEAD OF INSERT
@@ -1983,111 +2014,6 @@ FOR EACH ROW
 EXECUTE PROCEDURE upsert_workflow_action_set ( );
 
 ----------------------------------------
--- view workflow_step_json
--- DROP VIEW vw_workflow_step_json
-----------------------------------------
-CREATE OR REPLACE VIEW vw_workflow_step_json AS
-SELECT * FROM
-	(WITH RECURSIVE wf(workflow_step_uuid,  workflow_uuid, workflow_description, workflow_object_uuid, 
-		parent_uuid, parent_object_type, parent_object_description, conditional_val, conditional_value, 
-		object_uuid, object_type, object_description, status_uuid, status_description) AS (
-	    SELECT  w1.workflow_step_uuid,  w1.workflow_uuid, w1.workflow_description, w1.workflow_object_uuid,
-	    w1.parent_uuid, w1.parent_object_type, w1.parent_object_description, w1.conditional_val, w1.conditional_value, 
-	    w1.object_uuid, w1.object_type, w1.object_description, w1.status_uuid, w1.status_description
-	    FROM vw_workflow_step w1 WHERE workflow_step_uuid = (select workflow_step_uuid from vw_workflow_step 
-	    	where (parent_uuid is null))
-	    UNION ALL
-	    SELECT w2.workflow_step_uuid,  w2. workflow_uuid, w2.workflow_description, w2.workflow_object_uuid, 
-	    w2.parent_uuid, w2.parent_object_type, w2.parent_object_description, w2.conditional_val, w2.conditional_value, 
-	    w2.object_uuid, w2.object_type, w2.object_description, w2.status_uuid, w2.status_description
-	    FROM vw_workflow_step w2
-	    JOIN wf ON w2.parent_uuid = wf.workflow_step_uuid
-	)
-	SELECT  
-		json_build_object('workflow_step',
-		json_agg(
-			json_build_object(
-				'workflow_step_order', n.ord,
-				'workflow_uuid', n.workflow_uuid,
-				'workflow_description', n.workflow_description,				
-				'workflow_step_uuid', n.workflow_step_uuid,
-				'workflow_step_parent_uuid', n.parent_uuid,
-				'workflow_step_parent_object_type', n.parent_object_type,
-				'workflow_step_parent_object_description', n.parent_object_description,
-				'workflow_conditional_val', n.conditional_val,
-				'workflow_conditional_value', n.conditional_value,
-				'workflow_step_object_uuid', n.object_uuid,
-				'workflow_step_object_type', n.object_type,
-				'workflow_step_object_description', n.object_description,
-				'workflow_step_status_uuid', n.status_uuid,
-				'workflow_step_status_description', n.status_description
-				)
-			)
-		)
-	FROM 
-		(select row_number() over () as ord, * from wf) n) w;
-
-
-----------------------------------------
--- view workflow_step_object_json
--- DROP VIEW vw_workflow_step_object_json
-----------------------------------------
-CREATE OR REPLACE VIEW vw_workflow_step_object_json AS
-WITH RECURSIVE wf(workflow_step_uuid,  workflow_uuid, workflow_description, workflow_object_uuid, 
-		parent_uuid, parent_object_type, parent_object_description, conditional_val, conditional_value, 
-		object_uuid, object_type, object_description, status_uuid, status_description) AS (
-	    SELECT  w1.workflow_step_uuid,  w1.workflow_uuid, w1.workflow_description, w1.workflow_object_uuid,
-	    w1.parent_uuid, w1.parent_object_type, w1.parent_object_description, w1.conditional_val, w1.conditional_value, 
-	    w1.object_uuid, w1.object_type, w1.object_description, w1.status_uuid, w1.status_description
-	    FROM vw_workflow_step w1 WHERE workflow_step_uuid = (select workflow_step_uuid from vw_workflow_step 
-	    	where (parent_uuid is null))
-	    UNION ALL
-	    SELECT w2.workflow_step_uuid,  w2. workflow_uuid, w2.workflow_description, w2.workflow_object_uuid, 
-	    w2.parent_uuid, w2.parent_object_type, w2.parent_object_description, w2.conditional_val, w2.conditional_value, 
-	    w2.object_uuid, w2.object_type, w2.object_description, w2.status_uuid, w2.status_description
-	    FROM vw_workflow_step w2
-	    JOIN wf ON w2.parent_uuid = wf.workflow_step_uuid
-	)
-	SELECT 
-		json_build_object('workflow_step',
-		json_agg(
-			json_build_object(
-				'workflow_step_uuid', n.workflow_step_uuid,
-				'workflow_step_order', n.ord,
-				'workflow_uuid', n.workflow_uuid,
-				'workflow_description', n.workflow_description,
-				'workflow_step_status_uuid', n.status_uuid,
-				'workflow_step_status_description', n.status_description,				
-				'workflow_step_parent_uuid', n.parent_uuid,
-				'workflow_step_parent_object_type', n.parent_object_type,
-				'workflow_step_parent_object_description', n.parent_object_description,
-				'workflow_conditional_val', n.conditional_val,
-				'workflow_conditional_value', n.conditional_value,
-				'object', wfs)
-			)
-		)
-	FROM 
-		(select row_number() over () as ord, * from wf) n
-JOIN (
-	SELECT
-		workflow_step_uuid,
-		json_agg(
-		json_build_object(
-			'workflow_object_uuid', ws.workflow_object_uuid,
-			'object_uuid', ws.object_uuid,
-			'object_type', ws.object_type,
-			'object_description', ws.object_description,
-			'object_def_description', ws.object_def_description,
-			'object_add_date', ws.object_add_date,
-			'object_mod_date', ws.object_mod_date)
-		) wfs
-	FROM vw_workflow_step ws
-	GROUP BY workflow_step_uuid
-) wo
-ON n.workflow_step_uuid = wo.workflow_step_uuid;
-
-
-----------------------------------------
 -- view workflow_json
 -- DROP VIEW vw_workflow_json
 ----------------------------------------
@@ -2166,11 +2092,618 @@ ON e.experiment_uuid = p.experiment_uuid;
 
 
 ----------------------------------------
--- view experiment_workflow_step_json
--- drop view vw_experiment_workflow_step_json
+-- view experiment_workflow_step_object_json
+-- drop view vw_experiment_workflow_step_object_json
 ----------------------------------------
-CREATE OR REPLACE VIEW vw_experiment_workflow_step_json AS
+CREATE OR REPLACE VIEW vw_experiment_workflow_step_object_json AS
 SELECT
+	e.experiment_uuid,
+	json_build_object('experiment', 
+	json_agg(
+		json_build_object(
+			'experiment_uuid', e.experiment_uuid, 
+			'experiment_ref_uid', e.ref_uid, 
+			'experiment_description', e.description, 
+			'experiment_parent_uuid', e.parent_uuid, 
+			'experiment_owner_uuid', e.owner_uuid, 
+			'experiment_owner_description', e.owner_description, 
+			'experiment_operator_uuid', e.operator_uuid, 
+			'experiment_operator_description', e.operator_description, 
+			'experiment_lab_uuid', e.lab_uuid, 
+			'experiment_lab_description', e.lab_description, 
+			'experiment_status_uuid', e.status_uuid, 
+			'experiment_status_description', e.status_description, 
+			'experiment_add_date', e.add_date, 
+			'experiment_mod_date', e.mod_date, 
+			'workflow', p.wf)
+			)	
+	) AS experiment_workflow_json
+FROM vw_experiment e
+JOIN (
+	SELECT
+		p.experiment_uuid,
+		json_agg(
+			json_build_object(
+				'workflow_seq', p.experiment_workflow_seq,
+				'workflow_uuid', p.workflow_uuid,
+				'workflow_description', p.workflow_description,
+				'workflow_type_uuid', p.workflow_type_uuid,
+				'workflow_type_description', p.workflow_type_description,
+				'workflow_actor_uuid', p.workflow_actor_uuid,
+				'workflow_actor_description', p.workflow_actor_description,
+				'workflow_status_uuid', p.workflow_status_uuid,
+				'workflow_status_description', p.workflow_status_description,
+				'workflow_add_date', p.workflow_add_date,
+				'workflow_mod_date', p.workflow_mod_date,
+				'workflow_step', w.wfso)
+		) AS wf
+	FROM (
+		SELECT
+			vw_experiment_workflow.experiment_workflow_uuid,
+			vw_experiment_workflow.experiment_uuid,
+			vw_experiment_workflow.experiment_ref_uid,
+			vw_experiment_workflow.experiment_description,
+			vw_experiment_workflow.experiment_parent_uuid,
+			vw_experiment_workflow.experiment_owner_uuid,
+			vw_experiment_workflow.experiment_owner_description,
+			vw_experiment_workflow.experiment_operator_uuid,
+			vw_experiment_workflow.experiment_operator_description,
+			vw_experiment_workflow.experiment_lab_uuid,
+			vw_experiment_workflow.experiment_lab_description,
+			vw_experiment_workflow.experiment_status_uuid,
+			vw_experiment_workflow.experiment_status_description,
+			vw_experiment_workflow.experiment_add_date,
+			vw_experiment_workflow.experiment_mod_date,
+			vw_experiment_workflow.experiment_workflow_seq,
+			vw_experiment_workflow.workflow_uuid,
+			vw_experiment_workflow.workflow_description,
+			vw_experiment_workflow.workflow_type_uuid,
+			vw_experiment_workflow.workflow_type_description,
+			vw_experiment_workflow.workflow_actor_uuid,
+			vw_experiment_workflow.workflow_actor_description,
+			vw_experiment_workflow.workflow_status_uuid,
+			vw_experiment_workflow.workflow_status_description,
+			vw_experiment_workflow.workflow_add_date,
+			vw_experiment_workflow.workflow_mod_date
+		FROM
+			vw_experiment_workflow
+		ORDER BY
+			vw_experiment_workflow.experiment_uuid,
+			vw_experiment_workflow.experiment_workflow_seq) p
+	LEFT JOIN (WITH RECURSIVE wf (
+				workflow_step_uuid,
+				level,
+				workflow_uuid,
+				workflow_description,
+				workflow_object_uuid,
+				parent_uuid,
+				parent_object_type,
+				parent_object_description,
+				conditional_val,
+				conditional_value,
+				object_uuid,
+				object_type,
+				object_description,
+				status_uuid,
+				status_description
+				) AS (SELECT
+					w1.workflow_step_uuid,
+					1,
+					w1.workflow_uuid,
+					w1.workflow_description,
+					w1.workflow_object_uuid,
+					w1.parent_uuid,
+					w1.parent_object_type,
+					w1.parent_object_description,
+					w1.conditional_val,
+					w1.conditional_value,
+					w1.object_uuid,
+					w1.object_type,
+					w1.object_description,
+					w1.status_uuid,
+					w1.status_description
+				FROM
+					vw_workflow_step w1
+				WHERE
+					w1.parent_uuid IS NULL
+				UNION ALL
+				SELECT
+					w2.workflow_step_uuid,
+					w0.level + 1,
+					w2.workflow_uuid,
+					w2.workflow_description,
+					w2.workflow_object_uuid,
+					w2.parent_uuid,
+					w2.parent_object_type,
+					w2.parent_object_description,
+					w2.conditional_val,
+					w2.conditional_value,
+					w2.object_uuid,
+					w2.object_type,
+					w2.object_description,
+					w2.status_uuid,
+					w2.status_description
+				FROM
+					vw_workflow_step w2
+					JOIN wf w0 ON w0.workflow_step_uuid = w2.parent_uuid
+				)
+		SELECT
+			n.workflow_uuid,
+			json_agg(
+				json_build_object(
+					'workflow_uuid', n.workflow_uuid,
+					'workflow_description', n.workflow_description,
+					'workflow_step_uuid', n.workflow_step_uuid,
+					'workflow_step_order', n.level,
+					'workflow_step_parent_uuid', n.parent_uuid,
+					'workflow_step_parent_object_type', n.parent_object_type,
+					'workflow_step_parent_object_description', n.parent_object_description,
+					'workflow_conditional_val', n.conditional_val,
+					'workflow_conditional_value', n.conditional_value,
+					'workflow_step_status_uuid', n.status_uuid,
+					'workflow_step_status_description', n.status_description,
+					'object', wo.wfs)
+			) AS wfso
+		FROM (
+			SELECT
+				wf.workflow_step_uuid,
+				wf.level,
+				wf.workflow_uuid,
+				wf.workflow_description,
+				wf.workflow_object_uuid,
+				wf.parent_uuid,
+				wf.parent_object_type,
+				wf.parent_object_description,
+				wf.conditional_val,
+				wf.conditional_value,
+				wf.object_uuid,
+				wf.object_type,
+				wf.object_description,
+				wf.status_uuid,
+				wf.status_description
+			FROM
+				wf
+			ORDER BY
+				wf.workflow_uuid,
+				wf.level) n
+			JOIN (
+				SELECT
+					ws.workflow_step_uuid,
+					json_agg(
+						json_build_object(
+							'workflow_object_uuid', ws.workflow_object_uuid,
+							'object_uuid', ws.object_uuid,
+							'object_type', ws.object_type,
+							'object_description', ws.object_description,
+							'object_def_description', ws.object_def_description,
+							'object_add_date', ws.object_add_date,
+							'object_mod_date', ws.object_mod_date)
+					) AS wfs
+				FROM
+					vw_workflow_step ws
+				GROUP BY
+					ws.workflow_step_uuid) wo ON n.workflow_step_uuid = wo.workflow_step_uuid
+			GROUP BY
+				n.workflow_uuid) w ON p.workflow_uuid = w.workflow_uuid
+		GROUP BY
+			p.experiment_uuid
+) p ON e.experiment_uuid = p.experiment_uuid
+GROUP BY
+	e.experiment_uuid;
+
+
+----------------------------------------
+-- view experiment_workflow_step_object_parameter_json
+-- drop view experiment_workflow_step_object_parameter_json
+----------------------------------------
+CREATE OR REPLACE VIEW experiment_workflow_step_object_parameter_json AS
+SELECT
+	e.experiment_uuid,
+	json_build_object('experiment', 
+	json_agg(
+		json_build_object(
+			'experiment_uuid', e.experiment_uuid, 
+			'experiment_ref_uid', e.ref_uid, 
+			'experiment_description', e.description, 
+			'experiment_parent_uuid', e.parent_uuid, 
+			'experiment_owner_uuid', e.owner_uuid, 
+			'experiment_owner_description', e.owner_description, 
+			'experiment_operator_uuid', e.operator_uuid, 
+			'experiment_operator_description', e.operator_description, 
+			'experiment_lab_uuid', e.lab_uuid, 
+			'experiment_lab_description', e.lab_description, 
+			'experiment_status_uuid', e.status_uuid, 
+			'experiment_status_description', e.status_description, 
+			'experiment_add_date', e.add_date, 
+			'experiment_mod_date', e.mod_date, 
+			'workflow', p.wf)
+	)) AS experiment_workflow_json
+FROM vw_experiment e
+JOIN (
+	SELECT
+		p.experiment_uuid,
+		json_agg(
+			json_build_object(
+				'workflow_seq', p.experiment_workflow_seq,
+				'workflow_uuid', p.workflow_uuid,
+				'workflow_description', p.workflow_description,
+				'workflow_type_uuid', p.workflow_type_uuid,
+				'workflow_type_description', p.workflow_type_description,
+				'workflow_step', w.wfso)
+		) AS wf
+	FROM (
+		SELECT
+			vw_experiment_workflow.experiment_workflow_uuid,
+			vw_experiment_workflow.experiment_uuid,
+			vw_experiment_workflow.experiment_ref_uid,
+			vw_experiment_workflow.experiment_description,
+			vw_experiment_workflow.experiment_parent_uuid,
+			vw_experiment_workflow.experiment_owner_uuid,
+			vw_experiment_workflow.experiment_owner_description,
+			vw_experiment_workflow.experiment_operator_uuid,
+			vw_experiment_workflow.experiment_operator_description,
+			vw_experiment_workflow.experiment_lab_uuid,
+			vw_experiment_workflow.experiment_lab_description,
+			vw_experiment_workflow.experiment_status_uuid,
+			vw_experiment_workflow.experiment_status_description,
+			vw_experiment_workflow.experiment_add_date,
+			vw_experiment_workflow.experiment_mod_date,
+			vw_experiment_workflow.experiment_workflow_seq,
+			vw_experiment_workflow.workflow_uuid,
+			vw_experiment_workflow.workflow_description,
+			vw_experiment_workflow.workflow_type_uuid,
+			vw_experiment_workflow.workflow_type_description
+		FROM
+			vw_experiment_workflow
+		ORDER BY
+			vw_experiment_workflow.experiment_uuid,
+			vw_experiment_workflow.experiment_workflow_seq) p
+		LEFT JOIN (
+			WITH RECURSIVE wf (
+			workflow_step_uuid,
+			level,
+			workflow_uuid,
+			workflow_description,
+			workflow_object_uuid,
+			parent_uuid,
+			parent_object_type,
+			parent_object_description,
+			conditional_val,
+			conditional_value,
+			object_uuid,
+			object_type,
+			object_description,
+			status_uuid,
+			status_description) AS 
+			(
+			SELECT
+				w1.workflow_step_uuid,
+				1,
+				w1.workflow_uuid,
+				w1.workflow_description,
+				w1.workflow_object_uuid,
+				w1.parent_uuid,
+				w1.parent_object_type,
+				w1.parent_object_description,
+				w1.conditional_val,
+				w1.conditional_value,
+				w1.object_uuid,
+				w1.object_type,
+				w1.object_description,
+				w1.status_uuid,
+				w1.status_description
+			FROM
+				vw_workflow_step w1
+			WHERE
+				w1.parent_uuid IS NULL
+			UNION ALL
+			SELECT
+				w2.workflow_step_uuid,
+				w0.level + 1,
+				w2.workflow_uuid,
+				w2.workflow_description,
+				w2.workflow_object_uuid,
+				w2.parent_uuid,
+				w2.parent_object_type,
+				w2.parent_object_description,
+				w2.conditional_val,
+				w2.conditional_value,
+				w2.object_uuid,
+				w2.object_type,
+				w2.object_description,
+				w2.status_uuid,
+				w2.status_description
+			FROM
+				vw_workflow_step w2
+				JOIN wf w0 ON w0.workflow_step_uuid = w2.parent_uuid
+			)
+		SELECT
+			n.workflow_uuid,
+			json_agg(
+				json_build_object('workflow_uuid',
+					n.workflow_uuid, 'workflow_description',
+					n.workflow_description, 'workflow_step_uuid',
+					n.workflow_step_uuid, 'workflow_step_order',
+					n.level, 'workflow_step_parent_uuid',
+					n.parent_uuid, 'workflow_step_parent_object_type',
+					n.parent_object_type, 'workflow_step_parent_object_description',
+					n.parent_object_description,'workflow_conditional_val',
+					n.conditional_val, 'workflow_conditional_value',
+					n.conditional_value, 'workflow_step_status_uuid',
+					n.status_uuid, 'workflow_step_status_description',
+					n.status_description, 'object',
+					wo.wfs)
+			) AS wfso
+		FROM (
+			SELECT
+				wf.workflow_step_uuid,
+				wf.level,
+				wf.workflow_uuid,
+				wf.workflow_description,
+				wf.workflow_object_uuid,
+				wf.parent_uuid,
+				wf.parent_object_type,
+				wf.parent_object_description,
+				wf.conditional_val,
+				wf.conditional_value,
+				wf.object_uuid,
+				wf.object_type,
+				wf.object_description,
+				wf.status_uuid,
+				wf.status_description
+			FROM wf
+			ORDER BY wf.workflow_uuid, wf.level
+		) n
+		JOIN (
+			SELECT
+				ws.workflow_step_uuid,
+				json_agg(
+					json_build_object(
+						'workflow_object_uuid', ws.workflow_object_uuid,
+						'object_uuid', ws.object_uuid,
+						'object_type', ws.object_type,
+						'object_description', ws.object_description,
+						'object_def_description', ws.object_def_description,
+						'object_parameters',op.param)
+				) AS wfs
+			FROM vw_workflow_step ws
+				JOIN (
+					SELECT
+						p.action_uuid AS object_uuid,
+						json_agg(json_build_object(
+							'parameter_def_description', p.parameter_def_description,
+							'parameter_def_uuid', p.parameter_def_uuid,
+							'parameter_value', (SELECT get_val_json (p.parameter_val) AS get_val_json))) AS param
+						FROM vw_action_parameter p
+						GROUP BY p.action_uuid) op
+				ON ws.object_uuid = op.object_uuid
+				GROUP BY ws.workflow_step_uuid
+				) wo 
+			ON n.workflow_step_uuid = wo.workflow_step_uuid
+			GROUP BY n.workflow_uuid) w 
+		ON p.workflow_uuid = w.workflow_uuid
+		GROUP BY p.experiment_uuid) p
+ON e.experiment_uuid = p.experiment_uuid
+GROUP BY e.experiment_uuid;
+
+
+----------------------------------------
+-- view experiment_workflow_bom_json
+-- drop view vw_experiment_workflow_bom_json
+----------------------------------------
+CREATE OR REPLACE VIEW vw_experiment_bom_json AS
+SELECT
+	json_build_object(
+		'experiment', 
+		json_agg(
+			json_build_object(
+				'experiment_uuid', e.experiment_uuid, 
+				'experiment_ref_uid', e.ref_uid, 
+				'experiment_description', e.description, 
+				'experiment_parent_uuid', e.parent_uuid, 
+				'experiment_owner_uuid', e.owner_uuid, 
+				'experiment_owner_description', e.owner_description, 
+				'experiment_operator_uuid', e.operator_uuid, 
+				'experiment_operator_description', e.operator_description, 
+				'experiment_lab_uuid', e.lab_uuid, 
+				'experiment_lab_description', e.lab_description, 
+				'experiment_status_uuid', e.status_uuid, 
+				'experiment_status_description', e.status_description, 
+				'experiment_add_date', e.add_date, 
+				'experiment_mod_date', e.mod_date, 
+				'bom', b.bom)
+		)
+	) AS experiment_workflow_json
+FROM vw_experiment e
+JOIN (
+	SELECT
+		b.experiment_uuid,
+		json_agg(
+			json_build_object(
+				'bom_uuid', b.bom_uuid,
+				'bom_description', b.description,
+				'bom_material', bm.bomm)
+		) AS bom
+		FROM vw_bom b
+		JOIN (
+			SELECT
+				bm.bom_uuid,
+				json_agg(
+					json_build_object(
+						'bom_material_description', bm.description,
+						'bom_inventory_uuid', bm.inventory_uuid,
+						'bom_material_uuid', bm.material_uuid,
+						'bom_material_alloc_amt_type', bm.alloc_amt_type,
+						'bom_material_alloc_amt', bm.alloc_amt,
+						'bom_material_alloc_amt_unit', bm.alloc_amt_unit,
+						'bom_material_used_amt_type', bm.used_amt_type,
+						'bom_material_used_amt', bm.used_amt,
+						'bom_material_used_amt_unit', bm.used_amt_unit,
+						'bom_material_putback_amt_type', bm.putback_amt_type,
+						'bom_material_putback_amt', bm.putback_amt,
+						'bom_material_putback_amt_unit', bm.putback_amt_unit,
+						'bom_material_property', mp.mprp, 
+						'bom_material_component', mc.mcom)
+					ORDER BY bm.description
+				) AS bomm
+			FROM (SELECT
+					vw_bom_material.bom_material_uuid,
+					vw_bom_material.bom_uuid,
+					vw_bom_material.description,
+					vw_bom_material.bom_description,
+					vw_bom_material.inventory_uuid,
+					vw_bom_material.material_uuid,
+					vw_bom_material.composite_uuid,
+					vw_bom_material.material_composite_uuid,
+					vw_bom_material.bom_material_description,
+					vw_bom_material.alloc_amt_val,
+					vw_bom_material.alloc_amt_type_uuid,
+					vw_bom_material.alloc_amt_type,
+					vw_bom_material.alloc_amt_unit,
+					vw_bom_material.alloc_amt,
+					vw_bom_material.used_amt_val,
+					vw_bom_material.used_amt_type_uuid,
+					vw_bom_material.used_amt_type,
+					vw_bom_material.used_amt_unit,
+					vw_bom_material.used_amt,
+					vw_bom_material.putback_amt_val,
+					vw_bom_material.putback_amt_type_uuid,
+					vw_bom_material.putback_amt_type,
+					vw_bom_material.putback_amt_unit,
+					vw_bom_material.putback_amt,
+					vw_bom_material.experiment_uuid,
+					vw_bom_material.experiment_description,
+					vw_bom_material.actor_uuid,
+					vw_bom_material.actor_description,
+					vw_bom_material.status_uuid,
+					vw_bom_material.status_description,
+					vw_bom_material.add_date,
+					vw_bom_material.mod_date
+				FROM vw_bom_material
+				WHERE vw_bom_material.material_composite_uuid IS NULL) bm
+			LEFT JOIN (
+				SELECT
+					mp.material_uuid,
+					json_agg(
+						json_build_object(
+							'component_property_uuid', mp.property_uuid,
+							'component_property_def_uuid', mp.property_def_uuid,
+							'component_property_description', mp.property_description,
+							'component_property_short_description', mp.property_short_description,
+							'component_property_val_type', mp.val_type,
+							'component_property_val', mp.val_val,
+							'component_property_val_unit', mp.val_unit)) AS mprp
+				FROM (
+					SELECT
+						vw_material_property.property_x_uuid,
+						vw_material_property.material_uuid,
+						vw_material_property.description,
+						vw_material_property.property_uuid,
+						vw_material_property.property_def_uuid,
+						vw_material_property.property_description,
+						vw_material_property.property_short_description,
+						vw_material_property.v_type_uuid,
+						vw_material_property.val_type,
+						vw_material_property.val_unit,
+						vw_material_property.val_val,
+						vw_material_property.property_actor_uuid,
+						vw_material_property.property_actor_description,
+						vw_material_property.property_status_uuid,
+						vw_material_property.property_status_description,
+						vw_material_property.add_date,
+						vw_material_property.mod_date
+					FROM
+						vw_material_property
+					WHERE
+						vw_material_property.property_x_uuid IS NOT NULL) mp
+					GROUP BY
+						mp.material_uuid) mp ON bm.material_uuid = mp.material_uuid
+				LEFT JOIN (
+					SELECT
+						mc.composite_uuid,
+						json_agg(
+							json_build_object(
+								'component_uuid', mc.material_composite_uuid,
+								'component_description', mc.component_description,
+								'component_addressable', mc.addressable,
+								'component_property', cp.cpp)
+							ORDER BY mc.component_description
+						) AS mcom
+					FROM (
+						SELECT
+							vw_material_composite.material_composite_uuid,
+							vw_material_composite.composite_uuid,
+							vw_material_composite.composite_description,
+							vw_material_composite.composite_flg,
+							vw_material_composite.component_uuid,
+							vw_material_composite.component_description,
+							vw_material_composite.addressable,
+							vw_material_composite.actor_uuid,
+							vw_material_composite.actor_description,
+							vw_material_composite.status_uuid,
+							vw_material_composite.status_description,
+							vw_material_composite.add_date,
+							vw_material_composite.mod_date
+						FROM
+							vw_material_composite
+						WHERE
+							vw_material_composite.material_composite_uuid IS NOT NULL) mc
+					LEFT JOIN (
+						SELECT
+							cp.material_composite_uuid,
+							json_agg(
+								json_build_object(
+									'component_property_uuid', cp.property_uuid,
+									'component_property_def_uuid', cp.property_def_uuid,
+									'component_property_description', cp.property_description,
+									'component_property_short_description', cp.property_short_description,
+									'component_property_val_type', cp.val_type,
+									'component_property_val', cp.val_val,
+									'component_property_val_unit', cp.val_unit)
+							) AS cpp
+						FROM (
+							SELECT
+								vw_material_composite_property.material_composite_uuid,
+								vw_material_composite_property.composite_uuid,
+								vw_material_composite_property.composite_description,
+								vw_material_composite_property.component_uuid,
+								vw_material_composite_property.component_description,
+								vw_material_composite_property.property_uuid,
+								vw_material_composite_property.property_def_uuid,
+								vw_material_composite_property.property_description,
+								vw_material_composite_property.property_short_description,
+								vw_material_composite_property.v_type_uuid,
+								vw_material_composite_property.val_type,
+								vw_material_composite_property.val_unit,
+								vw_material_composite_property.val_val,
+								vw_material_composite_property.property_actor_uuid,
+								vw_material_composite_property.property_actor_description,
+								vw_material_composite_property.property_status_uuid,
+								vw_material_composite_property.property_status_description,
+								vw_material_composite_property.add_date,
+								vw_material_composite_property.mod_date
+							FROM
+								vw_material_composite_property
+							WHERE
+								vw_material_composite_property.property_uuid IS NOT NULL
+						) cp
+					GROUP BY cp.material_composite_uuid) cp
+					ON mc.material_composite_uuid = cp.material_composite_uuid
+				GROUP BY mc.composite_uuid) mc
+				ON bm.material_uuid = mc.composite_uuid
+		GROUP BY bm.bom_uuid) bm
+		ON b.bom_uuid = bm.bom_uuid
+	GROUP BY b.experiment_uuid) b
+ON e.experiment_uuid = b.experiment_uuid;
+
+
+----------------------------------------
+-- view experiment_bom_workflow_step_object_parameter_json
+-- drop view experiment_bom_workflow_step_object_parameter_json
+----------------------------------------
+CREATE OR REPLACE VIEW experiment_workflow_bom_step_object_parameter_json AS
+SELECT
+	e.experiment_uuid,
 	json_build_object('experiment',
 	json_agg(
 		json_build_object(
@@ -2188,184 +2721,352 @@ SELECT
 			'experiment_status_description', e.status_description,
 			'experiment_add_date', e.add_date,
 			'experiment_mod_date', e.mod_date,
-			'workflow', wf
-			)
-		)
-	) experiment_workflow_json
-FROM
-    vw_experiment e
+			'bill of materials', b.bom,
+			'workflow', p.wf)
+	)) AS experiment_workflow_json
+FROM vw_experiment e
+JOIN (
+    SELECT
+        b.experiment_uuid,
+        json_agg(
+            json_build_object(
+                'bom_uuid', b.bom_uuid,
+                'bom_description', b.description,
+                'bom_material', bm.bomm)
+        ) AS bom
+        FROM vw_bom b
+        JOIN (
+            SELECT
+                bm.bom_uuid,
+                json_agg(
+                    json_build_object(
+                        'bom_material_description', bm.description,
+                        'bom_inventory_uuid', bm.inventory_uuid,
+                        'bom_material_uuid', bm.material_uuid,
+                        'bom_material_alloc_amt_type', bm.alloc_amt_type,
+                        'bom_material_alloc_amt', bm.alloc_amt,
+                        'bom_material_alloc_amt_unit', bm.alloc_amt_unit,
+                        'bom_material_used_amt_type', bm.used_amt_type,
+                        'bom_material_used_amt', bm.used_amt,
+                        'bom_material_used_amt_unit', bm.used_amt_unit,
+                        'bom_material_putback_amt_type', bm.putback_amt_type,
+                        'bom_material_putback_amt', bm.putback_amt,
+                        'bom_material_putback_amt_unit', bm.putback_amt_unit,
+                        'bom_material_property', mp.mprp,
+                        'bom_material_component', mc.mcom)
+                    ORDER BY bm.description
+                ) AS bomm
+            FROM (SELECT
+                    bm.bom_material_uuid,
+                    bm.bom_uuid,
+                    bm.description,
+                    bm.bom_description,
+                    bm.inventory_uuid,
+                    bm.material_uuid,
+                    bm.composite_uuid,
+                    bm.material_composite_uuid,
+                    bm.bom_material_description,
+                    bm.alloc_amt_val,
+                    bm.alloc_amt_type_uuid,
+                    bm.alloc_amt_type,
+                    bm.alloc_amt_unit,
+                    bm.alloc_amt,
+                    bm.used_amt_val,
+                    bm.used_amt_type_uuid,
+                    bm.used_amt_type,
+                    bm.used_amt_unit,
+                    bm.used_amt,
+                    bm.putback_amt_val,
+                    bm.putback_amt_type_uuid,
+                    bm.putback_amt_type,
+                    bm.putback_amt_unit,
+                    bm.putback_amt,
+                    bm.experiment_uuid,
+                    bm.experiment_description,
+                    bm.actor_uuid,
+                    bm.actor_description,
+                    bm.status_uuid,
+                    bm.status_description,
+                    bm.add_date,
+                    bm.mod_date
+                FROM vw_bom_material bm
+                WHERE bm.material_composite_uuid IS NULL) bm
+            LEFT JOIN (
+                SELECT
+                    mp.material_uuid,
+                    json_agg(
+                        json_build_object(
+                            'component_property_uuid', mp.property_uuid,
+                            'component_property_def_uuid', mp.property_def_uuid,
+                            'component_property_description', mp.property_description,
+                            'component_property_short_description', mp.property_short_description,
+                            'component_property_val_type', mp.val_type,
+                            'component_property_val', mp.val_val,
+                            'component_property_val_unit', mp.val_unit)) AS mprp
+                FROM (
+                    SELECT
+                        mp.property_x_uuid,
+                        mp.material_uuid,
+                        mp.description,
+                        mp.property_uuid,
+                        mp.property_def_uuid,
+                        mp.property_description,
+                        mp.property_short_description,
+                        mp.v_type_uuid,
+                        mp.val_type,
+                        mp.val_unit,
+                        mp.val_val,
+                        mp.property_actor_uuid,
+                        mp.property_actor_description,
+                        mp.property_status_uuid,
+                        mp.property_status_description,
+                        mp.add_date,
+                        mp.mod_date
+                    FROM
+                        vw_material_property mp
+                    WHERE
+                        mp.property_x_uuid IS NOT NULL) mp
+                    GROUP BY
+                        mp.material_uuid) mp ON bm.material_uuid = mp.material_uuid
+                LEFT JOIN (
+                    SELECT
+                        mc.composite_uuid,
+                        json_agg(
+                            json_build_object(
+                                'component_uuid', mc.material_composite_uuid,
+                                'component_description', mc.component_description,
+                                'component_addressable', mc.addressable,
+                                'component_property', cp.cpp)
+                            ORDER BY mc.component_description
+                        ) AS mcom
+                    FROM (
+                        SELECT
+                            mc.material_composite_uuid,
+                            mc.composite_uuid,
+                            mc.composite_description,
+                            mc.composite_flg,
+                            mc.component_uuid,
+                            mc.component_description,
+                            mc.addressable,
+                            mc.actor_uuid,
+                            mc.actor_description,
+                            mc.status_uuid,
+                            mc.status_description,
+                            mc.add_date,
+                            mc.mod_date
+                        FROM
+                            vw_material_composite mc
+                        WHERE
+                            mc.material_composite_uuid IS NOT NULL) mc
+                    LEFT JOIN (
+                        SELECT
+                            cp.material_composite_uuid,
+                            json_agg(
+                                json_build_object(
+                                    'component_property_uuid', cp.property_uuid,
+                                    'component_property_def_uuid', cp.property_def_uuid,
+                                    'component_property_description', cp.property_description,
+                                    'component_property_short_description', cp.property_short_description,
+                                    'component_property_val_type', cp.val_type,
+                                    'component_property_val', cp.val_val,
+                                    'component_property_val_unit', cp.val_unit)
+                            ) AS cpp
+                        FROM (
+                            SELECT
+                                mcp.material_composite_uuid,
+                                mcp.composite_uuid,
+                                mcp.composite_description,
+                                mcp.component_uuid,
+                                mcp.component_description,
+                                mcp.property_uuid,
+                                mcp.property_def_uuid,
+                                mcp.property_description,
+                                mcp.property_short_description,
+                                mcp.v_type_uuid,
+                                mcp.val_type,
+                                mcp.val_unit,
+                                mcp.val_val,
+                                mcp.property_actor_uuid,
+                                mcp.property_actor_description,
+                                mcp.property_status_uuid,
+                                mcp.property_status_description,
+                                mcp.add_date,
+                                mcp.mod_date
+                            FROM
+                                vw_material_composite_property mcp
+                            WHERE
+                                mcp.property_uuid IS NOT NULL
+                        ) cp
+                    GROUP BY cp.material_composite_uuid) cp
+                    ON mc.material_composite_uuid = cp.material_composite_uuid
+                GROUP BY mc.composite_uuid) mc
+                ON bm.material_uuid = mc.composite_uuid
+        GROUP BY bm.bom_uuid) bm
+        ON b.bom_uuid = bm.bom_uuid
+    GROUP BY b.experiment_uuid) b
+ON e.experiment_uuid = b.experiment_uuid
 JOIN (
 	SELECT
 		p.experiment_uuid,
 		json_agg(
 			json_build_object(
-				'workflow_seq', p.experiment_workflow_seq,		
+				'workflow_seq', p.experiment_workflow_seq,
 				'workflow_uuid', p.workflow_uuid,
 				'workflow_description', p.workflow_description,
 				'workflow_type_uuid', p.workflow_type_uuid,
 				'workflow_type_description', p.workflow_type_description,
-				'workflow_actor_uuid', p.workflow_actor_uuid,
-				'workflow_actor_description', p.workflow_actor_description,
-				'workflow_status_uuid', p.workflow_status_uuid,
-				'workflow_status_description', p.workflow_status_description,
-				'workflow_add_date', p.workflow_add_date,
-				'workflow_mod_date', p.workflow_mod_date,
-				'workflow_step', wfs)
-				) wf
-	FROM
-		vw_experiment_workflow p
-	LEFT JOIN 
-		(SELECT * FROM
-			(WITH RECURSIVE wf(workflow_step_uuid,  workflow_uuid, workflow_description, workflow_object_uuid, 
-				parent_uuid, parent_object_type, parent_object_description, conditional_val, conditional_value, 
-				object_uuid, object_type, object_description, status_uuid, status_description) AS (
-			    SELECT  w1.workflow_step_uuid,  w1.workflow_uuid, w1.workflow_description, w1.workflow_object_uuid,
-			    w1.parent_uuid, w1.parent_object_type, w1.parent_object_description, w1.conditional_val, w1.conditional_value, 
-			    w1.object_uuid, w1.object_type, w1.object_description, w1.status_uuid, w1.status_description
-			    FROM vw_workflow_step w1 WHERE workflow_step_uuid = (select workflow_step_uuid from vw_workflow_step 
-			    	where (parent_uuid is null))
-			    UNION ALL
-			    SELECT w2.workflow_step_uuid,  w2. workflow_uuid, w2.workflow_description, w2.workflow_object_uuid, 
-			    w2.parent_uuid, w2.parent_object_type, w2.parent_object_description, w2.conditional_val, w2.conditional_value, 
-			    w2.object_uuid, w2.object_type, w2.object_description, w2.status_uuid, w2.status_description
-			    FROM vw_workflow_step w2
-			    JOIN wf ON w2.parent_uuid = wf.workflow_step_uuid
-			)
+				'workflow_step', w.wfso)
+		) AS wf
+	FROM (
+		SELECT
+			ew.experiment_workflow_uuid,
+			ew.experiment_uuid,
+			ew.experiment_ref_uid,
+			ew.experiment_description,
+			ew.experiment_parent_uuid,
+			ew.experiment_owner_uuid,
+			ew.experiment_owner_description,
+			ew.experiment_operator_uuid,
+			ew.experiment_operator_description,
+			ew.experiment_lab_uuid,
+			ew.experiment_lab_description,
+			ew.experiment_status_uuid,
+			ew.experiment_status_description,
+			ew.experiment_add_date,
+			ew.experiment_mod_date,
+			ew.experiment_workflow_seq,
+			ew.workflow_uuid,
+			ew.workflow_description,
+			ew.workflow_type_uuid,
+			ew.workflow_type_description
+		FROM
+			vw_experiment_workflow ew
+		ORDER BY
+			ew.experiment_uuid,
+			ew.experiment_workflow_seq) p
+		LEFT JOIN (
+			WITH RECURSIVE wf (
+			workflow_step_uuid,
+			level,
+			workflow_uuid,
+			workflow_description,
+			workflow_object_uuid,
+			parent_uuid,
+			parent_object_type,
+			parent_object_description,
+			conditional_val,
+			conditional_value,
+			object_uuid,
+			object_type,
+			object_description,
+			status_uuid,
+			status_description) AS
+			(
 			SELECT
-				workflow_uuid, 
-				json_build_object('workflow_step',
-				json_agg(
-					json_build_object(
-						'workflow_step_order', n.ord,
-						'workflow_uuid', n.workflow_uuid,
-						'workflow_description', n.workflow_description,				
-						'workflow_step_uuid', n.workflow_step_uuid,
-						'workflow_step_parent_uuid', n.parent_uuid,
-						'workflow_step_parent_object_type', n.parent_object_type,
-						'workflow_step_parent_object_description', n.parent_object_description,
-						'workflow_conditional_val', n.conditional_val,
-						'workflow_conditional_value', n.conditional_value,
-						'workflow_step_object_uuid', n.object_uuid,
-						'workflow_step_object_type', n.object_type,
-						'workflow_step_object_description', n.object_description,
-						'workflow_step_status_uuid', n.status_uuid,
-						'workflow_step_status_description', n.status_description)
-					)
-				) wfs
-			FROM 
-				(select row_number() over () as ord, * from wf) n
-			GROUP BY workflow_uuid) p ) w
-	ON p.workflow_uuid = w.workflow_uuid				
-	GROUP BY p.experiment_uuid) p
-ON e.experiment_uuid = p.experiment_uuid;
-
-
-----------------------------------------
--- view experiment_workflow_step_object_json
--- drop view vw_experiment_workflow_step_object_json
-----------------------------------------
-CREATE OR REPLACE VIEW vw_experiment_workflow_step_object_json AS
-SELECT
-	e.experiment_uuid,
-	json_build_object('experiment',
-	json_agg(
-		json_build_object(
-			'experiment_uuid', e.experiment_uuid,
-			'experiment_ref_uid', e.experiment_ref_uid,
-			'experiment_description', e.experiment_description,
-			'experiment_parent_uuid', e.experiment_parent_uuid,
-			'experiment_owner_uuid', e.experiment_owner_uuid,
-			'experiment_owner_description', e.experiment_owner_description,
-			'experiment_operator_uuid', e.experiment_operator_uuid,
-			'experiment_operator_description', e.experiment_operator_description,
-			'experiment_lab_uuid', e.experiment_lab_uuid,
-			'experiment_lab_description', e.experiment_lab_description,
-			'experiment_status_uuid', e.experiment_status_uuid,
-			'experiment_status_description', e.experiment_status_description,
-			'experiment_add_date', e.experiment_add_date,
-			'experiment_mod_date', e.experiment_mod_date,
-			'workflow', wf
-			)
-		)
-	) experiment_workflow_json
-FROM
-    vw_experiment_workflow e
-JOIN (
-	SELECT
-		p.experiment_uuid,
-		json_agg(
-			json_build_object(
-				'workflow_seq', p.experiment_workflow_seq,		
-				'workflow_uuid', p.workflow_uuid,
-				'workflow_description', p.workflow_description,
-				'workflow_type_uuid', p.workflow_type_uuid,
-				'workflow_type_description', p.workflow_type_description,
-				'workflow_actor_uuid', p.workflow_actor_uuid,
-				'workflow_actor_description', p.workflow_actor_description,
-				'workflow_status_uuid', p.workflow_status_uuid,
-				'workflow_status_description', p.workflow_status_description,
-				'workflow_add_date', p.workflow_add_date,
-				'workflow_mod_date', p.workflow_mod_date,
-				'workflow_step', wfso)
-				) wf
-	FROM
-		vw_experiment_workflow p
-	LEFT JOIN 
-	(
-		WITH RECURSIVE wf(workflow_step_uuid,  workflow_uuid, workflow_description, workflow_object_uuid, 
-				parent_uuid, parent_object_type, parent_object_description, conditional_val, conditional_value, 
-				object_uuid, object_type, object_description, status_uuid, status_description) AS (
-			    SELECT  w1.workflow_step_uuid,  w1.workflow_uuid, w1.workflow_description, w1.workflow_object_uuid,
-			    w1.parent_uuid, w1.parent_object_type, w1.parent_object_description, w1.conditional_val, w1.conditional_value, 
-			    w1.object_uuid, w1.object_type, w1.object_description, w1.status_uuid, w1.status_description
-			    FROM vw_workflow_step w1 WHERE workflow_step_uuid = (select workflow_step_uuid from vw_workflow_step 
-			    	where (parent_uuid is null))
-			    UNION ALL
-			    SELECT w2.workflow_step_uuid,  w2. workflow_uuid, w2.workflow_description, w2.workflow_object_uuid, 
-			    w2.parent_uuid, w2.parent_object_type, w2.parent_object_description, w2.conditional_val, w2.conditional_value, 
-			    w2.object_uuid, w2.object_type, w2.object_description, w2.status_uuid, w2.status_description
-			    FROM vw_workflow_step w2
-			    JOIN wf ON w2.parent_uuid = wf.workflow_step_uuid
-			)
+				w1.workflow_step_uuid,
+				1,
+				w1.workflow_uuid,
+				w1.workflow_description,
+				w1.workflow_object_uuid,
+				w1.parent_uuid,
+				w1.parent_object_type,
+				w1.parent_object_description,
+				w1.conditional_val,
+				w1.conditional_value,
+				w1.object_uuid,
+				w1.object_type,
+				w1.object_description,
+				w1.status_uuid,
+				w1.status_description
+			FROM
+				vw_workflow_step w1
+			WHERE
+				w1.parent_uuid IS NULL
+			UNION ALL
 			SELECT
-			 	workflow_uuid,
-				json_agg(
-					json_build_object(
-						'workflow_step_uuid', n.workflow_step_uuid,
-						'workflow_step_order', n.ord,
-						'workflow_uuid', n.workflow_uuid,
-						'workflow_description', n.workflow_description,
-						'workflow_step_status_uuid', n.status_uuid,
-						'workflow_step_status_description', n.status_description,				
-						'workflow_step_parent_uuid', n.parent_uuid,
-						'workflow_step_parent_object_type', n.parent_object_type,
-						'workflow_step_parent_object_description', n.parent_object_description,
-						'workflow_conditional_val', n.conditional_val,
-						'workflow_conditional_value', n.conditional_value,
-						'object', wfs)
-				) wfso
-			FROM 
-				(select row_number() over () as ord, * from wf) n
+				w2.workflow_step_uuid,
+				w0.level + 1,
+				w2.workflow_uuid,
+				w2.workflow_description,
+				w2.workflow_object_uuid,
+				w2.parent_uuid,
+				w2.parent_object_type,
+				w2.parent_object_description,
+				w2.conditional_val,
+				w2.conditional_value,
+				w2.object_uuid,
+				w2.object_type,
+				w2.object_description,
+				w2.status_uuid,
+				w2.status_description
+			FROM
+				vw_workflow_step w2
+				JOIN wf w0 ON w0.workflow_step_uuid = w2.parent_uuid
+			)
+		SELECT
+			n.workflow_uuid,
+			json_agg(
+				json_build_object('workflow_uuid',
+					n.workflow_uuid, 'workflow_description',
+					n.workflow_description, 'workflow_step_uuid',
+					n.workflow_step_uuid, 'workflow_step_order',
+					n.level, 'workflow_step_parent_uuid',
+					n.parent_uuid, 'workflow_step_parent_object_type',
+					n.parent_object_type, 'workflow_step_parent_object_description',
+					n.parent_object_description,'workflow_conditional_val',
+					n.conditional_val, 'workflow_conditional_value',
+					n.conditional_value, 'workflow_step_status_uuid',
+					n.status_uuid, 'workflow_step_status_description',
+					n.status_description, 'object',
+					wo.wfs)
+			) AS wfso
+		FROM (
+			SELECT
+				wf.workflow_step_uuid,
+				wf.level,
+				wf.workflow_uuid,
+				wf.workflow_description,
+				wf.workflow_object_uuid,
+				wf.parent_uuid,
+				wf.parent_object_type,
+				wf.parent_object_description,
+				wf.conditional_val,
+				wf.conditional_value,
+				wf.object_uuid,
+				wf.object_type,
+				wf.object_description,
+				wf.status_uuid,
+				wf.status_description
+			FROM wf
+			ORDER BY wf.workflow_uuid, wf.level
+		) n
 		JOIN (
 			SELECT
-				workflow_step_uuid,
+				ws.workflow_step_uuid,
 				json_agg(
-				json_build_object(
-					'workflow_object_uuid', ws.workflow_object_uuid,
-					'object_uuid', ws.object_uuid,
-					'object_type', ws.object_type,
-					'object_description', ws.object_description,
-					'object_def_description', ws.object_def_description,
-					'object_add_date', ws.object_add_date,
-					'object_mod_date', ws.object_mod_date)
-				) wfs
+					json_build_object(
+						'workflow_object_uuid', ws.workflow_object_uuid,
+						'object_uuid', ws.object_uuid,
+						'object_type', ws.object_type,
+						'object_description', ws.object_description,
+						'object_def_description', ws.object_def_description,
+						'object_parameters',op.param)
+				) AS wfs
 			FROM vw_workflow_step ws
-			GROUP BY workflow_step_uuid
-		) wo
+				JOIN (
+					SELECT
+						p.action_uuid AS object_uuid,
+						json_agg(json_build_object(
+							'parameter_def_description', p.parameter_def_description,
+							'parameter_def_uuid', p.parameter_def_uuid,
+							'parameter_value', (SELECT get_val_json (p.parameter_val) AS get_val_json))) AS param
+					FROM vw_action_parameter p
+					GROUP BY p.action_uuid) op
+				ON ws.object_uuid = op.object_uuid
+			    GROUP BY ws.workflow_step_uuid) wo
 		ON n.workflow_step_uuid = wo.workflow_step_uuid
-		GROUP BY workflow_uuid	
-	) w
-	ON p.workflow_uuid = w.workflow_uuid				
+	    GROUP BY n.workflow_uuid) w
+	ON p.workflow_uuid = w.workflow_uuid
 	GROUP BY p.experiment_uuid) p
 ON e.experiment_uuid = p.experiment_uuid
 GROUP BY e.experiment_uuid;
