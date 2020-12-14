@@ -103,7 +103,7 @@ class ActionDefSerializer(DynamicFieldsModelSerializer):
 
 
 class ActionSerializer(DynamicFieldsModelSerializer):
-    parameter = ParameterSerializer(read_only=True, many=True)
+    parameter = ActionParameterSerializer(read_only=True, many=True)
 
     class Meta:
         model = core.models.Action

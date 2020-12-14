@@ -35,7 +35,7 @@ view_names = ['Actor', 'Organization', 'Status', 'Systemtool', 'SystemtoolType',
               'Material', 'MaterialComposite', 'MaterialCalculationJson', 'MaterialRefnameDef',
               'MaterialType', 'Note_x', 'Person',
               'TagType', 'Property', 'PropertyDef', 'MaterialProperty', 'TypeDef',
-              'ParameterDef', 'Condition', 'ConditionDef', 'Parameter', 'WorkflowType',
+              'ParameterDef', 'Condition', 'ConditionDef', 'ActionParameter', 'Parameter', 'WorkflowType',
               'WorkflowStep', 'WorkflowObject', 'UdfDef', 'Experiment', 'ExperimentWorkflow',
               'BillOfMaterials', 'BomMaterial']
 

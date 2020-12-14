@@ -1275,7 +1275,7 @@ class ActionParameterDefAssign(models.Model):
 
 class ActionParameterAssign(models.Model):
     action_parameter_x = RetUUIDField(primary_key=True, db_column='action_parameter_x_uuid')
-    parameter = models.ForeignKey('Parameter',
+    parameter = models.ForeignKey('ActionParameter',
                                        on_delete=models.DO_NOTHING,
                                        blank=True,
                                        null=True,
@@ -1294,13 +1294,13 @@ class ActionParameterAssign(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_action_parameter' # todo, make a complimentary assign view for ap instances
+        db_table = 'vw_action_parameter'
 
 
 class Action(models.Model):
     action_uuid = RetUUIDField(primary_key=True,
                                    db_column='action_uuid')
-    parameter = models.ManyToManyField('Parameter', through='ActionParameterAssign', related_name='action_parameter')
+    parameter = models.ManyToManyField('ActionParameter', through='ActionParameterAssign', related_name='action_parameter')
     description = models.CharField(max_length=255,
                                    blank=True,
                                    null=True,
@@ -1338,16 +1338,62 @@ class Action(models.Model):
         managed = False
         db_table = 'vw_action'
 
-class Parameter(models.Model):
+class ActionParameter(models.Model):
     uuid = RetUUIDField(primary_key=True,
                                      db_column='parameter_uuid')
     action = models.ForeignKey('Action',
-                                    db_column='action_uuid',
-                                    on_delete=models.DO_NOTHING,
-                                    blank=True,
-                                    null=True,
-                                    editable=False,
-                                    related_name='parameter_action')
+                                db_column='action_uuid',
+                                on_delete=models.DO_NOTHING,
+                                blank=True,
+                                null=True,
+                                editable=False,
+                                related_name='parameter_action')
+    parameter_def = models.ForeignKey('ParameterDef',
+                                           db_column='parameter_def_uuid',
+                                           on_delete=models.DO_NOTHING,
+                                           blank=True,
+                                           null=True,
+                                           editable=False, related_name='action_parameter_parameter_def')
+    parameter_def_description = models.CharField(max_length=255,
+                                                blank=True,
+                                                null=True,
+                                                db_column='parameter_def_description',
+                                                editable=False)
+    parameter_val = ValField(blank=True,
+                             null=True,
+                            db_column='parameter_val')
+    actor = models.ForeignKey('Actor',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='parameter_actor_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False, related_name='action_parameter_actor')
+    actor_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='parameter_actor_description',
+                                            editable=False)
+    status = models.ForeignKey('Status',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='parameter_status_uuid',
+                                   blank=True,
+                                   null=True,
+                                   editable=False, related_name='action_parameter_status')
+    status_description  = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='parameter_status_description',
+                                            editable=False)
+    add_date = models.DateTimeField(auto_now_add=True, db_column='parameter_add_date')
+    mod_date = models.DateTimeField(auto_now=True, db_column='parameter_mod_date')
+
+    class Meta:
+        managed = False
+        db_table = 'vw_action_parameter'
+
+class Parameter(models.Model):
+    uuid = RetUUIDField(primary_key=True,
+                                     db_column='parameter_uuid')
     parameter_def = models.ForeignKey('ParameterDef',
                                            db_column='parameter_def_uuid',
                                            on_delete=models.DO_NOTHING,
@@ -1364,32 +1410,32 @@ class Parameter(models.Model):
                             db_column='parameter_val')
     actor = models.ForeignKey('Actor',
                                    on_delete=models.DO_NOTHING,
-                                   db_column='parameter_actor_uuid',
+                                   db_column='actor_uuid',
                                    blank=True,
                                    null=True,
                                    editable=False, related_name='parameter_actor')
     actor_description  = models.CharField(max_length=255,
                                             blank=True,
                                             null=True,
-                                            db_column='parameter_actor_description',
+                                            db_column='actor_description',
                                             editable=False)
     status = models.ForeignKey('Status',
                                    on_delete=models.DO_NOTHING,
-                                   db_column='parameter_status_uuid',
+                                   db_column='status_uuid',
                                    blank=True,
                                    null=True,
                                    editable=False, related_name='parameter_status')
     status_description  = models.CharField(max_length=255,
                                             blank=True,
                                             null=True,
-                                            db_column='parameter_status_description',
+                                            db_column='status_description',
                                             editable=False)
-    add_date = models.DateTimeField(auto_now_add=True, db_column='parameter_add_date')
-    mod_date = models.DateTimeField(auto_now=True, db_column='parameter_mod_date')
+    add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
+    mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
 
     class Meta:
         managed = False
-        db_table = 'vw_action_parameter' # todo: discuss the asymmetry here w/ g+s
+        db_table = 'vw_parameter'
 
 
 class WorkflowType(models.Model):
