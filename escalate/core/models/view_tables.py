@@ -1665,3 +1665,6 @@ class MeasureType(models.Model):
     add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
     mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')                                       
     
+    class Meta:
+        managed = False
+        db_table = 'vw_measure_type'
