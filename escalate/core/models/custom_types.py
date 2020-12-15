@@ -57,9 +57,7 @@ class Val:
             value = str(value)
         elif 'array' in val_type.description:
             table = str.maketrans('{}', '[]')
-            print(value)
             value = value.translate(table)
-            print(value)
             value = json.loads(value)
         else:
             value = json.loads(value)
