@@ -55,6 +55,12 @@ class Val:
         value = args[cls.positions[val_type.description]]
         if val_type.description == 'text':
             value = str(value)
+        elif 'array' in val_type.description:
+            table = str.maketrans('{}', '[]')
+            print(value)
+            value = value.translate(table)
+            print(value)
+            value = json.loads(value)
         else:
             value = json.loads(value)
         return cls(val_type, value, unit)
@@ -67,20 +73,19 @@ class Val:
 
     @classmethod
     def from_dict(cls, json_data):
-        required_keys = ['type', 'value', 'unit']
-        for key in required_keys:
-            if key not in json_data:
-                raise ValidationError(f'Missing key "{key}". ', 'invalid')
-            
+        required_keys = set(['type', 'value', 'unit'])
+        # Check if all keys are present in 
+        if not all(k in json_data for k in required_keys):
+                raise ValidationError(f'Missing key "{required_keys - set(json_data.keys())}". ', 'invalid')
+        
+        # Check if type exists in database
         try:
             val_type = TypeDef.objects.get(category='data', description=json_data['type'])
-
         except TypeDef.DoesNotExist:
             val_types = TypeDef.objects.filter(category='data')
             options = [val.description for val in val_types]
             raise ValidationError(f'Data type {json_data["type"]} does not exist. Options are: {", ".join(options)}', code='invalid')
-
-        
+                
         return cls(val_type, json_data['value'], json_data['unit'])
 
 class ValEncoder(json.JSONEncoder):
@@ -139,8 +144,5 @@ class ValField(models.Field):
 
     def value_from_object(self, obj):
         obj = super().value_from_object(obj)
-        #if isinstance(obj, Val):
-            #obj = obj.to_db()
-            #obj = obj.__str__
         return obj
         

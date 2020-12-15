@@ -37,7 +37,7 @@ view_names = ['Actor', 'Organization', 'Status', 'Systemtool', 'SystemtoolType',
               'TagType', 'Property', 'PropertyDef', 'MaterialProperty', 'TypeDef',
               'ParameterDef', 'Condition', 'ConditionDef', 'ActionParameter', 'Parameter', 'WorkflowType',
               'WorkflowStep', 'WorkflowObject', 'UdfDef', 'Experiment', 'ExperimentWorkflow',
-              'BillOfMaterials', 'BomMaterial']
+              'BillOfMaterials', 'BomMaterial', 'Measure', 'MeasureType']
 
 GET_only_views = ['TypeDef']
 

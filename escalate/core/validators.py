@@ -47,4 +47,7 @@ class ValValidator:
             result = [prim(val) for val in value]
         except Exception as e:
             raise ValidationError(f'Data type mismatch, type provided is {description} but exception occured: {e}')
+        
+        table = str.maketrans('[]', '{}')
+        result = json.dumps(result).translate(table)
         return result
