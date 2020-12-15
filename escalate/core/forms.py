@@ -158,7 +158,7 @@ class InventoryForm(forms.ModelForm):
         field_classes = {
             'description': forms.CharField,
             'part_no': forms.CharField,
-            'onhand_amt': forms.CharField,
+            'onhand_amt': forms.JSONField,
             'expiration_date': forms.SplitDateTimeField,
             'location': forms.CharField
         }

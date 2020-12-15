@@ -7,9 +7,9 @@ if version.parse(django.__version__) < version.parse('3.1'):
     from django.contrib.postgres.fields import JSONField
 else:
     from django.db.models import JSONField
-from django.db.models.fields import related
+from django.db.models.fields import CharField, related
 from .core_tables import RetUUIDField
-from .custom_types import ValField
+from .custom_types import ValField, ValEncoder
 
 managed_value = False
 
@@ -82,9 +82,7 @@ class Inventory(models.Model):
         max_length=255, blank=True, null=True)
     part_no = models.CharField(max_length=255, blank=True, null=True)
     # onhand_amt = models.CharField(max_length=255, blank=True, null=True)
-    onhand_amt = ValField(max_length=255, blank=True, null=True)
-    # unit = models.CharField(max_length=255, blank=True, null=True)
-    # create_date = models.DateTimeField(blank=True, null=True)
+    onhand_amt = ValField(blank=True, null=True)
     expiration_date = models.DateTimeField(blank=True, null=True)
     location = models.CharField(max_length=255,
                                           blank=True, null=True)
@@ -217,44 +215,44 @@ class SystemtoolType(models.Model):
 class Calculation(models.Model):
     uuid = RetUUIDField(primary_key=True,
                             db_column='calculation_uuid')
-    in_val = models.TextField(blank=True, null=True)
+    in_val = ValField(blank=True, null=True)
     in_val_type = models.ForeignKey('TypeDef',
                                          models.DO_NOTHING,
                                          db_column='in_val_type_uuid',
-                                         related_name='calculation_in_val_type')
-    in_val_value = models.TextField(blank=True, null=True)
-    in_val_unit = models.TextField(blank=True, null=True)
+                                         related_name='calculation_in_val_type', editable=False)
+    in_val_value = models.TextField(blank=True, null=True, editable=False)
+    in_val_unit = models.TextField(blank=True, null=True, editable=False)
     in_val_edocument = models.ForeignKey('Edocument',
                                          models.DO_NOTHING,
                                          db_column='in_val_edocument_uuid',
-                                         related_name='calculation_in_val_edocument')
+                                         related_name='calculation_in_val_edocument', editable=False)
 
     # in opt
-    in_opt_val = models.TextField(blank=True, null=True)
-    in_opt_val_value = models.TextField(blank=True, null=True)
+    in_opt_val = ValField(blank=True, null=True)
+    in_opt_val_value = models.TextField(blank=True, null=True, editable=False)
     in_opt_val_type = models.ForeignKey('TypeDef',
                                         models.DO_NOTHING,
                                         related_name='calculation_in_opt_val_type',
                                         db_column='in_opt_val_type_uuid',
-                                        blank=True, null=True,)
-    in_opt_val_unit = models.TextField(blank=True, null=True)
+                                        blank=True, null=True, editable=False)
+    in_opt_val_unit = models.TextField(blank=True, null=True, editable=False)
     in_opt_val_edocument = models.ForeignKey('Edocument',
                                              models.DO_NOTHING,
                                              db_column='in_opt_val_edocument_uuid',
-                                             related_name='calculation_in_opt_val_edocument')
+                                             related_name='calculation_in_opt_val_edocument', editable=False)
     # out
-    out_val = models.TextField(blank=True, null=True)
+    out_val = ValField(blank=True, null=True)
     out_val_type = models.ForeignKey('TypeDef',
                                      models.DO_NOTHING,
                                      related_name='calculation_out_val_type',
                                      db_column='out_val_type_uuid',
-                                     blank=True, null=True)
-    out_val_value = models.TextField(blank=True, null=True)
-    out_val_unit = models.TextField(blank=True, null=True)
+                                     blank=True, null=True, editable=False)
+    out_val_value = models.TextField(blank=True, null=True, editable=False)
+    out_val_unit = models.TextField(blank=True, null=True, editable=False)
     out_val_edocument = models.ForeignKey('Edocument',
                                           models.DO_NOTHING,
                                           db_column='out_val_edocument_uuid',
-                                          related_name='calculation_out_val_edocument')
+                                          related_name='calculation_out_val_edocument', editable=False)
 
     calculation_alias_name = models.CharField(
         max_length=255, blank=True, null=True)
@@ -436,9 +434,9 @@ class BomMaterial(models.Model):
                                    blank=True, null=True, db_column='material_composite_uuid',
                                    related_name='bom_material_composite')
     bom_material_description = models.CharField(max_length=255, blank=True, null=True)
-    alloc_amt_val = models.CharField(max_length=255, blank=True, null=True)
-    used_amt_val = models.CharField(max_length=255, blank=True, null=True)
-    putback_amt_val = models.CharField(max_length=255, blank=True, null=True)
+    alloc_amt_val = ValField(blank=True, null=True)
+    used_amt_val = ValField(blank=True, null=True)
+    putback_amt_val = ValField(blank=True, null=True)
     experiment_uuid = models.CharField(max_length=255, blank=True, null=True)
     experiment_description = models.CharField(max_length=255, blank=True, null=True)
     class Meta:
@@ -811,6 +809,15 @@ class Property(models.Model):
                                    blank=True,
                                    null=True,
                                    db_column='property_val')
+    # TODO: Any way to represent arrays with sqaure brackets? One of the arrays
+    # is represented as \"{0.5,10}\" in the val string. We'll have to write a special 
+    # case to parse arrays in custom_types.py/Val.from_db() function
+    """
+    property_val = ValField(max_length=255,
+                                   blank=True,
+                                   null=True,
+                                   db_column='property_val')
+    """
     actor = models.ForeignKey('Actor',
                                    on_delete=models.DO_NOTHING,
                                    db_column='actor_uuid',
@@ -897,6 +904,7 @@ class PropertyDef(models.Model):
 
 
 class MaterialProperty(models.Model):
+    #TODO: Material property may need fixing. Endpoint displays all tags for all rows
     uuid = RetUUIDField(primary_key=True,
                                        db_column='property_x_uuid')
     material = models.ForeignKey('Material',
@@ -931,10 +939,10 @@ class MaterialProperty(models.Model):
                                                   null=True,
                                                   db_column='property_short_description',
                                                   editable=False)
-    value = models.CharField(max_length=255,
-                                    blank=True,
-                                    null=True,
-                                    db_column='val_val')
+    value = ValField(
+                    blank=True,
+                    null=True,
+                    db_column='val_val')
     actor = models.ForeignKey('Actor',
                                    on_delete=models.DO_NOTHING,
                                    db_column='property_actor_uuid',
@@ -984,20 +992,20 @@ class ParameterDef(models.Model):
                                  blank=True,
                                  null=True, related_name='parameter_def_val_type')
     default_val_val  = models.CharField(max_length=255,
-                                            blank=True,
-                                            null=True,
-                                            db_column='default_val_val',
-                                            editable=False)
+                                blank=True,
+                                null=True,
+                                db_column='default_val_val',
+                                editable=False)
     valunit  = models.CharField(max_length=255,
                                             blank=True,
                                             null=True,
                                             db_column='valunit',
                                             editable=False)
-    default_val  = models.CharField(max_length=255,
-                                            blank=True,
-                                            null=True,
-                                            db_column='default_val',
-                                            editable=False)
+    default_val  = ValField(max_length=255,
+                            blank=True,
+                            null=True,
+                            db_column='default_val',
+                            editable=False)
     required  = models.CharField(max_length=255,
                                             blank=True,
                                             null=True,
@@ -1087,6 +1095,7 @@ class Condition(models.Model):
                                 blank=True,
                                 null=True,
                                 editable=False)
+    # TODO: Fix in_val and out_val on Postgres to return strings not JSON!
     in_val = models.CharField(max_length=255,
                                 blank=True,
                                 null=True,
@@ -1495,10 +1504,9 @@ class WorkflowStep(models.Model):
                                      blank=True,
                                      null=True,
                                      editable=False)
-    conditional_val = models.CharField(max_length=255,
-                                     blank=True,
-                                     null=True,
-                                     editable=False)
+    conditional_val = ValField(blank=True,
+                            null=True,
+                            editable=False)
     conditional_value = models.CharField(max_length=255,
                                      blank=True,
                                      null=True,

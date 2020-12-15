@@ -1,6 +1,7 @@
 from django.db import models
 from core.models.core_tables import TypeDef
 import json
+from django.core.exceptions import ValidationError
 """
 v_type_uuid uuid, 0
 v_unit character varying, 1
@@ -16,7 +17,6 @@ v_bool boolean, 10
 v_bool_array boolean[] 11
 """
 
-
 class Val:
     positions = {
             'text' : 2,
@@ -30,7 +30,8 @@ class Val:
         }
     def __init__(self, val_type, value, unit):
         self.val_type = val_type
-        self.type_uuid = val_type.uuid
+        if not isinstance(val_type, str):
+            self.type_uuid = val_type.uuid
         self.value = value
         self.unit = unit
     
@@ -43,31 +44,51 @@ class Val:
     
     @classmethod
     def from_db(cls, val_string):
+        #print(val_string)
         args = val_string[1:-1].split(',')
         type_uuid = args[0]
         unit = args[1]
+        
         val_type = TypeDef.objects.get(pk=type_uuid)
         
         # Values should be from index 2 onwards.
         value = args[cls.positions[val_type.description]]
-        value = json.loads(value)
-        
+        if val_type.description == 'text':
+            value = str(value)
+        else:
+            value = json.loads(value)
         return cls(val_type, value, unit)
-    """
-    @classmethod
-    def from_rest(cls, value, unit):
-        value = json.loads(value)
-        if isinstance(value, list):
-    """
+    
     def __str__(self):
         return f'{self.value} {self.unit}'
 
-    
-class ValAlt:
-    def __init__(self, type_uuid='', value='', unit=''):
-        self.type_uuid = type_uuid
-        self.unit = unit
-        self.value = value
+    def to_dict(self):
+        return {'value': self.value, 'unit': self.unit, 'type': self.val_type.description}
+
+    @classmethod
+    def from_dict(cls, json_data):
+        required_keys = ['type', 'value', 'unit']
+        for key in required_keys:
+            if key not in json_data:
+                raise ValidationError(f'Missing key "{key}". ', 'invalid')
+            
+        try:
+            val_type = TypeDef.objects.get(category='data', description=json_data['type'])
+
+        except TypeDef.DoesNotExist:
+            val_types = TypeDef.objects.filter(category='data')
+            options = [val.description for val in val_types]
+            raise ValidationError(f'Data type {json_data["type"]} does not exist. Options are: {", ".join(options)}', code='invalid')
+
+        
+        return cls(val_type, json_data['value'], json_data['unit'])
+
+class ValEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, Val):
+            return o.to_json()
+        return super().default(o)
+
         
 def parse_val(val_string):
     args = val_string[1:-1].split(',')
@@ -118,8 +139,8 @@ class ValField(models.Field):
 
     def value_from_object(self, obj):
         obj = super().value_from_object(obj)
-        if isinstance(obj, Val):
+        #if isinstance(obj, Val):
             #obj = obj.to_db()
-            obj = obj.__str__
+            #obj = obj.__str__
         return obj
         

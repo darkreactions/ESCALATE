@@ -1,23 +1,25 @@
 #from core.models import (Actor, Material, Inventory,
 #                         Person, Organization, Note)
-from rest_framework.serializers import SerializerMethodField, ModelSerializer, Field, HyperlinkedModelSerializer
+from rest_framework.serializers import SerializerMethodField, ModelSerializer, Field, HyperlinkedModelSerializer, JSONField
 from rest_framework.reverse import reverse
 import core.models
 from .utils import view_names
-from core.models.custom_types import Val, ValField
+from core.models.custom_types import Val, ValField, ValEncoder
+from core.validators import ValValidator
+import json
 
-class ValSerializerField(Field):
+
+class ValSerializerField(JSONField):
     def __init__(self, **kwargs):
+        self.validators.append(ValValidator())
         super().__init__(**kwargs)
-        #validator = ValValidator()
-        #self.validators.append(validator)
 
     def to_representation(self, value):
-        #return value.to_db()
-        return value.__str__()
+        return value.to_dict()
     
     def to_internal_value(self, data):
-        return Val.from_db(data)
+        data = json.loads(data)
+        return Val.from_dict(data)
 
 class DynamicFieldsModelSerializer(HyperlinkedModelSerializer):
     """

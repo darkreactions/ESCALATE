@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
-from django.utils.translation import gettext_lazy as _,
+from django.utils.translation import gettext_lazy as _
 import json
+from core.models.core_tables import TypeDef
 
 class ValValidator:
     """
@@ -18,24 +19,32 @@ class ValValidator:
             self.domain_whitelist = whitelist
 
     def __call__(self, value):
-         
+        #if isinstance(value.value, list):
+        if 'array' in value.val_type.description:
+            value.value = self.convert_list_value(value.val_type.description, value.value)
+        else:
+            value.value = self.convert_value(value.val_type.description,value.value)
 
-        if not value or '@' not in value:
-            raise ValidationError(self.message, code=self.code)
+        #if value.val_type.description not in detected_types:
+        #    raise ValidationError(f'Data type is {value.val_type.description} but value provided is {" or ".join(detected_types)}')
 
-        user_part, domain_part = value.rsplit('@', 1)
-
-        if not self.user_regex.match(user_part):
-            raise ValidationError(self.message, code=self.code)
-
-        if (domain_part not in self.domain_whitelist and
-                not self.validate_domain_part(domain_part)):
-            # Try for possible IDN domain-part
-            try:
-                domain_part = domain_part.encode('idna').decode('ascii')
-            except UnicodeError:
-                pass
-            else:
-                if self.validate_domain_part(domain_part):
-                    return
-            raise ValidationError(self.message, code=self.code)
+   
+    def convert_value(self, description, value):
+        primitives = {'bool': bool, 'int': int, 'num':float, 'text':str}
+        reverse_primitives = {bool: 'bool', int: 'int', float:'num', str:'text'}
+        prim = primitives[description]
+        try:
+            result = prim(value)
+        except Exception as e:
+            print(e)
+            raise ValidationError(f'Data type mismatch, type provided is "{description}" but value is of type "{reverse_primitives[type(value)]}"')
+        return result
+    
+    def convert_list_value(self, description, value):
+        primitives = {'array_bool': bool, 'array_int': int, 'array_num':float, 'array_text':str}
+        prim = primitives[description]
+        try:
+            result = [prim(val) for val in value]
+        except Exception as e:
+            raise ValidationError(f'Data type mismatch, type provided is {description} but exception occured: {e}')
+        return result
