@@ -44,7 +44,6 @@ class Val:
     
     @classmethod
     def from_db(cls, val_string):
-        #print(val_string)
         args = val_string[1:-1].split(',')
         type_uuid = args[0]
         unit = args[1]
@@ -55,6 +54,10 @@ class Val:
         value = args[cls.positions[val_type.description]]
         if val_type.description == 'text':
             value = str(value)
+        elif 'array' in val_type.description:
+            table = str.maketrans('{}', '[]')
+            value = value.translate(table)
+            value = json.loads(value)
         else:
             value = json.loads(value)
         return cls(val_type, value, unit)
@@ -67,33 +70,20 @@ class Val:
 
     @classmethod
     def from_dict(cls, json_data):
-        required_keys = ['type', 'value', 'unit']
-        for key in required_keys:
-            if key not in json_data:
-                raise ValidationError(f'Missing key "{key}". ', 'invalid')
-            
+        required_keys = set(['type', 'value', 'unit'])
+        # Check if all keys are present in 
+        if not all(k in json_data for k in required_keys):
+                raise ValidationError(f'Missing key "{required_keys - set(json_data.keys())}". ', 'invalid')
+        
+        # Check if type exists in database
         try:
             val_type = TypeDef.objects.get(category='data', description=json_data['type'])
-
         except TypeDef.DoesNotExist:
             val_types = TypeDef.objects.filter(category='data')
             options = [val.description for val in val_types]
             raise ValidationError(f'Data type {json_data["type"]} does not exist. Options are: {", ".join(options)}', code='invalid')
-
-        
+                
         return cls(val_type, json_data['value'], json_data['unit'])
-
-class ValEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, Val):
-            return o.to_json()
-        return super().default(o)
-
-        
-def parse_val(val_string):
-    args = val_string[1:-1].split(',')
-    return Val(*args)
-
 
 class ValField(models.Field):
     description = 'Data representation'
@@ -112,7 +102,6 @@ class ValField(models.Field):
     def from_db_value(self, value, expression, connection):
         if value is None:
             return value 
-        #return parse_val(value)
         return Val.from_db(value)
 
     def to_python(self, value):
@@ -122,12 +111,10 @@ class ValField(models.Field):
         if value is None:
             return value
         
-        #return parse_val(value)
         return Val.from_db(value)
 
     def get_prep_value(self, value):
         return value.to_db()
-        #return ''.join([''.join(l) for l in (value.type_uuid, value.value, value.unit)])
     
     def get_db_prep_value(self, value, connection, prepared=False):
         value = super().get_db_prep_value(value, connection, prepared)
@@ -139,8 +126,5 @@ class ValField(models.Field):
 
     def value_from_object(self, obj):
         obj = super().value_from_object(obj)
-        #if isinstance(obj, Val):
-            #obj = obj.to_db()
-            #obj = obj.__str__
         return obj
-        
+

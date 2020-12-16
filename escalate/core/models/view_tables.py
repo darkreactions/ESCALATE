@@ -9,7 +9,7 @@ else:
     from django.db.models import JSONField
 from django.db.models.fields import CharField, related
 from .core_tables import RetUUIDField
-from .custom_types import ValField, ValEncoder
+from .custom_types import ValField
 
 managed_value = False
 
@@ -83,6 +83,7 @@ class Inventory(models.Model):
     part_no = models.CharField(max_length=255, blank=True, null=True)
     # onhand_amt = models.CharField(max_length=255, blank=True, null=True)
     onhand_amt = ValField(blank=True, null=True)
+    
     expiration_date = models.DateTimeField(blank=True, null=True)
     location = models.CharField(max_length=255,
                                           blank=True, null=True)
@@ -681,7 +682,7 @@ class TagType(models.Model):
 
 
 class Edocument(models.Model):
-    uuid = RetUUIDField(primary_key=True, db_column='edocument_uuid')
+    uuid = RetUUIDField(primary_key=True, db_column='edocument_uuid', editable=False)
     title = models.CharField(max_length=255, blank=True,
                              null=True, db_column='title')
     description = models.CharField(max_length=255, blank=True, null=True,
@@ -692,17 +693,18 @@ class Edocument(models.Model):
         max_length=255, blank=True, null=True, db_column='source')
     edoc_type = models.CharField(max_length=255, blank=True,
                                  null=True, db_column='doc_type_description')
-    edocument = models.BinaryField(blank=True, null=True)
+    edocument = models.BinaryField(blank=True, null=True, editable=False)
     edoc_ver = models.CharField(max_length=255, blank=True,
                                 null=True, db_column='doc_ver')
+    doc_type_uuid = models.ForeignKey('TypeDef', db_column='doc_type_uuid', on_delete=models.DO_NOTHING, blank=True, null=True, editable=False)
     actor = models.ForeignKey(
         'Actor', models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True, related_name='edocument_actor')
     actor_description = models.CharField(
-        max_length=255, blank=True, null=True)
+        max_length=255, blank=True, null=True, editable=False)
     status = models.ForeignKey(
         'Status', models.DO_NOTHING, db_column='status_uuid', blank=True, null=True, related_name='edocument_status')
     status_description = models.CharField(
-        max_length=255, blank=True, null=True)
+        max_length=255, blank=True, null=True, editable=False)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -805,14 +807,16 @@ class Property(models.Model):
                                    blank=True,
                                    null=True,
                                    db_column='short_description')
+    
     property_val = models.CharField(max_length=255,
                                    blank=True,
                                    null=True,
                                    db_column='property_val')
+    """
     # TODO: Any way to represent arrays with sqaure brackets? One of the arrays
     # is represented as \"{0.5,10}\" in the val string. We'll have to write a special 
     # case to parse arrays in custom_types.py/Val.from_db() function
-    """
+    
     property_val = ValField(max_length=255,
                                    blank=True,
                                    null=True,
@@ -1585,3 +1589,83 @@ class WorkflowObject(models.Model):
     class Meta:
         managed = False
         db_table = 'vw_workflow_object'
+
+
+class Measure(models.Model):
+    uuid = RetUUIDField(primary_key=True, db_column='measure_uuid')
+    measure_type_uuid = models.ForeignKey('MeasureType',
+                               on_delete=models.DO_NOTHING,
+                               db_column='measure_type_uuid',
+                               blank=True,
+                               null=True,
+                               editable=False, related_name='measure_measure_type')
+    ref_measure_uuid = models.ForeignKey('Measure',
+                               on_delete=models.DO_NOTHING,
+                               db_column='ref_measure_uuid',
+                               blank=True,
+                               null=True,
+                               editable=False, related_name='measure_measure')
+    description = models.CharField(max_length=255,
+                                           blank=True,
+                                           null=True,
+                                           editable=False)
+    amount = ValField()
+    actor_uuid = models.ForeignKey('Actor',
+                               on_delete=models.DO_NOTHING,
+                               db_column='actor_uuid',
+                               blank=True,
+                               null=True,
+                               editable=False, related_name='measure_actor')
+    actor_description = models.CharField(max_length=255,
+                                           blank=True,
+                                           null=True,
+                                           editable=False)
+    status_uuid = models.ForeignKey('Status',
+                               on_delete=models.DO_NOTHING,
+                               db_column='status_uuid',
+                               blank=True,
+                               null=True,
+                               editable=False, related_name='measure_status')
+    status_description = models.CharField(max_length=255,
+                                           blank=True,
+                                           null=True,
+                                           editable=False)
+    add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
+    mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
+
+    class Meta:
+        managed = False
+        db_table = 'vw_measure'
+
+class MeasureType(models.Model):
+    uuid = RetUUIDField(primary_key=True, db_column='measure_type_uuid')
+    description = models.CharField(max_length=255,
+                                           blank=True,
+                                           null=True,
+                                           editable=False)
+    actor_uuid = models.ForeignKey('Actor',
+                               on_delete=models.DO_NOTHING,
+                               db_column='actor_uuid',
+                               blank=True,
+                               null=True,
+                               editable=False, related_name='measure_type_actor')
+    actor_description = models.CharField(max_length=255,
+                                           blank=True,
+                                           null=True,
+                                           editable=False)
+    status_uuid = models.ForeignKey('Status',
+                               on_delete=models.DO_NOTHING,
+                               db_column='status_uuid',
+                               blank=True,
+                               null=True,
+                               editable=False, related_name='measure_type_status')
+    status_description = models.CharField(max_length=255,
+                                           blank=True,
+                                           null=True,
+                                           editable=False)
+    add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
+    mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')                                       
+    
+    class Meta:
+        managed = False
+        db_table = 'vw_measure_type'

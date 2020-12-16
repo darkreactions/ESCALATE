@@ -1,11 +1,14 @@
 #from core.models import (Actor, Material, Inventory,
 #                         Person, Organization, Note)
-from rest_framework.serializers import SerializerMethodField, ModelSerializer, Field, HyperlinkedModelSerializer, JSONField
+from core.models.view_tables import Edocument
+from core.models.core_tables import TypeDef
+from rest_framework.serializers import SerializerMethodField, ModelSerializer, Field, HyperlinkedModelSerializer, JSONField, FileField
 from rest_framework.reverse import reverse
 import core.models
 from .utils import view_names
-from core.models.custom_types import Val, ValField, ValEncoder
+from core.models.custom_types import Val, ValField
 from core.validators import ValValidator
+from django.core.exceptions import ValidationError
 import json
 
 
@@ -81,12 +84,13 @@ class TagNoteSerializer(DynamicFieldsModelSerializer):
 
 class EdocumentSerializer(TagNoteSerializer, DynamicFieldsModelSerializer):
     download_link = SerializerMethodField()
-    
+    edocument = FileField(write_only=True)
     
     class Meta:
         model = core.models.Edocument
         fields = ('uuid', 'title', 'description', 'filename',
-                  'source', 'edoc_type', 'download_link', 'actor', 'actor_description', 'tags')
+                  'source', 'edoc_type', 'download_link', 
+                  'actor', 'actor_description', 'tags', 'edocument')
 
 
     def get_download_link(self, obj):
@@ -95,6 +99,22 @@ class EdocumentSerializer(TagNoteSerializer, DynamicFieldsModelSerializer):
                                      request=self.context['request']))
         return result
 
+    def validate_edoc_type(self, value):
+        try:
+            doc_type = TypeDef.objects.get(category='file', description=value)
+        except TypeDef.DoesNotExist:
+            val_types = TypeDef.objects.filter(category='file')
+            options = [val.description for val in val_types]
+            raise ValidationError(f'File type {value} does not exist. Options are: {", ".join(options)}', code='invalid')
+        return value
+
+    def create(self, validated_data):
+        validated_data['edocument'] = validated_data['edocument'].read()
+        doc_type = TypeDef.objects.get(category='file', description=validated_data['edoc_type'])
+        validated_data['doc_type_uuid'] = doc_type
+        edoc = Edocument(**validated_data)
+        edoc.save()
+        return edoc
 
 class ExperimentMeasureCalculationSerializer(DynamicFieldsModelSerializer):
     class Meta:
