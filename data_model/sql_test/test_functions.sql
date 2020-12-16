@@ -1127,7 +1127,7 @@ insert into vw_inventory (description, material_uuid, actor_uuid,
 				(select material_uuid from vw_material where description = 'Plate: 24 well'),
 				(select actor_uuid from vw_actor where description = 'Ion Bond'),
 				'part# 24wp_123',
-				(select put_val((select get_type_def ('data', 'int')),'1','')),
+				(select put_val((select get_type_def ('data', 'int')),'2','')),
                 '2022-12-31',
                 'Shelf 1, Bin 1',
 				(select status_uuid from vw_status where description = 'dev_test')
@@ -1284,45 +1284,78 @@ insert into vw_action_parameter_def_assign (action_def_uuid, parameter_def_uuid)
 -- ===========================================================================
 -- set up some calculations
 -- ===========================================================================
+-- define the calculation parameters, calculations and then join together
+insert into vw_parameter_def (description, default_val, actor_uuid, status_uuid)
+	values
+	    ('hcl_concentrations',
+        (select put_val((select get_type_def ('data', 'array_num')), '{12.0,6.0,4.0,2.0,1.0,.1,.01,.001}', '')),
+        (select actor_uuid from vw_actor where description = 'Ion Bond'),
+		(select status_uuid from vw_status where description = 'dev_test')),
+    	('total_vol',
+        (select put_val((select get_type_def ('data', 'num')), '5', 'mL')),
+        (select actor_uuid from vw_actor where description = 'Ion Bond'),
+		(select status_uuid from vw_status where description = 'dev_test')),
+        ('stock_concentration',
+        (select put_val ((select get_type_def ('data', 'num')),'12','M')),
+        (select actor_uuid from vw_actor where description = 'Ion Bond'),
+		(select status_uuid from vw_status where description = 'dev_test'));
 -- first one is for determining 12M HCL, Water for various concentrations in 5mL
 -- calc_def's first
 insert into vw_calculation_def
 	(short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid,
-	in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid )
-	values ('LANL_WF1_HCL12M_5mL_concentration', 'math_op_arr((math_op_arr(array[12, 6, 4, 2, 1, .1, .01, .001], ''/'', 12)), ''*'', 5);',
-		(select systemtool_uuid from vw_actor where systemtool_name = 'escalate'),
+	in_opt_type_uuid, out_type_uuid, out_unit, calculation_class_uuid, actor_uuid, status_uuid )
+	values ('LANL_WF1_HCL12M_5mL_concentration', 'math_op_arr(math_op_arr(''hcl_concentrations'', ''/'', stock_concentration), ''*'', total_vol)',
+		(select systemtool_uuid from vw_actor where systemtool_name = 'postgres'),
 		'LANL WF1: return array of mL vols for 12M HCL for 5mL target across concentration array', null, null, null, null,
-		(select type_def_uuid from vw_type_def where category = 'data' and description = 'num_array'),
+		(select type_def_uuid from vw_type_def where category = 'data' and description = 'array_num'), 'mL',
 		null, (select actor_uuid from vw_actor where description = 'Dev Test123'),
 		(select status_uuid from vw_status where description = 'dev_test')
 		);
 insert into vw_calculation_def
 	(short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid,
-	in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid )
-	values ('LANL_WF1_H2O_5mL_concentration', 'math_op_arr((math_op_arr((math_op_arr(array[12, 6, 4, 2, 1, .1, .01, .001], ''/'', 12)), ''*'', -5)), ''+'', 5);',
-		(select systemtool_uuid from vw_actor where systemtool_name = 'escalate'),
+	in_opt_type_uuid, out_type_uuid, out_unit, calculation_class_uuid, actor_uuid, status_uuid )
+	values ('LANL_WF1_H2O_5mL_concentration', 'math_op_arr(math_op_arr(math_op_arr(''hcl_concentrations'', ''/'', stock_concentration), ''*'', (math_op(0, ''-'', total_vol))), ''+'', total_vol)',
+		(select systemtool_uuid from vw_actor where systemtool_name = 'postgres'),
 		'LANL WF1: return array of mL vols for H2O for 5mL target across concentration array', null, null, null, null,
-		(select type_def_uuid from vw_type_def where category = 'data' and description = 'num_array'),
+		(select type_def_uuid from vw_type_def where category = 'data' and description = 'array_num'), 'mL',
 		null, (select actor_uuid from vw_actor where description = 'Dev Test123'),
 		(select status_uuid from vw_status where description = 'dev_test')
 		);
--- now calculation for HCL
-insert into calculation (calculation_def_uuid, in_val, in_opt_val, out_val, actor_uuid, status_uuid) values
+insert into vw_calculation_parameter_def (calculation_def_uuid, parameter_def_uuid)
+    values (
+        (select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+        (select parameter_def_uuid from vw_parameter_def where description = 'hcl_concentrations')),
+        ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+        (select parameter_def_uuid from vw_parameter_def where description = 'total_vol')),
+        ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+        (select parameter_def_uuid from vw_parameter_def where description = 'stock_concentration'));
+insert into vw_calculation_parameter_def (calculation_def_uuid, parameter_def_uuid)
+    values (
+        (select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_H2O_5mL_concentration'),
+        (select parameter_def_uuid from vw_parameter_def where description = 'hcl_concentrations')),
+        ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_H2O_5mL_concentration'),
+        (select parameter_def_uuid from vw_parameter_def where description = 'total_vol')),
+        ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_H2O_5mL_concentration'),
+        (select parameter_def_uuid from vw_parameter_def where description = 'stock_concentration'));
+-- now create the calculation for HCL
+insert into vw_calculation (calculation_def_uuid, calculation_alias_name, in_val, in_opt_val, out_val, actor_uuid, status_uuid) values
 (
     (select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
-    (select put_val((select get_type_def ('data', 'array_num')), '{12.0,6.0,4.0,2.0,1.0,.1,.01,.001}','')),
+    'LANL_WF1_HCL12M_5mL_concentration',
     null,
-    (select put_val((select get_type_def ('data', 'array_num')), (select math_op_arr((math_op_arr(array[12, 6, 4, 2, 1, .1, .01, .001], '/', 12)), '*', 5))::text, 'mL')),
+    null,
+    (select do_calculation((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'))),
  	(select actor_uuid from vw_actor where description = 'Dev Test123'),
 	(select status_uuid from vw_status where description = 'dev_test')
 );
 -- calculation for H2O
-insert into calculation (calculation_def_uuid, in_val, in_opt_val, out_val, actor_uuid, status_uuid) values
+insert into vw_calculation (calculation_def_uuid, calculation_alias_name, in_val, in_opt_val, out_val, actor_uuid, status_uuid) values
 (
     (select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_H2O_5mL_concentration'),
-    (select put_val((select get_type_def ('data', 'array_num')), '{12.0,6.0,4.0,2.0,1.0,.1,.01,.001}','')),
+    'LANL_WF1_H2O_5mL_concentration',
     null,
-    (select put_val((select get_type_def ('data', 'array_num')), (select math_op_arr((math_op_arr((math_op_arr(array[12, 6, 4, 2, 1, .1, .01, .001], '/', 12)), '*', -5)), '+', 5))::text, 'mL')),
+    null,
+    (select do_calculation((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_H2O_5mL_concentration'))),
  	(select actor_uuid from vw_actor where description = 'Dev Test123'),
 	(select status_uuid from vw_status where description = 'dev_test')
 );
@@ -1394,7 +1427,15 @@ insert into vw_bom_material (bom_uuid, description, inventory_uuid, alloc_amt_va
 	(select put_val((select get_type_def ('data', 'int')), '0','')),				
 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'dev_test'));
-
+insert into vw_bom_material (bom_uuid, description, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
+	(select bom_uuid from vw_bom where description = 'LANL Test BOM'),
+    'Sample Assay Plate',
+	(select inventory_uuid from vw_inventory where description = '24 well plate'),
+	(select put_val((select get_type_def ('data', 'int')), '1','')),
+	null,
+	(select put_val((select get_type_def ('data', 'int')), '0','')),
+	(select actor_uuid from vw_actor where description = 'Ion Bond'),
+	(select status_uuid from vw_status where description = 'dev_test'));
 -- ===========================================================================
 -- create workflows
 -- ===========================================================================
@@ -1448,14 +1489,22 @@ values ('dispense action_set',
  --       (select arr_val_2_val_arr ((select out_val from vw_calculation where short_name = 'LANL_WF1_H2O_5mL_concentration'))),
         array [(select bom_material_uuid from vw_bom_material where description = 'H2O')],
         array [
-            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A1'),
-            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A2'),
-            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A3'),
-            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A4'),
-            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A5'),
-            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A6'),
-            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: B1'),
-            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: B2')],
+            (select bom_material_uuid from vw_bom_material where
+                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A1%'),
+            (select bom_material_uuid from vw_bom_material where
+                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A2%'),
+            (select bom_material_uuid from vw_bom_material where
+                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A3%'),
+            (select bom_material_uuid from vw_bom_material where
+                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A4%'),
+            (select bom_material_uuid from vw_bom_material where
+                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A5%'),
+            (select bom_material_uuid from vw_bom_material where
+                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A6%'),
+            (select bom_material_uuid from vw_bom_material where
+                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%B1%'),
+            (select bom_material_uuid from vw_bom_material where
+                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%B2%')],
         (select actor_uuid from vw_actor where description = 'Ion Bond'),
         (select status_uuid from vw_status where description = 'dev_test'));
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
@@ -1473,15 +1522,7 @@ values ('dispense action_set',
         (select calculation_uuid from vw_calculation where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
  --       (select arr_val_2_val_arr ((select out_val from vw_calculation where short_name = 'LANL_WF1_H2O_5mL_concentration'))),
         array [(select bom_material_uuid from vw_bom_material where description = 'HCl-12M')],
-        array [
-            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A1'),
-            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A2'),
-            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A3'),
-            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A4'),
-            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A5'),
-            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: A6'),
-            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: B1'),
-            (select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate well#: B2')],
+        (select array(select bom_material_uuid from vw_bom_material where bom_material_composite_description = 'Sample Prep Plate'
+            and bom_material_description similar to '%(A1|A2|A3|A4|A5|A6|B1|B2)%')),
         (select actor_uuid from vw_actor where description = 'Ion Bond'),
         (select status_uuid from vw_status where description = 'dev_test'));
-

@@ -968,7 +968,10 @@ Example:		SELECT get_val (concat('(',
 					',,,,15,,,,,,,)')::val);			
 				SELECT get_val (concat('(',
 					(select type_def_uuid from vw_type_def where category = 'data' and description ='array_int'),
-					',,,,,"{1,2,3,4,5}",,,,,,)')::val);	
+					',,,,,"{1,2,3,4,5}",,,,,,)')::val);
+				SELECT get_val.val_val from get_val (concat('(',
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='array_int'),
+					',,,,,"{1,2,3,4,5}",,,,,,)')::val);
 				SELECT get_val (concat('(',
 					(select type_def_uuid from vw_type_def where category = 'data' and description ='blob'),				
 					',,,,,,,,',
@@ -979,7 +982,8 @@ Example:		SELECT get_val (concat('(',
 					',,,,,,,,,,TRUE,)')::val);	
 				SELECT get_val (concat('(',
 					(select type_def_uuid from vw_type_def where category = 'data' and description ='fred'),
-					',,,,,,,,,,TRUE,)')::val);					
+					',,,,,,,,,,TRUE,)')::val);
+
 */
 -- DROP FUNCTION IF EXISTS get_val (p_in val) cascade;
 CREATE OR REPLACE FUNCTION get_val (p_in val)
@@ -1418,6 +1422,7 @@ Example:		select math_op(12, '/', 6);
 				select math_op(5, '!');
                 select math_op(2, '*', (select math_op(3, '+', 4)));
                 select math_op(array[1, 2, 3], '*', 2);
+                select math_op('fred', '*', 2);
 */
 -- DROP FUNCTION IF EXISTS math_op (p_op text, p_in_num numeric, p_in_opt_num numeric) cascade;
 CREATE OR REPLACE FUNCTION math_op (p_in_num numeric, p_op text, p_in_opt_num numeric DEFAULT NULL)
@@ -1450,7 +1455,8 @@ Example:		select math_op_arr(array[101], '*', 11);
                 select math_op_arr(array[12, 6, 4], '/', 12);
                 select math_op_arr(array[12, 6, 4, 2, 1, .1, .01, .001], '/', 12);
                 select math_op_arr((math_op_arr(array[12, 6, 4, 2, 1, .1, .01, .001], '/', 12)), '*', 5);
-                select math_op_arr((math_op_arr((math_op_arr(array[12, 6, 4, 2, 1, .1, .01, .001], '/', 12)), '*', -5)), '+', 5);
+                select math_op_arr((math_op_arr('{12, 6, 4, 2, 1, .1, .01, .001}', '/', 12)), '*', 5);
+                select math_op_arr(5, '-', (math_op_arr((math_op_arr(array[12, 6, 4, 2, 1, .1, .01, .001], '/', 12)), '*', 5)));
  */
 -- DROP FUNCTION IF EXISTS math_op_arr (p_in_num numeric[], p_op text, p_in_opt_num numeric[]) cascade;
 CREATE OR REPLACE FUNCTION math_op_arr (p_in_num numeric[], p_op text, p_in_opt_num numeric DEFAULT NULL)
@@ -1476,6 +1482,52 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
+
+
+/*
+Name:			do_calculation (p_calculation_def_uuid uuid)
+Parameters:		calculation_def_uuid
+Returns:		results of math operation as a val type
+Author:			G. Cattabriga
+Date:			2020.12.14
+Description:	returns the results of a basic postgres math operation; will bring in any associated parameters
+Notes:          array parameter names need to be [double] quoted in the calc definition
+Example:		select do_calculation(
+                    (select calculation_def_uuid from vw_calculation_def
+                    where short_name = 'LANL_WF1_HCL12M_5mL_concentration'))
+                select do_calculation(
+                    (select calculation_def_uuid from vw_calculation_def
+                    where short_name = 'LANL_WF1_H2O_5mL_concentration'))
+ */
+
+-- DROP FUNCTION IF EXISTS do_calculation (p_calculation_def_uuid uuid) cascade;
+CREATE OR REPLACE FUNCTION do_calculation (p_calculation_def_uuid uuid)
+	RETURNS val
+	AS $$
+DECLARE
+    -- seed the _calc_def string from the calculation_def
+    _calc_def varchar := concat('select ',(select calc_definition from vw_calculation_def where calculation_def_uuid = p_calculation_def_uuid));
+    _out_type_uuid uuid := (select out_type_uuid from vw_calculation_def where calculation_def_uuid = p_calculation_def_uuid);
+    _out_unit varchar := (select out_unit from vw_calculation_def where calculation_def_uuid = p_calculation_def_uuid);
+    _param_rec record;
+    _r text;
+BEGIN
+    -- create temp table to store the parameter name and values associated with the calculation_def
+    create temp table _param_table as
+        select row_number() over (order by null) as id, parameter_def_description, (select val_val from get_val (default_val) as val_val)
+        from vw_calculation_parameter_def
+        where calculation_def_uuid = p_calculation_def_uuid;
+    -- loop through the temp table and replace any parameter names with assoc. values
+    FOR _param_rec IN (select * from _param_table) LOOP
+        _calc_def := replace(_calc_def, _param_rec.parameter_def_description, _param_rec.val_val);
+    END LOOP;
+    EXECUTE _calc_def INTO _r;
+    drop table _param_table;
+    RETURN  put_val(_out_type_uuid, _r, _out_unit);
+END;
+$$
+LANGUAGE plpgsql;
+
 
 /*
 Name:			delete_assigned_recs (p_ref_uuid uuid) 

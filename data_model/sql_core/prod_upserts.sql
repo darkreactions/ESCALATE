@@ -1339,18 +1339,24 @@ Description:	trigger proc that deletes, inserts or updates property record based
 Notes:			AVOID THIS FUNCTION as it will isolate property records	
  
 Example:		insert into vw_property (property_def_uuid, property_val, actor_uuid, status_uuid ) values (
-											(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
+											(select property_def_uuid from vw_property_def where short_description = 'duration),
 											(select put_val (
 												(select val_type_uuid from vw_property_def where short_description = 'particle-size'),
-												'{100, 200}'::int[],
+												'{100, 200}',
 												(select valunit from vw_property_def where short_description = 'particle-size'))), 
 											(select actor_uuid from vw_actor where org_short_name = 'LANL'),
 											(select status_uuid from vw_status where description = 'active')
 											);
+                update vw_property set property_val =
+                    (select put_val (
+                        (select val_type_uuid from vw_property_def where short_description = 'capacity'),
+						'9.99',
+				        (select valunit from vw_property_def where short_description = 'capacity'))) where short_description = 'capacity';
  				delete from vw_property where (property_val = (select put_val (
 												(select val_type_uuid from vw_property_def where short_description = 'particle-size'),
 												'{100, 200}'::int[],
 												(select valunit from vw_property_def where short_description = 'particle-size'))));
+
  */
 CREATE OR REPLACE FUNCTION upsert_property ()
 	RETURNS TRIGGER
@@ -1530,12 +1536,6 @@ $$
 LANGUAGE plpgsql;
 
 
-
-
-
-
-
-
 /*
 Name:			upsert_calculation_def()
 Parameters:		
@@ -1544,8 +1544,9 @@ Returns:		void
 Author:			G. Cattabriga
 Date:			2020.08.17
 Description:	trigger proc that deletes, inserts or updates calculation_def record based on TG_OP (trigger operation)
-Notes:				
- 
+Notes:			for postgres calculations (math_op, math_op_arr) make sure parameter reference names in a
+                calc definition have  '' around them
+                e.g. 'math_op_arr(math_op_arr(''hcl_concentrations'', '/', stock_concentration), '*', total_vol)'
 Example:		insert into vw_calculation_def (short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid, 	
 					in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid ) 
 					values ('test_calc_def', 'function param1 param2', 
@@ -1585,7 +1586,8 @@ BEGIN
 			in_type_uuid = NEW.in_type_uuid,
 			in_opt_source_uuid = NEW.in_opt_source_uuid,
 			in_opt_type_uuid = NEW.in_opt_type_uuid,	
-			out_type_uuid = NEW.out_type_uuid,		
+			out_type_uuid = NEW.out_type_uuid,
+		    out_unit = NEW.out_unit,
 			calculation_class_uuid = NEW.calculation_class_uuid,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
@@ -1594,8 +1596,8 @@ BEGIN
 			calculation_def.calculation_def_uuid = NEW.calculation_def_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO calculation_def (short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid, in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid)
-			VALUES(NEW.short_name, NEW.calc_definition, NEW.systemtool_uuid, NEW.description, NEW.in_source_uuid, NEW.in_type_uuid, NEW.in_opt_source_uuid, NEW.in_opt_type_uuid, NEW.out_type_uuid, NEW.calculation_class_uuid, NEW.actor_uuid, NEW.status_uuid) returning calculation_def_uuid into NEW.calculation_def_uuid;
+		INSERT INTO calculation_def (short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid, in_opt_type_uuid, out_type_uuid, out_unit, calculation_class_uuid, actor_uuid, status_uuid)
+			VALUES(NEW.short_name, NEW.calc_definition, NEW.systemtool_uuid, NEW.description, NEW.in_source_uuid, NEW.in_type_uuid, NEW.in_opt_source_uuid, NEW.in_opt_type_uuid, NEW.out_type_uuid, NEW.out_unit, NEW.calculation_class_uuid, NEW.actor_uuid, NEW.status_uuid) returning calculation_def_uuid into NEW.calculation_def_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1604,7 +1606,7 @@ LANGUAGE plpgsql;
 
 
 /*
-Name:			upsert_condition()
+Name:			upsert_calculation()
 Parameters:		(short_name, calc_definition, description, in_source_uuid, in_type_uuid, in_opt_source_uuid, in_opt_type_uuid, out_type_uuid, systemtool_uuid, actor_uuid)
 
 Returns:		void
@@ -1626,7 +1628,6 @@ Example:		insert into vw_calculation (short_name, calc_definition, systemtool_uu
 					(select status_uuid from vw_status where description = 'active')		
 					) returning *;
 				delete from vw_calculation_def where short_name = 'test_calc_def';
-
  */
 CREATE OR REPLACE FUNCTION upsert_calculation ()
 	RETURNS TRIGGER
@@ -1657,9 +1658,13 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		IF (select exists (select calculation_def_uuid from vw_calculation_def where calculation_def_uuid = NEW.calculation_def_uuid)) THEN
-			INSERT INTO calculation (calculation_def_uuid, calculation_alias_name, in_val, in_opt_val, out_val, actor_uuid, status_uuid)
-				VALUES(NEW.calculation_def_uuid, NEW.in_val, NEW.in_opt_val, NEW.OUT_val, NEW.actor_uuid, NEW.status_uuid) returning calculation_uuid into NEW.calculation_uuid;
-			RETURN NEW;
+		    IF (select systemtool_name from vw_calculation_def where
+		                calculation_def_uuid = NEW.calculation_def_uuid) = 'postgres' and NEW.out_val is null THEN
+			    NEW.out_val := (select do_calculation(NEW.calculation_def_uuid));
+			END IF;
+		    INSERT INTO calculation (calculation_def_uuid, calculation_alias_name, in_val, in_opt_val, out_val, actor_uuid, status_uuid)
+			    VALUES(NEW.calculation_def_uuid, NEW.calculation_alias_name, NEW.in_val, NEW.in_opt_val, NEW.out_val, NEW.actor_uuid, NEW.status_uuid) returning calculation_uuid into NEW.calculation_uuid;
+		    RETURN NEW;
 		END IF;
 	END IF;
 END;
@@ -2050,6 +2055,144 @@ $$
 LANGUAGE plpgsql;
 
 
+/*
+ Name:			upsert_calculation_parameter_def()
+ Parameters:	trigger proc that deletes, inserts or updates calculation_parameter_def_x record based on TG_OP (trigger operation)
+ Returns:		void
+ Author:		G. Cattabriga
+ Date:			2020.12.13
+ Description:	trigger proc that deletes, inserts or updates calculation_parameter_def_x record based on TG_OP (trigger operation)
+ Notes:			requires both ref_calculation_parameter_def_uuid and calculation_parameter_def_uuid
+                NOTE: this MAY supercede upsert_calculation_parameter_def_assign
+ Example:       insert into vw_calculation_parameter_def (calculation_def_uuid, parameter_def_uuid)
+                     values ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+                             (select parameter_def_uuid from vw_parameter_def where description = 'hcl_concentration')),
+                            ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+                             (select parameter_def_uuid from vw_parameter_def where description = 'total_vol')),
+                            ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+                             (select parameter_def_uuid from vw_parameter_def where description = 'stock_concentration'));
+                delete from vw_calculation_parameter_def
+                    where calculation_def_uuid = (select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration')
+                    and parameter_def_uuid in (select parameter_def_uuid
+                                               from vw_parameter_def
+                                               where description in ('hcl_concentration', 'total_vol', 'stock_concentration'));
+*/
+CREATE OR REPLACE FUNCTION upsert_calculation_parameter_def ()
+ 	RETURNS TRIGGER
+ 	AS $$
+BEGIN
+ 	IF(TG_OP = 'DELETE') THEN
+ 		DELETE FROM calculation_parameter_def_x
+ 		WHERE (calculation_def_uuid = OLD.calculation_def_uuid)
+ 			and(parameter_def_uuid = OLD.parameter_def_uuid);
+ 		RETURN OLD;
+ 	ELSIF (TG_OP = 'INSERT') THEN
+ 		INSERT INTO calculation_parameter_def_x (calculation_def_uuid, parameter_def_uuid)
+ 		VALUES(NEW.calculation_def_uuid,
+ 		       NEW.parameter_def_uuid);
+ 		RETURN NEW;
+ 	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+
+
+/*
+ Name:			upsert_calculation_parameter_def_assign()
+ Parameters:	trigger proc that deletes, inserts or updates calculation_parameter_def_x record based on TG_OP (trigger operation)
+ Returns:		void
+ Author:		G. Cattabriga
+ Date:			2020.12.13
+ Description:	trigger proc that deletes, inserts or updates calculation_parameter_def_x record based on TG_OP (trigger operation)
+ Notes:			requires both ref_calculation_parameter_def_uuid and calculation_parameter_def_uuid
+ Example:       insert into vw_calculation_parameter_def_assign (calculation_def_uuid, parameter_def_uuid)
+                     values ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+                             (select parameter_def_uuid from vw_parameter_def where description = 'hcl_concentration')),
+                            ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+                             (select parameter_def_uuid from vw_parameter_def where description = 'total_vol')),
+                            ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+                             (select parameter_def_uuid from vw_parameter_def where description = 'stock_concentration'));
+                delete from vw_calculation_parameter_def_assign
+                    where calculation_def_uuid = (select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration')
+                    and parameter_def_uuid in (select parameter_def_uuid
+                                               from vw_parameter_def
+                                               where description in ('hcl_concentration', 'total_vol', 'stock_concentration'));
+*/
+CREATE OR REPLACE FUNCTION upsert_calculation_parameter_def_assign ()
+ 	RETURNS TRIGGER
+ 	AS $$
+BEGIN
+ 	IF(TG_OP = 'DELETE') THEN
+ 		DELETE FROM calculation_parameter_def_x
+ 		WHERE (calculation_def_uuid = OLD.calculation_def_uuid)
+ 			and(parameter_def_uuid = OLD.parameter_def_uuid);
+ 		RETURN OLD;
+ 	ELSIF (TG_OP = 'INSERT') THEN
+ 		INSERT INTO calculation_parameter_def_x (calculation_def_uuid, parameter_def_uuid)
+ 		VALUES(NEW.calculation_def_uuid,
+ 		       NEW.parameter_def_uuid);
+ 		RETURN NEW;
+ 	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+    Name:			upsert_calculation_parameter()
+    Parameters:
+    Returns:		void
+    Author:			G.Cattabriga
+    Date:			2020.12.13
+    Description:	trigger proc that deletes, inserts or updates calculation_parameter record based on TG_OP (trigger operation)
+    Notes:
+
+    Example:        update vw_calculation_parameter set parameter_val =
+                        (select put_val ((select val_type_uuid from vw_parameter_def where description = 'speed'),
+                        '8888',
+                        (select valunit from vw_parameter_def where description = 'speed')))
+                     where (calculation_description = 'LANL_WF1_HCL12M_5mL_concentration' AND parameter_def_description = 'speed');
+
+*/
+CREATE OR REPLACE FUNCTION upsert_calculation_parameter()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+	    DELETE
+	    FROM vw_parameter
+	    WHERE ref_parameter_uuid = OLD.calculation_uuid;
+	RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			parameter
+		SET
+		    parameter_val = NEW.parameter_val,
+            actor_uuid = NEW.parameter_actor_uuid,
+            status_uuid = NEW.parameter_status_uuid,
+            mod_date = now()
+		WHERE
+		    parameter_uuid = NEW.parameter_uuid;
+	    RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+        IF (NEW.parameter_def_uuid IN
+        -- only create action parameters when the action and parameter definitions are already associated
+                (select parameter_def_uuid
+                 from vw_calculation_parameter_def
+                 where calculation_def_uuid = (select calculation_def_uuid from vw_calculation where calculation_uuid = NEW.calculation_uuid))
+            )
+        THEN
+            INSERT INTO vw_parameter (parameter_def_uuid, parameter_val, ref_parameter_uuid, actor_uuid, status_uuid)
+                VALUES (NEW.parameter_def_uuid, NEW.parameter_val, NEW.action_uuid, NEW.parameter_actor_uuid, NEW.parameter_status_uuid);
+		END IF;
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
 
 /*
  Name:			upsert_action_parameter_def_assign()
@@ -2116,6 +2259,15 @@ Example:		insert into vw_parameter (parameter_def_uuid, ref_parameter_uuid, para
 											(select actor_uuid from vw_actor where org_short_name = 'LANL'),
 											(select status_uuid from vw_status where description = 'active')
 											);
+                insert into vw_parameter (parameter_def_uuid, ref_parameter_uuid, parameter_val, actor_uuid, status_uuid ) values (
+					    (select parameter_def_uuid from vw_parameter_def where description = 'duration'),
+                        (select person_uuid from vw_person where last_name = 'Pendleton'),
+					    (select put_val (
+                            (select val_type_uuid from vw_parameter_def where description = 'duration'),
+							'10',
+					        (select valunit from vw_parameter_def where description = 'duration'))),
+					    (select actor_uuid from vw_actor where org_short_name = 'LANL'),
+					    (select status_uuid from vw_status where description = 'active'));
 				update vw_parameter set parameter_val = (select put_val (
                                                     (select val_type_uuid from vw_parameter_def where description = 'duration'),
 												    '36',
@@ -2798,8 +2950,11 @@ BEGIN
 		-- check to see if it's a non-consumable and composite so we can bring the [addressable ]composites into the BOM 
 		IF not (select material_consumable from vw_inventory where inventory_uuid = NEW.inventory_uuid) and 
 			(select material_composite_flg from vw_inventory where inventory_uuid = NEW.inventory_uuid) THEN
-			INSERT INTO bom_material (bom_uuid, description, inventory_uuid, material_composite_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid)
-				select NEW.bom_uuid, component_description, NEW.inventory_uuid, material_composite_uuid, NEW.alloc_amt_val, NEW.used_amt_val, NEW.putback_amt_val, NEW.actor_uuid, NEW.status_uuid
+			INSERT INTO bom_material (bom_uuid, description, bom_material_composite_uuid, bom_material_composite_description, inventory_uuid, material_composite_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid)
+				select NEW.bom_uuid, concat(NEW.description,': ',component_description), NEW.bom_material_uuid,
+				       (select description from vw_bom_material where bom_material_uuid = NEW.bom_material_uuid),
+				       NEW.inventory_uuid, material_composite_uuid, NEW.alloc_amt_val, NEW.used_amt_val, NEW.putback_amt_val,
+				       NEW.actor_uuid, NEW.status_uuid
 		  		from vw_material_composite where 
 						composite_uuid = (SELECT material_uuid from vw_inventory where 
 						inventory_uuid = NEW.inventory_uuid);
