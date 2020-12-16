@@ -44,7 +44,6 @@ class Val:
     
     @classmethod
     def from_db(cls, val_string):
-        #print(val_string)
         args = val_string[1:-1].split(',')
         type_uuid = args[0]
         unit = args[1]
@@ -86,18 +85,6 @@ class Val:
                 
         return cls(val_type, json_data['value'], json_data['unit'])
 
-class ValEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, Val):
-            return o.to_json()
-        return super().default(o)
-
-        
-def parse_val(val_string):
-    args = val_string[1:-1].split(',')
-    return Val(*args)
-
-
 class ValField(models.Field):
     description = 'Data representation'
 
@@ -115,7 +102,6 @@ class ValField(models.Field):
     def from_db_value(self, value, expression, connection):
         if value is None:
             return value 
-        #return parse_val(value)
         return Val.from_db(value)
 
     def to_python(self, value):
@@ -125,12 +111,10 @@ class ValField(models.Field):
         if value is None:
             return value
         
-        #return parse_val(value)
         return Val.from_db(value)
 
     def get_prep_value(self, value):
         return value.to_db()
-        #return ''.join([''.join(l) for l in (value.type_uuid, value.value, value.unit)])
     
     def get_db_prep_value(self, value, connection, prepared=False):
         value = super().get_db_prep_value(value, connection, prepared)
@@ -143,4 +127,4 @@ class ValField(models.Field):
     def value_from_object(self, obj):
         obj = super().value_from_object(obj)
         return obj
-        
+

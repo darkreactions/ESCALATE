@@ -1,6 +1,6 @@
 # builtin imports
 import types
-import tempfile
+
 
 # Django imports
 from django.shortcuts import render, HttpResponse
@@ -96,16 +96,5 @@ create_view('Edocument')
 
 
 
-# Download file view
-def download_blob(request, uuid):
-    edoc = core.models.Edocument.objects.get(uuid=uuid)
-    contents = edoc.edocument
-    filename = edoc.filename
-    testfile = tempfile.TemporaryFile()
-    testfile.write(contents)
-    testfile.seek(0)
-    response = FileResponse(testfile, as_attachment=True,
-                            filename=filename)
 
-    #response['Content-Disposition'] = 'attachment; filename=blob.pdf'
-    return response
+

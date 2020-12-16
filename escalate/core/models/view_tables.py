@@ -9,7 +9,7 @@ else:
     from django.db.models import JSONField
 from django.db.models.fields import CharField, related
 from .core_tables import RetUUIDField
-from .custom_types import ValField, ValEncoder
+from .custom_types import ValField
 
 managed_value = False
 
@@ -682,7 +682,7 @@ class TagType(models.Model):
 
 
 class Edocument(models.Model):
-    uuid = RetUUIDField(primary_key=True, db_column='edocument_uuid')
+    uuid = RetUUIDField(primary_key=True, db_column='edocument_uuid', editable=False)
     title = models.CharField(max_length=255, blank=True,
                              null=True, db_column='title')
     description = models.CharField(max_length=255, blank=True, null=True,
@@ -693,17 +693,18 @@ class Edocument(models.Model):
         max_length=255, blank=True, null=True, db_column='source')
     edoc_type = models.CharField(max_length=255, blank=True,
                                  null=True, db_column='doc_type_description')
-    edocument = models.BinaryField(blank=True, null=True)
+    edocument = models.BinaryField(blank=True, null=True, editable=False)
     edoc_ver = models.CharField(max_length=255, blank=True,
                                 null=True, db_column='doc_ver')
+    doc_type_uuid = models.ForeignKey('TypeDef', db_column='doc_type_uuid', on_delete=models.DO_NOTHING, blank=True, null=True, editable=False)
     actor = models.ForeignKey(
         'Actor', models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True, related_name='edocument_actor')
     actor_description = models.CharField(
-        max_length=255, blank=True, null=True)
+        max_length=255, blank=True, null=True, editable=False)
     status = models.ForeignKey(
         'Status', models.DO_NOTHING, db_column='status_uuid', blank=True, null=True, related_name='edocument_status')
     status_description = models.CharField(
-        max_length=255, blank=True, null=True)
+        max_length=255, blank=True, null=True, editable=False)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 

@@ -34,7 +34,7 @@ rest_urlpatterns = [
 
     path('api/', api_root, name='api_root'),
     path('api/login', token_views.obtain_auth_token, name='api_login'),
-    path('api/download/<uuid:uuid>/', views.download_blob, name='edoc_download'),
+    path('api/download/<uuid:uuid>/', viewsets.download_blob, name='edoc_download'),
     path('api/experimentmeasurecalculation/', views.ExperimentMeasureCalculationList.as_view(),
          name='experimentmeasurecalculation-list'),
     path('api/experimentmeasurecalculation/<str:pk>/',
