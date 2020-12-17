@@ -783,8 +783,24 @@ delete from vw_experiment_workflow
 Name:			upsert_inventory()
 Notes:
 */
-insert into vw_inventory (description, material_uuid, actor_uuid, part_no, onhand_amt, expiration_date, location, status_uuid) values 
-	('Water',
+insert into vw_inventory (description, owner_uuid, operator_uuid, lab_uuid, actor_uuid, status_uuid)
+    values (
+        'test_inventory',
+        (select actor_uuid from vw_actor where description = 'Dev Test123'),
+        (select actor_uuid from vw_actor where description = 'Dev Test123'),
+        (select actor_uuid from vw_actor where description = 'Dev Test123'),
+        (select actor_uuid from vw_actor where description = 'Dev Test123'),
+        (select status_uuid from vw_status where description = 'active'));
+
+
+/*
+Name:			upsert_inventory_material()
+Notes:
+*/
+insert into vw_inventory_material (inventory_uuid, description, material_uuid, actor_uuid, part_no, onhand_amt, expiration_date, location, status_uuid) values
+	(
+	 (select inventory_uuid from vw_inventory where description = 'test_inventory'),
+	 'Water',
 	(select material_uuid from vw_material where description = 'Water'),
 	(select actor_uuid from vw_actor where description = 'Dev Test123'),
 	'xxx_123_24',
@@ -810,22 +826,23 @@ update vw_bom set status_uuid = (select status_uuid from vw_status where descrip
 Name:			upsert_bom_material()
 Notes:
 */
-insert into vw_bom_material (bom_uuid, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) 
+insert into vw_bom_material (bom_uuid, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid)
 	values (
 	(select bom_uuid from vw_bom where description = 'test_bom'),
-	(select inventory_uuid from vw_inventory where description = 'Water'),
+	(select inventory_material_uuid from vw_inventory_material where description = 'Water'),
 	(select put_val((select get_type_def ('data', 'num')), '9999.99','mL')),
 	null, null,				
 	(select actor_uuid from vw_actor where description = 'Dev Test123'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 update vw_bom_material set used_amt_val = (select put_val((select get_type_def ('data', 'num')), '487.21','mL')) 
-	where inventory_uuid = (select inventory_uuid from vw_inventory where description = 'Water'); 
+	where inventory_material_uuid = (select inventory_material_uuid from vw_inventory_material where description = 'Water');
 -- clean up bom_material, bom, workflow, experiment						
-delete from vw_bom_material where inventory_uuid = (select inventory_uuid from vw_inventory where description = 'Water');
+delete from vw_bom_material where inventory_material_uuid = (select inventory_material_uuid from vw_inventory_material where description = 'Water');
 delete from vw_bom where description = 'test_bom';
-delete from vw_inventory where description = 'Water';
+delete from vw_inventory_material where description = 'Water';
 delete from vw_workflow where description = 'workflow_test' ;
 delete from vw_experiment where description = 'test_experiment';
+delete from vw_inventory where description = 'test_inventory';
 
 
 ------------------------------------------------------------------------
@@ -847,14 +864,17 @@ delete from vw_status where status_uuid = (select status_uuid from vw_status whe
 --======================================================================
 -- set up test org
 -- ===========================================================================
-insert into vw_organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid) values ('Test Laboratory Organization','NewLabCo','NLC','1001 New Lab Lane',null,'Science City','NY','99999',null,null,null,null);
+insert into vw_organization (description, full_name, short_name, address1, address2, city, state_province,
+                             zip, country, website_url, phone, parent_uuid)
+                             values ('Test Laboratory Organization','NewLabCo','NLC','1001 New Lab Lane',
+                                     null,'Science City','NY','99999',null,null,null,null);
 -- set up a test actor (person) and test status to be used throughout
 insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) 
 	values ('Bond','Ion','X','123 Testing Ln',null,'Test City','NY','99999',null,null,null,null,null,null);
 insert into vw_status (description) values ('dev_test');
 
 -- add some chemicals to material so we can use them in an experiment (BOM -> bill of materials)
--- added HCl, water and AM-243 into chem inventory.
+-- added HCl, water and AM-243 into chem inventory_material.
 -- ===========================================================================
 -- add some material types
 -- ===========================================================================
@@ -1117,13 +1137,25 @@ insert into vw_material_composite (composite_uuid, component_uuid, addressable, 
 	);
 
 
--- ===========================================================================		
--- add materials to inventory (in order for bom to have something to pull from)
+-- ===========================================================================
+-- create an inventory
+-- add materials to inventory_material (in order for bom to have something to pull from)
 -- start with 24 well plate
 -- ===========================================================================
-insert into vw_inventory (description, material_uuid, actor_uuid, 
+insert into vw_inventory (description, owner_uuid, operator_uuid, lab_uuid, actor_uuid, status_uuid)
+	values (
+	'Test Inventory',
+	(select actor_uuid from vw_actor where description = 'Ion Bond'),
+	(select actor_uuid from vw_actor where description = 'Ion Bond'),
+	(select actor_uuid from vw_actor where description = 'NLC'),
+	(select actor_uuid from vw_actor where description = 'Ion Bond'),
+	(select status_uuid from vw_status where description = 'dev_test'));
+
+insert into vw_inventory_material (inventory_uuid, description, material_uuid, actor_uuid,
 	part_no, onhand_amt, expiration_date, location, status_uuid) 
-				values ('24 well plate',
+				values (
+				(select inventory_uuid from vw_inventory where description = 'Test Inventory'),
+				'24 well plate',
 				(select material_uuid from vw_material where description = 'Plate: 24 well'),
 				(select actor_uuid from vw_actor where description = 'Ion Bond'),
 				'part# 24wp_123',
@@ -1132,10 +1164,12 @@ insert into vw_inventory (description, material_uuid, actor_uuid,
                 'Shelf 1, Bin 1',
 				(select status_uuid from vw_status where description = 'dev_test')
 				);
--- add water to inventory
-insert into vw_inventory (description, material_uuid, actor_uuid, 
+-- add water to inventory_material
+insert into vw_inventory_material (inventory_uuid, description, material_uuid, actor_uuid,
 	part_no, onhand_amt, expiration_date, location, status_uuid) 
-				values ('Water',
+				values (
+				(select inventory_uuid from vw_inventory where description = 'Test Inventory'),
+				'Water',
 				(select material_uuid from vw_material where description = 'Water'),
 				(select actor_uuid from vw_actor where description = 'Ion Bond'),
 				'part# h2o',
@@ -1144,10 +1178,12 @@ insert into vw_inventory (description, material_uuid, actor_uuid,
                 'Shelf 2, Bin 1',
 				(select status_uuid from vw_status where description = 'dev_test')
 				);
--- add hcl to inventory
-insert into vw_inventory (description, material_uuid, actor_uuid, 
+-- add hcl to inventory_material
+insert into vw_inventory_material (inventory_uuid, description, material_uuid, actor_uuid,
 	part_no, onhand_amt, expiration_date, location, status_uuid) 
-				values ('HCL',
+				values (
+				(select inventory_uuid from vw_inventory where description = 'Test Inventory'),
+				'HCL',
 				(select material_uuid from vw_material where description = 'Hydrochloric acid'),
 				(select actor_uuid from vw_actor where description = 'Ion Bond'),
 				'part# hcl_222',
@@ -1156,10 +1192,12 @@ insert into vw_inventory (description, material_uuid, actor_uuid,
                 'Shelf 10, Bin 1',
 				(select status_uuid from vw_status where description = 'dev_test')
 				);
--- add resin to inventory
-insert into vw_inventory (description, material_uuid, actor_uuid, 
+-- add resin to inventory_material
+insert into vw_inventory_material (inventory_uuid, description, material_uuid, actor_uuid,
 	part_no, onhand_amt, expiration_date, location, status_uuid) 
-				values ('Resin',
+				values (
+				(select inventory_uuid from vw_inventory where description = 'Test Inventory'),
+				'Resin',
 				(select material_uuid from vw_material where description = 'Fine Mesh Resin'),
 				(select actor_uuid from vw_actor where description = 'Ion Bond'),
 				'part# amberchrom_50wx8',
@@ -1168,10 +1206,12 @@ insert into vw_inventory (description, material_uuid, actor_uuid,
                 'Shelf 5, Bin 1',
 				(select status_uuid from vw_status where description = 'dev_test')
 				);
--- add Am-243 Stock to inventory
-insert into vw_inventory (description, material_uuid, actor_uuid, 
+-- add Am-243 Stock to inventory_material
+insert into vw_inventory_material (inventory_uuid, description, material_uuid, actor_uuid,
 	part_no, onhand_amt, expiration_date, location, status_uuid) 
-				values ('Am-243 Stock',
+				values (
+				(select inventory_uuid from vw_inventory where description = 'Test Inventory'),
+				'Am-243 Stock',
 				(select material_uuid from vw_material where description = 'Am-243 Stock'),
 				(select actor_uuid from vw_actor where description = 'Ion Bond'),
 				'part# am-243-stock_002',
@@ -1180,10 +1220,12 @@ insert into vw_inventory (description, material_uuid, actor_uuid,
                 'Shelf xx, Bin x2',
 				(select status_uuid from vw_status where description = 'dev_test')
 				);
--- add HCl-12M to inventory
-insert into vw_inventory (description, material_uuid, actor_uuid, 
+-- add HCl-12M to inventory_material
+insert into vw_inventory_material (inventory_uuid, description, material_uuid, actor_uuid,
 	part_no, onhand_amt, expiration_date, location, status_uuid) 
-				values ('HCl-12M',
+				values (
+				(select inventory_uuid from vw_inventory where description = 'Test Inventory'),
+				'HCl-12M',
 				(select material_uuid from vw_material where description = 'HCl-12M'),
 				(select actor_uuid from vw_actor where description = 'Ion Bond'),
 				'part# hcl12M_202011',
@@ -1382,55 +1424,55 @@ insert into vw_bom (experiment_uuid, description, actor_uuid, status_uuid) value
 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 -- then add materials (and amounts) to BOM
-insert into vw_bom_material (bom_uuid, description, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
+insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
 	(select bom_uuid from vw_bom where description = 'LANL Test BOM'),
     'HCl-12M',
-	(select inventory_uuid from vw_inventory where description = 'HCl-12M'),
+	(select inventory_material_uuid from vw_inventory_material where description = 'HCl-12M'),
 	(select put_val((select get_type_def ('data', 'num')), '60.00','mL')),
 	(select put_val((select get_type_def ('data', 'num')), '0.00','mL')),
 	(select put_val((select get_type_def ('data', 'num')), '0.00','mL')),				
 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'dev_test'));
-insert into vw_bom_material (bom_uuid, description, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
+insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
 	(select bom_uuid from vw_bom where description = 'LANL Test BOM'),
     'H2O',
-	(select inventory_uuid from vw_inventory where description = 'Water'),
+	(select inventory_material_uuid from vw_inventory_material where description = 'Water'),
 	(select put_val((select get_type_def ('data', 'num')), '60.00','mL')),
 	(select put_val((select get_type_def ('data', 'num')), '0.00','mL')),
 	(select put_val((select get_type_def ('data', 'num')), '0.00','mL')),				
 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'dev_test'));
-insert into vw_bom_material (bom_uuid, description, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
+insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
 	(select bom_uuid from vw_bom where description = 'LANL Test BOM'),
     'Am-243 Stock',
-	(select inventory_uuid from vw_inventory where description = 'Am-243 Stock'),
+	(select inventory_material_uuid from vw_inventory_material where description = 'Am-243 Stock'),
 	(select put_val((select get_type_def ('data', 'num')), '1.20','mL')),
 	(select put_val((select get_type_def ('data', 'num')), '0.00','mL')),
 	(select put_val((select get_type_def ('data', 'num')), '0.00','mL')),				
 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'dev_test'));
-insert into vw_bom_material (bom_uuid, description, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
+insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
 	(select bom_uuid from vw_bom where description = 'LANL Test BOM'),
     'Resin',
-	(select inventory_uuid from vw_inventory where description = 'Resin'),
+	(select inventory_material_uuid from vw_inventory_material where description = 'Resin'),
 	(select put_val((select get_type_def ('data', 'num')), '0.60','g')),
 	(select put_val((select get_type_def ('data', 'num')), '0.00','g')),
 	(select put_val((select get_type_def ('data', 'num')), '0.00','g')),				
 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'dev_test'));
-insert into vw_bom_material (bom_uuid, description, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
+insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
 	(select bom_uuid from vw_bom where description = 'LANL Test BOM'),
     'Sample Prep Plate',
-	(select inventory_uuid from vw_inventory where description = '24 well plate'),
+	(select inventory_material_uuid from vw_inventory_material where description = '24 well plate'),
 	(select put_val((select get_type_def ('data', 'int')), '1','')),
 	null,
 	(select put_val((select get_type_def ('data', 'int')), '0','')),				
 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'dev_test'));
-insert into vw_bom_material (bom_uuid, description, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
+insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
 	(select bom_uuid from vw_bom where description = 'LANL Test BOM'),
     'Sample Assay Plate',
-	(select inventory_uuid from vw_inventory where description = '24 well plate'),
+	(select inventory_material_uuid from vw_inventory_material where description = '24 well plate'),
 	(select put_val((select get_type_def ('data', 'int')), '1','')),
 	null,
 	(select put_val((select get_type_def ('data', 'int')), '0','')),

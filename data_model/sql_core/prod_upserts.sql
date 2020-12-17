@@ -1477,26 +1477,24 @@ LANGUAGE plpgsql;
 
 /*
 Name:			upsert_inventory()
-Parameters:		
+Parameters:
+
 Returns:		void
 Author:			G. Cattabriga
-Date:			2020.10.30
+Date:			2020.12.27
 Description:	trigger proc that deletes, inserts or updates inventory record based on TG_OP (trigger operation)
-Notes:				
- 
-Example:		insert into vw_inventory (description, material_uuid, actor_uuid, part_no, onhand_amt, expiration_date, location, status_uuid) 
-				values ('24 well plate',
-				(select material_uuid from vw_material where description = '24 well plate'),
-				(select actor_uuid from vw_actor where description = 'T Testuser'),
-				'xxx_123_24',
-				(select put_val(
-                          (select get_type_def ('data', 'int')),
-                             '3',
-                             '')),
-                '2021-12-31',
-                'Shelf 3, Bin 2',
-				(select status_uuid from vw_status where description = 'active')
-				);
+Notes:
+
+Example:		insert into vw_inventory (description, owner_uuid, operator_uuid, lab_uuid, actor_uuid, status_uuid)
+					values (
+						'test_inventory',
+						(select actor_uuid from vw_actor where description = 'HC'),
+						(select actor_uuid from vw_actor where description = 'T Testuser'),
+						(select actor_uuid from vw_actor where description = 'HC'),
+                        (select actor_uuid from vw_actor where description = 'T Testuser'),
+						null);
+				update vw_inventory set status_uuid = (select status_uuid from vw_status where description = 'active') where description = 'test_experiment';
+ 				delete from vw_inventory where description = 'test_inventory';
  */
 CREATE OR REPLACE FUNCTION upsert_inventory ()
 	RETURNS TRIGGER
@@ -1516,6 +1514,69 @@ BEGIN
 			inventory
 		SET
 			description = NEW.description,
+			owner_uuid = NEW.owner_uuid,
+			operator_uuid = NEW.operator_uuid,
+			lab_uuid = NEW.lab_uuid,
+		    actor_uuid = NEW.actor.uuid,
+			status_uuid = NEW.status_uuid,
+			mod_date = now()
+		WHERE
+			inventory.inventory_uuid = NEW.inventory_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO inventory (description, owner_uuid, operator_uuid, lab_uuid, actor_uuid, status_uuid)
+			VALUES(NEW.description, NEW.owner_uuid, NEW.operator_uuid, NEW.lab_uuid, NEW.actor_uuid, NEW.status_uuid) returning inventory_uuid into NEW.inventory_uuid;
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			upsert_inventory_material()
+Parameters:		
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.10.30
+Description:	trigger proc that deletes, inserts or updates inventory_material record based on TG_OP (trigger operation)
+Notes:				
+ 
+Example:		insert into vw_inventory_material (inventory_uuid, description, material_uuid, actor_uuid, part_no, onhand_amt, expiration_date, location, status_uuid)
+				values (
+                (select inventory_uuid from vw_inventory where description = 'test_inventory'),
+                '24 well plate',
+				(select material_uuid from vw_material where description = '24 well plate'),
+				(select actor_uuid from vw_actor where description = 'T Testuser'),
+				'xxx_123_24',
+				(select put_val(
+                          (select get_type_def ('data', 'int')),
+                             '3',
+                             '')),
+                '2021-12-31',
+                'Shelf 3, Bin 2',
+				(select status_uuid from vw_status where description = 'active')
+				);
+ */
+CREATE OR REPLACE FUNCTION upsert_inventory_material ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		DELETE FROM inventory_material
+		WHERE inventory_material_uuid = OLD.inventory_material_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- delete any assigned records
+		PERFORM delete_assigned_recs (OLD.inventory_material_uuid);
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			inventory_material
+		SET
+			inventory_uuid = NEW.inventory_uuid,
+		    description = NEW.description,
 			material_uuid = NEW.material_uuid,
 			part_no = NEW.part_no,
 			onhand_amt = NEW.onhand_amt,
@@ -1524,11 +1585,11 @@ BEGIN
 			status_uuid = NEW.status_uuid,
 			mod_date = now()
 		WHERE
-			inventory.inventory_uuid = NEW.inventory_uuid;
+			inventory_material.inventory_material_uuid = NEW.inventory_material_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO inventory (description, material_uuid, part_no, onhand_amt, expiration_date, location, actor_uuid, status_uuid)
-			VALUES(NEW.description, NEW.material_uuid, NEW.part_no, NEW.onhand_amt, NEW.expiration_date, NEW.location, NEW.actor_uuid, NEW.status_uuid) returning inventory_uuid into NEW.inventory_uuid;
+		INSERT INTO inventory_material (inventory_uuid, description, material_uuid, part_no, onhand_amt, expiration_date, location, actor_uuid, status_uuid)
+			VALUES(NEW.inventory_uuid, NEW.description, NEW.material_uuid, NEW.part_no, NEW.onhand_amt, NEW.expiration_date, NEW.location, NEW.actor_uuid, NEW.status_uuid) returning inventory_material_uuid into NEW.inventory_material_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -2900,19 +2961,19 @@ Date:			2020.11.01
 Description:	trigger proc that deletes, inserts or updates experiment record based on TG_OP (trigger operation)
 Notes:			the amounts refer to measures	
  
-Example:		insert into vw_bom_material (bom_uuid, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) 
+Example:		insert into vw_bom_material (bom_uuid, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid)
 					values (
 						(select bom_uuid from vw_bom where description = 'test_bom'),
-						(select inventory_uuid from vw_inventory where description = 'HCL'),
+						(select inventory_material_uuid from vw_inventory_material where description = 'HCL'),
 						(select put_val((select get_type_def ('data', 'num')), '500.00','mL')),
 						null, null,				
 						(select actor_uuid from vw_actor where description = 'T Testuser'),
 						(select status_uuid from vw_status where description = 'test'));
 				update vw_bom_material set status_uuid = (select status_uuid from vw_status where description = 'active') 
-					where inventory_uuid = (select inventory_uuid from vw_inventory where description = 'HCL'); 
+					where inventory_material_uuid = (select inventory_material_uuid from vw_inventory_material where description = 'HCL');
 				update vw_bom_material set used_amt_val = (select put_val((select get_type_def ('data', 'num')), '487.21','mL')) 
-					where inventory_uuid = (select inventory_uuid from vw_inventory where description = 'HCL'); 					
- 				delete from vw_bom_material where inventory_uuid = (select inventory_uuid from vw_inventory where description = 'HCL);
+					where inventory_material_uuid = (select inventory_material_uuid from vw_inventory_material where description = 'HCL');
+ 				delete from vw_bom_material where inventory_material_uuid = (select inventory_material_uuid from vw_inventory_material where description = 'HCL);
  */	
 CREATE OR REPLACE FUNCTION upsert_bom_material ()
 	RETURNS TRIGGER
@@ -2933,7 +2994,7 @@ BEGIN
 		SET
 			bom_uuid = NEW.bom_uuid,
 		    description = NEW.description,
-			inventory_uuid = NEW.inventory_uuid,
+			inventory_material_uuid = NEW.inventory_material_uuid,
 			material_composite_uuid = NEW.material_composite_uuid,
 			alloc_amt_val = NEW.alloc_amt_val,
 			used_amt_val = NEW.used_amt_val,		
@@ -2945,19 +3006,19 @@ BEGIN
 			bom_material.bom_material_uuid = NEW.bom_material_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO bom_material (bom_uuid, description, inventory_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid)
-			VALUES(NEW.bom_uuid, NEW.description, NEW.inventory_uuid,  NEW.alloc_amt_val, NEW.used_amt_val, NEW.putback_amt_val, NEW.actor_uuid, NEW.status_uuid) returning bom_material_uuid into NEW.bom_material_uuid;
+		INSERT INTO bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid)
+			VALUES(NEW.bom_uuid, NEW.description, NEW.inventory_material_uuid,  NEW.alloc_amt_val, NEW.used_amt_val, NEW.putback_amt_val, NEW.actor_uuid, NEW.status_uuid) returning bom_material_uuid into NEW.bom_material_uuid;
 		-- check to see if it's a non-consumable and composite so we can bring the [addressable ]composites into the BOM 
-		IF not (select material_consumable from vw_inventory where inventory_uuid = NEW.inventory_uuid) and 
-			(select material_composite_flg from vw_inventory where inventory_uuid = NEW.inventory_uuid) THEN
-			INSERT INTO bom_material (bom_uuid, description, bom_material_composite_uuid, bom_material_composite_description, inventory_uuid, material_composite_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid)
+		IF not (select material_consumable from vw_inventory_material where inventory_material_uuid = NEW.inventory_material_uuid) and
+			(select material_composite_flg from vw_inventory_material where inventory_material_uuid = NEW.inventory_material_uuid) THEN
+			INSERT INTO bom_material (bom_uuid, description, bom_material_composite_uuid, bom_material_composite_description, inventory_material_uuid, material_composite_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid)
 				select NEW.bom_uuid, concat(NEW.description,': ',component_description), NEW.bom_material_uuid,
 				       (select description from vw_bom_material where bom_material_uuid = NEW.bom_material_uuid),
-				       NEW.inventory_uuid, material_composite_uuid, NEW.alloc_amt_val, NEW.used_amt_val, NEW.putback_amt_val,
+				       NEW.inventory_material_uuid, material_composite_uuid, NEW.alloc_amt_val, NEW.used_amt_val, NEW.putback_amt_val,
 				       NEW.actor_uuid, NEW.status_uuid
 		  		from vw_material_composite where 
-						composite_uuid = (SELECT material_uuid from vw_inventory where 
-						inventory_uuid = NEW.inventory_uuid);
+						composite_uuid = (SELECT material_uuid from vw_inventory_material where
+						inventory_material_uuid = NEW.inventory_material_uuid);
 		END IF;
 		RETURN NEW;
 	END IF;

@@ -294,6 +294,7 @@ LANGUAGE 'sql';
 -- SELECT audit_table('calculation');
 -- SELECT audit_table('calculation_eval');
 -- SELECT audit_table('inventory');
+-- SELECT audit_table('inventory_material');
 -- SELECT audit_table('measure');
 -- SELECT audit_table('measure_x');
 -- SELECT audit_table('measure_type');

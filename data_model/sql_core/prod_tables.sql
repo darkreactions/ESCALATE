@@ -132,6 +132,7 @@ DROP TABLE IF EXISTS edocument_x cascade;
 DROP TABLE IF EXISTS experiment cascade;
 DROP TABLE IF EXISTS experiment_workflow cascade;
 DROP TABLE IF EXISTS inventory cascade;
+DROP TABLE IF EXISTS inventory_material cascade;
 DROP TABLE IF EXISTS material cascade;
 DROP TABLE IF EXISTS material_composite cascade;
 DROP TABLE IF EXISTS material_refname cascade;
@@ -286,7 +287,7 @@ CREATE TABLE bom_material (
 	description varchar COLLATE "pg_catalog"."default",
 	bom_material_composite_uuid uuid,
 	bom_material_composite_description varchar,
-	inventory_uuid uuid NOT NULL,
+	inventory_material_uuid uuid NOT NULL,
 	material_composite_uuid uuid,
 	alloc_amt_val val,
 	used_amt_val val,
@@ -464,6 +465,20 @@ CREATE TABLE experiment_workflow (
 CREATE TABLE inventory (
 	inventory_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar,
+	owner_uuid uuid,
+	operator_uuid uuid,
+	lab_uuid uuid,
+	actor_uuid uuid,
+	status_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
+CREATE TABLE inventory_material (
+	inventory_material_uuid uuid DEFAULT uuid_generate_v4 (),
+	description varchar,
+	inventory_uuid uuid NOT NULL,
 	material_uuid uuid NOT NULL,
 	part_no varchar,
 	onhand_amt val,
@@ -1102,10 +1117,16 @@ USING "pk_experiment_workflow_uuid";
 
 
 ALTER TABLE inventory
-	ADD CONSTRAINT "pk_inventory_inventory_uuid" PRIMARY KEY (inventory_uuid),
-		ADD CONSTRAINT "un_inventory" UNIQUE (material_uuid, actor_uuid, add_date);
+	ADD CONSTRAINT "pk_inventory_inventory_uuid" PRIMARY KEY (inventory_uuid);
 CLUSTER inventory
 USING "pk_inventory_inventory_uuid";
+
+
+ALTER TABLE inventory_material
+	ADD CONSTRAINT "pk_inventory_material_inventory_material_uuid" PRIMARY KEY (inventory_material_uuid),
+		ADD CONSTRAINT "un_inventory_material" UNIQUE (material_uuid, actor_uuid, add_date);
+CLUSTER inventory_material
+USING "pk_inventory_material_inventory_material_uuid";
 
 
 ALTER TABLE material
@@ -1423,7 +1444,7 @@ ALTER TABLE bom
 ALTER TABLE bom_material
 	ADD CONSTRAINT fk_bom_material_bom_1 FOREIGN KEY (bom_uuid) REFERENCES bom (bom_uuid),
 		ADD CONSTRAINT fk_bom_material_composite_1 FOREIGN KEY (bom_material_composite_uuid) REFERENCES bom_material (bom_material_uuid),
-		    ADD CONSTRAINT fk_bom_material_inventory_1 FOREIGN KEY (inventory_uuid) REFERENCES inventory (inventory_uuid),
+		    ADD CONSTRAINT fk_bom_material_inventory_material_1 FOREIGN KEY (inventory_material_uuid) REFERENCES inventory_material (inventory_material_uuid),
 			    ADD CONSTRAINT fk_bom_material_material_composite_1 FOREIGN KEY (material_composite_uuid) REFERENCES material_composite (material_composite_uuid),
 				    ADD CONSTRAINT fk_bom_material_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
 					    ADD CONSTRAINT fk_bom_material_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
@@ -1494,9 +1515,17 @@ ALTER TABLE experiment_workflow
 
 
 ALTER TABLE inventory
-	ADD CONSTRAINT fk_inventory_material_1 FOREIGN KEY (material_uuid) REFERENCES material (material_uuid),
-		ADD CONSTRAINT fk_inventory_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
-			ADD CONSTRAINT fk_inventory_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+	ADD CONSTRAINT fk_inventory_actor_owner_1 FOREIGN KEY (owner_uuid) REFERENCES actor (actor_uuid),
+		ADD CONSTRAINT fk_inventory_actor_operator_1 FOREIGN KEY (operator_uuid) REFERENCES actor (actor_uuid),
+			ADD CONSTRAINT fk_inventory_actor_lab_1 FOREIGN KEY (lab_uuid) REFERENCES actor (actor_uuid),
+				ADD CONSTRAINT fk_inventory_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+
+
+ALTER TABLE inventory_material
+    ADD CONSTRAINT fk_inventory_material_inventory_1 FOREIGN KEY (inventory_uuid) REFERENCES inventory (inventory_uuid),
+	    ADD CONSTRAINT fk_inventory_material_material_1 FOREIGN KEY (material_uuid) REFERENCES material (material_uuid),
+		    ADD CONSTRAINT fk_inventory_material_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+			    ADD CONSTRAINT fk_inventory_material_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
 
 ALTER TABLE material
@@ -1717,7 +1746,7 @@ COMMENT ON TABLE bom_material IS '';
 COMMENT ON COLUMN bom_material.bom_material_uuid IS '';
 COMMENT ON COLUMN bom_material.bom_uuid IS '';
 COMMENT ON COLUMN bom_material.bom_material_composite_uuid IS '';
-COMMENT ON COLUMN bom_material.inventory_uuid IS '';
+COMMENT ON COLUMN bom_material.inventory_material_uuid IS '';
 COMMENT ON COLUMN bom_material.material_composite_uuid IS '';
 COMMENT ON COLUMN bom_material.alloc_amt_val IS '';
 COMMENT ON COLUMN bom_material.used_amt_val IS '';
@@ -1877,15 +1906,27 @@ COMMENT ON COLUMN experiment_workflow.mod_date IS '';
 COMMENT ON TABLE inventory IS '';
 COMMENT ON COLUMN inventory.inventory_uuid IS '';
 COMMENT ON COLUMN inventory.description IS '';
-COMMENT ON COLUMN inventory.material_uuid IS '';
-COMMENT ON COLUMN inventory.part_no IS '';
-COMMENT ON COLUMN inventory.onhand_amt IS '';
-COMMENT ON COLUMN inventory.expiration_date IS '';
-COMMENT ON COLUMN inventory.location IS '';
-COMMENT ON COLUMN inventory.actor_uuid IS '';
-COMMENT ON COLUMN inventory.status_uuid IS '';
-COMMENT ON COLUMN inventory.add_date IS '';
-COMMENT ON COLUMN inventory.mod_date IS '';
+COMMENT ON COLUMN inventory.owner_uuid IS 'who (person) is accountable for the inventory';
+COMMENT ON COLUMN inventory.operator_uuid IS 'who (person) is responsible for the inventory';
+COMMENT ON COLUMN inventory.lab_uuid IS 'who (organization) inventory belongs to';
+COMMENT ON COLUMN inventory.actor_uuid IS 'who enter this inventory record';
+COMMENT ON COLUMN inventory.status_uuid IS 'status of this inventory';
+COMMENT ON COLUMN inventory.add_date IS 'add date of the inventory record';
+COMMENT ON COLUMN inventory.mod_date IS 'mod date of the inventory record';
+
+
+COMMENT ON TABLE inventory_material IS '';
+COMMENT ON COLUMN inventory_material.inventory_material_uuid IS '';
+COMMENT ON COLUMN inventory_material.description IS '';
+COMMENT ON COLUMN inventory_material.material_uuid IS '';
+COMMENT ON COLUMN inventory_material.part_no IS '';
+COMMENT ON COLUMN inventory_material.onhand_amt IS '';
+COMMENT ON COLUMN inventory_material.expiration_date IS '';
+COMMENT ON COLUMN inventory_material.location IS '';
+COMMENT ON COLUMN inventory_material.actor_uuid IS '';
+COMMENT ON COLUMN inventory_material.status_uuid IS '';
+COMMENT ON COLUMN inventory_material.add_date IS '';
+COMMENT ON COLUMN inventory_material.mod_date IS '';
 
 
 COMMENT ON TABLE material IS '';

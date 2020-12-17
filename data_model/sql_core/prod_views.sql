@@ -334,7 +334,7 @@ EXECUTE PROCEDURE upsert_organization ( );
 
 
 ----------------------------------------
--- integrated view of inventory; joins measure (amounts of material
+-- view of actor
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_actor AS
 SELECT
@@ -356,6 +356,8 @@ SELECT
 			concat(per.last_name, ', ', per.first_name ) AS VARCHAR )
 	END AS person_last_first,
 	porg.full_name AS person_org,
+    porg.organization_uuid as person_organization_uuid,
+    porg.description as person_organization_description,
 	st.systemtool_name,
 	st.description AS systemtool_description,
 	stt.description AS systemtool_type,
@@ -1215,12 +1217,49 @@ LEFT JOIN LATERAL ( SELECT get_val.val_type, get_val.val_unit, get_val.val_val F
 
 
 ----------------------------------------
--- view inventory; with links to material, actor, status, edocument, note
+-- view inventory; with links to organization
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_inventory AS
 SELECT
 	inv.inventory_uuid,
 	inv.description,
+    inv.owner_uuid,
+    acto.description as owner_description,
+    inv.operator_uuid,
+    actp.description as operator_description,
+    inv.lab_uuid,
+    actl.description as lab_description,
+	inv.status_uuid AS status_uuid,
+	st.description AS status_description,
+    inv.actor_uuid,
+    act.description as actor_description,
+	inv.add_date,
+	inv.mod_date
+FROM
+	inventory inv
+LEFT JOIN vw_actor acto ON inv.owner_uuid = acto.actor_uuid
+LEFT JOIN vw_actor actp ON inv.operator_uuid = actp.actor_uuid
+LEFT JOIN vw_actor actl ON inv.lab_uuid = actl.actor_uuid
+LEFT JOIN actor act ON inv.actor_uuid = act.actor_uuid
+LEFT JOIN status st ON inv.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_inventory_upsert ON vw_inventory;
+CREATE TRIGGER trigger_inventory_material_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_inventory
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_inventory ( );
+
+
+----------------------------------------
+-- view inventory_material; with links to material, actor, status, edocument, note
+----------------------------------------
+CREATE OR REPLACE VIEW vw_inventory_material AS
+SELECT
+	inv.inventory_material_uuid,
+	inv.description,
+    inv.inventory_uuid,
+    i.description as inventory_description,
 	inv.material_uuid,
 	mat.description AS material_description,
 	mat.consumable as material_consumable,
@@ -1236,33 +1275,36 @@ SELECT
 	inv.add_date,
 	inv.mod_date
 FROM
-	inventory inv
+	inventory_material inv
+LEFT JOIN vw_inventory i ON inv.inventory_uuid = i.inventory_uuid
 LEFT JOIN vw_material mat ON inv.material_uuid = mat.material_uuid
 LEFT JOIN actor act ON inv.actor_uuid = act.actor_uuid
 LEFT JOIN status st ON inv.status_uuid = st.status_uuid;
 
-DROP TRIGGER IF EXISTS trigger_inventory_upsert ON vw_inventory;
-CREATE TRIGGER trigger_inventory_upsert INSTEAD OF INSERT
+DROP TRIGGER IF EXISTS trigger_inventory_material_upsert ON vw_inventory_material;
+CREATE TRIGGER trigger_inventory_material_upsert INSTEAD OF INSERT
 OR UPDATE
-OR DELETE ON vw_inventory
+OR DELETE ON vw_inventory_material
 FOR EACH ROW
-EXECUTE PROCEDURE upsert_inventory ( );
+EXECUTE PROCEDURE upsert_inventory_material ( );
 
 
 ----------------------------------------
--- get inventory / material, all status
+-- get inventory_material / material, all status
 ----------------------------------------
-CREATE OR REPLACE VIEW vw_inventory_material AS
+CREATE OR REPLACE VIEW vw_inventory_material_material AS
 SELECT
-	inv.inventory_uuid,
-	inv.description AS inventory_description,
-	inv.part_no AS inventory_part_no,
-	inv.onhand_amt AS inventory_onhand_amt,
-	inv.add_date AS inventory_add_date,
-	inv.expiration_date AS inventory_expiration_date,
-	inv.location AS inventory_location,
-	st.status_uuid AS inventory_status_uuid,	
-	st.description AS inventory_status_description,
+    inv.inventory_material_uuid,
+	inv.description AS inventory_material_description,
+  	inv.inventory_uuid,
+    i.description as inventory_description,
+	inv.part_no AS inventory_material_part_no,
+	inv.onhand_amt AS inventory_material_onhand_amt,
+	inv.add_date AS inventory_material_add_date,
+	inv.expiration_date AS inventory_material_expiration_date,
+	inv.location AS inventory_material_location,
+	st.status_uuid AS inventory_material_status_uuid,
+	st.description AS inventory_material_status_description,
 	inv.actor_uuid,
 	act.description as actor_description,
 	act.org_full_name,
@@ -1277,7 +1319,8 @@ SELECT
 	mat.molecular_formula AS material_molecular_formula,
 	mat.smiles AS material_smiles
 FROM
-	inventory inv
+	inventory_material inv
+LEFT JOIN vw_inventory i ON inv.inventory_uuid = i.inventory_uuid
 LEFT JOIN vw_material_refname mat ON inv.material_uuid = mat.material_uuid
 LEFT JOIN vw_actor act ON inv.actor_uuid = act.actor_uuid
 LEFT JOIN status st ON inv.status_uuid = st.status_uuid;
@@ -1324,7 +1367,7 @@ SELECT
 	b.description AS bom_description,
     bm.bom_material_composite_uuid,
     bm.bom_material_composite_description,
-	bm.inventory_uuid,
+	bm.inventory_material_uuid,
 	CASE WHEN bm.material_composite_uuid IS NOT NULL THEN
 		NULL::uuid
 	ELSE
@@ -1335,7 +1378,7 @@ SELECT
 	CASE WHEN bm.material_composite_uuid IS NOT NULL THEN
 		mc.component_description
 	ELSE
-		i.inventory_description
+		i.inventory_material_description
 	END AS bom_material_description,
 	bm.alloc_amt_val,
 	(bm.alloc_amt_val).v_type_uuid AS alloc_amt_type_uuid,
@@ -1361,7 +1404,7 @@ SELECT
 	b.add_date,
 	b.mod_date FROM bom_material bm
 	LEFT JOIN vw_bom b ON bm.bom_uuid = b.bom_uuid
-	LEFT JOIN vw_inventory_material i ON bm.inventory_uuid = i.inventory_uuid
+	LEFT JOIN vw_inventory_material_material i ON bm.inventory_material_uuid = i.inventory_material_uuid
 	LEFT JOIN vw_material_composite mc ON bm.material_composite_uuid = mc.material_composite_uuid
 	LEFT JOIN vw_experiment exp ON b.experiment_uuid = exp.experiment_uuid
 	LEFT JOIN vw_actor act ON bm.actor_uuid = act.actor_uuid
@@ -2414,7 +2457,7 @@ JOIN (
 				json_agg(
 					json_build_object(
 						'bom_material_description', bm.description,
-						'bom_inventory_uuid', bm.inventory_uuid,
+						'bom_inventory_material_uuid', bm.inventory_material_uuid,
 						'bom_material_uuid', bm.material_uuid,
 						'bom_material_alloc_amt_type', bm.alloc_amt_type,
 						'bom_material_alloc_amt', bm.alloc_amt,
@@ -2434,7 +2477,7 @@ JOIN (
 					vw_bom_material.bom_uuid,
 					vw_bom_material.description,
 					vw_bom_material.bom_description,
-					vw_bom_material.inventory_uuid,
+					vw_bom_material.inventory_material_uuid,
 					vw_bom_material.material_uuid,
 					vw_bom_material.composite_uuid,
 					vw_bom_material.material_composite_uuid,
@@ -2624,7 +2667,7 @@ JOIN (
                 json_agg(
                     json_build_object(
                         'bom_material_description', bm.description,
-                        'bom_inventory_uuid', bm.inventory_uuid,
+                        'bom_inventory_material_uuid', bm.inventory_material_uuid,
                         'bom_material_uuid', bm.material_uuid,
                         'bom_material_alloc_amt_type', bm.alloc_amt_type,
                         'bom_material_alloc_amt', bm.alloc_amt,
@@ -2644,7 +2687,7 @@ JOIN (
                     bm.bom_uuid,
                     bm.description,
                     bm.bom_description,
-                    bm.inventory_uuid,
+                    bm.inventory_material_uuid,
                     bm.material_uuid,
                     bm.composite_uuid,
                     bm.material_composite_uuid,

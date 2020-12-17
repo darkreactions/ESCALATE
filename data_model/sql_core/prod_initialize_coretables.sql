@@ -62,6 +62,7 @@ INSERT INTO vw_organization (description, full_name, short_name, address1, addre
 VALUES
 	('Test Organization', 'TestCo', 'XX', '123 Main St.', NULL, 'Test City', 'XX', '99999', 'US','http://http://info.cern.ch', NULL), 
 	('College', 'Haverford College', 'HC', '370 Lancaster Ave.', NULL, 'Haverford', 'PA', '19041', 'US','http://www.haverford.edu', NULL),
+	('Laboratory', 'Norquist Lab', 'NL', '370 Lancaster Ave.', NULL, 'Haverford', 'PA', '19041', 'US','http://www.haverford.edu', NULL),
 	('Laboratory', 'Lawrence Berkeley National Laboratory', 'LBL', '1 Cyclotron Rd.', NULL, 'Berkeley', 'CA', '94720', 'US', 'https://www.lbl.gov', NULL),
 	('Chemical vendor', 'Sigma-Aldrich', 'Sigma-Aldrich', '3050 Spruce St.', NULL, 'St Louis', 'MO', '63103', 'US', 'http://www.sigmaaldrich.com', NULL),
 	('Chemical vendor', 'Greatcell Solar', 'Greatcell', '3 Dominion Place', NULL, 'Queanbeyan', 'NSW', '2620', 'AUS', 'http://www.greatcellsolar.com/shop/', NULL),
