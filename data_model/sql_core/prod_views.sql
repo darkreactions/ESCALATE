@@ -2380,7 +2380,7 @@ GROUP BY
 -- view experiment_workflow_step_object_parameter_json
 -- drop view experiment_workflow_step_object_parameter_json
 ----------------------------------------
-CREATE OR REPLACE VIEW experiment_workflow_step_object_parameter_json AS
+CREATE OR REPLACE VIEW vw_experiment_workflow_step_object_parameter_json AS
 SELECT
 	e.experiment_uuid,
 	json_build_object('experiment', 
@@ -2785,7 +2785,7 @@ ON e.experiment_uuid = b.experiment_uuid;
 -- view experiment_bom_workflow_step_object_parameter_json
 -- drop view experiment_bom_workflow_step_object_parameter_json
 ----------------------------------------
-CREATE OR REPLACE VIEW experiment_workflow_bom_step_object_parameter_json AS
+CREATE OR REPLACE VIEW vw_experiment_workflow_bom_step_object_parameter_json AS
 SELECT
 	e.experiment_uuid,
 	json_build_object('experiment',
