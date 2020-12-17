@@ -1,11 +1,13 @@
 #from core.models import (Actor, Material, Inventory,
 #                         Person, Organization, Note)
-from core.models.view_tables import Edocument
+from core.models.view_tables import Edocument, Note
 from core.models.core_tables import TypeDef
-from rest_framework.serializers import SerializerMethodField, ModelSerializer, Field, HyperlinkedModelSerializer, JSONField, FileField
+from rest_framework.serializers import (SerializerMethodField, ModelSerializer, 
+                                        HyperlinkedModelSerializer, JSONField, 
+                                        FileField, CharField)
 from rest_framework.reverse import reverse
 import core.models
-from .utils import view_names
+from .utils import rest_serializer_views
 from core.models.custom_types import Val, ValField
 from core.validators import ValValidator
 from django.core.exceptions import ValidationError
@@ -57,41 +59,42 @@ class DynamicFieldsModelSerializer(HyperlinkedModelSerializer):
                 if field_name in self.fields:
                     self.fields.pop(field_name)
 
-class TagSerializer(ModelSerializer):
+class TagAssignSerializer(DynamicFieldsModelSerializer):
+    tag_label = CharField(source='tag.display_text', read_only=True)
     class Meta:
-        model = core.models.Tag
+        model = core.models.TagAssign
         fields = '__all__'
+        read_only_fields = ['ref_tag']
 
 
-class NoteSerializer(ModelSerializer):
+class TagListSerializer(DynamicFieldsModelSerializer):
+    tags = SerializerMethodField()
+    def get_tags(self, obj):
+        tags = core.models.TagAssign.objects.filter(ref_tag=obj.uuid)
+        result_serializer = TagAssignSerializer(tags, many=True, context=self.context)
+        return result_serializer.data
+
+class NoteSerializer(DynamicFieldsModelSerializer):
+
     class Meta:
         model = core.models.Note
         fields = '__all__'
+        read_only_fields = ['ref_note_uuid']
 
 
-class TagNoteSerializer(DynamicFieldsModelSerializer):
-    tags = SerializerMethodField()
+class NoteListSerializer(DynamicFieldsModelSerializer):
     notes = SerializerMethodField()
     def get_notes(self, obj):
         notes = core.models.Note.objects.filter(note_x_note__ref_note=obj.uuid)
-        result_serializer = NoteSerializer(notes, many=True)
-        return result_serializer.data
-    def get_tags(self, obj):
-        tags = core.models.Tag.objects.filter(tag_x_tag__ref_tag=obj.uuid)
-        result_serializer = TagSerializer(tags, many=True)
+        result_serializer = NoteSerializer(notes, many=True, context=self.context)
         return result_serializer.data
 
 
-class EdocumentSerializer(TagNoteSerializer, DynamicFieldsModelSerializer):
+class EdocumentSerializer(TagListSerializer, 
+                          NoteListSerializer, 
+                          DynamicFieldsModelSerializer):
     download_link = SerializerMethodField()
     edocument = FileField(write_only=True)
-    
-    class Meta:
-        model = core.models.Edocument
-        fields = ('uuid', 'title', 'description', 'filename',
-                  'source', 'edoc_type', 'download_link', 
-                  'actor', 'actor_description', 'tags', 'edocument')
-
 
     def get_download_link(self, obj):
         result = '{}'.format(reverse('edoc_download',
@@ -109,22 +112,45 @@ class EdocumentSerializer(TagNoteSerializer, DynamicFieldsModelSerializer):
         return value
 
     def create(self, validated_data):
+        print(type(validated_data['edocument']))
+        validated_data['filename'] = validated_data['edocument'].name
         validated_data['edocument'] = validated_data['edocument'].read()
-        doc_type = TypeDef.objects.get(category='file', description=validated_data['edoc_type'])
+        doc_type = TypeDef.objects.get(category='file', 
+                                       description=validated_data['edoc_type'])
         validated_data['doc_type_uuid'] = doc_type
         edoc = Edocument(**validated_data)
         edoc.save()
         return edoc
+
+    class Meta:
+        model = core.models.Edocument
+        fields = ('url', 'title', 'description', 'filename',
+                  'source', 'edoc_type', 'download_link', 
+                  'actor', 'actor_description', 'tags', 'notes', 'edocument', 
+                  'ref_edocument_uuid')
+        read_only_fields = ['ref_edocument_uuid', 'filename']
+
+class EdocListSerializer(DynamicFieldsModelSerializer):
+    edocs = SerializerMethodField()
+
+    def get_edocs(self, obj):
+        edocs = core.models.Edocument.objects.filter(ref_edocument_uuid=obj.uuid)
+        result_serializer = EdocumentSerializer(edocs, many=True, context=self.context)
+        return result_serializer.data
 
 class ExperimentMeasureCalculationSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = core.models.ExperimentMeasureCalculation
         fields = ('uid', 'row_to_json')
 
-for model_name in view_names:
+for model_name in rest_serializer_views:
     meta_class = type('Meta', (), {'model': getattr(core.models, model_name),
                                    'fields': '__all__'})
-    globals()[model_name+'Serializer'] = type(model_name+'Serializer', tuple([TagNoteSerializer, DynamicFieldsModelSerializer]),
+    globals()[model_name+'Serializer'] = type(model_name+'Serializer', 
+                                              tuple([EdocListSerializer, 
+                                                     TagListSerializer, 
+                                                     NoteListSerializer, 
+                                                     DynamicFieldsModelSerializer]),
                                               {'Meta': meta_class})
 
 

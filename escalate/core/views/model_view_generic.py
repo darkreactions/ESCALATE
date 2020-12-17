@@ -3,7 +3,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 # from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
-from core.models import Note, Actor, Tag_X, Tag
+from core.models import Note, Actor, TagAssign, Tag
 from core.forms import NoteForm, TagSelectForm
 from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404, render
@@ -202,25 +202,25 @@ class GenericModelEdit:
         if self.request.POST.get('tags'):
             # tags from post
             submitted_tags = self.request.POST.getlist('tags')
-            # tags from db with a tag_x that connects the model and the tags
-            existing_tags = Tag.objects.filter(pk__in=Tag_X.objects.filter(
+            # tags from db with a TagAssign that connects the model and the tags
+            existing_tags = Tag.objects.filter(pk__in=TagAssign.objects.filter(
                 ref_tag=self.object.pk).values_list('tag', flat=True))
             for tag in existing_tags:
                 if tag not in submitted_tags:
-                    # delete tag_x for existing tags that are no longer used
-                    Tag_X.objects.filter(tag=tag).delete()
+                    # delete TagAssign for existing tags that are no longer used
+                    TagAssign.objects.filter(tag=tag).delete()
             for tag in submitted_tags:
-                # make tag_x for existing tags that are now used
+                # make TagAssign for existing tags that are now used
                 if tag not in existing_tags:
                     # for some reason tags from post are the uuid as a string
                     # get actual tag obj with that uuid
                     tag_obj = Tag.objects.get(pk=tag)
-                    tag_x = Tag_X()
-                    tag_x.tag = tag_obj
-                    tag_x.ref_tag = self.object.pk
-                    tag_x.add_date = tag_obj.add_date
-                    tag_x.mod_date = tag_obj.mod_date
-                    tag_x.save()
+                    tag_assign = TagAssign()
+                    tag_assign.tag = tag_obj
+                    tag_assign.ref_tag = self.object.pk
+                    tag_assign.add_date = tag_obj.add_date
+                    tag_assign.mod_date = tag_obj.mod_date
+                    tag_assign.save()
 
         if self.NoteFormSet != None:
             actor = Actor.objects.get(
@@ -302,7 +302,7 @@ class GenericModelView(DetailView):
         context['Notes'] = notes
 
         # get tags
-        tags_raw = Tag.objects.filter(pk__in=Tag_X.objects.filter(
+        tags_raw = Tag.objects.filter(pk__in=TagAssign.objects.filter(
             ref_tag=obj.pk).values_list('tag', flat=True))
         tags = []
         for tag in tags_raw:

@@ -15,7 +15,7 @@ from rest_framework.decorators import api_view
 from rest_framework_extensions.routers import ExtendedSimpleRouter, NestedRouterMixin
 
 from rest_api import views, viewsets
-from .utils import camel_case, camel_case_uuid, snake_case, view_names, custom_serializer_views, docstring
+from .utils import camel_case, docstring, rest_exposed_url_views, rest_nested_url_views
 from .rest_docs import rest_docs
 
 import core.models
@@ -24,7 +24,7 @@ import core.models
 @docstring(rest_docs['api_root'])
 def api_root(request, format=None):
     response_object = {}
-    for view_name in view_names+custom_serializer_views:
+    for view_name in sorted(rest_exposed_url_views):
         name = camel_case(view_name)
         response_object[name] = reverse(
             name+'-list', request=request, format=format)
@@ -45,12 +45,17 @@ rest_urlpatterns = [
 
 
 router = ExtendedSimpleRouter()
-for view in view_names+custom_serializer_views:
+"""
+The following for loop helps generate nested URLs to 1 level
+"""
+for view in rest_nested_url_views:
     model = getattr(core.models, view)
+    # basename of an endpoint e.g. api/person/
     name = camel_case(view)
+    # Add to related names if a field is a foriegn key
     related_names = [f'{name}_{f.name}' for f in model._meta.get_fields() if isinstance(f, models.ForeignKey)]
     url_names = [f'{f.name}' for f in model._meta.get_fields() if isinstance(f, models.ForeignKey)]
-    # print(f'{view} : {url_names}')
+    # register basename, then loop through nested foreign keys and register them
     registered = router.register(rf'{name}', getattr(viewsets, view+'ViewSet'), basename=name)
     for i, url in enumerate(url_names):
         related_model_name = model._meta.get_field(url).remote_field.model
@@ -58,6 +63,10 @@ for view in view_names+custom_serializer_views:
             related_model_name = related_model_name.__name__
         registered.register(rf'{url}', getattr(viewsets, related_model_name+'ViewSet'), 
                             basename=f'{name}-{url}', parents_query_lookups=[related_names[i]])
+    # Try to register notes, tags
+    registered.register('notes', viewsets.NoteViewSet, basename=f'{name}-note', parents_query_lookups=['ref_note_uuid'])
+    registered.register('tags', viewsets.TagAssignViewSet, basename=f'{name}-tag', parents_query_lookups=['ref_tag'])
+    registered.register('edocs', viewsets.EdocumentViewSet, basename=f'{name}-edoc', parents_query_lookups=['ref_edocument_uuid'])
 
 schema_patterns = [
     path('api/docs/', get_swagger_view(patterns=rest_urlpatterns), name='swagger-ui'), 

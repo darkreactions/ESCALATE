@@ -2,7 +2,7 @@ from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
 
-from core.models import Organization, Tag, Tag_X, Note, Actor, CustomUser
+from core.models import Organization, Tag, TagAssign, Note, Actor, CustomUser
 from core.forms import OrganizationForm, NoteForm, TagSelectForm
 from core.views.menu import GenericListView
 from django.forms import modelformset_factory
