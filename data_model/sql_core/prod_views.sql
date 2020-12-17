@@ -687,40 +687,41 @@ EXECUTE PROCEDURE upsert_experiment_workflow ( );
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_calculation_def AS
 SELECT
-	mdd.calculation_def_uuid,
-	mdd.short_name,
-	mdd.calc_definition,
-	mdd.description,
-	mdd.in_source_uuid, 
-	mdd.in_type_uuid,
+	cd.calculation_def_uuid,
+	cd.short_name,
+	cd.calc_definition,
+	cd.description,
+	cd.in_source_uuid,
+	cd.in_type_uuid,
 	tdi.description as in_type_description,
-	mdd.in_opt_source_uuid,
-	mdd.in_opt_type_uuid,
+	cd.in_opt_source_uuid,
+	cd.in_opt_type_uuid,
 	tdio.description as in_opt_type_description,
-	mdd.out_type_uuid,
+	cd.out_type_uuid,
+    cd.out_unit,
 	tdo.description as out_type_description,
-	mdd.systemtool_uuid,
+	cd.systemtool_uuid,
 	st.systemtool_name,
 	stt.description AS systemtool_type_description,
 	org.short_name AS systemtool_vendor_organization,
 	st.ver AS systemtool_version,
 	sts.status_uuid as status_uuid,
 	sts.description as status_description,
-	mdd.actor_uuid AS actor_uuid,
+	cd.actor_uuid AS actor_uuid,
 	act.description AS actor_description,
-	mdd.calculation_class_uuid,
-	mdd.add_date,
-	mdd.mod_date	
+	cd.calculation_class_uuid,
+	cd.add_date,
+	cd.mod_date
 FROM
-	calculation_def mdd
-LEFT JOIN vw_actor act ON mdd.actor_uuid = act.actor_uuid
-LEFT JOIN vw_systemtool st ON mdd.systemtool_uuid = st.systemtool_uuid
-LEFT JOIN vw_type_def tdi ON mdd.in_type_uuid = tdi.type_def_uuid
-LEFT JOIN vw_type_def tdio ON mdd.in_type_uuid = tdio.type_def_uuid
-LEFT JOIN vw_type_def tdo ON mdd.in_type_uuid = tdo.type_def_uuid 
+	calculation_def cd
+LEFT JOIN vw_actor act ON cd.actor_uuid = act.actor_uuid
+LEFT JOIN vw_systemtool st ON cd.systemtool_uuid = st.systemtool_uuid
+LEFT JOIN vw_type_def tdi ON cd.in_type_uuid = tdi.type_def_uuid
+LEFT JOIN vw_type_def tdio ON cd.in_opt_type_uuid = tdio.type_def_uuid
+LEFT JOIN vw_type_def tdo ON cd.out_type_uuid = tdo.type_def_uuid
 LEFT JOIN systemtool_type stt ON st.systemtool_type_uuid = stt.systemtool_type_uuid
 LEFT JOIN organization org ON st.vendor_organization_uuid = org.organization_uuid
-LEFT JOIN status sts ON mdd.status_uuid = sts.status_uuid;
+LEFT JOIN status sts ON cd.status_uuid = sts.status_uuid;
 
 DROP TRIGGER IF EXISTS trigger_calculation_def_upsert ON vw_calculation_def;
 CREATE TRIGGER trigger_calculation_def_upsert INSTEAD OF INSERT
@@ -762,14 +763,21 @@ SELECT
 	md.mod_date as calculation_mod_date,
 	sts.status_uuid AS calculation_status_uuid,
 	sts.description AS calculation_status_description,
-	mdd.*
+	cd.*
 FROM
 	calculation md
-LEFT JOIN vw_calculation_def mdd ON md.calculation_def_uuid = mdd.calculation_def_uuid
+LEFT JOIN vw_calculation_def cd ON md.calculation_def_uuid = cd.calculation_def_uuid
 LEFT JOIN vw_edocument ed ON (
 	md.out_val ).v_edocument_uuid = ed.edocument_uuid
 LEFT JOIN vw_actor dact ON md.actor_uuid = dact.actor_uuid
 LEFT JOIN vw_status sts ON md.status_uuid = sts.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_calculation_upsert ON vw_calculation;
+CREATE TRIGGER trigger_calculation_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_calculation
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_calculation ( );
 
 
 ----------------------------------------
@@ -1206,15 +1214,6 @@ LEFT JOIN status st ON pr.status_uuid = st.status_uuid
 LEFT JOIN LATERAL ( SELECT get_val.val_type, get_val.val_unit, get_val.val_val FROM get_val(pr.property_val) get_val(val_type, val_unit, val_val)) vl ON true;
 
 
-
-
-
-
-
-
-
-
-
 ----------------------------------------
 -- view inventory; with links to material, actor, status, edocument, note
 ----------------------------------------
@@ -1323,6 +1322,8 @@ SELECT
 	bm.bom_uuid,
 	bm.description,
 	b.description AS bom_description,
+    bm.bom_material_composite_uuid,
+    bm.bom_material_composite_description,
 	bm.inventory_uuid,
 	CASE WHEN bm.material_composite_uuid IS NOT NULL THEN
 		NULL::uuid
@@ -1440,6 +1441,89 @@ OR UPDATE
 OR DELETE ON vw_parameter
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_parameter ( );
+
+
+----------------------------------------
+ -- view calculation_parameter_def_assign
+----------------------------------------
+CREATE OR REPLACE VIEW vw_calculation_parameter_def_assign AS
+SELECT
+    calculation_parameter_def_x_uuid,
+ 	parameter_def_uuid,
+ 	calculation_def_uuid,
+ 	add_date,
+ 	mod_date
+FROM calculation_parameter_def_x;
+
+DROP TRIGGER IF EXISTS trigger_calculation_parameter_def_assign ON vw_calculation_parameter_def_assign;
+CREATE TRIGGER trigger_calculation_parameter_def_assign INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_calculation_parameter_def_assign
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_calculation_parameter_def_assign ( );
+
+
+----------------------------------------
+-- view calculation_parameter
+----------------------------------------
+CREATE OR REPLACE VIEW vw_calculation_parameter_def AS
+SELECT
+	cd.calculation_def_uuid,
+	cd.short_name,
+	cd.calc_definition,
+	cd.description,
+	cd.in_source_uuid,
+	cd.in_type_uuid,
+	tdi.description as in_type_description,
+	cd.in_opt_source_uuid,
+	cd.in_opt_type_uuid,
+	tdio.description as in_opt_type_description,
+	cd.out_type_uuid,
+	tdo.description as out_type_description,
+	cd.systemtool_uuid,
+	st.systemtool_name,
+	stt.description AS systemtool_type_description,
+	org.short_name AS systemtool_vendor_organization,
+	st.ver AS systemtool_version,
+	sts.status_uuid as status_uuid,
+	sts.description as status_description,
+	cd.actor_uuid AS actor_uuid,
+	act.description AS actor_description,
+	cd.calculation_class_uuid,
+	cd.add_date,
+	cd.mod_date,
+    px.calculation_parameter_def_x_uuid,
+    pd.parameter_def_uuid,
+    pd.description as parameter_def_description,
+    pd.required,
+    pd.default_val,
+    pd.actor_uuid as parameter_def_actor_uuid,
+    actp.description as parameter_def_actor_description,
+    pd.status_uuid as parameter_def_status_uuid,
+    stsp.description as parameter_def_status_description,
+    pd.add_date as parameter_def_add_date,
+    pd.mod_date as parameter_def_mod_date
+FROM
+	calculation_def cd
+LEFT JOIN vw_actor act ON cd.actor_uuid = act.actor_uuid
+LEFT JOIN vw_systemtool st ON cd.systemtool_uuid = st.systemtool_uuid
+LEFT JOIN vw_type_def tdi ON cd.in_type_uuid = tdi.type_def_uuid
+LEFT JOIN vw_type_def tdio ON cd.in_opt_type_uuid = tdio.type_def_uuid
+LEFT JOIN vw_type_def tdo ON cd.out_type_uuid = tdo.type_def_uuid
+LEFT JOIN systemtool_type stt ON st.systemtool_type_uuid = stt.systemtool_type_uuid
+LEFT JOIN organization org ON st.vendor_organization_uuid = org.organization_uuid
+LEFT JOIN status sts ON cd.status_uuid = sts.status_uuid
+LEFT JOIN calculation_parameter_def_x px ON cd.calculation_def_uuid = px.calculation_def_uuid
+LEFT JOIN parameter_def pd ON px.parameter_def_uuid = pd.parameter_def_uuid
+LEFT JOIN vw_actor actp ON pd.actor_uuid = actp.actor_uuid
+LEFT JOIN status stsp ON pd.status_uuid = stsp.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_calculation_parameter_def ON vw_calculation_parameter_def;
+CREATE TRIGGER trigger_calculation_parameter_def INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_calculation_parameter_def
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_calculation_parameter_def ( );
 
 
 ----------------------------------------

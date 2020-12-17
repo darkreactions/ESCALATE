@@ -121,6 +121,7 @@ DROP TABLE IF EXISTS calculation cascade;
 DROP TABLE IF EXISTS calculation_class cascade;
 DROP TABLE IF EXISTS calculation_def cascade;
 DROP TABLE IF EXISTS calculation_eval cascade;
+DROP TABLE IF EXISTS calculation_parameter_def_x cascade;
 DROP TABLE IF EXISTS calculation_stack cascade;
 DROP TABLE IF EXISTS condition cascade;
 DROP TABLE IF EXISTS condition_calculation_def_x cascade;
@@ -283,6 +284,8 @@ CREATE TABLE bom_material (
 	bom_material_uuid uuid DEFAULT uuid_generate_v4 (),
 	bom_uuid uuid NOT NULL,
 	description varchar COLLATE "pg_catalog"."default",
+	bom_material_composite_uuid uuid,
+	bom_material_composite_description varchar,
 	inventory_uuid uuid NOT NULL,
 	material_composite_uuid uuid,
 	alloc_amt_val val,
@@ -325,9 +328,12 @@ CREATE TABLE calculation_def (
 	description varchar COLLATE "pg_catalog"."default",
 	in_source_uuid uuid,
 	in_type_uuid uuid,
+	in_unit varchar,
 	in_opt_source_uuid uuid,
 	in_opt_type_uuid uuid,
+	in_opt_unit varchar,
 	out_type_uuid uuid,
+	out_unit varchar,
 	calculation_class_uuid uuid,
 	actor_uuid uuid,
 	status_uuid uuid,
@@ -345,6 +351,15 @@ CREATE TABLE calculation_eval (
 	calculation_alias_name varchar,
 	actor_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
+CREATE TABLE calculation_parameter_def_x (
+    calculation_parameter_def_x_uuid uuid DEFAULT uuid_generate_v4 (),
+ 	parameter_def_uuid uuid NOT NULL,
+ 	calculation_def_uuid uuid NOT NULL,
+ 	add_date timestamptz NOT NULL DEFAULT NOW(),
+ 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
 
 
@@ -1023,6 +1038,13 @@ CLUSTER calculation_eval
 USING "pk_calculation_eval_calculation_eval_id";
 
 
+ ALTER TABLE calculation_parameter_def_x
+ 	ADD CONSTRAINT "pk_calculation_parameter_def_x_calculation_parameter_def_x_uuid" PRIMARY KEY (calculation_parameter_def_x_uuid),
+ 		ADD CONSTRAINT "un_calculation_parameter_def_x_def" UNIQUE (parameter_def_uuid, calculation_def_uuid);
+ CLUSTER calculation_parameter_def_x
+ USING "pk_calculation_parameter_def_x_calculation_parameter_def_x_uuid";
+
+
 ALTER TABLE condition
 	ADD CONSTRAINT "pk_condition_condition_uuid" PRIMARY KEY (condition_uuid);
 CLUSTER condition
@@ -1400,10 +1422,11 @@ ALTER TABLE bom
 
 ALTER TABLE bom_material
 	ADD CONSTRAINT fk_bom_material_bom_1 FOREIGN KEY (bom_uuid) REFERENCES bom (bom_uuid),
-		ADD CONSTRAINT fk_bom_material_inventory_1 FOREIGN KEY (inventory_uuid) REFERENCES inventory (inventory_uuid),
-			ADD CONSTRAINT fk_bom_material_material_composite_1 FOREIGN KEY (material_composite_uuid) REFERENCES material_composite (material_composite_uuid),					
-				ADD CONSTRAINT fk_bom_material_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
-					ADD CONSTRAINT fk_bom_material_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+		ADD CONSTRAINT fk_bom_material_composite_1 FOREIGN KEY (bom_material_composite_uuid) REFERENCES bom_material (bom_material_uuid),
+		    ADD CONSTRAINT fk_bom_material_inventory_1 FOREIGN KEY (inventory_uuid) REFERENCES inventory (inventory_uuid),
+			    ADD CONSTRAINT fk_bom_material_material_composite_1 FOREIGN KEY (material_composite_uuid) REFERENCES material_composite (material_composite_uuid),
+				    ADD CONSTRAINT fk_bom_material_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+					    ADD CONSTRAINT fk_bom_material_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
 
 ALTER TABLE calculation
@@ -1426,7 +1449,12 @@ ALTER TABLE calculation_eval
 	ADD CONSTRAINT fk_calculation_eval_calculation_def_1 FOREIGN KEY (calculation_def_uuid) REFERENCES calculation_def (calculation_def_uuid),
 		ADD CONSTRAINT fk_calculation_eval_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid);
 
-		
+
+ALTER TABLE calculation_parameter_def_x
+ 	ADD CONSTRAINT fk_calculation_parameter_def_x_calculation_def_1 FOREIGN KEY (calculation_def_uuid) REFERENCES calculation_def (calculation_def_uuid),
+         ADD CONSTRAINT fk_calculation_parameter_def_x_parameter_def_1 FOREIGN KEY (parameter_def_uuid) REFERENCES parameter_def (parameter_def_uuid);
+
+
 ALTER TABLE condition
 	ADD CONSTRAINT fk_condition_condition_calculation_def_x_1 FOREIGN KEY (condition_calculation_def_x_uuid) REFERENCES condition_calculation_def_x (condition_calculation_def_x_uuid),
 		ADD CONSTRAINT fk_condition_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
@@ -1688,6 +1716,7 @@ COMMENT ON COLUMN bom.mod_date IS '';
 COMMENT ON TABLE bom_material IS '';
 COMMENT ON COLUMN bom_material.bom_material_uuid IS '';
 COMMENT ON COLUMN bom_material.bom_uuid IS '';
+COMMENT ON COLUMN bom_material.bom_material_composite_uuid IS '';
 COMMENT ON COLUMN bom_material.inventory_uuid IS '';
 COMMENT ON COLUMN bom_material.material_composite_uuid IS '';
 COMMENT ON COLUMN bom_material.alloc_amt_val IS '';
@@ -1746,6 +1775,14 @@ COMMENT ON COLUMN calculation_eval.out_val IS '';
 COMMENT ON COLUMN calculation_eval.calculation_alias_name IS '';
 COMMENT ON COLUMN calculation_eval.actor_uuid IS '';
 COMMENT ON COLUMN calculation_eval.add_date IS '';
+
+
+COMMENT ON TABLE calculation_parameter_def_x IS '';
+COMMENT ON COLUMN calculation_parameter_def_x.calculation_parameter_def_x_uuid IS '';
+COMMENT ON COLUMN calculation_parameter_def_x.parameter_def_uuid IS '';
+COMMENT ON COLUMN calculation_parameter_def_x.calculation_def_uuid IS '';
+COMMENT ON COLUMN calculation_parameter_def_x.add_date IS '';
+COMMENT ON COLUMN calculation_parameter_def_x.mod_date IS '';
 
 
 COMMENT ON TABLE calculation_stack IS '';
