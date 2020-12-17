@@ -3,7 +3,7 @@ from django.views.generic.edit import FormView, CreateView, UpdateView
 from django.forms import modelformset_factory
 from django.shortcuts import redirect
 
-from core.models import Tag, Tag_X, Actor
+from core.models import Tag, TagAssign, Actor
 from core.forms import TagForm
 #from core.views.menu import GenericListView
 
@@ -59,14 +59,14 @@ class ModelTagEdit():
                             tag.actor = actor
                             tag.save()
                             if form not in formset.deleted_forms:
-                            # if tag not being deleted make tag_x to relate the tag and
+                            # if tag not being deleted make tag_assign to relate the tag and
                             # the person being tagged
-                                tag_x = Tag_X()
-                                tag_x.tag=Tag.objects.get(display_text=tag.display_text)
-                                tag_x.ref_tag=model_pk
-                                tag_x.add_date=tag.add_date
-                                tag_x.mod_date=tag.mod_date
-                                tag_x.save()
+                                tag_assign = TagAssign()
+                                tag_assign.tag=Tag.objects.get(display_text=tag.display_text)
+                                tag_assign.ref_tag=model_pk
+                                tag_assign.add_date=tag.add_date
+                                tag_assign.mod_date=tag.mod_date
+                                tag_assign.save()
                 formset.save(commit=False)
                 for form in formset.deleted_forms:
                     form.instance.delete()

@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from core.models import (CustomUser, Person, Material, Inventory, Actor, Note,
                          Organization, Systemtool, SystemtoolType,
-                         UdfDef, Status, Tag, Tag_X, TagType, MaterialType,
+                         UdfDef, Status, Tag, TagAssign, TagType, MaterialType,
                          Edocument)
 
 
@@ -464,7 +464,7 @@ class TagSelectForm(forms.Form):
         # pk of model that is passed in to filter for tags belonging to the model
         if 'model_pk' in kwargs:
             model_pk = kwargs.pop('model_pk')
-            current_tags = Tag.objects.filter(pk__in=Tag_X.objects.filter(
+            current_tags = Tag.objects.filter(pk__in=TagAssign.objects.filter(
                 ref_tag=model_pk).values_list('tag', flat=True))
         else:
             current_tags = Tag.objects.none()

@@ -507,11 +507,20 @@ class Note(models.Model):
     uuid = RetUUIDField(primary_key=True, db_column='note_uuid')
     notetext = models.TextField(blank=True, null=True,
                                 verbose_name='Note Text')
-    add_date = models.DateTimeField()
-    mod_date = models.DateTimeField()
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
     actor = models.ForeignKey('Actor', models.DO_NOTHING,
                                    db_column='actor_uuid', related_name='note_actor')
-    actor_description = models.CharField(max_length=255, blank=True, null=True)
+    actor_description = models.CharField(max_length=255, blank=True, null=True, editable=False)
+    """
+    note_x_uuid = models.ForeignKey('Note_x', models.DO_NOTHING,
+                                  blank=True,
+                                  null=True,
+                                  editable=False,
+                                  db_column='note_x_uuid',
+                                  related_name='note_note_x')
+    """
+    ref_note_uuid = RetUUIDField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -621,13 +630,13 @@ class Status(models.Model):
 
 
 class Tag(models.Model):
-    uuid = RetUUIDField(primary_key=True, db_column='tag_uuid')
+    uuid = RetUUIDField(primary_key=True, db_column='tag_uuid', editable=False)
     display_text = models.CharField(max_length=255,  null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     actor = models.ForeignKey('Actor', models.DO_NOTHING,
                                    db_column='actor_uuid',
                                    blank=True, null=True, related_name='tag_actor')
-    actor_description = models.CharField(max_length=255, blank=True, null=True)
+    actor_description = models.CharField(max_length=255, blank=True, null=True, editable=False)
 
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
@@ -636,9 +645,9 @@ class Tag(models.Model):
                                       db_column='tag_type_uuid',
                                       blank=True, null=True, related_name='tag_tag_type')
     type = models.CharField(
-        max_length=255, blank=True, null=True)
+        max_length=255, blank=True, null=True, editable=False)
     type_description = models.CharField(
-        max_length=255, blank=True, null=True)
+        max_length=255, blank=True, null=True, editable=False)
 
     class Meta:
         managed = False
@@ -648,14 +657,13 @@ class Tag(models.Model):
         return "{}".format(self.display_text)
 
 
-class Tag_X(models.Model):
+class TagAssign(models.Model):
     uuid = RetUUIDField(primary_key=True, db_column='tag_x_uuid')
     ref_tag = RetUUIDField(db_column='ref_tag_uuid')
     tag = models.ForeignKey('Tag', models.DO_NOTHING,
                                  blank=True,
                                  null=True,
-                                 editable=False,
-                                 db_column='tag_uuid', related_name='tag_x_tag')
+                                 db_column='tag_uuid', related_name='tag_assign_tag')
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
     class Meta:
@@ -707,6 +715,8 @@ class Edocument(models.Model):
         max_length=255, blank=True, null=True, editable=False)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
+    edocument_x_uuid = RetUUIDField(editable=False)
+    ref_edocument_uuid = RetUUIDField()
 
     class Meta:
         managed = False

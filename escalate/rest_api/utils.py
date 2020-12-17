@@ -30,24 +30,40 @@ def camel_case_uuid(text):
     # return '_'.join([text, 'uuid'])
     return text
 
-view_names = ['Actor', 'Organization', 'Status', 'Systemtool', 'SystemtoolType', 'Inventory', 'InventoryMaterial',
-              'Calculation', 'CalculationDef',
-              'Material', 'MaterialComposite', 'MaterialCalculationJson', 'MaterialRefnameDef',
-              'MaterialType', 'Note_x', 'Person',
-              'TagType', 'Property', 'PropertyDef', 'MaterialProperty', 'TypeDef',
-              'ParameterDef', 'Condition', 'ConditionDef', 'ActionParameter', 'Parameter', 'WorkflowType',
-              'WorkflowStep', 'WorkflowObject', 'UdfDef', 'Experiment', 'ExperimentWorkflow',
-              'BillOfMaterials', 'BomMaterial', 'Measure', 'MeasureType']
+misc_views = set(['MaterialCalculationJson', 'Note_x'])
 
-GET_only_views = ['TypeDef']
+core_views = set(['Actor', 'Organization', 'Status', 'Systemtool', 
+                'SystemtoolType', 'Inventory', 'InventoryMaterial',
+                'Calculation', 'CalculationDef', 'Material', 
+                'MaterialComposite', 'MaterialRefnameDef', 'MaterialType',
+                'Person', 'Tag', 'TagType', 'Property', 'PropertyDef', 
+                'TypeDef', 'ParameterDef', 'Condition', 'ConditionDef', 
+                'ActionParameter', 'Parameter', 'WorkflowType', 'WorkflowStep',
+                'WorkflowObject', 'UdfDef', 'Experiment', 'ExperimentWorkflow',
+                'BillOfMaterials', 'BomMaterial', 'Measure', 'MeasureType'])
 
-custom_serializer_views = ['Tag', 'Note',
-                           'Edocument',
-                           'ExperimentMeasureCalculation',
-                           'ActionDef', 'Action', 'Workflow']
+GET_only_views = set(['TypeDef'])
 
-perform_create_views = ['PropertyDef', "MaterialProperty"]
+unexposed_views = set(['TagAssign', 'Note', 'Edocument'])
 
+custom_serializer_views = set(['ExperimentMeasureCalculation',
+                           'ActionDef', 'Action', 'Workflow'])
+
+perform_create_views = set(['PropertyDef', 'MaterialProperty'])
+
+# Set of models for rest_api/serializers.py
+rest_serializer_views = core_views | misc_views | perform_create_views
+
+# Set of models for all exposed urls in rest_api/urls.py
+rest_exposed_url_views = core_views | custom_serializer_views
+
+# Set of models for all nested urls in rest_api/urls.py
+rest_nested_url_views = (core_views | misc_views | custom_serializer_views | 
+                         perform_create_views | unexposed_views)
+
+# Set of models that have viewsets in rest_api/viewsets.py
+rest_viewset_views = (core_views | misc_views | custom_serializer_views | 
+                      perform_create_views | unexposed_views)
 
 def docstring(docstr, sep="\n"):
     """

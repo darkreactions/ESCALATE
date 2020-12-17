@@ -1,4 +1,5 @@
 import tempfile
+from uuid import UUID
 
 from django.http import Http404, FileResponse
 from rest_framework import viewsets
@@ -16,7 +17,7 @@ from url_filter.integrations.drf import DjangoFilterBackend
 from .serializers import *
 import core.models
 import rest_api
-from .utils import perform_create_views, view_names, custom_serializer_views
+from .utils import rest_viewset_views, perform_create_views
 from .rest_docs import rest_docs
 
 
@@ -43,6 +44,7 @@ def download_blob(request, uuid):
     #response['Content-Disposition'] = 'attachment; filename=blob.pdf'
     return response
 
+
 def create_viewset(model_name):
     model = getattr(core.models, model_name)
     modelSerializer = getattr(rest_api.serializers, model_name+'Serializer')
@@ -61,10 +63,66 @@ def create_viewset(model_name):
     if model_name in perform_create_views:
         globals()[model_name+'ViewSet'].perform_create = save_actor_on_post
 
-
-
-for view_name in view_names+custom_serializer_views:
+for view_name in rest_viewset_views:
     create_viewset(view_name)
 
 create_viewset('Edocument')
 
+class NoteViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    queryset = core.models.Note.objects.all()
+    serializer_class = NoteSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filter_fields = '__all__'
+    __doc__ = rest_docs.get('note', '')
+
+    def perform_create(self, serializer, **kwargs):
+        serializer.save(**kwargs)
+
+    def create(self, request, *args, **kwargs):
+        ref_note_uuid = kwargs['parent_lookup_ref_note_uuid']
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer, ref_note_uuid=ref_note_uuid)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
+class TagAssignViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    queryset = core.models.TagAssign.objects.all()
+    serializer_class = TagAssignSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filter_fields = '__all__'
+    __doc__ = rest_docs.get('tag', '')
+
+    def perform_create(self, serializer, **kwargs):
+        serializer.save(**kwargs)
+ 
+    def create(self, request, *args, **kwargs):
+        ref_tag_uuid = kwargs['parent_lookup_ref_tag']
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer, ref_tag=ref_tag_uuid)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+class EdocumentViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    queryset = core.models.Edocument.objects.all()
+    serializer_class = EdocumentSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filter_fields = '__all__'
+    __doc__ = rest_docs.get('edocument', '')
+
+    def perform_create(self, serializer, **kwargs):
+        serializer.save(**kwargs)
+ 
+    def create(self, request, *args, **kwargs):
+        print(kwargs)
+        ref_edocument_uuid = kwargs['parent_lookup_ref_edocument_uuid']
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer, ref_edocument_uuid=ref_edocument_uuid)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

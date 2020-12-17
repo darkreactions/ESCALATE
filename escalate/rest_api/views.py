@@ -20,13 +20,13 @@ from url_filter.integrations.drf import DjangoFilterBackend
 # App imports
 
 from .serializers import *
-from .utils import (camel_case_uuid, camel_case, view_names, custom_serializer_views,
+from .utils import (camel_case_uuid, camel_case, core_views, custom_serializer_views,
                     perform_create_views, GET_only_views, docstring)
 import core.models
 import rest_api
 from .rest_docs import rest_docs
 
-view_names = view_names + custom_serializer_views
+view_names = core_views | custom_serializer_views
 
 def save_actor_on_post(self, serializer):
     """Save the person POSTing as the actor associated with a resource being created
