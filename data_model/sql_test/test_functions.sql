@@ -1675,3 +1675,4 @@ insert into vw_measure (measure_def_uuid, measure_type_uuid, ref_measure_uuid, d
         '')),
     (select actor_uuid from vw_actor where description = 'Ion Bond'),
     (select status_uuid from vw_status where description = 'dev_test'));
+

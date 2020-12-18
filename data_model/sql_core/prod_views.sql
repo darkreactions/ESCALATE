@@ -3324,7 +3324,7 @@ JOIN (
         ON b.bom_uuid = bm.bom_uuid
     GROUP BY b.experiment_uuid) b
 ON e.experiment_uuid = b.experiment_uuid
-JOIN (
+LEFT JOIN (
 	SELECT
 		p.experiment_uuid,
 		json_agg(
@@ -3489,7 +3489,7 @@ JOIN (
 	GROUP BY p.experiment_uuid) p
 ON e.experiment_uuid = p.experiment_uuid
 -- now the outcomes
-JOIN (
+LEFT JOIN (
     SELECT
         o.experiment_uuid,
         json_agg(
