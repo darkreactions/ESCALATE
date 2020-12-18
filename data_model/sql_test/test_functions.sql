@@ -1292,7 +1292,7 @@ insert into vw_inventory_material (inventory_uuid, description, material_uuid, a
 -- ===========================================================================
 -- upsert condition, condition-calculation
 insert into vw_condition_def (description, actor_uuid, status_uuid) values
-	('temp > threshold ?', (select actor_uuid from vw_actor where description = 'Dev Test123'),
+	('temp > threshold ?', (select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 insert into vw_calculation_def 
 	(short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid, 		
@@ -1402,7 +1402,7 @@ insert into vw_calculation_def
 		(select systemtool_uuid from vw_actor where systemtool_name = 'postgres'),
 		'LANL WF1: return array of mL vols for 12M HCL for 5mL target across concentration array', null, null, null, null,
 		(select type_def_uuid from vw_type_def where category = 'data' and description = 'array_num'), 'mL',
-		null, (select actor_uuid from vw_actor where description = 'Dev Test123'),
+		null, (select actor_uuid from vw_actor where description = 'Ion Bond'),
 		(select status_uuid from vw_status where description = 'dev_test')
 		);
 insert into vw_calculation_def
@@ -1412,7 +1412,7 @@ insert into vw_calculation_def
 		(select systemtool_uuid from vw_actor where systemtool_name = 'postgres'),
 		'LANL WF1: return array of mL vols for H2O for 5mL target across concentration array', null, null, null, null,
 		(select type_def_uuid from vw_type_def where category = 'data' and description = 'array_num'), 'mL',
-		null, (select actor_uuid from vw_actor where description = 'Dev Test123'),
+		null, (select actor_uuid from vw_actor where description = 'Ion Bond'),
 		(select status_uuid from vw_status where description = 'dev_test')
 		);
 insert into vw_calculation_parameter_def (calculation_def_uuid, parameter_def_uuid)
@@ -1439,7 +1439,7 @@ insert into vw_calculation (calculation_def_uuid, calculation_alias_name, in_val
     null,
     null,
     (select do_calculation((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'))),
- 	(select actor_uuid from vw_actor where description = 'Dev Test123'),
+ 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'dev_test')
 );
 -- calculation for H2O
@@ -1450,7 +1450,7 @@ insert into vw_calculation (calculation_def_uuid, calculation_alias_name, in_val
     null,
     null,
     (select do_calculation((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_H2O_5mL_concentration'))),
- 	(select actor_uuid from vw_actor where description = 'Dev Test123'),
+ 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'dev_test')
 );
 
@@ -1474,7 +1474,7 @@ insert into vw_outcome (experiment_uuid, description, actor_uuid, status_uuid)
 	values (
 		(select experiment_uuid from vw_experiment where description = 'LANL Test Experiment Template'),
 		'LANL Test Experiment Outcome',
- 	    (select actor_uuid from vw_actor where description = 'Dev Test123'),
+ 	    (select actor_uuid from vw_actor where description = 'Ion Bond'),
 	    (select status_uuid from vw_status where description = 'dev_test'));
 
 -- =========================================================================== 
@@ -1646,8 +1646,8 @@ insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, 
 	values (
 		(select workflow_uuid from vw_workflow where description = 'LANL_WF1c_SetTemp_SamplePrep'),
 		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'heat sample plate')),
-		null,
-		(select status_uuid from vw_status where description = 'active'));
+        null,
+        (select status_uuid from vw_status where description = 'dev_test'));
 
 -- add in some measures
 -- to action(s)
