@@ -1,7 +1,8 @@
 from django.urls import path, include
 import core.views
 from .views import (LoginView, CreateUserView, MainMenuView, WorkflowView,
-                    ModelTagCreate, ModelTagUpdate, logout_view)
+                    ModelTagCreate, ModelTagUpdate, logout_view, UserProfileView, 
+                    change_password, UserProfileEdit)
 from core.utils import view_names, camel_to_snake
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.views.generic.base import RedirectView
@@ -17,7 +18,10 @@ urlpatterns = [
     path('create_user/', CreateUserView.as_view(), name='create_user'),
     path('main_menu/', MainMenuView.as_view(), name='main_menu'),
     path('workflow/', WorkflowView.as_view(), name='workflow'),
-    path('logout/', logout_view, name='logout')
+    path('logout/', logout_view, name='logout'),
+    path('user_profile/', UserProfileView.as_view(), name='user_profile'),
+    path('change_password/', change_password, name='change_password'),
+    path('user_profile_edit/', UserProfileEdit.as_view(), name='user_profile_edit')
 ]
 
 

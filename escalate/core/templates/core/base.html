@@ -104,6 +104,7 @@
 
                 {% block add_data %}
                 {% endblock %}
+                <a href="{% url 'user_profile' %}" class="btn btn-raised btn-info mx-2 my-sm-0">User Profile</a>
                 <a href="{% url 'logout' %}" class="btn btn-raised btn-warning mx-2 my-sm-0">Logout</a>
             </div>
             {% endwith %}

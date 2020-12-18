@@ -95,6 +95,7 @@ class PersonTable(models.Model):
                                           blank=True, null=True,
                                           db_column='organization_uuid',
                                           related_name='person_table_organization')
+    
 
     class Meta:
         managed = False
@@ -102,3 +103,32 @@ class PersonTable(models.Model):
 
     def __str__(self):
         return "{} {}".format(self.first_name, self.last_name)
+
+
+class OrganizationTable(models.Model):
+    uuid = RetUUIDField(primary_key=True, db_column='organization_uuid')
+    description = models.CharField(max_length=255)
+    full_name = models.CharField(max_length=255)
+    short_name = models.CharField(max_length=255, blank=True, null=True)
+    address1 = models.CharField(max_length=255, blank=True, null=True)
+    address2 = models.CharField(max_length=255, blank=True, null=True)
+    city = models.CharField(max_length=255, blank=True, null=True)
+    state_province = models.CharField(max_length=3, blank=True, null=True)
+    zip = models.CharField(max_length=255, blank=True, null=True)
+    country = models.CharField(max_length=255, blank=True, null=True)
+    website_url = models.CharField(max_length=255, blank=True, null=True)
+    phone = models.CharField(max_length=255, blank=True, null=True)
+
+    parent = models.ForeignKey('self', models.DO_NOTHING,
+                                    blank=True, null=True,
+                                    db_column='parent_uuid',
+                                    related_name='organization_parent')
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'organization'
+
+    def __str__(self):
+        return "{}".format(self.full_name)

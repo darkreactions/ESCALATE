@@ -12,7 +12,7 @@
           <div class="mt-3">
             <h4>{{ request.user.person.first_name }} {{ request.user.person.last_name }}</h4>
             <p class="text-secondary mb-1">{{ request.user.person.title }}</p>
-            <p class="text-muted font-size-sm">{{ request.user.person.organization_full_name }}</p>
+            <p class="text-muted font-size-sm">{{ request.user.person.organization.full_name }}</p>
             <a href="{% url 'change_password' %}" class="btn btn-outline-primary">Change Password</a>
           </div>
         </div>
@@ -72,8 +72,8 @@
               <h6 class="mb-0">Lab/Organization Membership</h6>
             </div>
             <div class="col-sm-9 text-secondary">
-              {% if request.user.person.added_organization.all %}
-                {% for org in request.user.person.added_organization.all %}
+              {% if vw_person.added_organization.all %}
+                {% for org in vw_person.added_organization.all %}
                 {{ org.full_name }}
                 {% endfor %}
               {% else %}
@@ -87,20 +87,29 @@
                 
             </div>
             <div class="col-sm-9 text-secondary">
+              {% if messages %}
+              <ul class="messages">
+                  {% for message in messages %}
+                  <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+                      {% endfor %}
+              </ul>
+              {% endif %}
               <a href="{% url 'user_profile_edit' %}" class="btn btn-outline-primary">Edit Profile</a>
-              <a href="{% url 'user_profile_edit' %}" class="btn btn-outline-primary">Join Lab</a>
+              <button type="button" class="btn btn-outline-primary" data-toggle="modal"
+                        data-target="#deleteModal" >Join Lab</button>
             </div>
         </div>
       </div>
     </div>
 </div>
+
 </div>
 <div class="row gutters-sm">
     <div class="col-md-4 mb-3">
         <div class="card">
           <div class="card-body">
             <div class="d-flex flex-column align-items-center text-center">
-    {{ org_form|crispy }}
+    
             </div>
           </div>
         </div>
@@ -109,4 +118,23 @@
 {% endblock %}
 
 {% block delete_block %}
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="container">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="deleteModalLabel">Delete</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <form method="post">{% csrf_token %}
+                      {{ org_form|crispy }}
+                      <button class="btn btn-outline-primary" type="submit" name="add_org" value="add_org">Save changes</button>
+                    </form>
+                  </div>
+                </div>
+            </div>
+        </div>
 {% endblock %}

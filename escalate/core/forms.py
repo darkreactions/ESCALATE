@@ -3,7 +3,7 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from core.models import (CustomUser, Person, Material, Inventory, Actor, Note,
                          Organization, Systemtool, SystemtoolType,
                          UdfDef, Status, Tag, TagAssign, TagType, MaterialType,
-                         Edocument, PersonTable)
+                         Edocument, PersonTable, OrganizationPassword)
 
 
 dropdown_attrs = {'class': 'selectpicker',
@@ -500,4 +500,26 @@ class UploadEdocForm(forms.ModelForm):
                 'rows': '3',
                 'placeholder': 'Your material type description'
             })
+        }
+
+
+class JoinOrganizationForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(JoinOrganizationForm, self).__init__(*args, **kwargs)
+        self.fields['organization'].queryset = OrganizationPassword.objects.all()
+
+    class Meta:
+        model = OrganizationPassword
+        fields = ['organization', 'password']
+        widgets = {
+            'password': forms.PasswordInput()
+        }
+
+class CreateOrganizationPasswordForm(forms.ModelForm):
+
+    class Meta:
+        model = OrganizationPassword
+        fields = ['organization', 'password']
+        widgets = {
+            'password': forms.PasswordInput()
         }

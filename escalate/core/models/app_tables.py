@@ -1,6 +1,7 @@
+import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-#from .core_tables import Person
+from .core_tables import OrganizationTable
 
 from ..managers import CustomUserManager
 
@@ -14,3 +15,13 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.username
+
+class OrganizationPassword(models.Model):
+    uuid = models.AutoField(primary_key=True)
+    organization = models.OneToOneField(OrganizationTable, models.DO_NOTHING,
+                                    db_column='parent_uuid',
+                                    related_name='organization_password_organization')
+    password = models.CharField(max_length=255, blank=True)
+
+    def __str__(self):
+        return "{}".format(self.organization.full_name)

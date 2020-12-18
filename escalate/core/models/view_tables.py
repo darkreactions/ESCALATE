@@ -606,6 +606,7 @@ class Person(models.Model):
                                           related_name='person_organization')
     organization_full_name = models.CharField(max_length=255,
                                               blank=True, null=True)
+    added_organization = models.ManyToManyField('Organization', through='Actor', related_name='person_added_organization')
 
     class Meta:
         managed = False
