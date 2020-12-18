@@ -142,14 +142,13 @@ DROP TABLE IF EXISTS material_type cascade;
 DROP TABLE IF EXISTS material_type_x cascade;
 DROP TABLE IF EXISTS material_x cascade;
 DROP TABLE IF EXISTS measure cascade;
+DROP TABLE IF EXISTS measure_def cascade;
 DROP TABLE IF EXISTS measure_type cascade;
 DROP TABLE IF EXISTS measure_x cascade;
 DROP TABLE IF EXISTS note cascade;
 DROP TABLE IF EXISTS note_x cascade;
 DROP TABLE IF EXISTS organization cascade;
 DROP TABLE IF EXISTS outcome cascade;
-DROP TABLE IF EXISTS outcome_type cascade;
-DROP TABLE IF EXISTS outcome_x cascade;
 DROP TABLE IF EXISTS parameter cascade;
 DROP TABLE IF EXISTS parameter_def cascade;
 DROP TABLE IF EXISTS parameter_x cascade;
@@ -574,9 +573,23 @@ CREATE TABLE material_type_x (
 
 CREATE TABLE measure (
 	measure_uuid uuid DEFAULT uuid_generate_v4 (),
+	measure_def_uuid uuid,
 	measure_type_uuid uuid,
 	description varchar COLLATE "pg_catalog"."default",
-	amount val,
+	measure_value val,
+	actor_uuid uuid,
+	status_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
+CREATE TABLE measure_def (
+	measure_def_uuid uuid DEFAULT uuid_generate_v4 (),
+	default_measure_type_uuid uuid,
+	description varchar COLLATE "pg_catalog"."default",
+	default_measure_value val,
+	property_def_uuid uuid,
 	actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -643,27 +656,10 @@ CREATE TABLE organization (
 
 CREATE TABLE outcome (
 	outcome_uuid uuid DEFAULT uuid_generate_v4 (),
-	outcome_ref_uuid uuid,
-	actor_uuid uuid,
-	outcome_type_uuid uuid,
-	add_date timestamptz NOT NULL DEFAULT NOW(),
-	mod_date timestamptz NOT NULL DEFAULT NOW()
-);
-
-
-CREATE TABLE outcome_type (
-	outcome_type_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default" NOT NULL,
+	experiment_uuid uuid NOT NULL,
 	actor_uuid uuid,
-	add_date timestamptz NOT NULL DEFAULT NOW(),
-	mod_date timestamptz NOT NULL DEFAULT NOW()
-);
-
-
-CREATE TABLE outcome_x (
-	outcome_x_uuid uuid DEFAULT uuid_generate_v4 (),
-	outcome_ref_uuid uuid,
-	outcome_uuid uuid,
+	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -1191,6 +1187,13 @@ CLUSTER measure
 USING "pk_measure_measure_uuid";
 
 
+ALTER TABLE measure_def
+	ADD CONSTRAINT "pk_measure_def_measure_def_uuid" PRIMARY KEY (measure_def_uuid),
+		ADD CONSTRAINT "un_measure_def" UNIQUE (measure_def_uuid);
+CLUSTER measure_def
+USING "pk_measure_def_measure_def_uuid";
+
+
 ALTER TABLE measure_type
 	ADD CONSTRAINT "pk_measure_type_measure_type_uuid" PRIMARY KEY (measure_type_uuid);
 CLUSTER measure_type
@@ -1225,6 +1228,13 @@ USING GIST (parent_path);
 CREATE INDEX "ix_organization_parent_uuid" ON organization (parent_uuid);
 CLUSTER organization
 USING "pk_organization_organization_uuid";
+
+
+ALTER TABLE outcome
+	ADD CONSTRAINT "pk_outcome_outcome_uuid" PRIMARY KEY (outcome_uuid);
+CREATE INDEX "ix_outcome_experiment_uuid" ON bom (experiment_uuid);
+CLUSTER outcome
+USING "pk_outcome_outcome_uuid";
 
 
 ALTER TABLE parameter
@@ -1560,7 +1570,14 @@ ALTER TABLE material_x
 
 ALTER TABLE measure
 	ADD CONSTRAINT fk_measure_measure_type_1 FOREIGN KEY (measure_type_uuid) REFERENCES measure_type (measure_type_uuid),
-		ADD CONSTRAINT fk_measure_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid);
+		ADD CONSTRAINT fk_measure_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+    		ADD CONSTRAINT fk_measure_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+
+
+ALTER TABLE measure_def
+	ADD CONSTRAINT fk_measure_def_default_measure_type_1 FOREIGN KEY (default_measure_type_uuid) REFERENCES measure_type (measure_type_uuid),
+		ADD CONSTRAINT fk_measure_def_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+        	ADD CONSTRAINT fk_measure_def_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);;
 
 
 ALTER TABLE measure_x
@@ -1577,6 +1594,12 @@ ALTER TABLE note_x
 
 ALTER TABLE organization
 	ADD CONSTRAINT fk_organization_organization_1 FOREIGN KEY (parent_uuid) REFERENCES organization (organization_uuid);
+
+
+ALTER TABLE outcome
+	ADD CONSTRAINT fk_outcome_experiment_1 FOREIGN KEY (experiment_uuid) REFERENCES experiment (experiment_uuid),
+		ADD CONSTRAINT fk_outcome_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+			ADD CONSTRAINT fk_outcome_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
 
 ALTER TABLE parameter
@@ -2006,11 +2029,22 @@ COMMENT ON TABLE measure IS '';
 COMMENT ON COLUMN measure.measure_uuid IS '';
 COMMENT ON COLUMN measure.measure_type_uuid IS '';
 COMMENT ON COLUMN measure.description IS '';
-COMMENT ON COLUMN measure.amount IS '';
+COMMENT ON COLUMN measure.measure_value IS '';
 COMMENT ON COLUMN measure.actor_uuid IS '';
 COMMENT ON COLUMN measure.status_uuid IS '';
 COMMENT ON COLUMN measure.add_date IS '';
 COMMENT ON COLUMN measure.mod_date IS '';
+
+
+COMMENT ON TABLE measure_def IS '';
+COMMENT ON COLUMN measure_def.measure_def_uuid IS '';
+COMMENT ON COLUMN measure_def.default_measure_type_uuid IS '';
+COMMENT ON COLUMN measure_def.description IS '';
+COMMENT ON COLUMN measure_def.default_measure_value IS '';
+COMMENT ON COLUMN measure_def.actor_uuid IS '';
+COMMENT ON COLUMN measure_def.status_uuid IS '';
+COMMENT ON COLUMN measure_def.add_date IS '';
+COMMENT ON COLUMN measure_def.mod_date IS '';
 
 
 COMMENT ON TABLE measure_type IS '';
@@ -2067,27 +2101,12 @@ COMMENT ON COLUMN organization.mod_date IS 'date this record updated';
 
 COMMENT ON TABLE outcome IS '';
 COMMENT ON COLUMN outcome.outcome_uuid IS '';
-COMMENT ON COLUMN outcome.outcome_ref_uuid IS '';
+COMMENT ON COLUMN outcome.description IS '';
+COMMENT ON COLUMN outcome.experiment_uuid IS '';
 COMMENT ON COLUMN outcome.actor_uuid IS '';
-COMMENT ON COLUMN outcome.outcome_type_uuid IS '';
+COMMENT ON COLUMN outcome.status_uuid IS '';
 COMMENT ON COLUMN outcome.add_date IS '';
 COMMENT ON COLUMN outcome.mod_date IS '';
-
-
-COMMENT ON TABLE outcome_type IS '';
-COMMENT ON COLUMN outcome_type.outcome_type_uuid IS '';
-COMMENT ON COLUMN outcome_type.description IS '';
-COMMENT ON COLUMN outcome_type.actor_uuid IS '';
-COMMENT ON COLUMN outcome_type.add_date IS '';
-COMMENT ON COLUMN outcome_type.mod_date IS '';
-
-
-COMMENT ON TABLE outcome_x IS '';
-COMMENT ON COLUMN outcome_x.outcome_x_uuid IS '';
-COMMENT ON COLUMN outcome_x.outcome_ref_uuid IS '';
-COMMENT ON COLUMN outcome_x.outcome_uuid IS '';
-COMMENT ON COLUMN outcome_x.add_date IS '';
-COMMENT ON COLUMN outcome_x.mod_date IS '';
 
 
 COMMENT ON TABLE parameter IS '';

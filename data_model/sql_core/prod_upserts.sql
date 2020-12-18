@@ -645,7 +645,6 @@ $$
 LANGUAGE plpgsql;
 
 
-
 /*
 Name:				upsert_organization ()
 Parameters:		
@@ -960,8 +959,10 @@ Date:			2020.11.01
 Description:	trigger proc that deletes, inserts or updates measure record based on TG_OP (trigger operation)
 Notes:			this must be associated with an entity (i.e. ref_measure_uuid cannot be NULL)	
  
-Example:		insert into vw_measure (measure_type_uuid, ref_measure_uuid, description, amount, actor_uuid, status_uuid) values 
-					((select measure_type_uuid from vw_measure_type where description = 'manual'),
+Example:		insert into vw_measure (measure_def_uuid, measure_type_uuid, ref_measure_uuid, description, measure_value, actor_uuid, status_uuid) values
+					(
+                    null,
+                    null,
 					(select material_uuid from vw_material where description = 'Formic Acid'),
 					'TEST measure',
 					(select put_val(
@@ -977,6 +978,9 @@ Example:		insert into vw_measure (measure_type_uuid, ref_measure_uuid, descripti
 CREATE OR REPLACE FUNCTION upsert_measure ()
 	RETURNS TRIGGER
 	AS $$
+DECLARE
+    _measure_type_uuid uuid;
+    _measure_value val;
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
 		-- first delete the measure_x record
@@ -997,9 +1001,10 @@ BEGIN
 		UPDATE
 			measure
 		SET
+		    measure_def_uuid = NEW.measure_def_uuid,
 			measure_type_uuid = NEW.measure_type_uuid,
 			description = NEW.description,
-			amount = NEW.amount,
+			measure_value = NEW.measure_value,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
 			mod_date = now()
@@ -1008,12 +1013,86 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		IF (NEW.ref_measure_uuid is not null) THEN
-			INSERT INTO measure (measure_type_uuid, description, amount, actor_uuid, status_uuid)
-				VALUES(NEW.measure_type_uuid, NEW.description, NEW.amount, NEW.actor_uuid, NEW.status_uuid) returning measure_uuid into NEW.measure_uuid;
+		    IF (NEW.measure_type_uuid is null and NEW.measure_def_uuid is not null) THEN
+                _measure_type_uuid := (select default_measure_type_uuid from vw_measure_def where measure_def_uuid = NEW.measure_def_uuid);
+            ELSE
+		        _measure_type_uuid := NEW.measure_type_uuid;
+            END IF;
+		    IF (NEW.measure_value is null and NEW.measure_def_uuid is not null) THEN
+                _measure_value := (select default_measure_value from vw_measure_def where measure_def_uuid = NEW.measure_def_uuid);
+            ELSE
+		        _measure_value := NEW.measure_value;
+            END IF;
+			INSERT INTO measure (measure_def_uuid, measure_type_uuid, description, measure_value, actor_uuid, status_uuid)
+				VALUES(
+				       NEW.measure_def_uuid, _measure_type_uuid, NEW.description,
+				       _measure_value, NEW.actor_uuid, NEW.status_uuid) returning measure_uuid into NEW.measure_uuid;
 			INSERT INTO measure_x (ref_measure_uuid, measure_uuid)
 				VALUES (NEW.ref_measure_uuid, NEW.measure_uuid);
 			RETURN NEW;
 		END IF;
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			upsert_measure_def()
+Parameters:
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.11.01
+Description:	trigger proc that deletes, inserts or updates measure_def record based on TG_OP (trigger operation)
+Notes:			this should be associate with a property_def (though not enforced)
+
+Example:		insert into vw_measure_def (default_measure_type_uuid, description, default_measure_value, property_def_uuid, actor_uuid, status_uuid) values
+					((select measure_type_uuid from vw_measure_type where description = 'manual'),
+					'TEST plate temperature',
+					(select put_val(
+                          (select get_type_def ('data', 'num')),
+                             '0.0',
+                             'C')),
+                    (select property_def_uuid from vw_property_def where description = 'temperature'),
+					(select actor_uuid from vw_actor where org_short_name = 'HC'),
+					null);
+				update vw_measure_def set
+						status_uuid = (select status_uuid from vw_status where description = 'active') where (description = 'TEST plate temperature');
+				delete from vw_measure_def where measure_def_uuid = (select measure_def_uuid from vw_measure_def where description = 'TEST plate temperature');
+ */
+CREATE OR REPLACE FUNCTION upsert_measure_def ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		-- first delete the measure_x record
+		DELETE FROM measure_def
+		WHERE measure_def_uuid = OLD.measure_def_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- delete any assigned records
+		PERFORM delete_assigned_recs (OLD.measure_def_uuid);
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			measure_def
+		SET
+			default_measure_type_uuid = NEW.default_measure_type_uuid,
+			description = NEW.description,
+			default_measure_value = NEW.default_measure_value,
+		    property_def_uuid = NEW.property_def_uuid,
+			actor_uuid = NEW.actor_uuid,
+			status_uuid = NEW.status_uuid,
+			mod_date = now()
+		WHERE
+			measure_def.measure_def_uuid = NEW.measure_def_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+			INSERT INTO measure_def (default_measure_type_uuid, description, default_measure_value, property_def_uuid, actor_uuid, status_uuid)
+				VALUES(NEW.default_measure_type_uuid, NEW.description, NEW.default_measure_value, NEW.property_def_uuid, NEW.actor_uuid, NEW.status_uuid) returning measure_def_uuid into NEW.measure_def_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -3020,6 +3099,60 @@ BEGIN
 						composite_uuid = (SELECT material_uuid from vw_inventory_material where
 						inventory_material_uuid = NEW.inventory_material_uuid);
 		END IF;
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			upsert_outcome()
+Parameters:
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.12.10
+Description:	trigger proc that deletes, inserts or updates outcome record based on TG_OP (trigger operation)
+Notes:
+
+Example:		insert into vw_outcome (experiment_uuid, description, actor_uuid, status_uuid)
+					values (
+						(select experiment_uuid from vw_experiment where description = 'LANL Test Experiment Template'),
+						'test_outcome',
+						(select actor_uuid from vw_actor where description = 'T Testuser'),
+						(select status_uuid from vw_status where description = 'test'));
+				update vw_outcome set status_uuid = (select status_uuid from vw_status where description = 'active') where description = 'test_outcome';
+ 				delete from vw_outcome where description = 'test_outcome';
+ */
+CREATE OR REPLACE FUNCTION upsert_outcome ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		DELETE FROM outcome
+		WHERE outcome_uuid = OLD.outcome_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- delete any assigned records
+		PERFORM delete_assigned_recs (OLD.outcome_uuid);
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			outcome
+		SET
+			experiment_uuid = NEW.experiment_uuid,
+			description = NEW.description,
+			actor_uuid = NEW.actor_uuid,
+			status_uuid = NEW.status_uuid,
+			mod_date = now()
+		WHERE
+			outcome.outcome_uuid = NEW.outcome_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO outcome (experiment_uuid, description, actor_uuid, status_uuid)
+			VALUES(NEW.experiment_uuid, NEW.description, NEW.actor_uuid, NEW.status_uuid) returning outcome_uuid into NEW.outcome_uuid;
 		RETURN NEW;
 	END IF;
 END;

@@ -517,19 +517,58 @@ EXECUTE PROCEDURE upsert_measure_type ( );
 
 
 ----------------------------------------
+-- view measure_def
+-- DROP VIEW vw_measure_def cascade
+----------------------------------------
+CREATE OR REPLACE VIEW vw_measure_def AS
+SELECT
+	md.measure_def_uuid,
+	md.default_measure_type_uuid,
+	md.description,
+	md.default_measure_value,
+	( md.default_measure_value ).v_type_uuid AS default_measure_value_type_uuid,
+	(select val_val from get_val ( md.default_measure_value )) AS default_measure_value_value,
+	( md.default_measure_value ).v_unit AS default_measure_value_unit,
+    md.property_def_uuid,
+    pd.description as property_def_description,
+    pd.short_description as property_def_short_description,
+	md.actor_uuid,
+	act.description as actor_description,
+	md.status_uuid,
+	st.description as status_description,
+	md.add_date,
+	md.mod_date
+FROM
+	measure_def md
+LEFT JOIN property_def pd ON md.property_def_uuid = pd.property_def_uuid
+LEFT JOIN vw_actor act ON md.actor_uuid = act.actor_uuid
+LEFT JOIN vw_status st ON md.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_measure_def_upsert ON vw_measure_def;
+CREATE TRIGGER trigger_measure_def_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_measure_def
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_measure_def ( );
+
+
+----------------------------------------
 -- view measure
 -- DROP VIEW vw_measure cascade
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_measure AS
 SELECT
 	m.measure_uuid,
+    m.measure_def_uuid,
+    md.description as measure_def_description,
 	m.measure_type_uuid,
+    mt.description as measure_type_description,
 	mx.ref_measure_uuid,
 	m.description,
-	m.amount,
-	( m.amount ).v_type_uuid AS amount_type_uuid,
-	(select val_val from get_val ( m.amount )) AS amount_value,
-	( m.amount ).v_unit AS amount_unit,
+	m.measure_value,
+	( m.measure_value ).v_type_uuid AS measure_value_type_uuid,
+	(select val_val from get_val ( m.measure_value )) AS measure_value_value,
+	( m.measure_value ).v_unit AS measure_value_unit,
 	m.actor_uuid,
 	act.description as actor_description,
 	m.status_uuid,
@@ -538,7 +577,9 @@ SELECT
 	m.mod_date
 FROM
 	measure m
+LEFT JOIN measure_def md ON m.measure_def_uuid = md.measure_def_uuid
 LEFT JOIN measure_x mx ON m.measure_uuid = mx.measure_uuid
+LEFT JOIN measure_type mt ON m.measure_type_uuid = mt.measure_type_uuid
 LEFT JOIN vw_actor act ON m.actor_uuid = act.actor_uuid
 LEFT JOIN status st ON m.status_uuid = st.status_uuid;
 
@@ -682,6 +723,65 @@ OR UPDATE
 OR DELETE ON vw_experiment_workflow
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_experiment_workflow ( );
+
+
+----------------------------------------
+-- view outcome
+-- DROP VIEW vw_outcome cascade
+----------------------------------------
+CREATE OR REPLACE VIEW vw_outcome AS
+SELECT
+	o.outcome_uuid,
+	o.description,
+    o.experiment_uuid,
+	o.actor_uuid,
+	act.description as actor_description,
+	o.status_uuid,
+	st.description AS status_description,
+	o.add_date,
+	o.mod_date
+FROM
+	outcome o
+LEFT JOIN vw_experiment exp ON o.experiment_uuid = exp.experiment_uuid
+LEFT JOIN vw_actor act ON o.actor_uuid = act.actor_uuid
+LEFT JOIN status st ON o.status_uuid = st.status_uuid;
+
+DROP TRIGGER IF EXISTS trigger_outcome_upsert ON vw_outcome;
+CREATE TRIGGER trigger_outcome_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_outcome
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_outcome ( );
+
+
+----------------------------------------
+-- view outcome_measure
+-- DROP VIEW vw_outcome cascade
+----------------------------------------
+CREATE OR REPLACE VIEW vw_outcome_measure AS
+SELECT
+	o.outcome_uuid,
+	o.description,
+    o.experiment_uuid,
+    exp.description as experiment_description,
+    m.description as measure_description,
+    m.measure_type_uuid,
+    m.measure_value,
+    m.measure_value_type_uuid,
+    m.measure_value_value,
+    m.measure_value_unit,
+	o.actor_uuid,
+	act.description as actor_description,
+	o.status_uuid,
+	st.description AS status_description,
+	o.add_date,
+	o.mod_date
+FROM
+	outcome o
+LEFT JOIN vw_measure m ON o.outcome_uuid = m.ref_measure_uuid
+LEFT JOIN vw_experiment exp ON o.experiment_uuid = exp.experiment_uuid
+LEFT JOIN vw_actor act ON o.actor_uuid = act.actor_uuid
+LEFT JOIN status st ON o.status_uuid = st.status_uuid;
 
 
 ----------------------------------------
@@ -1113,6 +1213,10 @@ OR UPDATE
 OR DELETE ON vw_property_def
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_property_def ( );
+
+
+
+
 
 
 ----------------------------------------

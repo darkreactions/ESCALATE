@@ -453,7 +453,7 @@ delete from vw_measure_type where measure_type_uuid = (select measure_type_uuid 
 Name:			upsert_measure()
 Notes:				
 */ 
-insert into vw_measure (measure_type_uuid, ref_measure_uuid, description, amount, actor_uuid, status_uuid) values 
+insert into vw_measure (measure_type_uuid, ref_measure_uuid, description, measure_value, actor_uuid, status_uuid) values
 	((select measure_type_uuid from vw_measure_type where description = 'manual'),
 	(select material_uuid from vw_material where description = 'Formic Acid'),
 	'TEST measure',
@@ -886,6 +886,58 @@ values
 	('human prepared'),
 	('solute');
 
+-- ===========================================================================
+-- add in property_defs and measure_defs
+-- so they can be used to record action and outcome measures
+-- ===========================================================================
+insert into vw_property_def (description, short_description, val_type_uuid, valunit, actor_uuid, status_uuid ) values
+	('temperature', 'temperature',
+	(select get_type_def ('data', 'num')),
+	'C',
+	(select actor_uuid from vw_actor where description = 'Ion Bond'),
+	(select status_uuid from vw_status where description = 'active'));
+insert into vw_property_def (description, short_description, val_type_uuid, valunit, actor_uuid, status_uuid ) values
+	('stir rate', 'stir_rate',
+	(select get_type_def ('data', 'num')),
+	'rpm',
+	(select actor_uuid from vw_actor where description = 'Ion Bond'),
+	(select status_uuid from vw_status where description = 'active'));
+insert into vw_property_def (description, short_description, val_type_uuid, valunit, actor_uuid, status_uuid ) values
+	('color', 'color',
+	(select get_type_def ('data', 'text')),
+	'',
+	(select actor_uuid from vw_actor where description = 'Ion Bond'),
+	(select status_uuid from vw_status where description = 'active'));
+insert into vw_measure_def (default_measure_type_uuid, description, default_measure_value, property_def_uuid, actor_uuid, status_uuid) values
+	((select measure_type_uuid from vw_measure_type where description = 'manual'),
+	'plate temp',
+	(select put_val(
+        (select get_type_def ('data', 'num')),
+        '0.0',
+        'C')),
+    (select property_def_uuid from vw_property_def where description = 'temperature'),
+	(select actor_uuid from vw_actor where description = 'Ion Bond'),
+	(select status_uuid from vw_status where description = 'active'));
+insert into vw_measure_def (default_measure_type_uuid, description, default_measure_value, property_def_uuid, actor_uuid, status_uuid) values
+	((select measure_type_uuid from vw_measure_type where description = 'manual'),
+	'plate stir',
+	(select put_val(
+        (select get_type_def ('data', 'num')),
+        '0',
+        'rpm')),
+    (select property_def_uuid from vw_property_def where description = 'stir rate'),
+	(select actor_uuid from vw_actor where description = 'Ion Bond'),
+	(select status_uuid from vw_status where description = 'active'));
+insert into vw_measure_def (default_measure_type_uuid, description, default_measure_value, property_def_uuid, actor_uuid, status_uuid) values
+	((select measure_type_uuid from vw_measure_type where description = 'manual'),
+	'sample color',
+	(select put_val(
+        (select get_type_def ('data', 'text')),
+        '',
+        '')),
+    (select property_def_uuid from vw_property_def where description = 'color'),
+	(select actor_uuid from vw_actor where description = 'Ion Bond'),
+	(select status_uuid from vw_status where description = 'active'));
 -- ===========================================================================
 -- add in test materials
 -- property_def's for the resin
@@ -1415,6 +1467,16 @@ insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operat
 		(select actor_uuid from vw_actor where description = 'NLC'),
 		(select status_uuid from vw_status where description = 'dev_test'));
 
+-- ===========================================================================
+-- set up outcome (container)
+-- ===========================================================================
+insert into vw_outcome (experiment_uuid, description, actor_uuid, status_uuid)
+	values (
+		(select experiment_uuid from vw_experiment where description = 'LANL Test Experiment Template'),
+		'LANL Test Experiment Outcome',
+ 	    (select actor_uuid from vw_actor where description = 'Dev Test123'),
+	    (select status_uuid from vw_status where description = 'dev_test'));
+
 -- =========================================================================== 
 -- BOM
 -- =========================================================================== 
@@ -1495,11 +1557,11 @@ insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uui
 		'LANL_WF1b_HCL_SamplePrep',
 		(select actor_uuid from vw_actor where description = 'Ion Bond'),
 		(select status_uuid from vw_status where description = 'dev_test'));
--- create workflow_action_set for Rad solution
+-- create workflow for Setting Plate Temp
 insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid)
 	values (
 		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
-		'LANL_WF1c_RAD_SamplePrep',
+		'LANL_WF1c_SetTemp_SamplePrep',
 		(select actor_uuid from vw_actor where description = 'Ion Bond'),
 		(select status_uuid from vw_status where description = 'dev_test'));
 -- associate wf's with experiment
@@ -1512,7 +1574,7 @@ insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, wo
         (select workflow_uuid from vw_workflow where description = 'LANL_WF1b_HCL_SamplePrep')),
         (3,
         (select experiment_uuid from vw_experiment where description = 'LANL Test Experiment Template'),
-        (select workflow_uuid from vw_workflow where description = 'LANL_WF1c_RAD_SamplePrep'));
+        (select workflow_uuid from vw_workflow where description = 'LANL_WF1c_SetTemp_SamplePrep'));
 
 -- create the action_sets
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
@@ -1568,3 +1630,48 @@ values ('dispense action_set',
             and bom_material_description similar to '%(A1|A2|A3|A4|A5|A6|B1|B2)%')),
         (select actor_uuid from vw_actor where description = 'Ion Bond'),
         (select status_uuid from vw_status where description = 'dev_test'));
+
+insert into vw_action (action_def_uuid, workflow_uuid, action_description, actor_uuid, status_uuid)
+	values (
+    	(select action_def_uuid from vw_action_def where description = 'heat'),
+    	(select workflow_uuid from vw_workflow where description = 'LANL_WF1c_SetTemp_SamplePrep'),
+        'heat sample plate',
+        (select actor_uuid from vw_actor where description = 'Ion Bond'),
+        (select status_uuid from vw_status where description = 'dev_test'));
+insert into vw_workflow_object (workflow_uuid, action_uuid)
+	values (
+	    (select workflow_uuid from vw_workflow where description = 'LANL_WF1c_SetTemp_SamplePrep'),
+		(select action_uuid from vw_action where action_description = 'heat sample plate'));
+insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)
+	values (
+		(select workflow_uuid from vw_workflow where description = 'LANL_WF1c_SetTemp_SamplePrep'),
+		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'heat sample plate')),
+		null,
+		(select status_uuid from vw_status where description = 'active'));
+
+-- add in some measures
+-- to action(s)
+insert into vw_measure (measure_def_uuid, measure_type_uuid, ref_measure_uuid, description, measure_value, actor_uuid, status_uuid) values
+	((select measure_def_uuid from vw_measure_def where description = 'plate temp'),
+	 (select measure_type_uuid from vw_measure_type where description = 'manual'),
+	 (select action_uuid from vw_action where action_description = 'heat sample plate'),
+	'sample plate temperature',
+	(select put_val(
+        (select get_type_def ('data', 'num')),
+        '52.9',
+        'C')),
+    (select actor_uuid from vw_actor where description = 'Ion Bond'),
+    (select status_uuid from vw_status where description = 'dev_test'));
+
+-- add measure(s) to outcome
+insert into vw_measure (measure_def_uuid, measure_type_uuid, ref_measure_uuid, description, measure_value, actor_uuid, status_uuid) values
+	((select measure_def_uuid from vw_measure_def where description = 'sample color'),
+	 (select measure_type_uuid from vw_measure_type where description = 'manual'),
+	 (select outcome_uuid from vw_outcome where description = 'LANL Test Experiment Outcome'),
+	'sample color observation',
+	(select put_val(
+        (select get_type_def ('data', 'text')),
+        'green to green-yellow',
+        '')),
+    (select actor_uuid from vw_actor where description = 'Ion Bond'),
+    (select status_uuid from vw_status where description = 'dev_test'));
