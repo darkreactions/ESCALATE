@@ -10,7 +10,7 @@ class CustomUser(AbstractUser):
     REQUIRED_FIELDS = []
     objects = CustomUserManager()
     person = models.ForeignKey(
-        'Person', on_delete=models.DO_NOTHING, null=True)
+        'PersonTable', on_delete=models.DO_NOTHING, null=True)
 
     def __str__(self):
         return self.username

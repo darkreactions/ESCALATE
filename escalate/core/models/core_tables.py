@@ -69,3 +69,36 @@ class TypeDef(models.Model):
 
     def __str__(self):
         return self.description
+
+
+class PersonTable(models.Model):
+    uuid = RetUUIDField(primary_key=True, db_column='person_uuid')
+    first_name = models.CharField(
+        max_length=255)
+    last_name = models.CharField(max_length=255)
+    middle_name = models.CharField(
+        max_length=255, blank=True, null=True)
+    address1 = models.CharField(max_length=255, blank=True, null=True)
+    address2 = models.CharField(max_length=255, blank=True, null=True)
+    city = models.CharField(max_length=255, blank=True, null=True)
+    state_province = models.CharField(max_length=3, blank=True, null=True)
+    zip = models.CharField(max_length=255, blank=True, null=True)
+    country = models.CharField(max_length=255, blank=True, null=True)
+
+    phone = models.CharField(max_length=255, blank=True, null=True)
+    email = models.EmailField(max_length=255, blank=True, null=True)
+    title = models.CharField(max_length=255, blank=True, null=True)
+    suffix = models.CharField(max_length=255, blank=True, null=True)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+    organization = models.ForeignKey('Organization', models.DO_NOTHING,
+                                          blank=True, null=True,
+                                          db_column='organization_uuid',
+                                          related_name='person_table_organization')
+
+    class Meta:
+        managed = False
+        db_table = 'person'
+
+    def __str__(self):
+        return "{} {}".format(self.first_name, self.last_name)

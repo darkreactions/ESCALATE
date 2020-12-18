@@ -58,11 +58,10 @@ class CreateUserView(View):
             print('User form is valid')
             person = person_form.save()
             print(person.pk)
-            p = Person.objects.filter(first_name=person.first_name,
-                                      last_name=person.last_name).latest('add_date')
+            p = Person.objects.get(pk = person.pk)
 
             user = user_form.save(commit=False)
-            user.person = p
+            user.person = person
             user.save()
 
             messages.success(request, 'Account created successfully')

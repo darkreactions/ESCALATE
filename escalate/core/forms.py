@@ -3,7 +3,7 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from core.models import (CustomUser, Person, Material, Inventory, Actor, Note,
                          Organization, Systemtool, SystemtoolType,
                          UdfDef, Status, Tag, TagAssign, TagType, MaterialType,
-                         Edocument)
+                         Edocument, PersonTable)
 
 
 dropdown_attrs = {'class': 'selectpicker',
@@ -29,10 +29,8 @@ class NoteForm(forms.ModelForm):
             'notetext': forms.Textarea(attrs={'rows': 3}),
         }
 
-
-class PersonForm(forms.ModelForm):
+class PersonFormData:
     class Meta:
-        model = Person
         fields = ['first_name', 'middle_name', 'last_name', 'address1',
                   'address2', 'city', 'state_province', 'zip', 'country',
                   'phone', 'email', 'title', 'suffix', 'organization']
@@ -91,6 +89,16 @@ class PersonForm(forms.ModelForm):
             'suffix': forms.TextInput(attrs={'placeholder': 'Your suffix'}),
             'organization': forms.Select(attrs=dropdown_attrs)
         }
+
+
+class PersonForm(PersonFormData, forms.ModelForm):
+    class Meta(PersonFormData.Meta):
+        model = Person
+
+
+class PersonTableForm(PersonFormData, forms.ModelForm):
+    class Meta(PersonFormData.Meta):
+        model = PersonTable
 
 
 class MaterialForm(forms.ModelForm):
