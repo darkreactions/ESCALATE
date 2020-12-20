@@ -222,10 +222,14 @@ SELECT
 	td.description as val_type_description,
 	ud.unit,
 	ud.add_date,
-	ud.mod_date
+	ud.mod_date,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
 FROM
 	udf_def ud
-	LEFT JOIN type_def td on ud.val_type_uuid = td.type_def_uuid;
+LEFT JOIN type_def td on ud.val_type_uuid = td.type_def_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (udf_def_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (udf_def_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_udf_def_upsert ON vw_udf_def;
 CREATE TRIGGER trigger_udf_def_upsert INSTEAD OF INSERT
@@ -251,12 +255,16 @@ SELECT
 	ud.add_date,
 	ud.mod_date,
 	udx.udf_x_uuid,
-	udx.ref_udf_uuid
+	udx.ref_udf_uuid,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
 FROM
 	udf ud
-	LEFT JOIN udf_x udx on ud.udf_uuid = udx.udf_uuid
-	LEFT JOIN udf_def udef on ud.udf_def_uuid = udef.udf_def_uuid
-	LEFT JOIN type_def td on udef.val_type_uuid = td.type_def_uuid;
+LEFT JOIN udf_x udx on ud.udf_uuid = udx.udf_uuid
+LEFT JOIN udf_def udef on ud.udf_def_uuid = udef.udf_def_uuid
+LEFT JOIN type_def td on udef.val_type_uuid = td.type_def_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (ud.udf_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (ud.udf_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_udf_upsert ON vw_udf;
 CREATE TRIGGER trigger_udf_upsert INSTEAD OF INSERT
@@ -287,10 +295,14 @@ SELECT
 	per.add_date,
 	per.mod_date,
 	org.organization_uuid,
-	org.full_name AS organization_full_name
+	org.full_name AS organization_full_name,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
 FROM
 	person per
-LEFT JOIN organization org ON per.organization_uuid = org.organization_uuid;
+LEFT JOIN organization org ON per.organization_uuid = org.organization_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (person_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (person_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_person_upsert ON vw_person;
 CREATE TRIGGER trigger_person_upsert INSTEAD OF INSERT
@@ -320,10 +332,14 @@ SELECT
 	org.parent_uuid,
 	orgp.full_name AS parent_org_full_name,
 	org.add_date,
-	org.mod_date
+	org.mod_date,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
 FROM
 	organization org
-LEFT JOIN organization orgp ON org.parent_uuid = orgp.organization_uuid;
+LEFT JOIN organization orgp ON org.parent_uuid = orgp.organization_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (org.organization_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (org.organization_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_organization_upsert ON vw_organization;
 CREATE TRIGGER trigger_organization_upsert INSTEAD OF INSERT
@@ -364,7 +380,9 @@ SELECT
 	vorg.full_name AS systemtool_vendor,
 	st.model AS systemtool_model,
 	st.serial AS systemtool_serial,
-	st.ver AS systemtool_version
+	st.ver AS systemtool_version,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
 FROM
 	actor act
 LEFT JOIN organization org ON act.organization_uuid = org.organization_uuid
@@ -373,7 +391,9 @@ LEFT JOIN organization porg ON per.organization_uuid = porg.organization_uuid
 LEFT JOIN systemtool st ON act.systemtool_uuid = st.systemtool_uuid
 LEFT JOIN systemtool_type stt ON st.systemtool_type_uuid = stt.systemtool_type_uuid
 LEFT JOIN organization vorg ON st.vendor_organization_uuid = vorg.organization_uuid
-LEFT JOIN status sts ON act.status_uuid = sts.status_uuid;
+LEFT JOIN status sts ON act.status_uuid = sts.status_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (actor_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (actor_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_actor_upsert ON vw_actor;
 CREATE TRIGGER trigger_actor_upsert INSTEAD OF INSERT
@@ -403,8 +423,6 @@ OR UPDATE
 OR DELETE ON vw_actor_pref
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_actor_pref ( );
-
-
 
 
 ----------------------------------------
@@ -475,11 +493,15 @@ SELECT
 	vst.serial,
 	vst.ver,
 	vst.add_date,
-	vst.mod_date
+	vst.mod_date,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
 FROM
 	systemtool vst
 LEFT JOIN organization org ON vst.vendor_organization_uuid = org.organization_uuid
-LEFT JOIN systemtool_type stt ON vst.systemtool_type_uuid = stt.systemtool_type_uuid;
+LEFT JOIN systemtool_type stt ON vst.systemtool_type_uuid = stt.systemtool_type_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (systemtool_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (systemtool_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_systemtool_upsert ON vw_systemtool;
 CREATE TRIGGER trigger_systemtool_upsert INSTEAD OF INSERT
@@ -537,12 +559,16 @@ SELECT
 	md.status_uuid,
 	st.description as status_description,
 	md.add_date,
-	md.mod_date
+	md.mod_date,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
 FROM
 	measure_def md
 LEFT JOIN property_def pd ON md.property_def_uuid = pd.property_def_uuid
 LEFT JOIN vw_actor act ON md.actor_uuid = act.actor_uuid
-LEFT JOIN vw_status st ON md.status_uuid = st.status_uuid;
+LEFT JOIN vw_status st ON md.status_uuid = st.status_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (measure_def_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (measure_def_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_measure_def_upsert ON vw_measure_def;
 CREATE TRIGGER trigger_measure_def_upsert INSTEAD OF INSERT
@@ -575,7 +601,9 @@ SELECT
 	m.status_uuid,
 	st.description as status_description,
 	m.add_date,
-	m.mod_date
+	m.mod_date,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
 FROM
 	measure m
 LEFT JOIN measure_def md ON m.measure_def_uuid = md.measure_def_uuid
@@ -583,7 +611,9 @@ LEFT JOIN measure_x mx ON m.measure_uuid = mx.measure_uuid
 LEFT JOIN measure_type mt ON m.measure_type_uuid = mt.measure_type_uuid
 LEFT JOIN type_def td ON ( m.measure_value ).v_type_uuid = td.type_def_uuid
 LEFT JOIN vw_actor act ON m.actor_uuid = act.actor_uuid
-LEFT JOIN status st ON m.status_uuid = st.status_uuid;
+LEFT JOIN status st ON m.status_uuid = st.status_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (m.measure_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (m.measure_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_measure_upsert ON vw_measure;
 CREATE TRIGGER trigger_measure_upsert INSTEAD OF INSERT
@@ -613,12 +643,16 @@ SELECT
 	ex.status_uuid,
 	st.description as status_description,
 	ex.add_date,
-	ex.mod_date
+	ex.mod_date,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
 FROM experiment ex
 LEFT JOIN vw_actor aown ON ex.owner_uuid = aown.actor_uuid
 LEFT JOIN vw_actor aop ON ex.owner_uuid = aop.actor_uuid
 LEFT JOIN vw_actor alab ON ex.owner_uuid = alab.actor_uuid
-LEFT JOIN status st ON ex.status_uuid = st.status_uuid;
+LEFT JOIN status st ON ex.status_uuid = st.status_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (experiment_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (experiment_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_experiment_upsert ON vw_experiment;
 CREATE TRIGGER trigger_experiment_upsert INSTEAD OF INSERT
@@ -667,12 +701,16 @@ SELECT
 	wf.status_uuid,
 	st.description as status_description, 
 	wf.add_date,
-	wf.mod_date
+	wf.mod_date,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
 FROM
 	workflow wf
 LEFT JOIN vw_workflow_type wt ON wf.workflow_type_uuid = wt.workflow_type_uuid
 LEFT JOIN vw_actor act ON wf.actor_uuid = act.actor_uuid
-LEFT JOIN status st ON wf.status_uuid = st.status_uuid;
+LEFT JOIN status st ON wf.status_uuid = st.status_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (workflow_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (workflow_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_workflow_upsert ON vw_workflow;
 CREATE TRIGGER trigger_workflow_upsert INSTEAD OF INSERT
@@ -703,6 +741,8 @@ SELECT
 	e.status_description as experiment_status_description,
 	e.add_date as experiment_add_date,
 	e.mod_date as experiment_mod_date,
+    e.tags as experiment_tags,
+    e.notes as experiment_notes,
 	ew.experiment_workflow_seq,
 	w.workflow_uuid as workflow_uuid,
 	w.description as workflow_description,
@@ -713,11 +753,12 @@ SELECT
 	w.status_uuid as workflow_status_uuid,
 	w.status_description as workflow_status_description,
 	w.add_date as workflow_add_date,
-	w.mod_date as workflow_mod_date
+	w.mod_date as workflow_mod_date,
+    w.tags as workflow_tags,
+    w.notes as workflow_notes
 FROM experiment_workflow ew 
 LEFT JOIN vw_experiment e ON ew.experiment_uuid = e.experiment_uuid 
 LEFT JOIN vw_workflow w ON ew.workflow_uuid = w.workflow_uuid;
-
 
 DROP TRIGGER IF EXISTS trigger_experiment_workflow_upsert ON vw_experiment_workflow;
 CREATE TRIGGER trigger_experiment_workflow_upsert INSTEAD OF INSERT
@@ -741,12 +782,16 @@ SELECT
 	o.status_uuid,
 	st.description AS status_description,
 	o.add_date,
-	o.mod_date
+	o.mod_date,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
 FROM
 	outcome o
 LEFT JOIN vw_experiment exp ON o.experiment_uuid = exp.experiment_uuid
 LEFT JOIN vw_actor act ON o.actor_uuid = act.actor_uuid
-LEFT JOIN status st ON o.status_uuid = st.status_uuid;
+LEFT JOIN status st ON o.status_uuid = st.status_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (outcome_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (outcome_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_outcome_upsert ON vw_outcome;
 CREATE TRIGGER trigger_outcome_upsert INSTEAD OF INSERT
@@ -772,6 +817,8 @@ SELECT
 	st.description AS outcome_status_description,
 	o.add_date as outcome_add_date,
 	o.mod_date as outcome_mod_date,
+    o.tags as outcome_tags,
+    o.notes as outcome_notes,
     m.measure_uuid,
     m.description as measure_description,
     m.measure_type_uuid,
@@ -786,9 +833,11 @@ SELECT
 	m.status_uuid as measure_status_uuid,
 	stm.description AS measure_status_description,
 	m.add_date as measure_add_date,
-	m.mod_date as measure_mod_date
+	m.mod_date as measure_mod_date,
+    m.tags as measure_tags,
+    m.notes as measure_notes
 FROM
-	outcome o
+	vw_outcome o
 LEFT JOIN vw_measure m ON o.outcome_uuid = m.ref_measure_uuid
 LEFT JOIN vw_experiment exp ON o.experiment_uuid = exp.experiment_uuid
 LEFT JOIN vw_actor act ON o.actor_uuid = act.actor_uuid
@@ -826,7 +875,9 @@ SELECT
 	act.description AS actor_description,
 	cd.calculation_class_uuid,
 	cd.add_date,
-	cd.mod_date
+	cd.mod_date,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
 FROM
 	calculation_def cd
 LEFT JOIN vw_actor act ON cd.actor_uuid = act.actor_uuid
@@ -836,7 +887,9 @@ LEFT JOIN vw_type_def tdio ON cd.in_opt_type_uuid = tdio.type_def_uuid
 LEFT JOIN vw_type_def tdo ON cd.out_type_uuid = tdo.type_def_uuid
 LEFT JOIN systemtool_type stt ON st.systemtool_type_uuid = stt.systemtool_type_uuid
 LEFT JOIN organization org ON st.vendor_organization_uuid = org.organization_uuid
-LEFT JOIN status sts ON cd.status_uuid = sts.status_uuid;
+LEFT JOIN status sts ON cd.status_uuid = sts.status_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (calculation_def_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (calculation_def_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_calculation_def_upsert ON vw_calculation_def;
 CREATE TRIGGER trigger_calculation_def_upsert INSTEAD OF INSERT
@@ -878,6 +931,8 @@ SELECT
 	md.mod_date as calculation_mod_date,
 	sts.status_uuid AS calculation_status_uuid,
 	sts.description AS calculation_status_description,
+    atag.tag_to_array AS calculation_tags,
+    anote.note_to_array AS calculation_notes,
 	cd.*
 FROM
 	calculation md
@@ -885,7 +940,9 @@ LEFT JOIN vw_calculation_def cd ON md.calculation_def_uuid = cd.calculation_def_
 LEFT JOIN vw_edocument ed ON (
 	md.out_val ).v_edocument_uuid = ed.edocument_uuid
 LEFT JOIN vw_actor dact ON md.actor_uuid = dact.actor_uuid
-LEFT JOIN vw_status sts ON md.status_uuid = sts.status_uuid;
+LEFT JOIN vw_status sts ON md.status_uuid = sts.status_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (calculation_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (calculation_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_calculation_upsert ON vw_calculation;
 CREATE TRIGGER trigger_calculation_upsert INSTEAD OF INSERT
@@ -959,11 +1016,15 @@ SELECT
 	mat.status_uuid AS status_uuid,
 	st.description AS status_description,
 	mat.add_date,
-	mat.mod_date
+	mat.mod_date,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
 FROM
 	material mat
 LEFT JOIN actor act ON mat.actor_uuid = act.actor_uuid
-LEFT JOIN status st ON mat.status_uuid = st.status_uuid;
+LEFT JOIN status st ON mat.status_uuid = st.status_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (material_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (material_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_material_upsert ON vw_material;
 CREATE TRIGGER trigger_material_upsert INSTEAD OF INSERT
@@ -995,12 +1056,16 @@ SELECT
 	mc.status_uuid,
 	sts.description AS status_description,
 	mc.add_date,
-	mc.mod_date
+	mc.mod_date,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
 FROM material_composite mc
 LEFT JOIN material m0 ON mc.composite_uuid = m0.material_uuid
 LEFT JOIN material m1 ON mc.component_uuid = m1.material_uuid
 LEFT JOIN vw_actor act ON mc.actor_uuid = act.actor_uuid
-LEFT JOIN vw_status sts ON mc.status_uuid = sts.status_uuid;
+LEFT JOIN vw_status sts ON mc.status_uuid = sts.status_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (material_composite_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (material_composite_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_material_composite_upsert ON vw_material_composite;
 CREATE TRIGGER trigger_material_composite_upsert INSTEAD OF INSERT
@@ -1215,10 +1280,14 @@ SELECT
 	st.status_uuid,
 	st.description as status_description,
 	pd.add_date,
-	pd.mod_date
+	pd.mod_date,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
 FROM property_def pd
-LEFT JOIN actor act on pd.actor_uuid = act.actor_uuid
-LEFT JOIN status st on pd.status_uuid = st.status_uuid;
+LEFT JOIN vw_actor act on pd.actor_uuid = act.actor_uuid
+LEFT JOIN vw_status st on pd.status_uuid = st.status_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (property_def_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (property_def_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_property_def_upsert ON vw_property_def;
 CREATE TRIGGER trigger_property_def_upsert INSTEAD OF INSERT
@@ -1226,10 +1295,6 @@ OR UPDATE
 OR DELETE ON vw_property_def
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_property_def ( );
-
-
-
-
 
 
 ----------------------------------------
@@ -1246,11 +1311,15 @@ SELECT
 	st.status_uuid,
 	st.description as status_description,
 	pr.add_date,
-	pr.mod_date
+	pr.mod_date,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
 FROM property pr
-LEFT JOIN property_def pd on pr.property_def_uuid = pd.property_def_uuid 
-LEFT JOIN actor act on pd.actor_uuid = act.actor_uuid
-LEFT JOIN status st on pd.status_uuid = st.status_uuid;
+LEFT JOIN vw_property_def pd on pr.property_def_uuid = pd.property_def_uuid
+LEFT JOIN vw_actor act on pd.actor_uuid = act.actor_uuid
+LEFT JOIN vw_status st on pd.status_uuid = st.status_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (property_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (property_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_property_upsert ON vw_property;
 CREATE TRIGGER trigger_property_upsert INSTEAD OF INSERT
@@ -1283,13 +1352,15 @@ SELECT
 	pr.status_uuid as property_status_uuid,
 	st.description as property_status_description,
 	pr.add_date,
-	pr.mod_date
+	pr.mod_date,
+    pr.tags as property_tags,
+    pr.notes as property_notes
 FROM vw_material mat
 LEFT JOIN property_x px on mat.material_uuid = px.material_uuid
-LEFT JOIN property pr on px.property_uuid = pr.property_uuid
+LEFT JOIN vw_property pr on px.property_uuid = pr.property_uuid
 LEFT JOIN property_def pd on pr.property_def_uuid = pd.property_def_uuid
-LEFT JOIN actor act on pr.actor_uuid = act.actor_uuid
-LEFT JOIN status st on pr.status_uuid = st.status_uuid
+LEFT JOIN vw_actor act on pr.actor_uuid = act.actor_uuid
+LEFT JOIN vw_status st on pr.status_uuid = st.status_uuid
 LEFT JOIN LATERAL (select * from get_val (pr.property_val)) vl ON true;
 
 DROP TRIGGER IF EXISTS trigger_material_property_upsert ON vw_material_property;
@@ -1323,13 +1394,15 @@ SELECT
 	pr.status_uuid AS property_status_uuid,
 	st.description AS property_status_description,
 	pr.add_date,
-	pr.mod_date
+	pr.mod_date,
+    pr.tags as property_tags,
+    pr.notes as property_notes
 FROM vw_material_composite mc
 JOIN property_x px ON mc.material_composite_uuid = px.material_uuid
-LEFT JOIN property pr ON px.property_uuid = pr.property_uuid
-LEFT JOIN property_def pd ON pr.property_def_uuid = pd.property_def_uuid
-LEFT JOIN actor act ON pr.actor_uuid = act.actor_uuid
-LEFT JOIN status st ON pr.status_uuid = st.status_uuid
+LEFT JOIN vw_property pr ON px.property_uuid = pr.property_uuid
+LEFT JOIN vw_property_def pd ON pr.property_def_uuid = pd.property_def_uuid
+LEFT JOIN vw_actor act ON pr.actor_uuid = act.actor_uuid
+LEFT JOIN vw_status st ON pr.status_uuid = st.status_uuid
 LEFT JOIN LATERAL ( SELECT get_val.val_type, get_val.val_unit, get_val.val_val FROM get_val(pr.property_val) get_val(val_type, val_unit, val_val)) vl ON true;
 
 
@@ -1351,14 +1424,18 @@ SELECT
     inv.actor_uuid,
     act.description as actor_description,
 	inv.add_date,
-	inv.mod_date
+	inv.mod_date,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
 FROM
 	inventory inv
 LEFT JOIN vw_actor acto ON inv.owner_uuid = acto.actor_uuid
 LEFT JOIN vw_actor actp ON inv.operator_uuid = actp.actor_uuid
 LEFT JOIN vw_actor actl ON inv.lab_uuid = actl.actor_uuid
 LEFT JOIN actor act ON inv.actor_uuid = act.actor_uuid
-LEFT JOIN status st ON inv.status_uuid = st.status_uuid;
+LEFT JOIN status st ON inv.status_uuid = st.status_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (inventory_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (inventory_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_inventory_upsert ON vw_inventory;
 CREATE TRIGGER trigger_inventory_material_upsert INSTEAD OF INSERT
@@ -1390,7 +1467,9 @@ SELECT
 	inv.status_uuid AS status_uuid,
 	st.description AS status_description,
 	inv.add_date,
-	inv.mod_date
+	inv.mod_date,
+    i.tags as inventory_tags,
+    i.notes as inventory_notes
 FROM
 	inventory_material inv
 LEFT JOIN vw_inventory i ON inv.inventory_uuid = i.inventory_uuid
@@ -1457,12 +1536,16 @@ SELECT
 	b.status_uuid,	
 	st.description AS status_description,
 	b.add_date,
-	b.mod_date
+	b.mod_date,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
 FROM
 	bom b
 LEFT JOIN vw_experiment exp ON b.experiment_uuid = exp.experiment_uuid
 LEFT JOIN vw_actor act ON b.actor_uuid = act.actor_uuid
-LEFT JOIN status st ON b.status_uuid = st.status_uuid;
+LEFT JOIN status st ON b.status_uuid = st.status_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (bom_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (bom_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_bom_upsert ON vw_bom;
 CREATE TRIGGER trigger_bom_upsert INSTEAD OF INSERT
@@ -1519,16 +1602,19 @@ SELECT
 	bm.status_uuid,
 	st.description AS status_description,
 	b.add_date,
-	b.mod_date FROM bom_material bm
-	LEFT JOIN vw_bom b ON bm.bom_uuid = b.bom_uuid
-	LEFT JOIN vw_inventory_material_material i ON bm.inventory_material_uuid = i.inventory_material_uuid
-	LEFT JOIN vw_material_composite mc ON bm.material_composite_uuid = mc.material_composite_uuid
-	LEFT JOIN vw_experiment exp ON b.experiment_uuid = exp.experiment_uuid
-	LEFT JOIN vw_actor act ON bm.actor_uuid = act.actor_uuid
-	LEFT JOIN status st ON bm.status_uuid = st.status_uuid
-	LEFT JOIN LATERAL (SELECT get_val.val_type, get_val.val_unit, get_val.val_val FROM get_val (bm.alloc_amt_val) get_val (val_type, val_unit, val_val)) aa ON TRUE
-	LEFT JOIN LATERAL (SELECT get_val.val_type, get_val.val_unit, get_val.val_val FROM get_val (bm.used_amt_val) get_val (val_type, val_unit, val_val)) ua ON TRUE
-	LEFT JOIN LATERAL (SELECT get_val.val_type, get_val.val_unit, get_val.val_val FROM get_val (bm.putback_amt_val) get_val (val_type, val_unit, val_val)) pa ON TRUE;
+	b.mod_date,
+    b.tags as bom_tags,
+    b.notes as bom_notes
+FROM bom_material bm
+LEFT JOIN vw_bom b ON bm.bom_uuid = b.bom_uuid
+LEFT JOIN vw_inventory_material_material i ON bm.inventory_material_uuid = i.inventory_material_uuid
+LEFT JOIN vw_material_composite mc ON bm.material_composite_uuid = mc.material_composite_uuid
+LEFT JOIN vw_experiment exp ON b.experiment_uuid = exp.experiment_uuid
+LEFT JOIN vw_actor act ON bm.actor_uuid = act.actor_uuid
+LEFT JOIN vw_status st ON bm.status_uuid = st.status_uuid
+LEFT JOIN LATERAL (SELECT get_val.val_type, get_val.val_unit, get_val.val_val FROM get_val (bm.alloc_amt_val) get_val (val_type, val_unit, val_val)) aa ON TRUE
+LEFT JOIN LATERAL (SELECT get_val.val_type, get_val.val_unit, get_val.val_val FROM get_val (bm.used_amt_val) get_val (val_type, val_unit, val_val)) ua ON TRUE
+LEFT JOIN LATERAL (SELECT get_val.val_type, get_val.val_unit, get_val.val_val FROM get_val (bm.putback_amt_val) get_val (val_type, val_unit, val_val)) pa ON TRUE;
 
 DROP TRIGGER IF EXISTS trigger_bom_material_upsert ON vw_bom_material;
 CREATE TRIGGER trigger_bom_material_upsert INSTEAD OF INSERT
@@ -1556,11 +1642,15 @@ SELECT
 	pd.status_uuid,
 	st.description as status_description,
 	pd.add_date,
-	pd.mod_date
+	pd.mod_date,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
 FROM parameter_def pd
 LEFT JOIN vw_actor act ON pd.actor_uuid = act.actor_uuid
 LEFT JOIN status st ON pd.status_uuid = st.status_uuid
-LEFT JOIN type_def td ON ( pd.default_val ).v_type_uuid = td.type_def_uuid;
+LEFT JOIN type_def td ON ( pd.default_val ).v_type_uuid = td.type_def_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (parameter_def_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (parameter_def_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_parameter_def_upsert ON vw_parameter_def;
 CREATE TRIGGER trigger_parameter_def_upsert INSTEAD OF INSERT
@@ -1587,13 +1677,18 @@ SELECT
 	st.description as status_description,
 	pr.add_date,
 	pr.mod_date,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes,
 	px.ref_parameter_uuid,
 	px.parameter_x_uuid
+
 FROM parameter pr
 LEFT JOIN vw_parameter_def pd on pr.parameter_def_uuid = pd.parameter_def_uuid
 LEFT JOIN parameter_x px on pr.parameter_uuid = px.parameter_uuid
 LEFT JOIN actor act on pr.actor_uuid = act.actor_uuid
-LEFT JOIN status st on pd.status_uuid = st.status_uuid;
+LEFT JOIN status st on pd.status_uuid = st.status_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (pr.parameter_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (pr.parameter_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_parameter_upsert ON vw_parameter;
 CREATE TRIGGER trigger_parameter_upsert INSTEAD OF INSERT
@@ -1691,17 +1786,21 @@ EXECUTE PROCEDURE upsert_calculation_parameter_def ( );
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_action_def AS
 SELECT
-     ad.action_def_uuid,
-     ad.description,
-     ad.actor_uuid,
-     act.description as actor_description,
-     ad.status_uuid,
-     st.description as status_description,
-     ad.add_date,
-     ad.mod_date
+    ad.action_def_uuid,
+    ad.description,
+    ad.actor_uuid,
+    act.description as actor_description,
+    ad.status_uuid,
+    st.description as status_description,
+    ad.add_date,
+    ad.mod_date,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
 FROM action_def ad
 LEFT JOIN vw_actor act ON ad.actor_uuid = act.actor_uuid
-LEFT JOIN status st ON ad.status_uuid = st.status_uuid;
+LEFT JOIN status st ON ad.status_uuid = st.status_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (action_def_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (action_def_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_action_def_upsert ON vw_action_def;
 CREATE TRIGGER trigger_action_def_upsert INSTEAD OF INSERT
@@ -1770,14 +1869,18 @@ SELECT
     act.status_uuid,
     st.description as status_description,
     act.add_date,
-    act.mod_date
+    act.mod_date,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
 FROM action act
 LEFT JOIN vw_workflow wf ON act.workflow_uuid = wf.workflow_uuid
 LEFT JOIN vw_action_def ad ON act.action_def_uuid = ad.action_def_uuid
 LEFT JOIN vw_bom_material bms ON act.source_material_uuid = bms.bom_material_uuid
 LEFT JOIN vw_bom_material bmd ON act.destination_material_uuid = bmd.bom_material_uuid
 LEFT JOIN vw_actor actor ON act.actor_uuid = actor.actor_uuid
-LEFT JOIN vw_status st ON act.status_uuid = st.status_uuid;
+LEFT JOIN vw_status st ON act.status_uuid = st.status_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (action_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (action_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_action_upsert ON vw_action;
 CREATE TRIGGER trigger_action_upsert INSTEAD OF INSERT
@@ -2540,8 +2643,8 @@ SELECT
 		'experiment', 
 		json_agg(
 			json_build_object(
-				'experiment_uuid', e.experiment_uuid, 
-				'experiment_ref_uid', e.ref_uid, 
+				'experiment_uuid', e.experiment_uuid,
+			    'experiment_ref_uid', e.ref_uid,
 				'experiment_description', e.description, 
 				'experiment_parent_uuid', e.parent_uuid, 
 				'experiment_owner_uuid', e.owner_uuid, 
@@ -2590,40 +2693,13 @@ JOIN (
 					ORDER BY bm.description
 				) AS bomm
 			FROM (SELECT
-					vw_bom_material.bom_material_uuid,
-					vw_bom_material.bom_uuid,
-					vw_bom_material.description,
-					vw_bom_material.bom_description,
-					vw_bom_material.inventory_material_uuid,
-					vw_bom_material.material_uuid,
-					vw_bom_material.composite_uuid,
-					vw_bom_material.material_composite_uuid,
-					vw_bom_material.bom_material_description,
-					vw_bom_material.alloc_amt_val,
-					vw_bom_material.alloc_amt_type_uuid,
-					vw_bom_material.alloc_amt_type,
-					vw_bom_material.alloc_amt_unit,
-					vw_bom_material.alloc_amt,
-					vw_bom_material.used_amt_val,
-					vw_bom_material.used_amt_type_uuid,
-					vw_bom_material.used_amt_type,
-					vw_bom_material.used_amt_unit,
-					vw_bom_material.used_amt,
-					vw_bom_material.putback_amt_val,
-					vw_bom_material.putback_amt_type_uuid,
-					vw_bom_material.putback_amt_type,
-					vw_bom_material.putback_amt_unit,
-					vw_bom_material.putback_amt,
-					vw_bom_material.experiment_uuid,
-					vw_bom_material.experiment_description,
-					vw_bom_material.actor_uuid,
-					vw_bom_material.actor_description,
-					vw_bom_material.status_uuid,
-					vw_bom_material.status_description,
-					vw_bom_material.add_date,
-					vw_bom_material.mod_date
-				FROM vw_bom_material
-				WHERE vw_bom_material.material_composite_uuid IS NULL) bm
+					bm.bom_material_uuid, bm.bom_uuid, bm.description, bm.bom_description, bm.inventory_material_uuid, bm.material_uuid,
+					bm.composite_uuid, bm.material_composite_uuid, bm.bom_material_description, bm.alloc_amt_val, bm.alloc_amt_type_uuid, bm.alloc_amt_type,
+					bm.alloc_amt_unit, bm.alloc_amt, bm.used_amt_val, bm.used_amt_type_uuid, bm.used_amt_type, bm.used_amt_unit, bm.used_amt,
+					bm.putback_amt_val, bm.putback_amt_type_uuid, bm.putback_amt_type, bm.putback_amt_unit, bm.putback_amt, bm.experiment_uuid,
+					bm.experiment_description, bm.actor_uuid, bm.actor_description, bm.status_uuid, bm.status_description, bm.add_date, bm.mod_date
+				FROM vw_bom_material bm
+				WHERE bm.material_composite_uuid IS NULL) bm
 			LEFT JOIN (
 				SELECT
 					mp.material_uuid,
@@ -2638,27 +2714,14 @@ JOIN (
 							'component_property_val_unit', mp.val_unit)) AS mprp
 				FROM (
 					SELECT
-						vw_material_property.property_x_uuid,
-						vw_material_property.material_uuid,
-						vw_material_property.description,
-						vw_material_property.property_uuid,
-						vw_material_property.property_def_uuid,
-						vw_material_property.property_description,
-						vw_material_property.property_short_description,
-						vw_material_property.v_type_uuid,
-						vw_material_property.val_type,
-						vw_material_property.val_unit,
-						vw_material_property.val_val,
-						vw_material_property.property_actor_uuid,
-						vw_material_property.property_actor_description,
-						vw_material_property.property_status_uuid,
-						vw_material_property.property_status_description,
-						vw_material_property.add_date,
-						vw_material_property.mod_date
+						mp.property_x_uuid, mp.material_uuid, mp.description, mp.property_uuid, mp.property_def_uuid,
+						mp.property_description, mp.property_short_description, mp.v_type_uuid, mp.val_type,
+						mp.val_unit, mp.val_val, mp.property_actor_uuid, mp.property_actor_description, mp.property_status_uuid,
+						mp.property_status_description, mp.add_date, mp.mod_date
 					FROM
-						vw_material_property
+						vw_material_property mp
 					WHERE
-						vw_material_property.property_x_uuid IS NOT NULL) mp
+						mp.property_x_uuid IS NOT NULL) mp
 					GROUP BY
 						mp.material_uuid) mp ON bm.material_uuid = mp.material_uuid
 				LEFT JOIN (
@@ -2674,23 +2737,13 @@ JOIN (
 						) AS mcom
 					FROM (
 						SELECT
-							vw_material_composite.material_composite_uuid,
-							vw_material_composite.composite_uuid,
-							vw_material_composite.composite_description,
-							vw_material_composite.composite_flg,
-							vw_material_composite.component_uuid,
-							vw_material_composite.component_description,
-							vw_material_composite.addressable,
-							vw_material_composite.actor_uuid,
-							vw_material_composite.actor_description,
-							vw_material_composite.status_uuid,
-							vw_material_composite.status_description,
-							vw_material_composite.add_date,
-							vw_material_composite.mod_date
+							mc.material_composite_uuid, mc.composite_uuid, mc.composite_description, mc.composite_flg,
+							mc.component_uuid, mc.component_description, mc.addressable, mc.actor_uuid, mc.actor_description,
+							mc.status_uuid, mc.status_description, mc.add_date, mc.mod_date
 						FROM
-							vw_material_composite
+							vw_material_composite mc
 						WHERE
-							vw_material_composite.material_composite_uuid IS NOT NULL) mc
+							mc.material_composite_uuid IS NOT NULL) mc
 					LEFT JOIN (
 						SELECT
 							cp.material_composite_uuid,
@@ -2706,29 +2759,15 @@ JOIN (
 							) AS cpp
 						FROM (
 							SELECT
-								vw_material_composite_property.material_composite_uuid,
-								vw_material_composite_property.composite_uuid,
-								vw_material_composite_property.composite_description,
-								vw_material_composite_property.component_uuid,
-								vw_material_composite_property.component_description,
-								vw_material_composite_property.property_uuid,
-								vw_material_composite_property.property_def_uuid,
-								vw_material_composite_property.property_description,
-								vw_material_composite_property.property_short_description,
-								vw_material_composite_property.v_type_uuid,
-								vw_material_composite_property.val_type,
-								vw_material_composite_property.val_unit,
-								vw_material_composite_property.val_val,
-								vw_material_composite_property.property_actor_uuid,
-								vw_material_composite_property.property_actor_description,
-								vw_material_composite_property.property_status_uuid,
-								vw_material_composite_property.property_status_description,
-								vw_material_composite_property.add_date,
-								vw_material_composite_property.mod_date
+								mcp.material_composite_uuid, mcp.composite_uuid, mcp.composite_description, mcp.component_uuid,
+								mcp.component_description, mcp.property_uuid, mcp.property_def_uuid, mcp.property_description,
+								mcp.property_short_description, mcp.v_type_uuid, mcp.val_type, mcp.val_unit,
+								mcp.val_val, mcp.property_actor_uuid, mcp.property_actor_description, mcp.property_status_uuid,
+								mcp.property_status_description, mcp.add_date, mcp.mod_date
 							FROM
-								vw_material_composite_property
+								vw_material_composite_property mcp
 							WHERE
-								vw_material_composite_property.property_uuid IS NOT NULL
+								mcp.property_uuid IS NOT NULL
 						) cp
 					GROUP BY cp.material_composite_uuid) cp
 					ON mc.material_composite_uuid = cp.material_composite_uuid
@@ -2800,38 +2839,11 @@ JOIN (
                     ORDER BY bm.description
                 ) AS bomm
             FROM (SELECT
-                    bm.bom_material_uuid,
-                    bm.bom_uuid,
-                    bm.description,
-                    bm.bom_description,
-                    bm.inventory_material_uuid,
-                    bm.material_uuid,
-                    bm.composite_uuid,
-                    bm.material_composite_uuid,
-                    bm.bom_material_description,
-                    bm.alloc_amt_val,
-                    bm.alloc_amt_type_uuid,
-                    bm.alloc_amt_type,
-                    bm.alloc_amt_unit,
-                    bm.alloc_amt,
-                    bm.used_amt_val,
-                    bm.used_amt_type_uuid,
-                    bm.used_amt_type,
-                    bm.used_amt_unit,
-                    bm.used_amt,
-                    bm.putback_amt_val,
-                    bm.putback_amt_type_uuid,
-                    bm.putback_amt_type,
-                    bm.putback_amt_unit,
-                    bm.putback_amt,
-                    bm.experiment_uuid,
-                    bm.experiment_description,
-                    bm.actor_uuid,
-                    bm.actor_description,
-                    bm.status_uuid,
-                    bm.status_description,
-                    bm.add_date,
-                    bm.mod_date
+					bm.bom_material_uuid, bm.bom_uuid, bm.description, bm.bom_description, bm.inventory_material_uuid, bm.material_uuid,
+					bm.composite_uuid, bm.material_composite_uuid, bm.bom_material_description, bm.alloc_amt_val, bm.alloc_amt_type_uuid, bm.alloc_amt_type,
+					bm.alloc_amt_unit, bm.alloc_amt, bm.used_amt_val, bm.used_amt_type_uuid, bm.used_amt_type, bm.used_amt_unit, bm.used_amt,
+					bm.putback_amt_val, bm.putback_amt_type_uuid, bm.putback_amt_type, bm.putback_amt_unit, bm.putback_amt, bm.experiment_uuid,
+					bm.experiment_description, bm.actor_uuid, bm.actor_description, bm.status_uuid, bm.status_description, bm.add_date, bm.mod_date
                 FROM vw_bom_material bm
                 WHERE bm.material_composite_uuid IS NULL) bm
             LEFT JOIN (
@@ -2848,23 +2860,10 @@ JOIN (
                             'component_property_val_unit', mp.val_unit)) AS mprp
                 FROM (
                     SELECT
-                        mp.property_x_uuid,
-                        mp.material_uuid,
-                        mp.description,
-                        mp.property_uuid,
-                        mp.property_def_uuid,
-                        mp.property_description,
-                        mp.property_short_description,
-                        mp.v_type_uuid,
-                        mp.val_type,
-                        mp.val_unit,
-                        mp.val_val,
-                        mp.property_actor_uuid,
-                        mp.property_actor_description,
-                        mp.property_status_uuid,
-                        mp.property_status_description,
-                        mp.add_date,
-                        mp.mod_date
+						mp.property_x_uuid, mp.material_uuid, mp.description, mp.property_uuid, mp.property_def_uuid,
+						mp.property_description, mp.property_short_description, mp.v_type_uuid, mp.val_type,
+						mp.val_unit, mp.val_val, mp.property_actor_uuid, mp.property_actor_description, mp.property_status_uuid,
+						mp.property_status_description, mp.add_date, mp.mod_date
                     FROM
                         vw_material_property mp
                     WHERE
@@ -2884,19 +2883,9 @@ JOIN (
                         ) AS mcom
                     FROM (
                         SELECT
-                            mc.material_composite_uuid,
-                            mc.composite_uuid,
-                            mc.composite_description,
-                            mc.composite_flg,
-                            mc.component_uuid,
-                            mc.component_description,
-                            mc.addressable,
-                            mc.actor_uuid,
-                            mc.actor_description,
-                            mc.status_uuid,
-                            mc.status_description,
-                            mc.add_date,
-                            mc.mod_date
+							mc.material_composite_uuid, mc.composite_uuid, mc.composite_description, mc.composite_flg,
+							mc.component_uuid, mc.component_description, mc.addressable, mc.actor_uuid, mc.actor_description,
+							mc.status_uuid, mc.status_description, mc.add_date, mc.mod_date
                         FROM
                             vw_material_composite mc
                         WHERE
@@ -2916,25 +2905,11 @@ JOIN (
                             ) AS cpp
                         FROM (
                             SELECT
-                                mcp.material_composite_uuid,
-                                mcp.composite_uuid,
-                                mcp.composite_description,
-                                mcp.component_uuid,
-                                mcp.component_description,
-                                mcp.property_uuid,
-                                mcp.property_def_uuid,
-                                mcp.property_description,
-                                mcp.property_short_description,
-                                mcp.v_type_uuid,
-                                mcp.val_type,
-                                mcp.val_unit,
-                                mcp.val_val,
-                                mcp.property_actor_uuid,
-                                mcp.property_actor_description,
-                                mcp.property_status_uuid,
-                                mcp.property_status_description,
-                                mcp.add_date,
-                                mcp.mod_date
+								mcp.material_composite_uuid, mcp.composite_uuid, mcp.composite_description, mcp.component_uuid,
+								mcp.component_description, mcp.property_uuid, mcp.property_def_uuid, mcp.property_description,
+								mcp.property_short_description, mcp.v_type_uuid, mcp.val_type, mcp.val_unit,
+								mcp.val_val, mcp.property_actor_uuid, mcp.property_actor_description, mcp.property_status_uuid,
+								mcp.property_status_description, mcp.add_date, mcp.mod_date
                             FROM
                                 vw_material_composite_property mcp
                             WHERE
@@ -2962,26 +2937,10 @@ JOIN (
 		) AS wf
 	FROM (
 		SELECT
-			ew.experiment_workflow_uuid,
-			ew.experiment_uuid,
-			ew.experiment_ref_uid,
-			ew.experiment_description,
-			ew.experiment_parent_uuid,
-			ew.experiment_owner_uuid,
-			ew.experiment_owner_description,
-			ew.experiment_operator_uuid,
-			ew.experiment_operator_description,
-			ew.experiment_lab_uuid,
-			ew.experiment_lab_description,
-			ew.experiment_status_uuid,
-			ew.experiment_status_description,
-			ew.experiment_add_date,
-			ew.experiment_mod_date,
-			ew.experiment_workflow_seq,
-			ew.workflow_uuid,
-			ew.workflow_description,
-			ew.workflow_type_uuid,
-			ew.workflow_type_description
+			ew.experiment_workflow_uuid, ew.experiment_uuid, ew.experiment_ref_uid, ew.experiment_description, ew.experiment_parent_uuid, ew.experiment_owner_uuid,
+			ew.experiment_owner_description, ew.experiment_operator_uuid, ew.experiment_operator_description, ew.experiment_lab_uuid,
+			ew.experiment_lab_description, ew.experiment_status_uuid, ew.experiment_status_description, ew.experiment_add_date, ew.experiment_mod_date,
+			ew.experiment_workflow_seq, ew.workflow_uuid, ew.workflow_description, ew.workflow_type_uuid, ew.workflow_type_description
 		FROM
 			vw_experiment_workflow ew
 		ORDER BY
@@ -3006,42 +2965,18 @@ JOIN (
 			status_description) AS
 			(
 			SELECT
-				w1.workflow_step_uuid,
-				1,
-				w1.workflow_uuid,
-				w1.workflow_description,
-				w1.workflow_object_uuid,
-				w1.parent_uuid,
-				w1.parent_object_type,
-				w1.parent_object_description,
-				w1.conditional_val,
-				w1.conditional_value,
-				w1.object_uuid,
-				w1.object_type,
-				w1.object_description,
-				w1.status_uuid,
-				w1.status_description
+				w1.workflow_step_uuid, 1, w1.workflow_uuid, w1.workflow_description, w1.workflow_object_uuid,
+				w1.parent_uuid, w1.parent_object_type, w1.parent_object_description, w1.conditional_val, w1.conditional_value,
+				w1.object_uuid, w1.object_type, w1.object_description, w1.status_uuid, w1.status_description
 			FROM
 				vw_workflow_step w1
 			WHERE
 				w1.parent_uuid IS NULL
 			UNION ALL
 			SELECT
-				w2.workflow_step_uuid,
-				w0.level + 1,
-				w2.workflow_uuid,
-				w2.workflow_description,
-				w2.workflow_object_uuid,
-				w2.parent_uuid,
-				w2.parent_object_type,
-				w2.parent_object_description,
-				w2.conditional_val,
-				w2.conditional_value,
-				w2.object_uuid,
-				w2.object_type,
-				w2.object_description,
-				w2.status_uuid,
-				w2.status_description
+				w2.workflow_step_uuid, w0.level + 1, w2.workflow_uuid, w2.workflow_description, w2.workflow_object_uuid,
+				w2.parent_uuid, w2.parent_object_type, w2.parent_object_description, w2.conditional_val,
+				w2.conditional_value, w2.object_uuid, w2.object_type, w2.object_description, w2.status_uuid, w2.status_description
 			FROM
 				vw_workflow_step w2
 				JOIN wf w0 ON w0.workflow_step_uuid = w2.parent_uuid
@@ -3065,21 +3000,9 @@ JOIN (
 			) AS wfso
 		FROM (
 			SELECT
-				wf.workflow_step_uuid,
-				wf.level,
-				wf.workflow_uuid,
-				wf.workflow_description,
-				wf.workflow_object_uuid,
-				wf.parent_uuid,
-				wf.parent_object_type,
-				wf.parent_object_description,
-				wf.conditional_val,
-				wf.conditional_value,
-				wf.object_uuid,
-				wf.object_type,
-				wf.object_description,
-				wf.status_uuid,
-				wf.status_description
+				wf.workflow_step_uuid, wf.level, wf.workflow_uuid, wf.workflow_description, wf.workflow_object_uuid,
+				wf.parent_uuid, wf.parent_object_type, wf.parent_object_description, wf.conditional_val, wf.conditional_value,
+				wf.object_uuid, wf.object_type, wf.object_description, wf.status_uuid, wf.status_description
 			FROM wf
 			ORDER BY wf.workflow_uuid, wf.level
 		) n
@@ -3141,7 +3064,7 @@ SELECT
 			'experiment_mod_date', e.mod_date,
 			'bill of materials', b.bom,
 			'workflow', p.wf,
-		    'outcomes', o.out_meas)
+		    'outcomes', o.outcome_measure)
 	)) AS experiment_workflow_json
 FROM vw_experiment e
 JOIN (
@@ -3176,38 +3099,11 @@ JOIN (
                     ORDER BY bm.description
                 ) AS bomm
             FROM (SELECT
-                    bm.bom_material_uuid,
-                    bm.bom_uuid,
-                    bm.description,
-                    bm.bom_description,
-                    bm.inventory_material_uuid,
-                    bm.material_uuid,
-                    bm.composite_uuid,
-                    bm.material_composite_uuid,
-                    bm.bom_material_description,
-                    bm.alloc_amt_val,
-                    bm.alloc_amt_type_uuid,
-                    bm.alloc_amt_type,
-                    bm.alloc_amt_unit,
-                    bm.alloc_amt,
-                    bm.used_amt_val,
-                    bm.used_amt_type_uuid,
-                    bm.used_amt_type,
-                    bm.used_amt_unit,
-                    bm.used_amt,
-                    bm.putback_amt_val,
-                    bm.putback_amt_type_uuid,
-                    bm.putback_amt_type,
-                    bm.putback_amt_unit,
-                    bm.putback_amt,
-                    bm.experiment_uuid,
-                    bm.experiment_description,
-                    bm.actor_uuid,
-                    bm.actor_description,
-                    bm.status_uuid,
-                    bm.status_description,
-                    bm.add_date,
-                    bm.mod_date
+					bm.bom_material_uuid, bm.bom_uuid, bm.description, bm.bom_description, bm.inventory_material_uuid, bm.material_uuid,
+					bm.composite_uuid, bm.material_composite_uuid, bm.bom_material_description, bm.alloc_amt_val, bm.alloc_amt_type_uuid, bm.alloc_amt_type,
+					bm.alloc_amt_unit, bm.alloc_amt, bm.used_amt_val, bm.used_amt_type_uuid, bm.used_amt_type, bm.used_amt_unit, bm.used_amt,
+					bm.putback_amt_val, bm.putback_amt_type_uuid, bm.putback_amt_type, bm.putback_amt_unit, bm.putback_amt, bm.experiment_uuid,
+					bm.experiment_description, bm.actor_uuid, bm.actor_description, bm.status_uuid, bm.status_description, bm.add_date, bm.mod_date
                 FROM vw_bom_material bm
                 WHERE bm.material_composite_uuid IS NULL) bm
             LEFT JOIN (
@@ -3224,23 +3120,10 @@ JOIN (
                             'component_property_val_unit', mp.val_unit)) AS mprp
                 FROM (
                     SELECT
-                        mp.property_x_uuid,
-                        mp.material_uuid,
-                        mp.description,
-                        mp.property_uuid,
-                        mp.property_def_uuid,
-                        mp.property_description,
-                        mp.property_short_description,
-                        mp.v_type_uuid,
-                        mp.val_type,
-                        mp.val_unit,
-                        mp.val_val,
-                        mp.property_actor_uuid,
-                        mp.property_actor_description,
-                        mp.property_status_uuid,
-                        mp.property_status_description,
-                        mp.add_date,
-                        mp.mod_date
+						mp.property_x_uuid, mp.material_uuid, mp.description, mp.property_uuid, mp.property_def_uuid,
+						mp.property_description, mp.property_short_description, mp.v_type_uuid, mp.val_type,
+						mp.val_unit, mp.val_val, mp.property_actor_uuid, mp.property_actor_description, mp.property_status_uuid,
+						mp.property_status_description, mp.add_date, mp.mod_date
                     FROM
                         vw_material_property mp
                     WHERE
@@ -3260,19 +3143,9 @@ JOIN (
                         ) AS mcom
                     FROM (
                         SELECT
-                            mc.material_composite_uuid,
-                            mc.composite_uuid,
-                            mc.composite_description,
-                            mc.composite_flg,
-                            mc.component_uuid,
-                            mc.component_description,
-                            mc.addressable,
-                            mc.actor_uuid,
-                            mc.actor_description,
-                            mc.status_uuid,
-                            mc.status_description,
-                            mc.add_date,
-                            mc.mod_date
+							mc.material_composite_uuid, mc.composite_uuid, mc.composite_description, mc.composite_flg,
+							mc.component_uuid, mc.component_description, mc.addressable, mc.actor_uuid, mc.actor_description,
+							mc.status_uuid, mc.status_description, mc.add_date, mc.mod_date
                         FROM
                             vw_material_composite mc
                         WHERE
@@ -3292,25 +3165,11 @@ JOIN (
                             ) AS cpp
                         FROM (
                             SELECT
-                                mcp.material_composite_uuid,
-                                mcp.composite_uuid,
-                                mcp.composite_description,
-                                mcp.component_uuid,
-                                mcp.component_description,
-                                mcp.property_uuid,
-                                mcp.property_def_uuid,
-                                mcp.property_description,
-                                mcp.property_short_description,
-                                mcp.v_type_uuid,
-                                mcp.val_type,
-                                mcp.val_unit,
-                                mcp.val_val,
-                                mcp.property_actor_uuid,
-                                mcp.property_actor_description,
-                                mcp.property_status_uuid,
-                                mcp.property_status_description,
-                                mcp.add_date,
-                                mcp.mod_date
+								mcp.material_composite_uuid, mcp.composite_uuid, mcp.composite_description, mcp.component_uuid,
+								mcp.component_description, mcp.property_uuid, mcp.property_def_uuid, mcp.property_description,
+								mcp.property_short_description, mcp.v_type_uuid, mcp.val_type, mcp.val_unit,
+								mcp.val_val, mcp.property_actor_uuid, mcp.property_actor_description, mcp.property_status_uuid,
+								mcp.property_status_description, mcp.add_date, mcp.mod_date
                             FROM
                                 vw_material_composite_property mcp
                             WHERE
@@ -3338,26 +3197,10 @@ LEFT JOIN (
 		) AS wf
 	FROM (
 		SELECT
-			ew.experiment_workflow_uuid,
-			ew.experiment_uuid,
-			ew.experiment_ref_uid,
-			ew.experiment_description,
-			ew.experiment_parent_uuid,
-			ew.experiment_owner_uuid,
-			ew.experiment_owner_description,
-			ew.experiment_operator_uuid,
-			ew.experiment_operator_description,
-			ew.experiment_lab_uuid,
-			ew.experiment_lab_description,
-			ew.experiment_status_uuid,
-			ew.experiment_status_description,
-			ew.experiment_add_date,
-			ew.experiment_mod_date,
-			ew.experiment_workflow_seq,
-			ew.workflow_uuid,
-			ew.workflow_description,
-			ew.workflow_type_uuid,
-			ew.workflow_type_description
+			ew.experiment_workflow_uuid, ew.experiment_uuid, ew.experiment_ref_uid, ew.experiment_description, ew.experiment_parent_uuid, ew.experiment_owner_uuid,
+			ew.experiment_owner_description, ew.experiment_operator_uuid, ew.experiment_operator_description, ew.experiment_lab_uuid,
+			ew.experiment_lab_description, ew.experiment_status_uuid, ew.experiment_status_description, ew.experiment_add_date, ew.experiment_mod_date,
+			ew.experiment_workflow_seq, ew.workflow_uuid, ew.workflow_description, ew.workflow_type_uuid, ew.workflow_type_description
 		FROM
 			vw_experiment_workflow ew
 		ORDER BY
@@ -3382,42 +3225,18 @@ LEFT JOIN (
 			status_description) AS
 			(
 			SELECT
-				w1.workflow_step_uuid,
-				1,
-				w1.workflow_uuid,
-				w1.workflow_description,
-				w1.workflow_object_uuid,
-				w1.parent_uuid,
-				w1.parent_object_type,
-				w1.parent_object_description,
-				w1.conditional_val,
-				w1.conditional_value,
-				w1.object_uuid,
-				w1.object_type,
-				w1.object_description,
-				w1.status_uuid,
-				w1.status_description
+				w1.workflow_step_uuid, 1, w1.workflow_uuid, w1.workflow_description, w1.workflow_object_uuid,
+				w1.parent_uuid, w1.parent_object_type, w1.parent_object_description, w1.conditional_val, w1.conditional_value,
+				w1.object_uuid, w1.object_type, w1.object_description, w1.status_uuid, w1.status_description
 			FROM
 				vw_workflow_step w1
 			WHERE
 				w1.parent_uuid IS NULL
 			UNION ALL
 			SELECT
-				w2.workflow_step_uuid,
-				w0.level + 1,
-				w2.workflow_uuid,
-				w2.workflow_description,
-				w2.workflow_object_uuid,
-				w2.parent_uuid,
-				w2.parent_object_type,
-				w2.parent_object_description,
-				w2.conditional_val,
-				w2.conditional_value,
-				w2.object_uuid,
-				w2.object_type,
-				w2.object_description,
-				w2.status_uuid,
-				w2.status_description
+				w2.workflow_step_uuid, w0.level + 1, w2.workflow_uuid, w2.workflow_description, w2.workflow_object_uuid,
+				w2.parent_uuid, w2.parent_object_type, w2.parent_object_description, w2.conditional_val,
+				w2.conditional_value, w2.object_uuid, w2.object_type, w2.object_description, w2.status_uuid, w2.status_description
 			FROM
 				vw_workflow_step w2
 				JOIN wf w0 ON w0.workflow_step_uuid = w2.parent_uuid
@@ -3441,21 +3260,9 @@ LEFT JOIN (
 			) AS wfso
 		FROM (
 			SELECT
-				wf.workflow_step_uuid,
-				wf.level,
-				wf.workflow_uuid,
-				wf.workflow_description,
-				wf.workflow_object_uuid,
-				wf.parent_uuid,
-				wf.parent_object_type,
-				wf.parent_object_description,
-				wf.conditional_val,
-				wf.conditional_value,
-				wf.object_uuid,
-				wf.object_type,
-				wf.object_description,
-				wf.status_uuid,
-				wf.status_description
+				wf.workflow_step_uuid, wf.level, wf.workflow_uuid, wf.workflow_description, wf.workflow_object_uuid,
+				wf.parent_uuid, wf.parent_object_type, wf.parent_object_description, wf.conditional_val, wf.conditional_value,
+				wf.object_uuid, wf.object_type, wf.object_description, wf.status_uuid, wf.status_description
 			FROM wf
 			ORDER BY wf.workflow_uuid, wf.level
 		) n
@@ -3497,7 +3304,7 @@ LEFT JOIN (
                 'outcome_uuid', o.outcome_uuid,
                 'outcome_description', o.description,
                 'outcome_measures', om.meas)
-        ) AS out_meas
+        ) AS outcome_measure
     FROM vw_outcome o
     JOIN (
         SELECT
@@ -3506,12 +3313,18 @@ LEFT JOIN (
                 json_build_object(
                     'outcome_measure_description', om.measure_description,
                     'outcome_measure_type_uuid', om.measure_type_uuid,
-                    'outcome_measure_value', om.measure_type_uuid,
-                    'outcome_measure_alloc_amt_type', om.measure_type_description,
+                    'outcome_measure_type', om.measure_type_description,
+                    'outcome_measure_value_uuid', om.measure_type_uuid,
+                    'outcome_measure_value_val', om.measure_value,
                     'outcome_measure_value_type_uuid', om.measure_value_type_uuid,
                     'outcome_measure_value_type_description', om.measure_value_type_description,
-                    'outcome_measure_value_value', om.measure_value_value,
-                    'outcome_measure_value_unit', om.measure_value_unit)
+                    'outcome_measure_value', om.measure_value_value,
+                    'outcome_measure_value_unit', om.measure_value_unit,
+                    'outcome_measure_actor_uuid', om.measure_actor_uuid,
+                    'outcome_measure_actor_description', om.measure_actor_description,
+                    'outcome_measure_add_date', om.measure_add_date,
+                    'outcome_measure_mod_date', om.measure_mod_date
+                )
                     ORDER BY om.measure_description
             ) AS meas
         FROM vw_outcome_measure om

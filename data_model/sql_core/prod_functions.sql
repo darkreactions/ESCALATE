@@ -1727,3 +1727,101 @@ END;
 $$
 LANGUAGE plpgsql;
 
+
+
+/*
+Name:			tag_to_array (p_ref_uuid uuid)
+Parameters:
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.12.18
+Description:	returns the tags associated with the uuid (p_ref_uuid) in an array (text[])
+Notes:
+Example:		insert into vw_tag_assign (tag_uuid, ref_tag_uuid) values
+                    ((select tag_uuid from vw_tag where (display_text = 'inactive' and vw_tag.type = 'actor')),
+                    (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+                    ((select tag_uuid from vw_tag where (display_text = 'temporary' and vw_tag.type = 'actor')),
+                    (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'));
+                select tag_to_array ((select actor_uuid from vw_actor where person_last_name = 'Cattabriga'));
+*/
+-- DROP FUNCTION IF EXISTS tag_to_array (p_ref_uuid uuid) cascade;
+CREATE OR REPLACE FUNCTION tag_to_array (p_ref_uuid uuid)
+	RETURNS text[]
+	AS $$
+BEGIN
+    IF (select exists (select tag_x_uuid from vw_tag_assign where ref_tag_uuid = p_ref_uuid)) THEN
+        RETURN
+            (select array_agg(display_text) from vw_tag t join
+            (select tag_uuid from vw_tag_assign where ref_tag_uuid = p_ref_uuid) ta
+            on t.tag_uuid = ta.tag_uuid);
+    ELSE
+        RETURN null;
+    END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			note_to_array (p_ref_uuid uuid)
+Parameters:
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.12.18
+Description:	returns the notes associated with the uuid (p_ref_uuid) in an array (text[])
+Notes:
+Example:		insert into vw_note (notetext, actor_uuid, ref_note_uuid) values
+                    ('this is note 1. blah blah blah',
+                    (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'),
+                    (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'));
+                insert into vw_note (notetext, ref_note_uuid) values
+                    ('this is note 2. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+                    (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'));
+                select note_to_array ((select actor_uuid from vw_actor where person_last_name = 'Cattabriga'));
+*/
+-- DROP FUNCTION IF EXISTS note_to_array (p_ref_uuid uuid) cascade;
+CREATE OR REPLACE FUNCTION note_to_array (p_ref_uuid uuid)
+	RETURNS text[]
+	AS $$
+BEGIN
+    IF (select exists (select note_x_uuid from vw_note where ref_note_uuid = p_ref_uuid)) THEN
+        RETURN
+            (select array_agg(concat('''',notetext,'''')) from vw_note n join
+            (select note_uuid from note_x where ref_note_uuid = p_ref_uuid) nx
+            on n.note_uuid = nx.note_uuid);
+    ELSE
+        RETURN null;
+    END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+-- ===========================================================================
+-- JSON Rendering Functions by entity
+-- ===========================================================================
+
+/*
+Name:			experiment_outcome_measure_json ()
+Parameters:
+Returns:		table (experiment_uuid uuid, outcome_measure json)
+Author:			G. Cattabriga
+Date:			2020.12.20
+Description:	returns table (experiment_uuid uuid, outcome_measure json) of ALL outcome measure by experiment
+Notes:
+Example:		select experiment_outcome_measure_json ();
+*/
+-- DROP FUNCTION IF EXISTS experiment_outcome_measure_json () cascade;
+CREATE OR REPLACE FUNCTION experiment_outcome_measure_json ()
+	RETURNS text[]
+	AS $$
+BEGIN
+    IF (select exists (select note_x_uuid from vw_note where ref_note_uuid = p_ref_uuid)) THEN
+        RETURN
+            (select array_agg(concat('''',notetext,'''')) from vw_note n join
+            (select note_uuid from note_x where ref_note_uuid = p_ref_uuid) nx
+            on n.note_uuid = nx.note_uuid);
+    END IF;
+END;
+$$
+LANGUAGE plpgsql;
