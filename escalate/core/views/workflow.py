@@ -97,6 +97,7 @@ mojito_components = """[{
                     "type": "mint_to_shaker",
                     "displayName": "Mint Leaf -> Cocktail Shaker",
                     "description": "transfer_discrete",
+                    "runtimeDescription": "x => !!x.state.count ? `${ x.state.count } Leaves` : x.definition.description ",
                     "category": "template",
                     "outcomes": ["Done"],
                     "icon": "fas fa-feather-alt",
@@ -112,6 +113,7 @@ mojito_components = """[{
                 {
                     "type": "syrup_to_shaker",
                     "displayName": "Simple Syrup -> Cocktail Shaker",
+                    "runtimeDescription": "x => !!x.state.volume ? `${ x.state.volume } fl oz` : x.definition.description ",
                     "description": "dispense",
                     "category": "template",
                     "outcomes": ["Done"],
@@ -127,6 +129,7 @@ mojito_components = """[{
                 {
                     "type": "muddle",
                     "displayName": "Cocktail Shaker -> Cocktail Shaker",
+                    "runtimeDescription": "x => !!x.state.force ? `${ x.state.force }` : x.definition.description ",
                     "description": "muddle",
                     "category": "template",
                     "outcomes": ["Done"],
@@ -142,6 +145,7 @@ mojito_components = """[{
                 {
                     "type": "rum_to_shaker",
                     "displayName": "White Rum -> Cocktail Shaker",
+                    "runtimeDescription": "x => !!x.state.volume ? `${ x.state.volume } fl oz` : x.definition.description ",
                     "description": "dispense",
                     "category": "template",
                     "outcomes": ["Done"],
@@ -157,6 +161,7 @@ mojito_components = """[{
                 {
                     "type": "lime_juice_to_shaker",
                     "displayName": "Lime Juice -> Cocktail Shaker",
+                    "runtimeDescription": "x => !!x.state.volume ? `${ x.state.volume } fl oz` : x.definition.description ",
                     "description": "dispense",
                     "category": "template",
                     "outcomes": ["Done"],
@@ -172,6 +177,7 @@ mojito_components = """[{
                 {
                     "type": "shake",
                     "displayName": "Cocktail Shaker -> Cocktail Shaker",
+                    "runtimeDescription": "x => !!x.state.duration_qualitative ? `${ x.state.duration_qualitative }` : x.definition.description ",
                     "description": "shake",
                     "category": "template",
                     "outcomes": ["Done"],
@@ -188,7 +194,9 @@ mojito_components = """[{
                     "type": "ice_to_glass",
                     "displayName": "Ice Cube -> Highball Glass",
                     "description": "transfer_discrete",
+                    "runtimeDescription": "x => !!x.state.count ? `${ x.state.count } Leaves` : x.definition.description ",
                     "category": "template",
+                    "icon": "fas fa-dice-d6",
                     "outcomes": ["Done", "Fail"],
                     "properties": [
                         {
@@ -204,8 +212,26 @@ mojito_components = """[{
                     "displayName": "Cocktail Shaker -> Highball Glass",
                     "description": "strain",
                     "category": "template",
+                    "icon": "fas fa-cocktail",
                     "outcomes": ["Done"],
                     "properties": []
+                },
+                {
+                    "type": "Outcome",
+                    "displayName": "sample mojito taste",
+                    "runtimeDescription": "x => !!x.state.measure ? `${ x.state.measure }` : x.definition.description ",
+                    "description": "measure",
+                    "category": "template",
+                    "icon": "fas fa-database",
+                    "outcomes": [],
+                    "properties": [
+                        {
+                            "name": "measure",
+                            "type": "text",
+                            "label": "Taste measure",
+                            "hint": "Qualitative taste",
+                            "options": {}
+                            }]
                 }
     
                 ]   
@@ -286,6 +312,13 @@ mojito_workflow = """
             "left": 460,
             "type": "mojito_to_glass",
             "state": {}
+        },
+        {
+            "id": "7fa1a837-6e7e-49ea-9f32-125e556ea362",
+            "top": 421,
+            "left": 860,
+            "type": "Outcome",
+            "state": {}
         }
     ],
     "connections": [
@@ -322,6 +355,11 @@ mojito_workflow = """
         {
             "sourceActivityId": "5249f4cc-7aa2-4fda-a7cc-ae6926b177cc",
             "destinationActivityId": "7fa1a837-6e7e-49ea-9f32-125e556ea361",
+            "outcome": "Done"
+        },
+        {
+            "sourceActivityId": "7fa1a837-6e7e-49ea-9f32-125e556ea361",
+            "destinationActivityId": "7fa1a837-6e7e-49ea-9f32-125e556ea362",
             "outcome": "Done"
         }
     ]
