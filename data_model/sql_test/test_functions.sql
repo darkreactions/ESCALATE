@@ -524,7 +524,7 @@ insert into vw_property_def (description, short_description, val_type_uuid, valu
 	(select get_type_def ('data', 'array_num')), 
 	'devtest', null, (select status_uuid from vw_status where description = 'dev_test'));
 insert into vw_material_property (material_uuid, property_def_uuid, 
-	val_val, property_actor_uuid, property_status_uuid ) 
+	property_value, property_actor_uuid, property_status_uuid )
 	values ((select material_uuid from vw_material where description = 'Formic Acid'),
 		(select property_def_uuid from vw_property_def where short_description = 'devtest property'),
 		'{100, 200}', 
@@ -533,7 +533,7 @@ insert into vw_material_property (material_uuid, property_def_uuid,
 );
 update vw_material_property set property_actor_uuid = (select actor_uuid from vw_actor where person_last_name = 'Test123') where material_uuid = 
 	(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'devtest property';
-update vw_material_property set val_val = '{100, 900}' where material_uuid = 
+update vw_material_property set property_value = '{100, 900}' where material_uuid =
 	(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'devtest property';
 delete from vw_material_property where material_uuid = 
 	(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'devtest property';
@@ -967,25 +967,25 @@ insert into vw_property_def (description, short_description, val_type_uuid, valu
 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'active'));
 -- add properties to resin
-insert into vw_material_property (material_uuid, property_def_uuid, val_val, property_actor_uuid, property_status_uuid ) values 
+insert into vw_material_property (material_uuid, property_def_uuid, property_value, property_actor_uuid, property_status_uuid ) values
 	((select material_uuid from vw_material where description = 'Fine Mesh Resin'),
 	(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
 	'{100, 200}', 
 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'active'));
-insert into vw_material_property (material_uuid, property_def_uuid, val_val, property_actor_uuid, property_status_uuid ) values 
+insert into vw_material_property (material_uuid, property_def_uuid, property_value, property_actor_uuid, property_status_uuid ) values
 	((select material_uuid from vw_material where description = 'Fine Mesh Resin'),
 	(select property_def_uuid from vw_property_def where short_description = 'capacity'),
 	'1.7', 
 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'active'));
-insert into vw_material_property (material_uuid, property_def_uuid, val_val, property_actor_uuid, property_status_uuid ) values 
+insert into vw_material_property (material_uuid, property_def_uuid, property_value, property_actor_uuid, property_status_uuid ) values
 	((select material_uuid from vw_material where description = 'Fine Mesh Resin'),
 	(select property_def_uuid from vw_property_def where short_description = 'cross-linkage'),
 	'8', 
 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	(select status_uuid from vw_status where description = 'active'));
-insert into vw_material_property (material_uuid, property_def_uuid, val_val, property_actor_uuid, property_status_uuid ) values 
+insert into vw_material_property (material_uuid, property_def_uuid, property_value, property_actor_uuid, property_status_uuid ) values
 	((select material_uuid from vw_material where description = 'Fine Mesh Resin'),
 	(select property_def_uuid from vw_property_def where short_description = 'moisture'),
 	'{50, 58}', 
@@ -1042,7 +1042,7 @@ insert into vw_material (description, consumable, actor_uuid, status_uuid) value
 	(select status_uuid from vw_status where description = 'dev_test'));
 -- assign the 24 plate a well qty property
 insert into vw_material_property (material_uuid, property_def_uuid, 
-	val_val, property_actor_uuid, property_status_uuid ) values (
+	property_value, property_actor_uuid, property_status_uuid ) values (
 	(select material_uuid from vw_material where description = 'Plate: 24 well'),
 	(select property_def_uuid from vw_property_def where short_description = 'plate_well_cnt'), 
 	'24', 
@@ -1050,7 +1050,7 @@ insert into vw_material_property (material_uuid, property_def_uuid,
 	(select status_uuid from vw_status where description = 'dev_test'));
 -- assign the 48 plate a well qty property
 insert into vw_material_property (material_uuid, property_def_uuid,
-	val_val, property_actor_uuid, property_status_uuid ) values (
+	property_value, property_actor_uuid, property_status_uuid ) values (
 	(select material_uuid from vw_material where description = 'Plate: 48 well'),
 	(select property_def_uuid from vw_property_def where short_description = 'plate_well_cnt'),
 	'48',
@@ -1090,17 +1090,17 @@ BEGIN
 				(select actor_uuid from vw_actor where description = 'Ion Bond'),
 				(select status_uuid from vw_status where description = 'dev_test')) returning material_composite_uuid into component_uuid;
 			insert into vw_material_property (material_uuid, property_def_uuid, 
-					val_val, property_actor_uuid, property_status_uuid ) values (
+					property_value, property_actor_uuid, property_status_uuid ) values (
 						component_uuid, prop_ord_def, 
 						ord::text, 
 						act, st);
 			insert into vw_material_property (material_uuid, property_def_uuid, 
-					val_val, property_actor_uuid, property_status_uuid ) values (
+					property_value, property_actor_uuid, property_status_uuid ) values (
 						component_uuid, prop_loc_def, 
 						concat(loc_let,loc_num), 
 						act, st);
 			insert into vw_material_property (material_uuid, property_def_uuid, 
-					val_val, property_actor_uuid, property_status_uuid ) values (
+					property_value, property_actor_uuid, property_status_uuid ) values (
 						component_uuid, prop_vol_def, 
 						'{.5,10}',
 						act, st);
@@ -1153,14 +1153,14 @@ insert into vw_material_type_assign (material_uuid, material_type_uuid) values
 -- add component properties
 -- assign the parent a well qty property 
 insert into vw_material_property (material_uuid, property_def_uuid, 
-	val_val, val_unit, property_actor_uuid, property_status_uuid ) values (
+	property_value, property_value_unit, property_actor_uuid, property_status_uuid ) values (
 	(select material_composite_uuid from vw_material_composite where composite_description = 'Am-243 Stock' and component_description = 'Am-243'),
 	(select property_def_uuid from vw_property_def where short_description = 'concentration'), 
 	'1000', 'dpm/uL',
 	(select actor_uuid from vw_actor where description = 'Ion Bond'), 
 	(select status_uuid from vw_status where description = 'dev_test'));
 insert into vw_material_property (material_uuid, property_def_uuid, 
-	val_val, val_unit, property_actor_uuid, property_status_uuid ) values (
+	property_value, property_value_unit, property_actor_uuid, property_status_uuid ) values (
 	(select material_composite_uuid from vw_material_composite where composite_description = 'Am-243 Stock' and component_description = 'Hydrochloric acid'),
 	(select property_def_uuid from vw_property_def where short_description = 'concentration'), 
 	'.1', 'M',
@@ -1675,4 +1675,19 @@ insert into vw_measure (measure_def_uuid, measure_type_uuid, ref_measure_uuid, d
         '')),
     (select actor_uuid from vw_actor where description = 'Ion Bond'),
     (select status_uuid from vw_status where description = 'dev_test'));
-
+-- add tags to measure
+insert into vw_tag_assign (tag_uuid, ref_tag_uuid) values
+    ((select tag_uuid from vw_tag where (display_text = 'subjective' and vw_tag.type = 'measure')),
+     (select measure_uuid from vw_measure where
+        measure_def_description = 'sample color' and measure_value_value = 'green to green-yellow'
+        and actor_description = 'Ion Bond')),
+    ((select tag_uuid from vw_tag where (display_text = 'preliminary' and vw_tag.type = 'measure')),
+     (select measure_uuid from vw_measure where
+        measure_def_description = 'sample color' and measure_value_value = 'green to green-yellow'
+        and actor_description = 'Ion Bond'));
+-- add a note to measure
+insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('quick assessment of color, no color chart',
+	(select actor_uuid from vw_actor where description = 'Ion Bond'),
+    (select measure_uuid from vw_measure where
+        measure_def_description = 'sample color' and measure_value_value = 'green to green-yellow'
+        and actor_description = 'Ion Bond'));

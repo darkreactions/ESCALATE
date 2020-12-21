@@ -168,7 +168,8 @@ INSERT INTO vw_tag_type (type, description)
 VALUES 
 	('material', 'tags used to assist in identifying material types'),
 	('experiment', 'tags used to assist in charactizing experiments, visibility'),
-	('actor', 'tags used to assist in charactizing actors');
+	('actor', 'tags used to assist in charactizing actors'),
+	('measure', 'tags used to assist in charactizing measures');
 ;
 COMMIT;
 
@@ -220,7 +221,10 @@ VALUES
 	('inactive', (select tag_type_uuid from vw_tag_type where type = 'actor'), (select actor_uuid from vw_actor where systemtool_name = 'postgres')),
 	('temporary', (select tag_type_uuid from vw_tag_type where type = 'actor'), (select actor_uuid from vw_actor where systemtool_name = 'postgres')),
 	('on_loan', (select tag_type_uuid from vw_tag_type where type = 'actor'), (select actor_uuid from vw_actor where systemtool_name = 'postgres')),	
-	('do_not_use', (select tag_type_uuid from vw_tag_type where type = 'actor'), (select actor_uuid from vw_actor where systemtool_name = 'postgres'))	
+	('do_not_use', (select tag_type_uuid from vw_tag_type where type = 'actor'), (select actor_uuid from vw_actor where systemtool_name = 'postgres')),
+	('subjective', (select tag_type_uuid from vw_tag_type where type = 'measure'), (select actor_uuid from vw_actor where systemtool_name = 'postgres')),
+	('preliminary', (select tag_type_uuid from vw_tag_type where type = 'measure'), (select actor_uuid from vw_actor where systemtool_name = 'postgres')),
+	('instrument', (select tag_type_uuid from vw_tag_type where type = 'measure'), (select actor_uuid from vw_actor where systemtool_name = 'postgres'))
 ;
 COMMIT;
 

@@ -1486,7 +1486,7 @@ Notes:			this will check to see if property_def exists, also will add entry into
 				on insert, will inherit the data type and unit from property_def	
  
 Example:		insert into vw_material_property (material_uuid, property_def_uuid, 
-					val_val, property_actor_uuid, property_status_uuid ) 
+					property_value, property_actor_uuid, property_status_uuid )
 					values ((select material_uuid from vw_material where description = 'Formic Acid'),
 							(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
 							'{100, 200}', 
@@ -1524,7 +1524,7 @@ BEGIN
 			property
 		SET
 			property_val = 
-				(select put_val (NEW.v_type_uuid, NEW.val_val, NEW.val_unit)),
+				(select put_val (NEW.property_value_type_uuid, NEW.property_value, NEW.property_value_unit)),
 			actor_uuid = NEW.property_actor_uuid,
 			status_uuid = NEW.property_status_uuid,
 			mod_date = now()
@@ -1539,7 +1539,7 @@ BEGIN
 			INSERT INTO property (property_def_uuid, property_val, actor_uuid, status_uuid)
 				VALUES(NEW.property_def_uuid, 
 					(select put_val ((select val_type_uuid from vw_property_def where property_def_uuid = NEW.property_def_uuid), 
-					NEW.val_val, 
+					NEW.property_value,
 					(select valunit from vw_property_def where property_def_uuid = NEW.property_def_uuid))),	
 				NEW.property_actor_uuid, NEW.property_status_uuid)
 			RETURNING property_uuid into NEW.property_uuid;
