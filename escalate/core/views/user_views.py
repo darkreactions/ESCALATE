@@ -61,7 +61,7 @@ def change_password(request):
         'form': form
     })
 
-class UserProfileView(View):
+class UserProfileView(LoginRequiredMixin, View):
     template_name = 'core/accounts/user_profile.html'
 
     def get(self, request, *args, **kwargs):

@@ -2,12 +2,7 @@ from core.views.crud_views import LoginRequired
 from django.shortcuts import render
 from django.views import View
 
-class WorkflowView(LoginRequired, View):
-    template_name = 'core/workflow.html'
-
-    # @method_decorator(login_required)
-    def get(self, request, *args, **kwargs):
-        components = """[{
+http_components = """[{
               "type": "ReceiveHttpRequest",
               "displayName": "Receive HTTP Request",
               "description": "Receive an incoming HTTP request.",
@@ -69,8 +64,8 @@ class WorkflowView(LoginRequired, View):
                 }
               ]
             }]"""
-        # workflow = """{"activities":[{"id":"timer","top":137,"left":171,"type":"TimerEvent","state":{}, "executed":true},{"id":"send-email","top":641,"left":193,"type":"SendEmail","state":{}, "blocking":true},{"id":"if-else","top":378,"left":139,"type":"IfElse","state":{}},{"id":"log","top":644,"left":438,"type":"Log","state":{}, "faulted":true, "message":{"title":"Faulted","content":"This didnt work."}}],"connections":[{"sourceActivityId":"timer","destinationActivityId":"if-else","outcome":"Done"},{"sourceActivityId":"if-else","destinationActivityId":"send-email","outcome":"True"},{"sourceActivityId":"if-else","destinationActivityId":"log","outcome":"False"}]}"""
-        workflow = """
+
+http_workflow = """
                                     {
                     "activities": [
                         {
@@ -98,6 +93,253 @@ class WorkflowView(LoginRequired, View):
                 }
                 """
 
+mojito_components = """[{
+                    "type": "mint_to_shaker",
+                    "displayName": "Mint Leaf -> Cocktail Shaker",
+                    "description": "transfer_discrete",
+                    "category": "template",
+                    "outcomes": ["Done"],
+                    "icon": "fas fa-feather-alt",
+                    "properties": [
+                        {
+                        "name": "count",
+                        "type": "text",
+                        "label": "Count",
+                        "hint": "Number of mint leaves",
+                        "options": {}
+                        }]
+                },
+                {
+                    "type": "syrup_to_shaker",
+                    "displayName": "Simple Syrup -> Cocktail Shaker",
+                    "description": "dispense",
+                    "category": "template",
+                    "outcomes": ["Done"],
+                    "properties": [
+                        {
+                        "name": "volume",
+                        "type": "text",
+                        "label": "Volume",
+                        "hint": "Volume in floz",
+                        "options": {}
+                        }]
+                },
+                {
+                    "type": "muddle",
+                    "displayName": "Cocktail Shaker -> Cocktail Shaker",
+                    "description": "muddle",
+                    "category": "template",
+                    "outcomes": ["Done"],
+                    "properties": [
+                        {
+                        "name": "force",
+                        "type": "text",
+                        "label": "Force",
+                        "hint": "",
+                        "options": {}
+                        }]
+                },
+                {
+                    "type": "rum_to_shaker",
+                    "displayName": "White Rum -> Cocktail Shaker",
+                    "description": "dispense",
+                    "category": "template",
+                    "outcomes": ["Done"],
+                    "properties": [
+                        {
+                            "name": "volume",
+                            "type": "text",
+                            "label": "Volume",
+                            "hint": "Volume in floz",
+                            "options": {}
+                            }]
+                },
+                {
+                    "type": "lime_juice_to_shaker",
+                    "displayName": "Lime Juice -> Cocktail Shaker",
+                    "description": "dispense",
+                    "category": "template",
+                    "outcomes": ["Done"],
+                    "properties": [
+                        {
+                            "name": "volume",
+                            "type": "text",
+                            "label": "Volume",
+                            "hint": "Volume in floz",
+                            "options": {}
+                            }]
+                },
+                {
+                    "type": "shake",
+                    "displayName": "Cocktail Shaker -> Cocktail Shaker",
+                    "description": "shake",
+                    "category": "template",
+                    "outcomes": ["Done"],
+                    "properties": [
+                        {
+                            "name": "duration_qualitative",
+                            "type": "text",
+                            "label": "Duration (Qualitative)",
+                            "hint": "Time taken",
+                            "options": {}
+                            }]
+                },
+                {
+                    "type": "ice_to_glass",
+                    "displayName": "Ice Cube -> Highball Glass",
+                    "description": "transfer_discrete",
+                    "category": "template",
+                    "outcomes": ["Done", "Fail"],
+                    "properties": [
+                        {
+                            "name": "count",
+                            "type": "text",
+                            "label": "Count",
+                            "hint": "Number of Ice Cubes",
+                            "options": {}
+                            }]
+                },
+                {
+                    "type": "mojito_to_glass",
+                    "displayName": "Cocktail Shaker -> Highball Glass",
+                    "description": "strain",
+                    "category": "template",
+                    "outcomes": ["Done"],
+                    "properties": []
+                }
+    
+                ]   
+              """
+
+
+mojito_workflow = """
+{
+    "activities": [
+        {
+            "id": "4b16c09b-5f1b-41db-9da6-ddfa679b4364",
+            "top": 12,
+            "left": 23,
+            "type": "mint_to_shaker",
+            "faulted": true,
+            "message":{"title":"Faulted","content":"This didnt work."},
+            "state": {
+                "count": "3"
+            }
+        },
+        {
+            "id": "de652d59-4d4c-4352-84cb-fcedfe4df422",
+            "top": 14,
+            "left": 403,
+            "type": "syrup_to_shaker",
+            "state": {
+                "volume": "0.5"
+            }
+        },
+        {
+            "id": "4e363a0d-3a50-44d1-8ae2-a156be672278",
+            "top": 13,
+            "left": 764,
+            "type": "muddle",
+            "state": {
+                "force": "lightly"
+            }
+        },
+        {
+            "id": "23a1f0fe-16c9-4f16-a3ad-249b32e8bb1d",
+            "top": 211,
+            "left": 808,
+            "type": "rum_to_shaker",
+            "state": {
+                "volume": "2"
+            }
+        },
+        {
+            "id": "b23e39cd-485b-413d-91fe-0ad4663be2dd",
+            "top": 210,
+            "left": 458,
+            "type": "lime_juice_to_shaker",
+            "state": {
+                "volume": "0.75"
+            }
+        },
+        {
+            "id": "6155ef62-e679-44bf-a6f2-8e4b44e335c5",
+            "top": 213,
+            "left": 56,
+            "type": "shake",
+            "state": {
+                "duration_qualitative": "briefly"
+            }
+        },
+        {
+            "id": "5249f4cc-7aa2-4fda-a7cc-ae6926b177cc",
+            "top": 421,
+            "left": 55,
+            "type": "ice_to_glass",
+            "state": {
+                "count": "5"
+            }
+        },
+        {
+            "id": "7fa1a837-6e7e-49ea-9f32-125e556ea361",
+            "top": 421,
+            "left": 460,
+            "type": "mojito_to_glass",
+            "state": {}
+        }
+    ],
+    "connections": [
+        {
+            "sourceActivityId": "4b16c09b-5f1b-41db-9da6-ddfa679b4364",
+            "destinationActivityId": "de652d59-4d4c-4352-84cb-fcedfe4df422",
+            "outcome": "Done"
+        },
+        {
+            "sourceActivityId": "de652d59-4d4c-4352-84cb-fcedfe4df422",
+            "destinationActivityId": "4e363a0d-3a50-44d1-8ae2-a156be672278",
+            "outcome": "Done"
+        },
+        {
+            "sourceActivityId": "4e363a0d-3a50-44d1-8ae2-a156be672278",
+            "destinationActivityId": "23a1f0fe-16c9-4f16-a3ad-249b32e8bb1d",
+            "outcome": "Done"
+        },
+        {
+            "sourceActivityId": "23a1f0fe-16c9-4f16-a3ad-249b32e8bb1d",
+            "destinationActivityId": "b23e39cd-485b-413d-91fe-0ad4663be2dd",
+            "outcome": "Done"
+        },
+        {
+            "sourceActivityId": "b23e39cd-485b-413d-91fe-0ad4663be2dd",
+            "destinationActivityId": "6155ef62-e679-44bf-a6f2-8e4b44e335c5",
+            "outcome": "Done"
+        },
+        {
+            "sourceActivityId": "6155ef62-e679-44bf-a6f2-8e4b44e335c5",
+            "destinationActivityId": "5249f4cc-7aa2-4fda-a7cc-ae6926b177cc",
+            "outcome": "Done"
+        },
+        {
+            "sourceActivityId": "5249f4cc-7aa2-4fda-a7cc-ae6926b177cc",
+            "destinationActivityId": "7fa1a837-6e7e-49ea-9f32-125e556ea361",
+            "outcome": "Done"
+        }
+    ]
+}
+
+"""
+
+
+class WorkflowView(LoginRequired, View):
+    template_name = 'core/workflow.html'
+
+    # @method_decorator(login_required)
+    def get(self, request, *args, **kwargs):
+        components = mojito_components
+
+        #workflow = http_workflow
+        workflow = mojito_workflow
+
         context = {'components': components, 'workflow': workflow}
-        
+
         return render(request, self.template_name, context=context)

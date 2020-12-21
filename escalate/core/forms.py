@@ -29,6 +29,7 @@ class NoteForm(forms.ModelForm):
             'notetext': forms.Textarea(attrs={'rows': 3}),
         }
 
+
 class PersonFormData:
     class Meta:
         fields = ['first_name', 'middle_name', 'last_name', 'address1',
@@ -70,7 +71,8 @@ class PersonFormData:
 
         help_texts = {
             'phone': 'Include extension number and/or country code if applicable',
-            'organization': 'If applicable, select the organization this person belongs to'
+            'organization': 'If applicable, select the organization this person belongs to',
+
         }
 
         widgets = {
@@ -85,8 +87,8 @@ class PersonFormData:
             'country': forms.TextInput(attrs={'placeholder': 'Ex: United States of America'}),
             'phone': forms.TextInput(attrs={'placeholder': 'Ex: 1-234-567-8900/12345678900'}),
             'email': forms.TextInput(attrs={'placeholder': 'Ex: example@gmail.com'}),
-            'title': forms.TextInput(attrs={'placeholder': 'Your title'}),
-            'suffix': forms.TextInput(attrs={'placeholder': 'Your suffix'}),
+            'title': forms.TextInput(attrs={'placeholder': ''}),
+            'suffix': forms.TextInput(attrs={'placeholder': ''}),
             'organization': forms.Select(attrs=dropdown_attrs)
         }
 
@@ -115,7 +117,7 @@ class MaterialForm(forms.ModelForm):
         """
         field_classes = {
             'create_date': forms.SplitDateTimeField,
-            
+
         }
         """
                     'abbreviation': 'Abbreviation',
@@ -151,17 +153,16 @@ class MaterialForm(forms.ModelForm):
                     'placeholder': 'HH-MM'
                 }
             ),
-            
+
             'material_status': forms.Select(attrs=dropdown_attrs),
         }
 
 
 class InventoryForm(forms.ModelForm):
+
     class Meta:
         model = Inventory
-        fields = ['material', 'actor', 'part_no',
-                  'onhand_amt',  'expiration_date',
-                  'location', 'status']
+        fields = ['description', 'owner', 'operator', 'lab', 'status', 'actor']
 
         field_classes = {
             'description': forms.CharField,
@@ -514,6 +515,7 @@ class JoinOrganizationForm(forms.ModelForm):
         widgets = {
             'password': forms.PasswordInput()
         }
+
 
 class CreateOrganizationPasswordForm(forms.ModelForm):
 

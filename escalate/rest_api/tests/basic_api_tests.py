@@ -3,8 +3,7 @@ from django.test import RequestFactory as rf
 from django.test import Client
 from django.urls import reverse
 
-
-from rest_api.utils import rest_viewset_views
+from rest_api.utils import rest_viewset_views, camel_case
 from bs4 import BeautifulSoup
 
 pytestmark = pytest.mark.django_db

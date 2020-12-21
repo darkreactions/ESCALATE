@@ -1,0 +1,518 @@
+{
+  "experiment": [
+    {
+      "experiment_uuid": "e356314b-d99d-42db-b832-576f91c71e4c",
+      "experiment_ref_uid": "mojito_uid",
+      "experiment_description": "JS Test Mojito",
+      "experiment_parent_uuid": null,
+      "experiment_owner_uuid": null,
+      "experiment_owner_description": null,
+      "experiment_operator_uuid": "91fc5de5-d6cf-42c6-8429-862c68885ed7",
+      "experiment_operator_description": null,
+      "experiment_lab_uuid": null,
+      "experiment_lab_description": null,
+      "experiment_status_uuid": "40a419e7-f468-4a35-b06b-69c03478f0ce",
+      "experiment_status_description": "dev_test",
+      "experiment_add_date": "2020-12-19T06:36:31.767035+00:00",
+      "experiment_mod_date": "2020-12-19T06:36:31.767035+00:00",
+      "bill of materials": [
+        {
+          "bom_uuid": "e3187499-8ffa-4a27-a642-7c6441204e4d",
+          "bom_description": "JS Test BOM",
+          "bom_material": [
+            {
+              "bom_material_description": "Club Soda",
+              "bom_inventory_material_uuid": "7e5652b4-da32-4dd8-844a-8aa6042a5bd6",
+              "bom_material_uuid": "e969cdd5-b211-4c2b-a50a-224d86764f85",
+              "bom_material_alloc_amt_type": "num",
+              "bom_material_alloc_amt": "1",
+              "bom_material_alloc_amt_unit": "splash",
+              "bom_material_used_amt_type": "num",
+              "bom_material_used_amt": "0.00",
+              "bom_material_used_amt_unit": "floz",
+              "bom_material_putback_amt_type": "num",
+              "bom_material_putback_amt": "0.00",
+              "bom_material_putback_amt_unit": "floz",
+              "bom_material_property": null,
+              "bom_material_component": null
+            },
+            {
+              "bom_material_description": "Cocktail Shaker",
+              "bom_inventory_material_uuid": "22429e42-2e5e-47e8-a7cd-8d44bb8454a9",
+              "bom_material_uuid": "971ffba9-5859-48fb-8d0c-9d0ae2578041",
+              "bom_material_alloc_amt_type": "int",
+              "bom_material_alloc_amt": "1",
+              "bom_material_alloc_amt_unit": "count",
+              "bom_material_used_amt_type": "int",
+              "bom_material_used_amt": "1",
+              "bom_material_used_amt_unit": "count",
+              "bom_material_putback_amt_type": "int",
+              "bom_material_putback_amt": "1",
+              "bom_material_putback_amt_unit": "count",
+              "bom_material_property": null,
+              "bom_material_component": null
+            },
+            {
+              "bom_material_description": "Highball Glass",
+              "bom_inventory_material_uuid": "dd1928ef-4aa6-44a6-a588-4dd24bce3189",
+              "bom_material_uuid": "78922f01-6412-4836-94f5-4ea9cd74d858",
+              "bom_material_alloc_amt_type": "int",
+              "bom_material_alloc_amt": "1",
+              "bom_material_alloc_amt_unit": "count",
+              "bom_material_used_amt_type": "int",
+              "bom_material_used_amt": "1",
+              "bom_material_used_amt_unit": "count",
+              "bom_material_putback_amt_type": "int",
+              "bom_material_putback_amt": "1",
+              "bom_material_putback_amt_unit": "count",
+              "bom_material_property": null,
+              "bom_material_component": null
+            },
+            {
+              "bom_material_description": "Ice Cube",
+              "bom_inventory_material_uuid": "572f73cb-196a-450d-8e3b-08da38bdd2d0",
+              "bom_material_uuid": "33218661-8c9b-4648-9faf-ea485ba7aac8",
+              "bom_material_alloc_amt_type": "int",
+              "bom_material_alloc_amt": "5",
+              "bom_material_alloc_amt_unit": "count",
+              "bom_material_used_amt_type": "int",
+              "bom_material_used_amt": "0",
+              "bom_material_used_amt_unit": "count",
+              "bom_material_putback_amt_type": "int",
+              "bom_material_putback_amt": "0",
+              "bom_material_putback_amt_unit": "count",
+              "bom_material_property": null,
+              "bom_material_component": null
+            },
+            {
+              "bom_material_description": "Lime Juice",
+              "bom_inventory_material_uuid": "913c3ad6-0c2b-4cc8-8d25-11f3ade0c9ff",
+              "bom_material_uuid": "afb21157-ef12-40ac-bf6f-ecfa9dc70ca4",
+              "bom_material_alloc_amt_type": "num",
+              "bom_material_alloc_amt": "0.75",
+              "bom_material_alloc_amt_unit": "floz",
+              "bom_material_used_amt_type": "num",
+              "bom_material_used_amt": "0.00",
+              "bom_material_used_amt_unit": "floz",
+              "bom_material_putback_amt_type": "num",
+              "bom_material_putback_amt": "0.00",
+              "bom_material_putback_amt_unit": "floz",
+              "bom_material_property": null,
+              "bom_material_component": null
+            },
+            {
+              "bom_material_description": "Mint Leaf",
+              "bom_inventory_material_uuid": "bd0ece99-452d-4e81-8a79-5548b8ef02ed",
+              "bom_material_uuid": "85eba571-02c2-45c4-87af-372f8723797a",
+              "bom_material_alloc_amt_type": "int",
+              "bom_material_alloc_amt": "3",
+              "bom_material_alloc_amt_unit": "count",
+              "bom_material_used_amt_type": "int",
+              "bom_material_used_amt": "0",
+              "bom_material_used_amt_unit": "count",
+              "bom_material_putback_amt_type": "int",
+              "bom_material_putback_amt": "0",
+              "bom_material_putback_amt_unit": "count",
+              "bom_material_property": null,
+              "bom_material_component": null
+            },
+            {
+              "bom_material_description": "Simple Syrup",
+              "bom_inventory_material_uuid": "48e35a9f-7317-4b4b-9c1a-856f859c10c7",
+              "bom_material_uuid": "38f9e11e-7bd9-43d3-a67b-48cadffecb8a",
+              "bom_material_alloc_amt_type": "num",
+              "bom_material_alloc_amt": "0.5",
+              "bom_material_alloc_amt_unit": "floz",
+              "bom_material_used_amt_type": "num",
+              "bom_material_used_amt": "0.00",
+              "bom_material_used_amt_unit": "floz",
+              "bom_material_putback_amt_type": "num",
+              "bom_material_putback_amt": "0.00",
+              "bom_material_putback_amt_unit": "floz",
+              "bom_material_property": null,
+              "bom_material_component": [
+                {
+                  "component_uuid": "18cf9596-6a23-4b24-8541-994a38c5f89c",
+                  "component_description": "Granulated Sugar",
+                  "component_addressable": false,
+                  "component_property": null
+                },
+                {
+                  "component_uuid": "e988f05a-73f2-4a1d-85f4-04cf59484fdc",
+                  "component_description": "Water",
+                  "component_addressable": false,
+                  "component_property": null
+                }
+              ]
+            },
+            {
+              "bom_material_description": "White Rum",
+              "bom_inventory_material_uuid": "759f0c8c-a86e-497b-b786-c8b37a889a80",
+              "bom_material_uuid": "533e82ab-965d-4d62-9625-1067f300c7f3",
+              "bom_material_alloc_amt_type": "num",
+              "bom_material_alloc_amt": "2",
+              "bom_material_alloc_amt_unit": "floz",
+              "bom_material_used_amt_type": "num",
+              "bom_material_used_amt": "0.00",
+              "bom_material_used_amt_unit": "floz",
+              "bom_material_putback_amt_type": "num",
+              "bom_material_putback_amt": "0.00",
+              "bom_material_putback_amt_unit": "floz",
+              "bom_material_property": null,
+              "bom_material_component": null
+            }
+          ]
+        }
+      ],
+      "workflow": [
+        {
+          "workflow_seq": 1,
+          "workflow_uuid": "3fb997f1-55ff-4b24-a2b8-7197696679e7",
+          "workflow_description": "Mint to Shaker",
+          "workflow_type_uuid": "cf270e31-f251-4a51-b51a-5a0e53901448",
+          "workflow_type_description": "template",
+          "workflow_step": [
+            {
+              "workflow_uuid": "3fb997f1-55ff-4b24-a2b8-7197696679e7",
+              "workflow_description": "Mint to Shaker",
+              "workflow_step_uuid": "48135530-6ae4-40ef-aae9-a69103997f42",
+              "workflow_step_order": 1,
+              "workflow_step_parent_uuid": null,
+              "workflow_step_parent_object_type": null,
+              "workflow_step_parent_object_description": null,
+              "workflow_conditional_val": null,
+              "workflow_conditional_value": null,
+              "workflow_step_status_uuid": "40a419e7-f468-4a35-b06b-69c03478f0ce",
+              "workflow_step_status_description": "dev_test",
+              "object": [
+                {
+                  "workflow_object_uuid": "f4cfded1-439a-4cac-ade5-80fccdaf9d6b",
+                  "object_uuid": "58778ad3-b017-491a-abd6-3e5b175c51b7",
+                  "object_type": "action",
+                  "object_description": "mint_to_shaker: Mint Leaf -> Cocktail Shaker",
+                  "object_def_description": "transfer_discrete",
+                  "object_parameters": [
+                    {
+                      "parameter_def_description": "count",
+                      "parameter_def_uuid": "4c9c20e7-c933-4385-ba0e-231b52647858",
+                      "parameter_value": {
+                        "data_type": "int",
+                        "value": 3,
+                        "unit": "count"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "workflow_seq": 2,
+          "workflow_uuid": "2ee9ca00-f9a5-4d67-be7a-942ac9a62676",
+          "workflow_description": "Syrup to Shaker",
+          "workflow_type_uuid": "cf270e31-f251-4a51-b51a-5a0e53901448",
+          "workflow_type_description": "template",
+          "workflow_step": [
+            {
+              "workflow_uuid": "2ee9ca00-f9a5-4d67-be7a-942ac9a62676",
+              "workflow_description": "Syrup to Shaker",
+              "workflow_step_uuid": "c2930e4b-30bd-4032-8c51-3c98b708d569",
+              "workflow_step_order": 1,
+              "workflow_step_parent_uuid": null,
+              "workflow_step_parent_object_type": null,
+              "workflow_step_parent_object_description": null,
+              "workflow_conditional_val": null,
+              "workflow_conditional_value": null,
+              "workflow_step_status_uuid": "40a419e7-f468-4a35-b06b-69c03478f0ce",
+              "workflow_step_status_description": "dev_test",
+              "object": [
+                {
+                  "workflow_object_uuid": "5eded468-148d-434d-8d80-29e1fc022842",
+                  "object_uuid": "3afc64f9-45f7-4521-8839-c455bc197ace",
+                  "object_type": "action",
+                  "object_description": "syrup_to_shaker: Simple Syrup -> Cocktail Shaker",
+                  "object_def_description": "dispense",
+                  "object_parameters": [
+                    {
+                      "parameter_def_description": "volume",
+                      "parameter_def_uuid": "776297cb-7cd6-4004-bef3-a6af8ea662b6",
+                      "parameter_value": {
+                        "data_type": "num",
+                        "value": 0.5,
+                        "unit": "floz"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "workflow_seq": 3,
+          "workflow_uuid": "76f49153-0915-4f0a-b1df-76fd33f13bc4",
+          "workflow_description": "Muddle",
+          "workflow_type_uuid": "cf270e31-f251-4a51-b51a-5a0e53901448",
+          "workflow_type_description": "template",
+          "workflow_step": [
+            {
+              "workflow_uuid": "76f49153-0915-4f0a-b1df-76fd33f13bc4",
+              "workflow_description": "Muddle",
+              "workflow_step_uuid": "f43e3e6e-79d9-4ab8-999a-f0d18712b17f",
+              "workflow_step_order": 1,
+              "workflow_step_parent_uuid": null,
+              "workflow_step_parent_object_type": null,
+              "workflow_step_parent_object_description": null,
+              "workflow_conditional_val": null,
+              "workflow_conditional_value": null,
+              "workflow_step_status_uuid": "40a419e7-f468-4a35-b06b-69c03478f0ce",
+              "workflow_step_status_description": "dev_test",
+              "object": [
+                {
+                  "workflow_object_uuid": "08de466f-0c08-424d-9fa1-d94d965e399f",
+                  "object_uuid": "79891478-e875-4227-997a-4ed9cfa78acb",
+                  "object_type": "action",
+                  "object_description": "muddle: Cocktail Shaker -> Cocktail Shaker",
+                  "object_def_description": "dispense",
+                  "object_parameters": [
+                    {
+                      "parameter_def_description": "volume",
+                      "parameter_def_uuid": "776297cb-7cd6-4004-bef3-a6af8ea662b6",
+                      "parameter_value": {
+                        "data_type": "text",
+                        "value": "lightly"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "workflow_seq": 4,
+          "workflow_uuid": "35d8ce01-69f4-41c2-8706-899f8f99c6c5",
+          "workflow_description": "Rum to Shaker",
+          "workflow_type_uuid": "cf270e31-f251-4a51-b51a-5a0e53901448",
+          "workflow_type_description": "template",
+          "workflow_step": [
+            {
+              "workflow_uuid": "35d8ce01-69f4-41c2-8706-899f8f99c6c5",
+              "workflow_description": "Rum to Shaker",
+              "workflow_step_uuid": "9b675123-7347-4a6c-9407-aaef76e5277a",
+              "workflow_step_order": 1,
+              "workflow_step_parent_uuid": null,
+              "workflow_step_parent_object_type": null,
+              "workflow_step_parent_object_description": null,
+              "workflow_conditional_val": null,
+              "workflow_conditional_value": null,
+              "workflow_step_status_uuid": "40a419e7-f468-4a35-b06b-69c03478f0ce",
+              "workflow_step_status_description": "dev_test",
+              "object": [
+                {
+                  "workflow_object_uuid": "0b661e69-aca7-42f8-9351-35bd5b5ed4dc",
+                  "object_uuid": "f3fea3bc-9b6b-407b-9f23-bf29084aca8a",
+                  "object_type": "action",
+                  "object_description": "rum_to_shaker: White Rum -> Cocktail Shaker",
+                  "object_def_description": "dispense",
+                  "object_parameters": [
+                    {
+                      "parameter_def_description": "volume",
+                      "parameter_def_uuid": "776297cb-7cd6-4004-bef3-a6af8ea662b6",
+                      "parameter_value": {
+                        "data_type": "num",
+                        "value": 2,
+                        "unit": "floz"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "workflow_seq": 5,
+          "workflow_uuid": "c3c6a15c-3d0b-43ba-8309-924f5403db66",
+          "workflow_description": "Lime Juice to Shaker",
+          "workflow_type_uuid": "cf270e31-f251-4a51-b51a-5a0e53901448",
+          "workflow_type_description": "template",
+          "workflow_step": [
+            {
+              "workflow_uuid": "c3c6a15c-3d0b-43ba-8309-924f5403db66",
+              "workflow_description": "Lime Juice to Shaker",
+              "workflow_step_uuid": "f5d4fb18-b480-4d76-a08b-3119a87f7ece",
+              "workflow_step_order": 1,
+              "workflow_step_parent_uuid": null,
+              "workflow_step_parent_object_type": null,
+              "workflow_step_parent_object_description": null,
+              "workflow_conditional_val": null,
+              "workflow_conditional_value": null,
+              "workflow_step_status_uuid": "40a419e7-f468-4a35-b06b-69c03478f0ce",
+              "workflow_step_status_description": "dev_test",
+              "object": [
+                {
+                  "workflow_object_uuid": "ed0acb7c-01c0-4664-a56d-bbfc486874fb",
+                  "object_uuid": "e1747868-04cc-419f-9454-22dd71df0bb0",
+                  "object_type": "action",
+                  "object_description": "lime_juice_to_shaker: Lime Juice -> Cocktail Shaker",
+                  "object_def_description": "dispense",
+                  "object_parameters": [
+                    {
+                      "parameter_def_description": "volume",
+                      "parameter_def_uuid": "776297cb-7cd6-4004-bef3-a6af8ea662b6",
+                      "parameter_value": {
+                        "data_type": "num",
+                        "value": 0.75,
+                        "unit": "floz"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "workflow_seq": 6,
+          "workflow_uuid": "77d0f41d-af85-4621-9b31-db442dbe9a1b",
+          "workflow_description": "Shake",
+          "workflow_type_uuid": "cf270e31-f251-4a51-b51a-5a0e53901448",
+          "workflow_type_description": "template",
+          "workflow_step": [
+            {
+              "workflow_uuid": "77d0f41d-af85-4621-9b31-db442dbe9a1b",
+              "workflow_description": "Shake",
+              "workflow_step_uuid": "ac350d9e-c67b-4d86-a1b9-b88e63ae42b2",
+              "workflow_step_order": 1,
+              "workflow_step_parent_uuid": null,
+              "workflow_step_parent_object_type": null,
+              "workflow_step_parent_object_description": null,
+              "workflow_conditional_val": null,
+              "workflow_conditional_value": null,
+              "workflow_step_status_uuid": "40a419e7-f468-4a35-b06b-69c03478f0ce",
+              "workflow_step_status_description": "dev_test",
+              "object": [
+                {
+                  "workflow_object_uuid": "6bb7dc9b-98c7-4b73-8f1e-670f69241f89",
+                  "object_uuid": "0378b1a1-1826-4a5b-a997-4ee25df90c9b",
+                  "object_type": "action",
+                  "object_description": "shake: Cocktail Shaker -> Cocktail Shaker",
+                  "object_def_description": "shake",
+                  "object_parameters": [
+                    {
+                      "parameter_def_description": "duration_qualitative",
+                      "parameter_def_uuid": "a0c3a55f-0371-4a56-87fb-89ae9a6ca366",
+                      "parameter_value": {
+                        "data_type": "text",
+                        "value": "briefly"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "workflow_seq": 7,
+          "workflow_uuid": "a32776b3-2903-4a25-b0f8-25feba4b0df8",
+          "workflow_description": "Ice to Glass",
+          "workflow_type_uuid": "cf270e31-f251-4a51-b51a-5a0e53901448",
+          "workflow_type_description": "template",
+          "workflow_step": [
+            {
+              "workflow_uuid": "a32776b3-2903-4a25-b0f8-25feba4b0df8",
+              "workflow_description": "Ice to Glass",
+              "workflow_step_uuid": "d38aa195-cde3-4fe8-b382-8f2bd81fd0a6",
+              "workflow_step_order": 1,
+              "workflow_step_parent_uuid": null,
+              "workflow_step_parent_object_type": null,
+              "workflow_step_parent_object_description": null,
+              "workflow_conditional_val": null,
+              "workflow_conditional_value": null,
+              "workflow_step_status_uuid": "40a419e7-f468-4a35-b06b-69c03478f0ce",
+              "workflow_step_status_description": "dev_test",
+              "object": [
+                {
+                  "workflow_object_uuid": "86ed6488-4e1f-4b69-8ec1-d8ce4143e422",
+                  "object_uuid": "ba8aa160-9a2d-4628-93bf-05876d0923f9",
+                  "object_type": "action",
+                  "object_description": "ice_to_glass: Ice Cube -> Highball Glass",
+                  "object_def_description": "transfer_discrete",
+                  "object_parameters": [
+                    {
+                      "parameter_def_description": "count",
+                      "parameter_def_uuid": "4c9c20e7-c933-4385-ba0e-231b52647858",
+                      "parameter_value": {
+                        "data_type": "int",
+                        "value": 5,
+                        "unit": "count"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "workflow_uuid": "a32776b3-2903-4a25-b0f8-25feba4b0df8",
+              "workflow_description": "Ice to Glass",
+              "workflow_step_uuid": "c11eed7a-d68b-45aa-bd1c-77f84599b931",
+              "workflow_step_order": 1,
+              "workflow_step_parent_uuid": null,
+              "workflow_step_parent_object_type": null,
+              "workflow_step_parent_object_description": null,
+              "workflow_conditional_val": null,
+              "workflow_conditional_value": null,
+              "workflow_step_status_uuid": "40a419e7-f468-4a35-b06b-69c03478f0ce",
+              "workflow_step_status_description": "dev_test",
+              "object": [
+                {
+                  "workflow_object_uuid": "4bdd6b54-d843-41e2-8564-f081727433e2",
+                  "object_uuid": "a0d27bb5-f383-4889-b4a0-6137a4d44091",
+                  "object_type": "action",
+                  "object_description": "mojito_to_glass: Cocktail Shaker -> Highball Glass",
+                  "object_def_description": "strain",
+                  "object_parameters": [
+                    {
+                      "parameter_def_description": null,
+                      "parameter_def_uuid": null,
+                      "parameter_value": null
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "workflow_seq": 8,
+          "workflow_uuid": "74cfbe61-fd70-4732-b382-582869214459",
+          "workflow_description": "Mojito to Glass",
+          "workflow_type_uuid": "cf270e31-f251-4a51-b51a-5a0e53901448",
+          "workflow_type_description": "template",
+          "workflow_step": null
+        }
+      ],
+      "outcomes": [
+        {
+          "outcome_uuid": "8e0c074d-7abd-46a7-9cc2-746d6f5f1655",
+          "outcome_description": "JS Test Experiment Outcome",
+          "outcome_measures": [
+            {
+              "outcome_measure_description": "sample mojito taste",
+              "outcome_measure_type_uuid": "40b9fdfe-e3fe-479a-9a45-2f0cd23b399c",
+              "outcome_measure_value": "40b9fdfe-e3fe-479a-9a45-2f0cd23b399c",
+              "outcome_measure_alloc_amt_type": "manual",
+              "outcome_measure_value_type_uuid": "b9c0dc40-03b8-4008-9181-835f4fe586c6",
+              "outcome_measure_value_type_description": "text",
+              "outcome_measure_value_value": "great!",
+              "outcome_measure_value_unit": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

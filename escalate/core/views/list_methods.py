@@ -19,12 +19,14 @@ methods = {
     'Inventory': {
         'model': core.models.Inventory,
         'context_object_name': 'inventorys',
-        'table_columns': ['Description', 'Status', 'Material', 'On Hand Amount', 'Actions'],
+        'table_columns': ['Description', 'Owner', 'Operator', 'Lab', 'Status', 'Actor'],
         'column_necessary_fields': {
             'Description': ['description'],
+            'Owner': ['owner'],
+            'Operator': ['operator'],
+            'Lab': ['lab'],
             'Status': ['status_description'],
-            'Material': ['material_description'],
-            'On Hand Amount': ['onhand_amt']
+            'Actor': ['actor']
         },
         'order_field': 'description',
         'field_contains': '',
@@ -32,11 +34,11 @@ methods = {
     'Material': {
         'model': core.models.Material,
         'context_object_name': 'materials',
-        #'table_columns': ['Chemical Name', 'Abbreviation', 'Status', 'Actions'],
+        # 'table_columns': ['Chemical Name', 'Abbreviation', 'Status', 'Actions'],
         'table_columns': ['Status', 'Actions'],
         'column_necessary_fields': {
-            #'Chemical Name': ['chemical_name'],
-            #'Abbreviation': ['abbreviation'],
+            # 'Chemical Name': ['chemical_name'],
+            # 'Abbreviation': ['abbreviation'],
             'Status': ['status_description']
         },
         'order_field': 'status_description',

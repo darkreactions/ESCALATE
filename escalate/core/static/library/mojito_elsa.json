@@ -1,0 +1,117 @@
+{"components" : [{
+                    "type": "mint_to_shaker",
+                    "displayName": "Mint Leaf -> Cocktail Shaker",
+                    "description": "transfer_discrete",
+                    "category": "template",
+                    "outcomes": ["Done"],
+                    "properties": [
+                        {
+                        "name": "count",
+                        "type": "text",
+                        "label": "Count",
+                        "hint": "Number of mint leaves",
+                        "options": {}
+                        }]
+                },
+                {
+                    "type": "syrup_to_shaker",
+                    "displayName": "Simple Syrup -> Cocktail Shaker",
+                    "description": "dispense",
+                    "category": "template",
+                    "outcomes": ["Done"],
+                    "properties": [
+                        {
+                        "name": "volume",
+                        "type": "text",
+                        "label": "Volume",
+                        "hint": "Volume in floz",
+                        "options": {}
+                        }]
+                },
+                {
+                    "type": "muddle",
+                    "displayName": "Cocktail Shaker -> Cocktail Shaker",
+                    "description": "muddle",
+                    "category": "template",
+                    "outcomes": ["Done"],
+                    "properties": [
+                        {
+                        "name": "force",
+                        "type": "text",
+                        "label": "Force",
+                        "hint": "",
+                        "options": {}
+                        }]
+                },
+                {
+                    "type": "rum_to_shaker",
+                    "displayName": "White Rum -> Cocktail Shaker",
+                    "description": "dispense",
+                    "category": "template",
+                    "outcomes": ["Done"],
+                    "properties": [
+                        {
+                            "name": "volume",
+                            "type": "text",
+                            "label": "Volume",
+                            "hint": "Volume in floz",
+                            "options": {}
+                            }]
+                },
+                {
+                    "type": "lime_juice_to_shaker",
+                    "displayName": "Lime Juice -> Cocktail Shaker",
+                    "description": "dispense",
+                    "category": "template",
+                    "outcomes": ["Done"],
+                    "properties": [
+                        {
+                            "name": "volume",
+                            "type": "text",
+                            "label": "Volume",
+                            "hint": "Volume in floz",
+                            "options": {}
+                            }]
+                },
+                {
+                    "type": "shake",
+                    "displayName": "Cocktail Shaker -> Cocktail Shaker",
+                    "description": "shake",
+                    "category": "template",
+                    "outcomes": ["Done"],
+                    "properties": [
+                        {
+                            "name": "duration_qualitative",
+                            "type": "text",
+                            "label": "Duration (Qualitative)",
+                            "hint": "Time taken",
+                            "options": {}
+                            }]
+                },
+                {
+                    "type": "ice_to_glass",
+                    "displayName": "Ice Cube -> Highball Glass",
+                    "description": "transfer_discrete",
+                    "category": "template",
+                    "outcomes": ["Done"],
+                    "properties": [
+                        {
+                            "name": "count",
+                            "type": "text",
+                            "label": "Count",
+                            "hint": "Number of Ice Cubes",
+                            "options": {}
+                            }]
+                },
+                {
+                    "type": "mojito_to_glass",
+                    "displayName": "Cocktail Shaker -> Highball Glass",
+                    "description": "strain",
+                    "category": "template",
+                    "outcomes": ["Done"],
+                    "properties": []
+                }
+    
+                ]   
+
+}

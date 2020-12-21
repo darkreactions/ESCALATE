@@ -63,7 +63,7 @@
               <h6 class="mb-0">City, State, Country</h6>
             </div>
             <div class="col-sm-9 text-secondary">
-              {{ request.user.person.city }} {{ request.user.person.state_province }} {{ request.user.person.country }}
+              {{ request.user.person.city }}, {{ request.user.person.state_province }}, {{ request.user.person.country }}
             </div>
         </div>
         <hr>
@@ -72,13 +72,16 @@
               <h6 class="mb-0">Lab/Organization Membership</h6>
             </div>
             <div class="col-sm-9 text-secondary">
+              <ul>
               {% if vw_person.added_organization.all %}
                 {% for org in vw_person.added_organization.all %}
-                {{ org.full_name }}
+                <li>{{ org.full_name }}</li>
                 {% endfor %}
               {% else %}
                 No labs joined
               {% endif %}
+              </ul>
+              
             </div>
         </div>
         <p></p>
@@ -103,17 +106,6 @@
     </div>
 </div>
 
-</div>
-<div class="row gutters-sm">
-    <div class="col-md-4 mb-3">
-        <div class="card">
-          <div class="card-body">
-            <div class="d-flex flex-column align-items-center text-center">
-    
-            </div>
-          </div>
-        </div>
-    </div>
 </div>
 {% endblock %}
 
