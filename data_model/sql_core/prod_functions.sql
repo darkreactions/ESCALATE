@@ -1809,19 +1809,163 @@ Author:			G. Cattabriga
 Date:			2020.12.20
 Description:	returns table (experiment_uuid uuid, outcome_measure json) of ALL outcome measure by experiment
 Notes:
-Example:		select experiment_outcome_measure_json ();
+Example:		select * from experiment_outcome_measure_json ();
 */
 -- DROP FUNCTION IF EXISTS experiment_outcome_measure_json () cascade;
 CREATE OR REPLACE FUNCTION experiment_outcome_measure_json ()
-	RETURNS text[]
+	RETURNS table (experiment_uuid uuid, outcome_measure json)
 	AS $$
 BEGIN
-    IF (select exists (select note_x_uuid from vw_note where ref_note_uuid = p_ref_uuid)) THEN
-        RETURN
-            (select array_agg(concat('''',notetext,'''')) from vw_note n join
-            (select note_uuid from note_x where ref_note_uuid = p_ref_uuid) nx
-            on n.note_uuid = nx.note_uuid);
-    END IF;
+    RETURN QUERY
+        SELECT o.experiment_uuid,
+            json_agg(
+                json_build_object(
+                    'outcome_uuid', o.outcome_uuid,
+                    'outcome_description', o.description,
+                    'outcome_measures', om.meas)
+            ) AS outcome_measure
+        FROM vw_outcome o
+        JOIN (
+            SELECT om.outcome_uuid,
+                json_agg(
+                   json_build_object(
+                       'outcome_measure_description', om.measure_description,
+                       'outcome_measure_type_uuid', om.measure_type_uuid,
+                       'outcome_measure_type', om.measure_type_description,
+                       'outcome_measure_value_uuid', om.measure_type_uuid,
+                       -- 'outcome_measure_value_val', om.measure_value,
+                       -- 'outcome_measure_value_type_uuid', om.measure_value_type_uuid,
+                       'outcome_measure_value_type_description', om.measure_value_type_description,
+                       'outcome_measure_value', om.measure_value_value,
+                       'outcome_measure_value_unit', om.measure_value_unit,
+                       -- 'outcome_measure_actor_uuid', om.measure_actor_uuid,
+                       -- 'outcome_measure_actor_description', om.measure_actor_description,
+                       -- 'outcome_measure_status_uuid', om.measure_status_uuid,
+                       -- 'outcome_measure_status_description', om.measure_status_description,
+                       -- 'outcome_measure_add_date', om.measure_add_date,
+                       -- 'outcome_measure_mod_date', om.measure_mod_date,
+                       'outcome_measure_tags', om.measure_tags,
+                       'outcome_measure_notes', om.measure_notes
+                   )
+                   ORDER BY om.measure_description
+               ) AS meas
+            FROM vw_outcome_measure om
+            GROUP BY om.outcome_uuid) om
+        ON o.outcome_uuid = om.outcome_uuid
+        GROUP BY o.experiment_uuid;
 END;
 $$
 LANGUAGE plpgsql;
+
+
+/*
+Name:			material_composite_property_json ()
+Parameters:
+Returns:		table (material_composite_uuid uuid, composite_property json)
+Author:			G. Cattabriga
+Date:			2020.12.20
+Description:	returns table (material_composite_uuid uuid, composite_property json) of ALL material_composites
+Notes:
+Example:		select * from material_composite_property_json ();
+*/
+-- DROP FUNCTION IF EXISTS material_composite_property_json () cascade;
+CREATE OR REPLACE FUNCTION material_composite_property_json ()
+	RETURNS table (material_composite_uuid uuid, composite_property json)
+	AS $$
+BEGIN
+    RETURN QUERY
+        SELECT cp.material_composite_uuid,
+            json_agg(
+                json_build_object(
+                    'composite_property_uuid', cp.property_uuid,
+                    'composite_property_def_uuid', cp.property_def_uuid,
+                    'composite_property_description', cp.property_description,
+                    'composite_property_short_description', cp.property_short_description,
+                    -- 'composite_property_value_val', cp.property_value_val,
+                    -- 'composite_property_value_type_uuid', cp.property_value_type_uuid,
+                    'composite_property_value_type_description', cp.property_value_type_description,
+                    'composite_property_value', cp.property_value,
+                    'composite_property_value_unit', cp.property_value_unit,
+                    -- 'composite_property_actor_uuid', cp.property_actor_uuid,
+                    -- 'composite_property_actor_description', cp.property_actor_description,
+                    -- 'composite_property_status_uuid', cp.property_status_uuid,
+                    -- 'composite_property_actor_description', cp.property_status_description,
+                    -- 'composite_property_add_date', cp.add_date,
+                    -- 'composite_property_mod_date', cp.mod_date,
+                    'composite_property_tags', cp.property_tags,
+                    'composite_property_notes', cp.property_notes
+            )) AS composite_property
+        FROM (
+            SELECT
+                mcp.material_composite_uuid, mcp.composite_uuid, mcp.composite_description, mcp.component_uuid,
+                mcp.component_description, mcp.property_uuid, mcp.property_def_uuid, mcp.property_description,
+                mcp.property_short_description, mcp.property_value_val, mcp.property_value_type_uuid, mcp.property_value_type_description,
+                mcp.property_value, mcp.property_value_unit, mcp.property_actor_uuid, mcp.property_actor_description, mcp.property_status_uuid,
+                mcp.property_status_description, mcp.add_date, mcp.mod_date, mcp.property_tags, mcp.property_notes
+            FROM
+                vw_material_composite_property mcp
+            WHERE
+                mcp.property_uuid IS NOT NULL
+        ) cp
+        GROUP BY cp.material_composite_uuid;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+
+/*
+Name:			material_property_json ()
+Parameters:
+Returns:		table (material_uuid uuid, material_property json)
+Author:			G. Cattabriga
+Date:			2020.12.20
+Description:	returns table (material_uuid uuid, material_property json) of ALL material_composites
+Notes:
+Example:		select * from material_property_json ();
+*/
+-- DROP FUNCTION IF EXISTS material__property_json () cascade;
+CREATE OR REPLACE FUNCTION material_property_json ()
+	RETURNS table (material_uuid uuid, material_property json)
+	AS $$
+BEGIN
+    RETURN QUERY
+        SELECT mp.material_uuid,
+            json_agg(
+                json_build_object(
+                    'material_property_uuid', mp.property_uuid,
+                    'material_property_def_uuid', mp.property_def_uuid,
+                    'material_property_description', mp.property_description,
+                    'material_property_short_description', mp.property_short_description,
+                    -- 'material_property_value_val', mp.property_value_val,
+                    -- 'material_property_value_type_uuid', mp.property_value_type_uuid,
+                    'material_property_value_type', mp.property_value_type_description,
+                    'material_property_value', mp.property_value,
+                    'material_property_value_unit', mp.property_value_unit,
+                    -- 'material_property_actor_uuid', mp.property_actor_uuid,
+                    -- 'material_property_actor_description', mp.property_actor_description,
+                    -- 'material_property_status_uuid', mp.property_status_uuid,
+                    -- 'material_property_actor_description', mp.property_status_description,
+                    -- 'material_property_add_date', mp.property_add_date,
+                    -- 'material_property_mod_date', mp.property_mod_date,
+                    'material_property_tags', mp.property_tags,
+                    'material_property_notes', mp.property_notes
+            )) AS material_property
+        FROM (
+            SELECT
+                mp.property_x_uuid, mp.material_uuid, mp.description, mp.property_uuid, mp.property_def_uuid,
+                mp.property_description, mp.property_short_description, mp.property_value_type_uuid, mp.property_value_type_description,
+                mp.property_value_unit, mp.property_value, mp.property_value_val, mp.property_actor_uuid, mp.property_actor_description, mp.property_status_uuid,
+                mp.property_status_description, mp.property_add_date, mp.property_mod_date, mp.property_tags, mp.property_notes
+            FROM
+                vw_material_property mp
+            WHERE
+                mp.property_x_uuid IS NOT NULL
+        ) mp
+        GROUP BY mp.material_uuid;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+

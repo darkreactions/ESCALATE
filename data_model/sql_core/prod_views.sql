@@ -1341,18 +1341,18 @@ SELECT
 	pr.property_def_uuid,
 	pd.description as property_description,
 	pd.short_description as property_short_description,	
-	-- pr.property_val,
+	pr.property_val as property_value_val,
 	-- break out the val fields
-	(pr.property_val).v_type_uuid,
-	vl.val_type,
-	(pr.property_val).v_unit as val_unit,
-	vl.val_val,	
+	(pr.property_val).v_type_uuid as property_value_type_uuid,
+	vl.val_type as property_value_type_description,
+	(pr.property_val).v_unit as property_value_unit,
+	vl.val_val as property_value,
 	pr.actor_uuid as property_actor_uuid,
 	act.description as property_actor_description,
 	pr.status_uuid as property_status_uuid,
 	st.description as property_status_description,
-	pr.add_date,
-	pr.mod_date,
+	pr.add_date as property_add_date,
+	pr.mod_date as property_mod_date,
     pr.tags as property_tags,
     pr.notes as property_notes
 FROM vw_material mat
@@ -1385,10 +1385,11 @@ SELECT
 	pr.property_def_uuid,
 	pd.description  AS property_description,
 	pd.short_description AS property_short_description,
-	(pr.property_val).v_type_uuid AS v_type_uuid,
-	vl.val_type,
-	(pr.property_val).v_unit AS val_unit,
-	vl.val_val,
+    pr.property_val as property_value_val,
+	(pr.property_val).v_type_uuid AS property_value_type_uuid,
+	vl.val_type as property_value_type_description,
+	(pr.property_val).v_unit AS property_value_unit,
+	vl.val_val as property_value,
 	pr.actor_uuid AS property_actor_uuid,
 	act.description AS property_actor_description,
 	pr.status_uuid AS property_status_uuid,
@@ -2705,19 +2706,19 @@ JOIN (
 					mp.material_uuid,
 					json_agg(
 						json_build_object(
-							'component_property_uuid', mp.property_uuid,
-							'component_property_def_uuid', mp.property_def_uuid,
-							'component_property_description', mp.property_description,
-							'component_property_short_description', mp.property_short_description,
-							'component_property_val_type', mp.val_type,
-							'component_property_val', mp.val_val,
-							'component_property_val_unit', mp.val_unit)) AS mprp
-				FROM (
-					SELECT
+                            'material_property_uuid', mp.property_uuid,
+                            'material_property_def_uuid', mp.property_def_uuid,
+                            'material_property_description', mp.property_description,
+                            'material_property_short_description', mp.property_short_description,
+                            'material_property_value_type', mp.property_value_type_description,
+                            'material_property_value', mp.property_value,
+                            'material_property_value_unit', mp.property_value_unit)) AS mprp
+                FROM (
+                    SELECT
 						mp.property_x_uuid, mp.material_uuid, mp.description, mp.property_uuid, mp.property_def_uuid,
-						mp.property_description, mp.property_short_description, mp.v_type_uuid, mp.val_type,
-						mp.val_unit, mp.val_val, mp.property_actor_uuid, mp.property_actor_description, mp.property_status_uuid,
-						mp.property_status_description, mp.add_date, mp.mod_date
+						mp.property_description, mp.property_short_description, mp.property_value_type_uuid, mp.property_value_type_description,
+						mp.property_value_unit, mp.property_value, mp.property_value_val, mp.property_actor_uuid, mp.property_actor_description, mp.property_status_uuid,
+						mp.property_status_description, mp.property_add_date, mp.property_mod_date
 					FROM
 						vw_material_property mp
 					WHERE
@@ -2753,16 +2754,16 @@ JOIN (
 									'component_property_def_uuid', cp.property_def_uuid,
 									'component_property_description', cp.property_description,
 									'component_property_short_description', cp.property_short_description,
-									'component_property_val_type', cp.val_type,
-									'component_property_val', cp.val_val,
-									'component_property_val_unit', cp.val_unit)
+									'component_property_val_type', cp.property_value_type_description,
+									'component_property_val', cp.property_value,
+									'component_property_val_unit', cp.property_value_unit)
 							) AS cpp
 						FROM (
 							SELECT
 								mcp.material_composite_uuid, mcp.composite_uuid, mcp.composite_description, mcp.component_uuid,
 								mcp.component_description, mcp.property_uuid, mcp.property_def_uuid, mcp.property_description,
-								mcp.property_short_description, mcp.v_type_uuid, mcp.val_type, mcp.val_unit,
-								mcp.val_val, mcp.property_actor_uuid, mcp.property_actor_description, mcp.property_status_uuid,
+								mcp.property_short_description, mcp.property_value_type_uuid, mcp.property_value_type_description, mcp.property_value_unit,
+								mcp.property_value, mcp.property_actor_uuid, mcp.property_actor_description, mcp.property_status_uuid,
 								mcp.property_status_description, mcp.add_date, mcp.mod_date
 							FROM
 								vw_material_composite_property mcp
@@ -2851,19 +2852,19 @@ JOIN (
                     mp.material_uuid,
                     json_agg(
                         json_build_object(
-                            'component_property_uuid', mp.property_uuid,
-                            'component_property_def_uuid', mp.property_def_uuid,
-                            'component_property_description', mp.property_description,
-                            'component_property_short_description', mp.property_short_description,
-                            'component_property_val_type', mp.val_type,
-                            'component_property_val', mp.val_val,
-                            'component_property_val_unit', mp.val_unit)) AS mprp
+                            'material_property_uuid', mp.property_uuid,
+                            'material_property_def_uuid', mp.property_def_uuid,
+                            'material_property_description', mp.property_description,
+                            'material_property_short_description', mp.property_short_description,
+                            'material_property_value_type', mp.property_value_type_description,
+                            'material_property_value', mp.property_value,
+                            'material_property_value_unit', mp.property_value_unit)) AS mprp
                 FROM (
                     SELECT
 						mp.property_x_uuid, mp.material_uuid, mp.description, mp.property_uuid, mp.property_def_uuid,
-						mp.property_description, mp.property_short_description, mp.v_type_uuid, mp.val_type,
-						mp.val_unit, mp.val_val, mp.property_actor_uuid, mp.property_actor_description, mp.property_status_uuid,
-						mp.property_status_description, mp.add_date, mp.mod_date
+						mp.property_description, mp.property_short_description, mp.property_value_type_uuid, mp.property_value_type_description,
+						mp.property_value_unit, mp.property_value, mp.property_value_val, mp.property_actor_uuid, mp.property_actor_description, mp.property_status_uuid,
+						mp.property_status_description, mp.property_add_date, mp.property_mod_date
                     FROM
                         vw_material_property mp
                     WHERE
@@ -2895,20 +2896,20 @@ JOIN (
                             cp.material_composite_uuid,
                             json_agg(
                                 json_build_object(
-                                    'component_property_uuid', cp.property_uuid,
-                                    'component_property_def_uuid', cp.property_def_uuid,
-                                    'component_property_description', cp.property_description,
-                                    'component_property_short_description', cp.property_short_description,
-                                    'component_property_val_type', cp.val_type,
-                                    'component_property_val', cp.val_val,
-                                    'component_property_val_unit', cp.val_unit)
-                            ) AS cpp
-                        FROM (
-                            SELECT
+									'component_property_uuid', cp.property_uuid,
+									'component_property_def_uuid', cp.property_def_uuid,
+									'component_property_description', cp.property_description,
+									'component_property_short_description', cp.property_short_description,
+									'component_property_val_type', cp.property_value_type_description,
+									'component_property_val', cp.property_value,
+									'component_property_val_unit', cp.property_value_unit)
+							) AS cpp
+						FROM (
+							SELECT
 								mcp.material_composite_uuid, mcp.composite_uuid, mcp.composite_description, mcp.component_uuid,
 								mcp.component_description, mcp.property_uuid, mcp.property_def_uuid, mcp.property_description,
-								mcp.property_short_description, mcp.v_type_uuid, mcp.val_type, mcp.val_unit,
-								mcp.val_val, mcp.property_actor_uuid, mcp.property_actor_description, mcp.property_status_uuid,
+								mcp.property_short_description, mcp.property_value_type_uuid, mcp.property_value_type_description, mcp.property_value_unit,
+								mcp.property_value, mcp.property_actor_uuid, mcp.property_actor_description, mcp.property_status_uuid,
 								mcp.property_status_description, mcp.add_date, mcp.mod_date
                             FROM
                                 vw_material_composite_property mcp
@@ -3094,8 +3095,8 @@ JOIN (
                         'bom_material_putback_amt_type', bm.putback_amt_type,
                         'bom_material_putback_amt', bm.putback_amt,
                         'bom_material_putback_amt_unit', bm.putback_amt_unit,
-                        'bom_material_property', mp.mprp,
-                        'bom_material_component', mc.mcom)
+                        'bom_material_property', mp.material_property,
+                        'bom_material_composite', mc.mcom)
                     ORDER BY bm.description
                 ) AS bomm
             FROM (SELECT
@@ -3107,38 +3108,17 @@ JOIN (
                 FROM vw_bom_material bm
                 WHERE bm.material_composite_uuid IS NULL) bm
             LEFT JOIN (
-                SELECT
-                    mp.material_uuid,
-                    json_agg(
-                        json_build_object(
-                            'component_property_uuid', mp.property_uuid,
-                            'component_property_def_uuid', mp.property_def_uuid,
-                            'component_property_description', mp.property_description,
-                            'component_property_short_description', mp.property_short_description,
-                            'component_property_val_type', mp.val_type,
-                            'component_property_val', mp.val_val,
-                            'component_property_val_unit', mp.val_unit)) AS mprp
-                FROM (
-                    SELECT
-						mp.property_x_uuid, mp.material_uuid, mp.description, mp.property_uuid, mp.property_def_uuid,
-						mp.property_description, mp.property_short_description, mp.v_type_uuid, mp.val_type,
-						mp.val_unit, mp.val_val, mp.property_actor_uuid, mp.property_actor_description, mp.property_status_uuid,
-						mp.property_status_description, mp.add_date, mp.mod_date
-                    FROM
-                        vw_material_property mp
-                    WHERE
-                        mp.property_x_uuid IS NOT NULL) mp
-                    GROUP BY
-                        mp.material_uuid) mp ON bm.material_uuid = mp.material_uuid
+                    select * from material_property_json ()
+                ) mp ON bm.material_uuid = mp.material_uuid
                 LEFT JOIN (
                     SELECT
                         mc.composite_uuid,
                         json_agg(
                             json_build_object(
-                                'component_uuid', mc.material_composite_uuid,
-                                'component_description', mc.component_description,
-                                'component_addressable', mc.addressable,
-                                'component_property', cp.cpp)
+                                'composite_uuid', mc.material_composite_uuid,
+                                'composite_description', mc.component_description,
+                                'composite_addressable', mc.addressable,
+                                'composite_property', cp.composite_property)
                             ORDER BY mc.component_description
                         ) AS mcom
                     FROM (
@@ -3151,31 +3131,8 @@ JOIN (
                         WHERE
                             mc.material_composite_uuid IS NOT NULL) mc
                     LEFT JOIN (
-                        SELECT
-                            cp.material_composite_uuid,
-                            json_agg(
-                                json_build_object(
-                                    'component_property_uuid', cp.property_uuid,
-                                    'component_property_def_uuid', cp.property_def_uuid,
-                                    'component_property_description', cp.property_description,
-                                    'component_property_short_description', cp.property_short_description,
-                                    'component_property_val_type', cp.val_type,
-                                    'component_property_val', cp.val_val,
-                                    'component_property_val_unit', cp.val_unit)
-                            ) AS cpp
-                        FROM (
-                            SELECT
-								mcp.material_composite_uuid, mcp.composite_uuid, mcp.composite_description, mcp.component_uuid,
-								mcp.component_description, mcp.property_uuid, mcp.property_def_uuid, mcp.property_description,
-								mcp.property_short_description, mcp.v_type_uuid, mcp.val_type, mcp.val_unit,
-								mcp.val_val, mcp.property_actor_uuid, mcp.property_actor_description, mcp.property_status_uuid,
-								mcp.property_status_description, mcp.add_date, mcp.mod_date
-                            FROM
-                                vw_material_composite_property mcp
-                            WHERE
-                                mcp.property_uuid IS NOT NULL
-                        ) cp
-                    GROUP BY cp.material_composite_uuid) cp
+                        select * from material_composite_property_json ()
+                    ) cp
                     ON mc.material_composite_uuid = cp.material_composite_uuid
                 GROUP BY mc.composite_uuid) mc
                 ON bm.material_uuid = mc.composite_uuid
@@ -3297,40 +3254,8 @@ LEFT JOIN (
 ON e.experiment_uuid = p.experiment_uuid
 -- now the outcomes
 LEFT JOIN (
-    SELECT
-        o.experiment_uuid,
-        json_agg(
-            json_build_object(
-                'outcome_uuid', o.outcome_uuid,
-                'outcome_description', o.description,
-                'outcome_measures', om.meas)
-        ) AS outcome_measure
-    FROM vw_outcome o
-    JOIN (
-        SELECT
-            om.outcome_uuid,
-            json_agg(
-                json_build_object(
-                    'outcome_measure_description', om.measure_description,
-                    'outcome_measure_type_uuid', om.measure_type_uuid,
-                    'outcome_measure_type', om.measure_type_description,
-                    'outcome_measure_value_uuid', om.measure_type_uuid,
-                    'outcome_measure_value_val', om.measure_value,
-                    'outcome_measure_value_type_uuid', om.measure_value_type_uuid,
-                    'outcome_measure_value_type_description', om.measure_value_type_description,
-                    'outcome_measure_value', om.measure_value_value,
-                    'outcome_measure_value_unit', om.measure_value_unit,
-                    'outcome_measure_actor_uuid', om.measure_actor_uuid,
-                    'outcome_measure_actor_description', om.measure_actor_description,
-                    'outcome_measure_add_date', om.measure_add_date,
-                    'outcome_measure_mod_date', om.measure_mod_date
-                )
-                    ORDER BY om.measure_description
-            ) AS meas
-        FROM vw_outcome_measure om
-        GROUP BY om.outcome_uuid) om
-    ON o.outcome_uuid = om.outcome_uuid
-    GROUP BY o.experiment_uuid) o
+    select * from experiment_outcome_measure_json ()
+) o
 ON e.experiment_uuid = o.experiment_uuid
 GROUP BY e.experiment_uuid;
 
