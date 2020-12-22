@@ -646,19 +646,44 @@ update vw_parameter set parameter_val = (select put_val (
 
 
 /*
+Name:			upsert_workflow_type()
+Notes:
+*/
+insert into vw_workflow_type (description) values ('workflowtype_test');
+-- delete from vw_workflow_type where workflow_type_uuid = (select workflow_type_uuid from vw_workflow_type where (description = 'workflowtype_test'));
+
+
+/*
+Name:			upsert_workflow()
+Notes:
+*/
+insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid)
+	values (
+		(select workflow_type_uuid from vw_workflow_type where description = 'workflowtype_test'),
+		'workflow_test',
+		(select actor_uuid from vw_actor where description = 'Dev Test123'),
+		null);
+update vw_workflow set status_uuid = (select status_uuid from vw_status where description = 'dev_test') where description = 'workflow_test';
+
+
+
+
+/*
 Name:			upsert_action()                     
 Notes:          
 */
-insert into vw_action (action_def_uuid, action_description, status_uuid)
+insert into vw_action (action_def_uuid, workflow_uuid, action_description, status_uuid)
 	values (
-    	(select action_def_uuid from vw_action_def where description = 'heat_stir'), 
+    	(select action_def_uuid from vw_action_def where description = 'heat_stir'),
+	    (select workflow_uuid from vw_workflow where description = 'workflow_test'),
         'example_heat_stir',
         (select status_uuid from vw_status where description = 'dev_test'));
 update vw_action set actor_uuid = (select actor_uuid from vw_actor where description = 'Dev Test123')
 	where action_description = 'example_heat_stir';
-insert into vw_action (action_def_uuid, action_description, actor_uuid, status_uuid)
+insert into vw_action (action_def_uuid, workflow_uuid, action_description, actor_uuid, status_uuid)
 	values (
-    	(select action_def_uuid from vw_action_def where description = 'heat'), 
+    	(select action_def_uuid from vw_action_def where description = 'heat'),
+	    (select workflow_uuid from vw_workflow where description = 'workflow_test'),
         'example_heat',
         (select actor_uuid from vw_actor where description = 'Dev Test123'),
         (select status_uuid from vw_status where description = 'dev_test'));
@@ -689,14 +714,6 @@ delete from vw_action_parameter_def_assign
     			where description in ('speed', 'duration', 'temperature'));
 delete from vw_action_def where description in ('heat_stir', 'heat');
 delete from vw_parameter_def where description in ('duration', 'speed', 'temperature');
-
-
-/*
-Name:			upsert_workflow_type()
-Notes:				
-*/ 
-insert into vw_workflow_type (description) values ('workflowtype_test');
-delete from vw_workflow_type where workflow_type_uuid = (select workflow_type_uuid from vw_workflow_type where (description = 'workflowtype_test'));
 
 
 
@@ -754,27 +771,15 @@ update vw_experiment set status_uuid = (select status_uuid from vw_status where 
 
 
 /*
-Name:			upsert_workflow()
-Notes:
-*/
-insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid) 
-	values (
-		(select workflow_type_uuid from vw_workflow_type where description = 'workflow_def_test'),
-		'workflow_test',
-		(select actor_uuid from vw_actor where description = 'Dev Test123'),
-		null);
-update vw_workflow set status_uuid = (select status_uuid from vw_status where description = 'dev_test') where description = 'workflow_test'; 
-
-
-/*
 Name:			upsert_experiment_workflow()
 Notes:
 */
+
 insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid) 
 	values (
 		1, 
 		(select experiment_uuid from vw_experiment where description = 'test_experiment'),
-		(select workflow_uuid from vw_workflow where description = 'test_workflow'));
+		(select workflow_uuid from vw_workflow where description = 'workflow_test'));
 delete from vw_experiment_workflow 
  		where experiment_uuid = (select experiment_uuid from vw_experiment where description = 'test_experiment');
 
@@ -841,6 +846,7 @@ delete from vw_bom_material where inventory_material_uuid = (select inventory_ma
 delete from vw_bom where description = 'test_bom';
 delete from vw_inventory_material where description = 'Water';
 delete from vw_workflow where description = 'workflow_test' ;
+delete from vw_workflow_type where description = 'workflowtype_test';
 delete from vw_experiment where description = 'test_experiment';
 delete from vw_inventory where description = 'test_inventory';
 
@@ -1611,6 +1617,7 @@ values ('dispense action_set',
                 bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%B2%')],
         (select actor_uuid from vw_actor where description = 'Ion Bond'),
         (select status_uuid from vw_status where description = 'dev_test'));
+
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
                                     parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
@@ -1625,7 +1632,7 @@ values ('dispense action_set',
         null,
         (select calculation_uuid from vw_calculation where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
  --       (select arr_val_2_val_arr ((select out_val from vw_calculation where short_name = 'LANL_WF1_H2O_5mL_concentration'))),
-        array [(select bom_material_uuid from vw_bom_material where description = 'HCl-12M')],
+        (select array [(select bom_material_uuid from vw_bom_material where description = 'HCl-12M')]),
         (select array(select bom_material_uuid from vw_bom_material where bom_material_composite_description = 'Sample Prep Plate'
             and bom_material_description similar to '%(A1|A2|A3|A4|A5|A6|B1|B2)%')),
         (select actor_uuid from vw_actor where description = 'Ion Bond'),
@@ -1691,3 +1698,5 @@ insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('quick assessm
     (select measure_uuid from vw_measure where
         measure_def_description = 'sample color' and measure_value_value = 'green to green-yellow'
         and actor_description = 'Ion Bond'));
+
+

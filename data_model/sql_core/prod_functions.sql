@@ -1968,4 +1968,45 @@ $$
 LANGUAGE plpgsql;
 
 
+/*
+Name:			action_parameter_json ()
+Parameters:
+Returns:		table (object_uuid uuid, action_parameter json)
+Author:			G. Cattabriga
+Date:			2020.12.20
+Description:	returns table (action_uuid uuid, action_parameter json) of ALL material_composites
+Notes:
+Example:		select * from action_parameter_json ();
+*/
+-- DROP FUNCTION IF EXISTS action_parameter_json () cascade;
+CREATE OR REPLACE FUNCTION action_parameter_json ()
+	RETURNS table (object_uuid uuid, action_parameter json)
+	AS $$
+BEGIN
+    RETURN QUERY
+        SELECT p.action_uuid as object_uuid,
+            json_agg(json_build_object(
+                'parameter_def_uuid', p.parameter_def_uuid,
+                'parameter_def_description', p.parameter_def_description,
+                --'parameter_value_val', p.parameter_val,
+                --'parameter_value_type_uuid', p.val_type_uuid,
+                'parameter_value_type_description', p.val_type_description,
+                'parameter_value', p.parameter_value,
+                'parameter_unit', p.valunit,
+                --'parameter_actor_uuid', p.parameter_actor_uuid,
+                --'parameter_actor_description', p.parameter_actor_description,
+                --'parameter_status_uuid', p.parameter_status_uuid,
+                --'parameter_actor_description', p.parameter_status_description,
+                --'parameter_add_date', p.parameter_add_date,
+                --'parameter_mod_date', p.parameter_mod_date,
+                'parameter_tags', p.parameter_tags,
+                'parameter_notes', p.parameter_notes
+            )) AS action_parameter
+        FROM vw_action_parameter p
+        GROUP BY p.action_uuid;
+END;
+$$
+LANGUAGE plpgsql;
+
+
 

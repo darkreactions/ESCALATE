@@ -1060,8 +1060,8 @@ SELECT
     atag.tag_to_array AS tags,
     anote.note_to_array AS notes
 FROM material_composite mc
-LEFT JOIN material m0 ON mc.composite_uuid = m0.material_uuid
-LEFT JOIN material m1 ON mc.component_uuid = m1.material_uuid
+JOIN material m0 ON mc.composite_uuid = m0.material_uuid
+JOIN material m1 ON mc.component_uuid = m1.material_uuid
 LEFT JOIN vw_actor act ON mc.actor_uuid = act.actor_uuid
 LEFT JOIN vw_status sts ON mc.status_uuid = sts.status_uuid
 LEFT JOIN LATERAL (select * from tag_to_array (material_composite_uuid)) atag ON true
@@ -1315,7 +1315,7 @@ SELECT
     atag.tag_to_array AS tags,
     anote.note_to_array AS notes
 FROM property pr
-LEFT JOIN vw_property_def pd on pr.property_def_uuid = pd.property_def_uuid
+JOIN vw_property_def pd on pr.property_def_uuid = pd.property_def_uuid
 LEFT JOIN vw_actor act on pd.actor_uuid = act.actor_uuid
 LEFT JOIN vw_status st on pd.status_uuid = st.status_uuid
 LEFT JOIN LATERAL (select * from tag_to_array (property_uuid)) atag ON true
@@ -1356,9 +1356,9 @@ SELECT
     pr.tags as property_tags,
     pr.notes as property_notes
 FROM vw_material mat
-LEFT JOIN property_x px on mat.material_uuid = px.material_uuid
-LEFT JOIN vw_property pr on px.property_uuid = pr.property_uuid
-LEFT JOIN property_def pd on pr.property_def_uuid = pd.property_def_uuid
+JOIN property_x px on mat.material_uuid = px.material_uuid
+JOIN vw_property pr on px.property_uuid = pr.property_uuid
+JOIN property_def pd on pr.property_def_uuid = pd.property_def_uuid
 LEFT JOIN vw_actor act on pr.actor_uuid = act.actor_uuid
 LEFT JOIN vw_status st on pr.status_uuid = st.status_uuid
 LEFT JOIN LATERAL (select * from get_val (pr.property_val)) vl ON true;
@@ -1400,8 +1400,8 @@ SELECT
     pr.notes as property_notes
 FROM vw_material_composite mc
 JOIN property_x px ON mc.material_composite_uuid = px.material_uuid
-LEFT JOIN vw_property pr ON px.property_uuid = pr.property_uuid
-LEFT JOIN vw_property_def pd ON pr.property_def_uuid = pd.property_def_uuid
+JOIN vw_property pr ON px.property_uuid = pr.property_uuid
+JOIN vw_property_def pd ON pr.property_def_uuid = pd.property_def_uuid
 LEFT JOIN vw_actor act ON pr.actor_uuid = act.actor_uuid
 LEFT JOIN vw_status st ON pr.status_uuid = st.status_uuid
 LEFT JOIN LATERAL ( SELECT get_val.val_type, get_val.val_unit, get_val.val_val FROM get_val(pr.property_val) get_val(val_type, val_unit, val_val)) vl ON true;
@@ -1473,8 +1473,8 @@ SELECT
     i.notes as inventory_notes
 FROM
 	inventory_material inv
-LEFT JOIN vw_inventory i ON inv.inventory_uuid = i.inventory_uuid
-LEFT JOIN vw_material mat ON inv.material_uuid = mat.material_uuid
+JOIN vw_inventory i ON inv.inventory_uuid = i.inventory_uuid
+JOIN vw_material mat ON inv.material_uuid = mat.material_uuid
 LEFT JOIN actor act ON inv.actor_uuid = act.actor_uuid
 LEFT JOIN status st ON inv.status_uuid = st.status_uuid;
 
@@ -1517,7 +1517,7 @@ SELECT
 	mat.smiles AS material_smiles
 FROM
 	inventory_material inv
-LEFT JOIN vw_inventory i ON inv.inventory_uuid = i.inventory_uuid
+JOIN vw_inventory i ON inv.inventory_uuid = i.inventory_uuid
 LEFT JOIN vw_material_refname mat ON inv.material_uuid = mat.material_uuid
 LEFT JOIN vw_actor act ON inv.actor_uuid = act.actor_uuid
 LEFT JOIN status st ON inv.status_uuid = st.status_uuid;
@@ -1542,7 +1542,7 @@ SELECT
     anote.note_to_array AS notes
 FROM
 	bom b
-LEFT JOIN vw_experiment exp ON b.experiment_uuid = exp.experiment_uuid
+JOIN vw_experiment exp ON b.experiment_uuid = exp.experiment_uuid
 LEFT JOIN vw_actor act ON b.actor_uuid = act.actor_uuid
 LEFT JOIN status st ON b.status_uuid = st.status_uuid
 LEFT JOIN LATERAL (select * from tag_to_array (bom_uuid)) atag ON true
@@ -1607,10 +1607,10 @@ SELECT
     b.tags as bom_tags,
     b.notes as bom_notes
 FROM bom_material bm
-LEFT JOIN vw_bom b ON bm.bom_uuid = b.bom_uuid
-LEFT JOIN vw_inventory_material_material i ON bm.inventory_material_uuid = i.inventory_material_uuid
+JOIN vw_bom b ON bm.bom_uuid = b.bom_uuid
+JOIN vw_inventory_material_material i ON bm.inventory_material_uuid = i.inventory_material_uuid
 LEFT JOIN vw_material_composite mc ON bm.material_composite_uuid = mc.material_composite_uuid
-LEFT JOIN vw_experiment exp ON b.experiment_uuid = exp.experiment_uuid
+JOIN vw_experiment exp ON b.experiment_uuid = exp.experiment_uuid
 LEFT JOIN vw_actor act ON bm.actor_uuid = act.actor_uuid
 LEFT JOIN vw_status st ON bm.status_uuid = st.status_uuid
 LEFT JOIN LATERAL (SELECT get_val.val_type, get_val.val_unit, get_val.val_val FROM get_val (bm.alloc_amt_val) get_val (val_type, val_unit, val_val)) aa ON TRUE
@@ -1647,7 +1647,7 @@ SELECT
     atag.tag_to_array AS tags,
     anote.note_to_array AS notes
 FROM parameter_def pd
-LEFT JOIN vw_actor act ON pd.actor_uuid = act.actor_uuid
+LEFT JOIN actor act ON pd.actor_uuid = act.actor_uuid
 LEFT JOIN status st ON pd.status_uuid = st.status_uuid
 LEFT JOIN type_def td ON ( pd.default_val ).v_type_uuid = td.type_def_uuid
 LEFT JOIN LATERAL (select * from tag_to_array (parameter_def_uuid)) atag ON true
@@ -1670,6 +1670,8 @@ SELECT
 	pr.parameter_def_uuid,
 	pd.description as parameter_def_description,
 	pr.parameter_val,
+    (select val_val from get_val ( pr.parameter_val )) AS parameter_value,
+    pd.val_type_uuid,
     pd.val_type_description,
     pd.valunit,
 	pr.actor_uuid,
@@ -1684,8 +1686,8 @@ SELECT
 	px.parameter_x_uuid
 
 FROM parameter pr
-LEFT JOIN vw_parameter_def pd on pr.parameter_def_uuid = pd.parameter_def_uuid
-LEFT JOIN parameter_x px on pr.parameter_uuid = px.parameter_uuid
+JOIN vw_parameter_def pd on pr.parameter_def_uuid = pd.parameter_def_uuid
+JOIN parameter_x px on pr.parameter_uuid = px.parameter_uuid
 LEFT JOIN actor act on pr.actor_uuid = act.actor_uuid
 LEFT JOIN status st on pd.status_uuid = st.status_uuid
 LEFT JOIN LATERAL (select * from tag_to_array (pr.parameter_uuid)) atag ON true
@@ -1798,7 +1800,7 @@ SELECT
     atag.tag_to_array AS tags,
     anote.note_to_array AS notes
 FROM action_def ad
-LEFT JOIN vw_actor act ON ad.actor_uuid = act.actor_uuid
+LEFT JOIN actor act ON ad.actor_uuid = act.actor_uuid
 LEFT JOIN status st ON ad.status_uuid = st.status_uuid
 LEFT JOIN LATERAL (select * from tag_to_array (action_def_uuid)) atag ON true
 LEFT JOIN LATERAL (select * from note_to_array (action_def_uuid)) anote ON true;
@@ -1838,10 +1840,10 @@ EXECUTE PROCEDURE upsert_action_def ( );
      pd.add_date as parameter_add_date,
      pd.mod_date as parameter_mod_date
  FROM action_def ad
- LEFT JOIN vw_actor act ON ad.actor_uuid = act.actor_uuid
- LEFT JOIN action_parameter_def_x ap ON ad.action_def_uuid = ap.action_def_uuid
- LEFT JOIN vw_parameter_def pd ON ap.parameter_def_uuid = pd.parameter_def_uuid
- LEFT JOIN status st ON ad.status_uuid = st.status_uuid;
+LEFT JOIN actor act ON ad.actor_uuid = act.actor_uuid
+LEFT JOIN action_parameter_def_x ap ON ad.action_def_uuid = ap.action_def_uuid
+LEFT JOIN vw_parameter_def pd ON ap.parameter_def_uuid = pd.parameter_def_uuid
+LEFT JOIN status st ON ad.status_uuid = st.status_uuid;
 
 
 ----------------------------------------
@@ -1874,8 +1876,8 @@ SELECT
     atag.tag_to_array AS tags,
     anote.note_to_array AS notes
 FROM action act
-LEFT JOIN vw_workflow wf ON act.workflow_uuid = wf.workflow_uuid
-LEFT JOIN vw_action_def ad ON act.action_def_uuid = ad.action_def_uuid
+JOIN vw_workflow wf ON act.workflow_uuid = wf.workflow_uuid
+JOIN vw_action_def ad ON act.action_def_uuid = ad.action_def_uuid
 LEFT JOIN vw_bom_material bms ON act.source_material_uuid = bms.bom_material_uuid
 LEFT JOIN vw_bom_material bmd ON act.destination_material_uuid = bmd.bom_material_uuid
 LEFT JOIN vw_actor actor ON act.actor_uuid = actor.actor_uuid
@@ -1894,7 +1896,7 @@ EXECUTE PROCEDURE upsert_action ( );
 ----------------------------------------
  -- view action_parameter_def_json
 ----------------------------------------
-CREATE OR REPLACE VIEW vw_action_parameter_def_json AS
+CREATE OR REPLACE VIEW action_parameter_def_json AS
 SELECT 
 	json_build_object('action_def', 
 		json_agg(
@@ -1961,30 +1963,37 @@ CREATE OR REPLACE VIEW vw_action_parameter AS
 SELECT
 	a.action_uuid,
 	a.action_def_uuid,
-	a.action_description,
-	a.action_def_description,
+	a.description as action_description,
+	ad.description as action_def_description,
 	a.actor_uuid as action_actor_uuid,
 	acta.description as action_actor_description,
 	a.status_uuid as action_status_uuid,
 	sta.description as action_status_description,
 	a.add_date as action_add_date,
 	a.mod_date as action_mod_date,
-	p.parameter_uuid,	
+	p.parameter_uuid,
 	p.parameter_def_uuid,
 	p.parameter_def_description,
 	p.parameter_val,
+    p.val_type_uuid,
+    p.val_type_description,
+    p.parameter_value,
+    p.valunit,
 	p.actor_uuid as parameter_actor_uuid,
 	actp.description as parameter_actor_description,
 	p.status_uuid as parameter_status_uuid,
-	stp.description as parameter_status_description,	
+	stp.description as parameter_status_description,
 	p.add_date as parameter_add_date,
-	p.mod_date as parameter_mod_date
-FROM vw_action a
-LEFT JOIN vw_actor acta ON a.actor_uuid = acta.actor_uuid
-LEFT JOIN vw_status sta  ON a.status_uuid = sta.status_uuid
-LEFT JOIN vw_parameter p ON a.action_uuid = p.ref_parameter_uuid
-LEFT JOIN vw_actor actp ON p.actor_uuid = actp.actor_uuid
-LEFT JOIN vw_status stp  ON p.status_uuid = stp.status_uuid;
+	p.mod_date as parameter_mod_date,
+    p.tags as parameter_tags,
+    p.notes as parameter_notes
+FROM action a
+JOIN action_def ad ON a.action_def_uuid = ad.action_def_uuid
+LEFT JOIN actor acta ON a.actor_uuid = acta.actor_uuid
+LEFT JOIN status sta  ON a.status_uuid = sta.status_uuid
+JOIN vw_parameter p ON a.action_uuid = p.ref_parameter_uuid
+LEFT JOIN actor actp ON p.actor_uuid = actp.actor_uuid
+LEFT JOIN status stp  ON p.status_uuid = stp.status_uuid;
 
 DROP TRIGGER IF EXISTS trigger_action_parameter_upsert ON vw_action_parameter;
 CREATE TRIGGER trigger_action_parameter_upsert INSTEAD OF INSERT
@@ -2252,17 +2261,18 @@ SELECT
 		else 'node'
 	end as object_type,
 	CASE
-		when wo.action_uuid is not null then a.action_description
+		when wo.action_uuid is not null then a.description
 		when wo.condition_uuid is not null then c.condition_description
 	end as object_description,	
 	CASE
-		when wo.action_uuid is not null then a.action_def_description
+		when wo.action_uuid is not null then ad.description
 		when wo.condition_uuid is not null then c.calculation_description
 	end as object_def_description,
 	wo.add_date,
 	wo.mod_date
 FROM workflow_object wo
-LEFT JOIN vw_action a ON wo.action_uuid = a.action_uuid
+LEFT JOIN action a ON wo.action_uuid = a.action_uuid
+JOIN action_def ad ON a.action_def_uuid = ad.action_def_uuid
 LEFT JOIN vw_condition c ON wo.condition_uuid = c.condition_uuid
 LEFT JOIN vw_condition_calculation_def_assign cc ON c.condition_calculation_def_x_uuid = cc.condition_calculation_def_x_uuid
 LEFT JOIN vw_status st ON wo.status_uuid = st.status_uuid;
@@ -2287,7 +2297,7 @@ SELECT
 	ws.parent_uuid,
 	wfo.object_type as parent_object_type,
 	wfo.object_description as parent_object_description,
-	ws.parent_path,	
+	ws.parent_path,
 	cp.condition_out_val as conditional_val,
 	(select val_val from get_val ( cp.condition_out_val )) AS conditional_value,
 	ws.status_uuid,
@@ -2305,9 +2315,9 @@ FROM workflow_step ws
 LEFT JOIN workflow_step ws2 ON ws.parent_uuid = ws2.workflow_step_uuid
 LEFT JOIN vw_workflow_object wfo ON ws2.workflow_object_uuid = wfo.workflow_object_uuid
 LEFT JOIN vw_condition_path cp ON ws.workflow_step_uuid = cp.workflow_step_uuid
-LEFT JOIN vw_workflow wf ON ws.workflow_uuid = wf.workflow_uuid
+JOIN workflow wf ON ws.workflow_uuid = wf.workflow_uuid
 LEFT JOIN vw_workflow_object wo ON ws.workflow_object_uuid = wo.workflow_object_uuid
-LEFT JOIN vw_status st ON ws.status_uuid = st.status_uuid;
+LEFT JOIN status st ON ws.status_uuid = st.status_uuid;
 
 DROP TRIGGER IF EXISTS trigger_workflow_step_upsert ON vw_workflow_step;
 CREATE TRIGGER trigger_workflow_step_upsert INSTEAD OF INSERT
@@ -2337,7 +2347,7 @@ SELECT
 	pd.description as parameter_def_description,
 	was.parameter_val,	
 	was.calculation_uuid,
-	cd.description as calculation_description,
+	cdd.description as calculation_description,
 	was.source_material_uuid,
 	was.destination_material_uuid, 
 	was.actor_uuid,
@@ -2348,11 +2358,12 @@ SELECT
 	was.mod_date
 FROM
 	workflow_action_set was
-LEFT JOIN vw_workflow wf ON was.workflow_uuid = wf.workflow_uuid
-LEFT JOIN vw_action_def ad ON was.action_def_uuid = ad.action_def_uuid
-LEFT JOIN vw_parameter_def pd ON was.parameter_def_uuid = pd.parameter_def_uuid
-LEFT JOIN vw_calculation cd ON was.calculation_uuid = cd.calculation_uuid
-LEFT JOIN vw_actor act ON was.actor_uuid = act.actor_uuid
+LEFT JOIN workflow wf ON was.workflow_uuid = wf.workflow_uuid
+LEFT JOIN action_def ad ON was.action_def_uuid = ad.action_def_uuid
+LEFT JOIN parameter_def pd ON was.parameter_def_uuid = pd.parameter_def_uuid
+LEFT JOIN calculation cd ON was.calculation_uuid = cd.calculation_uuid
+JOIN calculation_def cdd ON cd.calculation_def_uuid = cdd.calculation_def_uuid
+LEFT JOIN actor act ON was.actor_uuid = act.actor_uuid
 LEFT JOIN status st ON was.status_uuid = st.status_uuid;
 
 DROP TRIGGER IF EXISTS trigger_workflow_action_set_upsert ON vw_workflow_action_set;
@@ -3212,8 +3223,7 @@ LEFT JOIN (
 					n.conditional_val, 'workflow_conditional_value',
 					n.conditional_value, 'workflow_step_status_uuid',
 					n.status_uuid, 'workflow_step_status_description',
-					n.status_description, 'object',
-					wo.wfs)
+					n.status_description, 'object', wo.wfs)
 			) AS wfso
 		FROM (
 			SELECT
@@ -3233,18 +3243,12 @@ LEFT JOIN (
 						'object_type', ws.object_type,
 						'object_description', ws.object_description,
 						'object_def_description', ws.object_def_description,
-						'object_parameters',op.param)
+						'object_parameters',op.action_parameter)
 				) AS wfs
 			FROM vw_workflow_step ws
 				JOIN (
-					SELECT
-						p.action_uuid AS object_uuid,
-						json_agg(json_build_object(
-							'parameter_def_description', p.parameter_def_description,
-							'parameter_def_uuid', p.parameter_def_uuid,
-							'parameter_value', (SELECT get_val_json (p.parameter_val) AS get_val_json))) AS param
-					FROM vw_action_parameter p
-					GROUP BY p.action_uuid) op
+				    select * from action_parameter_json ()
+			) op
 				ON ws.object_uuid = op.object_uuid
 			    GROUP BY ws.workflow_step_uuid) wo
 		ON n.workflow_step_uuid = wo.workflow_step_uuid

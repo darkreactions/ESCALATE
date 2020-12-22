@@ -3357,7 +3357,7 @@ BEGIN
 					EXIT;
 				END IF;
 			END LOOP; 
-		END IF;	
+		END IF;
 		RETURN NEW;
 	END IF;
 END;

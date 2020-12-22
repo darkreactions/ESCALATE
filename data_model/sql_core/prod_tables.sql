@@ -210,8 +210,8 @@ CREATE TYPE val AS (
 --======================================================================
 CREATE TABLE action (
 	action_uuid uuid DEFAULT uuid_generate_v4 (),
-	action_def_uuid uuid,
-	workflow_uuid uuid,
+	action_def_uuid uuid NOT NULL,
+	workflow_uuid uuid NOT NULL,
 	description varchar COLLATE "pg_catalog"."default" NOT NULL,
 	start_date timestamptz,
 	end_date timestamptz,
@@ -976,6 +976,9 @@ CREATE INDEX "ix_sys_audit_action" ON sys_audit (action);
 
 ALTER TABLE action
 	ADD CONSTRAINT "pk_action_action_uuid" PRIMARY KEY (action_uuid);
+CREATE INDEX "ix_action_action_def" ON action (action_def_uuid);
+CREATE INDEX "ix_action_workflow" ON action (workflow_uuid);
+CREATE INDEX "ix_action_ref_parameter" ON action (ref_parameter_uuid);
 CLUSTER action
 USING "pk_action_action_uuid";
 
@@ -990,6 +993,8 @@ USING "pk_action_def_action_def_uuid";
  ALTER TABLE action_parameter_def_x
  	ADD CONSTRAINT "pk_action_parameter_def_x_action_parameter_def_x_uuid" PRIMARY KEY (action_parameter_def_x_uuid),
  		ADD CONSTRAINT "un_action_parameter_def_x_def" UNIQUE (parameter_def_uuid, action_def_uuid);
+CREATE INDEX "ix_action_parameter_def_x_parameter_def" ON action_parameter_def_x (parameter_def_uuid);
+CREATE INDEX "ix_action_parameter_def_x_action_def" ON action_parameter_def_x (action_def_uuid);
  CLUSTER action_parameter_def_x
  USING "pk_action_parameter_def_x_action_parameter_def_x_uuid";
 
@@ -998,6 +1003,9 @@ ALTER TABLE actor
     ADD CONSTRAINT "pk_actor_uuid" PRIMARY KEY (actor_uuid);
 CREATE UNIQUE INDEX "un_actor" ON actor (COALESCE(person_uuid, NULL), COALESCE(organization_uuid, NULL),
                                          COALESCE(systemtool_uuid, NULL));
+CREATE INDEX "ix_actor_person" ON actor (person_uuid);
+CREATE INDEX "ix_actor_organization" ON actor (organization_uuid);
+CREATE INDEX "ix_actor_systemtool" ON actor (systemtool_uuid);
 CLUSTER actor
     USING "pk_actor_uuid";
 
@@ -1018,6 +1026,9 @@ USING "pk_bom_bom_uuid";
 ALTER TABLE bom_material
 	ADD CONSTRAINT "pk_bom_material_bom_material_uuid" PRIMARY KEY (bom_material_uuid);
 CREATE INDEX "ix_bom_material_bom_uuid" ON bom_material (bom_uuid);
+CREATE INDEX "ix_bom_material_bom_material_composite" ON bom_material (bom_material_composite_uuid);
+CREATE INDEX "ix_bom_material_inventory_material" ON bom_material (inventory_material_uuid);
+CREATE INDEX "ix_bom_material_material_composite" ON bom_material (material_composite_uuid);
 CLUSTER bom_material
 USING "pk_bom_material_bom_material_uuid";
 
@@ -1025,6 +1036,7 @@ USING "pk_bom_material_bom_material_uuid";
 ALTER TABLE calculation
 	ADD CONSTRAINT "pk_calculation_calculation_uuid" PRIMARY KEY (calculation_uuid),
 		ADD CONSTRAINT "un_calculation" UNIQUE (calculation_def_uuid, in_val, in_opt_val);
+CREATE INDEX "ix_calculation_calculation_def" ON calculation (calculation_def_uuid);
 CLUSTER calculation
 USING "pk_calculation_calculation_uuid";
 
@@ -1052,12 +1064,15 @@ USING "pk_calculation_eval_calculation_eval_id";
  ALTER TABLE calculation_parameter_def_x
  	ADD CONSTRAINT "pk_calculation_parameter_def_x_calculation_parameter_def_x_uuid" PRIMARY KEY (calculation_parameter_def_x_uuid),
  		ADD CONSTRAINT "un_calculation_parameter_def_x_def" UNIQUE (parameter_def_uuid, calculation_def_uuid);
+CREATE INDEX "ix_calculation_parameter_def_x_parameter_def" ON calculation_parameter_def_x (parameter_def_uuid);
+CREATE INDEX "ix_calculation_parameter_def_x_calculation_def" ON calculation_parameter_def_x (calculation_def_uuid);
  CLUSTER calculation_parameter_def_x
  USING "pk_calculation_parameter_def_x_calculation_parameter_def_x_uuid";
 
 
 ALTER TABLE condition
 	ADD CONSTRAINT "pk_condition_condition_uuid" PRIMARY KEY (condition_uuid);
+CREATE INDEX "ix_condition_condition_calculation_def_x" ON condition (condition_calculation_def_x_uuid);
 CLUSTER condition
 USING "pk_condition_condition_uuid";
 
@@ -1072,6 +1087,8 @@ USING "pk_condition_def_condition_def_uuid";
 ALTER TABLE condition_calculation_def_x
  	ADD CONSTRAINT "pk_condition_calculation_def_x_condition_calculation_def_x_uuid" PRIMARY KEY (condition_calculation_def_x_uuid),
  		ADD CONSTRAINT "un_condition_calculation_def_x" UNIQUE (condition_def_uuid, calculation_def_uuid);
+CREATE INDEX "ix_condition_calculation_def_x_condition_def" ON condition_calculation_def_x (condition_def_uuid);
+CREATE INDEX "ix_condition_calculation_def_x_calculation_def" ON condition_calculation_def_x (calculation_def_uuid);
 CLUSTER condition_calculation_def_x
 USING "pk_condition_calculation_def_x_condition_calculation_def_x_uuid";
 
@@ -1093,6 +1110,8 @@ USING "pk_edocument_edocument_uuid";
 ALTER TABLE edocument_x
 	ADD CONSTRAINT "pk_edocument_x_edocument_x_uuid" PRIMARY KEY (edocument_x_uuid),
 		ADD CONSTRAINT "un_edocument_x" UNIQUE (ref_edocument_uuid, edocument_uuid);
+CREATE INDEX "ix_edocument_x_ref_edocument" ON edocument_x (ref_edocument_uuid);
+CREATE INDEX "ix_edocument_x_edocument" ON edocument_x (edocument_uuid);
 CLUSTER edocument_x
 USING "pk_edocument_x_edocument_x_uuid";
 
@@ -1108,6 +1127,8 @@ USING "pk_experiment_experiment_uuid";
 
 ALTER TABLE experiment_workflow
 	ADD CONSTRAINT "pk_experiment_workflow_uuid" PRIMARY KEY (experiment_workflow_uuid);
+CREATE INDEX "ix_experiment_workflow_experiment" ON experiment_workflow (experiment_uuid);
+CREATE INDEX "ix_experiment_workflow_workflow" ON experiment_workflow (workflow_uuid);
 CLUSTER experiment_workflow
 USING "pk_experiment_workflow_uuid";
 
@@ -1121,6 +1142,8 @@ USING "pk_inventory_inventory_uuid";
 ALTER TABLE inventory_material
 	ADD CONSTRAINT "pk_inventory_material_inventory_material_uuid" PRIMARY KEY (inventory_material_uuid),
 		ADD CONSTRAINT "un_inventory_material" UNIQUE (material_uuid, actor_uuid, add_date);
+CREATE INDEX "ix_inventory_inventory" ON inventory_material (inventory_uuid);
+CREATE INDEX "ix_inventory_material" ON inventory_material (material_uuid);
 CLUSTER inventory_material
 USING "pk_inventory_material_inventory_material_uuid";
 
@@ -1155,6 +1178,8 @@ USING "pk_material_refname_def_material_refname_def_uuid";
 ALTER TABLE material_refname_x
 	ADD CONSTRAINT "pk_material_refname_x_material_refname_x_uuid" PRIMARY KEY (material_refname_x_uuid),
 		ADD CONSTRAINT "un_material_refname_x" UNIQUE (material_uuid, material_refname_uuid);
+CREATE INDEX "ix_material_refname_x_material" ON material_refname_x (material_uuid);
+CREATE INDEX "ix_material_refname_x_material_refname" ON material_refname_x (material_refname_uuid);
 CLUSTER material_refname_x
 USING "pk_material_refname_x_material_refname_x_uuid";
 
@@ -1176,6 +1201,8 @@ USING "pk_material_type_x_material_type_x_uuid";
 ALTER TABLE material_x
 	ADD CONSTRAINT "pk_material_x_material_x_uuid" PRIMARY KEY (material_x_uuid),
 		ADD CONSTRAINT "un_material_x" UNIQUE (material_uuid, ref_material_uuid);
+CREATE INDEX "ix_material_x_material" ON material_x (material_uuid);
+CREATE INDEX "ix_material_x_ref_material" ON material_x (ref_material_uuid);
 CLUSTER material_x
 USING "pk_material_x_material_x_uuid";
 
@@ -1183,6 +1210,7 @@ USING "pk_material_x_material_x_uuid";
 ALTER TABLE measure
 	ADD CONSTRAINT "pk_measure_measure_uuid" PRIMARY KEY (measure_uuid),
 		ADD CONSTRAINT "un_measure" UNIQUE (measure_uuid);
+CREATE INDEX "ix_measure_measure_def" ON measure (measure_def_uuid);
 CLUSTER measure
 USING "pk_measure_measure_uuid";
 
@@ -1203,6 +1231,8 @@ USING "pk_measure_type_measure_type_uuid";
 ALTER TABLE measure_x
 	ADD CONSTRAINT "pk_measure_x_measure_x_uuid" PRIMARY KEY (measure_x_uuid),
 		ADD CONSTRAINT "un_measure_x" UNIQUE (ref_measure_uuid, measure_uuid);
+CREATE INDEX "ix_measure_x_ref_measure" ON measure_x (ref_measure_uuid);
+CREATE INDEX "ix_measure_x_measure" ON measure_x (measure_uuid);
 CLUSTER measure_x
 USING "pk_measure_x_measure_x_uuid";
 
@@ -1216,6 +1246,8 @@ USING "pk_note_note_uuid";
 ALTER TABLE note_x
 	ADD CONSTRAINT "pk_note_x_note_x_uuid" PRIMARY KEY (note_x_uuid),
 		ADD CONSTRAINT "un_note_x" UNIQUE (ref_note_uuid, note_uuid);
+CREATE INDEX "ix_note_x_ref_note" ON note_x (ref_note_uuid);
+CREATE INDEX "ix_note_x_note" ON note_x (note_uuid);
 CLUSTER note_x
 USING "pk_note_x_note_x_uuid";
 
@@ -1239,6 +1271,7 @@ USING "pk_outcome_outcome_uuid";
 
 ALTER TABLE parameter
 	ADD CONSTRAINT "pk_parameter_parameter_uuid" PRIMARY KEY (parameter_uuid);
+CREATE INDEX "ix_parameter_parameter_def" ON parameter (parameter_def_uuid);
 CLUSTER parameter
 USING "pk_parameter_parameter_uuid";
 
@@ -1253,6 +1286,8 @@ USING "pk_parameter_def_parameter_def_uuid";
 ALTER TABLE parameter_x
 	ADD CONSTRAINT "pk_parameter_x_parameter_x_uuid" PRIMARY KEY (parameter_x_uuid),
 		ADD CONSTRAINT "un_parameter_x_def" UNIQUE (ref_parameter_uuid, parameter_uuid);
+CREATE INDEX "ix_parameter_x_ref_parameter" ON parameter_x (ref_parameter_uuid);
+CREATE INDEX "ix_parameter_x_parameter" ON parameter_x (parameter_uuid);
 CLUSTER parameter_x
 USING "pk_parameter_x_parameter_x_uuid";
 
@@ -1267,6 +1302,7 @@ CLUSTER person
 
 ALTER TABLE property
 	ADD CONSTRAINT "pk_property_property_uuid" PRIMARY KEY (property_uuid);
+CREATE INDEX "ix_property_property_def" ON property (property_def_uuid);
 CLUSTER property
 USING "pk_property_property_uuid";
 
@@ -1281,6 +1317,8 @@ USING "pk_property_def_property_def_uuid";
 ALTER TABLE property_x
 	ADD CONSTRAINT "pk_property_x_property_x_uuid" PRIMARY KEY (property_x_uuid),
 		ADD CONSTRAINT "un_property_x_def" UNIQUE (material_uuid, property_uuid);
+CREATE INDEX "ix_property_x_material" ON property_x (material_uuid);
+CREATE INDEX "ix_property_x_property" ON property_x (property_uuid);
 CLUSTER property_x
 USING "pk_property_x_property_x_uuid";
 
@@ -1322,6 +1360,8 @@ USING "pk_tag_tag_type_uuid";
 ALTER TABLE tag_x
 	ADD CONSTRAINT "pk_tag_x_tag_x_uuid" PRIMARY KEY (tag_x_uuid),
 		ADD CONSTRAINT "un_tag_x" UNIQUE (ref_tag_uuid, tag_uuid);
+CREATE INDEX "ix_tag_x_ref_tag" ON tag_x (ref_tag_uuid);
+CREATE INDEX "ix_tag_x_tag" ON tag_x (tag_uuid);
 CLUSTER tag_x
 USING "pk_tag_x_tag_x_uuid";
 
@@ -1349,6 +1389,8 @@ USING "pk_udf_def_udf_def_uuid";
 ALTER TABLE udf_x
 	ADD CONSTRAINT "pk_udf_x_udf_x_uuid" PRIMARY KEY (udf_x_uuid),
 		ADD CONSTRAINT "un_udf_x" UNIQUE (ref_udf_uuid, udf_uuid);
+CREATE INDEX "ix_udf_x_ref_udf" ON udf_x (ref_udf_uuid);
+CREATE INDEX "ix_udf_x_udf" ON udf_x (udf_uuid);
 CLUSTER udf_x
 USING "pk_udf_x_udf_x_uuid";
 
@@ -1363,6 +1405,10 @@ USING "pk_workflow_workflow_uuid";
 
 ALTER TABLE workflow_action_set
 	ADD CONSTRAINT "pk_workflow_action_set_workflow_action_set_uuid" PRIMARY KEY (workflow_action_set_uuid);
+CREATE INDEX "ix_workflow_action_set_workflow" ON workflow_action_set (workflow_uuid);
+CREATE INDEX "ix_workflow_action_set_action_def" ON workflow_action_set (action_def_uuid);
+CREATE INDEX "ix_workflow_action_set_parameter_def" ON workflow_action_set (parameter_def_uuid);
+CREATE INDEX "ix_workflow_action_set_calculation" ON workflow_action_set (calculation_uuid);
 CLUSTER workflow_action_set
 USING "pk_workflow_action_set_workflow_action_set_uuid";
 
@@ -1370,7 +1416,10 @@ USING "pk_workflow_action_set_workflow_action_set_uuid";
 ALTER TABLE workflow_object
 	ADD CONSTRAINT "pk_workflow_object_workflow_object_uuid" PRIMARY KEY (workflow_object_uuid),
 		ADD CONSTRAINT "un_workflow_object" UNIQUE (action_uuid, condition_uuid);
-CREATE INDEX "ix_workflow_object_uuid" ON workflow (workflow_uuid);
+CREATE INDEX "ix_workflow_workflow" ON workflow_object (workflow_uuid);
+CREATE INDEX "ix_workflow_action" ON workflow_object (action_uuid);
+CREATE INDEX "ix_workflow_condition" ON workflow_object (condition_uuid);
+CREATE INDEX "ix_workflow_object_uuid" ON workflow_object (workflow_uuid);
 CLUSTER workflow_object
 USING "pk_workflow_object_workflow_object_uuid";
 
@@ -1384,6 +1433,9 @@ USING "pk_workflow_state_workflow_state_uuid";
 ALTER TABLE workflow_step
 	ADD CONSTRAINT "pk_workflow_step_workflow_step_uuid" PRIMARY KEY (workflow_step_uuid),
 		ADD CONSTRAINT "un_workflow_step_workflow_step_uuid" UNIQUE (workflow_object_uuid, parent_uuid);
+CREATE INDEX "ix_workflow_step_workflow" ON workflow_step (workflow_uuid);
+CREATE INDEX "ix_workflow_step_workflow_object" ON workflow_step (workflow_object_uuid);
+CREATE INDEX "ix_workflow_step_status" ON workflow_step (status_uuid);
 CREATE INDEX "ix_workflow_step_parent_uuid" ON workflow_step
 USING GIST (parent_path);
 CLUSTER workflow_step
