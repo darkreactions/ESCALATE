@@ -1,8 +1,11 @@
+
 import tempfile
 from uuid import UUID
+import uuid
 
 from django.http import Http404, FileResponse
 from rest_framework import viewsets
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework_extensions.mixins import NestedViewSetMixin
 from rest_framework.exceptions import ParseError
@@ -30,6 +33,8 @@ def save_actor_on_post(self, serializer):
     serializer.save(actor=actor, actor_description=actor.description)
 
 # Download file view
+
+
 def download_blob(request, uuid):
     edoc = core.models.Edocument.objects.get(uuid=uuid)
     contents = edoc.edocument
@@ -58,15 +63,42 @@ def create_viewset(model_name):
                     }
     viewset_classes = [NestedViewSetMixin, viewsets.ModelViewSet]
     globals()[model_name+'ViewSet'] = type(model_name + 'ViewSet',
-                                        tuple(viewset_classes), methods_list)
+                                           tuple(viewset_classes), methods_list)
 
     if model_name in perform_create_views:
         globals()[model_name+'ViewSet'].perform_create = save_actor_on_post
+
+
+# rest_viewset_views.remove('BomMaterial')
 
 for view_name in rest_viewset_views:
     create_viewset(view_name)
 
 create_viewset('Edocument')
+
+
+class BomMaterialViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    queryset = core.models.BomMaterial.objects.all()
+    serializer_class = BomMaterialSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filter_fields = '__all__'
+
+    def list(self, request):
+        qs = core.models.BomMaterial.objects.filter(
+            bom_material_composite__isnull=True)
+        serializer = BomMaterialSerializer(
+            qs, many=True, context={'request': request})
+        return Response(serializer.data)
+
+
+class BillOfMaterialsViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    queryset = core.models.BillOfMaterials.objects.all()
+    serializer_class = BillOfMaterialsSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filter_fields = '__all__'
+
 
 class NoteViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = core.models.Note.objects.all()
@@ -98,7 +130,7 @@ class TagAssignViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     def perform_create(self, serializer, **kwargs):
         serializer.save(**kwargs)
- 
+
     def create(self, request, *args, **kwargs):
         ref_tag_uuid = kwargs['parent_lookup_ref_tag']
         serializer = self.get_serializer(data=request.data)
@@ -106,6 +138,7 @@ class TagAssignViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         self.perform_create(serializer, ref_tag=ref_tag_uuid)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
 
 class EdocumentViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = core.models.Edocument.objects.all()
@@ -117,7 +150,7 @@ class EdocumentViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     def perform_create(self, serializer, **kwargs):
         serializer.save(**kwargs)
- 
+
     def create(self, request, *args, **kwargs):
         print(kwargs)
         ref_edocument_uuid = kwargs['parent_lookup_ref_edocument_uuid']

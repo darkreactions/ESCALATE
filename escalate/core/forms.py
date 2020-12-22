@@ -5,6 +5,12 @@ from core.models import (CustomUser, Person, Material, Inventory, Actor, Note,
                          UdfDef, Status, Tag, TagAssign, TagType, MaterialType,
                          Edocument, PersonTable, OrganizationPassword)
 
+from packaging import version
+import django
+if version.parse(django.__version__) < version.parse('3.1'):
+    from django.contrib.postgres.forms import JSONField
+else:
+    from django.forms import JSONField
 
 dropdown_attrs = {'class': 'selectpicker',
                   'data-style': 'btn-dark', 'data-live-search': 'true'}
@@ -167,7 +173,7 @@ class InventoryForm(forms.ModelForm):
         field_classes = {
             'description': forms.CharField,
             'part_no': forms.CharField,
-            'onhand_amt': forms.JSONField,
+            'onhand_amt': JSONField,
             'expiration_date': forms.SplitDateTimeField,
             'location': forms.CharField
         }

@@ -159,7 +159,7 @@ class InventoryMaterial(models.Model):
         db_table = 'vw_inventory_material'
 
     def __str__(self):
-        return "{} : {}".format(self.inventory_description, self.material_name)
+        return "{} : {}".format(self.inventory_description, self.material_description)
 
 
 class Systemtool(models.Model):
@@ -349,6 +349,8 @@ class Material(models.Model):
     status = models.ForeignKey('Status', on_delete=models.DO_NOTHING,
                                blank=True, null=True, db_column='status_uuid',
                                related_name='material_status')
+    property = models.ManyToManyField(
+        'Property', through='MaterialProperty', related_name='material_property')
     status_description = models.CharField(
         max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
@@ -362,20 +364,23 @@ class Material(models.Model):
         return "{}".format(self.description)
 
 
-class MaterialComposite(models.Model):
+class CompositeMaterial(models.Model):
     uuid = RetUUIDField(primary_key=True, db_column='material_composite_uuid')
     composite = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
                                   blank=True, null=True, db_column='composite_uuid',
-                                  related_name='composite')
+                                  related_name='composite_material_composite')
     composite_description = models.CharField(
         max_length=255, blank=True, null=True)
-    composite_flg = models.BinaryField(blank=True, null=True)
-    component = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
+    composite_flg = models.BooleanField(blank=True, null=True)
+    component = models.ForeignKey('CompositeMaterial', on_delete=models.DO_NOTHING,
                                   blank=True, null=True, db_column='component_uuid',
-                                  related_name='component')
+                                  related_name='composite_material_component')
     component_description = models.CharField(
         max_length=255, blank=True, null=True)
-    addressable = models.BinaryField(blank=True, null=True)
+    addressable = models.BooleanField(blank=True, null=True)
+    property = models.ManyToManyField(
+        'Property', through='CompositeMaterialProperty', related_name='composite_material_property',
+        through_fields=('composite_material', 'property'))
 
     actor = models.ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
@@ -433,20 +438,49 @@ class BomMaterial(models.Model):
                             related_name='bom_material_bom')
     description = models.CharField(max_length=255, blank=True, null=True)
     bom_description = models.CharField(max_length=255, blank=True, null=True)
+    bom_material_composite = models.ForeignKey('BomMaterial', on_delete=models.DO_NOTHING,
+                                               blank=True, null=True, db_column='bom_material_composite_uuid',
+                                               related_name='bom_material_bom_material_composite')
+    bom_material_composite_description = models.CharField(max_length=255,
+                                                          blank=True,
+                                                          null=True)
     inventory_material = models.ForeignKey('InventoryMaterial', on_delete=models.DO_NOTHING,
                                            blank=True, null=True, db_column='inventory_material_uuid',
-                                           related_name='bom_material_inventory')
-    material_composite = models.ForeignKey('MaterialComposite', on_delete=models.DO_NOTHING,
+                                           related_name='bom_material_inventory_material')
+    material = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
+                                 blank=True, null=True, db_column='material_uuid',
+                                 related_name='bom_material_material')
+    composite = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
+                                  blank=True, null=True, db_column='composite_uuid',
+                                  related_name='bom_material_composite')
+    material_composite = models.ForeignKey('CompositeMaterial', on_delete=models.DO_NOTHING,
                                            blank=True, null=True, db_column='material_composite_uuid',
-                                           related_name='bom_material_composite')
+                                           related_name='bom_material_material_composite')
     bom_material_description = models.CharField(
         max_length=255, blank=True, null=True)
     alloc_amt_val = ValField(blank=True, null=True)
     used_amt_val = ValField(blank=True, null=True)
     putback_amt_val = ValField(blank=True, null=True)
-    experiment_uuid = models.CharField(max_length=255, blank=True, null=True)
+    experiment = models.ForeignKey('Experiment', on_delete=models.DO_NOTHING,
+                                   blank=True, null=True, db_column='experiment_uuid',
+                                   related_name='bom_material_experiment')
+
     experiment_description = models.CharField(
         max_length=255, blank=True, null=True)
+    actor = models.ForeignKey('Actor',
+                              on_delete=models.DO_NOTHING,
+                              db_column='actor_uuid',
+                              blank=True,
+                              null=True,
+                              editable=False, related_name='bom_material_actor')
+    status = models.ForeignKey('Status',
+                               on_delete=models.DO_NOTHING,
+                               db_column='status_uuid',
+                               blank=True,
+                               null=True,
+                               editable=False, related_name='bom_material_status')
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
@@ -787,18 +821,39 @@ class ExperimentWorkflow(models.Model):
     # experiment, no need for redundancy.
     uuid = RetUUIDField(primary_key=True, db_column='experiment_workflow_uuid')
     experiment = models.ForeignKey('Experiment', db_column='experiment_uuid', on_delete=models.DO_NOTHING,
-                                   blank=True, null=True)
+                                   blank=True, null=True, related_name='experiment_workflow_experiment')
     experiment_ref_uid = models.CharField(max_length=255)
     experiment_description = models.CharField(max_length=255)
     experiment_workflow_seq = models.IntegerField()
     workflow = models.ForeignKey('Workflow', db_column='workflow_uuid',
-                                 on_delete=models.DO_NOTHING, blank=True, null=True)
+                                 on_delete=models.DO_NOTHING, blank=True, null=True, related_name='experiment_workflow_workflow')
     workflow_type_uuid = models.ForeignKey('WorkflowType', db_column='workflow_type_uuid',
                                            on_delete=models.DO_NOTHING, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'vw_experiment_workflow'
+
+
+class Outcome(models.Model):
+    uuid = RetUUIDField(primary_key=True, db_column='outcome_uuid')
+    description = models.CharField(max_length=255,  db_column='description')
+    experiment = models.ForeignKey('Experiment', db_column='experiment_uuid', on_delete=models.DO_NOTHING,
+                                   blank=True, null=True, related_name='outcome_experiment')
+    actor = models.ForeignKey(
+        'Actor', models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True, related_name='outcome_actor')
+    actor_description = models.CharField(
+        max_length=255, blank=True, null=True, editable=False)
+    status = models.ForeignKey(
+        'Status', models.DO_NOTHING, db_column='status_uuid', blank=True, null=True, related_name='outcome_status')
+    status_description = models.CharField(
+        max_length=255, blank=True, null=True, editable=False)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'vw_outcome'
 
 
 class UdfDef(models.Model):
@@ -1009,6 +1064,82 @@ class MaterialProperty(models.Model):
     class Meta:
         managed = False
         db_table = 'vw_material_property'
+
+
+class CompositeMaterialProperty(models.Model):
+    # TODO: Material property may need fixing. Endpoint displays all tags for all rows
+    uuid = RetUUIDField(primary_key=True,
+                        db_column='material_composite_uuid')
+    composite_material = models.ForeignKey('CompositeMaterial',
+                                           db_column='composite_uuid',
+                                           on_delete=models.DO_NOTHING,
+                                           blank=True, null=True,
+                                           related_name='composite_material_property_composite_material')
+    composite_material_description = models.CharField(max_length=255,
+                                                      blank=True,
+                                                      null=True,
+                                                      db_column='description',
+                                                      editable=False)
+    component = models.ForeignKey('CompositeMaterial',
+                                  db_column='component_uuid',
+                                  on_delete=models.DO_NOTHING,
+                                  blank=True, null=True,
+                                  related_name='composite_material_property_component')
+
+    property = models.ForeignKey('Property',
+                                 on_delete=models.DO_NOTHING,
+                                 db_column='property_uuid',
+                                 blank=True,
+                                 null=True,
+                                 editable=False,
+                                 related_name='composite_material_property_property')
+    property_def = models.ForeignKey('PropertyDef',
+                                     on_delete=models.DO_NOTHING,
+                                     db_column='property_def_uuid',
+                                     blank=True,
+                                     null=True, related_name='composite_material_property_property_def')
+    property_description = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True,
+                                            db_column='property_description',
+                                            editable=False)
+    property_short_description = models.CharField(max_length=255,
+                                                  blank=True,
+                                                  null=True,
+                                                  db_column='property_short_description',
+                                                  editable=False)
+    value = ValField(
+        blank=True,
+        null=True,
+        db_column='val_val')
+    actor = models.ForeignKey('Actor',
+                              on_delete=models.DO_NOTHING,
+                              db_column='property_actor_uuid',
+                              blank=True,
+                              null=True,
+                              editable=False, related_name='composite_material_property_actor')
+    actor_description = models.CharField(max_length=255,
+                                         blank=True,
+                                         null=True,
+                                         db_column='property_actor_description',
+                                         editable=False)
+    status = models.ForeignKey('Status',
+                               on_delete=models.DO_NOTHING,
+                               blank=True,
+                               null=True,
+                               db_column='property_status_uuid',
+                               related_name='composite_material_property_status')
+    status_description = models.CharField(max_length=255,
+                                          blank=True,
+                                          null=True,
+                                          db_column='property_status_description',
+                                          editable=False)
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'vw_material_composite_property'
 
 
 class ParameterDef(models.Model):
@@ -1588,6 +1719,7 @@ class WorkflowStep(models.Model):
     workflow_object = models.ForeignKey('WorkflowObject', models.DO_NOTHING,
                                         db_column='workflow_object_uuid', related_name='workflow_step_workflow_object')
     # unclear how to make this an fk for django...
+    """
     object_uuid = models.CharField(max_length=255,
                                    blank=True,
                                    null=True,
@@ -1608,8 +1740,7 @@ class WorkflowStep(models.Model):
                                               null=True,
                                               db_column='object_def_description',
                                               editable=False)
-    # object_add_date
-    # object_mod_date
+    """
 
     class Meta:
         managed = False
@@ -1628,6 +1759,7 @@ class WorkflowObject(models.Model):
                                    blank=True,
                                    null=True,
                                    editable=False)
+
     object_type = models.CharField(max_length=255,
                                    blank=True,
                                    null=True,
