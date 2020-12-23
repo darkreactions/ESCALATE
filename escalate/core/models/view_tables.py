@@ -135,8 +135,9 @@ class InventoryMaterial(models.Model):
     material_composite_flg = models.BooleanField()
     part_no = models.CharField(max_length=255,
                                blank=True, null=True)
-    onhand_amt = models.CharField(
-        max_length=255, blank=True, null=True)
+    #onhand_amt = models.CharField(
+    #    max_length=255, blank=True, null=True)
+    onhand_amt = ValField(blank=True, null=True)
     # inventory_unit = models.CharField(max_length=255, blank=True, null=True)
     expiration_date = models.DateTimeField(blank=True, null=True)
     location = models.CharField(
@@ -212,6 +213,7 @@ class Calculation(models.Model):
     uuid = RetUUIDField(primary_key=True,
                         db_column='calculation_uuid')
     in_val = ValField(blank=True, null=True)
+    #in_val = CharField(max_length=255, blank=True, null=True)
     in_val_type = models.ForeignKey('TypeDef',
                                     models.DO_NOTHING,
                                     db_column='in_val_type_uuid',
@@ -225,6 +227,7 @@ class Calculation(models.Model):
 
     # in opt
     in_opt_val = ValField(blank=True, null=True)
+    #in_opt_val = CharField(max_length=255, blank=True, null=True)
     in_opt_val_value = models.TextField(blank=True, null=True, editable=False)
     in_opt_val_type = models.ForeignKey('TypeDef',
                                         models.DO_NOTHING,
@@ -238,6 +241,7 @@ class Calculation(models.Model):
                                              related_name='calculation_in_opt_val_edocument', editable=False)
     # out
     out_val = ValField(blank=True, null=True)
+    #out_val = CharField(max_length=255, blank=True, null=True)
     out_val_type = models.ForeignKey('TypeDef',
                                      models.DO_NOTHING,
                                      related_name='calculation_out_val_type',
@@ -433,40 +437,21 @@ class BillOfMaterials(models.Model):
 
 class BomMaterial(models.Model):
     uuid = RetUUIDField(primary_key=True, db_column='bom_material_uuid')
+    description = models.CharField(max_length=255, blank=True, null=True)
     bom = models.ForeignKey('BillOfMaterials', on_delete=models.DO_NOTHING,
                             blank=True, null=True, db_column='bom_uuid',
                             related_name='bom_material_bom')
-    description = models.CharField(max_length=255, blank=True, null=True)
+    
     bom_description = models.CharField(max_length=255, blank=True, null=True)
-    bom_material_composite = models.ForeignKey('BomMaterial', on_delete=models.DO_NOTHING,
-                                               blank=True, null=True, db_column='bom_material_composite_uuid',
-                                               related_name='bom_material_bom_material_composite')
-    bom_material_composite_description = models.CharField(max_length=255,
-                                                          blank=True,
-                                                          null=True)
     inventory_material = models.ForeignKey('InventoryMaterial', on_delete=models.DO_NOTHING,
                                            blank=True, null=True, db_column='inventory_material_uuid',
                                            related_name='bom_material_inventory_material')
     material = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
                                  blank=True, null=True, db_column='material_uuid',
                                  related_name='bom_material_material')
-    composite = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
-                                  blank=True, null=True, db_column='composite_uuid',
-                                  related_name='bom_material_composite')
-    material_composite = models.ForeignKey('CompositeMaterial', on_delete=models.DO_NOTHING,
-                                           blank=True, null=True, db_column='material_composite_uuid',
-                                           related_name='bom_material_material_composite')
-    bom_material_description = models.CharField(
-        max_length=255, blank=True, null=True)
     alloc_amt_val = ValField(blank=True, null=True)
     used_amt_val = ValField(blank=True, null=True)
     putback_amt_val = ValField(blank=True, null=True)
-    experiment = models.ForeignKey('Experiment', on_delete=models.DO_NOTHING,
-                                   blank=True, null=True, db_column='experiment_uuid',
-                                   related_name='bom_material_experiment')
-
-    experiment_description = models.CharField(
-        max_length=255, blank=True, null=True)
     actor = models.ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='actor_uuid',
@@ -481,10 +466,47 @@ class BomMaterial(models.Model):
                                editable=False, related_name='bom_material_status')
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
-
+    
     class Meta:
         managed = False
         db_table = 'vw_bom_material'
+
+
+class BomCompositeMaterial(models.Model):
+    uuid = RetUUIDField(primary_key=True, db_column='bom_material_composite_uuid')
+    description = models.CharField(max_length=255, blank=True, null=True)
+    bom_material = models.ForeignKey('BomMaterial', on_delete=models.DO_NOTHING,
+                            blank=True, null=True, db_column='bom_material_uuid',
+                            related_name='bom_composite_material_bom_material')
+    bom_material_description = models.CharField(max_length=255, blank=True, null=True)
+    
+    composite_material = models.ForeignKey('CompositeMaterial', on_delete=models.DO_NOTHING,
+                                               blank=True, null=True, db_column='material_composite_uuid',
+                                               related_name='bom_composite_material_composite_material')
+    component = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
+                                               blank=True, null=True, db_column='component_uuid',
+                                               related_name='bom_composite_material_component')
+    material_description = models.CharField(max_length=255,
+                                                          blank=True,
+                                                          null=True)
+    actor = models.ForeignKey('Actor',
+                              on_delete=models.DO_NOTHING,
+                              db_column='actor_uuid',
+                              blank=True,
+                              null=True,
+                              editable=False, related_name='bom_composite_material_actor')
+    status = models.ForeignKey('Status',
+                               on_delete=models.DO_NOTHING,
+                               db_column='status_uuid',
+                               blank=True,
+                               null=True,
+                               editable=False, related_name='bom_composite_material_status')
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'vw_bom_material_composite'
 
 
 class MaterialCalculationJson(models.Model):
@@ -791,21 +813,21 @@ class Experiment(models.Model):
     ref_uid = models.CharField(max_length=255, db_column='ref_uid')
     description = models.CharField(max_length=255,  db_column='description')
     parent = models.ForeignKey('TypeDef', db_column='parent_uuid',
-                               on_delete=models.DO_NOTHING, blank=True, null=True)
+                               on_delete=models.DO_NOTHING, blank=True, null=True, related_name='experiment_parent')
     owner = models.ForeignKey('Actor', db_column='owner_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
-                              related_name='owner')
+                              related_name='experiment_owner')
     owner_description = models.CharField(
         max_length=255, db_column='owner_description')
-    operator_uuid = models.ForeignKey('Actor', db_column='operator_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
-                                      related_name='operator')
+    operator = models.ForeignKey('Actor', db_column='operator_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
+                                 related_name='experiment_operator')
     operator_description = models.CharField(
         max_length=255, db_column='operator_description')
     lab = models.ForeignKey('Actor', db_column='lab_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
-                            related_name='lab')
+                            related_name='experiment_lab')
     lab_description = models.CharField(
         max_length=255, db_column='lab_description')
     status = models.ForeignKey(
-        'Status', on_delete=models.DO_NOTHING, db_column='status_uuid', blank=True, null=True,)
+        'Status', on_delete=models.DO_NOTHING, db_column='status_uuid', blank=True, null=True, related_name='experiment_status')
     status_description = models.CharField(
         max_length=255, blank=True, null=True, db_column='status_description', editable=False)
     add_date = models.DateTimeField(auto_now_add=True)
@@ -1005,7 +1027,7 @@ class MaterialProperty(models.Model):
                                  on_delete=models.DO_NOTHING,
                                  blank=True,
                                  null=True, related_name='material_property_material')
-    property_description = models.CharField(max_length=255,
+    description = models.CharField(max_length=255,
                                             blank=True,
                                             null=True,
                                             db_column='description',
@@ -1032,10 +1054,8 @@ class MaterialProperty(models.Model):
                                                   null=True,
                                                   db_column='property_short_description',
                                                   editable=False)
-    value = ValField(
-        blank=True,
-        null=True,
-        db_column='val_val')
+    value = ValField(blank=True, null=True, db_column='property_value_val')
+    #value = CharField(max_length=255, blank=True, null=True, db_column='property_value_val')
     actor = models.ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='property_actor_uuid',
@@ -1058,8 +1078,8 @@ class MaterialProperty(models.Model):
                                           null=True,
                                           db_column='property_status_description',
                                           editable=False)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    add_date = models.DateTimeField(auto_now_add=True, db_column='property_add_date')
+    mod_date = models.DateTimeField(auto_now=True, db_column='property_mod_date')
 
     class Meta:
         managed = False
@@ -1273,6 +1293,9 @@ class Condition(models.Model):
                                                null=True,
                                                editable=False)
     # TODO: Fix in_val and out_val on Postgres to return strings not JSON!
+    #in_val = ValField(blank=True, null=True)
+    #out_val = ValField(blank=True, null=True)
+    
     in_val = models.CharField(max_length=255,
                               blank=True,
                               null=True,
@@ -1281,6 +1304,7 @@ class Condition(models.Model):
                                blank=True,
                                null=True,
                                editable=False)
+    
     actor = models.ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='actor_uuid',

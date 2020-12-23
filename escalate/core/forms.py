@@ -3,7 +3,7 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from core.models import (CustomUser, Person, Material, Inventory, Actor, Note,
                          Organization, Systemtool, SystemtoolType,
                          UdfDef, Status, Tag, TagAssign, TagType, MaterialType,
-                         Edocument, PersonTable, OrganizationPassword)
+                         Edocument, PersonTable, OrganizationPassword, InventoryMaterial)
 
 from packaging import version
 import django
@@ -530,4 +530,55 @@ class CreateOrganizationPasswordForm(forms.ModelForm):
         fields = ['organization', 'password']
         widgets = {
             'password': forms.PasswordInput()
+        }
+
+class InventoryMaterialForm(forms.ModelForm):
+
+    class Meta:
+        model = InventoryMaterial
+        fields = ['description', 'inventory', 'material', 
+                  'material_consumable', 'material_composite_flg', 
+                  'part_no', 'onhand_amt', 'expiration_date',
+                  'location', 'status',]
+
+        field_classes = {
+            'description': forms.CharField,
+            'part_no': forms.CharField,
+            'onhand_amt': forms.CharField,
+            'expiration_date': forms.SplitDateTimeField,
+            'location': forms.CharField
+        }
+        labels = {
+            'description': 'Description',
+            'material': 'Material',
+            'actor': 'Actor',
+            'part_no': 'Part Number',
+            'onhand_amt': 'On hand amount',
+            'expiration_date': 'Expiration date',
+            'location': 'Inventory location',
+            'material_consumable': 'Consumable',
+            'material_composite_flg': 'Composite Material'
+        }
+        widgets = {
+            'material': forms.Select(attrs=dropdown_attrs),
+            'actor': forms.Select(attrs=dropdown_attrs),
+            'description': forms.Textarea(attrs={'rows': '3',
+                                                 'cols': '10',
+                                                 'placeholder': 'Description'}),
+
+            'part_no': forms.TextInput(attrs={'placeholder': 'Part number'}),
+            'onhand_amt': forms.TextInput(attrs={'placeholder': 'On hand amount'}),
+            'expiration_date': forms.SplitDateTimeWidget(
+                date_format='%d-%m-%Y',
+                date_attrs={
+                    'placeholder': 'DD-MM-YYYY'
+                },
+                time_format='%H:%M',
+                time_attrs={
+                    'placeholder': 'HH-MM'
+                }
+            ),
+            'location': forms.TextInput(attrs={
+                'placeholder': 'Location'}),
+            'status': forms.Select(attrs=dropdown_attrs),
         }

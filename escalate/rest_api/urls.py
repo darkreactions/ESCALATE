@@ -1,25 +1,22 @@
 #from escalate.core.models.view_tables import ActionParameterDef
 from django.db import models
 from django.urls import path, include, re_path
-from django.views.generic import TemplateView
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework import viewsets
-from rest_framework.urlpatterns import format_suffix_patterns
-from rest_framework.schemas import get_schema_view
-from rest_framework.routers import DefaultRouter
-from rest_framework import generics
 from rest_framework.authtoken import views as token_views
 
 from rest_framework.decorators import api_view
 
 from rest_framework_extensions.routers import ExtendedSimpleRouter, NestedRouterMixin
+#from rest_framework_nested import routers
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 
 from rest_api import views, viewsets
 from .utils import camel_case, docstring, rest_exposed_url_views, rest_nested_url_views
 from .rest_docs import rest_docs
+from .serializers import expandable_fields
 
 import core.models
 
@@ -51,9 +48,9 @@ rest_urlpatterns = [
 
 
 router = ExtendedSimpleRouter()
-"""
-The following for loop helps generate nested URLs to 1 level
-"""
+
+# The following for loop helps generate nested URLs to 1 level
+
 for view in rest_nested_url_views:
     model = getattr(core.models, view)
     # basename of an endpoint e.g. api/person/
@@ -61,8 +58,14 @@ for view in rest_nested_url_views:
     # Add to related names if a field is a foriegn key
     related_names = [f'{name}_{f.name}' for f in model._meta.get_fields(
     ) if isinstance(f, models.ForeignKey)]
+    many_to_one_names = [f'{f.name}' for f in model._meta.get_fields(
+    ) if isinstance(f, models.ManyToOneRel)]
+    many_to_one_rel_model = [model._meta.get_field(
+        url).remote_field.model.__name__ for url in many_to_one_names]
+
     url_names = [f'{f.name}' for f in model._meta.get_fields()
                  if isinstance(f, models.ForeignKey)]
+
     # register basename, then loop through nested foreign keys and register them
     registered = router.register(rf'{name}', getattr(
         viewsets, view+'ViewSet'), basename=name)
@@ -72,6 +75,17 @@ for view in rest_nested_url_views:
             related_model_name = related_model_name.__name__
         registered.register(rf'{url}', getattr(viewsets, related_model_name+'ViewSet'),
                             basename=f'{name}-{url}', parents_query_lookups=[related_names[i]])
+
+    if view in expandable_fields:
+        for field in expandable_fields[view]:
+            serializer_name, exp_dict = expandable_fields[view][field]
+            serializer_name = serializer_name.split('.')[1]
+            related_model_name = serializer_name[:-10]
+            registered.register(rf'{field}', getattr(viewsets, related_model_name+'ViewSet'),
+                                basename=f'{name}-{field}', parents_query_lookups=[name])
+
+            #registered.register(field, getattr(viewsets, related_model_name+'ViewSet'))
+
     # Try to register notes, tags
     registered.register('notes', viewsets.NoteViewSet,
                         basename=f'{name}-note', parents_query_lookups=['ref_note_uuid'])

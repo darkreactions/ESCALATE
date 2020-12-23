@@ -76,5 +76,10 @@ methods = {
         'form_class': core.forms.UdfDefForm,
         'success_url': reverse_lazy('udf_def_list'),
     },
-
+    'InventoryMaterial': {
+        'model': core.models.InventoryMaterial,
+        'context_object_name': 'inventory_material',
+        'form_class': core.forms.InventoryMaterialForm,
+        'success_url': reverse_lazy('inventory_material_list'),
+    },
 }

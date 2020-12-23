@@ -149,5 +149,22 @@ methods = {
         'order_field': 'description',
         'field_contains': '',
     },
+    'InventoryMaterial': {
+        'model': core.models.InventoryMaterial,
+        'context_object_name': 'inventory_materials',
+
+        'table_columns': ['Description', 'Composite', 'Consumable', 'Amount On Hand', 'Expiration Date', 'Location', 'Actions'],
+        'column_necessary_fields': {
+            'Description': ['material_description'], 
+            'Composite': ['material_composite_flg'], 
+            'Consumable': ['material_consumable'], 
+            'Amount On Hand': ['onhand_amt'], 
+            'Expiration Date': ['expiration_date'], 
+            'Location': ['location'],
+        },
+        'order_field': 'description',
+        'field_contains': '',
+        'org_related_path': 'inventory__lab__organization'
+    }
 
 }

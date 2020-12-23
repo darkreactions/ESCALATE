@@ -171,5 +171,26 @@ methods = {
             'Last Modification Date': ['mod_date']
         },
     },
+    'InventoryMaterial': {
+        'model': core.models.InventoryMaterial,
+        'model_name': 'inventory_material',
+        'detail_fields': ['Description', 'Inventory', 'Material', 
+                            'Consumable', 'Composite Material', 
+                            'Part Number', 'On hand amount', 'Expiration Date',
+                            'Inventory Location', 'Status',],
+        'detail_fields_need_fields': {
+            'Description': ['description'],
+            'Material' : ['material'],
+            'Actor': ['actor'],
+            'Part Number' : ['part_no'],
+            'On hand amount' : ['onhand_amt'],
+            'Expiration Date': ['expiration_date'],
+            'Inventory Location' : ['location'],
+            'Consumable': ['material_consumable'],
+            'Composite Material': ['material_composite_flg'],
+            'Inventory': ['inventory'],
+            'Status': ['status']
+        },
+    },
 
 }

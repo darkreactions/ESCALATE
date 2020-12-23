@@ -1,3 +1,4 @@
+from django.db.models.query import QuerySet
 from django.urls import reverse_lazy, reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic.detail import DetailView
@@ -7,6 +8,7 @@ from core.models import Note, Actor, TagAssign, Tag
 from core.forms import NoteForm, TagSelectForm
 from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404, render
+from django.core.exceptions import FieldDoesNotExist
 
 # class with generic classes to use in models
 
@@ -41,6 +43,9 @@ class GenericModelList(GenericListView):
     order_field = None  # Ex: 'first_name'
     field_contains = None  # Ex: 'Gary'. Use '' to show all
 
+    # A related path that points to the organization this field belongs to
+    org_related_path = None
+
     paginate_by = 10
 
 
@@ -62,12 +67,30 @@ class GenericModelList(GenericListView):
         # same as <field want to order by>__icontains = filter_val
         filter_kwargs = {'{}__{}'.format(
             "".join(order_field.split('-')), 'icontains'): filter_val}
-
+        
+        # Filter by organization if it exists in the model
+        if 'current_org_id' in self.request.session:
+            if self.org_related_path:
+                org_filter_kwargs = {self.org_related_path : self.request.session['current_org_id']}
+                base_query = self.model.objects.filter(**org_filter_kwargs)
+            else:
+                try:
+                    print(self.model._meta.get_fields())
+                    org_field = self.model._meta.get_field('organization')
+                    base_query = self.model.objects.filter(organization=self.request.session['current_org_id'])
+                except FieldDoesNotExist:
+                    base_query = self.model.objects.all()
+        else:
+            base_query = self.model.objects.none()
+        
+        
         if filter_val != None:
-            new_queryset = self.model.objects.filter(
+            new_queryset = base_query.filter(
                 **filter_kwargs).select_related().order_by(ordering)
         else:
-            new_queryset = self.model.objects.all()
+            new_queryset = base_query
+        
+        new_queryset = base_query
         return new_queryset
 
     def get_context_data(self, **kwargs):

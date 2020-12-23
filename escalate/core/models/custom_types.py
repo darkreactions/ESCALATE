@@ -2,6 +2,7 @@ from django.db import models
 from core.models.core_tables import TypeDef
 import json
 from django.core.exceptions import ValidationError
+import csv
 """
 v_type_uuid uuid, 0
 v_unit character varying, 1
@@ -44,10 +45,11 @@ class Val:
     
     @classmethod
     def from_db(cls, val_string):
-        args = val_string[1:-1].split(',')
+        print(val_string)
+        args = list(csv.reader([val_string[1:-1]]))[0]
+        print(args)
         type_uuid = args[0]
         unit = args[1]
-        
         val_type = TypeDef.objects.get(pk=type_uuid)
         
         # Values should be from index 2 onwards.
@@ -55,8 +57,10 @@ class Val:
         if val_type.description == 'text':
             value = str(value)
         elif 'array' in val_type.description:
-            table = str.maketrans('{}', '[]')
+            table = str.maketrans('{}"', '[] ')
             value = value.translate(table)
+            #value = value.strip()
+            print(value)
             value = json.loads(value)
         else:
             value = json.loads(value)

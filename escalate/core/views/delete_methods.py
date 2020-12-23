@@ -52,5 +52,9 @@ methods = {
         'model': core.models.UdfDef,
         'success_url': reverse_lazy('udf_def_list'),
     },
+    'InventoryMaterial': {
+        'model': core.models.InventoryMaterial,
+        'success_url': reverse_lazy('inventory_material_list'),
+    }
 
 }

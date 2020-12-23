@@ -12,6 +12,7 @@ from rest_framework.serializers import (SerializerMethodField, ModelSerializer,
 from rest_framework.reverse import reverse
 from rest_flex_fields import FlexFieldsModelSerializer
 
+
 from rest_api.endpoint_details import details
 import core.models
 from .utils import rest_serializer_views
@@ -143,7 +144,7 @@ class EdocumentSerializer(TagListSerializer,
         return value
 
     def create(self, validated_data):
-        print(type(validated_data['edocument']))
+        
         validated_data['filename'] = validated_data['edocument'].name
         validated_data['edocument'] = validated_data['edocument'].read()
         doc_type = TypeDef.objects.get(category='file',
@@ -208,7 +209,6 @@ class ActionSerializer(DynamicFieldsModelSerializer):
 
 class FilteredListSerializer(ListSerializer):
     def to_representation(self, data):
-        print(data)
         data = data.filter(bom_material_composite__isnull=True)
         return super().to_representation(data)
 
@@ -218,7 +218,7 @@ class BomMaterialCompositeSerializer(EdocListSerializer,
                                      NoteListSerializer,
                                      DynamicFieldsModelSerializer):
     class Meta:
-        model = core.models.BomMaterial
+        model = core.models.BomCompositeMaterial
         fields = '__all__'
 
 
@@ -227,10 +227,10 @@ class BomMaterialSerializer(EdocListSerializer,
                             NoteListSerializer,
                             DynamicFieldsModelSerializer):
     bom_material_composite = BomMaterialCompositeSerializer(
-        read_only=True, many=True, source='bom_material_bom_material_composite')
+        read_only=True, many=True, source='bom_composite_material_bom_material')
 
     class Meta:
-        list_serializer_class = FilteredListSerializer
+        #list_serializer_class = FilteredListSerializer
         model = core.models.BomMaterial
         fields = '__all__'
 
@@ -239,10 +239,10 @@ class BillOfMaterialsSerializer(EdocListSerializer,
                                 TagListSerializer,
                                 NoteListSerializer,
                                 DynamicFieldsModelSerializer):
-    bom_serializer_params = {'source': 'bom_material_bom',
-                             'many': True,
-                             'read_only': True, }
-    bom_material = BomMaterialSerializer(**bom_serializer_params)
+    #bom_serializer_params = {'source': 'bom_material_bom',
+    #                         'many': True,
+    #                         'read_only': True, }
+    #bom_material = BomMaterialSerializer(**bom_serializer_params)
 
     class Meta:
         model = core.models.BillOfMaterials
@@ -250,6 +250,33 @@ class BillOfMaterialsSerializer(EdocListSerializer,
 
 
 expandable_fields = {
+    'BomCompositeMaterial': {
+        'composite_material': ('rest_api.CompositeMaterialSerializer', 
+                                {
+                                    'read_only': True,
+                                    'view_name': 'compositematerial-detail'
+
+                                })
+    },
+    'BomMaterial': {
+        'bom_composite_material': ('rest_api.BomCompositeMaterialSerializer',
+                                    {
+                                        'source': 'bom_composite_material_bom_material',
+                                        'many': True,
+                                        'read_only': True,
+                                        'view_name': 'bomcompositematerial-detail'
+                                    }
+        )
+    },
+    'BillOfMaterials': {
+        'bom_material': ('rest_api.BomMaterialSerializer',
+                            {
+                             'source': 'bom_material_bom',
+                             'many': True,
+                             'read_only': True,
+                             'view_name': 'bommaterial-detail'   
+                            })
+    },
     'WorkflowObject': {
         'action': ('rest_api.ActionSerializer',
                     {
@@ -266,12 +293,12 @@ expandable_fields = {
     },
     'Workflow': {
         'step': ('rest_api.WorkflowStepSerializer',
-                 {
-                     'source': 'workflow_step_workflow',
-                     'many': True,
-                     'read_only': True,
-                     'view_name': 'workflowstep-detail'
-                 })
+                  {
+                      'source': 'workflow_step_workflow',
+                      'many': True,
+                      'read_only': True,
+                      'view_name': 'workflowstep-detail'
+                  })
     },
     'ExperimentWorkflow': {
         'workflow': ('rest_api.WorkflowSerializer',

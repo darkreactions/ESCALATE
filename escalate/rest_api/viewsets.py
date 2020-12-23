@@ -38,7 +38,6 @@ def save_actor_on_post(self, serializer):
 def download_blob(request, uuid):
     edoc = core.models.Edocument.objects.get(uuid=uuid)
     contents = edoc.edocument
-    print(type(contents))
     filename = edoc.filename
     testfile = tempfile.TemporaryFile()
     testfile.write(contents)
@@ -84,13 +83,14 @@ class BomMaterialViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filter_fields = '__all__'
 
+    """
     def list(self, request):
         qs = core.models.BomMaterial.objects.filter(
             bom_material_composite__isnull=True)
         serializer = BomMaterialSerializer(
             qs, many=True, context={'request': request})
         return Response(serializer.data)
-
+    """
 
 class BillOfMaterialsViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = core.models.BillOfMaterials.objects.all()
@@ -152,7 +152,6 @@ class EdocumentViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         serializer.save(**kwargs)
 
     def create(self, request, *args, **kwargs):
-        print(kwargs)
         ref_edocument_uuid = kwargs['parent_lookup_ref_edocument_uuid']
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
