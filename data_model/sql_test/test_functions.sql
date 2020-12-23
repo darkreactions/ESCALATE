@@ -1315,8 +1315,8 @@ insert into vw_condition_calculation_def_assign (condition_def_uuid, calculation
 insert into vw_condition (condition_calculation_def_x_uuid, in_val, out_val, actor_uuid, status_uuid)
 	values (
 		(select condition_calculation_def_x_uuid from vw_condition_calculation_def_assign where condition_description = 'temp > threshold ?'),
-		(ARRAY[(SELECT put_val ((select get_type_def ('data', 'num')), '100', 'C'))]), 
-		(ARRAY[(SELECT put_val ((select get_type_def ('data', 'bool')), 'false', null))]),
+		(SELECT put_val ((select get_type_def ('data', 'num')), '100', 'C')),
+		(SELECT put_val ((select get_type_def ('data', 'bool')), 'false', null)),
 		(select actor_uuid from vw_actor where description = 'Ion Bond'),
 		(select status_uuid from vw_status where description = 'dev_test'));
 insert into vw_calculation_def 

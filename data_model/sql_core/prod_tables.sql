@@ -394,8 +394,8 @@ CREATE TABLE calculation_stack (
 CREATE TABLE condition (
 	condition_uuid uuid DEFAULT uuid_generate_v4 (),
 	condition_calculation_def_x_uuid uuid,
-	in_val val[],
-	out_val val[],
+	in_val val,
+	out_val val,
 	actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
