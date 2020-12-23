@@ -1563,59 +1563,30 @@ EXECUTE PROCEDURE upsert_bom ( );
 CREATE OR REPLACE VIEW vw_bom_material AS
 SELECT
 	bm.bom_material_uuid,
-	bm.bom_uuid,
 	bm.description,
+    bm.bom_uuid,
 	b.description AS bom_description,
-    bm.bom_material_composite_uuid,
-    bm.bom_material_composite_description,
 	bm.inventory_material_uuid,
-	CASE WHEN bm.material_composite_uuid IS NOT NULL THEN
-		NULL::uuid
-	ELSE
-		i.material_uuid
-	END AS material_uuid,
-	mc.composite_uuid,
-	bm.material_composite_uuid,
-	CASE WHEN bm.material_composite_uuid IS NOT NULL THEN
-		mc.component_description
-	ELSE
-		i.inventory_material_description
-	END AS bom_material_description,
+    inv.description as inventory_description,
+    inv.material_uuid,
 	bm.alloc_amt_val,
-	(bm.alloc_amt_val).v_type_uuid AS alloc_amt_type_uuid,
-	aa.val_type AS alloc_amt_type,
-	(bm.alloc_amt_val).v_unit AS alloc_amt_unit,
-	aa.val_val AS alloc_amt,
 	bm.used_amt_val,
-	(bm.used_amt_val).v_type_uuid AS used_amt_type_uuid,
-	ua.val_type AS used_amt_type,
-	(bm.used_amt_val).v_unit AS used_amt_unit,
-	ua.val_val AS used_amt,
 	bm.putback_amt_val,
-	(bm.putback_amt_val).v_type_uuid AS putback_amt_type_uuid,
-	pa.val_type AS putback_amt_type,
-	(bm.putback_amt_val).v_unit AS putback_amt_unit,
-	pa.val_val AS putback_amt,
-	b.experiment_uuid,
-	exp.description AS experiment_description,
 	bm.actor_uuid,
 	act.description AS actor_description,
 	bm.status_uuid,
 	st.description AS status_description,
-	b.add_date,
-	b.mod_date,
-    b.tags as bom_tags,
-    b.notes as bom_notes
+    bm.add_date,
+    bm.mod_date,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
 FROM bom_material bm
-JOIN vw_bom b ON bm.bom_uuid = b.bom_uuid
-JOIN vw_inventory_material_material i ON bm.inventory_material_uuid = i.inventory_material_uuid
-LEFT JOIN vw_material_composite mc ON bm.material_composite_uuid = mc.material_composite_uuid
-JOIN vw_experiment exp ON b.experiment_uuid = exp.experiment_uuid
-LEFT JOIN vw_actor act ON bm.actor_uuid = act.actor_uuid
-LEFT JOIN vw_status st ON bm.status_uuid = st.status_uuid
-LEFT JOIN LATERAL (SELECT get_val.val_type, get_val.val_unit, get_val.val_val FROM get_val (bm.alloc_amt_val) get_val (val_type, val_unit, val_val)) aa ON TRUE
-LEFT JOIN LATERAL (SELECT get_val.val_type, get_val.val_unit, get_val.val_val FROM get_val (bm.used_amt_val) get_val (val_type, val_unit, val_val)) ua ON TRUE
-LEFT JOIN LATERAL (SELECT get_val.val_type, get_val.val_unit, get_val.val_val FROM get_val (bm.putback_amt_val) get_val (val_type, val_unit, val_val)) pa ON TRUE;
+JOIN bom b ON bm.bom_uuid = b.bom_uuid
+JOIN inventory_material inv ON bm.inventory_material_uuid = inv.inventory_material_uuid
+LEFT JOIN actor act ON bm.actor_uuid = act.actor_uuid
+LEFT JOIN status st ON bm.status_uuid = st.status_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (bom_material_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (bom_material_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_bom_material_upsert ON vw_bom_material;
 CREATE TRIGGER trigger_bom_material_upsert INSTEAD OF INSERT
@@ -1623,6 +1594,72 @@ OR UPDATE
 OR DELETE ON vw_bom_material
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_bom_material ( );
+
+
+----------------------------------------
+-- view bom_material_composite
+-- drop view vw_bom_material_composite cascade
+----------------------------------------
+CREATE OR REPLACE VIEW vw_bom_material_composite AS
+SELECT
+	bmc.bom_material_composite_uuid,
+	bmc.description,
+    bmc.bom_material_uuid,
+    bm.description as bom_material_description,
+    bmc.material_composite_uuid,
+    mc.component_uuid,
+    mc.component_description as material_description,
+	bmc.actor_uuid,
+	act.description AS actor_description,
+	bmc.status_uuid,
+	st.description AS status_description,
+    bmc.add_date,
+    bmc.mod_date,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
+FROM bom_material_composite bmc
+JOIN bom_material bm ON bmc.bom_material_uuid = bm.bom_material_uuid
+JOIN vw_material_composite mc ON bmc.material_composite_uuid = mc.material_composite_uuid
+LEFT JOIN actor act ON bm.actor_uuid = act.actor_uuid
+LEFT JOIN status st ON bm.status_uuid = st.status_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (bom_material_composite_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (bom_material_composite_uuid)) anote ON true;
+
+DROP TRIGGER IF EXISTS trigger_bom_material_composite_upsert ON vw_bom_material_composite;
+CREATE TRIGGER trigger_bom_material_composite_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_bom_material_composite
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_bom_material_composite ( );
+
+
+----------------------------------------
+-- view bom_material_index
+-- drop view vw_bom_material_index cascade
+----------------------------------------
+CREATE OR REPLACE VIEW vw_bom_material_index AS
+SELECT
+	bmi.bom_material_index_uuid,
+	bmi.description,
+    bmi.bom_material_uuid,
+    bm.inventory_description as inventory_description,
+    bmi.bom_material_composite_uuid,
+    bmc.bom_material_description as bom_material_description,
+    CASE
+        when bmi.bom_material_uuid is not null then m1.material_uuid
+        else bmc.component_uuid
+    END as material_uuid,
+    CASE
+        when bmi.bom_material_uuid is not null then m1.description
+        else bmc.material_description
+    END as material_description,
+    bmi.add_date,
+    bmi.mod_date
+FROM bom_material_index bmi
+LEFT JOIN vw_bom_material bm ON bmi.bom_material_uuid = bm.bom_material_uuid
+LEFT JOIN material m1 ON bm.material_uuid = m1.material_uuid
+LEFT JOIN vw_bom_material_composite bmc ON bmi.bom_material_composite_uuid = bmc.bom_material_composite_uuid
+LEFT JOIN material m2 ON bmc.material_composite_uuid = m2.material_uuid;
 
 
 ----------------------------------------
@@ -1864,9 +1901,9 @@ SELECT
     act.ref_parameter_uuid,
     act.calculation_def_uuid,
     act.source_material_uuid,
-    bms.bom_material_description as source_material_description,
+    bms.description as source_material_description,
     act.destination_material_uuid,
-    bmd.bom_material_description as destination_material_description,
+    bmd.description as destination_material_description,
     act.actor_uuid,
     actor.description as actor_description,
     act.status_uuid,
@@ -2691,27 +2728,16 @@ JOIN (
 						'bom_material_description', bm.description,
 						'bom_inventory_material_uuid', bm.inventory_material_uuid,
 						'bom_material_uuid', bm.material_uuid,
-						'bom_material_alloc_amt_type', bm.alloc_amt_type,
-						'bom_material_alloc_amt', bm.alloc_amt,
-						'bom_material_alloc_amt_unit', bm.alloc_amt_unit,
-						'bom_material_used_amt_type', bm.used_amt_type,
-						'bom_material_used_amt', bm.used_amt,
-						'bom_material_used_amt_unit', bm.used_amt_unit,
-						'bom_material_putback_amt_type', bm.putback_amt_type,
-						'bom_material_putback_amt', bm.putback_amt,
-						'bom_material_putback_amt_unit', bm.putback_amt_unit,
 						'bom_material_property', mp.mprp, 
 						'bom_material_component', mc.mcom)
 					ORDER BY bm.description
 				) AS bomm
 			FROM (SELECT
 					bm.bom_material_uuid, bm.bom_uuid, bm.description, bm.bom_description, bm.inventory_material_uuid, bm.material_uuid,
-					bm.composite_uuid, bm.material_composite_uuid, bm.bom_material_description, bm.alloc_amt_val, bm.alloc_amt_type_uuid, bm.alloc_amt_type,
-					bm.alloc_amt_unit, bm.alloc_amt, bm.used_amt_val, bm.used_amt_type_uuid, bm.used_amt_type, bm.used_amt_unit, bm.used_amt,
-					bm.putback_amt_val, bm.putback_amt_type_uuid, bm.putback_amt_type, bm.putback_amt_unit, bm.putback_amt, bm.experiment_uuid,
-					bm.experiment_description, bm.actor_uuid, bm.actor_description, bm.status_uuid, bm.status_description, bm.add_date, bm.mod_date
+					bm.alloc_amt_val, bm.used_amt_val, bm.putback_amt_val,
+					bm.actor_uuid, bm.actor_description, bm.status_uuid, bm.status_description, bm.add_date, bm.mod_date
 				FROM vw_bom_material bm
-				WHERE bm.material_composite_uuid IS NULL) bm
+				) bm
 			LEFT JOIN (
 				SELECT
 					mp.material_uuid,
@@ -2837,27 +2863,15 @@ JOIN (
                         'bom_material_description', bm.description,
                         'bom_inventory_material_uuid', bm.inventory_material_uuid,
                         'bom_material_uuid', bm.material_uuid,
-                        'bom_material_alloc_amt_type', bm.alloc_amt_type,
-                        'bom_material_alloc_amt', bm.alloc_amt,
-                        'bom_material_alloc_amt_unit', bm.alloc_amt_unit,
-                        'bom_material_used_amt_type', bm.used_amt_type,
-                        'bom_material_used_amt', bm.used_amt,
-                        'bom_material_used_amt_unit', bm.used_amt_unit,
-                        'bom_material_putback_amt_type', bm.putback_amt_type,
-                        'bom_material_putback_amt', bm.putback_amt,
-                        'bom_material_putback_amt_unit', bm.putback_amt_unit,
                         'bom_material_property', mp.mprp,
                         'bom_material_component', mc.mcom)
                     ORDER BY bm.description
                 ) AS bomm
             FROM (SELECT
 					bm.bom_material_uuid, bm.bom_uuid, bm.description, bm.bom_description, bm.inventory_material_uuid, bm.material_uuid,
-					bm.composite_uuid, bm.material_composite_uuid, bm.bom_material_description, bm.alloc_amt_val, bm.alloc_amt_type_uuid, bm.alloc_amt_type,
-					bm.alloc_amt_unit, bm.alloc_amt, bm.used_amt_val, bm.used_amt_type_uuid, bm.used_amt_type, bm.used_amt_unit, bm.used_amt,
-					bm.putback_amt_val, bm.putback_amt_type_uuid, bm.putback_amt_type, bm.putback_amt_unit, bm.putback_amt, bm.experiment_uuid,
-					bm.experiment_description, bm.actor_uuid, bm.actor_description, bm.status_uuid, bm.status_description, bm.add_date, bm.mod_date
-                FROM vw_bom_material bm
-                WHERE bm.material_composite_uuid IS NULL) bm
+					bm.alloc_amt_val, bm.used_amt_val, bm.putback_amt_val,
+					bm.actor_uuid, bm.actor_description, bm.status_uuid, bm.status_description, bm.add_date, bm.mod_date
+				FROM vw_bom_material bm) bm
             LEFT JOIN (
                 SELECT
                     mp.material_uuid,
@@ -3097,27 +3111,15 @@ JOIN (
                         'bom_material_description', bm.description,
                         'bom_inventory_material_uuid', bm.inventory_material_uuid,
                         'bom_material_uuid', bm.material_uuid,
-                        'bom_material_alloc_amt_type', bm.alloc_amt_type,
-                        'bom_material_alloc_amt', bm.alloc_amt,
-                        'bom_material_alloc_amt_unit', bm.alloc_amt_unit,
-                        'bom_material_used_amt_type', bm.used_amt_type,
-                        'bom_material_used_amt', bm.used_amt,
-                        'bom_material_used_amt_unit', bm.used_amt_unit,
-                        'bom_material_putback_amt_type', bm.putback_amt_type,
-                        'bom_material_putback_amt', bm.putback_amt,
-                        'bom_material_putback_amt_unit', bm.putback_amt_unit,
                         'bom_material_property', mp.material_property,
                         'bom_material_composite', mc.mcom)
                     ORDER BY bm.description
                 ) AS bomm
             FROM (SELECT
 					bm.bom_material_uuid, bm.bom_uuid, bm.description, bm.bom_description, bm.inventory_material_uuid, bm.material_uuid,
-					bm.composite_uuid, bm.material_composite_uuid, bm.bom_material_description, bm.alloc_amt_val, bm.alloc_amt_type_uuid, bm.alloc_amt_type,
-					bm.alloc_amt_unit, bm.alloc_amt, bm.used_amt_val, bm.used_amt_type_uuid, bm.used_amt_type, bm.used_amt_unit, bm.used_amt,
-					bm.putback_amt_val, bm.putback_amt_type_uuid, bm.putback_amt_type, bm.putback_amt_unit, bm.putback_amt, bm.experiment_uuid,
-					bm.experiment_description, bm.actor_uuid, bm.actor_description, bm.status_uuid, bm.status_description, bm.add_date, bm.mod_date
-                FROM vw_bom_material bm
-                WHERE bm.material_composite_uuid IS NULL) bm
+					bm.alloc_amt_val, bm.used_amt_val, bm.putback_amt_val,
+					bm.actor_uuid, bm.actor_description, bm.status_uuid, bm.status_description, bm.add_date, bm.mod_date
+				FROM vw_bom_material bm) bm
             LEFT JOIN (
                     select * from material_property_json ()
                 ) mp ON bm.material_uuid = mp.material_uuid

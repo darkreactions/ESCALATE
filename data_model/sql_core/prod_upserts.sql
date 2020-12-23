@@ -2931,7 +2931,7 @@ Parameters:
 Returns:		void
 Author:			G. Cattabriga
 Date:			2020.10.30
-Description:	trigger proc that deletes, inserts or updates experiment_record record based on TG_OP (trigger operation)
+Description:	trigger proc that deletes, inserts or updates experiment_workflow record based on TG_OP (trigger operation)
 Notes:				
  
 Example:		insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid) 
@@ -2983,7 +2983,7 @@ Parameters:
 Returns:		void
 Author:			G. Cattabriga
 Date:			2020.11.01
-Description:	trigger proc that deletes, inserts or updates experiment record based on TG_OP (trigger operation)
+Description:	trigger proc that deletes, inserts or updates bom record based on TG_OP (trigger operation)
 Notes:				
  
 Example:		insert into vw_bom (experiment_uuid, description, actor_uuid, status_uuid) 
@@ -3031,6 +3031,70 @@ LANGUAGE plpgsql;
 
 
 /*
+Name:			upsert_bom_material_composite()
+Parameters:
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.12.22
+Description:	trigger proc that deletes, inserts or updates bom_material_composite record based on TG_OP (trigger operation)
+Notes:			do not call this directly - instead use vw_bom_material as the way to insert, update and delete bom_materials
+
+Example:		insert into vw_bom_material_composite (description, bom_material_uuid, material_composite_uuid, actor_uuid, status_uuid)
+					values (
+                        'Test Plate: Plate well#: A1',
+						(select material_composite_uuid from vw_material_composite where component_description = 'Plate well#: A1'),
+						(select material_composite_uuid from vw_material_composite where component_description = 'Plate well#: A1'),
+						(select actor_uuid from vw_actor where description = 'T Testuser'),
+						(select status_uuid from vw_status where description = 'test'));
+				update vw_bom_material_composite set status_uuid = (select status_uuid from vw_status where description = 'active') where description = 'Test Plate: Plate well#: A1';
+ 				delete from vw_bom where description = 'Test Plate: Plate well#: A1';
+ */
+CREATE OR REPLACE FUNCTION upsert_bom_material_composite ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+	    DELETE FROM bom_material_index
+	    WHERE bom_material_composite_uuid = OLD.bom_material_composite_uuid;
+		DELETE FROM bom_material_composite
+		WHERE bom_material_composite_uuid = OLD.bom_material_composite_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- delete any assigned records
+		PERFORM delete_assigned_recs (OLD.bom_material_composite_uuid);
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			bom_material_composite
+		SET
+			description = NEW.description,
+		    bom_material_uuid = NEW.bom_material_uuid,
+		    material_composite_uuid = NEW.material_composite_uuid,
+			actor_uuid = NEW.actor_uuid,
+			status_uuid = NEW.status_uuid,
+			mod_date = now()
+		WHERE
+			bom_material_composite.bom_material_composite_uuid = NEW.bom_material_composite_uuid;
+		UPDATE bom_material_index
+		SET
+			description = NEW.description,
+			mod_date = now()
+		WHERE bom_material_index.bom_material_composite_uuid = NEW.bom_material_composite_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO bom_material_composite (description, bom_material_uuid, material_composite_uuid, actor_uuid, status_uuid)
+			VALUES(NEW.description, NEW.bom_material_uuid, NEW.material_composite_uuid, NEW.actor_uuid, NEW.status_uuid) returning bom_material_composite_uuid into NEW.bom_material_composite_uuid;
+		INSERT INTO bom_material_index (description, bom_material_composite_uuid)
+		    VALUES(NEW.description, NEW.bom_material_composite_uuid);
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
 Name:			upsert_bom_material()
 Parameters:		
 
@@ -3052,13 +3116,17 @@ Example:		insert into vw_bom_material (bom_uuid, inventory_material_uuid, alloc_
 					where inventory_material_uuid = (select inventory_material_uuid from vw_inventory_material where description = 'HCL');
 				update vw_bom_material set used_amt_val = (select put_val((select get_type_def ('data', 'num')), '487.21','mL')) 
 					where inventory_material_uuid = (select inventory_material_uuid from vw_inventory_material where description = 'HCL');
- 				delete from vw_bom_material where inventory_material_uuid = (select inventory_material_uuid from vw_inventory_material where description = 'HCL);
+ 				delete from vw_bom_material where description = 'Sample Prep Plate';
  */	
 CREATE OR REPLACE FUNCTION upsert_bom_material ()
 	RETURNS TRIGGER
 	AS $$
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
+	    DELETE FROM bom_material_index
+	    WHERE bom_material_uuid = OLD.bom_material_uuid;
+	    DELETE FROM vw_bom_material_composite
+                where bom_material_description = OLD.description ;
 		DELETE FROM bom_material
 		WHERE bom_material_uuid = OLD.bom_material_uuid;
 		IF NOT FOUND THEN
@@ -3074,7 +3142,6 @@ BEGIN
 			bom_uuid = NEW.bom_uuid,
 		    description = NEW.description,
 			inventory_material_uuid = NEW.inventory_material_uuid,
-			material_composite_uuid = NEW.material_composite_uuid,
 			alloc_amt_val = NEW.alloc_amt_val,
 			used_amt_val = NEW.used_amt_val,		
 			putback_amt_val = NEW.putback_amt_val,		
@@ -3083,6 +3150,11 @@ BEGIN
 			mod_date = now()
 		WHERE
 			bom_material.bom_material_uuid = NEW.bom_material_uuid;
+		UPDATE bom_material_index
+		SET
+			description = NEW.description,
+			mod_date = now()
+		WHERE bom_material_index.bom_material_uuid = NEW.bom_material_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid)
@@ -3090,15 +3162,15 @@ BEGIN
 		-- check to see if it's a non-consumable and composite so we can bring the [addressable ]composites into the BOM 
 		IF not (select material_consumable from vw_inventory_material where inventory_material_uuid = NEW.inventory_material_uuid) and
 			(select material_composite_flg from vw_inventory_material where inventory_material_uuid = NEW.inventory_material_uuid) THEN
-			INSERT INTO bom_material (bom_uuid, description, bom_material_composite_uuid, bom_material_composite_description, inventory_material_uuid, material_composite_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid)
-				select NEW.bom_uuid, concat(NEW.description,': ',component_description), NEW.bom_material_uuid,
-				       (select description from vw_bom_material where bom_material_uuid = NEW.bom_material_uuid),
-				       NEW.inventory_material_uuid, material_composite_uuid, NEW.alloc_amt_val, NEW.used_amt_val, NEW.putback_amt_val,
-				       NEW.actor_uuid, NEW.status_uuid
-		  		from vw_material_composite where 
-						composite_uuid = (SELECT material_uuid from vw_inventory_material where
+			INSERT INTO vw_bom_material_composite (description, bom_material_uuid, material_composite_uuid, actor_uuid, status_uuid)
+				select concat(NEW.description,': ',component_description), NEW.bom_material_uuid,
+				       material_composite_uuid, NEW.actor_uuid, NEW.status_uuid
+		  		from vw_material_composite where
+						composite_uuid = (SELECT material_uuid from inventory_material where
 						inventory_material_uuid = NEW.inventory_material_uuid);
 		END IF;
+		INSERT INTO bom_material_index (description, bom_material_uuid)
+		    VALUES(NEW.description, NEW.bom_material_uuid);
 		RETURN NEW;
 	END IF;
 END;
@@ -3286,8 +3358,8 @@ BEGIN
 			LOOP 
 	        	insert into vw_action (action_def_uuid, workflow_uuid, action_description, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid)
 	            values (NEW.action_def_uuid, NEW.workflow_uuid, 
-	            	concat(NEW.description, ': ',(select description from vw_bom_material where bom_material_uuid = _s_uuid), ' -> ',
-	            					(select bom_material_description from vw_bom_material where bom_material_uuid = _d_uuid)),
+	            	concat(NEW.description, ': ',(select description from vw_bom_material_index where bom_material_index_uuid = _s_uuid), ' -> ',
+	            					(select description from vw_bom_material_index where bom_material_index_uuid = _d_uuid)),
 	            	_s_uuid, _d_uuid, NEW.actor_uuid, NEW.status_uuid) returning action_uuid into _action_uuid;
 				-- assign parameter value
 	        	IF _calc_flg THEN
@@ -3324,8 +3396,8 @@ BEGIN
 				_d_uuid := NEW.destination_material_uuid[_src_cnt]; 
 	        	insert into vw_action (action_def_uuid, workflow_uuid, action_description, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid)
 	            values (NEW.action_def_uuid, NEW.workflow_uuid, 
-	            	concat(NEW.description, ': ',(select bom_material_description from vw_bom_material where bom_material_uuid = _s_uuid), ' -> ', 
-	            					(select bom_material_description from vw_bom_material where bom_material_uuid = _d_uuid)),
+	            	concat(NEW.description, ': ',(select description from vw_bom_material_index where bom_material_index_uuid = _s_uuid), ' -> ',
+	            					(select description from vw_bom_material_index where bom_material_index_uuid = _d_uuid)),
 	            	_s_uuid, _d_uuid,
 	            	(select actor_uuid from vw_actor where description = 'Ion Bond'),
 	            	(select status_uuid from vw_status where description = 'dev_test')) returning action_uuid into _action_uuid;

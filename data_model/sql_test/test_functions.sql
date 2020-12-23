@@ -1597,24 +1597,16 @@ values ('dispense action_set',
         null,
         (select calculation_uuid from vw_calculation where short_name = 'LANL_WF1_H2O_5mL_concentration'),
  --       (select arr_val_2_val_arr ((select out_val from vw_calculation where short_name = 'LANL_WF1_H2O_5mL_concentration'))),
-        array [(select bom_material_uuid from vw_bom_material where description = 'H2O')],
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'H2O')],
         array [
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A1%'),
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A2%'),
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A3%'),
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A4%'),
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A5%'),
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A6%'),
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%B1%'),
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%B2%')],
+            (select bom_material_index_uuid from vw_bom_material_index where description like '%Sample Prep Plate%A1%'),
+            (select bom_material_index_uuid from vw_bom_material_index where description like '%Sample Prep Plate%A2%'),
+            (select bom_material_index_uuid from vw_bom_material_index where description like '%Sample Prep Plate%A3%'),
+            (select bom_material_index_uuid from vw_bom_material_index where description like '%Sample Prep Plate%A4%'),
+            (select bom_material_index_uuid from vw_bom_material_index where description like '%Sample Prep Plate%A5%'),
+            (select bom_material_index_uuid from vw_bom_material_index where description like '%Sample Prep Plate%A6%'),
+            (select bom_material_index_uuid from vw_bom_material_index where description like '%Sample Prep Plate%B1%'),
+            (select bom_material_index_uuid from vw_bom_material_index where description like '%Sample Prep Plate%B2%')],
         (select actor_uuid from vw_actor where description = 'Ion Bond'),
         (select status_uuid from vw_status where description = 'dev_test'));
 
@@ -1632,9 +1624,9 @@ values ('dispense action_set',
         null,
         (select calculation_uuid from vw_calculation where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
  --       (select arr_val_2_val_arr ((select out_val from vw_calculation where short_name = 'LANL_WF1_H2O_5mL_concentration'))),
-        (select array [(select bom_material_uuid from vw_bom_material where description = 'HCl-12M')]),
-        (select array(select bom_material_uuid from vw_bom_material where bom_material_composite_description = 'Sample Prep Plate'
-            and bom_material_description similar to '%(A1|A2|A3|A4|A5|A6|B1|B2)%')),
+        (select array [(select bom_material_index_uuid from vw_bom_material_index where description = 'HCl-12M')]),
+        (select array(select bom_material_index_uuid from vw_bom_material_index where description like '%Sample Prep Plate%'
+            and description similar to '%(A1|A2|A3|A4|A5|A6|B1|B2)%')),
         (select actor_uuid from vw_actor where description = 'Ion Bond'),
         (select status_uuid from vw_status where description = 'dev_test'));
 
@@ -1649,12 +1641,28 @@ insert into vw_workflow_object (workflow_uuid, action_uuid)
 	values (
 	    (select workflow_uuid from vw_workflow where description = 'LANL_WF1c_SetTemp_SamplePrep'),
 		(select action_uuid from vw_action where action_description = 'heat sample plate'));
+
 insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)
 	values (
 		(select workflow_uuid from vw_workflow where description = 'LANL_WF1c_SetTemp_SamplePrep'),
 		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'heat sample plate')),
         null,
         (select status_uuid from vw_status where description = 'dev_test'));
+-- let's set the temperature and duration of the action heat sample plate
+update vw_action_parameter
+    set parameter_val = (select put_val (
+            (select val_type_uuid from vw_parameter_def where description = 'temperature'),
+             '110.23',
+            (select valunit from vw_parameter_def where description = 'temperature'))
+            )
+where (action_description = 'heat sample plate' AND parameter_def_description = 'temperature');
+update vw_action_parameter
+    set parameter_val = (select put_val (
+            (select val_type_uuid from vw_parameter_def where description = 'duration'),
+             '10',
+            (select valunit from vw_parameter_def where description = 'duration'))
+            )
+where (action_description = 'heat sample plate' AND parameter_def_description = 'duration');
 
 -- add in some measures
 -- to action(s)
@@ -1682,6 +1690,7 @@ insert into vw_measure (measure_def_uuid, measure_type_uuid, ref_measure_uuid, d
         '')),
     (select actor_uuid from vw_actor where description = 'Ion Bond'),
     (select status_uuid from vw_status where description = 'dev_test'));
+
 -- add tags to measure
 insert into vw_tag_assign (tag_uuid, ref_tag_uuid) values
     ((select tag_uuid from vw_tag where (display_text = 'subjective' and vw_tag.type = 'measure')),
@@ -1692,11 +1701,13 @@ insert into vw_tag_assign (tag_uuid, ref_tag_uuid) values
      (select measure_uuid from vw_measure where
         measure_def_description = 'sample color' and measure_value_value = 'green to green-yellow'
         and actor_description = 'Ion Bond'));
+
 -- add a note to measure
 insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('quick assessment of color, no color chart',
 	(select actor_uuid from vw_actor where description = 'Ion Bond'),
     (select measure_uuid from vw_measure where
         measure_def_description = 'sample color' and measure_value_value = 'green to green-yellow'
         and actor_description = 'Ion Bond'));
+
 
 

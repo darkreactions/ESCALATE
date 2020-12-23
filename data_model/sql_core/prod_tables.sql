@@ -116,7 +116,9 @@ DROP TABLE IF EXISTS action_parameter_def_x cascade;
 DROP TABLE IF EXISTS actor cascade;
 DROP TABLE IF EXISTS actor_pref cascade;
 DROP TABLE IF EXISTS bom cascade; 
-DROP TABLE IF EXISTS bom_material cascade; 
+DROP TABLE IF EXISTS bom_material cascade;
+DROP TABLE IF EXISTS bom_material_composite cascade;
+DROP TABLE IF EXISTS bom_material_index cascade;
 DROP TABLE IF EXISTS calculation cascade;
 DROP TABLE IF EXISTS calculation_class cascade;
 DROP TABLE IF EXISTS calculation_def cascade;
@@ -284,15 +286,34 @@ CREATE TABLE bom_material (
 	bom_material_uuid uuid DEFAULT uuid_generate_v4 (),
 	bom_uuid uuid NOT NULL,
 	description varchar COLLATE "pg_catalog"."default",
-	bom_material_composite_uuid uuid,
-	bom_material_composite_description varchar,
 	inventory_material_uuid uuid NOT NULL,
-	material_composite_uuid uuid,
 	alloc_amt_val val,
 	used_amt_val val,
 	putback_amt_val val,
 	actor_uuid uuid, 
 	status_uuid uuid, 
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
+CREATE TABLE bom_material_composite (
+	bom_material_composite_uuid uuid DEFAULT uuid_generate_v4 (),
+	description varchar COLLATE "pg_catalog"."default",
+	bom_material_uuid uuid NOT NULL,
+	material_composite_uuid uuid NOT NULL,
+	actor_uuid uuid,
+	status_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
+CREATE TABLE bom_material_index (
+	bom_material_index_uuid uuid DEFAULT uuid_generate_v4 (),
+	description varchar COLLATE "pg_catalog"."default",
+	bom_material_uuid uuid,
+	bom_material_composite_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
@@ -1026,11 +1047,25 @@ USING "pk_bom_bom_uuid";
 ALTER TABLE bom_material
 	ADD CONSTRAINT "pk_bom_material_bom_material_uuid" PRIMARY KEY (bom_material_uuid);
 CREATE INDEX "ix_bom_material_bom_uuid" ON bom_material (bom_uuid);
-CREATE INDEX "ix_bom_material_bom_material_composite" ON bom_material (bom_material_composite_uuid);
 CREATE INDEX "ix_bom_material_inventory_material" ON bom_material (inventory_material_uuid);
-CREATE INDEX "ix_bom_material_material_composite" ON bom_material (material_composite_uuid);
 CLUSTER bom_material
 USING "pk_bom_material_bom_material_uuid";
+
+
+ALTER TABLE bom_material_composite
+	ADD CONSTRAINT "pk_bom_material_composite_bom_material_composite_uuid" PRIMARY KEY (bom_material_composite_uuid);
+CREATE INDEX "ix_bom_material_composite_bom_material" ON bom_material_composite (bom_material_uuid);
+CREATE INDEX "ix_bom_material_composite_material_composite" ON bom_material_composite (material_composite_uuid);
+CLUSTER bom_material_composite
+USING "pk_bom_material_composite_bom_material_composite_uuid";
+
+
+ALTER TABLE bom_material_index
+	ADD CONSTRAINT "pk_bom_material_index_bom_material_index_uuid" PRIMARY KEY (bom_material_index_uuid);
+CREATE INDEX "ix_bom_material_index_bom_material" ON bom_material_index (bom_material_uuid);
+CREATE INDEX "ix_bom_material_index_bom_material_composite" ON bom_material_index (bom_material_composite_uuid);
+CLUSTER bom_material_index
+USING "pk_bom_material_index_bom_material_index_uuid";
 
 
 ALTER TABLE calculation
@@ -1480,8 +1515,8 @@ ALTER TABLE action
 	ADD CONSTRAINT fk_action_action_def_1 FOREIGN KEY (action_def_uuid) REFERENCES action_def (action_def_uuid),
 		ADD CONSTRAINT fk_action_workflow_1 FOREIGN KEY (workflow_uuid) REFERENCES workflow (workflow_uuid),
 			ADD CONSTRAINT fk_action_calculation_def_1 FOREIGN KEY (calculation_def_uuid) REFERENCES calculation_def (calculation_def_uuid),
-				ADD CONSTRAINT fk_action_source_material_1 FOREIGN KEY (source_material_uuid) REFERENCES bom_material (bom_material_uuid),
-					ADD CONSTRAINT fk_action_destination_material_1 FOREIGN KEY (destination_material_uuid) REFERENCES bom_material (bom_material_uuid),
+				ADD CONSTRAINT fk_action_source_material_1 FOREIGN KEY (source_material_uuid) REFERENCES bom_material_index (bom_material_index_uuid),
+					ADD CONSTRAINT fk_action_destination_material_1 FOREIGN KEY (destination_material_uuid) REFERENCES bom_material_index (bom_material_index_uuid),
 						ADD CONSTRAINT fk_action_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
 							ADD CONSTRAINT fk_action_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);	
 
@@ -1505,11 +1540,21 @@ ALTER TABLE bom
 
 ALTER TABLE bom_material
 	ADD CONSTRAINT fk_bom_material_bom_1 FOREIGN KEY (bom_uuid) REFERENCES bom (bom_uuid),
-		ADD CONSTRAINT fk_bom_material_composite_1 FOREIGN KEY (bom_material_composite_uuid) REFERENCES bom_material (bom_material_uuid),
-		    ADD CONSTRAINT fk_bom_material_inventory_material_1 FOREIGN KEY (inventory_material_uuid) REFERENCES inventory_material (inventory_material_uuid),
-			    ADD CONSTRAINT fk_bom_material_material_composite_1 FOREIGN KEY (material_composite_uuid) REFERENCES material_composite (material_composite_uuid),
-				    ADD CONSTRAINT fk_bom_material_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
-					    ADD CONSTRAINT fk_bom_material_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+		ADD CONSTRAINT fk_bom_material_inventory_material_1 FOREIGN KEY (inventory_material_uuid) REFERENCES inventory_material (inventory_material_uuid),
+			ADD CONSTRAINT fk_bom_material_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+				ADD CONSTRAINT fk_bom_material_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+
+
+ALTER TABLE bom_material_composite
+	ADD CONSTRAINT fk_bom_material_composite_bom_material_1 FOREIGN KEY (bom_material_uuid) REFERENCES bom_material (bom_material_uuid),
+		ADD CONSTRAINT fk_bom_material_composite_material_composite_1 FOREIGN KEY (material_composite_uuid) REFERENCES material_composite (material_composite_uuid),
+			ADD CONSTRAINT fk_bom_material_composite_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+				ADD CONSTRAINT fk_bom_material_composite_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+
+
+ALTER TABLE bom_material_index
+	ADD CONSTRAINT fk_bom_material_index_bom_material_1 FOREIGN KEY (bom_material_uuid) REFERENCES bom_material (bom_material_uuid),
+		ADD CONSTRAINT fk_bom_material_index_bom_material_composite_1 FOREIGN KEY (bom_material_composite_uuid) REFERENCES bom_material_composite (bom_material_composite_uuid);
 
 
 ALTER TABLE calculation
@@ -1820,9 +1865,8 @@ COMMENT ON COLUMN bom.mod_date IS '';
 COMMENT ON TABLE bom_material IS '';
 COMMENT ON COLUMN bom_material.bom_material_uuid IS '';
 COMMENT ON COLUMN bom_material.bom_uuid IS '';
-COMMENT ON COLUMN bom_material.bom_material_composite_uuid IS '';
+COMMENT ON COLUMN bom_material.description IS '';
 COMMENT ON COLUMN bom_material.inventory_material_uuid IS '';
-COMMENT ON COLUMN bom_material.material_composite_uuid IS '';
 COMMENT ON COLUMN bom_material.alloc_amt_val IS '';
 COMMENT ON COLUMN bom_material.used_amt_val IS '';
 COMMENT ON COLUMN bom_material.putback_amt_val IS '';
@@ -1830,6 +1874,26 @@ COMMENT ON COLUMN bom_material.actor_uuid IS '';
 COMMENT ON COLUMN bom_material.status_uuid IS '';
 COMMENT ON COLUMN bom_material.add_date IS '';
 COMMENT ON COLUMN bom_material.mod_date IS '';
+
+
+COMMENT ON TABLE bom_material_composite IS '';
+COMMENT ON COLUMN bom_material_composite.bom_material_composite_uuid IS '';
+COMMENT ON COLUMN bom_material_composite.description IS '';
+COMMENT ON COLUMN bom_material_composite.bom_material_uuid IS '';
+COMMENT ON COLUMN bom_material_composite.material_composite_uuid IS '';
+COMMENT ON COLUMN bom_material_composite.actor_uuid IS '';
+COMMENT ON COLUMN bom_material_composite.status_uuid IS '';
+COMMENT ON COLUMN bom_material_composite.add_date IS '';
+COMMENT ON COLUMN bom_material_composite.mod_date IS '';
+
+
+COMMENT ON TABLE bom_material_index IS '';
+COMMENT ON COLUMN bom_material_index.bom_material_index_uuid IS '';
+COMMENT ON COLUMN bom_material_index.description IS '';
+COMMENT ON COLUMN bom_material_index.bom_material_uuid IS '';
+COMMENT ON COLUMN bom_material_index.bom_material_composite_uuid IS '';
+COMMENT ON COLUMN bom_material_index.add_date IS '';
+COMMENT ON COLUMN bom_material_index.mod_date IS '';
 
 
 COMMENT ON TABLE calculation IS '';
