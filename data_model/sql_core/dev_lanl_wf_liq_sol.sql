@@ -1,7 +1,7 @@
 
+select concat('end #1 create liquid solid,',now());
+
 insert into vw_status (description) values ('dev_test');
-
-
 
 -- -- add some chemicals to material so we can use them in an experiment (BOM -> bill of materials)
 -- -- added HCl, water and AM-243 into chem inventory.
@@ -72,10 +72,6 @@ insert into vw_property_def (description, short_description, val_type_uuid, valu
 	'mol/L',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'active'));
-
-select * from vw_property_def;
-
-
 
 -- create a resin
 -- todo: company name
@@ -405,7 +401,7 @@ insert into vw_inventory (description, owner_uuid, operator_uuid, lab_uuid, acto
 	(select status_uuid from vw_status where description = 'dev_test'));
 
 insert into vw_inventory_material (inventory_uuid, description, material_uuid, actor_uuid,
-	part_no, onhand_amt, expiration_date, location, status_uuid) 
+	part_no, onhand_amt, expiration_date, location, status_uuid)
 				values (
 				(select inventory_uuid from vw_inventory where description = 'Test Inventory'),
 				'24 well plate',
@@ -434,7 +430,7 @@ insert into vw_inventory_material (inventory_uuid, description, material_uuid, a
 
 -- add water to inventory_material
 insert into vw_inventory_material (inventory_uuid, description, material_uuid, actor_uuid,
-	part_no, onhand_amt, expiration_date, location, status_uuid) 
+	part_no, onhand_amt, expiration_date, location, status_uuid)
 				values (
 				(select inventory_uuid from vw_inventory where description = 'Test Inventory'),
 				'Water',
@@ -448,7 +444,7 @@ insert into vw_inventory_material (inventory_uuid, description, material_uuid, a
 				);
 -- add hcl to inventory_material
 insert into vw_inventory_material (inventory_uuid, description, material_uuid, actor_uuid,
-	part_no, onhand_amt, expiration_date, location, status_uuid) 
+	part_no, onhand_amt, expiration_date, location, status_uuid)
 				values (
 				(select inventory_uuid from vw_inventory where description = 'Test Inventory'),
 				'HCL',
@@ -462,7 +458,7 @@ insert into vw_inventory_material (inventory_uuid, description, material_uuid, a
 				);
 -- add resin to inventory_material
 insert into vw_inventory_material (inventory_uuid, description, material_uuid, actor_uuid,
-	part_no, onhand_amt, expiration_date, location, status_uuid) 
+	part_no, onhand_amt, expiration_date, location, status_uuid)
 				values (
 				(select inventory_uuid from vw_inventory where description = 'Test Inventory'),
 				'Resin',
@@ -476,7 +472,7 @@ insert into vw_inventory_material (inventory_uuid, description, material_uuid, a
 				);
 -- add Am-243 Stock to inventory_material
 insert into vw_inventory_material (inventory_uuid, description, material_uuid, actor_uuid,
-	part_no, onhand_amt, expiration_date, location, status_uuid) 
+	part_no, onhand_amt, expiration_date, location, status_uuid)
 				values (
 				(select inventory_uuid from vw_inventory where description = 'Test Inventory'),
 				'Am-243 Stock',
@@ -490,7 +486,7 @@ insert into vw_inventory_material (inventory_uuid, description, material_uuid, a
 				);
 -- add HCl-12M to inventory_material
 insert into vw_inventory_material (inventory_uuid, description, material_uuid, actor_uuid,
-	part_no, onhand_amt, expiration_date, location, status_uuid) 
+	part_no, onhand_amt, expiration_date, location, status_uuid)
 				values (
 				(select inventory_uuid from vw_inventory where description = 'Test Inventory'),
 				'HCl-12M',
@@ -536,6 +532,13 @@ insert into vw_parameter_def (description, default_val, actor_uuid, status_uuid)
         (select put_val((select get_type_def ('data', 'num')), '0', 'degC')),
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
 		(select status_uuid from vw_status where description = 'dev_test'));
+insert into vw_parameter_def (description, default_val, actor_uuid, status_uuid)
+	values
+	    ('mass',
+        (select put_val((select get_type_def ('data', 'num')), '0', 'mg')),
+        (select actor_uuid from vw_actor where description = 'Mike Tynes'),
+		(select status_uuid from vw_status where description = 'dev_test'));
+
 
 insert into vw_action_def (description, actor_uuid, status_uuid) values
 	('dispense', (select actor_uuid from vw_actor where description = 'Mike Tynes'),
@@ -547,6 +550,11 @@ insert into vw_action_def (description, actor_uuid, status_uuid) values
     ('start_node', (select actor_uuid from vw_actor where description = 'Mike Tynes'),
     (select status_uuid from vw_status where description = 'dev_test')),
     ('end_node', (select actor_uuid from vw_actor where description = 'Mike Tynes'),
+    (select status_uuid from vw_status where description = 'dev_test'));
+
+
+insert into vw_action_def (description, actor_uuid, status_uuid) values
+	('dispense_solid', (select actor_uuid from vw_actor where description = 'Mike Tynes'),
     (select status_uuid from vw_status where description = 'dev_test'));
 -- add a note to dispense action indicating that source is the dispensed material
 -- and destination is the container
@@ -569,6 +577,11 @@ insert into vw_action_parameter_def_assign (action_def_uuid, parameter_def_uuid)
         (select parameter_def_uuid from vw_parameter_def where description = 'duration')),
         ((select action_def_uuid from vw_action_def where description = 'heat'),
         (select parameter_def_uuid from vw_parameter_def where description = 'temperature'));
+
+insert into vw_action_parameter_def_assign (action_def_uuid, parameter_def_uuid)
+	values
+		((select action_def_uuid from vw_action_def where description = 'dispense_solid'),
+    	(select parameter_def_uuid from vw_parameter_def where description = 'mass'));
 
 
 -- ===========================================================================
@@ -651,9 +664,7 @@ insert into vw_calculation (calculation_def_uuid, calculation_alias_name, in_val
     (select do_calculation((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_H2O_5mL_concentration'))),
  	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test')
-);
-
-select * from vw_calculation where actor_description = 'Mike Tynes'; -- todo: i still dont really understand this
+);  -- todo: i still dont really understand this
 
 -- ===========================================================================
 -- set up experiment
@@ -793,7 +804,7 @@ insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uui
 		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
 		'LANL Liq-Sol Sample Am-243',
 		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
-		(select status_uuid from vw_status where description = 'dev_test')); -- q for gary -- could three action sets be in one workflow? 
+		(select status_uuid from vw_status where description = 'dev_test')); -- q for gary -- could three action sets be in one workflow?
 insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid)
 	values (
 		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
@@ -809,7 +820,14 @@ insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uui
 insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid)
 	values (
 		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
-		'LANL Liq-Sol Contact',
+		'LANL Liq-Sol Sample to Resin',
+		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+		(select status_uuid from vw_status where description = 'dev_test'));
+
+insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid)
+	values (
+		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
+		'LANL Liq-Sol Contact Vortex',
 		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 		(select status_uuid from vw_status where description = 'dev_test'));
 
@@ -829,15 +847,20 @@ insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, wo
         (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Assay Samples')),
         (5,
         (select experiment_uuid from vw_experiment where description = 'LANL Liquid Solid WF Dev'),
-        (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Add Resin')),
+        (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Add Resin'));
+insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid) values
         (6,
         (select experiment_uuid from vw_experiment where description = 'LANL Liquid Solid WF Dev'),
-        (select workflow_uuid from vw_workflow where description = 'Contact'));
+        (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Sample to Resin'));
+insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid) values
+        (7,
+        (select experiment_uuid from vw_experiment where description = 'LANL Liquid Solid WF Dev'),
+        (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Contact Vortex'));
 
--- select * from vw_bom_material;
 -- create the action_sets
--- this took 7 min to run...
-select concat('start,',now());
+
+
+-- create the action_sets
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
                                     parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
@@ -852,28 +875,26 @@ values ('dispense action_set',
         null,
         (select calculation_uuid from vw_calculation where short_name = 'LANL_WF1_H2O_5mL_concentration'),
  --       (select arr_val_2_val_arr ((select out_val from vw_calculation where short_name = 'LANL_WF1_H2O_5mL_concentration'))),
-        array [(select bom_material_uuid from vw_bom_material where description = 'H2O')],
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'H2O')],
         array [
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A1%'),
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A2%'),
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A3%'),
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A4%'),
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A5%'),
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A6%'),
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%B1%'),
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%B2%')],
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A1%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A2%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A3%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A4%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A5%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A6%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%B1%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description = 'Sample Prep Plate%B2%')],
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
         (select status_uuid from vw_status where description = 'dev_test'));
--- select * from vw_experiment_workflow_step_object_json;
-select concat('end #1 insert vw_workflow_action_set,',now());
 
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
@@ -887,26 +908,181 @@ values  ('dispense action_set', -- todo whats this description? its non unique
          from vw_action_parameter_def
          where description = 'dispense' and parameter_description = 'volume'),
         null,
-        (select calculation_uuid from vw_calculation where short_name = 'LANL_WF1_HCL12M_5mL_concentration'), -- todo do we exercise for cases w/ one input to many output?
- --       (select arr_val_2_val_arr ((select out_val from vw_calculation where short_name = 'LANL_WF1_H2O_5mL_concentration'))),
-        array [(select bom_material_uuid from vw_bom_material where description = 'HCl-12M')],
+        (select calculation_uuid from vw_calculation where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'HCl-12M')],
         array [
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A1%'),
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A2%'),
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A3%'),
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A4%'),
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A5%'),
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%A6%'),
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%B1%'),
-            (select bom_material_uuid from vw_bom_material where
-                bom_material_composite_description = 'Sample Prep Plate' and bom_material_description like '%B2%')],
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A1%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A2%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A3%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A4%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A5%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A6%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%B1%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%B2%')],
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
         (select status_uuid from vw_status where description = 'dev_test'));
-select concat('end #2 insert vw_workflow_action_set,',now());
+
+insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
+                                    repeating,
+                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    actor_uuid, status_uuid)
+values  ('dispense action_set',
+        (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Sample Am-243'),
+        (select action_def_uuid from vw_action_def where description = 'dispense'),
+        null, null, null, null,
+        (select parameter_def_uuid
+         from vw_action_parameter_def
+         where description = 'dispense' and parameter_description = 'volume'),
+        array[(select put_val((select get_type_def('data', 'num')), '.1', 'mL'))],
+        null,
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Am-243 Stock')],
+        array [
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A1%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A2%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A3%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A4%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A5%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A6%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%B1%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%B2%')],
+        (select actor_uuid from vw_actor where description = 'Mike Tynes'),
+        (select status_uuid from vw_status where description = 'dev_test'));
+
+insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
+                                    repeating,
+                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    actor_uuid, status_uuid)
+values  ('dispense action_set',
+        (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Assay Samples'),
+        (select action_def_uuid from vw_action_def where description = 'dispense'),
+        null, null, null, null,
+        (select parameter_def_uuid
+         from vw_action_parameter_def
+         where description = 'dispense' and parameter_description = 'volume'),
+        array[(select put_val((select get_type_def('data', 'num')), '.1', 'mL'))],
+        null,
+        array [
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A1%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A2%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A3%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A4%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A5%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A6%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%B1%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%B2%')],
+        array [
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Assay Sample Plate 1%A1%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Assay Sample Plate 1%A2%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Assay Sample Plate 1%A3%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Assay Sample Plate 1%A4%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Assay Sample Plate 1%A5%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Assay Sample Plate 1%A6%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Assay Sample Plate 1%B1%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Assay Sample Plate 1%B2%')],
+        (select actor_uuid from vw_actor where description = 'Mike Tynes'),
+        (select status_uuid from vw_status where description = 'dev_test'));
+
+insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
+                                    repeating,
+                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    actor_uuid, status_uuid)
+values  ('dispense action_set',
+        (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Add Resin'),
+        (select action_def_uuid from vw_action_def where description = 'dispense_solid'),
+        null, null, null, null,
+        (select parameter_def_uuid
+         from vw_action_parameter_def
+         where description = 'dispense_solid' and parameter_description = 'mass'),
+        array[(select put_val((select get_type_def('data', 'num')), '50', 'mg'))],
+        null,
+        array [(select bom_material_index_uuid from vw_bom_material_index where description like '%Resin')],
+        array [
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Resin Plate%A1%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Resin Plate%A2%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Resin Plate%A3%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Resin Plate%A4%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Resin Plate%A5%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Resin Plate%A6%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Resin Plate%B1%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Resin Plate%B2%')],
+        (select actor_uuid from vw_actor where description = 'Mike Tynes'),
+        (select status_uuid from vw_status where description = 'dev_test'));
+
+
+
+insert into vw_action (action_def_uuid, workflow_uuid, action_description, actor_uuid, status_uuid)
+	values (
+    	(select action_def_uuid from vw_action_def where description = 'heat_stir'),
+    	(select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Contact Vortex'),
+        'Heat Stir Sample Plate',
+        (select actor_uuid from vw_actor where description = 'Mike Tynes'),
+        (select status_uuid from vw_status where description = 'dev_test'));
+insert into vw_workflow_object (workflow_uuid, action_uuid)
+	values (
+	    (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Contact Vortex'),
+		(select action_uuid from vw_action where action_description = 'Heat Stir Sample Plate'));
+insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)
+	values (
+		(select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Contact Vortex'),
+		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Heat Stir Sample Plate')),
+        null,
+        (select status_uuid from vw_status where description = 'dev_test'));
+
+
+update vw_action_parameter set parameter_val = (
+    select put_val((select get_type_def('data', 'num')), '45', 'mins'))
+    where action_description = 'Heat Stir Sample Plate'
+        and parameter_def_description = 'duration';
+update vw_action_parameter set parameter_val = (
+    select put_val((select get_type_def('data', 'num')), '500', 'rpm'))
+    where action_description = 'Heat Stir Sample Plate'
+        and parameter_def_description = 'speed';
+update vw_action_parameter set parameter_val = (
+    select put_val((select get_type_def('data', 'num')), '30', 'degC'))
+    where action_description = 'Heat Stir Sample Plate'
+        and parameter_def_description = 'temperature';
+
+select concat('end create liquid solid,', now());
+
+-- select * from vw_experiment_workflow_bom_step_object_parameter_json;
+-- select * from vw_experiment_bom_workflow_measure_json;

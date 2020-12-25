@@ -2,7 +2,6 @@
 -- Test out the data model by making some cocktails
 -- ==========================================================
 
-
 -- josh is going to make these in his Wirtshaus
 insert into vw_organization (description, full_name, short_name,
                              address1, address2, city, state_province,
@@ -16,13 +15,13 @@ insert into vw_person (last_name, first_name, middle_name,
                       ('Schrier', 'Joshua', null,'100 Fancy Apartment Ave',null,
                        'New York','NY','99999',null,null,null,null,null,null);
 
-insert into vw_status (description) values ('dev_test');
+--insert into vw_status (description) values ('dev_test');
 
-insert into vw_material_type (description)
-values
-	('stock solution'),
-	('human prepared'),
-	('solute');
+-- insert into vw_material_type (description)
+-- values
+-- 	('stock solution'),
+-- 	('human prepared'),
+-- 	('solute');
 
 
 -- =============================
@@ -86,7 +85,7 @@ insert into vw_material_type_assign (material_uuid, material_type_uuid) values
 
 --add component properties
 insert into vw_material_property (material_uuid, property_def_uuid,
-	val_val, val_unit, property_actor_uuid, property_status_uuid ) values (
+	property_value, property_value_unit, property_actor_uuid, property_status_uuid ) values (
 	(select material_composite_uuid from vw_material_composite where composite_description = 'Simple Syrup' and component_description = 'Granulated Sugar'),
 	(select property_def_uuid from vw_property_def where short_description = 'concentration'),
 	'1', 'vol/vol',
@@ -98,8 +97,8 @@ insert into vw_material_property (material_uuid, property_def_uuid,
 -- define actions and parameters
 -- ================================
 insert into vw_action_def (description, actor_uuid, status_uuid) values
-	('dispense', (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
-    (select status_uuid from vw_status where description = 'dev_test')),
+	--('dispense', (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
+    --(select status_uuid from vw_status where description = 'dev_test')),
 	('shake', (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
     (select status_uuid from vw_status where description = 'dev_test')),
 	('muddle', (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
@@ -118,10 +117,10 @@ insert into vw_parameter_def (description, default_val, actor_uuid, status_uuid)
         (select put_val((select get_type_def ('data', 'text')), 'gently', '')),
         (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
 		(select status_uuid from vw_status where description = 'dev_test')),
-	    ('volume',
-        (select put_val((select get_type_def ('data', 'num')), '0', 'floz')),
-        (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
-		(select status_uuid from vw_status where description = 'dev_test')),
+-- 	    ('volume',
+--         (select put_val((select get_type_def ('data', 'num')), '0', 'floz')),
+--         (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
+-- 		(select status_uuid from vw_status where description = 'dev_test')),
 	    ('count',
         (select put_val((select get_type_def ('data', 'int')), '0', 'count')),
         (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
@@ -132,8 +131,8 @@ insert into vw_action_parameter_def_assign (action_def_uuid, parameter_def_uuid)
     	(select parameter_def_uuid from vw_parameter_def where description = 'duration_qualitative')),
         ((select action_def_uuid from vw_action_def where description = 'muddle'),
         (select parameter_def_uuid from vw_parameter_def where description = 'intensity_qualitative')),
-        ((select action_def_uuid from vw_action_def where description = 'dispense'),
-        (select parameter_def_uuid from vw_parameter_def where description = 'volume')),
+--         ((select action_def_uuid from vw_action_def where description = 'dispense'),
+--         (select parameter_def_uuid from vw_parameter_def where description = 'volume')),
         ((select action_def_uuid from vw_action_def where description = 'transfer_discrete'),
         (select parameter_def_uuid from vw_parameter_def where description = 'count'));
 
@@ -414,27 +413,11 @@ values ('mint_to_shaker',
          where description = 'transfer_discrete' and parameter_description = 'count'),
         array [(select put_val((select get_type_def('data', 'int')), '3', 'count'))],
         null,
-        array [(select bom_material_uuid from vw_bom_material where description = 'Mint Leaf')],
-        array [(select bom_material_uuid from vw_bom_material where description = 'Cocktail Shaker')],
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Mint Leaf')],
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Cocktail Shaker')],
         (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
         (select status_uuid from vw_status where description = 'dev_test'));
-insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
-                                    repeating,
-                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
-                                    actor_uuid, status_uuid)
-values ('syrup_to_shaker',
-        (select workflow_uuid from vw_workflow where description = 'Syrup to Shaker'),
-        (select action_def_uuid from vw_action_def where description = 'dispense'),
-        null, null, null, null,
-        (select parameter_def_uuid
-         from vw_action_parameter_def
-         where description = 'dispense' and parameter_description = 'volume'),
-        array [(select put_val((select get_type_def('data', 'num')), '.5', 'floz'))],
-        null,
-        array [(select bom_material_uuid from vw_bom_material where description = 'Simple Syrup')],
-        array [(select bom_material_uuid from vw_bom_material where description = 'Cocktail Shaker')],
-        (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
-        (select status_uuid from vw_status where description = 'dev_test'));
+
 
 -- these inserts take like >30 seconds on mike's machine is that normal? (toward the end they start taking more like 1.5 mins...)
 -- todo: try to run them directly rather than through an IDE: see if its faster.
@@ -452,8 +435,8 @@ values ('muddle',
          where description = 'muddle' and parameter_description = 'intensity_qualitative'),
         array [(select put_val((select get_type_def('data', 'text')), 'lightly', ''))],
         null,
-        array [(select bom_material_uuid from vw_bom_material where description = 'Cocktail Shaker')],
-        array [(select bom_material_uuid from vw_bom_material where description = 'Cocktail Shaker')],
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Cocktail Shaker')],
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Cocktail Shaker')],
         (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
         (select status_uuid from vw_status where description = 'dev_test'));
 
@@ -471,12 +454,11 @@ values ('rum_to_shaker',
          where description = 'dispense' and parameter_description = 'volume'),
         array [(select put_val((select get_type_def('data', 'num')), '2', 'floz'))],
         null,
-        array [(select bom_material_uuid from vw_bom_material where description = 'White Rum')],
-        array [(select bom_material_uuid from vw_bom_material where description = 'Cocktail Shaker')],
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'White Rum')],
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Cocktail Shaker')],
         (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
         (select status_uuid from vw_status where description = 'dev_test'));
-
-
+--stopped here
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
                                     parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
@@ -490,8 +472,8 @@ values ('lime_juice_to_shaker',
          where description = 'dispense' and parameter_description = 'volume'),
         array [(select put_val((select type_def_uuid from vw_type_def where vw_type_def.description='num'), '.75', 'floz'))],
         null,
-        array [(select bom_material_uuid from vw_bom_material where description = 'Lime Juice')],
-        array [(select bom_material_uuid from vw_bom_material where description = 'Cocktail Shaker')],
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Lime Juice')],
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Cocktail Shaker')],
         (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
         (select status_uuid from vw_status where description = 'dev_test'));
 
@@ -508,8 +490,8 @@ values ('shake',
          where description = 'shake' and parameter_description = 'duration_qualitative'),
         array [(select put_val((select get_type_def('data', 'text')), 'briefly', ''))],
         null,
-        array [(select bom_material_uuid from vw_bom_material where description = 'Cocktail Shaker')],
-        array [(select bom_material_uuid from vw_bom_material where description = 'Cocktail Shaker')],
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Cocktail Shaker')],
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Cocktail Shaker')],
         (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
         (select status_uuid from vw_status where description = 'dev_test'));
 
@@ -526,8 +508,8 @@ values ('ice_to_glass',
          where description = 'transfer_discrete' and parameter_description = 'count'),
         array [(select put_val((select get_type_def('data', 'int')), '5', 'count'))],
         null,
-        array [(select bom_material_uuid from vw_bom_material where description = 'Ice Cube')],
-        array [(select bom_material_uuid from vw_bom_material where description = 'Highball Glass')],
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Ice Cube')],
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Highball Glass')],
         (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
         (select status_uuid from vw_status where description = 'dev_test'));
 
@@ -540,8 +522,8 @@ insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid,
             (select action_def_uuid from vw_action_def where description = 'strain'),
             null, null, null, null, null, null,
             null,
-            array [(select bom_material_uuid from vw_bom_material where description = 'Cocktail Shaker')],
-            array [(select bom_material_uuid from vw_bom_material where description = 'Highball Glass')],
+            array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Cocktail Shaker')],
+            array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Highball Glass')],
             (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
             (select status_uuid from vw_status where description = 'dev_test'));
 
@@ -590,10 +572,5 @@ insert into vw_measure (measure_def_uuid, measure_type_uuid, ref_measure_uuid, d
     (select status_uuid from vw_status where description = 'dev_test'));
 
 
--- select * from vw_experiment_workflow_json;
 -- select * from vw_experiment_workflow_bom_step_object_parameter_json;
---select * from vw_experiment_bom_workflow_measure_json;
-
-
-
-
+-- select * from vw_experiment_bom_workflow_measure_json;
