@@ -178,8 +178,7 @@ class ActionDefSerializer(DynamicFieldsModelSerializer):
 
 
 class ActionSerializer(DynamicFieldsModelSerializer):
-    parameter = ActionParameterSerializer(read_only=True, many=True)
-
+    parameter = ActionParameterSerializer(read_only=True, many=True, source='parameter_action')
     class Meta:
         model = Action
         fields = '__all__'

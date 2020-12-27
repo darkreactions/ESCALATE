@@ -21,7 +21,58 @@ class Action(models.Model):
                                    db_column='workflow_uuid',
                                    blank=True,
                                    null=True, related_name='action_workflow')
-    #start_date = 
+    # pending exposition of workflow_action_set through api
+    # workflow_action_set = models.ForeignKey('WorkflowActionSet',
+    #                                         on_delete=models.DO_NOTHING,
+    #                                         db_column='workflow_action_set_uuid',
+    #                                         blank=True,
+    #                                         null=True,
+    #                                         )
+    # workflow_action_set_description = models.CharField(max_length=255,
+    #                                       blank=True,
+    #                                       null=True,
+    #                                       db_column='workflow_action_set_description',
+    #                                       editable=False)
+    source_material = models.ForeignKey('BomMaterial',
+                               on_delete=models.DO_NOTHING,
+                               db_column='source_material_uuid',
+                               blank=True,
+                               null=True,
+                               editable=False,
+                               related_name='action_source_material')
+    source_material_description = models.CharField(max_length=255,
+                                          blank=True,
+                                          null=True,
+                                          db_column='source_material_description',
+                                          editable=False)
+    destination_material = models.ForeignKey('BomMaterial',
+                               on_delete=models.DO_NOTHING,
+                               db_column='destination_material_uuid',
+                               blank=True,
+                               null=True,
+                               editable=False,
+                               related_name='action_destination_material')
+    destination_material_description = models.CharField(max_length=255,
+                                          blank=True,
+                                          null=True,
+                                          db_column='destination_material_description',
+                                          editable=False)
+    duration = models.FloatField(db_column='duration',
+                                 blank=True,
+                                 null=True)
+    repeating = models.IntegerField(db_column='repeating',
+                                    blank=True,
+                                    null=True)
+    # calculation_def and ref_parameter_uuid can be ignored in the django model
+    # as they are no longer essential data model components
+    # calculation_def = models.ForeignKey('CalculationDef',
+    #                                     db_column='calculation_def_uuid',
+    #                                     on_delete=models.DO_NOTHING,
+    #                                     blank=True,
+    #                                     null=True,
+    #                                     editable=False,
+    #                                     related_name='action_calculation_def'
+    #                                     )
     actor = models.ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='actor_uuid',
@@ -267,7 +318,7 @@ class BillOfMaterials(models.Model):
 
 
 class BomMaterial(models.Model):
-    uuid = RetUUIDField(primary_key=True, db_column='bom_material_uuid')
+    uuid = RetUUIDField(primary_key=True, db_column='bom_material_index_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
     bom = models.ForeignKey('BillOfMaterials', on_delete=models.DO_NOTHING,
                             blank=True, null=True, db_column='bom_uuid',
@@ -614,15 +665,15 @@ class WorkflowActionSet(models.Model):
     duration = models.FloatField()
     repeating = models.BigIntegerField()
     parameter_def = models.ForeignKey('ParameterDef', models.DO_NOTHING,
-                               blank=True, null=True, 
-                               db_column='parameter_def_uuid', 
+                               blank=True, null=True,
+                               db_column='parameter_def_uuid',
                                related_name='workflow_action_set_parameter_def')
     parameter_val = ArrayField(ValField(blank=True, null=True))
     calculation = models.ForeignKey('Calculation', models.DO_NOTHING,
                                blank=True, null=True, 
                                db_column='calculation_uuid', 
                                related_name='workflow_action_set_calculation')
-    source_material = ArrayField(RetUUIDField(blank=True, null=True))
+    source_material_uuid = ArrayField(RetUUIDField(blank=True, null=True))
     destination_material_uuid = ArrayField(RetUUIDField(blank=True, null=True))
     actor = models.ForeignKey('Actor',
                                on_delete=models.DO_NOTHING,
