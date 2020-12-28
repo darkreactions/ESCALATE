@@ -2546,10 +2546,10 @@ BEGIN
             )
         THEN
             -- first create action instance
-			INSERT INTO action (action_def_uuid, workflow_uuid, description, start_date, end_date, duration, repeating,
+			INSERT INTO action (action_def_uuid, workflow_uuid, workflow_action_set_uuid, description, start_date, end_date, duration, repeating,
 			                    ref_parameter_uuid, calculation_def_uuid, source_material_uuid, destination_material_uuid,
 			                    actor_uuid, status_uuid)
-				VALUES (NEW.action_def_uuid, NEW.workflow_uuid, NEW.action_description, NEW.start_date, NEW.end_date, NEW.duration, NEW.repeating,
+				VALUES (NEW.action_def_uuid, NEW.workflow_uuid, NEW.workflow_action_set_uuid, NEW.action_description, NEW.start_date, NEW.end_date, NEW.duration, NEW.repeating,
 				        NEW.ref_parameter_uuid, NEW.calculation_def_uuid, NEW.source_material_uuid,
 				        NEW.destination_material_uuid, NEW.actor_uuid, NEW.status_uuid)
 				returning action_uuid into NEW.action_uuid;
@@ -3356,8 +3356,8 @@ BEGIN
 			-- go through the loop for every destination material
 			FOREACH _d_uuid IN ARRAY NEW.destination_material_uuid
 			LOOP 
-	        	insert into vw_action (action_def_uuid, workflow_uuid, action_description, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid)
-	            values (NEW.action_def_uuid, NEW.workflow_uuid, 
+	        	insert into vw_action (action_def_uuid, workflow_uuid, workflow_action_set_uuid, action_description, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid)
+	            values (NEW.action_def_uuid, NEW.workflow_uuid, NEW.workflow_action_set_uuid,
 	            	concat(NEW.description, ': ',(select description from vw_bom_material_index where bom_material_index_uuid = _s_uuid), ' -> ',
 	            					(select description from vw_bom_material_index where bom_material_index_uuid = _d_uuid)),
 	            	_s_uuid, _d_uuid, NEW.actor_uuid, NEW.status_uuid) returning action_uuid into _action_uuid;
@@ -3394,8 +3394,8 @@ BEGIN
 			FOREACH _s_uuid IN ARRAY NEW.source_material_uuid
 			LOOP
 				_d_uuid := NEW.destination_material_uuid[_src_cnt]; 
-	        	insert into vw_action (action_def_uuid, workflow_uuid, action_description, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid)
-	            values (NEW.action_def_uuid, NEW.workflow_uuid, 
+	        	insert into vw_action (action_def_uuid, workflow_uuid, workflow_action_set_uuid, action_description, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid)
+	            values (NEW.action_def_uuid, NEW.workflow_uuid, NEW.workflow_action_set_uuid,
 	            	concat(NEW.description, ': ',(select description from vw_bom_material_index where bom_material_index_uuid = _s_uuid), ' -> ',
 	            					(select description from vw_bom_material_index where bom_material_index_uuid = _d_uuid)),
 	            	_s_uuid, _d_uuid,
@@ -3431,6 +3431,37 @@ BEGIN
 			END LOOP; 
 		END IF;
 		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+
+/*
+Name:			upsert_experiment_parameter()
+Parameters:
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.12.26
+Description:    trigger proc that executes only on an update (to the list of actions)
+                The update process depends on action type (action, action_set):
+                it may only update a parameter value (action) or,
+                delete a set of actions and rebuild the actions based on new parameter (action_set)
+Notes:			todo: this may or may not need to address changes to materials. Not sure if that will be a separate proc
+
+                The view (vw_experiment_parameter) returns values (val) in array form, as workflow_action_set allows for
+                an array of values as input
+
+Example:
+ */
+CREATE OR REPLACE FUNCTION upsert_experiment_parameter ()
+	RETURNS TRIGGER
+	AS $$
+DECLARE
+
+BEGIN
+	IF(TG_OP = 'UPDATE') THEN
 	END IF;
 END;
 $$
