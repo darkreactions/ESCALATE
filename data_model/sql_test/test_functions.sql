@@ -1570,6 +1570,13 @@ insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uui
 		'LANL_WF1c_SetTemp_SamplePrep',
 		(select actor_uuid from vw_actor where description = 'Ion Bond'),
 		(select status_uuid from vw_status where description = 'dev_test'));
+-- create workflow for Setting Plate Temp
+insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid)
+	values (
+		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
+		'LANL_WF2_Am-243Stock_Dispense',
+		(select actor_uuid from vw_actor where description = 'Ion Bond'),
+		(select status_uuid from vw_status where description = 'dev_test'));
 -- associate wf's with experiment
 insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid)
     values (1,
@@ -1580,14 +1587,17 @@ insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, wo
         (select workflow_uuid from vw_workflow where description = 'LANL_WF1b_HCL_SamplePrep')),
         (3,
         (select experiment_uuid from vw_experiment where description = 'LANL Test Experiment Template'),
-        (select workflow_uuid from vw_workflow where description = 'LANL_WF1c_SetTemp_SamplePrep'));
+        (select workflow_uuid from vw_workflow where description = 'LANL_WF1c_SetTemp_SamplePrep')),
+        (4,
+        (select experiment_uuid from vw_experiment where description = 'LANL Test Experiment Template'),
+        (select workflow_uuid from vw_workflow where description = 'LANL_WF2_Am-243Stock_Dispense'));
 
 -- create the action_sets
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
                                     parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
-values ('dispense action_set',
+values ('dispense H2O into SamplePrep Plate action_set',
         (select workflow_uuid from vw_workflow where description = 'LANL_WF1a_H2O_SamplePrep'),
         (select action_def_uuid from vw_action_def where description = 'dispense'),
         null, null, null, null,
@@ -1614,7 +1624,7 @@ insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid,
                                     repeating,
                                     parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
-values ('dispense action_set',
+values ('dispense HCL into SamplePrep Plate action_set',
         (select workflow_uuid from vw_workflow where description = 'LANL_WF1b_HCL_SamplePrep'),
         (select action_def_uuid from vw_action_def where description = 'dispense'),
         null, null, null, null,
@@ -1637,6 +1647,33 @@ insert into vw_action (action_def_uuid, workflow_uuid, action_description, actor
         'heat sample plate',
         (select actor_uuid from vw_actor where description = 'Ion Bond'),
         (select status_uuid from vw_status where description = 'dev_test'));
+
+insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
+                                    repeating,
+                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    actor_uuid, status_uuid)
+values  ('dispense Am-Stock into SamplePrep Plate action_set',
+        (select workflow_uuid from vw_workflow where description = 'LANL_WF2_Am-243Stock_Dispense'),
+        (select action_def_uuid from vw_action_def where description = 'dispense'),
+        null, null, null, null,
+        (select parameter_def_uuid
+         from vw_action_parameter_def
+         where description = 'dispense' and parameter_description = 'volume'),
+        array[(select put_val((select get_type_def('data', 'num')), '.1', 'mL'))],
+        null,
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Am-243 Stock')],
+        array [
+            (select bom_material_index_uuid from vw_bom_material_index where description like '%Sample Prep Plate%A1%'),
+            (select bom_material_index_uuid from vw_bom_material_index where description like '%Sample Prep Plate%A2%'),
+            (select bom_material_index_uuid from vw_bom_material_index where description like '%Sample Prep Plate%A3%'),
+            (select bom_material_index_uuid from vw_bom_material_index where description like '%Sample Prep Plate%A4%'),
+            (select bom_material_index_uuid from vw_bom_material_index where description like '%Sample Prep Plate%A5%'),
+            (select bom_material_index_uuid from vw_bom_material_index where description like '%Sample Prep Plate%A6%'),
+            (select bom_material_index_uuid from vw_bom_material_index where description like '%Sample Prep Plate%B1%'),
+            (select bom_material_index_uuid from vw_bom_material_index where description like '%Sample Prep Plate%B2%')],
+        (select actor_uuid from vw_actor where description = 'Ion Bond'),
+        (select status_uuid from vw_status where description = 'dev_test'));
+
 insert into vw_workflow_object (workflow_uuid, action_uuid)
 	values (
 	    (select workflow_uuid from vw_workflow where description = 'LANL_WF1c_SetTemp_SamplePrep'),
@@ -1708,6 +1745,5 @@ insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('quick assessm
     (select measure_uuid from vw_measure where
         measure_def_description = 'sample color' and measure_value_value = 'green to green-yellow'
         and actor_description = 'Ion Bond'));
-
 
 

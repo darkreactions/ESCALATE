@@ -122,6 +122,23 @@ class NoteListSerializer(DynamicFieldsModelSerializer):
             notes, many=True, context=self.context)
         return result_serializer.data
 
+class MeasureSerializer(DynamicFieldsModelSerializer):
+
+    class Meta:
+        model = core.models.Measure
+        fields = '__all__'
+        read_only_fields = ['ref_measure_uuid']
+
+
+class MeasureListSerializer(DynamicFieldsModelSerializer):
+    measures = SerializerMethodField()
+
+    def get_measures(self, obj):
+        measures = core.models.Measure.objects.filter(measure_x_measure__ref_measure=obj.uuid)
+        result_serializer = MeasureSerializer(
+            measures, many=True, context=self.context)
+        return result_serializer.data
+
 
 class EdocumentSerializer(TagListSerializer,
                           NoteListSerializer,
@@ -206,6 +223,12 @@ class ActionSerializer(DynamicFieldsModelSerializer):
 
     class Meta:
         model = Action
+        fields = '__all__'
+
+class OutcomeSerializer(MeasureListSerializer, DynamicFieldsModelSerializer):
+    
+    class Meta:
+        model=core.models.Outcome
         fields = '__all__'
 
 

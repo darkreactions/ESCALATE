@@ -214,6 +214,7 @@ CREATE TABLE action (
 	action_uuid uuid DEFAULT uuid_generate_v4 (),
 	action_def_uuid uuid NOT NULL,
 	workflow_uuid uuid NOT NULL,
+	workflow_action_set_uuid uuid,
 	description varchar COLLATE "pg_catalog"."default" NOT NULL,
 	start_date timestamptz,
 	end_date timestamptz,
@@ -999,6 +1000,7 @@ ALTER TABLE action
 	ADD CONSTRAINT "pk_action_action_uuid" PRIMARY KEY (action_uuid);
 CREATE INDEX "ix_action_action_def" ON action (action_def_uuid);
 CREATE INDEX "ix_action_workflow" ON action (workflow_uuid);
+CREATE INDEX "ix_action_workflow_action_set" ON action (workflow_action_set_uuid);
 CREATE INDEX "ix_action_ref_parameter" ON action (ref_parameter_uuid);
 CLUSTER action
 USING "pk_action_action_uuid";
@@ -1514,11 +1516,12 @@ ALTER TABLE action_parameter_def_x
 ALTER TABLE action
 	ADD CONSTRAINT fk_action_action_def_1 FOREIGN KEY (action_def_uuid) REFERENCES action_def (action_def_uuid),
 		ADD CONSTRAINT fk_action_workflow_1 FOREIGN KEY (workflow_uuid) REFERENCES workflow (workflow_uuid),
-			ADD CONSTRAINT fk_action_calculation_def_1 FOREIGN KEY (calculation_def_uuid) REFERENCES calculation_def (calculation_def_uuid),
-				ADD CONSTRAINT fk_action_source_material_1 FOREIGN KEY (source_material_uuid) REFERENCES bom_material_index (bom_material_index_uuid),
-					ADD CONSTRAINT fk_action_destination_material_1 FOREIGN KEY (destination_material_uuid) REFERENCES bom_material_index (bom_material_index_uuid),
-						ADD CONSTRAINT fk_action_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
-							ADD CONSTRAINT fk_action_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);	
+ 	        ADD CONSTRAINT fk_action_workflow_action_set_1 FOREIGN KEY (workflow_action_set_uuid) REFERENCES  workflow_action_set (workflow_action_set_uuid),
+			    ADD CONSTRAINT fk_action_calculation_def_1 FOREIGN KEY (calculation_def_uuid) REFERENCES calculation_def (calculation_def_uuid),
+				    ADD CONSTRAINT fk_action_source_material_1 FOREIGN KEY (source_material_uuid) REFERENCES bom_material_index (bom_material_index_uuid),
+					    ADD CONSTRAINT fk_action_destination_material_1 FOREIGN KEY (destination_material_uuid) REFERENCES bom_material_index (bom_material_index_uuid),
+						    ADD CONSTRAINT fk_action_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+							    ADD CONSTRAINT fk_action_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
 
 ALTER TABLE actor
@@ -1759,18 +1762,18 @@ ALTER TABLE udf_x
 
 
 ALTER TABLE workflow
-	ADD CONSTRAINT fk_workflow_type_1 FOREIGN KEY (workflow_type_uuid) REFERENCES  workflow_type (workflow_type_uuid),	
+	ADD CONSTRAINT fk_workflow_type_1 FOREIGN KEY (workflow_type_uuid) REFERENCES  workflow_type (workflow_type_uuid),
 		ADD CONSTRAINT fk_workflow_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
 			ADD CONSTRAINT fk_workflow_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
 
 ALTER TABLE workflow_action_set
-	ADD CONSTRAINT fk_workflow_action_set_workflow_1 FOREIGN KEY (workflow_uuid) REFERENCES  workflow (workflow_uuid),	
-		ADD CONSTRAINT fk_workflow_action_set_action_def_1 FOREIGN KEY (action_def_uuid) REFERENCES  action_def (action_def_uuid),	
-			ADD CONSTRAINT fk_workflow_action_set_parameter_def_1 FOREIGN KEY (parameter_def_uuid) REFERENCES  parameter_def (parameter_def_uuid),	
+	ADD CONSTRAINT fk_workflow_action_set_workflow_1 FOREIGN KEY (workflow_uuid) REFERENCES  workflow (workflow_uuid),
+		ADD CONSTRAINT fk_workflow_action_set_action_def_1 FOREIGN KEY (action_def_uuid) REFERENCES  action_def (action_def_uuid),
+			 ADD CONSTRAINT fk_workflow_action_set_parameter_def_1 FOREIGN KEY (parameter_def_uuid) REFERENCES  parameter_def (parameter_def_uuid),
 				ADD CONSTRAINT fk_workflow_action_set_calculation_1 FOREIGN KEY (calculation_uuid) REFERENCES  calculation (calculation_uuid),
 					ADD CONSTRAINT fk_workflow_action_set_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
-						ADD CONSTRAINT fk_workflow_action_set_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+						 	    ADD CONSTRAINT fk_workflow_action_set_workflow_action_set_1 FOREIGN KEY (workflow_action_set_uuid) REFERENCES  workflow_action_set (workflow_action_set_uuid),ADD CONSTRAINT fk_workflow_action_set_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
 
 ALTER TABLE workflow_object
@@ -1796,95 +1799,96 @@ ALTER TABLE workflow_step
 -- TABLE AND COLUMN COMMENTS
 --======================================================================
 --======================================================================
-COMMENT ON TABLE action IS '';
-COMMENT ON COLUMN action.action_uuid IS '';
-COMMENT ON COLUMN action.action_def_uuid IS '';
-COMMENT ON COLUMN action.workflow_uuid IS '';
-COMMENT ON COLUMN action.description IS '';
-COMMENT ON COLUMN action.start_date IS '';
-COMMENT ON COLUMN action.end_date IS '';
-COMMENT ON COLUMN action.duration IS '';
-COMMENT ON COLUMN action.repeating IS '';
-COMMENT ON COLUMN action.ref_parameter_uuid IS '';
-COMMENT ON COLUMN action.calculation_def_uuid IS '';
-COMMENT ON COLUMN action.source_material_uuid IS '';
-COMMENT ON COLUMN action.destination_material_uuid IS '';
-COMMENT ON COLUMN action.actor_uuid IS '';
-COMMENT ON COLUMN action.status_uuid IS '';
-COMMENT ON COLUMN action.add_date IS '';
-COMMENT ON COLUMN action.mod_date IS '';
+COMMENT ON TABLE action IS 'experiment, workflow actions (based on action_def)';
+COMMENT ON COLUMN action.action_uuid IS 'PK of action table';
+COMMENT ON COLUMN action.action_def_uuid IS 'FK to the action definition (action_def_uuid) in action_def table';
+COMMENT ON COLUMN action.workflow_uuid IS 'FK to the workflow (workflow_uuid) defined in workflow table';
+COMMENT ON COLUMN action.workflow_action_set_uuid IS 'FK to the workflow_action_set (workflow_action_set_uuid) defined in workflow_action_set table';
+COMMENT ON COLUMN action.description IS 'description of the instantiated action';
+COMMENT ON COLUMN action.start_date IS 'start date/time of the action';
+COMMENT ON COLUMN action.end_date IS 'end date/time of the action';
+COMMENT ON COLUMN action.duration IS 'duration (in some units) of the action';
+COMMENT ON COLUMN action.repeating IS 'number of times the action repeats';
+COMMENT ON COLUMN action.ref_parameter_uuid IS 'FK to [optional] parameter (parameter)';
+COMMENT ON COLUMN action.calculation_def_uuid IS 'FK to [optional] calculation definition in calculation_def table';
+COMMENT ON COLUMN action.source_material_uuid IS 'FK to [optional] source material in bom_material table';
+COMMENT ON COLUMN action.destination_material_uuid IS 'FK to [optional] destination material in bom_material table';
+COMMENT ON COLUMN action.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN action.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN action.add_date IS 'date/time record was created';
+COMMENT ON COLUMN action.mod_date IS 'date/time record was last modified';
 
 
-COMMENT ON TABLE action_def IS '';
-COMMENT ON COLUMN action_def.action_def_uuid IS '';
-COMMENT ON COLUMN action_def.description IS '';
-COMMENT ON COLUMN action_def.status_uuid IS '';
-COMMENT ON COLUMN action_def.actor_uuid IS '';
-COMMENT ON COLUMN action_def.add_date IS '';
-COMMENT ON COLUMN action_def.mod_date IS '';
+COMMENT ON TABLE action_def IS 'name definition of for an action';
+COMMENT ON COLUMN action_def.action_def_uuid IS 'PK of action_def table';
+COMMENT ON COLUMN action_def.description IS 'description of the action; default name of instantiated action';
+COMMENT ON COLUMN action_def.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN action_def.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN action_def.add_date IS 'date/time record was created';
+COMMENT ON COLUMN action_def.mod_date IS 'date/time record was last modified';
 
 
-COMMENT ON TABLE action_parameter_def_x IS '';
-COMMENT ON COLUMN action_parameter_def_x.action_parameter_def_x_uuid IS '';
-COMMENT ON COLUMN action_parameter_def_x.parameter_def_uuid IS '';
-COMMENT ON COLUMN action_parameter_def_x.action_def_uuid IS '';
-COMMENT ON COLUMN action_parameter_def_x.add_date IS '';
-COMMENT ON COLUMN action_parameter_def_x.mod_date IS '';
+COMMENT ON TABLE action_parameter_def_x IS 'relates a parameter definition (parameter_def) with an action definition (action_def)';
+COMMENT ON COLUMN action_parameter_def_x.action_parameter_def_x_uuid IS 'PK of action_parameter_def_x table';
+COMMENT ON COLUMN action_parameter_def_x.parameter_def_uuid IS 'FK to parameter definition (parameter_def_uuid) in parameter_def table';
+COMMENT ON COLUMN action_parameter_def_x.action_def_uuid IS 'FK to action definition (action_def_uuid) in action_def table';
+COMMENT ON COLUMN action_parameter_def_x.add_date IS 'date/time record was created';
+COMMENT ON COLUMN action_parameter_def_x.mod_date IS 'date/time record was last modified';
 
 
-COMMENT ON TABLE actor IS '';
-COMMENT ON COLUMN actor.actor_uuid IS '';
-COMMENT ON COLUMN actor.person_uuid IS '';
-COMMENT ON COLUMN actor.organization_uuid IS '';
-COMMENT ON COLUMN actor.systemtool_uuid IS '';
-COMMENT ON COLUMN actor.description IS '';
-COMMENT ON COLUMN actor.status_uuid IS '';
-COMMENT ON COLUMN actor.add_date IS '';
-COMMENT ON COLUMN actor.mod_date IS '';
+COMMENT ON TABLE actor IS 'references a person, organization and/or systemtool; can be a combination of the three';
+COMMENT ON COLUMN actor.actor_uuid IS 'PK of actor table';
+COMMENT ON COLUMN actor.person_uuid IS 'FK to person (person_uuid) in person table';
+COMMENT ON COLUMN actor.organization_uuid IS 'FK to organization (organization_uuid) in organization table';
+COMMENT ON COLUMN actor.systemtool_uuid IS 'FK to systemtool (systemtool_uuid) in systemtool table';
+COMMENT ON COLUMN actor.description IS 'description of the actor. Can be different than the person, org or systemtool description';
+COMMENT ON COLUMN actor.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN actor.add_date IS 'date/time record was created';
+COMMENT ON COLUMN actor.mod_date IS 'date/time record was last modified';
 
 
-COMMENT ON TABLE actor_pref IS '';
-COMMENT ON COLUMN actor_pref.actor_pref_uuid IS '';
-COMMENT ON COLUMN actor_pref.actor_uuid IS '';
-COMMENT ON COLUMN actor_pref.pkey IS '';
-COMMENT ON COLUMN actor_pref.pvalue IS '';
-COMMENT ON COLUMN actor_pref.add_date IS '';
-COMMENT ON COLUMN actor_pref.mod_date IS '';
+COMMENT ON TABLE actor_pref IS 'general container for actor-related preferences in key/value form';
+COMMENT ON COLUMN actor_pref.actor_pref_uuid IS 'PK of actor_pref table';
+COMMENT ON COLUMN actor_pref.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN actor_pref.pkey IS 'key [element] of a key/value pair';
+COMMENT ON COLUMN actor_pref.pvalue IS 'value [element] of a key/value pair';
+COMMENT ON COLUMN actor_pref.add_date IS 'date/time record was created';
+COMMENT ON COLUMN actor_pref.mod_date IS 'date/time record was last modified';
 
 
-COMMENT ON TABLE bom IS '';
-COMMENT ON COLUMN bom.bom_uuid IS '';
-COMMENT ON COLUMN bom.experiment_uuid IS '';
-COMMENT ON COLUMN bom.description IS '';
-COMMENT ON COLUMN bom.actor_uuid IS '';
-COMMENT ON COLUMN bom.status_uuid IS '';
-COMMENT ON COLUMN bom.add_date IS '';
-COMMENT ON COLUMN bom.mod_date IS '';
+COMMENT ON TABLE bom IS 'bill of material (bom) container associated with an experiment';
+COMMENT ON COLUMN bom.bom_uuid IS 'PK of bom table';
+COMMENT ON COLUMN bom.experiment_uuid IS 'FK to experiment (experiment_uuid) in experiment table';
+COMMENT ON COLUMN bom.description IS 'description of bom';
+COMMENT ON COLUMN bom.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN bom.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN bom.add_date IS 'date/time record was created';
+COMMENT ON COLUMN bom.mod_date IS 'date/time record was last modified';
 
 
-COMMENT ON TABLE bom_material IS '';
-COMMENT ON COLUMN bom_material.bom_material_uuid IS '';
-COMMENT ON COLUMN bom_material.bom_uuid IS '';
-COMMENT ON COLUMN bom_material.description IS '';
-COMMENT ON COLUMN bom_material.inventory_material_uuid IS '';
-COMMENT ON COLUMN bom_material.alloc_amt_val IS '';
-COMMENT ON COLUMN bom_material.used_amt_val IS '';
-COMMENT ON COLUMN bom_material.putback_amt_val IS '';
-COMMENT ON COLUMN bom_material.actor_uuid IS '';
-COMMENT ON COLUMN bom_material.status_uuid IS '';
-COMMENT ON COLUMN bom_material.add_date IS '';
-COMMENT ON COLUMN bom_material.mod_date IS '';
+COMMENT ON TABLE bom_material IS '[singleton and parent] materials from inventory table, defined in material/material_composite tables';
+COMMENT ON COLUMN bom_material.bom_material_uuid IS 'PK of bom_material table ';
+COMMENT ON COLUMN bom_material.bom_uuid IS 'FK to bom (bom_uuid) in the bom table';
+COMMENT ON COLUMN bom_material.description IS 'description of the bom material';
+COMMENT ON COLUMN bom_material.inventory_material_uuid IS 'FK to inventory material (inventory_material_uuid) in the inventory_material table';
+COMMENT ON COLUMN bom_material.alloc_amt_val IS 'the amount (val) of material allocated';
+COMMENT ON COLUMN bom_material.used_amt_val IS 'the amount (val) of material used';
+COMMENT ON COLUMN bom_material.putback_amt_val IS 'the amount (val) of material to be putback to inventory';
+COMMENT ON COLUMN bom_material.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN bom_material.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN bom_material.add_date IS 'date/time record was created';
+COMMENT ON COLUMN bom_material.mod_date IS 'date/time record was last modified';
 
 
-COMMENT ON TABLE bom_material_composite IS '';
-COMMENT ON COLUMN bom_material_composite.bom_material_composite_uuid IS '';
-COMMENT ON COLUMN bom_material_composite.description IS '';
-COMMENT ON COLUMN bom_material_composite.bom_material_uuid IS '';
-COMMENT ON COLUMN bom_material_composite.material_composite_uuid IS '';
-COMMENT ON COLUMN bom_material_composite.actor_uuid IS '';
-COMMENT ON COLUMN bom_material_composite.status_uuid IS '';
-COMMENT ON COLUMN bom_material_composite.add_date IS '';
-COMMENT ON COLUMN bom_material_composite.mod_date IS '';
+COMMENT ON TABLE bom_material_composite IS 'composite materials associated with bom_material as defined in material_composite table';
+COMMENT ON COLUMN bom_material_composite.bom_material_composite_uuid IS 'PK of bom_material_composite table';
+COMMENT ON COLUMN bom_material_composite.description IS 'description of bom material composite';
+COMMENT ON COLUMN bom_material_composite.bom_material_uuid IS 'FK to parent material in bom_material';
+COMMENT ON COLUMN bom_material_composite.material_composite_uuid IS 'FK to composite material definition in material_composite';
+COMMENT ON COLUMN bom_material_composite.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN bom_material_composite.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN bom_material_composite.add_date IS 'date/time record was created';
+COMMENT ON COLUMN bom_material_composite.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE bom_material_index IS '';
@@ -1892,8 +1896,8 @@ COMMENT ON COLUMN bom_material_index.bom_material_index_uuid IS '';
 COMMENT ON COLUMN bom_material_index.description IS '';
 COMMENT ON COLUMN bom_material_index.bom_material_uuid IS '';
 COMMENT ON COLUMN bom_material_index.bom_material_composite_uuid IS '';
-COMMENT ON COLUMN bom_material_index.add_date IS '';
-COMMENT ON COLUMN bom_material_index.mod_date IS '';
+COMMENT ON COLUMN bom_material_index.add_date IS 'date/time record was created';
+COMMENT ON COLUMN bom_material_index.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE calculation IS '';
@@ -1903,17 +1907,17 @@ COMMENT ON COLUMN calculation.calculation_alias_name IS '';
 COMMENT ON COLUMN calculation.in_val IS '';
 COMMENT ON COLUMN calculation.in_opt_val IS '';
 COMMENT ON COLUMN calculation.out_val IS '';
-COMMENT ON COLUMN calculation.status_uuid IS '';
-COMMENT ON COLUMN calculation.actor_uuid IS '';
-COMMENT ON COLUMN calculation.add_date IS '';
-COMMENT ON COLUMN calculation.mod_date IS '';
+COMMENT ON COLUMN calculation.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN calculation.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN calculation.add_date IS 'date/time record was created';
+COMMENT ON COLUMN calculation.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE calculation_class IS '';
 COMMENT ON COLUMN calculation_class.calculation_class_uuid IS '';
 COMMENT ON COLUMN calculation_class.description IS '';
-COMMENT ON COLUMN calculation_class.add_date IS '';
-COMMENT ON COLUMN calculation_class.mod_date IS '';
+COMMENT ON COLUMN calculation_class.add_date IS 'date/time record was created';
+COMMENT ON COLUMN calculation_class.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE calculation_def IS '';
@@ -1928,10 +1932,10 @@ COMMENT ON COLUMN calculation_def.in_opt_source_uuid IS '';
 COMMENT ON COLUMN calculation_def.in_opt_type_uuid IS '';
 COMMENT ON COLUMN calculation_def.out_type_uuid IS '';
 COMMENT ON COLUMN calculation_def.calculation_class_uuid IS '';
-COMMENT ON COLUMN calculation_def.actor_uuid IS '';
-COMMENT ON COLUMN calculation_def.status_uuid IS '';
-COMMENT ON COLUMN calculation_def.add_date IS '';
-COMMENT ON COLUMN calculation_def.mod_date IS '';
+COMMENT ON COLUMN calculation_def.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN calculation_def.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN calculation_def.add_date IS 'date/time record was created';
+COMMENT ON COLUMN calculation_def.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE calculation_eval IS '';
@@ -1941,22 +1945,22 @@ COMMENT ON COLUMN calculation_eval.in_val IS '';
 COMMENT ON COLUMN calculation_eval.in_opt_val IS '';
 COMMENT ON COLUMN calculation_eval.out_val IS '';
 COMMENT ON COLUMN calculation_eval.calculation_alias_name IS '';
-COMMENT ON COLUMN calculation_eval.actor_uuid IS '';
-COMMENT ON COLUMN calculation_eval.add_date IS '';
+COMMENT ON COLUMN calculation_eval.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN calculation_eval.add_date IS 'date/time record was created';
 
 
 COMMENT ON TABLE calculation_parameter_def_x IS '';
 COMMENT ON COLUMN calculation_parameter_def_x.calculation_parameter_def_x_uuid IS '';
 COMMENT ON COLUMN calculation_parameter_def_x.parameter_def_uuid IS '';
 COMMENT ON COLUMN calculation_parameter_def_x.calculation_def_uuid IS '';
-COMMENT ON COLUMN calculation_parameter_def_x.add_date IS '';
-COMMENT ON COLUMN calculation_parameter_def_x.mod_date IS '';
+COMMENT ON COLUMN calculation_parameter_def_x.add_date IS 'date/time record was created';
+COMMENT ON COLUMN calculation_parameter_def_x.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE calculation_stack IS '';
 COMMENT ON COLUMN calculation_stack.calculation_stack_id IS '';
 COMMENT ON COLUMN calculation_stack.stack_val IS '';
-COMMENT ON COLUMN calculation_stack.add_date IS '';
+COMMENT ON COLUMN calculation_stack.add_date IS 'date/time record was created';
 
 
 COMMENT ON TABLE condition IS '';
@@ -1964,27 +1968,27 @@ COMMENT ON COLUMN condition.condition_uuid IS '';
 COMMENT ON COLUMN condition.condition_calculation_def_x_uuid IS '';
 COMMENT ON COLUMN condition.in_val IS '';
 COMMENT ON COLUMN condition.out_val IS '';
-COMMENT ON COLUMN condition.actor_uuid IS '';
-COMMENT ON COLUMN condition.status_uuid IS '';
-COMMENT ON COLUMN condition.add_date IS '';
-COMMENT ON COLUMN condition.mod_date IS '';
+COMMENT ON COLUMN condition.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN condition.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN condition.add_date IS 'date/time record was created';
+COMMENT ON COLUMN condition.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE condition_def IS '';
 COMMENT ON COLUMN condition_def.condition_def_uuid IS '';
 COMMENT ON COLUMN condition_def.description IS '';
-COMMENT ON COLUMN condition_def.actor_uuid IS '';
-COMMENT ON COLUMN condition_def.status_uuid IS '';
-COMMENT ON COLUMN condition_def.add_date IS '';
-COMMENT ON COLUMN condition_def.mod_date IS '';
+COMMENT ON COLUMN condition_def.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN condition_def.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN condition_def.add_date IS 'date/time record was created';
+COMMENT ON COLUMN condition_def.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE condition_calculation_def_x IS '';
 COMMENT ON COLUMN condition_calculation_def_x.condition_calculation_def_x_uuid IS '';
 COMMENT ON COLUMN condition_calculation_def_x.condition_def_uuid IS '';
 COMMENT ON COLUMN condition_calculation_def_x.calculation_def_uuid IS '';
-COMMENT ON COLUMN condition_calculation_def_x.add_date IS '';
-COMMENT ON COLUMN condition_calculation_def_x.mod_date IS '';
+COMMENT ON COLUMN condition_calculation_def_x.add_date IS 'date/time record was created';
+COMMENT ON COLUMN condition_calculation_def_x.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE condition_path IS '';
@@ -1992,8 +1996,8 @@ COMMENT ON COLUMN condition_path.condition_path_uuid IS '';
 COMMENT ON COLUMN condition_path.condition_uuid IS '';
 COMMENT ON COLUMN condition_path.condition_out_val IS '';
 COMMENT ON COLUMN condition_path.workflow_step_uuid IS '';
-COMMENT ON COLUMN condition_path.add_date IS '';
-COMMENT ON COLUMN condition_path.mod_date IS '';
+COMMENT ON COLUMN condition_path.add_date IS 'date/time record was created';
+COMMENT ON COLUMN condition_path.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE edocument IS '';
@@ -2005,18 +2009,18 @@ COMMENT ON COLUMN edocument.source IS '';
 COMMENT ON COLUMN edocument.edocument IS '';
 COMMENT ON COLUMN edocument.doc_type_uuid IS '';
 COMMENT ON COLUMN edocument.doc_ver IS '';
-COMMENT ON COLUMN edocument.actor_uuid IS '';
-COMMENT ON COLUMN edocument.status_uuid IS '';
-COMMENT ON COLUMN edocument.add_date IS '';
-COMMENT ON COLUMN edocument.mod_date IS '';
+COMMENT ON COLUMN edocument.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN edocument.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN edocument.add_date IS 'date/time record was created';
+COMMENT ON COLUMN edocument.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE edocument_x IS '';
 COMMENT ON COLUMN edocument_x.edocument_x_uuid IS '';
 COMMENT ON COLUMN edocument_x.ref_edocument_uuid IS '';
 COMMENT ON COLUMN edocument_x.edocument_uuid IS '';
-COMMENT ON COLUMN edocument_x.add_date IS '';
-COMMENT ON COLUMN edocument_x.mod_date IS '';
+COMMENT ON COLUMN edocument_x.add_date IS 'date/time record was created';
+COMMENT ON COLUMN edocument_x.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE experiment IS '';
@@ -2028,9 +2032,9 @@ COMMENT ON COLUMN experiment.parent_path IS '';
 COMMENT ON COLUMN experiment.owner_uuid IS '';
 COMMENT ON COLUMN experiment.operator_uuid IS '';
 COMMENT ON COLUMN experiment.lab_uuid IS '';
-COMMENT ON COLUMN experiment.status_uuid IS '';
-COMMENT ON COLUMN experiment.add_date IS '';
-COMMENT ON COLUMN experiment.mod_date IS '';
+COMMENT ON COLUMN experiment.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN experiment.add_date IS 'date/time record was created';
+COMMENT ON COLUMN experiment.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE experiment_workflow IS '';
@@ -2038,8 +2042,8 @@ COMMENT ON COLUMN experiment_workflow.experiment_workflow_uuid IS '';
 COMMENT ON COLUMN experiment_workflow.experiment_workflow_seq IS '';
 COMMENT ON COLUMN experiment_workflow.experiment_uuid IS '';
 COMMENT ON COLUMN experiment_workflow.workflow_uuid IS '';
-COMMENT ON COLUMN experiment_workflow.add_date IS '';
-COMMENT ON COLUMN experiment_workflow.mod_date IS '';
+COMMENT ON COLUMN experiment_workflow.add_date IS 'date/time record was created';
+COMMENT ON COLUMN experiment_workflow.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE inventory IS '';
@@ -2062,20 +2066,20 @@ COMMENT ON COLUMN inventory_material.part_no IS '';
 COMMENT ON COLUMN inventory_material.onhand_amt IS '';
 COMMENT ON COLUMN inventory_material.expiration_date IS '';
 COMMENT ON COLUMN inventory_material.location IS '';
-COMMENT ON COLUMN inventory_material.actor_uuid IS '';
-COMMENT ON COLUMN inventory_material.status_uuid IS '';
-COMMENT ON COLUMN inventory_material.add_date IS '';
-COMMENT ON COLUMN inventory_material.mod_date IS '';
+COMMENT ON COLUMN inventory_material.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN inventory_material.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN inventory_material.add_date IS 'date/time record was created';
+COMMENT ON COLUMN inventory_material.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE material IS '';
 COMMENT ON COLUMN material.material_uuid IS '';
 COMMENT ON COLUMN material.description IS '';
 COMMENT ON COLUMN material.consumable IS '';
-COMMENT ON COLUMN material.actor_uuid IS '';
-COMMENT ON COLUMN material.status_uuid IS '';
-COMMENT ON COLUMN material.add_date IS '';
-COMMENT ON COLUMN material.mod_date IS '';
+COMMENT ON COLUMN material.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN material.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN material.add_date IS 'date/time record was created';
+COMMENT ON COLUMN material.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE material_composite IS '';
@@ -2083,18 +2087,18 @@ COMMENT ON COLUMN material_composite.material_composite_uuid IS '';
 COMMENT ON COLUMN material_composite.composite_uuid IS '';
 COMMENT ON COLUMN material_composite.component_uuid IS '';
 COMMENT ON COLUMN material_composite.addressable IS '';
-COMMENT ON COLUMN material_composite.actor_uuid IS '';
-COMMENT ON COLUMN material_composite.status_uuid IS '';
-COMMENT ON COLUMN material_composite.add_date IS '';
-COMMENT ON COLUMN material_composite.mod_date IS '';
+COMMENT ON COLUMN material_composite.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN material_composite.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN material_composite.add_date IS 'date/time record was created';
+COMMENT ON COLUMN material_composite.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE material_x IS '';
 COMMENT ON COLUMN material_x.material_x_uuid IS '';
 COMMENT ON COLUMN material_x.material_uuid IS '';
 COMMENT ON COLUMN material_x.ref_material_uuid IS '';
-COMMENT ON COLUMN material_x.add_date IS '';
-COMMENT ON COLUMN material_x.mod_date IS '';
+COMMENT ON COLUMN material_x.add_date IS 'date/time record was created';
+COMMENT ON COLUMN material_x.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE material_refname IS '';
@@ -2104,41 +2108,41 @@ COMMENT ON COLUMN material_refname.blob_value IS '';
 COMMENT ON COLUMN material_refname.blob_type IS '';
 COMMENT ON COLUMN material_refname.material_refname_def_uuid IS '';
 COMMENT ON COLUMN material_refname.reference IS '';
-COMMENT ON COLUMN material_refname.status_uuid IS '';
-COMMENT ON COLUMN material_refname.add_date IS '';
-COMMENT ON COLUMN material_refname.mod_date IS '';
+COMMENT ON COLUMN material_refname.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN material_refname.add_date IS 'date/time record was created';
+COMMENT ON COLUMN material_refname.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE material_refname_def IS '';
 COMMENT ON COLUMN material_refname_def.material_refname_def_uuid IS '';
 COMMENT ON COLUMN material_refname_def.description IS '';
-COMMENT ON COLUMN material_refname_def.add_date IS '';
-COMMENT ON COLUMN material_refname_def.mod_date IS '';
+COMMENT ON COLUMN material_refname_def.add_date IS 'date/time record was created';
+COMMENT ON COLUMN material_refname_def.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE material_refname_x IS '';
 COMMENT ON COLUMN material_refname_x.material_refname_x_uuid IS '';
 COMMENT ON COLUMN material_refname_x.material_uuid IS '';
 COMMENT ON COLUMN material_refname_x.material_refname_uuid IS '';
-COMMENT ON COLUMN material_refname_x.add_date IS '';
-COMMENT ON COLUMN material_refname_x.mod_date IS '';
+COMMENT ON COLUMN material_refname_x.add_date IS 'date/time record was created';
+COMMENT ON COLUMN material_refname_x.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE material_type IS '';
 COMMENT ON COLUMN material_type.material_type_uuid IS '';
 COMMENT ON COLUMN material_type.description IS '';
-COMMENT ON COLUMN material_type.actor_uuid IS '';
-COMMENT ON COLUMN material_type.status_uuid IS '';
-COMMENT ON COLUMN material_type.add_date IS '';
-COMMENT ON COLUMN material_type.mod_date IS '';
+COMMENT ON COLUMN material_type.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN material_type.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN material_type.add_date IS 'date/time record was created';
+COMMENT ON COLUMN material_type.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE material_type_x IS '';
 COMMENT ON COLUMN material_type_x.material_type_x_uuid IS '';
 COMMENT ON COLUMN material_type_x.material_uuid IS '';
 COMMENT ON COLUMN material_type_x.material_type_uuid IS '';
-COMMENT ON COLUMN material_type_x.add_date IS '';
-COMMENT ON COLUMN material_type_x.mod_date IS '';
+COMMENT ON COLUMN material_type_x.add_date IS 'date/time record was created';
+COMMENT ON COLUMN material_type_x.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE measure IS '';
@@ -2146,10 +2150,10 @@ COMMENT ON COLUMN measure.measure_uuid IS '';
 COMMENT ON COLUMN measure.measure_type_uuid IS '';
 COMMENT ON COLUMN measure.description IS '';
 COMMENT ON COLUMN measure.measure_value IS '';
-COMMENT ON COLUMN measure.actor_uuid IS '';
-COMMENT ON COLUMN measure.status_uuid IS '';
-COMMENT ON COLUMN measure.add_date IS '';
-COMMENT ON COLUMN measure.mod_date IS '';
+COMMENT ON COLUMN measure.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN measure.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN measure.add_date IS 'date/time record was created';
+COMMENT ON COLUMN measure.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE measure_def IS '';
@@ -2157,43 +2161,43 @@ COMMENT ON COLUMN measure_def.measure_def_uuid IS '';
 COMMENT ON COLUMN measure_def.default_measure_type_uuid IS '';
 COMMENT ON COLUMN measure_def.description IS '';
 COMMENT ON COLUMN measure_def.default_measure_value IS '';
-COMMENT ON COLUMN measure_def.actor_uuid IS '';
-COMMENT ON COLUMN measure_def.status_uuid IS '';
-COMMENT ON COLUMN measure_def.add_date IS '';
-COMMENT ON COLUMN measure_def.mod_date IS '';
+COMMENT ON COLUMN measure_def.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN measure_def.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN measure_def.add_date IS 'date/time record was created';
+COMMENT ON COLUMN measure_def.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE measure_type IS '';
 COMMENT ON COLUMN measure_type.measure_type_uuid IS '';
 COMMENT ON COLUMN measure_type.description IS '';
-COMMENT ON COLUMN measure_type.actor_uuid IS '';
-COMMENT ON COLUMN measure_type.status_uuid IS '';
-COMMENT ON COLUMN measure_type.add_date IS '';
-COMMENT ON COLUMN measure_type.mod_date IS '';
+COMMENT ON COLUMN measure_type.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN measure_type.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN measure_type.add_date IS 'date/time record was created';
+COMMENT ON COLUMN measure_type.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE measure_x IS '';
 COMMENT ON COLUMN measure_x.measure_x_uuid IS '';
 COMMENT ON COLUMN measure_x.ref_measure_uuid IS '';
 COMMENT ON COLUMN measure_x.measure_uuid IS '';
-COMMENT ON COLUMN measure_x.add_date IS '';
-COMMENT ON COLUMN measure_x.mod_date IS '';
+COMMENT ON COLUMN measure_x.add_date IS 'date/time record was created';
+COMMENT ON COLUMN measure_x.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE note IS '';
 COMMENT ON COLUMN note.note_uuid IS '';
 COMMENT ON COLUMN note.notetext IS '';
-COMMENT ON COLUMN note.actor_uuid IS '';
-COMMENT ON COLUMN note.add_date IS '';
-COMMENT ON COLUMN note.mod_date IS '';
+COMMENT ON COLUMN note.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN note.add_date IS 'date/time record was created';
+COMMENT ON COLUMN note.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE note_x IS '';
 COMMENT ON COLUMN note_x.note_x_uuid IS '';
 COMMENT ON COLUMN note_x.ref_note_uuid IS '';
 COMMENT ON COLUMN note_x.note_uuid IS '';
-COMMENT ON COLUMN note_x.add_date IS '';
-COMMENT ON COLUMN note_x.mod_date IS '';
+COMMENT ON COLUMN note_x.add_date IS 'date/time record was created';
+COMMENT ON COLUMN note_x.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE organization IS 'organization information for ESCALATE person and system tool; can be component of actor';
@@ -2219,20 +2223,20 @@ COMMENT ON TABLE outcome IS '';
 COMMENT ON COLUMN outcome.outcome_uuid IS '';
 COMMENT ON COLUMN outcome.description IS '';
 COMMENT ON COLUMN outcome.experiment_uuid IS '';
-COMMENT ON COLUMN outcome.actor_uuid IS '';
-COMMENT ON COLUMN outcome.status_uuid IS '';
-COMMENT ON COLUMN outcome.add_date IS '';
-COMMENT ON COLUMN outcome.mod_date IS '';
+COMMENT ON COLUMN outcome.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN outcome.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN outcome.add_date IS 'date/time record was created';
+COMMENT ON COLUMN outcome.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE parameter IS '';
 COMMENT ON COLUMN parameter.parameter_uuid IS '';
 COMMENT ON COLUMN parameter.parameter_def_uuid IS '';
 COMMENT ON COLUMN parameter.parameter_val IS '';
-COMMENT ON COLUMN parameter.actor_uuid IS '';
-COMMENT ON COLUMN parameter.status_uuid IS '';
-COMMENT ON COLUMN parameter.add_date IS '';
-COMMENT ON COLUMN parameter.mod_date IS '';
+COMMENT ON COLUMN parameter.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN parameter.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN parameter.add_date IS 'date/time record was created';
+COMMENT ON COLUMN parameter.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE parameter_def IS 'template for a parameter';
@@ -2240,18 +2244,18 @@ COMMENT ON COLUMN parameter_def.parameter_def_uuid IS '';
 COMMENT ON COLUMN parameter_def.description IS '';
 COMMENT ON COLUMN parameter_def.default_val IS 'this includes the type and units for the parameter';
 COMMENT ON COLUMN parameter_def.required IS '';
-COMMENT ON COLUMN parameter_def.actor_uuid IS '';
-COMMENT ON COLUMN parameter_def.status_uuid IS '';
-COMMENT ON COLUMN parameter_def.add_date IS '';
-COMMENT ON COLUMN parameter_def.mod_date IS '';
+COMMENT ON COLUMN parameter_def.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN parameter_def.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN parameter_def.add_date IS 'date/time record was created';
+COMMENT ON COLUMN parameter_def.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE parameter_x IS '';
 COMMENT ON COLUMN parameter_x.parameter_x_uuid IS '';
 COMMENT ON COLUMN parameter_x.ref_parameter_uuid IS '';
 COMMENT ON COLUMN parameter_x.parameter_uuid IS '';
-COMMENT ON COLUMN parameter_x.add_date IS '';
-COMMENT ON COLUMN parameter_x.mod_date IS '';
+COMMENT ON COLUMN parameter_x.add_date IS 'date/time record was created';
+COMMENT ON COLUMN parameter_x.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE person IS '';
@@ -2270,18 +2274,18 @@ COMMENT ON COLUMN person.email IS '';
 COMMENT ON COLUMN person.title IS '';
 COMMENT ON COLUMN person.suffix IS '';
 COMMENT ON COLUMN person.organization_uuid IS '';
-COMMENT ON COLUMN person.add_date IS '';
-COMMENT ON COLUMN person.mod_date IS '';
+COMMENT ON COLUMN person.add_date IS 'date/time record was created';
+COMMENT ON COLUMN person.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE property IS '';
 COMMENT ON COLUMN property.property_uuid IS '';
 COMMENT ON COLUMN property.property_def_uuid IS '';
 COMMENT ON COLUMN property.property_val IS '';
-COMMENT ON COLUMN property.actor_uuid IS '';
-COMMENT ON COLUMN property.status_uuid IS '';
-COMMENT ON COLUMN property.add_date IS '';
-COMMENT ON COLUMN property.mod_date IS '';
+COMMENT ON COLUMN property.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN property.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN property.add_date IS 'date/time record was created';
+COMMENT ON COLUMN property.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE property_def IS '';
@@ -2290,18 +2294,18 @@ COMMENT ON COLUMN property_def.description IS '';
 COMMENT ON COLUMN property_def.short_description IS '';
 COMMENT ON COLUMN property_def.val_type_uuid IS '';
 COMMENT ON COLUMN property_def.valunit IS '';
-COMMENT ON COLUMN property_def.actor_uuid IS '';
-COMMENT ON COLUMN property_def.status_uuid IS '';
-COMMENT ON COLUMN property_def.add_date IS '';
-COMMENT ON COLUMN property_def.mod_date IS '';
+COMMENT ON COLUMN property_def.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN property_def.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN property_def.add_date IS 'date/time record was created';
+COMMENT ON COLUMN property_def.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE parameter_x IS '';
 COMMENT ON COLUMN parameter_x.parameter_x_uuid IS '';
 COMMENT ON COLUMN parameter_x.ref_parameter_uuid IS '';
 COMMENT ON COLUMN parameter_x.parameter_uuid IS '';
-COMMENT ON COLUMN parameter_x.add_date IS '';
-COMMENT ON COLUMN parameter_x.mod_date IS '';
+COMMENT ON COLUMN parameter_x.add_date IS 'date/time record was created';
+COMMENT ON COLUMN parameter_x.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE person IS '';
@@ -2320,18 +2324,18 @@ COMMENT ON COLUMN person.email IS '';
 COMMENT ON COLUMN person.title IS '';
 COMMENT ON COLUMN person.suffix IS '';
 COMMENT ON COLUMN person.organization_uuid IS '';
-COMMENT ON COLUMN person.add_date IS '';
-COMMENT ON COLUMN person.mod_date IS '';
+COMMENT ON COLUMN person.add_date IS 'date/time record was created';
+COMMENT ON COLUMN person.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE property IS '';
 COMMENT ON COLUMN property.property_uuid IS '';
 COMMENT ON COLUMN property.property_def_uuid IS '';
 COMMENT ON COLUMN property.property_val IS '';
-COMMENT ON COLUMN property.actor_uuid IS '';
-COMMENT ON COLUMN property.status_uuid IS '';
-COMMENT ON COLUMN property.add_date IS '';
-COMMENT ON COLUMN property.mod_date IS '';
+COMMENT ON COLUMN property.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN property.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN property.add_date IS 'date/time record was created';
+COMMENT ON COLUMN property.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE property_def IS '';
@@ -2340,25 +2344,25 @@ COMMENT ON COLUMN property_def.description IS '';
 COMMENT ON COLUMN property_def.short_description IS '';
 COMMENT ON COLUMN property_def.val_type_uuid IS '';
 COMMENT ON COLUMN property_def.valunit IS '';
-COMMENT ON COLUMN property_def.actor_uuid IS '';
-COMMENT ON COLUMN property_def.status_uuid IS '';
-COMMENT ON COLUMN property_def.add_date IS '';
-COMMENT ON COLUMN property_def.mod_date IS '';
+COMMENT ON COLUMN property_def.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN property_def.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN property_def.add_date IS 'date/time record was created';
+COMMENT ON COLUMN property_def.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE property_x IS '';
 COMMENT ON COLUMN property_x.property_x_uuid IS '';
 COMMENT ON COLUMN property_x.material_uuid IS '';
 COMMENT ON COLUMN property_x.property_uuid IS '';
-COMMENT ON COLUMN property_x.add_date IS '';
-COMMENT ON COLUMN property_x.mod_date IS '';
+COMMENT ON COLUMN property_x.add_date IS 'date/time record was created';
+COMMENT ON COLUMN property_x.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE status IS '';
-COMMENT ON COLUMN status.status_uuid IS '';
+COMMENT ON COLUMN status.status_uuid IS 'FK to status associated with record';
 COMMENT ON COLUMN status.description IS '';
-COMMENT ON COLUMN status.add_date IS '';
-COMMENT ON COLUMN status.mod_date IS '';
+COMMENT ON COLUMN status.add_date IS 'date/time record was created';
+COMMENT ON COLUMN status.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE systemtool IS '';
@@ -2370,15 +2374,15 @@ COMMENT ON COLUMN systemtool.vendor_organization_uuid IS '';
 COMMENT ON COLUMN systemtool.model IS '';
 COMMENT ON COLUMN systemtool.serial IS '';
 COMMENT ON COLUMN systemtool.ver IS '';
-COMMENT ON COLUMN systemtool.add_date IS '';
-COMMENT ON COLUMN systemtool.mod_date IS '';
+COMMENT ON COLUMN systemtool.add_date IS 'date/time record was created';
+COMMENT ON COLUMN systemtool.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE systemtool_type IS '';
 COMMENT ON COLUMN systemtool_type.systemtool_type_uuid IS '';
 COMMENT ON COLUMN systemtool_type.description IS '';
-COMMENT ON COLUMN systemtool_type.add_date IS '';
-COMMENT ON COLUMN systemtool_type.mod_date IS '';
+COMMENT ON COLUMN systemtool_type.add_date IS 'date/time record was created';
+COMMENT ON COLUMN systemtool_type.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE sys_audit IS '';
@@ -2406,41 +2410,41 @@ COMMENT ON COLUMN tag.tag_uuid IS '';
 COMMENT ON COLUMN tag.tag_type_uuid IS '';
 COMMENT ON COLUMN tag.display_text IS '';
 COMMENT ON COLUMN tag.description IS '';
-COMMENT ON COLUMN tag.actor_uuid IS '';
-COMMENT ON COLUMN tag.add_date IS '';
-COMMENT ON COLUMN tag.mod_date IS '';
+COMMENT ON COLUMN tag.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN tag.add_date IS 'date/time record was created';
+COMMENT ON COLUMN tag.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE tag_type IS '';
 COMMENT ON COLUMN tag_type.tag_type_uuid IS '';
 COMMENT ON COLUMN tag_type.type IS '';
 COMMENT ON COLUMN tag_type.description IS '';
-COMMENT ON COLUMN tag_type.add_date IS '';
-COMMENT ON COLUMN tag_type.mod_date IS '';
+COMMENT ON COLUMN tag_type.add_date IS 'date/time record was created';
+COMMENT ON COLUMN tag_type.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE tag_x IS '';
 COMMENT ON COLUMN tag_x.tag_x_uuid IS '';
 COMMENT ON COLUMN tag_x.ref_tag_uuid IS '';
 COMMENT ON COLUMN tag_x.tag_uuid IS '';
-COMMENT ON COLUMN tag_x.add_date IS '';
-COMMENT ON COLUMN tag_x.mod_date IS '';
+COMMENT ON COLUMN tag_x.add_date IS 'date/time record was created';
+COMMENT ON COLUMN tag_x.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE type_def IS '';
 COMMENT ON COLUMN type_def.type_def_uuid IS '';
 COMMENT ON COLUMN type_def.category IS '';
 COMMENT ON COLUMN type_def.description IS '';
-COMMENT ON COLUMN type_def.add_date IS '';
-COMMENT ON COLUMN type_def.mod_date IS '';
+COMMENT ON COLUMN type_def.add_date IS 'date/time record was created';
+COMMENT ON COLUMN type_def.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE udf IS '';
 COMMENT ON COLUMN udf.udf_uuid IS '';
 COMMENT ON COLUMN udf.udf_def_uuid IS '';
 COMMENT ON COLUMN udf.udf_val IS '';
-COMMENT ON COLUMN udf.add_date IS '';
-COMMENT ON COLUMN udf.mod_date IS '';
+COMMENT ON COLUMN udf.add_date IS 'date/time record was created';
+COMMENT ON COLUMN udf.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE udf_def IS '';
@@ -2448,16 +2452,16 @@ COMMENT ON COLUMN udf_def.udf_def_uuid IS '';
 COMMENT ON COLUMN udf_def.description IS '';
 COMMENT ON COLUMN udf_def.val_type_uuid IS '';
 COMMENT ON COLUMN udf_def.unit IS '';
-COMMENT ON COLUMN udf_def.add_date IS '';
-COMMENT ON COLUMN udf_def.mod_date IS '';
+COMMENT ON COLUMN udf_def.add_date IS 'date/time record was created';
+COMMENT ON COLUMN udf_def.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE udf_x IS '';
 COMMENT ON COLUMN udf_x.udf_x_uuid IS '';
 COMMENT ON COLUMN udf_x.ref_udf_uuid IS '';
 COMMENT ON COLUMN udf_x.udf_uuid IS '';
-COMMENT ON COLUMN udf_x.add_date IS '';
-COMMENT ON COLUMN udf_x.mod_date IS '';
+COMMENT ON COLUMN udf_x.add_date IS 'date/time record was created';
+COMMENT ON COLUMN udf_x.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE workflow IS '';
@@ -2466,10 +2470,10 @@ COMMENT ON COLUMN workflow.workflow_type_uuid IS '';
 COMMENT ON COLUMN workflow.description IS '';
 COMMENT ON COLUMN workflow.parent_uuid IS '';
 COMMENT ON COLUMN workflow.parent_path IS '';
-COMMENT ON COLUMN workflow.actor_uuid IS '';
-COMMENT ON COLUMN workflow.status_uuid IS '';
-COMMENT ON COLUMN workflow.add_date IS '';
-COMMENT ON COLUMN workflow.mod_date IS '';
+COMMENT ON COLUMN workflow.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN workflow.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN workflow.add_date IS 'date/time record was created';
+COMMENT ON COLUMN workflow.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE workflow_action_set IS '';
@@ -2486,10 +2490,10 @@ COMMENT ON COLUMN workflow_action_set.parameter_val IS '';
 COMMENT ON COLUMN workflow_action_set.calculation_uuid IS '';
 COMMENT ON COLUMN workflow_action_set.source_material_uuid IS '';
 COMMENT ON COLUMN workflow_action_set.destination_material_uuid IS '';
-COMMENT ON COLUMN workflow_action_set.actor_uuid IS '';
-COMMENT ON COLUMN workflow_action_set.status_uuid IS '';
-COMMENT ON COLUMN workflow_action_set.add_date IS '';
-COMMENT ON COLUMN workflow_action_set.mod_date IS '';
+COMMENT ON COLUMN workflow_action_set.actor_uuid IS 'FK to actor associated with record';
+COMMENT ON COLUMN workflow_action_set.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN workflow_action_set.add_date IS 'date/time record was created';
+COMMENT ON COLUMN workflow_action_set.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE workflow_object IS '';
@@ -2497,16 +2501,16 @@ COMMENT ON COLUMN workflow_object.workflow_object_uuid IS '';
 COMMENT ON COLUMN workflow_object.workflow_uuid IS '';
 COMMENT ON COLUMN workflow_object.action_uuid IS '';
 COMMENT ON COLUMN workflow_object.condition_uuid IS '';
-COMMENT ON COLUMN workflow_object.status_uuid IS '';
-COMMENT ON COLUMN workflow_object.add_date IS '';
-COMMENT ON COLUMN workflow_object.mod_date IS '';
+COMMENT ON COLUMN workflow_object.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN workflow_object.add_date IS 'date/time record was created';
+COMMENT ON COLUMN workflow_object.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE workflow_state IS '';
 COMMENT ON COLUMN workflow_state.workflow_state_uuid IS '';
 COMMENT ON COLUMN workflow_state.workflow_step_uuid IS '';
-COMMENT ON COLUMN workflow_state.add_date IS '';
-COMMENT ON COLUMN workflow_state.mod_date IS '';
+COMMENT ON COLUMN workflow_state.add_date IS 'date/time record was created';
+COMMENT ON COLUMN workflow_state.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE workflow_step IS '';
@@ -2515,13 +2519,13 @@ COMMENT ON COLUMN workflow_step.workflow_uuid IS '';
 COMMENT ON COLUMN workflow_step.parent_uuid IS '';
 COMMENT ON COLUMN workflow_step.parent_path IS '';
 COMMENT ON COLUMN workflow_step.workflow_object_uuid IS '';
-COMMENT ON COLUMN workflow_step.status_uuid IS '';
-COMMENT ON COLUMN workflow_step.add_date IS '';
-COMMENT ON COLUMN workflow_step.mod_date IS '';
+COMMENT ON COLUMN workflow_step.status_uuid IS 'FK to status associated with record';
+COMMENT ON COLUMN workflow_step.add_date IS 'date/time record was created';
+COMMENT ON COLUMN workflow_step.mod_date IS 'date/time record was last modified';
 
 
 COMMENT ON TABLE workflow_type IS '';
 COMMENT ON COLUMN workflow_type.workflow_type_uuid IS '';
 COMMENT ON COLUMN workflow_type.description IS '';
-COMMENT ON COLUMN workflow_type.add_date IS '';
-COMMENT ON COLUMN workflow_type.mod_date IS '';
+COMMENT ON COLUMN workflow_type.add_date IS 'date/time record was created';
+COMMENT ON COLUMN workflow_type.mod_date IS 'date/time record was last modified';

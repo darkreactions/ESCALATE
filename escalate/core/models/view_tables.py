@@ -616,6 +616,26 @@ class Note_x(models.Model):
         return "{}".format(self.note_uuid)
 
 
+class Measure_x(models.Model):
+    uuid = RetUUIDField(primary_key=True, db_column='measure_x_uuid')
+    ref_measure = RetUUIDField(db_column='ref_measure_uuid')
+    measure = models.ForeignKey('Measure', models.DO_NOTHING,
+                             blank=True,
+                             null=True,
+                             editable=False,
+                             db_column='measure_uuid',
+                             related_name='measure_x_measure')
+    add_date = models.DateTimeField(auto_now_add=True)
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'measure_x'
+
+    def __str__(self):
+        return "{}".format(self.measure_uuid)
+
+
 class Organization(models.Model):
     uuid = RetUUIDField(primary_key=True, db_column='organization_uuid')
     description = models.CharField(max_length=255)
