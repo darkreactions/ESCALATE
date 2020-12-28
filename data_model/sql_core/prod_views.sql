@@ -2447,7 +2447,7 @@ select * from
     -- workflow action set parameter
     select e.experiment_uuid,
            e.description as experiment,
-           was.description as workflow,
+           was.workflow_description as workflow,
            ew.experiment_workflow_seq as workflow_seq,
            'action_set' as workflow_object,
            was.description as object_description,
@@ -2481,7 +2481,7 @@ select * from
 order by experiment_uuid, workflow_seq, workflow_object, parameter_def_description;
 
 DROP TRIGGER IF EXISTS trigger_experiment_parameter_upsert ON vw_experiment_parameter;
-CREATE TRIGGER trigger_experiment_parameter INSTEAD OF UPDATE
+CREATE TRIGGER trigger_experiment_parameter_upsert INSTEAD OF UPDATE
 ON vw_experiment_parameter
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_experiment_parameter ( );
