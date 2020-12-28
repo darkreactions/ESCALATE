@@ -3453,15 +3453,36 @@ Notes:			todo: this may or may not need to address changes to materials. Not sur
                 The view (vw_experiment_parameter) returns values (val) in array form, as workflow_action_set allows for
                 an array of values as input
 
-Example:
+Example:        update vw_experiment_parameter
+                    set parameter_value =
+                        array[(select put_val ((select val_type_uuid from vw_parameter_def where description = 'temperature'), '999.99',
+                            (select valunit from vw_parameter_def where description = 'temperature')))]
+                where experiment = 'LANL Test Experiment Template' and object_description = 'Heat Sample Prep Plate' and parameter_def_description = 'temperature';
+
  */
 CREATE OR REPLACE FUNCTION upsert_experiment_parameter ()
 	RETURNS TRIGGER
 	AS $$
-DECLARE
-
 BEGIN
 	IF(TG_OP = 'UPDATE') THEN
+        CASE
+            WHEN NEW.workflow_object = 'action' THEN
+                UPDATE
+                    parameter
+		        SET
+		            -- as there is only one parameter val that can be passed, but the incoming parameter is an array, we can point to the first element
+		            parameter_val = NEW.parameter_value[1],
+                    mod_date = now()
+		        WHERE
+		            parameter.parameter_uuid = NEW.parameter_uuid;
+            RETURN NEW;
+            WHEN NEW.workflow_object = 'action_set' THEN
+                RETURN NEW;
+        ELSE
+            
+
+            RETURN NULL;
+        END CASE;
 	END IF;
 END;
 $$

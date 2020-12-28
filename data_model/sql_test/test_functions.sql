@@ -1640,11 +1640,12 @@ values ('dispense HCL into SamplePrep Plate action_set',
         (select actor_uuid from vw_actor where description = 'Ion Bond'),
         (select status_uuid from vw_status where description = 'dev_test'));
 
-insert into vw_action (action_def_uuid, workflow_uuid, action_description, actor_uuid, status_uuid)
+insert into vw_action (action_def_uuid, workflow_uuid, action_description, source_material_uuid, actor_uuid, status_uuid)
 	values (
     	(select action_def_uuid from vw_action_def where description = 'heat'),
     	(select workflow_uuid from vw_workflow where description = 'LANL_WF1c_SetTemp_SamplePrep'),
-        'heat sample plate',
+        'Heat Sample Prep Plate',
+        (select bom_material_index_uuid from vw_bom_material_index where description = 'Sample Prep Plate'),
         (select actor_uuid from vw_actor where description = 'Ion Bond'),
         (select status_uuid from vw_status where description = 'dev_test'));
 
@@ -1677,12 +1678,12 @@ values  ('dispense Am-Stock into SamplePrep Plate action_set',
 insert into vw_workflow_object (workflow_uuid, action_uuid)
 	values (
 	    (select workflow_uuid from vw_workflow where description = 'LANL_WF1c_SetTemp_SamplePrep'),
-		(select action_uuid from vw_action where action_description = 'heat sample plate'));
+		(select action_uuid from vw_action where action_description = 'Heat Sample Prep Plate'));
 
 insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)
 	values (
 		(select workflow_uuid from vw_workflow where description = 'LANL_WF1c_SetTemp_SamplePrep'),
-		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'heat sample plate')),
+		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Heat Sample Prep Plate')),
         null,
         (select status_uuid from vw_status where description = 'dev_test'));
 -- let's set the temperature and duration of the action heat sample plate
@@ -1692,21 +1693,21 @@ update vw_action_parameter
              '110.23',
             (select valunit from vw_parameter_def where description = 'temperature'))
             )
-where (action_description = 'heat sample plate' AND parameter_def_description = 'temperature');
+where (action_description = 'Heat Sample Prep Plate' AND parameter_def_description = 'temperature');
 update vw_action_parameter
     set parameter_val = (select put_val (
             (select val_type_uuid from vw_parameter_def where description = 'duration'),
              '10',
             (select valunit from vw_parameter_def where description = 'duration'))
             )
-where (action_description = 'heat sample plate' AND parameter_def_description = 'duration');
+where (action_description = 'Heat Sample Prep Plate' AND parameter_def_description = 'duration');
 
 -- add in some measures
 -- to action(s)
 insert into vw_measure (measure_def_uuid, measure_type_uuid, ref_measure_uuid, description, measure_value, actor_uuid, status_uuid) values
 	((select measure_def_uuid from vw_measure_def where description = 'plate temp'),
 	 (select measure_type_uuid from vw_measure_type where description = 'manual'),
-	 (select action_uuid from vw_action where action_description = 'heat sample plate'),
+	 (select action_uuid from vw_action where action_description = 'Heat Sample Prep Plate'),
 	'sample plate temperature',
 	(select put_val(
         (select get_type_def ('data', 'num')),

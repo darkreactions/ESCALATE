@@ -1564,6 +1564,7 @@ CREATE OR REPLACE VIEW vw_bom_material AS
 SELECT
 	bm.bom_material_uuid,
 	bm.description,
+    bmi.bom_material_index_uuid,
     bm.bom_uuid,
 	b.description AS bom_description,
 	bm.inventory_material_uuid,
@@ -1581,12 +1582,13 @@ SELECT
     atag.tag_to_array AS tags,
     anote.note_to_array AS notes
 FROM bom_material bm
+JOIN bom_material_index bmi ON bm.bom_material_uuid = bmi.bom_material_uuid
 JOIN bom b ON bm.bom_uuid = b.bom_uuid
 JOIN inventory_material inv ON bm.inventory_material_uuid = inv.inventory_material_uuid
 LEFT JOIN actor act ON bm.actor_uuid = act.actor_uuid
 LEFT JOIN status st ON bm.status_uuid = st.status_uuid
-LEFT JOIN LATERAL (select * from tag_to_array (bom_material_uuid)) atag ON true
-LEFT JOIN LATERAL (select * from note_to_array (bom_material_uuid)) anote ON true;
+LEFT JOIN LATERAL (select * from tag_to_array (bm.bom_material_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (bm.bom_material_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_bom_material_upsert ON vw_bom_material;
 CREATE TRIGGER trigger_bom_material_upsert INSTEAD OF INSERT
@@ -1604,6 +1606,7 @@ CREATE OR REPLACE VIEW vw_bom_material_composite AS
 SELECT
 	bmc.bom_material_composite_uuid,
 	bmc.description,
+    bmi.bom_material_index_uuid,
     bmc.bom_material_uuid,
     bm.description as bom_material_description,
     bmc.material_composite_uuid,
@@ -1618,12 +1621,13 @@ SELECT
     atag.tag_to_array AS tags,
     anote.note_to_array AS notes
 FROM bom_material_composite bmc
+JOIN bom_material_index bmi ON bmc.bom_material_composite_uuid = bmi.bom_material_composite_uuid
 JOIN bom_material bm ON bmc.bom_material_uuid = bm.bom_material_uuid
 JOIN vw_material_composite mc ON bmc.material_composite_uuid = mc.material_composite_uuid
 LEFT JOIN actor act ON bm.actor_uuid = act.actor_uuid
 LEFT JOIN status st ON bm.status_uuid = st.status_uuid
-LEFT JOIN LATERAL (select * from tag_to_array (bom_material_composite_uuid)) atag ON true
-LEFT JOIN LATERAL (select * from note_to_array (bom_material_composite_uuid)) anote ON true;
+LEFT JOIN LATERAL (select * from tag_to_array (bmc.bom_material_composite_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (bmc.bom_material_composite_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_bom_material_composite_upsert ON vw_bom_material_composite;
 CREATE TRIGGER trigger_bom_material_composite_upsert INSTEAD OF INSERT
@@ -1903,9 +1907,9 @@ SELECT
     act.ref_parameter_uuid,
     act.calculation_def_uuid,
     act.source_material_uuid,
-    bms.description as source_material_description,
+    bmis.description as source_material_description,
     act.destination_material_uuid,
-    bmd.description as destination_material_description,
+    bmid.description as destination_material_description,
     act.actor_uuid,
     actor.description as actor_description,
     act.status_uuid,
@@ -1918,8 +1922,8 @@ FROM action act
 JOIN vw_workflow wf ON act.workflow_uuid = wf.workflow_uuid
 LEFT JOIN workflow_action_set was ON act.workflow_action_set_uuid = was.workflow_action_set_uuid
 JOIN vw_action_def ad ON act.action_def_uuid = ad.action_def_uuid
-LEFT JOIN vw_bom_material bms ON act.source_material_uuid = bms.bom_material_uuid
-LEFT JOIN vw_bom_material bmd ON act.destination_material_uuid = bmd.bom_material_uuid
+LEFT JOIN vw_bom_material_index bmis ON act.source_material_uuid = bmis.bom_material_index_uuid
+LEFT JOIN vw_bom_material_index bmid ON act.destination_material_uuid = bmid.bom_material_index_uuid
 LEFT JOIN vw_actor actor ON act.actor_uuid = actor.actor_uuid
 LEFT JOIN vw_status st ON act.status_uuid = st.status_uuid
 LEFT JOIN LATERAL (select * from tag_to_array (action_uuid)) atag ON true
@@ -2415,41 +2419,47 @@ FOR EACH ROW
 EXECUTE PROCEDURE upsert_workflow_action_set ( );
 
 
-
 ----------------------------------------
 -- view vw_experiment_parameter
 -- DROP VIEW vw_experiment_parameter
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_experiment_parameter AS
 -- action
-select e.experiment_uuid, e.description as experiment, w.description as workflow, ew.experiment_workflow_seq as workflow_seq, 'action' as action_type, ap.action_description as action_description, ap.parameter_def_description, array[ap.parameter_val] as parameter_value
-from vw_action_parameter ap
-JOIN vw_workflow w ON ap.workflow_uuid = w.workflow_uuid
-JOIN experiment_workflow ew ON w.workflow_uuid = ew.workflow_uuid
-JOIN experiment e ON ew.experiment_uuid = e.experiment_uuid
-where ap.workflow_action_set_uuid is null
-UNION
--- workflow action set parameter
-select e.experiment_uuid, e.description as experiment, was.description as workflow, ew.experiment_workflow_seq as workflow_seq, 'action_set' as action_type, was.description as action_description, was.parameter_def_description, was.parameter_val
-FROM vw_workflow_action_set was
-JOIN experiment_workflow ew ON was.workflow_uuid = ew.workflow_uuid
-JOIN experiment e ON ew.experiment_uuid = e.experiment_uuid
-where was.parameter_val is not null
-UNION
--- workflow action set calculation parameter
-select e.experiment_uuid, e.description as experiment, was.workflow_description as workflow, ew.experiment_workflow_seq as workflow_seq, 'action_set' as action_type, was.description as action_description, cpd.parameter_def_description as parameter, array[cpd.default_val] as parameter_value
-FROM vw_workflow_action_set was
-JOIN vw_calculation c ON was.calculation_uuid = c.calculation_uuid
-LEFT JOIN vw_calculation_def cd ON c.calculation_def_uuid = cd.calculation_def_uuid
-LEFT JOIN vw_calculation_parameter_def cpd ON cd.calculation_def_uuid = cpd.calculation_def_uuid
-JOIN experiment_workflow ew ON was.workflow_uuid = ew.workflow_uuid
-JOIN experiment e ON ew.experiment_uuid = e.experiment_uuid
-where was.calculation_uuid is not null
-order by experiment_uuid, workflow_seq, action_type, parameter_def_description;
+select * from
+    (select e.experiment_uuid, e.description as experiment, w.description as workflow, ew.experiment_workflow_seq as workflow_seq,
+           'action' as workflow_object, ap.action_description as object_description, ap.action_uuid as object_uuid,
+            ap.parameter_def_description, ap.parameter_uuid as parameter_uuid, array[ap.parameter_val] as parameter_value
+    from vw_action_parameter ap
+    JOIN vw_workflow w ON ap.workflow_uuid = w.workflow_uuid
+    JOIN experiment_workflow ew ON w.workflow_uuid = ew.workflow_uuid
+    JOIN experiment e ON ew.experiment_uuid = e.experiment_uuid
+    where ap.workflow_action_set_uuid is null
+    UNION
+    -- workflow action set parameter
+    select e.experiment_uuid, e.description as experiment, was.description as workflow, ew.experiment_workflow_seq as workflow_seq,
+           'action_set' as workflow_object, was.description as object_description, was.workflow_action_set_uuid as object_uuid,
+           was.parameter_def_description, null as parameter_uuid, was.parameter_val as parameter_value
+    FROM vw_workflow_action_set was
+    JOIN experiment_workflow ew ON was.workflow_uuid = ew.workflow_uuid
+    JOIN experiment e ON ew.experiment_uuid = e.experiment_uuid
+    where was.parameter_val is not null
+    UNION
+    -- workflow action set calculation parameter
+    select e.experiment_uuid, e.description as experiment, was.workflow_description as workflow, ew.experiment_workflow_seq as workflow_seq,
+           'action_set' as workflow_object, was.description as object_description, was.workflow_action_set_uuid as object_uuid,
+           cpd.parameter_def_description as parameter, null as parameter_uuid, array[cpd.default_val] as parameter_value
+    FROM vw_workflow_action_set was
+    JOIN vw_calculation c ON was.calculation_uuid = c.calculation_uuid
+    LEFT JOIN vw_calculation_def cd ON c.calculation_def_uuid = cd.calculation_def_uuid
+    LEFT JOIN vw_calculation_parameter_def cpd ON cd.calculation_def_uuid = cpd.calculation_def_uuid
+    JOIN experiment_workflow ew ON was.workflow_uuid = ew.workflow_uuid
+    JOIN experiment e ON ew.experiment_uuid = e.experiment_uuid
+    where was.calculation_uuid is not null) ew
+order by experiment_uuid, workflow_seq, workflow_object, parameter_def_description;
 
 DROP TRIGGER IF EXISTS trigger_experiment_parameter_upsert ON vw_experiment_parameter;
-CREATE TRIGGER trigger_experiment_parameter INSTEAD OF INSERT
-OR DELETE ON vw_experiment_parameter
+CREATE TRIGGER trigger_experiment_parameter INSTEAD OF UPDATE
+ON vw_experiment_parameter
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_experiment_parameter ( );
 
