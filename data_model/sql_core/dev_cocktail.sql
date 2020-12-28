@@ -1,5 +1,8 @@
 -- ==========================================================
 -- Test out the data model by making some cocktails
+
+-- this file implements this recipe as an experiment in the ESCALATE
+-- data model https://www.liquor.com/recipes/mojito/
 -- ==========================================================
 
 -- josh is going to make these in his Wirtshaus
@@ -17,11 +20,11 @@ insert into vw_person (last_name, first_name, middle_name,
 
 --insert into vw_status (description) values ('dev_test');
 
--- insert into vw_material_type (description)
--- values
--- 	('stock solution'),
--- 	('human prepared'),
--- 	('solute');
+insert into vw_material_type (description)
+values
+	('stock solution'),
+	('human prepared'),
+	('solute');
 
 
 -- =============================
@@ -97,13 +100,14 @@ insert into vw_material_property (material_uuid, property_def_uuid,
 -- define actions and parameters
 -- ================================
 insert into vw_action_def (description, actor_uuid, status_uuid) values
-	--('dispense', (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
-    --(select status_uuid from vw_status where description = 'dev_test')),
+	('dispense_floz', (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
+    (select status_uuid from vw_status where description = 'dev_test')); -- todo: discuss -- need a separate action def *and* parameter def for different units...
+insert into vw_action_def (description, actor_uuid, status_uuid) values
 	('shake', (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
     (select status_uuid from vw_status where description = 'dev_test')),
 	('muddle', (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
     (select status_uuid from vw_status where description = 'dev_test')),
-	('strain', (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
+	('strain_all', (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
     (select status_uuid from vw_status where description = 'dev_test')),
 	('transfer_discrete', (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
     (select status_uuid from vw_status where description = 'dev_test'));
@@ -117,12 +121,17 @@ insert into vw_parameter_def (description, default_val, actor_uuid, status_uuid)
         (select put_val((select get_type_def ('data', 'text')), 'gently', '')),
         (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
 		(select status_uuid from vw_status where description = 'dev_test')),
--- 	    ('volume',
---         (select put_val((select get_type_def ('data', 'num')), '0', 'floz')),
---         (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
--- 		(select status_uuid from vw_status where description = 'dev_test')),
+	    ('volume_floz',
+        (select put_val((select get_type_def ('data', 'num')), '0', 'floz')),
+        (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
+		(select status_uuid from vw_status where description = 'dev_test')), -- this would clash with LANL volume in mL
 	    ('count',
         (select put_val((select get_type_def ('data', 'int')), '0', 'count')),
+        (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
+		(select status_uuid from vw_status where description = 'dev_test'));
+insert into vw_parameter_def (description, default_val, actor_uuid, status_uuid)
+	    values ('amount_qualitative',
+        (select put_val((select get_type_def ('data', 'text')), 'all', '')), --todo why isnt this default val getting copied? (update: I think its because I was going through action_set
         (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
 		(select status_uuid from vw_status where description = 'dev_test'));
 
@@ -131,10 +140,12 @@ insert into vw_action_parameter_def_assign (action_def_uuid, parameter_def_uuid)
     	(select parameter_def_uuid from vw_parameter_def where description = 'duration_qualitative')),
         ((select action_def_uuid from vw_action_def where description = 'muddle'),
         (select parameter_def_uuid from vw_parameter_def where description = 'intensity_qualitative')),
---         ((select action_def_uuid from vw_action_def where description = 'dispense'),
---         (select parameter_def_uuid from vw_parameter_def where description = 'volume')),
+        ((select action_def_uuid from vw_action_def where description = 'dispense_floz'),
+        (select parameter_def_uuid from vw_parameter_def where description = 'volume_floz')),
         ((select action_def_uuid from vw_action_def where description = 'transfer_discrete'),
-        (select parameter_def_uuid from vw_parameter_def where description = 'count'));
+        (select parameter_def_uuid from vw_parameter_def where description = 'count')),
+	    ((select action_def_uuid from vw_action_def where description = 'strain_all'),
+        (select parameter_def_uuid from vw_parameter_def where description = 'amount_qualitative'));
 
 --=======================
 -- Set up inventory
@@ -371,7 +382,6 @@ insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uui
 -- and add them to the experiment
 -- (we could also just create workflow step objects and chain together with parent
 --  instead of having a separate workflow for each action)
--- todo: discuss w/ gary how these approaches could be mixed
 insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid)
     values (1,
         (select experiment_uuid from vw_experiment where description =  'JS Test Mojito'),
@@ -419,16 +429,33 @@ values ('mint_to_shaker',
         (select status_uuid from vw_status where description = 'dev_test'));
 
 
--- these inserts take like >30 seconds on mike's machine is that normal? (toward the end they start taking more like 1.5 mins...)
--- todo: try to run them directly rather than through an IDE: see if its faster.
--- if not: optimize them...
+
+-- add actions to each sub workflow
+insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
+                                    repeating,
+                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    actor_uuid, status_uuid)
+values ('syrup_to_shaker',
+        (select workflow_uuid from vw_workflow where description = 'Syrup to Shaker'),
+        (select action_def_uuid from vw_action_def where description = 'dispense_floz'),
+        null, null, null, null,
+        (select parameter_def_uuid
+         from vw_action_parameter_def
+         where description = 'dispense_floz' and parameter_description = 'volume_floz'),
+        array [(select put_val((select get_type_def('data', 'num')), '.5', 'floz' ))],
+        null,
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Simple Syrup')],
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Cocktail Shaker')],
+        (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
+        (select status_uuid from vw_status where description = 'dev_test'));
+
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
                                     parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values ('muddle',
         (select workflow_uuid from vw_workflow where description = 'Muddle'),
-        (select action_def_uuid from vw_action_def where description = 'dispense'),
+        (select action_def_uuid from vw_action_def where description = 'muddle'),
         null, null, null, null,
         (select parameter_def_uuid
          from vw_action_parameter_def
@@ -447,29 +474,30 @@ insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid,
                                     actor_uuid, status_uuid)
 values ('rum_to_shaker',
         (select workflow_uuid from vw_workflow where description = 'Rum to Shaker'),
-        (select action_def_uuid from vw_action_def where description = 'dispense'),
+        (select action_def_uuid from vw_action_def where description = 'dispense_floz'),
         null, null, null, null,
         (select parameter_def_uuid
          from vw_action_parameter_def
-         where description = 'dispense' and parameter_description = 'volume'),
+         where description = 'dispense_floz' and parameter_description = 'volume_floz'),
         array [(select put_val((select get_type_def('data', 'num')), '2', 'floz'))],
         null,
         array [(select bom_material_index_uuid from vw_bom_material_index where description = 'White Rum')],
         array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Cocktail Shaker')],
         (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
         (select status_uuid from vw_status where description = 'dev_test'));
---stopped here
+
+
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
                                     parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values ('lime_juice_to_shaker',
         (select workflow_uuid from vw_workflow where description = 'Lime Juice to Shaker'),
-        (select action_def_uuid from vw_action_def where description = 'dispense'),
+        (select action_def_uuid from vw_action_def where description = 'dispense_floz'),
         null, null, null, null,
         (select parameter_def_uuid
          from vw_action_parameter_def
-         where description = 'dispense' and parameter_description = 'volume'),
+         where description = 'dispense_floz' and parameter_description = 'volume_floz'),
         array [(select put_val((select type_def_uuid from vw_type_def where vw_type_def.description='num'), '.75', 'floz'))],
         null,
         array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Lime Juice')],
@@ -518,9 +546,13 @@ insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid,
                                     parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
     values ('mojito_to_glass',
-            (select workflow_uuid from vw_workflow where description = 'Ice to Glass'),
-            (select action_def_uuid from vw_action_def where description = 'strain'),
-            null, null, null, null, null, null,
+            (select workflow_uuid from vw_workflow where description = 'Mojito to Glass'),
+            (select action_def_uuid from vw_action_def where description = 'strain_all'),
+            null, null, null, null,
+            (select parameter_def_uuid from vw_action_parameter_def
+                where description = 'strain_all'
+                and parameter_description = 'amount_qualitative'),
+            array [(select put_val((select get_type_def('data', 'text')), 'all', ''))],
             null,
             array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Cocktail Shaker')],
             array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Highball Glass')],
@@ -557,8 +589,6 @@ insert into vw_measure_def (default_measure_type_uuid, description, default_meas
    (select status_uuid from vw_status where description = 'active'));
 
 -- populate that measure with a value
--- todo: discuss default measure values w/gary.
--- e.g.: do we pre-populate the measures w/ null and then update them w/ the observed values?
 insert into vw_measure (measure_def_uuid, measure_type_uuid, ref_measure_uuid, description, measure_value, actor_uuid, status_uuid) values
    ((select measure_def_uuid from vw_measure_def where description = 'sample taste'),
     (select measure_type_uuid from vw_measure_type where description = 'manual'),
