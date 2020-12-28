@@ -14,7 +14,9 @@ from rest_flex_fields import FlexFieldsModelSerializer
 
 
 from rest_api.endpoint_details import details
-import core.models
+#import core.models
+from core.models import *
+from core.models.view_tables import *
 from .utils import rest_serializer_views
 from core.models.custom_types import Val, ValField
 from core.validators import ValValidator
@@ -88,7 +90,7 @@ class TagAssignSerializer(DynamicFieldsModelSerializer):
     tag_label = CharField(source='tag.display_text', read_only=True)
 
     class Meta:
-        model = core.models.TagAssign
+        model = TagAssign
         fields = '__all__'
         read_only_fields = ['ref_tag']
 
@@ -97,7 +99,7 @@ class TagListSerializer(DynamicFieldsModelSerializer):
     tags = SerializerMethodField()
 
     def get_tags(self, obj):
-        tags = core.models.TagAssign.objects.filter(ref_tag=obj.uuid)
+        tags = TagAssign.objects.filter(ref_tag=obj.uuid)
         result_serializer = TagAssignSerializer(
             tags, many=True, context=self.context)
         return result_serializer.data
@@ -106,7 +108,7 @@ class TagListSerializer(DynamicFieldsModelSerializer):
 class NoteSerializer(DynamicFieldsModelSerializer):
 
     class Meta:
-        model = core.models.Note
+        model = Note
         fields = '__all__'
         read_only_fields = ['ref_note_uuid']
 
@@ -115,7 +117,7 @@ class NoteListSerializer(DynamicFieldsModelSerializer):
     notes = SerializerMethodField()
 
     def get_notes(self, obj):
-        notes = core.models.Note.objects.filter(note_x_note__ref_note=obj.uuid)
+        notes = Note.objects.filter(note_x_note__ref_note=obj.uuid)
         result_serializer = NoteSerializer(
             notes, many=True, context=self.context)
         return result_serializer.data
@@ -155,7 +157,7 @@ class EdocumentSerializer(TagListSerializer,
         return edoc
 
     class Meta:
-        model = core.models.Edocument
+        model = Edocument
         fields = ('url', 'title', 'description', 'filename',
                   'source', 'edoc_type', 'download_link',
                   'actor', 'actor_description', 'tags', 'notes', 'edocument',
@@ -167,7 +169,7 @@ class EdocListSerializer(DynamicFieldsModelSerializer):
     edocs = SerializerMethodField()
 
     def get_edocs(self, obj):
-        edocs = core.models.Edocument.objects.filter(
+        edocs = Edocument.objects.filter(
             ref_edocument_uuid=obj.uuid)
         result_serializer = EdocumentSerializer(
             edocs, many=True, context=self.context)
@@ -176,12 +178,12 @@ class EdocListSerializer(DynamicFieldsModelSerializer):
 
 class ExperimentMeasureCalculationSerializer(DynamicFieldsModelSerializer):
     class Meta:
-        model = core.models.ExperimentMeasureCalculation
+        model = ExperimentMeasureCalculation
         fields = ('uid', 'row_to_json')
 
 
 for model_name in rest_serializer_views:
-    meta_class = type('Meta', (), {'model': getattr(core.models, model_name),
+    meta_class = type('Meta', (), {'model': globals()[model_name],
                                    'fields': '__all__'})
     globals()[model_name+'Serializer'] = type(model_name+'Serializer',
                                               tuple([EdocListSerializer,
@@ -195,7 +197,7 @@ class ActionDefSerializer(DynamicFieldsModelSerializer):
     parameter_def = ParameterDefSerializer(read_only=True, many=True)
 
     class Meta:
-        model = core.models.ActionDef
+        model = ActionDef
         fields = '__all__'
 
 
@@ -203,7 +205,7 @@ class ActionSerializer(DynamicFieldsModelSerializer):
     parameter = ActionParameterSerializer(read_only=True, many=True)
 
     class Meta:
-        model = core.models.Action
+        model = Action
         fields = '__all__'
 
 
@@ -218,7 +220,7 @@ class BomMaterialCompositeSerializer(EdocListSerializer,
                                      NoteListSerializer,
                                      DynamicFieldsModelSerializer):
     class Meta:
-        model = core.models.BomCompositeMaterial
+        model = BomCompositeMaterial
         fields = '__all__'
 
 
@@ -231,7 +233,7 @@ class BomMaterialSerializer(EdocListSerializer,
 
     class Meta:
         #list_serializer_class = FilteredListSerializer
-        model = core.models.BomMaterial
+        model = BomMaterial
         fields = '__all__'
 
 
@@ -245,7 +247,7 @@ class BillOfMaterialsSerializer(EdocListSerializer,
     #bom_material = BomMaterialSerializer(**bom_serializer_params)
 
     class Meta:
-        model = core.models.BillOfMaterials
+        model = BillOfMaterials
         fields = '__all__'
 
 
@@ -335,7 +337,8 @@ expandable_fields = {
 
 
 for model_name, fields in expandable_fields.items():
-    model = getattr(core.models, model_name)
+    #model = getattr(core.models, model_name)
+    model = globals()[model_name]
     meta_class = type(
         'Meta', (), {'model': model, 'fields': '__all__', 'expandable_fields': fields})
 
