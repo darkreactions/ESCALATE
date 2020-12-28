@@ -1,4 +1,5 @@
 from django.db import models
+#from core.models.core_tables import TypeDef
 from core.models.core_tables import TypeDef
 import json
 from django.core.exceptions import ValidationError
@@ -45,9 +46,9 @@ class Val:
     
     @classmethod
     def from_db(cls, val_string):
-        print(val_string)
+        # print(val_string)
         args = list(csv.reader([val_string[1:-1]]))[0]
-        print(args)
+        # print(args)
         type_uuid = args[0]
         unit = args[1]
         val_type = TypeDef.objects.get(pk=type_uuid)
@@ -57,13 +58,14 @@ class Val:
         if val_type.description == 'text':
             value = str(value)
         elif 'array' in val_type.description:
-            table = str.maketrans('{}"', '[] ')
+            table = str.maketrans('{}', '[]')
             value = value.translate(table)
-            #value = value.strip()
-            print(value)
             value = json.loads(value)
-        else:
+        if 'bool' in val_type.description:
+            table = str.maketrans({'t': 'true', 'f':'false', 'T':'true', 'F':'false'})
+            value = value.translate(table)
             value = json.loads(value)
+
         return cls(val_type, value, unit)
     
     def __str__(self):

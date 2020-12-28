@@ -11,30 +11,7 @@ from django.utils.timezone import now
 
 managed_value = False
 
-"""
-class Systemtool(models.Model):
-    systemtool_uuid = models.UUIDField(primary_key=True)
-    systemtool_name = models.CharField(max_length=255)
-    description = models.CharField(max_length=255, blank=True, null=True)
-    systemtool_type = models.ForeignKey(
-        'SystemtoolType', models.DO_NOTHING, blank=True, null=True, db_column='systemtool_type_uuid')
-    vendor_organization = models.ForeignKey(
-        'Organization', models.DO_NOTHING, blank=True, null=True, db_column='vendor_organization_uuid')
-    model = models.CharField(max_length=255, blank=True, null=True)
-    serial = models.CharField(max_length=255, blank=True, null=True)
-    ver = models.CharField(max_length=255, blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        managed = False
-        db_table = 'systemtool'
-        unique_together = (
-            ('systemtool_name', 'systemtool_type', 'vendor_organization', 'ver'),)
-
-    def __str__(self):
-        return "{} {}".format(self.systemtool_name, self.model)
-"""
 class RetUUIDField(models.UUIDField):
     """A UUID field which populates with the UUID from Postgres on CREATE.
 
@@ -47,6 +24,7 @@ class RetUUIDField(models.UUIDField):
     db_returning=True
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
 
 class TypeDef(models.Model):
 

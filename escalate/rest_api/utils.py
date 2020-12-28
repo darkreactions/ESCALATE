@@ -1,5 +1,3 @@
-import re
-
 from django.db import connection as con
 
 
@@ -33,14 +31,14 @@ def camel_case_uuid(text):
     return text
 
 
-misc_views = set(['MaterialCalculationJson', 'Note_x'])
+misc_views = set(['Note_x'])
 
 core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   'SystemtoolType', 'Inventory', 'InventoryMaterial',
                   'Calculation', 'CalculationDef', 'Material',
                   'CompositeMaterial', 'MaterialRefnameDef', 'MaterialType',
                   'Person', 'Tag', 'TagType', 'Property', 'PropertyDef',
-                  'TypeDef', 'ParameterDef', 'Condition', 'ConditionDef',
+                  'TypeDef', 'ParameterDef', 'Condition', 'ConditionDef', 'ConditionCalculationDefAssign',
                   'ActionParameter', 'Parameter', 'WorkflowType', 'WorkflowStep',
                   'WorkflowObject', 'UdfDef', 'Experiment', 'ExperimentWorkflow',
                   'BillOfMaterials', 'BomMaterial', 'BomCompositeMaterial', 'Measure', 'MeasureType', 'Outcome'])
@@ -49,8 +47,7 @@ GET_only_views = set(['TypeDef'])
 
 unexposed_views = set(['TagAssign', 'Note', 'Edocument'])
 
-custom_serializer_views = set(['ExperimentMeasureCalculation',
-                               'ActionDef', 'Action', 'Workflow'])
+custom_serializer_views = set(['ActionDef', 'Action', 'Workflow'])
 
 perform_create_views = set(['PropertyDef', 'MaterialProperty'])
 

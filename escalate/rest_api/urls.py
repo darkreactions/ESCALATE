@@ -38,10 +38,10 @@ rest_urlpatterns = [
     path('api/login', token_views.obtain_auth_token, name='api_login'),
     path('api/download/<uuid:uuid>/',
          viewsets.download_blob, name='edoc_download'),
-    path('api/experimentmeasurecalculation/', views.ExperimentMeasureCalculationList.as_view(),
-         name='experimentmeasurecalculation-list'),
-    path('api/experimentmeasurecalculation/<str:pk>/',
-         views.ExperimentMeasureCalculationDetail.as_view(), name='experimentmeasurecalculation-detail'),
+#    path('api/experimentmeasurecalculation/', views.ExperimentMeasureCalculationList.as_view(),
+#         name='experimentmeasurecalculation-list'),
+#    path('api/experimentmeasurecalculation/<str:pk>/',
+#         views.ExperimentMeasureCalculationDetail.as_view(), name='experimentmeasurecalculation-detail'),
     #path('api/actionparameterdef/<int:pk>/',views.ActionParameterDefDetail.as_view(), name='actionparameterdef-detail')
 
 ]

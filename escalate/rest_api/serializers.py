@@ -23,9 +23,6 @@ from core.validators import ValValidator
 from django.core.exceptions import ValidationError
 import json
 
-# rest_serializer_views.remove('BomMaterial')
-# rest_serializer_views.remove('ExperimentWorkflow')
-
 
 class ValSerializerField(JSONField):
     def __init__(self, **kwargs):
@@ -40,41 +37,9 @@ class ValSerializerField(JSONField):
         return Val.from_dict(data)
 
 
-"""
-class DynamicFieldsModelSerializer(HyperlinkedModelSerializer):
-    def __init__(self, *args, **kwargs):
-        # Don't pass the 'fields' arg up to the superclass
-        self.serializer_field_mapping[ValField] = ValSerializerField
-        fields = exclude = None
-        if kwargs.get('context'):
-            if 'fields' in kwargs['context']['request'].GET:
-                fields = kwargs['context']['request'].GET['fields'].split(",")
-            if 'exclude' in kwargs['context']['request'].GET:
-                exclude = kwargs['context']['request'].GET['exclude'].split(
-                    ",")
-
-        # Instantiate the superclass normally
-        super(DynamicFieldsModelSerializer, self).__init__(*args, **kwargs)
-
-        if fields is not None:
-            # Drop any fields that are not specified in the `fields` argument.
-            allowed = set(fields)
-            existing = set(self.fields)
-            for field_name in existing - allowed:
-                self.fields.pop(field_name)
-
-        if exclude is not None:
-            not_allowed = set(exclude)
-            existing = set(self.fields)
-            for field_name in not_allowed:
-                if field_name in self.fields:
-                    self.fields.pop(field_name)
-"""
-
-
 class DynamicFieldsModelSerializer(FlexFieldsModelSerializer, HyperlinkedModelSerializer):
     """
-    A ModelSerializer that takes an additional `fields` and 'exclude' arguments that
+    A ModelSerializer that takes an additional `fields` and 'omit' arguments that
     controls which fields should be displayed.
     """
 
@@ -125,7 +90,7 @@ class NoteListSerializer(DynamicFieldsModelSerializer):
 class MeasureSerializer(DynamicFieldsModelSerializer):
 
     class Meta:
-        model = core.models.Measure
+        model = Measure
         fields = '__all__'
         read_only_fields = ['ref_measure_uuid']
 
@@ -134,7 +99,7 @@ class MeasureListSerializer(DynamicFieldsModelSerializer):
     measures = SerializerMethodField()
 
     def get_measures(self, obj):
-        measures = core.models.Measure.objects.filter(measure_x_measure__ref_measure=obj.uuid)
+        measures = Measure.objects.filter(measure_x_measure__ref_measure=obj.uuid)
         result_serializer = MeasureSerializer(
             measures, many=True, context=self.context)
         return result_serializer.data
@@ -193,12 +158,6 @@ class EdocListSerializer(DynamicFieldsModelSerializer):
         return result_serializer.data
 
 
-class ExperimentMeasureCalculationSerializer(DynamicFieldsModelSerializer):
-    class Meta:
-        model = ExperimentMeasureCalculation
-        fields = ('uid', 'row_to_json')
-
-
 for model_name in rest_serializer_views:
     meta_class = type('Meta', (), {'model': globals()[model_name],
                                    'fields': '__all__'})
@@ -228,7 +187,7 @@ class ActionSerializer(DynamicFieldsModelSerializer):
 class OutcomeSerializer(MeasureListSerializer, DynamicFieldsModelSerializer):
     
     class Meta:
-        model=core.models.Outcome
+        model = Outcome
         fields = '__all__'
 
 
