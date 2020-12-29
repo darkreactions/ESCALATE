@@ -3244,7 +3244,15 @@ Description:	trigger proc that deletes or inserts (no updates!) workflow_action_
 Notes:			this will build a workflow of repeating action with one-to-many or many-to-many materials, varying parameter (explicit or calculation)	
  
 Example:		-- insert a one-to-many workflow_action_set (one source into many destinations)
-				insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid) 
+				insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operator_uuid, lab_uuid, status_uuid)
+					values (
+						'test_red_uid', 'test_experiment',
+						null,
+						(select actor_uuid from vw_actor where description = 'HC'),
+						(select actor_uuid from vw_actor where description = 'T Testuser'),
+						(select actor_uuid from vw_actor where description = 'HC'),
+						null);
+                insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid)
 					values (
 						(select workflow_type_uuid from vw_workflow_type where description = 'template'),
 						'test_workflow_action_set',
@@ -3259,7 +3267,7 @@ Example:		-- insert a one-to-many workflow_action_set (one source into many dest
 
 				insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration, repeating, 
 													parameter_def_uuid, parameter_val, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid) values (
-						'dispense action_set',
+						'test dispense action_set',
 						(select workflow_uuid from vw_workflow where description = 'test_workflow_action_set'),
 						(select action_def_uuid from vw_action_def where description = 'dispense'),
 						null, null, null, null,
@@ -3282,7 +3290,7 @@ Example:		-- insert a one-to-many workflow_action_set (one source into many dest
 						-- this is a many to many example; with a single parameter value
 						insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration, repeating, 
 													parameter_def_uuid, parameter_val, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid) values (
-						'dispense action_set',
+						'test dispense action_set',
 						(select workflow_uuid from vw_workflow where description = 'test_workflow_action_set'),
 						(select action_def_uuid from vw_action_def where description = 'dispense'),
 						null, null, null, null,
@@ -3301,7 +3309,7 @@ Example:		-- insert a one-to-many workflow_action_set (one source into many dest
 						(select status_uuid from vw_status where description = 'dev_test')
 						); 	
 						
-						delete from vw_workflow_action_set where workflow_uuid = (select workflow_uuid from vw_workflow where description = 'test_workflow_action_set');			
+						delete from vw_workflow_action_set where workflow_action_set_uuid = (select workflow_action_set_uuid from vw_workflow_action_set where description = 'test dispense action_set');
  */	
 CREATE OR REPLACE FUNCTION upsert_workflow_action_set()
 	RETURNS TRIGGER
@@ -3322,11 +3330,11 @@ BEGIN
 	IF(TG_OP = 'DELETE') THEN
 		-- working backwards...
 		-- delete the workflow_step
-		delete from workflow_step cascade where workflow_uuid = OLD.workflow_uuid;
+		delete from workflow_step cascade where workflow_action_set_uuid = OLD.workflow_action_set_uuid;
 		-- delete the workflow_object 
-		delete from workflow_object where workflow_uuid = OLD.workflow_uuid;	
+		delete from workflow_object where workflow_action_set_uuid = OLD.workflow_action_set_uuid;
 		-- delete the vw_action_parameter
-		delete from action where workflow_uuid = OLD.workflow_uuid;
+		delete from action where workflow_action_set_uuid = OLD.workflow_action_set_uuid;
 		-- now delete the workflow_action_set record
 		DELETE FROM workflow_action_set
 		WHERE workflow_action_set_uuid = OLD.workflow_action_set_uuid;
