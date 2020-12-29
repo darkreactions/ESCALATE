@@ -4,6 +4,8 @@ from core.models.core_tables import TypeDef
 import json
 from django.core.exceptions import ValidationError
 import csv
+from django.contrib.postgres.fields import ArrayField
+
 """
 v_type_uuid uuid, 0
 v_unit character varying, 1
@@ -18,6 +20,20 @@ v_source_uuid uuid, 9
 v_bool boolean, 10
 v_bool_array boolean[] 11
 """
+
+class CustomArrayField(ArrayField):
+    def _from_db_value(self, value, expression, connection):
+        
+        if value is None:
+            return value
+        value = list(csv.reader([value[1:-1]]))[0]        
+        return [
+            self.base_field.from_db_value(item, expression, connection)
+            for item in value
+        ]
+
+
+
 
 class Val:
     positions = {
@@ -46,7 +62,7 @@ class Val:
     
     @classmethod
     def from_db(cls, val_string):
-        # print(val_string)
+        #print(val_string)
         args = list(csv.reader([val_string[1:-1]]))[0]
         # print(args)
         type_uuid = args[0]
@@ -95,6 +111,7 @@ class ValField(models.Field):
     description = 'Data representation'
 
     def __init__(self, *args, **kwargs):
+        self.list = kwargs.pop('list', False)
         super().__init__(*args, **kwargs)
 
     def deconstruct(self):
@@ -108,6 +125,7 @@ class ValField(models.Field):
     def from_db_value(self, value, expression, connection):
         if value is None:
             return value 
+        
         return Val.from_db(value)
 
     def to_python(self, value):
