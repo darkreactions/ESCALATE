@@ -32,9 +32,6 @@ class CustomArrayField(ArrayField):
             for item in value
         ]
 
-
-
-
 class Val:
     positions = {
             'text' : 2,
@@ -43,6 +40,8 @@ class Val:
             'array_int': 5,
             'num': 6,
             'array_num': 7,
+            'blob': 8,
+            'blob_array': 9,
             'bool': 10,
             'bool_array': 11
         }
