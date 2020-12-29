@@ -2298,6 +2298,7 @@ CREATE OR REPLACE VIEW vw_workflow_object AS
 SELECT
 	wo.workflow_object_uuid,
 	wo.workflow_uuid,
+    wo.workflow_action_set_uuid,
 	wo.action_uuid,
 	wo.condition_uuid,
     COALESCE (wo.action_uuid, wo.condition_uuid) as object_uuid,
@@ -2340,6 +2341,7 @@ SELECT
 	ws.workflow_step_uuid,
 	ws.workflow_uuid,
 	wf.description as workflow_description,
+    ws.workflow_action_set_uuid,
 	ws.parent_uuid,
 	wfo.object_type as parent_object_type,
 	wfo.object_description as parent_object_description,
@@ -2447,7 +2449,7 @@ select * from
     -- workflow action set calculation parameter
     select e.experiment_uuid, e.description as experiment, was.workflow_description as workflow, ew.experiment_workflow_seq as workflow_seq,
            'action_set' as workflow_object, was.description as object_description, was.workflow_action_set_uuid as object_uuid,
-           cpd.parameter_def_description as parameter, null as parameter_uuid, array[cpd.default_val] as parameter_value
+           cpd.parameter_def_description as parameter, cpd.parameter_def_uuid as parameter_uuid, array[cpd.default_val] as parameter_value
     FROM vw_workflow_action_set was
     JOIN vw_calculation c ON was.calculation_uuid = c.calculation_uuid
     LEFT JOIN vw_calculation_def cd ON c.calculation_def_uuid = cd.calculation_def_uuid

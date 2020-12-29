@@ -1767,7 +1767,7 @@ Example:		insert into vw_calculation (short_name, calc_definition, systemtool_uu
 					null, (select actor_uuid from vw_actor where description = 'Gary Cattabriga'),
 					(select status_uuid from vw_status where description = 'active')		
 					) returning *;
-				delete from vw_calculation_def where short_name = 'test_calc_def';
+				delete from vw_calculation where short_name = 'test_calc_def';
  */
 CREATE OR REPLACE FUNCTION upsert_calculation ()
 	RETURNS TRIGGER
@@ -1956,6 +1956,7 @@ BEGIN
 			workflow_object		
 		SET
 			workflow_uuid = NEW.workflow_uuid,
+		    workflow_action_set_uuid = NEW.workflow_action_set_uuid,
 			action_uuid = NEW.action_uuid,
 			condition_uuid = NEW.condition_uuid,
 			mod_date = now()
@@ -1964,11 +1965,11 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		IF NEW.action_uuid IS NOT NULL THEN
-			INSERT INTO workflow_object (workflow_uuid, action_uuid) 
-				VALUES (NEW.workflow_uuid, NEW.action_uuid) returning workflow_object_uuid into NEW.workflow_object_uuid;
+			INSERT INTO workflow_object (workflow_uuid, workflow_action_set_uuid, action_uuid)
+				VALUES (NEW.workflow_uuid, NEW.workflow_action_set_uuid, NEW.action_uuid) returning workflow_object_uuid into NEW.workflow_object_uuid;
 		ELSIF NEW.condition_uuid IS NOT NULL THEN
-			INSERT INTO workflow_object (workflow_uuid, condition_uuid) 
-				VALUES (NEW.workflow_uuid, NEW.condition_uuid) returning workflow_object_uuid into NEW.workflow_object_uuid;	
+			INSERT INTO workflow_object (workflow_uuid, workflow_action_set_uuid, condition_uuid)
+				VALUES (NEW.workflow_uuid, NEW.workflow_action_set_uuid, NEW.condition_uuid) returning workflow_object_uuid into NEW.workflow_object_uuid;
 		END IF;	
 		RETURN NEW;
 	END IF;
@@ -2057,8 +2058,8 @@ BEGIN
 			workflow_step.workflow_step_uuid = NEW.workflow_step_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO workflow_step (workflow_uuid, parent_uuid, workflow_object_uuid, status_uuid)
-			VALUES(NEW.workflow_uuid, NEW.parent_uuid, NEW.workflow_object_uuid, NEW.status_uuid) returning workflow_step_uuid into NEW.workflow_step_uuid;
+		INSERT INTO workflow_step (workflow_uuid, workflow_action_set_uuid, parent_uuid, workflow_object_uuid, status_uuid)
+			VALUES(NEW.workflow_uuid, NEW.workflow_action_set_uuid, NEW.parent_uuid, NEW.workflow_object_uuid, NEW.status_uuid) returning workflow_step_uuid into NEW.workflow_step_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -3378,11 +3379,11 @@ BEGIN
                     where action_uuid = _action_uuid;
                 END IF;
 				-- create the workflow_object
-				insert into vw_workflow_object (workflow_uuid, action_uuid) 
-					values (NEW.workflow_uuid, _action_uuid) returning workflow_object_uuid into _object_uuid;				
+				insert into vw_workflow_object (workflow_uuid, workflow_action_set_uuid, action_uuid)
+					values (NEW.workflow_uuid, NEW.workflow_action_set_uuid, _action_uuid) returning workflow_object_uuid into _object_uuid;
 				-- create the workflow_step
-				insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid) 
-					values (NEW.workflow_uuid, _object_uuid, _step_uuid, NEW.status_uuid) returning workflow_step_uuid into _step_uuid;	
+				insert into vw_workflow_step (workflow_uuid, workflow_action_set_uuid, workflow_object_uuid, parent_uuid, status_uuid)
+					values (NEW.workflow_uuid, NEW.workflow_action_set_uuid, _object_uuid, _step_uuid, NEW.status_uuid) returning workflow_step_uuid into _step_uuid;
 				-- increment the parameter pointer
 				IF _val_cnt < _val_len 
 					THEN _val_cnt := _val_cnt + 1; 
@@ -3418,11 +3419,11 @@ BEGIN
                     where action_uuid = _action_uuid;
                 END IF;
 				-- create the workflow_object
-				insert into vw_workflow_object (workflow_uuid, action_uuid) 
-					values (NEW.workflow_uuid, _action_uuid) returning workflow_object_uuid into _object_uuid;
+				insert into vw_workflow_object (workflow_uuid, workflow_action_set_uuid, action_uuid)
+					values (NEW.workflow_uuid, NEW.workflow_action_set_uuid, _action_uuid) returning workflow_object_uuid into _object_uuid;
 				-- create the workflow_step
-				insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid) 
-					values (NEW.workflow_uuid, _object_uuid, _step_uuid, NEW.status_uuid) returning workflow_step_uuid into _step_uuid;
+				insert into vw_workflow_step (workflow_uuid, workflow_action_set_uuid, workflow_object_uuid, parent_uuid, status_uuid)
+					values (NEW.workflow_uuid, NEW.workflow_action_set_uuid, _object_uuid, _step_uuid, NEW.status_uuid) returning workflow_step_uuid into _step_uuid;
 				-- increment the source element pointer; bail if it is greater than the destination count
 				_src_cnt := _src_cnt + 1;
 				IF _src_cnt > array_length(NEW.destination_material_uuid, 1) THEN
@@ -3457,12 +3458,35 @@ Example:        update vw_experiment_parameter
                     set parameter_value =
                         array[(select put_val ((select val_type_uuid from vw_parameter_def where description = 'temperature'), '999.99',
                             (select valunit from vw_parameter_def where description = 'temperature')))]
-                where experiment = 'LANL Test Experiment Template' and object_description = 'Heat Sample Prep Plate' and parameter_def_description = 'temperature';
+                where experiment = 'LANL Test Experiment Template' and object_description = 'Heat Sample Prep Plate'
+                    and parameter_def_description = 'temperature';
+
+                update vw_experiment_parameter
+                    set parameter_value =
+                        array[(select put_val ((select val_type_uuid from vw_parameter_def where description = 'total_vol'), '2.5',
+                            (select valunit from vw_parameter_def where description = 'total_vol')))]
+                where experiment = 'LANL Test Experiment Template' and object_description = 'dispense H2O into SamplePrep Plate action_set'
+                    and parameter_def_description = 'total_vol';
+                update vw_experiment_parameter
+                    set parameter_value =
+                        array[(select put_val ((select val_type_uuid from vw_parameter_def where description = 'total_vol'), '2.5',
+                            (select valunit from vw_parameter_def where description = 'total_vol')))]
+                where experiment = 'LANL Test Experiment Template' and object_description = 'dispense HCL into SamplePrep Plate action_set'
+                    and parameter_def_description = 'total_vol';
+
+                update vw_experiment_parameter
+                    set parameter_value =
+                        array[(select put_val ((select val_type_uuid from vw_parameter_def where description = 'total_vol'), '9.9',
+                            (select valunit from vw_parameter_def where description = 'volume')))]
+                where experiment = 'LANL Test Experiment Template' and object_description = 'dispense Am-Stock into SamplePrep Plate action_set'
+                    and parameter_def_description = 'volume';
 
  */
 CREATE OR REPLACE FUNCTION upsert_experiment_parameter ()
 	RETURNS TRIGGER
 	AS $$
+DECLARE
+    _calculation_uuid uuid;
 BEGIN
 	IF(TG_OP = 'UPDATE') THEN
         CASE
@@ -3477,11 +3501,55 @@ BEGIN
 		            parameter.parameter_uuid = NEW.parameter_uuid;
             RETURN NEW;
             WHEN NEW.workflow_object = 'action_set' THEN
+                -- save off the workflow_action_set row
+                create temp table _workflow_action_set as
+                select * from vw_workflow_action_set
+                where workflow_action_set_uuid = NEW.object_uuid;
+                -- delete the workflow objects and steps
+                delete from workflow_step
+                where workflow_action_set_uuid = NEW.object_uuid;
+                delete from workflow_object
+                where workflow_action_set_uuid = NEW.object_uuid;
+                -- delete the workflow_action_set actions
+                delete from action
+                where workflow_action_set_uuid = NEW.object_uuid;
+                -- delete the workflow_action_set
+                delete from workflow_action_set
+                where workflow_action_set_uuid = NEW.object_uuid;
+                -- determine if we need to recalc the calculation
+                IF (select calculation_uuid from _workflow_action_set) is not null THEN
+                    -- save the calculation row because we need to delete and re-insert
+                    create temp table _calculation as
+                    select * from vw_calculation
+                    where calculation_uuid = (select calculation_uuid from _workflow_action_set);
+                    -- now update the parameter_def value
+                    UPDATE
+                        parameter_def
+		            SET
+		                default_val = NEW.parameter_value[1],
+                        mod_date = now()
+		            WHERE
+		                parameter_def.parameter_def_uuid = NEW.parameter_uuid;
+                    -- delete the calculation record
+                    delete from vw_calculation where calculation_uuid = (select calculation_uuid from _calculation);
+                    insert into vw_calculation (calculation_def_uuid, calculation_alias_name, in_val, in_opt_val, out_val, actor_uuid, status_uuid)
+                        ((select calculation_def_uuid, calculation_alias_name, in_val, in_opt_val,
+                            (select do_calculation(((select calculation_def_uuid from _calculation)))),
+                            actor_uuid, status_uuid
+                        from _calculation)) returning calculation_uuid into _calculation_uuid;
+                    insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration, repeating,
+                        parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid)
+                        ((select description, workflow_uuid, action_def_uuid, start_date, end_date, duration, repeating,
+                        parameter_def_uuid, parameter_val, _calculation_uuid, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid from _workflow_action_set));
+                    drop table _calculation;
+                ELSIF (select parameter_val from _workflow_action_set) is not null THEN
+                    insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration, repeating,
+                        parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid)
+                        ((select description, workflow_uuid, action_def_uuid, start_date, end_date, duration, repeating,
+                        parameter_def_uuid, NEW.parameter_value, calculation_uuid, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid from _workflow_action_set));
+                END IF;
+                drop table _workflow_action_set;
                 RETURN NEW;
-        ELSE
-            
-
-            RETURN NULL;
         END CASE;
 	END IF;
 END;

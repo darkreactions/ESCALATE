@@ -927,6 +927,7 @@ CREATE TABLE workflow_action_set (
 CREATE TABLE workflow_object (
 	workflow_object_uuid uuid DEFAULT uuid_generate_v4 (),
 	workflow_uuid uuid,
+	workflow_action_set_uuid uuid,
 	action_uuid uuid,
 	condition_uuid uuid,
 	status_uuid uuid,	
@@ -946,6 +947,7 @@ CREATE TABLE workflow_state (
 CREATE TABLE workflow_step (
 	workflow_step_uuid uuid DEFAULT uuid_generate_v4 (),
 	workflow_uuid uuid,
+	workflow_action_set_uuid uuid,
 	parent_uuid uuid,
 	parent_path ltree,
 	workflow_object_uuid uuid,
@@ -1453,10 +1455,10 @@ USING "pk_workflow_action_set_workflow_action_set_uuid";
 ALTER TABLE workflow_object
 	ADD CONSTRAINT "pk_workflow_object_workflow_object_uuid" PRIMARY KEY (workflow_object_uuid),
 		ADD CONSTRAINT "un_workflow_object" UNIQUE (action_uuid, condition_uuid);
-CREATE INDEX "ix_workflow_workflow" ON workflow_object (workflow_uuid);
-CREATE INDEX "ix_workflow_action" ON workflow_object (action_uuid);
-CREATE INDEX "ix_workflow_condition" ON workflow_object (condition_uuid);
-CREATE INDEX "ix_workflow_object_uuid" ON workflow_object (workflow_uuid);
+CREATE INDEX "ix_workflow_object_workflow" ON workflow_object (workflow_uuid);
+CREATE INDEX "ix_workflow_object_workflow_action_set" ON workflow_object (workflow_action_set_uuid);
+CREATE INDEX "ix_workflow_object_action" ON workflow_object (action_uuid);
+CREATE INDEX "ix_workflow_object_condition" ON workflow_object (condition_uuid);
 CLUSTER workflow_object
 USING "pk_workflow_object_workflow_object_uuid";
 
@@ -1471,6 +1473,7 @@ ALTER TABLE workflow_step
 	ADD CONSTRAINT "pk_workflow_step_workflow_step_uuid" PRIMARY KEY (workflow_step_uuid),
 		ADD CONSTRAINT "un_workflow_step_workflow_step_uuid" UNIQUE (workflow_object_uuid, parent_uuid);
 CREATE INDEX "ix_workflow_step_workflow" ON workflow_step (workflow_uuid);
+CREATE INDEX "ix_workflow_step_workflow_action_set" ON workflow_step (workflow_action_set_uuid);
 CREATE INDEX "ix_workflow_step_workflow_object" ON workflow_step (workflow_object_uuid);
 CREATE INDEX "ix_workflow_step_status" ON workflow_step (status_uuid);
 CREATE INDEX "ix_workflow_step_parent_uuid" ON workflow_step
@@ -1773,14 +1776,15 @@ ALTER TABLE workflow_action_set
 			 ADD CONSTRAINT fk_workflow_action_set_parameter_def_1 FOREIGN KEY (parameter_def_uuid) REFERENCES  parameter_def (parameter_def_uuid),
 				ADD CONSTRAINT fk_workflow_action_set_calculation_1 FOREIGN KEY (calculation_uuid) REFERENCES  calculation (calculation_uuid),
 					ADD CONSTRAINT fk_workflow_action_set_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
-						 	    ADD CONSTRAINT fk_workflow_action_set_workflow_action_set_1 FOREIGN KEY (workflow_action_set_uuid) REFERENCES  workflow_action_set (workflow_action_set_uuid),ADD CONSTRAINT fk_workflow_action_set_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+						 	ADD CONSTRAINT fk_workflow_action_set_workflow_action_set_1 FOREIGN KEY (workflow_action_set_uuid) REFERENCES  workflow_action_set (workflow_action_set_uuid),ADD CONSTRAINT fk_workflow_action_set_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
 
 ALTER TABLE workflow_object
 	ADD CONSTRAINT fk_workflow_object_workflow_1 FOREIGN KEY (workflow_uuid) REFERENCES workflow (workflow_uuid),
-		ADD CONSTRAINT fk_workflow_object_action_1 FOREIGN KEY (action_uuid) REFERENCES action (action_uuid),
-			ADD CONSTRAINT fk_workflow_object_condition_1 FOREIGN KEY (condition_uuid) REFERENCES condition (condition_uuid),
-				ADD CONSTRAINT fk_workflow_object_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+        ADD CONSTRAINT fk_workflow_object_workflow_action_set_1 FOREIGN KEY (workflow_action_set_uuid) REFERENCES workflow_action_set (workflow_action_set_uuid),
+		    ADD CONSTRAINT fk_workflow_object_action_1 FOREIGN KEY (action_uuid) REFERENCES action (action_uuid),
+			    ADD CONSTRAINT fk_workflow_object_condition_1 FOREIGN KEY (condition_uuid) REFERENCES condition (condition_uuid),
+				    ADD CONSTRAINT fk_workflow_object_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
 
 ALTER TABLE workflow_state
@@ -1790,8 +1794,10 @@ ALTER TABLE workflow_state
 
 ALTER TABLE workflow_step
 	ADD CONSTRAINT fk_workflow_step_workflow_step_1 FOREIGN KEY (workflow_uuid) REFERENCES workflow (workflow_uuid),
-		ADD CONSTRAINT fk_workflow_step_object_1 FOREIGN KEY (workflow_object_uuid) REFERENCES workflow_object (workflow_object_uuid),
-					ADD CONSTRAINT fk_workflow_step_parent_1 FOREIGN KEY (parent_uuid) REFERENCES workflow_step (workflow_step_uuid);
+        ADD CONSTRAINT fk_workflow_step_workflow_action_set_1 FOREIGN KEY (workflow_action_set_uuid) REFERENCES workflow_action_set (workflow_action_set_uuid),
+		    ADD CONSTRAINT fk_workflow_step_object_1 FOREIGN KEY (workflow_object_uuid) REFERENCES workflow_object (workflow_object_uuid),
+				ADD CONSTRAINT fk_workflow_step_parent_1 FOREIGN KEY (parent_uuid) REFERENCES workflow_step (workflow_step_uuid),
+				    ADD CONSTRAINT fk_workflow_step_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
 
 --======================================================================
