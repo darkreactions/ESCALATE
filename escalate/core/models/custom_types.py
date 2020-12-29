@@ -45,19 +45,25 @@ class Val:
             'bool': 10,
             'bool_array': 11
         }
-    def __init__(self, val_type, value, unit):
-        self.val_type = val_type
-        if not isinstance(val_type, str):
-            self.type_uuid = val_type.uuid
-        self.value = value
-        self.unit = unit
+    def __init__(self, val_type, value, unit, null=False):
+        self.null = null
+        if not self.null:
+            self.val_type = val_type
+            if not isinstance(val_type, str):
+                self.type_uuid = val_type.uuid
+            self.value = value
+            self.unit = unit
+        
     
     def to_db(self):
-        string_list = ['']*12
-        string_list[0] = str(self.val_type.uuid)
-        string_list[1] = self.unit
-        string_list[self.positions[self.val_type.description]] = str(self.value)
-        return f"({','.join(string_list)})"
+        if not self.null:
+            string_list = ['']*12
+            string_list[0] = str(self.val_type.uuid)
+            string_list[1] = self.unit
+            string_list[self.positions[self.val_type.description]] = str(self.value)
+            return f"({','.join(string_list)})"
+        else:
+            return None
     
     @classmethod
     def from_db(cls, val_string):
@@ -87,24 +93,30 @@ class Val:
         return f'{self.value} {self.unit}'
 
     def to_dict(self):
-        return {'value': self.value, 'unit': self.unit, 'type': self.val_type.description}
+        if not self.null:
+            return {'value': self.value, 'unit': self.unit, 'type': self.val_type.description}
+        else:
+            return 'null'
 
     @classmethod
     def from_dict(cls, json_data):
-        required_keys = set(['type', 'value', 'unit'])
-        # Check if all keys are present in 
-        if not all(k in json_data for k in required_keys):
-                raise ValidationError(f'Missing key "{required_keys - set(json_data.keys())}". ', 'invalid')
-        
-        # Check if type exists in database
-        try:
-            val_type = TypeDef.objects.get(category='data', description=json_data['type'])
-        except TypeDef.DoesNotExist:
-            val_types = TypeDef.objects.filter(category='data')
-            options = [val.description for val in val_types]
-            raise ValidationError(f'Data type {json_data["type"]} does not exist. Options are: {", ".join(options)}', code='invalid')
-                
-        return cls(val_type, json_data['value'], json_data['unit'])
+        if json_data is None:
+            return cls(None, None, None, null=True)
+        else:
+            required_keys = set(['type', 'value', 'unit'])
+            # Check if all keys are present in 
+            if not all(k in json_data for k in required_keys):
+                    raise ValidationError(f'Missing key "{required_keys - set(json_data.keys())}". ', 'invalid')
+            
+            # Check if type exists in database
+            try:
+                val_type = TypeDef.objects.get(category='data', description=json_data['type'])
+            except TypeDef.DoesNotExist:
+                val_types = TypeDef.objects.filter(category='data')
+                options = [val.description for val in val_types]
+                raise ValidationError(f'Data type {json_data["type"]} does not exist. Options are: {", ".join(options)}', code='invalid')
+                    
+            return cls(val_type, json_data['value'], json_data['unit'])
 
 class ValField(models.Field):
     description = 'Data representation'

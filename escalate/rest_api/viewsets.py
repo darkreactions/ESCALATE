@@ -68,93 +68,40 @@ def create_viewset(model_name):
         globals()[model_name+'ViewSet'].perform_create = save_actor_on_post
 
 
-# rest_viewset_views.remove('BomMaterial')
-
 for view_name in rest_viewset_views:
     create_viewset(view_name)
 
 create_viewset('Edocument')
 
-
-class BomMaterialViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
-    queryset = core.models.BomMaterial.objects.all()
-    serializer_class = BomMaterialSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
-    filter_backends = [DjangoFilterBackend]
-    filter_fields = '__all__'
-
-    """
-    def list(self, request):
-        qs = core.models.BomMaterial.objects.filter(
-            bom_material_composite__isnull=True)
-        serializer = BomMaterialSerializer(
-            qs, many=True, context={'request': request})
-        return Response(serializer.data)
-    """
-
-class BillOfMaterialsViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
-    queryset = core.models.BillOfMaterials.objects.all()
-    serializer_class = BillOfMaterialsSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
-    filter_backends = [DjangoFilterBackend]
-    filter_fields = '__all__'
-
-
-class NoteViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
-    queryset = core.models.Note.objects.all()
-    serializer_class = NoteSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
-    filter_backends = [DjangoFilterBackend]
-    filter_fields = '__all__'
-    __doc__ = rest_docs.get('note', '')
+class SaveViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    # Override these two variables!
+    parent_lookup = None
+    ref_uuid = None
 
     def perform_create(self, serializer, **kwargs):
         serializer.save(**kwargs)
 
     def create(self, request, *args, **kwargs):
-        ref_note_uuid = kwargs['parent_lookup_ref_note_uuid']
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer, ref_note_uuid=ref_note_uuid)
+
+        create_args = {self.ref_uuid: kwargs[self.parent_lookup]}
+        self.perform_create(serializer, **create_args)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+save_viewsets = {
+    'TagAssignViewSet':  {'parent_lookup': 'parent_lookup_ref_tag', 
+                          'ref_uuid': 'ref_tag'},
+    'NoteViewSet' : {'parent_lookup': 'parent_lookup_ref_note_uuid', 
+                     'ref_uuid': 'ref_note_uuid'},
+    'EdocumentViewSet' : {'parent_lookup': 'parent_lookup_ref_edocument_uuid', 
+                          'ref_uuid': 'ref_edocument_uuid'}
+}
 
-class TagAssignViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
-    queryset = core.models.TagAssign.objects.all()
-    serializer_class = TagAssignSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
-    filter_backends = [DjangoFilterBackend]
-    filter_fields = '__all__'
-    __doc__ = rest_docs.get('tag', '')
+for viewset_name, kwargs in save_viewsets.items():
+    viewset = globals()[viewset_name]
+    globals()[viewset_name] = type(viewset_name, 
+                                   (viewset, SaveViewSet), 
+                                   kwargs)
 
-    def perform_create(self, serializer, **kwargs):
-        serializer.save(**kwargs)
-
-    def create(self, request, *args, **kwargs):
-        ref_tag_uuid = kwargs['parent_lookup_ref_tag']
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer, ref_tag=ref_tag_uuid)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-
-class EdocumentViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
-    queryset = core.models.Edocument.objects.all()
-    serializer_class = EdocumentSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
-    filter_backends = [DjangoFilterBackend]
-    filter_fields = '__all__'
-    __doc__ = rest_docs.get('edocument', '')
-
-    def perform_create(self, serializer, **kwargs):
-        serializer.save(**kwargs)
-
-    def create(self, request, *args, **kwargs):
-        ref_edocument_uuid = kwargs['parent_lookup_ref_edocument_uuid']
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer, ref_edocument_uuid=ref_edocument_uuid)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

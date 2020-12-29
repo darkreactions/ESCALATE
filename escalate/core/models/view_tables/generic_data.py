@@ -6,7 +6,7 @@ from core.models.custom_types import ValField
 class Calculation(models.Model):
     uuid = RetUUIDField(primary_key=True,
                         db_column='calculation_uuid')
-    in_val = ValField(blank=True, null=True)
+    in_val = ValField(max_length=255, blank=True, null=True)
     """
     in_val_type = models.ForeignKey('TypeDef',
                                     models.DO_NOTHING,
@@ -21,7 +21,7 @@ class Calculation(models.Model):
                                          related_name='calculation_in_val_edocument', editable=False)
 
     # in opt
-    in_opt_val = ValField(blank=True, null=True)
+    in_opt_val = ValField(max_length=255, blank=True, null=True)
     #in_opt_val = CharField(max_length=255, blank=True, null=True)
     """
     in_opt_val_value = models.TextField(blank=True, null=True, editable=False)
@@ -37,7 +37,7 @@ class Calculation(models.Model):
                                              db_column='in_opt_val_edocument_uuid',
                                              related_name='calculation_in_opt_val_edocument', editable=False)
     # out
-    out_val = ValField(blank=True, null=True)
+    out_val = ValField(max_length=255, blank=True, null=True)
     #out_val = CharField(max_length=255, blank=True, null=True)
     """
     out_val_type = models.ForeignKey('TypeDef',
@@ -225,7 +225,7 @@ class Measure(models.Model):
                                    blank=True,
                                    null=True,
                                    )
-    measure_value = ValField()
+    measure_value = ValField(max_length=255, )
     actor_uuid = models.ForeignKey('Actor',
                                    on_delete=models.DO_NOTHING,
                                    db_column='actor_uuid',
@@ -319,7 +319,7 @@ class MeasureDef(models.Model):
                                    blank=True,
                                    null=True,
                                    db_column='description')
-    default_measure_value = ValField()
+    default_measure_value = ValField(max_length=255, )
     property_def = models.ForeignKey('PropertyDef', models.DO_NOTHING,
                              blank=True,
                              null=True,
@@ -403,7 +403,7 @@ class Parameter(models.Model):
                                                  null=True,
                                                  db_column='parameter_def_description',
                                                  editable=False)
-    parameter_val = ValField(blank=True,
+    parameter_val = ValField(max_length=255, blank=True,
                              null=True,
                              db_column='parameter_val')
     actor = models.ForeignKey('Actor',
@@ -448,7 +448,7 @@ class ParameterDef(models.Model):
                                  on_delete=models.DO_NOTHING,
                                  blank=True,
                                  null=True, related_name='parameter_def_val_type')
-    default_val = ValField(db_column='default_val')
+    default_val = ValField(max_length=255, db_column='default_val')
     
     """
     default_val_val = models.CharField(max_length=255,
@@ -522,20 +522,24 @@ class Property(models.Model):
                                          blank=True,
                                          null=True,
                                          db_column='short_description')
-
-    property_val = models.CharField(max_length=255,
-                                    blank=True,
-                                    null=True,
-                                    db_column='property_val')
+    property_val = ValField(max_length=255, 
+                                   blank=True,
+                                   null=True,
+                                   db_column='property_val')
+    
     """
     # TODO: Any way to represent arrays with sqaure brackets? One of the arrays
     # is represented as \"{0.5,10}\" in the val string. We'll have to write a special 
     # case to parse arrays in custom_types.py/Val.from_db() function
     
-    property_val = ValField(max_length=255,
+    property_val = ValField(max_length=255, max_length=255,
                                    blank=True,
                                    null=True,
                                    db_column='property_val')
+    property_val = models.CharField(max_length=255,
+                                    blank=True,
+                                    null=True,
+                                    db_column='property_val')
     """
     actor = models.ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
@@ -713,7 +717,7 @@ class Udf(models.Model):
                             blank=True, null=True,
                             db_column='udf_def_uuid', related_name='udf_udf_def')
     description = models.CharField(max_length=255,  null=True)
-    udf_value = ValField(db_column='udf_val')
+    udf_value = ValField(max_length=255, db_column='udf_val')
     udf_val_edocument = models.ForeignKey('Edocument', models.DO_NOTHING,
                             blank=True, null=True,
                             db_column='udf_val_edocument_uuid', 

@@ -83,7 +83,7 @@ class CompositeMaterialProperty(models.Model):
                                                   null=True,
                                                   db_column='property_short_description',
                                                   editable=False)
-    value = ValField(
+    value = ValField(max_length=255, 
         blank=True,
         null=True,
         db_column='val_val')
@@ -142,8 +142,8 @@ class Inventory(models.Model):
                                blank=True, null=True,
                                db_column='status_uuid',
                                related_name='inventory_status')
-    status_description = models.CharField(
-        max_length=255, blank=True, null=True, editable=False)
+    status_description = models.CharField(max_length=255, blank=True, 
+                                          null=True, editable=False)
     actor = models.ForeignKey('Actor', models.DO_NOTHING,
                               db_column='actor_uuid',
                               blank=True, null=True,
@@ -181,7 +181,7 @@ class InventoryMaterial(models.Model):
                                blank=True, null=True)
     #onhand_amt = models.CharField(
     #    max_length=255, blank=True, null=True)
-    onhand_amt = ValField(blank=True, null=True)
+    onhand_amt = ValField(max_length=255, blank=True, null=True)
     # inventory_unit = models.CharField(max_length=255, blank=True, null=True)
     expiration_date = models.DateTimeField(blank=True, null=True)
     location = models.CharField(
@@ -240,15 +240,15 @@ class Material(models.Model):
     actor = models.ForeignKey('Actor', models.DO_NOTHING, blank=True, null=True,
                               db_column='actor_uuid',
                               related_name='material_actor')
-    actor_description = models.CharField(max_length=255, blank=True, null=True)
+    actor_description = models.CharField(max_length=255, blank=True, null=True, editable=False)
 
     status = models.ForeignKey('Status', on_delete=models.DO_NOTHING,
                                blank=True, null=True, db_column='status_uuid',
                                related_name='material_status')
-    property = models.ManyToManyField(
-        'Property', through='MaterialProperty', related_name='material_property')
+    property = models.ManyToManyField('Property', through='MaterialProperty', 
+                                      related_name='material_property')
     status_description = models.CharField(
-        max_length=255, blank=True, null=True)
+        max_length=255, blank=True, null=True, editable=False)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -296,7 +296,7 @@ class MaterialProperty(models.Model):
                                                   null=True,
                                                   db_column='property_short_description',
                                                   editable=False)
-    value = ValField(blank=True, null=True, db_column='property_value_val')
+    value = ValField(max_length=255, blank=True, null=True, db_column='property_value_val')
     #value = CharField(max_length=255, blank=True, null=True, db_column='property_value_val')
     actor = models.ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,

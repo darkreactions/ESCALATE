@@ -5,7 +5,7 @@ from core.models.custom_types import ValField, CustomArrayField
 
 
 class Action(models.Model):
-    action_uuid = RetUUIDField(primary_key=True,
+    uuid = RetUUIDField(primary_key=True,
                                db_column='action_uuid')
     description = models.CharField(max_length=255,
                                    blank=True,
@@ -596,13 +596,12 @@ class Outcome(models.Model):
 class Workflow(models.Model):
     uuid = RetUUIDField(primary_key=True,
                         db_column='workflow_uuid')
-    step = models.ManyToManyField(
-        'WorkflowStep', through='WorkflowStep', related_name='workflow_step')
+    #step = models.ManyToManyField(
+    #    'WorkflowStep', through='WorkflowStep', related_name='workflow_step')
     description = models.CharField(max_length=255,
                                    blank=True,
                                    null=True,
-                                   db_column='description',
-                                   editable=False)
+                                   db_column='description')
     parent = models.ForeignKey('Workflow', models.DO_NOTHING,
                                blank=True, null=True,
                                db_column='parent_uuid', related_name='workflow_parent')
@@ -618,7 +617,7 @@ class Workflow(models.Model):
                               db_column='actor_uuid',
                               blank=True,
                               null=True,
-                              editable=False, related_name='workflow_actor')
+                              related_name='workflow_actor')
     actor_description = models.CharField(max_length=255,
                                          blank=True,
                                          null=True,
@@ -629,7 +628,7 @@ class Workflow(models.Model):
                                db_column='status_uuid',
                                blank=True,
                                null=True,
-                               editable=False, related_name='workflow_status')
+                               related_name='workflow_status')
     status_description = models.CharField(max_length=255,
                                           blank=True,
                                           null=True,
@@ -720,7 +719,7 @@ class WorkflowStep(models.Model):
                                             null=True,
                                             editable=False)
     parent = models.ForeignKey('WorkflowStep', models.DO_NOTHING,
-                               blank=True, null=True, editable=False,
+                               blank=True, null=True, 
                                db_column='parent_uuid', related_name='workflow_step_parent')
     parent_object_type = models.CharField(max_length=255,
                                           blank=True,
@@ -735,8 +734,7 @@ class WorkflowStep(models.Model):
                                    null=True,
                                    editable=False)
     conditional_val = ValField(max_length=255, blank=True,
-                               null=True,
-                               editable=False)
+                               null=True)
     conditional_value = models.CharField(max_length=255,
                                          blank=True,
                                          null=True,
@@ -746,7 +744,7 @@ class WorkflowStep(models.Model):
                                db_column='status_uuid',
                                blank=True,
                                null=True,
-                               editable=False, related_name='workflow_step_status')
+                               related_name='workflow_step_status')
     status_description = models.CharField(max_length=255,
                                           blank=True,
                                           null=True,

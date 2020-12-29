@@ -57,14 +57,17 @@ for view in rest_nested_url_views:
     name = camel_case(view)
     # Add to related names if a field is a foriegn key
     related_names = [f'{name}_{f.name}' for f in model._meta.get_fields(
-    ) if isinstance(f, models.ForeignKey)]
+    ) if isinstance(f, (models.ForeignKey, models.ManyToManyField))]
     many_to_one_names = [f'{f.name}' for f in model._meta.get_fields(
     ) if isinstance(f, models.ManyToOneRel)]
     many_to_one_rel_model = [model._meta.get_field(
         url).remote_field.model.__name__ for url in many_to_one_names]
+    if view == 'Material':
+        print(related_names)
+        
 
     url_names = [f'{f.name}' for f in model._meta.get_fields()
-                 if isinstance(f, models.ForeignKey)]
+                 if isinstance(f, (models.ForeignKey, models.ManyToManyField))]
 
     # register basename, then loop through nested foreign keys and register them
     registered = router.register(rf'{name}', getattr(
@@ -77,8 +80,9 @@ for view in rest_nested_url_views:
                             basename=f'{name}-{url}', parents_query_lookups=[related_names[i]])
 
     if view in expandable_fields:
-        for field in expandable_fields[view]:
-            serializer_name, exp_dict = expandable_fields[view][field]
+        fields = expandable_fields[view]['fields']
+        for field in fields:
+            serializer_name, exp_dict = fields[field]
             serializer_name = serializer_name.split('.')[1]
             related_model_name = serializer_name[:-10]
             registered.register(rf'{field}', getattr(viewsets, related_model_name+'ViewSet'),

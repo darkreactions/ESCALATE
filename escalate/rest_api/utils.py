@@ -39,7 +39,7 @@ core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   'CompositeMaterial', 'MaterialRefnameDef', 'MaterialType',
                   'Person', 'Tag', 'TagType', 'Property', 'PropertyDef',
                   'TypeDef', 'ParameterDef', 'Condition', 'ConditionDef', 'ConditionCalculationDefAssign',
-                  'ActionParameter', 'Parameter', 'WorkflowType', 'WorkflowStep',
+                  'ActionParameter', 'Parameter', 'WorkflowType', 'WorkflowStep', 'WorkflowActionSet',
                   'WorkflowObject', 'UdfDef', 'Experiment', 'ExperimentWorkflow',
                   'BillOfMaterials', 'BomMaterial', 'BomCompositeMaterial', 'Measure', 'MeasureType', 'Outcome'])
 
