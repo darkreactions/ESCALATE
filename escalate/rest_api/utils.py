@@ -39,7 +39,7 @@ core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   'CompositeMaterial', 'MaterialRefnameDef', 'MaterialType',
                   'Person', 'Tag', 'TagType', 'Property', 'PropertyDef',
                   'TypeDef', 'ParameterDef', 'Condition', 'ConditionDef', 'ConditionCalculationDefAssign',
-                  'ActionParameter', 'Parameter', 'WorkflowType', 'WorkflowStep', 'WorkflowActionSet',
+                  'ActionParameter', 'Parameter', 'WorkflowType', 'WorkflowStep', 
                   'WorkflowObject', 'UdfDef', 'Experiment', 'ExperimentWorkflow',
                   'BillOfMaterials', 'BomMaterial', 'BomCompositeMaterial', 'Measure', 'MeasureType', 'Outcome'])
 
@@ -47,7 +47,7 @@ GET_only_views = set(['TypeDef'])
 
 unexposed_views = set(['TagAssign', 'Note', 'Edocument'])
 
-custom_serializer_views = set(['ActionDef', 'Action', 'Workflow'])
+custom_serializer_views = set(['ActionDef', 'Action', 'Workflow', 'WorkflowActionSet'])
 
 perform_create_views = set(['PropertyDef', 'MaterialProperty'])
 
@@ -77,3 +77,153 @@ def docstring(docstr, sep="\n"):
             func.__doc__ = sep.join([func.__doc__, docstr])
         return func
     return _decorator
+
+expandable_fields = {
+    'ActionDef': {
+        'options': {
+             'many_to_many': []
+        },
+        'fields': {
+            'parameter_def': ('rest_api.ParameterDefSerializer', 
+                                {
+                                    'read_only': True,
+                                    'many': True, 
+                                    #'source': 'parameter_action',
+                                    'view_name': 'parameterdef-detail'
+                                })
+        }
+    },
+    'Action': {
+        'options': {
+             'many_to_many': []
+        },
+        'fields': {
+            'parameter': ('rest_api.ActionParameterSerializer', 
+                                {
+                                    'read_only': True,
+                                    'many': True, 
+                                    'source': 'parameter_action',
+                                    'view_name': 'actionparameter-detail'
+                                })
+        }
+    },
+    'BomCompositeMaterial': {
+        'options': {
+            'many_to_many': []
+        },
+        'fields': {
+            'composite_material': ('rest_api.CompositeMaterialSerializer', 
+                                {
+                                    'read_only': True,
+                                    'view_name': 'compositematerial-detail'
+
+                                })
+        }
+    },
+    'BomMaterial': {
+        'options': {
+            'many_to_many': []
+        },
+        'fields': {
+            'bom_composite_material': ('rest_api.BomCompositeMaterialSerializer',
+                                    {
+                                        'source': 'bom_composite_material_bom_material',
+                                        'many': True,
+                                        'read_only': True,
+                                        'view_name': 'bomcompositematerial-detail'
+                                    }
+        )
+        }
+    },
+    'BillOfMaterials': {
+        'options': {
+            'many_to_many': []
+        },
+        'fields': {
+        'bom_material': ('rest_api.BomMaterialSerializer',
+                            {
+                             'source': 'bom_material_bom',
+                             'many': True,
+                             'read_only': True,
+                             'view_name': 'bommaterial-detail'   
+                            })
+        }
+    },
+    'WorkflowObject': {
+        'options': {
+            'many_to_many': []
+        },
+        'fields': {
+        'action': ('rest_api.ActionSerializer',
+                    {
+                        'read_only': True,
+                        'view_name': 'action-detail'
+                    })
+        }
+    },
+    'WorkflowStep': {
+        'options': {
+            'many_to_many': ['workflow']
+        },
+        'fields': {
+        'workflow_object': ('rest_api.WorkflowObjectSerializer',
+                            {
+                                'read_only': True,
+                                'view_name': 'workflowobject-detail'
+                            })
+        }
+    },
+    'Workflow': {
+        'options': {
+            'many_to_many': []
+        },
+        'fields': {
+        'step': ('rest_api.WorkflowStepSerializer',
+                  {
+                      'source': 'workflow_step_workflow',
+                      'many': True,
+                      'read_only': True,
+                      'view_name': 'workflowstep-detail'
+                  })
+        }
+    },
+    'ExperimentWorkflow': {
+        'options': {
+            'many_to_many': []
+        },
+        'fields': {
+            'workflow': ('rest_api.WorkflowSerializer',
+                        {
+                            'read_only': True,
+                            'view_name': 'workflow-detail'
+                        })
+        }
+    },
+    'Experiment': {
+        'options': {
+            'many_to_many': ['workflow']
+        },
+        'fields': {
+            'workflow': ('rest_api.WorkflowSerializer',
+                     {
+                         'many': True,
+                     }),
+            'bill_of_materials': ('rest_api.BillOfMaterialsSerializer',
+                                {
+                                    'source': 'bom_experiment',
+                                    'many': True,
+                                    'read_only': True,
+                                    'view_name': 'billofmaterials-detail'
+                                }),
+            'outcome': ('rest_api.OutcomeSerializer',
+                        {
+                            'source': 'outcome_experiment',
+                            'many': True,
+                            'read_only': True,
+                            'view_name': 'outcome-detail'
+                        })
+        }
+        
+    }
+
+}

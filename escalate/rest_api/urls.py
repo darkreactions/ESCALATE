@@ -13,7 +13,7 @@ from rest_framework_extensions.routers import ExtendedSimpleRouter, NestedRouter
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 
-from rest_api import views, viewsets
+from rest_api import viewsets
 from .utils import camel_case, docstring, rest_exposed_url_views, rest_nested_url_views
 from .rest_docs import rest_docs
 from .serializers import expandable_fields
@@ -62,8 +62,8 @@ for view in rest_nested_url_views:
     ) if isinstance(f, models.ManyToOneRel)]
     many_to_one_rel_model = [model._meta.get_field(
         url).remote_field.model.__name__ for url in many_to_one_names]
-    if view == 'Material':
-        print(related_names)
+    #if view == 'Material':
+    #    print(related_names)
         
 
     url_names = [f'{f.name}' for f in model._meta.get_fields()

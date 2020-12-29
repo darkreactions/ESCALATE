@@ -671,7 +671,7 @@ class WorkflowActionSet(models.Model):
                                db_column='calculation_uuid', 
                                related_name='workflow_action_set_calculation')
     source_material = ArrayField(RetUUIDField(blank=True, null=True), db_column='source_material_uuid')
-    destination_material_uuid = ArrayField(RetUUIDField(blank=True, null=True))
+    destination_material = ArrayField(RetUUIDField(blank=True, null=True), db_column='destination_material_uuid')
     actor = models.ForeignKey('Actor',
                                on_delete=models.DO_NOTHING,
                                db_column='actor_uuid',
