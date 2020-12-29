@@ -4,6 +4,8 @@ from core.models.core_tables import TypeDef
 import json
 from django.core.exceptions import ValidationError
 import csv
+from django.contrib.postgres.fields import ArrayField
+
 """
 v_type_uuid uuid, 0
 v_unit character varying, 1
@@ -19,6 +21,17 @@ v_bool boolean, 10
 v_bool_array boolean[] 11
 """
 
+class CustomArrayField(ArrayField):
+    def _from_db_value(self, value, expression, connection):
+        
+        if value is None:
+            return value
+        value = list(csv.reader([value[1:-1]]))[0]        
+        return [
+            self.base_field.from_db_value(item, expression, connection)
+            for item in value
+        ]
+
 class Val:
     positions = {
             'text' : 2,
@@ -27,26 +40,34 @@ class Val:
             'array_int': 5,
             'num': 6,
             'array_num': 7,
+            'blob': 8,
+            'blob_array': 9,
             'bool': 10,
             'bool_array': 11
         }
-    def __init__(self, val_type, value, unit):
-        self.val_type = val_type
-        if not isinstance(val_type, str):
-            self.type_uuid = val_type.uuid
-        self.value = value
-        self.unit = unit
+    def __init__(self, val_type, value, unit, null=False):
+        self.null = null
+        if not self.null:
+            self.val_type = val_type
+            if not isinstance(val_type, str):
+                self.type_uuid = val_type.uuid
+            self.value = value
+            self.unit = unit
+        
     
     def to_db(self):
-        string_list = ['']*12
-        string_list[0] = str(self.val_type.uuid)
-        string_list[1] = self.unit
-        string_list[self.positions[self.val_type.description]] = str(self.value)
-        return f"({','.join(string_list)})"
+        if not self.null:
+            string_list = ['']*12
+            string_list[0] = str(self.val_type.uuid)
+            string_list[1] = self.unit
+            string_list[self.positions[self.val_type.description]] = str(self.value)
+            return f"({','.join(string_list)})"
+        else:
+            return None
     
     @classmethod
     def from_db(cls, val_string):
-        # print(val_string)
+        #print(val_string)
         args = list(csv.reader([val_string[1:-1]]))[0]
         # print(args)
         type_uuid = args[0]
@@ -72,29 +93,36 @@ class Val:
         return f'{self.value} {self.unit}'
 
     def to_dict(self):
-        return {'value': self.value, 'unit': self.unit, 'type': self.val_type.description}
+        if not self.null:
+            return {'value': self.value, 'unit': self.unit, 'type': self.val_type.description}
+        else:
+            return 'null'
 
     @classmethod
     def from_dict(cls, json_data):
-        required_keys = set(['type', 'value', 'unit'])
-        # Check if all keys are present in 
-        if not all(k in json_data for k in required_keys):
-                raise ValidationError(f'Missing key "{required_keys - set(json_data.keys())}". ', 'invalid')
-        
-        # Check if type exists in database
-        try:
-            val_type = TypeDef.objects.get(category='data', description=json_data['type'])
-        except TypeDef.DoesNotExist:
-            val_types = TypeDef.objects.filter(category='data')
-            options = [val.description for val in val_types]
-            raise ValidationError(f'Data type {json_data["type"]} does not exist. Options are: {", ".join(options)}', code='invalid')
-                
-        return cls(val_type, json_data['value'], json_data['unit'])
+        if json_data is None:
+            return cls(None, None, None, null=True)
+        else:
+            required_keys = set(['type', 'value', 'unit'])
+            # Check if all keys are present in 
+            if not all(k in json_data for k in required_keys):
+                    raise ValidationError(f'Missing key "{required_keys - set(json_data.keys())}". ', 'invalid')
+            
+            # Check if type exists in database
+            try:
+                val_type = TypeDef.objects.get(category='data', description=json_data['type'])
+            except TypeDef.DoesNotExist:
+                val_types = TypeDef.objects.filter(category='data')
+                options = [val.description for val in val_types]
+                raise ValidationError(f'Data type {json_data["type"]} does not exist. Options are: {", ".join(options)}', code='invalid')
+                    
+            return cls(val_type, json_data['value'], json_data['unit'])
 
 class ValField(models.Field):
     description = 'Data representation'
 
     def __init__(self, *args, **kwargs):
+        self.list = kwargs.pop('list', False)
         super().__init__(*args, **kwargs)
 
     def deconstruct(self):
@@ -108,6 +136,7 @@ class ValField(models.Field):
     def from_db_value(self, value, expression, connection):
         if value is None:
             return value 
+        
         return Val.from_db(value)
 
     def to_python(self, value):

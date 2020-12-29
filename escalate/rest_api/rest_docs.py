@@ -53,12 +53,12 @@ rest_docs = {
                 will display person table rows where the `firstname` column
                 is equal to value `Gary`
 
-                ### **Select or exclude fields** (`fields`, `exclude`)
+                ### **Select or exclude fields** (`fields`, `omit`)
                 A list of columns can be included or excluded in the json response.
                 For example, `http://escalate.sd2e.org/api/person/?fields=firstname,lastname`
                 will display only first and last names from the person table
 
-                `http://escalate.sd2e.org/api/person/?exclude=firstname,lastname`
+                `http://escalate.sd2e.org/api/person/?omit=firstname,lastname`
                 will display all fields except first and last names
 
                 ### **Related tables**

@@ -20,13 +20,13 @@ class ValValidator:
             self.domain_whitelist = whitelist
 
     def __call__(self, value):
-        # if isinstance(value.value, list):
-        if 'array' in value.val_type.description:
-            value.value = self.convert_list_value(
-                value.val_type.description, value.value)
-        else:
-            value.value = self.convert_value(
-                value.val_type.description, value.value)
+        if not value.null:
+            if 'array' in value.val_type.description:
+                value.value = self.convert_list_value(
+                    value.val_type.description, value.value)
+            else:
+                value.value = self.convert_value(
+                    value.val_type.description, value.value)
 
         # if value.val_type.description not in detected_types:
         #    raise ValidationError(f'Data type is {value.val_type.description} but value provided is {" or ".join(detected_types)}')

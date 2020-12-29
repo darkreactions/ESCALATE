@@ -1,11 +1,11 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from core.models.core_tables import RetUUIDField
-from core.models.custom_types import ValField
+from core.models.custom_types import ValField, CustomArrayField
 
 
 class Action(models.Model):
-    action_uuid = RetUUIDField(primary_key=True,
+    uuid = RetUUIDField(primary_key=True,
                                db_column='action_uuid')
     description = models.CharField(max_length=255,
                                    blank=True,
@@ -21,7 +21,58 @@ class Action(models.Model):
                                    db_column='workflow_uuid',
                                    blank=True,
                                    null=True, related_name='action_workflow')
-    #start_date = 
+    # pending exposition of workflow_action_set through api
+    # workflow_action_set = models.ForeignKey('WorkflowActionSet',
+    #                                         on_delete=models.DO_NOTHING,
+    #                                         db_column='workflow_action_set_uuid',
+    #                                         blank=True,
+    #                                         null=True,
+    #                                         )
+    # workflow_action_set_description = models.CharField(max_length=255,
+    #                                       blank=True,
+    #                                       null=True,
+    #                                       db_column='workflow_action_set_description',
+    #                                       editable=False)
+    source_material = models.ForeignKey('BomMaterial',
+                               on_delete=models.DO_NOTHING,
+                               db_column='source_material_uuid',
+                               blank=True,
+                               null=True,
+                               editable=False,
+                               related_name='action_source_material')
+    source_material_description = models.CharField(max_length=255,
+                                          blank=True,
+                                          null=True,
+                                          db_column='source_material_description',
+                                          editable=False)
+    destination_material = models.ForeignKey('BomMaterial',
+                               on_delete=models.DO_NOTHING,
+                               db_column='destination_material_uuid',
+                               blank=True,
+                               null=True,
+                               editable=False,
+                               related_name='action_destination_material')
+    destination_material_description = models.CharField(max_length=255,
+                                          blank=True,
+                                          null=True,
+                                          db_column='destination_material_description',
+                                          editable=False)
+    duration = models.FloatField(db_column='duration',
+                                 blank=True,
+                                 null=True)
+    repeating = models.IntegerField(db_column='repeating',
+                                    blank=True,
+                                    null=True)
+    # calculation_def and ref_parameter_uuid can be ignored in the django model
+    # as they are no longer essential data model components
+    # calculation_def = models.ForeignKey('CalculationDef',
+    #                                     db_column='calculation_def_uuid',
+    #                                     on_delete=models.DO_NOTHING,
+    #                                     blank=True,
+    #                                     null=True,
+    #                                     editable=False,
+    #                                     related_name='action_calculation_def'
+    #                                     )
     actor = models.ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='actor_uuid',
@@ -117,7 +168,7 @@ class ActionParameter(models.Model):
                                                  null=True,
                                                  db_column='parameter_def_description',
                                                  editable=False)
-    parameter_val = ValField(blank=True,
+    parameter_val = ValField(max_length=255, blank=True,
                              null=True,
                              db_column='parameter_val')
     actor = models.ForeignKey('Actor',
@@ -214,7 +265,6 @@ class ActionParameterDef(models.Model):
         db_table = 'vw_action_parameter_def'
         
 
-
 class ActionParameterDefAssign(models.Model):
     uuid = RetUUIDField(
         primary_key=True, db_column='action_parameter_def_x_uuid')
@@ -267,7 +317,7 @@ class BillOfMaterials(models.Model):
 
 
 class BomMaterial(models.Model):
-    uuid = RetUUIDField(primary_key=True, db_column='bom_material_uuid')
+    uuid = RetUUIDField(primary_key=True, db_column='bom_material_index_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
     bom = models.ForeignKey('BillOfMaterials', on_delete=models.DO_NOTHING,
                             blank=True, null=True, db_column='bom_uuid',
@@ -280,9 +330,9 @@ class BomMaterial(models.Model):
     material = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
                                  blank=True, null=True, db_column='material_uuid',
                                  related_name='bom_material_material')
-    alloc_amt_val = ValField(blank=True, null=True)
-    used_amt_val = ValField(blank=True, null=True)
-    putback_amt_val = ValField(blank=True, null=True)
+    alloc_amt_val = ValField(max_length=255, blank=True, null=True)
+    used_amt_val = ValField(max_length=255, blank=True, null=True)
+    putback_amt_val = ValField(max_length=255, blank=True, null=True)
     actor = models.ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='actor_uuid',
@@ -359,8 +409,8 @@ class Condition(models.Model):
                                                editable=False)
     
     # TODO: Fix in_val and out_val on Postgres to return strings not JSON!
-    in_val = ValField(blank=True, null=True)
-    out_val = ValField(blank=True, null=True)
+    in_val = ValField(max_length=255, blank=True, null=True)
+    out_val = ValField(max_length=255, blank=True, null=True)
     actor = models.ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='actor_uuid',
@@ -457,7 +507,7 @@ class ConditionPath(models.Model):
                               blank=True,
                               null=True,
                               related_name='condition_path_condition')
-    condition_out_val = ValField(blank=True, null=True)
+    condition_out_val = ValField(max_length=255, blank=True, null=True)
     workflow_step = models.ForeignKey('WorkflowStep',
                               on_delete=models.DO_NOTHING,
                               db_column='workflow_uuid',
@@ -480,6 +530,7 @@ class Experiment(models.Model):
                                on_delete=models.DO_NOTHING, blank=True, null=True, related_name='experiment_parent')
     owner = models.ForeignKey('Actor', db_column='owner_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
                               related_name='experiment_owner')
+    workflow = models.ManyToManyField('Workflow', through='ExperimentWorkflow', related_name='experiment_workflow')
     owner_description = models.CharField(
         max_length=255, db_column='owner_description')
     operator = models.ForeignKey('Actor', db_column='operator_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
@@ -542,20 +593,15 @@ class Outcome(models.Model):
         db_table = 'vw_outcome'
 
 
-class OutcomeMeasure(models.Model):
-    pass
-
-
 class Workflow(models.Model):
     uuid = RetUUIDField(primary_key=True,
                         db_column='workflow_uuid')
-    step = models.ManyToManyField(
-        'WorkflowStep', through='WorkflowStep', related_name='workflow_step')
+    #step = models.ManyToManyField(
+    #    'WorkflowStep', through='WorkflowStep', related_name='workflow_step')
     description = models.CharField(max_length=255,
                                    blank=True,
                                    null=True,
-                                   db_column='description',
-                                   editable=False)
+                                   db_column='description')
     parent = models.ForeignKey('Workflow', models.DO_NOTHING,
                                blank=True, null=True,
                                db_column='parent_uuid', related_name='workflow_parent')
@@ -571,7 +617,7 @@ class Workflow(models.Model):
                               db_column='actor_uuid',
                               blank=True,
                               null=True,
-                              editable=False, related_name='workflow_actor')
+                              related_name='workflow_actor')
     actor_description = models.CharField(max_length=255,
                                          blank=True,
                                          null=True,
@@ -582,7 +628,7 @@ class Workflow(models.Model):
                                db_column='status_uuid',
                                blank=True,
                                null=True,
-                               editable=False, related_name='workflow_status')
+                               related_name='workflow_status')
     status_description = models.CharField(max_length=255,
                                           blank=True,
                                           null=True,
@@ -614,15 +660,17 @@ class WorkflowActionSet(models.Model):
     duration = models.FloatField()
     repeating = models.BigIntegerField()
     parameter_def = models.ForeignKey('ParameterDef', models.DO_NOTHING,
-                               blank=True, null=True, 
-                               db_column='parameter_def_uuid', 
+                               blank=True, null=True,
+                               db_column='parameter_def_uuid',
                                related_name='workflow_action_set_parameter_def')
-    parameter_val = ArrayField(ValField(blank=True, null=True))
+    # parameter_val = ArrayField(ValField(), blank=True, null=True)
+    parameter_val = CustomArrayField(ValField(), blank=True, null=True)
+    # parameter_val = ValField(blank=True, null=True, list=True)
     calculation = models.ForeignKey('Calculation', models.DO_NOTHING,
                                blank=True, null=True, 
                                db_column='calculation_uuid', 
                                related_name='workflow_action_set_calculation')
-    source_material = ArrayField(RetUUIDField(blank=True, null=True))
+    source_material = ArrayField(RetUUIDField(blank=True, null=True), db_column='source_material_uuid')
     destination_material_uuid = ArrayField(RetUUIDField(blank=True, null=True))
     actor = models.ForeignKey('Actor',
                                on_delete=models.DO_NOTHING,
@@ -671,7 +719,7 @@ class WorkflowStep(models.Model):
                                             null=True,
                                             editable=False)
     parent = models.ForeignKey('WorkflowStep', models.DO_NOTHING,
-                               blank=True, null=True, editable=False,
+                               blank=True, null=True, 
                                db_column='parent_uuid', related_name='workflow_step_parent')
     parent_object_type = models.CharField(max_length=255,
                                           blank=True,
@@ -685,9 +733,8 @@ class WorkflowStep(models.Model):
                                    blank=True,
                                    null=True,
                                    editable=False)
-    conditional_val = ValField(blank=True,
-                               null=True,
-                               editable=False)
+    conditional_val = ValField(max_length=255, blank=True,
+                               null=True)
     conditional_value = models.CharField(max_length=255,
                                          blank=True,
                                          null=True,
@@ -697,7 +744,7 @@ class WorkflowStep(models.Model):
                                db_column='status_uuid',
                                blank=True,
                                null=True,
-                               editable=False, related_name='workflow_step_status')
+                               related_name='workflow_step_status')
     status_description = models.CharField(max_length=255,
                                           blank=True,
                                           null=True,
@@ -739,11 +786,14 @@ class WorkflowStep(models.Model):
 
 class WorkflowObject(models.Model):
     uuid = RetUUIDField(primary_key=True, db_column='workflow_object_uuid')
+    workflow = models.ForeignKey('Workflow', models.DO_NOTHING,
+                               blank=True, null=True, 
+                               db_column='workflow_uuid', related_name='workflow_object_workflow')
     action = models.ForeignKey('Action', models.DO_NOTHING,
-                               blank=True, null=True, editable=False,
+                               blank=True, null=True, 
                                db_column='action_uuid', related_name='workflow_object_action')
     condition = models.ForeignKey('Condition', models.DO_NOTHING,
-                                  blank=True, null=True, editable=False,
+                                  blank=True, null=True, 
                                   db_column='condition_uuid', related_name='workflow_object_condition')
     object_uuid = models.CharField(max_length=255,
                                    blank=True,

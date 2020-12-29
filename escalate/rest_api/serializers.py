@@ -33,6 +33,7 @@ class ValSerializerField(JSONField):
         return value.to_dict()
 
     def to_internal_value(self, data):
+        print(f"DATA!!: {data} : {type(data)}")
         data = json.loads(data)
         return Val.from_dict(data)
 
@@ -169,21 +170,6 @@ for model_name in rest_serializer_views:
                                               {'Meta': meta_class})
 
 
-class ActionDefSerializer(DynamicFieldsModelSerializer):
-    parameter_def = ParameterDefSerializer(read_only=True, many=True)
-
-    class Meta:
-        model = ActionDef
-        fields = '__all__'
-
-
-class ActionSerializer(DynamicFieldsModelSerializer):
-    parameter = ActionParameterSerializer(read_only=True, many=True)
-
-    class Meta:
-        model = Action
-        fields = '__all__'
-
 class OutcomeSerializer(MeasureListSerializer, DynamicFieldsModelSerializer):
     
     class Meta:
@@ -191,59 +177,55 @@ class OutcomeSerializer(MeasureListSerializer, DynamicFieldsModelSerializer):
         fields = '__all__'
 
 
-class FilteredListSerializer(ListSerializer):
-    def to_representation(self, data):
-        data = data.filter(bom_material_composite__isnull=True)
-        return super().to_representation(data)
-
-
-class BomMaterialCompositeSerializer(EdocListSerializer,
-                                     TagListSerializer,
-                                     NoteListSerializer,
-                                     DynamicFieldsModelSerializer):
-    class Meta:
-        model = BomCompositeMaterial
-        fields = '__all__'
-
-
-class BomMaterialSerializer(EdocListSerializer,
-                            TagListSerializer,
-                            NoteListSerializer,
-                            DynamicFieldsModelSerializer):
-    bom_material_composite = BomMaterialCompositeSerializer(
-        read_only=True, many=True, source='bom_composite_material_bom_material')
-
-    class Meta:
-        #list_serializer_class = FilteredListSerializer
-        model = BomMaterial
-        fields = '__all__'
-
-
-class BillOfMaterialsSerializer(EdocListSerializer,
-                                TagListSerializer,
-                                NoteListSerializer,
-                                DynamicFieldsModelSerializer):
-    #bom_serializer_params = {'source': 'bom_material_bom',
-    #                         'many': True,
-    #                         'read_only': True, }
-    #bom_material = BomMaterialSerializer(**bom_serializer_params)
-
-    class Meta:
-        model = BillOfMaterials
-        fields = '__all__'
-
 
 expandable_fields = {
+    'ActionDef': {
+        'options': {
+             'many_to_many': []
+        },
+        'fields': {
+            'parameter_def': ('rest_api.ParameterDefSerializer', 
+                                {
+                                    'read_only': True,
+                                    'many': True, 
+                                    #'source': 'parameter_action',
+                                    'view_name': 'parameterdef-detail'
+                                })
+        }
+    },
+    'Action': {
+        'options': {
+             'many_to_many': []
+        },
+        'fields': {
+            'parameter': ('rest_api.ActionParameterSerializer', 
+                                {
+                                    'read_only': True,
+                                    'many': True, 
+                                    'source': 'parameter_action',
+                                    'view_name': 'actionparameter-detail'
+                                })
+        }
+    },
     'BomCompositeMaterial': {
-        'composite_material': ('rest_api.CompositeMaterialSerializer', 
+        'options': {
+            'many_to_many': []
+        },
+        'fields': {
+            'composite_material': ('rest_api.CompositeMaterialSerializer', 
                                 {
                                     'read_only': True,
                                     'view_name': 'compositematerial-detail'
 
                                 })
+        }
     },
     'BomMaterial': {
-        'bom_composite_material': ('rest_api.BomCompositeMaterialSerializer',
+        'options': {
+            'many_to_many': []
+        },
+        'fields': {
+            'bom_composite_material': ('rest_api.BomCompositeMaterialSerializer',
                                     {
                                         'source': 'bom_composite_material_bom_material',
                                         'many': True,
@@ -251,8 +233,13 @@ expandable_fields = {
                                         'view_name': 'bomcompositematerial-detail'
                                     }
         )
+        }
     },
     'BillOfMaterials': {
+        'options': {
+            'many_to_many': []
+        },
+        'fields': {
         'bom_material': ('rest_api.BomMaterialSerializer',
                             {
                              'source': 'bom_material_bom',
@@ -260,22 +247,37 @@ expandable_fields = {
                              'read_only': True,
                              'view_name': 'bommaterial-detail'   
                             })
+        }
     },
     'WorkflowObject': {
+        'options': {
+            'many_to_many': []
+        },
+        'fields': {
         'action': ('rest_api.ActionSerializer',
                     {
                         'read_only': True,
                         'view_name': 'action-detail'
                     })
+        }
     },
     'WorkflowStep': {
+        'options': {
+            'many_to_many': ['workflow']
+        },
+        'fields': {
         'workflow_object': ('rest_api.WorkflowObjectSerializer',
                             {
                                 'read_only': True,
                                 'view_name': 'workflowobject-detail'
                             })
+        }
     },
     'Workflow': {
+        'options': {
+            'many_to_many': []
+        },
+        'fields': {
         'step': ('rest_api.WorkflowStepSerializer',
                   {
                       'source': 'workflow_step_workflow',
@@ -283,53 +285,66 @@ expandable_fields = {
                       'read_only': True,
                       'view_name': 'workflowstep-detail'
                   })
+        }
     },
     'ExperimentWorkflow': {
-        'workflow': ('rest_api.WorkflowSerializer',
-                     {
-                         'read_only': True,
-                         'view_name': 'workflow-detail'
-                     })
+        'options': {
+            'many_to_many': []
+        },
+        'fields': {
+            'workflow': ('rest_api.WorkflowSerializer',
+                        {
+                            'read_only': True,
+                            'view_name': 'workflow-detail'
+                        })
+        }
     },
     'Experiment': {
-        'bill_of_materials': ('rest_api.BillOfMaterialsSerializer',
-                              {
-                                  'source': 'bom_experiment',
-                                  'many': True,
-                                  'read_only': True,
-                                  'view_name': 'billofmaterials-detail'
-                              }),
-        'workflow': ('rest_api.ExperimentWorkflowSerializer',
+        'options': {
+            'many_to_many': ['workflow']
+        },
+        'fields': {
+            'workflow': ('rest_api.WorkflowSerializer',
                      {
-                         'source': 'experiment_workflow_experiment',
                          'many': True,
-                         'read_only': True,
-                         'view_name': 'experimentworkflow-detail'
                      }),
-        'outcome': ('rest_api.OutcomeSerializer',
-                    {
-                        'source': 'outcome_experiment',
-                        'many': True,
-                        'read_only': True,
-                        'view_name': 'outcome-detail'
-                    })
+            'bill_of_materials': ('rest_api.BillOfMaterialsSerializer',
+                                {
+                                    'source': 'bom_experiment',
+                                    'many': True,
+                                    'read_only': True,
+                                    'view_name': 'billofmaterials-detail'
+                                }),
+            'outcome': ('rest_api.OutcomeSerializer',
+                        {
+                            'source': 'outcome_experiment',
+                            'many': True,
+                            'read_only': True,
+                            'view_name': 'outcome-detail'
+                        })
+        }
+        
     }
 
 }
 
-
-for model_name, fields in expandable_fields.items():
+for model_name, data in expandable_fields.items():
     #model = getattr(core.models, model_name)
+    fields = data['fields']
+    options = data['options']
+    print(fields)
     model = globals()[model_name]
     meta_class = type(
         'Meta', (), {'model': model, 'fields': '__all__', 'expandable_fields': fields})
 
     extra_fields = {}
 
-    for field_name, data in fields.items():
-        kwargs = data[1]
-        extra_fields[field_name] = HyperlinkedRelatedField(**kwargs)
-
+    
+    for field_name, field_data in fields.items():
+        if field_name not in options['many_to_many']:
+            kwargs = field_data[1]
+            extra_fields[field_name] = HyperlinkedRelatedField(**kwargs)
+    
     extra_fields['Meta'] = meta_class
 
     globals()[model_name+'Serializer'] = type(model_name+'Serializer',
