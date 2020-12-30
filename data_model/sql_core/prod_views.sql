@@ -2593,6 +2593,7 @@ SELECT
 			'workflow_status_description', p.workflow_status_description,
 			'workflow_add_date', p.workflow_add_date,
 			'workflow_mod_date', p.workflow_mod_date)
+	    ORDER BY p.experiment_workflow_seq
 			) wf
 FROM
 			vw_experiment_workflow p

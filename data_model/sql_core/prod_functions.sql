@@ -2137,7 +2137,7 @@ BEGIN
 			    UNION ALL
 			    SELECT w2.workflow_step_uuid, w2.workflow_uuid, w2.workflow_action_set_uuid, w2.workflow_object_uuid, w2.parent_uuid, w2.status_uuid
 			    FROM workflow_step w2
-			    JOIN wf w0 ON w0.workflow_step_uuid = w2.parent_uuid)
+			    JOIN wf w0 ON w0.workflow_step_uuid = w2.parent_uuid and w0.workflow_uuid = _workflow_rec.workflow_uuid)
 			    select * from wf where wf.workflow_uuid = _workflow_rec.workflow_uuid and wf.workflow_action_set_uuid is null)
                 loop
                     insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)
@@ -2151,7 +2151,7 @@ BEGIN
         end loop;
         -- copy outcomes container if present (but no measures)
         insert into outcome (experiment_uuid, description, actor_uuid, status_uuid)
-	    (select _new_exp_uuid, o.description, o.actor_uuid, o.status_uuid from outcome o);
+	    (select _new_exp_uuid, o.description, o.actor_uuid, o.status_uuid from outcome o where o.experiment_uuid = p_experiment_uuid);
     ELSE
         return null;
     END IF;
@@ -2160,3 +2160,36 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
+
+
+/*
+Name:			replicate_experiment_copy (p_exp_description text, p_repeat int)
+Parameters:
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.12.30
+Description:
+Notes:
+Example:        call replicate_experiment_copy
+                ('LANL Test Experiment Template', 100);
+
+                10 copies:  4s
+                50 copies:  14s
+                100 copies: 31s
+*/
+-- DROP PROCEDURE IF EXISTS replicate_experiment_copy (p_exp_description text, p_repeat int) cascade;
+CREATE OR REPLACE PROCEDURE replicate_experiment_copy (p_exp_description text, p_repeat int)
+language plpgsql as $$
+DECLARE
+    _exp_uuid uuid := (select experiment_uuid from experiment where description = p_exp_description);
+BEGIN
+    FOR i IN 1 .. p_repeat
+    LOOP
+        perform experiment_copy (_exp_uuid, concat('experiment copy #',i));
+        COMMIT;
+    END LOOP;
+END;
+$$
+
+
+
