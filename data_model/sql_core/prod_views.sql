@@ -2155,6 +2155,8 @@ EXECUTE PROCEDURE upsert_condition_calculation_def_assign();
 CREATE OR REPLACE VIEW vw_condition AS
 SELECT
     cd.condition_uuid,
+    cd.workflow_uuid,
+    cd.workflow_action_set_uuid,
     cd.condition_calculation_def_x_uuid,
     cc.condition_def_uuid,
     cc.condition_description,
@@ -3326,7 +3328,7 @@ LEFT JOIN (
 						'object_parameters',op.action_parameter)
 				) AS wfs
 			FROM vw_workflow_step ws
-				JOIN (
+				LEFT JOIN (
 				    select * from action_parameter_json ()
 			) op
 				ON ws.object_uuid = op.object_uuid

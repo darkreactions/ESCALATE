@@ -2037,16 +2037,24 @@ CREATE OR REPLACE FUNCTION experiment_copy (p_experiment_uuid uuid, p_new_name v
 	RETURNS uuid
 	AS $$
 DECLARE
+    _action_rec record;
+    _object_rec record;
     _old_bom_uuid uuid;
+    _new_act_uuid uuid;
     _new_bom_uuid uuid;
+    _new_cond_uuid uuid;
     _new_exp_uuid uuid;
     _new_exp_name varchar;
     _new_wf_uuid uuid;
+    _new_wo_uuid uuid;
+    _new_ws_uuid uuid;
     _workflow_rec record;
-    _action_rec record;
 BEGIN
     -- first check to see if valid p_experiment_uuid
     IF (select experiment_uuid from experiment where experiment_uuid = p_experiment_uuid) is not null THEN
+        -- create a temp table to store singleton actions, conditions and assoc. objects [to loop through]
+        create temp table _aco (
+            old_action uuid, old_cond uuid, old_object uuid, new_action uuid, new_cond uuid, new_object uuid);
         -- is there a new name provided? if not, then create it based on existing exp description
         IF p_new_name is not null then
             _new_exp_name := p_new_name;
@@ -2065,7 +2073,7 @@ BEGIN
         insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid)
         (select _new_bom_uuid, bm.description, bm.inventory_material_uuid, bm.alloc_amt_val, bm.used_amt_val, bm.putback_amt_val, bm.actor_uuid, bm.status_uuid
             from bom_material bm where bm.bom_uuid = _old_bom_uuid);
-        -- 3) create new workflow, experiment_workflow, workflow_action_set
+        -- 3) create new workflow, experiment_workflow, workflow_action_set, action, condition, workflow_object, workflow_step
         for _workflow_rec in (select ew.workflow_uuid from experiment_workflow ew where experiment_uuid = p_experiment_uuid)
         loop
             insert into workflow (workflow_type_uuid, description, actor_uuid, status_uuid)
@@ -2082,17 +2090,72 @@ BEGIN
                         parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid
                 from vw_workflow_action_set where workflow_uuid = _workflow_rec.workflow_uuid);
             end if;
-            for _action_rec in (select a.action_uuid from action a where workflow_uuid = _workflow_rec.workflow_uuid and workflow_action_set_uuid is null)
+            -- populate temp table _aco with actions and objects, conditions and objects (to be copied)
+            insert into _aco (old_action, old_object)
+            (select a.action_uuid, w.workflow_object_uuid from action a join workflow_object w on a.action_uuid = w.action_uuid
+                where a.workflow_action_set_uuid is null and a.workflow_uuid = _workflow_rec.workflow_uuid);
+            insert into _aco (old_cond, old_object)
+            (select c.condition_uuid, w.workflow_object_uuid from condition c join workflow_object w on c.condition_uuid = w.condition_uuid
+                where c.workflow_action_set_uuid is null and c.workflow_uuid = _workflow_rec.workflow_uuid);
+            -- now loop through the actions to pick up non action-set actions,conditions to copy the actions, objects and then rebuild steps
+            for _action_rec in (select * from _aco)
                 loop
-
+                    if (_action_rec.old_action is not null) then
+                        insert into vw_action (action_def_uuid, workflow_uuid, action_description, actor_uuid, status_uuid)
+                            (select action_def_uuid, _new_wf_uuid, action_description, actor_uuid, status_uuid
+                            from vw_action where action_uuid = _action_rec.old_action) returning action_uuid into _new_act_uuid;
+                        update _aco
+                            set new_action = _new_act_uuid
+                        where _aco.old_action = _action_rec.old_action;
+                        insert into vw_workflow_object (workflow_uuid, action_uuid)
+                            values (_new_wf_uuid, _new_act_uuid) returning workflow_object_uuid into _new_wo_uuid;
+                        update _aco
+                            set new_object = _new_wo_uuid
+                        where _aco.old_action = _action_rec.old_action;
+                    else
+                        insert into vw_condition (workflow_uuid, workflow_action_set_uuid, condition_calculation_def_x_uuid, in_val, out_val, actor_uuid, status_uuid)
+                            (select _new_wf_uuid, workflow_action_set_uuid, condition_calculation_def_x_uuid, in_val, out_val, actor_uuid, status_uuid
+                            from vw_condition where condition_uuid = _action_rec.old_cond) returning condition_uuid into _new_cond_uuid;
+                        update _aco
+                            set new_cond = _new_cond_uuid
+                        where _aco.old_cond = _action_rec.old_cond;
+                        insert into vw_workflow_object (workflow_uuid, condition_uuid)
+                            values (_new_wf_uuid, _new_cond_uuid) returning workflow_object_uuid into _new_wo_uuid;
+                        update _aco
+                            set new_object = _new_wo_uuid
+                        where _aco.old_action = _action_rec.old_action;
+                    end if;
                 end loop;
-
+            --  recurse through the current steps and reconstruct the new workflow_steps through substitution
+            _new_ws_uuid := null;
+            for _object_rec in (
+                WITH RECURSIVE wf (workflow_step_uuid, workflow_uuid, workflow_action_set_uuid, workflow_object_uuid, parent_uuid, status_uuid) AS
+			    (SELECT w1.workflow_step_uuid, w1.workflow_uuid, w1.workflow_action_set_uuid, w1.workflow_object_uuid, w1.parent_uuid, w1.status_uuid
+			    FROM workflow_step w1
+			    WHERE
+				    w1.parent_uuid IS NULL
+			    UNION ALL
+			    SELECT w2.workflow_step_uuid, w2.workflow_uuid, w2.workflow_action_set_uuid, w2.workflow_object_uuid, w2.parent_uuid, w2.status_uuid
+			    FROM workflow_step w2
+			    JOIN wf w0 ON w0.workflow_step_uuid = w2.parent_uuid)
+			    select * from wf where wf.workflow_uuid = _workflow_rec.workflow_uuid and wf.workflow_action_set_uuid is null)
+                loop
+                    insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)
+                    values (_new_wf_uuid,
+                            (select new_object from _aco where old_object = _object_rec.workflow_object_uuid),
+                            _new_ws_uuid,
+                            _object_rec.status_uuid) returning workflow_step_uuid into _new_ws_uuid;
+                end loop;
+            -- delete temp table rows
+            truncate table _aco;
         end loop;
-        -- 4) create new workflow_action , workflow_object, workflow_step, workflow_parameter
-
+        -- copy outcomes container if present (but no measures)
+        insert into outcome (experiment_uuid, description, actor_uuid, status_uuid)
+	    (select _new_exp_uuid, o.description, o.actor_uuid, o.status_uuid from outcome o);
     ELSE
         return null;
     END IF;
+    drop table _aco;
     return _new_exp_uuid;
 END;
 $$

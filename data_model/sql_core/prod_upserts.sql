@@ -2782,7 +2782,9 @@ BEGIN
 	    UPDATE
 			condition
 		SET
-			condition_calculation_def_x_uuid = NEW.condition_calculation_def_x_uuid,
+			workflow_uuid = NEW.workflow_uuid,
+		    workflow_action_set_uuid = NEW.workflow_action_set_uuid,
+		    condition_calculation_def_x_uuid = NEW.condition_calculation_def_x_uuid,
 			in_val = NEW.in_val,
 			out_val = NEW.out_val,
 			actor_uuid = NEW.actor_uuid,
@@ -2792,8 +2794,8 @@ BEGIN
 			condition.condition_uuid = NEW.condition_uuid;
 		RETURN NEW;
  	ELSIF (TG_OP = 'INSERT') THEN
- 		INSERT INTO condition (condition_calculation_def_x_uuid, in_val, out_val, actor_uuid, status_uuid)
- 		VALUES(NEW.condition_calculation_def_x_uuid, NEW.in_val, NEW.out_val, NEW.actor_uuid, NEW.status_uuid);
+ 		INSERT INTO condition (workflow_uuid, workflow_action_set_uuid, condition_calculation_def_x_uuid, in_val, out_val, actor_uuid, status_uuid)
+ 		VALUES(NEW.workflow_uuid, NEW.workflow_action_set_uuid, NEW.condition_calculation_def_x_uuid, NEW.in_val, NEW.out_val, NEW.actor_uuid, NEW.status_uuid);
  		RETURN NEW;
  	END IF;
 END;
