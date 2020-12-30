@@ -1659,6 +1659,7 @@ BEGIN
 			material_uuid = NEW.material_uuid,
 			part_no = NEW.part_no,
 			onhand_amt = NEW.onhand_amt,
+		    expiration_date = NEW.expiration_date,
 			location = NEW.location,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
@@ -3241,7 +3242,9 @@ Returns:		void
 Author:			G. Cattabriga
 Date:			2020.12.01
 Description:	trigger proc that deletes or inserts (no updates!) workflow_action_set record based on TG_OP (trigger operation)
-Notes:			this will build a workflow of repeating action with one-to-many or many-to-many materials, varying parameter (explicit or calculation)	
+Notes:			this will build a workflow of repeating action with one-to-many or many-to-many materials, varying parameter (explicit or calculation)
+                !!!!! This expects to live in a workflow alone. That is, do not insert other actions or action sets into the workflow this  !!!!!
+                !!!!! is assigned, otherwise it could break the experiment_copy function !!!!!
  
 Example:		-- insert a one-to-many workflow_action_set (one source into many destinations)
 				insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operator_uuid, lab_uuid, status_uuid)
