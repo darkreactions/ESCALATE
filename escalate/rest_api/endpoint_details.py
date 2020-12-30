@@ -1,4 +1,4 @@
-from core.models import BomMaterial
+from core.models.view_tables import BomMaterial
 
 details = {
     'BillOfMaterials': {

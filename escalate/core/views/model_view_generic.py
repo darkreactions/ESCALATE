@@ -4,7 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 # from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
-from core.models import Note, Actor, TagAssign, Tag
+from core.models.view_tables import Note, Actor, TagAssign, Tag
 from core.forms import NoteForm, TagSelectForm
 from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404, render

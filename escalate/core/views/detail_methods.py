@@ -2,7 +2,7 @@ import core.models
 
 methods = {
     'Actor': {
-        'model': core.models.Actor,
+        'model': core.models.view_tables.Actor,
         'model_name': 'actor',
         'detail_fields': ['Actor Description', 'Status', 'Organization', 'Person', 'Person Organization',
                           'Systemtool', 'Systemtool description', 'Systemtool type', 'Systemtool vendor',
@@ -23,7 +23,7 @@ methods = {
         },
     },
     'Inventory': {
-        'model': core.models.Inventory,
+        'model': core.models.view_tables.Inventory,
         'model_name': 'inventory',
         'detail_fields': ['Description', 'Owner', 'Operator', 'Lab', 'Status', 'Actor'],
         'detail_fields_need_fields': {
@@ -36,7 +36,7 @@ methods = {
         },
     },
     'Material': {
-        'model': core.models.Material,
+        'model': core.models.view_tables.Material,
         'model_name': 'material',
         # 'detail_fields': ['Chemical Name', 'Abbreviation', 'Molecular Formula', 'InChI',
         #                  'InChI Key', 'Smiles', 'Create Date', 'Status'],
@@ -53,7 +53,7 @@ methods = {
         },
     },
     'Systemtool': {
-        'model': core.models.Systemtool,
+        'model': core.models.view_tables.Systemtool,
         'model_name': 'systemtool',
         'detail_fields': ['Systemtool Name', 'Systemtool Description', 'Systemtool Type',
                           'Systemtool Vendor', 'Systemtool Model', 'Systemtool Serial',
@@ -69,7 +69,7 @@ methods = {
         },
     },
     'MaterialType': {
-        'model': core.models.MaterialType,
+        'model': core.models.view_tables.MaterialType,
         'model_name': 'material_type',
         'detail_fields': ['Description', 'Add Date', 'Last Modification Date'],
         'detail_fields_need_fields': {
@@ -79,7 +79,7 @@ methods = {
         },
     },
     'Organization': {
-        'model': core.models.Organization,
+        'model': core.models.view_tables.Organization,
         'model_name': 'organization',
         'detail_fields': ['Full Name', 'Short Name', 'Description', 'Address', 'Website',
                           'Phone', 'Parent Organization', 'Add Date', 'Last Modification Date'],
@@ -96,7 +96,7 @@ methods = {
         },
     },
     'Person': {
-        'model': core.models.Person,
+        'model': core.models.view_tables.Person,
         'model_name': 'person',
         'detail_fields': ['Full Name', 'Address', 'Phone', 'Email', 'Title',
                           'Suffix', 'Organization', 'Add Date', 'Last Modification Date'],
@@ -113,7 +113,7 @@ methods = {
         },
     },
     'Status': {
-        'model': core.models.Status,
+        'model': core.models.view_tables.Status,
         'model_name': 'status',
         'detail_fields': ['Description', 'Add Date', 'Last Modification Date'],
         'detail_fields_need_fields': {
@@ -123,7 +123,7 @@ methods = {
         },
     },
     'SystemtoolType': {
-        'model': core.models.SystemtoolType,
+        'model': core.models.view_tables.SystemtoolType,
         'model_name': 'systemtool_type',
         'detail_fields': ['Description', 'Add Date', 'Last Modification Date'],
         'detail_fields_need_fields': {
@@ -133,7 +133,7 @@ methods = {
         },
     },
     'Tag': {
-        'model': core.models.Tag,
+        'model': core.models.view_tables.Tag,
         'model_name': 'tag',
         'detail_fields': ['Tag Name', 'Description', 'Actor', 'Add Date', 'Last Modification Date',
                           'Tag Type', 'Tag Type Description'],
@@ -148,7 +148,7 @@ methods = {
         },
     },
     'TagType': {
-        'model': core.models.TagType,
+        'model': core.models.view_tables.TagType,
         'model_name': 'tag_type',
         'detail_fields': ['Short Description', 'Long Description', 'Add Date',
                           'Last Modification Date'],
@@ -160,7 +160,7 @@ methods = {
         },
     },
     'UdfDef': {
-        'model': core.models.UdfDef,
+        'model': core.models.view_tables.UdfDef,
         'model_name': 'udf_def',
         'detail_fields': ['Description', 'Value Type',
                           'Add Date', 'Last Modification Date'],
@@ -172,7 +172,7 @@ methods = {
         },
     },
     'InventoryMaterial': {
-        'model': core.models.InventoryMaterial,
+        'model': core.models.view_tables.InventoryMaterial,
         'model_name': 'inventory_material',
         'detail_fields': ['Description', 'Inventory', 'Material', 
                             'Consumable', 'Composite Material', 

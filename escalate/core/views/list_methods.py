@@ -3,7 +3,7 @@ import core.models
 
 methods = {
     'Actor': {
-        'model': core.models.Actor,
+        'model': core.models.view_tables.Actor,
         'context_object_name': 'actors',
         'table_columns': ['Name', 'Organization', 'Systemtool', 'Status', 'Actions'],
         'column_necessary_fields': {
@@ -17,7 +17,7 @@ methods = {
     },
 
     'Inventory': {
-        'model': core.models.Inventory,
+        'model': core.models.view_tables.Inventory,
         'context_object_name': 'inventorys',
         'table_columns': ['Description', 'Owner', 'Operator', 'Lab', 'Status', 'Actor'],
         'column_necessary_fields': {
@@ -32,7 +32,7 @@ methods = {
         'field_contains': '',
     },
     'Material': {
-        'model': core.models.Material,
+        'model': core.models.view_tables.Material,
         'context_object_name': 'materials',
         # 'table_columns': ['Chemical Name', 'Abbreviation', 'Status', 'Actions'],
         'table_columns': ['Status', 'Actions'],
@@ -46,7 +46,7 @@ methods = {
 
     },
     'Systemtool': {
-        'model': core.models.Systemtool,
+        'model': core.models.view_tables.Systemtool,
         'context_object_name': 'systemtools',
         'table_columns': ['Name', 'Description',
                           'System Tool Type', 'Vendor Organization', 'Actions'],
@@ -60,7 +60,7 @@ methods = {
         'field_contains': '',
     },
     'MaterialType': {
-        'model': core.models.MaterialType,
+        'model': core.models.view_tables.MaterialType,
         'context_object_name': 'material_types',
         'table_columns': ['Description', 'Actions'],
         'column_necessary_fields': {
@@ -70,7 +70,7 @@ methods = {
         'field_contains': '',
     },
     'Organization': {
-        'model': core.models.Organization,
+        'model': core.models.view_tables.Organization,
         'context_object_name': 'organizations',
         'table_columns': ['Full Name', 'Address', 'Website', 'Actions'],
         'column_necessary_fields': {
@@ -82,7 +82,7 @@ methods = {
         'field_contains': '',
     },
     'Person': {
-        'model': core.models.Person,
+        'model': core.models.view_tables.Person,
         'context_object_name': 'persons',
         'table_columns': ['Name', 'Address', 'Title', 'Email', 'Actions'],
         'column_necessary_fields': {
@@ -95,7 +95,7 @@ methods = {
         'field_contains': '',
     },
     'Status': {
-        'model': core.models.Status,
+        'model': core.models.view_tables.Status,
         'context_object_name': 'statuss',
         'table_columns': ['Description', 'Actions'],
         'column_necessary_fields': {
@@ -105,7 +105,7 @@ methods = {
         'field_contains': '',
     },
     'SystemtoolType': {
-        'model': core.models.SystemtoolType,
+        'model': core.models.view_tables.SystemtoolType,
         'context_object_name': 'systemtool_types',
         'table_columns': ['Description', 'Actions'],
         'column_necessary_fields': {
@@ -115,7 +115,7 @@ methods = {
         'field_contains': '',
     },
     'Tag': {
-        'model': core.models.Tag,
+        'model': core.models.view_tables.Tag,
         'context_object_name': 'tags',
         'table_columns': ['Name', 'Description', 'Actor', 'Tag Type', 'Actions'],
         'column_necessary_fields': {
@@ -128,7 +128,7 @@ methods = {
         'field_contains': '',
     },
     'TagType': {
-        'model': core.models.TagType,
+        'model': core.models.view_tables.TagType,
         'context_object_name': 'tag_types',
         'table_columns': ['Short Description', 'Description', 'Actions'],
         'column_necessary_fields': {
@@ -139,7 +139,7 @@ methods = {
         'field_contains': '',
     },
     'UdfDef': {
-        'model': core.models.UdfDef,
+        'model': core.models.view_tables.UdfDef,
         'context_object_name': 'udf_defs',
         'table_columns': ['Description', 'Value Type', 'Actions'],
         'column_necessary_fields': {
@@ -150,7 +150,7 @@ methods = {
         'field_contains': '',
     },
     'InventoryMaterial': {
-        'model': core.models.InventoryMaterial,
+        'model': core.models.view_tables.InventoryMaterial,
         'context_object_name': 'inventory_materials',
 
         'table_columns': ['Description', 'Material','Amount On Hand', 'Expiration Date', 'Location', 'Composite', 'Consumable', 'Actions'],

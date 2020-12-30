@@ -2,10 +2,11 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth.hashers import make_password
 from django.contrib.admin import widgets
-from core.models import (CustomUser, Person, Material, Inventory, Actor, Note,
+from core.models import (CustomUser,  PersonTable, OrganizationPassword, )
+from core.models.view_tables import (Person, Material, Inventory, Actor, Note,
                          Organization, Systemtool, SystemtoolType,
                          UdfDef, Status, Tag, TagAssign, TagType, MaterialType,
-                         Edocument, PersonTable, OrganizationPassword, InventoryMaterial)
+                         Edocument, InventoryMaterial)
 from core.models.custom_types import ValWidget, ValFormField
 from packaging import version
 import django

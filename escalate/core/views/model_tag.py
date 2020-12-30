@@ -3,7 +3,7 @@ from django.views.generic.edit import FormView, CreateView, UpdateView
 from django.forms import modelformset_factory
 from django.shortcuts import redirect
 
-from core.models import Tag, TagAssign, Actor
+from core.models.view_tables import Tag, TagAssign, Actor
 from core.forms import TagForm
 #from core.views.menu import GenericListView
 
