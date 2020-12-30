@@ -630,9 +630,12 @@ EXECUTE PROCEDURE upsert_measure ( );
 CREATE OR REPLACE VIEW vw_experiment AS
 SELECT
 	ex.experiment_uuid,
+    ex.experiment_type_uuid,
+    et.description as experiment_type,
 	ex.ref_uid,
 	ex.description,
 	ex.parent_uuid,
+    exp.description as parent_description,
 	ex.parent_path,
 	ex.owner_uuid,
 	aown.description as owner_description,
@@ -647,12 +650,14 @@ SELECT
     atag.tag_to_array AS tags,
     anote.note_to_array AS notes
 FROM experiment ex
+LEFT JOIN experiment_type et ON ex.experiment_type_uuid = et.experiment_type_uuid
+LEFT JOIN experiment exp ON ex.parent_uuid = exp.experiment_uuid
 LEFT JOIN actor aown ON ex.owner_uuid = aown.actor_uuid
 LEFT JOIN actor aop ON ex.owner_uuid = aop.actor_uuid
 LEFT JOIN actor alab ON ex.owner_uuid = alab.actor_uuid
 LEFT JOIN status st ON ex.status_uuid = st.status_uuid
-LEFT JOIN LATERAL (select * from tag_to_array (experiment_uuid)) atag ON true
-LEFT JOIN LATERAL (select * from note_to_array (experiment_uuid)) anote ON true;
+LEFT JOIN LATERAL (select * from tag_to_array (ex.experiment_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (ex.experiment_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_experiment_upsert ON vw_experiment;
 CREATE TRIGGER trigger_experiment_upsert INSTEAD OF INSERT
@@ -660,6 +665,36 @@ OR UPDATE
 OR DELETE ON vw_experiment
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_experiment ( );
+
+
+----------------------------------------
+-- view experiment_type
+-- DROP VIEW vw_experiment_type cascade
+----------------------------------------
+CREATE OR REPLACE VIEW vw_experiment_type AS
+SELECT
+	et.experiment_type_uuid,
+    et.description,
+    et.actor_uuid,
+    act.description as actor_description,
+    et.status_uuid,
+    st.description as status_description,
+	et.add_date,
+	et.mod_date,
+    atag.tag_to_array AS tags,
+    anote.note_to_array AS notes
+FROM experiment_type et
+LEFT JOIN actor act ON et.actor_uuid = act.actor_uuid
+LEFT JOIN status st ON et.status_uuid = st.status_uuid
+LEFT JOIN LATERAL (select * from tag_to_array (experiment_type_uuid)) atag ON true
+LEFT JOIN LATERAL (select * from note_to_array (experiment_type_uuid)) anote ON true;
+
+DROP TRIGGER IF EXISTS trigger_experiment_type_upsert ON vw_experiment_type;
+CREATE TRIGGER trigger_experiment_type_upsert INSTEAD OF INSERT
+OR UPDATE
+OR DELETE ON vw_experiment_type
+FOR EACH ROW
+EXECUTE PROCEDURE upsert_experiment_type ( );
 
 
 ----------------------------------------
@@ -3158,6 +3193,7 @@ SELECT
 			'experiment_ref_uid', e.ref_uid,
 			'experiment_description', e.description,
 			'experiment_parent_uuid', e.parent_uuid,
+		    'experiment_parent_description', e.parent_description,
 			'experiment_owner_uuid', e.owner_uuid,
 			'experiment_owner_description', e.owner_description,
 			'experiment_operator_uuid', e.operator_uuid,

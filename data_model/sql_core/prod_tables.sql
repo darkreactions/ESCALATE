@@ -132,6 +132,7 @@ DROP TABLE IF EXISTS condition_path cascade;
 DROP TABLE IF EXISTS edocument cascade;
 DROP TABLE IF EXISTS edocument_x cascade;
 DROP TABLE IF EXISTS experiment cascade;
+DROP TABLE IF EXISTS experiment_type cascade;
 DROP TABLE IF EXISTS experiment_workflow cascade;
 DROP TABLE IF EXISTS inventory cascade;
 DROP TABLE IF EXISTS inventory_material cascade;
@@ -462,6 +463,7 @@ CREATE TABLE edocument_x (
 
 CREATE TABLE experiment (
 	experiment_uuid uuid DEFAULT uuid_generate_v4 (),
+	experiment_type_uuid uuid,
 	ref_uid varchar,
 	description varchar COLLATE "pg_catalog"."default" NOT NULL,
 	parent_uuid uuid,
@@ -469,6 +471,16 @@ CREATE TABLE experiment (
 	owner_uuid uuid,
 	operator_uuid uuid,
 	lab_uuid uuid,
+	status_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
+CREATE TABLE experiment_type (
+	experiment_type_uuid uuid DEFAULT uuid_generate_v4 (),
+	description varchar COLLATE "pg_catalog"."default",
+	actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
@@ -1168,6 +1180,12 @@ CLUSTER experiment
 USING "pk_experiment_experiment_uuid";
 
 
+ALTER TABLE experiment_type
+	ADD CONSTRAINT "pk_experiment_type_experiment_type_uuid" PRIMARY KEY (experiment_type_uuid);
+CLUSTER experiment_type
+USING "pk_experiment_type_experiment_type_uuid";
+
+
 ALTER TABLE experiment_workflow
 	ADD CONSTRAINT "pk_experiment_workflow_uuid" PRIMARY KEY (experiment_workflow_uuid);
 CREATE INDEX "ix_experiment_workflow_experiment" ON experiment_workflow (experiment_uuid);
@@ -1625,11 +1643,17 @@ ALTER TABLE edocument_x
 
 
 ALTER TABLE experiment
-	ADD CONSTRAINT fk_experiment_actor_owner_1 FOREIGN KEY (owner_uuid) REFERENCES actor (actor_uuid),
-		ADD CONSTRAINT fk_experiment_actor_operator_1 FOREIGN KEY (operator_uuid) REFERENCES actor (actor_uuid),
-			ADD CONSTRAINT fk_experiment_actor_lab_1 FOREIGN KEY (lab_uuid) REFERENCES actor (actor_uuid),
-				ADD CONSTRAINT fk_experiment_experiment_1 FOREIGN KEY (parent_uuid) REFERENCES experiment (experiment_uuid),
-					ADD CONSTRAINT fk_experiment_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+    ADD CONSTRAINT fk_experiment_experiment_type_1 FOREIGN KEY (experiment_type_uuid) REFERENCES experiment_type (experiment_type_uuid),
+        ADD CONSTRAINT fk_experiment_actor_owner_1 FOREIGN KEY (owner_uuid) REFERENCES actor (actor_uuid),
+		    ADD CONSTRAINT fk_experiment_actor_operator_1 FOREIGN KEY (operator_uuid) REFERENCES actor (actor_uuid),
+			    ADD CONSTRAINT fk_experiment_actor_lab_1 FOREIGN KEY (lab_uuid) REFERENCES actor (actor_uuid),
+				    ADD CONSTRAINT fk_experiment_experiment_1 FOREIGN KEY (parent_uuid) REFERENCES experiment (experiment_uuid),
+					    ADD CONSTRAINT fk_experiment_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+
+
+ALTER TABLE experiment_type
+	ADD CONSTRAINT fk_experiment_type_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+		ADD CONSTRAINT fk_experiment_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
 
 ALTER TABLE experiment_workflow

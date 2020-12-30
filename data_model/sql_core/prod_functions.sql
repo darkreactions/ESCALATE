@@ -2063,7 +2063,7 @@ BEGIN
         END IF;
         -- 1) create new experiment row based on p_experiment_uuid
         insert into experiment (ref_uid, description, parent_uuid, owner_uuid, operator_uuid, lab_uuid, status_uuid)
-        (select e.ref_uid, _new_exp_name, e.parent_uuid, e.owner_uuid, e.operator_uuid, e.lab_uuid, e.status_uuid from experiment e
+        (select e.ref_uid, _new_exp_name, p_experiment_uuid, e.owner_uuid, e.operator_uuid, e.lab_uuid, e.status_uuid from experiment e
         where e.experiment_uuid = p_experiment_uuid) returning experiment_uuid into _new_exp_uuid;
         -- 2) create new bom, bom_material, bom_material_composite and bom_material_index entries
         _old_bom_uuid := (select bom_uuid from bom where experiment_uuid = p_experiment_uuid);

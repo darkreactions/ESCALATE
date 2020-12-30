@@ -2870,6 +2870,60 @@ LANGUAGE plpgsql;
 
 
 /*
+Name:			upsert_experiment_type()
+Parameters:
+
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.12.30
+Description:	trigger proc that deletes, inserts or updates experiment_type record based on TG_OP (trigger operation)
+Notes:
+
+Example:		insert into vw_experiment_type (description, actor_uuid, status_uuid) values
+					('TEST experiment type',
+					(select actor_uuid from vw_actor where org_short_name = 'HC'),
+					null);
+				update vw_experiment_type set
+						status_uuid = (select status_uuid from vw_status where description = 'active') where (description = 'TEST measure type');
+				delete from vw_experiment_type where experiment_type_uuid = (select experiment_type_uuid from vw_experiment_type
+                    where (description = 'TEST experiment type'));
+ */
+CREATE OR REPLACE FUNCTION upsert_experiment_type ()
+	RETURNS TRIGGER
+	AS $$
+BEGIN
+	IF(TG_OP = 'DELETE') THEN
+		-- first delete the experiment_type record
+		DELETE FROM experiment_type
+		WHERE experiment_type_uuid = OLD.experiment_type_uuid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+		-- delete any assigned records
+		PERFORM delete_assigned_recs (OLD.experiment_type_uuid);
+		RETURN OLD;
+	ELSIF (TG_OP = 'UPDATE') THEN
+		UPDATE
+			experiment_type
+		SET
+			description = NEW.description,
+			actor_uuid = NEW.actor_uuid,
+			status_uuid = NEW.status_uuid,
+			mod_date = now()
+		WHERE
+			experiment_type.experiment_type_uuid = NEW.experiment_type_uuid;
+		RETURN NEW;
+	ELSIF (TG_OP = 'INSERT') THEN
+		INSERT INTO experiment_type (description, actor_uuid, status_uuid)
+			VALUES(NEW.description, NEW.actor_uuid, NEW.status_uuid) returning experiment_type_uuid into NEW.experiment_type_uuid;
+		RETURN NEW;
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
 Name:			upsert_experiment()
 Parameters:		
 
