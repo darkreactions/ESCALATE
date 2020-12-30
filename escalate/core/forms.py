@@ -1,10 +1,12 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
+from django.contrib.auth.hashers import make_password
+from django.contrib.admin import widgets
 from core.models import (CustomUser, Person, Material, Inventory, Actor, Note,
                          Organization, Systemtool, SystemtoolType,
                          UdfDef, Status, Tag, TagAssign, TagType, MaterialType,
                          Edocument, PersonTable, OrganizationPassword, InventoryMaterial)
-
+from core.models.custom_types import ValWidget, ValFormField
 from packaging import version
 import django
 if version.parse(django.__version__) < version.parse('3.1'):
@@ -13,7 +15,7 @@ else:
     from django.forms import JSONField
 
 dropdown_attrs = {'class': 'selectpicker',
-                  'data-style': 'btn-dark', 'data-live-search': 'true'}
+                  'data-style': 'btn-outline-primary', 'data-live-search': 'true'}
 
 
 class LoginForm(forms.Form):
@@ -524,7 +526,14 @@ class JoinOrganizationForm(forms.ModelForm):
 
 
 class CreateOrganizationPasswordForm(forms.ModelForm):
-
+    
+    def save(self, commit=True):
+        instance = super(CreateOrganizationPasswordForm, self).save(commit=False)
+        instance.password = make_password(instance.password)
+        if commit:
+            instance.save()
+        return instance
+    
     class Meta:
         model = OrganizationPassword
         fields = ['organization', 'password']
@@ -533,7 +542,6 @@ class CreateOrganizationPasswordForm(forms.ModelForm):
         }
 
 class InventoryMaterialForm(forms.ModelForm):
-
     class Meta:
         model = InventoryMaterial
         fields = ['description', 'inventory', 'material', 
@@ -544,16 +552,17 @@ class InventoryMaterialForm(forms.ModelForm):
         field_classes = {
             'description': forms.CharField,
             'part_no': forms.CharField,
-            'onhand_amt': forms.CharField,
+            #'onhand_amt': ValFormField,
+            #'onhand_amt': forms.CharField,
             'expiration_date': forms.SplitDateTimeField,
-            'location': forms.CharField
+            'location': forms.CharField,
         }
         labels = {
             'description': 'Description',
             'material': 'Material',
             'actor': 'Actor',
             'part_no': 'Part Number',
-            'onhand_amt': 'On hand amount',
+            'onhand_amt': 'Amount on hand',
             'expiration_date': 'Expiration date',
             'location': 'Inventory location',
             'material_consumable': 'Consumable',
@@ -562,23 +571,15 @@ class InventoryMaterialForm(forms.ModelForm):
         widgets = {
             'material': forms.Select(attrs=dropdown_attrs),
             'actor': forms.Select(attrs=dropdown_attrs),
+            'inventory': forms.Select(attrs=dropdown_attrs),
             'description': forms.Textarea(attrs={'rows': '3',
                                                  'cols': '10',
                                                  'placeholder': 'Description'}),
 
             'part_no': forms.TextInput(attrs={'placeholder': 'Part number'}),
-            'onhand_amt': forms.TextInput(attrs={'placeholder': 'On hand amount'}),
-            'expiration_date': forms.SplitDateTimeWidget(
-                date_format='%d-%m-%Y',
-                date_attrs={
-                    'placeholder': 'DD-MM-YYYY'
-                },
-                time_format='%H:%M',
-                time_attrs={
-                    'placeholder': 'HH-MM'
-                }
-            ),
+            'expiration_date': widgets.AdminSplitDateTime(),
             'location': forms.TextInput(attrs={
                 'placeholder': 'Location'}),
             'status': forms.Select(attrs=dropdown_attrs),
         }
+    

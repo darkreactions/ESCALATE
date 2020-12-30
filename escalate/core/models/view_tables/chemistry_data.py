@@ -179,10 +179,7 @@ class InventoryMaterial(models.Model):
     material_composite_flg = models.BooleanField()
     part_no = models.CharField(max_length=255,
                                blank=True, null=True)
-    #onhand_amt = models.CharField(
-    #    max_length=255, blank=True, null=True)
     onhand_amt = ValField(max_length=255, blank=True, null=True)
-    # inventory_unit = models.CharField(max_length=255, blank=True, null=True)
     expiration_date = models.DateTimeField(blank=True, null=True)
     location = models.CharField(
         max_length=255, blank=True, null=True)

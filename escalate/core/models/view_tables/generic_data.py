@@ -338,7 +338,11 @@ class MeasureDef(models.Model):
                                null=True,
                                editable=False, related_name='measure_def_status')
     add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)                    
+    mod_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = 'vw_measure_def'  
 
 
 class Note(models.Model):

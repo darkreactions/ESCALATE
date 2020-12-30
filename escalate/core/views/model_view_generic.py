@@ -175,13 +175,13 @@ class GenericModelEdit:
         context = super().get_context_data(**kwargs)
 
         if self.context_object_name in context:
-            print('Found context!!!')
+            
             model = context[self.context_object_name]
             context['note_forms'] = self.NoteFormSet(
                 queryset=Note.objects.filter(note_x_note__ref_note=model.pk), prefix='note')
             context['tag_select_form'] = TagSelectForm(model_pk=model.pk)
         else:
-            print('DID NOT find context!!!')
+            
             context['note_forms'] = self.NoteFormSet(
                 queryset=self.model.objects.none(), prefix='note')
             context['tag_select_form'] = TagSelectForm()
@@ -195,7 +195,6 @@ class GenericModelEdit:
             model = get_object_or_404(self.model, pk=self.kwargs['pk'])
         else:
             model = self.model()
-
         if request.POST.get('add_new_tag'):
             request.session['model_name'] = self.context_object_name
             self.success_url = reverse_lazy(
@@ -205,22 +204,23 @@ class GenericModelEdit:
         return super().post(request, *args, **kwargs)
 
     def form_valid(self, form):
+        print('INSIDE FORM VALID')
+        
         self.object = form.save()
         if self.object.pk is None:
-            print('object.pk not found')
             required_fields = [f.name for f in self.model._meta.get_fields(
             ) if not getattr(f, 'null', False) is True]
-            print(required_fields)
+            
             required_fields = [f for f in required_fields if f not in [
                 'add_date', 'mod_date', 'uuid']]
-            print(required_fields)
+            
 
             query = {k: v for k, v in self.object.__dict__.items() if (
                 k in required_fields)}
 
-            print(query)
+            
             self.object = self.model.objects.filter(**query).latest('mod_date')
-            print(self.object.pk)
+            
 
         if self.request.POST.get('tags'):
             # tags from post
@@ -247,7 +247,7 @@ class GenericModelEdit:
 
         if self.NoteFormSet != None:
             actor = Actor.objects.get(
-                person=self.request.user.person.pk)
+                person=self.request.user.person.pk, organization=None)
             formset = self.NoteFormSet(self.request.POST, prefix='note')
             # print(request.POST)
             # Loop through every note form
@@ -271,6 +271,12 @@ class GenericModelEdit:
                     f'{self.context_object_name}_update', kwargs={'pk': self.object.pk})
 
         return HttpResponseRedirect(self.get_success_url())
+        
+    def form_invalid(self, form):
+        print('IN FORM INVALID!')
+        context = self.get_context_data()
+        context['form'] = form
+        return render(self.request, self.template_name, context)
 
 
 class GenericModelView(DetailView):

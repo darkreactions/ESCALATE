@@ -1,6 +1,7 @@
 # from core.models import (Actor, Material, Inventory,
 #                         Person, Organization, Note)
 
+#from escalate.core.models.view_tables.workflow import Workflow, WorkflowStep
 from django.db.models.fields import related
 from rest_framework import serializers
 from core.models.view_tables import Edocument, Note
@@ -33,7 +34,7 @@ class ValSerializerField(JSONField):
         return value.to_dict()
 
     def to_internal_value(self, data):
-        print(f"DATA!!: {data} : {type(data)}")
+        #print(f"DATA!!: {data} : {type(data)}")
         data = json.loads(data)
         return Val.from_dict(data)
 
@@ -211,7 +212,7 @@ for model_name, data in expandable_fields.items():
     #model = getattr(core.models, model_name)
     fields = data['fields']
     options = data['options']
-    print(fields)
+    #print(fields)
     model = globals()[model_name]
     meta_class = type(
         'Meta', (), {'model': model, 'fields': '__all__', 'expandable_fields': fields})
@@ -232,3 +233,38 @@ for model_name, data in expandable_fields.items():
                                                      NoteListSerializer,
                                                      DynamicFieldsModelSerializer]),
                                               extra_fields)
+
+
+
+class WorkflowSerializer(EdocListSerializer,
+                        TagListSerializer,
+                        NoteListSerializer,
+                        DynamicFieldsModelSerializer):
+    step = SerializerMethodField()
+
+    def get_next_step(self, current_step, step_num=1):
+        # Recursive function to traverse through workflow steps in order
+        # Unfortunately, this method breaks expandable fields. Hence it's always expanded
+        # This propagates to lower levels, therefore cannot expand workflow.workflow_step.workflow_object
+        next_step = current_step.workflow_step_parent.first()
+        if next_step:
+            yield from self.get_next_step(next_step, step_num=step_num+1)
+        yield current_step, step_num
+
+    def get_step(self, obj):
+        step_nums = []
+        steps = []
+        top_level_step = WorkflowStep.objects.get(workflow=obj, parent__isnull=True)
+        for step, step_num in self.get_next_step(top_level_step):
+            step_nums.append(step_num)
+            steps.append(step)
+        
+        steps.reverse()
+        step_nums.reverse()
+        result_serializer = WorkflowStepSerializer(steps, many=True, context=self.context)        
+        return result_serializer.data
+
+    class Meta:
+        model = Workflow
+        fields = '__all__'
+        #expandable_fields = expandable_fields['Workflow']['fields']
