@@ -2,6 +2,7 @@
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.hashers import make_password, check_password
 from django.shortcuts import render, redirect
 from django.views import View
 from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
@@ -72,7 +73,7 @@ class UserProfileView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         if request.POST.get("add_org"):
             org_pwd = OrganizationPassword.objects.get(pk=request.POST['organization'])
-            if request.POST['password'] == org_pwd.password:
+            if check_password(request.POST['password'], org_pwd.password):
                 person = Person.objects.get(pk=request.user.person.pk)
                 organization = Organization.objects.get(pk=org_pwd.organization.pk)
                 actor, created = Actor.objects.get_or_create(person=person, organization=organization)

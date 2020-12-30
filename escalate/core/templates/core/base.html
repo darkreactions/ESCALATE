@@ -38,6 +38,8 @@
 
     <link rel="stylesheet" href={% static "main.css" %}>
 
+    {% block headcontent %}
+    {% endblock %}
 
 </head>
 
@@ -223,8 +225,8 @@
             })
     </script>
 
-
-
+    {% block tailcontent %}
+    {% endblock %}
 
 
 </body>

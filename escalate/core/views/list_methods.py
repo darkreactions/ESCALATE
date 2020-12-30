@@ -153,9 +153,10 @@ methods = {
         'model': core.models.InventoryMaterial,
         'context_object_name': 'inventory_materials',
 
-        'table_columns': ['Description', 'Composite', 'Consumable', 'Amount On Hand', 'Expiration Date', 'Location', 'Actions'],
+        'table_columns': ['Description', 'Material','Amount On Hand', 'Expiration Date', 'Location', 'Composite', 'Consumable', 'Actions'],
         'column_necessary_fields': {
-            'Description': ['material_description'], 
+            'Description': ['description'], 
+            'Material': ['material_description'], 
             'Composite': ['material_composite_flg'], 
             'Consumable': ['material_consumable'], 
             'Amount On Hand': ['onhand_amt'], 
