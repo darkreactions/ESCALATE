@@ -394,6 +394,8 @@ CREATE TABLE calculation_stack (
 
 CREATE TABLE condition (
 	condition_uuid uuid DEFAULT uuid_generate_v4 (),
+	workflow_uuid uuid NOT NULL,
+	workflow_action_set_uuid uuid,
 	condition_calculation_def_x_uuid uuid,
 	in_val val,
 	out_val val,
@@ -1111,6 +1113,8 @@ CREATE INDEX "ix_calculation_parameter_def_x_calculation_def" ON calculation_par
 
 ALTER TABLE condition
 	ADD CONSTRAINT "pk_condition_condition_uuid" PRIMARY KEY (condition_uuid);
+CREATE INDEX "ix_condition_workflow" ON condition (workflow_uuid);
+CREATE INDEX "ix_condition_workflow_action_set" ON condition (workflow_action_set_uuid);
 CREATE INDEX "ix_condition_condition_calculation_def_x" ON condition (condition_calculation_def_x_uuid);
 CLUSTER condition
 USING "pk_condition_condition_uuid";
@@ -1591,8 +1595,10 @@ ALTER TABLE calculation_parameter_def_x
 
 ALTER TABLE condition
 	ADD CONSTRAINT fk_condition_condition_calculation_def_x_1 FOREIGN KEY (condition_calculation_def_x_uuid) REFERENCES condition_calculation_def_x (condition_calculation_def_x_uuid),
-		ADD CONSTRAINT fk_condition_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
-			ADD CONSTRAINT fk_condition_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+		ADD CONSTRAINT fk_condition_workflow_1 FOREIGN KEY (workflow_uuid) REFERENCES workflow (workflow_uuid),
+	 	    ADD CONSTRAINT fk_condition_workflow_action_set_1 FOREIGN KEY (workflow_action_set_uuid) REFERENCES  workflow_action_set (workflow_action_set_uuid),
+                ADD CONSTRAINT fk_condition_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+			        ADD CONSTRAINT fk_condition_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
 
 ALTER TABLE condition_def
@@ -1978,6 +1984,8 @@ COMMENT ON COLUMN calculation_stack.add_date IS 'date/time record was created';
 
 COMMENT ON TABLE condition IS 'workflow object of evaluated expression (calculation) and used as branch to one or more objects';
 COMMENT ON COLUMN condition.condition_uuid IS 'PK of condition';
+COMMENT ON COLUMN condition.workflow_uuid IS 'FK to the workflow (workflow_uuid) defined in workflow table';
+COMMENT ON COLUMN condition.workflow_action_set_uuid IS 'FK to the workflow_action_set (workflow_action_set_uuid) defined in workflow_action_set table';
 COMMENT ON COLUMN condition.condition_calculation_def_x_uuid IS 'FK to condition_calculation_def_x in order to bind condition calculation';
 COMMENT ON COLUMN condition.in_val IS 'input value (val)';
 COMMENT ON COLUMN condition.out_val IS 'output value (val)';

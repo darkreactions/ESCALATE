@@ -2155,6 +2155,8 @@ EXECUTE PROCEDURE upsert_condition_calculation_def_assign();
 CREATE OR REPLACE VIEW vw_condition AS
 SELECT
     cd.condition_uuid,
+    cd.workflow_uuid,
+    cd.workflow_action_set_uuid,
     cd.condition_calculation_def_x_uuid,
     cc.condition_def_uuid,
     cc.condition_description,
@@ -2428,9 +2430,16 @@ EXECUTE PROCEDURE upsert_workflow_action_set ( );
 CREATE OR REPLACE VIEW vw_experiment_parameter AS
 -- action
 select * from
-    (select e.experiment_uuid, e.description as experiment, w.description as workflow, ew.experiment_workflow_seq as workflow_seq,
-           'action' as workflow_object, ap.action_description as object_description, ap.action_uuid as object_uuid,
-            ap.parameter_def_description, ap.parameter_uuid as parameter_uuid, array[ap.parameter_val] as parameter_value
+    (select e.experiment_uuid,
+            e.description as experiment,
+            w.description as workflow,
+            ew.experiment_workflow_seq as workflow_seq,
+           'action' as workflow_object,
+            ap.action_description as object_description,
+            ap.action_uuid as object_uuid,
+            ap.parameter_def_description,
+            ap.parameter_uuid as parameter_uuid,
+            array[ap.parameter_val] as parameter_value
     from vw_action_parameter ap
     JOIN vw_workflow w ON ap.workflow_uuid = w.workflow_uuid
     JOIN experiment_workflow ew ON w.workflow_uuid = ew.workflow_uuid
@@ -2438,18 +2447,32 @@ select * from
     where ap.workflow_action_set_uuid is null
     UNION
     -- workflow action set parameter
-    select e.experiment_uuid, e.description as experiment, was.description as workflow, ew.experiment_workflow_seq as workflow_seq,
-           'action_set' as workflow_object, was.description as object_description, was.workflow_action_set_uuid as object_uuid,
-           was.parameter_def_description, null as parameter_uuid, was.parameter_val as parameter_value
+    select e.experiment_uuid,
+           e.description as experiment,
+           was.workflow_description as workflow,
+           ew.experiment_workflow_seq as workflow_seq,
+           'action_set' as workflow_object,
+           was.description as object_description,
+           was.workflow_action_set_uuid as object_uuid,
+           was.parameter_def_description,
+           null as parameter_uuid,
+           was.parameter_val as parameter_value
     FROM vw_workflow_action_set was
     JOIN experiment_workflow ew ON was.workflow_uuid = ew.workflow_uuid
     JOIN experiment e ON ew.experiment_uuid = e.experiment_uuid
     where was.parameter_val is not null
     UNION
     -- workflow action set calculation parameter
-    select e.experiment_uuid, e.description as experiment, was.workflow_description as workflow, ew.experiment_workflow_seq as workflow_seq,
-           'action_set' as workflow_object, was.description as object_description, was.workflow_action_set_uuid as object_uuid,
-           cpd.parameter_def_description as parameter, cpd.parameter_def_uuid as parameter_uuid, array[cpd.default_val] as parameter_value
+    select e.experiment_uuid,
+           e.description as experiment,
+           was.workflow_description as workflow,
+           ew.experiment_workflow_seq as workflow_seq,
+           'action_set' as workflow_object,
+           was.description as object_description,
+           was.workflow_action_set_uuid as object_uuid,
+           cpd.parameter_def_description as parameter,
+           cpd.parameter_def_uuid as parameter_uuid,
+           array[cpd.default_val] as parameter_value
     FROM vw_workflow_action_set was
     JOIN vw_calculation c ON was.calculation_uuid = c.calculation_uuid
     LEFT JOIN vw_calculation_def cd ON c.calculation_def_uuid = cd.calculation_def_uuid
@@ -2460,7 +2483,7 @@ select * from
 order by experiment_uuid, workflow_seq, workflow_object, parameter_def_description;
 
 DROP TRIGGER IF EXISTS trigger_experiment_parameter_upsert ON vw_experiment_parameter;
-CREATE TRIGGER trigger_experiment_parameter INSTEAD OF UPDATE
+CREATE TRIGGER trigger_experiment_parameter_upsert INSTEAD OF UPDATE
 ON vw_experiment_parameter
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_experiment_parameter ( );
@@ -3305,7 +3328,7 @@ LEFT JOIN (
 						'object_parameters',op.action_parameter)
 				) AS wfs
 			FROM vw_workflow_step ws
-				JOIN (
+				LEFT JOIN (
 				    select * from action_parameter_json ()
 			) op
 				ON ws.object_uuid = op.object_uuid

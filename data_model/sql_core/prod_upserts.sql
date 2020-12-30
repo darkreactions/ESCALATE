@@ -1659,6 +1659,7 @@ BEGIN
 			material_uuid = NEW.material_uuid,
 			part_no = NEW.part_no,
 			onhand_amt = NEW.onhand_amt,
+		    expiration_date = NEW.expiration_date,
 			location = NEW.location,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
@@ -2781,7 +2782,9 @@ BEGIN
 	    UPDATE
 			condition
 		SET
-			condition_calculation_def_x_uuid = NEW.condition_calculation_def_x_uuid,
+			workflow_uuid = NEW.workflow_uuid,
+		    workflow_action_set_uuid = NEW.workflow_action_set_uuid,
+		    condition_calculation_def_x_uuid = NEW.condition_calculation_def_x_uuid,
 			in_val = NEW.in_val,
 			out_val = NEW.out_val,
 			actor_uuid = NEW.actor_uuid,
@@ -2791,8 +2794,8 @@ BEGIN
 			condition.condition_uuid = NEW.condition_uuid;
 		RETURN NEW;
  	ELSIF (TG_OP = 'INSERT') THEN
- 		INSERT INTO condition (condition_calculation_def_x_uuid, in_val, out_val, actor_uuid, status_uuid)
- 		VALUES(NEW.condition_calculation_def_x_uuid, NEW.in_val, NEW.out_val, NEW.actor_uuid, NEW.status_uuid);
+ 		INSERT INTO condition (workflow_uuid, workflow_action_set_uuid, condition_calculation_def_x_uuid, in_val, out_val, actor_uuid, status_uuid)
+ 		VALUES(NEW.workflow_uuid, NEW.workflow_action_set_uuid, NEW.condition_calculation_def_x_uuid, NEW.in_val, NEW.out_val, NEW.actor_uuid, NEW.status_uuid);
  		RETURN NEW;
  	END IF;
 END;
@@ -3241,7 +3244,9 @@ Returns:		void
 Author:			G. Cattabriga
 Date:			2020.12.01
 Description:	trigger proc that deletes or inserts (no updates!) workflow_action_set record based on TG_OP (trigger operation)
-Notes:			this will build a workflow of repeating action with one-to-many or many-to-many materials, varying parameter (explicit or calculation)	
+Notes:			this will build a workflow of repeating action with one-to-many or many-to-many materials, varying parameter (explicit or calculation)
+                !!!!! This expects to live in a workflow alone. That is, do not insert other actions or action sets into the workflow this  !!!!!
+                !!!!! is assigned, otherwise it could break the experiment_copy function !!!!!
  
 Example:		-- insert a one-to-many workflow_action_set (one source into many destinations)
 				insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operator_uuid, lab_uuid, status_uuid)
