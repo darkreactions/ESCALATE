@@ -221,7 +221,7 @@ for model_name, data in expandable_fields.items():
 
     
     for field_name, field_data in fields.items():
-        if field_name not in options['many_to_many']:
+        if field_name not in options.get('many_to_many', []):
             kwargs = field_data[1]
             extra_fields[field_name] = HyperlinkedRelatedField(**kwargs)
     
@@ -240,6 +240,7 @@ class WorkflowSerializer(EdocListSerializer,
                         TagListSerializer,
                         NoteListSerializer,
                         DynamicFieldsModelSerializer):
+    
     step = SerializerMethodField()
 
     def get_next_step(self, current_step, step_num=1):
@@ -263,8 +264,8 @@ class WorkflowSerializer(EdocListSerializer,
         step_nums.reverse()
         result_serializer = WorkflowStepSerializer(steps, many=True, context=self.context)        
         return result_serializer.data
-
+    
     class Meta:
         model = Workflow
         fields = '__all__'
-        #expandable_fields = expandable_fields['Workflow']['fields']
+        expandable_fields = expandable_fields['Workflow']['fields']

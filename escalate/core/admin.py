@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import (Organization, Material, Status, Tag, Actor, Person, Note)
+from .models.view_tables import (Organization, Material, Status, Tag, Actor, Person, Note)
 from .models import CustomUser, OrganizationPassword
 from .forms import CreateOrganizationPasswordForm
 

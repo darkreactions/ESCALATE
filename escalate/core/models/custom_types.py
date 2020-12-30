@@ -42,8 +42,12 @@ class Val:
             'array_num': 7, 'blob': 8, 'blob_array': 9, 'bool': 10,
             'bool_array': 11
         }
-    def __init__(self, val_type, value, unit, null=False):
+    def __init__(self, val_type, value, unit, null=False, raw_string=''):
         self.null = null
+        self.unit = None
+        if isinstance(value, str):
+            if len(value) == 0:
+                print(raw_string)
         if not self.null:
             self.val_type = val_type
             if not isinstance(val_type, str):
@@ -77,12 +81,17 @@ class Val:
         return converted_value
     
     def convert_single_value(self, description, value):
-        primitives = {'bool': bool, 'int': int, 'num': float, 'text': str}
+        primitives = {'bool': bool, 'int': int, 'num': float, 'text': str, 'blob': str}
         reverse_primitives = {bool: 'bool',
                               int: 'int', float: 'num', str: 'text'}
         prim = primitives[description]
         try:
-            result = prim(value)
+            if len(value) > 0: 
+                result = prim(value)
+            else:
+                #print(f'Before converting {self.unit}')
+                #print(f'{description} : {value}')
+                result = value
         except Exception as e:
             print(e)
             raise ValidationError(
@@ -114,15 +123,16 @@ class Val:
 
     @classmethod
     def from_db(cls, val_string):
-        # print(val_string)
+        #print(val_string)
         args = list(csv.reader([val_string[1:-1]]))[0]
-        # print(args)
+        #print(args)
         type_uuid = args[0]
         unit = args[1]
         val_type = TypeDef.objects.get(pk=type_uuid)
         
         # Values should be from index 2 onwards.
         value = args[cls.positions[val_type.description]]
+        
         if val_type.description == 'text':
             value = str(value)
         elif 'array' in val_type.description:
@@ -132,8 +142,8 @@ class Val:
         if 'bool' in val_type.description:
             table = str.maketrans({'t': 'true', 'f':'false', 'T':'true', 'F':'false'})
             value = value.translate(table)
-            value = json.loads(value)
-        return cls(val_type, value, unit)
+            #value = json.loads(value)
+        return cls(val_type, value, unit, raw_string=val_string)
 
     @classmethod
     def from_dict(cls, json_data):
