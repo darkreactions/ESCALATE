@@ -16,6 +16,10 @@ class Action(models.Model):
                                    db_column='action_def_uuid',
                                    blank=True,
                                    null=True, related_name='action_action_def')
+    action_def_description = models.CharField(max_length=255,
+                                              blank=True,
+                                              null=True,
+                                              editable=False)
     workflow = models.ForeignKey('Workflow',
                                    on_delete=models.DO_NOTHING,
                                    db_column='workflow_uuid',
