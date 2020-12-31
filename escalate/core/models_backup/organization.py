@@ -23,14 +23,14 @@ class Person(CommonFields):
     email = models.CharField(max_length=255)
     title = models.CharField(max_length=255)
     suffix = models.CharField(max_length=255)
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
+    organization = ForeignKey(Organization, on_delete=models.CASCADE)
 
 class SystemType(CommonFields):
     pass
 
 class System(CommonFields):
     name = models.CharField(max_length=255)
-    systemtype = models.ForeignKey(SystemType, on_delete=models.CASCADE)
+    systemtype = ForeignKey(SystemType, on_delete=models.CASCADE)
     vendor = models.CharField(max_length=255)
     model = models.CharField(max_length=255)
     serial = models.CharField(max_length=255)

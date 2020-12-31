@@ -1,24 +1,25 @@
 from django.db import models
 from core.models.core_tables import RetUUIDField
+#from django.db.models import Model, ForeignKey
+from auto_prefetch import Model, ForeignKey
 
-
-class Actor(models.Model):
+class Actor(Model):
     uuid = RetUUIDField(primary_key=True, db_column='actor_uuid')
-    organization = models.ForeignKey('Organization',
+    organization = ForeignKey('Organization',
                                      on_delete=models.DO_NOTHING,
                                      blank=True, null=True,
                                      db_column='organization_uuid', related_name='actor_organization')
-    person = models.ForeignKey('Person',
+    person = ForeignKey('Person',
                                on_delete=models.DO_NOTHING,
                                blank=True, null=True,
                                db_column='person_uuid', related_name='actor_person')
-    systemtool = models.ForeignKey('Systemtool',
+    systemtool = ForeignKey('Systemtool',
                                    on_delete=models.DO_NOTHING,
                                    blank=True, null=True,
                                    db_column='systemtool_uuid',
                                    related_name='actor_systemtool')
     description = models.CharField(max_length=255, blank=True, null=True)
-    status = models.ForeignKey('Status', on_delete=models.DO_NOTHING,
+    status = ForeignKey('Status', on_delete=models.DO_NOTHING,
                                blank=True, null=True,
                                db_column='status_uuid',
                                related_name='actor_status')
@@ -61,9 +62,9 @@ class Actor(models.Model):
         return "{}".format(self.description)
 
 
-class ActorPref(models.Model):
+class ActorPref(Model):
     uuid = RetUUIDField(primary_key=True, db_column='actor_pref_uuid')
-    actor_uuid = models.ForeignKey('Actor',
+    actor_uuid = ForeignKey('Actor',
                                on_delete=models.DO_NOTHING,
                                blank=True, null=True,
                                db_column='actor_uuid', related_name='actor_pref_actor')
@@ -81,7 +82,7 @@ class ActorPref(models.Model):
         return f"{self.pkey} : {self.pvalue}"
 
 
-class Organization(models.Model):
+class Organization(Model):
     uuid = RetUUIDField(primary_key=True, db_column='organization_uuid')
     description = models.CharField(max_length=255)
     full_name = models.CharField(max_length=255)
@@ -95,7 +96,7 @@ class Organization(models.Model):
     website_url = models.CharField(max_length=255, blank=True, null=True)
     phone = models.CharField(max_length=255, blank=True, null=True)
 
-    parent = models.ForeignKey('self', models.DO_NOTHING,
+    parent = ForeignKey('self', models.DO_NOTHING,
                                blank=True, null=True,
                                db_column='parent_uuid',
                                related_name='organization_parent')
@@ -112,7 +113,7 @@ class Organization(models.Model):
         return "{}".format(self.full_name)
 
 
-class Person(models.Model):
+class Person(Model):
     uuid = RetUUIDField(primary_key=True, db_column='person_uuid')
     first_name = models.CharField(
         max_length=255)
@@ -132,7 +133,7 @@ class Person(models.Model):
     suffix = models.CharField(max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
-    organization = models.ForeignKey('Organization', models.DO_NOTHING,
+    organization = ForeignKey('Organization', models.DO_NOTHING,
                                      blank=True, null=True,
                                      db_column='organization_uuid',
                                      related_name='person_organization')
@@ -149,18 +150,18 @@ class Person(models.Model):
         return "{} {}".format(self.first_name, self.last_name)
 
 
-class Systemtool(models.Model):
+class Systemtool(Model):
     uuid = RetUUIDField(primary_key=True,
                         db_column='systemtool_uuid')
     systemtool_name = models.CharField(max_length=255, null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
-    vendor_organization = models.ForeignKey('Organization',
+    vendor_organization = ForeignKey('Organization',
                                             models.DO_NOTHING,
                                             db_column='vendor_organization_uuid',
                                             related_name='systemtool_vendor_organization')
     organization_fullname = models.CharField(
         max_length=255, blank=True, null=True)
-    systemtool_type = models.ForeignKey('SystemtoolType',
+    systemtool_type = ForeignKey('SystemtoolType',
                                         models.DO_NOTHING,
                                         db_column='systemtool_type_uuid',
                                         related_name='systemtool_systemtool_type')
@@ -180,7 +181,7 @@ class Systemtool(models.Model):
         return "{}".format(self.systemtool_name)
 
 
-class SystemtoolType(models.Model):
+class SystemtoolType(Model):
     #systemtool_type_id = models.BigAutoField()
     uuid = RetUUIDField(primary_key=True, db_column='systemtool_type_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)

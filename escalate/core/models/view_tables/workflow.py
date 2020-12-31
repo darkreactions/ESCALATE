@@ -1,28 +1,30 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
+from django.db.models.fields import CharField
 from core.models.core_tables import RetUUIDField
 from core.models.custom_types import ValField, CustomArrayField
+#from django.db.models import Model, ForeignKey
+from auto_prefetch import Model, ForeignKey
 
-
-class Action(models.Model):
+class Action(Model):
     uuid = RetUUIDField(primary_key=True,
                                db_column='action_uuid')
     description = models.CharField(max_length=255,
                                    blank=True,
                                    null=True,
                                    db_column='action_description')
-    action_def = models.ForeignKey('ActionDef',
+    action_def = ForeignKey('ActionDef',
                                    on_delete=models.DO_NOTHING,
                                    db_column='action_def_uuid',
                                    blank=True,
                                    null=True, related_name='action_action_def')
-    workflow = models.ForeignKey('Workflow',
+    workflow = ForeignKey('Workflow',
                                    on_delete=models.DO_NOTHING,
                                    db_column='workflow_uuid',
                                    blank=True,
                                    null=True, related_name='action_workflow')
     # pending exposition of workflow_action_set through api
-    # workflow_action_set = models.ForeignKey('WorkflowActionSet',
+    # workflow_action_set = ForeignKey('WorkflowActionSet',
     #                                         on_delete=models.DO_NOTHING,
     #                                         db_column='workflow_action_set_uuid',
     #                                         blank=True,
@@ -33,7 +35,7 @@ class Action(models.Model):
     #                                       null=True,
     #                                       db_column='workflow_action_set_description',
     #                                       editable=False)
-    source_material = models.ForeignKey('BomMaterial',
+    source_material = ForeignKey('BomMaterial',
                                on_delete=models.DO_NOTHING,
                                db_column='source_material_uuid',
                                blank=True,
@@ -45,7 +47,7 @@ class Action(models.Model):
                                           null=True,
                                           db_column='source_material_description',
                                           editable=False)
-    destination_material = models.ForeignKey('BomMaterial',
+    destination_material = ForeignKey('BomMaterial',
                                on_delete=models.DO_NOTHING,
                                db_column='destination_material_uuid',
                                blank=True,
@@ -65,7 +67,7 @@ class Action(models.Model):
                                     null=True)
     # calculation_def and ref_parameter_uuid can be ignored in the django model
     # as they are no longer essential data model components
-    # calculation_def = models.ForeignKey('CalculationDef',
+    # calculation_def = ForeignKey('CalculationDef',
     #                                     db_column='calculation_def_uuid',
     #                                     on_delete=models.DO_NOTHING,
     #                                     blank=True,
@@ -73,7 +75,7 @@ class Action(models.Model):
     #                                     editable=False,
     #                                     related_name='action_calculation_def'
     #                                     )
-    actor = models.ForeignKey('Actor',
+    actor = ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='actor_uuid',
                               blank=True,
@@ -84,7 +86,7 @@ class Action(models.Model):
                                          null=True,
                                          db_column='actor_description',
                                          editable=False)
-    status = models.ForeignKey('Status',
+    status = ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                db_column='status_uuid',
                                blank=True,
@@ -105,7 +107,7 @@ class Action(models.Model):
         return "{}".format(self.description)
 
 
-class ActionDef(models.Model):
+class ActionDef(Model):
     uuid = RetUUIDField(primary_key=True, db_column='action_def_uuid')
     parameter_def = models.ManyToManyField(
         'ParameterDef', through='ActionParameterDefAssign')
@@ -114,7 +116,7 @@ class ActionDef(models.Model):
                                    null=True,
                                    db_column='description',
                                    editable=False)
-    actor = models.ForeignKey('Actor',
+    actor = ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='actor_uuid',
                               blank=True,
@@ -125,7 +127,7 @@ class ActionDef(models.Model):
                                          null=True,
                                          db_column='actor_description',
                                          editable=False)
-    status = models.ForeignKey('Status',
+    status = ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                db_column='status_uuid',
                                blank=True,
@@ -147,17 +149,17 @@ class ActionDef(models.Model):
         db_table = 'vw_action_def'
 
 
-class ActionParameter(models.Model):
+class ActionParameter(Model):
     uuid = RetUUIDField(primary_key=True,
                         db_column='parameter_uuid')
-    action = models.ForeignKey('Action',
+    action = ForeignKey('Action',
                                db_column='action_uuid',
                                on_delete=models.DO_NOTHING,
                                blank=True,
                                null=True,
                                editable=False,
                                related_name='parameter_action')
-    parameter_def = models.ForeignKey('ParameterDef',
+    parameter_def = ForeignKey('ParameterDef',
                                       db_column='parameter_def_uuid',
                                       on_delete=models.DO_NOTHING,
                                       blank=True,
@@ -171,7 +173,7 @@ class ActionParameter(models.Model):
     parameter_val = ValField(max_length=255, blank=True,
                              null=True,
                              db_column='parameter_val')
-    actor = models.ForeignKey('Actor',
+    actor = ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='parameter_actor_uuid',
                               blank=True,
@@ -182,7 +184,7 @@ class ActionParameter(models.Model):
                                          null=True,
                                          db_column='parameter_actor_description',
                                          editable=False)
-    status = models.ForeignKey('Status',
+    status = ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                db_column='parameter_status_uuid',
                                blank=True,
@@ -203,10 +205,10 @@ class ActionParameter(models.Model):
         db_table = 'vw_action_parameter'
 
 
-class ActionParameterDef(models.Model):
+class ActionParameterDef(Model):
     uuid = RetUUIDField(
         primary_key=True, db_column='action_parameter_def_x_uuid')
-    action_def = models.ForeignKey('ActionDef',
+    action_def = ForeignKey('ActionDef',
                                    on_delete=models.DO_NOTHING,
                                    db_column='action_def_uuid',
                                    blank=True,
@@ -217,7 +219,7 @@ class ActionParameterDef(models.Model):
                                    null=True,
                                    db_column='description',
                                    editable=False)
-    actor = models.ForeignKey('Actor',
+    actor = ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='actor_uuid',
                               blank=True,
@@ -228,7 +230,7 @@ class ActionParameterDef(models.Model):
                                          null=True,
                                          db_column='actor_description',
                                          editable=False)
-    status = models.ForeignKey('Status',
+    status = ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                db_column='status_uuid',
                                blank=True,
@@ -242,7 +244,7 @@ class ActionParameterDef(models.Model):
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
-    parameter_def = models.ForeignKey('ParameterDef',
+    parameter_def = ForeignKey('ParameterDef',
                                       on_delete=models.DO_NOTHING,
                                       db_column='parameter_def_uuid',
                                       blank=True,
@@ -254,7 +256,7 @@ class ActionParameterDef(models.Model):
                                              null=True,
                                              db_column='parameter_description',
                                              editable=False)
-    parameter_val_type = models.ForeignKey('TypeDef',
+    parameter_val_type = ForeignKey('TypeDef',
                                            db_column='parameter_val_type_uuid',
                                            on_delete=models.DO_NOTHING,
                                            blank=True,
@@ -265,17 +267,17 @@ class ActionParameterDef(models.Model):
         db_table = 'vw_action_parameter_def'
         
 
-class ActionParameterDefAssign(models.Model):
+class ActionParameterDefAssign(Model):
     uuid = RetUUIDField(
         primary_key=True, db_column='action_parameter_def_x_uuid')
-    parameter_def = models.ForeignKey('ParameterDef',
+    parameter_def = ForeignKey('ParameterDef',
                                       on_delete=models.DO_NOTHING,
                                       blank=True,
                                       null=True,
                                       editable=False,
                                       db_column='parameter_def_uuid',
                                       related_name='action_parameter_def_assign_parameter_def')
-    action_def = models.ForeignKey('ActionDef', on_delete=models.DO_NOTHING,
+    action_def = ForeignKey('ActionDef', on_delete=models.DO_NOTHING,
                                    blank=True,
                                    null=True,
                                    editable=False, db_column='action_def_uuid', related_name='action_parameter_def_assign_action_def')
@@ -287,22 +289,22 @@ class ActionParameterDefAssign(models.Model):
         db_table = 'vw_action_parameter_def_assign'
 
 
-class BillOfMaterials(models.Model):
+class BillOfMaterials(Model):
     uuid = RetUUIDField(primary_key=True, db_column='bom_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
-    experiment = models.ForeignKey('Experiment', on_delete=models.DO_NOTHING,
+    experiment = ForeignKey('Experiment', on_delete=models.DO_NOTHING,
                                    blank=True, null=True, db_column='experiment_uuid',
                                    related_name='bom_experiment')
     experiment_description = models.CharField(
         max_length=255, blank=True, null=True)
 
-    actor = models.ForeignKey('Actor',
+    actor = ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='actor_uuid',
                               blank=True,
                               null=True,
                               editable=False, related_name='bom_actor')
-    status = models.ForeignKey('Status',
+    status = ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                db_column='status_uuid',
                                blank=True,
@@ -316,30 +318,30 @@ class BillOfMaterials(models.Model):
         db_table = 'vw_bom'
 
 
-class BomMaterial(models.Model):
+class BomMaterial(Model):
     uuid = RetUUIDField(primary_key=True, db_column='bom_material_index_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
-    bom = models.ForeignKey('BillOfMaterials', on_delete=models.DO_NOTHING,
+    bom = ForeignKey('BillOfMaterials', on_delete=models.DO_NOTHING,
                             blank=True, null=True, db_column='bom_uuid',
                             related_name='bom_material_bom')
     
     bom_description = models.CharField(max_length=255, blank=True, null=True)
-    inventory_material = models.ForeignKey('InventoryMaterial', on_delete=models.DO_NOTHING,
+    inventory_material = ForeignKey('InventoryMaterial', on_delete=models.DO_NOTHING,
                                            blank=True, null=True, db_column='inventory_material_uuid',
                                            related_name='bom_material_inventory_material')
-    material = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
+    material = ForeignKey('Material', on_delete=models.DO_NOTHING,
                                  blank=True, null=True, db_column='material_uuid',
                                  related_name='bom_material_material')
     alloc_amt_val = ValField(max_length=255, blank=True, null=True)
     used_amt_val = ValField(max_length=255, blank=True, null=True)
     putback_amt_val = ValField(max_length=255, blank=True, null=True)
-    actor = models.ForeignKey('Actor',
+    actor = ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='actor_uuid',
                               blank=True,
                               null=True,
                               editable=False, related_name='bom_material_actor')
-    status = models.ForeignKey('Status',
+    status = ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                db_column='status_uuid',
                                blank=True,
@@ -353,30 +355,30 @@ class BomMaterial(models.Model):
         db_table = 'vw_bom_material'
 
 
-class BomCompositeMaterial(models.Model):
+class BomCompositeMaterial(Model):
     uuid = RetUUIDField(primary_key=True, db_column='bom_material_composite_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
-    bom_material = models.ForeignKey('BomMaterial', on_delete=models.DO_NOTHING,
+    bom_material = ForeignKey('BomMaterial', on_delete=models.DO_NOTHING,
                             blank=True, null=True, db_column='bom_material_uuid',
                             related_name='bom_composite_material_bom_material')
     bom_material_description = models.CharField(max_length=255, blank=True, null=True)
     
-    composite_material = models.ForeignKey('CompositeMaterial', on_delete=models.DO_NOTHING,
+    composite_material = ForeignKey('CompositeMaterial', on_delete=models.DO_NOTHING,
                                                blank=True, null=True, db_column='material_composite_uuid',
                                                related_name='bom_composite_material_composite_material')
-    component = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
+    component = ForeignKey('Material', on_delete=models.DO_NOTHING,
                                                blank=True, null=True, db_column='component_uuid',
                                                related_name='bom_composite_material_component')
     material_description = models.CharField(max_length=255,
                                                           blank=True,
                                                           null=True)
-    actor = models.ForeignKey('Actor',
+    actor = ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='actor_uuid',
                               blank=True,
                               null=True,
                               editable=False, related_name='bom_composite_material_actor')
-    status = models.ForeignKey('Status',
+    status = ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                db_column='status_uuid',
                                blank=True,
@@ -390,10 +392,10 @@ class BomCompositeMaterial(models.Model):
         db_table = 'vw_bom_material_composite'
 
 
-class Condition(models.Model):
+class Condition(Model):
     # todo: link to condition calculation
     uuid = RetUUIDField(primary_key=True, db_column='condition_uuid')
-    condition_calculation = models.ForeignKey('ConditionCalculationDefAssign', 
+    condition_calculation = ForeignKey('ConditionCalculationDefAssign', 
                                               models.DO_NOTHING, 
                                               db_column='condition_calculation_def_x_uuid',
                                               related_name='condition_condition_calculation')
@@ -401,7 +403,7 @@ class Condition(models.Model):
                                              blank=True,
                                              null=True,
                                              editable=False)
-    condition_def = models.ForeignKey('ConditionDef', models.DO_NOTHING,
+    condition_def = ForeignKey('ConditionDef', models.DO_NOTHING,
                                       db_column='condition_def_uuid', related_name='condition_condition_def')
     calculation_description = models.CharField(max_length=255,
                                                blank=True,
@@ -411,7 +413,7 @@ class Condition(models.Model):
     # TODO: Fix in_val and out_val on Postgres to return strings not JSON!
     in_val = ValField(max_length=255, blank=True, null=True)
     out_val = ValField(max_length=255, blank=True, null=True)
-    actor = models.ForeignKey('Actor',
+    actor = ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='actor_uuid',
                               blank=True,
@@ -422,7 +424,7 @@ class Condition(models.Model):
                                          null=True,
                                          db_column='actor_description',
                                          editable=False)
-    status = models.ForeignKey('Status',
+    status = ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                db_column='status_uuid',
                                blank=True,
@@ -441,7 +443,7 @@ class Condition(models.Model):
         db_table = 'vw_condition'
 
 
-class ConditionDef(models.Model):
+class ConditionDef(Model):
     uuid = RetUUIDField(
         primary_key=True, db_column='condition_def_uuid')
     description = models.CharField(max_length=255,
@@ -450,7 +452,7 @@ class ConditionDef(models.Model):
                                    db_column='description',
                                    editable=False)
     calculation_def = models.ManyToManyField('CalculationDef', through='ConditionCalculationDefAssign')
-    actor = models.ForeignKey('Actor',
+    actor = ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='actor_uuid',
                               blank=True,
@@ -461,7 +463,7 @@ class ConditionDef(models.Model):
                                          null=True,
                                          db_column='actor_description',
                                          editable=False)
-    status = models.ForeignKey('Status',
+    status = ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                db_column='status_uuid',
                                blank=True,
@@ -475,16 +477,16 @@ class ConditionDef(models.Model):
         db_table = 'vw_condition_def'
 
 
-class ConditionCalculationDefAssign(models.Model):
+class ConditionCalculationDefAssign(Model):
     uuid = RetUUIDField(
         primary_key=True, db_column='condition_calculation_def_x_uuid')
-    condition_def = models.ForeignKey('ConditionDef',
+    condition_def = ForeignKey('ConditionDef',
                               on_delete=models.DO_NOTHING,
                               db_column='condition_def_uuid',
                               blank=True,
                               null=True,
                               related_name='condition_calculation_def_assign_condition_def')
-    calculation_def = models.ForeignKey('CalculationDef',
+    calculation_def = ForeignKey('CalculationDef',
                               on_delete=models.DO_NOTHING,
                               db_column='calculation_def_uuid',
                               blank=True,
@@ -498,17 +500,17 @@ class ConditionCalculationDefAssign(models.Model):
         db_table = 'vw_condition_calculation_def_assign'
 
 
-class ConditionPath(models.Model):
+class ConditionPath(Model):
     uuid = RetUUIDField(
         primary_key=True, db_column='condition_path_uuid')
-    condition = models.ForeignKey('Condition',
+    condition = ForeignKey('Condition',
                               on_delete=models.DO_NOTHING,
                               db_column='condition_uuid',
                               blank=True,
                               null=True,
                               related_name='condition_path_condition')
     condition_out_val = ValField(max_length=255, blank=True, null=True)
-    workflow_step = models.ForeignKey('WorkflowStep',
+    workflow_step = ForeignKey('WorkflowStep',
                               on_delete=models.DO_NOTHING,
                               db_column='workflow_uuid',
                               blank=True,
@@ -522,26 +524,26 @@ class ConditionPath(models.Model):
         db_table = 'vw_condition_path'
 
 
-class Experiment(models.Model):
+class Experiment(Model):
     uuid = RetUUIDField(primary_key=True, db_column='experiment_uuid')
     ref_uid = models.CharField(max_length=255, db_column='ref_uid')
     description = models.CharField(max_length=255,  db_column='description')
-    parent = models.ForeignKey('TypeDef', db_column='parent_uuid',
+    parent = ForeignKey('TypeDef', db_column='parent_uuid',
                                on_delete=models.DO_NOTHING, blank=True, null=True, related_name='experiment_parent')
-    owner = models.ForeignKey('Actor', db_column='owner_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
+    owner = ForeignKey('Actor', db_column='owner_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
                               related_name='experiment_owner')
     workflow = models.ManyToManyField('Workflow', through='ExperimentWorkflow', related_name='experiment_workflow')
     owner_description = models.CharField(
         max_length=255, db_column='owner_description')
-    operator = models.ForeignKey('Actor', db_column='operator_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
+    operator = ForeignKey('Actor', db_column='operator_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
                                  related_name='experiment_operator')
     operator_description = models.CharField(
         max_length=255, db_column='operator_description')
-    lab = models.ForeignKey('Actor', db_column='lab_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
+    lab = ForeignKey('Actor', db_column='lab_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
                             related_name='experiment_lab')
     lab_description = models.CharField(
         max_length=255, db_column='lab_description')
-    status = models.ForeignKey(
+    status = ForeignKey(
         'Status', on_delete=models.DO_NOTHING, db_column='status_uuid', blank=True, null=True, related_name='experiment_status')
     status_description = models.CharField(
         max_length=255, blank=True, null=True, db_column='status_description', editable=False)
@@ -553,18 +555,21 @@ class Experiment(models.Model):
         db_table = 'vw_experiment'
 
 
-class ExperimentWorkflow(models.Model):
+
+
+
+class ExperimentWorkflow(Model):
     # note: omitted much detail here because should be nested under
     # experiment, no need for redundancy.
     uuid = RetUUIDField(primary_key=True, db_column='experiment_workflow_uuid')
-    experiment = models.ForeignKey('Experiment', db_column='experiment_uuid', on_delete=models.DO_NOTHING,
+    experiment = ForeignKey('Experiment', db_column='experiment_uuid', on_delete=models.DO_NOTHING,
                                    blank=True, null=True, related_name='experiment_workflow_experiment')
     experiment_ref_uid = models.CharField(max_length=255)
     experiment_description = models.CharField(max_length=255)
     experiment_workflow_seq = models.IntegerField()
-    workflow = models.ForeignKey('Workflow', db_column='workflow_uuid',
+    workflow = ForeignKey('Workflow', db_column='workflow_uuid',
                                  on_delete=models.DO_NOTHING, blank=True, null=True, related_name='experiment_workflow_workflow')
-    workflow_type_uuid = models.ForeignKey('WorkflowType', db_column='workflow_type_uuid',
+    workflow_type_uuid = ForeignKey('WorkflowType', db_column='workflow_type_uuid',
                                            on_delete=models.DO_NOTHING, blank=True, null=True)
 
     class Meta:
@@ -572,16 +577,16 @@ class ExperimentWorkflow(models.Model):
         db_table = 'vw_experiment_workflow'
 
 
-class Outcome(models.Model):
+class Outcome(Model):
     uuid = RetUUIDField(primary_key=True, db_column='outcome_uuid')
     description = models.CharField(max_length=255,  db_column='description')
-    experiment = models.ForeignKey('Experiment', db_column='experiment_uuid', on_delete=models.DO_NOTHING,
+    experiment = ForeignKey('Experiment', db_column='experiment_uuid', on_delete=models.DO_NOTHING,
                                    blank=True, null=True, related_name='outcome_experiment')
-    actor = models.ForeignKey(
+    actor = ForeignKey(
         'Actor', models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True, related_name='outcome_actor')
     actor_description = models.CharField(
         max_length=255, blank=True, null=True, editable=False)
-    status = models.ForeignKey(
+    status = ForeignKey(
         'Status', models.DO_NOTHING, db_column='status_uuid', blank=True, null=True, related_name='outcome_status')
     status_description = models.CharField(
         max_length=255, blank=True, null=True, editable=False)
@@ -593,7 +598,7 @@ class Outcome(models.Model):
         db_table = 'vw_outcome'
 
 
-class Workflow(models.Model):
+class Workflow(Model):
     uuid = RetUUIDField(primary_key=True,
                         db_column='workflow_uuid')
     #step = models.ManyToManyField(
@@ -602,17 +607,17 @@ class Workflow(models.Model):
                                    blank=True,
                                    null=True,
                                    db_column='description')
-    parent = models.ForeignKey('Workflow', models.DO_NOTHING,
+    parent = ForeignKey('Workflow', models.DO_NOTHING,
                                blank=True, null=True,
                                db_column='parent_uuid', related_name='workflow_parent')
-    workflow_type = models.ForeignKey('WorkflowType', models.DO_NOTHING,
+    workflow_type = ForeignKey('WorkflowType', models.DO_NOTHING,
                                       blank=True, null=True,
                                       db_column='workflow_type_uuid', related_name='workflow_workflow_type')
     workflow_type_description = models.CharField(max_length=255,
                                                  blank=True,
                                                  null=True,
                                                  editable=False)
-    actor = models.ForeignKey('Actor',
+    actor = ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='actor_uuid',
                               blank=True,
@@ -623,7 +628,7 @@ class Workflow(models.Model):
                                          null=True,
                                          db_column='actor_description',
                                          editable=False)
-    status = models.ForeignKey('Status',
+    status = ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                db_column='status_uuid',
                                blank=True,
@@ -642,16 +647,16 @@ class Workflow(models.Model):
         db_table = 'vw_workflow'
 
 
-class WorkflowActionSet(models.Model):
+class WorkflowActionSet(Model):
     uuid = RetUUIDField(primary_key=True, db_column='workflow_action_set_uuid')
     description = models.CharField(max_length=255,
                                    blank=True,
                                    null=True)
-    workflow = models.ForeignKey('Workflow', models.DO_NOTHING,
+    workflow = ForeignKey('Workflow', models.DO_NOTHING,
                                blank=True, null=True, 
                                db_column='workflow_uuid', 
                                related_name='workflow_action_set_workflow')
-    action_def = models.ForeignKey('ActionDef', models.DO_NOTHING,
+    action_def = ForeignKey('ActionDef', models.DO_NOTHING,
                                blank=True, null=True, 
                                db_column='action_def_uuid', 
                                related_name='workflow_action_set_action_def')
@@ -659,26 +664,26 @@ class WorkflowActionSet(models.Model):
     end_date = models.DateTimeField()
     duration = models.FloatField()
     repeating = models.BigIntegerField()
-    parameter_def = models.ForeignKey('ParameterDef', models.DO_NOTHING,
+    parameter_def = ForeignKey('ParameterDef', models.DO_NOTHING,
                                blank=True, null=True,
                                db_column='parameter_def_uuid',
                                related_name='workflow_action_set_parameter_def')
     # parameter_val = ArrayField(ValField(), blank=True, null=True)
     parameter_val = CustomArrayField(ValField(), blank=True, null=True)
     # parameter_val = ValField(blank=True, null=True, list=True)
-    calculation = models.ForeignKey('Calculation', models.DO_NOTHING,
+    calculation = ForeignKey('Calculation', models.DO_NOTHING,
                                blank=True, null=True, 
                                db_column='calculation_uuid', 
                                related_name='workflow_action_set_calculation')
     source_material = ArrayField(RetUUIDField(blank=True, null=True), db_column='source_material_uuid')
     destination_material = ArrayField(RetUUIDField(blank=True, null=True), db_column='destination_material_uuid')
-    actor = models.ForeignKey('Actor',
+    actor = ForeignKey('Actor',
                                on_delete=models.DO_NOTHING,
                                db_column='actor_uuid',
                                blank=True,
                                null=True,
                                editable=False, related_name='workflow_action_set_actor')
-    status = models.ForeignKey('Status',
+    status = ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                db_column='status_uuid',
                                blank=True,
@@ -692,7 +697,7 @@ class WorkflowActionSet(models.Model):
         db_table = 'vw_workflow_action_set'
 
 
-class WorkflowType(models.Model):
+class WorkflowType(Model):
     uuid = RetUUIDField(primary_key=True,
                         db_column='workflow_type_uuid')
     description = models.CharField(max_length=255,
@@ -708,17 +713,17 @@ class WorkflowType(models.Model):
         db_table = 'vw_workflow_type'
 
 
-class WorkflowStep(models.Model):
+class WorkflowStep(Model):
     uuid = RetUUIDField(primary_key=True,
                         db_column='workflow_step_uuid')
-    workflow = models.ForeignKey('Workflow', models.DO_NOTHING,
+    workflow = ForeignKey('Workflow', models.DO_NOTHING,
                                  db_column='workflow_uuid',
                                  related_name='workflow_step_workflow')
     workflow_description = models.CharField(max_length=255,
                                             blank=True,
                                             null=True,
                                             editable=False)
-    parent = models.ForeignKey('WorkflowStep', models.DO_NOTHING,
+    parent = ForeignKey('WorkflowStep', models.DO_NOTHING,
                                blank=True, null=True, 
                                db_column='parent_uuid', related_name='workflow_step_parent')
     parent_object_type = models.CharField(max_length=255,
@@ -739,7 +744,7 @@ class WorkflowStep(models.Model):
                                          blank=True,
                                          null=True,
                                          editable=False)
-    status = models.ForeignKey('Status',
+    status = ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                db_column='status_uuid',
                                blank=True,
@@ -753,7 +758,7 @@ class WorkflowStep(models.Model):
     add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
     mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
 
-    workflow_object = models.ForeignKey('WorkflowObject', models.DO_NOTHING,
+    workflow_object = ForeignKey('WorkflowObject', models.DO_NOTHING,
                                         db_column='workflow_object_uuid', related_name='workflow_step_workflow_object')
     # unclear how to make this an fk for django...
     """
@@ -784,15 +789,15 @@ class WorkflowStep(models.Model):
         db_table = 'vw_workflow_step'
 
 
-class WorkflowObject(models.Model):
+class WorkflowObject(Model):
     uuid = RetUUIDField(primary_key=True, db_column='workflow_object_uuid')
-    workflow = models.ForeignKey('Workflow', models.DO_NOTHING,
+    workflow = ForeignKey('Workflow', models.DO_NOTHING,
                                blank=True, null=True, 
                                db_column='workflow_uuid', related_name='workflow_object_workflow')
-    action = models.ForeignKey('Action', models.DO_NOTHING,
+    action = ForeignKey('Action', models.DO_NOTHING,
                                blank=True, null=True, 
                                db_column='action_uuid', related_name='workflow_object_action')
-    condition = models.ForeignKey('Condition', models.DO_NOTHING,
+    condition = ForeignKey('Condition', models.DO_NOTHING,
                                   blank=True, null=True, 
                                   db_column='condition_uuid', related_name='workflow_object_condition')
     object_uuid = models.CharField(max_length=255,

@@ -162,6 +162,7 @@ class EdocListSerializer(DynamicFieldsModelSerializer):
 # Create serializers with non-expandable fields
 
 for model_name in rest_serializer_views:
+    #all_fields = [field.name for field in globals()[model_name]._meta.get_fields()]
     meta_class = type('Meta', (), {'model': globals()[model_name],
                                    'fields': '__all__'})
     globals()[model_name+'Serializer'] = type(model_name+'Serializer',

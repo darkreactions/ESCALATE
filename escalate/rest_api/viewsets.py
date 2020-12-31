@@ -23,6 +23,15 @@ import rest_api
 from .utils import rest_viewset_views, perform_create_views
 from .rest_docs import rest_docs
 
+from rest_flex_fields.filter_backends import FlexFieldsFilterBackend
+from rest_flex_fields.views import FlexFieldsMixin
+from rest_framework.settings import api_settings
+
+
+class FlexFieldsOptimizedMixin(FlexFieldsMixin):
+    filter_backends = [FlexFieldsFilterBackend] + api_settings.DEFAULT_FILTER_BACKENDS
+
+
 
 def save_actor_on_post(self, serializer):
     """Save the person POSTing as the actor associated with a resource being created
@@ -60,7 +69,7 @@ def create_viewset(model_name):
                     "filter_fields": '__all__',
                     "__doc__": rest_docs.get(model_name.lower(), '')
                     }
-    viewset_classes = [NestedViewSetMixin, viewsets.ModelViewSet]
+    viewset_classes = [NestedViewSetMixin, FlexFieldsOptimizedMixin, viewsets.ModelViewSet]
     globals()[model_name+'ViewSet'] = type(model_name + 'ViewSet',
                                            tuple(viewset_classes), methods_list)
 

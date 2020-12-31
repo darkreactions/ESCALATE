@@ -1,17 +1,18 @@
 from django.db import models
 from core.models.core_tables import RetUUIDField
 from core.models.custom_types import ValField
+#from django.db.models import Model, ForeignKey
+from auto_prefetch import Model, ForeignKey
 
-
-class CompositeMaterial(models.Model):
+class CompositeMaterial(Model):
     uuid = RetUUIDField(primary_key=True, db_column='material_composite_uuid')
-    composite = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
+    composite = ForeignKey('Material', on_delete=models.DO_NOTHING,
                                   blank=True, null=True, db_column='composite_uuid',
                                   related_name='composite_material_composite')
     composite_description = models.CharField(
         max_length=255, blank=True, null=True)
     composite_flg = models.BooleanField(blank=True, null=True)
-    component = models.ForeignKey('CompositeMaterial', on_delete=models.DO_NOTHING,
+    component = ForeignKey('CompositeMaterial', on_delete=models.DO_NOTHING,
                                   blank=True, null=True, db_column='component_uuid',
                                   related_name='composite_material_component')
     component_description = models.CharField(
@@ -21,13 +22,13 @@ class CompositeMaterial(models.Model):
         'Property', through='CompositeMaterialProperty', related_name='composite_material_property',
         through_fields=('composite_material', 'property'))
 
-    actor = models.ForeignKey('Actor',
+    actor = ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='actor_uuid',
                               blank=True,
                               null=True,
                               editable=False, related_name='actor')
-    status = models.ForeignKey('Status',
+    status = ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                db_column='status_uuid',
                                blank=True,
@@ -41,11 +42,11 @@ class CompositeMaterial(models.Model):
         db_table = 'vw_material_composite'
 
 
-class CompositeMaterialProperty(models.Model):
+class CompositeMaterialProperty(Model):
     # TODO: Material property may need fixing. Endpoint displays all tags for all rows
     uuid = RetUUIDField(primary_key=True,
                         db_column='material_composite_uuid')
-    composite_material = models.ForeignKey('CompositeMaterial',
+    composite_material = ForeignKey('CompositeMaterial',
                                            db_column='composite_uuid',
                                            on_delete=models.DO_NOTHING,
                                            blank=True, null=True,
@@ -55,20 +56,20 @@ class CompositeMaterialProperty(models.Model):
                                                       null=True,
                                                       db_column='description',
                                                       editable=False)
-    component = models.ForeignKey('CompositeMaterial',
+    component = ForeignKey('CompositeMaterial',
                                   db_column='component_uuid',
                                   on_delete=models.DO_NOTHING,
                                   blank=True, null=True,
                                   related_name='composite_material_property_component')
 
-    property = models.ForeignKey('Property',
+    property = ForeignKey('Property',
                                  on_delete=models.DO_NOTHING,
                                  db_column='property_uuid',
                                  blank=True,
                                  null=True,
                                  editable=False,
                                  related_name='composite_material_property_property')
-    property_def = models.ForeignKey('PropertyDef',
+    property_def = ForeignKey('PropertyDef',
                                      on_delete=models.DO_NOTHING,
                                      db_column='property_def_uuid',
                                      blank=True,
@@ -87,7 +88,7 @@ class CompositeMaterialProperty(models.Model):
         blank=True,
         null=True,
         db_column='val_val')
-    actor = models.ForeignKey('Actor',
+    actor = ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='property_actor_uuid',
                               blank=True,
@@ -98,7 +99,7 @@ class CompositeMaterialProperty(models.Model):
                                          null=True,
                                          db_column='property_actor_description',
                                          editable=False)
-    status = models.ForeignKey('Status',
+    status = ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                blank=True,
                                null=True,
@@ -117,34 +118,34 @@ class CompositeMaterialProperty(models.Model):
         db_table = 'vw_material_composite_property'
 
 
-class Inventory(models.Model):
+class Inventory(Model):
     uuid = RetUUIDField(
         primary_key=True, db_column='inventory_uuid')
     description = models.CharField(
         max_length=255, blank=True, null=True)
-    owner = models.ForeignKey('Actor', on_delete=models.DO_NOTHING,
+    owner = ForeignKey('Actor', on_delete=models.DO_NOTHING,
                               blank=True, null=True,
                               db_column='owner_uuid',
                               related_name='inventory_owner')
     owner_description = models.CharField(max_length=255, blank=True, null=True)
-    operator = models.ForeignKey('Actor', on_delete=models.DO_NOTHING,
+    operator = ForeignKey('Actor', on_delete=models.DO_NOTHING,
                                  blank=True, null=True,
                                  db_column='operator_uuid',
                                  related_name='inventory_operator')
     operator_description = models.CharField(
         max_length=255, blank=True, null=True)
-    lab = models.ForeignKey('Actor', on_delete=models.DO_NOTHING,
+    lab = ForeignKey('Actor', on_delete=models.DO_NOTHING,
                             blank=True, null=True,
                             db_column='lab_uuid',
                             related_name='inventory_lab')
     lab_description = models.CharField(max_length=255, blank=True, null=True)
-    status = models.ForeignKey('Status', on_delete=models.DO_NOTHING,
+    status = ForeignKey('Status', on_delete=models.DO_NOTHING,
                                blank=True, null=True,
                                db_column='status_uuid',
                                related_name='inventory_status')
     status_description = models.CharField(max_length=255, blank=True, 
                                           null=True, editable=False)
-    actor = models.ForeignKey('Actor', models.DO_NOTHING,
+    actor = ForeignKey('Actor', models.DO_NOTHING,
                               db_column='actor_uuid',
                               blank=True, null=True,
                               related_name='inventory_actor')
@@ -161,15 +162,15 @@ class Inventory(models.Model):
         return "{}".format(self.description)
 
 
-class InventoryMaterial(models.Model):
+class InventoryMaterial(Model):
     uuid = RetUUIDField(primary_key=True, db_column='inventory_material_uuid')
     description = models.CharField(
         max_length=255, blank=True, null=True)
-    inventory = models.ForeignKey('Inventory', models.DO_NOTHING, db_column='inventory_uuid',
+    inventory = ForeignKey('Inventory', models.DO_NOTHING, db_column='inventory_uuid',
                                   related_name='inventory_material_inventory')
     inventory_description = models.CharField(max_length=255,
                                              blank=True, null=True)
-    material = models.ForeignKey('Material', models.DO_NOTHING,
+    material = ForeignKey('Material', models.DO_NOTHING,
                                  db_column='material_uuid',
                                  blank=True, null=True,
                                  related_name='inventory_material_material')
@@ -183,11 +184,11 @@ class InventoryMaterial(models.Model):
     expiration_date = models.DateTimeField(blank=True, null=True)
     location = models.CharField(
         max_length=255, blank=True, null=True)
-    actor = models.ForeignKey('Actor', models.DO_NOTHING,
+    actor = ForeignKey('Actor', models.DO_NOTHING,
                               db_column='actor_uuid',
                               blank=True, null=True, related_name='inventory_material_actor')
     actor_description = models.CharField(max_length=255, blank=True, null=True)
-    status = models.ForeignKey('Status', models.DO_NOTHING,
+    status = ForeignKey('Status', models.DO_NOTHING,
                                db_column='status_uuid',
                                blank=True, null=True,
                                related_name='inventory_material_status')
@@ -204,20 +205,20 @@ class InventoryMaterial(models.Model):
         return "{} : {}".format(self.inventory_description, self.material_description)
 
 
-class InventoryMaterialMaterial(models.Model):
+class InventoryMaterialMaterial(Model):
     uuid = RetUUIDField(primary_key=True,
                         db_column='inventory_material_uuid')
-    inventory = models.ForeignKey('Inventory',
+    inventory = ForeignKey('Inventory',
                                     db_column='inventory_uuid',
                                     on_delete=models.DO_NOTHING,
                                     blank=True, null=True,
                                     related_name='inventory_material_material_inventory')
-    actor = models.ForeignKey('Actor',
+    actor = ForeignKey('Actor',
                                     db_column='actor_uuid',
                                     on_delete=models.DO_NOTHING,
                                     blank=True, null=True,
                                     related_name='inventory_material_material_actor')
-    material =  models.ForeignKey('Material',
+    material =  ForeignKey('Material',
                                     db_column='material_uuid',
                                     on_delete=models.DO_NOTHING,
                                     blank=True, null=True,
@@ -228,18 +229,18 @@ class InventoryMaterialMaterial(models.Model):
         db_table = 'vw_inventory_material_material'
 
 
-class Material(models.Model):
+class Material(Model):
     uuid = RetUUIDField(primary_key=True,
                         db_column='material_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
     consumable = models.BooleanField(blank=True, null=True)
     composite_flg = models.BooleanField(blank=True, null=True)
-    actor = models.ForeignKey('Actor', models.DO_NOTHING, blank=True, null=True,
+    actor = ForeignKey('Actor', models.DO_NOTHING, blank=True, null=True,
                               db_column='actor_uuid',
                               related_name='material_actor')
     actor_description = models.CharField(max_length=255, blank=True, null=True, editable=False)
 
-    status = models.ForeignKey('Status', on_delete=models.DO_NOTHING,
+    status = ForeignKey('Status', on_delete=models.DO_NOTHING,
                                blank=True, null=True, db_column='status_uuid',
                                related_name='material_status')
     property = models.ManyToManyField('Property', through='MaterialProperty', 
@@ -257,11 +258,11 @@ class Material(models.Model):
         return "{}".format(self.description)
 
 
-class MaterialProperty(models.Model):
+class MaterialProperty(Model):
     # TODO: Material property may need fixing. Endpoint displays all tags for all rows
     uuid = RetUUIDField(primary_key=True,
                         db_column='property_x_uuid')
-    material = models.ForeignKey('Material',
+    material = ForeignKey('Material',
                                  db_column='material_uuid',
                                  on_delete=models.DO_NOTHING,
                                  blank=True,
@@ -271,14 +272,14 @@ class MaterialProperty(models.Model):
                                             null=True,
                                             db_column='description',
                                             editable=False)
-    property = models.ForeignKey('Property',
+    property = ForeignKey('Property',
                                  on_delete=models.DO_NOTHING,
                                  db_column='property_uuid',
                                  blank=True,
                                  null=True,
                                  editable=False,
                                  related_name='material_property_property')
-    property_def = models.ForeignKey('PropertyDef',
+    property_def = ForeignKey('PropertyDef',
                                      on_delete=models.DO_NOTHING,
                                      db_column='property_def_uuid',
                                      blank=True,
@@ -295,7 +296,7 @@ class MaterialProperty(models.Model):
                                                   editable=False)
     value = ValField(max_length=255, blank=True, null=True, db_column='property_value_val')
     #value = CharField(max_length=255, blank=True, null=True, db_column='property_value_val')
-    actor = models.ForeignKey('Actor',
+    actor = ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='property_actor_uuid',
                               blank=True,
@@ -306,7 +307,7 @@ class MaterialProperty(models.Model):
                                          null=True,
                                          db_column='property_actor_description',
                                          editable=False)
-    status = models.ForeignKey('Status',
+    status = ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                blank=True,
                                null=True,
@@ -325,11 +326,11 @@ class MaterialProperty(models.Model):
         db_table = 'vw_material_property'
 
 
-class MaterialRefname(models.Model):
+class MaterialRefname(Model):
     uuid = RetUUIDField(
         primary_key=True, db_column='material_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
-    status = models.ForeignKey('Status',
+    status = ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                blank=True,
                                null=True,
@@ -349,7 +350,7 @@ class MaterialRefname(models.Model):
         db_table = 'vw_material_refname'
 
 
-class MaterialRefnameDef(models.Model):
+class MaterialRefnameDef(Model):
     uuid = RetUUIDField(
         primary_key=True, db_column='material_refname_def_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
@@ -364,7 +365,7 @@ class MaterialRefnameDef(models.Model):
         return "{}".format(self.description)
 
 
-class MaterialType(models.Model):
+class MaterialType(Model):
     uuid = RetUUIDField(primary_key=True, db_column='material_type_uuid')
     description = models.TextField(blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
@@ -378,16 +379,16 @@ class MaterialType(models.Model):
         return "{}".format(self.description)
 
 
-class MaterialTypeAssign(models.Model):
+class MaterialTypeAssign(Model):
     uuid = RetUUIDField(
         primary_key=True, db_column='material_type_x_uuid')
-    material = models.ForeignKey('Material',
+    material = ForeignKey('Material',
                                on_delete=models.DO_NOTHING,
                                blank=True,
                                null=True,
                                db_column='material_uuid',
                                related_name='material_type_assign_material')
-    material_type = models.ForeignKey('MaterialType',
+    material_type = ForeignKey('MaterialType',
                                on_delete=models.DO_NOTHING,
                                blank=True,
                                null=True,
