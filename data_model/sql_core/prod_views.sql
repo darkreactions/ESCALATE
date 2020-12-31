@@ -3227,9 +3227,9 @@ JOIN (
                     json_build_object(
                         'bom_material_description', bm.description,
                         'bom_inventory_material_uuid', bm.inventory_material_uuid,
-                        'bom_material_uuid', bm.material_uuid,
-                        'bom_material_property', mp.material_property,
-                        'bom_material_composite', mc.mcom)
+                        'material_uuid', bm.material_uuid,
+                        'material_property', mp.material_property,
+                        'material_composite', mc.mcom)
                     ORDER BY bm.description
                 ) AS bomm
             FROM (SELECT

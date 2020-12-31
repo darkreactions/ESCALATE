@@ -2133,7 +2133,7 @@ BEGIN
 			    (SELECT w1.workflow_step_uuid, w1.workflow_uuid, w1.workflow_action_set_uuid, w1.workflow_object_uuid, w1.parent_uuid, w1.status_uuid
 			    FROM workflow_step w1
 			    WHERE
-				    w1.parent_uuid IS NULL
+				    w1.parent_uuid IS NULL and w1.workflow_uuid = _workflow_rec.workflow_uuid
 			    UNION ALL
 			    SELECT w2.workflow_step_uuid, w2.workflow_uuid, w2.workflow_action_set_uuid, w2.workflow_object_uuid, w2.parent_uuid, w2.status_uuid
 			    FROM workflow_step w2
@@ -2171,7 +2171,7 @@ Date:			2020.12.30
 Description:
 Notes:
 Example:        call replicate_experiment_copy
-                ('LANL Test Experiment Template', 100);
+                ('LANL Test Experiment Template', 10000);
 
                 10 copies:  4s
                 50 copies:  14s
@@ -2179,17 +2179,25 @@ Example:        call replicate_experiment_copy
 */
 -- DROP PROCEDURE IF EXISTS replicate_experiment_copy (p_exp_description text, p_repeat int) cascade;
 CREATE OR REPLACE PROCEDURE replicate_experiment_copy (p_exp_description text, p_repeat int)
-language plpgsql as $$
+as $$
 DECLARE
+    _tstart timestamptz := now();
+    _tint timestamptz := now();
     _exp_uuid uuid := (select experiment_uuid from experiment where description = p_exp_description);
 BEGIN
+    RAISE INFO 'start';
     FOR i IN 1 .. p_repeat
     LOOP
         perform experiment_copy (_exp_uuid, concat('experiment copy #',i));
         COMMIT;
+        IF mod(i, 100) = 0 THEN
+            RAISE INFO '% exp generated. Elapse from start: %. Elapse from last %', i,
+                (EXTRACT(EPOCH FROM (now() - _tstart))), (EXTRACT(EPOCH FROM (now() - _tint)));
+            _tint := now();
+        END IF;
     END LOOP;
+    RAISE INFO 'end: % minutes elapse', (EXTRACT(EPOCH FROM (now()::timestamp - _tstart)));
 END;
 $$
-
-
+LANGUAGE plpgsql;
 
