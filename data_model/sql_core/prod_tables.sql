@@ -1497,7 +1497,6 @@ ALTER TABLE workflow_step
 CREATE INDEX "ix_workflow_step_workflow" ON workflow_step (workflow_uuid);
 CREATE INDEX "ix_workflow_step_workflow_action_set" ON workflow_step (workflow_action_set_uuid);
 CREATE INDEX "ix_workflow_step_workflow_object" ON workflow_step (workflow_object_uuid);
-CREATE INDEX "ix_workflow_step_status" ON workflow_step (status_uuid);
 CREATE INDEX "ix_workflow_step_parent_uuid" ON workflow_step
 USING GIST (parent_path);
 CLUSTER workflow_step
