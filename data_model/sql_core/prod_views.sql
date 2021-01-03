@@ -904,10 +904,10 @@ SELECT
 	stt.description AS systemtool_type_description,
 	org.short_name AS systemtool_vendor_organization,
 	st.ver AS systemtool_version,
-	sts.status_uuid as status_uuid,
-	sts.description as status_description,
 	cd.actor_uuid AS actor_uuid,
 	act.description AS actor_description,
+	sts.status_uuid as status_uuid,
+	sts.description as status_description,
 	cd.calculation_class_uuid,
 	cd.add_date,
 	cd.mod_date,
@@ -942,10 +942,6 @@ EXECUTE PROCEDURE upsert_calculation_def ( );
 CREATE OR REPLACE VIEW vw_calculation AS
 SELECT
 	md.calculation_uuid,
-	-- in_val
-	--	md.in_val,
-	--	md.in_opt_val,
-	--	md.out_val,
 	md.in_val,
 	( md.in_val ).v_type_uuid AS in_val_type_uuid,
 	(select val_val from get_val ( md.in_val )) AS in_val_value,
@@ -964,6 +960,8 @@ SELECT
 	md.calculation_alias_name,
 	md.add_date as calculation_add_date,
 	md.mod_date as calculation_mod_date,
+    md.actor_uuid as calculation_actor_uuid,
+    dact.description as calculation_actor_description,
 	sts.status_uuid AS calculation_status_uuid,
 	sts.description AS calculation_status_description,
     atag.tag_to_array AS calculation_tags,
@@ -974,8 +972,8 @@ FROM
 LEFT JOIN vw_calculation_def cd ON md.calculation_def_uuid = cd.calculation_def_uuid
 LEFT JOIN vw_edocument ed ON (
 	md.out_val ).v_edocument_uuid = ed.edocument_uuid
-LEFT JOIN vw_actor dact ON md.actor_uuid = dact.actor_uuid
-LEFT JOIN vw_status sts ON md.status_uuid = sts.status_uuid
+LEFT JOIN actor dact ON md.actor_uuid = dact.actor_uuid
+LEFT JOIN status sts ON md.status_uuid = sts.status_uuid
 LEFT JOIN LATERAL (select * from tag_to_array (calculation_uuid)) atag ON true
 LEFT JOIN LATERAL (select * from note_to_array (calculation_uuid)) anote ON true;
 
@@ -1819,10 +1817,10 @@ SELECT
 	stt.description AS systemtool_type_description,
 	org.short_name AS systemtool_vendor_organization,
 	st.ver AS systemtool_version,
-	sts.status_uuid as status_uuid,
-	sts.description as status_description,
 	cd.actor_uuid AS actor_uuid,
 	act.description AS actor_description,
+	sts.status_uuid as status_uuid,
+	sts.description as status_description,
 	cd.calculation_class_uuid,
 	cd.add_date,
 	cd.mod_date,

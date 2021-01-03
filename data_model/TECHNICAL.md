@@ -793,12 +793,12 @@ __vw\_action__ `CRUD`<br/>
 *upsert\_action()*
 
 > action\_uuid (v) <br/>
-> action\_def\_uuid (v u) <br/>
-> workflow\_uuid (v u) <br/>
+> action\_def\_uuid (r v u) <br/>
+> workflow\_uuid (r v u) <br/>
 > workflow\_description (v) <br/>
 > workflow\_action\_set\_uuid (v) <br/>
 > workflow\_action\_set\_description (v) <br/>
-> action\_description (v u) <br/>
+> action\_description (r v u) <br/>
 > action\_def\_description (v) <br/>
 > start\_date (v u) <br/>
 > end\_date (v u) <br/>
@@ -852,7 +852,7 @@ __vw\_action\_def__ `CRUD`<br/>
 *upsert\_action\_def()*
 
 > action\_def\_uuid (v) <br/>
-> description (v u) <br/>
+> description (r v u) <br/>
 > actor\_uuid (v u) <br/>
 > actor\_description (v) <br/> 
 > status\_uuid (v u) <br/>
@@ -908,8 +908,8 @@ __vw\_action\_parameter\_def\_assign__ `CRD` <br/>
 *upsert\_action\_parameter\_def\_assign()*
 
 > action\_parameter\_def\_x\_uuid (v) <br/> 
-> action\_def\_uuid (v, u) <br/>
-> parameter\_def\_uuid (v, u) <br/>
+> action\_def\_uuid (r v u) <br/>
+> parameter\_def\_uuid (r v u) <br/>
 > add\_date (v) <br/>
 > mod\_date (v) <br/>
 
@@ -942,10 +942,10 @@ delete
 <br/>
 
 __vw\_action\_parameter__ `CRUD`<br/>
-*upsert\_action\_def()*
+*upsert\_action\_parameter()*
 
 > action\_uuid (v) <br/>
-> action\_def\_uuid (v) <br/>
+> action\_def\_uuid (r v) <br/>
 > action\_description (v) <br/>
 > action\_def\_description (v) <br/>
 > action\_actor\_uuid (v) <br/>
@@ -955,10 +955,10 @@ __vw\_action\_parameter__ `CRUD`<br/>
 > action\_add_date (v) <br/>
 > action\_mod_date (v) <br/>
 > parameter\_uuid (v) <br/>
-> parameter\_def\_uuid (v) <br/>
+> parameter\_def\_uuid (r v) <br/>
 > parameter\_def\_description (v) <br/>
-> parameter\_val (v, u) <br/>
-> parameter\_actor_uuid (v, u) <br/>
+> parameter\_val (r v u) <br/>
+> parameter\_actor_uuid (v u) <br/>
 > parameter\_actor\_description (v) <br/>
 > parameter\_status\_uuid (v, u) <br/>
 > parameter\_status\_description (v) <br/>
@@ -1064,7 +1064,7 @@ __vw\_bom__ `CRUD`<br/>
 *upsert\_bom()*
 
 > bom\_uuid (v) <br/>
-> experiment\_uuid (v u) <br/>
+> experiment\_uuid (r v u) <br/>
 > experiment\_description (v) <br/>
 > description (v u) <br/>
 > actor\_uuid (v u) <br/>
@@ -1096,9 +1096,9 @@ __vw\_bom\_material__ `CRUD`<br/>
 > bom\_material\_uuid (v) <br/>
 > description (v u) <br/>
 > bom\_material\_index\_uuid (v) <br/>
-> bom\_uuid (v u) <br/>
+> bom\_uuid (r v u) <br/>
 > bom\_description (v) <br/>
-> inventory\_material\_uuid (v u) <br/>
+> inventory\_material\_uuid (r v u) <br/>
 > inventory\_description (v) <br/>
 > material\_uuid (v) <br/>
 > alloc\_amt\_val (v u) <br/>
@@ -1135,9 +1135,9 @@ __vw\_bom\_material\_composite__ `CRUD`<br/>
 > bom\_material\_composite\_uuid (v) <br/>
 > description (v u) <br/>
 > bom\_material\_index\_uuid (v) <br/>
-> bom\_material\_uuid (v u) <br/>
+> bom\_material\_uuid (r v u) <br/>
 > bom\_material\_description (v) <br/>
-> material\_composite\_uuid (v u) <br/> 
+> material\_composite\_uuid (r v u) <br/> 
 > component\_uuid (v) <br/>
 > material\_description (v) <br/>
 > actor\_uuid (v u) <br/>
@@ -1177,6 +1177,193 @@ __vw\_bom\_material\_index__ `R`<br/>
 > material\_description (v) <br/>
 > add\_date (v) <br/>
 > mod\_date (v) <br/> 
+
+<br/>
+
+
+__vw\_calculation__`CRUD`<br/>
+*upsert\_calculation()*
+> calculation\_uuid (v) <br/> 
+> in\_val (v u) <br/> 
+> in\_val\_type (v) <br/> 
+> in\_val\_value (v) <br/> 
+> in\_val\_unit (v) <br/>
+> in\_val\_edocument\_uuid (v) <br/> 
+> in\_opt\_val (v u) <br/> 
+> in\_opt\_val\_type (v) <br/> 
+> in\_opt\_val\_value (v) <br/>
+> in\_opt\_val\_unit (v) <br/> 
+> in\_opt\_val\_edocument_uuid (v) <br/> 
+> out\_val (v u) <br/> 
+> out\_val\_type (v) <br/> 
+> out\_val\_value (v) <br/> 
+> out\_val\_unit (v) <br/> 
+> out\_val\_edocument\_uuid (v) <br/> 
+> calculation\_alias\_name (v u) <br/> 
+> calculation\_add\_date (v) <br/> 
+> calculation\_mod\_date (v) <br/> 
+> calculation\_actor\_uuid (v u) <br/>
+> calculation\_actor\_description (v) <br/>
+> calculation\_status\_uuid (v u) <br/>
+> calculation\_status\_description (v) <br/> 
+> calculation\_tags (v) <br/>
+> calculation\_notes (v) <br/>
+> calculation\_def\_uuid (v) <br/> 
+> short\_name (v) <br/>
+> calc\_definition (v) <br/> 
+> description (v) <br/> 
+> in\_type (v) <br/> 
+> out\_type (v) <br/> 
+> systemtool\_uuid (v) <br/> 
+> systemtool\_name (v) <br/> 
+> systemtool\_type\_description (v) <br/> 
+> systemtool\_vendor\_organization (v) <br/> 
+> systemtool\_version (v) <br/> 
+> actor\_uuid (v) <br/> 
+> actor\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+
+`**NOTE: this will check to see if calculation_def exists`<br/>
+
+```
+insert into vw_calculation (short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid, 	
+	in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid ) 
+	values ('test_calc_def', 'function param1 param2', 
+	(select systemtool_uuid from vw_actor where description = 'Molecule Standardizer'),
+	'testing calculation definition upsert', 
+	(select calculation_def_uuid from vw_calculation_def where short_name = 'standardize'), 
+	(select type_def_uuid from vw_type_def where category = 'data' and description = 'text'),
+	null, null, 
+	(select type_def_uuid from vw_type_def where category = 'data' and description = 'int'),
+	null, (select actor_uuid from vw_actor where description = 'Gary Cattabriga'),
+	(select status_uuid from vw_status where description = 'active')) returning *;
+delete from vw_calculation where short_name = 'test_calc_def';
+```
+
+<br/>
+
+__vw\_calculation\_def__`CRUD`<br/>
+*upsert\_calculation\_def ()*
+> calculation\_def\_uuid (v) <br/> 
+> short\_name (r v u) <br/> 
+> calc\_definition (r v u) <br/>
+> description (v u) <br/>
+> in\_source\_uuid (v u) <br/>
+> in\_type\_uuid (v u) <br/>
+> in\_type\_description (v) <br/>
+> in\_op\t_source\_uuid (v u) <br/>
+> in\_opt\_type\_uuid (v u) <br/>
+> in\_opt\_type\_description (v) <br/>
+> out\_type\_uuid (v u) <br/>
+> out\_unit (v u) <br/>
+> out\_type\_description (v) <br/>
+> systemtool\_uuid (v u) <br/>
+> systemtool\_name (v) <br/>
+> systemtool\_type\_description (v) <br/>
+> systemtool\_vendor\_organization (v) <br/>
+> systemtool\_version (v) <br/>
+> actor\_uuid (v u) <br/>
+> actor\_description (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> calculation\_class\_uuid (v u) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+> tags (v) <br/>
+> notes (v) <br/>
+
+`**NOTE: for postgres calculations (math_op, math_op_arr) make sure parameter reference names in a calc definition 			have  '' around them
+          e.g. 'math_op_arr(math_op_arr(''hcl_concentrations'', '/', stock_concentration), '*', total_vol)'`<br/>
+
+```
+insert into vw_calculation_def (short_name, calc_definition, systemtool_uuid, description, in_source_uuid, 
+	in_type_uuid, in_opt_source_uuid, in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid,status_uuid ) 
+	values ('test_calc_def', 'function param1 param2', 
+	(select systemtool_uuid from vw_actor where description = 'Molecule Standardizer'),
+	'testing calculation definition upsert', 
+	(select calculation_def_uuid from vw_calculation_def where short_name = 'standardize'), 
+	(select type_def_uuid from vw_type_def where category = 'data' and description = 'text'),
+	null, null, 
+	(select type_def_uuid from vw_type_def where category = 'data' and description = 'int'),
+	null, (select actor_uuid from vw_actor where description = 'Gary Cattabriga'),
+	(select status_uuid from vw_status where description = 'active')) returning *;
+delete from vw_calculation_def where short_name = 'test_calc_def';
+```
+
+<br/>
+
+__vw\_calculation\_parameter\_def__`CRD`<br/>
+*upsert\_calculation\_parameter\_def ()*
+> calculation\_def\_uuid (r v u) <br/> 
+> short\_name (v) <br/> 
+> calc\_definition (v) <br/>
+> description (v) <br/>
+> in\_source\_uuid (v) <br/>
+> in\_type\_uuid (v) <br/>
+> in\_type\_description (v) <br/>
+> in\_opt\_source\_uuid (v) <br/>
+> in\_opt\_type\_uuid (v) <br/>
+> in\_opt\_type\_description (v) <br/>
+> out\_type\_uuid (v u) <br/>
+> out\_unit (v u) <br/>
+> out\_type\_description (v) <br/>
+> systemtool\_uuid (v) <br/>
+> systemtool\_name (v) <br/>
+> systemtool\_type\_description (v) <br/>
+> systemtool\_vendor\_organization (v) <br/>
+> systemtool\_version (v) <br/>
+> actor\_uuid (v u) <br/>
+> actor\_description (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> calculation\_class\_uuid (v u) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+> calculation\_parameter\_def\_x\_uuid (v) <br/>
+> parameter\_def\_uuid (r v u) <br/>
+> parameter\_def\_description (v) <br/>
+> required (v) <br/>
+> default\_val (v) <br/>
+> parameter\_def\_actor\_uuid <br/>
+> parameter\_def\_acto\_description <br/>
+> parameter\_def\_status\_uuid <br/>
+> parameter\_def\_status\_description <br/>
+> parameter\_def\_add\_date <br/>
+> parameter\_def\_mod\_date <br/>
+
+`**NOTE: this MAY supercede upsert_calculation_parameter_def_assign`<br/>
+
+```
+insert into vw_calculation_parameter_def (calculation_def_uuid, parameter_def_uuid)values 
+	((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+   (select parameter_def_uuid from vw_parameter_def where description = 'hcl_concentration')),
+   ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+   (select parameter_def_uuid from vw_parameter_def where description = 'total_vol')),
+   ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+   (select parameter_def_uuid from vw_parameter_def where description = 'stock_concentration'));
+delete from vw_calculation_parameter_def where 
+	calculation_def_uuid = 
+		(select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration')
+       and parameter_def_uuid in (select parameter_def_uuid from vw_parameter_def
+       where description in ('hcl_concentration', 'total_vol', 'stock_concentration'));
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1563,35 +1750,6 @@ insert into vw_material_refname_def (description) values ('materialrefnamedef_te
 delete from vw_material_refname_def where material_refname_def_uuid = (select material_refname_def_uuid from vw_material_refname_def where (description = 'materialrefnamedef_test'));
 ```
 
-<br/>
-
-__vw\_calculation\_def__`CRUD`<br/>
-*upsert\_calculation\_def ()*
-> calculation_def_uuid (v) <br/> 
-> short_name (r v u) <br/> 
-> calc_definition (r v u) <br/>
-> description (v u) <br/>
-> in_source (v u) <br/>
-> in_type_uuid (v u) <br/>
-> in_type_description (v) <br/>
-> in_opt_source (v u) <br/>
-> in_opt_type_uuid (v u) <br/>
-> in_opt_type_description (v) <br/>
-> out_type_uuid (v u) <br/>
-> out_type_description (v) <br/>
-> systemtool_uuid (v) <br/>
-> systemtool_name (v) <br/>
-> systemtool_type_description (v) <br/>
-> systemtool_vendor_organization (v) <br/>
-> systemtool_version (v) <br/>
-> calculation_def_status_uuid (v u) <br/>
-> calculation_def_status_description (v) <br/>
-> calculation_class_uuid (v u) <br/>
-> actor_uuid (v u) <br/>
-> actor_description (v) <br/>
-> add_date (v) <br/>
-> mod_date (v) <br/>
-
 
 <br/>
 
@@ -1815,44 +1973,6 @@ e.g. __vw\_latest\_systemtool__ returns records from the **systemtool** table wi
 
 -->
 
-<br/>
-
-__vw\_calculation__`R`<br/>
-> calculation_uuid (v) <br/> 
-> in_val (v) <br/> 
-> in_val_type (v) <br/> 
-> in_val_value (v) <br/> 
-> in_val_unit (v) <br/>
-> in_val_edocument_uuid (v) <br/> 
-> in_opt_val (v) <br/> 
-> in_opt_val_type (v) <br/> 
-> in_opt_val_value (v) <br/>
-> in_opt_val_unit (v) <br/> 
-> in_opt_val_edocument_uuid (v) <br/> 
-> out_val (v) <br/> 
-> out_val_type (v) <br/> 
-> out_val_value (v) <br/> 
-> out_val_unit (v) <br/> 
-> out_val_edocument_uuid (v) <br/> 
-> calculation_alias_name (v) <br/> 
-> create_date (v) <br/> 
-> calculation_status_uuid (v)
-> calulation_status_description (v) <br/> 
-> calculation_def_uuid (v) <br/> 
-> short_name (v) <br/>
-> calc_definition (v) <br/> 
-> description (v) <br/> 
-> in_type (v) <br/> 
-> out_type (v) <br/> 
-> systemtool_uuid (v) <br/> 
-> systemtool_name (v) <br/> 
-> systemtool_type_description (v) <br/> 
-> systemtool_vendor_organization (v) <br/> 
-> systemtool_version (v) <br/> 
-> actor_uuid (v) <br/> 
-> actor_description (v) <br/>
-> add_date (v) <br/>
-> mod_date (v) <br/>
 
 
 <br/>
@@ -1922,68 +2042,9 @@ __vw\_material__`R`<br/>
 
 <br/>
 
-__vw\_material\_calculation\_raw__`R`<br/>
-> material_uuid (v) <br/>
-> material_status_uuid (v) <br/>
-> material_status_description (v) <br/>
-> material_add_date (v) <br/>
-> material_mod_date (v) <br/>
-> abbreviation (v) <br/>
-> chemical_name (v) <br/>
-> inchi (v) <br/>
-> inchikey (v) <br/>
-> molecular_formula (v) <br/>
-> smiles (v) <br/>
-> calculation_uuid (v) <br/>
-> in_val (v) <br/>
-> in_val_type (v) <br/>
-> in_val_value (v) <br/>
-> in_val_unit (v) <br/>
-> in_val_edocument_uuid (v) <br/>
-> in_opt_val (v) <br/>
-> in_opt_val_type (v) <br/>
-> in_opt_val_value (v) <br/>
-> in_opt_val_unit (v) <br/>
-> in_opt_val_edocument_uuid (v) <br/>
-> out_val (v) <br/>
-> out_val_type (v) <br/>
-> out_val_value (v) <br/>
-> out_val_unit (v) <br/>
-> out_val_edocument_uuid (v) <br/>
-> calculation_alias_name (v) <br/>
-> calculation_create_date (v) <br/>
-> calculation_status_uuid (v) <br/>
-> calculation_status_description (v) <br/>
-> calculation_def_uuid (v) <br/>
-> short_name (v) <br/>
-> calc_definition (v) <br/>
-> description (v) <br/>
-> in_type (v) <br/>
-> out_type (v) <br/>
-> systemtool_uuid (v) <br/>
-> systemtool_name (v) <br/>
-> systemtool_type_description (v) <br/>
-> systemtool_vendor_organization (v) <br/>
-> systemtool_version (v) <br/>
-> actor_uuid (v) <br/>
-> actor_description (v) <br/>
 
 
-<br/>
 
-__vw\_material\_raw__`R`<br/>
-> material_uuid (v) <br/>
-> description (v) <br/>
-> status_uuid (v) <br/>
-> status_description (v) <br/>
-> material_type_uuid (v) <br/>
-> material_type_description (v) <br/>
-> material_refname_uuid (v) <br/>
-> material_refname_def (v) <br/>
-> material_refname_description (v) <br/>
-> parent_uuid (v) <br/>
-> add_date (v) <br/>
-> mod_date (v) <br/>
 
 
 <br/>
