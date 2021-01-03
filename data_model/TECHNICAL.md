@@ -1349,10 +1349,222 @@ delete from vw_calculation_parameter_def where
        where description in ('hcl_concentration', 'total_vol', 'stock_concentration'));
 ```
 
+<br/>
+
+__vw\_condition__`CRUD`<br/>
+*upsert\_condition()*
+> condition\_uuid (v) <br/> 
+> workflow\_uuid (r v u) <br/>
+> workflow\_set\_action\_uuid (v u) <br/>
+> condition\_calculation\_def\_x\_uuid (v u) <br/>
+> condition\_def\_uuid (v) <br/>
+> condition\_description (v) <br/>
+> calculation\_description (v) <br/>
+> in\_val (v u) <br/> 
+> out\_val (v u) <br/>
+> actor\_uuid (v u) <br/> 
+> actor\_description (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+> 
+
+`**NOTE: requires condition_calculation_def_x_uuid`<br/>
+
+```
+insert into vw_condition 
+	(condition_calculation_def_x_uuid, in_val, out_val, actor_uuid, status_uuid) values (
+	(select condition_calculation_def_x_uuid from vw_condition_calculation_def_assign where 
+		condition_description = 'temp > threshold ?'),
+	(ARRAY[(SELECT put_val ((select get_type_def ('data', 'num')), '100', 'C'))]), 
+	(ARRAY[(SELECT put_val ((select get_type_def ('data', 'bool')), 'FALSE', null))]),
+	(select actor_uuid from vw_actor where description = 'T Testuser'),
+	(select status_uuid from vw_status where description = 'active'));
+update vw_condition set 
+	in_val = (ARRAY[(SELECT put_val ((select get_type_def ('data', 'num')), '120', 'C'))]) 
+		where condition_description = 'temp > threshold ?'; 
+delete from vw_condition where condition_description = 'temp > threshold ?';
+```
+<br/>
+
+__vw\_condition\_calculation__`R`<br/>
+> condition\_uuid (v) <br/> 
+> condition\_description (v) <br/>
+> in\_val (v u) <br/> 
+> out\_val (v u) <br/>
+> actor\_uuid (v u) <br/> 
+> actor\_description (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+> calculation\_def\_uuid (v) <br/>
+> calculation\_short\_name (v) <br/>
+> calculation\_calc\_definition (v) <br/>
+> calculation\_description (v) <br/>
+> calculation\_actor\_uuid (v) <br/>
+> calculation\_actor\_description (v) <br/>
+> calculation\_status\_uuid (v) <br/>
+> calculation\_status\_description (v) <br/>
+> calculation\_add\_date (v) <br/>
+> calculation\_mod\_date (v) <br/>
+
+<br/>
 
 
+__vw\_condition\_calculation\_def\_assign__`CRUD`<br/>
+*upsert\_condition\_calculation\_def\_assign ()*
+> condition\_calculation_def_x_uuid (v) <br/> 
+> condition\_def\_uuid (r v u) <br/>
+> condition\_description (v) <br/>
+> calculation\_def\_uuid (r v u) <br/>
+> calculation\_description (v) <br/>
+> calculation\_add\_date (v) <br/>
+> calculation\_mod\_date (v) <br/>
+
+`**NOTE: requires condition_def_uuid and calculation_def_uuid`<br/>
+
+```
+-- first create a calculation
+insert into vw_calculation_def 
+	(short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid, 	in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid ) 
+	values ('greater_than', 'pop A, pop B, >', 
+		(select systemtool_uuid from vw_actor where systemtool_name = 'escalate'),
+		'B > A ? (pop B, pop A, >?) returning true or false', null, null, null, null,
+		(select type_def_uuid from vw_type_def where category = 'data' and description = 'bool'),
+		null, (select actor_uuid from vw_actor where description = 'T Testuser'),
+		(select status_uuid from vw_status where description = 'active'));
+insert into vw_condition_calculation_def_assign (condition_def_uuid, calculation_def_uuid) VALUES 
+	((select condition_def_uuid from vw_condition_def where description = 'temp > threshold ?'),
+	(select calculation_def_uuid from vw_calculation_def where short_name = 'greater_than'));
+delete from vw_condition_calculation_def_assign where
+	condition_def_uuid = (select condition_def_uuid from vw_condition_def where description = 'temp > threshold ?') and
+	calculation_def_uuid = (select calculation_def_uuid from vw_calculation_def where short_name = 'greater_than');
+delete from vw_calculation_def where short_name = 'greater_than';
+```
+
+<br/>
+
+__vw\_condition\_def__`CRUD`<br/>
+*upsert\_condition\_def()*
+> condition\_def\_uuid (v) <br/> 
+> description (r v u) <br/>
+> actor\_uuid (v u) <br/> 
+> actor\_description (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+
+`**NOTE: think of the conditions (and related calculation) as stack-based -> LIFO ala forth`<br/>
+
+```
+insert into vw_condition_def (description, actor_uuid) values
+	('temp > threshold ?', (select actor_uuid from vw_actor where description = 'T Testuser'));
+update vw_condition_def set status_uuid = (select status_uuid from vw_status where description = 'active') where
+	description = 'temp > threshold ?';
+delete from vw_condition_def where description = 'temp > threshold ?';
+```
+<br/>
 
 
+__vw\_condition\_path__`CRUD`<br/>
+*upsert\_condition\_path()*
+> condition\_path\_uuid (v) <br/> 
+> condition\_uuid (v u) <br/>
+> condition_out_val (v u) <br/>
+> workflow_step_uuid (v u) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+
+```
+insert into vw_condition_path (condition_uuid, condition_out_val, workflow_step_uuid) values (
+	(select condition_uuid from vw_condition where condition_description = 'temp > threshold ?'),
+	((SELECT put_val ((select get_type_def ('data', 'bool')), 'FALSE', null))),
+	(select workflow_step_uuid from vw_workflow_step where 
+		(object_description = 'example_heat_stir' and parent_object_description = 'temp > threshold ?')));
+insert into vw_condition_path 
+	(condition_uuid, condition_out_val, workflow_step_uuid) values (
+	(select condition_uuid from vw_condition where condition_description = 'temp > threshold ?'),
+	((SELECT put_val ((select get_type_def ('data', 'bool')), 'FALSE', null))),
+	(select workflow_step_uuid from vw_workflow_step where 
+		(object_description = 'example_heat' and parent_object_description = 'temp > threshold ?')));
+update vw_condition_path set 
+	condition_out_val = ((SELECT put_val ((select get_type_def ('data', 'bool')), 'TRUE', null))) where 		condition_path_uuid = (select condition_path_uuid from vw_condition_path where 
+			condition_uuid = (select condition_uuid from vw_condition where 
+				condition_description = 'temp > threshold ?') and 
+				workflow_step_uuid = (select workflow_step_uuid from vw_workflow_step where 
+					(workflow_description = 'test_workflow' and 
+					object_type = 'action' and object_description = 'example_heat'))); 
+delete from vw_condition_path where condition_uuid = (select condition_uuid from vw_condition where
+	condition_description = 'temp > threshold ?');
+```
+<br/>
+
+
+__vw\_edocument__`CRUD`<br/>
+*upsert\_edocument ()*
+> edocument\_uuid (v) <br/> 
+> title (r v u) <br/> 
+> description (v u) <br/> 
+> filename (v u) <br/>
+> source (v u) <br/> 
+> edocument (r v u) <br/> 
+> doc\_type\_uuid (r v u) <br/> 
+> doc\_type\_description (v) <br/> 
+> doc\_ver (v u) <br/> 
+> actor\_uuid (v u) <br/> 
+> actor\_description (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+> edocument\_x\_uuid (v) <br/>
+> ref\_edocument_uuid (v u) <br/>
+
+```
+-- just insert the document, with no association to an entity
+insert into vw_edocument (title, description, filename, source, edocument, doc_type, doc_ver, actor_uuid, status_uuid) 
+	values ('Test document 1', 'This is a test document', null, null, 'a bunch of text cast as a blob'::bytea, 'blob_text'::val_type, null,
+	(select actor_uuid from vw_actor where description = 'Gary Cattabriga'), (select status_uuid from vw_status where description = 'active'));
+delete from vw_edocument where edocument_uuid = (select edocument_uuid from vw_edocument where title = 'Test document 1');
+```
+<br/>
+
+__vw\_experiment__`CRUD`<br/>
+*upsert\_experiment ()*
+> experiment\_uuid (v) <br/> 
+> experiment\_type\_uuid (v) <br/>
+> ref\_uid (v u) <br/>
+> description (v u) <br/> 
+> parent\_uuid (v u) <br/>
+> parent\_description (v) <br/>
+> parent\_path (v) <br/>
+> owner\_uuid (v u) <br/>
+> owner\_description (v) <br/>
+> operator\_uuid (v u) <br/>
+> operator\_description (v) <br/>
+> lab\_uuid (v u) <br/>
+> lab\_description (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+> tags (v) <br/>
+> notes (v u) <br/>
+
+```
+insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operator_uuid, lab_uuid, status_uuid) values (
+	'test_red_uid', 'test_experiment', null,
+	(select actor_uuid from vw_actor where description = 'HC')
+	(select actor_uuid from vw_actor where description = 'T Testuser'),
+	(select actor_uuid from vw_actor where description = 'HC'),
+	null);
+update vw_experiment set status_uuid = (select status_uuid from vw_status where description = 'active') where 	description = 'test_experiment'; 
+delete from vw_experiment where description = 'test_experiment';
+```
+<br/>
 
 
 
@@ -1880,33 +2092,6 @@ delete from vw_note where note_uuid in (select note_uuid from vw_note where acto
 
 ```
 
-<br/>
-
-__vw\_edocument__`CRUD`<br/>
-*upsert\_edocument ()*
-> edocument\_uuid (v) <br/> 
-> title (r v u) <br/> 
-> description (v u) <br/> 
-> filename (v u) <br/>
-> source (v u) <br/> 
-> edocument (r v u) <br/> 
-> doc\_type (r v u) <br/> 
-> doc\_ver (v u) <br/> 
-> actor\_uuid (v u) <br/> 
-> actor\_description (v) <br/>
-> status\_uuid (v u) <br/>
-> status\_description (v) <br/>
-> add\_date (v) <br/>
-> mod\_date (v) <br/>
-
-```
--- just insert the document, with no association to an entity
-insert into vw_edocument (title, description, filename, source, edocument, doc_type, doc_ver, actor_uuid, status_uuid) 
-	values ('Test document 1', 'This is a test document', null, null, 'a bunch of text cast as a blob'::bytea, 'blob_text'::val_type, null,
-	(select actor_uuid from vw_actor where description = 'Gary Cattabriga'), (select status_uuid from vw_status where description = 'active'));
-delete from vw_edocument where edocument_uuid = (select edocument_uuid from vw_edocument where title = 'Test document 1');
-```
-<br/>
 
 
 __vw\_edocument\_assign__`CRUD`<br/>

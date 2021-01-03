@@ -2157,8 +2157,8 @@ EXECUTE PROCEDURE upsert_condition_def ( );
 
 	
 ----------------------------------------
--- view condition_calculation_def_x
--- DROP VIEW vw_condition_calculation_def_x
+-- view condition_calculation_def_assign
+-- DROP VIEW vw_condition_calculation_def_assign
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_condition_calculation_def_assign AS
 SELECT
