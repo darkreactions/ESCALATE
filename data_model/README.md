@@ -32,6 +32,30 @@ Date: 01.29.2020
   </p>
 </p>
 
+## Purpose
+### A generalized experiment _specification_ and _capture_ (measure / observable) relational database.
+
+The database model consists of the following entities:
+
+1. **actor**: person, organization and/or tool (e.g. software) that act on, or with any of the entities
+2. **note**: text that can be associated with any entity
+3. **tag**: short descriptive text that can be associated with any entity
+4. **status**: text describing the state or status of an entity
+5. **material**:  'ideal' singleton, composite material that can have unlimited reference names, properties and calculations (descriptors) assigned
+6. **property**: characterization of a material; of which a material can have zero to many
+6. **inventory**: collection of 'actual' materials assignable to an organization (lab)
+7. **experiment**: container **specifying** one or more workflow (of actions) operating on or with one or more materials and **capturing** one or more measures and/or observables at any level of experiment detail
+8**. bom (bill of materials)**: container of all materials (from inventory) that can or will be addressed in the experiment
+8. **workflow**: container of specified actions and associated action paths
+9. **action**: specification (def) and actual activity to be performed (by actor); associated with parameters and/or calculations
+10. **parameter**: specification (def) and actual characterization of an activity or calculation; of which action or calculation can have zero to many
+11. **condition**: type of workflow object that determines (by way of assoc. calculation) the path taken for subsequent action
+12. **calculation**: specification (def) and actual function performing a transformation or calculation with one or more parameters
+13. **measure**: observable and/or measure associated with a specific entity 
+14. **outcome**: container of measures that address purpose or aim of experiment
+
+<br/>
+
 
 ## Getting Started
 

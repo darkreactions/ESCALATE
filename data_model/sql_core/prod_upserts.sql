@@ -2479,8 +2479,6 @@ LANGUAGE plpgsql;
                         2. k items in the vw_action_parameter where k is the # of parameter_defs assigned to action_def
                     The items in vw_action_parameter are created with the respective default values from vw_parameter_def,
                     which can be updated through vw_action_parameter.
-                    Add workflow_uuid. An instantiated action needs to be associated with a workflow, otherwise there will be conflicts
-                    with actions that are associated with more than one workflow.
     Example:
         insert into vw_action (action_def_uuid, workflow_uuid, action_description, status_uuid)
             values (

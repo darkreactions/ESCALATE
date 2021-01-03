@@ -690,14 +690,12 @@ Below are a list of the views with high-level description, followed by column na
 ### Available Views
 
 ```
-action_parameter_def_json
 sys_audit_tableslist
 vw_action
 vw_action_def
 vw_action_parameter
 vw_action_parameter_def
 vw_action_parameter_def_assign
-vw_action_parameter_json
 vw_actor
 vw_actor_pref
 vw_bom
@@ -775,27 +773,51 @@ columns visible in forms are denoted with a `v`,<br/>
 columns updatable are denoted with a `u`<br/>
 Examples<br/><br/>
 
-__vw_action__ `CRUD`<br/>
+
+__sys\_audit\_tablelist__ `R`<br/>
+
+> trigger\_schema (v) <br/>
+> event\_object\_table (v) <br/>
+
+```
+ Note: view of sys_audit tables with trigger on
+```
+```
+ Example: 
+ select * from sys_audit_tablelist;
+
+```
+<br/>
+
+__vw\_action__ `CRUD`<br/>
 *upsert\_action()*
 
-> action_uuid (v) <br/>
-> action_def_uuid (v u) <br/>
-> action_description (v u) <br/>
-> action_def_description (v) <br/>
-> start_date (v u) <br/>
-> end_date (v u) <br/>
+> action\_uuid (v) <br/>
+> action\_def\_uuid (v u) <br/>
+> workflow\_uuid (v u) <br/>
+> workflow\_description (v) <br/>
+> workflow\_action\_set\_uuid (v) <br/>
+> workflow\_action\_set\_description (v) <br/>
+> action\_description (v u) <br/>
+> action\_def\_description (v) <br/>
+> start\_date (v u) <br/>
+> end\_date (v u) <br/>
 > duration (v u) <br/>
 > repeating (v u) <br/>
-> ref_parameter_uuid (v u) <br/>
-> calculation_def_uuid (v u) <br/>
-> source_material_uuid (v u) <br/>
-> destination_material_uuid (v u) <br/>
-> actor_uuid (v u) <br/>
-> actor_description (v) <br/>
-> status_uuid (v u) <br/>
-> status_description (v) <br/>
-> add_date (v) <br/>
-> mod_date (v) <br/>
+> ref\_parameter\_uuid (v u) <br/>
+> calculation\_def\_uuid (v u) <br/>
+> source\_material\_uuid (v u) <br/>
+> source\_material\_description (v) <br/>
+> destination\_material\_uuid (v u) <br/>
+> destination\_material\_description (v) <br/>
+> actor\_uuid (v u) <br/>
+> actor\_description (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+> tags (v) <br/>
+> notes (v) <br/>
 
 ```
 Note:   On INSERT, creates:
@@ -821,23 +843,24 @@ update vw_action set actor_uuid = (select actor_uuid from vw_actor where descrip
 	'example_heat',
 	(select actor_uuid from vw_actor where description = 'Ian Pendleton'),
 	(select status_uuid from vw_status where description = 'active'));
--- note: you may want to play around with vw_action_parameter before running this delete
 delete from vw_action where action_description = 'example_heat_stir';
 delete from vw_action where action_description = 'example_heat';
 ```
-
+<br/>
 
 __vw\_action\_def__ `CRUD`<br/>
 *upsert\_action\_def()*
 
-> action_def_uuid (v) <br/>
+> action\_def\_uuid (v) <br/>
 > description (v u) <br/>
-> actor_uuid (v u) <br/>
-> actor_description (v) <br/> 
-> status_uuid (v u) <br/>
-> status_description (v) <br/>
+> actor\_uuid (v u) <br/>
+> actor\_description (v) <br/> 
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
 > add\_date (v) <br/>
 > mod\_date (v) <br/> 
+> tags (v) <br/>
+> notes (v) <br/>
 
 ```
  Note: Deletes elements in vw_action_parameter_def_assign
@@ -851,30 +874,96 @@ __vw\_action\_def__ `CRUD`<br/>
 				(select status_uuid from vw_status where description = 'active'));
 delete from vw_action_def where description in ('heat_stir', 'heat');
 ```
+<br/>
 
-__vw_action_parameter__ `CRUD`<br/>
+__vw\_action\_parameter\_def__ `R` <br/>
+
+> action\_def\_uuid (v) <br/>
+> description (v) <br/>
+> actor\_uuid (v) <br/>
+> actor\_description (v) <br/>
+> status\_uuid (v) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+> parameter\_def\_uuid (v) <br/>
+> parameter\_description (v) <br/>
+> default\_val (v) <br/>
+> required (v) <br/>
+> parameter\_val\_type_uuid (v) <br/>
+> parameter\_val\_type\_description (v) <br/>
+> parameter\_unit (v) <br/>
+> parameter\_actor\_uuid (v) <br/>
+> parameter\_actor\_description (v) <br/>
+> parameter\_status\_uuid (v) <br/>
+> parameter\_status\_description (v) <br/>
+> parameter\_add\_date (v) <br/>
+> parameter\_mod\_date (v) <br/>
+
+<br/>
+
+
+
+__vw\_action\_parameter\_def\_assign__ `CRD` <br/>
+*upsert\_action\_parameter\_def\_assign()*
+
+> action\_parameter\_def\_x\_uuid (v) <br/> 
+> action\_def\_uuid (v, u) <br/>
+> parameter\_def\_uuid (v, u) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+
+```
+Notes: 
+	* not updatable
+	* binds action def to parameter def -- requires both uuids
+```
+```
+ Example:       
+ insert into vw_action_parameter_def_assign (action_def_uuid, parameter_def_uuid)
+     values ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
+	     (select parameter_def_uuid from vw_parameter_def where description = 'duration')),
+	    ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
+	     (select parameter_def_uuid from vw_parameter_def where description = 'temperature')),
+	    ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
+	     (select parameter_def_uuid from vw_parameter_def where description = 'speed')),
+	     ((select action_def_uuid from vw_action_def where description = 'heat'),
+	     (select parameter_def_uuid from vw_parameter_def where description = 'duration')),
+	    ((select action_def_uuid from vw_action_def where description = 'heat'),
+	     (select parameter_def_uuid from vw_parameter_def where description = 'temperature'));
+delete
+    from vw_action_parameter_def_assign
+    where action_def_uuid = (select action_def_uuid from vw_action_def where description = 'heat_stir')
+    and parameter_def_uuid in (select parameter_def_uuid
+			       from vw_parameter_def
+			       where description in ('speed', 'duration', 'temperature'));
+```
+
+<br/>
+
+__vw\_action\_parameter__ `CRUD`<br/>
 *upsert\_action\_def()*
 
-> action_uuid (v) <br/>
-> action_def_uuid (v) <br/>
-> action_description (v) <br/>
-> action_def_description (v) <br/>
-> action_actor_uuid (v) <br/>
-> action_actor_description (v) <br/>
-> action_status_uuid (v) <br/>
-> action_status_description (v) <br/>
-> action_add_date (v) <br/>
-> action_mod_date (v) <br/>
-> parameter_uuid (v) <br/>
-> parameter_def_uuid (v) <br/>
-> parameter_def_description (v) <br/>
-> parameter_val (v, u) <br/>
-> parameter_actor_uuid (v, u) <br/>
-> parameter_actor_description (v) <br/>
-> parameter_status_uuid (v, u) <br/>
-> parameter_status_description (v) <br/>
-> parameter_add_date (v) <br/>
-> parameter_mod_date (v) <br/> 
+> action\_uuid (v) <br/>
+> action\_def\_uuid (v) <br/>
+> action\_description (v) <br/>
+> action\_def\_description (v) <br/>
+> action\_actor\_uuid (v) <br/>
+> action\_actor\_description (v) <br/>
+> action\_status\_uuid (v) <br/>
+> action\_status\_description (v) <br/>
+> action\_add_date (v) <br/>
+> action\_mod_date (v) <br/>
+> parameter\_uuid (v) <br/>
+> parameter\_def\_uuid (v) <br/>
+> parameter\_def\_description (v) <br/>
+> parameter\_val (v, u) <br/>
+> parameter\_actor_uuid (v, u) <br/>
+> parameter\_actor\_description (v) <br/>
+> parameter\_status\_uuid (v, u) <br/>
+> parameter\_status\_description (v) <br/>
+> parameter\_add\_date (v) <br/>
+> parameter\_mod\_date (v) <br/> 
 
 ```
 Note: Will fail silently if action def not associated w/ specified parameter def.
@@ -895,6 +984,236 @@ update vw_action_parameter
 delete from vw_action_parameter where action_description = 'example_heat_stir';
 
 ```
+
+__vw_actor__`CRUD`<br/>
+*upsert\_actor ()*
+
+> actor\_uuid (v) <br/>
+> organization\_uuid (v u) <br/>
+> person\_uuid (v u) <br/>
+> systemtool\_uuid (v u) <br/>
+> description (v u) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+> org\_full\_name (v) <br/>
+> org\_short\_name (v) <br/>
+> person\_last\_name (v) <br/>
+> person\_first\_name (v) <br/>
+> person\_last\_first (v) <br/>
+> person\_org (v) <br/>
+> person\_organization\_uuid (v) <br/>
+> person\_organization\_description (v) <br/>
+> systemtool\_name (v) <br/>
+> systemtool\_description (v) <br/>
+> systemtool\_type (v) <br/>
+> systemtool\_vendor (v) <br/>
+> systemtool\_model (v) <br/>
+> systemtool\_serial (v) <br/>
+> systemtool\_version (v) <br/>
+> tags (v) <br/>
+> notes (v) <br/> 
+
+`**NOTE: actor will typically have many dependencies (e.g. experiments, workflows, inventory) so deleting may be impractical. In that case do a status change (e.g. inactive)`<br/>
+`**NOTE: new actor record will be created on person, organization, systemtool insert`<br/>
+`**NOTE: delete vw_actor will automatically delete all related actor_pref records`<br/>
+
+```
+-- first create a 'test' person that will become the actor
+insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null);
+-- insert 'test' person into actor
+insert into vw_actor (person_uuid, actor_description, actor_status_uuid) values ((select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester')), 'Lester the Actor', (select status_uuid from vw_status where description = 'active'));
+-- add a note to the actor; with the author being the same actor !! <- note
+insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note for Lester the Actor', (select actor_uuid from vw_actor where person_last_name = 'Tester'), (select actor_uuid from vw_actor where person_last_name = 'Tester'));
+-- update the 'test' actor with a new description
+update vw_actor set description = 'new description for Lester the Actor' where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
+-- update the 'test' actor with an assigned organization
+update vw_actor set organization_uuid = (select organization_uuid from vw_organization where full_name = 'Haverford College') where person_uuid = (select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
+-- delete the actor (WILL get an ERROR as there is a dependency to note)
+delete from vw_actor where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
+-- delete the note
+delete from vw_note where note_uuid in (select note_uuid from vw_note where actor_uuid = (select actor_uuid from vw_actor where person_last_name = 'Tester'));
+-- delete the actor (no other dependencies, so will succeed)
+delete from vw_actor where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
+-- clean up the 'test' person
+delete from vw_person where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
+```
+
+<br/>
+
+__vw\_actor\_pref__ `CRUD`<br/>
+*upsert\_actor_pref ()*
+> actor\_pref\_uuid (v) <br/>
+> actor\_uuid (r v) <br/>
+> pkey (r v u) <br/>
+> pvalue (v u) <br/> 
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+
+```
+insert into vw_actor_pref (actor_uuid, pkey, pvalue) values ((select actor_uuid from vw_actor where person_last_name = 'Tester'), 'test_key', 'test_value');
+update vw_actor_pref set pvalue = 'new_new_test_value' where actor_pref_uuid = (select actor_pref_uuid from vw_actor_pref where actor_uuid = (select actor_uuid from vw_actor where description = 'Lester Fester Tester') and pkey = 'test_key');
+delete from vw_actor_pref where actor_pref_uuid = (select actor_pref_uuid from vw_actor_pref where actor_uuid = (select actor_uuid from vw_actor where description = 'Lester Fester Tester'));
+
+```
+
+<br/>
+
+__vw\_bom__ `CRUD`<br/>
+*upsert\_bom()*
+
+> bom\_uuid (v) <br/>
+> experiment\_uuid (v u) <br/>
+> experiment\_description (v) <br/>
+> description (v u) <br/>
+> actor\_uuid (v u) <br/>
+> actor\_description (v) <br/> 
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/> 
+> tags (v) <br/>
+> notes (v) <br/>
+
+```
+insert into vw_bom (experiment_uuid, description, actor_uuid, status_uuid) values (
+	(select experiment_uuid from vw_experiment where description = 'test_experiment'),
+	'test_bom',					
+	(select actor_uuid from vw_actor where description = 'T Testuser'),
+	(select status_uuid from vw_status where description = 'test'));
+update vw_bom set status_uuid = (select status_uuid from vw_status where description = 'active') 
+    where description = 'test_bom'; 
+delete from vw_bom where description = 'test_bom';
+
+```
+
+<br/>
+
+__vw\_bom\_material__ `CRUD`<br/>
+*upsert\_bom\_material()*
+
+> bom\_material\_uuid (v) <br/>
+> description (v u) <br/>
+> bom\_material\_index\_uuid (v) <br/>
+> bom\_uuid (v u) <br/>
+> bom\_description (v) <br/>
+> inventory\_material\_uuid (v u) <br/>
+> inventory\_description (v) <br/>
+> material\_uuid (v) <br/>
+> alloc\_amt\_val (v u) <br/>
+> used\_amt\_val (v u) <br/>
+> putback\_amt\_val (v u) <br/>
+> actor\_uuid (v u) <br/>
+> actor\_description (v) <br/> 
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/> 
+> tags (v) <br/>
+> notes (v) <br/>
+
+```
+insert into vw_bom_material (bom_uuid, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
+   (select bom_uuid from vw_bom where description = 'test_bom'),
+	(select inventory_material_uuid from vw_inventory_material where description = 'HCL'),
+	(select put_val((select get_type_def ('data', 'num')), '500.00','mL')), null, null,	(select actor_uuid from vw_actor where description = 'T Testuser'),
+	(select status_uuid from vw_status where description = 'test'));
+update vw_bom_material set status_uuid = (select status_uuid from vw_status where description = 'active') 
+	where inventory_material_uuid = (select inventory_material_uuid from vw_inventory_material where description = 'HCL');
+update vw_bom_material set used_amt_val = (select put_val((select get_type_def ('data', 'num')), '487.21','mL')) 
+	where inventory_material_uuid = (select inventory_material_uuid from vw_inventory_material where description = 'HCL');
+delete from vw_bom_material where description = 'Sample Prep Plate';
+
+```
+
+<br/>
+
+__vw\_bom\_material\_composite__ `CRUD`<br/>
+*upsert\_bom\_material\_composite()*
+
+> bom\_material\_composite\_uuid (v) <br/>
+> description (v u) <br/>
+> bom\_material\_index\_uuid (v) <br/>
+> bom\_material\_uuid (v u) <br/>
+> bom\_material\_description (v) <br/>
+> material\_composite\_uuid (v u) <br/> 
+> component\_uuid (v) <br/>
+> material\_description (v) <br/>
+> actor\_uuid (v u) <br/>
+> actor\_description (v) <br/> 
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/> 
+> tags (v) <br/>
+> notes (v) <br/>
+
+`**NOTE: do not call this directly - instead use vw_bom_material as the way to insert, update and delete bom_materials`<br/>
+
+```
+insert into vw_bom_material_composite (description, bom_material_uuid, material_composite_uuid, actor_uuid, status_uuid) values (
+	'Test Plate: Plate well#: A1',
+	(select material_composite_uuid from vw_material_composite where component_description = 'Plate well#: A1'),
+	(select material_composite_uuid from vw_material_composite where component_description = 'Plate well#: A1'),
+	(select actor_uuid from vw_actor where description = 'T Testuser'),
+	(select status_uuid from vw_status where description = 'test'));
+update vw_bom_material_composite set status_uuid = (select status_uuid from vw_status where description = 'active') where description = 'Test Plate: Plate well#: A1';
+delete from vw_bom where description = 'Test Plate: Plate well#: A1';
+
+```
+
+<br/>
+
+__vw\_bom\_material\_index__ `R`<br/>
+
+> bom\_material\_index\_uuid (v) <br/>
+> description (v) <br/>
+> bom\_material\_uuid (v) <br/>
+> inventory\_description (v) <br/>
+> bom\_material\_composite\_uuid (v) <br/> 
+> bom\_material\_description (v) <br/> 
+> material\_uuid (v) <br/>
+> material\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/> 
+
+
+
+<br/>
+
+__vw\_organization__ `CRUD`<br/>
+*upsert\_organization ()*
+> organization\_uuid (v) <br/>
+> description (v u) <br/>
+> full\_name (r v) <br/>
+> short_name (v u) <br/> 
+> address1 (v u) <br/>
+> address2 (v u) <br/>
+> city (v u) <br/>
+> state\_province (v u) <br/> 
+> zip (v u) <br/> 
+> country (v u) <br/> 
+> website\_url (v u) <br/> 
+> phone (v u) <br/> 
+> parent\_uuid (v u) <br/> 
+> parent\_org\_full\_name (v) <br/> 
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+
+```
+-- insert new record
+insert into vw_organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid) values ('some description here','IBM','IBM','1001 IBM Lane',null,'Some City','NY',null,null,null,null,null);
+-- update the description, city and zip columns
+update vw_organization set description = 'some [new] description here', city = 'Some [new] City', zip = '00000' where full_name = 'IBM';
+-- update with a parent organization
+update vw_organization set parent_uuid =  (select organization_uuid from organization where organization.full_name = 'Haverford College') where full_name = 'IBM';
+-- delete the record (assumes no dependent, referential records); any notes attached to this record are automatically deleted
+delete from vw_organization where full_name = 'IBM';
+```
+
+<br/>
+
 
 __vw_parameter_def__ `CRUD`<br/>
 *upsert\_parameter\_def()*
@@ -947,68 +1266,7 @@ update vw_parameter_def
 delete from vw_parameter_def where description in ('duration', 'speed', 'temperature');
 ```
 
-
-__vw_action_parameter_def__ `R` <br/>
-*upsert\_action_parameter\_def()*
-
-> action_def_uuid (v) <br/>
-> description (v) <br/>
-> actor_uuid (v) <br/>
-> actor_description (v) <br/>
-> status_uuid (v) <br/>
-> status_description (v) <br/>
-> add_date (v) <br/>
-> mod_date (v) <br/>
-> parameter_def_uuid (v) <br/>
-> parameter_description (v) <br/>
-> default_val (v) <br/>
-> required (v) <br/>
-> parameter_val_type_uuid (v) <br/>
-> parameter_val_type_description (v) <br/>
-> parameter_unit (v) <br/>
-> parameter_actor_uuid (v) <br/>
-> parameter_actor_description (v) <br/>
-> parameter_status_uuid (v) <br/>
-> parameter_status_description (v) <br/>
-> parameter_add_date (v) <br/>
-> parameter_mod_date (v) <br/>
-
-
-__vw_action_parameter_def_assign__ `CRD` <br/>
-*upsert\_action_parameter\_def_assign()*
-
-> action_parameter_def_assign_x_uuid (v) <br/>
-> action_parameter_def_x_uuid (v) <br/> 
-> action_def_uuid (v, u) <br/>
-> parameter_def_uuid (v, u) <br/>
-> add_date (v) <br/>
-> mod_date (v) <br/>
-
-```
-Notes: 
-	* not updatable
-	* binds action def to parameter def -- requires both uuids
-```
-```
- Example:       
- insert into vw_action_parameter_def_assign (action_def_uuid, parameter_def_uuid)
-     values ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
-	     (select parameter_def_uuid from vw_parameter_def where description = 'duration')),
-	    ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
-	     (select parameter_def_uuid from vw_parameter_def where description = 'temperature')),
-	    ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
-	     (select parameter_def_uuid from vw_parameter_def where description = 'speed')),
-	     ((select action_def_uuid from vw_action_def where description = 'heat'),
-	     (select parameter_def_uuid from vw_parameter_def where description = 'duration')),
-	    ((select action_def_uuid from vw_action_def where description = 'heat'),
-	     (select parameter_def_uuid from vw_parameter_def where description = 'temperature'));
-delete
-    from vw_action_parameter_def_assign
-    where action_def_uuid = (select action_def_uuid from vw_action_def where description = 'heat_stir')
-    and parameter_def_uuid in (select parameter_def_uuid
-			       from vw_parameter_def
-			       where description in ('speed', 'duration', 'temperature'));
-```
+<br/>
 
 __vw_parameter__ `CRUD`<br/>
 *upsert\_parameter()*
@@ -1053,109 +1311,8 @@ update vw_parameter set parameter_val = (select put_val (
 delete from vw_parameter where parameter_def_description = 'duration' AND ref_parameter_uuid = (select action_def_uuid from vw_action_def where description = 'heat');
 ```
 
-__vw_actor__`CRUD`<br/>
-*upsert\_actor ()*
-
-> actor\_uuid (v) <br/>
-> organization\_uuid (v u) <br/>
-> person\_uuid (v u) <br/>
-> systemtool\_uuid (v u) <br/>
-> description (v u) <br/>
-> status\_uuid (v u) <br/>
-> status\_description (v) <br/>
-> add\_date (v) <br/>
-> mod\_date (v) <br/>
-> org\_full\_name (v) <br/>
-> org\_short\_name (v) <br/>
-> person\_last\_name (v) <br/>
-> person\_first\_name (v) <br/>
-> person\_last\_first (v) <br/>
-> person\_org (v) <br/>
-> systemtool\_name (v) <br/>
-> systemtool\_description (v) <br/>
-> systemtool\_type (v) <br/>
-> systemtool\_vendor (v) <br/>
-> systemtool\_model (v) <br/>
-> systemtool\_serial (v) <br/>
-> systemtool\_version (v) <br/>
-
-`**NOTE: actor will typically have many dependencies (e.g. experiments, workflows, inventory) so deleting may be impractical. In that case do a status change (e.g. inactive)`<br/>
-`**NOTE: new actor record will be created on person, organization, systemtool insert`<br/>
-`**NOTE: delete vw_actor will automatically delete all related actor_pref records`<br/>
-
-```
--- first create a 'test' person that will become the actor
-insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) values ('Tester','Lester','Fester','1313 Mockingbird Ln',null,'Munsterville','NY',null,null,null,null,null,null,null);
--- insert 'test' person into actor
-insert into vw_actor (person_uuid, actor_description, actor_status_uuid) values ((select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester')), 'Lester the Actor', (select status_uuid from vw_status where description = 'active'));
--- add a note to the actor; with the author being the same actor !! <- note
-insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('test note for Lester the Actor', (select actor_uuid from vw_actor where person_last_name = 'Tester'), (select actor_uuid from vw_actor where person_last_name = 'Tester'));
--- update the 'test' actor with a new description
-update vw_actor set description = 'new description for Lester the Actor' where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
--- update the 'test' actor with an assigned organization
-update vw_actor set organization_uuid = (select organization_uuid from vw_organization where full_name = 'Haverford College') where person_uuid = (select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
--- delete the actor (WILL get an ERROR as there is a dependency to note)
-delete from vw_actor where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
--- delete the note
-delete from vw_note where note_uuid in (select note_uuid from vw_note where actor_uuid = (select actor_uuid from vw_actor where person_last_name = 'Tester'));
--- delete the actor (no other dependencies, so will succeed)
-delete from vw_actor where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
--- clean up the 'test' person
-delete from vw_person where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
-```
-
 <br/>
 
-__vw\_actor\_pref__ `CRUD`<br/>
-*upsert\_actor_pref ()*
-> actor\_pref\_uuid (v) <br/>
-> actor\_uuid (r v) <br/>
-> pkey (r v u) <br/>
-> pvalue (v u) <br/> 
-> add\_date (v) <br/> 
-> mod\_date (v) <br/>
-
-```
-insert into vw_actor_pref (actor_uuid, pkey, pvalue) values ((select actor_uuid from vw_actor where person_last_name = 'Tester'), 'test_key', 'test_value');
-update vw_actor_pref set pvalue = 'new_new_test_value' where actor_pref_uuid = (select actor_pref_uuid from vw_actor_pref where actor_uuid = (select actor_uuid from vw_actor where description = 'Lester Fester Tester') and pkey = 'test_key');
-delete from vw_actor_pref where actor_pref_uuid = (select actor_pref_uuid from vw_actor_pref where actor_uuid = (select actor_uuid from vw_actor where description = 'Lester Fester Tester'));
-
-```
-
-<br/>
-
-__vw\_organization__ `CRUD`<br/>
-*upsert\_organization ()*
-> organization\_uuid (v) <br/>
-> description (v u) <br/>
-> full\_name (r v) <br/>
-> short_name (v u) <br/> 
-> address1 (v u) <br/>
-> address2 (v u) <br/>
-> city (v u) <br/>
-> state\_province (v u) <br/> 
-> zip (v u) <br/> 
-> country (v u) <br/> 
-> website\_url (v u) <br/> 
-> phone (v u) <br/> 
-> parent\_uuid (v u) <br/> 
-> parent\_org\_full\_name (v) <br/> 
-> add\_date (v) <br/> 
-> mod\_date (v) <br/>
-
-```
--- insert new record
-insert into vw_organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid) values ('some description here','IBM','IBM','1001 IBM Lane',null,'Some City','NY',null,null,null,null,null);
--- update the description, city and zip columns
-update vw_organization set description = 'some [new] description here', city = 'Some [new] City', zip = '00000' where full_name = 'IBM';
--- update with a parent organization
-update vw_organization set parent_uuid =  (select organization_uuid from organization where organization.full_name = 'Haverford College') where full_name = 'IBM';
--- delete the record (assumes no dependent, referential records); any notes attached to this record are automatically deleted
-delete from vw_organization where full_name = 'IBM';
-```
-
-
-<br/>
 
 __vw\_person__ `CRUD`<br/>
 *upsert\_person ()*
@@ -1845,6 +2002,12 @@ __vw\_material\_raw__`R`<br/>
 ### Tag Assign Model
 [![Tag Assign View Model][tag-assign-viewmodel]](https://github.com/darkreactions/ESCALATE/blob/master/data_model/erd_diagrams/tag_assign_viewmodel.pdf)
 
+### UDF Manage View Model
+[![UDF Assign View Model][udf-manage-viewmodel]](https://github.com/darkreactions/ESCALATE/blob/master/data_model/erd_diagrams/udf_view_model_1.pdf)
+
+### UDF Assign View Model
+[![UDF Assign View Model][udf-assign-viewmodel]](https://github.com/darkreactions/ESCALATE/blob/master/data_model/erd_diagrams/udf_view_model_2.pdf)
+
 <!-- ******************* Authors ****************** -->
 <a name="authors"></a>
 ## Authors
@@ -1885,4 +2048,6 @@ This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.t
 [note-viewmodel]: erd_diagrams/note_viewmodel.png
 [tag-manage-viewmodel]: erd_diagrams/tag_manage_viewmodel.png
 [tag-assign-viewmodel]: erd_diagrams/tag_assign_viewmodel.png
+[udf-manage-viewmodel]: erd_diagrams/udf_view_model_1.png
+[udf-assign-viewmodel]: erd_diagrams/udf_view_model_2.png
 
