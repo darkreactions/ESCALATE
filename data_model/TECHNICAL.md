@@ -713,7 +713,6 @@ vw_condition_def
 vw_condition_path
 vw_edocument
 vw_experiment
-vw_experiment_measure_calculation
 vw_experiment_parameter
 vw_experiment_type
 vw_experiment_workflow
@@ -1368,7 +1367,7 @@ __vw\_condition__`CRUD`<br/>
 > status\_description (v) <br/>
 > add\_date (v) <br/>
 > mod\_date (v) <br/>
-> 
+
 
 `**NOTE: requires condition_calculation_def_x_uuid`<br/>
 
@@ -1566,16 +1565,59 @@ delete from vw_experiment where description = 'test_experiment';
 ```
 <br/>
 
+<br/>
 
+__vw\_experiment\_parameter__`RU`<br/>
+*upsert\_experiment\_parameter ()*
+> experiment\_uuid (v) <br/> 
+> experiment (v) <br/>
+> workflow (v) <br/>
+> workflow\_seq (v) <br/>
+> workflow\_object (v) <br/>
+> object\_description (v) <br/>
+> object\_uuid (v) <br/>
+> parameter\_def\_description (v) <br/>
+> parameter\_uuid (v) <br/>
+> parameter\_value (v u) <br/>
 
+`**NOTE: trigger proc that executes only on an update (to the list of actions)
+         The update process depends on action type (action, action_set):
+         it may only update a parameter value (action) or,
+         delete a set of actions and rebuild the actions based on new parameter (action_set)`<br/>
 
+```
+update vw_experiment_parameter
+	set parameter_value =
+   		array[(select put_val ((select val_type_uuid from vw_parameter_def where description = 'total_vol'), '9.9',
+       	(select valunit from vw_parameter_def where description = 'volume')))]
+    where experiment = 'LANL Test Experiment Template' and 
+    	object_description = 'dispense Am-Stock into SamplePrep Plate action_set'
+      	and parameter_def_description = 'volume';
+```
+<br/>
 
+__vw\_experiment\_type__`CRUD`<br/>
+*upsert\_experiment\_type ()*
+> experiment\_type\_uuid (v) <br/> 
+> description (v u) <br/> 
+> actor\_uuid (v u) <br/>
+> actor\_description (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+> tags (v) <br/>
+> notes (v) <br/>
 
-
-
-
-
-
+```
+insert into vw_experiment_type (description, actor_uuid, status_uuid) values
+	('TEST experiment type',
+	(select actor_uuid from vw_actor where org_short_name = 'HC'), null);
+update vw_experiment_type set
+	status_uuid = (select status_uuid from vw_status where description = 'active') where (description = 'TEST measure type');
+delete from vw_experiment_type where experiment_type_uuid = (select experiment_type_uuid from vw_experiment_type
+    where (description = 'TEST experiment type'));;
+```
 
 
 
