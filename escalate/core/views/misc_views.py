@@ -19,9 +19,8 @@ class ParameterEditView(TemplateView):
 
         if 'pk' in kwargs:
             experiment = Experiment.objects.get(pk=kwargs['pk'])
-            
             # Can't use q1 because it doesn't have a unique uuid!
-            q1 = ActionParameter.objects.only('uuid').annotate(
+            q1 = ActionParameter.objects.filter(workflow__experiment_workflow_workflow__experiment=kwargs['pk']).only('uuid').annotate(
                         object_description=F('action_description')).annotate(
                         object_uuid=F('uuid')).annotate(
                         parameter_value=F('parameter_val')).annotate(
@@ -34,7 +33,7 @@ class ParameterEditView(TemplateView):
                             'workflow').annotate(
                             object_description=F('description')).annotate(
                             object_uuid=F('uuid')).annotate(
-                            parameter_def_description=F('calculation__calculation_def__parameter_def__description')).annotate(
+                            parameter_def_description=F('parameter_def__description')).annotate(
                             parameter_uuid=Value(None, RetUUIDField())).annotate(
                             parameter_value=F('parameter_val')).annotate(
                             experiment_uuid=F(f'{related_exp}__uuid')).annotate(
@@ -51,7 +50,7 @@ class ParameterEditView(TemplateView):
                                 experiment_uuid=F(f'{related_exp}__uuid')).annotate(
                                 experiment_description=F(f'{related_exp}__description')).annotate(
                                 workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')).prefetch_related(
-                                    'workflow__experiment_workflow_workflow__experiment')
+                                    'workflow__experiment_workflow_workflow__experiment').distinct('parameter_uuid')
                     
             #context['q1_formset'] = self.ParameterFormSet(initial=[{'value': row.parameter_value} for row in q1])
             initial_q1 = [{'value': row.parameter_value} for row in q1]
