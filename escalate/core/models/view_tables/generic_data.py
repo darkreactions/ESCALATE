@@ -105,7 +105,7 @@ class CalculationDef(models.Model):
     calc_definition = models.CharField(max_length=255, blank=True, null=True)
     description = models.CharField(max_length=1023, blank=True, null=True)
     parameter_def = models.ManyToManyField('ParameterDef', 
-                                           through='CalculationParamterDefAssign', 
+                                           through='CalculationParameterDefAssign', 
                                            related_name='calculation_def_parameter_def')
     in_source = models.ForeignKey('CalculationDef',
                                 models.DO_NOTHING,
@@ -146,7 +146,7 @@ class CalculationDef(models.Model):
         return "{}".format(self.description)
 
 
-class CalculationParamterDefAssign(models.Model):
+class CalculationParameterDefAssign(models.Model):
     uuid = RetUUIDField(primary_key=True, db_column='calculation_parameter_def_x_uuid')
     parameter_def = models.ForeignKey('ParameterDef',
                                           on_delete=models.DO_NOTHING,

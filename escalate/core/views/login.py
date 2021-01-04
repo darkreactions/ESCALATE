@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
 from django.db import transaction, IntegrityError
 
-from core.forms import CustomUserCreationForm, PersonForm, LoginForm
+from core.forms.forms import CustomUserCreationForm, PersonForm, LoginForm
 from core.models.view_tables import Actor, Person
 from core.models.app_tables import CustomUser
 from core.models.core_tables import PersonTable

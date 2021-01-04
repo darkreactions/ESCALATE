@@ -7,7 +7,7 @@ from core.models.view_tables import (Person, Material, Inventory, Actor, Note,
                          Organization, Systemtool, SystemtoolType,
                          UdfDef, Status, Tag, TagAssign, TagType, MaterialType,
                          Edocument, InventoryMaterial)
-from core.models.custom_types import ValWidget, ValFormField
+
 from packaging import version
 import django
 if version.parse(django.__version__) < version.parse('3.1'):

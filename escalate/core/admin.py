@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models.view_tables import (Organization, Material, Status, Tag, Actor, Person, Note)
 from .models import CustomUser, OrganizationPassword
-from .forms import CreateOrganizationPasswordForm
+from .forms.forms import CreateOrganizationPasswordForm
 
 # Organization form
 class OrganizationPasswordAdmin(admin.ModelAdmin):

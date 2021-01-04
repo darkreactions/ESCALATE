@@ -3,6 +3,43 @@ from django.contrib.postgres.fields import ArrayField
 from core.models.core_tables import RetUUIDField
 from core.models.custom_types import ValField, CustomArrayField
 
+"""
+related_exp = 'workflow__experiment_workflow_workflow__experiment'
+related_exp_wf = 'workflow__experiment_workflow_workflow'
+q1 = ActionParameter.objects.only('workflow').annotate(
+                object_description=F('action__description')).annotate( 
+                object_uuid=F('action__uuid')).annotate(
+                parameter_uuid=F('parameter__uuid')).annotate(
+                parameter_value=F('parameter_val')).annotate(
+                experiment_uuid=F(f'{related_exp}__uuid')).annotate(
+                workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
+                )).filter(workflow_action_set__isnull=True).select_related(
+                    'workflow').prefetch_related(f'{related_exp}')
+
+q2 = WorkflowActionSet.objects.filter(parameter_val__isnull=False).only(
+                    'workflow').annotate(
+                    object_description=F('description')).annotate(
+                    object_uuid=F('uuid')).annotate(
+                    parameter_uuid=Value(None, RetUUIDField())).annotate(
+                    parameter_value=F('parameter_val')).annotate(
+                    experiment_uuid=F(f'{related_exp}__uuid')).annotate(
+                    workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
+                    ).prefetch_related(f'{related_exp}')
+
+
+q3 = WorkflowActionSet.objects.filter(calculation__isnull=False).only(
+                    'workflow').select_related(
+    'calculation', 'calculation__calculation_def').annotate(
+                    object_description=F('description')).annotate(
+                    object_uuid=F('uuid')).annotate(
+                    parameter_uuid=F('calculation__calculation_def__parameter_def__uuid')).annotate(
+                    parameter_value=F('calculation__calculation_def__parameter_def__default_val')).annotate(
+                    experiment_uuid=F(f'{related_exp}__uuid')).annotate(
+                    workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq').prefetch_related('workflow__experiment_workflow_workflow__experiment')
+"""
+#q1 = ActionParameter.objects.only('action', 'parameter', 'workflow').filter(workflow_action_set__isnull=True).select_related('workflow').prefetch_related('workflow__experiment_workflow_workflow__experiment')
+#q2 = WorkflowActionSet.objects.filter(parameter_val__isnull=False).prefetch_related('workflow__experiment_workflow_workflow__experiment')
+#q3 = WorkflowActionSet.objects.filter(calculation__isnull=False).select_related('calculation', 'calculation__calculation_def').prefetch_related('calculation__calculation_def__calculation_parameter_def_assign_calculation_def__parameter_def').prefetch_related('workflow__experiment_workflow_workflow__experiment')
 
 class Action(models.Model):
     uuid = RetUUIDField(primary_key=True,
@@ -154,13 +191,44 @@ class ActionDef(models.Model):
 class ActionParameter(models.Model):
     uuid = RetUUIDField(primary_key=True,
                         db_column='parameter_uuid')
+    
     action = models.ForeignKey('Action',
                                db_column='action_uuid',
                                on_delete=models.DO_NOTHING,
                                blank=True,
                                null=True,
                                editable=False,
-                               related_name='parameter_action')
+                               related_name='action_parameter_action')
+    
+    action_description = models.CharField(max_length=255,
+                                                 blank=True,
+                                                 null=True,
+                                                 db_column='action_description',
+                                                 editable=False)
+    workflow = models.ForeignKey('Workflow',
+                               db_column='workflow_uuid',
+                               on_delete=models.DO_NOTHING,
+                               blank=True,
+                               null=True,
+                               editable=False,
+                               related_name='action_parameter_workflow')
+    workflow_action_set = models.ForeignKey('WorkflowActionSet',
+                               db_column='workflow_action_set_uuid',
+                               on_delete=models.DO_NOTHING,
+                               blank=True,
+                               null=True,
+                               editable=False,
+                               related_name='action_parameter_workflow_action_set')
+    
+    
+    parameter_uuid = models.ForeignKey('Parameter',
+                                      #db_column='parameter_uuid',
+                                      on_delete=models.DO_NOTHING,
+                                      blank=True,
+                                      null=True,
+                                      editable=False, related_name='action_parameter_parameter')
+    
+    #parameter_uuid = RetUUIDField()
     parameter_def = models.ForeignKey('ParameterDef',
                                       db_column='parameter_def_uuid',
                                       on_delete=models.DO_NOTHING,
@@ -555,6 +623,33 @@ class Experiment(models.Model):
     class Meta:
         managed = False
         db_table = 'vw_experiment'
+
+
+class ExperimentParameter(models.Model):
+    uuid = RetUUIDField(primary_key=True, db_column='parameter_uuid')
+    parameter_value = CustomArrayField(ValField(), blank=True, null=True)
+    parameter_def_description = models.CharField(
+        max_length=255, db_column='parameter_def_description', editable=False)
+    object = models.ForeignKey('WorkflowObject', on_delete=models.DO_NOTHING, 
+                                db_column='object_uuid', blank=True, null=True, 
+                                related_name='experiment_parameter_object',
+                                editable=False)
+    object_description = models.CharField(blank=True, null=True,
+        max_length=255, db_column='object_description', editable=False)
+    workflow_object = models.CharField(blank=True, null=True,
+        max_length=255, db_column='workflow_object', editable=False)
+    workflow_seq = models.IntegerField(blank=True, null=True)
+    workflow_description = models.CharField(blank=True, null=True,
+        max_length=255, db_column='workflow', editable=False)
+    experiment_description = models.CharField(blank=True, null=True,
+        max_length=255, db_column='experiment', editable=False)
+    experiment = models.ForeignKey('Experiment', on_delete=models.DO_NOTHING, 
+                                db_column='experiment_uuid', blank=True, null=True, 
+                                related_name='experiment_parameter_experiment',
+                                editable=False)
+    class Meta:
+        managed = False
+        db_table = 'vw_experiment_parameter'
 
 
 class ExperimentWorkflow(models.Model):

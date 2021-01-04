@@ -8,7 +8,7 @@ from django.views import View
 from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from core.forms import (CustomUserCreationForm, PersonTableForm, 
+from core.forms.forms import (CustomUserCreationForm, PersonTableForm, 
                         JoinOrganizationForm, PersonForm)
 from core.models.view_tables import Actor, Person, Organization
 from core.models.app_tables import CustomUser, OrganizationPassword
