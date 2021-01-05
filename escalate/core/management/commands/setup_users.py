@@ -19,7 +19,8 @@ users = {
 org_passwords = {
     'LBL' : 'test',
     'HC' : 'test',
-    'NL' : 'test'
+    'NL' : 'test',
+    'NLC' : 'test'
 }
 
 

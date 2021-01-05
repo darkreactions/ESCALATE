@@ -95,7 +95,10 @@ class MaterialEditView(TemplateView):
             initial_q1 = [{'value': row.inventory_material} for row in q1]
 
             q1_details = [f'{row.object_description}' for row in q1]
-            context['q1_formset'] = self.MaterialFormSet(initial=initial_q1, prefix='q1')
+            form_kwargs = {'org_uuid':self.request.session['current_org_id']}
+            context['q1_formset'] = self.MaterialFormSet(initial=initial_q1, 
+                                                         prefix='q1', 
+                                                         form_kwargs=form_kwargs)
             context['q1_details'] = q1_details
 
             context['experiment'] = experiment
