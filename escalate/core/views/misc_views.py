@@ -1,11 +1,11 @@
 from django.db.models import F, Value
 from django.http import HttpResponse
 from django.views.generic import TemplateView
-from django.forms import formset_factory
+from django.forms import formset_factory, ModelChoiceField
 
-from core.models.view_tables import ActionParameter, WorkflowActionSet, Experiment
+from core.models.view_tables import ActionParameter, WorkflowActionSet, Experiment, BomMaterial
 from core.models.core_tables import RetUUIDField
-from core.forms.custom_types import SingleValForm
+from core.forms.custom_types import SingleValForm, InventoryMaterialForm
 
 class ParameterEditView(TemplateView):
     template_name = "core/parameter_editor.html"
@@ -67,6 +67,36 @@ class ParameterEditView(TemplateView):
             context['q1_details'] = q1_details
             context['q2_details'] = q2_details
             context['q3_details'] = q3_details
+
+            context['experiment'] = experiment
+        return context
+
+
+class MaterialEditView(TemplateView):
+    template_name = "core/material_editor.html"
+    MaterialFormSet = formset_factory(InventoryMaterialForm, extra=0)
+    # todo: we likely want to filter this down to only appropriate material
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        related_exp = 'bom__experiment'
+        # print(kwargs['pk'])
+
+        if 'pk' in kwargs:
+            experiment = Experiment.objects.get(pk=kwargs['pk'])
+            q1 = BomMaterial.objects.filter(bom__experiment=experiment).only(
+                'uuid').annotate(
+                object_description=F('description')).annotate(
+                object_uuid=F('uuid')).annotate(
+                experiment_uuid=F(f'{related_exp}__uuid')).annotate(
+                experiment_description=F(f'{related_exp}__description')).prefetch_related(f'{related_exp}')
+
+            # context['q1_formset'] = self.ParameterFormSet(initial=[{'value': row.parameter_value} for row in q1])
+            initial_q1 = [{'value': row.inventory_material} for row in q1]
+
+            q1_details = [f'{row.object_description}' for row in q1]
+            context['q1_formset'] = self.MaterialFormSet(initial=initial_q1, prefix='q1')
+            context['q1_details'] = q1_details
 
             context['experiment'] = experiment
         return context

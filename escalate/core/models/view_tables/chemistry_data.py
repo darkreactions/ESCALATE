@@ -133,10 +133,10 @@ class Inventory(models.Model):
                                  related_name='inventory_operator')
     operator_description = models.CharField(
         max_length=255, blank=True, null=True)
-    lab = models.ForeignKey('Actor', on_delete=models.DO_NOTHING,
-                            blank=True, null=True,
-                            db_column='lab_uuid',
-                            related_name='inventory_lab')
+    lab = models.OneToOneField('Actor', on_delete=models.DO_NOTHING,
+                                blank=True, null=True,
+                                db_column='lab_uuid',
+                                related_name='inventory_lab')
     lab_description = models.CharField(max_length=255, blank=True, null=True)
     status = models.ForeignKey('Status', on_delete=models.DO_NOTHING,
                                blank=True, null=True,
