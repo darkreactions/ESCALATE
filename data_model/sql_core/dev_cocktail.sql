@@ -1,8 +1,10 @@
 -- ==========================================================
--- Test out the data model by making some cocktails
+/*
+Test out the data model by making some cocktails
 
--- this file implements this recipe as an experiment in the ESCALATE
--- data model https://www.liquor.com/recipes/mojito/
+this file implements this recipe as an experiment in the ESCALATE
+data model https://www.liquor.com/recipes/mojito/
+ */
 -- ==========================================================
 
 -- josh is going to make these in his Wirtshaus
@@ -19,13 +21,14 @@ insert into vw_person (last_name, first_name, middle_name,
                        'New York','NY','99999',null,null,null,null,null,null);
 
 --insert into vw_status (description) values ('dev_test');
-
+-- note: these may already be in your db!
 insert into vw_material_type (description)
 values
 	('stock solution'),
 	('human prepared'),
 	('solute');
 
+select concat('begin create mojito',now());
 
 -- =============================
 -- Define all relevant materials
@@ -231,7 +234,7 @@ insert into vw_inventory_material (inventory_uuid, description, material_uuid, a
 -- ===========================================================================
 insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operator_uuid, lab_uuid, status_uuid)
 	values (
-		'mojito_uid', 'JS Test Mojito', null,
+		'mojito_uid', 'mojito_template', null,
 		(select actor_uuid from vw_actor where description = 'JWH'),
 		(select actor_uuid from vw_actor where description = 'Joshua Schrier'),
 		(select actor_uuid from vw_actor where description = 'JWH'),
@@ -243,7 +246,7 @@ insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operat
 
 -- create bom (container)
 insert into vw_bom (experiment_uuid, description, actor_uuid, status_uuid) values
-	((select experiment_uuid from vw_experiment where description = 'JS Test Mojito'),
+	((select experiment_uuid from vw_experiment where description = 'mojito_template'),
 	'JS Test BOM',
 	(select actor_uuid from vw_actor where description = 'Joshua Schrier'),
 	(select status_uuid from vw_status where description = 'dev_test'));
@@ -384,28 +387,28 @@ insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uui
 --  instead of having a separate workflow for each action)
 insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid)
     values (1,
-        (select experiment_uuid from vw_experiment where description =  'JS Test Mojito'),
+        (select experiment_uuid from vw_experiment where description =  'mojito_template'),
         (select workflow_uuid from vw_workflow where description = 'Mint to Shaker')),
            (2,
-        (select experiment_uuid from vw_experiment where description = 'JS Test Mojito'),
+        (select experiment_uuid from vw_experiment where description = 'mojito_template'),
         (select workflow_uuid from vw_workflow where description = 'Syrup to Shaker')),
            (3,
-        (select experiment_uuid from vw_experiment where description = 'JS Test Mojito'),
+        (select experiment_uuid from vw_experiment where description = 'mojito_template'),
         (select workflow_uuid from vw_workflow where description = 'Muddle')),
            (4,
-        (select experiment_uuid from vw_experiment where description = 'JS Test Mojito'),
+        (select experiment_uuid from vw_experiment where description = 'mojito_template'),
         (select workflow_uuid from vw_workflow where description = 'Rum to Shaker')),
            (5,
-        (select experiment_uuid from vw_experiment where description = 'JS Test Mojito'),
+        (select experiment_uuid from vw_experiment where description = 'mojito_template'),
         (select workflow_uuid from vw_workflow where description = 'Lime Juice to Shaker')),
            (6,
-        (select experiment_uuid from vw_experiment where description = 'JS Test Mojito'),
+        (select experiment_uuid from vw_experiment where description = 'mojito_template'),
         (select workflow_uuid from vw_workflow where description = 'Shake')),
            (7,
-        (select experiment_uuid from vw_experiment where description = 'JS Test Mojito'),
+        (select experiment_uuid from vw_experiment where description = 'mojito_template'),
         (select workflow_uuid from vw_workflow where description = 'Ice to Glass')),
            (8,
-        (select experiment_uuid from vw_experiment where description = 'JS Test Mojito'),
+        (select experiment_uuid from vw_experiment where description = 'mojito_template'),
         (select workflow_uuid from vw_workflow where description = 'Mojito to Glass'));
 
 
@@ -564,7 +567,7 @@ insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid,
 -- ===========================================================================
 insert into vw_outcome (experiment_uuid, description, actor_uuid, status_uuid)
 	values (
-		(select experiment_uuid from vw_experiment where description = 'JS Test Mojito'),
+		(select experiment_uuid from vw_experiment where description = 'mojito_template'),
 		'JS Test Experiment Outcome',
  	    (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
 	    (select status_uuid from vw_status where description = 'dev_test'));
@@ -601,6 +604,15 @@ insert into vw_measure (measure_def_uuid, measure_type_uuid, ref_measure_uuid, d
     (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
     (select status_uuid from vw_status where description = 'dev_test'));
 
+select concat('end create mojito',now());
+
 
 -- select * from vw_experiment_workflow_bom_step_object_parameter_json;
 -- select * from vw_experiment_bom_workflow_measure_json;
+
+-- select * from vw_experiment;
+
+-- for making a bunch of copies at once:
+-- call replicate_experiment_copy
+-- ('mojito_template', 100);
+

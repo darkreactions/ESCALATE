@@ -1,5 +1,5 @@
 
-select concat('end #1 create liquid solid,',now());
+select concat('begin: create liquid solid',now());
 
 insert into vw_status (description) values ('dev_test');
 
@@ -8,6 +8,8 @@ insert into vw_status (description) values ('dev_test');
 -- -- ===========================================================================
 -- -- add some material types
 -- -- ===========================================================================
+
+-- note: these might already be in your db!
 insert into vw_material_type (description)
 values
 	('separation target'),
@@ -592,7 +594,7 @@ insert into vw_parameter_def (description, default_val, actor_uuid, status_uuid)
 	values
 	    ('hcl_concentrations',
         (select put_val((select get_type_def ('data', 'array_num')),
-            '{12.0,6.0,4.0,2.0,1.0,.1,.01,.001}', '')),
+            '{12.0,6.0,4.0,2.0,1.0,.1,.01,.001}', 'M')),
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
 		(select status_uuid from vw_status where description = 'dev_test')),
     	('total_vol',
@@ -671,7 +673,7 @@ insert into vw_calculation (calculation_def_uuid, calculation_alias_name, in_val
 -- ===========================================================================
 insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operator_uuid, lab_uuid, status_uuid)
 	values (
-		'test_liq_sol', 'LANL Liquid Solid WF Dev',
+		'test_liq_sol', 'test_lanl_liq_sol',
 		null,
 		(select actor_uuid from vw_actor where description = 'LANL'),
 		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
@@ -686,7 +688,7 @@ insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operat
 -- ===========================================================================
 
 insert into vw_bom (experiment_uuid, description, actor_uuid, status_uuid) values
-	((select experiment_uuid from vw_experiment where description = 'LANL Liquid Solid WF Dev'),
+	((select experiment_uuid from vw_experiment where description = 'test_lanl_liq_sol'),
 	'LANL Liq-Sol Dev Materials ',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test'));
@@ -834,27 +836,27 @@ insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uui
 -- associate wf's with experiment
 insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid)
     values (1,
-        (select experiment_uuid from vw_experiment where description = 'LANL Liquid Solid WF Dev'),
+        (select experiment_uuid from vw_experiment where description = 'test_lanl_liq_sol'),
         (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Sample H2O')),
         (2,
-        (select experiment_uuid from vw_experiment where description = 'LANL Liquid Solid WF Dev'),
+        (select experiment_uuid from vw_experiment where description = 'test_lanl_liq_sol'),
         (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Sample HCl')),
         (3,
-        (select experiment_uuid from vw_experiment where description = 'LANL Liquid Solid WF Dev'),
+        (select experiment_uuid from vw_experiment where description = 'test_lanl_liq_sol'),
         (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Sample Am-243')),
         (4,
-        (select experiment_uuid from vw_experiment where description = 'LANL Liquid Solid WF Dev'),
+        (select experiment_uuid from vw_experiment where description = 'test_lanl_liq_sol'),
         (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Assay Samples')),
         (5,
-        (select experiment_uuid from vw_experiment where description = 'LANL Liquid Solid WF Dev'),
+        (select experiment_uuid from vw_experiment where description = 'test_lanl_liq_sol'),
         (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Add Resin'));
 insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid) values
         (6,
-        (select experiment_uuid from vw_experiment where description = 'LANL Liquid Solid WF Dev'),
+        (select experiment_uuid from vw_experiment where description = 'test_lanl_liq_sol'),
         (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Sample to Resin'));
 insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid) values
         (7,
-        (select experiment_uuid from vw_experiment where description = 'LANL Liquid Solid WF Dev'),
+        (select experiment_uuid from vw_experiment where description = 'test_lanl_liq_sol'),
         (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Contact Vortex'));
 
 -- create the action_sets
@@ -865,7 +867,7 @@ insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid,
                                     repeating,
                                     parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
-values ('dispense action_set',
+values ('Dispense Sample H2O',
         (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Sample H2O'),
         (select action_def_uuid from vw_action_def where description = 'dispense'),
         null, null, null, null,
@@ -900,7 +902,7 @@ insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid,
                                     repeating,
                                     parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
-values  ('dispense action_set', -- todo whats this description? its non unique
+values  ('Dispense Sample HCl',
         (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Sample HCl'),
         (select action_def_uuid from vw_action_def where description = 'dispense'),
         null, null, null, null,
@@ -934,7 +936,7 @@ insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid,
                                     repeating,
                                     parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
-values  ('dispense action_set',
+values  ('Dispense Sample Am243',
         (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Sample Am-243'),
         (select action_def_uuid from vw_action_def where description = 'dispense'),
         null, null, null, null,
@@ -968,7 +970,7 @@ insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid,
                                     repeating,
                                     parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
-values  ('dispense action_set',
+values  ('Transfer Sample for Assay',
         (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Assay Samples'),
         (select action_def_uuid from vw_action_def where description = 'dispense'),
         null, null, null, null,
@@ -1018,7 +1020,7 @@ insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid,
                                     repeating,
                                     parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
-values  ('dispense action_set',
+values  ('Add Resin',
         (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Add Resin'),
         (select action_def_uuid from vw_action_def where description = 'dispense_solid'),
         null, null, null, null,
@@ -1086,3 +1088,34 @@ select concat('end create liquid solid,', now());
 
 -- select * from vw_experiment_workflow_bom_step_object_parameter_json;
 -- select * from vw_experiment_bom_workflow_measure_json;
+
+-- call replicate_experiment_copy
+-- ('test_lanl_liq_sol', 1);
+--
+-- select *
+-- from vw_experiment_parameter;
+-- where workflow like 'LANL%HCl';
+--
+-- -- these two copies share a parameter because of the way calculation and parameter def are intertwined
+--
+-- select * from vw_experiment_parameter
+-- where experiment = 'experiment copy #1'
+--   and workflow_seq = 1
+--   and parameter_def_description = 'hcl_concentrations';
+--
+-- update vw_experiment_parameter
+-- set
+--     parameter_value = array[(select put_val(get_type_def('data', 'array_num'), '{12.0, 12.0, 12.0, 12.0, 1.0, 1.0, 1.0, 1.0}', ''))]
+-- where experiment = 'experiment copy #1'
+--   and workflow_seq = 1
+--   and parameter_def_description = 'hcl_concentrations';
+--
+--
+-- select * from vw_parameter;
+-- select * from vw_parameter_def;
+--
+-- select * from vw_calculation where actor_description = 'Mike Tynes';
+--
+--
+-- select * from vw_action_parameter;
+-- select * from vw_workflow_action_set;
