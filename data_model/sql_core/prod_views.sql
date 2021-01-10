@@ -117,10 +117,10 @@ CREATE OR REPLACE VIEW vw_note AS
 SELECT
 	nt.note_uuid,
 	nt.notetext,
-	nt.add_date,
-	nt.mod_date,
 	act.actor_uuid,
 	act.description AS actor_description,
+	nt.add_date,
+	nt.mod_date,
 	nx.note_x_uuid,
 	nx.ref_note_uuid
 FROM
@@ -1453,10 +1453,10 @@ SELECT
     actp.description as operator_description,
     inv.lab_uuid,
     actl.description as lab_description,
-	inv.status_uuid AS status_uuid,
-	st.description AS status_description,
     inv.actor_uuid,
     act.description as actor_description,
+	inv.status_uuid AS status_uuid,
+	st.description AS status_description,
 	inv.add_date,
 	inv.mod_date,
     atag.tag_to_array AS tags,
@@ -2145,7 +2145,7 @@ SELECT
     cd.add_date,
 	cd.mod_date
 FROM condition_def cd
-LEFT JOIN vw_actor act ON cd.actor_uuid = act.actor_uuid
+LEFT JOIN actor act ON cd.actor_uuid = act.actor_uuid
 LEFT JOIN status st ON cd.status_uuid = st.status_uuid;
 
 DROP TRIGGER IF EXISTS trigger_action_condition_def ON vw_condition_def;
@@ -2170,8 +2170,8 @@ SELECT
     ccd.add_date,
 	ccd.mod_date
 FROM condition_calculation_def_x ccd
-LEFT JOIN vw_condition_def cn ON ccd.condition_def_uuid = cn.condition_def_uuid
-LEFT JOIN vw_calculation_def cl ON ccd.calculation_def_uuid = cl.calculation_def_uuid;
+LEFT JOIN condition_def cn ON ccd.condition_def_uuid = cn.condition_def_uuid
+LEFT JOIN calculation_def cl ON ccd.calculation_def_uuid = cl.calculation_def_uuid;
 
 DROP TRIGGER IF EXISTS trigger_condition_calculation_def_assign ON vw_condition_calculation_def_assign;
 CREATE TRIGGER trigger_condition_calculation_def_assign INSTEAD OF INSERT
@@ -2204,7 +2204,7 @@ SELECT
 	cd.mod_date
 FROM condition cd
 LEFT JOIN vw_condition_calculation_def_assign cc ON cd.condition_calculation_def_x_uuid = cc.condition_calculation_def_x_uuid 
-LEFT JOIN vw_actor act ON cd.actor_uuid = act.actor_uuid
+LEFT JOIN actor act ON cd.actor_uuid = act.actor_uuid
 LEFT JOIN status st ON cd.status_uuid = st.status_uuid;	
 
 DROP TRIGGER IF EXISTS trigger_condition ON vw_condition;
@@ -2221,16 +2221,16 @@ EXECUTE PROCEDURE upsert_condition();
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_condition_calculation AS
 SELECT
-    cd.condition_uuid,
-    cd.condition_description,
-	cd.in_val,
-	cd.out_val,
-	cd.actor_uuid as condition_actor_uuid,
+    c.condition_uuid,
+    cd.description as condition_description,
+	c.in_val,
+	c.out_val,
+	c.actor_uuid as condition_actor_uuid,
 	act.description as condition_actor_description,
-	cd.status_uuid as condition_status_uuid,
+	c.status_uuid as condition_status_uuid,
 	st.description as condition_status_description,
-    cd.add_date as condition_add_date,
-	cd.mod_date as condition_mod_date,
+    c.add_date as condition_add_date,
+	c.mod_date as condition_mod_date,
 	cald.calculation_def_uuid,
 	cald.short_name as calculation_short_name,
 	cald.calc_definition as calculation_calc_definition,
@@ -2242,12 +2242,12 @@ SELECT
 	cald.add_date as calculation_add_date,
 	cald.mod_date as calculation_mod_date
 FROM condition c
-LEFT JOIN vw_condition_calculation_def_assign cc ON c.condition_calculation_def_x_uuid = cc.condition_calculation_def_x_uuid
-LEFT JOIN vw_condition cd ON c.condition_uuid = cd.condition_uuid
+LEFT JOIN condition_calculation_def_x cc ON c.condition_calculation_def_x_uuid = cc.condition_calculation_def_x_uuid
+LEFT JOIN condition_def cd ON cc.condition_def_uuid = cd.condition_def_uuid
 LEFT JOIN vw_calculation_def cald ON cc.calculation_def_uuid = cald.calculation_def_uuid
-LEFT JOIN vw_actor act ON cd.actor_uuid = act.actor_uuid
+LEFT JOIN actor act ON cd.actor_uuid = act.actor_uuid
 LEFT JOIN status st ON cd.status_uuid = st.status_uuid
-LEFT JOIN vw_actor actc ON cd.actor_uuid = actc.actor_uuid
+LEFT JOIN actor actc ON cd.actor_uuid = actc.actor_uuid
 LEFT JOIN status stc ON cd.status_uuid = stc.status_uuid
 ;	
 
@@ -2350,6 +2350,7 @@ SELECT
 		when wo.action_uuid is not null then ad.description
 		when wo.condition_uuid is not null then c.calculation_description
 	end as object_def_description,
+    wo.status_uuid,
 	wo.add_date,
 	wo.mod_date
 FROM workflow_object wo

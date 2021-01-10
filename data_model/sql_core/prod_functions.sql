@@ -1961,7 +1961,7 @@ Date:			2020.12.30
 Description:
 Notes:
 Example:        call replicate_experiment_copy
-                ('LANL Test Experiment Template', 10000);
+                ('LANL Test Experiment Template', 1000);
 
                 10 copies:  4s
                 50 copies:  14s

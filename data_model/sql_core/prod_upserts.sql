@@ -405,6 +405,7 @@ BEGIN
 			note
 		SET
 			notetext = NEW.notetext,
+		    actor_uuid = NEW.actor_uuid,
 			mod_date = now()
 		WHERE
 			note.note_uuid = NEW.note_uuid;
@@ -1132,6 +1133,8 @@ BEGIN
 			material_type
 		SET
 			description = NEW.description,
+		    actor_uuid = NEW.actor_uuid,
+			status_uuid = NEW.status_uuid,
 			mod_date = now()
 		WHERE
 			material_type.material_type_uuid = NEW.material_type_uuid;
@@ -1895,6 +1898,7 @@ BEGIN
 			workflow		
 		SET
 			workflow_type_uuid = NEW.workflow_type_uuid,
+		    parent_uuid = NEW.parent_uuid,
 			description = NEW.description,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
@@ -1960,6 +1964,7 @@ BEGIN
 		    workflow_action_set_uuid = NEW.workflow_action_set_uuid,
 			action_uuid = NEW.action_uuid,
 			condition_uuid = NEW.condition_uuid,
+		    status_uuid = NEW.status_uuid,
 			mod_date = now()
 		WHERE
 			workflow_object.workflow_object_uuid = NEW.workflow_object_uuid;

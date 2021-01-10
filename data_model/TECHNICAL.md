@@ -1619,7 +1619,444 @@ delete from vw_experiment_type where experiment_type_uuid = (select experiment_t
     where (description = 'TEST experiment type'));;
 ```
 
+<br/>
 
+__vw\_experiment\_workflow__`CRUD`<br/>
+*upsert\_experiment\_workflow ()*
+> experiment\_workflow\_uuid (v) <br/> 
+> experiment_uuid
+> description (v u) <br/> 
+> actor\_uuid (v u) <br/>
+> actor\_description (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+> tags (v) <br/>
+> notes (v) <br/>
+
+```
+insert into vw_experiment_type (description, actor_uuid, status_uuid) values
+	('TEST experiment type',
+	(select actor_uuid from vw_actor where org_short_name = 'HC'), null);
+update vw_experiment_type set
+	status_uuid = (select status_uuid from vw_status where description = 'active') where (description = 'TEST measure type');
+delete from vw_experiment_type where experiment_type_uuid = (select experiment_type_uuid from vw_experiment_type
+    where (description = 'TEST experiment type'));;
+```
+<br/>
+
+
+__vw\_inventory__`CRUD`<br/>
+*upsert\_inventory ()*
+> inventory\_uuid (v) <br/>
+> description (v u) <br/>
+> owner\_uuid (v u) <br/> 
+> owner\_description (v) <br/>
+> operator\_uuid (v u) <br/> 
+> operatory\_description (v) <br/>
+> lab\_uuid (v u) <br/> 
+> lab\_description (v) <br/>
+> actor\_uuid (v u) <br/>
+> actor\_description (v) <br/>
+> status\_uuid (v u) <br/> 
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+> tags (v) <br/>
+> notes (v) <br/>
+
+```
+insert into vw_inventory (description, owner_uuid, operator_uuid, lab_uuid, actor_uuid, status_uuid)
+	values ('test_inventory',
+			(select actor_uuid from vw_actor where description = 'HC'),
+			(select actor_uuid from vw_actor where description = 'T Testuser'),
+			(select actor_uuid from vw_actor where description = 'HC'),
+          (select actor_uuid from vw_actor where description = 'T Testuser'),
+			null);
+update vw_inventory set status_uuid = (select status_uuid from vw_status where description = 'active') where 
+	description = 'test_experiment';
+delete from vw_inventory where description = 'test_inventory';
+```
+
+<br/>
+
+__vw\_inventory\_material__`CRUD`<br/>
+*upsert\_inventory\_material ()*
+> inventory\_material\_uuid (v) <br/>
+> description (v u) <br/>
+> inventory\_uuid (r v u) <br/>
+> inventory\_description (v) <br/>
+> material\_uuid (r v u) <br/>
+> material\_description (v) <br/>
+> material\_consumable (v) <br/>
+> material\_composite\_flg (v) <br/>
+> part\_no (v u) <br/>
+> onhand\_amt (v u) <br/>
+> expiration\_date (v u) <br/>
+> location (v u) <br/>
+> actor\_uuid (v u) <br/> 
+> actor\_description (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+> inventory\_tags (v) <br/>
+> inventory\_notes (v) <br/>
+
+```
+insert into vw_inventory_material (inventory_uuid, description, material_uuid, actor_uuid, part_no, onhand_amt, expiration_date, location, status_uuid) values (
+	(select inventory_uuid from vw_inventory where description = 'test_inventory'),
+   '24 well plate',
+	(select material_uuid from vw_material where description = '24 well plate'),
+	(select actor_uuid from vw_actor where description = 'T Testuser'),'xxx_123_24',
+	(select put_val((select get_type_def ('data', 'int')), '3', '')),
+    '2021-12-31',
+    'Shelf 3, Bin 2',
+	(select status_uuid from vw_status where description = 'active'));
+```
+
+<br/>
+
+__vw\_material__`CRUD`<br/>
+*upsert\_material ()*
+> material\_uuid (v) <br/>
+> description (r v u) <br/>
+> consumable (r v u) <br/>
+> composite\_flg (v) <br/>
+> actor\_uuid (v u) <br/> 
+> actor\_description (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+> tags (v) <br/>
+> notes (v) <br/>
+
+```
+insert into vw_material (description) values ('materialrefnamedef_test');
+delete from vw_material where material_uuid = (select material_uuid from vw_material where 
+	(description = 'materialrefnamedef_test'));
+```
+
+<br/>
+
+
+__vw\_material\_composite__`CRUD`<br/>
+*upsert\_material\_composite ()*
+> material\_composite\_uuid (v) <br/>
+> composite\_uuid (r v u) <br/>
+> composite\_description (v) <br/>
+> composite\_flg (v) <br/>
+> component\_uuid (r v u) <br/>
+> component\_description (v) <br/>
+> addressable (r v u) <br/>
+> actor\_uuid (v u) <br/> 
+> actor\_description (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+> tags (v) <br/>
+> notes (v) <br/>
+
+`**NOTE: this associates a component material to it's composite (parent)`<br/>
+
+```
+insert into vw_material (description) values ('plate well');
+insert into vw_material (description) values ('24 well plate');
+insert into vw_material_composite (composite_uuid, component_uuid, addressable, actor_uuid, status_uuid) values
+	((select material_uuid from vw_material where description = '24 well plate'),
+	(select material_uuid from vw_material where description = 'plate well'),
+	TRUE,
+	(select actor_uuid from vw_actor where description = 'T Testuser')
+	(select status_uuid from vw_status where description = 'active'));
+delete from vw_material_composite where composite_uuid = (select material_uuid from vw_material where 
+	description = '24 well plate');
+
+```
+
+<br/>
+
+__vw\_material\_composite\_property__`R`<br/>
+
+> material\_composite\_uuid (v) <br/>
+> composite\_uuid (v) <br/>
+> composite\_description (v) <br/>
+> component\_uuid (v) <br/>
+> component\_description (v) <br/>
+> property\_uuid (v) <br/>
+> property\_def\_uuid (v) <br/>
+> property\_description (v) <br/>
+> property\_short\_description (v) <br/>
+> property\_value\_val (v) <br/>
+> property\_value\_type\_uuid (v) <br/>
+> property\_value\_unit (v) <br/>
+> property\_value (v) <br/>
+> property\_actor\_uuid (v) <br/>
+> property\_actor\_description (v) <br/>
+> property\_status\_uuid (v) <br/>
+> property\_status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+> property\_tags (v) <br/>
+> property\_notes (v) <br/>
+
+
+<br/>
+
+__vw\_material\_property__`CRUD`<br/>
+*upsert\_material\_property ()*
+> property\_x\_uuid (v) <br/>
+> material\_uuid (v) <br/>
+> description (v) <br/>
+> property\_uuid (v) <br/>
+> property\_def\_uuid (v) <br/>
+> property\_description (v) <br/>
+> property\_short\_description (v) <br/>
+> property\_value\_val (v u) <br/>
+> property\_value\_type\_uuid (v) <br/>
+> property\_value\_type\_description (v) <br/>
+> property\_value\_unit (v) <br/>
+> property\_value (v) <br/>
+> property\_actor_uuid (v u) <br/>
+> property\_actor\_description (v) <br/>
+> property\_status\_uuid (v u) <br/>
+> property\_status\_description (v) <br/>
+> property\_add\_date (v) <br/>
+> property\_mod\_date (v) <br/>
+> property\_tags (v) <br/>
+> property\_notes (v) <br/>
+
+`**NOTE: this will check to see if property_def exists`<br/>
+`**NOTE: also will add entry into property_x to join material_uuid with property_uuid on insert`<br/>
+`**NOTE: will inherit the data type and unit from property_def`<br/>
+
+```
+insert into vw_material_property (material_uuid, property_def_uuid, 
+	property_value, property_actor_uuid, property_status_uuid ) values (
+		(select material_uuid from vw_material where description = 'Formic Acid'),
+		(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
+		'{100, 200}', null,
+		(select status_uuid from vw_status where description = 'active'));
+update vw_material_property set property_actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where 
+	material_uuid = 
+				(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
+update vw_material_property set val_val = '{100, 900}' where 
+	material_uuid = 
+				(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
+delete from vw_material_property where 
+	material_uuid = 
+				(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
+```
+
+<br/>
+
+__vw\_material\_refname__`R`<br/>
+
+> material\_uuid (v) <br/>
+> description (v) <br/>
+> material\_status\_uuid (v) <br/>
+> material\_status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+> Abbreviation (v) <br/>
+> Chemical_Name (v) <br/>
+> InChI (v) <br/>
+> InChIKey (v) <br/>
+> Molecular_Formula (v) <br/>
+> SMILES (v) <br/>
+
+
+
+<br/>
+
+__vw\_material\_refname\_def__`CRUD`<br/>
+*upsert\_material\_refname\_def ()*
+> material\_refname\_def\_uuid (v) <br/>
+> description (r v u) <br/>
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+
+```
+insert into vw_material_refname_def (description) values ('materialrefnamedef_test');
+-- delete record; any notes attached to this record are automatically deleted
+delete from vw_material_refname_def where material_refname_def_uuid = (select material_refname_def_uuid from vw_material_refname_def where (description = 'materialrefnamedef_test'));
+```
+
+
+<br/>
+
+__vw\_material\_type__`CRUD`<br/>
+*upsert\_material\_type ()*
+> material\_type\_uuid (v) <br/>
+> description (r v u) <br/>
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+
+```
+insert into vw_material_type (description) values ('materialtype_test');
+-- delete record; any notes attached to this record are automatically deleted
+delete from vw_material_type where material_type_uuid = (select material_type_uuid from vw_material_type where (description = 'materialtype_test'));
+```
+
+
+<br/>
+
+__vw\_material\_type\_assign__`CRUD`<br/>
+*upsert\_material\_type\_assign ()*
+> material\_type\_x\_uuid (v) <br/>
+> material_uuid (r v u) <br/>
+> material\_description (v) <br/>
+> material\_type\_uuid (r v u) <br/>
+> description (r v u) <br/>
+> material\_type\_description (v) <br/>
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+
+```
+insert into vw_material_type_assign (material_uuid, material_type_uuid) values 
+	((select material_uuid from vw_material where description = 'Hydrochloric acid'),
+	(select material_type_uuid from vw_material_type where description = 'solvent'));
+delete from vw_material_type_assign where material_uuid = (select material_uuid from vw_material where
+	description = 'Hydrochloric acid') and
+ 	material_type_uuid = (select material_type_uuid from vw_material_type where 
+ 		description = 'solvent');
+```
+
+<br/>
+
+__vw\_measure__`CRUD`<br/>
+*upsert\_measure ()*
+> measure\_uuid (v) <br/>
+> measure\_def\_uuid (v u) <br/> 
+> measure\_def\_description (v) <br/>
+> measure\_type\_uuid (v u) <br/>
+> measure\_type\_description (v) <br/>
+> ref\_measure\_uuid (r v) <br/>
+> description (v u) <br/>
+> measure\_value (v u) <br/>
+> measure\_value\_type\_uuid (v) <br/>
+> measure\_value\_type\_description (v) <br/>
+> measure\_value\_value (v) <br/>
+> measure\_value\_unit (v) <br/>
+> actor\_uuid (v u) <br/> 
+> actor\_description (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+> tags (v) <br/>
+> notes (v) <br/>
+
+`**NOTE: this must be associated with an entity (i.e. ref_measure_uuid cannot be NULL)`<br/>
+
+```
+insert into vw_measure (measure_def_uuid, measure_type_uuid, ref_measure_uuid, description, measure_value, actor_uuid, status_uuid) values
+	(null, null,
+	(select material_uuid from vw_material where description = 'Formic Acid'),
+	'TEST measure',
+	(select put_val((select get_type_def ('data', 'num')),'3.1415926535','slice')),
+	(select actor_uuid from vw_actor where org_short_name = 'HC'),
+	null);
+update vw_measure set 
+	status_uuid = (select status_uuid from vw_status where 
+		description = 'active') where 
+			(description = 'TEST measure');
+delete from vw_measure where measure_uuid = (select measure_uuid from vw_measure where 
+	description = 'TEST measure');
+```
+
+<br/>
+
+__vw\_measure\_def__`CRUD`<br/>
+*upsert\_measure\_def()*
+> measure\_def\_uuid (v) <br/> 
+> default\_measure\_type\_uuid (v u) <br/>
+> description (v u) <br/>
+> default\_measure\_value (v u) <br/>
+> default\_measure\_value\_type\_uuid (v) <br/>
+> default\_measure\_value\_value (v) <br/>
+> default\_measure\_value\_unit (v) <br/>
+> property\_def\_uuid (v u) <br/>
+> property\_def\_description (v) <br/>
+> property\_def\_short\_description (v) <br/>
+> actor\_uuid (v u) <br/> 
+> actor\_description (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+
+`**NOTE: this should be associate with a property_def (though not enforced)`<br/>
+
+```
+insert into vw_measure_def (default_measure_type_uuid, description, default_measure_value, 	property_def_uuid, actor_uuid, status_uuid) values
+	((select measure_type_uuid from vw_measure_type where description = 'manual'),
+	'TEST plate temperature',
+	(select put_val(
+    (select get_type_def ('data', 'num')),'0.0','C')),
+    (select property_def_uuid from vw_property_def where description = 'temperature'),
+	(select actor_uuid from vw_actor where org_short_name = 'HC'),null);
+update vw_measure_def set
+	status_uuid = (select status_uuid from vw_status where description = 'active') where 
+	(description = 'TEST plate temperature');
+delete from vw_measure_def where measure_def_uuid = (select measure_def_uuid from vw_measure_def where 
+	description = 'TEST plate temperature');
+```
+<br/>
+
+
+__vw\_measure\_type__`CRUD`<br/>
+*upsert\_measure\_type()*
+> measure\_type\_uuid (v) <br/> 
+> description (v u) <br/>
+> actor\_uuid (v u) <br/> 
+> actor\_description (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+
+```
+insert into vw_material_type (description) values ('materialtype_test');
+delete from vw_material_type where
+	material_type_uuid = (select material_type_uuid from vw_material_type where 
+		(description = 'materialtype_test'));
+```
+<br/>
+
+__vw\_note__`CRUD`<br/>
+*upsert\_material\_refname\_def ()*
+> note\_uuid (v) <br/>
+> notetext (v u) <br/>
+> actor\_uuid (v u) <br/>
+> actor\_description (v) <br/>
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+> note\_x\_uuid (v) <br/>
+> ref\_note\_uuid (r v)
+
+`**NOTE: must have ref_note_uuid in order to return appropriate notes for that entity`<br/>
+
+```
+insert into vw_note (notetext, actor_uuid, ref_note_uuid) 
+	values ('test note', (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'), 
+	(select actor_uuid from vw_actor where person_last_name = 'Cattabriga'));
+insert into vw_note (notetext, actor_uuid) values 
+	('test note', (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'));
+update vw_note set notetext = 'test note with additional text...' where note_uuid = (select note_uuid from vw_note where (notetext = 'test note'));
+delete from vw_note where note_uuid = (select note_uuid from vw_note where (notetext = 'test note with additional text...'));
+-- delete all notes associated with a given entity
+insert into vw_note (notetext, actor_uuid, ref_note_uuid) 
+	values ('test note 1', (select actor_uuid from vw_actor where person_last_name = 'Alves'), (select actor_uuid from vw_actor where person_last_name = 'Alves'));
+insert into vw_note (notetext, actor_uuid, ref_note_uuid) 
+	values ('test note 2', (select actor_uuid from vw_actor where person_last_name = 'Alves'), (select actor_uuid from vw_actor where person_last_name = 'Alves'));
+insert into vw_note (notetext, actor_uuid, ref_note_uuid) 
+	values ('test note 2', (select actor_uuid from vw_actor where person_last_name = 'Alves'), (select actor_uuid from vw_actor where person_last_name = 'Alves'));
+delete from vw_note where note_uuid in (select note_uuid from vw_note where actor_uuid = (select actor_uuid from vw_actor where person_last_name = 'Alves'));
+
+```
 
 <br/>
 
@@ -1627,7 +2064,7 @@ __vw\_organization__ `CRUD`<br/>
 *upsert\_organization ()*
 > organization\_uuid (v) <br/>
 > description (v u) <br/>
-> full\_name (r v) <br/>
+> full\_name (r v u) <br/>
 > short_name (v u) <br/> 
 > address1 (v u) <br/>
 > address2 (v u) <br/>
@@ -1641,42 +2078,155 @@ __vw\_organization__ `CRUD`<br/>
 > parent\_org\_full\_name (v) <br/> 
 > add\_date (v) <br/> 
 > mod\_date (v) <br/>
+> tags (v) <br/>
+> notes (v) <br/> 
+
+`**NOTE: added functionality to insert a NEW organization into a NEW actor`<br/>
 
 ```
--- insert new record
-insert into vw_organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone, parent_uuid) values ('some description here','IBM','IBM','1001 IBM Lane',null,'Some City','NY',null,null,null,null,null);
--- update the description, city and zip columns
-update vw_organization set description = 'some [new] description here', city = 'Some [new] City', zip = '00000' where full_name = 'IBM';
--- update with a parent organization
-update vw_organization set parent_uuid =  (select organization_uuid from organization where organization.full_name = 'Haverford College') where full_name = 'IBM';
--- delete the record (assumes no dependent, referential records); any notes attached to this record are automatically deleted
+-- note: this insert also inserts record into actor
+insert into vw_organization (description, full_name, short_name, address1, address2, city, state_province, 
+	zip, country, website_url, phone, parent_uuid) values 
+	('some description here','IBM','IBM','1001 IBM Lane',null,'Some City','NY',null,null,null,null,null);
+update vw_organization set description = 'some [new] description here', 
+	city = 'Some [new] City', zip = '00000' where full_name = 'IBM';
+update vw_organization set parent_uuid =  (select organization_uuid from organization where 
+	organization.full_name = 'Haverford College') where full_name = 'IBM';
+-- if related actor exists, will not be able to delete
 delete from vw_organization where full_name = 'IBM';
+delete from vw_actor where organization_uuid = (select organization_uuid from vw_organization where 
+	full_name = 'IBM');
 ```
 
 <br/>
 
+__vw\_outcome__`CRUD`<br/>
+*upsert\_outcome ()*
+> outcome\_uuid (v) <br/>
+> description (r v u) <br/>
+> experiment\_uuid (r v u) <br/> 
+> actor\_uuid (v u) <br/> 
+> actor\_description (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+> tags (v) <br/>
+> notes (v) <br/>
 
-__vw_parameter_def__ `CRUD`<br/>
-*upsert\_parameter\_def()*
+```
+insert into vw_outcome (experiment_uuid, description, actor_uuid, status_uuid) values (
+	(select experiment_uuid from vw_experiment where description = 'LANL Test Experiment Template'),
+	'test_outcome',
+	(select actor_uuid from vw_actor where description = 'T Testuser'),
+	(select status_uuid from vw_status where description = 'test'));
+update vw_outcome set status_uuid = (select status_uuid from vw_status where 
+	description = 'active') where description = 'test_outcome';
+delete from vw_outcome where description = 'test_outcome';
+```
 
-> parameter_def_uuid (v) <br/>
-> description (v u) <br/>
-> val_type_description (v) <br/>
-> val_type_uuid (v) <br/>
-> default_val_val (v) <br/>
+<br/>
+
+__vw\_outcome\_measure__`R`<br/>
+
+> outcome\_uuid (v) <br/>
+> description (u) <br/>
+> experiment\_uuid (v) <br/>
+> experiment\_description (v) <br/>
+> outcome\_actor\_uuid (v) <br/>
+> outcome\_actor\_description (v) <br/>
+> outcome\_status\_uuid (v) <br/>
+> outcome\_status\_description (v) <br/>
+> outcome\_add\_date (v) <br/>
+> outcome\_mod\_date (v) <br/>
+> outcome\_tags (v) <br/>
+> outcome\_notes (v) <br/>
+> measure\_uuid (v) <br/>
+> measure\_description (u) <br/>
+> measure\_type\_uuid (v) <br/>
+> measure\_type\_description (v) <br/>
+> measure\_value (v) <br/>
+> measure\_value\_type\_uuid (v) <br/>
+> measure\_value\_type\_description (v) <br/>
+> measure\_value\_value (v) <br/>
+> measure\_value\_unit (v) <br/>
+> measure\_actor\_uuid (v) <br/>
+> measure\_actor\_description (v) <br/>
+> measure\_status\_uuid (v) <br/>
+> measure\_status\_description (v) <br/>
+> measure\_add\_date (v) <br/>
+> measure\_mod\_date (v) <br/>
+> measure\_tags (v) <br/>
+> measure\_notes (v) <br/>
+
+<br/>
+
+__vw\_parameter__ `CRUD`<br/>
+*upsert\_parameter()*
+> parameter\_uuid (v) <br/>
+> parameter\_def\_uuid (r v) <br/>
+> parameter\_def\_description (v) <br/>
+> parameter\_val (r v u) <br/>
+> parameter\_value (v) <br/>
+> val\_type\_uuid (v) <br/>
+> val\_type\_description (v) <br/>
 > valunit (v) <br/>
-> default_val (v u) <br/>
-> required (v) <br/>
-> actor_uuid (v u) <br/>
-> actor_description (v) <br/>
-> status_uuid (v u) <br/>
-> status_description (v) <br/>
-> add_date (v) <br/>
-> mod_date (v) <br/> 
+> actor\_uuid (v u) <br/>
+> actor\_description (v) <br/> 
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+> tags (v) <br/>
+> notes (v) <br/> 
+> ref\_parameter\_uuid (v) <br/>
+> parameter\_x\_uuid (v) <br/>
+
+`**NOTE: Preferred use is through vw_action_parameter`<br/>
 
 ```
-Note: Default val determines the datatype and unit of the parameter def
+Example:		
+insert into vw_parameter (parameter_def_uuid, ref_parameter_uuid, parameter_val, actor_uuid, status_uuid ) 
+values (
+	(select parameter_def_uuid from vw_parameter_def where description = 'duration'),
+	(select action_def_uuid from vw_action_def where description = 'heat'),
+	(select put_val (
+		(select val_type_uuid from vw_parameter_def where description = 'duration'),
+		'10',
+		(select valunit from vw_parameter_def where description = 'duration'))),
+	(select actor_uuid from vw_actor where org_short_name = 'LANL'),
+	(select status_uuid from vw_status where description = 'active')
+	);
+update vw_parameter set parameter_val = (select put_val (
+		    (select val_type_uuid from vw_parameter_def where description = 'duration'),
+		    '36',
+		    (select valunit from vw_parameter_def where description = 'duration')))
+		where parameter_def_description = 'duration'
+		and ref_parameter_uuid = (select action_def_uuid from vw_action_def where description = 'heat');
+delete from vw_parameter where parameter_def_description = 'duration' AND ref_parameter_uuid = (select action_def_uuid from vw_action_def where description = 'heat');
 ```
+
+<br/>
+
+__vw\_parameter\_def__ `CRUD`<br/>
+*upsert\_parameter\_def()*
+> parameter\_def\_uuid (v) <br/>
+> description (v u) <br/>
+> val\_type\_description (v) <br/>
+> val\_type\_uuid (v) <br/>
+> default\_val\_val (v) <br/>
+> valunit (v) <br/>
+> default\_val (v u) <br/>
+> required (v) <br/>
+> actor\_uuid (v u) <br/>
+> actor\_description (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/> 
+
+`**NOTE: Default val determines the datatype and unit of the parameter def`<br/>
+
 ```
 Example:		
 insert into vw_parameter_def (description, default_val)
@@ -1709,52 +2259,6 @@ delete from vw_parameter_def where description in ('duration', 'speed', 'tempera
 
 <br/>
 
-__vw_parameter__ `CRUD`<br/>
-*upsert\_parameter()*
-
-> parameter_uuid (v) <br/>
-> parameter_def_uuid (v u) <br/>
-> parameter_def_description (v) <br/>
-> parameter_val (v u) <br/>
-> val_type_description (v) <br/>
-> valunit (v) <br/>
-> actor_uuid (v u) <br/>
-> actor_description (v) <br/> 
-> status_uuid (v u) <br/>
-> status_description (v) <br/>
-> add\_date (v) <br/>
-> mod\_date (v) <br/>
-> ref_parameter_uuid (v) <br/>
-> parameter_x_uuid (v) <br/>
-
-```
-Notes: Preferred use is through vw_action_parameter
-```
-```
-Example:		
-insert into vw_parameter (parameter_def_uuid, ref_parameter_uuid, parameter_val, actor_uuid, status_uuid ) 
-values (
-	(select parameter_def_uuid from vw_parameter_def where description = 'duration'),
-	(select action_def_uuid from vw_action_def where description = 'heat'),
-	(select put_val (
-		(select val_type_uuid from vw_parameter_def where description = 'duration'),
-		'10',
-		(select valunit from vw_parameter_def where description = 'duration'))),
-	(select actor_uuid from vw_actor where org_short_name = 'LANL'),
-	(select status_uuid from vw_status where description = 'active')
-	);
-update vw_parameter set parameter_val = (select put_val (
-		    (select val_type_uuid from vw_parameter_def where description = 'duration'),
-		    '36',
-		    (select valunit from vw_parameter_def where description = 'duration')))
-		where parameter_def_description = 'duration'
-		and ref_parameter_uuid = (select action_def_uuid from vw_action_def where description = 'heat');
-delete from vw_parameter where parameter_def_description = 'duration' AND ref_parameter_uuid = (select action_def_uuid from vw_action_def where description = 'heat');
-```
-
-<br/>
-
-
 __vw\_person__ `CRUD`<br/>
 *upsert\_person ()*
 > person\_uuid (v) <br/>
@@ -1771,10 +2275,14 @@ __vw\_person__ `CRUD`<br/>
 > email (v u) <br/> 
 > title (v u) <br/> 
 > suffix (v u) <br/> 
-> organization\_uuid (v u) <br/> 
-> organization\_full\_name (v) <br/> 
 > add\_date (v) <br/> 
 > mod\_date (v) <br/>
+> organization\_uuid (v u) <br/> 
+> organization\_full\_name (v) <br/> 
+> tags (v) <br/>
+> notes (v) <br/> 
+
+`**NOTE: added functionality to insert a NEW organization into a NEW actor`<br/>
 
 ```
 -- insert new person record; also adds actor record related to this person
@@ -1786,6 +2294,75 @@ update vw_person set organization_uuid =  (select organization_uuid from organiz
 -- delete record; any notes attached to this record are automatically deleted - note that actor must be deleted first
 delete from vw_actor where person_uuid = (select person_uuid from vw_person where (last_name = 'Tester' and first_name = 'Lester'));
 delete from vw_person where person_uuid = (select person_uuid from person where (last_name = 'Tester' and first_name = 'Lester'));
+```
+<br/>
+
+__vw\_property__`CRUD`<br/>
+*upsert\_property ()*
+> property\_uuid (v) <br/>
+> property\_def\_uuid (r v u) <br/>
+> short\_description (v) <br/>
+> property\_val (r v u) <br/>
+> actor\_uuid (v u) <br/>
+> actor\_description (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+> tags (v) <br/>
+> notes (v) <br/>  
+
+`**NOTE: AVOID THIS FUNCTION as it will isolate property records; USE vw_material_property instead.`<br/>
+
+```
+insert into vw_property (property_def_uuid, property_val, actor_uuid, status_uuid ) 
+	values ((select property_def_uuid from vw_property_def where short_description = 'particle-size'),
+	(select put_val ((select valtype from vw_property_def where short_description = 'particle-size'),'{100, 200}',
+	(select valunit from vw_property_def where short_description = 'particle-size'))), 
+	null,
+	(select status_uuid from vw_status where description = 'active'));
+update vw_property set actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where (property_uuid = 'e36c8f19-cd2f-4f5d-960d-54638f26f066');
+delete from vw_property where (property_uuid = 'e36c8f19-cd2f-4f5d-960d-54638f26f066');
+```
+
+<br/>
+
+__vw\_property\_def__`CRUD`<br/>
+*upsert\_property\_def ()*
+> property\_def\_uuid (v) <br/>
+> description (v u) <br/>
+> short\_description (r v u) <br/>
+> valtype (v u) <br/>
+> valunit(v u) <br/>
+> actor\_uuid (v u) <br/>
+> actor\_description (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/>
+> mod\_date (v) <br/>
+
+```
+insert into vw_property_def (description, short_description, valtype, valunit, actor_uuid, status_uuid ) 
+	values ('particle-size {min, max}', 'particle-size', 'array_num', 'mesh', 
+	null,
+	(select status_uuid from vw_status where description = 'active'));
+update vw_property_def set short_description = 'particle-size', actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where (short_description = 'particle-size');
+delete from vw_property_def where short_description = 'particle-size';
+```
+<br/>
+
+__vw\_status__`CRUD`<br/>
+*upsert\_status ()*
+> status\_uuid (v) <br/>
+> description (r v u) <br/>
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+
+```
+insert into vw_status (description) values ('testtest');
+update vw_status set description = 'testtest status' where status_uuid = (select status_uuid from vw_status where (description = 'testtest'));
+-- delete record; any notes attached to this record are automatically deleted
+delete from vw_status where status_uuid = (select status_uuid from vw_status where (description = 'testtest status'));
 ```
 <br/>
 
@@ -1803,6 +2380,10 @@ __vw\_systemtool__`CRUD`<br/>
 > ver (r v u) <br/> 
 > add\_date (v) <br/> 
 > mod\_date (v) <br/>
+> tags (v) <br/>
+> notes (v) <br/> 
+
+`**NOTE: added functionality to insert a NEW organization into a NEW actor`<br/>
 
 ```
 -- insert new systemtool; note, ver[sion] is required
@@ -1845,7 +2426,7 @@ delete from vw_systemtool_type where systemtool_type_uuid = (select systemtool_t
 __vw\_tag__`CRUD`<br/>
 *upsert\_tag ()*
 > tag\_uuid (v) <br/>
-> display_text (r v u) <br/>
+> display\_text (r v u) <br/>
 > description (v u) <br/>
 > actor\_uuid (v u) <br/>
 > actor\_description (v) <br/>
@@ -1854,6 +2435,8 @@ __vw\_tag__`CRUD`<br/>
 > tag\_type\_uuid (v u) <br/>
 > tag\_type\_short\_descr (v) <br/>
 > tag\_type\_description (v) <br/>
+
+`**NOTE: will not be able to delete a tag if any connected records in tag_x exist `<br/>
 
 ```
 -- insert new tag  (tag_uuid = NULL, ref_tag_uuid = NULL)
@@ -1878,6 +2461,8 @@ __vw\_tag_assign__`CRUD`<br/>
 > add\_date (v) <br/> 
 > mod\_date (v) <br/>
 
+`**NOTE: requires both ref_tag_uuid and tag_uuid`<br/>
+
 ```
 -- insert new tag_assign (ref_tag) 
 insert into vw_tag_assign (tag_uuid, ref_tag_uuid) values ((select tag_uuid from vw_tag 
@@ -1885,14 +2470,13 @@ insert into vw_tag_assign (tag_uuid, ref_tag_uuid) values ((select tag_uuid from
 delete from vw_tag_assign where tag_uuid = (select tag_uuid from vw_tag 
  	where (display_text = 'inactive' and vw_tag.type = 'actor') and ref_tag_uuid = (select actor_uuid from vw_actor where person_last_name = 'Alves') );
 ```
-
 <br/>
 
 
 __vw\_tag_type__`CRUD`<br/>
 *upsert\_tag\_type ()*
 > tag\_type\_uuid (v) <br/>
-> short_description (r u) <br/>
+> short\_description (r u) <br/>
 > description (v u) <br/>
 > add\_date (v) <br/> 
 > mod\_date (v) <br/>
@@ -1907,27 +2491,27 @@ update vw_tag_type set short_description = 'TESTDEV1', description = 'tags used 
 -- delete tag_type (assumes no dependent, referential records); any notes attached to this record are automatically deleted
  delete from vw_tag_type where tag_type_uuid = (select tag_type_uuid from vw_tag_type where (short_description = 'TESTDEV1'));
 ```
-
 <br/>
 
 
-__vw\_udf\_def__`CRUD`<br/>
-*upsert\_udf\_def ()*
-> udf\_def\_uuid (v) <br/>
+__vw\_type\_def__`CRUD`<br/>
+*upsert\_edocument\_assign ()*
+> type\_def\_uuid (v) <br/>
+> category (r v u) <br/>
 > description (r v u) <br/>
-> valtype (v u) <br/>
 > add\_date (v) <br/> 
 > mod\_date (v) <br/>
 
-```
--- insert udf_def record with only description
-insert into vw_udf_def (description, valtype) values ('user defined 1', null);
--- update valtype column; need to cast to val_type 
-update vw_udf_def set valtype = 'text'::val_type where udf_def_uuid = (select udf_def_uuid from vw_udf_def where (description = 'user defined 1'));
--- delete udf_def; any notes attached to this record are automatically deleted
-delete from vw_udf_def where udf_def_uuid = (select udf_def_uuid from udf_def where (description = 'user defined 1'));
-```
+`**NOTE: must have ref_note_uuid in order to return appropriate notes for that entity`<br/>
 
+```
+insert into vw_type_def (category, description) values ('data', 'bool');
+insert into vw_type_def (category, description) values ('file', 'pdf');
+update vw_type_def set description = 'svg' where type_def_uuid = (select type_def_uuid from 
+	vw_type_def where category = 'file' and description = 'pdf');
+delete from vw_type_def where type_def_uuid = (select type_def_uuid from vw_type_def where category = 'data' and description = 'bool');
+delete from vw_type_def where type_def_uuid = (select type_def_uuid from vw_type_def where category = 'file' and description = 'svg');
+```
 
 <br/>
 
@@ -1937,16 +2521,17 @@ __vw\_udf__`CRUD`<br/>
 > udf\_uuid (v) <br/>
 > udf\_def\_uuid (r v u) <br/>
 > description (v) <br/>
-> udf_val (v) <br/>
-> udf_val_type_uuid (v) <br/>
-> udf_val_val (r v u) <br/>
-> udf_val_unit (v) <br/>
-> udf_val_edocument_uuid (v u) <br/>
-> valtype (v u) <br/>
+> udf\_val (v u) <br/>
+> udf\_val\_type\_uuid (v) <br/>
+> udf\_val\_val (v) <br/>
+> udf\_val\_unit (v) <br/>
+> udf\_val\_edocument\_uuid (v) <br/>
 > add\_date (v) <br/> 
 > mod\_date (v) <br/>
 > udf\_x\_uuid (v) <br/>
 > ref\_udf\_uuid (r v u) <br/>
+> tags (v) <br/>
+> notes (v) <br/> 
 
 ```
 insert into vw_udf (ref_udf_uuid, udf_def_uuid, udf_val_val) values 
@@ -1957,220 +2542,247 @@ update vw_udf set udf_val_val = 'some more text: a, b, c, d, e, f' where
 	udf_def_uuid = (select udf_def_uuid from vw_udf_def where (description = 'user defined 1'));
 delete from vw_udf where udf_def_uuid = (select udf_def_uuid from udf_def where (description = 'user defined 1'));
 ```
-
 <br/>
 
-__vw\_status__`CRUD`<br/>
-*upsert\_status ()*
-> status\_uuid (v) <br/>
+__vw\_udf\_def__`CRUD`<br/>
+*upsert\_udf\_def ()*
+> udf\_def\_uuid (v) <br/>
 > description (r v u) <br/>
+> val\_type\_uuid (r v u) <br/>
+> val\_type\_category (v) <br/>
+> val\_type\_description (v) <br/>
+> unit (v u) <br/>
 > add\_date (v) <br/> 
 > mod\_date (v) <br/>
+> tags (v) <br/>
+> notes (v) <br/> 
 
 ```
-insert into vw_status (description) values ('testtest');
-update vw_status set description = 'testtest status' where status_uuid = (select status_uuid from vw_status where (description = 'testtest'));
--- delete record; any notes attached to this record are automatically deleted
-delete from vw_status where status_uuid = (select status_uuid from vw_status where (description = 'testtest status'));
+-- insert udf_def record with only description
+insert into vw_udf_def (description, valtype) values ('user defined 1', null);
+-- update valtype column; need to cast to val_type 
+update vw_udf_def set valtype = 'text'::val_type where udf_def_uuid = (select udf_def_uuid from vw_udf_def where (description = 'user defined 1'));
+-- delete udf_def; any notes attached to this record are automatically deleted
+delete from vw_udf_def where udf_def_uuid = (select udf_def_uuid from udf_def where (description = 'user defined 1'));
 ```
-
 <br/>
 
-__vw\_material\_type__`CRUD`<br/>
-*upsert\_material\_type ()*
-> material\_type\_uuid (v) <br/>
-> description (r v u) <br/>
-> add\_date (v) <br/> 
-> mod\_date (v) <br/>
-
-```
-insert into vw_material_type (description) values ('materialtype_test');
--- delete record; any notes attached to this record are automatically deleted
-delete from vw_material_type where material_type_uuid = (select material_type_uuid from vw_material_type where (description = 'materialtype_test'));
-```
-
-<br/>
-
-__vw\_material\_refname\_def__`CRUD`<br/>
-*upsert\_material\_refname\_def ()*
-> material\_refname\_def\_uuid (v) <br/>
-> description (r v u) <br/>
-> add\_date (v) <br/> 
-> mod\_date (v) <br/>
-
-```
-insert into vw_material_refname_def (description) values ('materialrefnamedef_test');
--- delete record; any notes attached to this record are automatically deleted
-delete from vw_material_refname_def where material_refname_def_uuid = (select material_refname_def_uuid from vw_material_refname_def where (description = 'materialrefnamedef_test'));
-```
-
-
-<br/>
-
-__vw\_property\_def__`CRUD`<br/>
-*upsert\_property\_def ()*
-> property_def_uuid (v) <br/>
+__vw\_workflow__`CRUD`<br/>
+*upsert\_workflow ()*
+> workflow\_uuid (v) <br/>
 > description (v u) <br/>
-> short_description (r v u) <br/>
-> valtype (r v u) <br/>
-> valunit(r v u) <br/>
-> actor_uuid (v u) <br/>
-> actor_description (v) <br/>
-> status_uuid (v u) <br/>
-> status_description (v) <br/>
-> add_date (v) <br/>
-> mod_date (v) <br/>
-
-```
-insert into vw_property_def (description, short_description, valtype, valunit, actor_uuid, status_uuid ) 
-	values ('particle-size {min, max}', 'particle-size', 'array_num', 'mesh', 
-	null,
-	(select status_uuid from vw_status where description = 'active'));
-update vw_property_def set short_description = 'particle-size', actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where (short_description = 'particle-size');
-delete from vw_property_def where short_description = 'particle-size';
-```
-
-<br/>
-
-__vw\_property__`CRUD`<br/>
-*upsert\_property ()*
-> property\_uuid (v) <br/>
-> property\_def\_uuid (r v u) <br/>
-> short\_description (v) <br/>
-> property\_val (r v u) <br/>
+> parent\_uuid (v u) <br/>
+> workflow\_type\_uuid (v u) <br/>
+> workflow\_type\_description (v) <br/>
 > actor\_uuid (v u) <br/>
 > actor\_description (v) <br/>
 > status\_uuid (v u) <br/>
 > status\_description (v) <br/>
-> add\_date (v) <br/>
+> add\_date (v) <br/> 
 > mod\_date (v) <br/>
-
-`**NOTE: AVOID using this view as an upsert; USE vw_material_property instead.`<br/>
+> tags (v) <br/>
+> notes (v) <br/> 
 
 ```
-insert into vw_property (property_def_uuid, property_val, actor_uuid, status_uuid ) 
-	values ((select property_def_uuid from vw_property_def where short_description = 'particle-size'),
-	(select put_val ((select valtype from vw_property_def where short_description = 'particle-size'),'{100, 200}',
-	(select valunit from vw_property_def where short_description = 'particle-size'))), 
-	null,
-	(select status_uuid from vw_status where description = 'active'));
-update vw_property set actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where (property_uuid = 'e36c8f19-cd2f-4f5d-960d-54638f26f066');
-delete from vw_property where (property_uuid = 'e36c8f19-cd2f-4f5d-960d-54638f26f066');
+insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid) values (
+	(select workflow_type_uuid from vw_workflow_type where description = 'template'),
+	'workflow_test_2',
+	(select actor_uuid from vw_actor where description = 'T Testuser'),
+	null);
+update vw_workflow set status_uuid = (select status_uuid from vw_status where description = 'active') where 
+	description = 'workflow_test'; 
+delete from vw_workflow where description = 'workflow_test' ;
 ```
-
-
 <br/>
 
-__vw\_material\_property__`CRUD`<br/>
-*upsert\_material\_property ()*
-> property\_x\_uuid (v) <br/>
-> material\_uuid (r v) <br/>
-> description (v) <br/>
-> parent\_uuid (v) <br/>
-> property\_uuid (v) <br/>
-> property\_def\_uuid (r v u) <br/>
-> property\_short\_description (v u) <br/>
-> v\_type\_uuid (v) <br/>
-> val\_type (v) <br/>
-> val_unit (v) <br/>
-> val_val (r v u) <br/>
-> property\_val (r v u) <br/>
+
+__vw\_workflow\_action\_set__`CRUD`<br/>
+*upsert\_workflow\_action\_set ()*
+> workflow\_action\_set\_uuid (v) <br/>
+> description (v u) <br/>
+> workflow\_uuid (v u) <br/>
+> workflow\_description (v) <br/>
+> action\_def\_uuid (r v) <br/>
+> action\_def\_description (v) <br/>
+> start\_date (v u) <br/>
+> end\_date (v u) <br/>
+> duration (v u) <br/>
+> repeating (v u) <br/>
+> parameter\_def\_uuid (v u) <br/>
+> parameter\_def\_description (v) <br/>
+> parameter\_val (v) <br/>
+> calculation\_uuid (v u) <br/>
+> calculation\_description (v) <br/>
+> source\_material\_uuid (v u) <br/>
+> destination\_material\_uuid (v u) <br/>
 > actor\_uuid (v u) <br/>
 > actor\_description (v) <br/>
 > status\_uuid (v u) <br/>
 > status\_description (v) <br/>
-> add\_date (v) <br/>
-> mod\_date (v) <br/>
-
-`**NOTE: because this is a one to many, on insert property_uuid and material_uuid is (r)equired`<br/>
-`**NOTE: property_x_uuid is added to guarantee a unique key for the view table`<br/>
-
-```
-insert into vw_material_property (material_uuid, property_def_uuid, 
-	val_val, property_actor_uuid, property_status_uuid ) 
-	values ((select material_uuid from vw_material where description = 'Formic Acid'),
-		(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
-		'{100, 200}', 
-		null,
-		(select status_uuid from vw_status where description = 'active')
-	) returning *;
-update vw_material_property set property_actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where material_uuid = 
-	(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
-update vw_material_property set val_val = '{100, 900}' where material_uuid = 
-	(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
-delete from vw_material_property where material_uuid = 
-	(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
-```
-
-<br/>
-
-__vw\_note__`CRUD`<br/>
-*upsert\_material\_refname\_def ()*
-> note\_uuid (v) <br/>
-> notetext (v u) <br/>
-> add\_date (v) <br/> 
-> mod\_date (v) <br/>
-> actor\_uuid (v u) <br/>
-> actor\_description (v) <br/>
-> note\_x\_uuid <br/>
-> ref\_note\_uuid (r)
-
-```
-insert into vw_note (notetext, actor_uuid, ref_note_uuid) 
-	values ('test note', (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'), 
-	(select actor_uuid from vw_actor where person_last_name = 'Cattabriga'));
-insert into vw_note (notetext, actor_uuid) values 
-	('test note', (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'));
-update vw_note set notetext = 'test note with additional text...' where note_uuid = (select note_uuid from vw_note where (notetext = 'test note'));
-delete from vw_note where note_uuid = (select note_uuid from vw_note where (notetext = 'test note with additional text...'));
--- delete all notes associated with a given entity
-insert into vw_note (notetext, actor_uuid, ref_note_uuid) 
-	values ('test note 1', (select actor_uuid from vw_actor where person_last_name = 'Alves'), (select actor_uuid from vw_actor where person_last_name = 'Alves'));
-insert into vw_note (notetext, actor_uuid, ref_note_uuid) 
-	values ('test note 2', (select actor_uuid from vw_actor where person_last_name = 'Alves'), (select actor_uuid from vw_actor where person_last_name = 'Alves'));
-insert into vw_note (notetext, actor_uuid, ref_note_uuid) 
-	values ('test note 2', (select actor_uuid from vw_actor where person_last_name = 'Alves'), (select actor_uuid from vw_actor where person_last_name = 'Alves'));
-delete from vw_note where note_uuid in (select note_uuid from vw_note where actor_uuid = (select actor_uuid from vw_actor where person_last_name = 'Alves'));
-
-```
-
-
-
-__vw\_edocument\_assign__`CRUD`<br/>
-*upsert\_edocument\_assign ()*
-> edocument\_x\_uuid (v) <br/>
-> ref\_edocument\_uuid (r v u)
-> edocument\_uuid (r v u) <br/>
 > add\_date (v) <br/> 
 > mod\_date (v) <br/>
 
+`**NOTE: this will build a workflow of repeating action with one-to-many or many-to-many materials,`<br/>
+`**NOTE: varying parameter (explicit or calculation)`<br/>
+`**NOTE: !!!!! This expects to live in a workflow alone. That is, do not insert other actions or action sets into the workflow this  !!!!!`<br/>
+`**NOTE: !!!!! is assigned, otherwise it could break the experiment_copy function !!!!!`<br/>
+
 ```
--- just insert the document, with no association to an entity
-insert into vw_edocument_assign (ref_edocument_uuid, edocument_uuid) values 
- 	((select actor_uuid from vw_actor where person_last_name = 'Alves') ,(select edocument_uuid from vw_edocument where (title = 'Test document 1'));
-delete from vw_edocument_assign where edocument_uuid = (select edocument_uuid from vw_edocument where 
- 	(title = 'Test document 1') and ref_tag_uuid = (select actor_uuid from vw_actor where person_last_name = 'Alves') );
+-- insert a one-to-many workflow_action_set (one source into many destinations)
+insert into vw_experiment (ref_uid, description, parent_uuid, owner_uuid, operator_uuid, lab_uuid,
+	status_uuid) values (
+	'test_red_uid', 'test_experiment',
+	null,
+	(select actor_uuid from vw_actor where description = 'HC'),
+	(select actor_uuid from vw_actor where description = 'T Testuser'),
+	(select actor_uuid from vw_actor where description = 'HC'), null);
+insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid) values (
+	(select workflow_type_uuid from vw_workflow_type where description = 'template'),
+	'(select actor_uuid from vw_actor where description = 'Ion Bond'),
+	(select status_uuid from vw_status where description = 'dev_test'));
+-- associate it with an experiment
+insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid) values (
+	1, 
+	(select experiment_uuid from vw_experiment where description = 'test_experiment'),
+	(select workflow_uuid from vw_workflow where description = 'test_workflow_action_set'));
+
+insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date,
+	duration, repeating, parameter_def_uuid, parameter_val, source_material_uuid, destination_material_uuid, 
+	actor_uuid, status_uuid) values (
+	'test dispense action_set',
+	(select workflow_uuid from vw_workflow where description = 'test_workflow_action_set'),
+	(select action_def_uuid from vw_action_def where description = 'dispense'),
+	null, null, null, null,
+	(select parameter_def_uuid from vw_action_parameter_def where description = 'dispense' and parameter_description = 'volume'),
+	array[(select put_val ((select val_type_uuid from vw_parameter_def where description = 'volume'),'10.1',
+	(select valunit from vw_parameter_def where description = 'volume'))),
+	(select put_val ((select val_type_uuid from vw_parameter_def where description = 'volume'),'9.2',
+	(select valunit from vw_parameter_def where description = 'volume'))), 
+	(select put_val ((select val_type_uuid from vw_parameter_def where description = 'volume'),'8.3',
+	(select valunit from vw_parameter_def where description = 'volume')))],
+	array[(select bom_material_uuid from vw_bom_material where bom_material_description = 'HCl-12M')],
+	array[
+		(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# B1'),
+		(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# B2'),
+		(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# B3')],		(select actor_uuid from vw_actor where description = 'Ion Bond'),
+		(select status_uuid from vw_status where description = 'dev_test'));
+-- this is a many to many example; with a single parameter value
+insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration, repeating, parameter_def_uuid, parameter_val, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid) values (
+	'test dispense action_set',
+	(select workflow_uuid from vw_workflow where description = 'test_workflow_action_set'),
+	(select action_def_uuid from vw_action_def where description = 'dispense'),
+	null, null, null, null,
+	(select parameter_def_uuid from vw_action_parameter_def where description = 'dispense' and parameter_description = 'volume'),
+	array[(select put_val ((select val_type_uuid from vw_parameter_def where description = 'volume'),'50',
+	(select valunit from vw_parameter_def where description = 'volume')))],
+	array[
+		(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# A1'),
+		(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# A2'),
+		(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# A3')],
+		array[
+			(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# B1'),
+			(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# B2'),
+			(select bom_material_uuid from vw_bom_material where bom_material_description = 'Plate: well# B3')],						
+			(select actor_uuid from vw_actor where description = 'Ion Bond'),
+			(select status_uuid from vw_status where description = 'dev_test')); 
+delete from vw_workflow_action_set where 
+	workflow_action_set_uuid = (select workflow_action_set_uuid from vw_workflow_action_set where 
+	description = 'test dispense action_set');
 ```
 <br/>
 
-
-__vw\_type\_def__`CRUD`<br/>
-*upsert\_edocument\_assign ()*
-> type\_def\_uuid (v) <br/>
-> category (r v u)
-> description (r v u) <br/>
+__vw\_workflow\_object__`CRUD`<br/>
+*upsert\_workflow\_object ()*
+> workflow\_object\_uuid (v) <br/>
+> workflow\_uuid (v u) <br/>
+> workflow\_action\_set\_uuid (v u) <br/>
+> action\_uuid (v u) <br/>
+> condition\_uuid (v u) <br/>
+> object\_uuid (v) <br/>
+> object\_type (v) <br/>
+> object\_description (v) <br/>
+> object\_def\_description (v) <br/>
 > add\_date (v) <br/> 
 > mod\_date (v) <br/>
 
+
 ```
-insert into vw_type_def (category, description) values ('data', 'bool');
-insert into vw_type_def (category, description) values ('file', 'pdf');
-update vw_type_def set description = 'svg' where type_def_uuid = (select type_def_uuid from 
-	vw_type_def where category = 'file' and description = 'pdf');
-delete from vw_type_def where type_def_uuid = (select type_def_uuid from vw_type_def where category = 'data' and description = 'bool');
-delete from vw_type_def where type_def_uuid = (select type_def_uuid from vw_type_def where category = 'file' and description = 'svg');
+insert into vw_workflow_object (workflow_uuid, action_uuid) values (
+	(select action_uuid from vw_action where action_description = 'example_heat'));
+insert into vw_workflow_object (workflow_uuid, condition_uuid) values (
+	(select condition_uuid from vw_condition where  condition_description = 'temp > threshold ?'));
+insert into vw_workflow_object (workflow_uuid, action_uuid) values (
+	(select action_uuid from vw_action where action_description = 'example_heat_stir'));
+insert into vw_workflow_object (workflow_uuid, action_uuid) values (
+	(select action_uuid from vw_action where action_description = 'start'));
+insert into vw_workflow_object (workflow_uuid, action_uuid) values (
+	(select action_uuid from vw_action where action_description = 'end'));
+update vw_workflow_object set status_uuid = (select status_uuid from vw_status where 
+	description = 'active') where (object_type = 'action' and object_description = 'start'); 
+delete from vw_workflow_object where (object_type = 'action' and object_description = 'start');
 ```
 <br/>
+
+
+__vw\_workflow\_step__`CRUD`<br/>
+*upsert\_workflow\_step ()*
+> workflow\_step\_uuid (v) <br/>
+> workflow\_uuid (v u) <br/>
+> workflow\_description (v) <br/>
+> workflow\_action\_set\_uuid (v u) <br/>
+> parent\_uuid (v u) <br/>
+> parent\_object_type (v) <br/>
+> parent\_object\_description (v) <br/>
+> parent\_path (v) <br/>
+> conditional\_val (v) <br/>
+> conditional\_value (v) <br/>
+> status\_uuid (v u) <br/>
+> status\_description (v) <br/>
+> add\_date (v) <br/> 
+> mod\_date (v) <br/>
+> workflow\_object\_uuid (v u) <br/>
+> object\_uuid (v) <br/>
+> object\_type (v) <br/>
+> object\_description (v) <br/>
+> object\_add\_date (v) <br/>
+> object\_mod\_date (v) <br/>
+
+```
+insert into vw_workflow_step (workflow_uuid, parent_uuid, workflow_object_uuid, status_uuid) values (
+	(select workflow_uuid from vw_workflow where description = 'workflow_test'),
+	null,
+	(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'start')),
+	null);
+insert into vw_workflow_step (workflow_uuid, parent_uuid, workflow_object_uuid, status_uuid) values (
+	(select workflow_uuid from vw_workflow where description = 'workflow_test'),
+	(select workflow_step_uuid from vw_workflow_step where (object_type = 'action' and object_description = 'start')),
+	(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'example_heat_stir')),	(select status_uuid from vw_status where description = 'active'));
+insert into vw_workflow_step (workflow_uuid, parent_uuid, workflow_object_uuid, status_uuid)  values (
+	(select workflow_uuid from vw_workflow where description = 'workflow_test'),
+	(select workflow_step_uuid from vw_workflow_step where (object_type = 'action' and object_description = 'example_heat_stir')),
+	(select workflow_object_uuid from vw_workflow_object where (object_type = 'condition' and object_description = 'temp > threshold ?')),
+	(select status_uuid from vw_status where description = 'active'));
+insert into vw_workflow_step (workflow_uuid, parent_uuid, workflow_object_uuid, status_uuid) values (
+	(select workflow_uuid from vw_workflow where description = 'workflow_test'),
+	(select workflow_step_uuid from vw_workflow_step where (object_type = 'condition' and object_description = 'temp > threshold ?')),
+	(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'example_heat_stir')),
+	(select status_uuid from vw_status where description = 'active'));
+insert into vw_workflow_step (workflow_uuid, parent_uuid, workflow_object_uuid, status_uuid) values (
+	(select workflow_uuid from vw_workflow where description = 'workflow_test'),
+	(select workflow_step_uuid from vw_workflow_step where (object_type = 'condition' and object_description = 'temp > threshold ?')),
+	(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'example_heat')),
+	(select status_uuid from vw_status where description = 'active'));
+insert into vw_workflow_step (workflow_uuid, parent_uuid, workflow_object_uuid, status_uuid) values (
+	(select workflow_uuid from vw_workflow where description = 'workflow_test'),
+	(select workflow_step_uuid from vw_workflow_step where (object_type = 'action' and object_description = 'example_heat')),
+	(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'end')),
+	(select status_uuid from vw_status where description = 'active'));
+update vw_workflow_step set status_uuid = (select status_uuid from vw_status where 
+	description = 'active') where (object_type = 'action' and object_description = 'start'); 
+delete from vw_workflow_step where (initial_object_type = 'action' and initial_object_description = 'start');
+```
+<br/>
+
 
 __vw\_workflow\_type__`CRUD`<br/>
 *upsert\_workflow\_type ()*
@@ -2181,98 +2793,10 @@ __vw\_workflow\_type__`CRUD`<br/>
 
 ```
 insert into vw_workflow_type (description) values ('workflowtype_test');
-delete from vw_workflow_type where workflow_type_uuid = (select workflow_type_uuid from vw_workflow_type where (description = 'workflowtype_test'));
+delete from vw_workflow_type where 
+	workflow_type_uuid = (select workflow_type_uuid from vw_workflow_type where 
+		(description = 'workflowtype_test'));
 ```
-
-<br/>
-
-
-
-<!-- UPDATE views!! 
-
-```
-vw_[filter]_[table1]_[table2]_[tablen]
-```
-where *filter* indicates a 'where/having clause' applied and the [table] entities are listed in order of preponderance.
-
-e.g. __vw\_latest\_systemtool__ returns records from the **systemtool** table with a 'filter' or where clause selecting only 'active' status records. 
-<br/><br/>
-
--->
-
-
-
-<br/>
-
-
-__vw\_inventory__`R`<br/>
-> inventory_uuid (v) <br/>
-> inventory_description (v) <br/>
-> part_no (v) <br/>
-> onhand_amt (v) <br/>
-> unit (v) <br/>
-> create_date (v) <br/>
-> expiration_date (v) <br/>
-> inventory_location (v) <br/>
-> status_uuid (v) <br/>
-> status_description (v) <br/>
-> material_uuid (v) <br/>
-> material_description (v) <br/>
-> actor_uuid (v) <br/> 
-> actor_description (v) <br/>
-> add_date (v) <br/>
-> mod_date (v) <br/>
-
-<br/>
-
-__vw\_inventory\_material__`R`<br/>
-> inventory_uuid (v) <br/>
-> inventory_description (v) <br/>
-> inventory_part_no (v) <br/>
-> inventory_onhand_amt (v) <br/>
-> inventory_unit (v) <br/>
-> inventory_create_date (v) <br/>
-> inventory_expiration_date (v) <br/>
-> inventory_location (v) <br/>
-> inventory_status_uuid (v) <br/>
-> inventory_status_description (v) <br/>
-> actor_uuid (v) <br/>
-> actor_description (v) <br/>
-> org_full_name (v) <br/>
-> material_uuid (v) <br/>
-> material_status_description (v) <br/>
-> create_date AS material_create_date (v) <br/>
-> chemical_name AS material_name (v) <br/>
-> abbreviation AS material_abbreviation (v) <br/>
-> inchi AS material_inchi (v) <br/>
-> inchikey AS material_inchikey (v) <br/>
-> molecular_formula AS material_molecular_formula (v) <br/>
-> smiles AS material_smiles (v) <br/>
-
-
-<br/>
-
-__vw\_material__`R`<br/>
-> material_uuid (v) <br/>
-> description (v) <br/>
-> material_status_uuid (v) <br/>
-> material_status_description (v) <br/>
-> add_date (v) <br/>
-> mod_date (v) <br/>
-> abbreviation (v) <br/>
-> chemical_name (v) <br/>
-> inchi (v) <br/>
-> inchikey (v) <br/>
-> molecular_formula (v) <br/>
-> smiles (v) <br/>
-
-
-<br/>
-
-
-
-
-
 
 <br/>
 

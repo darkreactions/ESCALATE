@@ -1841,3 +1841,4 @@ insert into vw_note (notetext, actor_uuid, ref_note_uuid) values ('quick assessm
     (select measure_uuid from vw_measure where
         measure_def_description = 'sample color' and measure_value_value = 'green to green-yellow'
         and actor_description = 'Ion Bond'));
+
