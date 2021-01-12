@@ -1,0 +1,62 @@
+[{
+    "type": "ReceiveHttpRequest",
+    "displayName": "Receive HTTP Request",
+    "description": "Receive an incoming HTTP request.",
+    "runtimeDescription": "x => !!x.state.path ? `Handle <strong>${ x.state.method } ${ x.state.path }</strong>.` : x.definition.description",
+    "category": "HTTP",
+    "outcomes": ["Done"],
+    "properties": [
+      {
+        "name": "path",
+        "type": "text",
+        "label": "Path",
+        "hint": "The relative path that triggers this activity.",
+        "options": {}
+      },
+      {
+        "name": "method",
+        "type": "select",
+        "label": "Method",
+        "hint": "The HTTP method that triggers this activity.",
+        "options": {
+          "items": [
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+            "PATCH",
+            "OPTIONS",
+            "POOP"
+          ]
+        }
+      },
+      {
+        "name": "readContent",
+        "type": "boolean",
+        "label": "Read Content",
+        "hint": "A value indicating whether the HTTP request content body should be read and stored as part of the HTTP request model. The stored format depends on the content-type header.",
+        "options": {}
+      },
+      {
+        "name": "name",
+        "type": "text",
+        "label": "Name",
+        "hint": "Optionally provide a name for this activity. You can reference named activities from expressions.",
+        "options": {}
+      },
+      {
+        "name": "title",
+        "type": "text",
+        "label": "Title",
+        "hint": "Optionally provide a custom title for this activity.",
+        "options": {}
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "label": "Description",
+        "hint": "Optionally provide a custom description for this activity.",
+        "options": {}
+      }
+    ]
+  }]

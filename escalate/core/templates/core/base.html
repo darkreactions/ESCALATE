@@ -44,8 +44,6 @@
 </head>
 
 <body class="d-flex flex-column">
-
-
     {% block nav %}
     <div class="container">
         <nav class="navbar navbar-expand-lg navbar-dark" style=" background-color: #3976a3;">
@@ -60,7 +58,7 @@
             </button>
 
             {% with url_name=request.resolver_match.url_name %}
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <div class="collapse navbar-collapse flex-column align-items-start ml-lg-2 ml-0" id="navbarSupportedContent">
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item {% if url_name == 'main_menu' %}active{% endif %}">
                         <a class="nav-link" href="{% url 'main_menu' %}">Main Menu</a>
@@ -87,27 +85,46 @@
                             </ul>
                         </div>
                     </li>
-                    <li class="nav-item {% if url_name == 'workflow' %}active{% endif %}">
-                        <a class="nav-link" href="{% url 'workflow' %}">Workflow</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if not request.session.current_org_id %}disabled{% endif %}" href="#" id="dropdown" data-toggle="dropdown">Experiment</a>
+                        <div class="dropdown-menu">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a class="dropdown-item {% if url_name == 'create_experiment' %}active{% endif %}" href="{% url 'create_experiment' %}">Create Experiment</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item {% if url_name == 'workflow' %}active{% endif %}" href="{% url 'workflow' %}">Workflow</a>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
-
 
                     {% block add_data %}
                     {% endblock %}
                     
                 </ul>
-                <div class="dropdown">
-                    <a class="btn btn-info dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        User
-                    </a>
-                    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                        <a class="dropdown-item" href="{% url 'user_profile' %}">Profile</a>
-                        <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
-                    </div>
-                  </div>
+                <ul class="navbar-nav flex-row mt-4">
+                    <li class="nav-item text-light">
+                        {{ request.session.current_org_name }}
+                    </li>
+                </ul>
+                
             </div>
+            <div class="dropdown">
+                <a class="btn btn-info dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    User
+                </a>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                    <a class="dropdown-item" href="{% url 'user_profile' %}">Profile</a>
+                    <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
+                </div>
+            </div>
+            
             {% endwith %}
         </nav>
+        
+        
+        
     </div>
     {% endblock %}
     <section>

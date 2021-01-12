@@ -44,6 +44,7 @@ class DynamicFieldsModelSerializer(FlexFieldsModelSerializer, HyperlinkedModelSe
     A ModelSerializer that takes an additional `fields` and 'omit' arguments that
     controls which fields should be displayed.
     """
+    uuid = serializers.UUIDField(read_only=True)
 
     def __init__(self, *args, **kwargs):
         self.serializer_field_mapping[ValField] = ValSerializerField

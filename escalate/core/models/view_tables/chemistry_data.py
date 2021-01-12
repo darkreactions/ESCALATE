@@ -9,13 +9,13 @@ class CompositeMaterial(models.Model):
                                   blank=True, null=True, db_column='composite_uuid',
                                   related_name='composite_material_composite')
     composite_description = models.CharField(
-        max_length=255, blank=True, null=True)
+        max_length=255, blank=True, null=True, editable=False)
     composite_flg = models.BooleanField(blank=True, null=True)
-    component = models.ForeignKey('CompositeMaterial', on_delete=models.DO_NOTHING,
+    component = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
                                   blank=True, null=True, db_column='component_uuid',
                                   related_name='composite_material_component')
     component_description = models.CharField(
-        max_length=255, blank=True, null=True)
+        max_length=255, blank=True, null=True, editable=False)
     addressable = models.BooleanField(blank=True, null=True)
     property = models.ManyToManyField(
         'Property', through='CompositeMaterialProperty', related_name='composite_material_property',
@@ -26,13 +26,13 @@ class CompositeMaterial(models.Model):
                               db_column='actor_uuid',
                               blank=True,
                               null=True,
-                              editable=False, related_name='actor')
+                              related_name='composite_material_actor')
     status = models.ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                db_column='status_uuid',
                                blank=True,
                                null=True,
-                               editable=False, related_name='status')
+                               related_name='composite_material_status')
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -234,6 +234,10 @@ class Material(models.Model):
     description = models.CharField(max_length=255, blank=True, null=True)
     consumable = models.BooleanField(blank=True, null=True)
     composite_flg = models.BooleanField(blank=True, null=True)
+    material_types = models.ManyToManyField('MaterialType', 
+                                            through='MaterialTypeAssign',
+                                            related_name='material_material_types')
+
     actor = models.ForeignKey('Actor', models.DO_NOTHING, blank=True, null=True,
                               db_column='actor_uuid',
                               related_name='material_actor')
