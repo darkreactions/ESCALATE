@@ -36,10 +36,10 @@ misc_views = set(['Note_x'])
 core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   'SystemtoolType', 'Inventory', 'InventoryMaterial',
                   'Calculation', 'CalculationDef', 'Material',
-                  'CompositeMaterial', 'MaterialRefnameDef', 'MaterialType',
+                  'CompositeMaterial', 'MaterialRefnameDef', 'MaterialType', 'MaterialTypeAssign',
                   'Person', 'Tag', 'TagType', 'Property', 'PropertyDef',
                   'TypeDef', 'ParameterDef', 'Condition', 'ConditionDef', 'ConditionCalculationDefAssign',
-                  'ActionParameter', 'Parameter', 'WorkflowType', 'WorkflowStep', 
+                  'ActionParameter', 'ActionParameterDefAssign', 'Parameter', 'WorkflowType', 'WorkflowStep', 
                   'WorkflowObject', 'UdfDef', 'Experiment', 'ExperimentWorkflow', 'ExperimentParameter',
                   'BillOfMaterials', 'BomMaterial', 'BomCompositeMaterial', 'Measure', 'MeasureType', 'Outcome'])
 

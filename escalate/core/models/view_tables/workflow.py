@@ -154,13 +154,13 @@ class ActionDef(models.Model):
                                    blank=True,
                                    null=True,
                                    db_column='description',
-                                   editable=False)
+                                   )
     actor = models.ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='actor_uuid',
                               blank=True,
                               null=True,
-                              editable=False, related_name='action_def_actor')
+                              related_name='action_def_actor')
     actor_description = models.CharField(max_length=255,
                                          blank=True,
                                          null=True,
@@ -171,7 +171,7 @@ class ActionDef(models.Model):
                                db_column='status_uuid',
                                blank=True,
                                null=True,
-                               editable=False, related_name='action_def_status')
+                               related_name='action_def_status')
     status_description = models.CharField(max_length=255,
                                           blank=True,
                                           null=True,
@@ -344,13 +344,12 @@ class ActionParameterDefAssign(models.Model):
                                       on_delete=models.DO_NOTHING,
                                       blank=True,
                                       null=True,
-                                      editable=False,
                                       db_column='parameter_def_uuid',
                                       related_name='action_parameter_def_assign_parameter_def')
     action_def = models.ForeignKey('ActionDef', on_delete=models.DO_NOTHING,
                                    blank=True,
                                    null=True,
-                                   editable=False, db_column='action_def_uuid', related_name='action_parameter_def_assign_action_def')
+                                   db_column='action_def_uuid', related_name='action_parameter_def_assign_action_def')
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 

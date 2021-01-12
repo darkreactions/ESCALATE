@@ -32,6 +32,8 @@ class Command(BaseCommand):
             person, created = Person.objects.get_or_create(**data['person_data'])
             p = PersonTable.objects.get(pk=person.pk)
             user, created = CustomUser.objects.get_or_create(username=username, person=p)
+            if not created:
+                user.person = p
             user.set_password(data['password'])
             user.is_superuser = True
             user.is_staff = True

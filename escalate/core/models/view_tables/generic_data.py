@@ -488,7 +488,7 @@ class ParameterDef(models.Model):
                               db_column='actor_uuid',
                               blank=True,
                               null=True,
-                              editable=False, related_name='parameter_def_actor')
+                              related_name='parameter_def_actor')
     actor_description = models.CharField(max_length=255,
                                          blank=True,
                                          null=True,
@@ -499,7 +499,7 @@ class ParameterDef(models.Model):
                                db_column='status_uuid',
                                blank=True,
                                null=True,
-                               editable=False, related_name='parameter_def_status')
+                               related_name='parameter_def_status')
     status_description = models.CharField(max_length=255,
                                           blank=True,
                                           null=True,
