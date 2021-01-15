@@ -13,6 +13,13 @@ users = {
 
         },
         'password': 'copperhead123'
+    },
+    'mtynes': {
+        'person_data': {
+            'first_name': 'Mike',
+            'last_name': 'Tynes'
+        },
+        'password': 'hello1world2'
     }
 }
 
@@ -20,7 +27,8 @@ org_passwords = {
     'LBL' : 'test',
     'HC' : 'test',
     'NL' : 'test',
-    'NLC' : 'test'
+#    'NLC' : 'test'
+    'LANL': 'test',
 }
 
 
