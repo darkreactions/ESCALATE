@@ -8,6 +8,7 @@ from django.shortcuts import render
 from core.models.view_tables import ActionParameter, WorkflowActionSet, Experiment, BomMaterial
 from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm
+from core.utils import experiment_copy
 
 
 class CreateExperimentView(TemplateView):
@@ -21,11 +22,9 @@ class CreateExperimentView(TemplateView):
         context['all_experiments'] = self.all_experiments
         return context
 
-    def get_action_parameter_forms(self, exp_uuid, context):
+    def get_action_parameter_querysets(self, exp_uuid):
         related_exp = 'workflow__experiment_workflow_workflow__experiment'
         related_exp_wf = 'workflow__experiment_workflow_workflow'
-        
-        #workflow__experiment_workflow_workflow__experiment=exp_uuid
         q1 = ActionParameter.objects.filter(**{f'{related_exp}': exp_uuid}).only('uuid').annotate(
                     object_description=F('action_description')).annotate(
                     object_uuid=F('uuid')).annotate(
@@ -56,7 +55,12 @@ class CreateExperimentView(TemplateView):
                             experiment_description=F(f'{related_exp}__description')).annotate(
                             workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')).prefetch_related(
                                 'workflow__experiment_workflow_workflow__experiment').distinct('parameter_uuid')
-                
+        return q1, q2, q3
+
+    def get_action_parameter_forms(self, exp_uuid, context):
+        #workflow__experiment_workflow_workflow__experiment=exp_uuid
+        q1, q2, q3 = self.get_action_parameter_querysets(exp_uuid)
+
         #context['q1_formset'] = self.ParameterFormSet(initial=[{'value': row.parameter_value} for row in q1])
         initial_q1 = [{'value': row.parameter_value} for row in q1]
         initial_q2 = [{'value': param} for row in q2 for param in row.parameter_value]
@@ -111,6 +115,36 @@ class CreateExperimentView(TemplateView):
                 request.session['experiment_template_uuid'] = None
         elif 'create_exp' in request.POST:
             context['selected_exp_template'] = {'description': "Dummy function to create an experiment" }
+
+            ## begin: one-time procedure -- this will be refactored into a more general soln
+
+            # get the name of the experiment template
+            exp_template = Experiment.objects.get(pk=request.session['experiment_template_uuid'])
+            template_name = exp_template.description
+
+            # check if the template is one that this one-time procedure supports
+            if template_name == "test_lanl_liq_sol":  # this can be a list or the key of a dict
+
+                # make the experiment copy
+                experiment_copy_uuid = experiment_copy(str(exp_template.uuid), 'test_liq_sol_copy')
+                new_exp = Experiment.objects.get(pk=experiment_copy_uuid)
+
+                # now we have to do the UPDATEs that correspond to the GETs in get_{material, action_parameter}_forms above
+                # this is straightforward, expect for calculation parameters (q3). Now is the time to sort that out...
+
+                q1, q2, q3 = self.get_action_parameter_querysets(experiment_copy_uuid)
+                q1_formset = self.ParameterFormSet(request.POST, prefix='q1_param')
+                q2_formset = self.ParameterFormSet(request.POST, prefix='q2_param')
+                q3_formset = self.ParameterFormSet(request.POST, prefix='q3_param')
+
+                for q, qfs in zip([q1, q2, q3], [q1_formset, q2_formset, q3_formset]):
+                    for form in qfs:
+                        if form.has_changed() and form.is_valid():
+                            import pdb; pdb.set_trace();
+
+
+
+            ## end: one-time procedure
             
 
         
