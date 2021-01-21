@@ -45,6 +45,8 @@ class ValWidget(MultiWidget):
     def decompress(self, value):
         if isinstance(value, Val):
             # print(value.val_type.description)
+            # if value.val_type.description == 'array_num':
+            #     import pdb; pdb.set_trace()
             return [value.value, value.unit, str(value.val_type.description)]
 
         return [None, None, None]

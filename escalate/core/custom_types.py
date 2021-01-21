@@ -22,7 +22,7 @@ class Val:
             else:
                 val_type = self.validate_type(val_type)
             self.value = value
-            self.value = self.convert_value()
+            #self.value = self.convert_value()
             self.unit = unit
             #print(self.val_type.description, self.value, self.unit)
     
@@ -113,6 +113,7 @@ class Val:
         if val_type.description == 'text':
             value = str(value)
         elif 'array' in val_type.description:
+            #import pdb; pdb.set_trace()
             table = str.maketrans('{}', '[]')
             value = value.translate(table)
             value = json.loads(value)
