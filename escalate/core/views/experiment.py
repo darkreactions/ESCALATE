@@ -203,20 +203,8 @@ class CreateExperimentView(TemplateView):
                     related_exp = 'workflow__experiment_workflow_workflow__experiment'
                     h2o_dispense_action_set = WorkflowActionSet.objects.get(**{f'{related_exp}': experiment_copy_uuid, 'description__contains': 'H2O'})
                     hcl_dispense_action_set = WorkflowActionSet.objects.get(**{f'{related_exp}': experiment_copy_uuid, 'description__contains': 'HCl'})
-                    # Not sure what is updated here WorkflowActionSet is not updatable
-                """
-                
-                #(pseudocode)
-                
-                hcl_concs = array from form if array updated
-                hcl_vols, h2o_vols = hcl_mix(stock_conc from form, sample_volume from form, hcl_concs)
-                
-                h2o_dispense_action_set = WorkflowActionSet.objects.get(**{f'{related_exp}': exp_uuid, 'description__contains': 'H2O'})
-                hcl_dispense_action_set = WorkflowActionSet.objects.get(**{f'{related_exp}': exp_uuid, 'description__contains': 'HCl'})
-                
-                update_dispense_action_set(h2o_dispense_action_set, h2o_vols)
-                update_dispense_action_set(hcl_dispense_action_set, hcl_vols)
-                """
+                    update_dispense_action_set(h2o_dispense_action_set, h2o_vols)
+                    update_dispense_action_set(hcl_dispense_action_set, hcl_vols)    
             else:
                 return render(request, self.template_name, context)
                 
