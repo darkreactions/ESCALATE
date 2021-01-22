@@ -190,7 +190,7 @@ class ActionDef(models.Model):
 
 class ActionParameter(models.Model):
     uuid = RetUUIDField(primary_key=True,
-                        db_column='parameter_uuid')
+                        db_column='parameter_x_uuid')
     
     action = models.ForeignKey('Action',
                                db_column='action_uuid',
@@ -221,12 +221,13 @@ class ActionParameter(models.Model):
                                related_name='action_parameter_workflow_action_set')
     
     
-    parameter_uuid = models.ForeignKey('Parameter',
-                                      #db_column='parameter_uuid',
-                                      on_delete=models.DO_NOTHING,
-                                      blank=True,
-                                      null=True,
-                                      editable=False, related_name='action_parameter_parameter')
+    parameter = models.ForeignKey('Parameter',
+                                  db_column='parameter_uuid',
+                                  on_delete=models.DO_NOTHING,
+                                  blank=True,
+                                  null=True,
+                                  editable=False,
+                                  related_name='action_parameter_parameter')
     
     #parameter_uuid = RetUUIDField()
     parameter_def = models.ForeignKey('ParameterDef',
@@ -787,7 +788,7 @@ class WorkflowActionSet(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'workflow_action_set'
+        db_table = 'vw_workflow_action_set'
 
 
 class WorkflowType(models.Model):

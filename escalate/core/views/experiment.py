@@ -17,9 +17,9 @@ from core.custom_types import Val
 
 
 def hcl_mix(stock_concentration, solution_volume, target_concentrations):
-                    hcl_vols = (target_concentrations / stock_concentration) * solution_volume
-                    h2o_vols = (np.zeros_like(hcl_vols) + solution_volume) - hcl_vols
-                    return hcl_vols, h2o_vols
+    hcl_vols = (target_concentrations * solution_volume) / stock_concentration
+    h2o_vols = solution_volume - hcl_vols
+    return hcl_vols, h2o_vols
                 
 def update_dispense_action_set(dispense_action_set, volumes, unit='mL'):
     dispense_action_set_params = deepcopy(dispense_action_set.__dict__)
@@ -187,7 +187,7 @@ class CreateExperimentView(TemplateView):
                             query.save()
                 
                 # check if the template is one that this one-time procedure supports
-                if template_name == "test_lanl_liq_sol":  # this can be a list or the key of a dict
+                if template_name == 'test_lanl_liq_sol':  # this can be a list or the key of a dict
                     # now we have to do the UPDATEs that correspond to the GETs in get_{material, action_parameter}_forms above
                     # this is straightforward, expect for calculation parameters (q3). Now is the time to sort that out...
                     data = {} # Stick form data into this dict
@@ -199,7 +199,10 @@ class CreateExperimentView(TemplateView):
                                 query = query_set[i]
                                 data[query.parameter_def_description] = form.cleaned_data['value'].value
 
-                    hcl_vols, h2o_vols = hcl_mix(data['stock_concentration'], data['volume'], data['hcl_concentrations'])
+                    hcl_vols, h2o_vols = hcl_mix(data['stock_concentration'],
+                                                 data['volume'],
+                                                 np.fromstring(data['hcl_concentrations'].strip(']['), sep=',')
+                                                 )
                     related_exp = 'workflow__experiment_workflow_workflow__experiment'
                     h2o_dispense_action_set = WorkflowActionSet.objects.get(**{f'{related_exp}': experiment_copy_uuid, 'description__contains': 'H2O'})
                     hcl_dispense_action_set = WorkflowActionSet.objects.get(**{f'{related_exp}': experiment_copy_uuid, 'description__contains': 'HCl'})

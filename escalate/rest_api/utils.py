@@ -102,7 +102,7 @@ expandable_fields = {
                                 {
                                     'read_only': True,
                                     'many': True, 
-                                    'source': 'parameter_action',
+                                    'source': 'action_parameter_action',
                                     'view_name': 'actionparameter-detail'
                                 })
         }
