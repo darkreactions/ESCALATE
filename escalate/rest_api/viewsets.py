@@ -29,7 +29,8 @@ def save_actor_on_post(self, serializer):
 
     Use this to overload perform_create on a view.
     """
-    actor = core.models.Actor.objects.get(person=self.request.user.person)
+    p = core.models.Person.objects.get(pk=self.request.user.person.uuid)
+    actor = core.models.Actor.objects.get(person=p)
     serializer.save(actor=actor, actor_description=actor.description)
 
 # Download file view

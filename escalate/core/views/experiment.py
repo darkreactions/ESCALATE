@@ -5,7 +5,7 @@ from django.forms import formset_factory, ModelChoiceField
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
-from core.models.view_tables import ActionParameter, WorkflowActionSet, Experiment, BomMaterial
+from core.models.view_tables import ActionParameter, WorkflowActionSet, Experiment, BomMaterial, ParameterDef
 from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm
 from core.utils import experiment_copy
@@ -114,7 +114,7 @@ class CreateExperimentView(TemplateView):
             else:
                 request.session['experiment_template_uuid'] = None
         elif 'create_exp' in request.POST:
-            context['selected_exp_template'] = {'description': "Dummy function to create an experiment" }
+            #context['selected_exp_template'] = {'description': "Dummy function to create an experiment" }
 
             ## begin: one-time procedure -- this will be refactored into a more general soln
 
@@ -123,24 +123,26 @@ class CreateExperimentView(TemplateView):
             template_name = exp_template.description
 
             # check if the template is one that this one-time procedure supports
-            if template_name == "test_lanl_liq_sol":  # this can be a list or the key of a dict
+            # if template_name == "test_lanl_liq_sol":  # this can be a list or the key of a dict
 
-                # make the experiment copy
-                experiment_copy_uuid = experiment_copy(str(exp_template.uuid), 'test_liq_sol_copy')
-                new_exp = Experiment.objects.get(pk=experiment_copy_uuid)
+            # make the experiment copy
+            experiment_copy_uuid = experiment_copy(str(exp_template.uuid), 'test_liq_sol_copy')
+            new_exp = Experiment.objects.get(pk=experiment_copy_uuid)
 
-                # now we have to do the UPDATEs that correspond to the GETs in get_{material, action_parameter}_forms above
-                # this is straightforward, expect for calculation parameters (q3). Now is the time to sort that out...
+            # now we have to do the UPDATEs that correspond to the GETs in get_{material, action_parameter}_forms above
+            # this is straightforward, expect for calculation parameters (q3). Now is the time to sort that out...
 
-                q1, q2, q3 = self.get_action_parameter_querysets(experiment_copy_uuid)
-                q1_formset = self.ParameterFormSet(request.POST, prefix='q1_param')
-                q2_formset = self.ParameterFormSet(request.POST, prefix='q2_param')
-                q3_formset = self.ParameterFormSet(request.POST, prefix='q3_param')
+            q1, q2, q3 = self.get_action_parameter_querysets(experiment_copy_uuid)
+            q1_formset = self.ParameterFormSet(request.POST, prefix='q1_param')
+            q2_formset = self.ParameterFormSet(request.POST, prefix='q2_param')
+            q3_formset = self.ParameterFormSet(request.POST, prefix='q3_param')
 
-                for q, qfs in zip([q1, q2, q3], [q1_formset, q2_formset, q3_formset]):
-                    for form in qfs:
-                        if form.has_changed() and form.is_valid():
-                            import pdb; pdb.set_trace();
+            for q, qfs in zip([q1, q2, q3], [q1_formset, q2_formset, q3_formset]):
+                for i, form in enumerate(qfs):
+                    if form.is_valid():
+                        q[i].parameter_value = form.cleaned_data['value']
+                        q[i].save()
+                        
 
 
 

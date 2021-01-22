@@ -787,7 +787,7 @@ class WorkflowActionSet(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_workflow_action_set'
+        db_table = 'workflow_action_set'
 
 
 class WorkflowType(models.Model):
