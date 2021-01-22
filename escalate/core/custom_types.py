@@ -22,7 +22,8 @@ class Val:
             else:
                 val_type = self.validate_type(val_type)
             self.value = value
-            self.value = self.convert_value()
+            if isinstance(self.value, str):
+                self.value = self.convert_value()
             self.unit = unit
             #print(self.val_type.description, self.value, self.unit)
     
@@ -54,12 +55,7 @@ class Val:
                               int: 'int', float: 'num', str: 'text'}
         prim = primitives[description]
         try:
-            #if len(value) > 0: 
                 result = prim(value)
-            #else:
-                #print(f'Before converting {self.unit}')
-                #print(f'{description} : {value}')
-            #    result = value
         except Exception as e:
             print(e)
             raise ValidationError(
@@ -71,12 +67,16 @@ class Val:
                       'array_num': float, 'array_text': str}
         prim = primitives[description]
         try:
+            if isinstance(value, str):
+                value = json.loads(value)
             result = [prim(val) for val in value]
+            
         except Exception as e:
             raise ValidationError(
                 f'Data type mismatch, type provided is {description} but exception occured: {e}')
 
-        table = str.maketrans('[]', '{}')
+        #table = str.maketrans('[]', '{}')
+        table = str.maketrans('{}', '[]')
         result = json.dumps(result).translate(table)
         return result
     
@@ -113,6 +113,7 @@ class Val:
         if val_type.description == 'text':
             value = str(value)
         elif 'array' in val_type.description:
+            #import pdb; pdb.set_trace()
             table = str.maketrans('{}', '[]')
             value = value.translate(table)
             value = json.loads(value)

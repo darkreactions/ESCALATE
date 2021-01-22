@@ -5,7 +5,7 @@ from core.models.custom_types import ValFormField
 from .forms import dropdown_attrs
 
 class SingleValForm(Form):
-    value = ValFormField()
+    value = ValFormField(required=False)
 
 class InventoryMaterialForm(Form):
     value = ModelChoiceField(queryset=vt.InventoryMaterial.objects.all())

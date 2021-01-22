@@ -583,4 +583,6 @@ class InventoryMaterialForm(forms.ModelForm):
                 'placeholder': 'Location'}),
             'status': forms.Select(attrs=dropdown_attrs),
         }
-    
+
+class ExperimentNameForm(forms.Form):
+    exp_name = forms.CharField(label='Experiment Name', max_length=100)
