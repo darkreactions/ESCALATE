@@ -424,6 +424,9 @@ class BomMaterial(models.Model):
         managed = False
         db_table = 'vw_bom_material'
 
+    def __str__(self):
+        return self.bom_description
+
 
 class BomCompositeMaterial(models.Model):
     uuid = RetUUIDField(primary_key=True, db_column='bom_material_composite_uuid')

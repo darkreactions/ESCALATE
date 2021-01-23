@@ -1,7 +1,8 @@
+import json
 from django.db.models import F, Value
 from django.http import HttpResponse
 from django.views.generic import TemplateView
-from django.forms import formset_factory, ModelChoiceField
+from django.forms import formset_factory, BaseFormSet
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
@@ -32,12 +33,25 @@ def update_dispense_action_set(dispense_action_set, volumes, unit='mL'):
     instance = WorkflowActionSet(**dispense_action_set_params)
     instance.save()
 
+class BaseUUIDFormSet(BaseFormSet):
+    """
+    This formset adds a UUID as the kwarg. When the form is rendered, 
+    the UUID is added as an attribute to the html field. Which when submitted 
+    can be used to identify where the data goes
+    """
+    def get_form_kwargs(self, index):
+        kwargs = super().get_form_kwargs(index)
+        kwargs['uuid'] = kwargs['object_uuids'][index]
+        return kwargs
 
 class CreateExperimentView(TemplateView):
     template_name = "core/create_experiment.html"
-    all_experiments = Experiment.objects.all()
     ParameterFormSet = formset_factory(SingleValForm, extra=0)
     MaterialFormSet = formset_factory(InventoryMaterialForm, extra=0)
+
+    def __init__(self, *args, **kwargs):
+        self.all_experiments = Experiment.objects.all()
+        super().__init__(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -83,18 +97,30 @@ class CreateExperimentView(TemplateView):
     def get_action_parameter_forms(self, exp_uuid, context):
         #workflow__experiment_workflow_workflow__experiment=exp_uuid
         q1, q2, q3 = self.get_action_parameter_querysets(exp_uuid)
+        """
+        This happens before copy, in the template. The only way to identify a parameter is 
+        through a combination of object_description and parameter_def_description.
 
-        #context['q1_formset'] = self.ParameterFormSet(initial=[{'value': row.parameter_value} for row in q1])
-        initial_q1 = [{'value': row.parameter_value} for row in q1]
-        initial_q2 = [{'value': param} for row in q2 for param in row.parameter_value]
-        initial_q3 = [{'value': row.parameter_value} for row in q3]
+        When the form is submitted, a copy is created of the template and we have to search
+        for the correct parameters using descriptions because UUIDS are new!
+
+        The reason for making a copy after editing parameters is because we cannot update
+        a WorkflowActionSet as of Jan 2021. We can only create a new one
+        """
+        initial_q1 = [{'value': row.parameter_value, 'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])} for row in q1]
+        initial_q2 = [{'value': param, 'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])} for row in q2 for param in row.parameter_value]
+        initial_q3 = [{'value': row.parameter_value, 'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])} for row in q3]
 
         q1_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q1]
         q2_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q2]
         q3_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q3]
-        context['q1_param_formset'] = self.ParameterFormSet(initial=initial_q1, prefix='q1_param')
-        context['q2_param_formset'] = self.ParameterFormSet(initial=initial_q2, prefix='q2_param')
-        context['q3_param_formset'] = self.ParameterFormSet(initial=initial_q3, prefix='q3_param')
+
+        context['q1_param_formset'] = self.ParameterFormSet(initial=initial_q1, 
+                                                            prefix='q1_param',)
+        context['q2_param_formset'] = self.ParameterFormSet(initial=initial_q2, 
+                                                            prefix='q2_param',)
+        context['q3_param_formset'] = self.ParameterFormSet(initial=initial_q3, 
+                                                            prefix='q3_param',)
 
         context['q1_param_details'] = q1_details
         context['q2_param_details'] = q2_details
@@ -113,9 +139,9 @@ class CreateExperimentView(TemplateView):
                 experiment_description=F(f'{related_exp}__description')).prefetch_related(f'{related_exp}')
 
         # context['q1_formset'] = self.ParameterFormSet(initial=[{'value': row.parameter_value} for row in q1])
-        initial_q1 = [{'value': row.inventory_material} for row in q1]
-
+        initial_q1 = [{'value': row.inventory_material, 'uuid': json.dumps([f'{row.object_description}'])} for row in q1]
         q1_details = [f'{row.object_description}' for row in q1]
+        
         form_kwargs = {'org_uuid':self.request.session['current_org_id']}
         context['q1_material_formset'] = self.MaterialFormSet(initial=initial_q1, 
                                                         prefix='q1_material', 
@@ -152,8 +178,8 @@ class CreateExperimentView(TemplateView):
             q3_formset = self.ParameterFormSet(request.POST, prefix='q3_param')
 
             q1_material_formset = self.MaterialFormSet(request.POST,
-                                                           prefix='q1_material',
-                                                           form_kwargs={'org_uuid':self.request.session['current_org_id']})
+                                                       prefix='q1_material',
+                                                       form_kwargs={'org_uuid':self.request.session['current_org_id']})
 
             if all([exp_name_form.is_valid(),
                     q1_formset.is_valid(), 
@@ -178,11 +204,17 @@ class CreateExperimentView(TemplateView):
                 # parameter_val and material_uuid require no special logic
                 for query_set, query_form_set, field in zip([q1, q1_material],
                                                     [q1_formset, q1_material_formset],
-                                                    ['parameter_val', 'material_uuid']):
+                                                    ['parameter_val', 'inventory_material']):
                     for i, form in enumerate(query_form_set):
                         if form.has_changed() and form.is_valid():
                             data = form.cleaned_data
-                            query = query_set[i]
+                            print(data['uuid'])
+                            desc = json.loads(data['uuid'])
+                            if len(desc) == 2:
+                                object_desc, param_def_desc = desc
+                                query = query_set.get(object_description=object_desc, parameter_def_description=param_def_desc)
+                            else:
+                                query = query_set.get(object_description=desc[0])
                             setattr(query, field, data['value'])
                             query.save()
                 
