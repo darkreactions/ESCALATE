@@ -253,6 +253,13 @@ class CreateExperimentView(TemplateView):
                         hcl_dispense_action_set = WorkflowActionSet.objects.get(**{f'{related_exp}': experiment_copy_uuid, 'description__contains': 'HCl'})
                         update_dispense_action_set(h2o_dispense_action_set, h2o_vols)
                         update_dispense_action_set(hcl_dispense_action_set, hcl_vols)
+
+                        from LSRGenerator.generate import generate_lsr_design
+                        generate_lsr_design('liq_sol_by_volume.lsr', 
+                                            outname=f'{exp_name}.lsr',
+                                            vol_hcl=list(hcl_vols*1000), # lsr generator expects a list in uL (for now)
+                                            vol_h2o=list(h2o_vols*1000)
+                                            )
             else:
                 return render(request, self.template_name, context)
                 
