@@ -24,10 +24,23 @@ def hcl_mix(stock_concentration, solution_volume, target_concentrations):
                 
 def update_dispense_action_set(dispense_action_set, volumes, unit='mL'):
     dispense_action_set_params = deepcopy(dispense_action_set.__dict__)
-    del dispense_action_set_params['_state']
-    del dispense_action_set_params['uuid']
+
+    # delete keys from dispense action set that are not needed for creating a new action set
+    delete_keys = ['uuid', '_state', '_prefetched_objects_cache',
+                   # the below keys are the annotations from q1..q3
+                   'object_description', 'object_uuid', 'parameter_def_description', 'parameter_uuid',
+                   'parameter_value', 'experiment_uuid', 'experiment_description', 'workflow_seq'
+                   ]
+    [dispense_action_set_params.pop(k, None) for k in delete_keys]
+
+    # delete the old action set
     dispense_action_set.delete()
-    v = [Val.from_dict({'type': 'num', 'value': vol, 'unit': unit}) for vol in volumes]
+
+    if isinstance(volumes, np.ndarray):
+        #recall: needs to be a list of Val
+        v = [Val.from_dict({'type': 'num', 'value': vol, 'unit': unit}) for vol in volumes]
+    elif isinstance(volumes, Val):
+        v = [volumes]
     dispense_action_set_params['calculation_id'] = None
     dispense_action_set_params['parameter_val'] = v
     instance = WorkflowActionSet(**dispense_action_set_params)
@@ -61,7 +74,7 @@ class CreateExperimentView(TemplateView):
     def get_action_parameter_querysets(self, exp_uuid):
         related_exp = 'workflow__experiment_workflow_workflow__experiment'
         related_exp_wf = 'workflow__experiment_workflow_workflow'
-        q1 = ActionParameter.objects.filter(**{f'{related_exp}': exp_uuid}).only('uuid').annotate(
+        q1 = ActionParameter.objects.filter(**{f'{related_exp}': exp_uuid}).annotate(
                     object_description=F('action_description')).annotate(
                     object_uuid=F('uuid')).annotate(
                     parameter_value=F('parameter_val')).annotate(
@@ -69,8 +82,7 @@ class CreateExperimentView(TemplateView):
                     experiment_description=F(f'{related_exp}__description')).annotate(
                     workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
                     )).filter(workflow_action_set__isnull=True).prefetch_related(f'{related_exp}')
-        q2 = WorkflowActionSet.objects.filter(**{f'{related_exp}': exp_uuid, 'parameter_val__isnull': False}).only(
-                        'workflow').annotate(
+        q2 = WorkflowActionSet.objects.filter(**{f'{related_exp}': exp_uuid, 'parameter_val__isnull': False}).annotate(
                         object_description=F('description')).annotate(
                         object_uuid=F('uuid')).annotate(
                         parameter_def_description=F('parameter_def__description')).annotate(
@@ -81,8 +93,7 @@ class CreateExperimentView(TemplateView):
                         workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
                         ).prefetch_related(f'{related_exp}')
         q3 = WorkflowActionSet.objects.filter(calculation__isnull=False,
-                                              workflow__experiment_workflow_workflow__experiment=exp_uuid).only(
-                        'workflow').annotate(
+                                              workflow__experiment_workflow_workflow__experiment=exp_uuid).annotate(
                         object_description=F('description')).annotate(
                         object_uuid=F('uuid')).annotate(
                         parameter_def_description=F('calculation__calculation_def__parameter_def__description')).annotate(
@@ -202,9 +213,9 @@ class CreateExperimentView(TemplateView):
                 
 
                 # parameter_val and material_uuid require no special logic
-                for query_set, query_form_set, field in zip([q1, q1_material],
-                                                    [q1_formset, q1_material_formset],
-                                                    ['parameter_val', 'inventory_material']):
+                for query_set, query_form_set, field in zip([q1,               q1_material,         q2],
+                                                            [q1_formset,       q1_material_formset, q2_formset],
+                                                            ['parameter_val', 'inventory_material', None]):
                     for i, form in enumerate(query_form_set):
                         if form.has_changed() and form.is_valid():
                             data = form.cleaned_data
@@ -215,31 +226,33 @@ class CreateExperimentView(TemplateView):
                                 query = query_set.get(object_description=object_desc, parameter_def_description=param_def_desc)
                             else:
                                 query = query_set.get(object_description=desc[0])
-                            setattr(query, field, data['value'])
-                            query.save()
+
+                            # q2 gets handled differently because its a workflow action set
+                            if query_set is q2:
+                                update_dispense_action_set(query, data['value'])
+                            else:
+                                setattr(query, field, data['value'])
+                                query.save()
                 
                 # check if the template is one that this one-time procedure supports
                 if template_name == 'test_lanl_liq_sol':  # this can be a list or the key of a dict
-                    # now we have to do the UPDATEs that correspond to the GETs in get_{material, action_parameter}_forms above
-                    # this is straightforward, expect for calculation parameters (q3). Now is the time to sort that out...
-                    data = {} # Stick form data into this dict
-                    for query_set, query_form_set, field in zip([q2, q3],
-                                                        [q2_formset, q3_formset],
-                                                        ['parameter_val', 'parameter_val']):
-                        for i, form in enumerate(query_form_set):
-                            if form.has_changed():
-                                query = query_set[i]
+                    # q3 contains concentraiton logic
+                    if any([f.has_changed() for f in q3_formset]):
+                        data = {}  # Stick form data into this dict
+                        for i, form in enumerate(q3_formset):
+                            if form.is_valid():
+                                query = q3[i]
                                 data[query.parameter_def_description] = form.cleaned_data['value'].value
 
-                    hcl_vols, h2o_vols = hcl_mix(data['stock_concentration'],
-                                                 data['volume'],
-                                                 np.fromstring(data['hcl_concentrations'].strip(']['), sep=',')
-                                                 )
-                    related_exp = 'workflow__experiment_workflow_workflow__experiment'
-                    h2o_dispense_action_set = WorkflowActionSet.objects.get(**{f'{related_exp}': experiment_copy_uuid, 'description__contains': 'H2O'})
-                    hcl_dispense_action_set = WorkflowActionSet.objects.get(**{f'{related_exp}': experiment_copy_uuid, 'description__contains': 'HCl'})
-                    update_dispense_action_set(h2o_dispense_action_set, h2o_vols)
-                    update_dispense_action_set(hcl_dispense_action_set, hcl_vols)    
+                        hcl_vols, h2o_vols = hcl_mix(data['stock_concentration'],
+                                                     data['total_vol'],
+                                                     np.fromstring(data['hcl_concentrations'].strip(']['), sep=',')
+                                                     )
+                        related_exp = 'workflow__experiment_workflow_workflow__experiment'
+                        h2o_dispense_action_set = WorkflowActionSet.objects.get(**{f'{related_exp}': experiment_copy_uuid, 'description__contains': 'H2O'})
+                        hcl_dispense_action_set = WorkflowActionSet.objects.get(**{f'{related_exp}': experiment_copy_uuid, 'description__contains': 'HCl'})
+                        update_dispense_action_set(h2o_dispense_action_set, h2o_vols)
+                        update_dispense_action_set(hcl_dispense_action_set, hcl_vols)
             else:
                 return render(request, self.template_name, context)
                 
