@@ -1051,6 +1051,56 @@ values  ('Add Resin',
         (select status_uuid from vw_status where description = 'dev_test'));
 
 
+insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
+                                    repeating,
+                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    actor_uuid, status_uuid)
+values  ('Sample to Resin',
+        (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Sample to Resin'),
+        (select action_def_uuid from vw_action_def where description = 'dispense'),
+        null, null, null, null,
+        (select parameter_def_uuid
+         from vw_action_parameter_def
+         where description = 'dispense' and parameter_description = 'volume'),
+        array[(select put_val((select get_type_def('data', 'num')), '.1', 'mL'))],
+        null,
+        array [
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A1%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A2%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A3%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A4%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A5%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%A6%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%B1%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Sample Prep Plate%B2%')],
+        array [
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Resin Plate%A1%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Resin Plate%A2%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Resin Plate%A3%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Resin Plate%A4%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Resin Plate%A5%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Resin Plate%A6%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Resin Plate%B1%'),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Resin Plate%B2%')],
+        (select actor_uuid from vw_actor where description = 'Mike Tynes'),
+        (select status_uuid from vw_status where description = 'dev_test'));
+
 
 insert into vw_action (action_def_uuid, workflow_uuid, action_description, actor_uuid, status_uuid)
 	values (

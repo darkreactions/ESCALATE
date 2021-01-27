@@ -2051,6 +2051,7 @@ SELECT
 	a.add_date as action_add_date,
 	a.mod_date as action_mod_date,
 	p.parameter_uuid,
+    p.parameter_x_uuid,
 	p.parameter_def_uuid,
 	p.parameter_def_description,
 	p.parameter_val,
