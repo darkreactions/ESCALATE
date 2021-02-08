@@ -63,7 +63,7 @@ class CreateExperimentView(TemplateView):
     MaterialFormSet = formset_factory(InventoryMaterialForm, extra=0)
 
     def __init__(self, *args, **kwargs):
-        self.all_experiments = Experiment.objects.all()
+        self.all_experiments = Experiment.objects.filter(parent__isnull=True)
         super().__init__(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
