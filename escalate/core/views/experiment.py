@@ -6,7 +6,7 @@ from django.forms import formset_factory, BaseFormSet
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
-from core.models.view_tables import ActionParameter, WorkflowActionSet, Experiment, BomMaterial, ParameterDef
+from core.models.view_tables import ActionParameter, WorkflowActionSet, Experiment, BomMaterial, ParameterDef, Edocument
 from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm
 from core.forms.forms import ExperimentNameForm
@@ -235,7 +235,7 @@ class CreateExperimentView(TemplateView):
                                 query.save()
                 
                 # check if the template is one that this one-time procedure supports
-                if template_name == 'test_lanl_liq_sol':  # this can be a list or the key of a dict
+                if template_name == 'liquid_solid_extraction':  # this can be a list or the key of a dict
                     # q3 contains concentraiton logic
                     if any([f.has_changed() for f in q3_formset]):
                         data = {}  # Stick form data into this dict
@@ -255,11 +255,21 @@ class CreateExperimentView(TemplateView):
                         update_dispense_action_set(hcl_dispense_action_set, hcl_vols)
 
                         from LSRGenerator.generate import generate_lsr_design
-                        generate_lsr_design('liq_sol_by_volume.lsr', 
-                                            outname=f'{exp_name}.lsr',
+                        import xml.etree.ElementTree as ET
+                        lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
+                        lsr_edoc.pk = None
+                        lsr_template = lsr_edoc.edocument.tobytes().decode('utf-16')
+                        lsr_template = ET.ElementTree(ET.fromstring(lsr_template))
+                        lsr_design = generate_lsr_design(lsr_template,
                                             vol_hcl=list(hcl_vols*1000), # lsr generator expects a list in uL (for now)
                                             vol_h2o=list(h2o_vols*1000)
                                             )
+                        lsr_design = ET.tostring(lsr_design.getroot(), encoding='utf-16')
+                        lsr_edoc.edocument = lsr_design
+                        lsr_edoc.filename = exp_name + '.lsr'
+                        lsr_edoc.ref_edocument_uuid = experiment_copy_uuid
+                        lsr_edoc.save()
+
             else:
                 return render(request, self.template_name, context)
                 
