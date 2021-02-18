@@ -20,7 +20,7 @@ insert into vw_person (last_name, first_name, middle_name,
                       ('Schrier', 'Joshua', null,'100 Fancy Apartment Ave',null,
                        'New York','NY','99999',null,null,null,null,null,null);
 
---insert into vw_status (description) values ('dev_test');
+-- insert into vw_status (description) values ('dev_test');
 -- note: these may already be in your db!
 insert into vw_material_type (description)
 values
@@ -609,10 +609,9 @@ select concat('end create mojito',now());
 
 -- select * from vw_experiment_workflow_bom_step_object_parameter_json;
 -- select * from vw_experiment_bom_workflow_measure_json;
-
 -- select * from vw_experiment;
 
 -- for making a bunch of copies at once:
 -- call replicate_experiment_copy
--- ('mojito_template', 100);
+-- ('mojito_template', 10);
 
