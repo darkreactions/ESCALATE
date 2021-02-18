@@ -1,6 +1,10 @@
 .DS_Store
 .vscode
 .idea
+
+# local development files
+local_*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
