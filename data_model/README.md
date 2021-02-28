@@ -200,9 +200,9 @@ which is found in the sql_core subdirectory.
 	prod_upserts.sql
 	prod_views.sql	
 	prod_initialize_coretables.sql
-	prod_update_1_material.sql
-	prod_update_2_inventory.sql
-	prod_update_3_calculation.sql	
+	hc_load_1_material.sql
+	hc_load_2_inventory.sql
+	hc_load_3_calculation.sql	
 	``
 
 <br/>

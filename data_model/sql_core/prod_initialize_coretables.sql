@@ -54,6 +54,30 @@ BEGIN;
 COMMIT;
 
 
+insert into vw_material_type (description)
+values
+	('a-cation'),
+	('b-cation'),
+	('halide'),
+	('antisolvent'),
+	('reference'),
+	('catalog'),
+	('plate');
+
+
+INSERT INTO material_refname_def (description)
+VALUES
+	('Chemical_Name'),
+	('Abbreviation'),
+	('InChI'),
+	('InChIKey'),
+	('RInChI'),
+	('SMILES'),
+	('SMARTS'),
+	('SMIRKS'),
+	('Molecular_Formula')
+;
+
 -- ----------------------------
 -- Records of organization
 -- ----------------------------

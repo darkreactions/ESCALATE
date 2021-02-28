@@ -27,13 +27,13 @@ echo "initializing core tables..."
 psql -d escalate -U escalate -f prod_initialize_coretables.sql >> rebuild_dev.log 2>&1
 
 echo "updating materials..."
-psql -d escalate -U escalate -f prod_update_1_material.sql >> rebuild_dev.log 2>&1
+psql -d escalate -U escalate -f hc_load_1_material.sql >> rebuild_dev.log 2>&1
 
 echo "updating inventory..."
-psql -d escalate -U escalate -f prod_update_2_inventory.sql >> rebuild_dev.log 2>&1
+psql -d escalate -U escalate -f hc_load_2_inventory.sql >> rebuild_dev.log 2>&1
 
 echo "updating calculations..."
-psql -d escalate -U escalate -f prod_update_3_calculation.sql >> rebuild_dev.log 2>&1
+psql -d escalate -U escalate -f hc_load_3_calculation.sql >> rebuild_dev.log 2>&1
 
 echo "running ETL..."
 psql -d escalate -U escalate -f prod_etl.sql >> rebuild_dev.log 2>&1

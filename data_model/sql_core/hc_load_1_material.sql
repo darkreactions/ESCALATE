@@ -16,29 +16,6 @@ insert into vw_material_type (description)
 	FROM load_chem_inventory
 	group by ccat;
 -- ones not identified in the inventory (yet)
-insert into vw_material_type (description) 
-values 
-	('a-cation'),
-	('b-cation'),
-	('halide'),
-	('antisolvent'),
-	('reference'),
-	('catalog'),
-	('plate');
-
-
-INSERT INTO material_refname_def (description)
-VALUES 
-	('Chemical_Name'),
-	('Abbreviation'),
-	('InChI'),
-	('InChIKey'),
-	('RInChI'),		
-	('SMILES'),
-	('SMARTS'),	
-	('SMIRKS'),	
-	('Molecular_Formula')
-;
 
 
 -- insert load_chem_inventory materials into material table
