@@ -5,6 +5,7 @@ from django.views.generic import TemplateView
 from django.forms import formset_factory, BaseFormSet
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
+from django.urls import reverse
 
 from core.models.view_tables import ActionParameter, WorkflowActionSet, Experiment, BomMaterial, ParameterDef, Edocument
 from core.models.core_tables import RetUUIDField
@@ -270,6 +271,10 @@ class CreateExperimentView(TemplateView):
                         lsr_edoc.ref_edocument_uuid = experiment_copy_uuid
                         lsr_edoc.save()
 
+                        context['lsr_download_link'] = reverse('edoc_download', args=[lsr_edoc.pk])
+                        context['experiment_link'] = reverse('experiment-detail', args=[experiment_copy_uuid])
+                        context['new_exp_name'] = exp_name
+                        render(request, self.template_name, context)
             else:
                 return render(request, self.template_name, context)
                 
