@@ -5,13 +5,17 @@ from django.views.generic import TemplateView
 from django.forms import formset_factory, BaseFormSet
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
+from django.views.generic.list import ListView
+from django.views.generic.detail import DetailView
 
 from core.models.view_tables import ActionParameter, WorkflowActionSet, Experiment, BomMaterial, ParameterDef, Edocument
 from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm
 from core.forms.forms import ExperimentNameForm
 from core.utils import experiment_copy
+import core.models
+from core.models.view_tables import Note, Actor, TagAssign, Tag
 
 from copy import deepcopy
 import numpy as np
@@ -272,7 +276,7 @@ class CreateExperimentView(TemplateView):
                         lsr_edoc.save()
 
                         context['lsr_download_link'] = reverse('edoc_download', args=[lsr_edoc.pk])
-                        context['experiment_link'] = reverse('experiment-detail', args=[experiment_copy_uuid])
+                        context['experiment_link'] = reverse('experiment_view', args=[experiment_copy_uuid])
                         context['new_exp_name'] = exp_name
                         render(request, self.template_name, context)
             else:
@@ -281,3 +285,186 @@ class CreateExperimentView(TemplateView):
             ## end: one-time procedure
         return render(request, self.template_name, context)
 
+
+class ExperimentListView(ListView):
+    template_name = 'core/experiment/list.html'
+    model = core.models.view_tables.Experiment
+    field_contains = ''
+    order_field = 'description'
+    org_related_path = 'lab__organization'
+    table_columns = ['Description', 'Actions']
+    column_necessary_fields = {'Description': ['description'], 
+                               }
+    context_object_name= 'experiments'
+
+    def get_context_data(self, **kwargs):
+        context = super(ExperimentListView, self).get_context_data(**kwargs)
+        context['filter'] = self.request.GET.get('filter', '')
+        return context
+    
+    def get_queryset(self):
+        filter_val = self.request.GET.get('filter', self.field_contains)
+        order = "".join(self.request.session.get(f'experiments_order',self.order_field).split('-'))
+        ordering = self.request.GET.get('ordering', order)
+
+        #order = "".join(order_field)
+        filter_kwargs = {f'{order}__icontains': filter_val}
+
+        # Filter by organization if it exists in the model
+        if 'current_org_id' in self.request.session:
+            org_filter_kwargs = {self.org_related_path : self.request.session['current_org_id'],
+                                 'parent__isnull':False}
+            base_query = self.model.objects.filter(**org_filter_kwargs)
+        else:
+            base_query = self.model.objects.none()
+        
+        
+        if filter_val != None:
+            new_queryset = base_query.filter(
+                **filter_kwargs).select_related().order_by(ordering)
+        else:
+            new_queryset = base_query
+        
+        new_queryset = base_query
+        return new_queryset
+    
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['table_columns'] = self.table_columns
+        models = context[self.context_object_name]
+        model_name = self.context_object_name[:-1]  # Ex: tag_types -> tag_type
+        table_data = []
+        for model in models:
+            table_row_data = []
+
+            # loop to get each column data for one row. [:-1] because table_columns has 'Actions'
+            header_names = self.table_columns[:-1]
+            for field_name in header_names:
+                # get list of fields used to fill out one cell
+                necessary_fields = self.column_necessary_fields[field_name]
+                # get actual field value from the model
+                fields_for_col = [getattr(model, field)
+                                  for field in necessary_fields]
+                # loop to change None to '' or non-string to string because join needs strings
+                for k in range(0, len(fields_for_col)):
+                    if fields_for_col[k] == None:
+                        fields_for_col[k] = ''
+                    if not isinstance(fields_for_col[k], str):
+                        fields_for_col[k] = str(fields_for_col[k])
+                col_data = " ".join(fields_for_col)
+                # take away any leading and trailing whitespace
+                col_data = col_data.strip()
+                # change the cell data to be N/A if it is empty string at this point
+                if len(col_data) == 0:
+                    col_data = 'N/A'
+                table_row_data.append(col_data)
+
+            # dict containing the data, view and update url, primary key and obj
+            # name to use in template
+            table_row_info = {
+                'table_row_data': table_row_data,
+                'view_url': reverse_lazy(f'{model_name}_view', kwargs={'pk': model.pk}),
+                'update_url': reverse_lazy(f'{model_name}_update', kwargs={'pk': model.pk}),
+                'obj_name': str(model),
+                'obj_pk': model.pk
+            }
+            table_data.append(table_row_info)
+
+        context['add_url'] = reverse_lazy(f'{model_name}_add')
+        context['table_data'] = table_data
+        # get rid of underscores with spaces and capitalize
+        context['title'] = model_name.replace('_', ' ').capitalize()
+        return context
+
+class ExperimentDetailView(DetailView):
+    model = Experiment
+    model_name = 'experiment'  # lowercase, snake case. Ex:tag_type or inventory
+
+    template_name = 'core/experiment/detail.html'
+
+    
+    detail_fields = None
+    detail_fields_need_fields = None
+
+    def get_action_parameter_querysets(self, exp_uuid):
+        related_exp = 'workflow__experiment_workflow_workflow__experiment'
+        related_exp_wf = 'workflow__experiment_workflow_workflow'
+        q1 = ActionParameter.objects.filter(**{f'{related_exp}': exp_uuid}).annotate(
+                    object_description=F('action_description')).annotate(
+                    object_uuid=F('uuid')).annotate(
+                    parameter_value=F('parameter_val')).annotate(
+                    experiment_uuid=F(f'{related_exp}__uuid')).annotate(
+                    experiment_description=F(f'{related_exp}__description')).annotate(
+                    workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
+                    )).filter(workflow_action_set__isnull=True).prefetch_related(f'{related_exp}')
+        q2 = WorkflowActionSet.objects.filter(**{f'{related_exp}': exp_uuid, 'parameter_val__isnull': False}).annotate(
+                        object_description=F('description')).annotate(
+                        object_uuid=F('uuid')).annotate(
+                        parameter_def_description=F('parameter_def__description')).annotate(
+                        parameter_uuid=Value(None, RetUUIDField())).annotate(
+                        parameter_value=F('parameter_val')).annotate(
+                        experiment_uuid=F(f'{related_exp}__uuid')).annotate(
+                        experiment_description=F(f'{related_exp}__description')).annotate(
+                        workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
+                        ).prefetch_related(f'{related_exp}')
+        q3 = WorkflowActionSet.objects.filter(calculation__isnull=False,
+                                              workflow__experiment_workflow_workflow__experiment=exp_uuid).annotate(
+                        object_description=F('description')).annotate(
+                        object_uuid=F('uuid')).annotate(
+                        parameter_def_description=F('calculation__calculation_def__parameter_def__description')).annotate(
+                        parameter_uuid=F('calculation__calculation_def__parameter_def__uuid')).annotate(
+                        parameter_value=F('calculation__calculation_def__parameter_def__default_val')).annotate(
+                        experiment_uuid=F(f'{related_exp}__uuid')).annotate(
+                        experiment_description=F(f'{related_exp}__description')).annotate(
+                        workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')).prefetch_related(
+                        'workflow__experiment_workflow_workflow__experiment').distinct('parameter_uuid')
+        mat_q = BomMaterial.objects.filter(bom__experiment=exp_uuid).only(
+                        'uuid').annotate(
+                        object_description=F('description')).annotate(
+                        object_uuid=F('uuid')).annotate(
+                        experiment_uuid=F('bom__experiment__uuid')).annotate(
+                        experiment_description=F('bom__experiment__description')).prefetch_related('bom__experiment')
+        return q1, q2, q3, mat_q
+    
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        exp = context['object']
+
+        # dict of detail field names to their value
+        detail_data = {}
+
+        q1, q2, q3, mat_q = self.get_action_parameter_querysets(exp.uuid)
+        edocs = Edocument.objects.filter(ref_edocument_uuid=exp.uuid)
+
+        detail_data = {row.inventory_material : row.object_description for row in mat_q}
+        detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q1})
+        detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q2})
+        detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q3})
+        detail_data.update({f'{lsr_edoc.title} download link' : reverse('edoc_download', args=[lsr_edoc.pk]) for lsr_edoc in edocs})
+        
+
+        # get notes
+        notes_raw = Note.objects.filter(note_x_note__ref_note=exp.pk)
+        notes = []
+        for note in notes_raw:
+            notes.append('-' + note.notetext)
+        context['Notes'] = notes
+
+        # get tags
+        tags_raw = Tag.objects.filter(pk__in=TagAssign.objects.filter(
+            ref_tag=exp.pk).values_list('tag', flat=True))
+        tags = []
+        for tag in tags_raw:
+            tags.append(tag.display_text.strip())
+        detail_data['Tags'] = ', '.join(tags)
+
+        context['title'] = self.model_name.replace('_', " ").capitalize()
+        context['update_url'] = reverse_lazy(
+            f'{self.model_name}_update', kwargs={'pk': exp.pk})
+        context['detail_data'] = detail_data
+        
+        
+
+        return context

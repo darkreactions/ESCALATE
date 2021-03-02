@@ -90,6 +90,9 @@
                         <div class="dropdown-menu">
                             <ul class="list-unstyled">
                                 <li>
+                                    <a class="dropdown-item {% if url_name == 'experiment_list' %}active{% endif %}" href="{% url 'experiment_list' %}">Experiment List</a>
+                                </li>
+                                <li>
                                     <a class="dropdown-item {% if url_name == 'create_experiment' %}active{% endif %}" href="{% url 'create_experiment' %}">Create Experiment</a>
                                 </li>
                                 <li>
