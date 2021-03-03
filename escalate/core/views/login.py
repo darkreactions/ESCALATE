@@ -20,8 +20,11 @@ class LoginView(View):
     template_name = 'core/login_page.html'
 
     def get(self, request, *args, **kwargs):
-        login_form = LoginForm()
-        return render(request, self.template_name, {'login_form': login_form})
+        if request.user.is_authenticated:
+            return redirect('main_menu')
+        else:
+            login_form = LoginForm()
+            return render(request, self.template_name, {'login_form': login_form})
 
     def post(self, request, *args, **kwargs):
         login_form = LoginForm(request.POST)
