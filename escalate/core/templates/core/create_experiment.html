@@ -13,12 +13,13 @@
         <p> <a href={{ lsr_download_link }}> Download LibraryStudio file </a></p>
     {% else %}
 
+    {% if not selected_exp_template %}
     <p> Experiment Template </p>
     <div class="row">
       <div class="col-md-12 text-secondary">
         <form method="post">{% csrf_token %}
           <select id="org_select" name="select_exp_template" class="form-control selectpicker" data-style="btn-dark"
-            data-live-search='true' onchange="this.form.submit()">
+            data-live-search='true'>
             <option value="" {% if not request.session.experiment_template_uuid %} selected {% endif %}>────────────</option>
             {% for exp in all_experiments %}
             <option value={{ exp.uuid }} {% ifequal request.session.experiment_template_uuid|stringformat:"s" exp.uuid|stringformat:"s" %} selected {% endifequal %}>
@@ -26,10 +27,13 @@
             </option>
             {% endfor %}
           </select>
-
+          <div>
+            <button class="btn btn-outline-primary" type="submit">Select Template</button>
+        </div>
         </form>
       </div>
     </div>
+    {% endif %}
 
     {% if selected_exp_template %}
     <p>Selected experiment {{ selected_exp_template.description }}</p>
