@@ -192,5 +192,14 @@ methods = {
             'Status': ['status']
         },
     },
+    'Experiment': {
+        'model': core.models.view_tables.Experiment,
+        'model_name': 'experiment',
+        'detail_fields': ['Description', 'Status',],
+        'detail_fields_need_fields': {
+            'Description': ['description'],
+            'Status': ['status']
+        },
+    },
 
 }
