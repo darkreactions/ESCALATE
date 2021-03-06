@@ -137,6 +137,7 @@ DROP TABLE IF EXISTS experiment_workflow cascade;
 DROP TABLE IF EXISTS inventory cascade;
 DROP TABLE IF EXISTS inventory_material cascade;
 DROP TABLE IF EXISTS material cascade;
+DROP TABLE IF EXISTS material_class cascade;
 DROP TABLE IF EXISTS material_composite cascade;
 DROP TABLE IF EXISTS material_refname cascade;
 DROP TABLE IF EXISTS material_refname_def cascade;
@@ -158,6 +159,8 @@ DROP TABLE IF EXISTS parameter_x cascade;
 DROP TABLE IF EXISTS person cascade; 
 DROP TABLE IF EXISTS property cascade;
 DROP TABLE IF EXISTS property_def cascade;
+DROP TABLE IF EXISTS property_class cascade;
+DROP TABLE IF EXISTS property_type cascade;
 DROP TABLE IF EXISTS property_x cascade;
 DROP TABLE IF EXISTS status cascade;
 DROP TABLE IF EXISTS systemtool cascade;
@@ -189,7 +192,6 @@ DROP TABLE IF EXISTS workflow_type cascade;
 
 -- define (enumerate) the type_def categories 
 CREATE TYPE type_def_category AS ENUM ('data', 'file', 'role');
-
 
 CREATE TYPE val AS (
 	v_type_uuid uuid,
@@ -530,6 +532,7 @@ CREATE TABLE material (
 	material_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default" NOT NULL,
 	consumable BOOLEAN NOT NULL DEFAULT TRUE,
+	class_uuid uuid,
 	actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -588,6 +591,16 @@ CREATE TABLE material_refname_x (
 );
 
 
+CREATE TABLE material_class (
+    class_uuid uuid DEFAULT uuid_generate_v4 (),
+    description varchar COLLATE "pg_catalog"."default" NOT NULL,
+    actor_uuid uuid,
+	status_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+
 CREATE TABLE material_type (
 	material_type_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default" NOT NULL,
@@ -596,7 +609,6 @@ CREATE TABLE material_type (
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
-
 
 CREATE TABLE material_type_x (
 	material_type_x_uuid uuid DEFAULT uuid_generate_v4 (),
@@ -758,6 +770,7 @@ CREATE TABLE property (
 	property_uuid uuid DEFAULT uuid_generate_v4 (),
 	property_def_uuid uuid NOT NULL,
 	property_val val NOT NULL,
+	type_uuid uuid,
 	actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -770,8 +783,27 @@ CREATE TABLE property_def (
 	description varchar COLLATE "pg_catalog"."default",
 	short_description varchar COLLATE "pg_catalog"."default" NOT NULL,
 	val_type_uuid uuid,
+	class_uuid uuid,
 	valunit varchar,
 	actor_uuid uuid,
+	status_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE property_class (
+    class_uuid uuid DEFAULT uuid_generate_v4(),
+    description varchar COLLATE "pg_catalog"."default",
+    actor_uuid uuid,
+	status_uuid uuid,
+	add_date timestamptz NOT NULL DEFAULT NOW(),
+	mod_date timestamptz NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE property_type (
+    type_uuid uuid DEFAULT uuid_generate_v4(),
+    description varchar COLLATE "pg_catalog"."default",
+    actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
@@ -1216,6 +1248,13 @@ CLUSTER material
 USING "pk_material_material_uuid";
 
 
+ALTER TABLE material_class
+	ADD CONSTRAINT "pk_material_class_class_uuid" PRIMARY KEY (class_uuid),
+		ADD CONSTRAINT "un_material_class" UNIQUE (description);
+CLUSTER material_class
+USING "pk_material_class_class_uuid";
+
+
 ALTER TABLE material_composite
 	ADD CONSTRAINT "pk_material_composite_material_composite_uuid" PRIMARY KEY (material_composite_uuid),
 		ADD CONSTRAINT "un_material_composite" CHECK (composite_uuid <> component_uuid);
@@ -1374,6 +1413,18 @@ ALTER TABLE property_def
 CLUSTER property_def
 USING "pk_property_def_property_def_uuid";
 
+
+ALTER TABLE property_class
+	ADD CONSTRAINT "pk_property_class_uuid" PRIMARY KEY (class_uuid);
+CREATE INDEX "ix_property_class_uuid" ON property_class (class_uuid);
+CLUSTER property_class
+USING "pk_property_class_uuid";
+
+ALTER TABLE property_type
+	ADD CONSTRAINT "pk_property_type_uuid" PRIMARY KEY (type_uuid);
+CREATE INDEX "ix_property_type_uuid" ON property_type (type_uuid);
+CLUSTER property_type
+USING "pk_property_type_uuid";
 
 ALTER TABLE property_x
 	ADD CONSTRAINT "pk_property_x_property_x_uuid" PRIMARY KEY (property_x_uuid),
@@ -1675,15 +1726,17 @@ ALTER TABLE inventory_material
 
 
 ALTER TABLE material
- ADD CONSTRAINT fk_material_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
-	ADD CONSTRAINT fk_material_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+    ADD CONSTRAINT fk_material_type_1 FOREIGN KEY (class_uuid) REFERENCES material_class (class_uuid),
+        ADD CONSTRAINT fk_material_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+	        ADD CONSTRAINT fk_material_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
 
 ALTER TABLE material_composite
  ADD CONSTRAINT fk_material_composite_composite_1 FOREIGN KEY (composite_uuid) REFERENCES material (material_uuid),
 	ADD CONSTRAINT fk_material_composite_component_1 FOREIGN KEY (component_uuid) REFERENCES material (material_uuid),
- 		ADD CONSTRAINT fk_material_composite_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
-			ADD CONSTRAINT fk_material_composite_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+	    --ADD CONSTRAINT fk_material_component_class_1 FOREIGN KEY (class_uuid) REFERENCES material_class (class_uuid),
+ 		    ADD CONSTRAINT fk_material_composite_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+			    ADD CONSTRAINT fk_material_composite_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
 
 ALTER TABLE material_refname
@@ -1757,15 +1810,17 @@ ALTER TABLE person
 	ADD CONSTRAINT fk_person_organization_1 FOREIGN KEY (organization_uuid) REFERENCES organization (organization_uuid);
 
 
-ALTER TABLE property 
- ADD CONSTRAINT fk_property_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
-	ADD CONSTRAINT fk_property_property_def_1 FOREIGN KEY (property_def_uuid) REFERENCES property_def (property_def_uuid),
-		ADD CONSTRAINT fk_property_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+ALTER TABLE property
+    ADD CONSTRAINT fk_property_type_1 FOREIGN KEY (type_uuid) REFERENCES property_type (type_uuid),
+        ADD CONSTRAINT fk_property_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+	        ADD CONSTRAINT fk_property_property_def_1 FOREIGN KEY (property_def_uuid) REFERENCES property_def (property_def_uuid),
+		        ADD CONSTRAINT fk_property_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
-ALTER TABLE property_def 
- ADD CONSTRAINT fk_property_def_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
-	ADD CONSTRAINT fk_property_def_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid),
-			ADD CONSTRAINT fk_property_def_val_type_1 FOREIGN KEY (val_type_uuid) REFERENCES type_def (type_def_uuid);
+ALTER TABLE property_def
+    ADD CONSTRAINT fk_property_def_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+        ADD CONSTRAINT fk_property_def_class_1 FOREIGN KEY (class_uuid) REFERENCES property_class (class_uuid),
+	        ADD CONSTRAINT fk_property_def_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid),
+			    ADD CONSTRAINT fk_property_def_val_type_1 FOREIGN KEY (val_type_uuid) REFERENCES type_def (type_def_uuid);
 
 ALTER TABLE property_x 
 	ADD CONSTRAINT fk_property_x_property_1 FOREIGN KEY (property_uuid) REFERENCES property (property_uuid);

@@ -1226,6 +1226,7 @@ BEGIN
 			material
 		SET
 			description = NEW.description,
+			class_uuid = NEW.class_uuid,
 			consumable = NEW.consumable,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
@@ -1237,8 +1238,8 @@ BEGIN
 		IF NEW.consumable is null 
 			THEN NEW.consumable = TRUE; 
 		END IF;
-		INSERT INTO material (description, consumable, actor_uuid, status_uuid)
-			VALUES(NEW.description, NEW.consumable, NEW.actor_uuid, NEW.status_uuid) returning material_uuid into NEW.material_uuid;
+		INSERT INTO material (description, class_uuid, consumable, actor_uuid, status_uuid)
+			VALUES(NEW.description, NEW.class_uuid, NEW.consumable, NEW.actor_uuid, NEW.status_uuid) returning material_uuid into NEW.material_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1295,7 +1296,10 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO material_composite (composite_uuid, component_uuid, addressable, actor_uuid, status_uuid)
-			VALUES(NEW.composite_uuid, NEW.component_uuid, NEW.addressable, NEW.actor_uuid, NEW.status_uuid) returning material_composite_uuid into NEW.material_composite_uuid;
+			VALUES(NEW.composite_uuid, NEW.component_uuid, NEW.addressable, NEW.actor_uuid, NEW.status_uuid)
+			returning material_composite_uuid
+			into NEW.material_composite_uuid;
+
 		RETURN NEW;
 	END IF;
 END;
@@ -1393,6 +1397,7 @@ BEGIN
 			description = NEW.description,
 			short_description = NEW.short_description,
 			val_type_uuid = NEW.val_type_uuid,
+			class_uuid = NEW.class_uuid,
 			valunit = NEW.valunit,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
@@ -1401,8 +1406,8 @@ BEGIN
 			property_def.property_def_uuid = NEW.property_def_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO property_def (description, short_description, val_type_uuid, valunit, actor_uuid, status_uuid)
-			VALUES(NEW.description, NEW.short_description, NEW.val_type_uuid, NEW.valunit, NEW.actor_uuid, NEW.status_uuid) returning property_def_uuid into NEW.property_def_uuid;
+		INSERT INTO property_def (description, short_description, val_type_uuid, class_uuid, valunit, actor_uuid, status_uuid)
+			VALUES(NEW.description, NEW.short_description, NEW.val_type_uuid, NEW.class_uuid, NEW.valunit, NEW.actor_uuid, NEW.status_uuid) returning property_def_uuid into NEW.property_def_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1459,6 +1464,7 @@ BEGIN
 			property
 		SET
 			property_val = NEW.property_val,
+			type_uuid = NEW.type_uuid,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
 			mod_date = now()
@@ -1467,8 +1473,8 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		IF (select exists (select property_def_uuid from vw_property_def where property_def_uuid = NEW.property_def_uuid)) THEN
-			INSERT INTO property (property_def_uuid, property_val, actor_uuid, status_uuid)
-				VALUES(NEW.property_def_uuid, NEW.property_val, NEW.actor_uuid, NEW.status_uuid) returning property_uuid into NEW.property_uuid;
+			INSERT INTO property (property_def_uuid, type_uuid, property_val, actor_uuid, status_uuid)
+				VALUES(NEW.property_def_uuid, NEW.type_uuid, NEW.property_val, NEW.actor_uuid, NEW.status_uuid) returning property_uuid into NEW.property_uuid;
 			RETURN NEW;
 		END IF;
 	END IF;

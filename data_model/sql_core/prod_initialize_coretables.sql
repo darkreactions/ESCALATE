@@ -64,6 +64,20 @@ values
 	('catalog'),
 	('plate');
 
+INSERT INTO material_class (description)
+VALUES
+    ('model'),
+    ('object');
+
+INSERT INTO property_class (description)
+VALUES
+    ('intrinsic'),
+    ('extrinsic');
+
+INSERT INTO property_type (description)
+VALUES
+    ('nominal'),
+    ('actual');
 
 INSERT INTO material_refname_def (description)
 VALUES
@@ -163,7 +177,7 @@ VALUES
 		(select organization_uuid from organization where short_name = 'HC')),
 	('Ian', 'Pendleton', 'ipendleton@haverford.edu', 
 		(select organization_uuid from organization where short_name = 'HC')),
-	('Mike', 'Tynes', null, 
+	('Mike', 'Tynes', null,
 		(select organization_uuid from organization where short_name = 'HC')),
 	('Minji', 'Lee', 'minjil.ee@lbl.gov', 
 		(select organization_uuid from organization where short_name = 'LBL')),

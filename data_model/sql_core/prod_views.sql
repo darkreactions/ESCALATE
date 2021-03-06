@@ -1044,6 +1044,8 @@ SELECT
 		when (select 1 from material_composite where composite_uuid = mat.material_uuid limit 1) is not null then true
 		else false
 	END as composite_flg,
+	mat.class_uuid AS class_uuid,
+	cls.description AS class_description,
 	mat.actor_uuid AS actor_uuid,
 	act.description AS actor_description,
 	mat.status_uuid AS status_uuid,
@@ -1054,6 +1056,7 @@ SELECT
     anote.note_to_array AS notes
 FROM
 	material mat
+LEFT JOIN material_class cls ON mat.class_uuid = cls.class_uuid
 LEFT JOIN actor act ON mat.actor_uuid = act.actor_uuid
 LEFT JOIN status st ON mat.status_uuid = st.status_uuid
 LEFT JOIN LATERAL (select * from tag_to_array (material_uuid)) atag ON true
@@ -1076,6 +1079,8 @@ SELECT
 	mc.material_composite_uuid,
     mc.composite_uuid,
     m0.description  AS composite_description,
+    m0.class_uuid AS composite_class_uuid,
+    cls0.description AS composite_class_description,
     CASE
     	WHEN ((SELECT 1 FROM material_composite WHERE material_composite.composite_uuid = mc.component_uuid LIMIT 1)) IS NOT NULL THEN 
     		true
@@ -1083,6 +1088,8 @@ SELECT
     END AS composite_flg,
     mc.component_uuid,
 	m1.description  AS component_description,
+	m1.class_uuid AS component_class_uuid,
+	cls1.description AS component_class_description,
 	mc.addressable,
 	mc.actor_uuid,
 	act.description AS actor_description,
@@ -1095,6 +1102,8 @@ SELECT
 FROM material_composite mc
 JOIN material m0 ON mc.composite_uuid = m0.material_uuid
 JOIN material m1 ON mc.component_uuid = m1.material_uuid
+LEFT JOIN material_class cls0 ON m0.class_uuid = cls0.class_uuid
+LEFT JOIN material_class cls1 ON m1.class_uuid = cls1.class_uuid
 LEFT JOIN vw_actor act ON mc.actor_uuid = act.actor_uuid
 LEFT JOIN vw_status sts ON mc.status_uuid = sts.status_uuid
 LEFT JOIN LATERAL (select * from tag_to_array (material_composite_uuid)) atag ON true
