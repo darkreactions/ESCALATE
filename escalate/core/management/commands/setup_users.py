@@ -20,6 +20,13 @@ users = {
             'last_name': 'Tynes'
         },
         'password': 'hello1world2'
+    },
+    'ichang': {
+        'person_data':{
+            'first_name': 'Isaac',
+            'last_name': 'Chang'
+        },
+        'password': 'securepassword'
     }
 }
 
