@@ -4,7 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 # from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
-from core.models.view_tables import Note, Actor, TagAssign, Tag
+from core.models.view_tables import Note, Actor, TagAssign, Tag, Edocument
 from core.forms.forms import NoteForm, TagSelectForm
 from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404, render
@@ -68,7 +68,7 @@ class GenericModelList(GenericListView):
         #    "".join(order_field.split('-')), 'icontains'): filter_val}
         order = "".join(order_field.split('-'))
         filter_kwargs = {f'{order}__icontains': filter_val}
-        
+
         # Filter by organization if it exists in the model
         if 'current_org_id' in self.request.session:
             if self.org_related_path:
@@ -83,14 +83,14 @@ class GenericModelList(GenericListView):
                     base_query = self.model.objects.all()
         else:
             base_query = self.model.objects.none()
-        
-        
+
+
         if filter_val != None:
             new_queryset = base_query.filter(
                 **filter_kwargs).select_related().order_by(ordering)
         else:
             new_queryset = base_query
-        
+
         new_queryset = base_query
         return new_queryset
 
@@ -174,24 +174,26 @@ class GenericModelEdit:
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
+        
         if self.context_object_name in context:
-            
+
             model = context[self.context_object_name]
             context['note_forms'] = self.NoteFormSet(
                 queryset=Note.objects.filter(note_x_note__ref_note=model.pk), prefix='note')
+            context['num_notes'] = len(Note.objects.filter(note_x_note__ref_note=model.pk))
             context['tag_select_form'] = TagSelectForm(model_pk=model.pk)
         else:
-            
+
             context['note_forms'] = self.NoteFormSet(
                 queryset=self.model.objects.none(), prefix='note')
             context['tag_select_form'] = TagSelectForm()
 
         context['title'] = self.context_object_name.capitalize()
+        print(context)
         return context
 
     def post(self, request, *args, **kwargs):
-
+        print(request.POST)
         if 'pk' in self.kwargs:
             model = get_object_or_404(self.model, pk=self.kwargs['pk'])
         else:
@@ -206,22 +208,22 @@ class GenericModelEdit:
 
     def form_valid(self, form):
         print('INSIDE FORM VALID')
-        
+
         self.object = form.save()
         if self.object.pk is None:
             required_fields = [f.name for f in self.model._meta.get_fields(
             ) if not getattr(f, 'null', False) is True]
-            
+
             required_fields = [f for f in required_fields if f not in [
                 'add_date', 'mod_date', 'uuid']]
-            
+
 
             query = {k: v for k, v in self.object.__dict__.items() if (
                 k in required_fields)}
 
-            
+
             self.object = self.model.objects.filter(**query).latest('mod_date')
-            
+
 
         if self.request.POST.get('tags'):
             # tags from post
@@ -260,8 +262,10 @@ class GenericModelEdit:
                         note = form.save(commit=False)
                         note.actor = actor
                         # Get the appropriate uuid of the record being changed.
-                        note.note_x_note.ref_note = self.object.pk
+                        note.ref_note_uuid = self.object.pk
                         note.save()
+
+
             # Delete each note we marked in the formset
             formset.save(commit=False)
             for form in formset.deleted_forms:
@@ -272,7 +276,7 @@ class GenericModelEdit:
                     f'{self.context_object_name}_update', kwargs={'pk': self.object.pk})
 
         return HttpResponseRedirect(self.get_success_url())
-        
+
     def form_invalid(self, form):
         print('IN FORM INVALID!')
         context = self.get_context_data()
@@ -338,6 +342,9 @@ class GenericModelView(DetailView):
         for tag in tags_raw:
             tags.append(tag.display_text.strip())
         detail_data['Tags'] = ', '.join(tags)
+
+        # get edocuments
+        # edocs_raw = Edocument.objects.filter(pk)
 
         context['title'] = self.model_name.replace('_', " ").capitalize()
         context['update_url'] = reverse_lazy(
