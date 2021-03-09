@@ -495,6 +495,19 @@ class TagSelectForm(forms.Form):
 
 
 class UploadEdocForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(UploadEdocForm, self).__init__(*args, **kwargs)
+        self.fields['file'] = forms.FileField(required=False)
+
+    
+    # def clean(self):
+    #     cleaned_data = super(UploadEdocForm, self).clean()
+    #     cleaned_sub_data = self.cleaned_data
+    #     cleaned_data.update(cleaned_sub_data)
+    #     print(cleaned_data)
+    #     return cleaned_data
+
+
     class Meta:
         model = Edocument
         fields = ['title', 'description', 'source']
@@ -502,6 +515,7 @@ class UploadEdocForm(forms.ModelForm):
             'description': forms.CharField
         }
         labels = {
+            'title': 'Document Title',
             'description': 'Description'
         }
         widgets = {
@@ -511,6 +525,7 @@ class UploadEdocForm(forms.ModelForm):
                 'placeholder': 'Your material type description'
             })
         }
+    
 
 
 class JoinOrganizationForm(forms.ModelForm):

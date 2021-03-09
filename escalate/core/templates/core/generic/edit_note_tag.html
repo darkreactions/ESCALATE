@@ -22,18 +22,23 @@
                 {% endif %}
         <a href="#last">Jump to the end </a>
 
-        <form method="post">{% csrf_token %}
+        <form method="post" enctype="multipart/form-data">{% csrf_token %}
             {% if form.errors %}
             
                 {{ form.errors }}
             
             {% endif %}
             {{ note_forms.management_form }}
+            {{ edoc_forms.management_form}}
             {{ form|crispy }}
             {% for f in note_forms %}
             {{ f|crispy }}
             {% endfor %}
             <button type="submit" name="add_note" value="add_note" class="btn btn-raised btn-primary">Add Note</button>
+            {% for f in edoc_forms %}
+            {{ f|crispy }}
+            {% endfor %}
+            <button type="submit" name="add_edoc" value="add_edoc" class="btn btn-raised btn-primary">Add Edocument</button>
             {{ tag_select_form|crispy }}
             <div>
                 <button type="submit" name="add_new_tag" value="add_new_tag" class="btn btn-raised btn-primary">Create

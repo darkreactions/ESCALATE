@@ -5,7 +5,8 @@ from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 # from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
 from core.models.view_tables import Note, Actor, TagAssign, Tag, Edocument
-from core.forms.forms import NoteForm, TagSelectForm
+from core.models.core_tables import TypeDef
+from core.forms.forms import NoteForm, TagSelectForm, UploadEdocForm
 from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404, render
 from django.core.exceptions import FieldDoesNotExist
@@ -172,6 +173,10 @@ class GenericModelEdit:
     NoteFormSet = modelformset_factory(
         Note, form=NoteForm, can_delete=True)
 
+    EdocFormSet = modelformset_factory(
+        Edocument, form=UploadEdocForm, can_delete=True
+    )
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
@@ -179,21 +184,25 @@ class GenericModelEdit:
 
             model = context[self.context_object_name]
             context['note_forms'] = self.NoteFormSet(
-                queryset=Note.objects.filter(note_x_note__ref_note=model.pk), prefix='note')
-            context['num_notes'] = len(Note.objects.filter(note_x_note__ref_note=model.pk))
+                queryset=Note.objects.filter(ref_note_uuid=model.pk),
+                prefix='note')
+            context['edoc_forms'] = self.EdocFormSet(
+                queryset=Edocument.objects.filter(ref_edocument_uuid=model.pk),
+                prefix='edoc')
             context['tag_select_form'] = TagSelectForm(model_pk=model.pk)
         else:
-
             context['note_forms'] = self.NoteFormSet(
-                queryset=self.model.objects.none(), prefix='note')
+                queryset=self.model.objects.none(),
+                prefix='note')
+            context['edoc_forms'] = self.EdocFormSet(
+                querySet=Edocument.objects.none(),
+                prefix='edoc')
             context['tag_select_form'] = TagSelectForm()
 
         context['title'] = self.context_object_name.capitalize()
-        print(context)
         return context
 
     def post(self, request, *args, **kwargs):
-        print(request.POST)
         if 'pk' in self.kwargs:
             model = get_object_or_404(self.model, pk=self.kwargs['pk'])
         else:
@@ -208,8 +217,8 @@ class GenericModelEdit:
 
     def form_valid(self, form):
         print('INSIDE FORM VALID')
-
         self.object = form.save()
+
         if self.object.pk is None:
             required_fields = [f.name for f in self.model._meta.get_fields(
             ) if not getattr(f, 'null', False) is True]
@@ -265,7 +274,6 @@ class GenericModelEdit:
                         note.ref_note_uuid = self.object.pk
                         note.save()
 
-
             # Delete each note we marked in the formset
             formset.save(commit=False)
             for form in formset.deleted_forms:
@@ -274,6 +282,43 @@ class GenericModelEdit:
             if self.request.POST.get('add_note'):
                 self.success_url = reverse_lazy(
                     f'{self.context_object_name}_update', kwargs={'pk': self.object.pk})
+        
+        if self.EdocFormSet != None:
+            actor = Actor.objects.get(
+                person=self.request.user.person.pk, organization=None)
+            formset = self.EdocFormSet(self.request.POST, self.request.FILES, prefix='edoc')
+            # Loop through every edoc form
+            for form in formset:
+                if not form.is_valid():
+                    print(form.errors)
+                # Only if the form has changed make an update, otherwise ignore
+                if form.has_changed() and form.is_valid():
+                    if self.request.user.is_authenticated:
+                        edoc = form.save(commit=False)
+                        # Get the appropriate actor and then add it to the edoc
+                        file = form.cleaned_data['file']
+                        # Hopefuly every file name is structed as <name>.<ext>
+                        file_name, ext = file.name.split('.')
+
+                        edoc.edocument = file.read()
+                        edoc.filename = file_name
+                        edoc.doc_type_description = ext
+                        # this might be hard. need all file extension names in db
+                        edoc.doc_type_uuid = TypeDef.objects.get(description=ext)
+
+                        edoc.actor = actor
+                        # Get the appropriate uuid of the record being changed.
+                        edoc.ref_edocument_uuid = self.object.pk
+                        edoc.save()
+
+            # Delete each note we marked in the formset
+            formset.save(commit=False)
+            for form in formset.deleted_forms:
+                form.instance.delete()
+            # Choose which website we are redirected to
+            if self.request.POST.get('add_edoc'):
+                self.success_url = reverse_lazy(
+                    f'{self.context_object_name}_update', kwargs={'pk': self.object.pk})            
 
         return HttpResponseRedirect(self.get_success_url())
 
@@ -329,7 +374,7 @@ class GenericModelView(DetailView):
             detail_data[field] = obj_detail
 
         # get notes
-        notes_raw = Note.objects.filter(note_x_note__ref_note=obj.pk)
+        notes_raw = Note.objects.filter(ref_note_uuid=obj.pk)
         notes = []
         for note in notes_raw:
             notes.append('-' + note.notetext)
@@ -344,7 +389,9 @@ class GenericModelView(DetailView):
         detail_data['Tags'] = ', '.join(tags)
 
         # get edocuments
-        # edocs_raw = Edocument.objects.filter(pk)
+        edocs_raw = Edocument.objects.filter(ref_edocument_uuid=obj.pk)
+        for edoc_info in edocs_raw:
+            print(edoc_info)
 
         context['title'] = self.model_name.replace('_', " ").capitalize()
         context['update_url'] = reverse_lazy(

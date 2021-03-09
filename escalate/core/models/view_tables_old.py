@@ -809,7 +809,7 @@ class Edocument(models.Model):
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
     edocument_x_uuid = RetUUIDField(editable=False)
-    ref_edocument_uuid = RetUUIDField()
+    ref_edocument_uuid = RetUUIDField(blank=True, null=True)
 
     class Meta:
         managed = False
