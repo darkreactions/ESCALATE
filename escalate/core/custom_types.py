@@ -82,7 +82,7 @@ class Val:
     
     def __str__(self):
         if not self.null:
-            return f'{self.value} {self.unit} {self.val_type.description}'
+            return f'{self.value} {self.unit}'
         else:
             return 'null'
     

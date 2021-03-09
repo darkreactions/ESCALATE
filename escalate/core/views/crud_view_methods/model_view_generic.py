@@ -20,7 +20,6 @@ class GenericListView(ListView):
         context['filter'] = self.request.GET.get('filter', '')
         return context
 
-
 class GenericModelList(GenericListView):
     template_name = 'core/generic/list.html'
 
@@ -65,8 +64,10 @@ class GenericModelList(GenericListView):
         #print(f'Order field: {self.order_field} in model {self.model}')
 
         # same as <field want to order by>__icontains = filter_val
-        filter_kwargs = {'{}__{}'.format(
-            "".join(order_field.split('-')), 'icontains'): filter_val}
+        #filter_kwargs = {'{}__{}'.format(
+        #    "".join(order_field.split('-')), 'icontains'): filter_val}
+        order = "".join(order_field.split('-'))
+        filter_kwargs = {f'{order}__icontains': filter_val}
         
         # Filter by organization if it exists in the model
         if 'current_org_id' in self.request.session:

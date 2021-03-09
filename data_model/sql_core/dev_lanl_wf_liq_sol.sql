@@ -19,7 +19,9 @@ values
 	('gas'),
 	('stock solution'),
 	('human prepared'),
-	('solute');
+	('solute'),
+	('solvent');
+
 
 -- -- ===========================================================================
 -- -- add in test materials
@@ -294,19 +296,19 @@ END
 $do$;
 
 -- create component materials
--- Am-243 (component)
--- insert into vw_material (description, consumable, actor_uuid, status_uuid) values
--- 	('Am-243', TRUE,
--- 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
--- 	(select status_uuid from vw_status where description = 'dev_test'));
--- insert into vw_material (description, consumable, actor_uuid, status_uuid) values
--- 	('Water', TRUE,
--- 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
--- 	(select status_uuid from vw_status where description = 'dev_test'));
--- insert into vw_material (description, consumable, actor_uuid, status_uuid) values
--- 	('Hydrochloric acid', TRUE,
--- 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
--- 	(select status_uuid from vw_status where description = 'dev_test'));
+--Am-243 (component)
+insert into vw_material (description, consumable, actor_uuid, status_uuid) values
+	('Am-243', TRUE,
+	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+	(select status_uuid from vw_status where description = 'dev_test'));
+insert into vw_material (description, consumable, actor_uuid, status_uuid) values
+	('Water', TRUE,
+	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+	(select status_uuid from vw_status where description = 'dev_test'));
+insert into vw_material (description, consumable, actor_uuid, status_uuid) values
+	('Hydrochloric acid', TRUE,
+	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+	(select status_uuid from vw_status where description = 'dev_test'));
 
 -- Am-243 Stock (composite)
 insert into vw_material (description, consumable, actor_uuid, status_uuid) values

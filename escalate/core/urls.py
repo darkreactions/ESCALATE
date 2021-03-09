@@ -4,7 +4,7 @@ from .views import (LoginView, CreateUserView, MainMenuView, WorkflowView,
                     ModelTagCreate, ModelTagUpdate, logout_view, UserProfileView, 
                     change_password, UserProfileEdit)
 from .views.misc_views import ParameterEditView, MaterialEditView
-from .views.experiment import CreateExperimentView
+from .views.experiment import CreateExperimentView, ExperimentDetailView, ExperimentListView
 from core.utils import view_names, camel_to_snake
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.views.generic.base import RedirectView
@@ -27,7 +27,9 @@ urlpatterns = [
     path('user_profile_edit/', UserProfileEdit.as_view(), name='user_profile_edit'),
     path('param_edit/<uuid:pk>', ParameterEditView.as_view(), name='parameter_edit'),
     path('mat_edit/<uuid:pk>', MaterialEditView.as_view(), name='material_edit'),
-    path('create_experiment/', CreateExperimentView.as_view(), name='create_experiment')
+    path('create_experiment/', CreateExperimentView.as_view(), name='create_experiment'),
+    path('experiment_list/', ExperimentListView.as_view(), name='experiment_list'),
+    path('experiment_view/<uuid:pk>', ExperimentDetailView.as_view(), name='experiment_view'),
 ]
 
 
