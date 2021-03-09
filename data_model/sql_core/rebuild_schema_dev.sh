@@ -27,13 +27,13 @@ echo "initializing core tables..."
 psql -d escalate -U escalate -f prod_initialize_coretables.sql >> rebuild_dev.log 2>&1
 
 echo "updating materials..."
-psql -d escalate -U escalate -f prod_update_1_material.sql >> rebuild_dev.log 2>&1
+psql -d escalate -U escalate -f hc_load_1_material.sql >> rebuild_dev.log 2>&1
 
 echo "updating inventory..."
-psql -d escalate -U escalate -f prod_update_2_inventory.sql >> rebuild_dev.log 2>&1
+psql -d escalate -U escalate -f hc_load_2_inventory.sql >> rebuild_dev.log 2>&1
 
 echo "updating calculations..."
-psql -d escalate -U escalate -f prod_update_3_calculation.sql >> rebuild_dev.log 2>&1
+psql -d escalate -U escalate -f hc_load_3_calculation.sql >> rebuild_dev.log 2>&1
 
 echo "running ETL..."
 psql -d escalate -U escalate -f prod_etl.sql >> rebuild_dev.log 2>&1
@@ -44,6 +44,11 @@ awk 'BEGIN { count=0 } /ERROR:/ {print $0;count++ } END { print "error count: ",
 ## run SQL function tests
 echo "running tests..."
 (cd ../sql_test && psql -d escalate -U escalate -f test_functions.sql >> test_dev.log 2>&1)
+# this is LANL specific
+#(psql -d escalate -U escalate -f dev_lanl_wf_liq_sol.sql >> test_lanl_dev.log 2>&1)
+
 echo "done (test_dev.log)"
 (cd ../sql_test && awk 'BEGIN { count=0 } /ERROR:/ {print $0;count++ } END { print "error count: ", count }' test_dev.log)
+# this is LANL specific
+#(awk 'BEGIN { count=0 } /ERROR:/ {print $0;count++ } END { print "error count: ", count }' test_lanl_dev.log)
 

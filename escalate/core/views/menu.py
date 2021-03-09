@@ -11,6 +11,7 @@ from plotly.offline import plot
 from plotly.graph_objs import Scatter
 
 from core.views.crud_views import LoginRequired
+from core.models.view_tables import Actor, Person, Organization
 
 
 class MainMenuView(LoginRequired, View):
@@ -24,4 +25,17 @@ class MainMenuView(LoginRequired, View):
                                  mode='lines', name='test',
                                  opacity=0.8, marker_color='green')],
                         output_type='div', include_plotlyjs=False)
-        return render(request, self.template_name, context={'plot_div': plot_div})
+        vw_person = Person.objects.get(pk=request.user.person.pk)
+        context = {
+            'plot_div': plot_div,
+            'user_person': vw_person
+        }
+        return render(request, self.template_name, context=context)
+
+    def post(self, request, *args, **kwargs):
+        if 'select_org' in request.POST:
+            current_org = Organization.objects.get(
+                pk=request.POST['org_select'])
+            request.session['current_org_id'] = request.POST['org_select']
+            request.session['current_org_name'] = current_org.full_name
+        return render(request, self.template_name)

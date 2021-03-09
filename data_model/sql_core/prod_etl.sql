@@ -227,7 +227,7 @@ select load_experiment_json ('/Users/gcattabriga/Downloads/GitHub/ESCALATE_repor
 select load_experiment_json ('/Users/gcattabriga/Downloads/GitHub/ESCALATE_report/wf3_iodide/', 'wf3_iodide');
 select load_experiment_json ('/Users/gcattabriga/Downloads/GitHub/ESCALATE_report/wf3_alloying/', 'wf3_alloying');
 
-
+/*
 /*
 Name:			load_escalate_experiment()
 Parameters:		fname = string of source filename, full location
@@ -370,8 +370,6 @@ select load_escalate_experiments('load_v2_iodides');
 select load_escalate_experiments('load_v2_bromides');
 select load_escalate_experiments('load_v2_wf3_alloying');
 select load_escalate_experiments('load_v2_wf3_iodides');
+*/
 
--- select count(*) from experiment where parent_uuid is null;
--- delete from experiment;
--- select * from load_v2_iodides where "_raw_participantname" is not null
 

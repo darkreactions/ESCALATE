@@ -1,0 +1,71 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load index %}
+
+{% block content %}
+
+<form method="post">{% csrf_token %}
+
+    <div class="treeview-animated border mx-4 my-4">
+        <h6 class="pt-3 pl-3">Experiment Parameters for {{ experiment.description }}</h6>
+        <hr>
+        <ul class="treeview-animated-list">
+            {% for f in q1_formset %}
+            <li class="treeview-animated-items">
+              <a class="closed">
+                <i class="fas fa-angle-right"></i>
+                <span><i class="fas fa-table ic-w mx-1"></i>{{ q1_details|index:forloop.counter0 }}</span>
+              </a>
+              <ul class="nested">
+                <li>
+                    {{ f|crispy }}
+                </li>
+              </ul>
+            </li>
+            {% endfor %}
+
+            {% for f in q2_formset %}
+            <li class="treeview-animated-items">
+              <a class="closed">
+                <i class="fas fa-angle-right"></i>
+                <span><i class="fas fa-table ic-w mx-1"></i>{{ q2_details|index:forloop.counter0 }}</span>
+              </a>
+              <ul class="nested">
+                <li>
+                    {{ f|crispy }}
+                </li>
+              </ul>
+            </li>
+            {% endfor %}
+
+            {% for f in q3_formset %}
+            <li class="treeview-animated-items">
+              <a class="closed">
+                <i class="fas fa-angle-right"></i>
+                <span><i class="fas fa-table ic-w mx-1"></i>{{ q3_details|index:forloop.counter0 }}</span>
+              </a>
+              <ul class="nested">
+                <li>
+                    {{ f|crispy }}
+                </li>
+              </ul>
+            </li>
+            {% endfor %}
+        </ul>
+        
+
+</form>
+
+
+{% endblock %}
+
+{% block tailcontent %}
+<script>
+// Treeview Initialization
+$(document).ready(function() {
+  $('.treeview-animated').mdbTreeview();
+});
+</script>
+
+{% endblock %}

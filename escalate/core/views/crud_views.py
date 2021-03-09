@@ -5,9 +5,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 
 import core.models
 import core.forms
-from core.views.model_view_generic import GenericModelEdit, GenericModelList, GenericModelView
-from core.utils import view_names, camel_to_snake
-from core.views import create_methods, detail_methods, update_methods, delete_methods, list_methods
+from core.views.crud_view_methods.model_view_generic import GenericModelEdit, GenericModelList, GenericModelView
+from core.views.crud_view_methods import create_methods, detail_methods, update_methods, delete_methods, list_methods
 
 
 class LoginRequired(LoginRequiredMixin):

@@ -1,0 +1,132 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="row gutters-sm">
+<div class="col-md-4 mb-3">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex flex-column align-items-center text-center">
+          <img src="{% static "avatar.png" %}" alt="Admin" class="rounded-circle" width="150">
+          <div class="mt-3">
+            <h4>{{ request.user.person.first_name }} {{ request.user.person.last_name }}</h4>
+            <p class="text-secondary mb-1">{{ request.user.person.title }}</p>
+            <p class="text-muted font-size-sm">{{ request.user.person.organization.full_name }}</p>
+            <a href="{% url 'change_password' %}" class="btn btn-outline-primary">Change Password</a>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+<div class="col-md-8">
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-sm-3">
+            <h6 class="mb-0">Email</h6>
+          </div>
+          <div class="col-sm-9 text-secondary">
+            {{ request.user.person.email }}
+          </div>
+        </div>
+        <hr>
+        <div class="row">
+          <div class="col-sm-3">
+            <h6 class="mb-0">Phone</h6>
+          </div>
+          <div class="col-sm-9 text-secondary">
+            {{ request.user.person.phone }}
+          </div>
+        </div>
+        <hr>
+        <div class="row">
+          <div class="col-sm-3">
+            <h6 class="mb-0">Address Line 1</h6>
+          </div>
+          <div class="col-sm-9 text-secondary">
+            {{ request.user.person.address1 }}
+          </div>
+        </div>
+        <hr>
+        <div class="row">
+          <div class="col-sm-3">
+            <h6 class="mb-0">Address Line 2</h6>
+          </div>
+          <div class="col-sm-9 text-secondary">
+            {{ request.user.person.address2 }}
+          </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-sm-3">
+              <h6 class="mb-0">City, State, Country</h6>
+            </div>
+            <div class="col-sm-9 text-secondary">
+              {{ request.user.person.city }}, {{ request.user.person.state_province }}, {{ request.user.person.country }}
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-sm-3">
+              <h6 class="mb-0">Lab/Organization Membership</h6>
+            </div>
+            <div class="col-sm-9 text-secondary">
+              <ul>
+              {% if vw_person.added_organization.all %}
+                {% for org in vw_person.added_organization.all %}
+                <li>{{ org.full_name }}</li>
+                {% endfor %}
+              {% else %}
+                No labs joined
+              {% endif %}
+              </ul>
+              
+            </div>
+        </div>
+        <p></p>
+        <div class="row">
+            <div class="col-sm-3">
+                
+            </div>
+            <div class="col-sm-9 text-secondary">
+              {% if messages %}
+              <ul class="messages">
+                  {% for message in messages %}
+                  <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+                      {% endfor %}
+              </ul>
+              {% endif %}
+              <a href="{% url 'user_profile_edit' %}" class="btn btn-outline-primary">Edit Profile</a>
+              <button type="button" class="btn btn-outline-primary" data-toggle="modal"
+                        data-target="#deleteModal" >Join Lab</button>
+            </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+</div>
+{% endblock %}
+
+{% block delete_block %}
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="container">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="deleteModalLabel">Delete</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <form method="post">{% csrf_token %}
+                      {{ org_form|crispy }}
+                      <button class="btn btn-outline-primary" type="submit" name="add_org" value="add_org">Save changes</button>
+                    </form>
+                  </div>
+                </div>
+            </div>
+        </div>
+{% endblock %}

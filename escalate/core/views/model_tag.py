@@ -3,8 +3,8 @@ from django.views.generic.edit import FormView, CreateView, UpdateView
 from django.forms import modelformset_factory
 from django.shortcuts import redirect
 
-from core.models import Tag, Tag_X, Actor
-from core.forms import TagForm
+from core.models.view_tables import Tag, TagAssign, Actor
+from core.forms.forms import TagForm
 #from core.views.menu import GenericListView
 
 #class for generating a tagform when making new tag in a models
@@ -49,24 +49,24 @@ class ModelTagEdit():
             if self.TagFormSet != None:
                 formset = self.TagFormSet(request.POST,prefix='tag')
                 actor = Actor.objects.get(
-                    person_uuid=request.user.person.pk)
+                    person=request.user.person.pk)
                 # Loop through every tag form
                 for form in formset:
                     # Only if the form has changed make an update, otherwise ignore
                     if form.has_changed() and form.is_valid():
                         if request.user.is_authenticated:
                             tag = form.save(commit=False)
-                            tag.actor_uuid = actor
+                            tag.actor = actor
                             tag.save()
                             if form not in formset.deleted_forms:
-                            # if tag not being deleted make tag_x to relate the tag and
+                            # if tag not being deleted make tag_assign to relate the tag and
                             # the person being tagged
-                                tag_x = Tag_X()
-                                tag_x.tag_uuid=Tag.objects.get(display_text=tag.display_text)
-                                tag_x.ref_tag_uuid=model_pk
-                                tag_x.add_date=tag.add_date
-                                tag_x.mod_date=tag.mod_date
-                                tag_x.save()
+                                tag_assign = TagAssign()
+                                tag_assign.tag=Tag.objects.get(display_text=tag.display_text)
+                                tag_assign.ref_tag=model_pk
+                                tag_assign.add_date=tag.add_date
+                                tag_assign.mod_date=tag.mod_date
+                                tag_assign.save()
                 formset.save(commit=False)
                 for form in formset.deleted_forms:
                     form.instance.delete()

@@ -46,6 +46,39 @@ COMMIT;
 
 
 -- ----------------------------
+-- Records of measure_type
+-- ----------------------------
+BEGIN;
+	insert into vw_measure_type (description) values ('manual');
+	insert into vw_measure_type (description) values ('robot');
+COMMIT;
+
+
+insert into vw_material_type (description)
+values
+	('a-cation'),
+	('b-cation'),
+	('halide'),
+	('antisolvent'),
+	('reference'),
+	('catalog'),
+	('plate');
+
+
+INSERT INTO material_refname_def (description)
+VALUES
+	('Chemical_Name'),
+	('Abbreviation'),
+	('InChI'),
+	('InChIKey'),
+	('RInChI'),
+	('SMILES'),
+	('SMARTS'),
+	('SMIRKS'),
+	('Molecular_Formula')
+;
+
+-- ----------------------------
 -- Records of organization
 -- ----------------------------
 BEGIN;
@@ -53,6 +86,7 @@ INSERT INTO vw_organization (description, full_name, short_name, address1, addre
 VALUES
 	('Test Organization', 'TestCo', 'XX', '123 Main St.', NULL, 'Test City', 'XX', '99999', 'US','http://http://info.cern.ch', NULL), 
 	('College', 'Haverford College', 'HC', '370 Lancaster Ave.', NULL, 'Haverford', 'PA', '19041', 'US','http://www.haverford.edu', NULL),
+	('Laboratory', 'Norquist Lab', 'NL', '370 Lancaster Ave.', NULL, 'Haverford', 'PA', '19041', 'US','http://www.haverford.edu', NULL),
 	('Laboratory', 'Lawrence Berkeley National Laboratory', 'LBL', '1 Cyclotron Rd.', NULL, 'Berkeley', 'CA', '94720', 'US', 'https://www.lbl.gov', NULL),
 	('Chemical vendor', 'Sigma-Aldrich', 'Sigma-Aldrich', '3050 Spruce St.', NULL, 'St Louis', 'MO', '63103', 'US', 'http://www.sigmaaldrich.com', NULL),
 	('Chemical vendor', 'Greatcell Solar', 'Greatcell', '3 Dominion Place', NULL, 'Queanbeyan', 'NSW', '2620', 'AUS', 'http://www.greatcellsolar.com/shop/', NULL),
@@ -158,7 +192,8 @@ INSERT INTO vw_tag_type (type, description)
 VALUES 
 	('material', 'tags used to assist in identifying material types'),
 	('experiment', 'tags used to assist in charactizing experiments, visibility'),
-	('actor', 'tags used to assist in charactizing actors');
+	('actor', 'tags used to assist in charactizing actors'),
+	('measure', 'tags used to assist in charactizing measures');
 ;
 COMMIT;
 
@@ -179,6 +214,7 @@ BEGIN;
 insert into vw_workflow_type (description) values ('model');
 insert into vw_workflow_type (description) values ('template');
 insert into vw_workflow_type (description) values ('actual');
+insert into vw_workflow_type (description) values ('workflow_action_set');
 COMMIT;
 
 
@@ -209,7 +245,10 @@ VALUES
 	('inactive', (select tag_type_uuid from vw_tag_type where type = 'actor'), (select actor_uuid from vw_actor where systemtool_name = 'postgres')),
 	('temporary', (select tag_type_uuid from vw_tag_type where type = 'actor'), (select actor_uuid from vw_actor where systemtool_name = 'postgres')),
 	('on_loan', (select tag_type_uuid from vw_tag_type where type = 'actor'), (select actor_uuid from vw_actor where systemtool_name = 'postgres')),	
-	('do_not_use', (select tag_type_uuid from vw_tag_type where type = 'actor'), (select actor_uuid from vw_actor where systemtool_name = 'postgres'))	
+	('do_not_use', (select tag_type_uuid from vw_tag_type where type = 'actor'), (select actor_uuid from vw_actor where systemtool_name = 'postgres')),
+	('subjective', (select tag_type_uuid from vw_tag_type where type = 'measure'), (select actor_uuid from vw_actor where systemtool_name = 'postgres')),
+	('preliminary', (select tag_type_uuid from vw_tag_type where type = 'measure'), (select actor_uuid from vw_actor where systemtool_name = 'postgres')),
+	('instrument', (select tag_type_uuid from vw_tag_type where type = 'measure'), (select actor_uuid from vw_actor where systemtool_name = 'postgres'))
 ;
 COMMIT;
 

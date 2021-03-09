@@ -1,0 +1,142 @@
+[{
+    "type": "mint_to_shaker",
+    "displayName": "Mint Leaf -> Cocktail Shaker",
+    "description": "transfer_discrete",
+    "runtimeDescription": "x => !!x.state.count ? `${ x.state.count } Leaves` : x.definition.description ",
+    "category": "template",
+    "outcomes": ["Done"],
+    "icon": "fas fa-feather-alt",
+    "properties": [
+        {
+        "name": "count",
+        "type": "text",
+        "label": "Count",
+        "hint": "Number of mint leaves",
+        "options": {}
+        }]
+},
+{
+    "type": "syrup_to_shaker",
+    "displayName": "Simple Syrup -> Cocktail Shaker",
+    "runtimeDescription": "x => !!x.state.volume ? `${ x.state.volume } fl oz` : x.definition.description ",
+    "description": "dispense",
+    "category": "template",
+    "outcomes": ["Done"],
+    "properties": [
+        {
+        "name": "volume",
+        "type": "text",
+        "label": "Volume",
+        "hint": "Volume in floz",
+        "options": {}
+        }]
+},
+{
+    "type": "muddle",
+    "displayName": "Cocktail Shaker -> Cocktail Shaker",
+    "runtimeDescription": "x => !!x.state.force ? `${ x.state.force }` : x.definition.description ",
+    "description": "muddle",
+    "category": "template",
+    "outcomes": ["Done"],
+    "properties": [
+        {
+        "name": "force",
+        "type": "text",
+        "label": "Force",
+        "hint": "",
+        "options": {}
+        }]
+},
+{
+    "type": "rum_to_shaker",
+    "displayName": "White Rum -> Cocktail Shaker",
+    "runtimeDescription": "x => !!x.state.volume ? `${ x.state.volume } fl oz` : x.definition.description ",
+    "description": "dispense",
+    "category": "template",
+    "outcomes": ["Done"],
+    "properties": [
+        {
+            "name": "volume",
+            "type": "text",
+            "label": "Volume",
+            "hint": "Volume in floz",
+            "options": {}
+            }]
+},
+{
+    "type": "lime_juice_to_shaker",
+    "displayName": "Lime Juice -> Cocktail Shaker",
+    "runtimeDescription": "x => !!x.state.volume ? `${ x.state.volume } fl oz` : x.definition.description ",
+    "description": "dispense",
+    "category": "template",
+    "outcomes": ["Done"],
+    "properties": [
+        {
+            "name": "volume",
+            "type": "text",
+            "label": "Volume",
+            "hint": "Volume in floz",
+            "options": {}
+            }]
+},
+{
+    "type": "shake",
+    "displayName": "Cocktail Shaker -> Cocktail Shaker",
+    "runtimeDescription": "x => !!x.state.duration_qualitative ? `${ x.state.duration_qualitative }` : x.definition.description ",
+    "description": "shake",
+    "category": "template",
+    "outcomes": ["Done"],
+    "properties": [
+        {
+            "name": "duration_qualitative",
+            "type": "text",
+            "label": "Duration (Qualitative)",
+            "hint": "Time taken",
+            "options": {}
+            }]
+},
+{
+    "type": "ice_to_glass",
+    "displayName": "Ice Cube -> Highball Glass",
+    "description": "transfer_discrete",
+    "runtimeDescription": "x => !!x.state.count ? `${ x.state.count } Leaves` : x.definition.description ",
+    "category": "template",
+    "icon": "fas fa-dice-d6",
+    "outcomes": ["Done", "Fail"],
+    "properties": [
+        {
+            "name": "count",
+            "type": "text",
+            "label": "Count",
+            "hint": "Number of Ice Cubes",
+            "options": {}
+            }]
+},
+{
+    "type": "mojito_to_glass",
+    "displayName": "Cocktail Shaker -> Highball Glass",
+    "description": "strain",
+    "category": "template",
+    "icon": "fas fa-cocktail",
+    "outcomes": ["Done"],
+    "properties": []
+},
+{
+    "type": "Outcome",
+    "displayName": "sample mojito taste",
+    "runtimeDescription": "x => !!x.state.measure ? `${ x.state.measure }` : x.definition.description ",
+    "description": "measure",
+    "category": "template",
+    "icon": "fas fa-database",
+    "outcomes": [],
+    "properties": [
+        {
+            "name": "measure",
+            "type": "text",
+            "label": "Taste measure",
+            "hint": "Qualitative taste",
+            "options": {}
+            }]
+}
+
+]   

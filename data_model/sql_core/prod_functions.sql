@@ -43,7 +43,7 @@ Parameters:		none
 Returns:		table of column and non-null counts
 Author:			G. Cattabriga
 Date:			2019.01.01
-Description:	counts the number of occurances (non-null) in each row of _table
+Description:	counts the number of occurrences (non-null) in each row of _table
 Notes:
 Example:		select c.t_column_name as col_name, c.t_count as count from get_column_count( 'load_v2_bromides') c;
 
@@ -54,17 +54,17 @@ CREATE OR REPLACE FUNCTION get_column_count (_table varchar)
 	LANGUAGE plpgsql
 	AS $BODY$
 DECLARE
-	p_tabname varchar := $1;
-	v_sql_statement text;
+	_tabname varchar := $1;
+	_sql_statement text;
 BEGIN
 	SELECT
-		STRING_AGG('SELECT ''' || column_name || ''',' || ' count("' || column_name || '")  FROM ' || table_name, ' UNION ALL ') INTO v_sql_statement
+		STRING_AGG('SELECT ''' || column_name || ''',' || ' count("' || column_name || '")  FROM ' || table_name, ' UNION ALL ') INTO _sql_statement
 	FROM
 		information_schema.columns
 	WHERE
-		table_name = p_tabname;
-	IF v_sql_statement IS NOT NULL THEN
-		RETURN QUERY EXECUTE v_sql_statement;
+		table_name = _tabname;
+	IF _sql_statement IS NOT NULL THEN
+		RETURN QUERY EXECUTE _sql_statement;
 	END IF;
 END
 $BODY$;
@@ -76,9 +76,9 @@ $BODY$;
 -- drop trigger_set_timestamp triggers
 DO $$
 DECLARE
-	t text;
+	_t text;
 BEGIN
-	FOR t IN
+	FOR _t IN
 	SELECT
 		table_name
 	FROM
@@ -86,7 +86,7 @@ BEGIN
 	WHERE
 		column_name = 'mod_date'
 		AND table_schema = 'dev' LOOP
-			EXECUTE format('DROP TRIGGER IF EXISTS set_timestamp ON %I', t);
+			EXECUTE format('DROP TRIGGER IF EXISTS set_timestamp ON %I', _t);
 		END LOOP;
 END;
 $$
@@ -95,9 +95,9 @@ LANGUAGE plpgsql;
 -- create trigger_set_timestamp triggers
 DO $$
 DECLARE
-	t text;
+	_t text;
 BEGIN
-	FOR t IN
+	FOR _t IN
 	SELECT
 		table_name
 	FROM
@@ -107,7 +107,7 @@ BEGIN
 		AND table_schema = 'dev' LOOP
 			EXECUTE format('CREATE TRIGGER set_timestamp
                          BEFORE UPDATE ON %I
-                         FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp()', t);
+                         FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp()', _t);
 		END LOOP;
 END;
 $$
@@ -141,17 +141,13 @@ CREATE OR REPLACE FUNCTION if_modified_func ()
 	RETURNS TRIGGER
 	AS $body$
 DECLARE
-	audit_row sys_audit;
-	include_values boolean;
-	log_diffs boolean;
-	h_old hstore;
-	h_new hstore;
-	excluded_cols text [] = ARRAY []::text [];
+	_audit_row sys_audit;
+	_excluded_cols text [] = ARRAY []::text [];
 BEGIN
 	IF TG_WHEN <> 'AFTER' THEN
 		RAISE EXCEPTION 'if_modified_func() may only run as an AFTER trigger';
 	END IF;
-	audit_row = ROW (nextval('sys_audit_event_id_seq'), -- event_id
+	_audit_row = ROW (nextval('sys_audit_event_id_seq'), -- event_id
 		TG_TABLE_SCHEMA::text, -- schema_name
 		TG_TABLE_NAME::text, -- table_name
 		TG_RELID, -- relation OID for much quicker searches
@@ -170,33 +166,32 @@ BEGIN
 		'f' -- statement_only
 );
 	IF NOT TG_ARGV [0]::boolean IS DISTINCT FROM 'f'::boolean THEN
-		audit_row.client_query = NULL;
+		_audit_row.client_query = NULL;
 	END IF;
 	IF TG_ARGV [1] IS NOT NULL THEN
-		excluded_cols = TG_ARGV [1]::text [];
+		_excluded_cols = TG_ARGV [1]::text [];
 	END IF;
 	IF(TG_OP = 'UPDATE' AND TG_LEVEL = 'ROW') THEN
-		audit_row.row_data = hstore (OLD.*) - excluded_cols;
-		audit_row.changed_fields = (hstore (NEW.*) - audit_row.row_data) - excluded_cols;
-		IF audit_row.changed_fields = hstore ('') THEN
+		_audit_row.row_data = hstore (OLD.*) - _excluded_cols;
+		_audit_row.changed_fields = (hstore (NEW.*) - _audit_row.row_data) - _excluded_cols;
+		IF _audit_row.changed_fields = hstore ('') THEN
 			-- All changed fields are ignored. Skip this update.
 			RETURN NULL;
 		END IF;
 	ELSIF (TG_OP = 'DELETE'
 			AND TG_LEVEL = 'ROW') THEN
-		audit_row.row_data = hstore (OLD.*) - excluded_cols;
+		_audit_row.row_data = hstore (OLD.*) - _excluded_cols;
 	ELSIF (TG_OP = 'INSERT'
 			AND TG_LEVEL = 'ROW') THEN
-		audit_row.row_data = hstore (NEW.*) - excluded_cols;
+		_audit_row.row_data = hstore (NEW.*) - _excluded_cols;
 	ELSIF (TG_LEVEL = 'STATEMENT'
 			AND TG_OP IN('INSERT', 'UPDATE', 'DELETE', 'TRUNCATE')) THEN
-		audit_row.statement_only = 't';
+		_audit_row.statement_only = 't';
 	ELSE
 		RAISE EXCEPTION '[if_modified_func] - Trigger func added as trigger for unhandled case: %, %', TG_OP, TG_LEVEL;
-		RETURN NULL;
 	END IF;
 	INSERT INTO sys_audit
-		VALUES(audit_row.*);
+		VALUES(_audit_row.*);
 	RETURN NULL;
 END;
 $body$
@@ -212,7 +207,7 @@ Parameters:		target_table:     Table name, schema qualified if not on search_pat
 Returns:		void
 Author:			G. Cattabriga
 Date:			2020.05.12
-Description:	Add auditing support to a table.
+Description:	Add or drop auditing support to a table.
 Notes:	
 Example:		to initiate auditing:   SELECT audit_table('person');
 										SELECT audit_table('organization');
@@ -223,7 +218,7 @@ CREATE OR REPLACE FUNCTION audit_table (target_table regclass, audit_rows boolea
 	RETURNS void
 	AS $body$
 DECLARE
-	stm_targets text = 'INSERT OR UPDATE OR DELETE OR TRUNCATE';
+	_stm_targets text = 'INSERT OR UPDATE OR DELETE OR TRUNCATE';
 	_q_txt text;
 	_ignored_cols_snip text = '';
 BEGIN
@@ -236,10 +231,10 @@ BEGIN
 		_q_txt = 'CREATE TRIGGER audit_trigger_row AFTER INSERT OR UPDATE OR DELETE ON ' || target_table || ' FOR EACH ROW EXECUTE PROCEDURE if_modified_func(' || quote_literal(audit_query_text) || _ignored_cols_snip || ');';
 		RAISE NOTICE '%', _q_txt;
 		EXECUTE _q_txt;
-		stm_targets = 'TRUNCATE';
+		_stm_targets = 'TRUNCATE';
 	ELSE
 	END IF;
-	_q_txt = 'CREATE TRIGGER audit_trigger_stm AFTER ' || stm_targets || ' ON ' || target_table || ' FOR EACH STATEMENT EXECUTE PROCEDURE if_modified_func(' || quote_literal(audit_query_text) || ');';
+	_q_txt = 'CREATE TRIGGER audit_trigger_stm AFTER ' || _stm_targets || ' ON ' || target_table || ' FOR EACH STATEMENT EXECUTE PROCEDURE if_modified_func(' || quote_literal(audit_query_text) || ');';
 	RAISE NOTICE '%', _q_txt;
 	EXECUTE _q_txt;
 END;
@@ -268,7 +263,7 @@ $body$
 LANGUAGE 'sql';
 
 -----------------------------
--- turn on auditting
+-- turn on auditing
 -----------------------------
 -- SELECT audit_table('person');
 -- SELECT audit_table('organization');
@@ -299,6 +294,7 @@ LANGUAGE 'sql';
 -- SELECT audit_table('calculation');
 -- SELECT audit_table('calculation_eval');
 -- SELECT audit_table('inventory');
+-- SELECT audit_table('inventory_material');
 -- SELECT audit_table('measure');
 -- SELECT audit_table('measure_x');
 -- SELECT audit_table('measure_type');
@@ -333,27 +329,27 @@ CREATE OR REPLACE FUNCTION read_file_utf8 (path CHARACTER VARYING)
 	RETURNS TEXT
 	AS $$
 DECLARE
-	var_file_oid OID;
-	var_record RECORD;
-	var_result BYTEA := '';
-	var_resultt TEXT;
+	_file_oid OID;
+	_record RECORD;
+	_result BYTEA := '';
+	_resultt TEXT;
 BEGIN
 	SELECT
-		lo_import(path) INTO var_file_oid;
-	FOR var_record IN(
+		lo_import(path) INTO _file_oid;
+	FOR _record IN(
 		SELECT
 			data FROM pg_largeobject
 		WHERE
-			loid = var_file_oid
+			loid = _file_oid
 		ORDER BY
 			pageno)
 	LOOP
-		var_result = var_result || var_record.data;
+		_result = _result || _record.data;
 	END LOOP;
 	PERFORM
-		lo_unlink(var_file_oid);
-	var_resultt = regexp_replace(convert_from(var_result, 'utf8'), E'[\\n\\r] +', '', 'g');
-	RETURN var_resultt;
+		lo_unlink(_file_oid);
+	_resultt = regexp_replace(convert_from(_result, 'utf8'), E'[\\n\\r] +', '', 'g');
+	RETURN _resultt;
 END;
 $$
 LANGUAGE plpgsql;
@@ -372,26 +368,25 @@ CREATE OR REPLACE FUNCTION read_file (path CHARACTER VARYING)
 	RETURNS TEXT
 	AS $$
 DECLARE
-	var_file_oid OID;
-	var_record RECORD;
-	var_result BYTEA := '';
-	var_resultt TEXT;
+	_file_oid OID;
+	_record RECORD;
+	_result BYTEA := '';
 BEGIN
 	SELECT
-		lo_import(path) INTO var_file_oid;
-	FOR var_record IN(
+		lo_import(path) INTO _file_oid;
+	FOR _record IN(
 		SELECT
 			data FROM pg_largeobject
 		WHERE
-			loid = var_file_oid
+			loid = _file_oid
 		ORDER BY
 			pageno)
 	LOOP
-		var_result = var_result || var_record.data;
+		_result = _result || _record.data;
 	END LOOP;
 	PERFORM
-		lo_unlink(var_file_oid);
-	RETURN var_result;
+		lo_unlink(_file_oid);
+	RETURN _result;
 END;
 $$
 LANGUAGE plpgsql;
@@ -429,7 +424,7 @@ Returns:		TRUE or FALSE
 Author:			G. Cattabriga
 Date:			2019.07.31
 Description:	creates load_FILES table populated with all file[names] starting with the 
-						[path] directory and all subdirectory
+						[path] directory and all subdirectories
 						The filenames have full path including file extension
 Notes:			Not much in the way of validation; only checks to see if there is a non-null
 						'path' string in the function parameter, which will return FALSE
@@ -438,8 +433,6 @@ Notes:			Not much in the way of validation; only checks to see if there is a non
 CREATE OR REPLACE FUNCTION read_dirfiles (PATH CHARACTER VARYING)
 	RETURNS BOOLEAN
 	AS $$
-DECLARE
-	copycmd TEXT;
 BEGIN
 	IF(PATH = '') THEN
 		RETURN FALSE;
@@ -670,7 +663,7 @@ LANGUAGE plpgsql;
 
 /*
 Name:			get_material_type (p_material_uuid uuid)
-Parameters:		p_material_uuid uuid of material to retreive material_type(s)
+Parameters:		p_material_uuid uuid of material to retrieve material_type(s)
 Returns:		array of material_type descriptions
 Author:			G. Cattabriga
 Date:			2020.04.08
@@ -947,7 +940,6 @@ $$
 LANGUAGE plpgsql;
 
 
-
 /*
 Name:			get_val (p_in val)
 Parameters:		p_in = value of composite type 'val'
@@ -971,10 +963,16 @@ Example:		SELECT get_val (concat('(',
 					',,,,,,266.99,,,,,)')::val);
 				SELECT get_val (concat('(',
 					(select type_def_uuid from vw_type_def where category = 'data' and description ='int'),
+					',,,,15,,,,,,,)')::val);
+				SELECT val_val from get_val (concat('(',
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='int'),
 					',,,,15,,,,,,,)')::val);			
 				SELECT get_val (concat('(',
 					(select type_def_uuid from vw_type_def where category = 'data' and description ='array_int'),
-					',,,,,"{1,2,3,4,5}",,,,,,)')::val);	
+					',,,,,"{1,2,3,4,5}",,,,,,)')::val);
+				SELECT get_val.val_val from get_val (concat('(',
+					(select type_def_uuid from vw_type_def where category = 'data' and description ='array_int'),
+					',,,,,"{1,2,3,4,5}",,,,,,)')::val);
 				SELECT get_val (concat('(',
 					(select type_def_uuid from vw_type_def where category = 'data' and description ='blob'),				
 					',,,,,,,,',
@@ -985,7 +983,8 @@ Example:		SELECT get_val (concat('(',
 					',,,,,,,,,,TRUE,)')::val);	
 				SELECT get_val (concat('(',
 					(select type_def_uuid from vw_type_def where category = 'data' and description ='fred'),
-					',,,,,,,,,,TRUE,)')::val);					
+					',,,,,,,,,,TRUE,)')::val);
+
 */
 -- DROP FUNCTION IF EXISTS get_val (p_in val) cascade;
 CREATE OR REPLACE FUNCTION get_val (p_in val)
@@ -1065,7 +1064,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-
 /*
 Name:			put_val (p_type_uuid uuid, p_val anyelement, p_unit text )
 Parameters:		p_type is the data type as defined by val_type enum, p_val is the value to be inserted, p_unit is the unit in text
@@ -1091,36 +1089,79 @@ CREATE OR REPLACE FUNCTION put_val (p_type_uuid uuid, p_val text, p_unit text )
 	RETURNS val
 	AS $$
 DECLARE
-	out_val val;
+	_out_val val;
 	_p_type varchar;
 BEGIN
 	select description into _p_type from vw_type_def where type_def_uuid = p_type_uuid;
-	out_val.v_type_uuid = p_type_uuid;
-	out_val.v_unit = p_unit::text;
+	_out_val.v_type_uuid = p_type_uuid;
+	_out_val.v_unit = p_unit::text;
 	IF _p_type = 'int' THEN
-		out_val.v_int = p_val::int8;
+		_out_val.v_int = p_val::int8;
 	ELSIF _p_type = 'array_int' THEN
-		out_val.v_int_array = p_val::int8[];
+		_out_val.v_int_array = p_val::int8[];
 	ELSIF _p_type = 'num' THEN
-		out_val.v_num = p_val::numeric;
+		_out_val.v_num = p_val::numeric;
 	ELSIF _p_type = 'array_num' THEN
-		out_val.v_num_array = p_val::numeric[];
+		_out_val.v_num_array = p_val::numeric[];
 	ELSIF _p_type = 'text' THEN
-		out_val.v_text = p_val::text;
+		_out_val.v_text = p_val::text;
 	ELSIF _p_type = 'array_text' THEN
-		out_val.v_text = p_val::text[];
+		_out_val.v_text = p_val::text[];
 	ELSIF _p_type::text LIKE 'blob%' THEN
-		out_val.v_edocument = p_val::uuid;
+		_out_val.v_edocument_uuid = p_val::uuid;
 	ELSIF _p_type = 'bool' THEN
-		out_val.v_bool = p_val::BOOLEAN;
+		_out_val.v_bool = p_val::BOOLEAN;
 	ELSIF _p_type = 'array_bool' THEN
-		out_val.v_bool_array = p_val::BOOLEAN[];
+		_out_val.v_bool_array = p_val::BOOLEAN[];
 	END IF;
-	RETURN out_val;
+	RETURN _out_val;
 END;
 $$
 LANGUAGE plpgsql;
 
+
+/*
+Name:			arr_val_2_val_arr (arr_val val)
+Parameters:		the arr of vals (in a val)
+Returns:		array of val
+Author:			G. Cattabriga
+Date:			12.07.2020
+Description:	function to convert an array (in a val) to an array of val's
+Notes:			will only work with array types: array_bool, array_int, array_num, array_text
+
+Example:        select arr_val_2_val_arr ((select out_val from vw_calculation where short_name = 'LANL_WF1_H2O_5mL_concentration'));
+*/
+-- DROP FUNCTION IF EXISTS arr_val_2_val_arr (arr_val val) cascade;
+CREATE OR REPLACE FUNCTION arr_val_2_val_arr (arr_val val)
+	RETURNS val[]
+	AS $$
+DECLARE
+    _arr_unit text := (select val_unit from get_val(arr_val));
+    _arr_val text[] := (select val_val::text[] from get_val(arr_val));
+    _arr_type text := (select val_unit from get_val(arr_val));
+    _loop_txt text;
+    _out_element int := 1;
+    _out_val val[];
+    _out_type_uuid uuid;
+    _type_def_uuid uuid := arr_val.v_type_uuid;
+BEGIN
+    IF arr_val.v_type_uuid in (select _type_def_uuid from vw_type_def where category = 'data' and description like 'array_%') THEN
+        CASE _arr_type
+            WHEN 'array_bool' THEN _out_type_uuid := (select type_def_uuid from vw_type_def where category = 'data' and description like 'bool');
+            WHEN 'array_int' THEN _out_type_uuid := (select type_def_uuid from vw_type_def where category = 'data' and description like 'int');
+            WHEN 'array_num' THEN _out_type_uuid := (select type_def_uuid from vw_type_def where category = 'data' and description like 'num');
+            ELSE _out_type_uuid := (select type_def_uuid from vw_type_def where category = 'data' and description like 'text');
+        END CASE;
+		FOREACH _loop_txt IN ARRAY _arr_val
+            LOOP
+                _out_val[_out_element] := put_val(_out_type_uuid, _loop_txt, _arr_unit);
+                _out_element := _out_element + 1;
+            END LOOP;
+    END IF;
+	RETURN _out_val;
+END;
+$$
+LANGUAGE plpgsql;
 
 
 /*
@@ -1140,16 +1181,15 @@ CREATE OR REPLACE FUNCTION get_chemaxon_directory (p_systemtool_uuid uuid, p_act
 	RETURNS TEXT
 	AS $$
 DECLARE
-	v_descr_name varchar;
-	v_descr_dir varchar;
+	_descr_name varchar;
 BEGIN
 	SELECT
-		st.systemtool_name INTO v_descr_name
+		st.systemtool_name INTO _descr_name
 	FROM
 		systemtool st
 	WHERE
 		st.systemtool_uuid = p_systemtool_uuid;
-	CASE v_descr_name
+	CASE _descr_name
 	WHEN 'cxcalc',
 	'standardize',
 	'molconvert' THEN
@@ -1193,21 +1233,20 @@ Example:		select get_chemaxon_version((select systemtool_uuid from systemtool wh
 -- DROP FUNCTION IF EXISTS get_chemaxon_version ( p_systemtool_uuid int8, p_actor_uuid uuid ) cascade;
 CREATE OR REPLACE FUNCTION get_chemaxon_version ( p_systemtool_uuid uuid, p_actor_uuid uuid ) RETURNS TEXT AS $$ 
 DECLARE
-	v_descr_name varchar;
-	v_descr_dir varchar;
+	_descr_name varchar;
+	_descr_dir varchar;
 BEGIN
 	DROP TABLE IF EXISTS load_temp;
 	CREATE TEMP TABLE load_temp ( help_string VARCHAR ) ON COMMIT DROP ;
-	SELECT st.systemtool_name INTO v_descr_name FROM systemtool st WHERE st.systemtool_uuid = p_systemtool_uuid;
-	CASE v_descr_name 
+	SELECT st.systemtool_name INTO _descr_name FROM systemtool st WHERE st.systemtool_uuid = p_systemtool_uuid;
+	CASE _descr_name
 			WHEN 'cxcalc','standardize','molconvert' THEN
-				SELECT ap.pvalue INTO v_descr_dir FROM actor_pref ap WHERE ap.actor_uuid = p_actor_uuid AND ap.pkey = 'MARVINSUITE_DIR';	
+				SELECT ap.pvalue INTO _descr_dir FROM actor_pref ap WHERE ap.actor_uuid = p_actor_uuid AND ap.pkey = 'MARVINSUITE_DIR';
 			WHEN 'generatemd' THEN
-				SELECT ap.pvalue INTO v_descr_dir FROM actor_pref ap WHERE ap.actor_uuid = p_actor_uuid AND ap.pkey = 'CHEMAXON_DIR';		
+				SELECT ap.pvalue INTO _descr_dir FROM actor_pref ap WHERE ap.actor_uuid = p_actor_uuid AND ap.pkey = 'CHEMAXON_DIR';
 	END CASE;
-		EXECUTE format ( 'COPY load_temp FROM PROGRAM ''%s%s -h'' ', v_descr_dir, v_descr_name );
-		RETURN ( SELECT SUBSTRING ( help_string FROM '[0-9]{1,2}[.][0-9]{1,2}[.][0-9]{1,2}' ) FROM load_temp WHERE SUBSTRING ( help_string FROM '[0-9]{1,2}[.][0-9]{1,2}[.][0-9]{1,2}' ) IS NOT NULL );
-	COMMIT;	
+	EXECUTE format ( 'COPY load_temp FROM PROGRAM ''%s%s -h'' ', _descr_dir, _descr_name );
+	RETURN ( SELECT SUBSTRING ( help_string FROM '[0-9]{1,2}[.][0-9]{1,2}[.][0-9]{1,2}' ) FROM load_temp WHERE SUBSTRING ( help_string FROM '[0-9]{1,2}[.][0-9]{1,2}[.][0-9]{1,2}' ) IS NOT NULL );
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1246,20 +1285,17 @@ CREATE OR REPLACE FUNCTION run_descriptor (p_descriptor_def_uuid uuid, p_alias_n
 	RETURNS BOOLEAN
 	AS $$
 DECLARE
-	v_descr_dir varchar;
-	v_descr_command varchar;
-	v_descr_param varchar;
-	v_descr_ver varchar;
-	v_temp_dir varchar;
-	v_temp_in varchar := 'temp_in.txt';
-	v_calc_out_blobval bytea;
-	v_calc_out_blobtype varchar;
-	v_calc_out_numarray numeric [];
-	v_type_out varchar;
+	_descr_dir varchar;
+	_descr_command varchar;
+	_descr_param varchar;
+	_descr_ver varchar;
+	_temp_dir varchar;
+	_temp_in varchar := 'temp_in.txt';
+	_type_out varchar;
 BEGIN
 	-- assign the calculation out_type so we can properly store the calc results into calculation_eval
 	SELECT
-		out_type INTO v_type_out
+		out_type_uuid INTO _type_out
 	FROM
 		get_calculation_def (ARRAY ['standardize']);
 	DROP TABLE IF EXISTS load_temp_out;
@@ -1270,14 +1306,14 @@ BEGIN
 	--	CREATE TABLE calculation_eval(eval_id serial8, in_val val, out_val val, actor_uuid uuid, create_date timestamptz NOT NULL DEFAULT NOW());
 	-- load the variables with actor preference data; for temp directory and chemaxon directory
 	SELECT
-		INTO v_temp_dir pvalue
+		INTO _temp_dir pvalue
 	FROM
 		actor_pref act
 	WHERE
 		act.actor_uuid = p_actor_uuid
 		AND act.pkey = 'HOME_DIR';
 	SELECT
-		INTO v_descr_dir get_chemaxon_directory ((
+		INTO _descr_dir get_chemaxon_directory ((
 				SELECT
 					systemtool_uuid
 				FROM
@@ -1285,7 +1321,7 @@ BEGIN
 				WHERE
 					mdd.calculation_def_uuid = p_descriptor_def_uuid), p_actor_uuid);
 	SELECT
-		INTO v_descr_command (
+		INTO _descr_command (
 			SELECT
 				st.systemtool_name
 			FROM
@@ -1294,49 +1330,45 @@ BEGIN
 			WHERE
 				mdd.calculation_def_uuid = p_descriptor_def_uuid);
 	SELECT
-		INTO v_descr_param mdd.calc_definition
+		INTO _descr_param mdd.calc_definition
 	FROM
 		calculation_def mdd
 	WHERE
 		mdd.calculation_def_uuid = p_descriptor_def_uuid;
-	CASE v_descr_command
+	CASE _descr_command
 	WHEN 'cxcalc',
 	'standardize',
 	'generatemd' THEN
 		-- load the version of the descriptor function that will be run, this will be a future validation
 		SELECT
-			INTO v_descr_ver get_chemaxon_version ((
+			INTO _descr_ver get_chemaxon_version ((
 					SELECT
 						systemtool_uuid
 					FROM
 						systemtool
 					WHERE
-						systemtool_name = v_descr_command), p_actor_uuid);
-	-- copy the inputs from m_desriptor_eval into a text file to be read by the command
-	-- this is set to work for ONLY single text varchar input
-	EXECUTE format('copy ( select (ev.in_val).v_text from calculation_eval ev) to ''%s%s'' ', v_temp_dir, v_temp_in);
-	-- '/Users/gcattabriga/tmp/temp_chem.txt';
-	EXECUTE format('COPY load_temp_out(strout) FROM PROGRAM ''%s%s %s %s %s%s'' ', v_descr_dir, v_descr_command, p_command_opt, v_descr_param, v_temp_dir, v_temp_in);
-ELSE
-	RETURN FALSE;
+						systemtool_name = _descr_command), p_actor_uuid);
+	    -- copy the inputs from m_descriptor_eval into a text file to be read by the command
+	    -- this is set to work for ONLY single text varchar input
+	    EXECUTE format('copy ( select (ev.in_val).v_text from calculation_eval ev) to ''%s%s'' ', _temp_dir, _temp_in);
+	    -- '/Users/gcattabriga/tmp/temp_chem.txt';
+	    EXECUTE format('COPY load_temp_out(strout) FROM PROGRAM ''%s%s %s %s %s%s'' ', _descr_dir, _descr_command, p_command_opt, _descr_param, _temp_dir, _temp_in);
+    ELSE
+	    RETURN FALSE;
 	END CASE;
-	-- update the calculation_eval table with results from commanc execution; found in load_temp_out temp table
+	-- update the calculation_eval table with results from command execution; found in load_temp_out temp table
 	UPDATE
 		calculation_eval ev
 	SET
 		calculation_def_uuid = p_descriptor_def_uuid,
-		out_val.v_type = v_type_out::val_type,
-		out_val.v_text = CASE v_type_out
+		out_val.v_type_uuid = _type_out::val_type,
+		out_val.v_text = CASE _type_out
 		WHEN 'text' THEN
 			strout
-		ELSE
-			NULL
 		END,
-		out_val.v_num = CASE v_type_out
+		out_val.v_num = CASE _type_out
 		WHEN 'num' THEN
 			strout::numeric
-		ELSE
-			NULL
 		END,
 		calculation_alias_name = p_alias_name,
 		actor_uuid = p_actor_uuid
@@ -1345,11 +1377,9 @@ ELSE
 	WHERE
 		lto.load_id = ev.eval_id;
 	RETURN TRUE;
-	COMMIT;
 	END;
 $$
 LANGUAGE plpgsql;
-
 
 
 /*
@@ -1386,11 +1416,14 @@ Parameters:		p_op = basic math operation ('+', '/', '-', '*'. etc)
 Returns:		results of math operation as NUM
 Author:			G. Cattabriga
 Date:			2020.03.13
-Description:	returns the count of [+] charges in a SMILES string 
+Description:	returns the result of a basic math operation
 Notes:			up to caller to cast into desired num type (e.g. int)
-Example:		select math_op(9, '/', 3);
+Example:		select math_op(12, '/', 6);
 				select math_op(101, '*', 11);
 				select math_op(5, '!');
+                select math_op(2, '*', (select math_op(3, '+', 4)));
+                select math_op(array[1, 2, 3], '*', 2);
+                select math_op('fred', '*', 2);
 */
 -- DROP FUNCTION IF EXISTS math_op (p_op text, p_in_num numeric, p_in_opt_num numeric) cascade;
 CREATE OR REPLACE FUNCTION math_op (p_in_num numeric, p_op text, p_in_opt_num numeric DEFAULT NULL)
@@ -1401,15 +1434,100 @@ DECLARE
 BEGIN
 	CASE WHEN p_op in('/', '*', '+', '-', '%', '^', '!', '|/', '@') THEN
 		EXECUTE format('select %s %s %s', p_in_num, p_op, p_in_opt_num) INTO i;
-	RETURN i;
-ELSE
-	RETURN NULL;
+	    RETURN i;
+    ELSE
+	    RETURN NULL;
 	END CASE;
-	END;
+END;
 $$
 LANGUAGE plpgsql;
 
 
+/*
+Name:			math_op_array (p_in_num numeric[], p_op text, p_in_opt_num numeric default null)
+Parameters:		p_op = basic math operation ('+', '/', '-', '*'. etc)
+				p_in_num = numeric array, p_in_opt_num = numeric input values
+Returns:		results of math operation as NUM array num[]
+Author:			G. Cattabriga
+Date:			2020.12.7
+Description:	returns the result of a basic math operation on a numeric operation
+Notes:
+Example:		select math_op_arr(array[101], '*', 11);
+                select math_op_arr(array[12, 6, 4], '/', 12);
+                select math_op_arr(array[12, 6, 4, 2, 1, .1, .01, .001], '/', 12);
+                select math_op_arr((math_op_arr(array[12, 6, 4, 2, 1, .1, .01, .001], '/', 12)), '*', 5);
+                select math_op_arr((math_op_arr('{12, 6, 4, 2, 1, .1, .01, .001}', '/', 12)), '*', 5);
+                select math_op_arr(5, '-', (math_op_arr((math_op_arr(array[12, 6, 4, 2, 1, .1, .01, .001], '/', 12)), '*', 5)));
+ */
+-- DROP FUNCTION IF EXISTS math_op_arr (p_in_num numeric[], p_op text, p_in_opt_num numeric[]) cascade;
+CREATE OR REPLACE FUNCTION math_op_arr (p_in_num numeric[], p_op text, p_in_opt_num numeric DEFAULT NULL)
+	RETURNS numeric[]
+	AS $$
+DECLARE
+	_i numeric;
+    _inx int := 1;
+    _r numeric;
+    _res numeric[];
+BEGIN
+    IF p_op in('/', '*', '+', '-', '%', '^', '!', '|/', '@') THEN
+        FOREACH _i IN ARRAY p_in_num
+            LOOP
+                EXECUTE format('select %s::numeric %s %s::numeric', _i, p_op, p_in_opt_num) INTO _r;
+                _res[_inx] := _r;
+                _inx := _inx + 1;
+            END LOOP;
+        RETURN _res;
+    ELSE
+        RETURN NULL;
+    END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			do_calculation (p_calculation_def_uuid uuid)
+Parameters:		calculation_def_uuid
+Returns:		results of math operation as a val type
+Author:			G. Cattabriga
+Date:			2020.12.14
+Description:	returns the results of a basic postgres math operation; will bring in any associated parameters
+Notes:          array parameter names need to be [double] quoted in the calc definition
+Example:		select do_calculation(
+                    (select calculation_def_uuid from vw_calculation_def
+                    where short_name = 'LANL_WF1_HCL12M_5mL_concentration'))
+                select do_calculation(
+                    (select calculation_def_uuid from vw_calculation_def
+                    where short_name = 'LANL_WF1_H2O_5mL_concentration'))
+ */
+
+-- DROP FUNCTION IF EXISTS do_calculation (p_calculation_def_uuid uuid) cascade;
+CREATE OR REPLACE FUNCTION do_calculation (p_calculation_def_uuid uuid)
+	RETURNS val
+	AS $$
+DECLARE
+    -- seed the _calc_def string from the calculation_def
+    _calc_def varchar := concat('select ',(select calc_definition from vw_calculation_def where calculation_def_uuid = p_calculation_def_uuid));
+    _out_type_uuid uuid := (select out_type_uuid from vw_calculation_def where calculation_def_uuid = p_calculation_def_uuid);
+    _out_unit varchar := (select out_unit from vw_calculation_def where calculation_def_uuid = p_calculation_def_uuid);
+    _param_rec record;
+    _r text;
+BEGIN
+    -- create temp table to store the parameter name and values associated with the calculation_def
+    create temp table _param_table as
+        select row_number() over (order by null) as id, parameter_def_description, (select val_val from get_val (default_val) as val_val)
+        from vw_calculation_parameter_def
+        where calculation_def_uuid = p_calculation_def_uuid;
+    -- loop through the temp table and replace any parameter names with assoc. values
+    FOR _param_rec IN (select * from _param_table) LOOP
+        _calc_def := replace(_calc_def, _param_rec.parameter_def_description, _param_rec.val_val);
+    END LOOP;
+    EXECUTE _calc_def INTO _r;
+    drop table _param_table;
+    RETURN  put_val(_out_type_uuid, _r, _out_unit);
+END;
+$$
+LANGUAGE plpgsql;
 
 
 /*
@@ -1608,4 +1726,483 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
+
+
+
+/*
+Name:			tag_to_array (p_ref_uuid uuid)
+Parameters:
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.12.18
+Description:	returns the tags associated with the uuid (p_ref_uuid) in an array (text[])
+Notes:
+Example:		insert into vw_tag_assign (tag_uuid, ref_tag_uuid) values
+                    ((select tag_uuid from vw_tag where (display_text = 'inactive' and vw_tag.type = 'actor')),
+                    (select actor_uuid from vw_actor where person_last_name = 'Cattabriga')),
+                    ((select tag_uuid from vw_tag where (display_text = 'temporary' and vw_tag.type = 'actor')),
+                    (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'));
+                select tag_to_array ((select actor_uuid from vw_actor where person_last_name = 'Cattabriga'));
+*/
+-- DROP FUNCTION IF EXISTS tag_to_array (p_ref_uuid uuid) cascade;
+CREATE OR REPLACE FUNCTION tag_to_array (p_ref_uuid uuid)
+	RETURNS text[]
+	AS $$
+BEGIN
+    IF (select exists (select tag_x_uuid from vw_tag_assign where ref_tag_uuid = p_ref_uuid)) THEN
+        RETURN
+            (select array_agg(display_text) from vw_tag t join
+            (select tag_uuid from vw_tag_assign where ref_tag_uuid = p_ref_uuid) ta
+            on t.tag_uuid = ta.tag_uuid);
+    ELSE
+        RETURN null;
+    END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			note_to_array (p_ref_uuid uuid)
+Parameters:
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.12.18
+Description:	returns the notes associated with the uuid (p_ref_uuid) in an array (text[])
+Notes:
+Example:		insert into vw_note (notetext, actor_uuid, ref_note_uuid) values
+                    ('this is note 1. blah blah blah',
+                    (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'),
+                    (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'));
+                insert into vw_note (notetext, ref_note_uuid) values
+                    ('this is note 2. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+                    (select actor_uuid from vw_actor where person_last_name = 'Cattabriga'));
+                select note_to_array ((select actor_uuid from vw_actor where person_last_name = 'Cattabriga'));
+*/
+-- DROP FUNCTION IF EXISTS note_to_array (p_ref_uuid uuid) cascade;
+CREATE OR REPLACE FUNCTION note_to_array (p_ref_uuid uuid)
+	RETURNS text[]
+	AS $$
+BEGIN
+    IF (select exists (select note_x_uuid from vw_note where ref_note_uuid = p_ref_uuid)) THEN
+        RETURN
+            (select array_agg(concat('''',notetext,'''')) from vw_note n join
+            (select note_uuid from note_x where ref_note_uuid = p_ref_uuid) nx
+            on n.note_uuid = nx.note_uuid);
+    ELSE
+        RETURN null;
+    END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+
+
+/*
+Name:			experiment_copy (p_experiment_uuid uuid, p_new_name varchar)
+Parameters:     p_experiment_uuid = experiment_uuid of existing experiment
+                p_new_experiment_name = [optional] name for new experiment, otherwise 'copy of ...'
+Returns:		experiment_uuid of [new] experiment copy or NULL
+Author:			G. Cattabriga
+Date:			2020.12.27
+Description:	instantiates a full experiment (sans measures) based on an existing experiment (experiment_uuid)
+Notes:          this function copies the following experiment objects:
+                experiment,
+                bom, bom_material, bom_material_composite, bom_material_index
+                workflows, experiment_workflow
+                workflow_action_sets
+                action(s), parameter(s), parameter_x(s)
+                condition(s)
+                calculation(s)
+                workflow_object(s)
+                workflow_step(s)
+                tag(s), note(s)
+
+Example:		select * from experiment_copy ((select experiment_uuid from vw_experiment where description = 'LANL Test Experiment Template'));
+
+*/
+-- DROP FUNCTION IF EXISTS experiment_copy () cascade;
+CREATE OR REPLACE FUNCTION experiment_copy (p_experiment_uuid uuid, p_new_name varchar default null)
+	RETURNS uuid
+	AS $$
+DECLARE
+    _action_rec record;
+    _object_rec record;
+    _old_bom_uuid uuid;
+    _new_act_uuid uuid;
+    _new_bom_uuid uuid;
+    _new_cond_uuid uuid;
+    _new_exp_uuid uuid;
+    _new_exp_name varchar;
+    _new_wf_uuid uuid;
+    _new_wo_uuid uuid;
+    _new_ws_uuid uuid;
+    _workflow_rec record;
+BEGIN
+    -- first check to see if valid p_experiment_uuid
+    IF (select experiment_uuid from experiment where experiment_uuid = p_experiment_uuid) is not null THEN
+        -- create a temp table to store singleton actions, conditions and assoc. objects [to loop through]
+        create temp table _aco (
+            old_action uuid, old_cond uuid, old_object uuid, new_action uuid, new_cond uuid, new_object uuid);
+        -- is there a new name provided? if not, then create it based on existing exp description
+        IF p_new_name is not null then
+            _new_exp_name := p_new_name;
+        ELSE
+            _new_exp_name := concat ('copy of ',(select description from experiment where experiment_uuid = p_experiment_uuid));
+        END IF;
+        -- 1) create new experiment row based on p_experiment_uuid
+        insert into experiment (ref_uid, description, parent_uuid, owner_uuid, operator_uuid, lab_uuid, status_uuid)
+        (select e.ref_uid, _new_exp_name, p_experiment_uuid, e.owner_uuid, e.operator_uuid, e.lab_uuid, e.status_uuid from experiment e
+        where e.experiment_uuid = p_experiment_uuid) returning experiment_uuid into _new_exp_uuid;
+        -- 2) create new bom, bom_material, bom_material_composite and bom_material_index entries
+        _old_bom_uuid := (select bom_uuid from bom where experiment_uuid = p_experiment_uuid);
+        insert into bom (experiment_uuid, description, actor_uuid, status_uuid)
+        (select _new_exp_uuid, b.description, b.actor_uuid, b.status_uuid from bom b
+        where b.bom_uuid = _old_bom_uuid) returning bom_uuid into _new_bom_uuid;
+        insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid)
+        (select _new_bom_uuid, bm.description, bm.inventory_material_uuid, bm.alloc_amt_val, bm.used_amt_val, bm.putback_amt_val, bm.actor_uuid, bm.status_uuid
+            from bom_material bm where bm.bom_uuid = _old_bom_uuid);
+        -- 3) create new workflow, experiment_workflow, workflow_action_set, action, condition, workflow_object, workflow_step
+        for _workflow_rec in (select ew.workflow_uuid from experiment_workflow ew where experiment_uuid = p_experiment_uuid)
+        loop
+            insert into workflow (workflow_type_uuid, description, actor_uuid, status_uuid)
+                (select workflow_type_uuid, description, actor_uuid, status_uuid from workflow
+                    where workflow_uuid = _workflow_rec.workflow_uuid) returning workflow_uuid into _new_wf_uuid;
+            insert into experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid)
+                (select experiment_workflow_seq, _new_exp_uuid, _new_wf_uuid from experiment_workflow
+                    where workflow_uuid = _workflow_rec.workflow_uuid);
+            if (select workflow_uuid from workflow_action_set where workflow_uuid = _workflow_rec.workflow_uuid) is not null then
+                insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
+                                                    repeating, parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid,
+                                                    destination_material_uuid, actor_uuid, status_uuid)
+                (select description, _new_wf_uuid, action_def_uuid, start_date, end_date, duration, repeating, parameter_def_uuid,
+                        parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid
+                from vw_workflow_action_set where workflow_uuid = _workflow_rec.workflow_uuid);
+            end if;
+            -- populate temp table _aco with actions and objects, conditions and objects (to be copied)
+            insert into _aco (old_action, old_object)
+            (select a.action_uuid, w.workflow_object_uuid from action a join workflow_object w on a.action_uuid = w.action_uuid
+                where a.workflow_action_set_uuid is null and a.workflow_uuid = _workflow_rec.workflow_uuid);
+            insert into _aco (old_cond, old_object)
+            (select c.condition_uuid, w.workflow_object_uuid from condition c join workflow_object w on c.condition_uuid = w.condition_uuid
+                where c.workflow_action_set_uuid is null and c.workflow_uuid = _workflow_rec.workflow_uuid);
+            -- now loop through the actions to pick up non action-set actions,conditions to copy the actions, objects and then rebuild steps
+            for _action_rec in (select * from _aco)
+                loop
+                    if (_action_rec.old_action is not null) then
+                        insert into vw_action (action_def_uuid, workflow_uuid, action_description, actor_uuid, status_uuid)
+                            (select action_def_uuid, _new_wf_uuid, action_description, actor_uuid, status_uuid
+                            from vw_action where action_uuid = _action_rec.old_action) returning action_uuid into _new_act_uuid;
+                        update _aco
+                            set new_action = _new_act_uuid
+                        where _aco.old_action = _action_rec.old_action;
+                        insert into vw_workflow_object (workflow_uuid, action_uuid)
+                            values (_new_wf_uuid, _new_act_uuid) returning workflow_object_uuid into _new_wo_uuid;
+                        update _aco
+                            set new_object = _new_wo_uuid
+                        where _aco.old_action = _action_rec.old_action;
+                    else
+                        insert into vw_condition (workflow_uuid, workflow_action_set_uuid, condition_calculation_def_x_uuid, in_val, out_val, actor_uuid, status_uuid)
+                            (select _new_wf_uuid, workflow_action_set_uuid, condition_calculation_def_x_uuid, in_val, out_val, actor_uuid, status_uuid
+                            from vw_condition where condition_uuid = _action_rec.old_cond) returning condition_uuid into _new_cond_uuid;
+                        update _aco
+                            set new_cond = _new_cond_uuid
+                        where _aco.old_cond = _action_rec.old_cond;
+                        insert into vw_workflow_object (workflow_uuid, condition_uuid)
+                            values (_new_wf_uuid, _new_cond_uuid) returning workflow_object_uuid into _new_wo_uuid;
+                        update _aco
+                            set new_object = _new_wo_uuid
+                        where _aco.old_action = _action_rec.old_action;
+                    end if;
+                end loop;
+            --  recurse through the current steps and reconstruct the new workflow_steps through substitution
+            _new_ws_uuid := null;
+            for _object_rec in (
+                WITH RECURSIVE wf (workflow_step_uuid, workflow_uuid, workflow_action_set_uuid, workflow_object_uuid, parent_uuid, status_uuid) AS
+			    (SELECT w1.workflow_step_uuid, w1.workflow_uuid, w1.workflow_action_set_uuid, w1.workflow_object_uuid, w1.parent_uuid, w1.status_uuid
+			    FROM workflow_step w1
+			    WHERE
+				    w1.parent_uuid IS NULL and w1.workflow_uuid = _workflow_rec.workflow_uuid
+			    UNION ALL
+			    SELECT w2.workflow_step_uuid, w2.workflow_uuid, w2.workflow_action_set_uuid, w2.workflow_object_uuid, w2.parent_uuid, w2.status_uuid
+			    FROM workflow_step w2
+			    JOIN wf w0 ON w0.workflow_step_uuid = w2.parent_uuid and w0.workflow_uuid = _workflow_rec.workflow_uuid)
+			    select * from wf where wf.workflow_uuid = _workflow_rec.workflow_uuid and wf.workflow_action_set_uuid is null)
+                loop
+                    insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)
+                    values (_new_wf_uuid,
+                            (select new_object from _aco where old_object = _object_rec.workflow_object_uuid),
+                            _new_ws_uuid,
+                            _object_rec.status_uuid) returning workflow_step_uuid into _new_ws_uuid;
+                end loop;
+            -- delete temp table rows
+            truncate table _aco;
+        end loop;
+        -- copy outcomes container if present (but no measures)
+        insert into outcome (experiment_uuid, description, actor_uuid, status_uuid)
+	    (select _new_exp_uuid, o.description, o.actor_uuid, o.status_uuid from outcome o where o.experiment_uuid = p_experiment_uuid);
+    ELSE
+        return null;
+    END IF;
+    drop table _aco;
+    return _new_exp_uuid;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			replicate_experiment_copy (p_exp_description text, p_repeat int)
+Parameters:
+Returns:		void
+Author:			G. Cattabriga
+Date:			2020.12.30
+Description:
+Notes:
+Example:        call replicate_experiment_copy
+                ('LANL Test Experiment Template', 1000);
+
+                10 copies:  4s
+                50 copies:  14s
+                100 copies: 31s
+*/
+-- DROP PROCEDURE IF EXISTS replicate_experiment_copy (p_exp_description text, p_repeat int) cascade;
+CREATE OR REPLACE PROCEDURE replicate_experiment_copy (p_exp_description text, p_repeat int)
+as $$
+DECLARE
+    _tstart timestamptz := now();
+    _tint timestamptz := now();
+    _exp_uuid uuid := (select experiment_uuid from experiment where description = p_exp_description);
+BEGIN
+    RAISE INFO 'start';
+    FOR i IN 1 .. p_repeat
+    LOOP
+        perform experiment_copy (_exp_uuid, concat('experiment copy #',i));
+        COMMIT;
+        IF mod(i, 100) = 0 THEN
+            RAISE INFO '% exp generated. Elapse from start: %. Elapse from last %', i,
+                (EXTRACT(EPOCH FROM (now() - _tstart))), (EXTRACT(EPOCH FROM (now() - _tint)));
+            _tint := now();
+        END IF;
+    END LOOP;
+    RAISE INFO 'end: % minutes elapse', (EXTRACT(EPOCH FROM (now()::timestamp - _tstart)));
+END;
+$$
+LANGUAGE plpgsql;
+
+
+
+
+-- ===========================================================================
+-- JSON Rendering Functions by entity
+-- ===========================================================================
+
+/*
+Name:			experiment_outcome_measure_json ()
+Parameters:
+Returns:		table (experiment_uuid uuid, outcome_measure json)
+Author:			G. Cattabriga
+Date:			2020.12.20
+Description:	returns table (experiment_uuid uuid, outcome_measure json) of ALL outcome measure by experiment
+Notes:
+Example:		select * from experiment_outcome_measure_json ();
+*/
+-- DROP FUNCTION IF EXISTS experiment_outcome_measure_json () cascade;
+CREATE OR REPLACE FUNCTION experiment_outcome_measure_json ()
+	RETURNS table (experiment_uuid uuid, outcome_measure json)
+	AS $$
+BEGIN
+    RETURN QUERY
+        SELECT o.experiment_uuid,
+            json_agg(
+                json_build_object(
+                    'outcome_uuid', o.outcome_uuid,
+                    'outcome_description', o.description,
+                    'outcome_measures', om.meas)
+            ) AS outcome_measure
+        FROM vw_outcome o
+        JOIN (
+            SELECT om.outcome_uuid,
+                json_agg(
+                   json_build_object(
+                       'outcome_measure_description', om.measure_description,
+                       'outcome_measure_type_uuid', om.measure_type_uuid,
+                       'outcome_measure_type', om.measure_type_description,
+                       'outcome_measure_value_uuid', om.measure_type_uuid,
+                       -- 'outcome_measure_value_val', om.measure_value,
+                       -- 'outcome_measure_value_type_uuid', om.measure_value_type_uuid,
+                       'outcome_measure_value_type_description', om.measure_value_type_description,
+                       'outcome_measure_value', om.measure_value_value,
+                       'outcome_measure_value_unit', om.measure_value_unit,
+                       -- 'outcome_measure_actor_uuid', om.measure_actor_uuid,
+                       -- 'outcome_measure_actor_description', om.measure_actor_description,
+                       -- 'outcome_measure_status_uuid', om.measure_status_uuid,
+                       -- 'outcome_measure_status_description', om.measure_status_description,
+                       -- 'outcome_measure_add_date', om.measure_add_date,
+                       -- 'outcome_measure_mod_date', om.measure_mod_date,
+                       'outcome_measure_tags', om.measure_tags,
+                       'outcome_measure_notes', om.measure_notes
+                   )
+                   ORDER BY om.measure_description
+               ) AS meas
+            FROM vw_outcome_measure om
+            GROUP BY om.outcome_uuid) om
+        ON o.outcome_uuid = om.outcome_uuid
+        GROUP BY o.experiment_uuid;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			material_composite_property_json ()
+Parameters:
+Returns:		table (material_composite_uuid uuid, composite_property json)
+Author:			G. Cattabriga
+Date:			2020.12.20
+Description:	returns table (material_composite_uuid uuid, composite_property json) of ALL material_composites
+Notes:
+Example:		select * from material_composite_property_json ();
+*/
+-- DROP FUNCTION IF EXISTS material_composite_property_json () cascade;
+CREATE OR REPLACE FUNCTION material_composite_property_json ()
+	RETURNS table (material_composite_uuid uuid, composite_property json)
+	AS $$
+BEGIN
+    RETURN QUERY
+        SELECT cp.material_composite_uuid,
+            json_agg(
+                json_build_object(
+                    'composite_property_uuid', cp.property_uuid,
+                    'composite_property_def_uuid', cp.property_def_uuid,
+                    'composite_property_description', cp.property_description,
+                    'composite_property_short_description', cp.property_short_description,
+                    -- 'composite_property_value_val', cp.property_value_val,
+                    -- 'composite_property_value_type_uuid', cp.property_value_type_uuid,
+                    'composite_property_value_type_description', cp.property_value_type_description,
+                    'composite_property_value', cp.property_value,
+                    'composite_property_value_unit', cp.property_value_unit,
+                    -- 'composite_property_actor_uuid', cp.property_actor_uuid,
+                    -- 'composite_property_actor_description', cp.property_actor_description,
+                    -- 'composite_property_status_uuid', cp.property_status_uuid,
+                    -- 'composite_property_actor_description', cp.property_status_description,
+                    -- 'composite_property_add_date', cp.add_date,
+                    -- 'composite_property_mod_date', cp.mod_date,
+                    'composite_property_tags', cp.property_tags,
+                    'composite_property_notes', cp.property_notes
+            )) AS composite_property
+        FROM (
+            SELECT
+                mcp.material_composite_uuid, mcp.composite_uuid, mcp.composite_description, mcp.component_uuid,
+                mcp.component_description, mcp.property_uuid, mcp.property_def_uuid, mcp.property_description,
+                mcp.property_short_description, mcp.property_value_val, mcp.property_value_type_uuid, mcp.property_value_type_description,
+                mcp.property_value, mcp.property_value_unit, mcp.property_actor_uuid, mcp.property_actor_description, mcp.property_status_uuid,
+                mcp.property_status_description, mcp.add_date, mcp.mod_date, mcp.property_tags, mcp.property_notes
+            FROM
+                vw_material_composite_property mcp
+            WHERE
+                mcp.property_uuid IS NOT NULL
+        ) cp
+        GROUP BY cp.material_composite_uuid;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+
+/*
+Name:			material_property_json ()
+Parameters:
+Returns:		table (material_uuid uuid, material_property json)
+Author:			G. Cattabriga
+Date:			2020.12.20
+Description:	returns table (material_uuid uuid, material_property json) of ALL material_composites
+Notes:
+Example:		select * from material_property_json ();
+*/
+-- DROP FUNCTION IF EXISTS material__property_json () cascade;
+CREATE OR REPLACE FUNCTION material_property_json ()
+	RETURNS table (material_uuid uuid, material_property json)
+	AS $$
+BEGIN
+    RETURN QUERY
+        SELECT mp.material_uuid,
+            json_agg(
+                json_build_object(
+                    'material_property_uuid', mp.property_uuid,
+                    'material_property_def_uuid', mp.property_def_uuid,
+                    'material_property_description', mp.property_description,
+                    'material_property_short_description', mp.property_short_description,
+                    -- 'material_property_value_val', mp.property_value_val,
+                    -- 'material_property_value_type_uuid', mp.property_value_type_uuid,
+                    'material_property_value_type', mp.property_value_type_description,
+                    'material_property_value', mp.property_value,
+                    'material_property_value_unit', mp.property_value_unit,
+                    -- 'material_property_actor_uuid', mp.property_actor_uuid,
+                    -- 'material_property_actor_description', mp.property_actor_description,
+                    -- 'material_property_status_uuid', mp.property_status_uuid,
+                    -- 'material_property_actor_description', mp.property_status_description,
+                    -- 'material_property_add_date', mp.property_add_date,
+                    -- 'material_property_mod_date', mp.property_mod_date,
+                    'material_property_tags', mp.property_tags,
+                    'material_property_notes', mp.property_notes
+            )) AS material_property
+        FROM (
+            SELECT
+                mp.property_x_uuid, mp.material_uuid, mp.description, mp.property_uuid, mp.property_def_uuid,
+                mp.property_description, mp.property_short_description, mp.property_value_type_uuid, mp.property_value_type_description,
+                mp.property_value_unit, mp.property_value, mp.property_value_val, mp.property_actor_uuid, mp.property_actor_description, mp.property_status_uuid,
+                mp.property_status_description, mp.property_add_date, mp.property_mod_date, mp.property_tags, mp.property_notes
+            FROM
+                vw_material_property mp
+            WHERE
+                mp.property_x_uuid IS NOT NULL
+        ) mp
+        GROUP BY mp.material_uuid;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+/*
+Name:			action_parameter_json ()
+Parameters:
+Returns:		table (object_uuid uuid, action_parameter json)
+Author:			G. Cattabriga
+Date:			2020.12.20
+Description:	returns table (action_uuid uuid, action_parameter json) of ALL material_composites
+Notes:
+Example:		select * from action_parameter_json ();
+*/
+-- DROP FUNCTION IF EXISTS action_parameter_json () cascade;
+CREATE OR REPLACE FUNCTION action_parameter_json ()
+	RETURNS table (object_uuid uuid, action_parameter json)
+	AS $$
+BEGIN
+    RETURN QUERY
+        SELECT p.action_uuid as object_uuid,
+            json_agg(json_build_object(
+                'parameter_def_uuid', p.parameter_def_uuid,
+                'parameter_def_description', p.parameter_def_description,
+                --'parameter_value_val', p.parameter_val,
+                --'parameter_value_type_uuid', p.val_type_uuid,
+                'parameter_value_type_description', p.val_type_description,
+                'parameter_value', p.parameter_value,
+                'parameter_unit', p.valunit,
+                --'parameter_actor_uuid', p.parameter_actor_uuid,
+                --'parameter_actor_description', p.parameter_actor_description,
+                --'parameter_status_uuid', p.parameter_status_uuid,
+                --'parameter_actor_description', p.parameter_status_description,
+                --'parameter_add_date', p.parameter_add_date,
+                --'parameter_mod_date', p.parameter_mod_date,
+                'parameter_tags', p.parameter_tags,
+                'parameter_notes', p.parameter_notes
+            )) AS action_parameter
+        FROM vw_action_parameter p
+        GROUP BY p.action_uuid;
+END;
+$$
+LANGUAGE plpgsql;
+
 

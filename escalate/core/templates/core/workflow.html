@@ -1,80 +1,51 @@
 {% extends 'core/base.html' %}
 {% load static %}
-{% load crispy_forms_tags %}
 
 
 
 {% block content %}
+<script type="module" src={% static "js/elsa/elsa-workflow-designer.esm.js" %}></script>
+<script nomodule="" src={% static "js/elsa/elsa-workflow-designer.js" %}></script>
 
-<script
-type="module"
-src={% static "js/elsa-workflow-designer.esm.js" %}
-></script>
-<script
-nomodule=""
-src={% static "js/elsa-workflow-designer.js" %}
-></script>
+<div id="header"
+  class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-dark border-bottom shadow-sm">
+  <h5 class="my-0 mr-md-auto font-weight-normal">Workflow Designer</h5>
 
-    <!--script src={% static "js/vue-flowchart.umd.js" %}></script>
-    <link rel="stylesheet" href={% static "css/vue-flowchart.css" %}>
-    
-    <script>
-    console.log(vue-flowchart)
-    </script-->
-    <div id="header" class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-dark border-bottom shadow-sm">
-      <h5 class="my-0 mr-md-auto font-weight-normal">Workflow Designer</h5>
-    
-      <ul class="nav">
-        <li class="nav-item">
-          <button class="btn btn-primary" onclick="addActivity()">Add Activity</button>
-        </li>
-        <li class="nav-item">
-          <wf-export-button workflow-designer-host="designerHost"></wf-export-button>
-        </li>
-        <li class="nav-item">
-          <button class="btn btn-secondary" onclick="importWorkflow()">Import</button>
-        </li>
-        <li class="nav-item">
-          <button class="btn btn-secondary" onclick="createNewWorkflow()">New Workflow</button>
-        </li>
-      </ul>
-    </div>
-    
-    <div class="container-fluid">
-      <div class="row">
-        <div class="col-12">
-    
-          <div class="card">
-            <wf-designer-host id="designerHost" canvas-height="75vh" data-activity-definitions='{{ components | safe }}'
-            data-workflow='{{ workflow | safe }}'
-          readonly="false"></wf-designer-host>
-          </div>
-    
-        </div>
-      </div>
-    </div>
-    
-    <script type="text/javascript">
-      const designer = document.querySelector("#designerHost");
-    
-      function addActivity() {
-        designer.showActivityPicker();
-      }
-    
-      function createNewWorkflow() {
-        if (confirm('Are you sure you want to discard current changes?'))
-          designer.newWorkflow();
-      }
-    
-      function importWorkflow() {
-        designer.import();
-      }
-    
-    </script>
+  <ul class="nav">
+    <li class="nav-item">
+      <button class="btn btn-primary" onclick="addActivity()">Add Activity</button>
+    </li>
+    <li class="nav-item">
+      <wf-export-button workflow-designer-host="designerHost"></wf-export-button>
+    </li>
+    <li class="nav-item">
+      <button class="btn btn-secondary" onclick="importWorkflow()">Import</button>
+    </li>
+    <li class="nav-item">
+      <button class="btn btn-secondary" onclick="createNewWorkflow()">New Workflow</button>
+    </li>
+  </ul>
+</div>
+
+<wf-designer-host id="designerHost" canvas-height="75vh" data-activity-definitions='{{ components | safe }}'
+  data-workflow='{{ workflow | safe }}' readonly="false" plugins="PrimitiveActivities"></wf-designer-host>
 
 
+<script type="text/javascript">
+  const designer = document.querySelector("#designerHost");
 
-{% endblock %}
+  function addActivity() {
+    designer.showActivityPicker();
+  }
 
-{% block delete_block %}
+  function createNewWorkflow() {
+    if (confirm('Are you sure you want to discard current changes?'))
+      designer.newWorkflow();
+  }
+
+  function importWorkflow() {
+    designer.import();
+  }
+
+</script>
 {% endblock %}

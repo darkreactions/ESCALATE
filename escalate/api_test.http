@@ -54,3 +54,6 @@ content-type: application/json
  "last_name": "V" 
   
 }
+
+### @rest-client.timeoutinmilliseconds [0]
+GET http://localhost:8000/api/experiment/ad566ff8-f1ea-4416-ace5-7adb91112931/?expand=outcome,workflow.workflow.step.workflow_object.action,bill_of_materials

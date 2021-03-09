@@ -3,15 +3,13 @@ from django.test import RequestFactory as rf
 from django.test import Client
 from django.urls import reverse
 
-
-from rest_api.utils import view_names, custom_serializer_views, perform_create_views, camel_case
-
+from rest_api.utils import rest_viewset_views, camel_case
 from bs4 import BeautifulSoup
 
 pytestmark = pytest.mark.django_db
 client = Client()
 
-view_names = view_names + custom_serializer_views + perform_create_views
+view_names = rest_viewset_views
 exceptions = []
 view_names = [name for name in view_names if name not in exceptions]
 

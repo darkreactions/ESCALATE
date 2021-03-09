@@ -1,0 +1,25 @@
+{
+    "activities": [
+        {
+            "id": "2c8d9868-a0ce-416f-b07f-915186b93a54",
+            "top": 159,
+            "left": 673,
+            "type": "ReceiveHttpRequest",
+            "state": {}
+        },
+        {
+            "id": "2cfafd9c-1b76-4497-8111-fe79edd30ef5",
+            "top": 150,
+            "left": 150,
+            "type": "ReceiveHttpRequest",
+            "state": {}
+        }
+    ],
+    "connections": [
+        {
+            "sourceActivityId": "2cfafd9c-1b76-4497-8111-fe79edd30ef5",
+            "destinationActivityId": "2c8d9868-a0ce-416f-b07f-915186b93a54",
+            "outcome": ""
+        }
+    ]
+}

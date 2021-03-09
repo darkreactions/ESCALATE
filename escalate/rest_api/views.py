@@ -1,16 +1,15 @@
 # builtin imports
 import types
-import tempfile
+
 
 # Django imports
 from django.shortcuts import render, HttpResponse
 from django.http import Http404, FileResponse
 
 # Rest Imports
-from rest_framework.decorators import api_view
+
 from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.reverse import reverse
+
 from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView, ListCreateAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.mixins import CreateModelMixin
@@ -21,13 +20,13 @@ from url_filter.integrations.drf import DjangoFilterBackend
 # App imports
 
 from .serializers import *
-from .utils import (camel_case_uuid, camel_case, view_names, custom_serializer_views,
+from .utils import (camel_case_uuid, camel_case, core_views, custom_serializer_views,
                     perform_create_views, GET_only_views, docstring)
 import core.models
 import rest_api
 from .rest_docs import rest_docs
 
-view_names = view_names + custom_serializer_views
+view_names = core_views | custom_serializer_views
 
 def save_actor_on_post(self, serializer):
     """Save the person POSTing as the actor associated with a resource being created
@@ -37,18 +36,7 @@ def save_actor_on_post(self, serializer):
     actor = Actor.objects.get(person_uuid=self.request.user.person)
     serializer.save(actor_uuid=actor, actor_description=actor.description)
 
-@api_view(['GET'])
-@docstring(rest_docs['api_root'])
-def api_root(request, format=None):
 
-    response_object = {}
-
-    for view_name in view_names:
-        name = camel_case(view_name)
-        response_object[name] = reverse(
-            name+'-list', request=request, format=format)
-
-    return Response(response_object)
 
 
 """
@@ -108,16 +96,5 @@ create_view('Edocument')
 
 
 
-# Download file view
-def download_blob(request, uuid):
-    edoc = core.models.Edocument.objects.get(uuid=uuid)
-    contents = edoc.edocument
-    filename = edoc.filename
-    testfile = tempfile.TemporaryFile()
-    testfile.write(contents)
-    testfile.seek(0)
-    response = FileResponse(testfile, as_attachment=True,
-                            filename=filename)
 
-    #response['Content-Disposition'] = 'attachment; filename=blob.pdf'
-    return response
+

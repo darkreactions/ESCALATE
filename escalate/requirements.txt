@@ -1,7 +1,8 @@
+packaging
 certifi==2019.6.16
-django==3.1
+django==3.0.8
 django-filter==2.3.0
-djangorestframework==3.11.1
+djangorestframework==3.12
 Markdown==3.1.1
 pytz==2019.1
 sqlparse==0.3.0
@@ -14,6 +15,8 @@ pyyaml
 uritemplate
 coreapi
 django-url-filter
-django-rest-swagger
+drf-spectacular
 django-extensions==3.0.5
 coreschema
+drf-extensions
+drf-flex-fields
