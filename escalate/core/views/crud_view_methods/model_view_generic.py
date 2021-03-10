@@ -1,6 +1,6 @@
 from django.db.models.query import QuerySet
 from django.urls import reverse_lazy, reverse
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, FileResponse
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 # from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
@@ -10,6 +10,7 @@ from core.forms.forms import NoteForm, TagSelectForm, UploadEdocForm
 from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404, render
 from django.core.exceptions import FieldDoesNotExist
+import tempfile
 
 # class with generic classes to use in models
 
@@ -189,6 +190,8 @@ class GenericModelEdit:
             context['edoc_forms'] = self.EdocFormSet(
                 queryset=Edocument.objects.filter(ref_edocument_uuid=model.pk),
                 prefix='edoc')
+
+            
             context['tag_select_form'] = TagSelectForm(model_pk=model.pk)
         else:
             context['note_forms'] = self.NoteFormSet(
@@ -289,8 +292,6 @@ class GenericModelEdit:
             formset = self.EdocFormSet(self.request.POST, self.request.FILES, prefix='edoc')
             # Loop through every edoc form
             for form in formset:
-                if not form.is_valid():
-                    print(form.errors)
                 # Only if the form has changed make an update, otherwise ignore
                 if form.has_changed() and form.is_valid():
                     if self.request.user.is_authenticated:
@@ -390,8 +391,18 @@ class GenericModelView(DetailView):
 
         # get edocuments
         edocs_raw = Edocument.objects.filter(ref_edocument_uuid=obj.pk)
-        for edoc_info in edocs_raw:
-            print(edoc_info)
+        edocs = []
+        for edoc in edocs_raw:
+            filename = f"{edoc.filename}.{str(edoc.doc_type_uuid)}"
+
+            # redirect to api link to download
+            download_url = reverse('edoc_download', args=(edoc.uuid,))
+            edocs.append({
+                'filename': filename,
+                'download_url': download_url
+            })
+        context['Edocs'] = edocs
+            
 
         context['title'] = self.model_name.replace('_', " ").capitalize()
         context['update_url'] = reverse_lazy(

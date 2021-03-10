@@ -39,7 +39,7 @@ def save_actor_on_post(self, serializer):
 def download_blob(request, uuid):
     edoc = core.models.Edocument.objects.get(uuid=uuid)
     contents = edoc.edocument
-    filename = edoc.filename
+    filename = f"{edoc.filename}.{str(edoc.doc_type_uuid)}"
     testfile = tempfile.TemporaryFile()
     testfile.write(contents)
     testfile.seek(0)
