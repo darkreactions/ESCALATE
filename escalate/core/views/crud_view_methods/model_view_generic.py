@@ -10,7 +10,6 @@ from core.forms.forms import NoteForm, TagSelectForm, UploadEdocForm
 from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404, render
 from django.core.exceptions import FieldDoesNotExist
-import tempfile
 
 # class with generic classes to use in models
 
@@ -41,7 +40,7 @@ class GenericModelList(GenericListView):
     # Ex: {'Name': ['first_name','middle_name','last_name']}
 
     # for get_queryset method. Override the 2 fields below in subclass
-    order_field = None  # Ex: 'first_name'
+    ordering = None  # Ex: ['first_name', etc...]
     field_contains = None  # Ex: 'Gary'. Use '' to show all
 
     # A related path that points to the organization this field belongs to
@@ -50,25 +49,21 @@ class GenericModelList(GenericListView):
     paginate_by = 10
 
 
-    def header_to_order_field(self, field_raw):
-        #maybe make order_field param column_necessary_fields[table_columns[0]][0] by default
-        return self.column_necessary_fields[field_raw][0]
+    def header_to_necessary_fields(self, field_raw):
+        # get the fields that make up the header column
+        return self.column_necessary_fields[field_raw]
 
     def get_queryset(self):
         filter_val = self.request.GET.get('filter', self.field_contains)
-        new_order = self.request.session.get(f'{self.context_object_name}_order',None)
-        if new_order != None:
-            order_field = new_order
-        else:
-            order_field = self.order_field
-        ordering = self.request.GET.get('ordering', order_field)
+        new_order = self.request.session.get(f'{self.context_object_name}_order', self.ordering)
+        ordering = self.request.GET.get('ordering', new_order)
 
         #print(f'Order field: {self.order_field} in model {self.model}')
 
         # same as <field want to order by>__icontains = filter_val
         #filter_kwargs = {'{}__{}'.format(
         #    "".join(order_field.split('-')), 'icontains'): filter_val}
-        order = "".join(order_field.split('-'))
+        order = "".join(ordering[0].split('-'))
         filter_kwargs = {f'{order}__icontains': filter_val}
 
         # Filter by organization if it exists in the model
@@ -89,11 +84,11 @@ class GenericModelList(GenericListView):
 
         if filter_val != None:
             new_queryset = base_query.filter(
-                **filter_kwargs).select_related().order_by(ordering)
+                **filter_kwargs).select_related().order_by(*ordering)
         else:
-            new_queryset = base_query
+            new_queryset = base_query.select_related().order_by(*ordering)
 
-        new_queryset = base_query
+        # new_queryset = base_query
         return new_queryset
 
     def get_context_data(self, **kwargs):
@@ -149,9 +144,9 @@ class GenericModelList(GenericListView):
             order_raw = request.POST.get('sort').split('_')
             header, order, *_rest = order_raw
             if order == 'des':
-                request.session[f'{self.context_object_name}_order'] = "-" + self.header_to_order_field(header)
+                request.session[f'{self.context_object_name}_order'] = [f"-{f}" for f in self.header_to_necessary_fields(header)]
             else:
-                request.session[f'{self.context_object_name}_order'] = self.header_to_order_field(header)
+                request.session[f'{self.context_object_name}_order'] = self.header_to_necessary_fields(header)
 
 
         # break up cases on which one was clicked
