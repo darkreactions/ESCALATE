@@ -1642,6 +1642,7 @@ SELECT
     bmi.bom_material_index_uuid,
     bmc.bom_material_uuid,
     bm.description as bom_material_description,
+    bm.bom_uuid,
     bmc.material_composite_uuid,
     mc.component_uuid,
     mc.component_description as material_description,
@@ -1680,6 +1681,10 @@ SELECT
 	bmi.description,
     bmi.bom_material_uuid,
     bm.inventory_description as inventory_description,
+    CASE
+        when bm.bom_uuid is not null then bm.bom_uuid
+        else bmc.bom_uuid
+    END as bom_uuid,
     bmi.bom_material_composite_uuid,
     bmc.bom_material_description as bom_material_description,
     CASE

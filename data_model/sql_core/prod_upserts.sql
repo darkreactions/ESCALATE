@@ -3470,8 +3470,8 @@ BEGIN
 	            	concat(NEW.description, ': ',(select description from vw_bom_material_index where bom_material_index_uuid = _s_uuid), ' -> ',
 	            					(select description from vw_bom_material_index where bom_material_index_uuid = _d_uuid)),
 	            	_s_uuid, _d_uuid,
-	            	(select actor_uuid from vw_actor where description = 'Ion Bond'),
-	            	(select status_uuid from vw_status where description = 'dev_test')) returning action_uuid into _action_uuid;
+	            	(select actor_uuid from vw_actor where description = NEW.actor_uuid),
+	            	(select status_uuid from vw_status where description = NEW.status_uuid)) returning action_uuid into _action_uuid;
 				-- assign parameter value
 				IF _calc_flg THEN
                     update vw_action_parameter set
