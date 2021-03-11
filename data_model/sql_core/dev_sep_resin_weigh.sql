@@ -23,7 +23,7 @@ insert into vw_bom (experiment_uuid, description, actor_uuid, status_uuid) value
 insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
 	(select bom_uuid from vw_bom where description = 'LANL resin weighing Dev Materials'),
     'Resin',
-	(select inventory_material_uuid from vw_inventory_material where material_description = 'Eichrom Rare Earth'), -- would be nice to pull all resins in one pass -- perhaps with a note?
+	(select inventory_material_uuid from vw_inventory_material where material_description = 'Rare Earth'), -- would be nice to pull all resins in one pass -- perhaps with a note?
 	(select put_val((select get_type_def ('data', 'num')), '60.00','mg')),
 	(select put_val((select get_type_def ('data', 'num')), '0.00','mg')),
 	(select put_val((select get_type_def ('data', 'num')), '0.00','mg')),

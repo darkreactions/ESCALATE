@@ -1,3 +1,5 @@
+set search_path to 'dev';
+
 insert into vw_status (description) values ('dev_test');
 
 -- -- add some chemicals to material so we can use them in an experiment (BOM -> bill of materials)
@@ -28,6 +30,12 @@ insert into vw_property_def (description, short_description, val_type_uuid, valu
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'active'));
 insert into vw_property_def (description, short_description, val_type_uuid, valunit, actor_uuid, status_uuid ) values
+	('mesh {min, max}', 'mesh',
+	(select get_type_def ('data', 'array_num')),
+	'count',
+	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+	(select status_uuid from vw_status where description = 'active'));
+insert into vw_property_def (description, short_description, val_type_uuid, valunit, actor_uuid, status_uuid ) values
 	('capacity', 'capacity',
 	(select get_type_def ('data', 'num')),
 	'meq/mL',
@@ -45,22 +53,18 @@ insert into vw_property_def (description, short_description, val_type_uuid, valu
 	'',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'active'));
-
 insert into vw_property_def (description, short_description, val_type_uuid, valunit, actor_uuid, status_uuid ) values
 	('Resin Class', 'Resin Class',
 	(select get_type_def ('data', 'text')),
 	'',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'active'));
-
 insert into vw_property_def (description, short_description, val_type_uuid, valunit, actor_uuid, status_uuid ) values
 	('Functional group', 'functional group',
 	(select get_type_def ('data', 'text')),
 	'',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'active'));
-
-
 insert into vw_property_def (description, short_description, val_type_uuid, valunit, actor_uuid, status_uuid ) values
 	('concentration_rad', 'conc_rad',
 	(select get_type_def ('data', 'num')),
@@ -73,35 +77,102 @@ insert into vw_property_def (description, short_description, val_type_uuid, valu
 	'mol/L',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'active'));
-
--- create a resin
--- todo: company name
--- should these be property_defs or do those go somewhere
+-- manufacturer
+insert into vw_property_def (description, short_description, val_type_uuid, valunit, actor_uuid, status_uuid ) values
+	('manufacturer', 'manufacturer',
+	(select get_type_def ('data', 'text')),
+	NULL,
+	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+	(select status_uuid from vw_status where description = 'dev_test'));
 
 insert into vw_material (description, actor_uuid, status_uuid) values
-	('Eichrom Rare Earth',
+	('Rare Earth',
+	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+	(select status_uuid from vw_status where description = 'active')),
+	('TRU',
+	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+	(select status_uuid from vw_status where description = 'active')),
+	('BDGA',
+	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+	(select status_uuid from vw_status where description = 'active')),
+	('Anion, AG1-X8',
+	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+	(select status_uuid from vw_status where description = 'active')),
+	('Cation, 50WX8',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'active'));
 
 
 -- add properties to resin
-insert into vw_material_property (material_uuid, property_def_uuid, property_value, property_actor_uuid, property_status_uuid ) values
-	((select material_uuid from vw_material where description = 'Eichrom Rare Earth'),
+insert into vw_material_property (material_uuid, property_def_uuid, property_value) values
+	((select material_uuid from vw_material where description = 'Rare Earth'),
 	(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
-	'{100, 150}',
-	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
-	(select status_uuid from vw_status where description = 'active')),
-	((select material_uuid from vw_material where description = 'Eichrom Rare Earth'),
+	'{100, 150}'),
+	((select material_uuid from vw_material where description = 'Rare Earth'),
 	(select property_def_uuid from vw_property_def where short_description = 'functional group'),
-	'CMPO',
-	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
-	(select status_uuid from vw_status where description = 'active')),
-	((select material_uuid from vw_material where description = 'Eichrom Rare Earth'),
+	'CMPO'),
+	((select material_uuid from vw_material where description = 'Rare Earth'),
 	(select property_def_uuid from vw_property_def where short_description = 'Resin Class'),
-	'Extraction',
-	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
-	(select status_uuid from vw_status where description = 'active'));
+	'Extraction'),
+    ((select material_uuid from vw_material where description = 'Rare Earth'),
+     (select property_def_uuid from vw_property_def where short_description = 'Manufacturer'),
+	'Eichrom');
 
+insert into vw_material_property (material_uuid, property_def_uuid, property_value) values
+	((select material_uuid from vw_material where description = 'TRU'),
+	(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
+	'{50, 100}'),
+	((select material_uuid from vw_material where description = 'TRU'),
+	(select property_def_uuid from vw_property_def where short_description = 'functional group'),
+	'CMPO'),
+	((select material_uuid from vw_material where description = 'TRU'),
+	(select property_def_uuid from vw_property_def where short_description = 'Resin Class'),
+	'Extraction'),
+    ((select material_uuid from vw_material where description = 'TRU'),
+     (select property_def_uuid from vw_property_def where short_description = 'Manufacturer'),
+	'Eichrom');
+
+insert into vw_material_property (material_uuid, property_def_uuid, property_value) values
+	((select material_uuid from vw_material where description = 'BGDA'),
+	(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
+	'{50, 100}'),
+	((select material_uuid from vw_material where description = 'BGDA'),
+	(select property_def_uuid from vw_property_def where short_description = 'functional group'),
+	'Brannched DGA'),
+	((select material_uuid from vw_material where description = 'BGDA'),
+	(select property_def_uuid from vw_property_def where short_description = 'Resin Class'),
+	'Extraction'),
+    ((select material_uuid from vw_material where description = 'BGDA'),
+     (select property_def_uuid from vw_property_def where short_description = 'Manufacturer'),
+	'Eichrom');
+
+insert into vw_material_property (material_uuid, property_def_uuid, property_value) values
+	((select material_uuid from vw_material where description = 'Cation, 50WX8'),
+	(select property_def_uuid from vw_property_def where short_description = 'mesh'),
+	'{200, 400}'),
+	((select material_uuid from vw_material where description = 'Cation, 50WX8'),
+	(select property_def_uuid from vw_property_def where short_description = 'functional group'),
+	'H+ form'),
+	((select material_uuid from vw_material where description = 'Cation, 50WX8'),
+	(select property_def_uuid from vw_property_def where short_description = 'Resin Class'),
+	'ion-exchange'),
+    ((select material_uuid from vw_material where description = 'Cation, 50WX8'),
+     (select property_def_uuid from vw_property_def where short_description = 'Manufacturer'),
+	'Dowex');
+
+insert into vw_material_property (material_uuid, property_def_uuid, property_value) values
+	((select material_uuid from vw_material where description = 'Anion, AG1-X8'),
+	(select property_def_uuid from vw_property_def where short_description = 'mesh'),
+	'{200, 400}'),
+	((select material_uuid from vw_material where description = 'Anion, AG1-X8'),
+	(select property_def_uuid from vw_property_def where short_description = 'functional group'),
+	'Cl- form'),
+	((select material_uuid from vw_material where description = 'Anion, AG1-X8'),
+	(select property_def_uuid from vw_property_def where short_description = 'Resin Class'),
+	'ion-exchange'),
+    ((select material_uuid from vw_material where description = 'Anion, AG1-X8'),
+     (select property_def_uuid from vw_property_def where short_description = 'Manufacturer'),
+	'Dowex');
 
 -- 24 well plate
 -- plate and well properties (location, volume, ord (order))
@@ -130,7 +201,6 @@ insert into vw_property_def (description, short_description, val_type_uuid, valu
 	'mL',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test'));
-
 -- concentratrion is intended to be used to give context to the input of a calculations
 insert into vw_property_def (description, short_description, val_type_uuid, valunit, actor_uuid, status_uuid ) values
 	('concentration', 'concentration',
@@ -171,7 +241,6 @@ insert into vw_material_property (material_uuid, property_def_uuid,
 	'48',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test'));
-
 -- add some hardware to material so we can use in an experiment (24 well plate)
 -- insert the well location properties A1-D6 (24)
 -- we'll figure out a way to do this more compactly through a higher level insert
@@ -463,7 +532,7 @@ insert into vw_inventory_material (inventory_uuid, description, material_uuid, a
 				values (
 				(select inventory_uuid from vw_inventory where description = 'Test Inventory'),
 				'Resin',
-				(select material_uuid from vw_material where description = 'Eichrom Rare Earth'),
+				(select material_uuid from vw_material where description = 'Rare Earth'),
 				(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 				'part# EichromRE',
 				(select put_val((select get_type_def ('data', 'num')),'100','g')),
@@ -499,3 +568,18 @@ insert into vw_inventory_material (inventory_uuid, description, material_uuid, a
                 'Shelf 03, Bin 22',
 				(select status_uuid from vw_status where description = 'dev_test')
 				);
+
+insert into vw_inventory_material (inventory_uuid, description, material_uuid)
+				values
+				((select inventory_uuid from vw_inventory where description = 'Test Inventory'),
+				 'Resin',
+				(select material_uuid from vw_material where description = 'TRU')),
+				((select inventory_uuid from vw_inventory where description = 'Test Inventory'),
+				 'Resin',
+				(select material_uuid from vw_material where description = 'BDGA')),
+				((select inventory_uuid from vw_inventory where description = 'Test Inventory'),
+				 'Resin',
+				(select material_uuid from vw_material where description = 'Anion, AG1-X8')),
+				((select inventory_uuid from vw_inventory where description = 'Test Inventory'),
+				 'Resin',
+				(select material_uuid from vw_material where description = 'Cation, 50WX8'));
