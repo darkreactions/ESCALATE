@@ -10,7 +10,11 @@
     <p> Created Experiment! </p>
         <p>Experiment name: {{ new_exp_name }}</p>
         <p> <a href={{ experiment_link }}> View experiment details</a></p>
-        <p> <a href={{ lsr_download_link }}> Download LibraryStudio file </a></p>
+        {% if lsr_download_link is not None %}
+            <p> <a href={{ lsr_download_link }}> Download LibraryStudio file </a></p>
+        {% else %}
+            <p> LSR Generation failed! </p>
+        {% endif %}
     {% else %}
 
     {% if not selected_exp_template %}

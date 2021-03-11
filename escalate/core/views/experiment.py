@@ -242,6 +242,7 @@ class CreateExperimentView(TemplateView):
                                 query.save()
 
                 if template_name in SUPPORTED_CREATE_WFS:
+                    lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
                     if template_name == 'liquid_solid_extraction':
                         # q3 contains concentraiton logic
                         if any([f.has_changed() for f in q3_formset]):
@@ -260,14 +261,23 @@ class CreateExperimentView(TemplateView):
                             hcl_dispense_action_set = WorkflowActionSet.objects.get(**{f'{related_exp}': experiment_copy_uuid, 'description__contains': 'HCl'})
                             update_dispense_action_set(h2o_dispense_action_set, h2o_vols)
                             update_dispense_action_set(hcl_dispense_action_set, hcl_vols)
-                            lsr_gen_message = update_lsr_edoc(exp_template.uuid, vol_hcl=list(hcl_vols*1000), vol_h2o=list(h2o_vols*1000))
+                            new_lsr_pk = update_lsr_edoc(lsr_edoc,
+                                                              experiment_copy_uuid,
+                                                              exp_name,
+                                                              vol_hcl=list(hcl_vols*1000),
+                                                              vol_h2o=list(h2o_vols*1000))
                     elif template_name == 'resin_weighing':
-                        update_dispense_action_set(exp_template.uuid, resin_weights=None)
+                        related_exp = 'workflow__experiment_workflow_workflow__experiment'
+                        resin_dispense_action_set = WorkflowActionSet.objects.get(**{f'{related_exp}': experiment_copy_uuid, 'description__contains': 'Dispense Resin'})
+                        new_lsr_pk = update_lsr_edoc(lsr_edoc,
+                                                     experiment_copy_uuid,
+                                                     exp_name,
+                                                     resin_amt=resin_dispense_action_set.parameter_val[0].value)
 
-                    context['lsr_download_link'] = reverse('edoc_download', args=[lsr_edoc.pk])
+                    context['lsr_download_link'] = reverse('edoc_download', args=[new_lsr_pk]) if new_lsr_pk is not None else None
                     context['experiment_link'] = reverse('experiment_view', args=[experiment_copy_uuid])
                     context['new_exp_name'] = exp_name
-                    context['lsr_gen_message'] = lsr_gen_message
+                    #context['lsr_gen_message'] = lsr_gen_message
                     render(request, self.template_name, context)
             else:
                 return render(request, self.template_name, context)
@@ -276,24 +286,24 @@ class CreateExperimentView(TemplateView):
         return render(request, self.template_name, context)
 
 
-def update_lsr_edoc(template_uuid,  experiment_copy_uuid, experiment_copy_name, **kwargs):
+def update_lsr_edoc(template_edoc,  experiment_copy_uuid, experiment_copy_name, **kwargs):
     """Copy LSR file from the experiment template, update tagged maps with kwargs, save to experiment copy
-    Returns a warning message if LSR generation fails
+    Returns the uuid if completed successfully, else none
     """
     from LSRGenerator.generate import generate_lsr_design
     import xml.etree.ElementTree as ET
 
     # copy the template edoc
-    lsr_edoc = Edocument.objects.get(ref_edocument_uuid=template_uuid, title='LSR file')
-    lsr_edoc.pk = None # this effectively creates a copy of the original edoc
+    template_edoc.pk = None # this effectively creates a copy of the original edoc
 
     # convert to format LSRGenerator understands
-    lsr_template = lsr_edoc.edocument.tobytes().decode('utf-16')
+    lsr_template = template_edoc.edocument.tobytes().decode('utf-16')
     lsr_template = ET.ElementTree(ET.fromstring(lsr_template))
 
     # use kwargs to populate the LSR design
     # handling possible failure of LSR generator
     warning = None
+    new_lsr_uuid = None
     try:
         lsr_design = generate_lsr_design(lsr_template, **kwargs)
     except Exception as e:
@@ -301,11 +311,12 @@ def update_lsr_edoc(template_uuid,  experiment_copy_uuid, experiment_copy_name, 
     else:
         lsr_design = ET.tostring(lsr_design.getroot(), encoding='utf-16')
         # associate with the experiment copy and save
-        lsr_edoc.ref_edocument_uuid = experiment_copy_uuid
-        lsr_edoc.edocument = lsr_design
-        lsr_edoc.filename = experiment_copy_name + '.lsr'
-        lsr_edoc.save()
-    return warning
+        template_edoc.ref_edocument_uuid = experiment_copy_uuid
+        template_edoc.edocument = lsr_design
+        template_edoc.filename = experiment_copy_name + '.lsr'
+        template_edoc.save()
+        new_lsr_uuid = template_edoc.pk
+    return new_lsr_uuid
 
 
 class ExperimentListView(ListView):
