@@ -7,6 +7,7 @@ from core.models.view_tables import (Person, Material, Inventory, Actor, Note,
                          Organization, Systemtool, SystemtoolType,
                          UdfDef, Status, Tag, TagAssign, TagType, MaterialType,
                          Edocument, InventoryMaterial)
+from core.models.core_tables import TypeDef
 
 from packaging import version
 import django
@@ -497,15 +498,15 @@ class TagSelectForm(forms.Form):
 class UploadEdocForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(UploadEdocForm, self).__init__(*args, **kwargs)
-        self.fields['file'] = forms.FileField(required=False)
 
-    
-    # def clean(self):
-    #     cleaned_data = super(UploadEdocForm, self).clean()
-    #     cleaned_sub_data = self.cleaned_data
-    #     cleaned_data.update(cleaned_sub_data)
-    #     print(cleaned_data)
-    #     return cleaned_data
+        current_file_type = self.instance.doc_type_uuid if self.instance else None
+
+        self.fields['file'] = forms.FileField(required=False)
+        self.fields['file_type'] = forms.ModelChoiceField(
+            initial=current_file_type, 
+            required=False, 
+            queryset=TypeDef.objects.filter(category='file'))
+        self.fields['file_type'].widget.attrs.update(dropdown_attrs)
 
 
     class Meta:

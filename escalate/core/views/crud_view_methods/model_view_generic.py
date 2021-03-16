@@ -1,4 +1,5 @@
 from django.db.models.query import QuerySet
+from django.db.models import Q
 from django.urls import reverse_lazy, reverse
 from django.http import HttpResponse, HttpResponseRedirect, FileResponse
 from django.views.generic.detail import DetailView
@@ -73,7 +74,7 @@ class GenericModelList(GenericListView):
                 base_query = self.model.objects.filter(**org_filter_kwargs)
             else:
                 try:
-                    print(self.model._meta.get_fields())
+                    #print(self.model._meta.get_fields())
                     org_field = self.model._meta.get_field('organization')
                     base_query = self.model.objects.filter(organization=self.request.session['current_org_id'])
                 except FieldDoesNotExist:
@@ -231,7 +232,6 @@ class GenericModelEdit:
 
             self.object = self.model.objects.filter(**query).latest('mod_date')
 
-
         if self.request.POST.get('tags'):
             # tags from post
             submitted_tags = self.request.POST.getlist('tags')
@@ -240,26 +240,33 @@ class GenericModelEdit:
                 ref_tag=self.object.pk).values_list('tag', flat=True))
             for tag in existing_tags:
                 if tag not in submitted_tags:
-                    # delete TagAssign for existing tags that are no longer used
-                    TagAssign.objects.filter(tag=tag).delete()
+                    if self.request.user.is_authenticated:
+                        #this tag is not assign to this model anymore
+                        # delete TagAssign for existing tags that are no longer used
+                        TagAssign.objects.filter(tag=tag).delete()
             for tag in submitted_tags:
                 # make TagAssign for existing tags that are now used
                 if tag not in existing_tags:
-                    # for some reason tags from post are the uuid as a string
-                    # get actual tag obj with that uuid
-                    tag_obj = Tag.objects.get(pk=tag)
-                    tag_assign = TagAssign()
-                    tag_assign.tag = tag_obj
-                    tag_assign.ref_tag = self.object.pk
-                    tag_assign.add_date = tag_obj.add_date
-                    tag_assign.mod_date = tag_obj.mod_date
-                    tag_assign.save()
+                    if self.request.user.is_authenticated:
+                        # get actual tag obj with that uuid
+                        tag_obj = Tag.objects.get(pk=tag)
+                        tag_assign = TagAssign()
+                        tag_assign.tag = tag_obj
+                        tag_assign.ref_tag = self.object.pk
+                        tag_assign.save()
+        else:
+            # no submitted tags
+            # deleted all tags or actually submitted no tags
+            existing_tags = Tag.objects.filter(pk__in=TagAssign.objects.filter(
+                ref_tag=self.object.pk).values_list('tag', flat=True))
+            if self.request.user.is_authenticated:
+                for tag in existing_tags:
+                    TagAssign.objects.filter(tag=tag).delete()
 
         if self.NoteFormSet != None:
             actor = Actor.objects.get(
                 person=self.request.user.person.pk, organization=None)
             formset = self.NoteFormSet(self.request.POST, prefix='note')
-            # print(request.POST)
             # Loop through every note form
             for form in formset:
                 # Only if the form has changed make an update, otherwise ignore
@@ -291,17 +298,35 @@ class GenericModelEdit:
                 if form.has_changed() and form.is_valid():
                     if self.request.user.is_authenticated:
                         edoc = form.save(commit=False)
+                        if form.cleaned_data['file']:
+                            #New edoc or update file of existing edoc
+                            
+                            file = form.cleaned_data['file']
+                            # Hopefuly every file name is structed as <name>.<ext>
+                            _file_name_detached, ext, *_ = file.name.split('.')
+
+                            edoc.edocument = file.read()
+                            edoc.filename = file.name
+                            
+                            #file type that the user entered
+                            file_type_user = form.cleaned_data['file_type']
+
+                            #try to get the file_type from db that is spelled the same as the file extension
+                            try:
+                                file_type_db = TypeDef.objects.get(category="file",description=ext)
+                            except TypeDef.DoesNotExist:
+                                file_type_db = None
+
+                            if file_type_db:
+                                #found find file type corresponding to file extension
+                                #use that file type instead of what user entered
+                                edoc.doc_type_uuid = file_type_db
+                            else:
+                                #did not find file type corresponding to file extension
+                                #use file type user entered in form
+                                edoc.doc_type_uuid = file_type_user
+                        
                         # Get the appropriate actor and then add it to the edoc
-                        file = form.cleaned_data['file']
-                        # Hopefuly every file name is structed as <name>.<ext>
-                        file_name, ext = file.name.split('.')
-
-                        edoc.edocument = file.read()
-                        edoc.filename = file_name
-                        edoc.doc_type_description = ext
-                        # this might be hard. need all file extension names in db
-                        edoc.doc_type_uuid = TypeDef.objects.get(description=ext)
-
                         edoc.actor = actor
                         # Get the appropriate uuid of the record being changed.
                         edoc.ref_edocument_uuid = self.object.pk
@@ -388,7 +413,7 @@ class GenericModelView(DetailView):
         edocs_raw = Edocument.objects.filter(ref_edocument_uuid=obj.pk)
         edocs = []
         for edoc in edocs_raw:
-            filename = f"{edoc.filename}.{str(edoc.doc_type_uuid)}"
+            filename = edoc.filename
 
             # redirect to api link to download
             download_url = reverse('edoc_download', args=(edoc.uuid,))
