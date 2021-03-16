@@ -79,7 +79,7 @@ methods = {
     'Edocument': {
         'model': core.models.Edocument,
         'context_object_name': 'edocument',
-        'form_class': core.forms.UploadEdocForm,
+        'form_class': forms.UploadEdocForm,
         'success_url': reverse_lazy('edocument_list'),
     },
     'InventoryMaterial': {

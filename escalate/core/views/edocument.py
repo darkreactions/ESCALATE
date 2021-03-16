@@ -7,8 +7,8 @@ from django.http import Http404, FileResponse, HttpResponseRedirect
 
 
 from core.models import Edocument, Actor
-from core.forms import ActorForm
-from core.views.model_view_generic import GenericListView
+from core.forms.forms import ActorForm
+from core.views.crud_view_methods.model_view_generic import GenericListView
 
 import tempfile
 
