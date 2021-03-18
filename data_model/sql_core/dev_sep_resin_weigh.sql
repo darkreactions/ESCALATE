@@ -101,5 +101,3 @@ values ('Dispense Resin',
                 description like '%Resin Plate%B2%' and bom_uuid = (select bom_uuid from vw_bom where description = 'LANL resin weighing Dev Materials'))],
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
         (select status_uuid from vw_status where description = 'dev_test'));
-
-select * from vw_experiment_workflow_bom_step_object_parameter_json;
