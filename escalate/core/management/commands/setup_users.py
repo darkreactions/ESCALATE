@@ -20,7 +20,14 @@ users = {
             'last_name': 'Tynes'
         },
         'password': 'hello1world2'
-    }
+    },
+    'jpannizzo': {
+        'person_data': {
+            'first_name': 'Joseph',
+            'last_name': 'Pannizzo'
+        },
+        'password': 'password1'
+    },
 }
 
 org_passwords = {
