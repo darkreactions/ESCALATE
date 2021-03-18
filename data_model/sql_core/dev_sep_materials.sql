@@ -14,9 +14,11 @@ values
 	('separation target'),
 	('gas'),
 	('stock solution'),
-	('human prepared'),
-	('solute'),
-	('solvent');
+	('human prepared');--,
+insert into vw_material_type (description)
+values
+    ('solute');
+-- 	('solvent');
 
 
 -- -- ===========================================================================
@@ -360,18 +362,18 @@ $do$;
 
 -- create component materials
 --Am-243 (component)
-insert into vw_material (description, consumable, actor_uuid, status_uuid) values
-	('Am-243', TRUE,
-	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
-	(select status_uuid from vw_status where description = 'dev_test'));
-insert into vw_material (description, consumable, actor_uuid, status_uuid) values
-	('Water', TRUE,
-	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
-	(select status_uuid from vw_status where description = 'dev_test'));
-insert into vw_material (description, consumable, actor_uuid, status_uuid) values
-	('Hydrochloric acid', TRUE,
-	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
-	(select status_uuid from vw_status where description = 'dev_test'));
+-- insert into vw_material (description, consumable, actor_uuid, status_uuid) values
+-- 	('Am-243', TRUE,
+-- 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+-- 	(select status_uuid from vw_status where description = 'dev_test'));
+-- insert into vw_material (description, consumable, actor_uuid, status_uuid) values
+-- 	('Water', TRUE,
+-- 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+-- 	(select status_uuid from vw_status where description = 'dev_test'));
+-- insert into vw_material (description, consumable, actor_uuid, status_uuid) values
+-- 	('Hydrochloric acid', TRUE,
+-- 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+-- 	(select status_uuid from vw_status where description = 'dev_test'));
 
 -- Am-243 Stock (composite)
 insert into vw_material (description, consumable, actor_uuid, status_uuid) values
@@ -531,7 +533,7 @@ insert into vw_inventory_material (inventory_uuid, description, material_uuid, a
 	part_no, onhand_amt, expiration_date, location, status_uuid)
 				values (
 				(select inventory_uuid from vw_inventory where description = 'Test Inventory'),
-				'Resin',
+				'Resin: RE',
 				(select material_uuid from vw_material where description = 'Rare Earth'),
 				(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 				'part# EichromRE',
@@ -572,14 +574,14 @@ insert into vw_inventory_material (inventory_uuid, description, material_uuid, a
 insert into vw_inventory_material (inventory_uuid, description, material_uuid)
 				values
 				((select inventory_uuid from vw_inventory where description = 'Test Inventory'),
-				 'Resin',
+				 'Resin: TRU',
 				(select material_uuid from vw_material where description = 'TRU')),
 				((select inventory_uuid from vw_inventory where description = 'Test Inventory'),
-				 'Resin',
+				 'Resin: BDGA',
 				(select material_uuid from vw_material where description = 'BDGA')),
 				((select inventory_uuid from vw_inventory where description = 'Test Inventory'),
-				 'Resin',
+				 'Resin: AG1-X8',
 				(select material_uuid from vw_material where description = 'Anion, AG1-X8')),
 				((select inventory_uuid from vw_inventory where description = 'Test Inventory'),
-				 'Resin',
+				 'Resin: 50WX8',
 				(select material_uuid from vw_material where description = 'Cation, 50WX8'));

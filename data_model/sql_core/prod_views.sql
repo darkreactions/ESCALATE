@@ -1472,7 +1472,7 @@ LEFT JOIN LATERAL (select * from tag_to_array (inventory_uuid)) atag ON true
 LEFT JOIN LATERAL (select * from note_to_array (inventory_uuid)) anote ON true;
 
 DROP TRIGGER IF EXISTS trigger_inventory_upsert ON vw_inventory;
-CREATE TRIGGER trigger_inventory_material_upsert INSTEAD OF INSERT
+CREATE TRIGGER trigger_inventory_upsert INSTEAD OF INSERT
 OR UPDATE
 OR DELETE ON vw_inventory
 FOR EACH ROW
@@ -2154,7 +2154,7 @@ FROM condition_def cd
 LEFT JOIN actor act ON cd.actor_uuid = act.actor_uuid
 LEFT JOIN status st ON cd.status_uuid = st.status_uuid;
 
-DROP TRIGGER IF EXISTS trigger_action_condition_def ON vw_condition_def;
+DROP TRIGGER IF EXISTS trigger_condition_def_upsert ON vw_condition_def;
 CREATE TRIGGER trigger_condition_def_upsert INSTEAD OF INSERT
 OR UPDATE
 OR DELETE ON vw_condition_def
