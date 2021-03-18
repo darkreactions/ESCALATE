@@ -148,7 +148,7 @@ insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, all
 insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
 	(select bom_uuid from vw_bom where description = 'LANL Liq-Sol Dev Materials '),
     'Resin',
-	(select inventory_material_uuid from vw_inventory_material where description = 'Resin'),
+	(select inventory_material_uuid from vw_inventory_material where description = 'Resin: RE'),
 	(select put_val((select get_type_def ('data', 'num')), '0.60','g')),
 	(select put_val((select get_type_def ('data', 'num')), '0.00','g')),
 	(select put_val((select get_type_def ('data', 'num')), '0.00','g')),
