@@ -3,7 +3,7 @@ from django.db import connection as con
 def experiment_copy(template_experiment_uuid, copy_experiment_description):
     """Wrapper of the ESCALATE postgres function experiment_copy"""
     cur = con.cursor()
-    cur.execute(f"select experiment_copy ('{template_experiment_uuid}', '{copy_experiment_description}');")
+    cur.callproc('experiment_copy', [template_experiment_uuid, copy_experiment_description])
     copy_experiment_uuid = cur.fetchone()[0]  # there will always be only one element in the tuple from this PG fn
     return copy_experiment_uuid
 
