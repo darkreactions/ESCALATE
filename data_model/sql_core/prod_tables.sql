@@ -208,6 +208,10 @@ CREATE TYPE val AS (
 	v_bool_array BOOLEAN[]	
 );
 
+
+CREATE TYPE material_class_enum AS ENUM ('model', 'object');
+CREATE TYPE property_def_class_enum AS ENUM ('intrinsic', 'extrinsic');
+CREATE TYPE property_class_enum AS ENUM ('nominal', 'actual');
 --======================================================================
 --======================================================================
 -- CREATE TABLES 
@@ -532,12 +536,14 @@ CREATE TABLE material (
 	material_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default" NOT NULL,
 	consumable BOOLEAN NOT NULL DEFAULT TRUE,
-	class_uuid uuid,
+	--class_uuid uuid,
 	actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
+ALTER TABLE material
+ADD COLUMN material_class material_class_enum;
 
 
 CREATE TABLE material_composite (
@@ -776,6 +782,8 @@ CREATE TABLE property (
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
+ALTER TABLE property
+ADD COLUMN property_class property_class_enum;
 
 
 CREATE TABLE property_def (
@@ -790,6 +798,8 @@ CREATE TABLE property_def (
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
+ALTER TABLE property_def
+ADD COLUMN property_def_class property_def_class_enum;
 
 CREATE TABLE property_class (
     class_uuid uuid DEFAULT uuid_generate_v4(),
