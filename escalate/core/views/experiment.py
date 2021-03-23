@@ -5,6 +5,7 @@ from django.views.generic import TemplateView
 from django.forms import formset_factory, BaseFormSet
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
+from django.contrib import messages
 from django.urls import reverse, reverse_lazy
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
@@ -21,6 +22,8 @@ from copy import deepcopy
 import numpy as np
 from core.custom_types import Val
 
+
+SUPPORTED_CREATE_WFS = ['liquid_solid_extraction', 'resin_weighing']
 
 def hcl_mix(stock_concentration, solution_volume, target_concentrations):
     hcl_vols = (target_concentrations * solution_volume) / stock_concentration
@@ -238,52 +241,88 @@ class CreateExperimentView(TemplateView):
                             else:
                                 setattr(query, field, data['value'])
                                 query.save()
-                
-                # check if the template is one that this one-time procedure supports
-                if template_name == 'liquid_solid_extraction':  # this can be a list or the key of a dict
-                    # q3 contains concentraiton logic
-                    if any([f.has_changed() for f in q3_formset]):
-                        data = {}  # Stick form data into this dict
-                        for i, form in enumerate(q3_formset):
-                            if form.is_valid():
-                                query = q3[i]
-                                data[query.parameter_def_description] = form.cleaned_data['value'].value
 
-                        hcl_vols, h2o_vols = hcl_mix(data['stock_concentration'],
-                                                     data['total_vol'],
-                                                     np.fromstring(data['hcl_concentrations'].strip(']['), sep=',')
-                                                     )
+                if template_name in SUPPORTED_CREATE_WFS:
+                    lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
+                    if template_name == 'liquid_solid_extraction':
+                        # q3 contains concentraiton logic
+                        if any([f.has_changed() for f in q3_formset]):
+                            data = {}  # Stick form data into this dict
+                            for i, form in enumerate(q3_formset):
+                                if form.is_valid():
+                                    query = q3[i]
+                                    data[query.parameter_def_description] = form.cleaned_data['value'].value
+
+                            hcl_vols, h2o_vols = hcl_mix(data['stock_concentration'],
+                                                         data['total_vol'],
+                                                         np.fromstring(data['hcl_concentrations'].strip(']['), sep=',')
+                                                         )
+                            related_exp = 'workflow__experiment_workflow_workflow__experiment'
+                            h2o_dispense_action_set = WorkflowActionSet.objects.get(**{f'{related_exp}': experiment_copy_uuid,
+                                                                                       'description__contains': 'H2O'})
+                            hcl_dispense_action_set = WorkflowActionSet.objects.get(**{f'{related_exp}': experiment_copy_uuid,
+                                                                                       'description__contains': 'HCl'})
+                            update_dispense_action_set(h2o_dispense_action_set, h2o_vols)
+                            update_dispense_action_set(hcl_dispense_action_set, hcl_vols)
+                            new_lsr_pk, lsr_msg = update_lsr_edoc(lsr_edoc,
+                                                                  experiment_copy_uuid,
+                                                                  exp_name,
+                                                                  vol_hcl=list(hcl_vols*1000),
+                                                                  vol_h2o=list(h2o_vols*1000))
+                    elif template_name == 'resin_weighing':
                         related_exp = 'workflow__experiment_workflow_workflow__experiment'
-                        h2o_dispense_action_set = WorkflowActionSet.objects.get(**{f'{related_exp}': experiment_copy_uuid, 'description__contains': 'H2O'})
-                        hcl_dispense_action_set = WorkflowActionSet.objects.get(**{f'{related_exp}': experiment_copy_uuid, 'description__contains': 'HCl'})
-                        update_dispense_action_set(h2o_dispense_action_set, h2o_vols)
-                        update_dispense_action_set(hcl_dispense_action_set, hcl_vols)
+                        resin_dispense_action_set = WorkflowActionSet.objects.get(**{f'{related_exp}': experiment_copy_uuid,
+                                                                                     'description__contains': 'Dispense Resin'})
+                        new_lsr_pk, lsr_msg = update_lsr_edoc(lsr_edoc,
+                                                              experiment_copy_uuid,
+                                                              exp_name,
+                                                              resin_amt=resin_dispense_action_set.parameter_val[0].value)
 
-                        from LSRGenerator.generate import generate_lsr_design
-                        import xml.etree.ElementTree as ET
-                        lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
-                        lsr_edoc.pk = None
-                        lsr_template = lsr_edoc.edocument.tobytes().decode('utf-16')
-                        lsr_template = ET.ElementTree(ET.fromstring(lsr_template))
-                        lsr_design = generate_lsr_design(lsr_template,
-                                            vol_hcl=list(hcl_vols*1000), # lsr generator expects a list in uL (for now)
-                                            vol_h2o=list(h2o_vols*1000)
-                                            )
-                        lsr_design = ET.tostring(lsr_design.getroot(), encoding='utf-16')
-                        lsr_edoc.edocument = lsr_design
-                        lsr_edoc.filename = exp_name + '.lsr'
-                        lsr_edoc.ref_edocument_uuid = experiment_copy_uuid
-                        lsr_edoc.save()
-
-                        context['lsr_download_link'] = reverse('edoc_download', args=[lsr_edoc.pk])
-                        context['experiment_link'] = reverse('experiment_view', args=[experiment_copy_uuid])
-                        context['new_exp_name'] = exp_name
-                        render(request, self.template_name, context)
+                    if new_lsr_pk is not None:
+                        context['lsr_download_link'] = reverse('edoc_download', args=[new_lsr_pk])
+                    else:
+                        messages.error(request, f'LSRGenerator failed with message: "{lsr_msg}"')
+                    context['experiment_link'] = reverse('experiment_view', args=[experiment_copy_uuid])
+                    context['new_exp_name'] = exp_name
+                    render(request, self.template_name, context)
             else:
                 return render(request, self.template_name, context)
                 
             ## end: one-time procedure
         return render(request, self.template_name, context)
+
+
+def update_lsr_edoc(template_edoc,  experiment_copy_uuid, experiment_copy_name, **kwargs):
+    """Copy LSR file from the experiment template, update tagged maps with kwargs, save to experiment copy
+    Returns the uuid if completed successfully, else none
+    """
+    from LSRGenerator.generate import generate_lsr_design
+    import xml.etree.ElementTree as ET
+
+    # copy the template edoc
+    template_edoc.pk = None # this effectively creates a copy of the original edoc
+
+    # convert to format LSRGenerator understands
+    lsr_template = template_edoc.edocument.tobytes().decode('utf-16')
+    lsr_template = ET.ElementTree(ET.fromstring(lsr_template))
+
+    # populate LSR design with kwargs, handling failure
+    new_lsr_uuid = None
+    message = None
+    try:
+        lsr_design = generate_lsr_design(lsr_template, **kwargs)
+    except Exception as e:
+        message = str(e)
+    else:
+        lsr_design = ET.tostring(lsr_design.getroot(), encoding='utf-16')
+        # associate with the experiment copy and save
+        template_edoc.ref_edocument_uuid = experiment_copy_uuid
+        template_edoc.edocument = lsr_design
+        template_edoc.filename = experiment_copy_name + '.lsr'
+        template_edoc.save()
+        new_lsr_uuid = template_edoc.pk
+
+    return new_lsr_uuid, message
 
 
 class ExperimentListView(ListView):

@@ -7,10 +7,20 @@
 <div class="container">
 
     {% if new_exp_name %}
-    <p> Created Experiment! </p>
-        <p>Experiment name: {{ new_exp_name }}</p>
-        <p> <a href={{ experiment_link }}> View experiment details</a></p>
-        <p> <a href={{ lsr_download_link }}> Download LibraryStudio file </a></p>
+        <p> Created Experiment! </p>
+            <p>Experiment name: {{ new_exp_name }}</p>
+            <p> <a href={{ experiment_link }}> View experiment details</a></p>
+            {% if lsr_download_link is not None %}
+                <p> <a href={{ lsr_download_link }}> Download LibraryStudio file </a></p>
+            {% else %}
+               {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            {% endif %}
     {% else %}
 
     {% if not selected_exp_template %}

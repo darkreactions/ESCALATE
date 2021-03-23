@@ -21,6 +21,7 @@ users = {
         },
         'password': 'hello1world2'
     },
+<<<<<<< HEAD
     'ichang': {
         'person_data':{
             'first_name': 'Isaac',
@@ -28,6 +29,15 @@ users = {
         },
         'password': 'securepassword'
     }
+=======
+    'jpannizzo': {
+        'person_data': {
+            'first_name': 'Joseph',
+            'last_name': 'Pannizzo'
+        },
+        'password': 'password1'
+    },
+>>>>>>> master
 }
 
 org_passwords = {
