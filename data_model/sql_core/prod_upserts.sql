@@ -3462,16 +3462,14 @@ BEGIN
 		ELSIF (array_length(NEW.source_material_uuid, 1) > 0 and array_length(NEW.destination_material_uuid, 1) > 0) THEN
 			-- check to make sure there are 1 or more elements in each array
 			-- this will loop through the source array for as many times as there are assoc dest elements
-			FOREACH _s_uuid IN ARRAY NEW.source_material_uuid
+		    FOREACH _s_uuid IN ARRAY NEW.source_material_uuid
 			LOOP
-				_d_uuid := NEW.destination_material_uuid[_src_cnt]; 
+				_d_uuid := NEW.destination_material_uuid[_src_cnt];
 	        	insert into vw_action (action_def_uuid, workflow_uuid, workflow_action_set_uuid, action_description, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid)
 	            values (NEW.action_def_uuid, NEW.workflow_uuid, NEW.workflow_action_set_uuid,
 	            	concat(NEW.description, ': ',(select description from vw_bom_material_index where bom_material_index_uuid = _s_uuid), ' -> ',
 	            					(select description from vw_bom_material_index where bom_material_index_uuid = _d_uuid)),
-	            	_s_uuid, _d_uuid,
-	            	(select actor_uuid from vw_actor where description = 'Ion Bond'),
-	            	(select status_uuid from vw_status where description = 'dev_test')) returning action_uuid into _action_uuid;
+	            	_s_uuid, _d_uuid, NEW.actor_uuid, NEW.status_uuid) returning action_uuid into _action_uuid;
 				-- assign parameter value
 				IF _calc_flg THEN
                     update vw_action_parameter set

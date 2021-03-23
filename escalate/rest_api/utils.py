@@ -2,9 +2,11 @@ from django.db import connection as con
 
 
 def get_val(val):
-    """breaks val tuple into constituent parts"""
+    """Breaks val tuple into constituent parts
+    Currently unused, supplanted by core.custom_types.Val
+    """
     cur = con.cursor()
-    cur.execute(f"select get_val ('{val}'::val);")
+    cur.execute(f"select get_val (%s::val);", [val])
     result = cur.fetchone()
     val_type = val_unit = val_val = None
     if result is not None:
