@@ -27,14 +27,14 @@ users = {
             'last_name': 'Chang'
         },
         'password': 'securepassword'
-    }
+    },
     'jpannizzo': {
         'person_data': {
             'first_name': 'Joseph',
             'last_name': 'Pannizzo'
         },
         'password': 'password1'
-    },
+    }
 }
 
 org_passwords = {
