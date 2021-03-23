@@ -6,7 +6,8 @@
     <div class="card">
         <div class="card-body">
             <h2>{{ title }}</h2>
-            <table class="table table-striped table-bordered">
+            <div class="table-responsive">
+            <table class="table table-striped table-bordered ">
                 <tbody>
                     {% for label, value in detail_data.items %}
                     <tr>
@@ -24,6 +25,7 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
             <a href="{{ update_url }}" class="btn btn-raised btn-primary active">
                 <i class="fa fa-edit fa-lg"></i>Edit
             </a>

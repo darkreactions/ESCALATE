@@ -175,13 +175,13 @@ methods = {
     'Edocument':{
         'model': core.models.Edocument,
         'model_name': 'edocument',
-        'detail_fields': ['Title', 'Description', 'Source', 'Document Type', 'Status',
+        'detail_fields': ['Title', 'Description', 'Source', 'Status', #, 'Document Type'
                           'Add Date', 'Last Modification Date'],
         'detail_fields_need_fields': {
             'Title':['title'],
             'Description': ['description'],
             'Source':['source'],
-            'Document Type':['doc_type_description'],
+            # 'Document Type':['doc_type_description'],
             'Status': ['status_description'],
             'Add Date': ['add_date'],
             'Last Modification Date': ['mod_date']

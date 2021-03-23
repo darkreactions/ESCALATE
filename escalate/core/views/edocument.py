@@ -41,7 +41,7 @@ class EdocumentList(GenericListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        table_columns = ['Title', 'File Type', 'Version', 'UUID']
+        table_columns = ['Title',  'Version', 'UUID'] #'File Type',
         context['table_columns'] = table_columns
         edocument = context['edocument']
         table_data = []
@@ -50,7 +50,7 @@ class EdocumentList(GenericListView):
 
             # data for the object we want to display for a row
             table_row_data.append(item.title)
-            table_row_data.append(item.doc_type_description)
+            # table_row_data.append(item.doc_type_description)
             table_row_data.append(item.doc_ver)
 
             table_row_data.append(item.uuid)

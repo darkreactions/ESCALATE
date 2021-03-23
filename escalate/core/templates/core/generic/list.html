@@ -36,8 +36,7 @@
           </tr>
         </thead>
         <tbody>
-<<<<<<< HEAD
-            {% for row_info in table_data %}
+            <!-- {% for row_info in table_data %}
             <tr class="text-nowrap">
                 {% for col_data in row_info.table_row_data %}
                 <td>{{ col_data }}</td>
@@ -61,14 +60,18 @@
                     </button>
                 </td>
             </tr>
-=======
+          {% endfor %} -->
           {% for row_info in table_data %}
           <tr class="text-nowrap">
             {% for col_data in row_info.table_row_data %}
-            <td>{{ col_data }}</td>
->>>>>>> 4beff5cbaadb60f43f5356e75c8093d5bbcc242f
+            <td >{{ col_data }}</td>
             {% endfor %}
             <td>
+              {% if row_info.download_url %}
+                    <a href="{{ row_info.download_url }}" title="Download" class="btn btn-raised text-secondary px-1 view-detail">
+                        <i class="fa fa-download"></i>
+                    </a>
+              {% endif %}
               <a href="{{ row_info.view_url }}" class="btn btn-raised text-secondary px-1 view-detail">
                 <i class="fa fa-eye"></i>
               </a>

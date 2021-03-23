@@ -605,8 +605,8 @@ class Edocument(models.Model):
                                 db_column='filename')
     source = models.CharField(
         max_length=255, blank=True, null=True, db_column='source')
-    doc_type_description = models.CharField(max_length=255, blank=True,
-                                 null=True, db_column='doc_type_description')
+    # doc_type_description = models.CharField(max_length=255, blank=True,
+    #                              null=True, db_column='doc_type_description')
     edocument = models.BinaryField(blank=True, null=True)
     doc_ver = models.CharField(max_length=255, blank=True,
                                 null=True, db_column='doc_ver')

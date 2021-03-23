@@ -152,12 +152,12 @@ methods = {
     'Edocument':{
         'model': core.models.Edocument,
         'context_object_name': 'edocuments',
-        'table_columns': ['Title', 'File Type', 'Version', 'UUID', 'Actions'],
+        'table_columns': ['Title', 'UUID', 'Actions'], #'File Type' 'Version'
         'column_necessary_fields': {
             'Title':['title'],
-            'File Type':['doc_type_description'],
+            # 'File Type':['doc_type_description'],
             'UUID':['uuid'],
-            'Version': ['doc_ver'],
+            # 'Version': ['doc_ver'],
         },
         'order_field': 'title',
         'field_contains': '',
