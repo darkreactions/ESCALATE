@@ -64,20 +64,6 @@ values
 	('catalog'),
 	('plate');
 
-INSERT INTO material_class (description)
-VALUES
-    ('model'),
-    ('object');
-
-INSERT INTO property_class (description)
-VALUES
-    ('intrinsic'),
-    ('extrinsic');
-
-INSERT INTO property_type (description)
-VALUES
-    ('nominal'),
-    ('actual');
 
 INSERT INTO material_refname_def (description)
 VALUES

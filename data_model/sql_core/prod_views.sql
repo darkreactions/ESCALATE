@@ -1044,7 +1044,7 @@ SELECT
 		when (select 1 from material_composite where composite_uuid = mat.material_uuid limit 1) is not null then true
 		else false
 	END as composite_flg,
-	mat.material_class AS class,
+	mat.material_class,
 	mat.actor_uuid AS actor_uuid,
 	act.description AS actor_description,
 	mat.status_uuid AS status_uuid,
@@ -1072,7 +1072,6 @@ EXECUTE PROCEDURE upsert_material ( );
 -- view of material_composite
 -- DROP VIEW vw_material_composite cascade
 ----------------------------------------
-DROP VIEW vw_material_composite CASCADE;
 CREATE OR REPLACE VIEW vw_material_composite AS
 SELECT 
 	mc.material_composite_uuid,
@@ -1313,7 +1312,7 @@ SELECT
 	pd.val_type_uuid,
 	pd.valunit,
 	pd.actor_uuid,
-    pd.property_def_class as class,
+    pd.property_def_class,
 	act.description as actor_description,
 	st.status_uuid,
 	st.description as status_description,
@@ -1346,7 +1345,7 @@ SELECT
 	pd.short_description,
 	pr.property_val,
 	pr.actor_uuid,
-    pr.property_class as class,
+    pr.property_class,
 	act.description as actor_description,
 	st.status_uuid,
 	st.description as status_description,
@@ -1379,9 +1378,9 @@ SELECT
 	mat.description,
 	pr.property_uuid,
 	pr.property_def_uuid,
-    mat.class as material_class,
+    mat.material_class,
     pd.property_def_class,
-    pr.class as property_class,
+    pr.property_class,
 	pd.description as property_description,
 	pd.short_description as property_short_description,	
 	pr.property_val as property_value_val,
@@ -1428,11 +1427,11 @@ SELECT
 	mc.component_description,
     mc.component_class,
 	pr.property_uuid,
-    pr.class as property_class,
+    pr.property_class,
 	pr.property_def_uuid,
 	pd.description  AS property_description,
 	pd.short_description AS property_short_description,
-    pd.class as property_def_class,
+    pd.property_def_class,
     pr.property_val as property_value_val,
 	(pr.property_val).v_type_uuid AS property_value_type_uuid,
 	vl.val_type as property_value_type_description,
