@@ -67,18 +67,20 @@ insert into vw_property_def (description, short_description, val_type_uuid, valu
 	'',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'active'));
-insert into vw_property_def (description, short_description, val_type_uuid, valunit, actor_uuid, status_uuid ) values
+insert into vw_property_def (description, short_description, val_type_uuid, valunit, actor_uuid, status_uuid, property_def_class ) values
 	('concentration_rad', 'conc_rad',
 	(select get_type_def ('data', 'num')),
 	'dpm/uL',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
-	(select status_uuid from vw_status where description = 'active'));
-insert into vw_property_def (description, short_description, val_type_uuid, valunit, actor_uuid, status_uuid ) values
+	(select status_uuid from vw_status where description = 'active'),
+	 'intrinsic');
+insert into vw_property_def (description, short_description, val_type_uuid, valunit, actor_uuid, status_uuid, property_def_class ) values
 	('concentration_molarity', 'molar',
 	(select get_type_def ('data', 'num')),
 	'mol/L',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
-	(select status_uuid from vw_status where description = 'active'));
+	(select status_uuid from vw_status where description = 'active'),
+	 'intrinsic');
 -- manufacturer
 insert into vw_property_def (description, short_description, val_type_uuid, valunit, actor_uuid, status_uuid ) values
 	('manufacturer', 'manufacturer',
