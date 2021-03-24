@@ -213,7 +213,7 @@ DROP TYPE IF EXISTS material_class_enum;
 DROP TYPE IF EXISTS property_def_class_enum;
 DROP TYPE IF EXISTS property_class_enum;
 
-CREATE TYPE material_class_enum AS ENUM ('model', 'object');
+CREATE TYPE material_class_enum AS ENUM ('template', 'model', 'object');
 CREATE TYPE property_def_class_enum AS ENUM ('intrinsic', 'extrinsic');
 CREATE TYPE property_class_enum AS ENUM ('nominal', 'actual');
 --======================================================================

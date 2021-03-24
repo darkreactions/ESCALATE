@@ -1226,7 +1226,7 @@ BEGIN
 			material
 		SET
 			description = NEW.description,
-			materia_class = NEW.material_class,
+			material_class = NEW.material_class,
 			consumable = NEW.consumable,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
