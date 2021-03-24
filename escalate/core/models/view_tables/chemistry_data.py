@@ -3,6 +3,22 @@ from core.models.core_tables import RetUUIDField
 from core.models.custom_types import ValField
 
 
+# dont use short values: postgres will handle those via enum
+PROPERTY_CLASS_CHOICES = (
+    ('nominal', 'nominal'),
+    ('actual', 'actual')
+)
+PROPERTY_DEF_CLASS_CHOICES = (
+    ('intrinsic', 'intrinsic'),
+    ('extrinsic', 'extrinsic')
+)
+MATERIAL_CLASS_CHOICES = (
+    ('template','template'),
+    ('model', 'model'),
+    ('object', 'object')
+)
+
+
 class CompositeMaterial(models.Model):
     uuid = RetUUIDField(primary_key=True, db_column='material_composite_uuid')
     composite = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
@@ -42,7 +58,6 @@ class CompositeMaterial(models.Model):
 
 
 class CompositeMaterialProperty(models.Model):
-    # TODO: Material property may need fixing. Endpoint displays all tags for all rows
     uuid = RetUUIDField(primary_key=True,
                         db_column='material_composite_uuid')
     composite_material = models.ForeignKey('CompositeMaterial',
@@ -50,6 +65,7 @@ class CompositeMaterialProperty(models.Model):
                                            on_delete=models.DO_NOTHING,
                                            blank=True, null=True,
                                            related_name='composite_material_property_composite_material')
+    composite_class = models.CharField(max_length=64, choices=MATERIAL_CLASS_CHOICES)
     composite_material_description = models.CharField(max_length=255,
                                                       blank=True,
                                                       null=True,
@@ -60,7 +76,7 @@ class CompositeMaterialProperty(models.Model):
                                   on_delete=models.DO_NOTHING,
                                   blank=True, null=True,
                                   related_name='composite_material_property_component')
-
+    component_class = models.CharField(max_length=64, choices=MATERIAL_CLASS_CHOICES)
     property = models.ForeignKey('Property',
                                  on_delete=models.DO_NOTHING,
                                  db_column='property_uuid',
@@ -237,6 +253,7 @@ class Material(models.Model):
     material_types = models.ManyToManyField('MaterialType', 
                                             through='MaterialTypeAssign',
                                             related_name='material_material_types')
+    material_class = models.CharField(max_length=64, choices=MATERIAL_CLASS_CHOICES)
 
     actor = models.ForeignKey('Actor', models.DO_NOTHING, blank=True, null=True,
                               db_column='actor_uuid',
@@ -270,6 +287,7 @@ class MaterialProperty(models.Model):
                                  on_delete=models.DO_NOTHING,
                                  blank=True,
                                  null=True, related_name='material_property_material')
+    material_class = models.CharField(max_length=64, choices=MATERIAL_CLASS_CHOICES)
     description = models.CharField(max_length=255,
                                             blank=True,
                                             null=True,
