@@ -498,9 +498,12 @@ class TagSelectForm(forms.Form):
 class UploadEdocForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(UploadEdocForm, self).__init__(*args, **kwargs)
-
+        self.fields['title'].required = True
         current_file_type = self.instance.doc_type_uuid if self.instance else None
 
+        #file needs to be not required because it can't have an initial value
+        #so, if it is required, django will say the form is invalid even though
+        #a form is preloaded from an existing edocument from the db
         self.fields['file'] = forms.FileField(required=False)
         self.fields['file_type'] = forms.ModelChoiceField(
             initial=current_file_type, 
