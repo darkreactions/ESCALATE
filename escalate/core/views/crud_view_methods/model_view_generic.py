@@ -180,14 +180,18 @@ class GenericModelEdit:
         if self.context_object_name in context:
 
             model = context[self.context_object_name]
-            context['note_forms'] = self.NoteFormSet(
+
+            note_forms = self.NoteFormSet(
                 queryset=Note.objects.filter(ref_note_uuid=model.pk),
                 prefix='note')
+
+            context['note_forms'] = note_forms
 
             edocuments = Edocument.objects.filter(ref_edocument_uuid=model.pk)
             edoc_forms = self.EdocFormSet(
                 queryset=edocuments,
                 prefix='edoc')
+   
             context['edoc_forms'] = edoc_forms
             edoc_files = []
             for edoc in edocuments:
@@ -213,6 +217,7 @@ class GenericModelEdit:
             context['tag_select_form'] = TagSelectForm()
 
         context['title'] = self.context_object_name.capitalize()
+
         return context
 
     def post(self, request, *args, **kwargs):
@@ -231,7 +236,7 @@ class GenericModelEdit:
     def form_valid(self, form):
         print('INSIDE FORM VALID')
         self.object = form.save()
-        print(self.request.POST)
+
         if self.object.pk is None:
             required_fields = [f.name for f in self.model._meta.get_fields(
             ) if not getattr(f, 'null', False) is True]
@@ -350,10 +355,6 @@ class GenericModelEdit:
                         # Get the appropriate uuid of the record being changed.
                         edoc.ref_edocument_uuid = self.object.pk
                         edoc.save()
-                else:
-                    print(form.has_changed(), form.is_valid())
-                    print(form.changed_data)
-                    # print(form.cleaned_data)
 
             # Delete each note we marked in the formset
             formset.save(commit=False)
