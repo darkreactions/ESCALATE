@@ -7,21 +7,21 @@ insert into vw_experiment (ref_uid,
 		'test_resin_weigh',
 		'resin_weighing',
 		null,
-		(select actor_uuid from vw_actor where description = 'LANL'),
+		(select actor_uuid from vw_actor where description = 'TC'),
 		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
-		(select actor_uuid from vw_actor where description = 'LANL'),
+		(select actor_uuid from vw_actor where description = 'TC'),
 		(select status_uuid from vw_status where description = 'dev_test'));
 
 -- CREATE BOM
 insert into vw_bom (experiment_uuid, description, actor_uuid, status_uuid) values
 	((select experiment_uuid from vw_experiment where description = 'resin_weighing'),
-	'LANL resin weighing Dev Materials',
+	'resin weighing Dev Materials',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 
 -- ADD materials (and amounts) to BOM
 insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
-	(select bom_uuid from vw_bom where description = 'LANL resin weighing Dev Materials'),
+	(select bom_uuid from vw_bom where description = 'resin weighing Dev Materials'),
     'Resin',
 	(select inventory_material_uuid from vw_inventory_material where material_description = 'Rare Earth'), -- would be nice to pull all resins in one pass -- perhaps with a note?
 	(select put_val((select get_type_def ('data', 'num')), '60.00','mg')),
@@ -31,7 +31,7 @@ insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, all
 	(select status_uuid from vw_status where description = 'dev_test'));
 
 insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
-	(select bom_uuid from vw_bom where description = 'LANL resin weighing Dev Materials'),
+	(select bom_uuid from vw_bom where description = 'resin weighing Dev Materials'),
     'Resin Plate',
 	(select inventory_material_uuid from vw_inventory_material where description = '24 well plate'),
 	(select put_val((select get_type_def ('data', 'int')), '1','')),
@@ -80,24 +80,24 @@ values ('Dispense Resin',
         array [(select bom_material_index_uuid
                     from vw_bom_material_index
                     where description = 'Resin'
-                    and bom_uuid = (select bom_uuid from vw_bom where description = 'LANL resin weighing Dev Materials'))
+                    and bom_uuid = (select bom_uuid from vw_bom where description = 'resin weighing Dev Materials'))
             ],
         array [
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%A1%' and bom_uuid = (select bom_uuid from vw_bom where description = 'LANL resin weighing Dev Materials')),
+                description like '%Resin Plate%A1%' and bom_uuid = (select bom_uuid from vw_bom where description = 'resin weighing Dev Materials')),
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%A2%' and bom_uuid = (select bom_uuid from vw_bom where description = 'LANL resin weighing Dev Materials')),
+                description like '%Resin Plate%A2%' and bom_uuid = (select bom_uuid from vw_bom where description = 'resin weighing Dev Materials')),
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%A3%' and bom_uuid = (select bom_uuid from vw_bom where description = 'LANL resin weighing Dev Materials')),
+                description like '%Resin Plate%A3%' and bom_uuid = (select bom_uuid from vw_bom where description = 'resin weighing Dev Materials')),
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%A4%' and bom_uuid = (select bom_uuid from vw_bom where description = 'LANL resin weighing Dev Materials')),
+                description like '%Resin Plate%A4%' and bom_uuid = (select bom_uuid from vw_bom where description = 'resin weighing Dev Materials')),
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%A5%' and bom_uuid = (select bom_uuid from vw_bom where description = 'LANL resin weighing Dev Materials')),
+                description like '%Resin Plate%A5%' and bom_uuid = (select bom_uuid from vw_bom where description = 'resin weighing Dev Materials')),
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%A6%' and bom_uuid = (select bom_uuid from vw_bom where description = 'LANL resin weighing Dev Materials')),
+                description like '%Resin Plate%A6%' and bom_uuid = (select bom_uuid from vw_bom where description = 'resin weighing Dev Materials')),
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%B1%' and bom_uuid = (select bom_uuid from vw_bom where description = 'LANL resin weighing Dev Materials')),
+                description like '%Resin Plate%B1%' and bom_uuid = (select bom_uuid from vw_bom where description = 'resin weighing Dev Materials')),
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%B2%' and bom_uuid = (select bom_uuid from vw_bom where description = 'LANL resin weighing Dev Materials'))],
+                description like '%Resin Plate%B2%' and bom_uuid = (select bom_uuid from vw_bom where description = 'resin weighing Dev Materials'))],
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
         (select status_uuid from vw_status where description = 'dev_test'));

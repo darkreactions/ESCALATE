@@ -44,11 +44,6 @@ awk 'BEGIN { count=0 } /ERROR:/ {print $0;count++ } END { print "error count: ",
 ## run SQL function tests
 echo "running tests..."
 (cd ../sql_test && psql -d escalate -U escalate -f test_functions.sql >> test_dev.log 2>&1)
-# this is LANL specific
-#(psql -d escalate -U escalate -f dev_lanl_wf_liq_sol.sql >> test_lanl_dev.log 2>&1)
 
 echo "done (test_dev.log)"
 (cd ../sql_test && awk 'BEGIN { count=0 } /ERROR:/ {print $0;count++ } END { print "error count: ", count }' test_dev.log)
-# this is LANL specific
-#(awk 'BEGIN { count=0 } /ERROR:/ {print $0;count++ } END { print "error count: ", count }' test_lanl_dev.log)
-

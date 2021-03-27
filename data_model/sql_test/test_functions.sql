@@ -634,7 +634,7 @@ insert into vw_parameter (parameter_def_uuid, ref_parameter_uuid, parameter_val,
 		(select val_type_uuid from vw_parameter_def where description = 'duration'),
 		'10',
 		(select valunit from vw_parameter_def where description = 'duration'))),
-	(select actor_uuid from vw_actor where org_short_name = 'LANL'),
+	(select actor_uuid from vw_actor where org_short_name = 'TC'),
 	(select status_uuid from vw_status where description = 'dev_test')
 );
 update vw_parameter set parameter_val = (select put_val (

@@ -1369,7 +1369,7 @@ Example:		insert into vw_property_def (description, short_description, val_type_
 											(select status_uuid from vw_status where description = 'active')
 											);
 				update vw_property_def set short_description = 'particle-size',
-											actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where (short_description = 'particle-size');
+											actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'TC') where (short_description = 'particle-size');
  				delete from vw_property_def where short_description = 'particle-size';
  */
 CREATE OR REPLACE FUNCTION upsert_property_def ()
@@ -1426,7 +1426,7 @@ Example:		insert into vw_property (property_def_uuid, property_val, actor_uuid, 
 												(select val_type_uuid from vw_property_def where short_description = 'particle-size'),
 												'{100, 200}',
 												(select valunit from vw_property_def where short_description = 'particle-size'))), 
-											(select actor_uuid from vw_actor where org_short_name = 'LANL'),
+											(select actor_uuid from vw_actor where org_short_name = 'TC'),
 											(select status_uuid from vw_status where description = 'active')
 											);
                 update vw_property set property_val =
@@ -1496,7 +1496,7 @@ Example:		insert into vw_material_property (material_uuid, property_def_uuid,
 							null,
 							(select status_uuid from vw_status where description = 'active')
 				) returning *;
-				update vw_material_property set property_actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where material_uuid = 
+				update vw_material_property set property_actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'TC') where material_uuid = 
 				(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
 				update vw_material_property set val_val = '{100, 900}' where material_uuid = 
 				(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
@@ -2212,14 +2212,14 @@ LANGUAGE plpgsql;
  Notes:			requires both ref_calculation_parameter_def_uuid and calculation_parameter_def_uuid
                 NOTE: this MAY supercede upsert_calculation_parameter_def_assign
  Example:       insert into vw_calculation_parameter_def (calculation_def_uuid, parameter_def_uuid)
-                     values ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+                     values ((select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration'),
                              (select parameter_def_uuid from vw_parameter_def where description = 'hcl_concentration')),
-                            ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+                            ((select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration'),
                              (select parameter_def_uuid from vw_parameter_def where description = 'total_vol')),
-                            ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+                            ((select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration'),
                              (select parameter_def_uuid from vw_parameter_def where description = 'stock_concentration'));
                 delete from vw_calculation_parameter_def
-                    where calculation_def_uuid = (select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration')
+                    where calculation_def_uuid = (select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration')
                     and parameter_def_uuid in (select parameter_def_uuid
                                                from vw_parameter_def
                                                where description in ('hcl_concentration', 'total_vol', 'stock_concentration'));
@@ -2255,14 +2255,14 @@ LANGUAGE plpgsql;
  Description:	trigger proc that deletes, inserts or updates calculation_parameter_def_x record based on TG_OP (trigger operation)
  Notes:			requires both ref_calculation_parameter_def_uuid and calculation_parameter_def_uuid
  Example:       insert into vw_calculation_parameter_def_assign (calculation_def_uuid, parameter_def_uuid)
-                     values ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+                     values ((select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration'),
                              (select parameter_def_uuid from vw_parameter_def where description = 'hcl_concentration')),
-                            ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+                            ((select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration'),
                              (select parameter_def_uuid from vw_parameter_def where description = 'total_vol')),
-                            ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+                            ((select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration'),
                              (select parameter_def_uuid from vw_parameter_def where description = 'stock_concentration'));
                 delete from vw_calculation_parameter_def_assign
-                    where calculation_def_uuid = (select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration')
+                    where calculation_def_uuid = (select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration')
                     and parameter_def_uuid in (select parameter_def_uuid
                                                from vw_parameter_def
                                                where description in ('hcl_concentration', 'total_vol', 'stock_concentration'));
@@ -2300,7 +2300,7 @@ LANGUAGE plpgsql;
                         (select put_val ((select val_type_uuid from vw_parameter_def where description = 'speed'),
                         '8888',
                         (select valunit from vw_parameter_def where description = 'speed')))
-                     where (calculation_description = 'LANL_WF1_HCL12M_5mL_concentration' AND parameter_def_description = 'speed');
+                     where (calculation_description = 'TC_WF1_HCL12M_5mL_concentration' AND parameter_def_description = 'speed');
 
 */
 CREATE OR REPLACE FUNCTION upsert_calculation_parameter()
@@ -2403,7 +2403,7 @@ Example:		insert into vw_parameter (parameter_def_uuid, ref_parameter_uuid, para
 												(select val_type_uuid from vw_parameter_def where description = 'duration'),
 												'10',
 												(select valunit from vw_parameter_def where description = 'duration'))),
-											(select actor_uuid from vw_actor where org_short_name = 'LANL'),
+											(select actor_uuid from vw_actor where org_short_name = 'TC'),
 											(select status_uuid from vw_status where description = 'active')
 											);
                 insert into vw_parameter (parameter_def_uuid, ref_parameter_uuid, parameter_val, actor_uuid, status_uuid ) values (
@@ -2413,7 +2413,7 @@ Example:		insert into vw_parameter (parameter_def_uuid, ref_parameter_uuid, para
                             (select val_type_uuid from vw_parameter_def where description = 'duration'),
 							'10',
 					        (select valunit from vw_parameter_def where description = 'duration'))),
-					    (select actor_uuid from vw_actor where org_short_name = 'LANL'),
+					    (select actor_uuid from vw_actor where org_short_name = 'TC'),
 					    (select status_uuid from vw_status where description = 'active'));
 				update vw_parameter set parameter_val = (select put_val (
                                                     (select val_type_uuid from vw_parameter_def where description = 'duration'),
@@ -3251,7 +3251,7 @@ Notes:
 
 Example:		insert into vw_outcome (experiment_uuid, description, actor_uuid, status_uuid)
 					values (
-						(select experiment_uuid from vw_experiment where description = 'LANL Test Experiment Template'),
+						(select experiment_uuid from vw_experiment where description = 'TC Test Experiment Template'),
 						'test_outcome',
 						(select actor_uuid from vw_actor where description = 'T Testuser'),
 						(select status_uuid from vw_status where description = 'test'));
@@ -3526,27 +3526,27 @@ Example:        update vw_experiment_parameter
                     set parameter_value =
                         array[(select put_val ((select val_type_uuid from vw_parameter_def where description = 'temperature'), '999.99',
                             (select valunit from vw_parameter_def where description = 'temperature')))]
-                where experiment = 'LANL Test Experiment Template' and object_description = 'Heat Sample Prep Plate'
+                where experiment = 'TC Test Experiment Template' and object_description = 'Heat Sample Prep Plate'
                     and parameter_def_description = 'temperature';
 
                 update vw_experiment_parameter
                     set parameter_value =
                         array[(select put_val ((select val_type_uuid from vw_parameter_def where description = 'total_vol'), '2.5',
                             (select valunit from vw_parameter_def where description = 'total_vol')))]
-                where experiment = 'LANL Test Experiment Template' and object_description = 'dispense H2O into SamplePrep Plate action_set'
+                where experiment = 'TC Test Experiment Template' and object_description = 'dispense H2O into SamplePrep Plate action_set'
                     and parameter_def_description = 'total_vol';
                 update vw_experiment_parameter
                     set parameter_value =
                         array[(select put_val ((select val_type_uuid from vw_parameter_def where description = 'total_vol'), '2.5',
                             (select valunit from vw_parameter_def where description = 'total_vol')))]
-                where experiment = 'LANL Test Experiment Template' and object_description = 'dispense HCL into SamplePrep Plate action_set'
+                where experiment = 'TC Test Experiment Template' and object_description = 'dispense HCL into SamplePrep Plate action_set'
                     and parameter_def_description = 'total_vol';
 
                 update vw_experiment_parameter
                     set parameter_value =
                         array[(select put_val ((select val_type_uuid from vw_parameter_def where description = 'total_vol'), '9.9',
                             (select valunit from vw_parameter_def where description = 'volume')))]
-                where experiment = 'LANL Test Experiment Template' and object_description = 'dispense Am-Stock into SamplePrep Plate action_set'
+                where experiment = 'TC Test Experiment Template' and object_description = 'dispense Am-Stock into SamplePrep Plate action_set'
                     and parameter_def_description = 'volume';
 
  */

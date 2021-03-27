@@ -468,7 +468,7 @@ insert into vw_inventory (description, owner_uuid, operator_uuid, lab_uuid, acto
 	'Test Inventory',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
-	(select actor_uuid from vw_actor where description = 'LANL'),
+	(select actor_uuid from vw_actor where description = 'TC'),
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 
