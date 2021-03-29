@@ -14,7 +14,7 @@ from core.models.view_tables import ActionParameter, WorkflowActionSet, Experime
 from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm
 from core.forms.forms import ExperimentNameForm
-from core.utils import experiment_copy
+from core.utilities.utils import experiment_copy
 import core.models
 from core.models.view_tables import Note, Actor, TagAssign, Tag
 
