@@ -791,7 +791,7 @@ class Edocument(models.Model):
                                 db_column='filename')
     source = models.CharField(
         max_length=255, blank=True, null=True, db_column='source')
-    edoc_type = models.CharField(max_length=255, blank=True,
+    doc_type_description = models.CharField(max_length=255, blank=True,
                                  null=True, db_column='doc_type_description')
     edocument = models.BinaryField(blank=True, null=True, editable=False)
     edoc_ver = models.CharField(max_length=255, blank=True,
@@ -809,7 +809,7 @@ class Edocument(models.Model):
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
     edocument_x_uuid = RetUUIDField(editable=False)
-    ref_edocument_uuid = RetUUIDField()
+    ref_edocument_uuid = RetUUIDField(blank=True, null=True)
 
     class Meta:
         managed = False

@@ -12,7 +12,7 @@ methods = {
             'Systemtool': ['systemtool_name'],
             'Status': ['status_description']
         },
-        'order_field': 'description',
+        'ordering': ['description'],
         'field_contains': '',
     },
 
@@ -28,7 +28,7 @@ methods = {
             'Status': ['status_description'],
             'Actor': ['actor']
         },
-        'order_field': 'description',
+        'ordering': ['description'],
         'field_contains': '',
     },
     'Material': {
@@ -41,7 +41,7 @@ methods = {
             # 'Abbreviation': ['abbreviation'],
             'Status': ['status_description']
         },
-        'order_field': 'status_description',
+        'ordering': ['status_description'],
         'field_contains': '',
 
     },
@@ -56,7 +56,7 @@ methods = {
             'System Tool Type': ['systemtool_type'],
             'Vendor Organization': ['vendor_organization']
         },
-        'order_field': 'systemtool_name',
+        'ordering': ['systemtool_name'],
         'field_contains': '',
     },
     'MaterialType': {
@@ -66,7 +66,7 @@ methods = {
         'column_necessary_fields': {
             'Description': ['description']
         },
-        'order_field': 'description',
+        'ordering': ['description'],
         'field_contains': '',
     },
     'Organization': {
@@ -78,7 +78,7 @@ methods = {
             'Address': ['address1', 'address2', 'zip', 'city', 'state_province', 'country'],
             'Website': ['website_url']
         },
-        'order_field': 'full_name',
+        'ordering': ['full_name'],
         'field_contains': '',
     },
     'Person': {
@@ -91,7 +91,7 @@ methods = {
             'Title': ['title'],
             'Email': ['email']
         },
-        'order_field': 'first_name',
+        'ordering': ['first_name'],
         'field_contains': '',
     },
     'Status': {
@@ -101,7 +101,7 @@ methods = {
         'column_necessary_fields': {
             'Description': ['description']
         },
-        'order_field': 'description',
+        'ordering': ['description'],
         'field_contains': '',
     },
     'SystemtoolType': {
@@ -111,7 +111,7 @@ methods = {
         'column_necessary_fields': {
             'Description': ['description']
         },
-        'order_field': 'description',
+        'ordering': ['description'],
         'field_contains': '',
     },
     'Tag': {
@@ -124,7 +124,7 @@ methods = {
             'Actor': ['actor_description'],
             'Tag Type': ['tag_type']
         },
-        'order_field': 'display_text',
+        'ordering': ['display_text'],
         'field_contains': '',
     },
     'TagType': {
@@ -135,7 +135,7 @@ methods = {
             'Short Description': ['type'],
             'Description': ['description']
         },
-        'order_field': 'type',
+        'ordering': ['type'],
         'field_contains': '',
     },
     'UdfDef': {
@@ -146,7 +146,7 @@ methods = {
             'Description': ['description'],
             'Value Type': ['val_type_description']
         },
-        'order_field': 'description',
+        'ordering': ['description'],
         'field_contains': '',
     },
     'InventoryMaterial': {
@@ -163,7 +163,7 @@ methods = {
             'Expiration Date': ['expiration_date'], 
             'Location': ['location'],
         },
-        'order_field': 'description',
+        'ordering': ['description'],
         'field_contains': '',
         'org_related_path': 'inventory__lab__organization'
     },
