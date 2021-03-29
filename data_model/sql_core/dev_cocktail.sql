@@ -127,7 +127,7 @@ insert into vw_parameter_def (description, default_val, actor_uuid, status_uuid)
 	    ('volume_floz',
         (select put_val((select get_type_def ('data', 'num')), '0', 'floz')),
         (select actor_uuid from vw_actor where description = 'Joshua Schrier'),
-		(select status_uuid from vw_status where description = 'dev_test')), -- this would clash with LANL volume in mL
+		(select status_uuid from vw_status where description = 'dev_test')), -- this would clash with another parameter def of volume in mL
 	    ('count',
         (select put_val((select get_type_def ('data', 'int')), '0', 'count')),
         (select actor_uuid from vw_actor where description = 'Joshua Schrier'),

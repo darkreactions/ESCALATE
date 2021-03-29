@@ -26,10 +26,10 @@ insert into vw_parameter_def (description, default_val, actor_uuid, status_uuid)
 insert into vw_calculation_def
 	(short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid,
 	in_opt_type_uuid, out_type_uuid, out_unit, calculation_class_uuid, actor_uuid, status_uuid )
-	values ('LANL_WF1_HCL12M_5mL_concentration',
+	values ('TC_WF1_HCL12M_5mL_concentration',
 	        'math_op_arr(math_op_arr(''hcl_concentrations'', ''/'', stock_concentration), ''*'', total_vol)',
 		(select systemtool_uuid from vw_actor where systemtool_name = 'postgres'),
-		'LANL WF1: return array of mL vols for 12M HCL for 5mL target across concentration array', null, null, null, null,
+		'WF1: return array of mL vols for 12M HCL for 5mL target across concentration array', null, null, null, null,
 		(select type_def_uuid from vw_type_def where category = 'data' and description = 'array_num'), 'mL',
 		null, (select actor_uuid from vw_actor where description = 'Mike Tynes'),
 		(select status_uuid from vw_status where description = 'dev_test')
@@ -37,49 +37,49 @@ insert into vw_calculation_def
 insert into vw_calculation_def
 	(short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid,
 	in_opt_type_uuid, out_type_uuid, out_unit, calculation_class_uuid, actor_uuid, status_uuid )
-	values ('LANL_WF1_H2O_5mL_concentration',
+	values ('TC_WF1_H2O_5mL_concentration',
 	        'math_op_arr(math_op_arr(math_op_arr(''hcl_concentrations'', ''/'', stock_concentration), ''*'', (math_op(0, ''-'', total_vol))), ''+'', total_vol)',
 		(select systemtool_uuid from vw_actor where systemtool_name = 'postgres'),
-		'LANL WF1: return array of mL vols for H2O for 5mL target across concentration array', null, null, null, null,
+		'WF1: return array of mL vols for H2O for 5mL target across concentration array', null, null, null, null,
 		(select type_def_uuid from vw_type_def where category = 'data' and description = 'array_num'), 'mL',
 		null, (select actor_uuid from vw_actor where description = 'Mike Tynes'),
 		(select status_uuid from vw_status where description = 'dev_test')
 		);
 insert into vw_calculation_parameter_def (calculation_def_uuid, parameter_def_uuid)
     values (
-        (select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+        (select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration'),
         (select parameter_def_uuid from vw_parameter_def where description = 'hcl_concentrations')),
-        ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+        ((select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration'),
         (select parameter_def_uuid from vw_parameter_def where description = 'total_vol')),
-        ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+        ((select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration'),
         (select parameter_def_uuid from vw_parameter_def where description = 'stock_concentration'));
 insert into vw_calculation_parameter_def (calculation_def_uuid, parameter_def_uuid)
     values (
-        (select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_H2O_5mL_concentration'),
+        (select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_H2O_5mL_concentration'),
         (select parameter_def_uuid from vw_parameter_def where description = 'hcl_concentrations')),
-        ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_H2O_5mL_concentration'),
+        ((select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_H2O_5mL_concentration'),
         (select parameter_def_uuid from vw_parameter_def where description = 'total_vol')),
-        ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_H2O_5mL_concentration'),
+        ((select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_H2O_5mL_concentration'),
         (select parameter_def_uuid from vw_parameter_def where description = 'stock_concentration'));
 -- now create the calculation for HCL
 insert into vw_calculation (calculation_def_uuid, calculation_alias_name, in_val, in_opt_val, out_val, actor_uuid, status_uuid) values
 (
-    (select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
-    'LANL_WF1_HCL12M_5mL_concentration',
+    (select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration'),
+    'TC_WF1_HCL12M_5mL_concentration',
     null,
     null,
-    (select do_calculation((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'))),
+    (select do_calculation((select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration'))),
  	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test')
 );
 -- calculation for H2O
 insert into vw_calculation (calculation_def_uuid, calculation_alias_name, in_val, in_opt_val, out_val, actor_uuid, status_uuid) values
 (
-    (select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_H2O_5mL_concentration'),
-    'LANL_WF1_H2O_5mL_concentration',
+    (select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_H2O_5mL_concentration'),
+    'TC_WF1_H2O_5mL_concentration',
     null,
     null,
-    (select do_calculation((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_H2O_5mL_concentration'))),
+    (select do_calculation((select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_H2O_5mL_concentration'))),
  	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test')
 );  -- todo: i still dont really understand this
@@ -98,9 +98,9 @@ insert into vw_experiment (ref_uid,
 		'test_liq_sol', 'liquid_solid_extraction',
 	    --(select experiment_type_uuid from vw_experiment_type where description = 'template'),
 		null,
-		(select actor_uuid from vw_actor where description = 'LANL'),
+		(select actor_uuid from vw_actor where description = 'TC'),
 		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
-		(select actor_uuid from vw_actor where description = 'LANL'),
+		(select actor_uuid from vw_actor where description = 'TC'),
 		(select status_uuid from vw_status where description = 'dev_test'));
 
 -- ===========================================================================
@@ -112,12 +112,12 @@ insert into vw_experiment (ref_uid,
 
 insert into vw_bom (experiment_uuid, description, actor_uuid, status_uuid) values
 	((select experiment_uuid from vw_experiment where description = 'liquid_solid_extraction'),
-	'LANL Liq-Sol Dev Materials ',
+	'Liq-Sol Dev Materials ',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 -- then add materials (and amounts) to BOM
 insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
-	(select bom_uuid from vw_bom where description = 'LANL Liq-Sol Dev Materials '),
+	(select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials '),
     'HCl-12M',
 	(select inventory_material_uuid from vw_inventory_material where description = 'HCl-12M'),
 	(select put_val((select get_type_def ('data', 'num')), '60.00','mL')), -- todo one cool feature of LS is that it lets you define the protocol first and theninfers these amounts
@@ -127,7 +127,7 @@ insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, all
 	(select status_uuid from vw_status where description = 'dev_test'));
 
 insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
-	(select bom_uuid from vw_bom where description = 'LANL Liq-Sol Dev Materials '),
+	(select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials '),
     'H2O',
 	(select inventory_material_uuid from vw_inventory_material where description = 'Water'),
 	(select put_val((select get_type_def ('data', 'num')), '60.00','mL')),
@@ -136,7 +136,7 @@ insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, all
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
-	(select bom_uuid from vw_bom where description = 'LANL Liq-Sol Dev Materials '),
+	(select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials '),
     'Am-243 Stock',
 	(select inventory_material_uuid from vw_inventory_material where description = 'Am-243 Stock'),
 	(select put_val((select get_type_def ('data', 'num')), '1.20','mL')),
@@ -146,7 +146,7 @@ insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, all
 	(select status_uuid from vw_status where description = 'dev_test'));
 
 insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
-	(select bom_uuid from vw_bom where description = 'LANL Liq-Sol Dev Materials '),
+	(select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials '),
     'Resin',
 	(select inventory_material_uuid from vw_inventory_material where description = 'Resin: RE'),
 	(select put_val((select get_type_def ('data', 'num')), '0.60','g')),
@@ -156,7 +156,7 @@ insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, all
 	(select status_uuid from vw_status where description = 'dev_test'));
 
 insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
-	(select bom_uuid from vw_bom where description = 'LANL Liq-Sol Dev Materials '),
+	(select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials '),
     'Sample Prep Plate',
 	(select inventory_material_uuid from vw_inventory_material where description = '24 well plate'),
 	(select put_val((select get_type_def ('data', 'int')), '1','')),
@@ -166,7 +166,7 @@ insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, all
 	(select status_uuid from vw_status where description = 'dev_test'));
 
 insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
-	(select bom_uuid from vw_bom where description = 'LANL Liq-Sol Dev Materials '),
+	(select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials '),
     'Assay Sample Plate 1',
 	(select inventory_material_uuid from vw_inventory_material where description = '24 well plate'),
 	(select put_val((select get_type_def ('data', 'int')), '1','')),
@@ -176,7 +176,7 @@ insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, all
 	(select status_uuid from vw_status where description = 'dev_test'));
 
 insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
-	(select bom_uuid from vw_bom where description = 'LANL Liq-Sol Dev Materials '),
+	(select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials '),
     'Resin Plate',
 	(select inventory_material_uuid from vw_inventory_material where description = '24 well plate'),
 	(select put_val((select get_type_def ('data', 'int')), '1','')),
@@ -187,7 +187,7 @@ insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, all
 
 
 insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
-	(select bom_uuid from vw_bom where description = 'LANL Liq-Sol Dev Materials '),
+	(select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials '),
     'Assay Sample Plate 2',
 	(select inventory_material_uuid from vw_inventory_material where description = '24 well plate'),
 	(select put_val((select get_type_def ('data', 'int')), '1','')),
@@ -197,7 +197,7 @@ insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, all
 	(select status_uuid from vw_status where description = 'dev_test'));
 
 insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
-	(select bom_uuid from vw_bom where description = 'LANL Liq-Sol Dev Materials '),
+	(select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials '),
     'Filter Plate',
 	(select inventory_material_uuid from vw_inventory_material where description = 'Filter Plate'),
 	(select put_val((select get_type_def ('data', 'int')), '1','')),
@@ -213,46 +213,46 @@ insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, all
 insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid)
 	values (
 		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
-		'LANL Liq-Sol Sample H2O', -- todo: combine sample prep into one workflow w/ parent actions
+		'Liq-Sol Sample H2O', -- todo: combine sample prep into one workflow w/ parent actions
 		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 		(select status_uuid from vw_status where description = 'dev_test'));
 -- create workflow_action_set for HCL
 insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid)
 	values (
 		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
-		'LANL Liq-Sol Sample HCl',
+		'Liq-Sol Sample HCl',
 		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 		(select status_uuid from vw_status where description = 'dev_test'));
 -- create workflow_action_set for Rad solution
 insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid)
 	values (
 		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
-		'LANL Liq-Sol Sample Am-243',
+		'Liq-Sol Sample Am-243',
 		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 		(select status_uuid from vw_status where description = 'dev_test')); -- q for gary -- could three action sets be in one workflow?
 insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid)
 	values (
 		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
-		'LANL Liq-Sol Assay Samples',
+		'Liq-Sol Assay Samples',
 		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 		(select status_uuid from vw_status where description = 'dev_test'));
 insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid)
 	values (
 		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
-		'LANL Liq-Sol Add Resin',
+		'Liq-Sol Add Resin',
 		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 		(select status_uuid from vw_status where description = 'dev_test'));
 insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid)
 	values (
 		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
-		'LANL Liq-Sol Sample to Resin',
+		'Liq-Sol Sample to Resin',
 		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 		(select status_uuid from vw_status where description = 'dev_test'));
 
 insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid)
 	values (
 		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
-		'LANL Liq-Sol Contact Vortex',
+		'Liq-Sol Contact Vortex',
 		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 		(select status_uuid from vw_status where description = 'dev_test'));
 
@@ -260,27 +260,27 @@ insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uui
 insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid)
     values (1,
         (select experiment_uuid from vw_experiment where description = 'liquid_solid_extraction'),
-        (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Sample H2O')),
+        (select workflow_uuid from vw_workflow where description = 'Liq-Sol Sample H2O')),
         (2,
         (select experiment_uuid from vw_experiment where description = 'liquid_solid_extraction'),
-        (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Sample HCl')),
+        (select workflow_uuid from vw_workflow where description = 'Liq-Sol Sample HCl')),
         (3,
         (select experiment_uuid from vw_experiment where description = 'liquid_solid_extraction'),
-        (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Sample Am-243')),
+        (select workflow_uuid from vw_workflow where description = 'Liq-Sol Sample Am-243')),
         (4,
         (select experiment_uuid from vw_experiment where description = 'liquid_solid_extraction'),
-        (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Assay Samples')),
+        (select workflow_uuid from vw_workflow where description = 'Liq-Sol Assay Samples')),
         (5,
         (select experiment_uuid from vw_experiment where description = 'liquid_solid_extraction'),
-        (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Add Resin'));
+        (select workflow_uuid from vw_workflow where description = 'Liq-Sol Add Resin'));
 insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid) values
         (6,
         (select experiment_uuid from vw_experiment where description = 'liquid_solid_extraction'),
-        (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Sample to Resin'));
+        (select workflow_uuid from vw_workflow where description = 'Liq-Sol Sample to Resin'));
 insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid) values
         (7,
         (select experiment_uuid from vw_experiment where description = 'liquid_solid_extraction'),
-        (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Contact Vortex'));
+        (select workflow_uuid from vw_workflow where description = 'Liq-Sol Contact Vortex'));
 
 -- create the action_sets
 
@@ -291,15 +291,15 @@ insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid,
                                     parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values ('Dispense Sample H2O',
-        (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Sample H2O'),
+        (select workflow_uuid from vw_workflow where description = 'Liq-Sol Sample H2O'),
         (select action_def_uuid from vw_action_def where description = 'dispense'),
         null, null, null, null,
         (select parameter_def_uuid
          from vw_action_parameter_def
          where description = 'dispense' and parameter_description = 'volume'),
         null,
-        (select calculation_uuid from vw_calculation where short_name = 'LANL_WF1_H2O_5mL_concentration'),
- --       (select arr_val_2_val_arr ((select out_val from vw_calculation where short_name = 'LANL_WF1_H2O_5mL_concentration'))),
+        (select calculation_uuid from vw_calculation where short_name = 'TC_WF1_H2O_5mL_concentration'),
+ --       (select arr_val_2_val_arr ((select out_val from vw_calculation where short_name = 'TC_WF1_H2O_5mL_concentration'))),
         array [(select bom_material_index_uuid from vw_bom_material_index where description = 'H2O')],
         array [
             (select bom_material_index_uuid from vw_bom_material_index where
@@ -326,14 +326,14 @@ insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid,
                                     parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values  ('Dispense Sample HCl',
-        (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Sample HCl'),
+        (select workflow_uuid from vw_workflow where description = 'Liq-Sol Sample HCl'),
         (select action_def_uuid from vw_action_def where description = 'dispense'),
         null, null, null, null,
         (select parameter_def_uuid
          from vw_action_parameter_def
          where description = 'dispense' and parameter_description = 'volume'),
         null,
-        (select calculation_uuid from vw_calculation where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+        (select calculation_uuid from vw_calculation where short_name = 'TC_WF1_HCL12M_5mL_concentration'),
         array [(select bom_material_index_uuid from vw_bom_material_index where description = 'HCl-12M')],
         array [
             (select bom_material_index_uuid from vw_bom_material_index where
@@ -360,7 +360,7 @@ insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid,
                                     parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values  ('Dispense Sample Am243',
-        (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Sample Am-243'),
+        (select workflow_uuid from vw_workflow where description = 'Liq-Sol Sample Am-243'),
         (select action_def_uuid from vw_action_def where description = 'dispense'),
         null, null, null, null,
         (select parameter_def_uuid
@@ -394,7 +394,7 @@ insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid,
                                     parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values  ('Transfer Sample for Assay',
-        (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Assay Samples'),
+        (select workflow_uuid from vw_workflow where description = 'Liq-Sol Assay Samples'),
         (select action_def_uuid from vw_action_def where description = 'dispense'),
         null, null, null, null,
         (select parameter_def_uuid
@@ -444,7 +444,7 @@ insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid,
                                     parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values  ('Add Resin',
-        (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Add Resin'),
+        (select workflow_uuid from vw_workflow where description = 'Liq-Sol Add Resin'),
         (select action_def_uuid from vw_action_def where description = 'dispense_solid'),
         null, null, null, null,
         (select parameter_def_uuid
@@ -479,7 +479,7 @@ insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid,
                                     parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values  ('Sample to Resin',
-        (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Sample to Resin'),
+        (select workflow_uuid from vw_workflow where description = 'Liq-Sol Sample to Resin'),
         (select action_def_uuid from vw_action_def where description = 'dispense'),
         null, null, null, null,
         (select parameter_def_uuid
@@ -528,17 +528,17 @@ values  ('Sample to Resin',
 insert into vw_action (action_def_uuid, workflow_uuid, action_description, actor_uuid, status_uuid)
 	values (
     	(select action_def_uuid from vw_action_def where description = 'heat_stir'),
-    	(select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Contact Vortex'),
+    	(select workflow_uuid from vw_workflow where description = 'Liq-Sol Contact Vortex'),
         'Heat Stir Sample Plate',
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
         (select status_uuid from vw_status where description = 'dev_test'));
 insert into vw_workflow_object (workflow_uuid, action_uuid)
 	values (
-	    (select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Contact Vortex'),
+	    (select workflow_uuid from vw_workflow where description = 'Liq-Sol Contact Vortex'),
 		(select action_uuid from vw_action where action_description = 'Heat Stir Sample Plate'));
 insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)
 	values (
-		(select workflow_uuid from vw_workflow where description = 'LANL Liq-Sol Contact Vortex'),
+		(select workflow_uuid from vw_workflow where description = 'Liq-Sol Contact Vortex'),
 		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Heat Stir Sample Plate')),
         null,
         (select status_uuid from vw_status where description = 'dev_test'));
@@ -576,7 +576,7 @@ select concat('end create liquid solid,', now());
 --
 -- select *
 -- from vw_experiment_parameter;
--- where workflow like 'LANL%HCl';
+-- where workflow like 'TC%HCl';
 --
 -- -- these two copies share a parameter because of the way calculation and parameter def are intertwined
 --

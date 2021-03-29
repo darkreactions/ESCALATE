@@ -1129,7 +1129,7 @@ Date:			12.07.2020
 Description:	function to convert an array (in a val) to an array of val's
 Notes:			will only work with array types: array_bool, array_int, array_num, array_text
 
-Example:        select arr_val_2_val_arr ((select out_val from vw_calculation where short_name = 'LANL_WF1_H2O_5mL_concentration'));
+Example:        select arr_val_2_val_arr ((select out_val from vw_calculation where short_name = 'TC_WF1_H2O_5mL_concentration'));
 */
 -- DROP FUNCTION IF EXISTS arr_val_2_val_arr (arr_val val) cascade;
 CREATE OR REPLACE FUNCTION arr_val_2_val_arr (arr_val val)
@@ -1495,10 +1495,10 @@ Description:	returns the results of a basic postgres math operation; will bring 
 Notes:          array parameter names need to be [double] quoted in the calc definition
 Example:		select do_calculation(
                     (select calculation_def_uuid from vw_calculation_def
-                    where short_name = 'LANL_WF1_HCL12M_5mL_concentration'))
+                    where short_name = 'TC_WF1_HCL12M_5mL_concentration'))
                 select do_calculation(
                     (select calculation_def_uuid from vw_calculation_def
-                    where short_name = 'LANL_WF1_H2O_5mL_concentration'))
+                    where short_name = 'TC_WF1_H2O_5mL_concentration'))
  */
 
 -- DROP FUNCTION IF EXISTS do_calculation (p_calculation_def_uuid uuid) cascade;
@@ -1819,7 +1819,7 @@ Notes:          this function copies the following experiment objects:
                 workflow_step(s)
                 tag(s), note(s)
 
-Example:		select * from experiment_copy ((select experiment_uuid from vw_experiment where description = 'LANL Test Experiment Template'));
+Example:		select * from experiment_copy ((select experiment_uuid from vw_experiment where description = 'Test Experiment Template'));
 
 */
 -- DROP FUNCTION IF EXISTS experiment_copy () cascade;
@@ -1961,7 +1961,7 @@ Date:			2020.12.30
 Description:
 Notes:
 Example:        call replicate_experiment_copy
-                ('LANL Test Experiment Template', 1000);
+                ('Test Experiment Template', 1000);
 
                 10 copies:  4s
                 50 copies:  14s

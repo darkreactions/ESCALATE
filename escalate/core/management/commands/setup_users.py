@@ -34,8 +34,7 @@ org_passwords = {
     'LBL' : 'test',
     'HC' : 'test',
     'NL' : 'test',
-#    'NLC' : 'test'
-    'LANL': 'test',
+    'TC': 'test',
 }
 
 

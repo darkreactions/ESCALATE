@@ -84,7 +84,7 @@ VALUES
 BEGIN;
 INSERT INTO vw_organization (description, full_name, short_name, address1, address2, city, state_province, zip, country, website_url, phone) 
 VALUES
-	('Test Organization', 'TestCo', 'XX', '123 Main St.', NULL, 'Test City', 'XX', '99999', 'US','http://http://info.cern.ch', NULL), 
+	('Test Organization', 'TestCo', 'TC', '123 Main St.', NULL, 'Test City', 'XX', '99999', 'US','http://http://info.cern.ch', NULL),
 	('College', 'Haverford College', 'HC', '370 Lancaster Ave.', NULL, 'Haverford', 'PA', '19041', 'US','http://www.haverford.edu', NULL),
 	('Laboratory', 'Norquist Lab', 'NL', '370 Lancaster Ave.', NULL, 'Haverford', 'PA', '19041', 'US','http://www.haverford.edu', NULL),
 	('Laboratory', 'Lawrence Berkeley National Laboratory', 'LBL', '1 Cyclotron Rd.', NULL, 'Berkeley', 'CA', '94720', 'US', 'https://www.lbl.gov', NULL),
@@ -93,9 +93,17 @@ VALUES
 	('Cheminfomatics software', 'ChemAxon', 'ChemAxon', NULL, NULL, NULL, NULL, NULL, 'US', 'https://chemaxon.com', NULL),
 	('Cheminfomatics software', 'RDKit open source software', 'RDKit', NULL, NULL, NULL, NULL, NULL, NULL,'https://www.rdkit.org', NULL),
 	('Laboratory', 'Emerald Cloud Lab', 'ECL', '844 Dubuque Ave', NULL, 'South San Francisco', 'CA', '94080', 'US', 'https://www.emeraldcloudlab.com', NULL),
-	('DBMS', 'PostgreSQL', 'postgres', NULL, NULL, NULL, NULL, NULL, NULL, 'https://www.postgresql.org', NULL),
-	('Laboratory', 'Los Alamos National Laboratory', 'LANL', 'Bikini Atoll Rd', 'SM 30', 'Los Alamos', 'NM', '87545', 'US', 'https://www.lanl.gov', NULL);
+	('DBMS', 'PostgreSQL', 'postgres', NULL, NULL, NULL, NULL, NULL, NULL, 'https://www.postgresql.org', NULL);
 COMMIT;
+
+-- BEGIN;
+-- INSERT INTO vw_actor (organization_uuid, description, status_uuid)
+-- VALUES
+--     ((select organization_uuid from vw_organization where short_name = 'TC'),
+--     'TC',
+--     (select status_uuid from vw_status where description = 'active'));
+-- COMMIT;
+
 
 
 -- ----------------------------

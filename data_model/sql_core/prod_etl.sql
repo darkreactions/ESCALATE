@@ -155,7 +155,7 @@ Author:			G. Cattabriga
 Date:			2020.07.31
 Description:	loads json file (_json) into load table (_table) 
 Notes:			drop function if exists load_json(_json varchar, _table varchar) cascade;
-Example:		select load_json('/Users/gcattabriga/Downloads/GitHub/escalate_wip/lanl_material_example_20200729.json', 'load_lanl_materials_json');
+Example:		select load_json('/Users/gcattabriga/Downloads/GitHub/escalate_wip/material_example_20200729.json', 'load_example_materials_json');
 */
 CREATE OR REPLACE FUNCTION load_json (_json varchar, _table varchar)
 	RETURNS int
