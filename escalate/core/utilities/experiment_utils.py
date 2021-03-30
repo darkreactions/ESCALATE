@@ -1,5 +1,9 @@
-from core.models.view_tables import WorkflowActionSet
+'''
+Created on Mar 29, 2021
 
+@author: jpannizzo
+'''
+from core.models.view_tables import WorkflowActionSet
 from core.custom_types import Val
 import numpy as np
 from copy import deepcopy
