@@ -22,7 +22,7 @@ from core.models.view_tables import Note, Actor, TagAssign, Tag
 from copy import deepcopy
 import numpy as np
 from core.custom_types import Val
-from core.experiment_templates import liquid_solid_extraction
+from core.experiment_templates import liquid_solid_extraction, resin_weighing
 
 
 SUPPORTED_CREATE_WFS = ['liquid_solid_extraction', 'resin_weighing']
@@ -220,13 +220,7 @@ class CreateExperimentView(TemplateView):
                     if template_name == 'liquid_solid_extraction':
                         new_lsr_pk, lsr_msg = liquid_solid_extraction(q3_formset,q3,experiment_copy_uuid,lsr_edoc,exp_name)
                     elif template_name == 'resin_weighing':
-                        related_exp = 'workflow__experiment_workflow_workflow__experiment'
-                        resin_dispense_action_set = WorkflowActionSet.objects.get(**{f'{related_exp}': experiment_copy_uuid,
-                                                                                     'description__contains': 'Dispense Resin'})
-                        new_lsr_pk, lsr_msg = update_lsr_edoc(lsr_edoc,
-                                                              experiment_copy_uuid,
-                                                              exp_name,
-                                                              resin_amt=resin_dispense_action_set.parameter_val[0].value)
+                        new_lsr_pk, lsr_msg = resin_weighing(experiment_copy_uuid,lsr_edoc,exp_name)
 
                     if new_lsr_pk is not None:
                         context['lsr_download_link'] = reverse('edoc_download', args=[new_lsr_pk])
