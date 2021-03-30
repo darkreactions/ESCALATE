@@ -15,45 +15,18 @@ from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm
 from core.forms.forms import ExperimentNameForm
 from core.utilities.utils import experiment_copy
+from core.utilities.experiment_utils import hcl_mix, update_dispense_action_set, update_lsr_edoc
 import core.models
 from core.models.view_tables import Note, Actor, TagAssign, Tag
 
 from copy import deepcopy
 import numpy as np
 from core.custom_types import Val
+from core.experiment_templates import liquid_solid_extraction
 
 
 SUPPORTED_CREATE_WFS = ['liquid_solid_extraction', 'resin_weighing']
-
-def hcl_mix(stock_concentration, solution_volume, target_concentrations):
-    hcl_vols = (target_concentrations * solution_volume) / stock_concentration
-    h2o_vols = solution_volume - hcl_vols
-    return hcl_vols, h2o_vols
                 
-def update_dispense_action_set(dispense_action_set, volumes, unit='mL'):
-    dispense_action_set_params = deepcopy(dispense_action_set.__dict__)
-
-    # delete keys from dispense action set that are not needed for creating a new action set
-    delete_keys = ['uuid', '_state', '_prefetched_objects_cache',
-                   # the below keys are the annotations from q1..q3
-                   'object_description', 'object_uuid', 'parameter_def_description', 'parameter_uuid',
-                   'parameter_value', 'experiment_uuid', 'experiment_description', 'workflow_seq'
-                   ]
-    [dispense_action_set_params.pop(k, None) for k in delete_keys]
-
-    # delete the old action set
-    dispense_action_set.delete()
-
-    if isinstance(volumes, np.ndarray):
-        #recall: needs to be a list of Val
-        v = [Val.from_dict({'type': 'num', 'value': vol, 'unit': unit}) for vol in volumes]
-    elif isinstance(volumes, Val):
-        v = [volumes]
-    dispense_action_set_params['calculation_id'] = None
-    dispense_action_set_params['parameter_val'] = v
-    instance = WorkflowActionSet(**dispense_action_set_params)
-    instance.save()
-
 class BaseUUIDFormSet(BaseFormSet):
     """
     This formset adds a UUID as the kwarg. When the form is rendered, 
@@ -245,30 +218,7 @@ class CreateExperimentView(TemplateView):
                 if template_name in SUPPORTED_CREATE_WFS:
                     lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
                     if template_name == 'liquid_solid_extraction':
-                        # q3 contains concentraiton logic
-                        if any([f.has_changed() for f in q3_formset]):
-                            data = {}  # Stick form data into this dict
-                            for i, form in enumerate(q3_formset):
-                                if form.is_valid():
-                                    query = q3[i]
-                                    data[query.parameter_def_description] = form.cleaned_data['value'].value
-
-                            hcl_vols, h2o_vols = hcl_mix(data['stock_concentration'],
-                                                         data['total_vol'],
-                                                         np.fromstring(data['hcl_concentrations'].strip(']['), sep=',')
-                                                         )
-                            related_exp = 'workflow__experiment_workflow_workflow__experiment'
-                            h2o_dispense_action_set = WorkflowActionSet.objects.get(**{f'{related_exp}': experiment_copy_uuid,
-                                                                                       'description__contains': 'H2O'})
-                            hcl_dispense_action_set = WorkflowActionSet.objects.get(**{f'{related_exp}': experiment_copy_uuid,
-                                                                                       'description__contains': 'HCl'})
-                            update_dispense_action_set(h2o_dispense_action_set, h2o_vols)
-                            update_dispense_action_set(hcl_dispense_action_set, hcl_vols)
-                            new_lsr_pk, lsr_msg = update_lsr_edoc(lsr_edoc,
-                                                                  experiment_copy_uuid,
-                                                                  exp_name,
-                                                                  vol_hcl=list(hcl_vols*1000),
-                                                                  vol_h2o=list(h2o_vols*1000))
+                        new_lsr_pk, lsr_msg = liquid_solid_extraction(q3_formset,q3,experiment_copy_uuid,lsr_edoc,exp_name)
                     elif template_name == 'resin_weighing':
                         related_exp = 'workflow__experiment_workflow_workflow__experiment'
                         resin_dispense_action_set = WorkflowActionSet.objects.get(**{f'{related_exp}': experiment_copy_uuid,
@@ -290,40 +240,6 @@ class CreateExperimentView(TemplateView):
                 
             ## end: one-time procedure
         return render(request, self.template_name, context)
-
-
-def update_lsr_edoc(template_edoc,  experiment_copy_uuid, experiment_copy_name, **kwargs):
-    """Copy LSR file from the experiment template, update tagged maps with kwargs, save to experiment copy
-    Returns the uuid if completed successfully, else none
-    """
-    from LSRGenerator.generate import generate_lsr_design
-    import xml.etree.ElementTree as ET
-
-    # copy the template edoc
-    template_edoc.pk = None # this effectively creates a copy of the original edoc
-
-    # convert to format LSRGenerator understands
-    lsr_template = template_edoc.edocument.tobytes().decode('utf-16')
-    lsr_template = ET.ElementTree(ET.fromstring(lsr_template))
-
-    # populate LSR design with kwargs, handling failure
-    new_lsr_uuid = None
-    message = None
-    try:
-        lsr_design = generate_lsr_design(lsr_template, **kwargs)
-    except Exception as e:
-        message = str(e)
-    else:
-        lsr_design = ET.tostring(lsr_design.getroot(), encoding='utf-16')
-        # associate with the experiment copy and save
-        template_edoc.ref_edocument_uuid = experiment_copy_uuid
-        template_edoc.edocument = lsr_design
-        template_edoc.filename = experiment_copy_name + '.lsr'
-        template_edoc.save()
-        new_lsr_uuid = template_edoc.pk
-
-    return new_lsr_uuid, message
-
 
 class ExperimentListView(ListView):
     template_name = 'core/experiment/list.html'
