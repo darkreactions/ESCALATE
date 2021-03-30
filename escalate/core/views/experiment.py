@@ -1,27 +1,21 @@
 import json
 from django.db.models import F, Value
-from django.http import HttpResponse
 from django.views.generic import TemplateView
 from django.forms import formset_factory, BaseFormSet
-from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.contrib import messages
 from django.urls import reverse, reverse_lazy
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 
-from core.models.view_tables import ActionParameter, WorkflowActionSet, Experiment, BomMaterial, ParameterDef, Edocument
+from core.models.view_tables import ActionParameter, WorkflowActionSet, Experiment, BomMaterial, Edocument
 from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm
 from core.forms.forms import ExperimentNameForm
 from core.utilities.utils import experiment_copy
-from core.utilities.experiment_utils import hcl_mix, update_dispense_action_set, update_lsr_edoc
+from core.utilities.experiment_utils import update_dispense_action_set
 import core.models
-from core.models.view_tables import Note, Actor, TagAssign, Tag
-
-from copy import deepcopy
-import numpy as np
-from core.custom_types import Val
+from core.models.view_tables import Note, TagAssign, Tag
 from core.experiment_templates import liquid_solid_extraction, resin_weighing
 
 
