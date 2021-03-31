@@ -225,6 +225,9 @@ class Measure(models.Model):
                                    blank=True,
                                    null=True,
                                    )
+    measure_def = models.ForeignKey('MeasureDef',
+                                    db_column='measure_def_uuid',
+                                    on_delete=models.DO_NOTHING)
     measure_value = ValField(max_length=255, )
     actor_uuid = models.ForeignKey('Actor',
                                    on_delete=models.DO_NOTHING,
@@ -283,6 +286,9 @@ class MeasureType(models.Model):
     add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
     mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
 
+    def __str__(self):
+        return f'{self.description}'
+
     class Meta:
         managed = False
         db_table = 'vw_measure_type'
@@ -340,9 +346,14 @@ class MeasureDef(models.Model):
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return f'{self.description}'
+
     class Meta:
         managed = False
-        db_table = 'vw_measure_def'  
+        db_table = 'vw_measure_def'
+
+
 
 
 class Note(models.Model):
