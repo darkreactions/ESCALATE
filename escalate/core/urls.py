@@ -9,12 +9,6 @@ from core.utilities.utils import view_names, camel_to_snake
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.views.generic.base import RedirectView
 
-
-urlpatterns = [
-    path('favicon.ico', RedirectView.as_view(
-        url=staticfiles_storage.url('static/favicon.ico')))
-]
-
 urlpatterns = [
     path('', LoginView.as_view(), name='login'),
     path('create_user/', CreateUserView.as_view(), name='create_user'),
@@ -29,6 +23,7 @@ urlpatterns = [
     path('create_experiment/', CreateExperimentView.as_view(), name='create_experiment'),
     path('experiment_list/', ExperimentListView.as_view(), name='experiment_list'),
     path('experiment_view/<uuid:pk>', ExperimentDetailView.as_view(), name='experiment_view'),
+    path('favicon.ico', RedirectView.as_view(url=staticfiles_storage.url('static/favicon.ico'))),
 ]
 
 

@@ -13,14 +13,15 @@ from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm
 from core.forms.forms import ExperimentNameForm
 from core.utilities.utils import experiment_copy
-from core.utilities.experiment_utils import update_dispense_action_set
+from core.utilities.experiment_utils import update_dispense_action_set, supported_wfs
 import core.models
 from core.models.view_tables import Note, TagAssign, Tag
 from core.experiment_templates import liquid_solid_extraction, resin_weighing
 
 
-SUPPORTED_CREATE_WFS = ['liquid_solid_extraction', 'resin_weighing']
-                
+#SUPPORTED_CREATE_WFS = ['liquid_solid_extraction', 'resin_weighing']
+SUPPORTED_CREATE_WFS = supported_wfs() 
+        
 class BaseUUIDFormSet(BaseFormSet):
     """
     This formset adds a UUID as the kwarg. When the form is rendered, 
@@ -41,7 +42,7 @@ class CreateExperimentView(TemplateView):
         self.all_experiments = Experiment.objects.filter(parent__isnull=True)
         super().__init__(*args, **kwargs)
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs):    
         context = super().get_context_data(**kwargs)
         context['all_experiments'] = self.all_experiments
         return context
@@ -208,7 +209,7 @@ class CreateExperimentView(TemplateView):
                             else:
                                 setattr(query, field, data['value'])
                                 query.save()
-
+                                
                 if template_name in SUPPORTED_CREATE_WFS:
                     lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
                     if template_name == 'liquid_solid_extraction':
