@@ -20,12 +20,8 @@ select * from inventory;
 --   $$select inventory_uuid from vw_inventory where description = 'HC Test Inventory' LIMIT 1$$ LANGUAGE sql IMMUTABLE;
 --
 -- select inventory_uuid();
-
-select * from vw_material;
-
-
-
-select * from vw_experiment;
+--select * from vw_material;
+--select * from vw_experiment;
 
 update vw_material
 set material_class = 'model';
@@ -153,10 +149,8 @@ insert into vw_material_property (material_uuid, property_def_uuid,
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 
-select composite_description, composite_class, component_description, property_description, property_class, property_value from vw_material_composite_property where composite_description like 'Stock%';
-
-
-select * from vw_material where description like '%Stock%';\
+--select composite_description, composite_class, component_description, property_description, property_class, property_value from vw_material_composite_property where composite_description like 'Stock%';
+--select * from vw_material where description like '%Stock%';
 
 insert into vw_inventory_material (inventory_uuid, description, material_uuid)
 				values (
@@ -282,4 +276,4 @@ values ('Dispense GBL',
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
         (select status_uuid from vw_status where description = 'dev_test'));
 
-select * from vw_experiment_workflow_bom_step_object_parameter_json;
+--select * from vw_experiment_workflow_bom_step_object_parameter_json;

@@ -55,5 +55,8 @@ psql -h localhost -d escalate -U escalate -f dev_sep_wf_liq_sol.sql >> rebuild_d
 echo "Loading Separation resin weigh"
 psql -h localhost -d escalate -U escalate -f dev_sep_resin_weigh.sql >> rebuild_dev.log 2>&1
 
+echo "Loading HC wf1"
+psql -h localhost -d escalate -U escalate -f hc_create_wf1.sql >> rebuild_dev.log 2>&1
+
 echo "done (test_dev.log)"
 (cd ../sql_test && awk 'BEGIN { count=0 } /ERROR:/ {print $0;count++ } END { print "error count: ", count }' test_dev.log)
