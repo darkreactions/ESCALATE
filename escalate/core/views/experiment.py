@@ -18,10 +18,10 @@ import core.models
 from core.models.view_tables import Note, TagAssign, Tag
 from core.experiment_templates import liquid_solid_extraction, resin_weighing
 
-
 #SUPPORTED_CREATE_WFS = ['liquid_solid_extraction', 'resin_weighing']
 SUPPORTED_CREATE_WFS = supported_wfs() 
-        
+
+
 class BaseUUIDFormSet(BaseFormSet):
     """
     This formset adds a UUID as the kwarg. When the form is rendered, 
@@ -32,6 +32,7 @@ class BaseUUIDFormSet(BaseFormSet):
         kwargs = super().get_form_kwargs(index)
         kwargs['uuid'] = kwargs['object_uuids'][index]
         return kwargs
+
 
 class CreateExperimentView(TemplateView):
     template_name = "core/create_experiment.html"
@@ -82,7 +83,7 @@ class CreateExperimentView(TemplateView):
         return q1, q2, q3
 
     def get_action_parameter_forms(self, exp_uuid, context):
-        #workflow__experiment_workflow_workflow__experiment=exp_uuid
+        # workflow__experiment_workflow_workflow__experiment=exp_uuid
         q1, q2, q3 = self.get_action_parameter_querysets(exp_uuid)
         """
         This happens before copy, in the template. The only way to identify a parameter is 
@@ -138,8 +139,7 @@ class CreateExperimentView(TemplateView):
         return context
 
     def post(self, request, *args, **kwargs):
-        context = {}
-        context['all_experiments'] = self.all_experiments
+        context = {'all_experiments': self.all_experiments}
         if 'select_exp_template' in request.POST:
             exp_uuid = request.POST['select_exp_template']
             if exp_uuid:
@@ -150,24 +150,20 @@ class CreateExperimentView(TemplateView):
                 context = self.get_material_forms(exp_uuid, context)
             else:
                 request.session['experiment_template_uuid'] = None
+        # begin: create experiment
         elif 'create_exp' in request.POST:
-            #context['selected_exp_template'] = {'description': "Dummy function to create an experiment" }
-
-            ## begin: one-time procedure -- this will be refactored into a more general soln
-
-            # get the name of the experiment template
+            # get the experiment template uuid and name
             exp_template = Experiment.objects.get(pk=request.session['experiment_template_uuid'])
             template_name = exp_template.description
 
+            # construct all formsets
             exp_name_form = ExperimentNameForm(request.POST)
             q1_formset = self.ParameterFormSet(request.POST, prefix='q1_param')
             q2_formset = self.ParameterFormSet(request.POST, prefix='q2_param')
             q3_formset = self.ParameterFormSet(request.POST, prefix='q3_param')
-
             q1_material_formset = self.MaterialFormSet(request.POST,
                                                        prefix='q1_material',
-                                                       form_kwargs={'org_uuid':self.request.session['current_org_id']})
-
+                                                       form_kwargs={'org_uuid': self.request.session['current_org_id']})
             if all([exp_name_form.is_valid(),
                     q1_formset.is_valid(), 
                     q2_formset.is_valid(), 
@@ -176,19 +172,19 @@ class CreateExperimentView(TemplateView):
                 
                 exp_name = exp_name_form.cleaned_data['exp_name']
 
-                # make the experiment copy
+                # make the experiment copy: this will be our new experiment
                 experiment_copy_uuid = experiment_copy(str(exp_template.uuid), exp_name)
+
+                # get the elements of the new experiment that we need to update with the form values
                 q1, q2, q3 = self.get_action_parameter_querysets(experiment_copy_uuid)
-                
                 q1_material = BomMaterial.objects.filter(bom__experiment=experiment_copy_uuid).only(
                         'uuid').annotate(
                         object_description=F('description')).annotate(
                         object_uuid=F('uuid')).annotate(
                         experiment_uuid=F('bom__experiment__uuid')).annotate(
                         experiment_description=F('bom__experiment__description')).prefetch_related('bom__experiment')
-                
 
-                # parameter_val and material_uuid require no special logic
+                # update values of new experiment where no special logic is required
                 for query_set, query_form_set, field in zip([q1,               q1_material,         q2],
                                                             [q1_formset,       q1_material_formset, q2_formset],
                                                             ['parameter_val', 'inventory_material', None]):
@@ -209,14 +205,15 @@ class CreateExperimentView(TemplateView):
                             else:
                                 setattr(query, field, data['value'])
                                 query.save()
-                                
+                # begin: template-specific logic
                 if template_name in SUPPORTED_CREATE_WFS:
                     lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
                     if template_name == 'liquid_solid_extraction':
-                        new_lsr_pk, lsr_msg = liquid_solid_extraction(q3_formset,q3,experiment_copy_uuid,lsr_edoc,exp_name)
+                        new_lsr_pk, lsr_msg = liquid_solid_extraction(q3_formset, q3, experiment_copy_uuid, lsr_edoc, exp_name)
                     elif template_name == 'resin_weighing':
-                        new_lsr_pk, lsr_msg = resin_weighing(experiment_copy_uuid,lsr_edoc,exp_name)
+                        new_lsr_pk, lsr_msg = resin_weighing(experiment_copy_uuid, lsr_edoc, exp_name)
 
+                    # handle library studio file if relevant
                     if new_lsr_pk is not None:
                         context['lsr_download_link'] = reverse('edoc_download', args=[new_lsr_pk])
                     else:
@@ -224,11 +221,14 @@ class CreateExperimentView(TemplateView):
                     context['experiment_link'] = reverse('experiment_view', args=[experiment_copy_uuid])
                     context['new_exp_name'] = exp_name
                     render(request, self.template_name, context)
+                # end: template specific logic
             else:
                 return render(request, self.template_name, context)
-                
-            ## end: one-time procedure
+            # end: create experiment
         return render(request, self.template_name, context)
+    # end: self.post()
+# end: class CreateExperimentView()
+
 
 class ExperimentListView(ListView):
     template_name = 'core/experiment/list.html'
@@ -321,13 +321,13 @@ class ExperimentListView(ListView):
         context['title'] = model_name.replace('_', ' ').capitalize()
         return context
 
+
 class ExperimentDetailView(DetailView):
     model = Experiment
     model_name = 'experiment'  # lowercase, snake case. Ex:tag_type or inventory
 
     template_name = 'core/experiment/detail.html'
 
-    
     detail_fields = None
     detail_fields_need_fields = None
 
@@ -340,8 +340,9 @@ class ExperimentDetailView(DetailView):
                     parameter_value=F('parameter_val')).annotate(
                     experiment_uuid=F(f'{related_exp}__uuid')).annotate(
                     experiment_description=F(f'{related_exp}__description')).annotate(
-                    workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
-                    )).filter(workflow_action_set__isnull=True).prefetch_related(f'{related_exp}')
+                    workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
+                    ).filter(workflow_action_set__isnull=True
+                    ).prefetch_related(f'{related_exp}')
         q2 = WorkflowActionSet.objects.filter(**{f'{related_exp}': exp_uuid, 'parameter_val__isnull': False}).annotate(
                         object_description=F('description')).annotate(
                         object_uuid=F('uuid')).annotate(
@@ -387,7 +388,6 @@ class ExperimentDetailView(DetailView):
         detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q2})
         detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q3})
         detail_data.update({f'{lsr_edoc.title} download link' : reverse('edoc_download', args=[lsr_edoc.pk]) for lsr_edoc in edocs})
-        
 
         # get notes
         notes_raw = Note.objects.filter(note_x_note__ref_note=exp.pk)
@@ -408,7 +408,5 @@ class ExperimentDetailView(DetailView):
         context['update_url'] = reverse_lazy(
             f'{self.model_name}_update', kwargs={'pk': exp.pk})
         context['detail_data'] = detail_data
-        
-        
 
         return context
