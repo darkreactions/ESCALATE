@@ -1,23 +1,6 @@
 from django.db import models
 from core.models.core_tables import RetUUIDField
-from core.models.custom_types import ValField
-
-# todo: deduplicate
-PROPERTY_CLASS_CHOICES = (
-    ('nominal', 'nominal'),
-    ('actual', 'actual')
-)
-PROPERTY_DEF_CLASS_CHOICES = (
-    ('intrinsic', 'intrinsic'),
-    ('extrinsic', 'extrinsic')
-)
-MATERIAL_CLASS_CHOICES = (
-    ('template','template'),
-    ('model', 'model'),
-    ('object', 'object')
-)
-
-
+from core.models.custom_types import ValField, PROPERTY_CLASS_CHOICES, PROPERTY_DEF_CLASS_CHOICES, MATERIAL_CLASS_CHOICES
 
 class Calculation(models.Model):
     uuid = RetUUIDField(primary_key=True,
