@@ -31,6 +31,7 @@ def api_root(request, format=None):
             name+'-list', request=request, format=format)
     return Response(response_object)
 
+router = ExtendedSimpleRouter()
 
 rest_urlpatterns = [
 
@@ -38,16 +39,28 @@ rest_urlpatterns = [
     path('api/login', token_views.obtain_auth_token, name='api_login'),
     path('api/download/<uuid:uuid>/',
          viewsets.download_blob, name='edoc_download'),
-#    path('api/experimentmeasurecalculation/', views.ExperimentMeasureCalculationList.as_view(),
-#         name='experimentmeasurecalculation-list'),
-#    path('api/experimentmeasurecalculation/<str:pk>/',
-#         views.ExperimentMeasureCalculationDetail.as_view(), name='experimentmeasurecalculation-detail'),
-    #path('api/actionparameterdef/<int:pk>/',views.ActionParameterDefDetail.as_view(), name='actionparameterdef-detail')
-
 ]
 
+registered = router.register('experimenttemplate', viewsets.ExperimentTemplateViewSet, basename='experimenttemplate')
+name = 'experimenttemplate'
+registered.register('notes', viewsets.NoteViewSet,
+                    basename=f'{name}-note', parents_query_lookups=['ref_note_uuid'])
+registered.register('tags', viewsets.TagAssignViewSet,
+                    basename=f'{name}-tag', parents_query_lookups=['ref_tag'])
+registered.register('edocs', viewsets.EdocumentViewSet,
+                    basename=f'{name}-edoc', parents_query_lookups=['ref_edocument_uuid'])
+registered.register('create', viewsets.ExperimentCreateViewSet, basename=f'{name}-create',
+                    parents_query_lookups=['uuid'])
 
-router = ExtendedSimpleRouter()
+registered = router.register('experiment', viewsets.ExperimentViewSet, basename='experiment')
+name = 'experiment'
+registered.register('notes', viewsets.NoteViewSet,
+                    basename=f'{name}-note', parents_query_lookups=['ref_note_uuid'])
+registered.register('tags', viewsets.TagAssignViewSet,
+                    basename=f'{name}-tag', parents_query_lookups=['ref_tag'])
+registered.register('edocs', viewsets.EdocumentViewSet,
+                    basename=f'{name}-edoc', parents_query_lookups=['ref_edocument_uuid'])
+
 
 # The following for loop helps generate nested URLs to 1 level
 
@@ -62,9 +75,6 @@ for view in rest_nested_url_views:
     ) if isinstance(f, models.ManyToOneRel)]
     many_to_one_rel_model = [model._meta.get_field(
         url).remote_field.model.__name__ for url in many_to_one_names]
-    #if view == 'Material':
-    #    print(related_names)
-        
 
     url_names = [f'{f.name}' for f in model._meta.get_fields()
                  if isinstance(f, (models.ForeignKey, models.ManyToManyField))]
@@ -110,3 +120,5 @@ schema_patterns = [
 ]
 
 urlpatterns = rest_urlpatterns + schema_patterns
+#import pprint
+#pprint.pprint(router.get_urls())
