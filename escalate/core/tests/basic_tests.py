@@ -5,7 +5,7 @@ from django.urls import reverse
 
 from core.views import *
 from core.views.list_methods import methods as list_methods
-from core.utils import camel_to_snake
+from core.utilities.utils import camel_to_snake
 from bs4 import BeautifulSoup
 
 pytestmark = pytest.mark.django_db
