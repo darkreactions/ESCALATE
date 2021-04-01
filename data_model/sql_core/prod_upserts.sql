@@ -1226,6 +1226,7 @@ BEGIN
 			material
 		SET
 			description = NEW.description,
+			material_class = NEW.material_class,
 			consumable = NEW.consumable,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
@@ -1237,8 +1238,8 @@ BEGIN
 		IF NEW.consumable is null 
 			THEN NEW.consumable = TRUE; 
 		END IF;
-		INSERT INTO material (description, consumable, actor_uuid, status_uuid)
-			VALUES(NEW.description, NEW.consumable, NEW.actor_uuid, NEW.status_uuid) returning material_uuid into NEW.material_uuid;
+		INSERT INTO material (description, material_class, consumable, actor_uuid, status_uuid)
+			VALUES(NEW.description, NEW.material_class, NEW.consumable, NEW.actor_uuid, NEW.status_uuid) returning material_uuid into NEW.material_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1295,7 +1296,10 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO material_composite (composite_uuid, component_uuid, addressable, actor_uuid, status_uuid)
-			VALUES(NEW.composite_uuid, NEW.component_uuid, NEW.addressable, NEW.actor_uuid, NEW.status_uuid) returning material_composite_uuid into NEW.material_composite_uuid;
+			VALUES(NEW.composite_uuid, NEW.component_uuid, NEW.addressable, NEW.actor_uuid, NEW.status_uuid)
+			returning material_composite_uuid
+			into NEW.material_composite_uuid;
+
 		RETURN NEW;
 	END IF;
 END;
@@ -1393,6 +1397,7 @@ BEGIN
 			description = NEW.description,
 			short_description = NEW.short_description,
 			val_type_uuid = NEW.val_type_uuid,
+			property_def_class = NEW.property_def_class,
 			valunit = NEW.valunit,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
@@ -1401,8 +1406,8 @@ BEGIN
 			property_def.property_def_uuid = NEW.property_def_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO property_def (description, short_description, val_type_uuid, valunit, actor_uuid, status_uuid)
-			VALUES(NEW.description, NEW.short_description, NEW.val_type_uuid, NEW.valunit, NEW.actor_uuid, NEW.status_uuid) returning property_def_uuid into NEW.property_def_uuid;
+		INSERT INTO property_def (description, short_description, val_type_uuid, property_def_class, valunit, actor_uuid, status_uuid)
+			VALUES(NEW.description, NEW.short_description, NEW.val_type_uuid, NEW.property_def_class, NEW.valunit, NEW.actor_uuid, NEW.status_uuid) returning property_def_uuid into NEW.property_def_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1459,6 +1464,7 @@ BEGIN
 			property
 		SET
 			property_val = NEW.property_val,
+			type_uuid = NEW.type_uuid,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
 			mod_date = now()
@@ -1467,8 +1473,8 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		IF (select exists (select property_def_uuid from vw_property_def where property_def_uuid = NEW.property_def_uuid)) THEN
-			INSERT INTO property (property_def_uuid, property_val, actor_uuid, status_uuid)
-				VALUES(NEW.property_def_uuid, NEW.property_val, NEW.actor_uuid, NEW.status_uuid) returning property_uuid into NEW.property_uuid;
+			INSERT INTO property (property_def_uuid, type_uuid, property_val, actor_uuid, status_uuid)
+				VALUES(NEW.property_def_uuid, NEW.type_uuid, NEW.property_val, NEW.actor_uuid, NEW.status_uuid) returning property_uuid into NEW.property_uuid;
 			RETURN NEW;
 		END IF;
 	END IF;
@@ -1530,6 +1536,7 @@ BEGIN
 				(select put_val (NEW.property_value_type_uuid, NEW.property_value, NEW.property_value_unit)),
 			actor_uuid = NEW.property_actor_uuid,
 			status_uuid = NEW.property_status_uuid,
+		    property_class = NEW.property_class,
 			mod_date = now()
 		WHERE
 			property.property_uuid = NEW.property_uuid;
@@ -1539,12 +1546,12 @@ BEGIN
 			IF (NEW.material_uuid is null) or (NEW.property_uuid is not null) THEN
 				return null;
 			END IF;
-			INSERT INTO property (property_def_uuid, property_val, actor_uuid, status_uuid)
+			INSERT INTO property (property_def_uuid, property_val, property_class, actor_uuid, status_uuid)
 				VALUES(NEW.property_def_uuid, 
 					(select put_val ((select val_type_uuid from vw_property_def where property_def_uuid = NEW.property_def_uuid), 
 					NEW.property_value,
 					(select valunit from vw_property_def where property_def_uuid = NEW.property_def_uuid))),	
-				NEW.property_actor_uuid, NEW.property_status_uuid)
+				NEW.property_class, NEW.property_actor_uuid, NEW.property_status_uuid)
 			RETURNING property_uuid into NEW.property_uuid;
 			INSERT INTO property_x (material_uuid, property_uuid)
 				VALUES (NEW.material_uuid, NEW.property_uuid) returning property_x_uuid into NEW.property_x_uuid;
@@ -1692,7 +1699,7 @@ Notes:			for postgres calculations (math_op, math_op_arr) make sure parameter re
                 calc definition have  '' around them
                 e.g. 'math_op_arr(math_op_arr(''hcl_concentrations'', '/', stock_concentration), '*', total_vol)'
 Example:		insert into vw_calculation_def (short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid, 	
-					in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid ) 
+					in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid )
 					values ('test_calc_def', 'function param1 param2', 
 					(select systemtool_uuid from vw_actor where description = 'Molecule Standardizer'),
 					'testing calculation definition upsert', 

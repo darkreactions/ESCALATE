@@ -8,31 +8,32 @@ insert into vw_inventory (description, owner_uuid, operator_uuid, lab_uuid, acto
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 
+
 -- theres a bug here: two inventories created...
 select * from inventory;
-delete from vw_inventory where inventory_uuid = '59ed1dd7-2d45-4416-9834-a2eb8b69587c';
+-- delete from vw_inventory where inventory_uuid = '59ed1dd7-2d45-4416-9834-a2eb8b69587c';
+--
+--
+-- -- hacky workaround for now...
+-- CREATE OR REPLACE FUNCTION inventory_uuid()
+--   RETURNS uuid AS
+--   $$select inventory_uuid from vw_inventory where description = 'HC Test Inventory' LIMIT 1$$ LANGUAGE sql IMMUTABLE;
+--
+-- select inventory_uuid();
+--select * from vw_material;
+--select * from vw_experiment;
 
-
--- hacky workaround for now...
-CREATE OR REPLACE FUNCTION inventory_uuid()
-  RETURNS uuid AS
-  $$select inventory_uuid from vw_inventory where description = 'HC Test Inventory' LIMIT 1$$ LANGUAGE sql IMMUTABLE;
-
-select inventory_uuid();
-
-
+update vw_material
+set material_class = 'model';
 
 -- these are all the raw materials we need to get started!
-select * from vw_material where description = 'Gamma-Butyrolactone';
-select * from vw_material where description = 'Formic Acid';
-select * from vw_material where description = 'Lead Diiodide';
-select * from vw_material where description = 'Ethylammonium Iodide';
+select * from vw_material where description in ('Gamma-Butyrolactone', 'Formic Acid', 'Lead Diiodide', 'Ethylammonium Iodide');
 
 
 
 -- STOCK SOLUTION A: Organic and Inorganic
-insert into vw_material (description, consumable, actor_uuid, status_uuid) values
-	('Stock A', TRUE,
+insert into vw_material (description, consumable, material_class, actor_uuid, status_uuid) values
+	('Stock A', TRUE, 'model',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 -- add the components to the composite
@@ -59,17 +60,14 @@ insert into vw_material_composite (composite_uuid, component_uuid, addressable, 
 	);
 
 -- STOCK B: Concentrated Amine
-insert into vw_material (description, consumable, actor_uuid, status_uuid) values
-	('Stock B', TRUE,
-	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
-	(select status_uuid from vw_status where description = 'dev_test'));
+insert into vw_material (description, consumable, material_class) values
+	('Stock B', TRUE, 'model');
 insert into vw_material_composite (composite_uuid, component_uuid, addressable, actor_uuid, status_uuid) VALUES
 	((select material_uuid from vw_material where description = 'Stock B'),
 	(select material_uuid from vw_material where description = 'Ethylammonium Iodide'),
 		FALSE,
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
-	(select status_uuid from vw_status where description = 'dev_test')
-	);
+	(select status_uuid from vw_status where description = 'dev_test'));
 insert into vw_material_composite (composite_uuid, component_uuid, addressable, actor_uuid, status_uuid) VALUES
 	((select material_uuid from vw_material where description = 'Stock B'),
 	(select material_uuid from vw_material where description = 'Gamma-Butyrolactone'),
@@ -79,8 +77,8 @@ insert into vw_material_composite (composite_uuid, component_uuid, addressable, 
 	);
 
 
-insert into vw_material (description, consumable, actor_uuid, status_uuid) values
-	('Stock FAH', TRUE,
+insert into vw_material (description, consumable, material_class, actor_uuid, status_uuid) values
+	('Stock FAH', TRUE, 'model',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 insert into vw_material_composite (composite_uuid, component_uuid, addressable, actor_uuid, status_uuid) VALUES
@@ -114,44 +112,45 @@ insert into vw_material_type_assign (material_uuid, material_type_uuid) values
 	((select material_composite_uuid from vw_material_composite where composite_description = 'Stock B' and component_description = 'Gamma-Butyrolactone'),
 		(select material_type_uuid from vw_material_type where description = 'solvent'));
 
--- add component properties
--- assign the parent a well qty property
+
+select * from vw_material_composite where composite_description like '%Stock%';
+
 insert into vw_material_property (material_uuid, property_def_uuid,
-	property_value, property_actor_uuid, property_status_uuid ) values (
+	property_value, property_class, property_actor_uuid, property_status_uuid ) values (
 	(select material_composite_uuid from vw_material_composite where composite_description = 'Stock A' and component_description = 'Lead Diiodide'),
 	(select property_def_uuid from vw_property_def where description = 'concentration_molarity'),
 	'1.1',
+	'nominal',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 insert into vw_material_property (material_uuid, property_def_uuid,
-	property_value, property_actor_uuid, property_status_uuid ) values (
+	property_value, property_class, property_actor_uuid, property_status_uuid ) values (
 	(select material_composite_uuid from vw_material_composite where composite_description = 'Stock A' and component_description = 'Ethylammonium Iodide'),
 	(select property_def_uuid from vw_property_def where description = 'concentration_molarity'),
 	'2.2',
+    'nominal',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 insert into vw_material_property (material_uuid, property_def_uuid,
-	property_value, property_actor_uuid, property_status_uuid ) values (
+	property_value, property_class, property_actor_uuid, property_status_uuid ) values (
 	(select material_composite_uuid from vw_material_composite where composite_description = 'Stock B' and component_description = 'Ethylammonium Iodide'),
 	(select property_def_uuid from vw_property_def where description = 'concentration_molarity'),
 	'3.99',
+	'nominal',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 
 insert into vw_material_property (material_uuid, property_def_uuid,
-	property_value, property_actor_uuid, property_status_uuid ) values (
+	property_value, property_class, property_actor_uuid, property_status_uuid ) values (
 	(select material_composite_uuid from vw_material_composite where composite_description = 'Stock FAH' and component_description = 'Formic Acid'),
 	(select property_def_uuid from vw_property_def where description = 'concentration_molarity'),
-	'26', --todo, use real number
+	'23.6',
+	'nominal',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 
-
-
-select * from vw_material_composite_property;
-select * from vw_material_composite_property where component_description not like '%Plate%';
-
-
+--select composite_description, composite_class, component_description, property_description, property_class, property_value from vw_material_composite_property where composite_description like 'Stock%';
+--select * from vw_material where description like '%Stock%';
 
 insert into vw_inventory_material (inventory_uuid, description, material_uuid)
 				values (
@@ -277,4 +276,4 @@ values ('Dispense GBL',
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
         (select status_uuid from vw_status where description = 'dev_test'));
 
-select * from vw_experiment_workflow_bom_step_object_parameter_json;
+--select * from vw_experiment_workflow_bom_step_object_parameter_json;

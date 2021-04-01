@@ -1,7 +1,6 @@
 from django.db import models
 from core.models.core_tables import RetUUIDField
-from core.models.custom_types import ValField
-
+from core.models.custom_types import ValField, PROPERTY_CLASS_CHOICES, PROPERTY_DEF_CLASS_CHOICES, MATERIAL_CLASS_CHOICES
 
 class Calculation(models.Model):
     uuid = RetUUIDField(primary_key=True,
@@ -541,6 +540,7 @@ class Property(models.Model):
                                    blank=True,
                                    null=True,
                                    db_column='property_val')
+    property_class = models.CharField(max_length=64, choices=PROPERTY_CLASS_CHOICES)
     
     """
     # TODO: Any way to represent arrays with sqaure brackets? One of the arrays
@@ -596,6 +596,7 @@ class PropertyDef(models.Model):
                                    blank=True,
                                    null=True,
                                    db_column='description')
+    property_def_class = models.CharField(max_length=64, choices=PROPERTY_DEF_CLASS_CHOICES)
     short_description = models.CharField(max_length=255,
                                          blank=True,
                                          null=True,
