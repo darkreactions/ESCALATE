@@ -1699,7 +1699,7 @@ Notes:			for postgres calculations (math_op, math_op_arr) make sure parameter re
                 calc definition have  '' around them
                 e.g. 'math_op_arr(math_op_arr(''hcl_concentrations'', '/', stock_concentration), '*', total_vol)'
 Example:		insert into vw_calculation_def (short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid, 	
-					in_opt_type_uuid, out_type_uuid, calculation_property_def_class, actor_uuid, status_uuid )
+					in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid )
 					values ('test_calc_def', 'function param1 param2', 
 					(select systemtool_uuid from vw_actor where description = 'Molecule Standardizer'),
 					'testing calculation definition upsert', 

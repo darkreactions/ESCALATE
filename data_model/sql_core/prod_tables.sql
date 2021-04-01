@@ -137,7 +137,6 @@ DROP TABLE IF EXISTS experiment_workflow cascade;
 DROP TABLE IF EXISTS inventory cascade;
 DROP TABLE IF EXISTS inventory_material cascade;
 DROP TABLE IF EXISTS material cascade;
-DROP TABLE IF EXISTS material_class cascade;
 DROP TABLE IF EXISTS material_composite cascade;
 DROP TABLE IF EXISTS material_refname cascade;
 DROP TABLE IF EXISTS material_refname_def cascade;
@@ -159,8 +158,6 @@ DROP TABLE IF EXISTS parameter_x cascade;
 DROP TABLE IF EXISTS person cascade; 
 DROP TABLE IF EXISTS property cascade;
 DROP TABLE IF EXISTS property_def cascade;
-DROP TABLE IF EXISTS property_class cascade;
-DROP TABLE IF EXISTS property_type cascade;
 DROP TABLE IF EXISTS property_x cascade;
 DROP TABLE IF EXISTS status cascade;
 DROP TABLE IF EXISTS systemtool cascade;
@@ -768,7 +765,6 @@ CREATE TABLE property (
 	property_def_uuid uuid NOT NULL,
 	property_val val NOT NULL,
 	property_class property_class_enum,
-	type_uuid uuid,
 	actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -782,7 +778,6 @@ CREATE TABLE property_def (
 	short_description varchar COLLATE "pg_catalog"."default" NOT NULL,
 	property_def_class property_def_class_enum,
 	val_type_uuid uuid,
-	class_uuid uuid,
 	valunit varchar,
 	actor_uuid uuid,
 	status_uuid uuid,
