@@ -95,6 +95,7 @@ def supported_wfs():
         for file in f:
             if '.py' in file:
                 if not "__init__" in file and not ".cpython" in file:
+                    #remove .py from filename
                     outfile = os.path.splitext(file)[0]
                     template_list.append(outfile)
     
