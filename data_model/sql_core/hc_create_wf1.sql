@@ -210,11 +210,11 @@ insert into vw_bom (experiment_uuid, description, actor_uuid, status_uuid) value
 -- then add materials to BOM
 insert into vw_bom_material (bom_uuid, description, inventory_material_uuid) values (
 	(select bom_uuid from vw_bom where description = 'Test WF1 Materials'),
-    'Stock FAH',
+    'Acid',
 	(select inventory_material_uuid from vw_inventory_material where description = 'Stock FAH'));
 insert into vw_bom_material (bom_uuid, description, inventory_material_uuid) values (
 	(select bom_uuid from vw_bom where description = 'Test WF1 Materials'),
-    'Neat GBL',
+    'Solvent',
 	(select inventory_material_uuid from vw_inventory_material where description = 'Neat GBL'));
 insert into vw_bom_material (bom_uuid, description, inventory_material_uuid) values (
 	(select bom_uuid from vw_bom where description = 'Test WF1 Materials'),
@@ -231,49 +231,223 @@ insert into vw_bom_material (bom_uuid, description, inventory_material_uuid) val
 
 
 insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid)
-	values (
-		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
-		'Dispense GBL',
+	values
+	    ((select workflow_type_uuid from vw_workflow_type where description = 'template'),
+		'Preheat Plate',
+		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+		(select status_uuid from vw_status where description = 'dev_test')),
+		((select workflow_type_uuid from vw_workflow_type where description = 'template'),
+		'Dispense Solvent',
+		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+		(select status_uuid from vw_status where description = 'dev_test')),
+		((select workflow_type_uuid from vw_workflow_type where description = 'template'),
+		'Dispense Stock A',
+		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+		(select status_uuid from vw_status where description = 'dev_test')),
+        ((select workflow_type_uuid from vw_workflow_type where description = 'template'),
+		'Dispense Stock B',
+		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+		(select status_uuid from vw_status where description = 'dev_test')),
+	    ((select workflow_type_uuid from vw_workflow_type where description = 'template'),
+		'Dispense Acid Vol 1',
+		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+		(select status_uuid from vw_status where description = 'dev_test')),
+	    ((select workflow_type_uuid from vw_workflow_type where description = 'template'),
+		'Heat Stir 1',
+		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+		(select status_uuid from vw_status where description = 'dev_test')),
+	    ((select workflow_type_uuid from vw_workflow_type where description = 'template'),
+		'Dispense Acid Vol 2',
+		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+		(select status_uuid from vw_status where description = 'dev_test')),
+	    ((select workflow_type_uuid from vw_workflow_type where description = 'template'),
+		'Heat Stir 2',
+		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+		(select status_uuid from vw_status where description = 'dev_test')),
+	    ((select workflow_type_uuid from vw_workflow_type where description = 'template'),
+		'Heat',
 		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 		(select status_uuid from vw_status where description = 'dev_test'));
 insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, workflow_uuid)
-    values (1,
+    values
+--            (1,
+--         (select experiment_uuid from vw_experiment where description = 'test_wf_1'),
+--         (select workflow_uuid from vw_workflow where description = 'Preheat Plate')),
+        (1,
         (select experiment_uuid from vw_experiment where description = 'test_wf_1'),
-        (select workflow_uuid from vw_workflow where description = 'Dispense GBL'));
+        (select workflow_uuid from vw_workflow where description = 'Dispense Solvent')),
+        (2,
+        (select experiment_uuid from vw_experiment where description = 'test_wf_1'),
+        (select workflow_uuid from vw_workflow where description = 'Dispense Stock A')),
+        (3,
+        (select experiment_uuid from vw_experiment where description = 'test_wf_1'),
+        (select workflow_uuid from vw_workflow where description = 'Dispense Stock B')),
+        (4,
+        (select experiment_uuid from vw_experiment where description = 'test_wf_1'),
+        (select workflow_uuid from vw_workflow where description = 'Dispense Acid Vol 1')),
+--         (6,
+--         (select experiment_uuid from vw_experiment where description = 'test_wf_1'),
+--         (select workflow_uuid from vw_workflow where description = 'Heat Stir 1')),
+        (5,
+        (select experiment_uuid from vw_experiment where description = 'test_wf_1'),
+        (select workflow_uuid from vw_workflow where description = 'Dispense Acid Vol 2'));
+--         (8,
+--         (select experiment_uuid from vw_experiment where description = 'test_wf_1'),
+--         (select workflow_uuid from vw_workflow where description = 'Heat Stir 2')),
+--         (9,
+--         (select experiment_uuid from vw_experiment where description = 'test_wf_1'),
+--         (select workflow_uuid from vw_workflow where description = 'Heat'));
+
+-- dispense workflow action sets
+insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
+                                    repeating,
+                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    actor_uuid, status_uuid)
+values ('Dispense Solvent',
+        (select workflow_uuid from vw_workflow where description = 'Dispense Solvent'),
+        (select action_def_uuid from vw_action_def where description = 'dispense'),
+        null, null, null, null,
+        (select parameter_def_uuid
+         from vw_action_parameter_def
+         where description = 'dispense' and parameter_description = 'volume'),
+        array [(select put_val(get_type_def('data', 'num'),'1', 'mL')),
+               (select put_val(get_type_def('data', 'num'),'2', 'mL'))],
+        null,
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Solvent')], -- this has to come from bom_material_index...
+        array [
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Plate%A1%' and bom_uuid = (select bom_uuid from vw_bom where experiment_description = 'test_wf_1')),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Plate%A2%'and bom_uuid = (select bom_uuid from vw_bom where experiment_description = 'test_wf_1'))],
+        (select actor_uuid from vw_actor where description = 'Mike Tynes'),
+        (select status_uuid from vw_status where description = 'dev_test'));
+
+insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
+                                    repeating,
+                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    actor_uuid, status_uuid)
+values ('Dispense Stock A',
+        (select workflow_uuid from vw_workflow where description = 'Dispense Stock A'),
+        (select action_def_uuid from vw_action_def where description = 'dispense'),
+        null, null, null, null,
+        (select parameter_def_uuid
+         from vw_action_parameter_def
+         where description = 'dispense' and parameter_description = 'volume'),
+        array [(select put_val(get_type_def('data', 'num'),'1', 'mL')),
+               (select put_val(get_type_def('data', 'num'),'2', 'mL'))],
+        null,
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Stock A')], -- this has to come from bom_material_index...
+        array [
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Plate%A1%' and bom_uuid = (select bom_uuid from vw_bom where experiment_description = 'test_wf_1')),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Plate%A2%'and bom_uuid = (select bom_uuid from vw_bom where experiment_description = 'test_wf_1'))],
+        (select actor_uuid from vw_actor where description = 'Mike Tynes'),
+        (select status_uuid from vw_status where description = 'dev_test'));
+
+insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
+                                    repeating,
+                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    actor_uuid, status_uuid)
+values ('Dispense Stock B',
+        (select workflow_uuid from vw_workflow where description = 'Dispense Stock B'),
+        (select action_def_uuid from vw_action_def where description = 'dispense'),
+        null, null, null, null,
+        (select parameter_def_uuid
+         from vw_action_parameter_def
+         where description = 'dispense' and parameter_description = 'volume'),
+        array [(select put_val(get_type_def('data', 'num'),'1', 'mL')),
+               (select put_val(get_type_def('data', 'num'),'2', 'mL'))],
+        null,
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Stock B')], -- this has to come from bom_material_index...
+        array [
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Plate%A1%' and bom_uuid = (select bom_uuid from vw_bom where experiment_description = 'test_wf_1')),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Plate%A2%'and bom_uuid = (select bom_uuid from vw_bom where experiment_description = 'test_wf_1'))],
+        (select actor_uuid from vw_actor where description = 'Mike Tynes'),
+        (select status_uuid from vw_status where description = 'dev_test'));
 
 
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
                                     parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
-values ('Dispense GBL',
-        (select workflow_uuid from vw_workflow where description = 'Dispense GBL'),
+values ('Dispense Acid Vol 1',
+        (select workflow_uuid from vw_workflow where description = 'Dispense Acid Vol 1'),
         (select action_def_uuid from vw_action_def where description = 'dispense'),
         null, null, null, null,
         (select parameter_def_uuid
          from vw_action_parameter_def
          where description = 'dispense' and parameter_description = 'volume'),
-        array [(select put_val(get_type_def('data', 'num'),'1', 'mL'))],
+        array [(select put_val(get_type_def('data', 'num'),'1', 'mL')),
+               (select put_val(get_type_def('data', 'num'),'2', 'mL'))],
         null,
-        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Neat GBL')], -- this has to come from bom_material_index...
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Acid')], -- this has to come from bom_material_index...
         array [
             (select bom_material_index_uuid from vw_bom_material_index where
                 description like '%Plate%A1%' and bom_uuid = (select bom_uuid from vw_bom where experiment_description = 'test_wf_1')),
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Plate%A2%'and bom_uuid = (select bom_uuid from vw_bom where experiment_description = 'test_wf_1')),
-            (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Plate%A3%' and bom_uuid = (select bom_uuid from vw_bom where experiment_description = 'test_wf_1')),
-            (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Plate%A4%' and bom_uuid = (select bom_uuid from vw_bom where experiment_description = 'test_wf_1')),
-            (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%SPlate%A5%' and bom_uuid = (select bom_uuid from vw_bom where experiment_description = 'test_wf_1')),
-            (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Plate%A6%' and bom_uuid = (select bom_uuid from vw_bom where experiment_description = 'test_wf_1')),
-            (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Plate%B1%' and bom_uuid = (select bom_uuid from vw_bom where experiment_description = 'test_wf_1')),
-            (select bom_material_index_uuid from vw_bom_material_index where
-                description = '%Plate%B2%' and bom_uuid = (select bom_uuid from vw_bom where experiment_description = 'test_wf_1'))],
+                description like '%Plate%A2%'and bom_uuid = (select bom_uuid from vw_bom where experiment_description = 'test_wf_1'))],
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
         (select status_uuid from vw_status where description = 'dev_test'));
 
---select * from vw_experiment_workflow_bom_step_object_parameter_json;
+
+insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
+                                    repeating,
+                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    actor_uuid, status_uuid)
+values ('Dispense Acid Vol 2',
+        (select workflow_uuid from vw_workflow where description = 'Dispense Acid Vol 2'),
+        (select action_def_uuid from vw_action_def where description = 'dispense'),
+        null, null, null, null,
+        (select parameter_def_uuid
+         from vw_action_parameter_def
+         where description = 'dispense' and parameter_description = 'volume'),
+        array [(select put_val(get_type_def('data', 'num'),'1', 'mL')),
+               (select put_val(get_type_def('data', 'num'),'2', 'mL'))],
+        null,
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Acid')], -- this has to come from bom_material_index...
+        array [
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Plate%A1%' and bom_uuid = (select bom_uuid from vw_bom where experiment_description = 'test_wf_1')),
+            (select bom_material_index_uuid from vw_bom_material_index where
+                description like '%Plate%A2%'and bom_uuid = (select bom_uuid from vw_bom where experiment_description = 'test_wf_1'))],
+        (select actor_uuid from vw_actor where description = 'Mike Tynes'),
+        (select status_uuid from vw_status where description = 'dev_test'));
+
+
+select * from vw_experiment_workflow_bom_step_object_parameter_json;
+
+
+-- heat and heat stirs we dont do these as wafss because waffs cant handle multi-parameter actions :shrug:
+-- i wonder if it makes more sense to just have a 'set heat'...
+-- insert into vw_action (action_def_uuid, workflow_uuid, action_description, actor_uuid, status_uuid)
+-- 	values (
+--     	(select action_def_uuid from vw_action_def where description = 'heat_stir'),
+--     	(select workflow_uuid from vw_workflow where description = 'Heat Stir 1'),
+--         'Heat Stir 1',
+--         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
+--         (select status_uuid from vw_status where description = 'dev_test'));
+-- insert into vw_workflow_object (workflow_uuid, action_uuid)
+-- 	values (
+-- 	    (select workflow_uuid from vw_workflow where description = 'Heat Stir 1'),
+-- 		(select action_uuid from vw_action where action_description = 'Heat Stir 1'));
+-- insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)
+-- 	values (
+-- 		(select workflow_uuid from vw_workflow where description = 'Heat Stir 1'),
+-- 		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Heat Stir 1')),
+--         null,
+--         (select status_uuid from vw_status where description = 'dev_test'));
+-- update vw_action_parameter set parameter_val = (
+--     select put_val((select get_type_def('data', 'num')), '15', 'mins'))
+--     where action_description = 'Heat Stir 1'
+--         and parameter_def_description = 'duration';
+-- update vw_action_parameter set parameter_val = (
+--     select put_val((select get_type_def('data', 'num')), '750', 'rpm'))
+--     where action_description = 'Heat Stir 1'
+--         and parameter_def_description = 'speed';
+-- update vw_action_parameter set parameter_val = (
+--     select put_val((select get_type_def('data', 'num')), '95', 'degC'))
+--     where action_description = 'Heat Stir 1'
+--         and parameter_def_description = 'temperature';
