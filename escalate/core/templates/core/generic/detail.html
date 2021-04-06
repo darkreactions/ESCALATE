@@ -23,6 +23,15 @@
                             {% endfor %}
                         </td>
                     </tr>
+                    <tr>
+                        <td>Documents:</td>
+                        <td>
+                            {% for edoc in Edocs %}
+                            <a href="{{edoc.download_url}}" download>{{edoc.filename|linebreaks}}</a>
+                            <embed src="{{edoc.download_url}}" type="image/jpg"  width="500">
+                            {% endfor %}
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>

@@ -9,8 +9,15 @@
     <div class="col-md-6 offset-md-3">
 
         <h3> {{ title }} </h3>
-        <form method="post">{% csrf_token %}
+        <form method="post" enctype="multipart/form-data">{% csrf_token %}
             {{ form|crispy }}
+            
+            {% if edoc_form %}
+                {{ edoc_form.title.as_hidden }}
+                {{ edoc_form.file }}
+                {{ edoc_form.file_type }}
+
+            {% endif %}
             <input class="btn btn-raised btn-primary text-center" type="submit" value="Submit">
         </form>
     </div>

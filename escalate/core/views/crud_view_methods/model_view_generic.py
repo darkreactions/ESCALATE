@@ -1,11 +1,13 @@
 from django.db.models.query import QuerySet
+from django.db.models import Q
 from django.urls import reverse_lazy, reverse
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, FileResponse
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 # from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
-from core.models.view_tables import Note, Actor, TagAssign, Tag
-from core.forms.forms import NoteForm, TagSelectForm
+from core.models.view_tables import Note, Actor, TagAssign, Tag, Edocument
+from core.models.core_tables import TypeDef
+from core.forms.forms import NoteForm, TagSelectForm, UploadEdocForm
 from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404, render
 from django.core.exceptions import FieldDoesNotExist
@@ -39,7 +41,7 @@ class GenericModelList(GenericListView):
     # Ex: {'Name': ['first_name','middle_name','last_name']}
 
     # for get_queryset method. Override the 2 fields below in subclass
-    order_field = None  # Ex: 'first_name'
+    ordering = None  # Ex: ['first_name', etc...]
     field_contains = None  # Ex: 'Gary'. Use '' to show all
 
     # A related path that points to the organization this field belongs to
@@ -48,27 +50,24 @@ class GenericModelList(GenericListView):
     paginate_by = 10
 
 
-    def header_to_order_field(self, field_raw):
-        #maybe make order_field param column_necessary_fields[table_columns[0]][0] by default
-        return self.column_necessary_fields[field_raw][0]
+    def header_to_necessary_fields(self, field_raw):
+        # get the fields that make up the header column
+        return self.column_necessary_fields[field_raw]
 
     def get_queryset(self):
         filter_val = self.request.GET.get('filter', self.field_contains)
-        new_order = self.request.session.get(f'{self.context_object_name}_order',None)
-        if new_order != None:
-            order_field = new_order
-        else:
-            order_field = self.order_field
-        ordering = self.request.GET.get('ordering', order_field)
-
+        new_order = self.request.session.get(f'{self.context_object_name}_order', self.ordering)
+        
+        ordering = self.request.GET.get('ordering', new_order)
+        
         #print(f'Order field: {self.order_field} in model {self.model}')
 
         # same as <field want to order by>__icontains = filter_val
         #filter_kwargs = {'{}__{}'.format(
         #    "".join(order_field.split('-')), 'icontains'): filter_val}
-        order = "".join(order_field.split('-'))
+        order = "".join(ordering[0].split('-'))
         filter_kwargs = {f'{order}__icontains': filter_val}
-        
+
         # Filter by organization if it exists in the model
         if 'current_org_id' in self.request.session:
             if self.org_related_path:
@@ -76,22 +75,22 @@ class GenericModelList(GenericListView):
                 base_query = self.model.objects.filter(**org_filter_kwargs)
             else:
                 try:
-                    print(self.model._meta.get_fields())
+                    #print(self.model._meta.get_fields())
                     org_field = self.model._meta.get_field('organization')
                     base_query = self.model.objects.filter(organization=self.request.session['current_org_id'])
                 except FieldDoesNotExist:
                     base_query = self.model.objects.all()
         else:
             base_query = self.model.objects.none()
-        
-        
+
+
         if filter_val != None:
             new_queryset = base_query.filter(
-                **filter_kwargs).select_related().order_by(ordering)
+                **filter_kwargs).select_related().order_by(*ordering)
         else:
-            new_queryset = base_query
-        
-        new_queryset = base_query
+            new_queryset = base_query.select_related().order_by(*ordering)
+
+        # new_queryset = base_query
         return new_queryset
 
     def get_context_data(self, **kwargs):
@@ -149,9 +148,9 @@ class GenericModelList(GenericListView):
             order_raw = request.POST.get('sort').split('_')
             header, order, *_rest = order_raw
             if order == 'des':
-                request.session[f'{self.context_object_name}_order'] = "-" + self.header_to_order_field(header)
+                request.session[f'{self.context_object_name}_order'] = [f"-{f}" for f in self.header_to_necessary_fields(header)]
             else:
-                request.session[f'{self.context_object_name}_order'] = self.header_to_order_field(header)
+                request.session[f'{self.context_object_name}_order'] = self.header_to_necessary_fields(header)
 
 
         # break up cases on which one was clicked
@@ -174,26 +173,38 @@ class GenericModelEdit:
     NoteFormSet = modelformset_factory(
         Note, form=NoteForm, can_delete=True)
 
+    EdocFormSet = modelformset_factory(
+        Edocument, form=UploadEdocForm, can_delete=True
+    )
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
+        
         if self.context_object_name in context:
-            
+
             model = context[self.context_object_name]
             context['note_forms'] = self.NoteFormSet(
-                queryset=Note.objects.filter(note_x_note__ref_note=model.pk), prefix='note')
+                queryset=Note.objects.filter(ref_note_uuid=model.pk),
+                prefix='note')
+            context['edoc_forms'] = self.EdocFormSet(
+                queryset=Edocument.objects.filter(ref_edocument_uuid=model.pk),
+                prefix='edoc')
+
+            
             context['tag_select_form'] = TagSelectForm(model_pk=model.pk)
         else:
-            
             context['note_forms'] = self.NoteFormSet(
-                queryset=self.model.objects.none(), prefix='note')
+                queryset=self.model.objects.none(),
+                prefix='note')
+            context['edoc_forms'] = self.EdocFormSet(
+                querySet=Edocument.objects.none(),
+                prefix='edoc')
             context['tag_select_form'] = TagSelectForm()
 
         context['title'] = self.context_object_name.capitalize()
         return context
 
     def post(self, request, *args, **kwargs):
-
         if 'pk' in self.kwargs:
             model = get_object_or_404(self.model, pk=self.kwargs['pk'])
         else:
@@ -208,22 +219,21 @@ class GenericModelEdit:
 
     def form_valid(self, form):
         print('INSIDE FORM VALID')
-        
         self.object = form.save()
+
         if self.object.pk is None:
             required_fields = [f.name for f in self.model._meta.get_fields(
             ) if not getattr(f, 'null', False) is True]
-            
+
             required_fields = [f for f in required_fields if f not in [
                 'add_date', 'mod_date', 'uuid']]
-            
+
 
             query = {k: v for k, v in self.object.__dict__.items() if (
                 k in required_fields)}
 
-            
+
             self.object = self.model.objects.filter(**query).latest('mod_date')
-            
 
         if self.request.POST.get('tags'):
             # tags from post
@@ -233,26 +243,33 @@ class GenericModelEdit:
                 ref_tag=self.object.pk).values_list('tag', flat=True))
             for tag in existing_tags:
                 if tag not in submitted_tags:
-                    # delete TagAssign for existing tags that are no longer used
-                    TagAssign.objects.filter(tag=tag).delete()
+                    if self.request.user.is_authenticated:
+                        #this tag is not assign to this model anymore
+                        # delete TagAssign for existing tags that are no longer used
+                        TagAssign.objects.filter(tag=tag).delete()
             for tag in submitted_tags:
                 # make TagAssign for existing tags that are now used
                 if tag not in existing_tags:
-                    # for some reason tags from post are the uuid as a string
-                    # get actual tag obj with that uuid
-                    tag_obj = Tag.objects.get(pk=tag)
-                    tag_assign = TagAssign()
-                    tag_assign.tag = tag_obj
-                    tag_assign.ref_tag = self.object.pk
-                    tag_assign.add_date = tag_obj.add_date
-                    tag_assign.mod_date = tag_obj.mod_date
-                    tag_assign.save()
+                    if self.request.user.is_authenticated:
+                        # get actual tag obj with that uuid
+                        tag_obj = Tag.objects.get(pk=tag)
+                        tag_assign = TagAssign()
+                        tag_assign.tag = tag_obj
+                        tag_assign.ref_tag = self.object.pk
+                        tag_assign.save()
+        else:
+            # no submitted tags
+            # deleted all tags or actually submitted no tags
+            existing_tags = Tag.objects.filter(pk__in=TagAssign.objects.filter(
+                ref_tag=self.object.pk).values_list('tag', flat=True))
+            if self.request.user.is_authenticated:
+                for tag in existing_tags:
+                    TagAssign.objects.filter(tag=tag).delete()
 
         if self.NoteFormSet != None:
             actor = Actor.objects.get(
                 person=self.request.user.person.pk, organization=None)
             formset = self.NoteFormSet(self.request.POST, prefix='note')
-            # print(request.POST)
             # Loop through every note form
             for form in formset:
                 # Only if the form has changed make an update, otherwise ignore
@@ -262,8 +279,9 @@ class GenericModelEdit:
                         note = form.save(commit=False)
                         note.actor = actor
                         # Get the appropriate uuid of the record being changed.
-                        note.note_x_note.ref_note = self.object.pk
+                        note.ref_note_uuid = self.object.pk
                         note.save()
+
             # Delete each note we marked in the formset
             formset.save(commit=False)
             for form in formset.deleted_forms:
@@ -272,9 +290,62 @@ class GenericModelEdit:
             if self.request.POST.get('add_note'):
                 self.success_url = reverse_lazy(
                     f'{self.context_object_name}_update', kwargs={'pk': self.object.pk})
+        
+        if self.EdocFormSet != None:
+            actor = Actor.objects.get(
+                person=self.request.user.person.pk, organization=None)
+            formset = self.EdocFormSet(self.request.POST, self.request.FILES, prefix='edoc')
+            # Loop through every edoc form
+            for form in formset:
+                # Only if the form has changed make an update, otherwise ignore
+                if form.has_changed() and form.is_valid():
+                    if self.request.user.is_authenticated:
+                        edoc = form.save(commit=False)
+                        if form.cleaned_data['file']:
+                            #New edoc or update file of existing edoc
+                            
+                            file = form.cleaned_data['file']
+                            # Hopefuly every file name is structed as <name>.<ext>
+                            _file_name_detached, ext, *_ = file.name.split('.')
+
+                            edoc.edocument = file.read()
+                            edoc.filename = file.name
+                            
+                            #file type that the user entered
+                            file_type_user = form.cleaned_data['file_type']
+
+                            #try to get the file_type from db that is spelled the same as the file extension
+                            try:
+                                file_type_db = TypeDef.objects.get(category="file",description=ext)
+                            except TypeDef.DoesNotExist:
+                                file_type_db = None
+
+                            if file_type_db:
+                                #found find file type corresponding to file extension
+                                #use that file type instead of what user entered
+                                edoc.doc_type_uuid = file_type_db
+                            else:
+                                #did not find file type corresponding to file extension
+                                #use file type user entered in form
+                                edoc.doc_type_uuid = file_type_user
+                        
+                        # Get the appropriate actor and then add it to the edoc
+                        edoc.actor = actor
+                        # Get the appropriate uuid of the record being changed.
+                        edoc.ref_edocument_uuid = self.object.pk
+                        edoc.save()
+
+            # Delete each note we marked in the formset
+            formset.save(commit=False)
+            for form in formset.deleted_forms:
+                form.instance.delete()
+            # Choose which website we are redirected to
+            if self.request.POST.get('add_edoc'):
+                self.success_url = reverse_lazy(
+                    f'{self.context_object_name}_update', kwargs={'pk': self.object.pk})            
 
         return HttpResponseRedirect(self.get_success_url())
-        
+
     def form_invalid(self, form):
         print('IN FORM INVALID!')
         context = self.get_context_data()
@@ -327,7 +398,7 @@ class GenericModelView(DetailView):
             detail_data[field] = obj_detail
 
         # get notes
-        notes_raw = Note.objects.filter(note_x_note__ref_note=obj.pk)
+        notes_raw = Note.objects.filter(ref_note_uuid=obj.pk)
         notes = []
         for note in notes_raw:
             notes.append('-' + note.notetext)
@@ -340,6 +411,21 @@ class GenericModelView(DetailView):
         for tag in tags_raw:
             tags.append(tag.display_text.strip())
         detail_data['Tags'] = ', '.join(tags)
+
+        # get edocuments
+        edocs_raw = Edocument.objects.filter(ref_edocument_uuid=obj.pk)
+        edocs = []
+        for edoc in edocs_raw:
+            filename = edoc.filename
+
+            # redirect to api link to download
+            download_url = reverse('edoc_download', args=(edoc.uuid,))
+            edocs.append({
+                'filename': filename,
+                'download_url': download_url
+            })
+        context['Edocs'] = edocs
+            
 
         context['title'] = self.model_name.replace('_', " ").capitalize()
         context['update_url'] = reverse_lazy(

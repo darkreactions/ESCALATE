@@ -23,11 +23,9 @@
               {{ header }}
               {% if header != "Actions" %}
               <button type="submit" name="sort" value="{{header}}_asc" onclick="this.form.submit()">
-                <!--img src="{% static 'green_up_arrow.jpeg' %}" style="height:15px"-->
                 <i class="fas fa-sort-amount-up"></i>
               </button>
               <button type="submit" name="sort" value="{{header}}_des" onclick="this.form.submit()">
-                <!--img src="{% static 'red_down_arrow.jpeg' %}" style="height:15px"-->
                 <i class="fas fa-sort-amount-down-alt"></i>
               </button>
               {% endif %}

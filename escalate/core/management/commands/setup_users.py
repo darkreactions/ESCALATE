@@ -28,6 +28,13 @@ users = {
         },
         'password': 'password1'
     },
+    'ichang': {
+        'person_data':{
+            'first_name': 'Isaac',
+            'last_name': 'Chang'
+        },
+        'password': 'securepassword'
+    }
 }
 
 org_passwords = {
