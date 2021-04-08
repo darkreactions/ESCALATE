@@ -1,6 +1,7 @@
 from django.db import models
 from core.models.core_tables import RetUUIDField
 from core.models.custom_types import ValField, PROPERTY_CLASS_CHOICES, PROPERTY_DEF_CLASS_CHOICES, MATERIAL_CLASS_CHOICES
+from django.contrib.postgres.fields import ArrayField
 
 class Calculation(models.Model):
     uuid = RetUUIDField(primary_key=True,
@@ -463,6 +464,10 @@ class ParameterDef(models.Model):
                                  blank=True,
                                  null=True, related_name='parameter_def_val_type')
     default_val = ValField(max_length=255, db_column='default_val')
+    unit_type = models.CharField(max_length=255,
+                                 blank=True,
+                                 null=True,
+                                 db_column='parameter_def_unit_type')
     
     """
     default_val_val = models.CharField(max_length=255,
@@ -491,8 +496,8 @@ class ParameterDef(models.Model):
                                 null=True,
                                 db_column='required',
                                 editable=False)
-    """
     required = models.BooleanField(blank=True, null=True)
+    """
     actor = models.ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='actor_uuid',
@@ -540,6 +545,10 @@ class Property(models.Model):
                                    blank=True,
                                    null=True,
                                    db_column='property_val')
+    unit_type = models.CharField(max_length=255,
+                                 blank=True,
+                                 null=True,
+                                 db_column='property_def_unit_type')
     property_class = models.CharField(max_length=64, choices=PROPERTY_CLASS_CHOICES)
     
     """
@@ -610,6 +619,10 @@ class PropertyDef(models.Model):
                                 blank=True,
                                 null=True,
                                 db_column='valunit')
+    unit_type = models.CharField(max_length=255,
+                                blank=True,
+                                null=True,
+                                db_column='property_def_unit_type')
     actor = models.ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='actor_uuid',
