@@ -10,13 +10,15 @@ from django.views.generic.detail import DetailView
 
 from core.models.view_tables import ActionParameter, WorkflowActionSet, Experiment, BomMaterial, Edocument
 from core.models.core_tables import RetUUIDField
-from core.forms.custom_types import SingleValForm, InventoryMaterialForm
+from core.forms.custom_types import SingleValForm, InventoryMaterialForm,\
+    NominalActualForm
 from core.forms.forms import ExperimentNameForm
 from core.utilities.utils import experiment_copy
 from core.utilities.experiment_utils import update_dispense_action_set, supported_wfs
 import core.models
 from core.models.view_tables import Note, TagAssign, Tag
 from core.experiment_templates import liquid_solid_extraction, resin_weighing
+from core.custom_types import Val
 
 #SUPPORTED_CREATE_WFS = ['liquid_solid_extraction', 'resin_weighing']
 SUPPORTED_CREATE_WFS = supported_wfs() 
@@ -38,6 +40,7 @@ class CreateExperimentView(TemplateView):
     template_name = "core/create_experiment.html"
     ParameterFormSet = formset_factory(SingleValForm, extra=0)
     MaterialFormSet = formset_factory(InventoryMaterialForm, extra=0)
+    NominalActualFormSet = formset_factory(NominalActualForm, extra=0)
 
     def __init__(self, *args, **kwargs):
         self.all_experiments = Experiment.objects.filter(parent__isnull=True)
@@ -95,19 +98,21 @@ class CreateExperimentView(TemplateView):
         The reason for making a copy after editing parameters is because we cannot update
         a WorkflowActionSet as of Jan 2021. We can only create a new one
         """
-        initial_q1 = [{'value': row.parameter_value, 'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])} for row in q1]
-        initial_q2 = [{'value': param, 'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])} for row in q2 for param in row.parameter_value]
-        initial_q3 = [{'value': row.parameter_value, 'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])} for row in q3]
+        empty_val = Val.from_dict({'type':'num','value':0,'unit':'mL'})
+        
+        initial_q1 = [{'actual_value':empty_val,'nominal_value': row.parameter_value, 'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])} for row in q1]
+        initial_q2 = [{'actual_value':empty_val,'nominal_value': param, 'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])} for row in q2 for param in row.parameter_value]
+        initial_q3 = [{'actual_value':empty_val,'nominal_value': row.parameter_value, 'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])} for row in q3]
 
         q1_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q1]
         q2_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q2]
         q3_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q3]
 
-        context['q1_param_formset'] = self.ParameterFormSet(initial=initial_q1, 
+        context['q1_param_formset'] = self.NominalActualFormSet(initial=initial_q1, 
                                                             prefix='q1_param',)
-        context['q2_param_formset'] = self.ParameterFormSet(initial=initial_q2, 
+        context['q2_param_formset'] = self.NominalActualFormSet(initial=initial_q2, 
                                                             prefix='q2_param',)
-        context['q3_param_formset'] = self.ParameterFormSet(initial=initial_q3, 
+        context['q3_param_formset'] = self.NominalActualFormSet(initial=initial_q3, 
                                                             prefix='q3_param',)
 
         context['q1_param_details'] = q1_details
@@ -158,9 +163,9 @@ class CreateExperimentView(TemplateView):
 
             # construct all formsets
             exp_name_form = ExperimentNameForm(request.POST)
-            q1_formset = self.ParameterFormSet(request.POST, prefix='q1_param')
-            q2_formset = self.ParameterFormSet(request.POST, prefix='q2_param')
-            q3_formset = self.ParameterFormSet(request.POST, prefix='q3_param')
+            q1_formset = self.NominalActualFormSet(request.POST, prefix='q1_param')
+            q2_formset = self.NominalActualFormSet(request.POST, prefix='q2_param')
+            q3_formset = self.NominalActualFormSet(request.POST, prefix='q3_param')
             q1_material_formset = self.MaterialFormSet(request.POST,
                                                        prefix='q1_material',
                                                        form_kwargs={'org_uuid': self.request.session['current_org_id']})
