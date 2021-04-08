@@ -106,7 +106,7 @@ class CreateExperimentView(TemplateView):
         initial_q3 = [{'actual_value': Val.from_dict({'type':'num','value':0,'unit':row.parameter_value.unit}),'nominal_value': row.parameter_value, 'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])} for row in q3]
 
         q1_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q1]
-        q2_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q2]
+        q2_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q2 for param in row.parameter_value]
         q3_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q3]
 
         context['q1_param_formset'] = self.NominalActualFormSet(initial=initial_q1, 

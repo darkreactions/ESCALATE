@@ -1033,7 +1033,7 @@ EXECUTE PROCEDURE upsert_material_type ( );
 
 ----------------------------------------
 -- get materials, all status
--- DROP VIEW vw_material
+-- DROP VIEW vw_material CASCADE
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_material AS
 SELECT
@@ -1044,6 +1044,7 @@ SELECT
 		when (select 1 from material_composite where composite_uuid = mat.material_uuid limit 1) is not null then true
 		else false
 	END as composite_flg,
+	mat.material_class,
 	mat.actor_uuid AS actor_uuid,
 	act.description AS actor_description,
 	mat.status_uuid AS status_uuid,
@@ -1076,6 +1077,7 @@ SELECT
 	mc.material_composite_uuid,
     mc.composite_uuid,
     m0.description  AS composite_description,
+    m0.material_class AS composite_class,
     CASE
     	WHEN ((SELECT 1 FROM material_composite WHERE material_composite.composite_uuid = mc.component_uuid LIMIT 1)) IS NOT NULL THEN 
     		true
@@ -1083,6 +1085,7 @@ SELECT
     END AS composite_flg,
     mc.component_uuid,
 	m1.description  AS component_description,
+	m1.material_class AS component_class,
 	mc.addressable,
 	mc.actor_uuid,
 	act.description AS actor_description,
@@ -1309,6 +1312,7 @@ SELECT
 	pd.val_type_uuid,
 	pd.valunit,
 	pd.actor_uuid,
+    pd.property_def_class,
 	act.description as actor_description,
 	st.status_uuid,
 	st.description as status_description,
@@ -1332,6 +1336,7 @@ EXECUTE PROCEDURE upsert_property_def ( );
 
 ----------------------------------------
 -- view property
+-- DROP VIEW vw_property;
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_property AS
 SELECT 
@@ -1340,6 +1345,7 @@ SELECT
 	pd.short_description,
 	pr.property_val,
 	pr.actor_uuid,
+    pr.property_class,
 	act.description as actor_description,
 	st.status_uuid,
 	st.description as status_description,
@@ -1372,6 +1378,9 @@ SELECT
 	mat.description,
 	pr.property_uuid,
 	pr.property_def_uuid,
+    mat.material_class,
+    pd.property_def_class,
+    pr.property_class,
 	pd.description as property_description,
 	pd.short_description as property_short_description,	
 	pr.property_val as property_value_val,
@@ -1406,18 +1415,23 @@ EXECUTE PROCEDURE upsert_material_property ( );
 
 ----------------------------------------
 -- view material_composite_property
+-- DROP VIEW vw_material_composite_property CASCADE
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_material_composite_property AS
 SELECT 
 	mc.material_composite_uuid,
 	mc.composite_uuid,
+    mc.composite_class,
 	mc.composite_description,
 	mc.component_uuid,
 	mc.component_description,
+    mc.component_class,
 	pr.property_uuid,
+    pr.property_class,
 	pr.property_def_uuid,
 	pd.description  AS property_description,
 	pd.short_description AS property_short_description,
+    pd.property_def_class,
     pr.property_val as property_value_val,
 	(pr.property_val).v_type_uuid AS property_value_type_uuid,
 	vl.val_type as property_value_type_description,

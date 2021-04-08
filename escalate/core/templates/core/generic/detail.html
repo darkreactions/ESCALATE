@@ -22,6 +22,14 @@
                             {% endfor %}
                         </td>
                     </tr>
+                    <tr>
+                        <td>Documents:</td>
+                        <td>
+                            {% for edoc in Edocs %}
+                            <a href="{{edoc.download_url}}" download>{{edoc.filename|linebreaks}}</a>
+                            {% endfor %}
+                        </td>
+                    </tr>
                 </tbody>
             </table>
             <a href="{{ update_url }}" class="btn btn-raised btn-primary active">

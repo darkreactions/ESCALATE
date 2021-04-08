@@ -9,7 +9,7 @@ from core.models.core_tables import TypeDef
 from rest_framework.serializers import (SerializerMethodField, ModelSerializer,
                                         HyperlinkedModelSerializer, JSONField,
                                         FileField, CharField, ListSerializer,
-                                        HyperlinkedRelatedField, PrimaryKeyRelatedField)
+                                        HyperlinkedRelatedField, PrimaryKeyRelatedField, Serializer)
 from rest_framework.reverse import reverse
 from rest_flex_fields import FlexFieldsModelSerializer
 
@@ -236,7 +236,42 @@ for model_name, data in expandable_fields.items():
                                                      DynamicFieldsModelSerializer]),
                                               extra_fields)
 
+class ExperimentSerializer(EdocListSerializer,
+                        TagListSerializer,
+                        NoteListSerializer,
+                        DynamicFieldsModelSerializer):
+    class Meta:
+        model = Experiment
+        fields = '__all__'
 
+
+class ExperimentTemplateSerializer(EdocListSerializer,
+                        TagListSerializer,
+                        NoteListSerializer,
+                        DynamicFieldsModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='experimenttemplate-detail')
+    class Meta:
+        model = Experiment
+        fields = '__all__'
+
+class ExperimentQuerySerializer(Serializer):
+    object_description = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)
+    parameter_def_description = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)
+    value = ValSerializerField()
+
+class ExperimentMaterialSerializer(Serializer):
+    material_name = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)
+    value = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)
+
+class ExperimentDetailSerializer(Serializer):
+    experiment_name = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)
+    material_parameters = ExperimentMaterialSerializer(many=True)
+    experiment_parameters_1 = ExperimentQuerySerializer(many=True)
+    experiment_parameters_2 = ExperimentQuerySerializer(many=True)
+    experiment_parameters_3 = ExperimentQuerySerializer(many=True)
+    
+    class Meta:
+        fields = '__all__'
 
 class WorkflowSerializer(EdocListSerializer,
                         TagListSerializer,
