@@ -60,10 +60,12 @@ def post_data(url_path, data, headers):
     r = requests.post(f'{base_url}/{url_path}/', 
                       data=json.dumps(data), 
                       headers=headers)
+    print(r.json())
     return r.json()
 
 def get_data(url_path, data, headers, all=False):
     resp = requests.get(f'{base_url}/{url_path}/', params=data, headers=headers)
+    print(resp)
     if all:
         return resp.json()['results']
     return resp.json()['results'][0]
@@ -74,7 +76,7 @@ test_status = get_data('status', {'description':'test'}, headers=token_header)
 print(test_status)
 
 # %%
-## 48 well plate
+## 96 well plate
 data = {
     'description': 'Plate: 96 well',
     'consumable': False,
@@ -135,3 +137,90 @@ for ord, well in enumerate(well_names):
     
 
 # %%
+# Material types
+material_types = [
+    {'description': 'stock solution'},
+    {'description': 'human prepared'},
+    {'description': 'solute'},
+    {'description': 'acid'},
+    {'description': 'organic'},
+    {'description': 'inorganic'},
+    {'description': 'solvent'},
+]
+r_material_types = {}
+for material_type in material_types:
+    try:
+        r = post_data('materialtype', material_type, token_header)
+    except:
+        url = requests.utils.requote_uri(f'{base_url}/materialtype/?description={material_type["description"]}')
+        r = requests.get(url).json()['results'][0]
+    r_material_types[material_type['description']] = r
+print(r_material_types)
+# %%
+r_materials = {}
+r_materials['organic'] = get_data('material', {'description': '4-Hydroxyphenethylammonium iodide'}, headers=token_header)
+r_materials['inorganic'] = get_data('material', {'description': 'Lead Diiodide'}, headers=token_header)
+r_materials['solvent'] = get_data('material', {'description': 'Dimethylformamide'}, headers=token_header)
+r_materials['acid'] = get_data('material', {'description': 'Formic Acid'}, headers=token_header)
+
+material_fields = ['description', 'consumable', 'composite_flg', 'material_class']
+material_data = [
+    ['Reagent1', True, True, 'template'],
+    ['Reagent2', True, True, 'template'],
+    ['Reagent3', True, True, 'template'],
+    ['Reagent7', True, True, 'template'],
+    ]
+
+for mat in material_data:
+    material = dict(zip(material_fields, mat))
+    r = post_data('material', material, token_header)
+    r_materials[r['description']] = r
+print(r_materials)
+
+# %%
+# Composite materials
+material_composite_fields = ['composite', 'component', 'addressable', 'composite_class']
+material_composites = [
+    [r_materials['Reagent1']['url'], r_materials['solvent']['url'], False, 'template'],
+    [r_materials['Reagent2']['url'], r_materials['inorganic']['url'], False, 'template'],
+    [r_materials['Reagent2']['url'], r_materials['organic']['url'], False, 'template'],
+    [r_materials['Reagent2']['url'], r_materials['solvent']['url'], False, 'template'],
+    [r_materials['Reagent3']['url'], r_materials['organic']['url'], False, 'template'],
+    [r_materials['Reagent3']['url'], r_materials['solvent']['url'], False, 'template'],
+    [r_materials['Reagent7']['url'], r_materials['acid']['url'], False, 'template'],
+]
+
+r_material_composites = {}
+for mat in material_composites:
+    material_composite = dict(zip(material_composite_fields, mat))
+    r = post_data('compositematerial', material_composite, token_header)
+    r = requests.get(r['url']).json()
+    r_material_composites[(r['composite_description'], r['component_description'])] = r
+print(r_material_composites)
+# %%
+r_material_composites.keys()
+
+# %%
+solute_type = get_data('materialtype', {'description': 'solute'}, token_header)
+solvent_type = get_data('materialtype', {'description': 'solvent'}, token_header)
+material_type_assign_fields = ['material', 'material_type']
+material_type_assign = [
+    [r_materials['Reagent1']['url'], r_material_types['stock solution']['url']],
+    [r_materials['Reagent2']['url'], r_material_types['stock solution']['url']],
+    [r_materials['Reagent3']['url'], r_material_types['stock solution']['url']],
+    [r_materials['Reagent7']['url'], r_material_types['stock solution']['url']],
+]
+#r_material_type_assign = {}
+for mat_type in material_type_assign:
+    mat_type_assign = dict(zip(material_type_assign_fields, mat_type))
+    r = requests.post(f'{base_url}/materialtypeassign/',
+                    data=json.dumps(mat_type_assign),
+                    headers=token_header).json()
+    r = post_data('materialtypeassign', mat_type_assign, token_header)
+# %%
+conc_def = get_data('propertydef', {'short_description': 'concentration'}, token_header)
+material_prop_data = {
+    'material': r_materials[('Reagent1', 'Dimethylformamide')]['url'],
+    'property_def': conc_def['url'],
+    'value': json.dumps({"value": 0, "unit": "mL", 'type': "num"})
+}
