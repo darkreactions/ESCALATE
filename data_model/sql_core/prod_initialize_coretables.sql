@@ -163,7 +163,7 @@ VALUES
 		(select organization_uuid from organization where short_name = 'HC')),
 	('Ian', 'Pendleton', 'ipendleton@haverford.edu', 
 		(select organization_uuid from organization where short_name = 'HC')),
-	('Mike', 'Tynes', null, 
+	('Mike', 'Tynes', null,
 		(select organization_uuid from organization where short_name = 'HC')),
 	('Minji', 'Lee', 'minjil.ee@lbl.gov', 
 		(select organization_uuid from organization where short_name = 'LBL')),
