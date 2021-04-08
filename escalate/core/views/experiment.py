@@ -10,8 +10,7 @@ from django.views.generic.detail import DetailView
 
 from core.models.view_tables import ActionParameter, WorkflowActionSet, Experiment, BomMaterial, Edocument
 from core.models.core_tables import RetUUIDField
-from core.forms.custom_types import SingleValForm, InventoryMaterialForm,\
-    NominalActualForm
+from core.forms.custom_types import SingleValForm, InventoryMaterialForm, NominalActualForm
 from core.forms.forms import ExperimentNameForm
 from core.utilities.utils import experiment_copy
 from core.utilities.experiment_utils import update_dispense_action_set, supported_wfs
