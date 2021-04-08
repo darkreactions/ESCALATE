@@ -21,13 +21,20 @@ users = {
         },
         'password': 'hello1world2'
     },
+    'ichang': {
+        'person_data':{
+            'first_name': 'Isaac',
+            'last_name': 'Chang'
+        },
+        'password': 'securepassword'
+    },
     'jpannizzo': {
         'person_data': {
             'first_name': 'Joseph',
             'last_name': 'Pannizzo'
         },
         'password': 'password1'
-    },
+    }
 }
 
 org_passwords = {

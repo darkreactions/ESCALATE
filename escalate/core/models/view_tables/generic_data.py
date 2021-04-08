@@ -1,7 +1,6 @@
 from django.db import models
 from core.models.core_tables import RetUUIDField
-from core.models.custom_types import ValField
-
+from core.models.custom_types import ValField, PROPERTY_CLASS_CHOICES, PROPERTY_DEF_CLASS_CHOICES, MATERIAL_CLASS_CHOICES
 
 class Calculation(models.Model):
     uuid = RetUUIDField(primary_key=True,
@@ -225,6 +224,9 @@ class Measure(models.Model):
                                    blank=True,
                                    null=True,
                                    )
+    measure_def = models.ForeignKey('MeasureDef',
+                                    db_column='measure_def_uuid',
+                                    on_delete=models.DO_NOTHING)
     measure_value = ValField(max_length=255, )
     actor_uuid = models.ForeignKey('Actor',
                                    on_delete=models.DO_NOTHING,
@@ -283,6 +285,9 @@ class MeasureType(models.Model):
     add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
     mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
 
+    def __str__(self):
+        return f'{self.description}'
+
     class Meta:
         managed = False
         db_table = 'vw_measure_type'
@@ -340,9 +345,14 @@ class MeasureDef(models.Model):
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return f'{self.description}'
+
     class Meta:
         managed = False
-        db_table = 'vw_measure_def'  
+        db_table = 'vw_measure_def'
+
+
 
 
 class Note(models.Model):
@@ -530,6 +540,7 @@ class Property(models.Model):
                                    blank=True,
                                    null=True,
                                    db_column='property_val')
+    property_class = models.CharField(max_length=64, choices=PROPERTY_CLASS_CHOICES)
     
     """
     # TODO: Any way to represent arrays with sqaure brackets? One of the arrays
@@ -585,6 +596,7 @@ class PropertyDef(models.Model):
                                    blank=True,
                                    null=True,
                                    db_column='description')
+    property_def_class = models.CharField(max_length=64, choices=PROPERTY_DEF_CLASS_CHOICES)
     short_description = models.CharField(max_length=255,
                                          blank=True,
                                          null=True,

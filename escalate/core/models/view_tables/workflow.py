@@ -623,6 +623,9 @@ class Experiment(models.Model):
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return f'{self.description}'
+
     class Meta:
         managed = False
         db_table = 'vw_experiment'

@@ -149,5 +149,19 @@ class ValField(models.Field):
         return super().formfield(**defaults)
 
 
-
-        
+# enum choices for {property(_def), material} class choices
+# these are enum types in postgres, so will be shortened to ints there.
+# they are defined in prod_tables.sql
+PROPERTY_CLASS_CHOICES = (
+    ('nominal', 'nominal'),
+    ('actual', 'actual')
+)
+PROPERTY_DEF_CLASS_CHOICES = (
+    ('intrinsic', 'intrinsic'),
+    ('extrinsic', 'extrinsic')
+)
+MATERIAL_CLASS_CHOICES = (
+    ('template', 'template'),
+    ('model', 'model'),
+    ('object', 'object')
+)
