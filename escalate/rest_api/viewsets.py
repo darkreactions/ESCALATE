@@ -20,7 +20,8 @@ from django_filters import rest_framework as filters
 from url_filter.integrations.drf import DjangoFilterBackend
 
 from core.models.core_tables import RetUUIDField
-from core.utils import experiment_copy
+from core.utilities.utils import experiment_copy
+from core.utilities.experiment_utils import update_dispense_action_set
 from .serializers import *
 import core.models
 from core.models.view_tables import (ActionParameter, WorkflowActionSet, 
@@ -134,11 +135,11 @@ class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
         q1, q2, q3 = self.get_action_parameter_querysets(kwargs['parent_lookup_uuid'])
         q1_mat = self.get_material_queryset(kwargs['parent_lookup_uuid'])
         
-        exp_params1 = [{'parameter_value': row.parameter_value, 'object_description': f'{row.object_description}', 'parameter_def_description': f'{row.parameter_def_description}'} for row in q1]
-        exp_params1 += [{'parameter_value': param, 'object_description': f'{row.object_description}', 'parameter_def_description': f'{row.parameter_def_description}'} for row in q2 for param in row.parameter_value]
-        exp_params1 += [{'parameter_value': row.parameter_value, 'object_description': f'{row.object_description}', 'parameter_def_description': f'{row.parameter_def_description}'} for row in q3]
-        results = {'experiment_parameters': exp_params1}
-
+        exp_params1 = [{'value': row.parameter_value, 'object_description': f'{row.object_description}', 'parameter_def_description': f'{row.parameter_def_description}'} for row in q1]
+        exp_params2 = [{'value': param, 'object_description': f'{row.object_description}', 'parameter_def_description': f'{row.parameter_def_description}'} for row in q2 for param in row.parameter_value]
+        exp_params3 = [{'value': row.parameter_value, 'object_description': f'{row.object_description}', 'parameter_def_description': f'{row.parameter_def_description}'} for row in q3]
+        
+        results = {'experiment_parameters_1': exp_params1, 'experiment_parameters_2': exp_params2, 'experiment_parameters_3': exp_params3}
         mat_params = [{'material_name': row.object_description , 'value': request.build_absolute_uri(reverse_lazy('bommaterial-detail', args=[row.object_uuid]))} for row in q1_mat]
         
         results.update({'material_parameters': mat_params, 'experiment_name': ''})
@@ -151,7 +152,29 @@ class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
         experiment_copy_uuid = experiment_copy(template_uuid, request.data['experiment_name'])
         q1, q2, q3 = self.get_action_parameter_querysets(experiment_copy_uuid)
         q1_mat = self.get_material_queryset(experiment_copy_uuid)
-        
+
+        for query_set, json_data, field in zip([q1,               q1_mat,         q2],
+                                                [request.data['experiment_parameters_1'],       
+                                                 request.data['material_parameters'], 
+                                                 request.data['experiment_parameters_2']],
+                                                ['parameter_val', 'inventory_material', None]):
+            for entry in json_data:
+                print(entry)
+                if 'parameter_def_description' in entry:
+                    object_desc = entry['object_description']
+                    param_def_desc = entry['parameter_def_description']
+                    query = query_set.get(object_description=object_desc, parameter_def_description=param_def_desc)
+                else:
+                    object_desc = entry['material_name']
+                    query = query_set.get(object_description=object_desc)
+                
+                # q2 gets handled differently because its a workflow action set
+                if query_set is q2:
+                    update_dispense_action_set(query, entry['value'])
+                else:
+                    setattr(query, field, entry['value'])
+                    query.save()
+
         return Response({})
 
 

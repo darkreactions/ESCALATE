@@ -257,7 +257,7 @@ class ExperimentTemplateSerializer(EdocListSerializer,
 class ExperimentQuerySerializer(Serializer):
     object_description = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)
     parameter_def_description = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)
-    parameter_value = ValSerializerField()
+    value = ValSerializerField()
 
 class ExperimentMaterialSerializer(Serializer):
     material_name = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)
@@ -266,7 +266,9 @@ class ExperimentMaterialSerializer(Serializer):
 class ExperimentDetailSerializer(Serializer):
     experiment_name = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)
     material_parameters = ExperimentMaterialSerializer(many=True)
-    experiment_parameters = ExperimentQuerySerializer(many=True)
+    experiment_parameters_1 = ExperimentQuerySerializer(many=True)
+    experiment_parameters_2 = ExperimentQuerySerializer(many=True)
+    experiment_parameters_3 = ExperimentQuerySerializer(many=True)
     
     class Meta:
         fields = '__all__'
