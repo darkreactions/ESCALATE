@@ -97,19 +97,61 @@ class CreateExperimentView(TemplateView):
         The reason for making a copy after editing parameters is because we cannot update
         a WorkflowActionSet as of Jan 2021. We can only create a new one
         """
-        #empty_val not used so that unit of measurement can be copied from nominal data set
-        #code for actual_data is kind of sloppy and we may want to update this at a later date
-        #empty_val = Val.from_dict({'type':'num','value':0,'unit':'ml'})
-        initial_q1 = [{'actual_value': Val.from_dict({'type':'num','value':0,'unit':row.parameter_value.unit}), \
-                       'nominal_value': row.parameter_value, \
-                       'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])} for row in q1]
-        initial_q2 = [{'actual_value': Val.from_dict({'type':'num','value':0,'unit':param.unit}), \
-                       'nominal_value': param, \
-                       'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])} for row in q2 for param in row.parameter_value]
-        initial_q3 = [{'actual_value': Val.from_dict({'type':'num','value':0,'unit':row.parameter_value.unit}), \
-                       'nominal_value': row.parameter_value, \
-                       'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])} for row in q3]
 
+        #create empty lists for initial q1-q3
+        initial_q1 = []
+        initial_q2 = []
+        initial_q3 = []
+        '''
+        using for loop instead of list comprehension to account for arrays
+        this will be basis for implementing new array ui
+        '''
+        #q1 initial
+        for row in q1:
+            data = {'nominal_value': row.parameter_value, \
+                'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])}
+            if 'array' in row.parameter_value.val_type.description:
+                data['actual_value'] = Val.from_dict({'type':'array_num', \
+                                                      'value':[0]*len(row.parameter_value.value), \
+                                                      'unit':row.parameter_value.unit})
+            else:
+                data['actual_value'] = Val.from_dict({'type':'num', \
+                                                      'value':0, \
+                                                      'unit':row.parameter_value.unit})
+            
+            initial_q1.append(data)
+
+        #q2 initial
+        for row in q2:
+            for param in row.parameter_value:
+                data = {'nominal_value': param, \
+                    'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])}
+                if 'array' in param.val_type.description:
+                    data['actual_value'] = Val.from_dict({'type':'array_num', \
+                                                          'value':[0]*len(param.value), \
+                                                          'unit':param.unit})
+                else:
+                    data['actual_value'] = Val.from_dict({'type':'num', \
+                                                          'value':0, \
+                                                          'unit':param.unit})
+                
+                initial_q2.append(data)
+            
+        #q3 initial
+        for row in q3:
+            data = {'nominal_value': row.parameter_value, \
+                'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])}
+            if 'array' in row.parameter_value.val_type.description:
+                data['actual_value'] = Val.from_dict({'type':'array_num', \
+                                                      'value':[0]*len(row.parameter_value.value), \
+                                                      'unit':row.parameter_value.unit})
+            else:
+                data['actual_value'] = Val.from_dict({'type':'num', \
+                                                      'value':0, \
+                                                      'unit':row.parameter_value.unit})
+            
+            initial_q3.append(data)
+            
         q1_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q1]
         q2_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q2 for param in row.parameter_value]
         q3_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q3]
