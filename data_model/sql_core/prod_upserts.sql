@@ -1397,7 +1397,6 @@ BEGIN
 			description = NEW.description,
 			short_description = NEW.short_description,
 			val_type_uuid = NEW.val_type_uuid,
-		    property_def_unit_type = NEW.property_def_unit_type,
 			property_def_class = NEW.property_def_class,
 			valunit = NEW.valunit,
 			actor_uuid = NEW.actor_uuid,
@@ -1407,8 +1406,8 @@ BEGIN
 			property_def.property_def_uuid = NEW.property_def_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO property_def (description, short_description, val_type_uuid, property_def_unit_type, property_def_class, valunit, actor_uuid, status_uuid)
-			VALUES(NEW.description, NEW.short_description, NEW.val_type_uuid, NEW.property_def_unit_type, NEW.property_def_class, NEW.valunit, NEW.actor_uuid, NEW.status_uuid) returning property_def_uuid into NEW.property_def_uuid;
+		INSERT INTO property_def (description, short_description, val_type_uuid, property_def_class, valunit, actor_uuid, status_uuid)
+			VALUES(NEW.description, NEW.short_description, NEW.val_type_uuid, NEW.property_def_class, NEW.valunit, NEW.actor_uuid, NEW.status_uuid) returning property_def_uuid into NEW.property_def_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -2192,7 +2191,6 @@ BEGIN
 		    default_val = NEW.default_val,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
-		    parameter_def_unit_type = NEW.parameter_def_unit_type,
 			mod_date = now()
 		WHERE
 			parameter_def.parameter_def_uuid = NEW.parameter_def_uuid;
@@ -2201,8 +2199,8 @@ BEGIN
 	    IF NEW.required IS NULL
 	        THEN NEW.required = TRUE;
 	    END IF;
-	    INSERT INTO parameter_def (description, default_val, parameter_def_unit_type, required, actor_uuid, status_uuid)
-			VALUES(NEW.description, NEW.default_val, NEW.parameter_def_unit_type, NEW.required, NEW.actor_uuid, NEW.status_uuid)
+	    INSERT INTO parameter_def (description, default_val, required, actor_uuid, status_uuid)
+			VALUES(NEW.description, NEW.default_val, NEW.required, NEW.actor_uuid, NEW.status_uuid)
 			returning parameter_def_uuid into NEW.parameter_def_uuid;
 		RETURN NEW;
 	END IF;

@@ -1,6 +1,9 @@
 set search_path to 'dev';
+
+insert into vw_status (description) values ('dev_test');
+
 -- -- add some chemicals to material so we can use them in an experiment (BOM -> bill of materials)
--- -- added HCl, water and CoCl2 into chem inventory.
+-- -- added HCl, water and AM-243 into chem inventory.
 -- -- ===========================================================================
 -- -- add some material types
 -- -- ===========================================================================
@@ -11,7 +14,12 @@ values
 	('separation target'),
 	('gas'),
 	('stock solution'),
-	('human prepared');
+	('human prepared');--,
+insert into vw_material_type (description)
+values
+    ('solute');
+-- 	('solvent');
+
 
 -- -- ===========================================================================
 -- -- add in test materials
@@ -59,6 +67,13 @@ insert into vw_property_def (description, short_description, val_type_uuid, valu
 	'',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'active'));
+insert into vw_property_def (description, short_description, val_type_uuid, valunit, actor_uuid, status_uuid, property_def_class ) values
+	('concentration_rad', 'conc_rad',
+	(select get_type_def ('data', 'num')),
+	'dpm/uL',
+	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+	(select status_uuid from vw_status where description = 'active'),
+	 'intrinsic');
 insert into vw_property_def (description, short_description, val_type_uuid, valunit, actor_uuid, status_uuid, property_def_class ) values
 	('concentration_molarity', 'molar',
 	(select get_type_def ('data', 'num')),
@@ -347,43 +362,43 @@ BEGIN
 END
 $do$;
 
----create component materials
---CoCl2 (component)
-insert into vw_material (description, consumable, actor_uuid, status_uuid) values
-	('CoCl2', TRUE,
-	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
-	(select status_uuid from vw_status where description = 'dev_test'));
-insert into vw_material (description, consumable, actor_uuid, status_uuid) values
-	('Water', TRUE,
-	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
-	(select status_uuid from vw_status where description = 'dev_test'));
-insert into vw_material (description, consumable, actor_uuid, status_uuid) values
-	('Hydrochloric acid', TRUE,
-	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
-	(select status_uuid from vw_status where description = 'dev_test'));
+-- create component materials
+--Am-243 (component)
+-- insert into vw_material (description, consumable, actor_uuid, status_uuid) values
+-- 	('Am-243', TRUE,
+-- 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+-- 	(select status_uuid from vw_status where description = 'dev_test'));
+-- insert into vw_material (description, consumable, actor_uuid, status_uuid) values
+-- 	('Water', TRUE,
+-- 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+-- 	(select status_uuid from vw_status where description = 'dev_test'));
+-- insert into vw_material (description, consumable, actor_uuid, status_uuid) values
+-- 	('Hydrochloric acid', TRUE,
+-- 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
+-- 	(select status_uuid from vw_status where description = 'dev_test'));
 
--- CoCl2 Stock (composite)
+-- Am-243 Stock (composite)
 insert into vw_material (description, consumable, actor_uuid, status_uuid) values
-	('CoCl2 Stock', TRUE,
+	('Am-243 Stock', TRUE,
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 -- add the components to the composite
 insert into vw_material_composite (composite_uuid, component_uuid, addressable, actor_uuid, status_uuid) VALUES
-	((select material_uuid from vw_material where description = 'CoCl2 Stock'),
-	(select material_uuid from vw_material where description = 'CoCl2'),
+	((select material_uuid from vw_material where description = 'Am-243 Stock'),
+	(select material_uuid from vw_material where description = 'Am-243'),
 	FALSE,
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test')
  	);
 insert into vw_material_composite (composite_uuid, component_uuid, addressable, actor_uuid, status_uuid) VALUES
-	((select material_uuid from vw_material where description = 'CoCl2 Stock'),
+	((select material_uuid from vw_material where description = 'Am-243 Stock'),
 	(select material_uuid from vw_material where description = 'Hydrochloric acid'),
 		FALSE,
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test')
 	);
 insert into vw_material_composite (composite_uuid, component_uuid, addressable, actor_uuid, status_uuid) VALUES
-	((select material_uuid from vw_material where description = 'CoCl2 Stock'),
+	((select material_uuid from vw_material where description = 'Am-243 Stock'),
 	(select material_uuid from vw_material where description = 'Water'),
 		FALSE,
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
@@ -393,24 +408,24 @@ insert into vw_material_composite (composite_uuid, component_uuid, addressable, 
 
 -- add material_type to materials
 insert into vw_material_type_assign (material_uuid, material_type_uuid) values
-	((select material_uuid from vw_material where description = 'CoCl2'),(select material_type_uuid from vw_material_type where description = 'separation target')),
+	((select material_uuid from vw_material where description = 'Am-243'),(select material_type_uuid from vw_material_type where description = 'separation target')),
 	((select material_uuid from vw_material where description = 'Hydrochloric acid'),(select material_type_uuid from vw_material_type where description = 'gas')),
-	((select material_uuid from vw_material where description = 'CoCl2 Stock'),(select material_type_uuid from vw_material_type where description = 'stock solution')),
-	((select material_uuid from vw_material where description = 'CoCl2 Stock'),(select material_type_uuid from vw_material_type where description = 'human prepared')),
-	((select material_composite_uuid from vw_material_composite where composite_description = 'CoCl2 Stock' and component_description = 'CoCl2'),
+	((select material_uuid from vw_material where description = 'Am-243 Stock'),(select material_type_uuid from vw_material_type where description = 'stock solution')),
+	((select material_uuid from vw_material where description = 'Am-243 Stock'),(select material_type_uuid from vw_material_type where description = 'human prepared')),
+	((select material_composite_uuid from vw_material_composite where composite_description = 'Am-243 Stock' and component_description = 'Am-243'),
 		(select material_type_uuid from vw_material_type where description = 'solute')),
-	((select material_composite_uuid from vw_material_composite where composite_description = 'CoCl2 Stock' and component_description = 'Hydrochloric acid'),
+	((select material_composite_uuid from vw_material_composite where composite_description = 'Am-243 Stock' and component_description = 'Hydrochloric acid'),
 		(select material_type_uuid from vw_material_type where description = 'solute')),
-	((select material_composite_uuid from vw_material_composite where composite_description = 'CoCl2 Stock' and component_description = 'Water'),
+	((select material_composite_uuid from vw_material_composite where composite_description = 'Am-243 Stock' and component_description = 'Water'),
 		(select material_type_uuid from vw_material_type where description = 'solvent'));
 
 -- add component properties
 -- assign the parent a well qty property
 insert into vw_material_property (material_uuid, property_def_uuid,
 	property_value, property_actor_uuid, property_status_uuid ) values (
-	(select material_composite_uuid from vw_material_composite where composite_description = 'CoCl2 Stock' and component_description = 'CoCl2'),
-	(select property_def_uuid from vw_property_def where description = 'concentration_molarity'),
-	'6',
+	(select material_composite_uuid from vw_material_composite where composite_description = 'Am-243 Stock' and component_description = 'Am-243'),
+	(select property_def_uuid from vw_property_def where description = 'concentration_rad'),
+	'1000',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 
@@ -418,7 +433,7 @@ insert into vw_material_property (material_uuid, property_def_uuid,
 
 insert into vw_material_property (material_uuid, property_def_uuid, -- note that this actually inserts a row in vw_material_composite_property
 	property_value, property_actor_uuid, property_status_uuid ) values (
-	(select material_composite_uuid from vw_material_composite where composite_description = 'CoCl2 Stock' and component_description = 'Hydrochloric acid'),
+	(select material_composite_uuid from vw_material_composite where composite_description = 'Am-243 Stock' and component_description = 'Hydrochloric acid'),
 	(select property_def_uuid from vw_property_def where short_description = 'molar'),
 	'.1',
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
@@ -529,15 +544,15 @@ insert into vw_inventory_material (inventory_uuid, description, material_uuid, a
                 'Shelf 5, Bin 1',
 				(select status_uuid from vw_status where description = 'dev_test')
 				);
--- add CoCl2 Stock to inventory_material
+-- add Am-243 Stock to inventory_material
 insert into vw_inventory_material (inventory_uuid, description, material_uuid, actor_uuid,
 	part_no, onhand_amt, expiration_date, location, status_uuid)
 				values (
 				(select inventory_uuid from vw_inventory where description = 'Test Inventory'),
-				'CoCl2 Stock',
-				(select material_uuid from vw_material where description = 'CoCl2 Stock'),
+				'Am-243 Stock',
+				(select material_uuid from vw_material where description = 'Am-243 Stock'),
 				(select actor_uuid from vw_actor where description = 'Mike Tynes'),
-				'part# CoCl2-stock_002',
+				'part# am-243-stock_002',
 				(select put_val((select get_type_def ('data', 'int')),'100','mL')),
                 '2021-12-31',
                 'Shelf xx, Bin x2',

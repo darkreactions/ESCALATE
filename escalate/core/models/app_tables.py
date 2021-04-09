@@ -1,7 +1,6 @@
 import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.contrib.postgres.fields import ArrayField
 from .core_tables import OrganizationTable
 
 from ..managers import CustomUserManager
@@ -26,20 +25,3 @@ class OrganizationPassword(models.Model):
 
     def __str__(self):
         return "{}".format(self.organization.full_name)
-
-
-class UnitType(models.Model):
-    uuid = models.UUIDField(primary_key=True)
-    description = models.CharField(max_length=255,
-                                   blank=True,
-                                   null=True,
-                                   db_column='description')
-    standard_unit = models.CharField(max_length=255,
-                                     blank=True,
-                                     null=True,
-                                     db_column='standard_unit')
-    allowed_units = ArrayField(models.CharField(max_length=255))
-    #
-    # class Meta:
-    #     managed = True
-    #     db_table = 'unit_type'
