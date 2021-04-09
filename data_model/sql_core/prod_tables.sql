@@ -723,7 +723,6 @@ CREATE TABLE parameter_def (
 	description varchar COLLATE "pg_catalog"."default" NOT NULL,
 	default_val val,           -- parameter type and units are stored here
 	required boolean NOT NULL, -- default set in upsert
-	parameter_def_unit_type varchar COLLATE "pg_catalog"."default",
 	actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -780,7 +779,6 @@ CREATE TABLE property_def (
 	property_def_class property_def_class_enum,
 	val_type_uuid uuid,
 	valunit varchar,
-	property_def_unit_type varchar COLLATE "pg_catalog"."default",
 	actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -1764,7 +1762,7 @@ ALTER TABLE person
 	ADD CONSTRAINT fk_person_organization_1 FOREIGN KEY (organization_uuid) REFERENCES organization (organization_uuid);
 
 
-ALTER TABLE property
+ALTER TABLE property,
     ADD CONSTRAINT fk_property_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
         ADD CONSTRAINT fk_property_property_def_1 FOREIGN KEY (property_def_uuid) REFERENCES property_def (property_def_uuid),
             ADD CONSTRAINT fk_property_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);

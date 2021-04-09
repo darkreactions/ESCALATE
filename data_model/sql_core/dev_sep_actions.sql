@@ -12,31 +12,28 @@ insert into vw_calculation_def
 		null, (select actor_uuid from vw_actor where description = 'Mike Tynes'),
 		(select status_uuid from vw_status where description = 'dev_test'));
 
-insert into vw_parameter_def (description, default_val, parameter_def_unit_type, actor_uuid, status_uuid)
+insert into vw_parameter_def (description, default_val, actor_uuid, status_uuid)
 	values
 	    ('volume',
         (select put_val((select get_type_def ('data', 'num')), '0', 'mL')),
-	     'volume',
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
 		(select status_uuid from vw_status where description = 'dev_test')),
     	('duration',
         (select put_val((select get_type_def ('data', 'num')), '0', 'mins')),
-    	 'time',
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
 		(select status_uuid from vw_status where description = 'dev_test')),
         ('speed',
         (select put_val ((select get_type_def ('data', 'num')),'0','rpm')),
-         'rate',
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
 		(select status_uuid from vw_status where description = 'dev_test')),
         ('temperature',
         (select put_val((select get_type_def ('data', 'num')), '0', 'degC')),
-         'temperature',
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
-		(select status_uuid from vw_status where description = 'dev_test')),
+		(select status_uuid from vw_status where description = 'dev_test'));
+insert into vw_parameter_def (description, default_val, actor_uuid, status_uuid)
+	values
 	    ('mass',
         (select put_val((select get_type_def ('data', 'num')), '0', 'mg')),
-	     'mass',
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
 		(select status_uuid from vw_status where description = 'dev_test'));
 

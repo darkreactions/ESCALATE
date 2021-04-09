@@ -11,23 +11,8 @@ export PGOPTIONS
 rm rebuild_dev.log 
 (cd ../sql_test && rm test_dev.log)
 
-echo "recreating database..."
-psql -h localhost -d postgres -U escalate -f prod_recreate_db.sql > rebuild_dev.log 2>&1 || \
-    (echo 'could not recreate database' && \
-    awk 'BEGIN { count=0 } /ERROR:/ {print $0;count++ } END { print "error count: ", count }' rebuild_dev.log && \
-    exit 1)
-
-echo "reinitializing database..."
-psql -h localhost -d escalate -U escalate -f prod_initialize_db.sql >> rebuild_dev.log 2>&1
-
 echo "creating tables..."
-psql -h localhost -d escalate -U escalate -f prod_tables.sql >> rebuild_dev.log 2>&1
-
-echo "loading gary data dump"
-for file in `ls ../sql_dataload/*sql`; do
-  echo "file: $file"
-  psql -h localhost -d escalate -U escalate -f $file >> rebuild_dev.log 2>&1
-done
+psql -h localhost -d escalate -U escalate -f prod_tables.sql  > rebuild_dev.log 2>&1
 
 echo "creating functions..."
 psql -h localhost -d escalate -U escalate -f prod_functions.sql >> rebuild_dev.log 2>&1
@@ -57,32 +42,21 @@ psql -h localhost -d escalate -U escalate -f prod_etl.sql >> rebuild_dev.log 2>&
 echo "running tests..."
 (cd ../sql_test && psql -h localhost -d escalate -U escalate -f test_functions.sql >> test_dev.log 2>&1)
 
-echo "loading demo data"
-for file in `ls ../sql_demo_data/*sql | grep load`; do
-  echo "file: $file"
-  psql -h localhost -d escalate -U escalate -f $file >> rebuild_dev.log 2>&1
-done
-for file in `ls ../sql_demo_data/*sql | grep -v cocktail | grep -v load`; do
-  echo "file: $file"
-  psql -h localhost -d escalate -U escalate -f $file >> rebuild_dev.log 2>&1
-done
-#echo "Loading Separation materials"
-#psql -h localhost -d escalate -U escalate -f dev_sep_materials.sql >> rebuild_dev.log 2>&1
-#
-#echo "Loading Separation actions"
-#psql -h localhost -d escalate -U escalate -f dev_sep_actions.sql >> rebuild_dev.log 2>&1
-#
-#echo "Loading Separation liq sol"
-#psql -h localhost -d escalate -U escalate -f dev_sep_wf_liq_sol.sql >> rebuild_dev.log 2>&1
-#
-#echo "Loading Separation resin weigh"
-#psql -h localhost -d escalate -U escalate -f dev_sep_resin_weigh.sql >> rebuild_dev.log 2>&1
-#
-#echo "Loading HC wf1"
-#psql -h localhost -d escalate -U escalate -f hc_create_wf1.sql >> rebuild_dev.log 2>&1
 
-printf '\ndone.\n'
-printf "errors from test_dev.log:\n"
+echo "Loading Separation materials"
+psql -h localhost -d escalate -U escalate -f dev_sep_materials.sql >> rebuild_dev.log 2>&1
+
+echo "Loading Separation actions"
+psql -h localhost -d escalate -U escalate -f dev_sep_actions.sql >> rebuild_dev.log 2>&1
+
+echo "Loading Separation liq sol"
+psql -h localhost -d escalate -U escalate -f dev_sep_wf_liq_sol.sql >> rebuild_dev.log 2>&1
+
+echo "Loading Separation resin weigh"
+psql -h localhost -d escalate -U escalate -f dev_sep_resin_weigh.sql >> rebuild_dev.log 2>&1
+
+echo "Loading HC wf1"
+psql -h localhost -d escalate -U escalate -f hc_create_wf1.sql >> rebuild_dev.log 2>&1
+
+echo "done (test_dev.log)"
 (cd ../sql_test && awk 'BEGIN { count=0 } /ERROR:/ {print $0;count++ } END { print "error count: ", count }' test_dev.log)
-printf "\nerrors from rebuild_dev.log:\n"
-(cd ../sql_core && awk 'BEGIN { count=0 } /ERROR:/ {print $0;count++ } END { print "error count: ", count }' rebuild_dev.log)
