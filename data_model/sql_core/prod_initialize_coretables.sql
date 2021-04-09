@@ -42,6 +42,7 @@ BEGIN;
 	insert into vw_status (description) values ('test');
 	insert into vw_status (description) values ('do_not_use');
 	insert into vw_status (description) values ('prototype');
+    insert into vw_status (description) values ('dev_test');
 COMMIT;
 
 
@@ -62,7 +63,9 @@ values
 	('antisolvent'),
 	('reference'),
 	('catalog'),
-	('plate');
+	('plate'),
+    ('solvent'),
+    ('solute');
 
 
 INSERT INTO material_refname_def (description)

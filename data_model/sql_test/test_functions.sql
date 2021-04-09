@@ -257,7 +257,6 @@ delete from vw_actor where actor_uuid in (select actor_uuid from vw_actor where 
 -- set up a test actor (person) and test status to be used throughout
 insert into vw_person (last_name, first_name, middle_name, address1, address2, city, state_province, zip, country, phone, email, title, suffix, organization_uuid) 
 	values ('Test123','Dev','Temp','123 Testing Ln',null,'Test City','NY',null,null,null,null,null,null,null);
-insert into vw_status (description) values ('dev_test');
 ------------------------------------------------------------------------
 
 /*
@@ -496,11 +495,10 @@ Name:			upsert_material_type_assign()
 Notes:				
 */ 
 insert into vw_material_type_assign (material_uuid, material_type_uuid) values 
-	((select material_uuid from vw_material where description = 'Hydrochloric acid'),
-	(select material_type_uuid from vw_material_type where description = 'solvent'));
-delete from vw_material_type_assign where material_uuid = (select material_uuid from vw_material where description = 'Hydrochloric acid') and
- 	material_type_uuid = (select material_type_uuid from vw_material_type where description = 'solvent');
-
+	((select material_uuid from vw_material where description = 'Gamma-Butyrolactone'),
+	(select material_type_uuid from vw_material_type where description = 'plate'));
+delete from vw_material_type_assign where material_uuid = (select material_uuid from vw_material where description = 'Gamma-Butyrolactone') and
+ 	material_type_uuid = (select material_type_uuid from vw_material_type where description = 'plate');
 
 /*
 Name:			upsert_property_def()
@@ -805,8 +803,8 @@ Notes:
 insert into vw_inventory_material (inventory_uuid, description, material_uuid, actor_uuid, part_no, onhand_amt, expiration_date, location, status_uuid) values
 	(
 	 (select inventory_uuid from vw_inventory where description = 'test_inventory'),
-	 'Water',
-	(select material_uuid from vw_material where description = 'Water'),
+	 'GBL',
+	(select material_uuid from vw_material where description = 'Gamma-Butyrolactone'),
 	(select actor_uuid from vw_actor where description = 'Dev Test123'),
 	'xxx_123_24',
 	(select put_val((select get_type_def ('data', 'num')),'100.00','L')),
@@ -834,17 +832,17 @@ Notes:
 insert into vw_bom_material (bom_uuid, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid)
 	values (
 	(select bom_uuid from vw_bom where description = 'test_bom'),
-	(select inventory_material_uuid from vw_inventory_material where description = 'Water'),
+	(select inventory_material_uuid from vw_inventory_material where description = 'GBL'),
 	(select put_val((select get_type_def ('data', 'num')), '9999.99','mL')),
 	null, null,				
 	(select actor_uuid from vw_actor where description = 'Dev Test123'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 update vw_bom_material set used_amt_val = (select put_val((select get_type_def ('data', 'num')), '487.21','mL')) 
-	where inventory_material_uuid = (select inventory_material_uuid from vw_inventory_material where description = 'Water');
+	where inventory_material_uuid = (select inventory_material_uuid from vw_inventory_material where description = 'GBL');
 -- clean up bom_material, bom, workflow, experiment						
-delete from vw_bom_material where inventory_material_uuid = (select inventory_material_uuid from vw_inventory_material where description = 'Water');
+delete from vw_bom_material where inventory_material_uuid = (select inventory_material_uuid from vw_inventory_material where description = 'GBL');
 delete from vw_bom where description = 'test_bom';
-delete from vw_inventory_material where description = 'Water';
+delete from vw_inventory_material where description = 'GBL';
 delete from vw_workflow where description = 'workflow_test' ;
 delete from vw_workflow_type where description = 'workflowtype_test';
 delete from vw_experiment where description = 'test_experiment';
