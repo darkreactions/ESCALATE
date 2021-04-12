@@ -99,3 +99,4 @@ def supported_wfs():
                     template_list.append(outfile)
     
     return template_list
+

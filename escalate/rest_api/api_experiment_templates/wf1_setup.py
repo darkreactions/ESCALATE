@@ -146,6 +146,7 @@ material_types = [
     {'description': 'organic'},
     {'description': 'inorganic'},
     {'description': 'solvent'},
+    {'description': 'template'},
 ]
 r_material_types = {}
 for material_type in material_types:

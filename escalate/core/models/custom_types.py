@@ -9,7 +9,7 @@ from django.forms import MultiWidget, TextInput, Select, MultiValueField, CharFi
 from core.custom_types import Val
 from core.validators import ValValidator
 from core.models.core_tables import TypeDef
-
+from core.widgets import ValWidget
 
 """
 v_type_uuid uuid, 0
@@ -25,31 +25,6 @@ v_source_uuid uuid, 9
 v_bool boolean, 10
 v_bool_array boolean[] 11
 """
-
-
-class ValWidget(MultiWidget):
-    def __init__(self, attrs=None):
-        # value, unit and type
-        data_types = TypeDef.objects.filter(category='data')
-        data_type_choices = [(data_type.description, data_type.description) for data_type in data_types]
-
-        widgets = [
-            TextInput(attrs={'placeholder': 'Value'}),
-            TextInput(attrs={'placeholder': 'Unit'}),
-            Select(attrs={'class': 'selectpicker',
-                          'data-style': 'btn-outline-primary', 'data-live-search': 'true', 'placeholder': 'DataType'},
-                   choices=data_type_choices)
-        ]
-        super().__init__(widgets, attrs)
-
-    def decompress(self, value):
-        if isinstance(value, Val):
-            # print(value.val_type.description)
-            # if value.val_type.description == 'array_num':
-            #     import pdb; pdb.set_trace()
-            return [value.value, value.unit, str(value.val_type.description)]
-
-        return [None, None, None]
 
 
 class ValFormField(MultiValueField):

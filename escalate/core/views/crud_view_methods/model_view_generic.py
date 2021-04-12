@@ -210,9 +210,9 @@ class GenericModelEdit:
             context['note_forms'] = self.NoteFormSet(
                 queryset=self.model.objects.none(),
                 prefix='note')
-            context['edoc_forms'] = self.EdocFormSet(
-                querySet=Edocument.objects.none(),
-                prefix='edoc')
+#            context['edoc_forms'] = self.EdocFormSet(
+#                querySet=Edocument.objects.none(),
+#                prefix='edoc')
             context['edoc_files'] = []
             context['tag_select_form'] = TagSelectForm()
 
