@@ -50,7 +50,7 @@ class CompositeMaterialProperty(models.Model):
                                            on_delete=models.DO_NOTHING,
                                            blank=True, null=True,
                                            related_name='composite_material_property_composite_material')
-    composite_class = models.CharField(max_length=64, choices=MATERIAL_CLASS_CHOICES)
+    composite_class = models.CharField(max_length=64, choices=MATERIAL_CLASS_CHOICES, editable=False)
     composite_material_description = models.CharField(max_length=255,
                                                       blank=True,
                                                       null=True,
@@ -61,7 +61,7 @@ class CompositeMaterialProperty(models.Model):
                                   on_delete=models.DO_NOTHING,
                                   blank=True, null=True,
                                   related_name='composite_material_property_component')
-    component_class = models.CharField(max_length=64, choices=MATERIAL_CLASS_CHOICES)
+    component_class = models.CharField(max_length=64, choices=MATERIAL_CLASS_CHOICES, editable=False)
     property = models.ForeignKey('Property',
                                  on_delete=models.DO_NOTHING,
                                  db_column='property_uuid',
@@ -75,7 +75,7 @@ class CompositeMaterialProperty(models.Model):
                                      db_column='property_def_uuid',
                                      blank=True,
                                      null=True, related_name='composite_material_property_property_def')
-    property_def_class = models.CharField(max_length=64, choices=PROPERTY_DEF_CLASS_CHOICES)
+    property_def_class = models.CharField(max_length=64, choices=PROPERTY_DEF_CLASS_CHOICES, editable=False)
     property_description = models.CharField(max_length=255,
                                             blank=True,
                                             null=True,
@@ -274,7 +274,7 @@ class MaterialProperty(models.Model):
                                  on_delete=models.DO_NOTHING,
                                  blank=True,
                                  null=True, related_name='material_property_material')
-    material_class = models.CharField(max_length=64, choices=MATERIAL_CLASS_CHOICES)
+    material_class = models.CharField(max_length=64, choices=MATERIAL_CLASS_CHOICES, editable=False)
     description = models.CharField(max_length=255,
                                             blank=True,
                                             null=True,
