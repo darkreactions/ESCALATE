@@ -1344,6 +1344,7 @@ SELECT
 	pr.property_uuid,
 	pr.property_def_uuid,
 	pd.short_description,
+    pd.property_def_unit_type,
 	pr.property_val,
 	pr.actor_uuid,
     pr.property_class,

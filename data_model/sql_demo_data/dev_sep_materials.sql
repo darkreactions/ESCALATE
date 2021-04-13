@@ -414,8 +414,6 @@ insert into vw_material_property (material_uuid, property_def_uuid,
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 
-
-
 insert into vw_material_property (material_uuid, property_def_uuid, -- note that this actually inserts a row in vw_material_composite_property
 	property_value, property_actor_uuid, property_status_uuid ) values (
 	(select material_composite_uuid from vw_material_composite where composite_description = 'CoCl2 Stock' and component_description = 'Hydrochloric acid'),
