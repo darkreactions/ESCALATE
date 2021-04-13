@@ -20,6 +20,6 @@ class InventoryMaterialForm(Form):
         self.fields['value'].queryset = vt.InventoryMaterial.objects.filter(inventory__lab__organization=org_uuid)
 
 class NominalActualForm(Form):
-    nominal_value = ValFormField(required=False)
+    value = ValFormField(required=False)
     actual_value = ValFormField(required=False)
     uuid = CharField(widget=HiddenInput)
