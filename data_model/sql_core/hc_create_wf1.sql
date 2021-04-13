@@ -301,7 +301,7 @@ insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, wo
 -- dispense workflow action sets
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values ('Dispense Solvent',
         (select workflow_uuid from vw_workflow where description = 'Dispense Solvent'),
@@ -324,7 +324,7 @@ values ('Dispense Solvent',
 
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values ('Dispense Stock A',
         (select workflow_uuid from vw_workflow where description = 'Dispense Stock A'),
@@ -347,7 +347,7 @@ values ('Dispense Stock A',
 
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values ('Dispense Stock B',
         (select workflow_uuid from vw_workflow where description = 'Dispense Stock B'),
@@ -371,7 +371,7 @@ values ('Dispense Stock B',
 
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values ('Dispense Acid Vol 1',
         (select workflow_uuid from vw_workflow where description = 'Dispense Acid Vol 1'),
@@ -395,7 +395,7 @@ values ('Dispense Acid Vol 1',
 
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values ('Dispense Acid Vol 2',
         (select workflow_uuid from vw_workflow where description = 'Dispense Acid Vol 2'),
@@ -439,15 +439,15 @@ select * from vw_experiment_workflow_bom_step_object_parameter_json;
 -- 		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Heat Stir 1')),
 --         null,
 --         (select status_uuid from vw_status where description = 'dev_test'));
--- update vw_action_parameter set parameter_val = (
+-- update vw_action_parameter set parameter_val_nominal = (
 --     select put_val((select get_type_def('data', 'num')), '15', 'mins'))
 --     where action_description = 'Heat Stir 1'
 --         and parameter_def_description = 'duration';
--- update vw_action_parameter set parameter_val = (
+-- update vw_action_parameter set parameter_val_nominal = (
 --     select put_val((select get_type_def('data', 'num')), '750', 'rpm'))
 --     where action_description = 'Heat Stir 1'
 --         and parameter_def_description = 'speed';
--- update vw_action_parameter set parameter_val = (
+-- update vw_action_parameter set parameter_val_nominal = (
 --     select put_val((select get_type_def('data', 'num')), '95', 'degC'))
 --     where action_description = 'Heat Stir 1'
 --         and parameter_def_description = 'temperature';

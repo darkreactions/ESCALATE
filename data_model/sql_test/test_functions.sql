@@ -695,11 +695,16 @@ Name:			upsert_action_parameter()
 Notes:
 */
 update vw_action_parameter
-	set parameter_val = (select put_val (
+	set parameter_val_nominal = (select put_val (
     	(select val_type_uuid from vw_parameter_def where description = 'speed'),
         '8888',
 		(select valunit from vw_parameter_def where description = 'speed'))
-		)
+		),
+	    parameter_val_actual = (select put_val (
+    	(select val_type_uuid from vw_parameter_def where description = 'speed'),
+        '8888',
+		(select valunit from vw_parameter_def where description = 'speed'))
+		),
 where (action_description = 'example_heat_stir' AND parameter_def_description = 'speed');
 
 -- clean up the action, parameter functions above

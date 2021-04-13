@@ -710,7 +710,8 @@ CREATE TABLE outcome (
 CREATE TABLE parameter (
 	parameter_uuid uuid DEFAULT uuid_generate_v4 (),
 	parameter_def_uuid uuid NOT NULL,
-	parameter_val val NOT NULL,
+	parameter_val_nominal val NOT NULL,
+	parameter_val_actual val,
 	actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -934,7 +935,8 @@ CREATE TABLE workflow_action_set (
 	duration numeric,
 	repeating int8,
 	parameter_def_uuid uuid,
-	parameter_val val[],	
+	parameter_val_nominal val[],
+	parameter_val_actual val[],
 	calculation_uuid uuid,
 	source_material_uuid uuid[],
 	destination_material_uuid uuid[], 
@@ -2283,7 +2285,7 @@ COMMENT ON COLUMN outcome.mod_date IS 'date/time record was last modified';
 COMMENT ON TABLE parameter IS 'instantiation of a parameter (input to a calculation)';
 COMMENT ON COLUMN parameter.parameter_uuid IS 'PK of parameter';
 COMMENT ON COLUMN parameter.parameter_def_uuid IS 'FK to parameter_def_uuid in parameter_def';
-COMMENT ON COLUMN parameter.parameter_val IS 'value (val) of parameter';
+COMMENT ON COLUMN parameter.parameter_val_nominal IS 'value (val) of parameter';
 COMMENT ON COLUMN parameter.actor_uuid IS 'FK to actor associated with record';
 COMMENT ON COLUMN parameter.status_uuid IS 'FK to status associated with record';
 COMMENT ON COLUMN parameter.add_date IS 'date/time record was created';
@@ -2487,7 +2489,7 @@ COMMENT ON COLUMN workflow_action_set.end_date IS 'end date of action(s)';
 COMMENT ON COLUMN workflow_action_set.duration IS 'duration of action(s)';
 COMMENT ON COLUMN workflow_action_set.repeating IS 'repeat # of action(s)';
 COMMENT ON COLUMN workflow_action_set.parameter_def_uuid IS 'FK to parameter_def_uuid in parameter';
-COMMENT ON COLUMN workflow_action_set.parameter_val IS 'parameter value (val)';
+COMMENT ON COLUMN workflow_action_set.parameter_val_nominal IS 'parameter value (val)';
 COMMENT ON COLUMN workflow_action_set.calculation_uuid IS 'optional reference FK to calculation_uuid in calculation';
 COMMENT ON COLUMN workflow_action_set.source_material_uuid IS 'FK to bom_material_index_uuid in bom_material_index';
 COMMENT ON COLUMN workflow_action_set.destination_material_uuid IS 'FK to bom_material_index_uuid in bom_material_index';
