@@ -107,7 +107,7 @@ class CreateExperimentView(TemplateView):
         '''
         #q1 initial
         for row in q1:
-            data = {'nominal_value': row.parameter_value, \
+            data = {'value': row.parameter_value, \
                 'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])}
             if 'array' in row.parameter_value.val_type.description:
                 data['actual_value'] = Val.from_dict({'type':'array_num', \
@@ -123,7 +123,7 @@ class CreateExperimentView(TemplateView):
         #q2 initial
         for row in q2:
             for param in row.parameter_value:
-                data = {'nominal_value': param, \
+                data = {'value': param, \
                     'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])}
                 if 'array' in param.val_type.description:
                     data['actual_value'] = Val.from_dict({'type':'array_num', \
@@ -138,7 +138,7 @@ class CreateExperimentView(TemplateView):
             
         #q3 initial
         for row in q3:
-            data = {'nominal_value': row.parameter_value, \
+            data = {'value': row.parameter_value, \
                 'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])}
             if 'array' in row.parameter_value.val_type.description:
                 data['actual_value'] = Val.from_dict({'type':'array_num', \
