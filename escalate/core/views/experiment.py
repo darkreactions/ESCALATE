@@ -243,7 +243,7 @@ class CreateExperimentView(TemplateView):
                     for i, form in enumerate(query_form_set):
                         if form.has_changed() and form.is_valid():
                             data = form.cleaned_data
-                            print(data['uuid'])
+                            print(data.keys())
                             desc = json.loads(data['uuid'])
                             if len(desc) == 2:
                                 object_desc, param_def_desc = desc
@@ -253,9 +253,9 @@ class CreateExperimentView(TemplateView):
 
                             # q2 gets handled differently because its a workflow action set
                             if query_set is q2:
-                                update_dispense_action_set(query, data['actual_value'])
+                                update_dispense_action_set(query, data['value'])
                             else:
-                                setattr(query, field, data['actual_value'])
+                                setattr(query, field, data['value'])
                                 query.save()
                 # begin: template-specific logic
                 if template_name in SUPPORTED_CREATE_WFS:
