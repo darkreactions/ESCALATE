@@ -10,18 +10,18 @@ q1 = ActionParameter.objects.only('workflow').annotate(
                 object_description=F('action__description')).annotate( 
                 object_uuid=F('action__uuid')).annotate(
                 parameter_uuid=F('parameter__uuid')).annotate(
-                parameter_value=F('parameter_val')).annotate(
+                parameter_value=F('parameter_val_nominal')).annotate(
                 experiment_uuid=F(f'{related_exp}__uuid')).annotate(
                 workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
                 )).filter(workflow_action_set__isnull=True).select_related(
                     'workflow').prefetch_related(f'{related_exp}')
 
-q2 = WorkflowActionSet.objects.filter(parameter_val__isnull=False).only(
+q2 = WorkflowActionSet.objects.filter(parameter_val_nominal__isnull=False).only(
                     'workflow').annotate(
                     object_description=F('description')).annotate(
                     object_uuid=F('uuid')).annotate(
                     parameter_uuid=Value(None, RetUUIDField())).annotate(
-                    parameter_value=F('parameter_val')).annotate(
+                    parameter_value=F('parameter_val_nominal')).annotate(
                     experiment_uuid=F(f'{related_exp}__uuid')).annotate(
                     workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
                     ).prefetch_related(f'{related_exp}')
@@ -768,9 +768,9 @@ class WorkflowActionSet(models.Model):
                                blank=True, null=True,
                                db_column='parameter_def_uuid',
                                related_name='workflow_action_set_parameter_def')
-    # parameter_val = ArrayField(ValField(), blank=True, null=True)
+    # parameter_val_nominal = ArrayField(ValField(), blank=True, null=True)
     parameter_val_nominal = CustomArrayField(ValField(), blank=True, null=True)
-    # parameter_val = ValField(blank=True, null=True, list=True)
+    # parameter_val_nominal = ValField(blank=True, null=True, list=True)
     calculation = models.ForeignKey('Calculation', models.DO_NOTHING,
                                blank=True, null=True, 
                                db_column='calculation_uuid', 

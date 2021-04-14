@@ -37,7 +37,6 @@ class BaseUUIDFormSet(BaseFormSet):
 
 class CreateExperimentView(TemplateView):
     template_name = "core/create_experiment.html"
-    ParameterFormSet = formset_factory(SingleValForm, extra=0)
     MaterialFormSet = formset_factory(InventoryMaterialForm, extra=0)
     NominalActualFormSet = formset_factory(NominalActualForm, extra=0)
 
@@ -61,7 +60,7 @@ class CreateExperimentView(TemplateView):
                     experiment_description=F(f'{related_exp}__description')).annotate(
                     workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
                     )).filter(workflow_action_set__isnull=True).prefetch_related(f'{related_exp}')
-        q2 = WorkflowActionSet.objects.filter(**{f'{related_exp}': exp_uuid, 'parameter_val__isnull': False}).annotate(
+        q2 = WorkflowActionSet.objects.filter(**{f'{related_exp}': exp_uuid, 'parameter_val_nominal__isnull': False}).annotate(
                         object_description=F('description')).annotate(
                         object_uuid=F('uuid')).annotate(
                         parameter_def_description=F('parameter_def__description')).annotate(
@@ -240,7 +239,7 @@ class CreateExperimentView(TemplateView):
                 # update values of new experiment where no special logic is required
                 for query_set, query_form_set, field in zip([q1,               q1_material,         q2],
                                                             [q1_formset,       q1_material_formset, q2_formset],
-                                                            ['parameter_val_nominal', 'inventory_material', None]):
+                                                            ['parameter_val', 'inventory_material', None]):
                     for i, form in enumerate(query_form_set):
                         if form.has_changed() and form.is_valid():
                             data = form.cleaned_data
@@ -254,9 +253,9 @@ class CreateExperimentView(TemplateView):
 
                             # q2 gets handled differently because its a workflow action set
                             if query_set is q2:
-                                update_dispense_action_set(query, data['value'])
+                                update_dispense_action_set(query, data['actual_value'])
                             else:
-                                setattr(query, field, data['value'])
+                                setattr(query, field, data['actual_value'])
                                 query.save()
                 # begin: template-specific logic
                 if template_name in SUPPORTED_CREATE_WFS:
