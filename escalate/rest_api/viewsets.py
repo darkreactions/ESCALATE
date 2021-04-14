@@ -90,7 +90,7 @@ class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
         q1 = ActionParameter.objects.filter(**{f'{related_exp}': exp_uuid}).annotate(
                     object_description=F('action_description')).annotate(
                     object_uuid=F('uuid')).annotate(
-                    parameter_value=F('parameter_val')).annotate(
+                    parameter_value=F('parameter_val_nominal')).annotate(
                     experiment_uuid=F(f'{related_exp}__uuid')).annotate(
                     experiment_description=F(f'{related_exp}__description')).annotate(
                     workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
@@ -100,7 +100,7 @@ class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
                         object_uuid=F('uuid')).annotate(
                         parameter_def_description=F('parameter_def__description')).annotate(
                         parameter_uuid=Value(None, RetUUIDField())).annotate(
-                        parameter_value=F('parameter_val')).annotate(
+                        parameter_value=F('parameter_val_nominal')).annotate(
                         experiment_uuid=F(f'{related_exp}__uuid')).annotate(
                         experiment_description=F(f'{related_exp}__description')).annotate(
                         workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
@@ -157,7 +157,7 @@ class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
                                                 [request.data['experiment_parameters_1'],       
                                                  request.data['material_parameters'], 
                                                  request.data['experiment_parameters_2']],
-                                                ['parameter_val', 'inventory_material', None]):
+                                                ['parameter_val_nominal', 'inventory_material', None]):
             for entry in json_data:
                 print(entry)
                 if 'parameter_def_description' in entry:

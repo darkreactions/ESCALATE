@@ -41,7 +41,7 @@ def update_dispense_action_set(dispense_action_set, volumes, unit='mL'):
     elif isinstance(volumes, Val):
         v = [volumes]
     dispense_action_set_params['calculation_id'] = None
-    dispense_action_set_params['parameter_val'] = v
+    dispense_action_set_params['parameter_val_nominal'] = v
     instance = WorkflowActionSet(**dispense_action_set_params)
     instance.save()
 

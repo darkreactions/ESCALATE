@@ -56,7 +56,7 @@ class CreateExperimentView(TemplateView):
         q1 = ActionParameter.objects.filter(**{f'{related_exp}': exp_uuid}).annotate(
                     object_description=F('action_description')).annotate(
                     object_uuid=F('uuid')).annotate(
-                    parameter_value=F('parameter_val')).annotate(
+                    parameter_value=F('parameter_val_nominal')).annotate(
                     experiment_uuid=F(f'{related_exp}__uuid')).annotate(
                     experiment_description=F(f'{related_exp}__description')).annotate(
                     workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
@@ -66,7 +66,7 @@ class CreateExperimentView(TemplateView):
                         object_uuid=F('uuid')).annotate(
                         parameter_def_description=F('parameter_def__description')).annotate(
                         parameter_uuid=Value(None, RetUUIDField())).annotate(
-                        parameter_value=F('parameter_val')).annotate(
+                        parameter_value=F('parameter_val_nominal')).annotate(
                         experiment_uuid=F(f'{related_exp}__uuid')).annotate(
                         experiment_description=F(f'{related_exp}__description')).annotate(
                         workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
@@ -240,7 +240,7 @@ class CreateExperimentView(TemplateView):
                 # update values of new experiment where no special logic is required
                 for query_set, query_form_set, field in zip([q1,               q1_material,         q2],
                                                             [q1_formset,       q1_material_formset, q2_formset],
-                                                            ['parameter_val', 'inventory_material', None]):
+                                                            ['parameter_val_nominal', 'inventory_material', None]):
                     for i, form in enumerate(query_form_set):
                         if form.has_changed() and form.is_valid():
                             data = form.cleaned_data
@@ -390,7 +390,7 @@ class ExperimentDetailView(DetailView):
         q1 = ActionParameter.objects.filter(**{f'{related_exp}': exp_uuid}).annotate(
                     object_description=F('action_description')).annotate(
                     object_uuid=F('uuid')).annotate(
-                    parameter_value=F('parameter_val')).annotate(
+                    parameter_value=F('parameter_val_nominal')).annotate(
                     experiment_uuid=F(f'{related_exp}__uuid')).annotate(
                     experiment_description=F(f'{related_exp}__description')).annotate(
                     workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
@@ -401,7 +401,7 @@ class ExperimentDetailView(DetailView):
                         object_uuid=F('uuid')).annotate(
                         parameter_def_description=F('parameter_def__description')).annotate(
                         parameter_uuid=Value(None, RetUUIDField())).annotate(
-                        parameter_value=F('parameter_val')).annotate(
+                        parameter_value=F('parameter_val_nominal')).annotate(
                         experiment_uuid=F(f'{related_exp}__uuid')).annotate(
                         experiment_description=F(f'{related_exp}__description')).annotate(
                         workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
