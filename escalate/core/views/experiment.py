@@ -395,7 +395,7 @@ class ExperimentDetailView(DetailView):
                     workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
                     ).filter(workflow_action_set__isnull=True
                     ).prefetch_related(f'{related_exp}')
-        q2 = WorkflowActionSet.objects.filter(**{f'{related_exp}': exp_uuid, 'parameter_val__isnull': False}).annotate(
+        q2 = WorkflowActionSet.objects.filter(**{f'{related_exp}': exp_uuid, 'parameter_val_nominal__isnull': False}).annotate(
                         object_description=F('description')).annotate(
                         object_uuid=F('uuid')).annotate(
                         parameter_def_description=F('parameter_def__description')).annotate(
