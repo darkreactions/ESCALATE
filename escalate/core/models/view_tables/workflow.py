@@ -632,6 +632,7 @@ class Experiment(models.Model):
 
 
 class ExperimentParameter(models.Model):
+    """Note: this is currently broken but unused. Consider it deprecated"""
     uuid = RetUUIDField(primary_key=True, db_column='parameter_uuid')
     parameter_value_nominal = CustomArrayField(ValField(), blank=True, null=True)
     parameter_value_actual = CustomArrayField(ValField(), blank=True, null=True)
