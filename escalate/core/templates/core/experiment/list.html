@@ -45,6 +45,9 @@
                 <a href="{{ row_info.view_url }}" class="btn btn-raised text-secondary px-1 view-detail">
                     <i class="fa fa-eye"></i>
                 </a>
+              <a href="{{ row_info.update_url }}" class="btn btn-raised text-secondary px-1 view-update">
+                <i class="fa fa-edit"></i>
+              </a>
               <button type="button" class="btn btn-raised text-secondary px-2" data-toggle="modal"
                 data-target="#deleteModal" data-description="{{ row_info.obj_name }}" data-pk="{{ row_info.obj_pk }}">
                 <i class="fa fa-trash"></i>

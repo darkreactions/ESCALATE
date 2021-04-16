@@ -19,6 +19,6 @@ def resin_weighing(experiment_copy_uuid,lsr_edoc,exp_name):
     new_lsr_pk, lsr_msg = update_lsr_edoc(lsr_edoc,
                                           experiment_copy_uuid,
                                           exp_name,
-                                          resin_amt=resin_dispense_action_set.parameter_val[0].value)
+                                          resin_amt=resin_dispense_action_set.parameter_val_nominal[0].value)
     
     return new_lsr_pk, lsr_msg

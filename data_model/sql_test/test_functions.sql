@@ -625,7 +625,7 @@ Name:			upsert_parameter()
 Notes:			Preferred use is through upsert_action_parameter
 */
 /* 
-insert into vw_parameter (parameter_def_uuid, ref_parameter_uuid, parameter_val, actor_uuid, status_uuid ) values (
+insert into vw_parameter (parameter_def_uuid, ref_parameter_uuid, parameter_val_nominal, actor_uuid, status_uuid ) values (
 	(select parameter_def_uuid from vw_parameter_def where description = 'duration'),
     (select actor_uuid from vw_actor where description = 'Dev Test123'),
 	(select put_val (
@@ -635,7 +635,7 @@ insert into vw_parameter (parameter_def_uuid, ref_parameter_uuid, parameter_val,
 	(select actor_uuid from vw_actor where org_short_name = 'TC'),
 	(select status_uuid from vw_status where description = 'dev_test')
 );
-update vw_parameter set parameter_val = (select put_val (
+update vw_parameter set parameter_val_nominal = (select put_val (
 	(select val_type_uuid from vw_parameter_def where description = 'duration'),
 	'36',
 	(select valunit from vw_parameter_def where description = 'duration')))
@@ -693,11 +693,16 @@ Name:			upsert_action_parameter()
 Notes:
 */
 update vw_action_parameter
-	set parameter_val = (select put_val (
+	set parameter_val_nominal = (select put_val (
     	(select val_type_uuid from vw_parameter_def where description = 'speed'),
         '8888',
 		(select valunit from vw_parameter_def where description = 'speed'))
-		)
+		),
+	    parameter_val_actual = (select put_val (
+    	(select val_type_uuid from vw_parameter_def where description = 'speed'),
+        '8888',
+		(select valunit from vw_parameter_def where description = 'speed'))
+		),
 where (action_description = 'example_heat_stir' AND parameter_def_description = 'speed');
 
 -- clean up the action, parameter functions above

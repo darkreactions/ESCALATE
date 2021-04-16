@@ -5,11 +5,11 @@ from django.forms import formset_factory, ModelChoiceField
 
 from core.models.view_tables import ActionParameter, WorkflowActionSet, Experiment, BomMaterial
 from core.models.core_tables import RetUUIDField
-from core.forms.custom_types import SingleValForm, InventoryMaterialForm
+from core.forms.custom_types import InventoryMaterialForm, NominalActualForm
 
 class ParameterEditView(TemplateView):
     template_name = "core/parameter_editor.html"
-    ParameterFormSet = formset_factory(SingleValForm, extra=0)
+    ParameterFormSet = formset_factory(NominalActualForm, extra=0)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -23,19 +23,19 @@ class ParameterEditView(TemplateView):
             q1 = ActionParameter.objects.filter(workflow__experiment_workflow_workflow__experiment=kwargs['pk']).only('uuid').annotate(
                         object_description=F('action_description')).annotate(
                         object_uuid=F('uuid')).annotate(
-                        parameter_value=F('parameter_val')).annotate(
+                        parameter_value=F('parameter_val_nominal')).annotate(
                         experiment_uuid=F(f'{related_exp}__uuid')).annotate(
                         experiment_description=F(f'{related_exp}__description')).annotate(
                         workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
                         )).filter(workflow_action_set__isnull=True).prefetch_related(f'{related_exp}')
             
-            q2 = WorkflowActionSet.objects.filter(parameter_val__isnull=False, workflow__experiment_workflow_workflow__experiment=kwargs['pk']).only(
+            q2 = WorkflowActionSet.objects.filter(parameter_val_nominal__isnull=False, workflow__experiment_workflow_workflow__experiment=kwargs['pk']).only(
                             'workflow').annotate(
                             object_description=F('description')).annotate(
                             object_uuid=F('uuid')).annotate(
                             parameter_def_description=F('parameter_def__description')).annotate(
                             parameter_uuid=Value(None, RetUUIDField())).annotate(
-                            parameter_value=F('parameter_val')).annotate(
+                            parameter_value=F('parameter_val_nominal')).annotate(
                             experiment_uuid=F(f'{related_exp}__uuid')).annotate(
                             experiment_description=F(f'{related_exp}__description')).annotate(
                             workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')

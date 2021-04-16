@@ -1874,10 +1874,10 @@ BEGIN
                     where workflow_uuid = _workflow_rec.workflow_uuid);
             if (select workflow_uuid from workflow_action_set where workflow_uuid = _workflow_rec.workflow_uuid) is not null then
                 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
-                                                    repeating, parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid,
+                                                    repeating, parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid,
                                                     destination_material_uuid, actor_uuid, status_uuid)
                 (select description, _new_wf_uuid, action_def_uuid, start_date, end_date, duration, repeating, parameter_def_uuid,
-                        parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid
+                        parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid
                 from vw_workflow_action_set where workflow_uuid = _workflow_rec.workflow_uuid);
             end if;
             -- populate temp table _aco with actions and objects, conditions and objects (to be copied)
@@ -2185,7 +2185,7 @@ BEGIN
             json_agg(json_build_object(
                 'parameter_def_uuid', p.parameter_def_uuid,
                 'parameter_def_description', p.parameter_def_description,
-                --'parameter_value_val', p.parameter_val,
+                --'parameter_value_val', p.parameter_val_nominal,
                 --'parameter_value_type_uuid', p.val_type_uuid,
                 'parameter_value_type_description', p.val_type_description,
                 'parameter_value', p.parameter_value,

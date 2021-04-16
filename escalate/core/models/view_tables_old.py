@@ -1566,9 +1566,9 @@ class ActionParameter(models.Model):
                                                  null=True,
                                                  db_column='parameter_def_description',
                                                  editable=False)
-    parameter_val = ValField(blank=True,
+    parameter_val_nominal = ValField(blank=True,
                              null=True,
-                             db_column='parameter_val')
+                             db_column='parameter_val_nominal')
     actor = models.ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='parameter_actor_uuid',
@@ -1615,9 +1615,9 @@ class Parameter(models.Model):
                                                  null=True,
                                                  db_column='parameter_def_description',
                                                  editable=False)
-    parameter_val = ValField(blank=True,
+    parameter_val_nominal = ValField(blank=True,
                              null=True,
-                             db_column='parameter_val')
+                             db_column='parameter_val_nominal')
     actor = models.ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='actor_uuid',
