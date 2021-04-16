@@ -633,7 +633,8 @@ class Experiment(models.Model):
 
 class ExperimentParameter(models.Model):
     uuid = RetUUIDField(primary_key=True, db_column='parameter_uuid')
-    parameter_value = CustomArrayField(ValField(), blank=True, null=True)
+    parameter_value_nominal = CustomArrayField(ValField(), blank=True, null=True)
+    parameter_value_actual = CustomArrayField(ValField(), blank=True, null=True)
     parameter_def_description = models.CharField(
         max_length=255, db_column='parameter_def_description', editable=False)
     object = models.ForeignKey('WorkflowObject', on_delete=models.DO_NOTHING, 
