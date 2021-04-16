@@ -1,0 +1,221 @@
+{					
+	"run": {				
+		"datecreated":	 "2019-06-19"	,	
+		"timecreated_UTC":	 "15_03_07"	,	
+		"lab":	 "LBL"	,	
+		"operator":	 "Wesley"	,	
+		"jobserial":	 "2019-06-19T15_03_07.301134+00_00_LBL"	,	
+		"ExpVer":	3	,	
+		"GenVer":	2.5	,	
+		"ChallengeProblem":	0		
+	},				
+	"reagent": [{				
+		"date": 	 "2019-06-19"	,	
+		"id":	1	,	
+		"operator":	 "Wesley"	,	
+		"chemicals": [{			
+			"InChIKey":	 "ZMXDDKWLCZADIW-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "4.25:milliliter"	,
+			"actual_amount": 	 "4.25:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "4.3:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2019-06-19"	,	
+		"id":	2	,	
+		"operator":	 "Wesley"	,	
+		"chemicals": [{			
+			"InChIKey":	 "RQQRAHKHDFPBMC-UHFFFAOYSA-L"	,
+			"nominal_amount": 	 "11.64:gram"	,
+			"actual_amount": 	 "11.638:gram"	
+		}, {			
+			"InChIKey":	 "GGYGJCFIYJVWIP-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "3.96:gram"	,
+			"actual_amount": 	 "3.964:gram"	
+		}, {			
+			"InChIKey":	 "ZMXDDKWLCZADIW-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "7.91:milliliter"	,
+			"actual_amount": 	 "7.91:milliliter"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "12:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2019-06-19"	,	
+		"id":	3	,	
+		"operator":	 "Wesley"	,	
+		"chemicals": [{			
+			"InChIKey":	 "GGYGJCFIYJVWIP-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "8.97:gram"	,
+			"actual_amount": 	 "7.668:gram"	
+		}, {			
+			"InChIKey":	 "ZMXDDKWLCZADIW-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "5.88:milliliter"	,
+			"actual_amount": 	 "5:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "9.5:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2019-06-19"	,	
+		"id":	4	,	
+		"operator":	 "Wesley"	,	
+		"chemicals": [{			
+			"InChIKey":	 "BDAGIHXWWSANSR-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "5.12:milliliter"	,
+			"actual_amount": 	 "5.12:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "5.1:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2019-06-19"	,	
+		"id":	5	,	
+		"operator":	 "Wesley"	,	
+		"chemicals": [{			
+			"InChIKey":	 "BDAGIHXWWSANSR-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "3.84:milliliter"	,
+			"actual_amount": 	 "3.84:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "3.8:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2019-06-19"	,	
+		"id":	6	,	
+		"operator":	 "Wesley"	,	
+		"chemicals": [{			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "null:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "null:null"	
+		}]			
+	}, {				
+		"date": 	 "2019-06-19"	,	
+		"id":	7	,	
+		"operator":	 "Wesley"	,	
+		"chemicals": [{			
+			"InChIKey":	 "YMWUJEATGCHHMB-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "27:milliliter"	,
+			"actual_amount": 	 "27:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "27:milliliter"	
+		}]			
+	}],				
+	"notes": 	{			
+		"note1": 	 "Batch No.: PbI2 = BCCB0381, AcNH3I = MKBW6563V"	,	
+		"note2": 	 "null"	,	
+		"ExperimentalSummary": 	 "null"		
+	}				
+}					

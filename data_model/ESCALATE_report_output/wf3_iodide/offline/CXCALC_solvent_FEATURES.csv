@@ -1,0 +1,6 @@
+Compound,_feat_minimalprojectionsize,_feat_maximalprojectionsize,_feat_hdonorcount,_feat_solventmolecularweight,_feat_hacceptorcount,_feat_asavdwp,_feat_vanderwaalsvolume,_feat_refractivity,_feat_avgpol
+C(=O)O,5.19,3.41,1,46.025,2,65.19,39.21,8.15,3.37
+C1CC(=O)OC1,6.7,5.63,0,86.09,1,139.79,78.72,20.31,8.23
+C(Cl)Cl,6.26,4.55,0,84.93,0,91.8,56.33,16.44,6.53
+CN(C)C=O,7.04,5.23,0,73.095,1,137.48,76.8,19.77,7.69
+CS(=O)C,7.1,5.0,0,78.13,1,133.65,72.67,20.73,7.91

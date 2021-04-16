@@ -286,7 +286,7 @@ insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, wo
 -- create the action_sets
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values ('Dispense Sample H2O',
         (select workflow_uuid from vw_workflow where description = 'Liq-Sol Sample H2O'),
@@ -321,7 +321,7 @@ values ('Dispense Sample H2O',
 
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values  ('Dispense Sample HCl',
         (select workflow_uuid from vw_workflow where description = 'Liq-Sol Sample HCl'),
@@ -355,7 +355,7 @@ values  ('Dispense Sample HCl',
 
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values  ('Dispense Metal Stock',
         (select workflow_uuid from vw_workflow where description = 'Liq-Sol Sample CoCl2'),
@@ -389,7 +389,7 @@ values  ('Dispense Metal Stock',
 
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values  ('Transfer Sample for Assay',
         (select workflow_uuid from vw_workflow where description = 'Liq-Sol Assay Samples'),
@@ -439,7 +439,7 @@ values  ('Transfer Sample for Assay',
 
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values  ('Add Resin',
         (select workflow_uuid from vw_workflow where description = 'Liq-Sol Add Resin'),
@@ -474,7 +474,7 @@ values  ('Add Resin',
 
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values  ('Sample to Resin',
         (select workflow_uuid from vw_workflow where description = 'Liq-Sol Sample to Resin'),
@@ -540,15 +540,15 @@ insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, 
 		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Heat Stir Sample Plate')),
         null,
         (select status_uuid from vw_status where description = 'dev_test'));
-update vw_action_parameter set parameter_val = (
+update vw_action_parameter set parameter_val_nominal = (
     select put_val((select get_type_def('data', 'num')), '45', 'mins'))
     where action_description = 'Heat Stir Sample Plate'
         and parameter_def_description = 'duration';
-update vw_action_parameter set parameter_val = (
+update vw_action_parameter set parameter_val_nominal = (
     select put_val((select get_type_def('data', 'num')), '500', 'rpm'))
     where action_description = 'Heat Stir Sample Plate'
         and parameter_def_description = 'speed';
-update vw_action_parameter set parameter_val = (
+update vw_action_parameter set parameter_val_nominal = (
     select put_val((select get_type_def('data', 'num')), '30', 'degC'))
     where action_description = 'Heat Stir Sample Plate'
         and parameter_def_description = 'temperature';
@@ -584,7 +584,7 @@ select experiment_copy ((select experiment_uuid from vw_experiment where descrip
 --
 -- update vw_experiment_parameter
 -- set
---     parameter_value = array[(select put_val(get_type_def('data', 'array_num'), '{12.0, 12.0, 12.0, 12.0, 1.0, 1.0, 1.0, 1.0}', ''))]
+--     parameter_val_nominalue = array[(select put_val(get_type_def('data', 'array_num'), '{12.0, 12.0, 12.0, 12.0, 1.0, 1.0, 1.0, 1.0}', ''))]
 -- where experiment = 'experiment copy #1'
 --   and workflow_seq = 1
 --   and parameter_def_description = 'hcl_concentrations';

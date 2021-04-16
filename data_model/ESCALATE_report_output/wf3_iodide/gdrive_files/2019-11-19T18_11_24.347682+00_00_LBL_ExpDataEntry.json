@@ -1,0 +1,249 @@
+{					
+	"run": {				
+		"datecreated":	 "2019-11-19"	,	
+		"timecreated_UTC":	 "18_11_24"	,	
+		"lab":	 "LBL"	,	
+		"operator":	 "Philip Nega"	,	
+		"jobserial":	 "2019-11-19T18_11_24.347682+00_00_LBL"	,	
+		"ExpVer":	3	,	
+		"GenVer":	2.55	,	
+		"ChallengeProblem":	0		
+	},				
+	"reagent": [{				
+		"date": 	 "2019-11-19"	,	
+		"id":	1	,	
+		"operator":	 "Philip Nega"	,	
+		"chemicals": [{			
+			"InChIKey":	 "ZMXDDKWLCZADIW-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "7.51:milliliter"	,
+			"actual_amount": 	 "8:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "null:null"	
+		}]			
+	}, {				
+		"date": 	 "2019-11-19"	,	
+		"id":	2	,	
+		"operator":	 "Philip Nega"	,	
+		"chemicals": [{			
+			"InChIKey":	 "RQQRAHKHDFPBMC-UHFFFAOYSA-L"	,
+			"nominal_amount": 	 "5.86:gram"	,
+			"actual_amount": 	 "5.86:gram"	
+		}, {			
+			"InChIKey":	 "VAWHFUNJDMQUSB-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "3.43:gram"	,
+			"actual_amount": 	 "3.43:gram"	
+		}, {			
+			"InChIKey":	 "ZMXDDKWLCZADIW-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "2.72:milliliter"	,
+			"actual_amount": 	 "3:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "6:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2019-11-19"	,	
+		"id":	3	,	
+		"operator":	 "Philip Nega"	,	
+		"chemicals": [{			
+			"InChIKey":	 "VAWHFUNJDMQUSB-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "2.37:gram"	,
+			"actual_amount": 	 "2.36:gram"	
+		}, {			
+			"InChIKey":	 "ZMXDDKWLCZADIW-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "3.42:milliliter"	,
+			"actual_amount": 	 "3.5:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "5.5:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2019-11-19"	,	
+		"id":	4	,	
+		"operator":	 "Philip Nega"	,	
+		"chemicals": [{			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "null:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "null:null"	
+		}]			
+	}, {				
+		"date": 	 "2019-11-19"	,	
+		"id":	5	,	
+		"operator":	 "Philip Nega"	,	
+		"chemicals": [{			
+			"InChIKey":	 "BDAGIHXWWSANSR-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "4.34:milliliter"	,
+			"actual_amount": 	 "5:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "null:null"	
+		}]			
+	}, {				
+		"date": 	 "2019-11-19"	,	
+		"id":	6	,	
+		"operator":	 "Philip Nega"	,	
+		"chemicals": [{			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "null:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "null:null"	
+		}]			
+	}, {				
+		"date": 	 "2019-11-19"	,	
+		"id":	7	,	
+		"operator":	 "Philip Nega"	,	
+		"chemicals": [{			
+			"InChIKey":	 "YMWUJEATGCHHMB-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "18.4:milliliter"	,
+			"actual_amount": 	 "20:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "null:null"	
+		}]			
+	}],				
+	"notes": 	{			
+		"note1": 	 "null"	,	
+		"note2": 	 "null"	,	
+		"ExperimentalSummary": 	 "Morpholinium batch 203344. PbI2 lot BCCB0381. Collected samples e5 and G11. Crystallized 19 hrs"		
+	}				
+}					

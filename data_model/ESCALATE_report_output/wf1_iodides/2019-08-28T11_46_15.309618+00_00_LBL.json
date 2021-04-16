@@ -1,0 +1,328 @@
+{
+    "notes": {
+        "ExperimentalSummary": "null",
+        "note1": "PbI2: LOT#BCCB0381; EtNH3I: LOT#MKBW4881",
+        "note2": "null"
+    },
+    "reagent": [
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "YEJRWHAVMIAJKC-UHFFFAOYSA-N",
+                    "actual_amount": "20:milliliter",
+                    "nominal_amount": "14.59:milliliter"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "2019-08-28",
+            "id": 1,
+            "instructions": [
+                {
+                    "duration": "null:second",
+                    "op": "heatstir",
+                    "stir": "null:rpm",
+                    "temperature": "null:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "45:celsius"
+                },
+                {
+                    "op": "measure_volume",
+                    "volume": "null:null"
+                }
+            ],
+            "operator": "Zhi Li"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "RQQRAHKHDFPBMC-UHFFFAOYSA-L",
+                    "actual_amount": "7.74:gram",
+                    "nominal_amount": "7.7375:gram"
+                },
+                {
+                    "InChIKey": "XFYICZOIWSBQSK-UHFFFAOYSA-N",
+                    "actual_amount": "5.789:gram",
+                    "nominal_amount": "5.7875:gram"
+                },
+                {
+                    "InChIKey": "YEJRWHAVMIAJKC-UHFFFAOYSA-N",
+                    "actual_amount": "11.3:milliliter",
+                    "nominal_amount": "11.1375:milliliter"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "2019-08-28",
+            "id": 2,
+            "instructions": [
+                {
+                    "duration": "3600:second",
+                    "op": "heatstir",
+                    "stir": "450:rpm",
+                    "temperature": "75:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "45:celsius"
+                },
+                {
+                    "op": "measure_volume",
+                    "volume": "15.8:milliliter"
+                }
+            ],
+            "operator": "Zhi Li"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "XFYICZOIWSBQSK-UHFFFAOYSA-N",
+                    "actual_amount": "10.428:gram",
+                    "nominal_amount": "10.43:gram"
+                },
+                {
+                    "InChIKey": "YEJRWHAVMIAJKC-UHFFFAOYSA-N",
+                    "actual_amount": "10:milliliter",
+                    "nominal_amount": "10.05:milliliter"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "2019-08-28",
+            "id": 3,
+            "instructions": [
+                {
+                    "duration": "3600:second",
+                    "op": "heatstir",
+                    "stir": "450:rpm",
+                    "temperature": "75:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "45:celsius"
+                },
+                {
+                    "op": "measure_volume",
+                    "volume": "16:milliliter"
+                }
+            ],
+            "operator": "Zhi Li"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "2019-08-28",
+            "id": 4,
+            "instructions": [
+                {
+                    "duration": "null:second",
+                    "op": "heatstir",
+                    "stir": "null:rpm",
+                    "temperature": "null:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "null:celsius"
+                },
+                {
+                    "op": "measure_volume",
+                    "volume": "null:null"
+                }
+            ],
+            "operator": "Zhi Li"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "2019-08-28",
+            "id": 5,
+            "instructions": [
+                {
+                    "duration": "null:second",
+                    "op": "heatstir",
+                    "stir": "null:rpm",
+                    "temperature": "null:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "null:celsius"
+                },
+                {
+                    "op": "measure_volume",
+                    "volume": "null:null"
+                }
+            ],
+            "operator": "Zhi Li"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "BDAGIHXWWSANSR-UHFFFAOYSA-N",
+                    "actual_amount": "10:milliliter",
+                    "nominal_amount": "7.97:milliliter"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "2019-08-28",
+            "id": 6,
+            "instructions": [
+                {
+                    "duration": "null:second",
+                    "op": "heatstir",
+                    "stir": "null:rpm",
+                    "temperature": "null:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "45:celsius"
+                },
+                {
+                    "op": "measure_volume",
+                    "volume": "null:null"
+                }
+            ],
+            "operator": "Zhi Li"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "BDAGIHXWWSANSR-UHFFFAOYSA-N",
+                    "actual_amount": "10:milliliter",
+                    "nominal_amount": "20:milliliter"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "2019-08-28",
+            "id": 7,
+            "instructions": [
+                {
+                    "duration": "null:second",
+                    "op": "heatstir",
+                    "stir": "null:rpm",
+                    "temperature": "null:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "45:celsius"
+                },
+                {
+                    "op": "measure_volume",
+                    "volume": "null:null"
+                }
+            ],
+            "operator": "Zhi Li"
+        }
+    ],
+    "run": {
+        "ChallengeProblem": 0,
+        "ExpVer": 1.1,
+        "GenVer": 2.53,
+        "datecreated": "2019-08-28",
+        "jobserial": "2019-08-28T11_46_15.309618+00_00_LBL",
+        "lab": "LBL",
+        "operator": "Zhi Li",
+        "timecreated_UTC": "11_46_15"
+	},
+	 "well_volumes":
+	 [["A1", 90, 219, 67, 0, 0, 63, 63, "Symyx_96_well_0003"], ["C1", 26, 343, 131, 0, 0, 98, 152, "Symyx_96_well_0003"], ["E1", 151, 347, 2, 0, 0, 200, 49, "Symyx_96_well_0003"], ["G1", 26, 343, 131, 0, 0, 98, 152, "Symyx_96_well_0003"], ["B1", 147, 187, 166, 0, 0, 207, 35, "Symyx_96_well_0003"], ["D1", 151, 347, 2, 0, 0, 200, 49, "Symyx_96_well_0003"], ["F1", 243, 189, 68, 0, 0, 91, 86, "Symyx_96_well_0003"], ["H1", 229, 65, 40, 0, 0, 83, 84, "Symyx_96_well_0003"], ["A2", 60, 87, 79, 0, 0, 134, 135, "Symyx_96_well_0003"], ["C2", 37, 224, 32, 0, 0, 105, 106, "Symyx_96_well_0003"], ["E2", 23, 66, 146, 0, 0, 132, 132, "Symyx_96_well_0003"], ["G2", 269, 46, 38, 0, 0, 72, 72, "Symyx_96_well_0003"], ["B2", 80, 145, 227, 0, 0, 23, 24, "Symyx_96_well_0003"], ["D2", 215, 91, 38, 0, 0, 76, 77, "Symyx_96_well_0003"], ["F2", 270, 92, 127, 0, 0, 6, 6, "Symyx_96_well_0003"], ["H2", 276, 16, 202, 0, 0, 3, 4, "Symyx_96_well_0003"], ["A3", 128, 120, 16, 0, 0, 116, 116, "Symyx_96_well_0003"], ["C3", 116, 192, 39, 0, 0, 75, 76, "Symyx_96_well_0003"], ["E3", 45, 94, 147, 0, 0, 106, 106, "Symyx_96_well_0003"], ["G3", 194, 99, 54, 0, 0, 76, 77, "Symyx_96_well_0003"], ["B3", 150, 75, 230, 0, 0, 21, 22, "Symyx_96_well_0003"], ["D3", 108, 221, 82, 0, 0, 45, 45, "Symyx_96_well_0003"], ["F3", 71, 52, 202, 0, 0, 87, 88, "Symyx_96_well_0003"], ["H3", 169, 24, 160, 0, 0, 75, 75, "Symyx_96_well_0003"], ["A4", 202, 15, 103, 0, 0, 91, 91, "Symyx_96_well_0003"], ["C4", 147, 187, 166, 0, 0, 207, 35, "Symyx_96_well_0003"], ["E4", 26, 343, 131, 0, 0, 98, 152, "Symyx_96_well_0003"], ["G4", 147, 187, 166, 0, 0, 207, 35, "Symyx_96_well_0003"], ["B4", 151, 347, 2, 0, 0, 200, 49, "Symyx_96_well_0003"], ["D4", 243, 189, 68, 0, 0, 91, 86, "Symyx_96_well_0003"], ["F4", 32, 185, 207, 0, 0, 39, 39, "Symyx_96_well_0003"], ["H4", 42, 108, 263, 0, 0, 43, 44, "Symyx_96_well_0003"], ["A5", 189, 20, 48, 0, 0, 121, 122, "Symyx_96_well_0003"], ["C5", 97, 93, 180, 0, 0, 65, 66, "Symyx_96_well_0003"], ["E5", 336, 110, 33, 0, 0, 10, 11, "Symyx_96_well_0003"], ["G5", 55, 207, 66, 0, 0, 87, 88, "Symyx_96_well_0003"], ["B5", 29, 37, 316, 0, 0, 60, 60, "Symyx_96_well_0003"], ["D5", 2, 59, 267, 0, 0, 87, 87, "Symyx_96_well_0003"], ["F5", 38, 17, 257, 0, 0, 94, 94, "Symyx_96_well_0003"], ["H5", 162, 210, 45, 0, 0, 41, 42, "Symyx_96_well_0003"], ["A6", 113, 7, 363, 0, 0, 9, 10, "Symyx_96_well_0003"], ["C6", 110, 202, 170, 0, 0, 9, 9, "Symyx_96_well_0003"], ["E6", 73, 181, 34, 0, 0, 108, 108, "Symyx_96_well_0003"], ["G6", 65, 112, 139, 0, 0, 92, 93, "Symyx_96_well_0003"], ["B6", 32, 130, 96, 0, 0, 119, 120, "Symyx_96_well_0003"], ["D6", 243, 189, 68, 0, 0, 91, 86, "Symyx_96_well_0003"], ["F6", 250, 16, 46, 0, 0, 0, 185, "Symyx_96_well_0003"], ["H6", 110, 70, 226, 0, 0, 0, 95, "Symyx_96_well_0003"], ["A7", 83, 285, 117, 0, 0, 0, 15, "Symyx_96_well_0003"], ["C7", 111, 113, 53, 0, 0, 0, 220, "Symyx_96_well_0003"], ["E7", 74, 18, 215, 0, 0, 0, 195, "Symyx_96_well_0003"], ["G7", 328, 0, 130, 0, 0, 0, 40, "Symyx_96_well_0003"], ["B7", 111, 138, 119, 0, 0, 0, 130, "Symyx_96_well_0003"], ["D7", 224, 215, 26, 0, 0, 0, 35, "Symyx_96_well_0003"], ["F7", 353, 13, 48, 0, 0, 0, 85, "Symyx_96_well_0003"], ["H7", 37, 27, 295, 0, 0, 0, 140, "Symyx_96_well_0003"], ["A8", 40, 78, 317, 0, 0, 0, 65, "Symyx_96_well_0003"], ["C8", 13, 220, 233, 0, 0, 0, 35, "Symyx_96_well_0003"], ["E8", 226, 58, 68, 0, 0, 0, 150, "Symyx_96_well_0003"], ["G8", 190, 95, 173, 0, 0, 0, 45, "Symyx_96_well_0003"], ["B8", 338, 60, 52, 0, 0, 0, 50, "Symyx_96_well_0003"], ["D8", 30, 303, 157, 0, 0, 0, 10, "Symyx_96_well_0003"], ["F8", 62, 72, 275, 0, 0, 0, 90, "Symyx_96_well_0003"], ["H8", 70, 228, 124, 0, 0, 0, 80, "Symyx_96_well_0003"], ["A9", 178, 281, 9, 0, 0, 0, 30, "Symyx_96_well_0003"], ["C9", 194, 18, 225, 0, 0, 0, 65, "Symyx_96_well_0003"], ["E9", 26, 82, 310, 0, 0, 0, 80, "Symyx_96_well_0003"], ["G9", 54, 103, 338, 0, 0, 0, 5, "Symyx_96_well_0003"], ["B9", 264, 156, 74, 0, 0, 0, 5, "Symyx_96_well_0003"], ["D9", 341, 37, 24, 0, 0, 0, 95, "Symyx_96_well_0003"], ["F9", 216, 97, 96, 0, 0, 0, 90, "Symyx_96_well_0003"], ["H9", 128, 0, 290, 0, 0, 0, 85, "Symyx_96_well_0003"], ["A10", 4, 158, 58, 0, 0, 0, 275, "Symyx_96_well_0003"], ["C10", 70, 163, 160, 0, 0, 0, 105, "Symyx_96_well_0003"], ["E10", 114, 114, 7, 0, 0, 0, 260, "Symyx_96_well_0003"], ["G10", 276, 15, 102, 0, 0, 0, 110, "Symyx_96_well_0003"], ["B10", 76, 9, 200, 0, 0, 0, 220, "Symyx_96_well_0003"], ["D10", 42, 143, 301, 0, 0, 0, 15, "Symyx_96_well_0003"], ["F10", 40, 122, 323, 0, 0, 0, 15, "Symyx_96_well_0003"], ["H10", 152, 122, 32, 0, 0, 0, 195, "Symyx_96_well_0003"], ["A11", 75, 263, 30, 0, 0, 0, 130, "Symyx_96_well_0003"], ["C11", 13, 110, 250, 0, 0, 0, 125, "Symyx_96_well_0003"], ["E11", 30, 63, 260, 0, 0, 0, 145, "Symyx_96_well_0003"], ["G11", 9, 192, 53, 0, 0, 0, 250, "Symyx_96_well_0003"], ["B11", 43, 132, 222, 0, 0, 0, 105, "Symyx_96_well_0003"], ["D11", 148, 0, 105, 0, 0, 0, 240, "Symyx_96_well_0003"], ["F11", 153, 84, 4, 0, 0, 128, 128, "Symyx_96_well_0003"], ["H11", 44, 135, 205, 0, 0, 59, 59, "Symyx_96_well_0003"], ["A12", 50, 212, 213, 0, 0, 13, 13, "Symyx_96_well_0003"], ["C12", 268, 150, 50, 0, 0, 16, 17, "Symyx_96_well_0003"], ["E12", 262, 88, 19, 0, 0, 64, 65, "Symyx_96_well_0003"], ["G12", 82, 43, 285, 0, 0, 43, 44, "Symyx_96_well_0003"], ["B12", 26, 343, 131, 0, 0, 98, 152, "Symyx_96_well_0003"], ["D12", 147, 187, 166, 0, 0, 207, 35, "Symyx_96_well_0003"], ["F12", 151, 347, 2, 0, 0, 200, 49, "Symyx_96_well_0003"], ["H12", 243, 189, 68, 0, 0, 91, 86, "Symyx_96_well_0003"]] ,
+	 "tray_environment":
+	 [["Temperature (C):", 105.0], ["Stir Rate (rpm):", 750.0], ["Mixing time1 (s):", 900.0], ["Mixing time2 (s):", 1200.0], ["Reaction time (s):", 12600.0]] ,
+	 "robot_reagent_handling":
+	 [["Reagent1", 1.0, "HighVolume_Water_DispenseJet_Empty", 45.0], ["Reagent2", 2.0, "HighVolume_Water_DispenseJet_Empty", 45.0], ["Reagent3", 3.0, "HighVolume_Water_DispenseJet_Empty", 45.0], ["Reagent4", 4.0, "Tip_50ul_Water_DispenseJet_Empty", 45.0], ["Reagent5", 5.0, "Tip_50ul_Water_DispenseJet_Empty", 45.0], ["Reagent6", 6.0, "StandardVolume_Water_DispenseJet_Empty", 45.0], ["Reagent7", 7.0, "StandardVolume_Water_DispenseJet_Empty", 45.0]] ,
+	 "crys_file_data":
+	 [{"Robot Number":1,"Vial Site (1)":"A","Vial Site (2)":1,"Concatenated Vial site":"A1","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":5,"Vial Site (1)":"B","Vial Site (2)":1,"Concatenated Vial site":"B1","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-01-09T16_00_00.000000+00_00_LBL_C4","class_probability":null},{"Robot Number":2,"Vial Site (1)":"C","Vial Site (2)":1,"Concatenated Vial site":"C1","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-01-09T16_00_00.000000+00_00_LBL_C1","class_probability":null},{"Robot Number":6,"Vial Site (1)":"D","Vial Site (2)":1,"Concatenated Vial site":"D1","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-01-09T16_00_00.000000+00_00_LBL_E1","class_probability":null},{"Robot Number":3,"Vial Site (1)":"E","Vial Site (2)":1,"Concatenated Vial site":"E1","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-01-09T16_00_00.000000+00_00_LBL_E1","class_probability":null},{"Robot Number":7,"Vial Site (1)":"F","Vial Site (2)":1,"Concatenated Vial site":"F1","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":3,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2018-07-06T15_40_16.425303+00_00_LBL_D6","class_probability":null},{"Robot Number":4,"Vial Site (1)":"G","Vial Site (2)":1,"Concatenated Vial site":"G1","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-01-09T16_00_00.000000+00_00_LBL_C1","class_probability":null},{"Robot Number":8,"Vial Site (1)":"H","Vial Site (2)":1,"Concatenated Vial site":"H1","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":9,"Vial Site (1)":"A","Vial Site (2)":2,"Concatenated Vial site":"A2","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":13,"Vial Site (1)":"B","Vial Site (2)":2,"Concatenated Vial site":"B2","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":10,"Vial Site (1)":"C","Vial Site (2)":2,"Concatenated Vial site":"C2","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":14,"Vial Site (1)":"D","Vial Site (2)":2,"Concatenated Vial site":"D2","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":3,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":11,"Vial Site (1)":"E","Vial Site (2)":2,"Concatenated Vial site":"E2","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":15,"Vial Site (1)":"F","Vial Site (2)":2,"Concatenated Vial site":"F2","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":12,"Vial Site (1)":"G","Vial Site (2)":2,"Concatenated Vial site":"G2","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":16,"Vial Site (1)":"H","Vial Site (2)":2,"Concatenated Vial site":"H2","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":17,"Vial Site (1)":"A","Vial Site (2)":3,"Concatenated Vial site":"A3","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":3,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":21,"Vial Site (1)":"B","Vial Site (2)":3,"Concatenated Vial site":"B3","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":18,"Vial Site (1)":"C","Vial Site (2)":3,"Concatenated Vial site":"C3","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":22,"Vial Site (1)":"D","Vial Site (2)":3,"Concatenated Vial site":"D3","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":19,"Vial Site (1)":"E","Vial Site (2)":3,"Concatenated Vial site":"E3","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":23,"Vial Site (1)":"F","Vial Site (2)":3,"Concatenated Vial site":"F3","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":20,"Vial Site (1)":"G","Vial Site (2)":3,"Concatenated Vial site":"G3","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":24,"Vial Site (1)":"H","Vial Site (2)":3,"Concatenated Vial site":"H3","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":25,"Vial Site (1)":"A","Vial Site (2)":4,"Concatenated Vial site":"A4","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":29,"Vial Site (1)":"B","Vial Site (2)":4,"Concatenated Vial site":"B4","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-01-09T16_00_00.000000+00_00_LBL_E1","class_probability":null},{"Robot Number":26,"Vial Site (1)":"C","Vial Site (2)":4,"Concatenated Vial site":"C4","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-01-09T16_00_00.000000+00_00_LBL_C4","class_probability":null},{"Robot Number":30,"Vial Site (1)":"D","Vial Site (2)":4,"Concatenated Vial site":"D4","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2018-07-06T15_40_16.425303+00_00_LBL_D6","class_probability":null},{"Robot Number":27,"Vial Site (1)":"E","Vial Site (2)":4,"Concatenated Vial site":"E4","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-01-09T16_00_00.000000+00_00_LBL_C1","class_probability":null},{"Robot Number":31,"Vial Site (1)":"F","Vial Site (2)":4,"Concatenated Vial site":"F4","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":28,"Vial Site (1)":"G","Vial Site (2)":4,"Concatenated Vial site":"G4","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-01-09T16_00_00.000000+00_00_LBL_C4","class_probability":null},{"Robot Number":32,"Vial Site (1)":"H","Vial Site (2)":4,"Concatenated Vial site":"H4","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":33,"Vial Site (1)":"A","Vial Site (2)":5,"Concatenated Vial site":"A5","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":37,"Vial Site (1)":"B","Vial Site (2)":5,"Concatenated Vial site":"B5","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":34,"Vial Site (1)":"C","Vial Site (2)":5,"Concatenated Vial site":"C5","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":38,"Vial Site (1)":"D","Vial Site (2)":5,"Concatenated Vial site":"D5","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":35,"Vial Site (1)":"E","Vial Site (2)":5,"Concatenated Vial site":"E5","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":39,"Vial Site (1)":"F","Vial Site (2)":5,"Concatenated Vial site":"F5","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":36,"Vial Site (1)":"G","Vial Site (2)":5,"Concatenated Vial site":"G5","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":40,"Vial Site (1)":"H","Vial Site (2)":5,"Concatenated Vial site":"H5","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":41,"Vial Site (1)":"A","Vial Site (2)":6,"Concatenated Vial site":"A6","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":45,"Vial Site (1)":"B","Vial Site (2)":6,"Concatenated Vial site":"B6","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":42,"Vial Site (1)":"C","Vial Site (2)":6,"Concatenated Vial site":"C6","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":46,"Vial Site (1)":"D","Vial Site (2)":6,"Concatenated Vial site":"D6","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2018-07-06T15_40_16.425303+00_00_LBL_D6","class_probability":null},{"Robot Number":43,"Vial Site (1)":"E","Vial Site (2)":6,"Concatenated Vial site":"E6","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":47,"Vial Site (1)":"F","Vial Site (2)":6,"Concatenated Vial site":"F6","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":44,"Vial Site (1)":"G","Vial Site (2)":6,"Concatenated Vial site":"G6","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":48,"Vial Site (1)":"H","Vial Site (2)":6,"Concatenated Vial site":"H6","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":49,"Vial Site (1)":"A","Vial Site (2)":7,"Concatenated Vial site":"A7","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":53,"Vial Site (1)":"B","Vial Site (2)":7,"Concatenated Vial site":"B7","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":50,"Vial Site (1)":"C","Vial Site (2)":7,"Concatenated Vial site":"C7","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":54,"Vial Site (1)":"D","Vial Site (2)":7,"Concatenated Vial site":"D7","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":51,"Vial Site (1)":"E","Vial Site (2)":7,"Concatenated Vial site":"E7","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":55,"Vial Site (1)":"F","Vial Site (2)":7,"Concatenated Vial site":"F7","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":52,"Vial Site (1)":"G","Vial Site (2)":7,"Concatenated Vial site":"G7","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":56,"Vial Site (1)":"H","Vial Site (2)":7,"Concatenated Vial site":"H7","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":57,"Vial Site (1)":"A","Vial Site (2)":8,"Concatenated Vial site":"A8","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":61,"Vial Site (1)":"B","Vial Site (2)":8,"Concatenated Vial site":"B8","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":58,"Vial Site (1)":"C","Vial Site (2)":8,"Concatenated Vial site":"C8","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":62,"Vial Site (1)":"D","Vial Site (2)":8,"Concatenated Vial site":"D8","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":59,"Vial Site (1)":"E","Vial Site (2)":8,"Concatenated Vial site":"E8","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":63,"Vial Site (1)":"F","Vial Site (2)":8,"Concatenated Vial site":"F8","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":60,"Vial Site (1)":"G","Vial Site (2)":8,"Concatenated Vial site":"G8","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":64,"Vial Site (1)":"H","Vial Site (2)":8,"Concatenated Vial site":"H8","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":65,"Vial Site (1)":"A","Vial Site (2)":9,"Concatenated Vial site":"A9","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":69,"Vial Site (1)":"B","Vial Site (2)":9,"Concatenated Vial site":"B9","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":66,"Vial Site (1)":"C","Vial Site (2)":9,"Concatenated Vial site":"C9","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":70,"Vial Site (1)":"D","Vial Site (2)":9,"Concatenated Vial site":"D9","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":67,"Vial Site (1)":"E","Vial Site (2)":9,"Concatenated Vial site":"E9","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":71,"Vial Site (1)":"F","Vial Site (2)":9,"Concatenated Vial site":"F9","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":68,"Vial Site (1)":"G","Vial Site (2)":9,"Concatenated Vial site":"G9","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":72,"Vial Site (1)":"H","Vial Site (2)":9,"Concatenated Vial site":"H9","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":73,"Vial Site (1)":"A","Vial Site (2)":10,"Concatenated Vial site":"A10","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":77,"Vial Site (1)":"B","Vial Site (2)":10,"Concatenated Vial site":"B10","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":74,"Vial Site (1)":"C","Vial Site (2)":10,"Concatenated Vial site":"C10","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":78,"Vial Site (1)":"D","Vial Site (2)":10,"Concatenated Vial site":"D10","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":75,"Vial Site (1)":"E","Vial Site (2)":10,"Concatenated Vial site":"E10","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":79,"Vial Site (1)":"F","Vial Site (2)":10,"Concatenated Vial site":"F10","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":76,"Vial Site (1)":"G","Vial Site (2)":10,"Concatenated Vial site":"G10","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":80,"Vial Site (1)":"H","Vial Site (2)":10,"Concatenated Vial site":"H10","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":81,"Vial Site (1)":"A","Vial Site (2)":11,"Concatenated Vial site":"A11","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":85,"Vial Site (1)":"B","Vial Site (2)":11,"Concatenated Vial site":"B11","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":82,"Vial Site (1)":"C","Vial Site (2)":11,"Concatenated Vial site":"C11","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":86,"Vial Site (1)":"D","Vial Site (2)":11,"Concatenated Vial site":"D11","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":83,"Vial Site (1)":"E","Vial Site (2)":11,"Concatenated Vial site":"E11","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":87,"Vial Site (1)":"F","Vial Site (2)":11,"Concatenated Vial site":"F11","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":3,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":84,"Vial Site (1)":"G","Vial Site (2)":11,"Concatenated Vial site":"G11","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalation_NumpyRandom_1.0","participantname":"Ian Pendleton","notes":"Random draw from the uniform concentration stateset of ethylamine, pbi2 and gbl (M of 1.1, 2.19, 3.96 for relevant chemicals in reagents)\n","class_probability":null},{"Robot Number":88,"Vial Site (1)":"H","Vial Site (2)":11,"Concatenated Vial site":"H11","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":89,"Vial Site (1)":"A","Vial Site (2)":12,"Concatenated Vial site":"A12","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":93,"Vial Site (1)":"B","Vial Site (2)":12,"Concatenated Vial site":"B12","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-01-09T16_00_00.000000+00_00_LBL_C1","class_probability":null},{"Robot Number":90,"Vial Site (1)":"C","Vial Site (2)":12,"Concatenated Vial site":"C12","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":94,"Vial Site (1)":"D","Vial Site (2)":12,"Concatenated Vial site":"D12","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":3,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-01-09T16_00_00.000000+00_00_LBL_C4","class_probability":null},{"Robot Number":91,"Vial Site (1)":"E","Vial Site (2)":12,"Concatenated Vial site":"E12","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":95,"Vial Site (1)":"F","Vial Site (2)":12,"Concatenated Vial site":"F12","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-01-09T16_00_00.000000+00_00_LBL_E1","class_probability":null},{"Robot Number":92,"Vial Site (1)":"G","Vial Site (2)":12,"Concatenated Vial site":"G12","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":96,"Vial Site (1)":"H","Vial Site (2)":12,"Concatenated Vial site":"H12","Experiment Name":0,"Bulk Actual Temp (C)":95,"Crystal Score":3,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2018-07-06T15_40_16.425303+00_00_LBL_D6","class_probability":null}]
+}

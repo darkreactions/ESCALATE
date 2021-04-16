@@ -1,0 +1,315 @@
+{					
+	"run": {				
+		"datecreated":	 "2020-01-23"	,	
+		"timecreated_UTC":	 "18_13_57"	,	
+		"lab":	 "LBL"	,	
+		"operator":	 "Philip Nega"	,	
+		"jobserial":	 "2020-01-23T18_13_57.034292+00_00_LBL"	,	
+		"ExpVer":	3.1	,	
+		"GenVer":	2.57	,	
+		"ChallengeProblem":	0		
+	},				
+	"reagent": [{				
+		"date": 	 "2020-01-23"	,	
+		"id":	1	,	
+		"operator":	 "Philip Nega"	,	
+		"chemicals": [{			
+			"InChIKey":	 "ZMXDDKWLCZADIW-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "4.3:milliliter"	,
+			"actual_amount": 	 "5:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "null:null"	
+		}]			
+	}, {				
+		"date": 	 "2020-01-23"	,	
+		"id":	2	,	
+		"operator":	 "Philip Nega"	,	
+		"chemicals": [{			
+			"InChIKey":	 "RQQRAHKHDFPBMC-UHFFFAOYSA-L"	,
+			"nominal_amount": 	 "3:gram"	,
+			"actual_amount": 	 "2.98:gram"	
+		}, {			
+			"InChIKey":	 "VAWHFUNJDMQUSB-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "1.77:gram"	,
+			"actual_amount": 	 "1.76:gram"	
+		}, {			
+			"InChIKey":	 "ZMXDDKWLCZADIW-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "2.92:milliliter"	,
+			"actual_amount": 	 "3:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "5:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2020-01-23"	,	
+		"id":	3	,	
+		"operator":	 "Philip Nega"	,	
+		"chemicals": [{			
+			"InChIKey":	 "VAWHFUNJDMQUSB-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "2.17:gram"	,
+			"actual_amount": 	 "2.16:gram"	
+		}, {			
+			"InChIKey":	 "ZMXDDKWLCZADIW-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "3.33:milliliter"	,
+			"actual_amount": 	 "3.5:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "5.4:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2020-01-23"	,	
+		"id":	4	,	
+		"operator":	 "Philip Nega"	,	
+		"chemicals": [{			
+			"InChIKey":	 "ZASWJUOMEGBQCQ-UHFFFAOYSA-L"	,
+			"nominal_amount": 	 "1.43:gram"	,
+			"actual_amount": 	 "1.43:gram"	
+		}, {			
+			"InChIKey":	 "BVJOXYJFOYNQRB-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "0.52:gram"	,
+			"actual_amount": 	 "0.53:gram"	
+		}, {			
+			"InChIKey":	 "ZMXDDKWLCZADIW-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "3.99:milliliter"	,
+			"actual_amount": 	 "4:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "5:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2020-01-23"	,	
+		"id":	5	,	
+		"operator":	 "Philip Nega"	,	
+		"chemicals": [{			
+			"InChIKey":	 "BVJOXYJFOYNQRB-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "0.55:gram"	,
+			"actual_amount": 	 "0.56:gram"	
+		}, {			
+			"InChIKey":	 "ZMXDDKWLCZADIW-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "4.05:milliliter"	,
+			"actual_amount": 	 "4:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "4.9:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2020-01-23"	,	
+		"id":	6	,	
+		"operator":	 "Philip Nega"	,	
+		"chemicals": [{			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "null:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "null:null"	
+		}]			
+	}, {				
+		"date": 	 "2020-01-23"	,	
+		"id":	7	,	
+		"operator":	 "Philip Nega"	,	
+		"chemicals": [{			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "null:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "null:null"	
+		}]			
+	}, {				
+		"date": 	 "2020-01-23"	,	
+		"id":	 "8"	,	
+		"operator":	 "Philip Nega"	,	
+		"chemicals": [{			
+			"InChIKey":	 "BDAGIHXWWSANSR-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "4.38:milliliter"	,
+			"actual_amount": 	 "5:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "null:null"	
+		}]			
+	}, {				
+		"date": 	 "2020-01-23"	,	
+		"id":	 "9"	,	
+		"operator":	 "Philip Nega"	,	
+		"chemicals": [{			
+			"InChIKey":	 "YMWUJEATGCHHMB-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "24.4:milliliter"	,
+			"actual_amount": 	 "25:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "null:null"	
+		}]			
+	}],				
+	"notes": 	{			
+		"note1": 	 "null"	,	
+		"note2": 	 "null"	,	
+		"ExperimentalSummary": 	 "PbI2 BCCB0381 PbBr2 BCCB8353 MorBr 502949 MorI 203344. Crsytallization started 330pm 1/23/20 ended 11am 1/24/20."		
+	}				
+}					

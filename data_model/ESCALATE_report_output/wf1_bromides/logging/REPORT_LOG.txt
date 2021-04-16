@@ -1,0 +1,69 @@
+2021-04-14 19:05:00,016> mainlog.__main__ ; INFO - ['4-Data-Bromides'] selected as the dataset target(s) for this run
+2021-04-14 19:05:00,017> mainlog.__main__ ; INFO - 1 set(s) of downloads will occur, one for dataset, please be patient!
+2021-04-14 19:05:00,017> mainlog.__main__ ; INFO - Developer Option: "offline_toggle" set to 0
+2021-04-14 19:05:00,017> mainlog.expworkup.createjson ; INFO - ensuring directories
+2021-04-14 19:05:00,017> mainlog.expworkup.googleio ; INFO - Temp authentication file ./mycred.txt created
+2021-04-14 19:05:00,018> mainlog.expworkup.googleio ; INFO - Temp authentication file ./mycred.txt required refresh
+2021-04-14 19:05:04,665> mainlog.expworkup.googleio ; INFO - downloaded file structure for 2019-06-19T20_57_41.799640+00_00_LBL from google drive
+2021-04-14 19:05:05,135> mainlog.expworkup.googleio ; INFO - downloaded file structure for 2019-03-20T13_46_36.476841+00_00_LBL from google drive
+2021-04-14 19:05:05,695> mainlog.expworkup.googleio ; INFO - downloaded file structure for 2018-12-04T01_52_47.768958+00_00_LBL from google drive
+2021-04-14 19:05:06,075> mainlog.expworkup.createjson ; INFO - Starting Download and Directory Parsing
+2021-04-14 19:05:06,241> mainlog.expworkup.googleio ; INFO - Starting on 2019-06-19T20_57_41.799640+00_00_LBL files, saving to wf1_bromides/gdrive_files
+2021-04-14 19:05:19,624> mainlog.expworkup.googleio ; INFO - Parsing TSV to JSON from gdrive. RunID: wf1_bromides/gdrive_files/2019-06-19T20_57_41.799640+00_00_LBL_ExpDataEntry.json
+2021-04-14 19:05:21,078> mainlog.expworkup.createjson ; INFO - New sleep timer 0
+2021-04-14 19:05:21,492> mainlog.expworkup.googleio ; INFO - Starting on 2019-03-20T13_46_36.476841+00_00_LBL files, saving to wf1_bromides/gdrive_files
+2021-04-14 19:05:24,626> mainlog.expworkup.googleio ; INFO - Parsing TSV to JSON from gdrive. RunID: wf1_bromides/gdrive_files/2019-03-20T13_46_36.476841+00_00_LBL_ExpDataEntry.json
+2021-04-14 19:05:25,377> mainlog.expworkup.createjson ; INFO - New sleep timer 0
+2021-04-14 19:05:25,550> mainlog.expworkup.googleio ; INFO - Starting on 2018-12-04T01_52_47.768958+00_00_LBL files, saving to wf1_bromides/gdrive_files
+2021-04-14 19:05:28,114> mainlog.expworkup.googleio ; INFO - Parsing TSV to JSON from gdrive. RunID: wf1_bromides/gdrive_files/2018-12-04T01_52_47.768958+00_00_LBL_ExpDataEntry.json
+2021-04-14 19:05:28,997> mainlog.expworkup.createjson ; INFO - New sleep timer 0
+2021-04-14 19:05:29,934> mainlog.expworkup.googleio ; INFO - Successfully loaded the chemical inventory from LBL
+2021-04-14 19:05:29,936> mainlog.expworkup.jsonparser ; INFO - wf1_bromides loaded with JSONs for parsing, starting
+2021-04-14 19:05:29,937> mainlog.expworkup.jsonparser ; INFO - (3/4) Unpacking 2018-12-04T01_52_47.768958+00_00_LBL.json
+2021-04-14 19:05:29,937> mainlog.expworkup.jsonparser ; INFO - Parsing wf1_bromides/2018-12-04T01_52_47.768958+00_00_LBL.json to 2d dataframe
+2021-04-14 19:05:29,982> mainlog.expworkup.jsonparser ; INFO - (3/4) Unpacking 2019-03-20T13_46_36.476841+00_00_LBL.json
+2021-04-14 19:05:29,983> mainlog.expworkup.jsonparser ; INFO - Parsing wf1_bromides/2019-03-20T13_46_36.476841+00_00_LBL.json to 2d dataframe
+2021-04-14 19:05:30,016> mainlog.expworkup.jsonparser ; INFO - (3/4) Unpacking 2019-06-19T20_57_41.799640+00_00_LBL.json
+2021-04-14 19:05:30,017> mainlog.expworkup.jsonparser ; INFO - Parsing wf1_bromides/2019-06-19T20_57_41.799640+00_00_LBL.json to 2d dataframe
+2021-04-14 19:05:30,084> mainlog.expworkup.jsonparser ; INFO - Columns not fitting the naming scheme were written to: wf1_bromides/logging/UNNAMED_REPORT_COLUMNS.log
+2021-04-14 19:05:30,174> mainlog.expworkup.ingredients.pipeline ; INFO - Preparing Reagent Objects, details for ingredient preparation are in separate logfile
+2021-04-14 19:05:30,174> mainlog.expworkup.ingredients.pipeline ; INFO - Preparing raw_reagent_0
+2021-04-14 19:05:32,452> mainlog.expworkup.ingredients.pipeline ; INFO - Completed raw_reagent_0 reagent objects
+2021-04-14 19:05:32,452> mainlog.expworkup.ingredients.pipeline ; INFO - Preparing raw_reagent_1
+2021-04-14 19:05:34,939> mainlog.expworkup.ingredients.pipeline ; INFO - Completed raw_reagent_1 reagent objects
+2021-04-14 19:05:34,939> mainlog.expworkup.ingredients.pipeline ; INFO - Preparing raw_reagent_5
+2021-04-14 19:05:36,341> mainlog.expworkup.ingredients.pipeline ; INFO - Completed raw_reagent_5 reagent objects
+2021-04-14 19:05:36,341> mainlog.expworkup.ingredients.pipeline ; INFO - Preparing raw_reagent_3
+2021-04-14 19:05:36,400> mainlog.expworkup.ingredients.pipeline ; INFO - Completed raw_reagent_3 reagent objects
+2021-04-14 19:05:36,401> mainlog.expworkup.ingredients.pipeline ; INFO - Preparing raw_reagent_2
+2021-04-14 19:05:38,867> mainlog.expworkup.ingredients.pipeline ; INFO - Completed raw_reagent_2 reagent objects
+2021-04-14 19:05:38,867> mainlog.expworkup.ingredients.pipeline ; INFO - Preparing raw_reagent_4
+2021-04-14 19:05:38,926> mainlog.expworkup.ingredients.pipeline ; INFO - Completed raw_reagent_4 reagent objects
+2021-04-14 19:05:38,926> mainlog.expworkup.ingredients.pipeline ; INFO - Preparing raw_reagent_6
+2021-04-14 19:05:41,219> mainlog.expworkup.ingredients.pipeline ; INFO - Completed raw_reagent_6 reagent objects
+2021-04-14 19:05:41,219> mainlog.expworkup.ingredients.pipeline ; INFO - Completed: 'Preparing Reagent Objects'
+2021-04-14 19:05:41,705> mainlog.expworkup.report_feats ; INFO - Generating physicochemical features to wf1_bromides dataset
+2021-04-14 19:05:41,705> mainlog.expworkup.report_feats ; INFO - Log files for this process are in CXCALC_LOG.txt
+2021-04-14 19:06:01,581> mainlog.expworkup.report_feats ; INFO - Completed: 'Generating physicochemical features to wf1_bromides dataset'
+2021-04-14 19:06:01,773> mainlog.expworkup.report_calcs ; INFO - Starting calc_pipeline on target datasets
+2021-04-14 19:06:01,775> mainlog.expworkup.handlers.calcs ; INFO - mmol calculations and df creation
+2021-04-14 19:06:02,014> mainlog.expworkup.handlers.calcs ; INFO - Completed: 'mmol calculations and df creation'
+2021-04-14 19:06:02,015> mainlog.expworkup.report_calcs ; INFO - generating a dataframe of combined mmol and inchi data
+2021-04-14 19:06:02,032> mainlog.expworkup.report_calcs ; INFO - applying chemical type information to each experiment
+2021-04-14 19:06:03,200> mainlog.expworkup.report_calcs ; INFO - Possible columns for target by ./utils/calc_command.py can be found in: wf1_bromides/logging/POTENTIAL_CALC_COLUMNS.txt
+2021-04-14 19:06:03,758> mainlog.expworkup.report_view ; INFO - Generating 2d dataframe
+2021-04-14 19:06:04,110> mainlog.expworkup.report_view ; INFO - 0 in additional dataframes already correctly indexed
+2021-04-14 19:06:04,119> mainlog.expworkup.report_view ; INFO - 1 in additional dataframes already correctly indexed
+2021-04-14 19:06:04,121> mainlog.expworkup.report_view ; INFO - 2 in additional dataframes already correctly indexed
+2021-04-14 19:06:04,122> mainlog.expworkup.report_view ; INFO - 3 in additional dataframes already correctly indexed
+2021-04-14 19:06:04,126> mainlog.expworkup.report_view ; INFO - 4 in additional dataframes already correctly indexed
+2021-04-14 19:06:04,127> mainlog.expworkup.report_view ; INFO - 5 in additional dataframes already correctly indexed
+2021-04-14 19:06:04,287> mainlog.expworkup.report_view ; INFO - Removed 121 of an original 406 columns which contained only "0" or "null"
+2021-04-14 19:06:04,287> mainlog.expworkup.report_view ; INFO - successfully generated mmol and molarity dataframes for calcs
+2021-04-14 19:06:04,318> mainlog.versiondata.export_to_repo ; INFO - Generating version repo ready data and index dataframes
+2021-04-14 19:41:14,955> mainlog.versiondata.export_to_repo ; INFO - Generating training data metrics for version repo headers
+2021-04-14 19:41:14,956> mainlog.versiondata.export_to_repo ; INFO - Exporting data to 0060.wf1_bromides for version data upload
+2021-04-14 19:41:14,956> mainlog.versiondata.export_to_repo ; INFO - Building initial training text file containing header with metrics
+2021-04-14 19:41:14,956> mainlog.versiondata.export_to_repo ; INFO - Building index header containing metrics and description
+2021-04-14 19:41:14,996> mainlog.__main__ ; INFO - Exporting 0060: 0060.wf1_bromides.csv was generated
+2021-04-14 19:41:14,997> mainlog.__main__ ; INFO - Clean Exit: wf1_bromides.csv was generated

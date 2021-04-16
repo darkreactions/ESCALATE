@@ -1,0 +1,134 @@
+{					
+	"run": {				
+		"datecreated":	 "2017-10-19"	,	
+		"timecreated_UTC":	 "23_16_50"	,	
+		"lab":	 "LBL"	,	
+		"operator":	 "Liana Alves"	,	
+		"jobserial":	 "2017-10-19T23_16_50.000000+00_00_LBL"	,	
+		"ExpVer":	0	,	
+		"GenVer":	0		
+	},				
+	"reagent": [{				
+		"date": 	 "2017-10-19"	,	
+		"id":	1	,	
+		"operator":	 "Liana Alves"	,	
+		"chemicals": [{			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "18:milliliter"	,
+			"actual_amount": 	 "18:milliliter"	
+		}],			
+		"instructions": [{			
+			"op": 	"heat"	,
+			"temperature":	 "22:celsius"	
+		}]			
+	}, {				
+		"date": 	 "2017-10-19"	,	
+		"id":	2	,	
+		"operator":	 "Liana Alves"	,	
+		"chemicals": [{			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "18:milliliter"	,
+			"actual_amount": 	 "18:milliliter"	
+		}, {			
+			"InChIKey":	 "XFYICZOIWSBQSK-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "4.671:gram"	,
+			"actual_amount": 	 "4.671:gram"	
+		}, {			
+			"InChIKey":	 "RQQRAHKHDFPBMC-UHFFFAOYSA-L"	,
+			"nominal_amount": 	 "24.8945:gram"	,
+			"actual_amount": 	 "24.8945:gram"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "70:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "2700:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "22:celsius"	
+		}]			
+	}, {				
+		"date": 	 "2017-10-19"	,	
+		"id":	3	,	
+		"operator":	 "Liana Alves"	,	
+		"chemicals": [{			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "18:milliliter"	,
+			"actual_amount": 	 "18:milliliter"	
+		}, {			
+			"InChIKey":	 "XFYICZOIWSBQSK-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "9.342:gram"	,
+			"actual_amount": 	 "9.342:gram"	
+		}, {			
+			"InChIKey":	 "RQQRAHKHDFPBMC-UHFFFAOYSA-L"	,
+			"nominal_amount": 	 "12.4473:gram"	,
+			"actual_amount": 	 "12.4473:gram"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "70:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "2700:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "22:celsius"	
+		}]			
+	}, {				
+		"date": 	 "null"	,	
+		"id":	4	,	
+		"operator":	 "null"	,	
+		"chemicals": [{			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "18:milliliter"	,
+			"actual_amount": 	 "18:milliliter"	
+		}, {			
+			"InChIKey":	 "XFYICZOIWSBQSK-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "4.671:gram"	,
+			"actual_amount": 	 "4.671:gram"	
+		}, {			
+			"InChIKey":	 "RQQRAHKHDFPBMC-UHFFFAOYSA-L"	,
+			"nominal_amount": 	 "12.4473:gram"	,
+			"actual_amount": 	 "12.4473:gram"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "22:celsius"	
+		}]			
+	}, {				
+		"date": 	 "2017-10-19"	,	
+		"id":	5	,	
+		"operator":	 "Liana Alves"	,	
+		"chemicals": [{			
+			"InChIKey":	 "BDAGIHXWWSANSR-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "12:milliliter"	,
+			"actual_amount": 	 "12:milliliter"	
+		}],			
+		"instructions": [{			
+			"op": 	"heat"	,
+			"temperature":	 "22:celsius"	
+		}]			
+	}, {				
+		"date": 	 "2017-10-19"	,	
+		"id":	6	,	
+		"operator":	 "Liana Alves"	,	
+		"chemicals": [{			
+			"InChIKey":	 "BDAGIHXWWSANSR-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "12:milliliter"	,
+			"actual_amount": 	 "12:milliliter"	
+		}],			
+		"instructions": [{			
+			"op": 	"heat"	,
+			"temperature":	 "22:celsius"	
+		}]			
+	}],				
+	"notes": 	{			
+		"note1": 	 "Difference in workflow is not captured by this reaction JSON file. Specifically the operational details of preparing the stock solution."	,	
+		"note2": 	 "null"	,	
+		"ExperimentalSummary": 	 "Stock solution preparation different than workflow 1 starting in 2018. Grind up PbI2 into a fine powder and dissolve in GBL stirring at 60C for 30 minute. Dissolve amine into GBL and heat until dissolved, combine reagents to form the primary stock solution at the desired ratio. Add amine solution to PbI2 GBL solution and stir for 45 minute then filter stock solution using PTFE 0.45 micron filter. "		
+	}				
+}					

@@ -1,0 +1,328 @@
+{
+    "notes": {
+        "ExperimentalSummary": "iButylammoniumI batch 229502. n-butylammoniumI batch 437407. PbI2 lot BCCB0381. NOTE: Had to add 4 extra mL of solvent to Re2 due to low solubility",
+        "note1": "null",
+        "note2": "null"
+    },
+    "reagent": [
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "YEJRWHAVMIAJKC-UHFFFAOYSA-N",
+                    "actual_amount": "16:milliliter",
+                    "nominal_amount": "16.29:milliliter"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "2019-08-28",
+            "id": 1,
+            "instructions": [
+                {
+                    "duration": "null:second",
+                    "op": "heatstir",
+                    "stir": "null:rpm",
+                    "temperature": "null:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "45:celsius"
+                },
+                {
+                    "op": "measure_volume",
+                    "volume": "null:null"
+                }
+            ],
+            "operator": "Philip Nega"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "RQQRAHKHDFPBMC-UHFFFAOYSA-L",
+                    "actual_amount": "5.57:gram",
+                    "nominal_amount": "5.53:gram"
+                },
+                {
+                    "InChIKey": "FCTHQYIDLRRROX-UHFFFAOYSA-N",
+                    "actual_amount": "2.99:gram",
+                    "nominal_amount": "3.01:gram"
+                },
+                {
+                    "InChIKey": "YEJRWHAVMIAJKC-UHFFFAOYSA-N",
+                    "actual_amount": "10.4:milliliter",
+                    "nominal_amount": "6.34:milliliter"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "2019-08-28",
+            "id": 2,
+            "instructions": [
+                {
+                    "duration": "3600:second",
+                    "op": "heatstir",
+                    "stir": "450:rpm",
+                    "temperature": "75:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "45:celsius"
+                },
+                {
+                    "op": "measure_volume",
+                    "volume": "13.2:milliliter"
+                }
+            ],
+            "operator": "Philip Nega"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "FCTHQYIDLRRROX-UHFFFAOYSA-N",
+                    "actual_amount": "7.28:gram",
+                    "nominal_amount": "7.28:gram"
+                },
+                {
+                    "InChIKey": "YEJRWHAVMIAJKC-UHFFFAOYSA-N",
+                    "actual_amount": "3.4:milliliter",
+                    "nominal_amount": "3.37:milliliter"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "2019-08-28",
+            "id": 3,
+            "instructions": [
+                {
+                    "duration": "3600:second",
+                    "op": "heatstir",
+                    "stir": "450:rpm",
+                    "temperature": "75:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "45:celsius"
+                },
+                {
+                    "op": "measure_volume",
+                    "volume": "8.2:milliliter"
+                }
+            ],
+            "operator": "Philip Nega"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "RQQRAHKHDFPBMC-UHFFFAOYSA-L",
+                    "actual_amount": "3.85:gram",
+                    "nominal_amount": "3.87:gram"
+                },
+                {
+                    "InChIKey": "CALQKRVFTWDYDG-UHFFFAOYSA-N",
+                    "actual_amount": "1.29:gram",
+                    "nominal_amount": "1.28:gram"
+                },
+                {
+                    "InChIKey": "ZMXDDKWLCZADIW-UHFFFAOYSA-N",
+                    "actual_amount": "5.5:milliliter",
+                    "nominal_amount": "5.61:milliliter"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "2019-08-28",
+            "id": 4,
+            "instructions": [
+                {
+                    "duration": "3600:second",
+                    "op": "heatstir",
+                    "stir": "450:rpm",
+                    "temperature": "75:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "45:celsius"
+                },
+                {
+                    "op": "measure_volume",
+                    "volume": "7:milliliter"
+                }
+            ],
+            "operator": "Philip Nega"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "CALQKRVFTWDYDG-UHFFFAOYSA-N",
+                    "actual_amount": "4.67:gram",
+                    "nominal_amount": "4.67:gram"
+                },
+                {
+                    "InChIKey": "YEJRWHAVMIAJKC-UHFFFAOYSA-N",
+                    "actual_amount": "4.8:milliliter",
+                    "nominal_amount": "4.64:milliliter"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "2019-08-28",
+            "id": 5,
+            "instructions": [
+                {
+                    "duration": "3600:second",
+                    "op": "heatstir",
+                    "stir": "450:rpm",
+                    "temperature": "75:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "45:celsius"
+                },
+                {
+                    "op": "measure_volume",
+                    "volume": "7.5:milliliter"
+                }
+            ],
+            "operator": "Philip Nega"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "BDAGIHXWWSANSR-UHFFFAOYSA-N",
+                    "actual_amount": "8:milliliter",
+                    "nominal_amount": "7.29:milliliter"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "2019-08-28",
+            "id": 6,
+            "instructions": [
+                {
+                    "duration": "null:second",
+                    "op": "heatstir",
+                    "stir": "null:rpm",
+                    "temperature": "null:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "45:celsius"
+                },
+                {
+                    "op": "measure_volume",
+                    "volume": "null:null"
+                }
+            ],
+            "operator": "Philip Nega"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "BDAGIHXWWSANSR-UHFFFAOYSA-N",
+                    "actual_amount": "8:milliliter",
+                    "nominal_amount": "7.35:milliliter"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "2019-08-28",
+            "id": 7,
+            "instructions": [
+                {
+                    "duration": "null:second",
+                    "op": "heatstir",
+                    "stir": "null:rpm",
+                    "temperature": "null:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "45:celsius"
+                },
+                {
+                    "op": "measure_volume",
+                    "volume": "null:null"
+                }
+            ],
+            "operator": "Philip Nega"
+        }
+    ],
+    "run": {
+        "ChallengeProblem": 0,
+        "ExpVer": 1.1,
+        "GenVer": 2.53,
+        "datecreated": "2019-08-28",
+        "jobserial": "2019-08-28T12_43_43.974719+00_00_LBL",
+        "lab": "LBL",
+        "operator": "Philip Nega",
+        "timecreated_UTC": "12_43_43"
+	},
+	 "well_volumes":
+	 [["A1", 36, 152, 136, 0, 0, 86, 86, "Symyx_96_well_0003"], ["C1", 162, 63, 275, 0, 0, 163, 43, "Symyx_96_well_0003"], ["E1", 41, 0, 0, 423, 36, 8, 46, "Symyx_96_well_0003"], ["G1", 369, 43, 38, 0, 0, 25, 26, "Symyx_96_well_0003"], ["B1", 162, 63, 275, 0, 0, 163, 43, "Symyx_96_well_0003"], ["D1", 141, 167, 192, 0, 0, 85, 118, "Symyx_96_well_0003"], ["F1", 278, 35, 187, 0, 0, 140, 11, "Symyx_96_well_0003"], ["H1", 231, 152, 117, 0, 0, 137, 24, "Symyx_96_well_0003"], ["A2", 23, 449, 28, 0, 0, 169, 14, "Symyx_96_well_0003"], ["C2", 340, 15, 33, 0, 0, 54, 54, "Symyx_96_well_0003"], ["E2", 157, 146, 62, 0, 0, 68, 69, "Symyx_96_well_0003"], ["G2", 125, 210, 115, 0, 0, 24, 25, "Symyx_96_well_0003"], ["B2", 142, 211, 100, 0, 0, 23, 24, "Symyx_96_well_0003"], ["D2", 231, 152, 117, 0, 0, 137, 24, "Symyx_96_well_0003"], ["F2", 162, 63, 275, 0, 0, 163, 43, "Symyx_96_well_0003"], ["H2", 141, 167, 192, 0, 0, 85, 118, "Symyx_96_well_0003"], ["A3", 278, 35, 187, 0, 0, 140, 11, "Symyx_96_well_0003"], ["C3", 231, 152, 117, 0, 0, 137, 24, "Symyx_96_well_0003"], ["E3", 23, 449, 28, 0, 0, 169, 14, "Symyx_96_well_0003"], ["G3", 259, 191, 42, 0, 0, 4, 4, "Symyx_96_well_0003"], ["B3", 60, 58, 265, 0, 0, 57, 58, "Symyx_96_well_0003"], ["D3", 32, 359, 21, 0, 0, 42, 43, "Symyx_96_well_0003"], ["F3", 120, 140, 211, 0, 0, 14, 15, "Symyx_96_well_0003"], ["H3", 218, 228, 27, 0, 0, 14, 15, "Symyx_96_well_0003"], ["A4", 56, 173, 22, 0, 0, 126, 127, "Symyx_96_well_0003"], ["C4", 403, 27, 37, 0, 0, 16, 17, "Symyx_96_well_0003"], ["E4", 280, 46, 125, 0, 0, 24, 25, "Symyx_96_well_0003"], ["G4", 50, 109, 158, 0, 0, 93, 94, "Symyx_96_well_0003"], ["B4", 22, 389, 54, 0, 0, 16, 17, "Symyx_96_well_0003"], ["D4", 254, 26, 92, 0, 0, 65, 66, "Symyx_96_well_0003"], ["F4", 139, 151, 93, 0, 0, 57, 58, "Symyx_96_well_0003"], ["H4", 114, 64, 245, 0, 0, 40, 41, "Symyx_96_well_0003"], ["A5", 87, 262, 132, 0, 0, 9, 10, "Symyx_96_well_0003"], ["C5", 25, 89, 147, 0, 0, 121, 122, "Symyx_96_well_0003"], ["E5", 5, 247, 223, 0, 0, 11, 11, "Symyx_96_well_0003"], ["G5", 153, 12, 67, 0, 0, 136, 137, "Symyx_96_well_0003"], ["B5", 131, 189, 73, 0, 0, 52, 52, "Symyx_96_well_0003"], ["D5", 3, 297, 25, 0, 0, 86, 87, "Symyx_96_well_0003"], ["F5", 25, 120, 247, 0, 0, 52, 53, "Symyx_96_well_0003"], ["H5", 31, 100, 261, 0, 0, 55, 56, "Symyx_96_well_0003"], ["A6", 159, 216, 85, 0, 0, 20, 20, "Symyx_96_well_0003"], ["C6", 207, 98, 83, 0, 0, 56, 56, "Symyx_96_well_0003"], ["E6", 132, 272, 31, 0, 0, 32, 33, "Symyx_96_well_0003"], ["G6", 92, 333, 64, 0, 0, 5, 6, "Symyx_96_well_0003"], ["B6", 287, 81, 129, 0, 0, 1, 1, "Symyx_96_well_0003"], ["D6", 318, 92, 75, 0, 0, 7, 8, "Symyx_96_well_0003"], ["F6", 87, 66, 314, 0, 0, 15, 15, "Symyx_96_well_0003"], ["H6", 36, 190, 71, 0, 0, 103, 103, "Symyx_96_well_0003"], ["A7", 41, 0, 0, 423, 36, 8, 46, "Symyx_96_well_0003"], ["C7", 23, 0, 0, 325, 26, 61, 62, "Symyx_96_well_0003"], ["E7", 74, 0, 0, 61, 268, 47, 48, "Symyx_96_well_0003"], ["G7", 92, 0, 0, 49, 174, 94, 94, "Symyx_96_well_0003"], ["B7", 309, 0, 0, 163, 16, 6, 6, "Symyx_96_well_0003"], ["D7", 49, 0, 0, 67, 360, 12, 12, "Symyx_96_well_0003"], ["F7", 249, 0, 0, 107, 105, 19, 20, "Symyx_96_well_0003"], ["H7", 269, 0, 0, 162, 50, 9, 9, "Symyx_96_well_0003"], ["A8", 4, 0, 0, 48, 403, 22, 22, "Symyx_96_well_0003"], ["C8", 278, 35, 187, 0, 0, 140, 11, "Symyx_96_well_0003"], ["E8", 58, 0, 0, 234, 152, 27, 28, "Symyx_96_well_0003"], ["G8", 85, 0, 0, 178, 68, 86, 87, "Symyx_96_well_0003"], ["B8", 102, 0, 0, 113, 0, 139, 140, "Symyx_96_well_0003"], ["D8", 23, 449, 28, 0, 0, 169, 14, "Symyx_96_well_0003"], ["F8", 276, 0, 0, 38, 42, 70, 71, "Symyx_96_well_0003"], ["H8", 41, 0, 0, 423, 36, 8, 46, "Symyx_96_well_0003"], ["A9", 41, 0, 0, 423, 36, 8, 46, "Symyx_96_well_0003"], ["C9", 262, 0, 0, 148, 57, 16, 16, "Symyx_96_well_0003"], ["E9", 64, 0, 0, 120, 240, 39, 39, "Symyx_96_well_0003"], ["G9", 0, 0, 0, 111, 320, 34, 34, "Symyx_96_well_0003"], ["B9", 78, 0, 0, 129, 95, 101, 101, "Symyx_96_well_0003"], ["D9", 23, 0, 0, 239, 167, 35, 35, "Symyx_96_well_0003"], ["F9", 221, 0, 0, 47, 13, 111, 111, "Symyx_96_well_0003"], ["H9", 93, 0, 0, 6, 170, 116, 117, "Symyx_96_well_0003"], ["A10", 126, 0, 0, 50, 184, 70, 71, "Symyx_96_well_0003"], ["C10", 168, 0, 0, 65, 2, 134, 134, "Symyx_96_well_0003"], ["E10", 132, 0, 0, 3, 191, 86, 86, "Symyx_96_well_0003"], ["G10", 270, 0, 0, 4, 15, 107, 107, "Symyx_96_well_0003"], ["B10", 337, 0, 0, 75, 24, 31, 32, "Symyx_96_well_0003"], ["D10", 149, 0, 0, 152, 28, 87, 87, "Symyx_96_well_0003"], ["F10", 403, 0, 0, 1, 13, 41, 42, "Symyx_96_well_0003"], ["H10", 105, 0, 0, 158, 10, 111, 111, "Symyx_96_well_0003"], ["A11", 147, 0, 0, 155, 44, 76, 76, "Symyx_96_well_0003"], ["C11", 141, 167, 192, 0, 0, 85, 118, "Symyx_96_well_0003"], ["E11", 216, 0, 0, 31, 147, 54, 55, "Symyx_96_well_0003"], ["G11", 232, 0, 0, 48, 180, 20, 20, "Symyx_96_well_0003"], ["B11", 203, 0, 0, 106, 55, 67, 67, "Symyx_96_well_0003"], ["D11", 349, 0, 0, 31, 41, 39, 39, "Symyx_96_well_0003"], ["F11", 89, 0, 0, 312, 21, 40, 41, "Symyx_96_well_0003"], ["H11", 203, 0, 0, 110, 104, 41, 42, "Symyx_96_well_0003"], ["A12", 345, 0, 0, 70, 68, 8, 9, "Symyx_96_well_0003"], ["C12", 330, 0, 0, 53, 11, 54, 55, "Symyx_96_well_0003"], ["E12", 108, 0, 0, 256, 87, 24, 25, "Symyx_96_well_0003"], ["G12", 136, 0, 0, 75, 145, 71, 71, "Symyx_96_well_0003"], ["B12", 140, 0, 0, 32, 223, 51, 52, "Symyx_96_well_0003"], ["D12", 146, 0, 0, 51, 73, 113, 113, "Symyx_96_well_0003"], ["F12", 268, 0, 0, 155, 33, 21, 22, "Symyx_96_well_0003"], ["H12", 234, 0, 0, 2, 27, 118, 119, "Symyx_96_well_0003"]] ,
+	 "tray_environment":
+	 [["Temperature (C):", 105.0], ["Stir Rate (rpm):", 750.0], ["Mixing time1 (s):", 900.0], ["Mixing time2 (s):", 1200.0], ["Reaction time (s):", 12600.0]] ,
+	 "robot_reagent_handling":
+	 [["Reagent1", 1.0, "HighVolume_Water_DispenseJet_Empty", 45.0], ["Reagent2", 2.0, "HighVolume_Water_DispenseJet_Empty", 45.0], ["Reagent3", 3.0, "HighVolume_Water_DispenseJet_Empty", 45.0], ["Reagent4", 4.0, "HighVolume_Water_DispenseJet_Empty", 45.0], ["Reagent5", 5.0, "HighVolume_Water_DispenseJet_Empty", 45.0], ["Reagent6", 6.0, "StandardVolume_Water_DispenseJet_Empty", 45.0], ["Reagent7", 7.0, "StandardVolume_Water_DispenseJet_Empty", 45.0]] ,
+	 "crys_file_data":
+	 [{"Robot Number":1,"Vial Site (1)":"A","Vial Site (2)":1,"Concatenated Vial site":"A1","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":5,"Vial Site (1)":"B","Vial Site (2)":1,"Concatenated Vial site":"B1","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-03-12T15_22_17.125738+00_00_LBL_C1","class_probability":null},{"Robot Number":2,"Vial Site (1)":"C","Vial Site (2)":1,"Concatenated Vial site":"C1","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-03-12T15_22_17.125738+00_00_LBL_C1","class_probability":null},{"Robot Number":6,"Vial Site (1)":"D","Vial Site (2)":1,"Concatenated Vial site":"D1","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-03-12T15_22_17.125738+00_00_LBL_C11","class_probability":null},{"Robot Number":3,"Vial Site (1)":"E","Vial Site (2)":1,"Concatenated Vial site":"E1","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2018-09-17T21_43_06.730215+00_00_LBL_E1","class_probability":null},{"Robot Number":7,"Vial Site (1)":"F","Vial Site (2)":1,"Concatenated Vial site":"F1","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-03-12T15_22_17.125738+00_00_LBL_C8","class_probability":null},{"Robot Number":4,"Vial Site (1)":"G","Vial Site (2)":1,"Concatenated Vial site":"G1","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":8,"Vial Site (1)":"H","Vial Site (2)":1,"Concatenated Vial site":"H1","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-03-12T15_22_17.125738+00_00_LBL_D2","class_probability":null},{"Robot Number":9,"Vial Site (1)":"A","Vial Site (2)":2,"Concatenated Vial site":"A2","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-03-12T15_22_17.125738+00_00_LBL_D8","class_probability":null},{"Robot Number":13,"Vial Site (1)":"B","Vial Site (2)":2,"Concatenated Vial site":"B2","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":10,"Vial Site (1)":"C","Vial Site (2)":2,"Concatenated Vial site":"C2","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":14,"Vial Site (1)":"D","Vial Site (2)":2,"Concatenated Vial site":"D2","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-03-12T15_22_17.125738+00_00_LBL_D2","class_probability":null},{"Robot Number":11,"Vial Site (1)":"E","Vial Site (2)":2,"Concatenated Vial site":"E2","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":15,"Vial Site (1)":"F","Vial Site (2)":2,"Concatenated Vial site":"F2","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-03-12T15_22_17.125738+00_00_LBL_C1","class_probability":null},{"Robot Number":12,"Vial Site (1)":"G","Vial Site (2)":2,"Concatenated Vial site":"G2","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":16,"Vial Site (1)":"H","Vial Site (2)":2,"Concatenated Vial site":"H2","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-03-12T15_22_17.125738+00_00_LBL_C11","class_probability":null},{"Robot Number":17,"Vial Site (1)":"A","Vial Site (2)":3,"Concatenated Vial site":"A3","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-03-12T15_22_17.125738+00_00_LBL_C8","class_probability":null},{"Robot Number":21,"Vial Site (1)":"B","Vial Site (2)":3,"Concatenated Vial site":"B3","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":18,"Vial Site (1)":"C","Vial Site (2)":3,"Concatenated Vial site":"C3","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-03-12T15_22_17.125738+00_00_LBL_D2","class_probability":null},{"Robot Number":22,"Vial Site (1)":"D","Vial Site (2)":3,"Concatenated Vial site":"D3","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":19,"Vial Site (1)":"E","Vial Site (2)":3,"Concatenated Vial site":"E3","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-03-12T15_22_17.125738+00_00_LBL_D8","class_probability":null},{"Robot Number":23,"Vial Site (1)":"F","Vial Site (2)":3,"Concatenated Vial site":"F3","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":20,"Vial Site (1)":"G","Vial Site (2)":3,"Concatenated Vial site":"G3","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":24,"Vial Site (1)":"H","Vial Site (2)":3,"Concatenated Vial site":"H3","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":25,"Vial Site (1)":"A","Vial Site (2)":4,"Concatenated Vial site":"A4","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":29,"Vial Site (1)":"B","Vial Site (2)":4,"Concatenated Vial site":"B4","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":26,"Vial Site (1)":"C","Vial Site (2)":4,"Concatenated Vial site":"C4","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":30,"Vial Site (1)":"D","Vial Site (2)":4,"Concatenated Vial site":"D4","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":27,"Vial Site (1)":"E","Vial Site (2)":4,"Concatenated Vial site":"E4","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":31,"Vial Site (1)":"F","Vial Site (2)":4,"Concatenated Vial site":"F4","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":28,"Vial Site (1)":"G","Vial Site (2)":4,"Concatenated Vial site":"G4","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":32,"Vial Site (1)":"H","Vial Site (2)":4,"Concatenated Vial site":"H4","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":33,"Vial Site (1)":"A","Vial Site (2)":5,"Concatenated Vial site":"A5","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":37,"Vial Site (1)":"B","Vial Site (2)":5,"Concatenated Vial site":"B5","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":34,"Vial Site (1)":"C","Vial Site (2)":5,"Concatenated Vial site":"C5","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":38,"Vial Site (1)":"D","Vial Site (2)":5,"Concatenated Vial site":"D5","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":35,"Vial Site (1)":"E","Vial Site (2)":5,"Concatenated Vial site":"E5","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":39,"Vial Site (1)":"F","Vial Site (2)":5,"Concatenated Vial site":"F5","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":36,"Vial Site (1)":"G","Vial Site (2)":5,"Concatenated Vial site":"G5","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":40,"Vial Site (1)":"H","Vial Site (2)":5,"Concatenated Vial site":"H5","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":41,"Vial Site (1)":"A","Vial Site (2)":6,"Concatenated Vial site":"A6","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":45,"Vial Site (1)":"B","Vial Site (2)":6,"Concatenated Vial site":"B6","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":42,"Vial Site (1)":"C","Vial Site (2)":6,"Concatenated Vial site":"C6","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":46,"Vial Site (1)":"D","Vial Site (2)":6,"Concatenated Vial site":"D6","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":43,"Vial Site (1)":"E","Vial Site (2)":6,"Concatenated Vial site":"E6","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":47,"Vial Site (1)":"F","Vial Site (2)":6,"Concatenated Vial site":"F6","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":44,"Vial Site (1)":"G","Vial Site (2)":6,"Concatenated Vial site":"G6","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":48,"Vial Site (1)":"H","Vial Site (2)":6,"Concatenated Vial site":"H6","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":49,"Vial Site (1)":"A","Vial Site (2)":7,"Concatenated Vial site":"A7","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2018-09-17T21_43_06.730215+00_00_LBL_E1","class_probability":null},{"Robot Number":53,"Vial Site (1)":"B","Vial Site (2)":7,"Concatenated Vial site":"B7","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":50,"Vial Site (1)":"C","Vial Site (2)":7,"Concatenated Vial site":"C7","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":54,"Vial Site (1)":"D","Vial Site (2)":7,"Concatenated Vial site":"D7","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":51,"Vial Site (1)":"E","Vial Site (2)":7,"Concatenated Vial site":"E7","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":55,"Vial Site (1)":"F","Vial Site (2)":7,"Concatenated Vial site":"F7","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":52,"Vial Site (1)":"G","Vial Site (2)":7,"Concatenated Vial site":"G7","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":56,"Vial Site (1)":"H","Vial Site (2)":7,"Concatenated Vial site":"H7","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":57,"Vial Site (1)":"A","Vial Site (2)":8,"Concatenated Vial site":"A8","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":61,"Vial Site (1)":"B","Vial Site (2)":8,"Concatenated Vial site":"B8","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":58,"Vial Site (1)":"C","Vial Site (2)":8,"Concatenated Vial site":"C8","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-03-12T15_22_17.125738+00_00_LBL_C8","class_probability":null},{"Robot Number":62,"Vial Site (1)":"D","Vial Site (2)":8,"Concatenated Vial site":"D8","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-03-12T15_22_17.125738+00_00_LBL_D8","class_probability":null},{"Robot Number":59,"Vial Site (1)":"E","Vial Site (2)":8,"Concatenated Vial site":"E8","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":63,"Vial Site (1)":"F","Vial Site (2)":8,"Concatenated Vial site":"F8","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":60,"Vial Site (1)":"G","Vial Site (2)":8,"Concatenated Vial site":"G8","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":64,"Vial Site (1)":"H","Vial Site (2)":8,"Concatenated Vial site":"H8","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2018-09-17T21_43_06.730215+00_00_LBL_E1","class_probability":null},{"Robot Number":65,"Vial Site (1)":"A","Vial Site (2)":9,"Concatenated Vial site":"A9","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2018-09-17T21_43_06.730215+00_00_LBL_E1","class_probability":null},{"Robot Number":69,"Vial Site (1)":"B","Vial Site (2)":9,"Concatenated Vial site":"B9","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":66,"Vial Site (1)":"C","Vial Site (2)":9,"Concatenated Vial site":"C9","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":70,"Vial Site (1)":"D","Vial Site (2)":9,"Concatenated Vial site":"D9","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":67,"Vial Site (1)":"E","Vial Site (2)":9,"Concatenated Vial site":"E9","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":71,"Vial Site (1)":"F","Vial Site (2)":9,"Concatenated Vial site":"F9","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":68,"Vial Site (1)":"G","Vial Site (2)":9,"Concatenated Vial site":"G9","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":72,"Vial Site (1)":"H","Vial Site (2)":9,"Concatenated Vial site":"H9","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":73,"Vial Site (1)":"A","Vial Site (2)":10,"Concatenated Vial site":"A10","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":77,"Vial Site (1)":"B","Vial Site (2)":10,"Concatenated Vial site":"B10","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":74,"Vial Site (1)":"C","Vial Site (2)":10,"Concatenated Vial site":"C10","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":78,"Vial Site (1)":"D","Vial Site (2)":10,"Concatenated Vial site":"D10","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":75,"Vial Site (1)":"E","Vial Site (2)":10,"Concatenated Vial site":"E10","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":79,"Vial Site (1)":"F","Vial Site (2)":10,"Concatenated Vial site":"F10","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":76,"Vial Site (1)":"G","Vial Site (2)":10,"Concatenated Vial site":"G10","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":80,"Vial Site (1)":"H","Vial Site (2)":10,"Concatenated Vial site":"H10","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":81,"Vial Site (1)":"A","Vial Site (2)":11,"Concatenated Vial site":"A11","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":85,"Vial Site (1)":"B","Vial Site (2)":11,"Concatenated Vial site":"B11","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":82,"Vial Site (1)":"C","Vial Site (2)":11,"Concatenated Vial site":"C11","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalation_CombinatorialFusionAnomalies_1.0","participantname":"Yuanqing Tang","notes":"2019-03-12T15_22_17.125738+00_00_LBL_C11","class_probability":null},{"Robot Number":86,"Vial Site (1)":"D","Vial Site (2)":11,"Concatenated Vial site":"D11","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":83,"Vial Site (1)":"E","Vial Site (2)":11,"Concatenated Vial site":"E11","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":87,"Vial Site (1)":"F","Vial Site (2)":11,"Concatenated Vial site":"F11","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":84,"Vial Site (1)":"G","Vial Site (2)":11,"Concatenated Vial site":"G11","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":88,"Vial Site (1)":"H","Vial Site (2)":11,"Concatenated Vial site":"H11","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":89,"Vial Site (1)":"A","Vial Site (2)":12,"Concatenated Vial site":"A12","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":93,"Vial Site (1)":"B","Vial Site (2)":12,"Concatenated Vial site":"B12","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":90,"Vial Site (1)":"C","Vial Site (2)":12,"Concatenated Vial site":"C12","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":94,"Vial Site (1)":"D","Vial Site (2)":12,"Concatenated Vial site":"D12","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":91,"Vial Site (1)":"E","Vial Site (2)":12,"Concatenated Vial site":"E12","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":95,"Vial Site (1)":"F","Vial Site (2)":12,"Concatenated Vial site":"F12","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":92,"Vial Site (1)":"G","Vial Site (2)":12,"Concatenated Vial site":"G12","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":96,"Vial Site (1)":"H","Vial Site (2)":12,"Concatenated Vial site":"H12","Experiment Name":"Model Fusion Push 1","Bulk Actual Temp (C)":85,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_MathematicaUniformRandom_1","participantname":"escalate","notes":null,"class_probability":null}]
+}

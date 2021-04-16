@@ -1,0 +1,315 @@
+{					
+	"run": {				
+		"datecreated":	 "2020-02-04"	,	
+		"timecreated_UTC":	 "14_05_23"	,	
+		"lab":	 "HC"	,	
+		"operator":	 "Mansoor N"	,	
+		"jobserial":	 "2020-02-04T14_05_23.033841+00_00_HC"	,	
+		"ExpVer":	1.1	,	
+		"GenVer":	2.57	,	
+		"ChallengeProblem":	0		
+	},				
+	"reagent": [{				
+		"date": 	 "2020-02-04"	,	
+		"id":	1	,	
+		"operator":	 "Mansoor N"	,	
+		"chemicals": [{			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "3.96:milliliter"	,
+			"actual_amount": 	 "4:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "null:null"	
+		}]			
+	}, {				
+		"date": 	 "2020-02-04"	,	
+		"id":	2	,	
+		"operator":	 "Mansoor N"	,	
+		"chemicals": [{			
+			"InChIKey":	 "RQQRAHKHDFPBMC-UHFFFAOYSA-L"	,
+			"nominal_amount": 	 "3.11:gram"	,
+			"actual_amount": 	 "3.1146:gram"	
+		}, {			
+			"InChIKey":	 "XFYICZOIWSBQSK-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "1.17:gram"	,
+			"actual_amount": 	 "1.2006:gram"	
+		}, {			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "3.43:milliliter"	,
+			"actual_amount": 	 "4.5:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "5.5:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2020-02-04"	,	
+		"id":	3	,	
+		"operator":	 "Mansoor N"	,	
+		"chemicals": [{			
+			"InChIKey":	 "RQQRAHKHDFPBMC-UHFFFAOYSA-L"	,
+			"nominal_amount": 	 "2.08:gram"	,
+			"actual_amount": 	 "2.0758:gram"	
+		}, {			
+			"InChIKey":	 "XFYICZOIWSBQSK-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "1.55:gram"	,
+			"actual_amount": 	 "1.5561:gram"	
+		}, {			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "3.12:milliliter"	,
+			"actual_amount": 	 "4:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "5:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2020-02-04"	,	
+		"id":	4	,	
+		"operator":	 "Mansoor N"	,	
+		"chemicals": [{			
+			"InChIKey":	 "XFYICZOIWSBQSK-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "1.86:gram"	,
+			"actual_amount": 	 "1.8629:gram"	
+		}, {			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "2.19:milliliter"	,
+			"actual_amount": 	 "3:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "3.2:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2020-02-04"	,	
+		"id":	5	,	
+		"operator":	 "Mansoor N"	,	
+		"chemicals": [{			
+			"InChIKey":	 "RQQRAHKHDFPBMC-UHFFFAOYSA-L"	,
+			"nominal_amount": 	 "2.58:gram"	,
+			"actual_amount": 	 "2.6001:gram"	
+		}, {			
+			"InChIKey":	 "XFYICZOIWSBQSK-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "1.94:gram"	,
+			"actual_amount": 	 "1.9727:gram"	
+		}, {			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "2.37:milliliter"	,
+			"actual_amount": 	 "3.5:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "4:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2020-02-04"	,	
+		"id":	6	,	
+		"operator":	 "Mansoor N"	,	
+		"chemicals": [{			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "null:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "null:null"	
+		}]			
+	}, {				
+		"date": 	 "2020-02-04"	,	
+		"id":	7	,	
+		"operator":	 "Mansoor N"	,	
+		"chemicals": [{			
+			"InChIKey":	 "BDAGIHXWWSANSR-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "3.92:milliliter"	,
+			"actual_amount": 	 "4:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "null:null"	
+		}]			
+	}, {				
+		"date": 	 "2020-02-04"	,	
+		"id":	 "8"	,	
+		"operator":	 "Mansoor N"	,	
+		"chemicals": [{			
+			"InChIKey":	 "BDAGIHXWWSANSR-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "3.54:milliliter"	,
+			"actual_amount": 	 "4:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "null:null"	
+		}]			
+	}, {				
+		"date": 	 "2020-02-04"	,	
+		"id":	 "9"	,	
+		"operator":	 "Mansoor N"	,	
+		"chemicals": [{			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "null:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "null:null"	
+		}]			
+	}],				
+	"notes": 	{			
+		"note1": 	 "null"	,	
+		"note2": 	 "null"	,	
+		"ExperimentalSummary": 	 "Humidity 23.0 percent RH Hood temp 21.7 C"		
+	}				
+}					

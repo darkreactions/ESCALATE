@@ -1,0 +1,147 @@
+{					
+	"run": {				
+		"datecreated":	 "2018-11-09"	,	
+		"timecreated_UTC":	 "01_43_18"	,	
+		"lab":	 "LBL"	,	
+		"operator":	 "Zhi Li"	,	
+		"jobserial":	 "2018-11-09T01_43_18.720125+00_00_LBL"	,	
+		"ExpVer":	1.1	,	
+		"GenVer":	2		
+	},				
+	"reagent": [{				
+		"date": 	 "2018-11-09"	,	
+		"id":	1	,	
+		"operator":	 "Zhi Li"	,	
+		"chemicals": [{			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "8.51:milliliter"	,
+			"actual_amount": 	 "20:milliliter"	
+		}],			
+		"instructions": [{			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}]			
+	}, {				
+		"date": 	 "2018-11-09"	,	
+		"id":	2	,	
+		"operator":	 "Zhi Li"	,	
+		"chemicals": [{			
+			"InChIKey":	 "RQQRAHKHDFPBMC-UHFFFAOYSA-L"	,
+			"nominal_amount": 	 "10.9:gram"	,
+			"actual_amount": 	 "10.908:gram"	
+		}, {			
+			"InChIKey":	 "XFYICZOIWSBQSK-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "8.18:gram"	,
+			"actual_amount": 	 "8.19:gram"	
+		}, {			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "15.76:milliliter"	,
+			"actual_amount": 	 "16:milliliter"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "45:celsius"	
+		}]			
+	}, {				
+		"date": 	 "2018-11-09"	,	
+		"id":	3	,	
+		"operator":	 "Zhi Li"	,	
+		"chemicals": [{			
+			"InChIKey":	 "XFYICZOIWSBQSK-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "9.06:gram"	,
+			"actual_amount": 	 "9.064:gram"	
+		}, {			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "8.73:milliliter"	,
+			"actual_amount": 	 "9:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "45:celsius"	
+		}]			
+	}, {				
+		"date": 	 "null"	,	
+		"id":	4	,	
+		"operator":	 "null"	,	
+		"chemicals": [{			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "null:celsius"	
+		}]			
+	}, {				
+		"date": 	 "2018-11-09"	,	
+		"id":	5	,	
+		"operator":	 "Zhi Li"	,	
+		"chemicals": [{			
+			"InChIKey":	 "BDAGIHXWWSANSR-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "9.45:milliliter"	,
+			"actual_amount": 	 "10:milliliter"	
+		}],			
+		"instructions": [{			
+			"op": 	"heat"	,
+			"temperature":	 "22:celsius"	
+		}]			
+	}, {				
+		"date": 	 "2018-11-09"	,	
+		"id":	6	,	
+		"operator":	 "Zhi Li"	,	
+		"chemicals": [{			
+			"InChIKey":	 "BDAGIHXWWSANSR-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "6.13:milliliter"	,
+			"actual_amount": 	 "10:milliliter"	
+		}],			
+		"instructions": [{			
+			"op": 	"heat"	,
+			"temperature":	 "22:celsius"	
+		}]			
+	}, {				
+		"date": 	 "2018-11-09"	,	
+		"id":	7	,	
+		"operator":	 "Zhi Li"	,	
+		"chemicals": [{			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heat"	,
+			"temperature":	 "null:celsius"	
+		}]			
+	}],				
+	"notes": 	{			
+		"note1": 	 "null"	,	
+		"note2": 	 "null"	,	
+		"ExperimentalSummary": 	 "null"		
+	}				
+}					

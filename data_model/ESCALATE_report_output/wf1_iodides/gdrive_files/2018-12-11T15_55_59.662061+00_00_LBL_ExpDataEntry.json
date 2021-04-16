@@ -1,0 +1,147 @@
+{					
+	"run": {				
+		"datecreated":	 "2018-12-11"	,	
+		"timecreated_UTC":	 "15_55_59"	,	
+		"lab":	 "LBL"	,	
+		"operator":	 "Matt"	,	
+		"jobserial":	 "2018-12-11T15_55_59.662061+00_00_LBL"	,	
+		"ExpVer":	1.1	,	
+		"GenVer":	2		
+	},				
+	"reagent": [{				
+		"date": 	 "2018-12-11"	,	
+		"id":	1	,	
+		"operator":	 "Matt"	,	
+		"chemicals": [{			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "8.93:milliliter"	,
+			"actual_amount": 	 "10:milliliter"	
+		}],			
+		"instructions": [{			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}]			
+	}, {				
+		"date": 	 "2018-12-11"	,	
+		"id":	2	,	
+		"operator":	 "Matt"	,	
+		"chemicals": [{			
+			"InChIKey":	 "RQQRAHKHDFPBMC-UHFFFAOYSA-L"	,
+			"nominal_amount": 	 "13.89:gram"	,
+			"actual_amount": 	 "13.88:gram"	
+		}, {			
+			"InChIKey":	 "CQWGDVVCKBJLNX-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "4.85:gram"	,
+			"actual_amount": 	 "4.852:gram"	
+		}, {			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "10.21:milliliter"	,
+			"actual_amount": 	 "16.5:milliliter"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "70:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "45:celsius"	
+		}]			
+	}, {				
+		"date": 	 "2018-12-11"	,	
+		"id":	3	,	
+		"operator":	 "Matt"	,	
+		"chemicals": [{			
+			"InChIKey":	 "CQWGDVVCKBJLNX-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "4.87:gram"	,
+			"actual_amount": 	 "4.872:gram"	
+		}, {			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "7.86:milliliter"	,
+			"actual_amount": 	 "8:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "70:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "45:celsius"	
+		}]			
+	}, {				
+		"date": 	 "null"	,	
+		"id":	4	,	
+		"operator":	 "null"	,	
+		"chemicals": [{			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "null:celsius"	
+		}]			
+	}, {				
+		"date": 	 "2018-12-11"	,	
+		"id":	5	,	
+		"operator":	 "Matt"	,	
+		"chemicals": [{			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heat"	,
+			"temperature":	 "null:celsius"	
+		}]			
+	}, {				
+		"date": 	 "2018-12-11"	,	
+		"id":	6	,	
+		"operator":	 "Matt"	,	
+		"chemicals": [{			
+			"InChIKey":	 "BDAGIHXWWSANSR-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "8.56:milliliter"	,
+			"actual_amount": 	 "10:milliliter"	
+		}],			
+		"instructions": [{			
+			"op": 	"heat"	,
+			"temperature":	 "22:celsius"	
+		}]			
+	}, {				
+		"date": 	 "2018-12-11"	,	
+		"id":	7	,	
+		"operator":	 "Matt"	,	
+		"chemicals": [{			
+			"InChIKey":	 "BDAGIHXWWSANSR-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "6.37:milliliter"	,
+			"actual_amount": 	 "10:milliliter"	
+		}],			
+		"instructions": [{			
+			"op": 	"heat"	,
+			"temperature":	 "22:celsius"	
+		}]			
+	}],				
+	"notes": 	{			
+		"note1": 	 "For reagent two, the suggested solubility resulted in much of the solute to reprecipitate as a solid at RT.  More solvent (~ 6 mL) was added to fully dissolve solute"	,	
+		"note2": 	 "null"	,	
+		"ExperimentalSummary": 	 "null"		
+	}				
+}					

@@ -1,0 +1,328 @@
+{
+    "notes": {
+        "ExperimentalSummary": "Morpholinium batch 203344. PbI2 lot BCCB0381. Collected samples e5 and G11. Crystallized 19 hrs",
+        "note1": "null",
+        "note2": "null"
+    },
+    "reagent": [
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "ZMXDDKWLCZADIW-UHFFFAOYSA-N",
+                    "actual_amount": "8:milliliter",
+                    "nominal_amount": "7.51:milliliter"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "2019-11-19",
+            "id": 1,
+            "instructions": [
+                {
+                    "duration": "null:second",
+                    "op": "heatstir",
+                    "stir": "null:rpm",
+                    "temperature": "null:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "45:celsius"
+                },
+                {
+                    "op": "measure_volume",
+                    "volume": "null:null"
+                }
+            ],
+            "operator": "Philip Nega"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "RQQRAHKHDFPBMC-UHFFFAOYSA-L",
+                    "actual_amount": "5.86:gram",
+                    "nominal_amount": "5.86:gram"
+                },
+                {
+                    "InChIKey": "VAWHFUNJDMQUSB-UHFFFAOYSA-N",
+                    "actual_amount": "3.43:gram",
+                    "nominal_amount": "3.43:gram"
+                },
+                {
+                    "InChIKey": "ZMXDDKWLCZADIW-UHFFFAOYSA-N",
+                    "actual_amount": "3:milliliter",
+                    "nominal_amount": "2.72:milliliter"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "2019-11-19",
+            "id": 2,
+            "instructions": [
+                {
+                    "duration": "3600:second",
+                    "op": "heatstir",
+                    "stir": "450:rpm",
+                    "temperature": "75:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "45:celsius"
+                },
+                {
+                    "op": "measure_volume",
+                    "volume": "6:milliliter"
+                }
+            ],
+            "operator": "Philip Nega"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "VAWHFUNJDMQUSB-UHFFFAOYSA-N",
+                    "actual_amount": "2.36:gram",
+                    "nominal_amount": "2.37:gram"
+                },
+                {
+                    "InChIKey": "ZMXDDKWLCZADIW-UHFFFAOYSA-N",
+                    "actual_amount": "3.5:milliliter",
+                    "nominal_amount": "3.42:milliliter"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "2019-11-19",
+            "id": 3,
+            "instructions": [
+                {
+                    "duration": "3600:second",
+                    "op": "heatstir",
+                    "stir": "450:rpm",
+                    "temperature": "75:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "45:celsius"
+                },
+                {
+                    "op": "measure_volume",
+                    "volume": "5.5:milliliter"
+                }
+            ],
+            "operator": "Philip Nega"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "2019-11-19",
+            "id": 4,
+            "instructions": [
+                {
+                    "duration": "null:second",
+                    "op": "heatstir",
+                    "stir": "null:rpm",
+                    "temperature": "null:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "null:celsius"
+                },
+                {
+                    "op": "measure_volume",
+                    "volume": "null:null"
+                }
+            ],
+            "operator": "Philip Nega"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "BDAGIHXWWSANSR-UHFFFAOYSA-N",
+                    "actual_amount": "5:milliliter",
+                    "nominal_amount": "4.34:milliliter"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "2019-11-19",
+            "id": 5,
+            "instructions": [
+                {
+                    "duration": "null:second",
+                    "op": "heatstir",
+                    "stir": "null:rpm",
+                    "temperature": "null:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "45:celsius"
+                },
+                {
+                    "op": "measure_volume",
+                    "volume": "null:null"
+                }
+            ],
+            "operator": "Philip Nega"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "2019-11-19",
+            "id": 6,
+            "instructions": [
+                {
+                    "duration": "null:second",
+                    "op": "heatstir",
+                    "stir": "null:rpm",
+                    "temperature": "null:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "null:celsius"
+                },
+                {
+                    "op": "measure_volume",
+                    "volume": "null:null"
+                }
+            ],
+            "operator": "Philip Nega"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "YMWUJEATGCHHMB-UHFFFAOYSA-N",
+                    "actual_amount": "20:milliliter",
+                    "nominal_amount": "18.4:milliliter"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "2019-11-19",
+            "id": 7,
+            "instructions": [
+                {
+                    "duration": "null:second",
+                    "op": "heatstir",
+                    "stir": "null:rpm",
+                    "temperature": "null:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "45:celsius"
+                },
+                {
+                    "op": "measure_volume",
+                    "volume": "null:null"
+                }
+            ],
+            "operator": "Philip Nega"
+        }
+    ],
+    "run": {
+        "ChallengeProblem": 0,
+        "ExpVer": 3,
+        "GenVer": 2.55,
+        "datecreated": "2019-11-19",
+        "jobserial": "2019-11-19T18_11_24.347682+00_00_LBL",
+        "lab": "LBL",
+        "operator": "Philip Nega",
+        "timecreated_UTC": "18_11_24"
+	},
+	 "well_volumes":
+	 [["A1", 209, 23, 14, 0, 4, 0, 600, "Symyx_96_well_0003"], ["C1", 185, 19, 39, 0, 7, 0, 600, "Symyx_96_well_0003"], ["E1", 226, 16, 5, 0, 3, 0, 600, "Symyx_96_well_0003"], ["G1", 36, 113, 92, 0, 9, 0, 600, "Symyx_96_well_0003"], ["A3", 216, 31, 1, 0, 2, 0, 600, "Symyx_96_well_0003"], ["C3", 180, 57, 9, 0, 4, 0, 600, "Symyx_96_well_0003"], ["E3", 240, 2, 6, 0, 2, 0, 600, "Symyx_96_well_0003"], ["G3", 168, 76, 1, 0, 5, 0, 600, "Symyx_96_well_0003"], ["A5", 225, 1, 12, 0, 12, 0, 600, "Symyx_96_well_0003"], ["C5", 124, 101, 15, 0, 10, 0, 600, "Symyx_96_well_0003"], ["E5", 89, 38, 35, 0, 88, 0, 600, "Symyx_96_well_0003"], ["G5", 181, 38, 9, 0, 22, 0, 600, "Symyx_96_well_0003"], ["A7", 18, 55, 177, 0, 0, 0, 600, "Symyx_96_well_0003"], ["C7", 239, 7, 1, 0, 3, 0, 600, "Symyx_96_well_0003"], ["E7", 158, 39, 8, 0, 45, 0, 600, "Symyx_96_well_0003"], ["G7", 186, 19, 32, 0, 13, 0, 600, "Symyx_96_well_0003"], ["A9", 170, 40, 17, 0, 23, 0, 600, "Symyx_96_well_0003"], ["C9", 79, 111, 35, 0, 25, 0, 600, "Symyx_96_well_0003"], ["E9", 4, 227, 3, 0, 16, 0, 600, "Symyx_96_well_0003"], ["G9", 182, 67, 0, 0, 1, 0, 600, "Symyx_96_well_0003"], ["A11", 136, 60, 50, 0, 4, 0, 600, "Symyx_96_well_0003"], ["C11", 88, 144, 12, 0, 6, 0, 600, "Symyx_96_well_0003"], ["E11", 156, 78, 12, 0, 4, 0, 600, "Symyx_96_well_0003"], ["G11", 16, 113, 89, 0, 32, 0, 600, "Symyx_96_well_0003"]] ,
+	 "tray_environment":
+	 [["Temperature (C):", 85.0], ["Stir Rate (rpm):", 500.0], ["Mixing time (s):", 1200.0], ["Mixing time2 (s):", 1200.0], ["Reaction time (s):", 57600.0], ["Temperature Cool (C):", 25.0]] ,
+	 "robot_reagent_handling":
+	 [["Reagent1", 1.0, "StandardVolume_Water_DispenseJet_Empty", 45.0], ["Reagent2", 2.0, "StandardVolume_Water_DispenseJet_Empty", 45.0], ["Reagent3", 3.0, "StandardVolume_Water_DispenseJet_Empty", 45.0], ["Reagent4", 4.0, "Tip_50ul_Water_DispenseJet_Empty", 45.0], ["Reagent5", 5.0, "StandardVolume_Water_DispenseJet_Empty", 45.0], ["Reagent6", 6.0, "Tip_50ul_Water_DispenseJet_Empty", 45.0], ["Reagent7", 7.0, "HighVolume_Water_DispenseJet_Empty", 45.0]] ,
+	 "crys_file_data":
+	 [{"Robot Number":1,"Vial Site (1)":"A","Vial Site (2)":1,"Concatenated Vial site":"A1","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":2,"Vial Site (1)":"C","Vial Site (2)":1,"Concatenated Vial site":"C1","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":3,"Vial Site (1)":"E","Vial Site (2)":1,"Concatenated Vial site":"E1","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":4,"Vial Site (1)":"G","Vial Site (2)":1,"Concatenated Vial site":"G1","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":5,"Vial Site (1)":"A","Vial Site (2)":3,"Concatenated Vial site":"A3","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":6,"Vial Site (1)":"C","Vial Site (2)":3,"Concatenated Vial site":"C3","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":7,"Vial Site (1)":"E","Vial Site (2)":3,"Concatenated Vial site":"E3","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":8,"Vial Site (1)":"G","Vial Site (2)":3,"Concatenated Vial site":"G3","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":9,"Vial Site (1)":"A","Vial Site (2)":5,"Concatenated Vial site":"A5","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":10,"Vial Site (1)":"C","Vial Site (2)":5,"Concatenated Vial site":"C5","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":11,"Vial Site (1)":"E","Vial Site (2)":5,"Concatenated Vial site":"E5","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":12,"Vial Site (1)":"G","Vial Site (2)":5,"Concatenated Vial site":"G5","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":13,"Vial Site (1)":"A","Vial Site (2)":7,"Concatenated Vial site":"A7","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":14,"Vial Site (1)":"C","Vial Site (2)":7,"Concatenated Vial site":"C7","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":15,"Vial Site (1)":"E","Vial Site (2)":7,"Concatenated Vial site":"E7","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":16,"Vial Site (1)":"G","Vial Site (2)":7,"Concatenated Vial site":"G7","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":17,"Vial Site (1)":"A","Vial Site (2)":9,"Concatenated Vial site":"A9","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":18,"Vial Site (1)":"C","Vial Site (2)":9,"Concatenated Vial site":"C9","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":19,"Vial Site (1)":"E","Vial Site (2)":9,"Concatenated Vial site":"E9","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":20,"Vial Site (1)":"G","Vial Site (2)":9,"Concatenated Vial site":"G9","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":21,"Vial Site (1)":"A","Vial Site (2)":11,"Concatenated Vial site":"A11","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":22,"Vial Site (1)":"C","Vial Site (2)":11,"Concatenated Vial site":"C11","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":23,"Vial Site (1)":"E","Vial Site (2)":11,"Concatenated Vial site":"E11","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null},{"Robot Number":24,"Vial Site (1)":"G","Vial Site (2)":11,"Concatenated Vial site":"G11","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_2.5","participantname":"escalate","notes":null,"class_probability":null}]
+}

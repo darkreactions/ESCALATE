@@ -1,0 +1,159 @@
+{
+	"run":{
+		"datecreated":"2019-03-29",
+		"timecreated_UTC":"21_38_35",
+		"datecompleted":"2019-04-04",
+		"timecompleted_UTC":"14_58_27",
+		"lab":"ECL",
+		"operator":"ECL",
+		"jobserial":"2019-03-29T20_42_17.925679+00_00_ECL",
+		"protocol":"Object[Protocol, SampleManipulation, \"id:xRO9n3BEmpbY\"]",
+		"notebook":"Object[LaboratoryNotebook, \"id:pZx9jo8nrndE\"]",
+		"ExpVer":1.1,
+		"GenVer":2.0,
+		"ChallengeProblem":0
+	},
+	"reagent":[
+		{
+			"date":"2019-04-04",
+			"id":1,
+			"operator":"ECL",
+			"name":"Reagent1",
+			"model":"Model[Sample, Chemical, \"id:N80DNjlYwwAo\"]",
+			"object":"Object[Sample, Chemical, \"id:J8AY5jDGKd8b\"]",
+			"chemicals":[
+				{
+					"name":"gamma Butyrolactone",
+					"InChIKey":"YEJRWHAVMIAJKC-UHFFFAOYSA-N",
+					"model":"Model[Sample, Chemical, \"id:N80DNjlYwwAo\"]",
+					"object":"Object[Sample, Chemical, \"id:J8AY5jDGKd8b\"]",
+					"nominal_amount":"2.126:milliliter",
+					"actual_amount":"2.126:milliliter"
+				}
+			],
+			"instructions":[]
+		},
+		{
+			"date":"2019-04-02",
+			"id":2,
+			"operator":"ECL",
+			"name":"Reagent2",
+			"model":"Model[Sample, StockSolution, \"id:1ZA60vLzWEEw\"]",
+			"object":"Object[Sample, StockSolution, \"id:Z1lqpMzrKEPW\"]",
+			"chemicals":[
+				{
+					"name":"Lead(II) iodide 99%",
+					"InChIKey":"RQQRAHKHDFPBMC-UHFFFAOYSA-L",
+					"object":"Object[Sample, Chemical, \"id:XnlV5jKlwr6Z\"]",
+					"model":"Model[Sample, Chemical, \"id:1ZA60vLr1Yqa\"]",
+					"nominal_amount":"3.9169:gram",
+					"actual_amount":"3.8814:gram"
+				},
+				{
+					"name":"Ethylammonium Iodide 98%",
+					"InChIKey":"XFYICZOIWSBQSK-UHFFFAOYSA-N",
+					"object":"Object[Sample, Chemical, \"id:01G6nvwGz39Y\"]",
+					"model":"Model[Sample, Chemical, \"id:J8AY5jDwdMR9\"]",
+					"nominal_amount":"2.9377:gram",
+					"actual_amount":"2.9662:gram"
+				},
+				{
+					"name":"gamma Butyrolactone",
+					"InChIKey":"YEJRWHAVMIAJKC-UHFFFAOYSA-N",
+					"object":"Object[Sample, Chemical, \"id:mnk9jOR3k0wR\"]",
+					"model":"Model[Sample, Chemical, \"id:N80DNjlYwwAo\"]",
+					"nominal_amount":"5.7:milliliter",
+					"actual_amount":"5.7:milliliter"
+				}
+			],
+			"instructions":[
+				{
+					"op":"heatstir",
+					"temperature":"85.:celsius",
+					"stir":"450.:rpm",
+					"duration":"3600.:second"
+				},
+				{
+					"op":"heat",
+					"temperature":"70.:celsius"
+				}
+			]
+		},
+		{
+			"date":"2019-04-02",
+			"id":3,
+			"operator":"ECL",
+			"name":"Reagent3",
+			"model":"Model[Sample, StockSolution, \"id:qdkmxzqGb4A4\"]",
+			"object":"Object[Sample, StockSolution, \"id:dORYzZJd4xjw\"]",
+			"chemicals":[
+				{
+					"name":"Ethylammonium Iodide 98%",
+					"InChIKey":"XFYICZOIWSBQSK-UHFFFAOYSA-N",
+					"object":"Object[Sample, Chemical, \"id:01G6nvwGz39Y\"]",
+					"model":"Model[Sample, Chemical, \"id:J8AY5jDwdMR9\"]",
+					"nominal_amount":"1.5426:gram",
+					"actual_amount":"1.5389:gram"
+				},
+				{
+					"name":"gamma Butyrolactone",
+					"InChIKey":"YEJRWHAVMIAJKC-UHFFFAOYSA-N",
+					"object":"Object[Sample, Chemical, \"id:mnk9jOR3k0wR\"]",
+					"model":"Model[Sample, Chemical, \"id:N80DNjlYwwAo\"]",
+					"nominal_amount":"1.5:milliliter",
+					"actual_amount":"1.5:milliliter"
+				}
+			],
+			"instructions":[
+				{
+					"op":"heatstir",
+					"temperature":"85.:celsius",
+					"stir":"450.:rpm",
+					"duration":"3600.:second"
+				},
+				{
+					"op":"heat",
+					"temperature":"70.:celsius"
+				}
+			]
+		},
+		{
+			"date":"2019-04-04",
+			"id":6,
+			"operator":"ECL",
+			"name":"Reagent6",
+			"model":"Model[Sample, Chemical, \"id:n0k9mG8z6JY4\"]",
+			"object":"Object[Sample, Chemical, \"id:rea9jlR506eL\"]",
+			"chemicals":[
+				{
+					"name":"Formic acid, reagent grade >95%",
+					"InChIKey":"BDAGIHXWWSANSR-UHFFFAOYSA-N",
+					"model":"Model[Sample, Chemical, \"id:n0k9mG8z6JY4\"]",
+					"object":"Object[Sample, Chemical, \"id:rea9jlR506eL\"]",
+					"nominal_amount":"1.686:milliliter",
+					"actual_amount":"1.686:milliliter"
+				}
+			],
+			"instructions":[]
+		},
+		{
+			"date":"2019-04-04",
+			"id":7,
+			"operator":"ECL",
+			"name":"Reagent7",
+			"model":"Model[Sample, Chemical, \"id:n0k9mG8z6JY4\"]",
+			"object":"Object[Sample, Chemical, \"id:rea9jlR506eL\"]",
+			"chemicals":[
+				{
+					"name":"Formic acid, reagent grade >95%",
+					"InChIKey":"BDAGIHXWWSANSR-UHFFFAOYSA-N",
+					"model":"Model[Sample, Chemical, \"id:n0k9mG8z6JY4\"]",
+					"object":"Object[Sample, Chemical, \"id:rea9jlR506eL\"]",
+					"nominal_amount":"1.686:milliliter",
+					"actual_amount":"1.686:milliliter"
+				}
+			],
+			"instructions":[]
+		}
+	]
+}

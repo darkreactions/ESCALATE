@@ -42,7 +42,7 @@ core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   'Person', 'Tag', 'TagType', 'Property', 'PropertyDef', 'UnitType',
                   'TypeDef', 'ParameterDef', 'Condition', 'ConditionDef', 'ConditionCalculationDefAssign',
                   'ActionParameter', 'ActionParameterDefAssign', 'Parameter', 'WorkflowType', 'WorkflowStep', 
-                  'WorkflowObject', 'UdfDef', 'Experiment', 'ExperimentWorkflow', 'ExperimentParameter',
+                  'WorkflowObject', 'UdfDef', 'Experiment', 'ExperimentWorkflow', #'ExperimentParameter',
                   'BillOfMaterials', 'BomMaterial', 'BomCompositeMaterial', 'Measure', 'MeasureType', 'MeasureDef', 'Outcome'])
 
 GET_only_views = set(['TypeDef'])

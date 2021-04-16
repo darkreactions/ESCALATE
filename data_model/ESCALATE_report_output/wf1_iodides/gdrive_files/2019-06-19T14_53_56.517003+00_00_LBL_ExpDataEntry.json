@@ -1,0 +1,221 @@
+{					
+	"run": {				
+		"datecreated":	 "2019-06-19"	,	
+		"timecreated_UTC":	 "14_53_56"	,	
+		"lab":	 "LBL"	,	
+		"operator":	 "Zhi Li"	,	
+		"jobserial":	 "2019-06-19T14_53_56.517003+00_00_LBL"	,	
+		"ExpVer":	1.1	,	
+		"GenVer":	2.5	,	
+		"ChallengeProblem":	1		
+	},				
+	"reagent": [{				
+		"date": 	 "2019-06-19"	,	
+		"id":	1	,	
+		"operator":	 "Zhi Li"	,	
+		"chemicals": [{			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "17.85:milliliter"	,
+			"actual_amount": 	 "20:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "20:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2019-06-19"	,	
+		"id":	2	,	
+		"operator":	 "Zhi Li"	,	
+		"chemicals": [{			
+			"InChIKey":	 "RQQRAHKHDFPBMC-UHFFFAOYSA-L"	,
+			"nominal_amount": 	 "4.31:gram"	,
+			"actual_amount": 	 "4.311:gram"	
+		}, {			
+			"InChIKey":	 "GGYGJCFIYJVWIP-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "0.83:gram"	,
+			"actual_amount": 	 "0.83:gram"	
+		}, {			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "12.48:milliliter"	,
+			"actual_amount": 	 "13.5:milliliter"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "14.5:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2019-06-19"	,	
+		"id":	3	,	
+		"operator":	 "Zhi Li"	,	
+		"chemicals": [{			
+			"InChIKey":	 "GGYGJCFIYJVWIP-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "12.22:gram"	,
+			"actual_amount": 	 "12.227:gram"	
+		}, {			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "11.96:milliliter"	,
+			"actual_amount": 	 "12:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "18.5:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2019-06-19"	,	
+		"id":	4	,	
+		"operator":	 "Zhi Li"	,	
+		"chemicals": [{			
+			"InChIKey":	 "RQQRAHKHDFPBMC-UHFFFAOYSA-L"	,
+			"nominal_amount": 	 "9.48:gram"	,
+			"actual_amount": 	 "9.476:gram"	
+		}, {			
+			"InChIKey":	 "PXWSKGXEHZHFJA-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "6.44:gram"	,
+			"actual_amount": 	 "6.442:gram"	
+		}, {			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "10.82:milliliter"	,
+			"actual_amount": 	 "12:milliliter"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "18.4:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2019-06-19"	,	
+		"id":	5	,	
+		"operator":	 "Zhi Li"	,	
+		"chemicals": [{			
+			"InChIKey":	 "PXWSKGXEHZHFJA-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "2.84:gram"	,
+			"actual_amount": 	 "2.84:gram"	
+		}, {			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "9.63:milliliter"	,
+			"actual_amount": 	 "10:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "12:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2019-06-19"	,	
+		"id":	6	,	
+		"operator":	 "Zhi Li"	,	
+		"chemicals": [{			
+			"InChIKey":	 "BDAGIHXWWSANSR-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "10.11:milliliter"	,
+			"actual_amount": 	 "10:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "10:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2019-06-19"	,	
+		"id":	7	,	
+		"operator":	 "Zhi Li"	,	
+		"chemicals": [{			
+			"InChIKey":	 "BDAGIHXWWSANSR-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "10.15:milliliter"	,
+			"actual_amount": 	 "10:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "10:milliliter"	
+		}]			
+	}],				
+	"notes": 	{			
+		"note1": 	 "reagent 2 and 4 add 1 ml more for each to make them soluble. Please re-do solubility"	,	
+		"note2": 	 "In ndodecylammonium perovskite synthesis, there are no large crystal when it is heated but crystal start to form after it cools down. Lets discuss how we can capture this behavior"	,	
+		"ExperimentalSummary": 	 "null"		
+	}				
+}					

@@ -1,0 +1,200 @@
+{
+    "notes": {
+        "ExperimentalSummary": "null",
+        "note1": "Reagent 2 actual volume: 29 mL",
+        "note2": "Reagent 3 Actual Volume: 16 mL"
+    },
+    "reagent": [
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "YEJRWHAVMIAJKC-UHFFFAOYSA-N",
+                    "actual_amount": "20:milliliter",
+                    "nominal_amount": "12.1:milliliter"
+                }
+            ],
+            "date": "2019-02-25",
+            "id": 1,
+            "instructions": [
+                {
+                    "op": "heat",
+                    "temperature": "45:celsius"
+                }
+            ],
+            "operator": "Matt"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "RQQRAHKHDFPBMC-UHFFFAOYSA-L",
+                    "actual_amount": "14.96:gram",
+                    "nominal_amount": "14.96:gram"
+                },
+                {
+                    "InChIKey": "XFYICZOIWSBQSK-UHFFFAOYSA-N",
+                    "actual_amount": "11.29:gram",
+                    "nominal_amount": "11.23:gram"
+                },
+                {
+                    "InChIKey": "YEJRWHAVMIAJKC-UHFFFAOYSA-N",
+                    "actual_amount": "21:milliliter",
+                    "nominal_amount": "21.64:milliliter"
+                }
+            ],
+            "date": "2019-02-25",
+            "id": 2,
+            "instructions": [
+                {
+                    "duration": "3600:second",
+                    "op": "heatstir",
+                    "stir": "450:rpm",
+                    "temperature": "75:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "45:celsius"
+                }
+            ],
+            "operator": "Matt"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "XFYICZOIWSBQSK-UHFFFAOYSA-N",
+                    "actual_amount": "11.7:gram",
+                    "nominal_amount": "11.69:gram"
+                },
+                {
+                    "InChIKey": "YEJRWHAVMIAJKC-UHFFFAOYSA-N",
+                    "actual_amount": "11:milliliter",
+                    "nominal_amount": "11.26:milliliter"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "2019-02-25",
+            "id": 3,
+            "instructions": [
+                {
+                    "duration": "3600:second",
+                    "op": "heatstir",
+                    "stir": "450:rpm",
+                    "temperature": "75:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "45:celsius"
+                }
+            ],
+            "operator": "Matt"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "null",
+            "id": 4,
+            "instructions": [
+                {
+                    "duration": "null:second",
+                    "op": "heatstir",
+                    "stir": "null:rpm",
+                    "temperature": "null:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "null:celsius"
+                }
+            ],
+            "operator": "null"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "null",
+                    "actual_amount": "null:null",
+                    "nominal_amount": "null:null"
+                }
+            ],
+            "date": "2019-02-25",
+            "id": 5,
+            "instructions": [
+                {
+                    "op": "heat",
+                    "temperature": "null:celsius"
+                }
+            ],
+            "operator": "Matt"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "BDAGIHXWWSANSR-UHFFFAOYSA-N",
+                    "actual_amount": "12:milliliter",
+                    "nominal_amount": "11.52:milliliter"
+                }
+            ],
+            "date": "2019-02-25",
+            "id": 6,
+            "instructions": [
+                {
+                    "op": "heat",
+                    "temperature": "22:celsius"
+                }
+            ],
+            "operator": "Matt"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "BDAGIHXWWSANSR-UHFFFAOYSA-N",
+                    "actual_amount": "8:milliliter",
+                    "nominal_amount": "7.96:milliliter"
+                }
+            ],
+            "date": "2019-02-25",
+            "id": 7,
+            "instructions": [
+                {
+                    "op": "heat",
+                    "temperature": "22:celsius"
+                }
+            ],
+            "operator": "Matt"
+        }
+    ],
+    "run": {
+        "ExpVer": 1.1,
+        "GenVer": 2.1,
+        "datecreated": "2019-02-25",
+        "jobserial": "2019-02-25T18_10_13.318090+00_00_LBL",
+        "lab": "LBL",
+        "operator": "Matt",
+        "timecreated_UTC": "18_10_13"
+	},
+	 "well_volumes":
+	 [["A1", 30, 220, 250, 0, 0, 0, 40, "Symyx_96_well_0003"], ["C1", 150, 180, 170, 0, 0, 0, 50, "Symyx_96_well_0003"], ["E1", 80, 110, 310, 0, 0, 0, 130, "Symyx_96_well_0003"], ["G1", 80, 60, 360, 0, 0, 0, 120, "Symyx_96_well_0003"], ["B1", 160, 40, 300, 0, 0, 0, 10, "Symyx_96_well_0003"], ["D1", 140, 170, 190, 0, 0, 20, 40, "Symyx_96_well_0003"], ["F1", 430, 10, 60, 0, 0, 0, 20, "Symyx_96_well_0003"], ["H1", 270, 210, 20, 0, 0, 0, 150, "Symyx_96_well_0003"], ["A2", 330, 80, 90, 0, 0, 0, 30, "Symyx_96_well_0003"], ["C2", 360, 140, 0, 0, 0, 0, 20, "Symyx_96_well_0003"], ["E2", 70, 270, 160, 0, 0, 20, 160, "Symyx_96_well_0003"], ["G2", 10, 400, 90, 0, 0, 30, 70, "Symyx_96_well_0003"], ["B2", 370, 80, 50, 0, 0, 0, 60, "Symyx_96_well_0003"], ["D2", 170, 110, 220, 0, 0, 20, 40, "Symyx_96_well_0003"], ["F2", 410, 60, 30, 0, 0, 0, 130, "Symyx_96_well_0003"], ["H2", 110, 200, 190, 0, 0, 0, 20, "Symyx_96_well_0003"], ["A3", 170, 230, 100, 0, 0, 0, 160, "Symyx_96_well_0003"], ["C3", 390, 100, 10, 0, 0, 0, 10, "Symyx_96_well_0003"], ["E3", 320, 150, 30, 0, 0, 0, 120, "Symyx_96_well_0003"], ["G3", 220, 40, 240, 0, 0, 0, 0, "Symyx_96_well_0003"], ["B3", 40, 410, 50, 0, 0, 0, 40, "Symyx_96_well_0003"], ["D3", 310, 60, 130, 0, 0, 0, 60, "Symyx_96_well_0003"], ["F3", 20, 110, 370, 0, 0, 0, 130, "Symyx_96_well_0003"], ["H3", 370, 20, 110, 0, 0, 0, 70, "Symyx_96_well_0003"], ["A4", 90, 230, 180, 0, 0, 0, 10, "Symyx_96_well_0003"], ["C4", 10, 480, 10, 0, 0, 0, 10, "Symyx_96_well_0003"], ["E4", 40, 40, 420, 0, 0, 0, 10, "Symyx_96_well_0003"], ["G4", 50, 20, 430, 0, 0, 0, 20, "Symyx_96_well_0003"], ["B4", 40, 200, 260, 0, 0, 0, 50, "Symyx_96_well_0003"], ["D4", 160, 110, 230, 0, 0, 30, 70, "Symyx_96_well_0003"], ["F4", 100, 120, 280, 0, 0, 0, 160, "Symyx_96_well_0003"], ["H4", 130, 240, 130, 0, 0, 10, 20, "Symyx_96_well_0003"], ["A5", 20, 430, 50, 0, 0, 40, 100, "Symyx_96_well_0003"], ["C5", 90, 410, 0, 0, 0, 0, 210, "Symyx_96_well_0003"], ["E5", 60, 50, 390, 0, 0, 0, 40, "Symyx_96_well_0003"], ["G5", 110, 50, 340, 0, 0, 0, 30, "Symyx_96_well_0003"], ["B5", 50, 80, 370, 0, 0, 0, 160, "Symyx_96_well_0003"], ["D5", 380, 30, 90, 0, 0, 30, 70, "Symyx_96_well_0003"], ["F5", 50, 220, 230, 0, 0, 10, 80, "Symyx_96_well_0003"], ["H5", 70, 300, 130, 0, 0, 0, 160, "Symyx_96_well_0003"], ["A6", 310, 170, 20, 0, 0, 0, 80, "Symyx_96_well_0003"], ["C6", 150, 180, 170, 0, 0, 10, 20, "Symyx_96_well_0003"], ["E6", 30, 360, 110, 0, 0, 0, 0, "Symyx_96_well_0003"], ["G6", 280, 100, 120, 0, 0, 0, 30, "Symyx_96_well_0003"], ["B6", 60, 330, 110, 0, 0, 0, 0, "Symyx_96_well_0003"], ["D6", 130, 310, 60, 0, 0, 0, 110, "Symyx_96_well_0003"], ["F6", 130, 200, 170, 0, 0, 0, 60, "Symyx_96_well_0003"], ["H6", 200, 260, 40, 0, 0, 10, 190, "Symyx_96_well_0003"], ["A7", 250, 130, 120, 0, 0, 20, 40, "Symyx_96_well_0003"], ["C7", 210, 150, 140, 0, 0, 0, 140, "Symyx_96_well_0003"], ["E7", 60, 130, 310, 0, 0, 20, 40, "Symyx_96_well_0003"], ["G7", 0, 150, 350, 0, 0, 0, 140, "Symyx_96_well_0003"], ["B7", 180, 270, 50, 0, 0, 20, 40, "Symyx_96_well_0003"], ["D7", 130, 310, 60, 0, 0, 0, 140, "Symyx_96_well_0003"], ["F7", 0, 260, 240, 0, 0, 20, 40, "Symyx_96_well_0003"], ["H7", 0, 180, 320, 0, 0, 0, 140, "Symyx_96_well_0003"], ["A8", 120, 380, 0, 0, 0, 0, 60, "Symyx_96_well_0003"], ["C8", 60, 440, 0, 0, 0, 0, 140, "Symyx_96_well_0003"], ["E8", 0, 290, 210, 0, 0, 20, 40, "Symyx_96_well_0003"], ["G8", 0, 210, 290, 0, 0, 0, 140, "Symyx_96_well_0003"], ["B8", 46, 308, 146, 0, 0, 85, 85, "Symyx_96_well_0003"], ["D8", 410, 61, 29, 0, 0, 57, 1, "Symyx_96_well_0003"], ["F8", 438, 46, 17, 0, 0, 1, 57, "Symyx_96_well_0003"], ["H8", 3, 293, 204, 0, 0, 1, 29, "Symyx_96_well_0003"], ["A9", 77, 417, 6, 0, 0, 57, 85, "Symyx_96_well_0003"], ["C9", 201, 169, 130, 0, 0, 85, 1, "Symyx_96_well_0003"], ["E9", 162, 231, 107, 0, 0, 29, 57, "Symyx_96_well_0003"], ["G9", 7, 479, 14, 0, 0, 43, 15, "Symyx_96_well_0003"], ["B9", 100, 355, 45, 0, 0, 99, 71, "Symyx_96_well_0003"], ["D9", 358, 107, 35, 0, 0, 71, 43, "Symyx_96_well_0003"], ["F9", 351, 76, 73, 0, 0, 15, 99, "Symyx_96_well_0003"], ["H9", 17, 324, 159, 0, 0, 22, 8, "Symyx_96_well_0003"]] ,
+	 "tray_environment":
+	 [["Temperature (C):", 70.0], ["Stir Rate (rpm):", 750.0], ["Mixing time1 (s):", 900.0], ["Mixing time2 (s):", 1200.0], ["Reaction time (s):", 12600.0]] ,
+	 "robot_reagent_handling":
+	 [["Reagent1", 1.0, "HighVolume_Water_DispenseJet_Empty", 45.0], ["Reagent2", 2.0, "HighVolume_Water_DispenseJet_Empty", 45.0], ["Reagent3", 3.0, "HighVolume_Water_DispenseJet_Empty", 45.0], ["Reagent4", 4.0, "Tip_50ul_Water_DispenseJet_Empty", 45.0], ["Reagent5", 5.0, "Tip_50ul_Water_DispenseJet_Empty", 45.0], ["Reagent6", 6.0, "StandardVolume_Water_DispenseJet_Empty", 45.0], ["Reagent7", 7.0, "StandardVolume_Water_DispenseJet_Empty", 45.0]] ,
+	 "crys_file_data":
+	 [{"Robot Number":1,"Vial Site (1)":"A","Vial Site (2)":1,"Concatenated Vial site":"A1","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":321520.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":2,"Vial Site (1)":"C","Vial Site (2)":1,"Concatenated Vial site":"C1","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":274487.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":3,"Vial Site (1)":"E","Vial Site (2)":1,"Concatenated Vial site":"E1","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":188500.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":4,"Vial Site (1)":"G","Vial Site (2)":1,"Concatenated Vial site":"G1","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":114789.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":5,"Vial Site (1)":"B","Vial Site (2)":1,"Concatenated Vial site":"B1","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":80029.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":6,"Vial Site (1)":"D","Vial Site (2)":1,"Concatenated Vial site":"D1","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":263305.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":7,"Vial Site (1)":"F","Vial Site (2)":1,"Concatenated Vial site":"F1","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":20009.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":8,"Vial Site (1)":"H","Vial Site (2)":1,"Concatenated Vial site":"H1","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":302928.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":9,"Vial Site (1)":"A","Vial Site (2)":2,"Concatenated Vial site":"A2","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":136542.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":10,"Vial Site (1)":"C","Vial Site (2)":2,"Concatenated Vial site":"C2","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":218675.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":11,"Vial Site (1)":"E","Vial Site (2)":2,"Concatenated Vial site":"E2","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":365809.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":12,"Vial Site (1)":"G","Vial Site (2)":2,"Concatenated Vial site":"G2","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":445501.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":13,"Vial Site (1)":"B","Vial Site (2)":2,"Concatenated Vial site":"B2","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":135141.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":14,"Vial Site (1)":"D","Vial Site (2)":2,"Concatenated Vial site":"D2","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":185383.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":15,"Vial Site (1)":"F","Vial Site (2)":2,"Concatenated Vial site":"F2","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":103207.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":16,"Vial Site (1)":"H","Vial Site (2)":2,"Concatenated Vial site":"H2","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":298001.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":17,"Vial Site (1)":"A","Vial Site (2)":3,"Concatenated Vial site":"A3","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":326446.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":18,"Vial Site (1)":"C","Vial Site (2)":3,"Concatenated Vial site":"C3","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":163567.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":19,"Vial Site (1)":"E","Vial Site (2)":3,"Concatenated Vial site":"E3","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":232725.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":20,"Vial Site (1)":"G","Vial Site (2)":3,"Concatenated Vial site":"G3","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":77922.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":21,"Vial Site (1)":"B","Vial Site (2)":3,"Concatenated Vial site":"B3","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":447880.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":22,"Vial Site (1)":"D","Vial Site (2)":3,"Concatenated Vial site":"D3","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":106710.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":23,"Vial Site (1)":"F","Vial Site (2)":3,"Concatenated Vial site":"F3","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":190606.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":24,"Vial Site (1)":"H","Vial Site (2)":3,"Concatenated Vial site":"H3","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":39319.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":25,"Vial Site (1)":"A","Vial Site (2)":4,"Concatenated Vial site":"A4","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":329239.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":26,"Vial Site (1)":"C","Vial Site (2)":4,"Concatenated Vial site":"C4","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":463672.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":27,"Vial Site (1)":"E","Vial Site (2)":4,"Concatenated Vial site":"E4","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":84241.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":28,"Vial Site (1)":"G","Vial Site (2)":4,"Concatenated Vial site":"G4","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":50546.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":29,"Vial Site (1)":"B","Vial Site (2)":4,"Concatenated Vial site":"B4","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":300461.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":30,"Vial Site (1)":"D","Vial Site (2)":4,"Concatenated Vial site":"D4","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":185761.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":31,"Vial Site (1)":"F","Vial Site (2)":4,"Concatenated Vial site":"F4","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":201490.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":32,"Vial Site (1)":"H","Vial Site (2)":4,"Concatenated Vial site":"H4","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":337339.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":33,"Vial Site (1)":"A","Vial Site (2)":5,"Concatenated Vial site":"A5","Bulk Actual Temp (C)":67,"Crystal Score":2,"identifier":454653.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":34,"Vial Site (1)":"C","Vial Site (2)":5,"Concatenated Vial site":"C5","Bulk Actual Temp (C)":67,"Crystal Score":2,"identifier":446142.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":35,"Vial Site (1)":"E","Vial Site (2)":5,"Concatenated Vial site":"E5","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":99688.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":36,"Vial Site (1)":"G","Vial Site (2)":5,"Concatenated Vial site":"G5","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":97932.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":37,"Vial Site (1)":"B","Vial Site (2)":5,"Concatenated Vial site":"B5","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":146383.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":38,"Vial Site (1)":"D","Vial Site (2)":5,"Concatenated Vial site":"D5","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":55891.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":39,"Vial Site (1)":"F","Vial Site (2)":5,"Concatenated Vial site":"F5","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":320848.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":40,"Vial Site (1)":"H","Vial Site (2)":5,"Concatenated Vial site":"H5","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":388924.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":41,"Vial Site (1)":"A","Vial Site (2)":6,"Concatenated Vial site":"A6","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":257291.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":42,"Vial Site (1)":"C","Vial Site (2)":6,"Concatenated Vial site":"C6","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":274510.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":43,"Vial Site (1)":"E","Vial Site (2)":6,"Concatenated Vial site":"E6","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":427167.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":44,"Vial Site (1)":"G","Vial Site (2)":6,"Concatenated Vial site":"G6","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":167430.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":45,"Vial Site (1)":"B","Vial Site (2)":6,"Concatenated Vial site":"B6","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":409266.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":46,"Vial Site (1)":"D","Vial Site (2)":6,"Concatenated Vial site":"D6","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":393833.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":47,"Vial Site (1)":"F","Vial Site (2)":6,"Concatenated Vial site":"F6","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":297303.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":48,"Vial Site (1)":"H","Vial Site (2)":6,"Concatenated Vial site":"H6","Bulk Actual Temp (C)":67,"Crystal Score":3,"identifier":352800.0,"_out_predicted":4,"modelname":"escalation_BOGPamine_1.4","participantname":"Alex Cristofaro","notes":"Ethyl65-75C;0.2J;_rxn_M_inorganic;_rxn_M_organic;_rxn_M_acid","class_probability":null},{"Robot Number":49,"Vial Site (1)":"A","Vial Site (2)":7,"Concatenated Vial site":"A7","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":209602.0,"_out_predicted":4,"modelname":"escalation_HC.RL_1","participantname":"Haverford RL","notes":"HaverfordRl\tHaverfordRL-Reset-StartingLocation-ALLMODELS\t","class_probability":null},{"Robot Number":50,"Vial Site (1)":"C","Vial Site (2)":7,"Concatenated Vial site":"C7","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":236588.0,"_out_predicted":4,"modelname":"escalation_HC.RL_1","participantname":"Haverford RL","notes":"HaverfordRl\tHaverfordRL-Reset-StartingLocation-ALLMODELS\t","class_probability":null},{"Robot Number":51,"Vial Site (1)":"E","Vial Site (2)":7,"Concatenated Vial site":"E7","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":216271.0,"_out_predicted":4,"modelname":"escalation_HC.RL_1","participantname":"Haverford RL","notes":"HaverfordRl\tHaverfordRL-Reset-StartingLocation-ALLMODELS\t","class_probability":null},{"Robot Number":52,"Vial Site (1)":"G","Vial Site (2)":7,"Concatenated Vial site":"G7","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":243959.0,"_out_predicted":4,"modelname":"escalation_HC.RL_1","participantname":"Haverford RL","notes":"HaverfordRl\tHaverfordRL-Reset-StartingLocation-ALLMODELS\t","class_probability":null},{"Robot Number":53,"Vial Site (1)":"B","Vial Site (2)":7,"Concatenated Vial site":"B7","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":361936.0,"_out_predicted":4,"modelname":"escalation_HC.RL_1","participantname":"Haverford RL","notes":"HaverfordRl\tHaverfordRL-Reset-StartingLocation-ALLMODELS\t","class_probability":null},{"Robot Number":54,"Vial Site (1)":"D","Vial Site (2)":7,"Concatenated Vial site":"D7","Bulk Actual Temp (C)":67,"Crystal Score":3,"identifier":393836.0,"_out_predicted":4,"modelname":"escalation_HC.RL_1","participantname":"Haverford RL","notes":"HaverfordRl\tHaverfordRL-Reset-StartingLocation-ALLMODELS\t","class_probability":null},{"Robot Number":55,"Vial Site (1)":"F","Vial Site (2)":7,"Concatenated Vial site":"F7","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":359830.0,"_out_predicted":4,"modelname":"escalation_HC.RL_1","participantname":"Haverford RL","notes":"HaverfordRl\tHaverfordRL-Reset-StartingLocation-ALLMODELS\t","class_probability":null},{"Robot Number":56,"Vial Site (1)":"H","Vial Site (2)":7,"Concatenated Vial site":"H7","Bulk Actual Temp (C)":67,"Crystal Score":2,"identifier":279761.0,"_out_predicted":4,"modelname":"escalation_HC.RL_1","participantname":"Haverford RL","notes":"HaverfordRl\tHaverfordRL-Reset-StartingLocation-ALLMODELS\t","class_probability":null},{"Robot Number":57,"Vial Site (1)":"A","Vial Site (2)":8,"Concatenated Vial site":"A8","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":433491.0,"_out_predicted":4,"modelname":"escalation_HC.RL_1","participantname":"Haverford RL","notes":"HaverfordRl\tHaverfordRL-Reset-StartingLocation-ALLMODELS\t","class_probability":null},{"Robot Number":58,"Vial Site (1)":"C","Vial Site (2)":8,"Concatenated Vial site":"C8","Bulk Actual Temp (C)":67,"Crystal Score":2,"identifier":455612.0,"_out_predicted":4,"modelname":"escalation_HC.RL_1","participantname":"Haverford RL","notes":"HaverfordRl\tHaverfordRL-Reset-StartingLocation-ALLMODELS\t","class_probability":null},{"Robot Number":59,"Vial Site (1)":"E","Vial Site (2)":8,"Concatenated Vial site":"E8","Bulk Actual Temp (C)":67,"Crystal Score":2,"identifier":384049.0,"_out_predicted":4,"modelname":"escalation_HC.RL_1","participantname":"Haverford RL","notes":"HaverfordRl\tHaverfordRL-Reset-StartingLocation-ALLMODELS\t","class_probability":null},{"Robot Number":60,"Vial Site (1)":"G","Vial Site (2)":8,"Concatenated Vial site":"G8","Bulk Actual Temp (C)":67,"Crystal Score":2,"identifier":312404.0,"_out_predicted":4,"modelname":"escalation_HC.RL_1","participantname":"Haverford RL","notes":"HaverfordRl\tHaverfordRL-Reset-StartingLocation-ALLMODELS\t","class_probability":null},{"Robot Number":61,"Vial Site (1)":"B","Vial Site (2)":8,"Concatenated Vial site":"B8","Bulk Actual Temp (C)":67,"Crystal Score":3,"identifier":null,"_out_predicted":4,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Reproducing_Runs-Temp\tIan Pendleton\tReproducing Runs 1-24 from 2018-08-21T00_41_41.669916+00_00_LBL","class_probability":null},{"Robot Number":62,"Vial Site (1)":"D","Vial Site (2)":8,"Concatenated Vial site":"D8","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":null,"_out_predicted":3,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Reproducing_Runs-Temp\tIan Pendleton\tReproducing Runs 1-24 from 2018-08-21T00_41_41.669916+00_00_LBL","class_probability":null},{"Robot Number":63,"Vial Site (1)":"F","Vial Site (2)":8,"Concatenated Vial site":"F8","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":null,"_out_predicted":4,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Reproducing_Runs-Temp\tIan Pendleton\tReproducing Runs 1-24 from 2018-08-21T00_41_41.669916+00_00_LBL","class_probability":null},{"Robot Number":64,"Vial Site (1)":"H","Vial Site (2)":8,"Concatenated Vial site":"H8","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":null,"_out_predicted":3,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Reproducing_Runs-Temp\tIan Pendleton\tReproducing Runs 1-24 from 2018-08-21T00_41_41.669916+00_00_LBL","class_probability":null},{"Robot Number":65,"Vial Site (1)":"A","Vial Site (2)":9,"Concatenated Vial site":"A9","Bulk Actual Temp (C)":67,"Crystal Score":2,"identifier":null,"_out_predicted":4,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Reproducing_Runs-Temp\tIan Pendleton\tReproducing Runs 1-24 from 2018-08-21T00_41_41.669916+00_00_LBL","class_probability":null},{"Robot Number":66,"Vial Site (1)":"C","Vial Site (2)":9,"Concatenated Vial site":"C9","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":null,"_out_predicted":4,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Reproducing_Runs-Temp\tIan Pendleton\tReproducing Runs 1-24 from 2018-08-21T00_41_41.669916+00_00_LBL","class_probability":null},{"Robot Number":67,"Vial Site (1)":"E","Vial Site (2)":9,"Concatenated Vial site":"E9","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":null,"_out_predicted":4,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Reproducing_Runs-Temp\tIan Pendleton\tReproducing Runs 1-24 from 2018-08-21T00_41_41.669916+00_00_LBL","class_probability":null},{"Robot Number":68,"Vial Site (1)":"G","Vial Site (2)":9,"Concatenated Vial site":"G9","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":null,"_out_predicted":4,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Reproducing_Runs-Temp\tIan Pendleton\tReproducing Runs 1-24 from 2018-08-21T00_41_41.669916+00_00_LBL","class_probability":null},{"Robot Number":69,"Vial Site (1)":"B","Vial Site (2)":9,"Concatenated Vial site":"B9","Bulk Actual Temp (C)":67,"Crystal Score":2,"identifier":null,"_out_predicted":4,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Reproducing_Runs-Temp\tIan Pendleton\tReproducing Runs 1-24 from 2018-08-21T00_41_41.669916+00_00_LBL","class_probability":null},{"Robot Number":70,"Vial Site (1)":"D","Vial Site (2)":9,"Concatenated Vial site":"D9","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":null,"_out_predicted":2,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Reproducing_Runs-Temp\tIan Pendleton\tReproducing Runs 1-24 from 2018-08-21T00_41_41.669916+00_00_LBL","class_probability":null},{"Robot Number":71,"Vial Site (1)":"F","Vial Site (2)":9,"Concatenated Vial site":"F9","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":null,"_out_predicted":3,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Reproducing_Runs-Temp\tIan Pendleton\tReproducing Runs 1-24 from 2018-08-21T00_41_41.669916+00_00_LBL","class_probability":null},{"Robot Number":72,"Vial Site (1)":"H","Vial Site (2)":9,"Concatenated Vial site":"H9","Bulk Actual Temp (C)":67,"Crystal Score":1,"identifier":null,"_out_predicted":2,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Reproducing_Runs-Temp\tIan Pendleton\tReproducing Runs 1-24 from 2018-08-21T00_41_41.669916+00_00_LBL","class_probability":null}]
+}

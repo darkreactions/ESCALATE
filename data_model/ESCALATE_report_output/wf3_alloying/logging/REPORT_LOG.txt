@@ -1,0 +1,103 @@
+2021-04-14 19:51:41,062> mainlog.__main__ ; INFO - ['4-Data-WF3_Alloying'] selected as the dataset target(s) for this run
+2021-04-14 19:51:41,062> mainlog.__main__ ; INFO - 1 set(s) of downloads will occur, one for dataset, please be patient!
+2021-04-14 19:51:41,063> mainlog.__main__ ; INFO - Developer Option: "offline_toggle" set to 0
+2021-04-14 19:51:41,063> mainlog.expworkup.createjson ; INFO - ensuring directories
+2021-04-14 19:51:41,063> mainlog.expworkup.googleio ; INFO - Temp authentication file ./mycred.txt created
+2021-04-14 19:51:41,064> mainlog.expworkup.googleio ; INFO - Temp authentication file ./mycred.txt required refresh
+2021-04-14 19:51:44,592> mainlog.expworkup.googleio ; INFO - downloaded file structure for 2020-01-23T18_13_57.034292+00_00_LBL from google drive
+2021-04-14 19:51:45,095> mainlog.expworkup.googleio ; INFO - downloaded file structure for 2020-01-13T20_52_24.769238+00_00_LBL from google drive
+2021-04-14 19:51:45,505> mainlog.expworkup.googleio ; INFO - downloaded file structure for 2020-01-13T20_49_25.620171+00_00_LBL from google drive
+2021-04-14 19:51:45,888> mainlog.expworkup.googleio ; INFO - downloaded file structure for 2020-01-13T20_05_38.468695+00_00_LBL from google drive
+2021-04-14 19:51:46,304> mainlog.expworkup.googleio ; INFO - downloaded file structure for 2020-01-07T14_24_21.950921+00_00_LBL from google drive
+2021-04-14 19:51:46,654> mainlog.expworkup.googleio ; INFO - downloaded file structure for 2019-12-16T17_38_49.652469+00_00_LBL from google drive
+2021-04-14 19:51:47,064> mainlog.expworkup.googleio ; INFO - downloaded file structure for 2019-12-11T17_31_33.514011+00_00_LBL from google drive
+2021-04-14 19:51:47,404> mainlog.expworkup.googleio ; INFO - downloaded file structure for 2019-04-19T14_28_09.238360+00_00_LBL from google drive
+2021-04-14 19:51:47,834> mainlog.expworkup.createjson ; INFO - Starting Download and Directory Parsing
+2021-04-14 19:51:47,971> mainlog.expworkup.googleio ; INFO - Starting on 2020-01-23T18_13_57.034292+00_00_LBL files, saving to wf3_alloying/gdrive_files
+2021-04-14 19:51:49,771> mainlog.expworkup.googleio ; INFO - Parsing TSV to JSON from gdrive. RunID: wf3_alloying/gdrive_files/2020-01-23T18_13_57.034292+00_00_LBL_ExpDataEntry.json
+2021-04-14 19:51:52,102> mainlog.expworkup.createjson ; INFO - New sleep timer 0
+2021-04-14 19:51:52,283> mainlog.expworkup.googleio ; INFO - Starting on 2020-01-13T20_52_24.769238+00_00_LBL files, saving to wf3_alloying/gdrive_files
+2021-04-14 19:51:54,044> mainlog.expworkup.googleio ; INFO - Parsing TSV to JSON from gdrive. RunID: wf3_alloying/gdrive_files/2020-01-13T20_52_24.769238+00_00_LBL_ExpDataEntry.json
+2021-04-14 19:51:56,213> mainlog.expworkup.createjson ; INFO - New sleep timer 0
+2021-04-14 19:51:56,386> mainlog.expworkup.googleio ; INFO - Starting on 2020-01-13T20_49_25.620171+00_00_LBL files, saving to wf3_alloying/gdrive_files
+2021-04-14 19:51:57,673> mainlog.expworkup.googleio ; INFO - Parsing TSV to JSON from gdrive. RunID: wf3_alloying/gdrive_files/2020-01-13T20_49_25.620171+00_00_LBL_ExpDataEntry.json
+2021-04-14 19:51:59,937> mainlog.expworkup.createjson ; INFO - New sleep timer 0
+2021-04-14 19:52:00,106> mainlog.expworkup.googleio ; INFO - Starting on 2020-01-13T20_05_38.468695+00_00_LBL files, saving to wf3_alloying/gdrive_files
+2021-04-14 19:52:03,604> mainlog.expworkup.googleio ; INFO - Parsing TSV to JSON from gdrive. RunID: wf3_alloying/gdrive_files/2020-01-13T20_05_38.468695+00_00_LBL_ExpDataEntry.json
+2021-04-14 19:52:04,277> mainlog.expworkup.createjson ; INFO - New sleep timer 0
+2021-04-14 19:52:04,458> mainlog.expworkup.googleio ; INFO - Starting on 2020-01-07T14_24_21.950921+00_00_LBL files, saving to wf3_alloying/gdrive_files
+2021-04-14 19:52:05,713> mainlog.expworkup.googleio ; INFO - Parsing TSV to JSON from gdrive. RunID: wf3_alloying/gdrive_files/2020-01-07T14_24_21.950921+00_00_LBL_ExpDataEntry.json
+2021-04-14 19:52:08,197> mainlog.expworkup.createjson ; INFO - New sleep timer 0
+2021-04-14 19:52:08,376> mainlog.expworkup.googleio ; INFO - Starting on 2019-12-16T17_38_49.652469+00_00_LBL files, saving to wf3_alloying/gdrive_files
+2021-04-14 19:52:09,774> mainlog.expworkup.googleio ; INFO - Parsing TSV to JSON from gdrive. RunID: wf3_alloying/gdrive_files/2019-12-16T17_38_49.652469+00_00_LBL_ExpDataEntry.json
+2021-04-14 19:52:12,190> mainlog.expworkup.createjson ; INFO - New sleep timer 0
+2021-04-14 19:52:12,360> mainlog.expworkup.googleio ; INFO - Starting on 2019-12-11T17_31_33.514011+00_00_LBL files, saving to wf3_alloying/gdrive_files
+2021-04-14 19:52:16,413> mainlog.expworkup.googleio ; INFO - Parsing TSV to JSON from gdrive. RunID: wf3_alloying/gdrive_files/2019-12-11T17_31_33.514011+00_00_LBL_ExpDataEntry.json
+2021-04-14 19:52:17,214> mainlog.expworkup.createjson ; INFO - New sleep timer 0
+2021-04-14 19:52:17,389> mainlog.expworkup.googleio ; INFO - Starting on 2019-04-19T14_28_09.238360+00_00_LBL files, saving to wf3_alloying/gdrive_files
+2021-04-14 19:52:21,593> mainlog.expworkup.googleio ; INFO - Parsing TSV to JSON from gdrive. RunID: wf3_alloying/gdrive_files/2019-04-19T14_28_09.238360+00_00_LBL_ExpDataEntry.json
+2021-04-14 19:52:21,695> mainlog.expworkup.createjson ; INFO - New sleep timer 0
+2021-04-14 19:52:22,411> mainlog.expworkup.googleio ; INFO - Successfully loaded the chemical inventory from LBL
+2021-04-14 19:52:22,412> mainlog.expworkup.jsonparser ; INFO - wf3_alloying loaded with JSONs for parsing, starting
+2021-04-14 19:52:22,413> mainlog.expworkup.jsonparser ; INFO - (3/4) Unpacking 2019-04-19T14_28_09.238360+00_00_LBL.json
+2021-04-14 19:52:22,414> mainlog.expworkup.jsonparser ; INFO - Parsing wf3_alloying/2019-04-19T14_28_09.238360+00_00_LBL.json to 2d dataframe
+2021-04-14 19:52:22,463> mainlog.expworkup.jsonparser ; INFO - (3/4) Unpacking 2019-12-11T17_31_33.514011+00_00_LBL.json
+2021-04-14 19:52:22,463> mainlog.expworkup.jsonparser ; INFO - Parsing wf3_alloying/2019-12-11T17_31_33.514011+00_00_LBL.json to 2d dataframe
+2021-04-14 19:52:22,511> mainlog.expworkup.jsonparser ; INFO - (3/4) Unpacking 2019-12-16T17_38_49.652469+00_00_LBL.json
+2021-04-14 19:52:22,512> mainlog.expworkup.jsonparser ; INFO - Parsing wf3_alloying/2019-12-16T17_38_49.652469+00_00_LBL.json to 2d dataframe
+2021-04-14 19:52:22,558> mainlog.expworkup.jsonparser ; INFO - (3/4) Unpacking 2020-01-07T14_24_21.950921+00_00_LBL.json
+2021-04-14 19:52:22,559> mainlog.expworkup.jsonparser ; INFO - Parsing wf3_alloying/2020-01-07T14_24_21.950921+00_00_LBL.json to 2d dataframe
+2021-04-14 19:52:22,604> mainlog.expworkup.jsonparser ; INFO - (3/4) Unpacking 2020-01-13T20_05_38.468695+00_00_LBL.json
+2021-04-14 19:52:22,605> mainlog.expworkup.jsonparser ; INFO - Parsing wf3_alloying/2020-01-13T20_05_38.468695+00_00_LBL.json to 2d dataframe
+2021-04-14 19:52:22,651> mainlog.expworkup.jsonparser ; INFO - (3/4) Unpacking 2020-01-13T20_49_25.620171+00_00_LBL.json
+2021-04-14 19:52:22,651> mainlog.expworkup.jsonparser ; INFO - Parsing wf3_alloying/2020-01-13T20_49_25.620171+00_00_LBL.json to 2d dataframe
+2021-04-14 19:52:22,697> mainlog.expworkup.jsonparser ; INFO - (3/4) Unpacking 2020-01-13T20_52_24.769238+00_00_LBL.json
+2021-04-14 19:52:22,698> mainlog.expworkup.jsonparser ; INFO - Parsing wf3_alloying/2020-01-13T20_52_24.769238+00_00_LBL.json to 2d dataframe
+2021-04-14 19:52:22,745> mainlog.expworkup.jsonparser ; INFO - (3/4) Unpacking 2020-01-23T18_13_57.034292+00_00_LBL.json
+2021-04-14 19:52:22,745> mainlog.expworkup.jsonparser ; INFO - Parsing wf3_alloying/2020-01-23T18_13_57.034292+00_00_LBL.json to 2d dataframe
+2021-04-14 19:52:22,804> mainlog.expworkup.jsonparser ; INFO - Columns not fitting the naming scheme were written to: wf3_alloying/logging/UNNAMED_REPORT_COLUMNS.log
+2021-04-14 19:52:22,929> mainlog.expworkup.ingredients.pipeline ; INFO - Preparing Reagent Objects, details for ingredient preparation are in separate logfile
+2021-04-14 19:52:22,929> mainlog.expworkup.ingredients.pipeline ; INFO - Preparing raw_reagent_0
+2021-04-14 19:52:25,452> mainlog.expworkup.ingredients.pipeline ; INFO - Completed raw_reagent_0 reagent objects
+2021-04-14 19:52:25,452> mainlog.expworkup.ingredients.pipeline ; INFO - Preparing raw_reagent_5
+2021-04-14 19:52:27,358> mainlog.expworkup.ingredients.pipeline ; INFO - Completed raw_reagent_5 reagent objects
+2021-04-14 19:52:27,358> mainlog.expworkup.ingredients.pipeline ; INFO - Preparing raw_reagent_1
+2021-04-14 19:52:30,107> mainlog.expworkup.ingredients.pipeline ; INFO - Completed raw_reagent_1 reagent objects
+2021-04-14 19:52:30,107> mainlog.expworkup.ingredients.pipeline ; INFO - Preparing raw_reagent_3
+2021-04-14 19:52:32,858> mainlog.expworkup.ingredients.pipeline ; INFO - Completed raw_reagent_3 reagent objects
+2021-04-14 19:52:32,858> mainlog.expworkup.ingredients.pipeline ; INFO - Preparing raw_reagent_7
+2021-04-14 19:52:33,582> mainlog.expworkup.ingredients.pipeline ; INFO - Completed raw_reagent_7 reagent objects
+2021-04-14 19:52:33,582> mainlog.expworkup.ingredients.pipeline ; INFO - Preparing raw_reagent_4
+2021-04-14 19:52:35,804> mainlog.expworkup.ingredients.pipeline ; INFO - Completed raw_reagent_4 reagent objects
+2021-04-14 19:52:35,804> mainlog.expworkup.ingredients.pipeline ; INFO - Preparing raw_reagent_2
+2021-04-14 19:52:38,062> mainlog.expworkup.ingredients.pipeline ; INFO - Completed raw_reagent_2 reagent objects
+2021-04-14 19:52:38,062> mainlog.expworkup.ingredients.pipeline ; INFO - Preparing raw_reagent_8
+2021-04-14 19:52:39,656> mainlog.expworkup.ingredients.pipeline ; INFO - Completed raw_reagent_8 reagent objects
+2021-04-14 19:52:39,657> mainlog.expworkup.ingredients.pipeline ; INFO - Preparing raw_reagent_6
+2021-04-14 19:52:41,082> mainlog.expworkup.ingredients.pipeline ; INFO - Completed raw_reagent_6 reagent objects
+2021-04-14 19:52:41,082> mainlog.expworkup.ingredients.pipeline ; INFO - Completed: 'Preparing Reagent Objects'
+2021-04-14 19:52:41,910> mainlog.expworkup.report_feats ; INFO - Generating physicochemical features to wf3_alloying dataset
+2021-04-14 19:52:41,911> mainlog.expworkup.report_feats ; INFO - Log files for this process are in CXCALC_LOG.txt
+2021-04-14 19:53:02,068> mainlog.expworkup.report_feats ; INFO - Completed: 'Generating physicochemical features to wf3_alloying dataset'
+2021-04-14 19:53:02,304> mainlog.expworkup.report_calcs ; INFO - Starting calc_pipeline on target datasets
+2021-04-14 19:53:02,306> mainlog.expworkup.handlers.calcs ; INFO - mmol calculations and df creation
+2021-04-14 19:53:02,646> mainlog.expworkup.handlers.calcs ; INFO - Completed: 'mmol calculations and df creation'
+2021-04-14 19:53:02,646> mainlog.expworkup.report_calcs ; INFO - generating a dataframe of combined mmol and inchi data
+2021-04-14 19:53:02,666> mainlog.expworkup.report_calcs ; INFO - applying chemical type information to each experiment
+2021-04-14 19:53:04,224> mainlog.expworkup.report_calcs ; INFO - Possible columns for target by ./utils/calc_command.py can be found in: wf3_alloying/logging/POTENTIAL_CALC_COLUMNS.txt
+2021-04-14 19:53:04,888> mainlog.expworkup.report_view ; INFO - Generating 2d dataframe
+2021-04-14 19:53:05,294> mainlog.expworkup.report_view ; INFO - 0 in additional dataframes already correctly indexed
+2021-04-14 19:53:05,303> mainlog.expworkup.report_view ; INFO - 1 in additional dataframes already correctly indexed
+2021-04-14 19:53:05,304> mainlog.expworkup.report_view ; INFO - 2 in additional dataframes already correctly indexed
+2021-04-14 19:53:05,306> mainlog.expworkup.report_view ; INFO - 3 in additional dataframes already correctly indexed
+2021-04-14 19:53:05,312> mainlog.expworkup.report_view ; INFO - 4 in additional dataframes already correctly indexed
+2021-04-14 19:53:05,314> mainlog.expworkup.report_view ; INFO - 5 in additional dataframes already correctly indexed
+2021-04-14 19:53:05,572> mainlog.expworkup.report_view ; INFO - Removed 147 of an original 659 columns which contained only "0" or "null"
+2021-04-14 19:53:05,572> mainlog.expworkup.report_view ; INFO - successfully generated mmol and molarity dataframes for calcs
+2021-04-14 19:53:05,631> mainlog.versiondata.export_to_repo ; INFO - Generating version repo ready data and index dataframes
+2021-04-14 19:53:23,384> mainlog.versiondata.export_to_repo ; INFO - Generating training data metrics for version repo headers
+2021-04-14 19:53:23,384> mainlog.versiondata.export_to_repo ; INFO - Exporting data to 0060.wf3_alloying for version data upload
+2021-04-14 19:53:23,384> mainlog.versiondata.export_to_repo ; INFO - Building initial training text file containing header with metrics
+2021-04-14 19:53:23,385> mainlog.versiondata.export_to_repo ; INFO - Building index header containing metrics and description
+2021-04-14 19:53:23,455> mainlog.__main__ ; INFO - Exporting 0060: 0060.wf3_alloying.csv was generated
+2021-04-14 19:53:23,455> mainlog.__main__ ; INFO - Clean Exit: wf3_alloying.csv was generated

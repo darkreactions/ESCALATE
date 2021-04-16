@@ -1,0 +1,182 @@
+{
+    "notes": {
+        "ExperimentalSummary": "",
+        "note1": "",
+        "note2": "actual volume of reagent 2: 16.5 mL; actual volume of reagent 3: 12 mL."
+    },
+    "reagent": [
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "YEJRWHAVMIAJKC-UHFFFAOYSA-N",
+                    "actual_amount": "15:milliliter",
+                    "nominal_amount": "6:milliliter"
+                }
+            ],
+            "date": "2018-11-02",
+            "id": 1,
+            "instructions": [
+                {
+                    "op": "heat",
+                    "temperature": "45:celsius"
+                }
+            ],
+            "operator": "Zhi Li"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "RQQRAHKHDFPBMC-UHFFFAOYSA-L",
+                    "actual_amount": "4.618:gram",
+                    "nominal_amount": "4.61:gram"
+                },
+                {
+                    "InChIKey": "LLWRXQXPJMPHLR-UHFFFAOYSA-N",
+                    "actual_amount": "1.162:gram",
+                    "nominal_amount": "1.16:gram"
+                },
+                {
+                    "InChIKey": "YEJRWHAVMIAJKC-UHFFFAOYSA-N",
+                    "actual_amount": "15:milliliter",
+                    "nominal_amount": "10:milliliter"
+                }
+            ],
+            "date": "2018-11-02",
+            "id": 2,
+            "instructions": [
+                {
+                    "duration": "3600:second",
+                    "op": "heatstir",
+                    "stir": "450:rpm",
+                    "temperature": "75:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "45:celsius"
+                }
+            ],
+            "operator": "Zhi Li"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "LLWRXQXPJMPHLR-UHFFFAOYSA-N",
+                    "actual_amount": "3.574:gram",
+                    "nominal_amount": "3.57:gram"
+                },
+                {
+                    "InChIKey": "YEJRWHAVMIAJKC-UHFFFAOYSA-N",
+                    "actual_amount": "10:milliliter",
+                    "nominal_amount": "10:milliliter"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": ":null",
+                    "nominal_amount": ":null"
+                }
+            ],
+            "date": "2018-11-02",
+            "id": 3,
+            "instructions": [
+                {
+                    "duration": "3600:second",
+                    "op": "heatstir",
+                    "stir": "450:rpm",
+                    "temperature": "75:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "45:celsius"
+                }
+            ],
+            "operator": "Zhi Li"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "null",
+                    "actual_amount": ":null",
+                    "nominal_amount": ":null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": ":null",
+                    "nominal_amount": ":null"
+                },
+                {
+                    "InChIKey": "null",
+                    "actual_amount": ":null",
+                    "nominal_amount": ":null"
+                }
+            ],
+            "date": "null",
+            "id": 4,
+            "instructions": [
+                {
+                    "duration": "null:second",
+                    "op": "heatstir",
+                    "stir": "null:rpm",
+                    "temperature": "null:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "null:celsius"
+                }
+            ],
+            "operator": "null"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "BDAGIHXWWSANSR-UHFFFAOYSA-N",
+                    "actual_amount": "5:milliliter",
+                    "nominal_amount": "5:milliliter"
+                }
+            ],
+            "date": "2018-11-02",
+            "id": 5,
+            "instructions": [
+                {
+                    "op": "heat",
+                    "temperature": "22:celsius"
+                }
+            ],
+            "operator": "Zhi Li"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "BDAGIHXWWSANSR-UHFFFAOYSA-N",
+                    "actual_amount": "5:milliliter",
+                    "nominal_amount": "5:milliliter"
+                }
+            ],
+            "date": "2018-11-02",
+            "id": 6,
+            "instructions": [
+                {
+                    "op": "heat",
+                    "temperature": "22:celsius"
+                }
+            ],
+            "operator": "Zhi Li"
+        }
+    ],
+    "run": {
+        "ExpVer": 3,
+        "GenVer": 1.2,
+        "datecreated": "2018-11-02",
+        "jobserial": "2018-11-02_LBL",
+        "lab": "LBL",
+        "operator": "Zhi Li",
+        "timecreated_UTC": "00_00_00"
+	},
+	 "well_volumes":
+	 [["A1", 197, 117, 184, 17, 0, 1000, "Symyx_96_well_0003"], ["C1", 4, 426, 68, 49, 15, 1000, "Symyx_96_well_0003"], ["E1", 80, 66, 352, 38, 1, 1000, "Symyx_96_well_0003"], ["G1", 360, 107, 32, 19, 22, 1000, "Symyx_96_well_0003"], ["A3", 8, 203, 288, 13, 31, 1000, "Symyx_96_well_0003"], ["C3", 203, 157, 139, 40, 25, 1000, "Symyx_96_well_0003"], ["E3", 115, 115, 270, 5, 17, 1000, "Symyx_96_well_0003"], ["G3", 202, 293, 4, 0, 35, 1000, "Symyx_96_well_0003"], ["A5", 345, 115, 39, 43, 40, 1000, "Symyx_96_well_0003"], ["C5", 87, 184, 228, 41, 9, 1000, "Symyx_96_well_0003"], ["E5", 126, 332, 41, 2, 5, 1000, "Symyx_96_well_0003"], ["G5", 80, 337, 82, 16, 34, 1000, "Symyx_96_well_0003"], ["A7", 348, 134, 17, 34, 47, 1000, "Symyx_96_well_0003"], ["C7", 295, 7, 197, 6, 24, 1000, "Symyx_96_well_0003"], ["E7", 42, 338, 119, 14, 3, 1000, "Symyx_96_well_0003"], ["G7", 162, 198, 139, 37, 7, 1000, "Symyx_96_well_0003"], ["A9", 96, 170, 232, 23, 13, 1000, "Symyx_96_well_0003"], ["C9", 235, 136, 128, 45, 28, 1000, "Symyx_96_well_0003"], ["E9", 151, 174, 174, 8, 32, 1000, "Symyx_96_well_0003"], ["G9", 21, 103, 374, 20, 27, 1000, "Symyx_96_well_0003"], ["A11", 428, 65, 5, 48, 12, 1000, "Symyx_96_well_0003"], ["C11", 130, 151, 217, 25, 4, 1000, "Symyx_96_well_0003"], ["E11", 146, 136, 218, 3, 33, 1000, "Symyx_96_well_0003"], ["G11", 167, 291, 41, 33, 41, 1000, "Symyx_96_well_0003"]] ,
+	 "tray_environment":
+	 [["Temperature (C):", 85.0], ["Stir Rate (rpm):", 750.0], ["Mixing time (s):", 1200.0], ["Mixing time2 (s):", 1200.0], ["Reaction time (s):", 21600.0], ["Temperature Cool (C):", 25.0]] ,
+	 "robot_reagent_handling":
+	 [["Reagent1", 1.0, "HighVolume_Water_DispenseJet_Empty", 45.0], ["Reagent2", 2.0, "HighVolume_Water_DispenseJet_Empty", 45.0], ["Reagent3", 3.0, "HighVolume_Water_DispenseJet_Empty", 45.0], ["Reagent4", 4.0, "Tip_50ul_Water_DispenseJet_Empty", 45.0], ["Reagent5", 5.0, "Tip_50ul_Water_DispenseJet_Empty", 45.0], ["Reagent6", 6.0, "HighVolume_Water_DispenseJet_Empty", 45.0]] ,
+	 "crys_file_data":
+	 [{"Robot Number":1,"Vial Site (1)":"A","Vial Site (2)":1,"Concatenated Vial site":"A1","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null},{"Robot Number":2,"Vial Site (1)":"C","Vial Site (2)":1,"Concatenated Vial site":"C1","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null},{"Robot Number":3,"Vial Site (1)":"E","Vial Site (2)":1,"Concatenated Vial site":"E1","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null},{"Robot Number":4,"Vial Site (1)":"G","Vial Site (2)":1,"Concatenated Vial site":"G1","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null},{"Robot Number":17,"Vial Site (1)":"A","Vial Site (2)":3,"Concatenated Vial site":"A3","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null},{"Robot Number":18,"Vial Site (1)":"C","Vial Site (2)":3,"Concatenated Vial site":"C3","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null},{"Robot Number":19,"Vial Site (1)":"E","Vial Site (2)":3,"Concatenated Vial site":"E3","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null},{"Robot Number":20,"Vial Site (1)":"G","Vial Site (2)":3,"Concatenated Vial site":"G3","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null},{"Robot Number":33,"Vial Site (1)":"A","Vial Site (2)":5,"Concatenated Vial site":"A5","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null},{"Robot Number":34,"Vial Site (1)":"C","Vial Site (2)":5,"Concatenated Vial site":"C5","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null},{"Robot Number":35,"Vial Site (1)":"E","Vial Site (2)":5,"Concatenated Vial site":"E5","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null},{"Robot Number":36,"Vial Site (1)":"G","Vial Site (2)":5,"Concatenated Vial site":"G5","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null},{"Robot Number":49,"Vial Site (1)":"A","Vial Site (2)":7,"Concatenated Vial site":"A7","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null},{"Robot Number":50,"Vial Site (1)":"C","Vial Site (2)":7,"Concatenated Vial site":"C7","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":3,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null},{"Robot Number":51,"Vial Site (1)":"E","Vial Site (2)":7,"Concatenated Vial site":"E7","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null},{"Robot Number":52,"Vial Site (1)":"G","Vial Site (2)":7,"Concatenated Vial site":"G7","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null},{"Robot Number":65,"Vial Site (1)":"A","Vial Site (2)":9,"Concatenated Vial site":"A9","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null},{"Robot Number":66,"Vial Site (1)":"C","Vial Site (2)":9,"Concatenated Vial site":"C9","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null},{"Robot Number":67,"Vial Site (1)":"E","Vial Site (2)":9,"Concatenated Vial site":"E9","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null},{"Robot Number":68,"Vial Site (1)":"G","Vial Site (2)":9,"Concatenated Vial site":"G9","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null},{"Robot Number":81,"Vial Site (1)":"A","Vial Site (2)":11,"Concatenated Vial site":"A11","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null},{"Robot Number":82,"Vial Site (1)":"C","Vial Site (2)":11,"Concatenated Vial site":"C11","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null},{"Robot Number":83,"Vial Site (1)":"E","Vial Site (2)":11,"Concatenated Vial site":"E11","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null},{"Robot Number":84,"Vial Site (1)":"G","Vial Site (2)":11,"Concatenated Vial site":"G11","Experiment Name":0,"Bulk Actual Temp (C)":25,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ExpertQuasiRandom_1.2","participantname":"escalate_1.0","notes":null,"class_probability":null}]
+}

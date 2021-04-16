@@ -1,0 +1,134 @@
+{					
+	"run": {				
+		"datecreated":	 "2018-07-09"	,	
+		"timecreated_UTC":	 "22_47_01"	,	
+		"lab":	 "LBL"	,	
+		"operator":	 "Zhi Li"	,	
+		"jobserial":	 "2018-07-09T22_47_01.237679+00_00_LBL"	,	
+		"ExpVer":	1.1	,	
+		"GenVer":	1.1		
+	},				
+	"reagent": [{				
+		"date": 	 "2018-07-09"	,	
+		"id":	1	,	
+		"operator":	 "Zhi Li"	,	
+		"chemicals": [{			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "7.25:milliliter"	,
+			"actual_amount": 	 "20:milliliter"	
+		}],			
+		"instructions": [{			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}]			
+	}, {				
+		"date": 	 "2018-07-09"	,	
+		"id":	2	,	
+		"operator":	 "Zhi Li"	,	
+		"chemicals": [{			
+			"InChIKey":	 "RQQRAHKHDFPBMC-UHFFFAOYSA-L"	,
+			"nominal_amount": 	 "19.59:gram"	,
+			"actual_amount": 	 "19.575:gram"	
+		}, {			
+			"InChIKey":	 "LLWRXQXPJMPHLR-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "4.73:gram"	,
+			"actual_amount": 	 "4.735:gram"	
+		}, {			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "39.35:milliliter"	,
+			"actual_amount": 	 "40:milliliter"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "45:celsius"	
+		}]			
+	}, {				
+		"date": 	 "2018-07-09"	,	
+		"id":	3	,	
+		"operator":	 "Zhi Li"	,	
+		"chemicals": [{			
+			"InChIKey":	 "LLWRXQXPJMPHLR-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "2.94:gram"	,
+			"actual_amount": 	 "2.942:gram"	
+		}, {			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "7.39:milliliter"	,
+			"actual_amount": 	 "9:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "45:celsius"	
+		}]			
+	}, {				
+		"date": 	 "null"	,	
+		"id":	4	,	
+		"operator":	 "null"	,	
+		"chemicals": [{			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "null:celsius"	
+		}]			
+	}, {				
+		"date": 	 "2018-07-09"	,	
+		"id":	5	,	
+		"operator":	 "Zhi Li"	,	
+		"chemicals": [{			
+			"InChIKey":	 "BDAGIHXWWSANSR-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "6.56:milliliter"	,
+			"actual_amount": 	 "7:milliliter"	
+		}],			
+		"instructions": [{			
+			"op": 	"heat"	,
+			"temperature":	 "22:celsius"	
+		}]			
+	}, {				
+		"date": 	 "2018-07-09"	,	
+		"id":	6	,	
+		"operator":	 "Zhi Li"	,	
+		"chemicals": [{			
+			"InChIKey":	 "BDAGIHXWWSANSR-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "6.59:milliliter"	,
+			"actual_amount": 	 "7:milliliter"	
+		}],			
+		"instructions": [{			
+			"op": 	"heat"	,
+			"temperature":	 "22:celsius"	
+		}]			
+	}],				
+	"notes": 	{			
+		"note1": 	 "1) I increase the GBL vol in reagent3 to make it soluble under room temperature 2) Reagent 2 crashed out at the end of experiment but precipitation didn't happend during adding. So we can trust the concentration."	,	
+		"note2": 	 "1) The images numbering is disordered but it can be tracked from the time 2) computer is strange today. The program ended abnormally but we finished all reactions already. My humidity/thermometer shut down in the middle of reaction."	,	
+		"ExperimentalSummary": 	 "For reagent 2 components were added in the sequence: stir bar->PbI2->ammonium->GBL. Reagent 3 were made in the sequence: Then reagent 2 and 3 were heated at 75 C in ambient atmosphere. After one hour heating, reagents 1-3 were kept warm at 50 C before robot initiation. (Workup: A1-B1..H1, A2-B2..H2,..A12-B12..H12).    "		
+	}				
+}					

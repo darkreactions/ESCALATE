@@ -1,0 +1,221 @@
+{					
+	"run": {				
+		"datecreated":	 "2019-07-01"	,	
+		"timecreated_UTC":	 "19_39_31"	,	
+		"lab":	 "LBL"	,	
+		"operator":	 "Wesley"	,	
+		"jobserial":	 "2019-07-01T19_39_31.550325+00_00_LBL"	,	
+		"ExpVer":	1.1	,	
+		"GenVer":	2.5	,	
+		"ChallengeProblem":	1		
+	},				
+	"reagent": [{				
+		"date": 	 "2019-07-01"	,	
+		"id":	1	,	
+		"operator":	 "Wesley"	,	
+		"chemicals": [{			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "17.35:milliliter"	,
+			"actual_amount": 	 "17.35:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "17.4:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2019-07-01"	,	
+		"id":	2	,	
+		"operator":	 "Wesley"	,	
+		"chemicals": [{			
+			"InChIKey":	 "RQQRAHKHDFPBMC-UHFFFAOYSA-L"	,
+			"nominal_amount": 	 "4.12:gram"	,
+			"actual_amount": 	 "4.121:gram"	
+		}, {			
+			"InChIKey":	 "GGYGJCFIYJVWIP-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "0.79:gram"	,
+			"actual_amount": 	 "0.793:gram"	
+		}, {			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "11.9:milliliter"	,
+			"actual_amount": 	 "11.9:milliliter"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "13:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2019-07-01"	,	
+		"id":	3	,	
+		"operator":	 "Wesley"	,	
+		"chemicals": [{			
+			"InChIKey":	 "GGYGJCFIYJVWIP-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "11.61:gram"	,
+			"actual_amount": 	 "11.609:gram"	
+		}, {			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "11.36:milliliter"	,
+			"actual_amount": 	 "11.36:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "17:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2019-07-01"	,	
+		"id":	4	,	
+		"operator":	 "Wesley"	,	
+		"chemicals": [{			
+			"InChIKey":	 "RQQRAHKHDFPBMC-UHFFFAOYSA-L"	,
+			"nominal_amount": 	 "8.29:gram"	,
+			"actual_amount": 	 "8.288:gram"	
+		}, {			
+			"InChIKey":	 "GIAPQOZCVIEHNY-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "3.33:gram"	,
+			"actual_amount": 	 "3.327:gram"	
+		}, {			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "10.83:milliliter"	,
+			"actual_amount": 	 "10.83:milliliter"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature": 	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "14:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2019-07-01"	,	
+		"id":	5	,	
+		"operator":	 "Wesley"	,	
+		"chemicals": [{			
+			"InChIKey":	 "GIAPQOZCVIEHNY-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "9.87:gram"	,
+			"actual_amount": 	 "9.868:gram"	
+		}, {			
+			"InChIKey":	 "YEJRWHAVMIAJKC-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "11.39:milliliter"	,
+			"actual_amount": 	 "11.39:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "75:celsius"	,
+			"stir": 	 "450:rpm"	,
+			"duration": 	 "3600:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "16.8:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2019-07-01"	,	
+		"id":	6	,	
+		"operator":	 "Wesley"	,	
+		"chemicals": [{			
+			"InChIKey":	 "BDAGIHXWWSANSR-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "10.06:milliliter"	,
+			"actual_amount": 	 "10.06:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "10.1:milliliter"	
+		}]			
+	}, {				
+		"date": 	 "2019-07-01"	,	
+		"id":	7	,	
+		"operator":	 "Wesley"	,	
+		"chemicals": [{			
+			"InChIKey":	 "BDAGIHXWWSANSR-UHFFFAOYSA-N"	,
+			"nominal_amount": 	 "10.1:milliliter"	,
+			"actual_amount": 	 "10.1:milliliter"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}, {			
+			"InChIKey":	 "null"	,
+			"nominal_amount": 	 "null:null"	,
+			"actual_amount": 	 "null:null"	
+		}],			
+		"instructions": [{			
+			"op": 	"heatstir"	,
+			"temperature": 	 "null:celsius"	,
+			"stir": 	 "null:rpm"	,
+			"duration": 	 "null:second"	
+		}, {			
+			"op": 	"heat"	,
+			"temperature":	 "45:celsius"	
+		}, {			
+			"op": 	"measure_volume"	,
+			"volume":	 "10.1:milliliter"	
+		}]			
+	}],				
+	"notes": 	{			
+		"note1": 	 "Batch/Lot no.: Lead Iodide = MKCC6353, Acetamidinium Iodide = MKBW6563V, n-Propylammonium iodide = 325308 "	,	
+		"note2": 	 "Error in robot input file generation: Reagent 4+5 additions were in columns 2 and 3"	,	
+		"ExperimentalSummary": 	 "null"		
+	}				
+}					

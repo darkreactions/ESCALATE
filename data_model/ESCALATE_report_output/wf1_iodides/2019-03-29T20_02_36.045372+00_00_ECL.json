@@ -1,0 +1,167 @@
+{
+    "reagent": [
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "YEJRWHAVMIAJKC-UHFFFAOYSA-N",
+                    "actual_amount": "1.196:milliliter",
+                    "model": "Model[Sample, Chemical, \"id:N80DNjlYwwAo\"]",
+                    "name": "gamma Butyrolactone",
+                    "nominal_amount": "1.196:milliliter",
+                    "object": "Object[Sample, Chemical, \"id:pZx9jo8ONnnE\"]"
+                }
+            ],
+            "date": "2019-04-03",
+            "id": 1,
+            "instructions": [],
+            "model": "Model[Sample, Chemical, \"id:N80DNjlYwwAo\"]",
+            "name": "Reagent1",
+            "object": "Object[Sample, Chemical, \"id:pZx9jo8ONnnE\"]",
+            "operator": "ECL"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "RQQRAHKHDFPBMC-UHFFFAOYSA-L",
+                    "actual_amount": "2.9172:gram",
+                    "model": "Model[Sample, Chemical, \"id:1ZA60vLr1Yqa\"]",
+                    "name": "Lead(II) iodide 99%",
+                    "nominal_amount": "2.875:gram",
+                    "object": "Object[Sample, Chemical, \"id:4pO6dM5WnJRw\"]"
+                },
+                {
+                    "InChIKey": "LLWRXQXPJMPHLR-UHFFFAOYSA-N",
+                    "actual_amount": "0.693867:gram",
+                    "model": "Model[Sample, Chemical, \"id:kEJ9mqRJ6NP8\"]",
+                    "name": "Methylammonium iodide",
+                    "nominal_amount": "0.697:gram",
+                    "object": "Object[Sample, Chemical, \"id:eGakldJemzwz\"]"
+                },
+                {
+                    "InChIKey": "YEJRWHAVMIAJKC-UHFFFAOYSA-N",
+                    "actual_amount": "5.8:milliliter",
+                    "model": "Model[Sample, Chemical, \"id:N80DNjlYwwAo\"]",
+                    "name": "gamma Butyrolactone",
+                    "nominal_amount": "5.8:milliliter",
+                    "object": "Object[Sample, Chemical, \"id:BYDOjvG1Dl7D\"]"
+                }
+            ],
+            "date": "2019-04-02",
+            "id": 2,
+            "instructions": [
+                {
+                    "duration": "3600.:second",
+                    "op": "heatstir",
+                    "stir": "450.:rpm",
+                    "temperature": "85.:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "70.:celsius"
+                }
+            ],
+            "model": "Model[Sample, StockSolution, \"id:kEJ9mqR8n6WP\"]",
+            "name": "Reagent2",
+            "object": "Object[Sample, StockSolution, \"id:Z1lqpMzrKv7W\"]",
+            "operator": "ECL"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "LLWRXQXPJMPHLR-UHFFFAOYSA-N",
+                    "actual_amount": "0.4807:gram",
+                    "model": "Model[Sample, Chemical, \"id:kEJ9mqRJ6NP8\"]",
+                    "name": "Methylammonium iodide",
+                    "nominal_amount": "0.4763:gram",
+                    "object": "Object[Sample, Chemical, \"id:eGakldJemzwz\"]"
+                },
+                {
+                    "InChIKey": "YEJRWHAVMIAJKC-UHFFFAOYSA-N",
+                    "actual_amount": "1.2:milliliter",
+                    "model": "Model[Sample, Chemical, \"id:N80DNjlYwwAo\"]",
+                    "name": "gamma Butyrolactone",
+                    "nominal_amount": "1.2:milliliter",
+                    "object": "Object[Sample, Chemical, \"id:BYDOjvG1Dl7D\"]"
+                }
+            ],
+            "date": "2019-04-02",
+            "id": 3,
+            "instructions": [
+                {
+                    "duration": "3600.:second",
+                    "op": "heatstir",
+                    "stir": "450.:rpm",
+                    "temperature": "85.:celsius"
+                },
+                {
+                    "op": "heat",
+                    "temperature": "70.:celsius"
+                }
+            ],
+            "model": "Model[Sample, StockSolution, \"id:xRO9n3BEG1Nw\"]",
+            "name": "Reagent3",
+            "object": "Object[Sample, StockSolution, \"id:dORYzZJd4m7w\"]",
+            "operator": "ECL"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "BDAGIHXWWSANSR-UHFFFAOYSA-N",
+                    "actual_amount": "0.735:milliliter",
+                    "model": "Model[Sample, Chemical, \"id:n0k9mG8z6JY4\"]",
+                    "name": "Formic acid, reagent grade >95%",
+                    "nominal_amount": "0.735:milliliter",
+                    "object": "Object[Sample, Chemical, \"id:Vrbp1jKvVGGe\"]"
+                }
+            ],
+            "date": "2019-04-03",
+            "id": 6,
+            "instructions": [],
+            "model": "Model[Sample, Chemical, \"id:n0k9mG8z6JY4\"]",
+            "name": "Reagent6",
+            "object": "Object[Sample, Chemical, \"id:Vrbp1jKvVGGe\"]",
+            "operator": "ECL"
+        },
+        {
+            "chemicals": [
+                {
+                    "InChIKey": "BDAGIHXWWSANSR-UHFFFAOYSA-N",
+                    "actual_amount": "0.735:milliliter",
+                    "model": "Model[Sample, Chemical, \"id:n0k9mG8z6JY4\"]",
+                    "name": "Formic acid, reagent grade >95%",
+                    "nominal_amount": "0.735:milliliter",
+                    "object": "Object[Sample, Chemical, \"id:Vrbp1jKvVGGe\"]"
+                }
+            ],
+            "date": "2019-04-03",
+            "id": 7,
+            "instructions": [],
+            "model": "Model[Sample, Chemical, \"id:n0k9mG8z6JY4\"]",
+            "name": "Reagent7",
+            "object": "Object[Sample, Chemical, \"id:Vrbp1jKvVGGe\"]",
+            "operator": "ECL"
+        }
+    ],
+    "run": {
+        "ChallengeProblem": 0,
+        "ExpVer": 1.1,
+        "GenVer": 2.0,
+        "datecompleted": "2019-04-04",
+        "datecreated": "2019-03-29",
+        "jobserial": "2019-03-29T20_02_36.045372+00_00_ECL",
+        "lab": "ECL",
+        "notebook": "Object[LaboratoryNotebook, \"id:pZx9jo8nrndE\"]",
+        "operator": "ECL",
+        "protocol": "Object[Protocol, SampleManipulation, \"id:rea9jlR5mVD3\"]",
+        "timecompleted_UTC": "02_52_32",
+        "timecreated_UTC": "21_20_53"
+	},
+	 "well_volumes":
+	 [["A1", 95, 347, 58, 0, 0, 19, 45, "Model[Container, Vessel, \"8x43mm Glass Reaction Vial\"]"], ["C1", 43, 375, 82, 0, 0, 66, 92, "Model[Container, Vessel, \"8x43mm Glass Reaction Vial\"]"], ["E1", 0, 485, 15, 0, 0, 89, 22, "Model[Container, Vessel, \"8x43mm Glass Reaction Vial\"]"], ["G1", 18, 430, 52, 0, 0, 42, 68, "Model[Container, Vessel, \"8x43mm Glass Reaction Vial\"]"], ["B1", 98, 320, 82, 0, 0, 31, 10, "Model[Container, Vessel, \"8x43mm Glass Reaction Vial\"]"], ["D1", 139, 334, 28, 0, 0, 77, 57, "Model[Container, Vessel, \"8x43mm Glass Reaction Vial\"]"], ["F1", 18, 444, 39, 0, 0, 54, 33, "Model[Container, Vessel, \"8x43mm Glass Reaction Vial\"]"], ["H1", 91, 365, 45, 0, 0, 69, 52, "Model[Container, Vessel, \"8x43mm Glass Reaction Vial\"]"], ["A2", 7, 475, 18, 0, 0, 92, 29, "Model[Container, Vessel, \"8x43mm Glass Reaction Vial\"]"], ["C2", 1, 420, 79, 0, 0, 46, 75, "Model[Container, Vessel, \"8x43mm Glass Reaction Vial\"]"], ["E2", 0, 499, 1, 0, 0, 7, 80, "Model[Container, Vessel, \"8x43mm Glass Reaction Vial\"]"], ["G2", 170, 327, 4, 0, 0, 28, 36, "Model[Container, Vessel, \"8x43mm Glass Reaction Vial\"]"], ["B2", 21, 451, 29, 0, 0, 76, 17, "Model[Container, Vessel, \"8x43mm Glass Reaction Vial\"]"], ["D2", 164, 330, 6, 0, 0, 25, 8, "Model[Container, Vessel, \"8x43mm Glass Reaction Vial\"]"], ["F2", 80, 371, 49, 0, 0, 1, 16, "Model[Container, Vessel, \"8x43mm Glass Reaction Vial\"]"], ["H2", 143, 289, 68, 0, 0, 36, 28, "Model[Container, Vessel, \"8x43mm Glass Reaction Vial\"]"]] ,
+	 "tray_environment":
+	 [["Temperature (C):", 105.0], ["Stir Rate (rpm):", 750.0], ["Mixing time1 (s):", 900.0], ["Mixing time2 (s):", 1200.0], ["Reaction time (s):", 12600.0]] ,
+	 "robot_reagent_handling":
+	 [["Reagent1", "Model[Sample, Chemical, \"gamma Butyrolactone\"]", "Model[Method, Pipetting, \"StandardVolume_GBL_DispenseJet_Empty\"]", "Null"], ["Reagent2", "Model[Sample, StockSolution, \"id:kEJ9mqR8n6WP\"]", "Model[Method, Pipetting, \"StandardVolume_GBL_DispenseJet_Empty\"]", 70], ["Reagent3", "Model[Sample, StockSolution, \"id:xRO9n3BEG1Nw\"]", "Model[Method, Pipetting, \"StandardVolume_GBL_DispenseJet_Empty\"]", 70], ["Reagent4", "Null", "Null", "Null"], ["Reagent5", "Null", "Null", "Null"], ["Reagent6", "Model[Sample, Chemical, \"Formic acid, reagent grade >95%\"]", "Model[Method, Pipetting, \"StandardVolume_GBL_DispenseJet_Empty\"]", "Null"], ["Reagent7", "Model[Sample, Chemical, \"Formic acid, reagent grade >95%\"]", "Model[Method, Pipetting, \"StandardVolume_GBL_DispenseJet_Empty\"]", "Null"]] ,
+	 "crys_file_data":
+	 [{"Robot Number":1,"Vial Site (1)":"A","Vial Site (2)":1,"Concatenated Vial site":"A1","Bulk Actual Temp (C)":105.0,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ReproducabilityTesting_1","participantname":"escalate","notes":"Could not recover target duplicate","class_probability":null},{"Robot Number":2,"Vial Site (1)":"C","Vial Site (2)":1,"Concatenated Vial site":"C1","Bulk Actual Temp (C)":105.0,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Could not recover target duplicate","class_probability":null},{"Robot Number":3,"Vial Site (1)":"E","Vial Site (2)":1,"Concatenated Vial site":"E1","Bulk Actual Temp (C)":105.0,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Could not recover target duplicate","class_probability":null},{"Robot Number":4,"Vial Site (1)":"G","Vial Site (2)":1,"Concatenated Vial site":"G1","Bulk Actual Temp (C)":105.0,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Could not recover target duplicate","class_probability":null},{"Robot Number":5,"Vial Site (1)":"B","Vial Site (2)":1,"Concatenated Vial site":"B1","Bulk Actual Temp (C)":105.0,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Could not recover target duplicate","class_probability":null},{"Robot Number":6,"Vial Site (1)":"D","Vial Site (2)":1,"Concatenated Vial site":"D1","Bulk Actual Temp (C)":105.0,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Could not recover target duplicate","class_probability":null},{"Robot Number":7,"Vial Site (1)":"F","Vial Site (2)":1,"Concatenated Vial site":"F1","Bulk Actual Temp (C)":105.0,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Could not recover target duplicate","class_probability":null},{"Robot Number":8,"Vial Site (1)":"H","Vial Site (2)":1,"Concatenated Vial site":"H1","Bulk Actual Temp (C)":105.0,"Crystal Score":3,"identifier":null,"_out_predicted":null,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Could not recover target duplicate","class_probability":null},{"Robot Number":9,"Vial Site (1)":"A","Vial Site (2)":2,"Concatenated Vial site":"A2","Bulk Actual Temp (C)":105.0,"Crystal Score":4,"identifier":null,"_out_predicted":null,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Could not recover target duplicate","class_probability":null},{"Robot Number":10,"Vial Site (1)":"C","Vial Site (2)":2,"Concatenated Vial site":"C2","Bulk Actual Temp (C)":105.0,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Could not recover target duplicate","class_probability":null},{"Robot Number":11,"Vial Site (1)":"E","Vial Site (2)":2,"Concatenated Vial site":"E2","Bulk Actual Temp (C)":105.0,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Could not recover target duplicate","class_probability":null},{"Robot Number":12,"Vial Site (1)":"G","Vial Site (2)":2,"Concatenated Vial site":"G2","Bulk Actual Temp (C)":105.0,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Could not recover target duplicate","class_probability":null},{"Robot Number":13,"Vial Site (1)":"B","Vial Site (2)":2,"Concatenated Vial site":"B2","Bulk Actual Temp (C)":105.0,"Crystal Score":1,"identifier":null,"_out_predicted":null,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Could not recover target duplicate","class_probability":null},{"Robot Number":14,"Vial Site (1)":"D","Vial Site (2)":2,"Concatenated Vial site":"D2","Bulk Actual Temp (C)":105.0,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Could not recover target duplicate","class_probability":null},{"Robot Number":15,"Vial Site (1)":"F","Vial Site (2)":2,"Concatenated Vial site":"F2","Bulk Actual Temp (C)":105.0,"Crystal Score":3,"identifier":null,"_out_predicted":null,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Could not recover target duplicate","class_probability":null},{"Robot Number":16,"Vial Site (1)":"H","Vial Site (2)":2,"Concatenated Vial site":"H2","Bulk Actual Temp (C)":105.0,"Crystal Score":2,"identifier":null,"_out_predicted":null,"modelname":"escalate_ReproducabilityTesting_0","participantname":"Ian Pendleton","notes":"Could not recover target duplicate","class_probability":null}]
+}

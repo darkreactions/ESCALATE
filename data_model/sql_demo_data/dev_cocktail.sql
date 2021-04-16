@@ -415,7 +415,7 @@ insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, wo
 -- add actions to each sub workflow
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values ('mint_to_shaker',
         (select workflow_uuid from vw_workflow where description = 'Mint to Shaker'),
@@ -436,7 +436,7 @@ values ('mint_to_shaker',
 -- add actions to each sub workflow
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values ('syrup_to_shaker',
         (select workflow_uuid from vw_workflow where description = 'Syrup to Shaker'),
@@ -454,7 +454,7 @@ values ('syrup_to_shaker',
 
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values ('muddle',
         (select workflow_uuid from vw_workflow where description = 'Muddle'),
@@ -473,7 +473,7 @@ values ('muddle',
 
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values ('rum_to_shaker',
         (select workflow_uuid from vw_workflow where description = 'Rum to Shaker'),
@@ -492,7 +492,7 @@ values ('rum_to_shaker',
 
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values ('lime_juice_to_shaker',
         (select workflow_uuid from vw_workflow where description = 'Lime Juice to Shaker'),
@@ -510,7 +510,7 @@ values ('lime_juice_to_shaker',
 
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values ('shake',
         (select workflow_uuid from vw_workflow where description = 'Shake'),
@@ -528,7 +528,7 @@ values ('shake',
 
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values ('ice_to_glass',
         (select workflow_uuid from vw_workflow where description = 'Ice to Glass'),
@@ -546,7 +546,7 @@ values ('ice_to_glass',
 
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
     values ('mojito_to_glass',
             (select workflow_uuid from vw_workflow where description = 'Mojito to Glass'),
