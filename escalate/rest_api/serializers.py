@@ -1,7 +1,7 @@
 # from core.models import (Actor, Material, Inventory,
 #                         Person, Organization, Note)
 
-#from escalate.core.models.view_tables.workflow import Workflow, WorkflowStep
+#from escalate.core.models.view_tables.workflow import Workflow, WorkflowStep, BillOfMaterials
 from django.db.models.fields import related
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
@@ -237,23 +237,41 @@ for model_name, data in expandable_fields.items():
                                                      DynamicFieldsModelSerializer]),
                                               extra_fields)
 
+class BomSerializer(DynamicFieldsModelSerializer):
+
+    bill_of_materials = SerializerMethodField()
+
+    def get_bill_of_materials(self, obj):
+        boms = BillOfMaterials.objects.filter(
+            experiment_id=obj.uuid)
+        result_serializer = BillOfMaterialsSerializer(
+            boms, many=True, context=self.context)
+        return result_serializer.data
+
+
 class ExperimentSerializer(EdocListSerializer,
                         TagListSerializer,
                         NoteListSerializer,
+                        BomSerializer,
                         DynamicFieldsModelSerializer):
     class Meta:
         model = Experiment
         fields = '__all__'
+
+    expandable_fields = expandable_fields['Experiment']['fields']
 
 
 class ExperimentTemplateSerializer(EdocListSerializer,
                         TagListSerializer,
                         NoteListSerializer,
+                        BomSerializer,
                         DynamicFieldsModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='experimenttemplate-detail')
     class Meta:
         model = Experiment
         fields = '__all__'
+    expandable_fields = expandable_fields['Experiment']['fields']
+
 
 class ExperimentQuerySerializer(Serializer):
     object_description = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)

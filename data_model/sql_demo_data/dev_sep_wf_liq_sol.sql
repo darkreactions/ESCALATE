@@ -540,8 +540,6 @@ insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, 
 		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Heat Stir Sample Plate')),
         null,
         (select status_uuid from vw_status where description = 'dev_test'));
-
-
 update vw_action_parameter set parameter_val = (
     select put_val((select get_type_def('data', 'num')), '45', 'mins'))
     where action_description = 'Heat Stir Sample Plate'
@@ -565,8 +563,8 @@ select concat('end create liquid solid,', now());
 -- call replicate_experiment_copy
 -- ('liquid_solid_extraction', 10);
 
--- select experiment_copy ((select experiment_uuid from vw_experiment where description = 'liquid_solid_extraction'),
---                         'liquid_liquid_extraction');
+select experiment_copy ((select experiment_uuid from vw_experiment where description = 'liquid_solid_extraction'),
+                        'liquid_liquid_extraction');
 -- select experiment_copy ((select experiment_uuid from vw_experiment where description = 'liquid_solid_extraction'),
 --                         'precipitation');
 
