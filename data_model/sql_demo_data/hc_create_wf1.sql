@@ -8,21 +8,7 @@ insert into vw_inventory (description, owner_uuid, operator_uuid, lab_uuid, acto
 	(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 	(select status_uuid from vw_status where description = 'dev_test'));
 
-
--- theres a bug here: two inventories created...
 select * from inventory;
--- delete from vw_inventory where inventory_uuid = '59ed1dd7-2d45-4416-9834-a2eb8b69587c';
---
---
--- -- hacky workaround for now...
--- CREATE OR REPLACE FUNCTION inventory_uuid()
---   RETURNS uuid AS
---   $$select inventory_uuid from vw_inventory where description = 'HC Test Inventory' LIMIT 1$$ LANGUAGE sql IMMUTABLE;
---
--- select inventory_uuid();
---select * from vw_material;
---select * from vw_experiment;
-
 update vw_material
 set material_class = 'model';
 
@@ -154,34 +140,34 @@ insert into vw_material_property (material_uuid, property_def_uuid,
 
 insert into vw_inventory_material (inventory_uuid, description, material_uuid)
 				values (
-				(select inventory_uuid()),
+				(select inventory_uuid from vw_inventory where description = 'HC Test Inventory'),
 				'Wf1 Plate',
 				(select material_uuid from vw_material where description = 'Plate: 24 well')
 				);
 
 insert into vw_inventory_material (inventory_uuid, description, material_uuid)
 				values (
-				(select inventory_uuid()),
+				(select inventory_uuid from vw_inventory where description = 'HC Test Inventory'),
 				'Stock A',
 				(select material_uuid from vw_material where description = 'Stock A')
 				);
 
 insert into vw_inventory_material (inventory_uuid, description, material_uuid)
 				values (
-				(select inventory_uuid()),
+				(select inventory_uuid from vw_inventory where description = 'HC Test Inventory'),
 				'Stock B',
 				(select material_uuid from vw_material where description = 'Stock B')
 				);
 
 insert into vw_inventory_material (inventory_uuid, description, material_uuid)
 				values (
-				(select inventory_uuid()),
+				(select inventory_uuid from vw_inventory where description = 'HC Test Inventory'),
 				'Stock FAH',
 				(select material_uuid from vw_material where description = 'Stock FAH')
 				);
 insert into vw_inventory_material (inventory_uuid, description, material_uuid)
 				values (
-				(select inventory_uuid()),
+				(select inventory_uuid from vw_inventory where description = 'HC Test Inventory'),
 				'Neat GBL',
 				(select material_uuid from vw_material where description = 'Gamma-Butyrolactone')
 				);

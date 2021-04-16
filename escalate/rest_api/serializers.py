@@ -3,6 +3,7 @@
 
 #from escalate.core.models.view_tables.workflow import Workflow, WorkflowStep
 from django.db.models.fields import related
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from core.models.view_tables import Edocument, Note
 from core.models.core_tables import TypeDef
@@ -292,11 +293,14 @@ class WorkflowSerializer(EdocListSerializer,
     def get_step(self, obj):
         step_nums = []
         steps = []
-        top_level_step = WorkflowStep.objects.get(workflow=obj, parent__isnull=True)
-        for step, step_num in self.get_next_step(top_level_step):
-            step_nums.append(step_num)
-            steps.append(step)
-        
+        try:
+            top_level_step = WorkflowStep.objects.get(workflow=obj, parent__isnull=True)
+            for step, step_num in self.get_next_step(top_level_step):
+                step_nums.append(step_num)
+                steps.append(step)
+        except ObjectDoesNotExist:
+            pass
+
         steps.reverse()
         step_nums.reverse()
         result_serializer = WorkflowStepSerializer(steps, many=True, context=self.context)        

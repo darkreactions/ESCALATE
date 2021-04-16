@@ -1,7 +1,5 @@
 set search_path to 'dev';
 
---todo: generalize to support arbitrary liq sol (not just hot)
-
 -- ===========================================================================
 -- set up some calculations
 -- ===========================================================================
@@ -137,8 +135,8 @@ insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, all
 	(select status_uuid from vw_status where description = 'dev_test'));
 insert into vw_bom_material (bom_uuid, description, inventory_material_uuid, alloc_amt_val, used_amt_val, putback_amt_val, actor_uuid, status_uuid) values (
 	(select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials '),
-    'Am-243 Stock',
-	(select inventory_material_uuid from vw_inventory_material where description = 'Am-243 Stock'),
+    'Metal Stock',
+	(select inventory_material_uuid from vw_inventory_material where description = 'CoCl2 Stock'),
 	(select put_val((select get_type_def ('data', 'num')), '1.20','mL')),
 	(select put_val((select get_type_def ('data', 'num')), '0.00','mL')),
 	(select put_val((select get_type_def ('data', 'num')), '0.00','mL')),
@@ -223,11 +221,11 @@ insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uui
 		'Liq-Sol Sample HCl',
 		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 		(select status_uuid from vw_status where description = 'dev_test'));
--- create workflow_action_set for Rad solution
+-- create workflow_action_set for metal solution
 insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid)
 	values (
 		(select workflow_type_uuid from vw_workflow_type where description = 'template'),
-		'Liq-Sol Sample Am-243',
+		'Liq-Sol Sample CoCl2',
 		(select actor_uuid from vw_actor where description = 'Mike Tynes'),
 		(select status_uuid from vw_status where description = 'dev_test')); -- q for gary -- could three action sets be in one workflow?
 insert into vw_workflow (workflow_type_uuid, description, actor_uuid, status_uuid)
@@ -266,7 +264,7 @@ insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, wo
         (select workflow_uuid from vw_workflow where description = 'Liq-Sol Sample HCl')),
         (3,
         (select experiment_uuid from vw_experiment where description = 'liquid_solid_extraction'),
-        (select workflow_uuid from vw_workflow where description = 'Liq-Sol Sample Am-243')),
+        (select workflow_uuid from vw_workflow where description = 'Liq-Sol Sample CoCl2')),
         (4,
         (select experiment_uuid from vw_experiment where description = 'liquid_solid_extraction'),
         (select workflow_uuid from vw_workflow where description = 'Liq-Sol Assay Samples')),
@@ -359,8 +357,8 @@ insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid,
                                     repeating,
                                     parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
-values  ('Dispense Sample Am243',
-        (select workflow_uuid from vw_workflow where description = 'Liq-Sol Sample Am-243'),
+values  ('Dispense Metal Stock',
+        (select workflow_uuid from vw_workflow where description = 'Liq-Sol Sample CoCl2'),
         (select action_def_uuid from vw_action_def where description = 'dispense'),
         null, null, null, null,
         (select parameter_def_uuid
@@ -368,7 +366,7 @@ values  ('Dispense Sample Am243',
          where description = 'dispense' and parameter_description = 'volume'),
         array[(select put_val((select get_type_def('data', 'num')), '.1', 'mL'))],
         null,
-        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Am-243 Stock')],
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'CoCl2 Stock')],
         array [
             (select bom_material_index_uuid from vw_bom_material_index where
                 description like '%Sample Prep Plate%A1%'),
@@ -452,24 +450,24 @@ values  ('Add Resin',
          where description = 'dispense_solid' and parameter_description = 'mass'),
         array[(select put_val((select get_type_def('data', 'num')), '50', 'mg'))],
         null,
-        array [(select bom_material_index_uuid from vw_bom_material_index where description like '%Resin')],
+        array [(select bom_material_index_uuid from vw_bom_material_index where description like '%Resin' and bom_uuid = (select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials'))],
         array [
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%A1%'),
+                description like '%Resin Plate%A1%' and bom_uuid = (select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials')),
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%A2%'),
+                description like '%Resin Plate%A2%' and bom_uuid = (select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials')),
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%A3%'),
+                description like '%Resin Plate%A3%' and bom_uuid = (select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials')),
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%A4%'),
+                description like '%Resin Plate%A4%' and bom_uuid = (select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials')),
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%A5%'),
+                description like '%Resin Plate%A5%' and bom_uuid = (select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials')),
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%A6%'),
+                description like '%Resin Plate%A6%' and bom_uuid = (select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials')),
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%B1%'),
+                description like '%Resin Plate%B1%' and bom_uuid = (select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials')),
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%B2%')],
+                description like '%Resin Plate%B2%' and bom_uuid = (select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials'))],
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
         (select status_uuid from vw_status where description = 'dev_test'));
 
@@ -506,21 +504,21 @@ values  ('Sample to Resin',
                 description like '%Sample Prep Plate%B2%')],
         array [
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%A1%'),
+                description like '%Resin Plate%A1%' and bom_uuid = (select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials')),
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%A2%'),
+                description like '%Resin Plate%A2%' and bom_uuid = (select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials')),
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%A3%'),
+                description like '%Resin Plate%A3%' and bom_uuid = (select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials')),
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%A4%'),
+                description like '%Resin Plate%A4%' and bom_uuid = (select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials')),
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%A5%'),
+                description like '%Resin Plate%A5%' and bom_uuid = (select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials')),
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%A6%'),
+                description like '%Resin Plate%A6%' and bom_uuid = (select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials')),
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%B1%'),
+                description like '%Resin Plate%B1%' and bom_uuid = (select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials')),
             (select bom_material_index_uuid from vw_bom_material_index where
-                description like '%Resin Plate%B2%')],
+                description like '%Resin Plate%B2%' and bom_uuid = (select bom_uuid from vw_bom where description = 'Liq-Sol Dev Materials'))],
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
         (select status_uuid from vw_status where description = 'dev_test'));
 

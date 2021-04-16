@@ -5,7 +5,7 @@ import uuid
 
 from django.http import Http404, FileResponse
 from django.db.models import F, Value
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from rest_framework import viewsets
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -38,7 +38,7 @@ def save_actor_on_post(self, serializer):
     Use this to overload perform_create on a view.
     """
     p = core.models.Person.objects.get(pk=self.request.user.person.uuid)
-    actor = core.models.Actor.objects.get(person=p)
+    actor = core.models.Actor.objects.get(person=p, organization__isnull=True)
     serializer.save(actor=actor, actor_description=actor.description)
 
 # Download file view
@@ -140,7 +140,7 @@ class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
         exp_params3 = [{'value': row.parameter_value, 'object_description': f'{row.object_description}', 'parameter_def_description': f'{row.parameter_def_description}'} for row in q3]
         
         results = {'experiment_parameters_1': exp_params1, 'experiment_parameters_2': exp_params2, 'experiment_parameters_3': exp_params3}
-        mat_params = [{'material_name': row.object_description , 'value': request.build_absolute_uri(reverse_lazy('bommaterial-detail', args=[row.object_uuid]))} for row in q1_mat]
+        mat_params = [{'material_name': row.object_description , 'value': request.build_absolute_uri(reverse('bommaterial-detail', args=[row.object_uuid]))} for row in q1_mat]
         
         results.update({'material_parameters': mat_params, 'experiment_name': ''})
         serializer = ExperimentDetailSerializer(results)

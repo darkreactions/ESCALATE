@@ -1,0 +1,40 @@
+
+<!-- Editable table -->
+<div class="card">
+    <div class="card-body">
+      <div id="table" class="table-editable">
+        <table class="table table-bordered table-responsive-md table-striped text-center">
+          <thead>
+            <tr>
+              <td></td>
+              <th class="text-center">A</th>
+              <th class="text-center">B</th>
+              <th class="text-center">C</th>
+              <th class="text-center">D</th>
+              <th class="text-center">E</th>
+              <th class="text-center">F</th>
+              <th class="text-center">G</th>
+              <th class="text-center">H</th>
+            </tr>
+          </thead>
+          <tbody>
+              {% for r in rows %}
+            <tr>
+              <th scope="row">{{ r }}</td>
+              <td class="pt-1-half" contenteditable="true">0</td>
+              <td class="pt-1-half" contenteditable="true">0</td>
+              <td class="pt-1-half" contenteditable="true">0</td>
+              <td class="pt-1-half" contenteditable="true">0</td>
+              <td class="pt-1-half" contenteditable="true">0</td>
+              <td class="pt-1-half" contenteditable="true">0</td>
+              <td class="pt-1-half" contenteditable="true">0</td>
+              <td class="pt-1-half" contenteditable="true">0</td>
+            </tr>
+            {% endfor %}
+            <!-- This is our clonable table line -->
+            
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>

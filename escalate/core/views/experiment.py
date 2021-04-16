@@ -13,15 +13,16 @@ from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm, NominalActualForm
 from core.forms.forms import ExperimentNameForm
 from core.utilities.utils import experiment_copy
-from core.utilities.experiment_utils import update_dispense_action_set, supported_wfs
+from core.utilities.experiment_utils import update_dispense_action_set
 import core.models
 from core.models.view_tables import Note, TagAssign, Tag
 from core.experiment_templates import liquid_solid_extraction, resin_weighing
 from core.custom_types import Val
 
 #SUPPORTED_CREATE_WFS = ['liquid_solid_extraction', 'resin_weighing']
-SUPPORTED_CREATE_WFS = supported_wfs() 
-
+#SUPPORTED_CREATE_WFS = supported_wfs() 
+SUPPORTED_CREATE_WFS = [mod for mod in dir(core.experiment_templates) if '__' not in mod]
+print(SUPPORTED_CREATE_WFS)
 
 class BaseUUIDFormSet(BaseFormSet):
     """
