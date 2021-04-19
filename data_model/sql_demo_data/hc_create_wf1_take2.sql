@@ -460,7 +460,7 @@ insert into vw_action (action_def_uuid, workflow_uuid, action_description,
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
         (select status_uuid from vw_status where description = 'dev_test')),
 
-	    ((select action_def_uuid from vw_action_def where description = 'dispense'),
+	    ((select action_def_uuid from vw_action_def where description = 'dispense_solid'),
     	(select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Prepare Stock A'),
         'Perovskite Demo: Add Organic to Stock A',
 	    (select bom_material_index_uuid from vw_bom_material_index where description = 'Organic'
@@ -472,7 +472,7 @@ insert into vw_action (action_def_uuid, workflow_uuid, action_description,
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
         (select status_uuid from vw_status where description = 'dev_test')),
 
-	    ((select action_def_uuid from vw_action_def where description = 'dispense'),
+	    ((select action_def_uuid from vw_action_def where description = 'dispense_solid'),
     	(select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Prepare Stock A'),
         'Perovskite Demo: Add Inorganic to Stock A',
 	     (select bom_material_index_uuid from vw_bom_material_index where description = 'Inorganic'
@@ -495,7 +495,7 @@ insert into vw_action (action_def_uuid, workflow_uuid, action_description,
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
         (select status_uuid from vw_status where description = 'dev_test')),
 
-        ((select action_def_uuid from vw_action_def where description = 'dispense'),
+        ((select action_def_uuid from vw_action_def where description = 'dispense_solid'),
     	(select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Prepare Stock B'),
         'Perovskite Demo: Add Organic to Stock B',
 	    (select bom_material_index_uuid from vw_bom_material_index where description = 'Organic'
