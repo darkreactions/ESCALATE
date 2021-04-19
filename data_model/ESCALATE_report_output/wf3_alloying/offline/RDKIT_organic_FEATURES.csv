@@ -1,6 +1,0 @@
-Compound,_feat_fr_imine,_feat_fr_ar_nh,_feat_fr_arn,_feat_fr_quatn,_feat_fr_nh0,_feat_fr_nh1,_feat_fr_nh2,_feat_fr_pyridine,_feat_fr_piperzine,_feat_fr_piperdine,_feat_fr_guanido,_feat_fr_dihydropyridine,_feat_fr_amidine,_feat_fr_halogen
-C[NH3+].[I-],0,0,0,1,0,0,0,0,0,0,0,0,0,1
-C[NH3+].[Br-],0,0,0,1,0,0,0,0,0,0,0,0,0,1
-C(=N)[NH3+].[I-],0,0,0,1,0,1,0,0,0,0,0,0,0,1
-C1COCC[NH2+]1.[Br-],0,0,0,1,0,0,1,0,0,0,0,0,0,1
-C1COCC[NH2+]1.[I-],0,0,0,1,0,0,1,0,0,0,0,0,0,1

@@ -1,7 +1,0 @@
-Robot Number,Vial Site (1),Vial Site (2),Concatenated Vial site,Experiment Name,Bulk Actual Temp (C),Crystal Score,identifier,_out_predicted,modelname,participantname,notes,class_probability
-1,A,1,F4,MA 125.1_F4,,2,,,escalate_ManualSpecification_1,MAN,,
-2,C,1,B1,MA 125.2_B1,,2,,,escalate_ManualSpecification_1,MAN,,
-3,E,1,A12,MA 125.3_A12,,2,,,escalate_ManualSpecification_1,MAN,,
-4,G,1,H11,MA 125.4_H11,,4,,,escalate_ManualSpecification_1,MAN,,
-5,B,1,C5,MA 125.5_C5,,4,,,escalate_ManualSpecification_1,MAN,,
-6,D,1,E8,MA 125.6_E8,,4,,,escalate_ManualSpecification_1,MAN,,
