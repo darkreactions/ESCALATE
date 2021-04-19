@@ -420,7 +420,7 @@ class Parameter(models.Model):
                                                  editable=False)
     parameter_val_nominal = ValField(max_length=255, blank=True,
                              null=True,
-                             db_column='parameter_val_nominal')
+                             db_column='parameter_val')
     actor = models.ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='actor_uuid',

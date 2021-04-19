@@ -243,7 +243,7 @@ class ActionParameter(models.Model):
                                                  editable=False)
     parameter_val_nominal = ValField(max_length=255, blank=True,
                              null=True,
-                             db_column='parameter_val_nominal')
+                             db_column='parameter_val')
     actor = models.ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='parameter_actor_uuid',
@@ -770,9 +770,9 @@ class WorkflowActionSet(models.Model):
                                blank=True, null=True,
                                db_column='parameter_def_uuid',
                                related_name='workflow_action_set_parameter_def')
-    # parameter_val_nominal = ArrayField(ValField(), blank=True, null=True)
-    parameter_val_nominal = CustomArrayField(ValField(), blank=True, null=True)
-    # parameter_val_nominal = ValField(blank=True, null=True, list=True)
+    parameter_val_nominal = CustomArrayField(ValField(),
+                                             blank=True, null=True,
+                                             db_column='parameter_val')
     calculation = models.ForeignKey('Calculation', models.DO_NOTHING,
                                blank=True, null=True, 
                                db_column='calculation_uuid', 
