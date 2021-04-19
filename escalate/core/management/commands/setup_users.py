@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from core.models.app_tables import CustomUser, OrganizationPassword
 from core.models.core_tables import PersonTable, OrganizationTable
-from core.models.view_tables import Person
+from core.models.view_tables import Person, Actor, Organization
 from django.contrib.auth.hashers import make_password
 
 
@@ -67,3 +67,10 @@ class Command(BaseCommand):
             org_pwd.password = make_password(raw_password)
             org_pwd.save()
             self.stdout.write(self.style.SUCCESS(f'Created org password: {short_name}'))
+
+           # add all users to org
+            for username, data in users.items():
+                person = Person.objects.get(**data['person_data'])
+                organization = Organization.objects.get(full_name=org.full_name)  # need to get from view table
+                actor, created = Actor.objects.get_or_create(person=person, organization=organization)
+                self.stdout.write(self.style.SUCCESS(f'Added user {person} to org {org}'))

@@ -1765,9 +1765,9 @@ SELECT
 	pr.parameter_uuid,
 	pr.parameter_def_uuid,
 	pd.description as parameter_def_description,
-	pr.parameter_val_nominal,
+	pr.parameter_val,
     pr.parameter_val_actual,
-    (select val_val from get_val ( pr.parameter_val_nominal) ) AS parameter_value_nominal,
+    (select val_val from get_val ( pr.parameter_val) ) AS parameter_value_nominal,
     (select val_val from get_val ( pr.parameter_val_actual) ) AS parameter_value_actual,
     pd.val_type_uuid,
     pd.val_type_description,
@@ -2077,7 +2077,7 @@ SELECT
     p.parameter_x_uuid,
 	p.parameter_def_uuid,
 	p.parameter_def_description,
-	p.parameter_val_nominal,
+	p.parameter_val,
     p.parameter_val_actual,
     p.val_type_uuid,
     p.val_type_description,
@@ -2140,7 +2140,7 @@ SELECT
 --'action_uuid', p.action_uuid,
 				'parameter_def_description', p.parameter_def_description,
 				'parameter_def_uuid', p.parameter_def_uuid,
-				'parameter_value', (select get_val_json(p.parameter_val_nominal)),
+				'parameter_value', (select get_val_json(p.parameter_val)),
 				'parameter_actor_uuid', p.parameter_actor_uuid,				
 				'parameter_actor', p.parameter_actor_description,
 				'parameter_status_uuid', p.parameter_status_uuid,				
@@ -2455,7 +2455,7 @@ SELECT
 	was.repeating,
 	was.parameter_def_uuid,
 	pd.description as parameter_def_description,
-	was.parameter_val_nominal,
+	was.parameter_val,
     was.parameter_val_actual,
 	was.calculation_uuid,
 	cdd.description as calculation_description,
@@ -2495,12 +2495,13 @@ select * from
             e.description as experiment,
             w.description as workflow,
             ew.experiment_workflow_seq as workflow_seq,
-           'action' as workflow_object,
+            'action' as workflow_object,
+            'action_parameter' as parameter_type,
             ap.action_description as object_description,
             ap.action_uuid as object_uuid,
             ap.parameter_def_description,
             ap.parameter_uuid as parameter_uuid,
-            array[ap.parameter_val_nominal] as parameter_value_nominal,
+            array[ap.parameter_val] as parameter_value_nominal,
             array[ap.parameter_val_actual] as parameter_value_actual
     from vw_action_parameter ap
     JOIN vw_workflow w ON ap.workflow_uuid = w.workflow_uuid
@@ -2514,16 +2515,17 @@ select * from
            was.workflow_description as workflow,
            ew.experiment_workflow_seq as workflow_seq,
            'action_set' as workflow_object,
+           'action_set_parameter' as parameter_type,
            was.description as object_description,
            was.workflow_action_set_uuid as object_uuid,
            was.parameter_def_description,
            null as parameter_uuid,
-           was.parameter_val_nominal as parameter_value_nominal,
+           was.parameter_val as parameter_value_nominal,
            was.parameter_val_actual as parameter_value_actual
     FROM vw_workflow_action_set was
     JOIN experiment_workflow ew ON was.workflow_uuid = ew.workflow_uuid
     JOIN experiment e ON ew.experiment_uuid = e.experiment_uuid
-    where was.parameter_val_nominal is not null
+    where was.parameter_val is not null
     UNION
     -- workflow action set calculation parameter
     select e.experiment_uuid,
@@ -2531,6 +2533,7 @@ select * from
            was.workflow_description as workflow,
            ew.experiment_workflow_seq as workflow_seq,
            'action_set' as workflow_object,
+           'action_set_calculation_parameter' as parameter_type,
            was.description as object_description,
            was.workflow_action_set_uuid as object_uuid,
            cpd.parameter_def_description as parameter,
@@ -2545,6 +2548,8 @@ select * from
     JOIN experiment e ON ew.experiment_uuid = e.experiment_uuid
     where was.calculation_uuid is not null) ew
 order by experiment_uuid, workflow_seq, workflow_object, parameter_def_description;
+
+select * from vw_workflow_action_set where calculation_uuid is not null; -- todo here's your problem
 
 DROP TRIGGER IF EXISTS trigger_experiment_parameter_upsert ON vw_experiment_parameter;
 CREATE TRIGGER trigger_experiment_parameter_upsert INSTEAD OF UPDATE
@@ -2813,9 +2818,9 @@ JOIN (
 						json_agg(json_build_object(
 							'parameter_def_description', p.parameter_def_description,
 							'parameter_def_uuid', p.parameter_def_uuid,
-							'parameter_value_nominal', (SELECT get_val_json (p.parameter_val_nominal) AS get_val_json))) AS param,
-					        'parameter_value_actual', (SELECT get_val_json (p.parameter_val_nominal) AS get_val_json)) AS param_actual
-					
+							'parameter_value_nominal', (SELECT get_val_json (p.parameter_val) AS get_val_json))) AS param
+					        --'parameter_value_actual', ((SELECT get_val_json (p.parameter_val) AS get_val_json)) AS param_actual
+
 						FROM vw_action_parameter p
 						GROUP BY p.action_uuid) op
 				ON ws.object_uuid = op.object_uuid
@@ -3198,7 +3203,7 @@ JOIN (
 						json_agg(json_build_object(
 							'parameter_def_description', p.parameter_def_description,
 							'parameter_def_uuid', p.parameter_def_uuid,
-							'parameter_value_nominal', (SELECT get_val_json (p.parameter_val_nominal) AS get_val_json))) AS param
+							'parameter_value_nominal', (SELECT get_val_json (p.parameter_val) AS get_val_json))) AS param
 					FROM vw_action_parameter p
 					GROUP BY p.action_uuid) op
 				ON ws.object_uuid = op.object_uuid
