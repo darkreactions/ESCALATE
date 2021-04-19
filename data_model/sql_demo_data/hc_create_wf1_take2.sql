@@ -525,14 +525,27 @@ insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, 
 insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)
 	values (
 		(select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Prepare Stock A'),
-		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Perovskite Demo: Add Organic')),
-		(select workflow_step_uuid from vw_workflow_step where workflow_object_uuid = (select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Perovskite Demo: Add Solvent to Stock A'))),
+		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Perovskite Demo: Add Organic to Stock A')),
+		(select workflow_step_uuid from vw_workflow_step where workflow_object_uuid =
+		    (select workflow_object_uuid from vw_workflow_object where
+		        object_type = 'action'
+		        and object_description = 'Perovskite Demo: Add Solvent to Stock A')),
         (select status_uuid from vw_status where description = 'dev_test'));
 insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)
 	values (
 		(select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Prepare Stock A'),
-		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Perovskite Demo: Add Inorganic')),
-		(select workflow_step_uuid from vw_workflow_step where workflow_object_uuid = (select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Perovskite Demo: Add Organic to Stock A'))),
+		(select workflow_object_uuid
+		from vw_workflow_object
+		where object_type = 'action'
+		and object_description = 'Perovskite Demo: Add Inorganic'),
+		(select workflow_step_uuid
+		from vw_workflow_step
+		where workflow_object_uuid =
+		      (select workflow_object_uuid
+		       from vw_workflow_object
+		       where
+		       object_type = 'action'
+		       and object_description = 'Perovskite Demo: Add Organic to Stock A')),
         (select status_uuid from vw_status where description = 'dev_test'));
 
 -- Stock B
@@ -603,6 +616,47 @@ insert into vw_action (action_def_uuid, workflow_uuid, action_description,
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
     (select actor_uuid from vw_actor where description = 'Mike Tynes'),
     (select status_uuid from vw_status where description = 'dev_test'));
+
+
+insert into vw_workflow_object (workflow_uuid, action_uuid)
+	values (
+	    (select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Preheat Plate'),
+		(select action_uuid from vw_action where action_description = 'Perovskite Demo: Preheat Plate')),
+	    (
+	    (select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Heat Stir 1'),
+		(select action_uuid from vw_action where action_description = 'Perovskite Demo: Heat Stir 1')),
+	    (
+	    (select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Heat Stir 2'),
+		(select action_uuid from vw_action where action_description = 'Perovskite Demo: Heat Stir 2')),
+	    (
+	    (select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Heat'),
+		(select action_uuid from vw_action where action_description = 'Perovskite Demo: Heat'));
+insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)
+	values
+	(
+		(select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Preheat Plate'),
+		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Perovskite Demo: Preheat Plate')),
+        null,
+        (select status_uuid from vw_status where description = 'dev_test')
+    ),
+    (
+		(select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Heat Stir 1'),
+		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Perovskite Demo: Heat Stir 1')),
+        null,
+        (select status_uuid from vw_status where description = 'dev_test')
+    ),
+    (
+		(select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Heat Stir 2'),
+		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Perovskite Demo: Heat Stir 2')),
+        null,
+        (select status_uuid from vw_status where description = 'dev_test')
+    ),
+    (
+		(select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Heat'),
+		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Perovskite Demo: Heat')),
+        null,
+        (select status_uuid from vw_status where description = 'dev_test')
+    );
 -- select experiment_copy ((select experiment_uuid from vw_experiment where description = 'perovskite_demo'),
 --                         'perov_instance_1');
 
