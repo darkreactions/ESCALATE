@@ -38,7 +38,6 @@ class BaseUUIDFormSet(BaseFormSet):
 
 class CreateExperimentView(TemplateView):
     template_name = "core/create_experiment.html"
-    ParameterFormSet = formset_factory(SingleValForm, extra=0)
     MaterialFormSet = formset_factory(InventoryMaterialForm, extra=0)
     NominalActualFormSet = formset_factory(NominalActualForm, extra=0)
 
@@ -57,17 +56,17 @@ class CreateExperimentView(TemplateView):
         q1 = ActionParameter.objects.filter(**{f'{related_exp}': exp_uuid}).annotate(
                     object_description=F('action_description')).annotate(
                     object_uuid=F('uuid')).annotate(
-                    parameter_value=F('parameter_val')).annotate(
+                    parameter_value=F('parameter_val_nominal')).annotate(
                     experiment_uuid=F(f'{related_exp}__uuid')).annotate(
                     experiment_description=F(f'{related_exp}__description')).annotate(
                     workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
                     )).filter(workflow_action_set__isnull=True).prefetch_related(f'{related_exp}')
-        q2 = WorkflowActionSet.objects.filter(**{f'{related_exp}': exp_uuid, 'parameter_val__isnull': False}).annotate(
+        q2 = WorkflowActionSet.objects.filter(**{f'{related_exp}': exp_uuid, 'parameter_val_nominal__isnull': False}).annotate(
                         object_description=F('description')).annotate(
                         object_uuid=F('uuid')).annotate(
                         parameter_def_description=F('parameter_def__description')).annotate(
                         parameter_uuid=Value(None, RetUUIDField())).annotate(
-                        parameter_value=F('parameter_val')).annotate(
+                        parameter_value=F('parameter_val_nominal')).annotate(
                         experiment_uuid=F(f'{related_exp}__uuid')).annotate(
                         experiment_description=F(f'{related_exp}__description')).annotate(
                         workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
@@ -109,7 +108,7 @@ class CreateExperimentView(TemplateView):
         '''
         #q1 initial
         for row in q1:
-            data = {'nominal_value': row.parameter_value, \
+            data = {'value': row.parameter_value, \
                 'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])}
             if 'array' in row.parameter_value.val_type.description:
                 data['actual_value'] = Val.from_dict({'type':'array_num', \
@@ -125,7 +124,7 @@ class CreateExperimentView(TemplateView):
         #q2 initial
         for row in q2:
             for param in row.parameter_value:
-                data = {'nominal_value': param, \
+                data = {'value': param, \
                     'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])}
                 if 'array' in param.val_type.description:
                     data['actual_value'] = Val.from_dict({'type':'array_num', \
@@ -140,7 +139,7 @@ class CreateExperimentView(TemplateView):
             
         #q3 initial
         for row in q3:
-            data = {'nominal_value': row.parameter_value, \
+            data = {'value': row.parameter_value, \
                 'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])}
             if 'array' in row.parameter_value.val_type.description:
                 data['actual_value'] = Val.from_dict({'type':'array_num', \
@@ -245,7 +244,7 @@ class CreateExperimentView(TemplateView):
                     for i, form in enumerate(query_form_set):
                         if form.has_changed() and form.is_valid():
                             data = form.cleaned_data
-                            print(data['uuid'])
+                            print(data.keys())
                             desc = json.loads(data['uuid'])
                             if len(desc) == 2:
                                 object_desc, param_def_desc = desc
@@ -391,18 +390,18 @@ class ExperimentDetailView(DetailView):
         q1 = ActionParameter.objects.filter(**{f'{related_exp}': exp_uuid}).annotate(
                     object_description=F('action_description')).annotate(
                     object_uuid=F('uuid')).annotate(
-                    parameter_value=F('parameter_val')).annotate(
+                    parameter_value=F('parameter_val_nominal')).annotate(
                     experiment_uuid=F(f'{related_exp}__uuid')).annotate(
                     experiment_description=F(f'{related_exp}__description')).annotate(
                     workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
                     ).filter(workflow_action_set__isnull=True
                     ).prefetch_related(f'{related_exp}')
-        q2 = WorkflowActionSet.objects.filter(**{f'{related_exp}': exp_uuid, 'parameter_val__isnull': False}).annotate(
+        q2 = WorkflowActionSet.objects.filter(**{f'{related_exp}': exp_uuid, 'parameter_val_nominal__isnull': False}).annotate(
                         object_description=F('description')).annotate(
                         object_uuid=F('uuid')).annotate(
                         parameter_def_description=F('parameter_def__description')).annotate(
                         parameter_uuid=Value(None, RetUUIDField())).annotate(
-                        parameter_value=F('parameter_val')).annotate(
+                        parameter_value=F('parameter_val_nominal')).annotate(
                         experiment_uuid=F(f'{related_exp}__uuid')).annotate(
                         experiment_description=F(f'{related_exp}__description')).annotate(
                         workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
