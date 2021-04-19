@@ -2,6 +2,13 @@
 -- these are all the raw materials we need to get started!
 select * from vw_material where description in ('Gamma-Butyrolactone', 'Formic Acid', 'Lead Diiodide', 'Ethylammonium Iodide');
 
+insert into vw_action_def (description) values ('bring_to_temperature');
+insert into vw_action_parameter_def_assign (action_def_uuid, parameter_def_uuid) values
+(
+ (select action_def_uuid from vw_action_def where description = 'bring_to_temperature'),
+ (select parameter_def_uuid from vw_parameter_def where description='temperature')
+);
+
 insert into vw_inventory_material (inventory_uuid, description, material_uuid)
 				values (
 				(select inventory_uuid from vw_inventory where description = 'HC Test Inventory'),
@@ -166,10 +173,138 @@ insert into vw_experiment_workflow (experiment_workflow_seq, experiment_uuid, wo
         (select experiment_uuid from vw_experiment where description = 'perovskite_demo'),
         (select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Heat'));
 
+
+insert into vw_calculation_def (short_name, description, calc_definition) values
+(
+    'sampleSolvent',
+    'Null calculation: dispense solvent into samples',
+    'null'
+),
+(
+    'sampleStockA',
+    'Null calculation: dispense stock A into samples',
+    'null'
+),
+(
+    'sampleStockB',
+    'Null calculation: dispense stock B into samples',
+    'null'
+),
+(
+    'sampleAcid1',
+    'Null calculation: dispense Acid 1 into samples',
+    'null'
+),
+(
+    'sampleAcid2',
+    'Null calculation: dispense Acid 2 into samples',
+    'null'
+);
+
+
+insert into vw_parameter_def (description, default_val) values
+(
+    'Sample Solvent Volume',
+     (select put_val(get_type_def('data', 'array_num'), (select array_fill(0., ARRAY[96]))::text, 'mL'))
+),
+('Sample Stock A Volume',
+ (select put_val(get_type_def('data', 'array_num'), (select array_fill(0., ARRAY [96]))::text, 'mL'))
+),
+(
+    'Sample Stock B Volume',
+     (select put_val(get_type_def('data', 'array_num'), (select array_fill(0., ARRAY[96]))::text, 'mL'))
+),
+(
+    'Sample Acid Volume 1',
+     (select put_val(get_type_def('data', 'array_num'), (select array_fill(0., ARRAY[96]))::text, 'mL'))
+),
+(
+    'Sample Acid Volume 2',
+     (select put_val(get_type_def('data', 'array_num'), (select array_fill(0., ARRAY[96]))::text, 'mL'))
+);
+
+insert into vw_calculation_parameter_def (calculation_def_uuid, parameter_def_uuid) values
+(
+    (select calculation_def_uuid
+     from vw_calculation_def
+     where short_name = 'sampleSolvent'),
+    (select parameter_def_uuid
+     from vw_parameter_def
+     where description = 'Sample Solvent Volume')
+),
+(
+    (select calculation_def_uuid
+     from vw_calculation_def
+     where short_name = 'sampleStockA'),
+    (select parameter_def_uuid
+     from vw_parameter_def
+     where description = 'Sample Stock A Volume')
+),
+(
+    (select calculation_def_uuid
+     from vw_calculation_def
+     where short_name = 'sampleStockB'),
+    (select parameter_def_uuid
+     from vw_parameter_def
+     where description = 'Sample Stock B Volume')
+),
+(
+    (select calculation_def_uuid
+     from vw_calculation_def
+     where short_name = 'sampleAcid1'),
+    (select parameter_def_uuid
+     from vw_parameter_def
+     where description = 'Sample Acid Volume 1')
+),
+(
+    (select calculation_def_uuid
+     from vw_calculation_def
+     where short_name = 'sampleAcid2'),
+    (select parameter_def_uuid
+     from vw_parameter_def
+     where description = 'Sample Acid Volume 2')
+);
+
+
+
+insert into vw_calculation (calculation_def_uuid, calculation_alias_name,out_val) values
+(
+    (select calculation_def_uuid from vw_calculation_def where short_name = 'sampleSolvent'),
+    'sampleSolvent',
+    (select put_val(get_type_def('data', 'array_num'), (select array_fill(0., ARRAY[96]))::text, 'mL'))
+
+),
+(
+    (select calculation_def_uuid from vw_calculation_def where short_name = 'sampleStockA'),
+    'sampleStockA',
+    (select put_val(get_type_def('data', 'array_num'), (select array_fill(0., ARRAY[96]))::text, 'mL'))
+
+),
+(
+    (select calculation_def_uuid from vw_calculation_def where short_name = 'sampleStockB'),
+    'sampleStockB',
+    (select put_val(get_type_def('data', 'array_num'), (select array_fill(0., ARRAY[96]))::text, 'mL'))
+
+),
+(
+    (select calculation_def_uuid from vw_calculation_def where short_name = 'sampleAcid1'),
+    'sampleAcid1',
+    (select put_val(get_type_def('data', 'array_num'), (select array_fill(0., ARRAY[96]))::text, 'mL'))
+
+),
+(
+    (select calculation_def_uuid from vw_calculation_def where short_name = 'sampleAcid2'),
+    'sampleAcid2',
+    (select put_val(get_type_def('data', 'array_num'), (select array_fill(0., ARRAY[96]))::text, 'mL'))
+
+);
+
+
 -- dispense workflow action sets
+-- delete from vw_workflow_action_set where description = 'Perovskite Demo: Dispense Solvent';
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values ('Perovskite Demo: Dispense Solvent',
         (select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Dispense Solvent'),
@@ -178,8 +313,10 @@ values ('Perovskite Demo: Dispense Solvent',
         (select parameter_def_uuid
          from vw_action_parameter_def
          where description = 'dispense' and parameter_description = 'volume'),
-        array [(select put_val(get_type_def('data', 'num'),'0', 'mL'))],
+        --array [(select put_val(get_type_def('data', 'num'),'0', 'mL'))],
         null,
+        (select calculation_uuid from vw_calculation where calculation_alias_name = 'sampleSolvent'),
+        --null,
         array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Solvent'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo'))], -- this has to come from bom_material_index...
@@ -195,7 +332,7 @@ values ('Perovskite Demo: Dispense Solvent',
 
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values ('Dispense Stock A',
         (select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Dispense Stock A'),
@@ -204,8 +341,9 @@ values ('Dispense Stock A',
         (select parameter_def_uuid
          from vw_action_parameter_def
          where description = 'dispense' and parameter_description = 'volume'),
-        array [(select put_val(get_type_def('data', 'num'),'0', 'mL'))],
+        --array [(select put_val(get_type_def('data', 'num'),'0', 'mL'))],
         null,
+        (select calculation_uuid from vw_calculation where calculation_alias_name = 'sampleStockA'),
         array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Stock A Vial'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo'))], -- this has to come from bom_material_index...
@@ -221,7 +359,7 @@ values ('Dispense Stock A',
 
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values ('Dispense Stock B',
         (select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Dispense Stock B'),
@@ -230,8 +368,9 @@ values ('Dispense Stock B',
         (select parameter_def_uuid
          from vw_action_parameter_def
          where description = 'dispense' and parameter_description = 'volume'),
-        array [(select put_val(get_type_def('data', 'num'),'0', 'mL'))],
+        --array [(select put_val(get_type_def('data', 'num'),'0', 'mL'))],
         null,
+        (select calculation_uuid from vw_calculation where calculation_alias_name = 'sampleStockB'),
         array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Stock B Vial'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo'))], -- this has to come from bom_material_index...
@@ -248,7 +387,7 @@ values ('Dispense Stock B',
 
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values ('Dispense Acid Vol 1',
         (select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Dispense Acid Vol 1'),
@@ -257,8 +396,9 @@ values ('Dispense Acid Vol 1',
         (select parameter_def_uuid
          from vw_action_parameter_def
          where description = 'dispense' and parameter_description = 'volume'),
-        array [(select put_val(get_type_def('data', 'num'),'0', 'mL'))],
+        --array [(select put_val(get_type_def('data', 'num'),'0', 'mL'))],
         null,
+        (select calculation_uuid from vw_calculation where calculation_alias_name = 'sampleAcid1'),
         array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Acid'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo'))], -- this has to come from bom_material_index...
@@ -275,7 +415,7 @@ values ('Dispense Acid Vol 1',
 
 insert into vw_workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration,
                                     repeating,
-                                    parameter_def_uuid, parameter_val_nominal, calculation_uuid, source_material_uuid, destination_material_uuid,
+                                    parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid,
                                     actor_uuid, status_uuid)
 values ('Dispense Acid Vol 2',
         (select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Dispense Acid Vol 2'),
@@ -284,8 +424,9 @@ values ('Dispense Acid Vol 2',
         (select parameter_def_uuid
          from vw_action_parameter_def
          where description = 'dispense' and parameter_description = 'volume'),
-        array [(select put_val(get_type_def('data', 'num'),'0', 'mL'))],
+        --array [(select put_val(get_type_def('data', 'num'),'0', 'mL'))],
         null,
+        (select calculation_uuid from vw_calculation where calculation_alias_name = 'sampleAcid2'),
         array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Acid'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo'))], -- this has to come from bom_material_index...
@@ -300,14 +441,16 @@ values ('Dispense Acid Vol 2',
         (select status_uuid from vw_status where description = 'dev_test'));
 
 
+-- Stock A
 insert into vw_action (action_def_uuid, workflow_uuid, action_description,
                        source_material_uuid,
                        destination_material_uuid,
                        actor_uuid, status_uuid)
 	values (
+
     	(select action_def_uuid from vw_action_def where description = 'dispense'),
     	(select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Prepare Stock A'),
-        'Perovskite Demo: Add Solvent',
+        'Perovskite Demo: Add Solvent to Stock A',
 	    (select bom_material_index_uuid from vw_bom_material_index where description = 'Solvent'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
@@ -319,7 +462,7 @@ insert into vw_action (action_def_uuid, workflow_uuid, action_description,
 
 	    ((select action_def_uuid from vw_action_def where description = 'dispense'),
     	(select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Prepare Stock A'),
-        'Perovskite Demo: Add Organic',
+        'Perovskite Demo: Add Organic to Stock A',
 	    (select bom_material_index_uuid from vw_bom_material_index where description = 'Organic'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
@@ -331,7 +474,7 @@ insert into vw_action (action_def_uuid, workflow_uuid, action_description,
 
 	    ((select action_def_uuid from vw_action_def where description = 'dispense'),
     	(select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Prepare Stock A'),
-        'Perovskite Demo: Add Inorganic',
+        'Perovskite Demo: Add Inorganic to Stock A',
 	     (select bom_material_index_uuid from vw_bom_material_index where description = 'Inorganic'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
@@ -339,38 +482,129 @@ insert into vw_action (action_def_uuid, workflow_uuid, action_description,
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
+        (select status_uuid from vw_status where description = 'dev_test')),
+        ((select action_def_uuid from vw_action_def where description = 'dispense'),
+    	(select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Prepare Stock B'),
+        'Perovskite Demo: Add Solvent to Stock B',
+	    (select bom_material_index_uuid from vw_bom_material_index where description = 'Solvent'
+                and bom_uuid =
+                    (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
+	    (select bom_material_index_uuid from vw_bom_material_index where description = 'Stock B Vial'
+                and bom_uuid =
+                    (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
+        (select actor_uuid from vw_actor where description = 'Mike Tynes'),
+        (select status_uuid from vw_status where description = 'dev_test')),
+
+        ((select action_def_uuid from vw_action_def where description = 'dispense'),
+    	(select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Prepare Stock B'),
+        'Perovskite Demo: Add Organic to Stock B',
+	    (select bom_material_index_uuid from vw_bom_material_index where description = 'Organic'
+                and bom_uuid =
+                    (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
+	    (select bom_material_index_uuid from vw_bom_material_index where description = 'Stock B Vial'
+                and bom_uuid =
+                    (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
+        (select actor_uuid from vw_actor where description = 'Mike Tynes'),
         (select status_uuid from vw_status where description = 'dev_test'));
 insert into vw_workflow_object (workflow_uuid, action_uuid)
 	values (
 	    (select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Prepare Stock A'),
-		(select action_uuid from vw_action where action_description = 'Perovskite Demo: Add Solvent')),
+		(select action_uuid from vw_action where action_description = 'Perovskite Demo: Add Solvent to Stock A')),
 	    (
 	    (select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Prepare Stock A'),
-		(select action_uuid from vw_action where action_description = 'Perovskite Demo: Add Organic')),
+		(select action_uuid from vw_action where action_description = 'Perovskite Demo: Add Organic to Stock A')),
 	    (
 	    (select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Prepare Stock A'),
-		(select action_uuid from vw_action where action_description = 'Perovskite Demo: Add Inorganic'));
+		(select action_uuid from vw_action where action_description = 'Perovskite Demo: Add Inorganic to Stock A'));
 insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)
 	values (
 		(select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Prepare Stock A'),
-		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Perovskite Demo: Add Solvent')),
+		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Perovskite Demo: Add Solvent to Stock A')),
         null,
         (select status_uuid from vw_status where description = 'dev_test'));
 insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)
 	values (
 		(select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Prepare Stock A'),
 		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Perovskite Demo: Add Organic')),
-		(select workflow_step_uuid from vw_workflow_step where workflow_object_uuid = (select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Perovskite Demo: Add Solvent'))),
+		(select workflow_step_uuid from vw_workflow_step where workflow_object_uuid = (select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Perovskite Demo: Add Solvent to Stock A'))),
         (select status_uuid from vw_status where description = 'dev_test'));
 insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)
 	values (
 		(select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Prepare Stock A'),
 		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Perovskite Demo: Add Inorganic')),
-		(select workflow_step_uuid from vw_workflow_step where workflow_object_uuid = (select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Perovskite Demo: Add Organic'))),
+		(select workflow_step_uuid from vw_workflow_step where workflow_object_uuid = (select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Perovskite Demo: Add Organic to Stock A'))),
         (select status_uuid from vw_status where description = 'dev_test'));
 
-select experiment_copy ((select experiment_uuid from vw_experiment where description = 'perovskite_demo'),
-                        'perov_instance_1');
+-- Stock B
+insert into vw_workflow_object (workflow_uuid, action_uuid)
+	values (
+	    (select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Prepare Stock B'),
+		(select action_uuid from vw_action where action_description = 'Perovskite Demo: Add Solvent to Stock B')),
+	    (
+	    (select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Prepare Stock B'),
+		(select action_uuid from vw_action where action_description = 'Perovskite Demo: Add Organic to Stock B'));
+insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)
+	values (
+		(select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Prepare Stock B'),
+		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Perovskite Demo: Add Solvent to Stock B')),
+        null,
+        (select status_uuid from vw_status where description = 'dev_test'));
+insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, status_uuid)
+	values (
+		(select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Prepare Stock B'),
+		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Perovskite Demo: Add Organic to Stock B')),
+		(select workflow_step_uuid from vw_workflow_step where workflow_object_uuid = (select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Perovskite Demo: Add Solvent to Stock B'))),
+        (select status_uuid from vw_status where description = 'dev_test'));
+
+
+-- heat and heat stirs
+insert into vw_action (action_def_uuid, workflow_uuid, action_description,
+                       source_material_uuid,
+                       destination_material_uuid,
+                       actor_uuid, status_uuid) values
+    ((select action_def_uuid from vw_action_def where description = 'bring_to_temperature'),
+    (select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Preheat Plate'),
+    'Perovskite Demo: Preheat Plate',
+	(select bom_material_index_uuid from vw_bom_material_index where description = 'Plate'
+        and bom_uuid = (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
+	(select bom_material_index_uuid from vw_bom_material_index where description = 'Plate'
+                and bom_uuid =
+                    (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
+    (select actor_uuid from vw_actor where description = 'Mike Tynes'),
+    (select status_uuid from vw_status where description = 'dev_test')),
+
+    ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
+    (select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Heat Stir 1'),
+    'Perovskite Demo: Heat Stir 1',
+	(select bom_material_index_uuid from vw_bom_material_index where description = 'Plate'
+        and bom_uuid = (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
+	(select bom_material_index_uuid from vw_bom_material_index where description = 'Plate'
+                and bom_uuid =
+                    (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
+    (select actor_uuid from vw_actor where description = 'Mike Tynes'),
+    (select status_uuid from vw_status where description = 'dev_test')),
+    ((select action_def_uuid from vw_action_def where description = 'heat_stir'),
+    (select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Heat Stir 2'),
+    'Perovskite Demo: Heat Stir 2',
+	(select bom_material_index_uuid from vw_bom_material_index where description = 'Plate'
+        and bom_uuid = (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
+	(select bom_material_index_uuid from vw_bom_material_index where description = 'Plate'
+                and bom_uuid =
+                    (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
+    (select actor_uuid from vw_actor where description = 'Mike Tynes'),
+    (select status_uuid from vw_status where description = 'dev_test')),
+    ((select action_def_uuid from vw_action_def where description = 'heat'),
+    (select workflow_uuid from vw_workflow where description = 'Perovskite Demo: Heat'),
+    'Perovskite Demo: Heat',
+	(select bom_material_index_uuid from vw_bom_material_index where description = 'Plate'
+        and bom_uuid = (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
+	(select bom_material_index_uuid from vw_bom_material_index where description = 'Plate'
+                and bom_uuid =
+                    (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
+    (select actor_uuid from vw_actor where description = 'Mike Tynes'),
+    (select status_uuid from vw_status where description = 'dev_test'));
+-- select experiment_copy ((select experiment_uuid from vw_experiment where description = 'perovskite_demo'),
+--                         'perov_instance_1');
 
 
 -- heat and heat stirs we dont do these as wafss because waffs cant handle multi-parameter actions :shrug:
@@ -392,15 +626,15 @@ select experiment_copy ((select experiment_uuid from vw_experiment where descrip
 -- 		(select workflow_object_uuid from vw_workflow_object where (object_type = 'action' and object_description = 'Heat Stir 1')),
 --         null,
 --         (select status_uuid from vw_status where description = 'dev_test'));
--- update vw_action_parameter set parameter_val_nominal = (
+-- update vw_action_parameter set parameter_val = (
 --     select put_val((select get_type_def('data', 'num')), '15', 'mins'))
 --     where action_description = 'Heat Stir 1'
 --         and parameter_def_description = 'duration';
--- update vw_action_parameter set parameter_val_nominal = (
+-- update vw_action_parameter set parameter_val = (
 --     select put_val((select get_type_def('data', 'num')), '750', 'rpm'))
 --     where action_description = 'Heat Stir 1'
 --         and parameter_def_description = 'speed';
--- update vw_action_parameter set parameter_val_nominal = (
+-- update vw_action_parameter set parameter_val = (
 --     select put_val((select get_type_def('data', 'num')), '95', 'degC'))
 --     where action_description = 'Heat Stir 1'
 --         and parameter_def_description = 'temperature';

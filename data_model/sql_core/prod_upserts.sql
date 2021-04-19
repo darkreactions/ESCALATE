@@ -2340,7 +2340,7 @@ BEGIN
                  where calculation_def_uuid = (select calculation_def_uuid from vw_calculation where calculation_uuid = NEW.calculation_uuid))
             )
         THEN
-            INSERT INTO vw_parameter (parameter_def_uuid, parameter_val_nominal, ref_parameter_uuid, actor_uuid, status_uuid)
+            INSERT INTO vw_parameter (parameter_def_uuid, parameter_val, ref_parameter_uuid, actor_uuid, status_uuid)
                 VALUES (NEW.parameter_def_uuid, NEW.parameter_val, NEW.action_uuid, NEW.parameter_actor_uuid, NEW.parameter_status_uuid);
 		END IF;
 		RETURN NEW;
@@ -2452,7 +2452,7 @@ BEGIN
 	    UPDATE
 			parameter
 		SET
-			parameter_val_nominal = NEW.parameter_val_nominal,
+			parameter_val = NEW.parameter_val,
 		    parameter_val_actual = NEW.parameter_val_actual,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
@@ -2467,8 +2467,8 @@ BEGIN
                  where parameter_def_uuid = NEW.parameter_def_uuid)
             )
         THEN
-			INSERT INTO parameter (parameter_def_uuid, parameter_val_nominal, parameter_val_actual, actor_uuid, status_uuid)
-				VALUES(NEW.parameter_def_uuid, NEW.parameter_val_nominal, NEW.parameter_val_actual, NEW.actor_uuid, NEW.status_uuid)
+			INSERT INTO parameter (parameter_def_uuid, parameter_val, parameter_val_actual, actor_uuid, status_uuid)
+				VALUES(NEW.parameter_def_uuid, NEW.parameter_val, NEW.parameter_val_actual, NEW.actor_uuid, NEW.status_uuid)
 				returning parameter_uuid into NEW.parameter_uuid;
 			INSERT INTO parameter_x (parameter_uuid, ref_parameter_uuid)
 			    VALUES(NEW.parameter_uuid, NEW.ref_parameter_uuid);
@@ -2563,7 +2563,7 @@ BEGIN
             returning action_uuid into NEW.action_uuid;
         -- then create action parameter instances for every parameter_def associated w/ this action_def
         -- and populate w/ default values
-        INSERT INTO vw_action_parameter (action_uuid, parameter_def_uuid, parameter_val_nominal, parameter_actor_uuid, parameter_status_uuid)
+        INSERT INTO vw_action_parameter (action_uuid, parameter_def_uuid, parameter_val, parameter_actor_uuid, parameter_status_uuid)
             (select
                 NEW.action_uuid as action_uuid,
                 parameter_def_uuid,
@@ -2616,7 +2616,7 @@ BEGIN
 		UPDATE
 			parameter
 		SET
-		    parameter_val_nominal = NEW.parameter_val_nominal,
+		    parameter_val = NEW.parameter_val,
 		    parameter_val_actual = NEW.parameter_val_actual,
             actor_uuid = NEW.parameter_actor_uuid,
             status_uuid = NEW.parameter_status_uuid,
@@ -2625,8 +2625,8 @@ BEGIN
 		    parameter_uuid = NEW.parameter_uuid;
 	    RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-        INSERT INTO vw_parameter (parameter_def_uuid, parameter_val_nominal, parameter_val_actual, ref_parameter_uuid, actor_uuid, status_uuid)
-            VALUES (NEW.parameter_def_uuid, NEW.parameter_val_nominal, NEW.parameter_val_actual, NEW.action_uuid, NEW.parameter_actor_uuid, NEW.parameter_status_uuid);
+        INSERT INTO vw_parameter (parameter_def_uuid, parameter_val, parameter_val_actual, ref_parameter_uuid, actor_uuid, status_uuid)
+            VALUES (NEW.parameter_def_uuid, NEW.parameter_val, NEW.parameter_val_actual, NEW.action_uuid, NEW.parameter_actor_uuid, NEW.parameter_status_uuid);
     END IF;
     RETURN NEW;
 END;
@@ -3380,7 +3380,7 @@ DECLARE
 	_src_cnt int := 1;
 	_step_uuid uuid := null;
 	_val_cnt int := 1;
-	_val_len int := array_length(NEW.parameter_val_nominal, 1);
+	_val_len int := array_length(NEW.parameter_val, 1);
 
 BEGIN
 	IF(TG_OP = 'DELETE') THEN
@@ -3402,16 +3402,16 @@ BEGIN
 		RETURN OLD;
 	ELSIF (TG_OP = 'INSERT') THEN
 	    -- check to see if there is a calculation_uuid so we can transpose it into a calc_array;
-	    IF (NEW.calculation_uuid is not null and NEW.parameter_val_nominal is null) THEN
+	    IF (NEW.calculation_uuid is not null and NEW.parameter_val is null) THEN
             _calc_flg := TRUE;
             _calc_arr := (select arr_val_2_val_arr ((select out_val from vw_calculation where calculation_uuid = NEW.calculation_uuid)));
             _val_len := array_length(_calc_arr, 1);
         END IF;
 		-- first insert into workflow_action_set
 		insert into workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration, repeating, 
-											parameter_def_uuid, parameter_val_nominal, parameter_val_actual, calculation_uuid, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid) VALUES
+											parameter_def_uuid, parameter_val, parameter_val_actual, calculation_uuid, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid) VALUES
 			(NEW.description, NEW.workflow_uuid, NEW.action_def_uuid, NEW.start_date, NEW.end_date, NEW.duration, NEW.repeating, 
-				NEW.parameter_def_uuid, NEW.parameter_val_nominal, NEW.parameter_val_actual, NEW.calculation_uuid, NEW.source_material_uuid, NEW.destination_material_uuid,
+				NEW.parameter_def_uuid, NEW.parameter_val, NEW.parameter_val_actual, NEW.calculation_uuid, NEW.source_material_uuid, NEW.destination_material_uuid,
 				NEW.actor_uuid, NEW.status_uuid) returning workflow_action_set_uuid into NEW.workflow_action_set_uuid;
 		-- now build the actions in the workflow
 		-- check to see if this is a one to many (one source to many dest) 
@@ -3429,16 +3429,16 @@ BEGIN
 				-- assign parameter value
 	        	IF _calc_flg THEN
                     update vw_action_parameter set
-                        parameter_val_nominal = (select put_val (
+                        parameter_val = (select put_val (
                             (select val_type_uuid from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid),
                             (select val_val from get_val (_calc_arr[_val_cnt])),
                             (select valunit from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid)))
                     where action_uuid = _action_uuid;
                 ELSE
                     update vw_action_parameter set
-                        parameter_val_nominal = (select put_val (
+                        parameter_val = (select put_val (
                             (select val_type_uuid from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid),
-                            (select val_val from get_val (NEW.parameter_val_nominal[_val_cnt])),
+                            (select val_val from get_val (NEW.parameter_val[_val_cnt])),
                             (select valunit from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid))),
                         parameter_val_actual = (select put_val (
                             (select val_type_uuid from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid),
@@ -3471,16 +3471,16 @@ BEGIN
 				-- assign parameter value
 				IF _calc_flg THEN
                     update vw_action_parameter set
-                        parameter_val_nominal = (select put_val (
+                        parameter_val = (select put_val (
                             (select val_type_uuid from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid),
                             (select val_val from get_val (_calc_arr[1])),
                             (select valunit from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid)))
                     where action_uuid = _action_uuid;
                 ELSE
                     update vw_action_parameter set
-                        parameter_val_nominal = (select put_val (
+                        parameter_val = (select put_val (
                             (select val_type_uuid from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid),
-                            (select val_val from get_val (NEW.parameter_val_nominal[1])),
+                            (select val_val from get_val (NEW.parameter_val[1])),
                             (select valunit from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid))),
                         parameter_val_actual = (select put_val (
                             (select val_type_uuid from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid),
