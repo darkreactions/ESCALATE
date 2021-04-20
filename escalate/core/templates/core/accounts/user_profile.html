@@ -10,7 +10,7 @@
         <div class="d-flex flex-column align-items-center text-center">
 
           {% if profile_pic_edoc %}
-            <embed src="{{ profile_pic_edoc.download_url }}" type="image/png" height="150px" alt="Admin" class="rounded-circle" width="150">
+            <embed src="{{ profile_pic_edoc.download_url }}" type="image/png" width="150px" alt="Admin"  class="rounded-circle" >
           {% else %}
             <img src="{% static 'avatar.png' %}" alt="Admin" class="rounded-circle" width="150">
           {% endif %}

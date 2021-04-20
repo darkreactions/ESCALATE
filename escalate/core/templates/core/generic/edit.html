@@ -14,10 +14,16 @@
             
             {% if edoc_form %}
                 {{ edoc_form.title.as_hidden }}
+                <p>Upload New Profile Picture: </p>
+            
                 {{ edoc_form.file }}
+                <br/><br/>
+                <p>Profile Picture Type:</p>
                 {{ edoc_form.file_type }}
 
+
             {% endif %}
+            <br/>
             <input class="btn btn-raised btn-primary text-center" type="submit" value="Submit">
         </form>
     </div>
