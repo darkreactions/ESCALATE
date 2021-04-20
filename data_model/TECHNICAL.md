@@ -609,7 +609,7 @@ List of callable and trigger functions (see SQL code for details):
 
 **arr\_val\_2\_val_arr (arr\_val val) RETURNS val[]**<br/>
 *function to convert an array (in a val) to an array of val's*<br/>
-`select arr_val_2_val_arr ((select out_val from vw_calculation where short_name = 'LANL_WF1_H2O_5mL_concentration'));`<br/>
+`select arr_val_2_val_arr ((select out_val from vw_calculation where short_name = 'TC_WF1_H2O_5mL_concentration'));`<br/>
 <br/>
 
 **get\_chemaxon\_directory (p\_systemtool\_uuid uuid, p\_actor\_uuid uuid) RETURNS TEXT**<br/>
@@ -618,7 +618,7 @@ List of callable and trigger functions (see SQL code for details):
 
 **get\_chemaxon\_version (p\_systemtool\_uuid uuid, p\_actor\_uuid uuid ) RETURNS TEXT**<br/>
 *returns the version for the specified chemaxon tool in string format*<br/>
-`select arr_val_2_val_arr ((select out_val from vw_calculation where short_name = 'LANL_WF1_H2O_5mL_concentration'));`<br/>
+`select arr_val_2_val_arr ((select out_val from vw_calculation where short_name = 'TC_WF1_H2O_5mL_concentration'));`<br/>
 <br/>
 
 **math\_op (p\_in\_num numeric, p\_op text, p\_in\_opt\_num numeric DEFAULT NULL) RETURNS numeric**<br/>
@@ -633,7 +633,7 @@ List of callable and trigger functions (see SQL code for details):
 
 **do\_calculation (p\_calculation\_def\_uuid uuid) RETURNS val**<br/>
 *returns the results of a basic postgres math operation; will bring in any associated parameters*<br/>
-`select do_calculation((select calculation_def_uuid from vw_calculation_defwhere short_name = 'LANL_WF1_H2O_5mL_concentration'));`<br/>
+`select do_calculation((select calculation_def_uuid from vw_calculation_defwhere short_name = 'TC_WF1_H2O_5mL_concentration'));`<br/>
 <br/>
 
 **delete\_assigned\_recs (p\_ref\_uuid uuid) RETURNS TABLE (entity text, ref\_uuid uuid)**<br/>
@@ -678,7 +678,7 @@ List of callable and trigger functions (see SQL code for details):
 
 **experiment\_copy (p\_experiment\_uuid uuid, p\_new\_name varchar default null) RETURNS uuid**<br/>
 *instantiates a full experiment (sans measures) based on an existing experiment (experiment_uuid)*<br/>
-`select * from experiment_copy ((select experiment_uuid from vw_experiment where description = 'LANL Test Experiment Template'));`<br/>
+`select * from experiment_copy ((select experiment_uuid from vw_experiment where description = 'Test Experiment Template'));`<br/>
 <br/>
 <br/>
 
@@ -1335,15 +1335,15 @@ __vw\_calculation\_parameter\_def__`CRD`<br/>
 
 ```
 insert into vw_calculation_parameter_def (calculation_def_uuid, parameter_def_uuid)values 
-	((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+	((select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration'),
    (select parameter_def_uuid from vw_parameter_def where description = 'hcl_concentration')),
-   ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+   ((select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration'),
    (select parameter_def_uuid from vw_parameter_def where description = 'total_vol')),
-   ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+   ((select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration'),
    (select parameter_def_uuid from vw_parameter_def where description = 'stock_concentration'));
 delete from vw_calculation_parameter_def where 
 	calculation_def_uuid = 
-		(select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration')
+		(select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration')
        and parameter_def_uuid in (select parameter_def_uuid from vw_parameter_def
        where description in ('hcl_concentration', 'total_vol', 'stock_concentration'));
 ```
@@ -1590,7 +1590,7 @@ update vw_experiment_parameter
 	set parameter_value =
    		array[(select put_val ((select val_type_uuid from vw_parameter_def where description = 'total_vol'), '9.9',
        	(select valunit from vw_parameter_def where description = 'volume')))]
-    where experiment = 'LANL Test Experiment Template' and 
+    where experiment = 'Test Experiment Template' and 
     	object_description = 'dispense Am-Stock into SamplePrep Plate action_set'
       	and parameter_def_description = 'volume';
 ```
@@ -1839,7 +1839,7 @@ insert into vw_material_property (material_uuid, property_def_uuid,
 		(select property_def_uuid from vw_property_def where short_description = 'particle-size'),
 		'{100, 200}', null,
 		(select status_uuid from vw_status where description = 'active'));
-update vw_material_property set property_actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where 
+update vw_material_property set property_actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'TC') where 
 	material_uuid = 
 				(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
 update vw_material_property set val_val = '{100, 900}' where 
@@ -2116,7 +2116,7 @@ __vw\_outcome__`CRUD`<br/>
 
 ```
 insert into vw_outcome (experiment_uuid, description, actor_uuid, status_uuid) values (
-	(select experiment_uuid from vw_experiment where description = 'LANL Test Experiment Template'),
+	(select experiment_uuid from vw_experiment where description = 'Test Experiment Template'),
 	'test_outcome',
 	(select actor_uuid from vw_actor where description = 'T Testuser'),
 	(select status_uuid from vw_status where description = 'test'));
@@ -2194,7 +2194,7 @@ values (
 		(select val_type_uuid from vw_parameter_def where description = 'duration'),
 		'10',
 		(select valunit from vw_parameter_def where description = 'duration'))),
-	(select actor_uuid from vw_actor where org_short_name = 'LANL'),
+	(select actor_uuid from vw_actor where org_short_name = 'TC'),
 	(select status_uuid from vw_status where description = 'active')
 	);
 update vw_parameter set parameter_val = (select put_val (
@@ -2321,7 +2321,7 @@ insert into vw_property (property_def_uuid, property_val, actor_uuid, status_uui
 	(select valunit from vw_property_def where short_description = 'particle-size'))), 
 	null,
 	(select status_uuid from vw_status where description = 'active'));
-update vw_property set actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where (property_uuid = 'e36c8f19-cd2f-4f5d-960d-54638f26f066');
+update vw_property set actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'TC') where (property_uuid = 'e36c8f19-cd2f-4f5d-960d-54638f26f066');
 delete from vw_property where (property_uuid = 'e36c8f19-cd2f-4f5d-960d-54638f26f066');
 ```
 
@@ -2346,7 +2346,7 @@ insert into vw_property_def (description, short_description, valtype, valunit, a
 	values ('particle-size {min, max}', 'particle-size', 'array_num', 'mesh', 
 	null,
 	(select status_uuid from vw_status where description = 'active'));
-update vw_property_def set short_description = 'particle-size', actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where (short_description = 'particle-size');
+update vw_property_def set short_description = 'particle-size', actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'TC') where (short_description = 'particle-size');
 delete from vw_property_def where short_description = 'particle-size';
 ```
 <br/>

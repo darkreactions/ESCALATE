@@ -18,4 +18,8 @@ class InventoryMaterialForm(Form):
     def __init__(self, *args, org_uuid, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['value'].queryset = vt.InventoryMaterial.objects.filter(inventory__lab__organization=org_uuid)
-        
+
+class NominalActualForm(Form):
+    value = ValFormField(required=False)
+    actual_value = ValFormField(required=False)
+    uuid = CharField(widget=HiddenInput)

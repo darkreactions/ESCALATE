@@ -5,7 +5,7 @@ from .views import (LoginView, CreateUserView, MainMenuView, WorkflowView,
                     change_password, UserProfileEdit)
 from .views.misc_views import ParameterEditView, MaterialEditView
 from .views.experiment import CreateExperimentView, ExperimentDetailView, ExperimentListView
-from core.utils import view_names, camel_to_snake
+from core.utilities.utils import view_names, camel_to_snake
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
@@ -30,6 +30,8 @@ urlpatterns = [
     path('create_experiment/', CreateExperimentView.as_view(), name='create_experiment'),
     path('experiment_list/', ExperimentListView.as_view(), name='experiment_list'),
     path('experiment_view/<uuid:pk>', ExperimentDetailView.as_view(), name='experiment_view'),
+    path('experiment_update/<uuid:pk>', ParameterEditView.as_view(), name='experiment_update'),
+    path('favicon.ico', RedirectView.as_view(url=staticfiles_storage.url('static/favicon.ico'))),
 ]
 
 

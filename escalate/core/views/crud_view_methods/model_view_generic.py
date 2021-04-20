@@ -183,25 +183,44 @@ class GenericModelEdit:
         if self.context_object_name in context:
 
             model = context[self.context_object_name]
-            context['note_forms'] = self.NoteFormSet(
+
+            note_forms = self.NoteFormSet(
                 queryset=Note.objects.filter(ref_note_uuid=model.pk),
                 prefix='note')
-            context['edoc_forms'] = self.EdocFormSet(
-                queryset=Edocument.objects.filter(ref_edocument_uuid=model.pk),
-                prefix='edoc')
 
-            
+            context['note_forms'] = note_forms
+
+            edocuments = Edocument.objects.filter(ref_edocument_uuid=model.pk)
+            edoc_forms = self.EdocFormSet(
+                queryset=edocuments,
+                prefix='edoc')
+   
+            context['edoc_forms'] = edoc_forms
+            edoc_files = []
+            for edoc in edocuments:
+                filename = edoc.filename
+
+                # redirect to api link to download
+                download_url = reverse('edoc_download', args=(edoc.uuid,))
+                edoc_files.append({
+                    'filename': filename,
+                    'download_url': download_url
+                })
+            context['edoc_files'] = edoc_files
+            context['edoc_management_form'] = edoc_forms.management_form
             context['tag_select_form'] = TagSelectForm(model_pk=model.pk)
         else:
             context['note_forms'] = self.NoteFormSet(
                 queryset=self.model.objects.none(),
                 prefix='note')
-            context['edoc_forms'] = self.EdocFormSet(
-                querySet=Edocument.objects.none(),
-                prefix='edoc')
+#            context['edoc_forms'] = self.EdocFormSet(
+#                querySet=Edocument.objects.none(),
+#                prefix='edoc')
+            context['edoc_files'] = []
             context['tag_select_form'] = TagSelectForm()
 
         context['title'] = self.context_object_name.capitalize()
+
         return context
 
     def post(self, request, *args, **kwargs):
@@ -327,7 +346,12 @@ class GenericModelEdit:
                             else:
                                 #did not find file type corresponding to file extension
                                 #use file type user entered in form
-                                edoc.doc_type_uuid = file_type_user
+
+                                #default file type in case file ext is not in db and user did not 
+                                #enter a file type
+                                default_type = TypeDef.objects.get(category="file",description="text")
+                                
+                                edoc.doc_type_uuid = file_type_user if file_type_user else default_type
                         
                         # Get the appropriate actor and then add it to the edoc
                         edoc.actor = actor
@@ -435,3 +459,5 @@ class GenericModelView(DetailView):
             context['download_url'] = reverse('edoc_download', args=(obj.pk,))
         context['detail_data'] = detail_data
         return context
+
+

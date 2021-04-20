@@ -190,7 +190,6 @@ DROP TABLE IF EXISTS workflow_type cascade;
 -- define (enumerate) the type_def categories 
 CREATE TYPE type_def_category AS ENUM ('data', 'file', 'role');
 
-
 CREATE TYPE val AS (
 	v_type_uuid uuid,
 	v_unit varchar,
@@ -206,6 +205,14 @@ CREATE TYPE val AS (
 	v_bool_array BOOLEAN[]	
 );
 
+
+-- DROP TYPE IF EXISTS material_class_enum;
+-- DROP TYPE IF EXISTS property_def_class_enum;
+-- DROP TYPE IF EXISTS property_class_enum;
+--
+-- CREATE TYPE material_class_enum AS ENUM ('template', 'model', 'object');
+-- CREATE TYPE property_def_class_enum AS ENUM ('intrinsic', 'extrinsic');
+-- CREATE TYPE property_class_enum AS ENUM ('nominal', 'actual');
 --======================================================================
 --======================================================================
 -- CREATE TABLES 
@@ -333,7 +340,6 @@ CREATE TABLE calculation (
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
-
 
 CREATE TABLE calculation_class (
 	calculation_class_uuid uuid DEFAULT uuid_generate_v4 (),
@@ -530,6 +536,7 @@ CREATE TABLE material (
 	material_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default" NOT NULL,
 	consumable BOOLEAN NOT NULL DEFAULT TRUE,
+	material_class varchar COLLATE "pg_catalog"."default",
 	actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -596,7 +603,6 @@ CREATE TABLE material_type (
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
-
 
 CREATE TABLE material_type_x (
 	material_type_x_uuid uuid DEFAULT uuid_generate_v4 (),
@@ -705,6 +711,7 @@ CREATE TABLE parameter (
 	parameter_uuid uuid DEFAULT uuid_generate_v4 (),
 	parameter_def_uuid uuid NOT NULL,
 	parameter_val val NOT NULL,
+	parameter_val_actual val,
 	actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -717,6 +724,7 @@ CREATE TABLE parameter_def (
 	description varchar COLLATE "pg_catalog"."default" NOT NULL,
 	default_val val,           -- parameter type and units are stored here
 	required boolean NOT NULL, -- default set in upsert
+	parameter_def_unit_type varchar COLLATE "pg_catalog"."default",
 	actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -758,6 +766,7 @@ CREATE TABLE property (
 	property_uuid uuid DEFAULT uuid_generate_v4 (),
 	property_def_uuid uuid NOT NULL,
 	property_val val NOT NULL,
+	property_class varchar COLLATE "pg_catalog"."default",
 	actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
@@ -769,14 +778,15 @@ CREATE TABLE property_def (
 	property_def_uuid uuid DEFAULT uuid_generate_v4 (),
 	description varchar COLLATE "pg_catalog"."default",
 	short_description varchar COLLATE "pg_catalog"."default" NOT NULL,
+	property_def_class varchar COLLATE "pg_catalog"."default",
 	val_type_uuid uuid,
 	valunit varchar,
+	property_def_unit_type varchar COLLATE "pg_catalog"."default",
 	actor_uuid uuid,
 	status_uuid uuid,
 	add_date timestamptz NOT NULL DEFAULT NOW(),
 	mod_date timestamptz NOT NULL DEFAULT NOW()
 );
-
 
 CREATE TABLE property_x (
 	property_x_uuid uuid DEFAULT uuid_generate_v4 (),
@@ -927,7 +937,8 @@ CREATE TABLE workflow_action_set (
 	duration numeric,
 	repeating int8,
 	parameter_def_uuid uuid,
-	parameter_val val[],	
+	parameter_val val[],
+	parameter_val_actual val[],
 	calculation_uuid uuid,
 	source_material_uuid uuid[],
 	destination_material_uuid uuid[], 
@@ -1215,7 +1226,6 @@ ALTER TABLE material
 CLUSTER material
 USING "pk_material_material_uuid";
 
-
 ALTER TABLE material_composite
 	ADD CONSTRAINT "pk_material_composite_material_composite_uuid" PRIMARY KEY (material_composite_uuid),
 		ADD CONSTRAINT "un_material_composite" CHECK (composite_uuid <> component_uuid);
@@ -1373,7 +1383,6 @@ ALTER TABLE property_def
 		ADD CONSTRAINT "un_property_def" UNIQUE (short_description);
 CLUSTER property_def
 USING "pk_property_def_property_def_uuid";
-
 
 ALTER TABLE property_x
 	ADD CONSTRAINT "pk_property_x_property_x_uuid" PRIMARY KEY (property_x_uuid),
@@ -1675,15 +1684,15 @@ ALTER TABLE inventory_material
 
 
 ALTER TABLE material
- ADD CONSTRAINT fk_material_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
-	ADD CONSTRAINT fk_material_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+    ADD CONSTRAINT fk_material_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+        ADD CONSTRAINT fk_material_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
 
 ALTER TABLE material_composite
  ADD CONSTRAINT fk_material_composite_composite_1 FOREIGN KEY (composite_uuid) REFERENCES material (material_uuid),
 	ADD CONSTRAINT fk_material_composite_component_1 FOREIGN KEY (component_uuid) REFERENCES material (material_uuid),
- 		ADD CONSTRAINT fk_material_composite_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
-			ADD CONSTRAINT fk_material_composite_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+        ADD CONSTRAINT fk_material_composite_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+            ADD CONSTRAINT fk_material_composite_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
 
 ALTER TABLE material_refname
@@ -1757,15 +1766,15 @@ ALTER TABLE person
 	ADD CONSTRAINT fk_person_organization_1 FOREIGN KEY (organization_uuid) REFERENCES organization (organization_uuid);
 
 
-ALTER TABLE property 
- ADD CONSTRAINT fk_property_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
-	ADD CONSTRAINT fk_property_property_def_1 FOREIGN KEY (property_def_uuid) REFERENCES property_def (property_def_uuid),
-		ADD CONSTRAINT fk_property_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
+ALTER TABLE property
+    ADD CONSTRAINT fk_property_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+        ADD CONSTRAINT fk_property_property_def_1 FOREIGN KEY (property_def_uuid) REFERENCES property_def (property_def_uuid),
+            ADD CONSTRAINT fk_property_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid);
 
-ALTER TABLE property_def 
- ADD CONSTRAINT fk_property_def_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
-	ADD CONSTRAINT fk_property_def_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid),
-			ADD CONSTRAINT fk_property_def_val_type_1 FOREIGN KEY (val_type_uuid) REFERENCES type_def (type_def_uuid);
+ALTER TABLE property_def
+    ADD CONSTRAINT fk_property_def_actor_1 FOREIGN KEY (actor_uuid) REFERENCES actor (actor_uuid),
+        ADD CONSTRAINT fk_property_def_status_1 FOREIGN KEY (status_uuid) REFERENCES status (status_uuid),
+            ADD CONSTRAINT fk_property_def_val_type_1 FOREIGN KEY (val_type_uuid) REFERENCES type_def (type_def_uuid);
 
 ALTER TABLE property_x 
 	ADD CONSTRAINT fk_property_x_property_1 FOREIGN KEY (property_uuid) REFERENCES property (property_uuid);
@@ -2527,3 +2536,4 @@ COMMENT ON COLUMN workflow_type.workflow_type_uuid IS 'PK of workflow_type';
 COMMENT ON COLUMN workflow_type.description IS 'description of workflow type';
 COMMENT ON COLUMN workflow_type.add_date IS 'date/time record was created';
 COMMENT ON COLUMN workflow_type.mod_date IS 'date/time record was last modified';
+

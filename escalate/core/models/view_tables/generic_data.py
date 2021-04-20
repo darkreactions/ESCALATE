@@ -1,7 +1,7 @@
 from django.db import models
 from core.models.core_tables import RetUUIDField
-from core.models.custom_types import ValField
-
+from core.models.custom_types import ValField, PROPERTY_CLASS_CHOICES, PROPERTY_DEF_CLASS_CHOICES, MATERIAL_CLASS_CHOICES
+from django.contrib.postgres.fields import ArrayField
 
 class Calculation(models.Model):
     uuid = RetUUIDField(primary_key=True,
@@ -225,6 +225,9 @@ class Measure(models.Model):
                                    blank=True,
                                    null=True,
                                    )
+    measure_def = models.ForeignKey('MeasureDef',
+                                    db_column='measure_def_uuid',
+                                    on_delete=models.DO_NOTHING)
     measure_value = ValField(max_length=255, )
     actor_uuid = models.ForeignKey('Actor',
                                    on_delete=models.DO_NOTHING,
@@ -283,6 +286,9 @@ class MeasureType(models.Model):
     add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
     mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
 
+    def __str__(self):
+        return f'{self.description}'
+
     class Meta:
         managed = False
         db_table = 'vw_measure_type'
@@ -340,9 +346,14 @@ class MeasureDef(models.Model):
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return f'{self.description}'
+
     class Meta:
         managed = False
-        db_table = 'vw_measure_def'  
+        db_table = 'vw_measure_def'
+
+
 
 
 class Note(models.Model):
@@ -407,7 +418,7 @@ class Parameter(models.Model):
                                                  null=True,
                                                  db_column='parameter_def_description',
                                                  editable=False)
-    parameter_val = ValField(max_length=255, blank=True,
+    parameter_val_nominal = ValField(max_length=255, blank=True,
                              null=True,
                              db_column='parameter_val')
     actor = models.ForeignKey('Actor',
@@ -453,6 +464,10 @@ class ParameterDef(models.Model):
                                  blank=True,
                                  null=True, related_name='parameter_def_val_type')
     default_val = ValField(max_length=255, db_column='default_val')
+    unit_type = models.CharField(max_length=255,
+                                 blank=True,
+                                 null=True,
+                                 db_column='parameter_def_unit_type')
     
     """
     default_val_val = models.CharField(max_length=255,
@@ -481,8 +496,8 @@ class ParameterDef(models.Model):
                                 null=True,
                                 db_column='required',
                                 editable=False)
-    """
     required = models.BooleanField(blank=True, null=True)
+    """
     actor = models.ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='actor_uuid',
@@ -530,6 +545,11 @@ class Property(models.Model):
                                    blank=True,
                                    null=True,
                                    db_column='property_val')
+    unit_type = models.CharField(max_length=255,
+                                 blank=True,
+                                 null=True,
+                                 db_column='property_def_unit_type')
+    property_class = models.CharField(max_length=64, choices=PROPERTY_CLASS_CHOICES)
     
     """
     # TODO: Any way to represent arrays with sqaure brackets? One of the arrays
@@ -585,6 +605,7 @@ class PropertyDef(models.Model):
                                    blank=True,
                                    null=True,
                                    db_column='description')
+    property_def_class = models.CharField(max_length=64, choices=PROPERTY_DEF_CLASS_CHOICES)
     short_description = models.CharField(max_length=255,
                                          blank=True,
                                          null=True,
@@ -598,6 +619,10 @@ class PropertyDef(models.Model):
                                 blank=True,
                                 null=True,
                                 db_column='valunit')
+    unit_type = models.CharField(max_length=255,
+                                blank=True,
+                                null=True,
+                                db_column='property_def_unit_type')
     actor = models.ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='actor_uuid',

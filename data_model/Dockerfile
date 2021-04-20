@@ -6,7 +6,5 @@ RUN apk update && apk add g++ libstdc++ bash git openssl-dev libffi-dev tar
 ENV PATH /usr/lib/postgresql/$PG_MAJOR/bin:$PATH
 #ESCALATE default DB
 ADD ./backups/escalate_dev_create_backup.sql /docker-entrypoint-initdb.d
-#LANL DB
-#ADD ./backups/separation_create_backup.sql /docker-entrypoint-initdb.d
 EXPOSE 5432
 CMD ["postgres"]

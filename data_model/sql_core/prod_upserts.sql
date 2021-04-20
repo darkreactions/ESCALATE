@@ -1226,6 +1226,7 @@ BEGIN
 			material
 		SET
 			description = NEW.description,
+			material_class = NEW.material_class,
 			consumable = NEW.consumable,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
@@ -1237,8 +1238,8 @@ BEGIN
 		IF NEW.consumable is null 
 			THEN NEW.consumable = TRUE; 
 		END IF;
-		INSERT INTO material (description, consumable, actor_uuid, status_uuid)
-			VALUES(NEW.description, NEW.consumable, NEW.actor_uuid, NEW.status_uuid) returning material_uuid into NEW.material_uuid;
+		INSERT INTO material (description, material_class, consumable, actor_uuid, status_uuid)
+			VALUES(NEW.description, NEW.material_class, NEW.consumable, NEW.actor_uuid, NEW.status_uuid) returning material_uuid into NEW.material_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1295,7 +1296,10 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		INSERT INTO material_composite (composite_uuid, component_uuid, addressable, actor_uuid, status_uuid)
-			VALUES(NEW.composite_uuid, NEW.component_uuid, NEW.addressable, NEW.actor_uuid, NEW.status_uuid) returning material_composite_uuid into NEW.material_composite_uuid;
+			VALUES(NEW.composite_uuid, NEW.component_uuid, NEW.addressable, NEW.actor_uuid, NEW.status_uuid)
+			returning material_composite_uuid
+			into NEW.material_composite_uuid;
+
 		RETURN NEW;
 	END IF;
 END;
@@ -1369,7 +1373,7 @@ Example:		insert into vw_property_def (description, short_description, val_type_
 											(select status_uuid from vw_status where description = 'active')
 											);
 				update vw_property_def set short_description = 'particle-size',
-											actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where (short_description = 'particle-size');
+											actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'TC') where (short_description = 'particle-size');
  				delete from vw_property_def where short_description = 'particle-size';
  */
 CREATE OR REPLACE FUNCTION upsert_property_def ()
@@ -1393,6 +1397,8 @@ BEGIN
 			description = NEW.description,
 			short_description = NEW.short_description,
 			val_type_uuid = NEW.val_type_uuid,
+		    property_def_unit_type = NEW.property_def_unit_type,
+			property_def_class = NEW.property_def_class,
 			valunit = NEW.valunit,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
@@ -1401,8 +1407,8 @@ BEGIN
 			property_def.property_def_uuid = NEW.property_def_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		INSERT INTO property_def (description, short_description, val_type_uuid, valunit, actor_uuid, status_uuid)
-			VALUES(NEW.description, NEW.short_description, NEW.val_type_uuid, NEW.valunit, NEW.actor_uuid, NEW.status_uuid) returning property_def_uuid into NEW.property_def_uuid;
+		INSERT INTO property_def (description, short_description, val_type_uuid, property_def_unit_type, property_def_class, valunit, actor_uuid, status_uuid)
+			VALUES(NEW.description, NEW.short_description, NEW.val_type_uuid, NEW.property_def_unit_type, NEW.property_def_class, NEW.valunit, NEW.actor_uuid, NEW.status_uuid) returning property_def_uuid into NEW.property_def_uuid;
 		RETURN NEW;
 	END IF;
 END;
@@ -1426,7 +1432,7 @@ Example:		insert into vw_property (property_def_uuid, property_val, actor_uuid, 
 												(select val_type_uuid from vw_property_def where short_description = 'particle-size'),
 												'{100, 200}',
 												(select valunit from vw_property_def where short_description = 'particle-size'))), 
-											(select actor_uuid from vw_actor where org_short_name = 'LANL'),
+											(select actor_uuid from vw_actor where org_short_name = 'TC'),
 											(select status_uuid from vw_status where description = 'active')
 											);
                 update vw_property set property_val =
@@ -1459,6 +1465,7 @@ BEGIN
 			property
 		SET
 			property_val = NEW.property_val,
+			type_uuid = NEW.type_uuid,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
 			mod_date = now()
@@ -1467,8 +1474,8 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		IF (select exists (select property_def_uuid from vw_property_def where property_def_uuid = NEW.property_def_uuid)) THEN
-			INSERT INTO property (property_def_uuid, property_val, actor_uuid, status_uuid)
-				VALUES(NEW.property_def_uuid, NEW.property_val, NEW.actor_uuid, NEW.status_uuid) returning property_uuid into NEW.property_uuid;
+			INSERT INTO property (property_def_uuid, type_uuid, property_val, actor_uuid, status_uuid)
+				VALUES(NEW.property_def_uuid, NEW.type_uuid, NEW.property_val, NEW.actor_uuid, NEW.status_uuid) returning property_uuid into NEW.property_uuid;
 			RETURN NEW;
 		END IF;
 	END IF;
@@ -1496,7 +1503,7 @@ Example:		insert into vw_material_property (material_uuid, property_def_uuid,
 							null,
 							(select status_uuid from vw_status where description = 'active')
 				) returning *;
-				update vw_material_property set property_actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'LANL') where material_uuid = 
+				update vw_material_property set property_actor_uuid = (select actor_uuid from vw_actor where org_short_name = 'TC') where material_uuid = 
 				(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
 				update vw_material_property set val_val = '{100, 900}' where material_uuid = 
 				(select material_uuid from vw_material where description = 'Formic Acid') and property_short_description = 'particle-size';
@@ -1530,6 +1537,7 @@ BEGIN
 				(select put_val (NEW.property_value_type_uuid, NEW.property_value, NEW.property_value_unit)),
 			actor_uuid = NEW.property_actor_uuid,
 			status_uuid = NEW.property_status_uuid,
+		    property_class = NEW.property_class,
 			mod_date = now()
 		WHERE
 			property.property_uuid = NEW.property_uuid;
@@ -1539,12 +1547,12 @@ BEGIN
 			IF (NEW.material_uuid is null) or (NEW.property_uuid is not null) THEN
 				return null;
 			END IF;
-			INSERT INTO property (property_def_uuid, property_val, actor_uuid, status_uuid)
+			INSERT INTO property (property_def_uuid, property_val, property_class, actor_uuid, status_uuid)
 				VALUES(NEW.property_def_uuid, 
 					(select put_val ((select val_type_uuid from vw_property_def where property_def_uuid = NEW.property_def_uuid), 
 					NEW.property_value,
 					(select valunit from vw_property_def where property_def_uuid = NEW.property_def_uuid))),	
-				NEW.property_actor_uuid, NEW.property_status_uuid)
+				NEW.property_class, NEW.property_actor_uuid, NEW.property_status_uuid)
 			RETURNING property_uuid into NEW.property_uuid;
 			INSERT INTO property_x (material_uuid, property_uuid)
 				VALUES (NEW.material_uuid, NEW.property_uuid) returning property_x_uuid into NEW.property_x_uuid;
@@ -1692,7 +1700,7 @@ Notes:			for postgres calculations (math_op, math_op_arr) make sure parameter re
                 calc definition have  '' around them
                 e.g. 'math_op_arr(math_op_arr(''hcl_concentrations'', '/', stock_concentration), '*', total_vol)'
 Example:		insert into vw_calculation_def (short_name, calc_definition, systemtool_uuid, description, in_source_uuid, in_type_uuid, in_opt_source_uuid, 	
-					in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid ) 
+					in_opt_type_uuid, out_type_uuid, calculation_class_uuid, actor_uuid, status_uuid )
 					values ('test_calc_def', 'function param1 param2', 
 					(select systemtool_uuid from vw_actor where description = 'Molecule Standardizer'),
 					'testing calculation definition upsert', 
@@ -2184,6 +2192,7 @@ BEGIN
 		    default_val = NEW.default_val,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
+		    parameter_def_unit_type = NEW.parameter_def_unit_type,
 			mod_date = now()
 		WHERE
 			parameter_def.parameter_def_uuid = NEW.parameter_def_uuid;
@@ -2192,8 +2201,8 @@ BEGIN
 	    IF NEW.required IS NULL
 	        THEN NEW.required = TRUE;
 	    END IF;
-	    INSERT INTO parameter_def (description, default_val, required, actor_uuid, status_uuid)
-			VALUES(NEW.description, NEW.default_val, NEW.required, NEW.actor_uuid, NEW.status_uuid)
+	    INSERT INTO parameter_def (description, default_val, parameter_def_unit_type, required, actor_uuid, status_uuid)
+			VALUES(NEW.description, NEW.default_val, NEW.parameter_def_unit_type, NEW.required, NEW.actor_uuid, NEW.status_uuid)
 			returning parameter_def_uuid into NEW.parameter_def_uuid;
 		RETURN NEW;
 	END IF;
@@ -2212,14 +2221,14 @@ LANGUAGE plpgsql;
  Notes:			requires both ref_calculation_parameter_def_uuid and calculation_parameter_def_uuid
                 NOTE: this MAY supercede upsert_calculation_parameter_def_assign
  Example:       insert into vw_calculation_parameter_def (calculation_def_uuid, parameter_def_uuid)
-                     values ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+                     values ((select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration'),
                              (select parameter_def_uuid from vw_parameter_def where description = 'hcl_concentration')),
-                            ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+                            ((select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration'),
                              (select parameter_def_uuid from vw_parameter_def where description = 'total_vol')),
-                            ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+                            ((select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration'),
                              (select parameter_def_uuid from vw_parameter_def where description = 'stock_concentration'));
                 delete from vw_calculation_parameter_def
-                    where calculation_def_uuid = (select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration')
+                    where calculation_def_uuid = (select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration')
                     and parameter_def_uuid in (select parameter_def_uuid
                                                from vw_parameter_def
                                                where description in ('hcl_concentration', 'total_vol', 'stock_concentration'));
@@ -2255,14 +2264,14 @@ LANGUAGE plpgsql;
  Description:	trigger proc that deletes, inserts or updates calculation_parameter_def_x record based on TG_OP (trigger operation)
  Notes:			requires both ref_calculation_parameter_def_uuid and calculation_parameter_def_uuid
  Example:       insert into vw_calculation_parameter_def_assign (calculation_def_uuid, parameter_def_uuid)
-                     values ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+                     values ((select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration'),
                              (select parameter_def_uuid from vw_parameter_def where description = 'hcl_concentration')),
-                            ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+                            ((select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration'),
                              (select parameter_def_uuid from vw_parameter_def where description = 'total_vol')),
-                            ((select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration'),
+                            ((select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration'),
                              (select parameter_def_uuid from vw_parameter_def where description = 'stock_concentration'));
                 delete from vw_calculation_parameter_def_assign
-                    where calculation_def_uuid = (select calculation_def_uuid from vw_calculation_def where short_name = 'LANL_WF1_HCL12M_5mL_concentration')
+                    where calculation_def_uuid = (select calculation_def_uuid from vw_calculation_def where short_name = 'TC_WF1_HCL12M_5mL_concentration')
                     and parameter_def_uuid in (select parameter_def_uuid
                                                from vw_parameter_def
                                                where description in ('hcl_concentration', 'total_vol', 'stock_concentration'));
@@ -2300,7 +2309,7 @@ LANGUAGE plpgsql;
                         (select put_val ((select val_type_uuid from vw_parameter_def where description = 'speed'),
                         '8888',
                         (select valunit from vw_parameter_def where description = 'speed')))
-                     where (calculation_description = 'LANL_WF1_HCL12M_5mL_concentration' AND parameter_def_description = 'speed');
+                     where (calculation_description = 'TC_WF1_HCL12M_5mL_concentration' AND parameter_def_description = 'speed');
 
 */
 CREATE OR REPLACE FUNCTION upsert_calculation_parameter()
@@ -2403,7 +2412,7 @@ Example:		insert into vw_parameter (parameter_def_uuid, ref_parameter_uuid, para
 												(select val_type_uuid from vw_parameter_def where description = 'duration'),
 												'10',
 												(select valunit from vw_parameter_def where description = 'duration'))),
-											(select actor_uuid from vw_actor where org_short_name = 'LANL'),
+											(select actor_uuid from vw_actor where org_short_name = 'TC'),
 											(select status_uuid from vw_status where description = 'active')
 											);
                 insert into vw_parameter (parameter_def_uuid, ref_parameter_uuid, parameter_val, actor_uuid, status_uuid ) values (
@@ -2413,7 +2422,7 @@ Example:		insert into vw_parameter (parameter_def_uuid, ref_parameter_uuid, para
                             (select val_type_uuid from vw_parameter_def where description = 'duration'),
 							'10',
 					        (select valunit from vw_parameter_def where description = 'duration'))),
-					    (select actor_uuid from vw_actor where org_short_name = 'LANL'),
+					    (select actor_uuid from vw_actor where org_short_name = 'TC'),
 					    (select status_uuid from vw_status where description = 'active'));
 				update vw_parameter set parameter_val = (select put_val (
                                                     (select val_type_uuid from vw_parameter_def where description = 'duration'),
@@ -2444,6 +2453,7 @@ BEGIN
 			parameter
 		SET
 			parameter_val = NEW.parameter_val,
+		    parameter_val_actual = NEW.parameter_val_actual,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
 			mod_date = now()
@@ -2457,8 +2467,8 @@ BEGIN
                  where parameter_def_uuid = NEW.parameter_def_uuid)
             )
         THEN
-			INSERT INTO parameter (parameter_def_uuid, parameter_val, actor_uuid, status_uuid)
-				VALUES(NEW.parameter_def_uuid, NEW.parameter_val, NEW.actor_uuid, NEW.status_uuid)
+			INSERT INTO parameter (parameter_def_uuid, parameter_val, parameter_val_actual, actor_uuid, status_uuid)
+				VALUES(NEW.parameter_def_uuid, NEW.parameter_val, NEW.parameter_val_actual, NEW.actor_uuid, NEW.status_uuid)
 				returning parameter_uuid into NEW.parameter_uuid;
 			INSERT INTO parameter_x (parameter_uuid, ref_parameter_uuid)
 			    VALUES(NEW.parameter_uuid, NEW.ref_parameter_uuid);
@@ -2543,35 +2553,26 @@ BEGIN
 			action.action_uuid = NEW.action_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-        -- check if action def exists
-	    IF (select exists
-                (select action_def_uuid
-                 from vw_action_def
-                 where action_def_uuid = NEW.action_def_uuid)
-            )
-        THEN
-            -- first create action instance
-			INSERT INTO action (action_def_uuid, workflow_uuid, workflow_action_set_uuid, description, start_date, end_date, duration, repeating,
-			                    ref_parameter_uuid, calculation_def_uuid, source_material_uuid, destination_material_uuid,
-			                    actor_uuid, status_uuid)
-				VALUES (NEW.action_def_uuid, NEW.workflow_uuid, NEW.workflow_action_set_uuid, NEW.action_description, NEW.start_date, NEW.end_date, NEW.duration, NEW.repeating,
-				        NEW.ref_parameter_uuid, NEW.calculation_def_uuid, NEW.source_material_uuid,
-				        NEW.destination_material_uuid, NEW.actor_uuid, NEW.status_uuid)
-				returning action_uuid into NEW.action_uuid;
-			-- then create action parameter instances for every parameter_def associated w/ this action_def
-			-- and populate w/ default values
-            INSERT INTO vw_action_parameter (action_uuid, parameter_def_uuid, parameter_val, parameter_actor_uuid, parameter_status_uuid)
-                (select
-                    NEW.action_uuid as action_uuid,
-                    parameter_def_uuid,
-                    default_val,
-                    NEW.actor_uuid,
-                    NEW.status_uuid
-                from vw_action_parameter_def
-                where action_def_uuid = NEW.action_def_uuid);
-			RETURN NEW;
-		END IF;
-		RETURN NEW;
+        -- first create action instance
+        INSERT INTO action (action_def_uuid, workflow_uuid, workflow_action_set_uuid, description, start_date, end_date, duration, repeating,
+                            ref_parameter_uuid, calculation_def_uuid, source_material_uuid, destination_material_uuid,
+                            actor_uuid, status_uuid)
+            VALUES (NEW.action_def_uuid, NEW.workflow_uuid, NEW.workflow_action_set_uuid, NEW.action_description, NEW.start_date, NEW.end_date, NEW.duration, NEW.repeating,
+                    NEW.ref_parameter_uuid, NEW.calculation_def_uuid, NEW.source_material_uuid,
+                    NEW.destination_material_uuid, NEW.actor_uuid, NEW.status_uuid)
+            returning action_uuid into NEW.action_uuid;
+        -- then create action parameter instances for every parameter_def associated w/ this action_def
+        -- and populate w/ default values
+        INSERT INTO vw_action_parameter (action_uuid, parameter_def_uuid, parameter_val, parameter_actor_uuid, parameter_status_uuid)
+            (select
+                NEW.action_uuid as action_uuid,
+                parameter_def_uuid,
+                default_val,
+                NEW.actor_uuid,
+                NEW.status_uuid
+            from vw_action_parameter_def
+            where action_def_uuid = NEW.action_def_uuid);
+        RETURN NEW;
 	END IF;
 END;
 $$
@@ -2616,6 +2617,7 @@ BEGIN
 			parameter
 		SET
 		    parameter_val = NEW.parameter_val,
+		    parameter_val_actual = NEW.parameter_val_actual,
             actor_uuid = NEW.parameter_actor_uuid,
             status_uuid = NEW.parameter_status_uuid,
             mod_date = now()
@@ -2623,18 +2625,10 @@ BEGIN
 		    parameter_uuid = NEW.parameter_uuid;
 	    RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-        IF (NEW.parameter_def_uuid IN
-        -- only create action parameters when the action and parameter definitions are already associated
-                (select parameter_def_uuid
-                 from vw_action_parameter_def
-                 where action_def_uuid = (select action_def_uuid from vw_action where action_uuid = NEW.action_uuid))
-            )
-        THEN
-            INSERT INTO vw_parameter (parameter_def_uuid, parameter_val, ref_parameter_uuid, actor_uuid, status_uuid)
-                VALUES (NEW.parameter_def_uuid, NEW.parameter_val, NEW.action_uuid, NEW.parameter_actor_uuid, NEW.parameter_status_uuid);
-		END IF;
-		RETURN NEW;
-	END IF;
+        INSERT INTO vw_parameter (parameter_def_uuid, parameter_val, parameter_val_actual, ref_parameter_uuid, actor_uuid, status_uuid)
+            VALUES (NEW.parameter_def_uuid, NEW.parameter_val, NEW.parameter_val_actual, NEW.action_uuid, NEW.parameter_actor_uuid, NEW.parameter_status_uuid);
+    END IF;
+    RETURN NEW;
 END;
 $$
 LANGUAGE plpgsql;
@@ -3251,7 +3245,7 @@ Notes:
 
 Example:		insert into vw_outcome (experiment_uuid, description, actor_uuid, status_uuid)
 					values (
-						(select experiment_uuid from vw_experiment where description = 'LANL Test Experiment Template'),
+						(select experiment_uuid from vw_experiment where description = 'TC Test Experiment Template'),
 						'test_outcome',
 						(select actor_uuid from vw_actor where description = 'T Testuser'),
 						(select status_uuid from vw_status where description = 'test'));
@@ -3415,9 +3409,9 @@ BEGIN
         END IF;
 		-- first insert into workflow_action_set
 		insert into workflow_action_set (description, workflow_uuid, action_def_uuid, start_date, end_date, duration, repeating, 
-											parameter_def_uuid, parameter_val, calculation_uuid, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid) VALUES
+											parameter_def_uuid, parameter_val, parameter_val_actual, calculation_uuid, source_material_uuid, destination_material_uuid, actor_uuid, status_uuid) VALUES
 			(NEW.description, NEW.workflow_uuid, NEW.action_def_uuid, NEW.start_date, NEW.end_date, NEW.duration, NEW.repeating, 
-				NEW.parameter_def_uuid, NEW.parameter_val, NEW.calculation_uuid, NEW.source_material_uuid, NEW.destination_material_uuid,
+				NEW.parameter_def_uuid, NEW.parameter_val, NEW.parameter_val_actual, NEW.calculation_uuid, NEW.source_material_uuid, NEW.destination_material_uuid,
 				NEW.actor_uuid, NEW.status_uuid) returning workflow_action_set_uuid into NEW.workflow_action_set_uuid;
 		-- now build the actions in the workflow
 		-- check to see if this is a one to many (one source to many dest) 
@@ -3445,6 +3439,10 @@ BEGIN
                         parameter_val = (select put_val (
                             (select val_type_uuid from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid),
                             (select val_val from get_val (NEW.parameter_val[_val_cnt])),
+                            (select valunit from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid))),
+                        parameter_val_actual = (select put_val (
+                            (select val_type_uuid from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid),
+                            (select val_val from get_val (NEW.parameter_val_actual[_val_cnt])),
                             (select valunit from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid)))
                     where action_uuid = _action_uuid;
                 END IF;
@@ -3483,6 +3481,10 @@ BEGIN
                         parameter_val = (select put_val (
                             (select val_type_uuid from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid),
                             (select val_val from get_val (NEW.parameter_val[1])),
+                            (select valunit from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid))),
+                        parameter_val_actual = (select put_val (
+                            (select val_type_uuid from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid),
+                            (select val_val from get_val (NEW.parameter_val_actual[1])),
                             (select valunit from vw_parameter_def where parameter_def_uuid = NEW.parameter_def_uuid)))
                     where action_uuid = _action_uuid;
                 END IF;
@@ -3526,27 +3528,27 @@ Example:        update vw_experiment_parameter
                     set parameter_value =
                         array[(select put_val ((select val_type_uuid from vw_parameter_def where description = 'temperature'), '999.99',
                             (select valunit from vw_parameter_def where description = 'temperature')))]
-                where experiment = 'LANL Test Experiment Template' and object_description = 'Heat Sample Prep Plate'
+                where experiment = 'TC Test Experiment Template' and object_description = 'Heat Sample Prep Plate'
                     and parameter_def_description = 'temperature';
 
                 update vw_experiment_parameter
                     set parameter_value =
                         array[(select put_val ((select val_type_uuid from vw_parameter_def where description = 'total_vol'), '2.5',
                             (select valunit from vw_parameter_def where description = 'total_vol')))]
-                where experiment = 'LANL Test Experiment Template' and object_description = 'dispense H2O into SamplePrep Plate action_set'
+                where experiment = 'TC Test Experiment Template' and object_description = 'dispense H2O into SamplePrep Plate action_set'
                     and parameter_def_description = 'total_vol';
                 update vw_experiment_parameter
                     set parameter_value =
                         array[(select put_val ((select val_type_uuid from vw_parameter_def where description = 'total_vol'), '2.5',
                             (select valunit from vw_parameter_def where description = 'total_vol')))]
-                where experiment = 'LANL Test Experiment Template' and object_description = 'dispense HCL into SamplePrep Plate action_set'
+                where experiment = 'TC Test Experiment Template' and object_description = 'dispense HCL into SamplePrep Plate action_set'
                     and parameter_def_description = 'total_vol';
 
                 update vw_experiment_parameter
                     set parameter_value =
                         array[(select put_val ((select val_type_uuid from vw_parameter_def where description = 'total_vol'), '9.9',
                             (select valunit from vw_parameter_def where description = 'volume')))]
-                where experiment = 'LANL Test Experiment Template' and object_description = 'dispense Am-Stock into SamplePrep Plate action_set'
+                where experiment = 'TC Test Experiment Template' and object_description = 'dispense Am-Stock into SamplePrep Plate action_set'
                     and parameter_def_description = 'volume';
 
  */

@@ -31,11 +31,8 @@ class CreateUserView(View):
     def post(self, request, *args, **kwargs):
         person_form = PersonForm(request.POST)
         user_form = CustomUserCreationForm(request.POST)
-        print('Person form is valid: {}'.format(person_form.is_valid()))
         if person_form.is_valid() and user_form.is_valid():
-            print('User form is valid')
             person = person_form.save()
-            print(person.pk)
             p = PersonTable.objects.get(pk=person.pk)
 
             user = user_form.save(commit=False)
@@ -74,7 +71,7 @@ class UserProfileView(LoginRequiredMixin, View):
 
         # get edocuments (profile picture)
         edocs_raw = Edocument.objects.filter(ref_edocument_uuid=request.user.person.pk,  title=str(request.user.username)+"_avatar")
-        print(str(request.user.username))
+        
         edocs = []
         for edoc in edocs_raw:
             filename = edoc.filename
@@ -118,10 +115,8 @@ class UserProfileEdit(LoginRequiredMixin, View):
         profile_image_edoc = Edocument.objects.filter(ref_edocument_uuid=request.user.person.pk, title=str(request.user.username)+"_avatar")
         # if user already has a picture, load the edocUpload form for that specific edocument picture
         # if not, create new form
-        print(str(request.user.username))
-        if len(profile_image_edoc)>0:
-            print("edoc title ",profile_image_edoc[0].title)
 
+        if len(profile_image_edoc)>0:
             edoc_form = UploadEdocForm(instance=profile_image_edoc[0])
         else:
             edoc_form = UploadEdocForm()
@@ -135,15 +130,11 @@ class UserProfileEdit(LoginRequiredMixin, View):
         profile_image_edoc = Edocument.objects.get(ref_edocument_uuid=request.user.person.pk)
         edocumentForm = UploadEdocForm(request.POST, request.FILES, instance=profile_image_edoc)
 
-        print(form.is_valid(), edocumentForm.is_valid())
-       
-        print(" request.POST = ", request.POST)
         if self.request.user.is_authenticated:
             if form.is_valid() and edocumentForm.is_valid():
                 
                 # process the data in form.cleaned_data as required (here we just write it to the model due_back field)
                 profile_form = form.save(commit=False)
-                print(" request.POST.title = ", request.POST["title"])
 
                 profile_form.title = request.POST.getlist('title')[0]
                 profile_form.save()
@@ -152,7 +143,6 @@ class UserProfileEdit(LoginRequiredMixin, View):
                 edoc = edocumentForm.save(commit=False)
                 edoc.title = str(request.user.username) + "_avatar"
                 if edocumentForm.cleaned_data['file']:
-                    print("inside file upload")
                         #New edoc or update file of existing edoc
                         
                     file = edocumentForm.cleaned_data['file']
@@ -193,7 +183,6 @@ class UserProfileEdit(LoginRequiredMixin, View):
         return redirect('user_profile')
 
     def form_valid(self, form):
-        print('INSIDE FORM VALID')
         self.object = form.save()
 
         if self.EdocFormSet != None:
@@ -252,7 +241,6 @@ class UserProfileEdit(LoginRequiredMixin, View):
         return redirect('user_profile')
 
     def form_invalid(self, form):
-        print('IN FORM INVALID!')
         context = self.get_context_data()
         context['form'] = form
         return render(self.request, self.template_name, context)

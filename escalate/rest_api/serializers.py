@@ -1,15 +1,16 @@
 # from core.models import (Actor, Material, Inventory,
 #                         Person, Organization, Note)
 
-#from escalate.core.models.view_tables.workflow import Workflow, WorkflowStep
+#from escalate.core.models.view_tables.workflow import Workflow, WorkflowStep, BillOfMaterials
 from django.db.models.fields import related
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from core.models.view_tables import Edocument, Note
 from core.models.core_tables import TypeDef
 from rest_framework.serializers import (SerializerMethodField, ModelSerializer,
                                         HyperlinkedModelSerializer, JSONField,
                                         FileField, CharField, ListSerializer,
-                                        HyperlinkedRelatedField, PrimaryKeyRelatedField)
+                                        HyperlinkedRelatedField, PrimaryKeyRelatedField, Serializer)
 from rest_framework.reverse import reverse
 from rest_flex_fields import FlexFieldsModelSerializer
 
@@ -236,7 +237,60 @@ for model_name, data in expandable_fields.items():
                                                      DynamicFieldsModelSerializer]),
                                               extra_fields)
 
+class BomSerializer(DynamicFieldsModelSerializer):
 
+    bill_of_materials = SerializerMethodField()
+
+    def get_bill_of_materials(self, obj):
+        boms = BillOfMaterials.objects.filter(
+            experiment_id=obj.uuid)
+        result_serializer = BillOfMaterialsSerializer(
+            boms, many=True, context=self.context)
+        return result_serializer.data
+
+
+class ExperimentSerializer(EdocListSerializer,
+                        TagListSerializer,
+                        NoteListSerializer,
+                        BomSerializer,
+                        DynamicFieldsModelSerializer):
+    class Meta:
+        model = Experiment
+        fields = '__all__'
+
+    expandable_fields = expandable_fields['Experiment']['fields']
+
+
+class ExperimentTemplateSerializer(EdocListSerializer,
+                        TagListSerializer,
+                        NoteListSerializer,
+                        BomSerializer,
+                        DynamicFieldsModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='experimenttemplate-detail')
+    class Meta:
+        model = Experiment
+        fields = '__all__'
+    expandable_fields = expandable_fields['Experiment']['fields']
+
+
+class ExperimentQuerySerializer(Serializer):
+    object_description = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)
+    parameter_def_description = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)
+    value = ValSerializerField()
+
+class ExperimentMaterialSerializer(Serializer):
+    material_name = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)
+    value = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)
+
+class ExperimentDetailSerializer(Serializer):
+    experiment_name = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)
+    material_parameters = ExperimentMaterialSerializer(many=True)
+    experiment_parameters_1 = ExperimentQuerySerializer(many=True)
+    experiment_parameters_2 = ExperimentQuerySerializer(many=True)
+    experiment_parameters_3 = ExperimentQuerySerializer(many=True)
+    
+    class Meta:
+        fields = '__all__'
 
 class WorkflowSerializer(EdocListSerializer,
                         TagListSerializer,
@@ -257,11 +311,14 @@ class WorkflowSerializer(EdocListSerializer,
     def get_step(self, obj):
         step_nums = []
         steps = []
-        top_level_step = WorkflowStep.objects.get(workflow=obj, parent__isnull=True)
-        for step, step_num in self.get_next_step(top_level_step):
-            step_nums.append(step_num)
-            steps.append(step)
-        
+        try:
+            top_level_step = WorkflowStep.objects.get(workflow=obj, parent__isnull=True)
+            for step, step_num in self.get_next_step(top_level_step):
+                step_nums.append(step_num)
+                steps.append(step)
+        except ObjectDoesNotExist:
+            pass
+
         steps.reverse()
         step_nums.reverse()
         result_serializer = WorkflowStepSerializer(steps, many=True, context=self.context)        

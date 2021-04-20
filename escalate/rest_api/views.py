@@ -33,7 +33,7 @@ def save_actor_on_post(self, serializer):
 
     Use this to overload perform_create on a view.
     """
-    actor = Actor.objects.get(person_uuid=self.request.user.person)
+    actor = Actor.objects.get(person_uuid=self.request.user.person, organization__isnull=True)
     serializer.save(actor_uuid=actor, actor_description=actor.description)
 
 

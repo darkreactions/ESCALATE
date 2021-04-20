@@ -1033,7 +1033,7 @@ EXECUTE PROCEDURE upsert_material_type ( );
 
 ----------------------------------------
 -- get materials, all status
--- DROP VIEW vw_material
+-- DROP VIEW vw_material CASCADE
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_material AS
 SELECT
@@ -1044,6 +1044,7 @@ SELECT
 		when (select 1 from material_composite where composite_uuid = mat.material_uuid limit 1) is not null then true
 		else false
 	END as composite_flg,
+	mat.material_class,
 	mat.actor_uuid AS actor_uuid,
 	act.description AS actor_description,
 	mat.status_uuid AS status_uuid,
@@ -1076,6 +1077,7 @@ SELECT
 	mc.material_composite_uuid,
     mc.composite_uuid,
     m0.description  AS composite_description,
+    m0.material_class AS composite_class,
     CASE
     	WHEN ((SELECT 1 FROM material_composite WHERE material_composite.composite_uuid = mc.component_uuid LIMIT 1)) IS NOT NULL THEN 
     		true
@@ -1083,6 +1085,7 @@ SELECT
     END AS composite_flg,
     mc.component_uuid,
 	m1.description  AS component_description,
+	m1.material_class AS component_class,
 	mc.addressable,
 	mc.actor_uuid,
 	act.description AS actor_description,
@@ -1308,7 +1311,9 @@ SELECT
 	pd.short_description,
 	pd.val_type_uuid,
 	pd.valunit,
+    pd.property_def_unit_type,
 	pd.actor_uuid,
+    pd.property_def_class,
 	act.description as actor_description,
 	st.status_uuid,
 	st.description as status_description,
@@ -1332,14 +1337,17 @@ EXECUTE PROCEDURE upsert_property_def ( );
 
 ----------------------------------------
 -- view property
+-- DROP VIEW vw_property;
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_property AS
 SELECT 
 	pr.property_uuid,
 	pr.property_def_uuid,
 	pd.short_description,
+    pd.property_def_unit_type,
 	pr.property_val,
 	pr.actor_uuid,
+    pr.property_class,
 	act.description as actor_description,
 	st.status_uuid,
 	st.description as status_description,
@@ -1372,6 +1380,9 @@ SELECT
 	mat.description,
 	pr.property_uuid,
 	pr.property_def_uuid,
+    mat.material_class,
+    pd.property_def_class,
+    pr.property_class,
 	pd.description as property_description,
 	pd.short_description as property_short_description,	
 	pr.property_val as property_value_val,
@@ -1406,18 +1417,23 @@ EXECUTE PROCEDURE upsert_material_property ( );
 
 ----------------------------------------
 -- view material_composite_property
+-- DROP VIEW vw_material_composite_property CASCADE
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_material_composite_property AS
 SELECT 
 	mc.material_composite_uuid,
 	mc.composite_uuid,
+    mc.composite_class,
 	mc.composite_description,
 	mc.component_uuid,
 	mc.component_description,
+    mc.component_class,
 	pr.property_uuid,
+    pr.property_class,
 	pr.property_def_uuid,
 	pd.description  AS property_description,
 	pd.short_description AS property_short_description,
+    pd.property_def_class,
     pr.property_val as property_value_val,
 	(pr.property_val).v_type_uuid AS property_value_type_uuid,
 	vl.val_type as property_value_type_description,
@@ -1716,6 +1732,7 @@ SELECT
 	(select val_val from get_val ( pd.default_val )) AS default_val_val,
 	( pd.default_val ).v_unit AS valunit,
     pd.default_val,
+    pd.parameter_def_unit_type,
     pd.required,
 	pd.actor_uuid,
 	act.description as actor_description,
@@ -1749,7 +1766,9 @@ SELECT
 	pr.parameter_def_uuid,
 	pd.description as parameter_def_description,
 	pr.parameter_val,
-    (select val_val from get_val ( pr.parameter_val )) AS parameter_value,
+    pr.parameter_val_actual,
+    (select val_val from get_val ( pr.parameter_val) ) AS parameter_value_nominal,
+    (select val_val from get_val ( pr.parameter_val_actual) ) AS parameter_value_actual,
     pd.val_type_uuid,
     pd.val_type_description,
     pd.valunit,
@@ -1763,7 +1782,6 @@ SELECT
     anote.note_to_array AS notes,
 	px.ref_parameter_uuid,
 	px.parameter_x_uuid
-
 FROM parameter pr
 JOIN vw_parameter_def pd on pr.parameter_def_uuid = pd.parameter_def_uuid
 JOIN parameter_x px on pr.parameter_uuid = px.parameter_uuid
@@ -2060,9 +2078,11 @@ SELECT
 	p.parameter_def_uuid,
 	p.parameter_def_description,
 	p.parameter_val,
+    p.parameter_val_actual,
     p.val_type_uuid,
     p.val_type_description,
-    p.parameter_value,
+    p.parameter_value_nominal,
+    p.parameter_value_actual,
     p.valunit,
 	p.actor_uuid as parameter_actor_uuid,
 	actp.description as parameter_actor_description,
@@ -2435,7 +2455,8 @@ SELECT
 	was.repeating,
 	was.parameter_def_uuid,
 	pd.description as parameter_def_description,
-	was.parameter_val,	
+	was.parameter_val,
+    was.parameter_val_actual,
 	was.calculation_uuid,
 	cdd.description as calculation_description,
 	was.source_material_uuid,
@@ -2474,12 +2495,14 @@ select * from
             e.description as experiment,
             w.description as workflow,
             ew.experiment_workflow_seq as workflow_seq,
-           'action' as workflow_object,
+            'action' as workflow_object,
+            'action_parameter' as parameter_type,
             ap.action_description as object_description,
             ap.action_uuid as object_uuid,
             ap.parameter_def_description,
             ap.parameter_uuid as parameter_uuid,
-            array[ap.parameter_val] as parameter_value
+            array[ap.parameter_val] as parameter_value_nominal,
+            array[ap.parameter_val_actual] as parameter_value_actual
     from vw_action_parameter ap
     JOIN vw_workflow w ON ap.workflow_uuid = w.workflow_uuid
     JOIN experiment_workflow ew ON w.workflow_uuid = ew.workflow_uuid
@@ -2492,11 +2515,13 @@ select * from
            was.workflow_description as workflow,
            ew.experiment_workflow_seq as workflow_seq,
            'action_set' as workflow_object,
+           'action_set_parameter' as parameter_type,
            was.description as object_description,
            was.workflow_action_set_uuid as object_uuid,
            was.parameter_def_description,
            null as parameter_uuid,
-           was.parameter_val as parameter_value
+           was.parameter_val as parameter_value_nominal,
+           was.parameter_val_actual as parameter_value_actual
     FROM vw_workflow_action_set was
     JOIN experiment_workflow ew ON was.workflow_uuid = ew.workflow_uuid
     JOIN experiment e ON ew.experiment_uuid = e.experiment_uuid
@@ -2508,11 +2533,13 @@ select * from
            was.workflow_description as workflow,
            ew.experiment_workflow_seq as workflow_seq,
            'action_set' as workflow_object,
+           'action_set_calculation_parameter' as parameter_type,
            was.description as object_description,
            was.workflow_action_set_uuid as object_uuid,
            cpd.parameter_def_description as parameter,
            cpd.parameter_def_uuid as parameter_uuid,
-           array[cpd.default_val] as parameter_value
+           array[cpd.default_val] as parameter_value_nominal,
+           null as parameter_value_actual
     FROM vw_workflow_action_set was
     JOIN vw_calculation c ON was.calculation_uuid = c.calculation_uuid
     LEFT JOIN vw_calculation_def cd ON c.calculation_def_uuid = cd.calculation_def_uuid
@@ -2521,6 +2548,8 @@ select * from
     JOIN experiment e ON ew.experiment_uuid = e.experiment_uuid
     where was.calculation_uuid is not null) ew
 order by experiment_uuid, workflow_seq, workflow_object, parameter_def_description;
+
+select * from vw_workflow_action_set where calculation_uuid is not null; -- todo here's your problem
 
 DROP TRIGGER IF EXISTS trigger_experiment_parameter_upsert ON vw_experiment_parameter;
 CREATE TRIGGER trigger_experiment_parameter_upsert INSTEAD OF UPDATE
@@ -2789,7 +2818,9 @@ JOIN (
 						json_agg(json_build_object(
 							'parameter_def_description', p.parameter_def_description,
 							'parameter_def_uuid', p.parameter_def_uuid,
-							'parameter_value', (SELECT get_val_json (p.parameter_val) AS get_val_json))) AS param
+							'parameter_value_nominal', (SELECT get_val_json (p.parameter_val) AS get_val_json))) AS param
+					        --'parameter_value_actual', ((SELECT get_val_json (p.parameter_val) AS get_val_json)) AS param_actual
+
 						FROM vw_action_parameter p
 						GROUP BY p.action_uuid) op
 				ON ws.object_uuid = op.object_uuid
@@ -3172,7 +3203,7 @@ JOIN (
 						json_agg(json_build_object(
 							'parameter_def_description', p.parameter_def_description,
 							'parameter_def_uuid', p.parameter_def_uuid,
-							'parameter_value', (SELECT get_val_json (p.parameter_val) AS get_val_json))) AS param
+							'parameter_value_nominal', (SELECT get_val_json (p.parameter_val) AS get_val_json))) AS param
 					FROM vw_action_parameter p
 					GROUP BY p.action_uuid) op
 				ON ws.object_uuid = op.object_uuid

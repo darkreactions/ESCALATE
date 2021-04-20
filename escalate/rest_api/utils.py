@@ -38,12 +38,12 @@ misc_views = set(['Note_x'])
 core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   'SystemtoolType', 'Inventory', 'InventoryMaterial',
                   'Calculation', 'CalculationDef', 'Material',
-                  'CompositeMaterial', 'MaterialRefnameDef', 'MaterialType', 'MaterialTypeAssign',
-                  'Person', 'Tag', 'TagType', 'Property', 'PropertyDef',
+                  'CompositeMaterial', 'CompositeMaterialProperty', 'MaterialRefnameDef', 'MaterialType', 'MaterialTypeAssign',
+                  'Person', 'Tag', 'TagType', 'Property', 'PropertyDef', 'UnitType',
                   'TypeDef', 'ParameterDef', 'Condition', 'ConditionDef', 'ConditionCalculationDefAssign',
                   'ActionParameter', 'ActionParameterDefAssign', 'Parameter', 'WorkflowType', 'WorkflowStep', 
-                  'WorkflowObject', 'UdfDef', 'Experiment', 'ExperimentWorkflow', 'ExperimentParameter',
-                  'BillOfMaterials', 'BomMaterial', 'BomCompositeMaterial', 'Measure', 'MeasureType', 'Outcome'])
+                  'WorkflowObject', 'UdfDef', 'Experiment', 'ExperimentWorkflow', #'ExperimentParameter',
+                  'BillOfMaterials', 'BomMaterial', 'BomCompositeMaterial', 'Measure', 'MeasureType', 'MeasureDef', 'Outcome'])
 
 GET_only_views = set(['TypeDef'])
 
@@ -51,13 +51,16 @@ unexposed_views = set(['TagAssign', 'Note', 'Edocument'])
 
 custom_serializer_views = set(['ActionDef', 'Action', 'Workflow', 'WorkflowActionSet'])
 
+# Viewsets that are not associated with a model exclusively
+non_model_views = set(['Experiment', 'ExperimentTemplate'])
+
 perform_create_views = set(['PropertyDef', 'MaterialProperty'])
 
 # Set of models for rest_api/serializers.py
 rest_serializer_views = core_views | misc_views | perform_create_views
 
 # Set of models for all exposed urls in rest_api/urls.py
-rest_exposed_url_views = core_views | custom_serializer_views | perform_create_views
+rest_exposed_url_views = core_views | custom_serializer_views | perform_create_views | non_model_views
 
 # Set of models for all nested urls in rest_api/urls.py
 rest_nested_url_views = (core_views | misc_views | custom_serializer_views |
