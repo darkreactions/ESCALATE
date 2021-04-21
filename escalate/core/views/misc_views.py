@@ -106,14 +106,15 @@ class MaterialEditView(TemplateView):
 
 
 class ExperimentDetailEditView(TemplateView):
+    '''
+    Combination of Material Edit View and Parameter Edit View
+    displays q1_material as well as q1-q3 and allows updating form from details page
+    '''
+    
     template_name = "core/experiment_detail_editor.html"
     ParameterFormSet = formset_factory(NominalActualForm, extra=0)
     MaterialFormSet = formset_factory(InventoryMaterialForm, extra=0)
-    '''
-    get_context_data is just a copy of parametereditview currently
-    add material edit view into this form as well and run through is_valid
-    need to add cleaned post for this form
-    '''
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         related_exp = 'workflow__experiment_workflow_workflow__experiment'
@@ -162,7 +163,6 @@ class ExperimentDetailEditView(TemplateView):
                                 workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')).prefetch_related(
                                     'workflow__experiment_workflow_workflow__experiment').distinct('parameter_uuid')  
                     
-            #if row.parameter_value in q1 is empty replace with q1 material which will be defined above
             initial_q1_material = [{'value': row.inventory_material} for row in q1_material]
             initial_q1 = [{'value': row.parameter_value} for row in q1]
             initial_q2 = [{'value': param} for row in q2 for param in row.parameter_value]
