@@ -1,3 +1,4 @@
+from core.models.view_tables.organization import Actor
 import json
 from django.db.models import F, Value
 from django.views.generic import TemplateView
@@ -16,7 +17,7 @@ from core.utilities.utils import experiment_copy
 from core.utilities.experiment_utils import update_dispense_action_set
 import core.models
 from core.models.view_tables import Note, TagAssign, Tag
-from core.experiment_templates import liquid_solid_extraction, resin_weighing
+from core.experiment_templates import liquid_solid_extraction, resin_weighing, perovskite_demo
 from core.custom_types import Val
 
 #SUPPORTED_CREATE_WFS = ['liquid_solid_extraction', 'resin_weighing']
@@ -42,11 +43,17 @@ class CreateExperimentView(TemplateView):
     NominalActualFormSet = formset_factory(NominalActualForm, extra=0)
 
     def __init__(self, *args, **kwargs):
-        self.all_experiments = Experiment.objects.filter(parent__isnull=True)
+        #self.all_experiments = Experiment.objects.filter(parent__isnull=True)
         super().__init__(*args, **kwargs)
+        print(kwargs)
+        
 
     def get_context_data(self, **kwargs):    
+        # Select templates that belong to the current lab
         context = super().get_context_data(**kwargs)
+        org_id = self.request.session['current_org_id']
+        lab = Actor.objects.get(organization=org_id, person__isnull=True)
+        self.all_experiments = Experiment.objects.filter(parent__isnull=True, lab=lab)
         context['all_experiments'] = self.all_experiments
         return context
 
@@ -192,7 +199,7 @@ class CreateExperimentView(TemplateView):
         return context
 
     def post(self, request, *args, **kwargs):
-        context = {'all_experiments': self.all_experiments}
+        context = self.get_context_data(**kwargs)
         if 'select_exp_template' in request.POST:
             exp_uuid = request.POST['select_exp_template']
             if exp_uuid:
@@ -260,11 +267,15 @@ class CreateExperimentView(TemplateView):
                                 query.save()
                 # begin: template-specific logic
                 if template_name in SUPPORTED_CREATE_WFS:
-                    lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
+                    
                     if template_name == 'liquid_solid_extraction':
+                        lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
                         new_lsr_pk, lsr_msg = liquid_solid_extraction(q3_formset, q3, experiment_copy_uuid, lsr_edoc, exp_name)
                     elif template_name == 'resin_weighing':
+                        lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
                         new_lsr_pk, lsr_msg = resin_weighing(experiment_copy_uuid, lsr_edoc, exp_name)
+                    elif template_name == 'perovskite_demo':
+                        new_lsr_pk, lsr_msg = perovskite_demo(experiment_copy_uuid, exp_name)
 
                     # handle library studio file if relevant
                     if new_lsr_pk is not None:
