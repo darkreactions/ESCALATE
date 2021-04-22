@@ -71,7 +71,7 @@ CREATE OR REPLACE FUNCTION load_edocuments (p_actor_uuid uuid)
 	RETURNS bool
 	AS $$
 DECLARE
-	pathname varchar := '/Users/gcattabriga/Downloads/GitHub/escalate_wip/';
+	pathname varchar := 'escalate_wip/';
 	filename VARCHAR := NULL;
 	fullfilename VARCHAR := NULL;
 	fullpathname varchar := NULL;
@@ -107,7 +107,7 @@ Date:			2020.05.15
 Description:	loads csv file (_csv) into load table (_table) 
 Notes:			assumes a column header row
 							drop function if exists load_csv(_csv varchar, _table varchar) cascade;
-Example:		select load_csv('/Users/gcattabriga/Downloads/GitHub/ESCALATE_report/iodides/REPORT/iodides.csv', 'load_v2_iodides_temp');
+Example:		select load_csv('/ESCALATE_report/iodides/REPORT/iodides.csv', 'load_v2_iodides_temp');
 */
 CREATE OR REPLACE FUNCTION load_csv (_csv varchar, _table varchar)
 	RETURNS int
@@ -156,13 +156,13 @@ Author:			G. Cattabriga
 Date:			2020.07.10
 Description:	loads experiment json into load_exp_json table 
 Notes:			assumes load_exp_json exists with at least the following columns: uid, exp_type, exp_json, add_date 
-Example:		select load_experiment_json ('/Users/gcattabriga/Downloads/GitHub/ESCALATE_report/iodides/', 'wf1_iodides');
+Example:		select load_experiment_json ('/ESCALATE_report/iodides/', 'wf1_iodides');
 */
 CREATE OR REPLACE FUNCTION load_experiment_json (_jsondir varchar, _exp_type varchar)
 	RETURNS int
 	AS $$
 DECLARE
-	pathname varchar := _jsondir;  				--'/Users/gcattabriga/escalate_report/TEST_DATA/';
+	pathname varchar := _jsondir;  				--'/Users/gcattabriga//ESCALATE_report/TEST_DATA/';
 	filename VARCHAR := null;
 	uid VARCHAR := null;
 	fcontents varchar := null;
@@ -194,10 +194,10 @@ CREATE TABLE "dev"."load_exp_json" (
 );
 ALTER TABLE "dev"."load_exp_json" ADD CONSTRAINT "load_exp_json_pkey" PRIMARY KEY ("uid");
 
-select load_experiment_json ('/Users/gcattabriga/Downloads/GitHub/ESCALATE_report/wf1_iodides/', 'wf1_iodides');
-select load_experiment_json ('/Users/gcattabriga/Downloads/GitHub/ESCALATE_report/wf1_bromides/', 'wf1_bromides');
-select load_experiment_json ('/Users/gcattabriga/Downloads/GitHub/ESCALATE_report/wf3_iodide/', 'wf3_iodide');
-select load_experiment_json ('/Users/gcattabriga/Downloads/GitHub/ESCALATE_report/wf3_alloying/', 'wf3_alloying');
+select load_experiment_json ('/ESCALATE_report/wf1_iodides/', 'wf1_iodides');
+select load_experiment_json ('/ESCALATE_report/wf1_bromides/', 'wf1_bromides');
+select load_experiment_json ('/ESCALATE_report/wf3_iodide/', 'wf3_iodide');
+select load_experiment_json ('/ESCALATE_report/wf3_alloying/', 'wf3_alloying');
 
 DROP TABLE load_temp_materials;
 CREATE TABLE load_temp_materials AS
@@ -351,7 +351,7 @@ left join vw_material vm
 on mat.inchikey = vm.inchikey
 where mat.inchikey <> 'null'
 order by 1
-*/
+
 
 /*
 Name:			load_escalate_experiment()
@@ -363,7 +363,7 @@ Date:			2020.06.10
 Description:	loads experiment load file (_loadtable) into experiment table 
 Notes:			assumes the following columns: _exp_no, _raw_operator, _raw_user_generated_experimentname, _raw_datecreated, _raw_lab, _raw_labwareid, 
 				drop function if exists load_experiment(_loadtable) cascade;
-Example:		select load_csv('/Users/gcattabriga/Downloads/GitHub/ESCALATE_report/iodides/REPORT/iodides.csv', 'load_v2_iodides_temp');
+Example:		select load_csv('/ESCALATE_report/iodides/REPORT/iodides.csv', 'load_v2_iodides_temp');
 */
 CREATE OR REPLACE FUNCTION load_escalate_experiments (_loadtable varchar)
 	RETURNS int

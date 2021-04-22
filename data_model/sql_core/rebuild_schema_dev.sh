@@ -23,17 +23,22 @@ psql -h localhost -d escalate -U escalate -f prod_initialize_db.sql >> rebuild_d
 echo "creating tables..."
 psql -h localhost -d escalate -U escalate -f prod_tables.sql >> rebuild_dev.log 2>&1
 
-echo "loading gary data dump"
-for file in `ls ../sql_dataload/*sql`; do
-  echo "file: $file"
-  psql -h localhost -d escalate -U escalate -f $file >> rebuild_dev.log 2>&1
-done
-
 echo "creating functions..."
 psql -h localhost -d escalate -U escalate -f prod_functions.sql >> rebuild_dev.log 2>&1
 
 echo "creating upserts..."
 psql -h localhost -d escalate -U escalate -f prod_upserts.sql >> rebuild_dev.log 2>&1
+
+echo "loading gary data dump"
+# yes, this needs to be done before the views are created
+# the views depend on the tables created herein
+for file in `ls ../sql_dataload/*sql`; do
+  echo "file: $file"
+  psql -h localhost -d escalate -U escalate -f $file >> rebuild_dev.log 2>&1
+done
+
+echo "running ETL..."
+psql -h localhost -d escalate -U escalate -f ../prod_etl.sql >> rebuild_dev.log 2>&1
 
 echo "creating views..."
 psql -h localhost -d escalate -U escalate -f prod_views.sql >> rebuild_dev.log 2>&1
@@ -50,36 +55,33 @@ psql -h localhost -d escalate -U escalate -f hc_load_2_inventory.sql >> rebuild_
 echo "updating calculations..."
 psql -h localhost -d escalate -U escalate -f hc_load_3_calculation.sql >> rebuild_dev.log 2>&1
 
-echo "running ETL..."
-psql -h localhost -d escalate -U escalate -f prod_etl.sql >> rebuild_dev.log 2>&1
-
 ## run SQL function tests
 echo "running tests..."
 (cd ../sql_test && psql -h localhost -d escalate -U escalate -f test_functions.sql >> test_dev.log 2>&1)
 
-echo "loading demo data"
-for file in `ls ../sql_demo_data/*sql | grep load`; do
-  echo "file: $file"
-  psql -h localhost -d escalate -U escalate -f $file >> rebuild_dev.log 2>&1
-done
-for file in `ls ../sql_demo_data/*sql | grep -v cocktail | grep -v load`; do
-  echo "file: $file"
-  psql -h localhost -d escalate -U escalate -f $file >> rebuild_dev.log 2>&1
-done
-#echo "Loading Separation materials"
-#psql -h localhost -d escalate -U escalate -f dev_sep_materials.sql >> rebuild_dev.log 2>&1
-#
-#echo "Loading Separation actions"
-#psql -h localhost -d escalate -U escalate -f dev_sep_actions.sql >> rebuild_dev.log 2>&1
-#
-#echo "Loading Separation liq sol"
-#psql -h localhost -d escalate -U escalate -f dev_sep_wf_liq_sol.sql >> rebuild_dev.log 2>&1
-#
-#echo "Loading Separation resin weigh"
-#psql -h localhost -d escalate -U escalate -f dev_sep_resin_weigh.sql >> rebuild_dev.log 2>&1
-#
-#echo "Loading HC wf1"
-#psql -h localhost -d escalate -U escalate -f hc_create_wf1.sql >> rebuild_dev.log 2>&1
+#echo "loading demo data"
+#for file in `ls ../sql_demo_data/*sql | grep load`; do
+#  echo "file: $file"
+#  psql -h localhost -d escalate -U escalate -f $file >> rebuild_dev.log 2>&1
+#done
+#for file in `ls ../sql_demo_data/*sql | grep -v cocktail | grep -v load`; do
+#  echo "file: $file"
+#  psql -h localhost -d escalate -U escalate -f $file >> rebuild_dev.log 2>&1
+#done
+##echo "Loading Separation materials"
+##psql -h localhost -d escalate -U escalate -f dev_sep_materials.sql >> rebuild_dev.log 2>&1
+##
+##echo "Loading Separation actions"
+##psql -h localhost -d escalate -U escalate -f dev_sep_actions.sql >> rebuild_dev.log 2>&1
+##
+##echo "Loading Separation liq sol"
+##psql -h localhost -d escalate -U escalate -f dev_sep_wf_liq_sol.sql >> rebuild_dev.log 2>&1
+##
+##echo "Loading Separation resin weigh"
+##psql -h localhost -d escalate -U escalate -f dev_sep_resin_weigh.sql >> rebuild_dev.log 2>&1
+##
+##echo "Loading HC wf1"
+##psql -h localhost -d escalate -U escalate -f hc_create_wf1.sql >> rebuild_dev.log 2>&1
 
 printf '\ndone.\n'
 printf "errors from test_dev.log:\n"
