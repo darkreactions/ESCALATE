@@ -172,7 +172,7 @@ class ExperimentDetailEditView(TemplateView):
             form_kwargs = {'org_uuid':self.request.session['current_org_id']}
             
             q1_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q1]
-            q2_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q2]
+            q2_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q2 for param in row.parameter_value]
             q3_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q3]
             
             context['q1_material_formset'] = self.MaterialFormSet(initial=initial_q1_material, prefix='q1_material', form_kwargs=form_kwargs)
