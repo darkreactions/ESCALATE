@@ -7,6 +7,12 @@ from core.models.view_tables import ActionParameter, WorkflowActionSet, Experime
 from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import InventoryMaterialForm, NominalActualForm
 
+from core.forms.forms import ExperimentNameForm
+from core.utilities.utils import experiment_copy
+import json
+from django.shortcuts import render
+from core.utilities.experiment_utils import update_dispense_action_set
+
 class ParameterEditView(TemplateView):
     template_name = "core/parameter_editor.html"
     ParameterFormSet = formset_factory(NominalActualForm, extra=0)
@@ -187,3 +193,65 @@ class ExperimentDetailEditView(TemplateView):
 
             context['experiment'] = experiment
         return context
+        
+    def post(self, request, *args, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # get the experiment template uuid and name
+        exp_template = Experiment.objects.get(pk=request.session['experiment_template_uuid'])
+        template_name = exp_template.description
+
+        # construct all formsets
+        exp_name_form = ExperimentNameForm(request.POST)
+        q1_formset = self.NominalActualFormSet(request.POST, prefix='q1_param')
+        q2_formset = self.NominalActualFormSet(request.POST, prefix='q2_param')
+        q3_formset = self.NominalActualFormSet(request.POST, prefix='q3_param')
+        q1_material_formset = self.MaterialFormSet(request.POST,
+                                                   prefix='q1_material',
+                                                   form_kwargs={'org_uuid': self.request.session['current_org_id']})
+        if all([exp_name_form.is_valid(),
+                q1_formset.is_valid(), 
+                q2_formset.is_valid(), 
+                q3_formset.is_valid(), 
+                q1_material_formset.is_valid()]):
+            
+            exp_name = exp_name_form.cleaned_data['exp_name']
+
+            # make the experiment copy: this will be our new experiment
+            experiment_copy_uuid = experiment_copy(str(exp_template.uuid), exp_name)
+
+            # get the elements of the new experiment that we need to update with the form values
+            q1, q2, q3 = self.get_action_parameter_querysets(experiment_copy_uuid)
+            q1_material = BomMaterial.objects.filter(bom__experiment=experiment_copy_uuid).only(
+                    'uuid').annotate(
+                    object_description=F('description')).annotate(
+                    object_uuid=F('uuid')).annotate(
+                    experiment_uuid=F('bom__experiment__uuid')).annotate(
+                    experiment_description=F('bom__experiment__description')).prefetch_related('bom__experiment')
+
+            # update values of new experiment where no special logic is required
+            for query_set, query_form_set, field in zip([q1,               q1_material,         q2],
+                                                        [q1_formset,       q1_material_formset, q2_formset],
+                                                        ['parameter_val_actual', 'inventory_material', None]):
+                for i, form in enumerate(query_form_set):
+                    if form.has_changed() and form.is_valid():
+                        data = form.cleaned_data
+                        print(data.keys())
+                        desc = json.loads(data['uuid'])
+                        if len(desc) == 2:
+                            object_desc, param_def_desc = desc
+                            query = query_set.get(object_description=object_desc, parameter_def_description=param_def_desc)
+                        else:
+                            query = query_set.get(object_description=desc[0])
+
+                        # need to update value for material, q1-q3 nominal
+                        # need to update actual_value for q1,q3 actual and need to create new method for q2
+                        if query_set is q2:
+                            update_dispense_action_set(query, data['value'])
+                        else:
+                            setattr(query, field, data['value'])
+                            query.save()
+        else:
+            return render(request, self.template_name, context)
+# this might not be needed       
+        return render(request, self.template_name, context)
+# end: self.post()
