@@ -12,6 +12,7 @@ from core.utilities.utils import experiment_copy
 import json
 from django.shortcuts import render
 from core.utilities.experiment_utils import update_dispense_action_set
+from core.custom_types import Val
 
 class ParameterEditView(TemplateView):
     template_name = "core/parameter_editor.html"
@@ -116,9 +117,8 @@ class ExperimentDetailEditView(TemplateView):
     Combination of Material Edit View and Parameter Edit View
     displays q1_material as well as q1-q3 and allows updating form from details page
     '''
-    
     template_name = "core/experiment_detail_editor.html"
-    ParameterFormSet = formset_factory(NominalActualForm, extra=0)
+    NominalActualFormSet = formset_factory(NominalActualForm, extra=0)
     MaterialFormSet = formset_factory(InventoryMaterialForm, extra=0)
 
     def get_context_data(self, **kwargs):
@@ -128,77 +128,126 @@ class ExperimentDetailEditView(TemplateView):
         related_exp_material = 'bom__experiment'
         #print(kwargs['pk'])
 
-        if 'pk' in kwargs:
-            experiment = Experiment.objects.get(pk=kwargs['pk'])
-            q1_material = BomMaterial.objects.filter(bom__experiment=experiment).only(
-                        'uuid').annotate(
+        experiment = Experiment.objects.get(pk=kwargs['pk'])
+        q1_material = BomMaterial.objects.filter(bom__experiment=experiment).only(
+                    'uuid').annotate(
+                    object_description=F('description')).annotate(
+                    object_uuid=F('uuid')).annotate(
+                    experiment_uuid=F(f'{related_exp_material}__uuid')).annotate(
+                    experiment_description=F(f'{related_exp_material}__description')).prefetch_related(f'{related_exp_material}')
+            
+        q1 = ActionParameter.objects.filter(workflow__experiment_workflow_workflow__experiment=kwargs['pk']).only('uuid').annotate(
+                    object_description=F('action_description')).annotate(
+                    object_uuid=F('uuid')).annotate(
+                    parameter_value=F('parameter_val_nominal')).annotate(
+                    experiment_uuid=F(f'{related_exp}__uuid')).annotate(
+                    experiment_description=F(f'{related_exp}__description')).annotate(
+                    workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
+                    )).filter(workflow_action_set__isnull=True).prefetch_related(f'{related_exp}')
+        
+        q2 = WorkflowActionSet.objects.filter(parameter_val_nominal__isnull=False, workflow__experiment_workflow_workflow__experiment=kwargs['pk']).only(
+                        'workflow').annotate(
                         object_description=F('description')).annotate(
                         object_uuid=F('uuid')).annotate(
-                        experiment_uuid=F(f'{related_exp_material}__uuid')).annotate(
-                        experiment_description=F(f'{related_exp_material}__description')).prefetch_related(f'{related_exp_material}')
-                
-            q1 = ActionParameter.objects.filter(workflow__experiment_workflow_workflow__experiment=kwargs['pk']).only('uuid').annotate(
-                        object_description=F('action_description')).annotate(
-                        object_uuid=F('uuid')).annotate(
+                        parameter_def_description=F('parameter_def__description')).annotate(
+                        parameter_uuid=Value(None, RetUUIDField())).annotate(
                         parameter_value=F('parameter_val_nominal')).annotate(
                         experiment_uuid=F(f'{related_exp}__uuid')).annotate(
                         experiment_description=F(f'{related_exp}__description')).annotate(
-                        workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
-                        )).filter(workflow_action_set__isnull=True).prefetch_related(f'{related_exp}')
-            
-            q2 = WorkflowActionSet.objects.filter(parameter_val_nominal__isnull=False, workflow__experiment_workflow_workflow__experiment=kwargs['pk']).only(
+                        workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
+                        ).prefetch_related(f'{related_exp}')
+        q3 = WorkflowActionSet.objects.filter(calculation__isnull=False, workflow__experiment_workflow_workflow__experiment=kwargs['pk']).only(
                             'workflow').annotate(
                             object_description=F('description')).annotate(
                             object_uuid=F('uuid')).annotate(
-                            parameter_def_description=F('parameter_def__description')).annotate(
-                            parameter_uuid=Value(None, RetUUIDField())).annotate(
-                            parameter_value=F('parameter_val_nominal')).annotate(
+                            parameter_def_description=F('calculation__calculation_def__parameter_def__description')).annotate(
+                            parameter_uuid=F('calculation__calculation_def__parameter_def__uuid')).annotate(
+                            parameter_value=F('calculation__calculation_def__parameter_def__default_val')).annotate(
                             experiment_uuid=F(f'{related_exp}__uuid')).annotate(
                             experiment_description=F(f'{related_exp}__description')).annotate(
-                            workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
-                            ).prefetch_related(f'{related_exp}')
-            q3 = WorkflowActionSet.objects.filter(calculation__isnull=False, workflow__experiment_workflow_workflow__experiment=kwargs['pk']).only(
-                                'workflow').annotate(
-                                object_description=F('description')).annotate(
-                                object_uuid=F('uuid')).annotate(
-                                parameter_def_description=F('calculation__calculation_def__parameter_def__description')).annotate(
-                                parameter_uuid=F('calculation__calculation_def__parameter_def__uuid')).annotate(
-                                parameter_value=F('calculation__calculation_def__parameter_def__default_val')).annotate(
-                                experiment_uuid=F(f'{related_exp}__uuid')).annotate(
-                                experiment_description=F(f'{related_exp}__description')).annotate(
-                                workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')).prefetch_related(
-                                    'workflow__experiment_workflow_workflow__experiment').distinct('parameter_uuid')  
-                    
-            initial_q1_material = [{'value': row.inventory_material} for row in q1_material]
-            initial_q1 = [{'value': row.parameter_value} for row in q1]
-            initial_q2 = [{'value': param} for row in q2 for param in row.parameter_value]
-            initial_q3 = [{'value': row.parameter_value} for row in q3]
+                            workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')).prefetch_related(
+                                'workflow__experiment_workflow_workflow__experiment').distinct('parameter_uuid')  
+        
+        initial_q1 = []
+        initial_q2 = []
+        initial_q3 = []
 
-            q1_material_details = [f'{row.object_description}' for row in q1_material]
-            form_kwargs = {'org_uuid':self.request.session['current_org_id']}
+        #q1 material        
+        initial_q1_material = [{'value': row.inventory_material} for row in q1_material]
+        #q1 initial
+        for row in q1:
+            data = {'value': row.parameter_value, \
+                'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])}
+            if 'array' in row.parameter_value.val_type.description:
+                data['actual_value'] = Val.from_dict({'type':'array_num', \
+                                                      'value':[0]*len(row.parameter_value.value), \
+                                                      'unit':row.parameter_value.unit})
+            else:
+                data['actual_value'] = Val.from_dict({'type':'num', \
+                                                      'value':0, \
+                                                      'unit':row.parameter_value.unit})
             
-            q1_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q1]
-            q2_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q2 for param in row.parameter_value]
-            q3_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q3]
+            initial_q1.append(data)
+
+        #q2 initial
+        for row in q2:
+            for param in row.parameter_value:
+                data = {'value': param, \
+                    'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])}
+                if 'array' in param.val_type.description:
+                    data['actual_value'] = Val.from_dict({'type':'array_num', \
+                                                          'value':[0]*len(param.value), \
+                                                          'unit':param.unit})
+                else:
+                    data['actual_value'] = Val.from_dict({'type':'num', \
+                                                          'value':0, \
+                                                          'unit':param.unit})
+                
+                initial_q2.append(data)
             
-            context['q1_material_formset'] = self.MaterialFormSet(initial=initial_q1_material, prefix='q1_material', form_kwargs=form_kwargs)
-            context['q1_formset'] = self.ParameterFormSet(initial=initial_q1, prefix='q1')
-            context['q2_formset'] = self.ParameterFormSet(initial=initial_q2, prefix='q2')
-            context['q3_formset'] = self.ParameterFormSet(initial=initial_q3, prefix='q3')
+        #q3 initial
+        for row in q3:
+            data = {'value': row.parameter_value, \
+                'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])}
+            if 'array' in row.parameter_value.val_type.description:
+                data['actual_value'] = Val.from_dict({'type':'array_num', \
+                                                      'value':[0]*len(row.parameter_value.value), \
+                                                      'unit':row.parameter_value.unit})
+            else:
+                data['actual_value'] = Val.from_dict({'type':'num', \
+                                                      'value':0, \
+                                                      'unit':row.parameter_value.unit})
+            
+            initial_q3.append(data)
 
-            context['q1_material_details'] = q1_material_details
-            context['q1_details'] = q1_details
-            context['q2_details'] = q2_details
-            context['q3_details'] = q3_details
+        q1_material_details = [f'{row.object_description}' for row in q1_material]
+        form_kwargs = {'org_uuid':self.request.session['current_org_id']}
+        
+        q1_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q1]
+        q2_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q2 for param in row.parameter_value]
+        q3_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q3]
+        
+        context['q1_material_formset'] = self.MaterialFormSet(initial=initial_q1_material, prefix='q1_material', form_kwargs=form_kwargs)
+        context['q1_formset'] = self.NominalActualFormSet(initial=initial_q1, prefix='q1_param')
+        context['q2_formset'] = self.NominalActualFormSet(initial=initial_q2, prefix='q2_param')
+        context['q3_formset'] = self.NominalActualFormSet(initial=initial_q3, prefix='q3_param')
 
-            context['experiment'] = experiment
+        context['q1_material_details'] = q1_material_details
+        context['q1_details'] = q1_details
+        context['q2_details'] = q2_details
+        context['q3_details'] = q3_details
+
+        context['experiment'] = experiment
         return context
         
     def post(self, request, *args, **kwargs):
-        context = super().get_context_data(**kwargs)
+        context = self.get_context_data(**kwargs)
+        print(context)
         # get the experiment template uuid and name
         exp_template = Experiment.objects.get(pk=request.session['experiment_template_uuid'])
+        #print("THIS IS THE EXPERIMENT TEMPLATE:",exp_template)
         template_name = exp_template.description
+        #print("THIS IS THE EXPERIMENT DESCRIPTION:",exp_template.uuid)
 
         # construct all formsets
         exp_name_form = ExperimentNameForm(request.POST)
@@ -217,7 +266,7 @@ class ExperimentDetailEditView(TemplateView):
             exp_name = exp_name_form.cleaned_data['exp_name']
 
             # make the experiment copy: this will be our new experiment
-            experiment_copy_uuid = experiment_copy(str(exp_template.uuid), exp_name)
+            experiment_copy_uuid = F(f'{related_exp}__uuid')
 
             # get the elements of the new experiment that we need to update with the form values
             q1, q2, q3 = self.get_action_parameter_querysets(experiment_copy_uuid)
