@@ -40,6 +40,8 @@ def update_dispense_action_set(dispense_action_set, volumes, unit='mL'):
         v = [Val.from_dict({'type': 'num', 'value': vol, 'unit': unit}) for vol in volumes]
     elif isinstance(volumes, Val):
         v = [volumes]
+    elif isinstance(volumes, dict):
+        v = [Val.from_dict(volumes)]
     dispense_action_set_params['calculation_id'] = None
     dispense_action_set_params['parameter_val_nominal'] = v
     instance = WorkflowActionSet(**dispense_action_set_params)

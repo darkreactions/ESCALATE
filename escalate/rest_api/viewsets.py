@@ -15,6 +15,8 @@ from rest_framework.exceptions import ParseError
 from rest_framework.parsers import FileUploadParser
 from rest_framework.response import Response
 from rest_framework import status
+from django_auto_prefetching import AutoPrefetchViewSetMixin
+from rest_framework.reverse import reverse
 
 from django_filters import rest_framework as filters
 from url_filter.integrations.drf import DjangoFilterBackend
@@ -26,7 +28,7 @@ from .serializers import *
 import core.models
 from core.models.view_tables import (ActionParameter, WorkflowActionSet, 
                                      Experiment, BomMaterial, 
-                                     ParameterDef, Edocument)
+                                     ParameterDef, Edocument, InventoryMaterial)
 import rest_api
 from .utils import rest_viewset_views, perform_create_views
 from .rest_docs import rest_docs
@@ -95,7 +97,7 @@ class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
                     experiment_description=F(f'{related_exp}__description')).annotate(
                     workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
                     )).filter(workflow_action_set__isnull=True).prefetch_related(f'{related_exp}')
-        q2 = WorkflowActionSet.objects.filter(**{f'{related_exp}': exp_uuid, 'parameter_val__isnull': False}).annotate(
+        q2 = WorkflowActionSet.objects.filter(**{f'{related_exp}': exp_uuid, 'parameter_val_nominal__isnull': False}).annotate(
                         object_description=F('description')).annotate(
                         object_uuid=F('uuid')).annotate(
                         parameter_def_description=F('parameter_def__description')).annotate(
@@ -122,12 +124,19 @@ class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
     def get_material_queryset(self, exp_uuid):
         related_exp = 'bom__experiment'
         experiment = Experiment.objects.get(pk=exp_uuid)
-        q1 = BomMaterial.objects.filter(bom__experiment=experiment).only(
+        #q1 = BomMaterial.objects.filter(bom__experiment=experiment).only(
+        #         'uuid').annotate(
+        #         object_description=F('description')).annotate(
+        #         object_uuid=F('uuid')).annotate(
+        #         experiment_uuid=F(f'{related_exp}__uuid')).annotate(
+        #         experiment_description=F(f'{related_exp}__description')).prefetch_related(f'{related_exp}')
+
+        q1 = InventoryMaterial.objects.filter(bom_material_inventory_material__bom__experiment=experiment).only(
                 'uuid').annotate(
                 object_description=F('description')).annotate(
-                object_uuid=F('uuid')).annotate(
-                experiment_uuid=F(f'{related_exp}__uuid')).annotate(
-                experiment_description=F(f'{related_exp}__description')).prefetch_related(f'{related_exp}')
+                object_uuid=F('uuid'))#.annotate(
+                #experiment_uuid=F(f'{related_exp}__uuid')).annotate(
+                #experiment_description=F(f'{related_exp}__description')).prefetch_related(f'{related_exp}')
 
         return q1
 
@@ -140,7 +149,7 @@ class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
         exp_params3 = [{'value': row.parameter_value, 'object_description': f'{row.object_description}', 'parameter_def_description': f'{row.parameter_def_description}'} for row in q3]
         
         results = {'experiment_parameters_1': exp_params1, 'experiment_parameters_2': exp_params2, 'experiment_parameters_3': exp_params3}
-        mat_params = [{'material_name': row.object_description , 'value': request.build_absolute_uri(reverse('bommaterial-detail', args=[row.object_uuid]))} for row in q1_mat]
+        mat_params = [{'material_name': row.object_description, 'value': request.build_absolute_uri(reverse('inventorymaterial-detail', args=[row.object_uuid]))} for row in q1_mat]
         
         results.update({'material_parameters': mat_params, 'experiment_name': ''})
         serializer = ExperimentDetailSerializer(results)
@@ -165,17 +174,32 @@ class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
                     param_def_desc = entry['parameter_def_description']
                     query = query_set.get(object_description=object_desc, parameter_def_description=param_def_desc)
                 else:
-                    object_desc = entry['material_name']
-                    query = query_set.get(object_description=object_desc)
+                    continue
+                    # object_desc = entry['material_name']
+                    # try:
+                    #     query = query_set.get(object_description=object_desc)
+                    # except Exception as e:
+                    #     pass
+
+                    # todo new values actually arent getting saved...
                 
                 # q2 gets handled differently because its a workflow action set
                 if query_set is q2:
                     update_dispense_action_set(query, entry['value'])
-                else:
-                    setattr(query, field, entry['value'])
+                # elif query_set is q1_mat:
+                #     setattr(query, field)
+                elif query_set in [q1, q3]:
+                    v = Val.from_dict(entry['value'])
+                    if query_set is q3:
+                        v = [v]
+                    setattr(query, field, v)
                     query.save()
+                    # try:
+                    #     query.save()
+                    # except Exception as e:
+                    #     pass
 
-        return Response({})
+        return Response({'new_experiment_created': request.build_absolute_uri(reverse('experiment-detail', args=[experiment_copy_uuid]))})
 
 
 
@@ -186,7 +210,7 @@ class ExperimentTemplateViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSe
     filter_backends = [DjangoFilterBackend]
     filter_fields =  '__all__'
 
-class ExperimentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
+class ExperimentViewSet(NestedViewSetMixin, AutoPrefetchViewSetMixin, viewsets.ReadOnlyModelViewSet):
     queryset = Experiment.objects.filter(parent__isnull=False)
     serializer_class = ExperimentSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
