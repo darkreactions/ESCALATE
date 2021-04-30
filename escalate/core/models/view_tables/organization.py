@@ -136,14 +136,16 @@ class Person(models.Model):
                                      blank=True, null=True,
                                      db_column='organization_uuid',
                                      related_name='person_organization')
-    organization_full_name = models.CharField(max_length=255,
-                                              blank=True, null=True)
+    #organization_full_name = models.CharField(max_length=255,
+    #                                          blank=True, null=True)
     added_organization = models.ManyToManyField(
-        'Organization', through='Actor', related_name='person_added_organization')
+        'Organization',
+        through='Actor',
+        related_name='person_added_organization')
 
     class Meta:
         managed = False
-        db_table = 'vw_person'
+        db_table = 'person'
 
     def __str__(self):
         return "{} {}".format(self.first_name, self.last_name)
