@@ -302,7 +302,8 @@ class MaterialProperty(models.Model):
                                                   null=True,
                                                   db_column='property_short_description',
                                                   editable=False)
-    value = ValField(max_length=255, blank=True, null=True, db_column='property_value_val')
+    value = models.CharField(max_length=255, blank=True, null=True, db_column='property_value')
+    value_unit = models.CharField(max_length=255, blank=True, null=True, editable=False, db_column='property_value_unit')
     #value = CharField(max_length=255, blank=True, null=True, db_column='property_value_val')
     actor = models.ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,

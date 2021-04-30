@@ -606,6 +606,8 @@ class Experiment(models.Model):
     owner = models.ForeignKey('Actor', db_column='owner_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
                               related_name='experiment_owner')
     workflow = models.ManyToManyField('Workflow', through='ExperimentWorkflow', related_name='experiment_workflow')
+    # outcome = models.ForeignKey('Outcome', related_name='experiment_outcome',
+    #                             blank=True, null=True, on_delete=models.DO_NOTHING) # todo: should this be manytomany?
     owner_description = models.CharField(
         max_length=255, db_column='owner_description')
     operator = models.ForeignKey('Actor', db_column='operator_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
