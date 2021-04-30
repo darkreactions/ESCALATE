@@ -6,7 +6,10 @@
 {% block content %}
 
 <form method="post">{% csrf_token %}
-
+    {{ q1_material_formset.management_form }}
+    {{ q1_formset.management_form }}
+    {{ q2_formset.management_form }}
+    {{ q3_formset.management_form }}
     <div class="treeview-animated border mx-4 my-4">
         <h6 class="pt-3 pl-3">Material Parameters for {{ experiment.description }}</h6>
         <hr>

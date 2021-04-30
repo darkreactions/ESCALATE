@@ -13,6 +13,8 @@ import json
 from django.shortcuts import render
 from core.utilities.experiment_utils import update_dispense_action_set
 from core.custom_types import Val
+from core.models.view_tables.organization import Actor
+from django.urls import reverse, reverse_lazy
 
 class ParameterEditView(TemplateView):
     template_name = "core/parameter_editor.html"
@@ -126,6 +128,10 @@ class ExperimentDetailEditView(TemplateView):
         related_exp = 'workflow__experiment_workflow_workflow__experiment'
         related_exp_wf = 'workflow__experiment_workflow_workflow'
         related_exp_material = 'bom__experiment'
+        org_id = self.request.session['current_org_id']
+        lab = Actor.objects.get(organization=org_id, person__isnull=True)
+        self.all_experiments = Experiment.objects.filter(parent__isnull=True, lab=lab)
+        context['all_experiments'] = self.all_experiments
         #print(kwargs['pk'])
 
         experiment = Experiment.objects.get(pk=kwargs['pk'])
@@ -250,26 +256,24 @@ class ExperimentDetailEditView(TemplateView):
         #print("THIS IS THE EXPERIMENT DESCRIPTION:",exp_template.uuid)
 
         # construct all formsets
-        exp_name_form = ExperimentNameForm(request.POST)
         q1_formset = self.NominalActualFormSet(request.POST, prefix='q1_param')
         q2_formset = self.NominalActualFormSet(request.POST, prefix='q2_param')
         q3_formset = self.NominalActualFormSet(request.POST, prefix='q3_param')
         q1_material_formset = self.MaterialFormSet(request.POST,
                                                    prefix='q1_material',
                                                    form_kwargs={'org_uuid': self.request.session['current_org_id']})
-        if all([exp_name_form.is_valid(),
-                q1_formset.is_valid(), 
+        if all([q1_formset.is_valid(), 
                 q2_formset.is_valid(), 
                 q3_formset.is_valid(), 
                 q1_material_formset.is_valid()]):
             
-            exp_name = exp_name_form.cleaned_data['exp_name']
+            #exp_name = exp_name_form.cleaned_data['experiment']
 
             # make the experiment copy: this will be our new experiment
-            experiment_copy_uuid = F(f'{related_exp}__uuid')
+            #experiment_copy_uuid = F(f'{related_exp}__uuid')
 
             # get the elements of the new experiment that we need to update with the form values
-            q1, q2, q3 = self.get_action_parameter_querysets(experiment_copy_uuid)
+            q1, q2, q3 = self.get_action_parameter_querysets(F(f'{related_exp}__uuid'))
             q1_material = BomMaterial.objects.filter(bom__experiment=experiment_copy_uuid).only(
                     'uuid').annotate(
                     object_description=F('description')).annotate(
@@ -298,7 +302,11 @@ class ExperimentDetailEditView(TemplateView):
                             update_dispense_action_set(query, data['value'])
                         else:
                             setattr(query, field, data['value'])
+                            setattr(query, field, data['actual_value'])
                             query.save()
+                        
+            context['experiment_link'] = reverse('experiment_list')
+            render(request, self.template_name, context)
         else:
             return render(request, self.template_name, context)
 # this might not be needed       
