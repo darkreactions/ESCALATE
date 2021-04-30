@@ -1372,6 +1372,7 @@ EXECUTE PROCEDURE upsert_property ( );
 
 ----------------------------------------
 -- view material_property
+--DROP VIEW vw_material_property CASCADE;
 ----------------------------------------
 CREATE OR REPLACE VIEW vw_material_property AS
 SELECT
@@ -1385,7 +1386,7 @@ SELECT
     pr.property_class,
 	pd.description as property_description,
 	pd.short_description as property_short_description,	
-	pr.property_val as property_value_val,
+	pr.property_val as property_value_val, -- this displays as a val but expects a val_val on insert...
 	-- break out the val fields
 	(pr.property_val).v_type_uuid as property_value_type_uuid,
 	vl.val_type as property_value_type_description,
@@ -1413,7 +1414,6 @@ OR UPDATE
 OR DELETE ON vw_material_property
 FOR EACH ROW
 EXECUTE PROCEDURE upsert_material_property ( );
-
 
 ----------------------------------------
 -- view material_composite_property
@@ -2548,8 +2548,6 @@ select * from
     JOIN experiment e ON ew.experiment_uuid = e.experiment_uuid
     where was.calculation_uuid is not null) ew
 order by experiment_uuid, workflow_seq, workflow_object, parameter_def_description;
-
-select * from vw_workflow_action_set where calculation_uuid is not null; -- todo here's your problem
 
 DROP TRIGGER IF EXISTS trigger_experiment_parameter_upsert ON vw_experiment_parameter;
 CREATE TRIGGER trigger_experiment_parameter_upsert INSTEAD OF UPDATE

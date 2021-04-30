@@ -1465,7 +1465,7 @@ BEGIN
 			property
 		SET
 			property_val = NEW.property_val,
-			type_uuid = NEW.type_uuid,
+			property_class = NEW.property_class,
 			actor_uuid = NEW.actor_uuid,
 			status_uuid = NEW.status_uuid,
 			mod_date = now()
@@ -1474,8 +1474,10 @@ BEGIN
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
 		IF (select exists (select property_def_uuid from vw_property_def where property_def_uuid = NEW.property_def_uuid)) THEN
-			INSERT INTO property (property_def_uuid, type_uuid, property_val, actor_uuid, status_uuid)
-				VALUES(NEW.property_def_uuid, NEW.type_uuid, NEW.property_val, NEW.actor_uuid, NEW.status_uuid) returning property_uuid into NEW.property_uuid;
+			INSERT INTO property (property_def_uuid, property_class,
+                        property_val, actor_uuid, status_uuid)
+				VALUES(NEW.property_def_uuid, --NEW.type_uuid,
+                            NEW.property_val, NEW.actor_uuid, NEW.status_uuid) returning property_uuid into NEW.property_uuid;
 			RETURN NEW;
 		END IF;
 	END IF;
@@ -1543,10 +1545,10 @@ BEGIN
 			property.property_uuid = NEW.property_uuid;
 		RETURN NEW;
 	ELSIF (TG_OP = 'INSERT') THEN
-		IF (select exists (select property_def_uuid from vw_property_def where property_def_uuid = NEW.property_def_uuid)) THEN
-			IF (NEW.material_uuid is null) or (NEW.property_uuid is not null) THEN
-				return null;
-			END IF;
+-- 		IF (select exists (select property_def_uuid from vw_property_def where property_def_uuid = NEW.property_def_uuid)) THEN
+-- 			IF (NEW.material_uuid is null) or (NEW.property_uuid is not null) THEN
+-- 				return null;
+-- 			END IF;
 			INSERT INTO property (property_def_uuid, property_val, property_class, actor_uuid, status_uuid)
 				VALUES(NEW.property_def_uuid, 
 					(select put_val ((select val_type_uuid from vw_property_def where property_def_uuid = NEW.property_def_uuid), 
@@ -1557,8 +1559,8 @@ BEGIN
 			INSERT INTO property_x (material_uuid, property_uuid)
 				VALUES (NEW.material_uuid, NEW.property_uuid) returning property_x_uuid into NEW.property_x_uuid;
 			RETURN NEW;
-		END IF;
-		RETURN NEW;
+--		END IF;
+--		RETURN NEW;
 	END IF;
 END;
 $$
