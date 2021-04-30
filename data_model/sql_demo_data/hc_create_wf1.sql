@@ -1,5 +1,5 @@
 -- create 96 well plate
-insert into vw_material (description) values ('Plate: 96 Well');
+insert into vw_material (description, consumable) values ('Plate: 96 Well', FALSE);
 DO
 $do$
 DECLARE

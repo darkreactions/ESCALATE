@@ -80,14 +80,14 @@ insert into vw_bom_material (bom_uuid, description, inventory_material_uuid) val
 insert into vw_bom_material (bom_uuid, description, inventory_material_uuid) values (
 	(select bom_uuid from vw_bom where description = 'Perovskite Demo Materials'),
     'Plate',
-	(select inventory_material_uuid from vw_inventory_material where description = 'Wf1 Plate')); -- todo: replace with 96 well
+	(select inventory_material_uuid from vw_inventory_material where description = 'Plate: 96 Well'));
 insert into vw_bom_material (bom_uuid, description, inventory_material_uuid) values (
 	(select bom_uuid from vw_bom where description = 'Perovskite Demo Materials'),
-    'Stock A Vial',
+    'Stock A',
 	(select inventory_material_uuid from vw_inventory_material where description = 'Tube: 5mL'));
 insert into vw_bom_material (bom_uuid, description, inventory_material_uuid) values (
 	(select bom_uuid from vw_bom where description = 'Perovskite Demo Materials'),
-    'Stock B Vial',
+    'Stock B',
 	(select inventory_material_uuid from vw_inventory_material where description = 'Tube: 5mL'));
 
 
@@ -208,7 +208,7 @@ insert into vw_parameter_def (description, default_val) values
      (select put_val(get_type_def('data', 'array_num'), (select array_fill(0., ARRAY[96]))::text, 'mL'))
 ),
 ('Sample Stock A Volume',
- (select put_val(get_type_def('data', 'array_num'), (select array_fill(0., ARRAY [96]))::text, 'mL'))
+ (select put_val(get_type_def('data', 'array_num'), (select array_fill(0., ARRAY[96]))::text, 'mL'))
 ),
 (
     'Sample Stock B Volume',
@@ -322,7 +322,7 @@ values ('Perovskite Demo: Dispense Solvent',
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo'))], -- this has to come from bom_material_index...
         (select array(
             (select bom_material_index_uuid from vw_bom_material_index where
-                description similar to '%Plate well%'
+                description similar to '%Plate well#%'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')
             )
@@ -344,12 +344,12 @@ values ('Dispense Stock A',
         --array [(select put_val(get_type_def('data', 'num'),'0', 'mL'))],
         null,
         (select calculation_uuid from vw_calculation where calculation_alias_name = 'sampleStockA'),
-        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Stock A Vial'
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Stock A'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo'))], -- this has to come from bom_material_index...
         (select array(
             (select bom_material_index_uuid from vw_bom_material_index where
-                description similar to '%Plate well%'
+                description similar to '%Plate well#%'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')
             )
@@ -371,12 +371,12 @@ values ('Dispense Stock B',
         --array [(select put_val(get_type_def('data', 'num'),'0', 'mL'))],
         null,
         (select calculation_uuid from vw_calculation where calculation_alias_name = 'sampleStockB'),
-        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Stock B Vial'
+        array [(select bom_material_index_uuid from vw_bom_material_index where description = 'Stock B'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo'))], -- this has to come from bom_material_index...
         (select array(
             (select bom_material_index_uuid from vw_bom_material_index where
-                description similar to '%Plate well%'
+                description similar to '%Plate well#%'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')
             )
@@ -404,7 +404,7 @@ values ('Dispense Acid Vol 1',
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo'))], -- this has to come from bom_material_index...
         (select array(
             (select bom_material_index_uuid from vw_bom_material_index where
-                description similar to '%Plate well%'
+                description similar to '%Plate well#%'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')
             )
@@ -432,7 +432,7 @@ values ('Dispense Acid Vol 2',
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo'))], -- this has to come from bom_material_index...
         (select array(
             (select bom_material_index_uuid from vw_bom_material_index where
-                description similar to '%Plate well%'
+                description similar to '%Plate well#%'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')
             )
@@ -454,7 +454,7 @@ insert into vw_action (action_def_uuid, workflow_uuid, action_description,
 	    (select bom_material_index_uuid from vw_bom_material_index where description = 'Solvent'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
-	    (select bom_material_index_uuid from vw_bom_material_index where description = 'Stock A Vial'
+	    (select bom_material_index_uuid from vw_bom_material_index where description = 'Stock A'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
@@ -466,7 +466,7 @@ insert into vw_action (action_def_uuid, workflow_uuid, action_description,
 	    (select bom_material_index_uuid from vw_bom_material_index where description = 'Organic'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
-	    (select bom_material_index_uuid from vw_bom_material_index where description = 'Stock A Vial'
+	    (select bom_material_index_uuid from vw_bom_material_index where description = 'Stock A'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
@@ -478,7 +478,7 @@ insert into vw_action (action_def_uuid, workflow_uuid, action_description,
 	     (select bom_material_index_uuid from vw_bom_material_index where description = 'Inorganic'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
-	    (select bom_material_index_uuid from vw_bom_material_index where description = 'Stock A Vial'
+	    (select bom_material_index_uuid from vw_bom_material_index where description = 'Stock A'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
@@ -489,7 +489,7 @@ insert into vw_action (action_def_uuid, workflow_uuid, action_description,
 	    (select bom_material_index_uuid from vw_bom_material_index where description = 'Solvent'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
-	    (select bom_material_index_uuid from vw_bom_material_index where description = 'Stock B Vial'
+	    (select bom_material_index_uuid from vw_bom_material_index where description = 'Stock B'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
@@ -501,7 +501,7 @@ insert into vw_action (action_def_uuid, workflow_uuid, action_description,
 	    (select bom_material_index_uuid from vw_bom_material_index where description = 'Organic'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
-	    (select bom_material_index_uuid from vw_bom_material_index where description = 'Stock B Vial'
+	    (select bom_material_index_uuid from vw_bom_material_index where description = 'Stock B'
                 and bom_uuid =
                     (select bom_uuid from vw_bom where experiment_description = 'perovskite_demo')),
         (select actor_uuid from vw_actor where description = 'Mike Tynes'),
@@ -657,6 +657,40 @@ insert into vw_workflow_step (workflow_uuid, workflow_object_uuid, parent_uuid, 
         null,
         (select status_uuid from vw_status where description = 'dev_test')
     );
+
+insert into vw_outcome (experiment_uuid, description)
+	values (
+		(select experiment_uuid from vw_experiment where description = 'perovskite_demo'),
+		'Crystal Scores');
+
+
+insert into vw_property_def (description, short_description, val_type_uuid, valunit ) values
+	('Crystal Score', 'crystalscore',
+	(select get_type_def ('data', 'int')),
+	'');
+
+insert into vw_measure_def (default_measure_type_uuid, description, default_measure_value, property_def_uuid) values
+   ((select measure_type_uuid from vw_measure_type where description = 'manual'),
+   'crystal_score',
+   (select put_val(
+        (select get_type_def ('data', 'int')),
+        '0',
+        '')),
+    (select property_def_uuid from vw_property_def where description = 'Crystal Score'));
+
+insert into vw_measure (measure_def_uuid, measure_type_uuid, ref_measure_uuid, description, measure_value) values
+   ((select measure_def_uuid from vw_measure_def where description = 'crystal_score'),
+    (select measure_type_uuid from vw_measure_type where description = 'manual'),
+    (select outcome_uuid from vw_outcome where description = 'Crystal Scores'),
+   'sample_crystal_scores',
+   (select put_val(
+        (select get_type_def ('data', 'array_int')),
+        (select array_fill(1, ARRAY[96])::text),
+        ''))
+    );
+
+--select * from vw_measure;
+
 -- select experiment_copy ((select experiment_uuid from vw_experiment where description = 'perovskite_demo'),
 --                         'perov_instance_1');
 
