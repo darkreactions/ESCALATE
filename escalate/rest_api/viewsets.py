@@ -124,19 +124,21 @@ class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
     def get_material_queryset(self, exp_uuid):
         related_exp = 'bom__experiment'
         experiment = Experiment.objects.get(pk=exp_uuid)
-        #q1 = BomMaterial.objects.filter(bom__experiment=experiment).only(
-        #         'uuid').annotate(
-        #         object_description=F('description')).annotate(
-        #         object_uuid=F('uuid')).annotate(
+        q1 = BomMaterial.objects.filter(bom__experiment=experiment).only(
+                'uuid').annotate(
+                object_description=F('description')).annotate(
+                object_uuid=F('inventory_material')) #.annotate(
         #         experiment_uuid=F(f'{related_exp}__uuid')).annotate(
         #         experiment_description=F(f'{related_exp}__description')).prefetch_related(f'{related_exp}')
 
-        q1 = InventoryMaterial.objects.filter(bom_material_inventory_material__bom__experiment=experiment).only(
-                'uuid').annotate(
-                object_description=F('description')).annotate(
-                object_uuid=F('uuid'))#.annotate(
-                #experiment_uuid=F(f'{related_exp}__uuid')).annotate(
-                #experiment_description=F(f'{related_exp}__description')).prefetch_related(f'{related_exp}')
+
+
+        # q1 = InventoryMaterial.objects.filter(bom_material_inventory_material__bom__experiment=experiment).only(
+        #         'uuid').annotate(
+        #         object_description=F('description')).annotate(
+        #         object_uuid=F('uuid'))#.annotate(
+        #         #experiment_uuid=F(f'{related_exp}__uuid')).annotate(
+        #         #experiment_description=F(f'{related_exp}__description')).prefetch_related(f'{related_exp}')
 
         return q1
 
@@ -174,12 +176,12 @@ class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
                     param_def_desc = entry['parameter_def_description']
                     query = query_set.get(object_description=object_desc, parameter_def_description=param_def_desc)
                 else:
-                    continue
-                    # object_desc = entry['material_name']
-                    # try:
-                    #     query = query_set.get(object_description=object_desc)
-                    # except Exception as e:
-                    #     pass
+                    #continue
+                    object_desc = entry['material_name']
+                    try:
+                        query = query_set.get(object_description=object_desc)
+                    except Exception as e:
+                        pass
 
                     # todo new values actually arent getting saved...
                 
