@@ -178,8 +178,10 @@ class ExperimentDetailEditView(TemplateView):
         initial_q2 = []
         initial_q3 = []
 
-        #q1 material        
-        initial_q1_material = [{'value': row.inventory_material} for row in q1_material]
+        #q1 material initial       
+        initial_q1_material = [{'value': row.inventory_material, 'uuid': json.dumps([f'{row.object_description}'])} for row in q1_material]
+        #initial_q1_material = [{'value': row.inventory_material} for row in q1_material]
+        
         #q1 initial
         for row in q1:
             data = {'value': row.parameter_value, \
@@ -248,12 +250,12 @@ class ExperimentDetailEditView(TemplateView):
         
     def post(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
-        print(context)
         # get the experiment template uuid and name
         exp_template = Experiment.objects.get(pk=request.session['experiment_template_uuid'])
         #print("THIS IS THE EXPERIMENT TEMPLATE:",exp_template)
         template_name = exp_template.description
         #print("THIS IS THE EXPERIMENT DESCRIPTION:",exp_template.uuid)
+
 
         # construct all formsets
         q1_formset = self.NominalActualFormSet(request.POST, prefix='q1_param')
@@ -262,6 +264,11 @@ class ExperimentDetailEditView(TemplateView):
         q1_material_formset = self.MaterialFormSet(request.POST,
                                                    prefix='q1_material',
                                                    form_kwargs={'org_uuid': self.request.session['current_org_id']})
+        print("q1: ",q1_formset.errors)
+        print("q2: ",q2_formset.errors)
+        print("q3: ",q3_formset.errors)
+        print("q1_material: ",q1_material_formset.errors)
+        
         if all([q1_formset.is_valid(), 
                 q2_formset.is_valid(), 
                 q3_formset.is_valid(), 
@@ -270,10 +277,10 @@ class ExperimentDetailEditView(TemplateView):
             #exp_name = exp_name_form.cleaned_data['experiment']
 
             # make the experiment copy: this will be our new experiment
-            #experiment_copy_uuid = F(f'{related_exp}__uuid')
+            experiment_copy_uuid = experiment_copy(str(exp_template.uuid), exp_template.description)
 
             # get the elements of the new experiment that we need to update with the form values
-            q1, q2, q3 = self.get_action_parameter_querysets(F(f'{related_exp}__uuid'))
+            q1, q2, q3 = self.get_action_parameter_querysets(exp_template.uuid)
             q1_material = BomMaterial.objects.filter(bom__experiment=experiment_copy_uuid).only(
                     'uuid').annotate(
                     object_description=F('description')).annotate(
@@ -308,7 +315,11 @@ class ExperimentDetailEditView(TemplateView):
             context['experiment_link'] = reverse('experiment_list')
             render(request, self.template_name, context)
         else:
-            return render(request, self.template_name, context)
+            #return render(request, self.template_name, context)
+            print("q1: ",q1_formset.errors)
+            print("q2: ",q2_formset.errors)
+            print("q3: ",q3_formset.errors)
+            print("q1_material: ",q1_material_formset.errors)
 # this might not be needed       
         return render(request, self.template_name, context)
 # end: self.post()
