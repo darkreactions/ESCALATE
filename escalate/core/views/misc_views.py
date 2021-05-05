@@ -240,6 +240,11 @@ class ExperimentDetailEditView(TemplateView):
         context['q2_formset'] = self.NominalActualFormSet(initial=initial_q2, prefix='q2_param')
         context['q3_formset'] = self.NominalActualFormSet(initial=initial_q3, prefix='q3_param')
 
+        context['q1_material'] = q1_material
+        context['q1'] = q1
+        context['q2'] = q2
+        context['q3'] = q3
+
         context['q1_material_details'] = q1_material_details
         context['q1_details'] = q1_details
         context['q2_details'] = q2_details
@@ -264,34 +269,20 @@ class ExperimentDetailEditView(TemplateView):
         q1_material_formset = self.MaterialFormSet(request.POST,
                                                    prefix='q1_material',
                                                    form_kwargs={'org_uuid': self.request.session['current_org_id']})
-        print("q1: ",q1_formset.errors)
-        print("q2: ",q2_formset.errors)
-        print("q3: ",q3_formset.errors)
-        print("q1_material: ",q1_material_formset.errors)
-        
+
         if all([q1_formset.is_valid(), 
                 q2_formset.is_valid(), 
                 q3_formset.is_valid(), 
                 q1_material_formset.is_valid()]):
             
-            #exp_name = exp_name_form.cleaned_data['experiment']
-
-            # make the experiment copy: this will be our new experiment
-            experiment_copy_uuid = experiment_copy(str(exp_template.uuid), exp_template.description)
-
-            # get the elements of the new experiment that we need to update with the form values
-            q1, q2, q3 = self.get_action_parameter_querysets(exp_template.uuid)
-            q1_material = BomMaterial.objects.filter(bom__experiment=experiment_copy_uuid).only(
-                    'uuid').annotate(
-                    object_description=F('description')).annotate(
-                    object_uuid=F('uuid')).annotate(
-                    experiment_uuid=F('bom__experiment__uuid')).annotate(
-                    experiment_description=F('bom__experiment__description')).prefetch_related('bom__experiment')
+            q1 = context['q1']
+            q1_material = context['q1_material']
+            q2 = context['q2']
+            q3 = context['q3']
 
             # update values of new experiment where no special logic is required
-            for query_set, query_form_set, field in zip([q1,               q1_material,         q2],
-                                                        [q1_formset,       q1_material_formset, q2_formset],
-                                                        ['parameter_val_actual', 'inventory_material', None]):
+            for query_set, query_form_set in zip([q1, q1_material, q2, q3],
+                                                 [q1_formset, q1_material_formset, q2_formset, q3_formset]):
                 for i, form in enumerate(query_form_set):
                     if form.has_changed() and form.is_valid():
                         data = form.cleaned_data
@@ -305,17 +296,21 @@ class ExperimentDetailEditView(TemplateView):
 
                         # need to update value for material, q1-q3 nominal
                         # need to update actual_value for q1,q3 actual and need to create new method for q2
-                        if query_set is q2:
+                        if query_form_set is q2_formset:
                             update_dispense_action_set(query, data['value'])
+                            update_dispense_action_set(query, data['actual_value'])
+                        elif query_form_set is q1_material_formset:
+                            setattr(query, 'inventory_material', data['value'])
                         else:
-                            setattr(query, field, data['value'])
-                            setattr(query, field, data['actual_value'])
+                            setattr(query, 'parameter_val', data['value'])
+                            setattr(query, 'parameter_val_actual', data['actual_value'])
                             query.save()
                         
             context['experiment_link'] = reverse('experiment_list')
             render(request, self.template_name, context)
+            #render(request, self.template_name, context)
         else:
-            #return render(request, self.template_name, context)
+            return render(request, self.template_name, context)
             print("q1: ",q1_formset.errors)
             print("q2: ",q2_formset.errors)
             print("q3: ",q3_formset.errors)
