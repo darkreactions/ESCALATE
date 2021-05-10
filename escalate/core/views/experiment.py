@@ -23,7 +23,7 @@ from core.custom_types import Val
 #SUPPORTED_CREATE_WFS = ['liquid_solid_extraction', 'resin_weighing']
 #SUPPORTED_CREATE_WFS = supported_wfs() 
 SUPPORTED_CREATE_WFS = [mod for mod in dir(core.experiment_templates) if '__' not in mod]
-print(SUPPORTED_CREATE_WFS)
+
 
 class BaseUUIDFormSet(BaseFormSet):
     """
@@ -275,7 +275,7 @@ class CreateExperimentView(TemplateView):
                         lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
                         new_lsr_pk, lsr_msg = resin_weighing(experiment_copy_uuid, lsr_edoc, exp_name)
                     elif template_name == 'perovskite_demo':
-                        new_lsr_pk, lsr_msg = perovskite_demo(experiment_copy_uuid, exp_name)
+                        new_lsr_pk, lsr_msg = perovskite_demo(q3_formset, q3, experiment_copy_uuid, exp_name)
 
                     # handle library studio file if relevant
                     if new_lsr_pk is not None:

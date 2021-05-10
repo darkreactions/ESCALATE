@@ -805,8 +805,7 @@ class WorkflowType(models.Model):
     description = models.CharField(max_length=255,
                                    blank=True,
                                    null=True,
-                                   db_column='description',
-                                   editable=False)
+                                   db_column='description')
     add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
     mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
 
