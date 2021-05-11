@@ -13,6 +13,13 @@
 
 {% block content %}
 <div class="container">
+  <div class="export-buttons-container">
+    {% for export_type, export_url in export_urls.items%}
+      <button>
+        <a href="{{export_url}}" style="color:black;">{{export_type}}</a>
+      </button>
+    {% endfor %}
+  </div>
   <form method="post">{% csrf_token %}
     <div class="table-responsive text-nowrap">
       <table class="table table-bordered table-hover">

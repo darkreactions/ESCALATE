@@ -1,8 +1,9 @@
-
+{% load index %}
+{% if not widget.is_hidden %}
 <!-- Editable table -->
 <div class="card">
     <div class="card-body">
-      <div id="table" class="table-editable">
+      <div name="{{ widget.name }}" {% include "django/forms/widgets/attrs.html" %}>
         <table class="table table-bordered table-responsive-md table-striped text-center">
           <thead>
             <tr>
@@ -18,17 +19,17 @@
             </tr>
           </thead>
           <tbody>
-              {% for r in rows %}
+              {% for row in widget.values %}
             <tr>
-              <th scope="row">{{ r }}</td>
-              <td class="pt-1-half" contenteditable="true">0</td>
-              <td class="pt-1-half" contenteditable="true">0</td>
-              <td class="pt-1-half" contenteditable="true">0</td>
-              <td class="pt-1-half" contenteditable="true">0</td>
-              <td class="pt-1-half" contenteditable="true">0</td>
-              <td class="pt-1-half" contenteditable="true">0</td>
-              <td class="pt-1-half" contenteditable="true">0</td>
-              <td class="pt-1-half" contenteditable="true">0</td>
+              <th scope="row">{{ forloop.counter }}</td>
+              <td class="pt-1-half" contenteditable="true">{{ row|index:0 }}</td>
+              <td class="pt-1-half" contenteditable="true">{{ row|index:1 }}</td>
+              <td class="pt-1-half" contenteditable="true">{{ row|index:2 }}</td>
+              <td class="pt-1-half" contenteditable="true">{{ row|index:3 }}</td>
+              <td class="pt-1-half" contenteditable="true">{{ row|index:4 }}</td>
+              <td class="pt-1-half" contenteditable="true">{{ row|index:5 }}</td>
+              <td class="pt-1-half" contenteditable="true">{{ row|index:6 }}</td>
+              <td class="pt-1-half" contenteditable="true">{{ row|index:7 }}</td>
             </tr>
             {% endfor %}
             <!-- This is our clonable table line -->
@@ -38,3 +39,4 @@
       </div>
     </div>
   </div>
+{% endif %}

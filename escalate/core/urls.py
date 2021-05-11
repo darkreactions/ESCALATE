@@ -3,7 +3,7 @@ import core.views
 from .views import (LoginView, CreateUserView, MainMenuView, WorkflowView,
                     ModelTagCreate, ModelTagUpdate, logout_view, UserProfileView, 
                     change_password, UserProfileEdit)
-from .views.misc_views import ParameterEditView, MaterialEditView
+from .views.misc_views import ParameterEditView, MaterialEditView, ExperimentDetailEditView
 from .views.experiment import CreateExperimentView, ExperimentDetailView, ExperimentListView
 from core.utilities.utils import view_names, camel_to_snake
 from django.contrib.staticfiles.storage import staticfiles_storage
@@ -15,6 +15,7 @@ urlpatterns = [
     path('favicon.ico', RedirectView.as_view(
         url=staticfiles_storage.url('static/favicon.ico')))
 ]
+import core.views.exports.file_types as export_file_types
 
 urlpatterns = [
     path('', LoginView.as_view(), name='login'),
@@ -30,15 +31,14 @@ urlpatterns = [
     path('create_experiment/', CreateExperimentView.as_view(), name='create_experiment'),
     path('experiment_list/', ExperimentListView.as_view(), name='experiment_list'),
     path('experiment_view/<uuid:pk>', ExperimentDetailView.as_view(), name='experiment_view'),
-    path('experiment_update/<uuid:pk>', ParameterEditView.as_view(), name='experiment_update'),
+    path('experiment_update/<uuid:pk>', ExperimentDetailEditView.as_view(), name='experiment_update'),
     path('favicon.ico', RedirectView.as_view(url=staticfiles_storage.url('static/favicon.ico'))),
 ]
 
 
 def add_urls(model_name, pattern_list):
-
-    lower_case_model_name = camel_to_snake(model_name)
-    new_urls = [path(f'{lower_case_model_name}_list/',
+     lower_case_model_name = camel_to_snake(model_name)
+     new_urls = [path(f'{lower_case_model_name}_list/',
                      getattr(core.views, f'{model_name}List').as_view(),
                      name=f'{lower_case_model_name}_list'),
                 path(f'{lower_case_model_name}/',
@@ -54,7 +54,13 @@ def add_urls(model_name, pattern_list):
                      getattr(core.views, f'{model_name}View').as_view(),
                      name=f'{lower_case_model_name}_view'),
                 ]
-    return pattern_list + new_urls
+     export_urls = [
+                    path(f'{lower_case_model_name}_export_{file_type}/',
+                    getattr(core.views, f'{model_name}Export{file_type.capitalize()}').as_view(),
+                    name=f'{lower_case_model_name}_export_{file_type}') 
+                    for file_type in export_file_types.file_types
+                    ]
+     return pattern_list + new_urls + export_urls
 
 
 for model_name in view_names:

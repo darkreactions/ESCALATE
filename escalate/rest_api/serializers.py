@@ -35,7 +35,7 @@ class ValSerializerField(JSONField):
         return value.to_dict()
 
     def to_internal_value(self, data):
-        print(f"DATA!!: {data} : {type(data)}")
+        #print(f"DATA!!: {data} : {type(data)}")
         if not isinstance(data, dict):
             data = json.loads(data)
         return Val.from_dict(data)
