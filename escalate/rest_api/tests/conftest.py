@@ -1,6 +1,4 @@
 import pytest
-from django.test import Client
-
 
 @pytest.fixture(scope='session')
 def django_db_setup():
@@ -16,3 +14,4 @@ def django_db_setup():
                 'options': '-c search_path=dev'
         }
     }
+

@@ -14,7 +14,7 @@ from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm, NominalActualForm
 from core.forms.forms import ExperimentNameForm
 from core.utilities.utils import experiment_copy
-from core.utilities.experiment_utils import update_dispense_action_set
+from core.utilities.experiment_utils import update_dispense_action_set, get_action_parameter_querysets, get_material_querysets
 import core.models
 from core.models.view_tables import Note, TagAssign, Tag
 from core.experiment_templates import liquid_solid_extraction, resin_weighing, perovskite_demo
@@ -23,7 +23,7 @@ from core.custom_types import Val
 #SUPPORTED_CREATE_WFS = ['liquid_solid_extraction', 'resin_weighing']
 #SUPPORTED_CREATE_WFS = supported_wfs() 
 SUPPORTED_CREATE_WFS = [mod for mod in dir(core.experiment_templates) if '__' not in mod]
-print(SUPPORTED_CREATE_WFS)
+
 
 class BaseUUIDFormSet(BaseFormSet):
     """
@@ -45,7 +45,7 @@ class CreateExperimentView(TemplateView):
     def __init__(self, *args, **kwargs):
         #self.all_experiments = Experiment.objects.filter(parent__isnull=True)
         super().__init__(*args, **kwargs)
-        print(kwargs)
+        #print(kwargs)
         
 
     def get_context_data(self, **kwargs):    
@@ -56,44 +56,11 @@ class CreateExperimentView(TemplateView):
         self.all_experiments = Experiment.objects.filter(parent__isnull=True, lab=lab)
         context['all_experiments'] = self.all_experiments
         return context
-
-    def get_action_parameter_querysets(self, exp_uuid):
-        related_exp = 'workflow__experiment_workflow_workflow__experiment'
-        related_exp_wf = 'workflow__experiment_workflow_workflow'
-        q1 = ActionParameter.objects.filter(**{f'{related_exp}': exp_uuid}).annotate(
-                    object_description=F('action_description')).annotate(
-                    object_uuid=F('uuid')).annotate(
-                    parameter_value=F('parameter_val_nominal')).annotate(
-                    experiment_uuid=F(f'{related_exp}__uuid')).annotate(
-                    experiment_description=F(f'{related_exp}__description')).annotate(
-                    workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
-                    )).filter(workflow_action_set__isnull=True).prefetch_related(f'{related_exp}')
-        q2 = WorkflowActionSet.objects.filter(**{f'{related_exp}': exp_uuid, 'parameter_val_nominal__isnull': False}).annotate(
-                        object_description=F('description')).annotate(
-                        object_uuid=F('uuid')).annotate(
-                        parameter_def_description=F('parameter_def__description')).annotate(
-                        parameter_uuid=Value(None, RetUUIDField())).annotate(
-                        parameter_value=F('parameter_val_nominal')).annotate(
-                        experiment_uuid=F(f'{related_exp}__uuid')).annotate(
-                        experiment_description=F(f'{related_exp}__description')).annotate(
-                        workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
-                        ).prefetch_related(f'{related_exp}')
-        q3 = WorkflowActionSet.objects.filter(calculation__isnull=False,
-                                              workflow__experiment_workflow_workflow__experiment=exp_uuid).annotate(
-                        object_description=F('description')).annotate(
-                        object_uuid=F('uuid')).annotate(
-                        parameter_def_description=F('calculation__calculation_def__parameter_def__description')).annotate(
-                        parameter_uuid=F('calculation__calculation_def__parameter_def__uuid')).annotate(
-                        parameter_value=F('calculation__calculation_def__parameter_def__default_val')).annotate(
-                        experiment_uuid=F(f'{related_exp}__uuid')).annotate(
-                        experiment_description=F(f'{related_exp}__description')).annotate(
-                        workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')).prefetch_related(
-                        'workflow__experiment_workflow_workflow__experiment').distinct('parameter_uuid')
-        return q1, q2, q3
+        
 
     def get_action_parameter_forms(self, exp_uuid, context):
         # workflow__experiment_workflow_workflow__experiment=exp_uuid
-        q1, q2, q3 = self.get_action_parameter_querysets(exp_uuid)
+        q1, q2, q3 = get_action_parameter_querysets(exp_uuid)
         """
         This happens before copy, in the template. The only way to identify a parameter is 
         through a combination of object_description and parameter_def_description.
@@ -177,14 +144,8 @@ class CreateExperimentView(TemplateView):
         return context
 
     def get_material_forms(self, exp_uuid, context):
-        related_exp = 'bom__experiment'
-        experiment = Experiment.objects.get(pk=exp_uuid)
-        q1 = BomMaterial.objects.filter(bom__experiment=experiment).only(
-                'uuid').annotate(
-                object_description=F('description')).annotate(
-                object_uuid=F('uuid')).annotate(
-                experiment_uuid=F(f'{related_exp}__uuid')).annotate(
-                experiment_description=F(f'{related_exp}__description')).prefetch_related(f'{related_exp}')
+        
+        q1 = get_material_querysets(exp_uuid)
 
         # context['q1_formset'] = self.ParameterFormSet(initial=[{'value': row.parameter_value} for row in q1])
         initial_q1 = [{'value': row.inventory_material, 'uuid': json.dumps([f'{row.object_description}'])} for row in q1]
@@ -212,85 +173,105 @@ class CreateExperimentView(TemplateView):
                 request.session['experiment_template_uuid'] = None
         # begin: create experiment
         elif 'create_exp' in request.POST:
-            # get the experiment template uuid and name
-            exp_template = Experiment.objects.get(pk=request.session['experiment_template_uuid'])
-            template_name = exp_template.description
-
-            # construct all formsets
-            exp_name_form = ExperimentNameForm(request.POST)
-            q1_formset = self.NominalActualFormSet(request.POST, prefix='q1_param')
-            q2_formset = self.NominalActualFormSet(request.POST, prefix='q2_param')
-            q3_formset = self.NominalActualFormSet(request.POST, prefix='q3_param')
-            q1_material_formset = self.MaterialFormSet(request.POST,
-                                                       prefix='q1_material',
-                                                       form_kwargs={'org_uuid': self.request.session['current_org_id']})
-            if all([exp_name_form.is_valid(),
-                    q1_formset.is_valid(), 
-                    q2_formset.is_valid(), 
-                    q3_formset.is_valid(), 
-                    q1_material_formset.is_valid()]):
-                
-                exp_name = exp_name_form.cleaned_data['exp_name']
-
-                # make the experiment copy: this will be our new experiment
-                experiment_copy_uuid = experiment_copy(str(exp_template.uuid), exp_name)
-
-                # get the elements of the new experiment that we need to update with the form values
-                q1, q2, q3 = self.get_action_parameter_querysets(experiment_copy_uuid)
-                q1_material = BomMaterial.objects.filter(bom__experiment=experiment_copy_uuid).only(
-                        'uuid').annotate(
-                        object_description=F('description')).annotate(
-                        object_uuid=F('uuid')).annotate(
-                        experiment_uuid=F('bom__experiment__uuid')).annotate(
-                        experiment_description=F('bom__experiment__description')).prefetch_related('bom__experiment')
-
-                # update values of new experiment where no special logic is required
-                for query_set, query_form_set, field in zip([q1,               q1_material,         q2],
-                                                            [q1_formset,       q1_material_formset, q2_formset],
-                                                            ['parameter_val', 'inventory_material', None]):
-                    for i, form in enumerate(query_form_set):
-                        if form.has_changed() and form.is_valid():
-                            data = form.cleaned_data
-                            print(data.keys())
-                            desc = json.loads(data['uuid'])
-                            if len(desc) == 2:
-                                object_desc, param_def_desc = desc
-                                query = query_set.get(object_description=object_desc, parameter_def_description=param_def_desc)
-                            else:
-                                query = query_set.get(object_description=desc[0])
-
-                            # q2 gets handled differently because its a workflow action set
-                            if query_set is q2:
-                                update_dispense_action_set(query, data['value'])
-                            else:
-                                setattr(query, field, data['value'])
-                                query.save()
-                # begin: template-specific logic
-                if template_name in SUPPORTED_CREATE_WFS:
-                    
-                    if template_name == 'liquid_solid_extraction':
-                        lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
-                        new_lsr_pk, lsr_msg = liquid_solid_extraction(q3_formset, q3, experiment_copy_uuid, lsr_edoc, exp_name)
-                    elif template_name == 'resin_weighing':
-                        lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
-                        new_lsr_pk, lsr_msg = resin_weighing(experiment_copy_uuid, lsr_edoc, exp_name)
-                    elif template_name == 'perovskite_demo':
-                        new_lsr_pk, lsr_msg = perovskite_demo(experiment_copy_uuid, exp_name)
-
-                    # handle library studio file if relevant
-                    if new_lsr_pk is not None:
-                        context['lsr_download_link'] = reverse('edoc_download', args=[new_lsr_pk])
-                    else:
-                        messages.error(request, f'LSRGenerator failed with message: "{lsr_msg}"')
-                    context['experiment_link'] = reverse('experiment_view', args=[experiment_copy_uuid])
-                    context['new_exp_name'] = exp_name
-                    render(request, self.template_name, context)
-                # end: template specific logic
-            else:
-                return render(request, self.template_name, context)
+            context = self.process_formsets(request, context)
             # end: create experiment
         return render(request, self.template_name, context)
     # end: self.post()
+
+    def save_forms(self, queries, formset, fields):
+        """Saves custom formset into queries
+
+        Args:
+            queries ([Queryset]): List of queries into which the forms values are saved
+            formset ([Formset]): Formset
+            fields (dict): Dictionary to map the column in queryset with field in formset
+        """
+        for form in formset:
+            if form.has_changed():
+                data = form.cleaned_data
+                desc = json.loads(data['uuid'])
+                if len(desc) == 2:
+                    object_desc, param_def_desc = desc
+                    query = queries.get(object_description=object_desc, parameter_def_description=param_def_desc)
+                else:
+                    query = queries.get(object_description=desc[0])
+
+                # q2 gets handled differently because its a workflow action set
+                if fields is None:
+                    update_dispense_action_set(query, data['value'])
+                else:
+                    for db_field, form_field in fields.items():
+                        setattr(query, db_field, data[form_field])
+                query.save(update_fields=list(fields.keys()))
+        #queries.save()
+
+    def process_formsets(self, request, context):
+        """Creates formsets and gets data from the post request.
+
+        Args:
+            request ([Django Request]): Should be the POST request
+            context (dict): Context dictionary
+
+        Returns:
+            context [dict]: Context dict, returned to the page
+        """
+        # get the experiment template uuid and name
+        exp_template = Experiment.objects.get(pk=request.session['experiment_template_uuid'])
+        template_name = exp_template.description
+        # construct all formsets
+        exp_name_form = ExperimentNameForm(request.POST)
+        q1_formset = self.NominalActualFormSet(request.POST, prefix='q1_param')
+        q2_formset = self.NominalActualFormSet(request.POST, prefix='q2_param')
+        q3_formset = self.NominalActualFormSet(request.POST, prefix='q3_param')
+        q1_material_formset = self.MaterialFormSet(request.POST,
+                                                    prefix='q1_material',
+                                                    form_kwargs={'org_uuid': self.request.session['current_org_id']})
+        if all([exp_name_form.is_valid(),
+                q1_formset.is_valid(), 
+                q2_formset.is_valid(), 
+                q3_formset.is_valid(), 
+                q1_material_formset.is_valid()]):
+            
+            exp_name = exp_name_form.cleaned_data['exp_name']
+
+            # make the experiment copy: this will be our new experiment
+            experiment_copy_uuid = experiment_copy(str(exp_template.uuid), exp_name)
+
+            # get the elements of the new experiment that we need to update with the form values
+            q1, q2, q3 = get_action_parameter_querysets(experiment_copy_uuid)
+            q1_material = get_material_querysets(experiment_copy_uuid)
+            
+            self.save_forms(q1, q1_formset, {'parameter_val_nominal': 'value', 'parameter_val_actual': 'actual_value'})
+            self.save_forms(q1_material, q1_material_formset, {'inventory_material': 'value'})
+            self.save_forms(q2, q2_formset, None)
+
+            # begin: template-specific logic
+            if template_name in SUPPORTED_CREATE_WFS:
+                #if any([f.has_changed() for f in q3_formset]):
+                data = {}  # Stick form data into this dict
+                for i, form in enumerate(q3_formset):
+                    if form.is_valid():
+                        query = q3[i]
+                        data[query.parameter_def_description] = form.cleaned_data['value'].value
+                
+                if template_name == 'liquid_solid_extraction':
+                    lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
+                    new_lsr_pk, lsr_msg = liquid_solid_extraction(data, q3, experiment_copy_uuid, lsr_edoc, exp_name)
+                elif template_name == 'resin_weighing':
+                    lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
+                    new_lsr_pk, lsr_msg = resin_weighing(experiment_copy_uuid, lsr_edoc, exp_name)
+                elif template_name == 'perovskite_demo':
+                    new_lsr_pk, lsr_msg = perovskite_demo(data, q3, experiment_copy_uuid, exp_name)
+
+                # handle library studio file if relevant
+                if new_lsr_pk is not None:
+                    context['lsr_download_link'] = reverse('edoc_download', args=[new_lsr_pk])
+                else:
+                    messages.error(request, f'LSRGenerator failed with message: "{lsr_msg}"')
+                context['experiment_link'] = reverse('experiment_view', args=[experiment_copy_uuid])
+                context['new_exp_name'] = exp_name
+        return context
+
 # end: class CreateExperimentView()
 
 
@@ -394,47 +375,6 @@ class ExperimentDetailView(DetailView):
 
     detail_fields = None
     detail_fields_need_fields = None
-
-    def get_action_parameter_querysets(self, exp_uuid):
-        related_exp = 'workflow__experiment_workflow_workflow__experiment'
-        related_exp_wf = 'workflow__experiment_workflow_workflow'
-        q1 = ActionParameter.objects.filter(**{f'{related_exp}': exp_uuid}).annotate(
-                    object_description=F('action_description')).annotate(
-                    object_uuid=F('uuid')).annotate(
-                    parameter_value=F('parameter_val_nominal')).annotate(
-                    experiment_uuid=F(f'{related_exp}__uuid')).annotate(
-                    experiment_description=F(f'{related_exp}__description')).annotate(
-                    workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
-                    ).filter(workflow_action_set__isnull=True
-                    ).prefetch_related(f'{related_exp}')
-        q2 = WorkflowActionSet.objects.filter(**{f'{related_exp}': exp_uuid, 'parameter_val_nominal__isnull': False}).annotate(
-                        object_description=F('description')).annotate(
-                        object_uuid=F('uuid')).annotate(
-                        parameter_def_description=F('parameter_def__description')).annotate(
-                        parameter_uuid=Value(None, RetUUIDField())).annotate(
-                        parameter_value=F('parameter_val_nominal')).annotate(
-                        experiment_uuid=F(f'{related_exp}__uuid')).annotate(
-                        experiment_description=F(f'{related_exp}__description')).annotate(
-                        workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
-                        ).prefetch_related(f'{related_exp}')
-        q3 = WorkflowActionSet.objects.filter(calculation__isnull=False,
-                                              workflow__experiment_workflow_workflow__experiment=exp_uuid).annotate(
-                        object_description=F('description')).annotate(
-                        object_uuid=F('uuid')).annotate(
-                        parameter_def_description=F('calculation__calculation_def__parameter_def__description')).annotate(
-                        parameter_uuid=F('calculation__calculation_def__parameter_def__uuid')).annotate(
-                        parameter_value=F('calculation__calculation_def__parameter_def__default_val')).annotate(
-                        experiment_uuid=F(f'{related_exp}__uuid')).annotate(
-                        experiment_description=F(f'{related_exp}__description')).annotate(
-                        workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')).prefetch_related(
-                        'workflow__experiment_workflow_workflow__experiment').distinct('parameter_uuid')
-        mat_q = BomMaterial.objects.filter(bom__experiment=exp_uuid).only(
-                        'uuid').annotate(
-                        object_description=F('description')).annotate(
-                        object_uuid=F('uuid')).annotate(
-                        experiment_uuid=F('bom__experiment__uuid')).annotate(
-                        experiment_description=F('bom__experiment__description')).prefetch_related('bom__experiment')
-        return q1, q2, q3, mat_q
     
 
     def get_context_data(self, **kwargs):
@@ -444,14 +384,17 @@ class ExperimentDetailView(DetailView):
         # dict of detail field names to their value
         detail_data = {}
 
-        q1, q2, q3, mat_q = self.get_action_parameter_querysets(exp.uuid)
+        q1, q2, q3 = get_action_parameter_querysets(exp.uuid)
+        mat_q = get_material_querysets(exp.uuid)
         edocs = Edocument.objects.filter(ref_edocument_uuid=exp.uuid)
 
-        detail_data = {row.inventory_material : row.object_description for row in mat_q}
+        detail_data = {row.object_description : row.inventory_material for row in mat_q}
         detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q1})
         detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q2})
         detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q3})
-        detail_data.update({f'{lsr_edoc.title} download link' : reverse('edoc_download', args=[lsr_edoc.pk]) for lsr_edoc in edocs})
+
+        link_data = {f'{lsr_edoc.title} download link' : self.request.build_absolute_uri(reverse('edoc_download', args=[lsr_edoc.pk])) for lsr_edoc in edocs}
+        
 
         # get notes
         notes_raw = Note.objects.filter(note_x_note__ref_note=exp.pk)
@@ -472,5 +415,6 @@ class ExperimentDetailView(DetailView):
         context['update_url'] = reverse_lazy(
             f'{self.model_name}_update', kwargs={'pk': exp.pk})
         context['detail_data'] = detail_data
+        context['file_download_links'] = link_data
 
         return context

@@ -10,19 +10,21 @@ def make_well_list(container_name,
     vial_df = pd.DataFrame({'Vial Site': well_names, 'Labware ID:': container_name})
     return vial_df
 
-def generate_robot_file(reaction_volumes=None, plate_name='Symyx_96_well_0003', well_count=96):
+def generate_robot_file(reaction_volumes=None, reaction_parameters=None,
+                        plate_name='Symyx_96_well_0003', well_count=96):
     #'Temperature (C):'-> vw_action_parameter.parameter_value_nominal (text)
     #'Stir Rate (rpm):'->vw_action_parameter.parameter_value_nominal (text)
-    rxn_parameters = pd.DataFrame({
-            'Reaction Parameters': ['Temperature (C):', 
-                                    'Stir Rate (rpm):',
-                                    'Mixing time1 (s):',
-                                    'Mixing time2 (s):',
-                                    'Reaction time (s):',
-                                    'Preheat Temperature (C):',
-                                    ],
-            'Parameter Values': [105, 750, 900, 1200, 21600, 85],
-    })
+    if reaction_parameters is None:
+        rxn_parameters = pd.DataFrame({
+                'Reaction Parameters': ['Temperature (C):', 
+                                        'Stir Rate (rpm):',
+                                        'Mixing time1 (s):',
+                                        'Mixing time2 (s):',
+                                        'Reaction time (s):',
+                                        'Preheat Temperature (C):',
+                                        ],
+                'Parameter Values': [105, 750, 900, 1200, 21600, 85],
+        })
     df_tray = make_well_list(plate_name, well_count)
     if reaction_volumes is None:
         reagent_colnames = ['Reagent1 (ul)', 'Reagent2 (ul)', 'Reagent3 (ul)', 
