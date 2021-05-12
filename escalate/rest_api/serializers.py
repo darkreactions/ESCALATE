@@ -276,7 +276,9 @@ class ExperimentTemplateSerializer(EdocListSerializer,
 class ExperimentQuerySerializer(Serializer):
     object_description = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)
     parameter_def_description = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)
-    value = ValSerializerField()
+    nominal_value = ValSerializerField() 
+    actual_value = ValSerializerField()
+
 
 class ExperimentMaterialSerializer(Serializer):
     material_name = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)

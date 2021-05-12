@@ -244,6 +244,9 @@ class ActionParameter(models.Model):
     parameter_val_nominal = ValField(max_length=255, blank=True,
                              null=True,
                              db_column='parameter_val')
+    parameter_val_actual = ValField(max_length=255, blank=True,
+                             null=True,
+                             db_column='parameter_val_actual')
     actor = models.ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,
                               db_column='parameter_actor_uuid',

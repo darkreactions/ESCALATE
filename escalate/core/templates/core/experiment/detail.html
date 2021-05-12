@@ -14,6 +14,12 @@
                         <td>{{ value }}</td>
                     </tr>
                     {% endfor %}
+                    {% for filename, link in file_download_links.items %}
+                    <tr>
+                        <td>{{ filename }}</td>
+                        <td><a href="{{ link }}">Download file</a></td>
+                    </tr>
+                    {% endfor %}
                     <tr>
                         <td>Notes:</td>
                         <td>
