@@ -132,9 +132,9 @@ class ExperimentDetailEditView(TemplateView):
         lab = Actor.objects.get(organization=org_id, person__isnull=True)
         self.all_experiments = Experiment.objects.filter(parent__isnull=True, lab=lab)
         context['all_experiments'] = self.all_experiments
-        #print(kwargs['pk'])
+        pk = str(kwargs['pk'])
 
-        experiment = Experiment.objects.get(pk=kwargs['pk'])
+        experiment = Experiment.objects.get(pk=pk)
         q1_material = BomMaterial.objects.filter(bom__experiment=experiment).only(
                     'uuid').annotate(
                     object_description=F('description')).annotate(
@@ -142,7 +142,7 @@ class ExperimentDetailEditView(TemplateView):
                     experiment_uuid=F(f'{related_exp_material}__uuid')).annotate(
                     experiment_description=F(f'{related_exp_material}__description')).prefetch_related(f'{related_exp_material}')
             
-        q1 = ActionParameter.objects.filter(workflow__experiment_workflow_workflow__experiment=kwargs['pk']).only('uuid').annotate(
+        q1 = ActionParameter.objects.filter(workflow__experiment_workflow_workflow__experiment=pk).only('uuid').annotate(
                     object_description=F('action_description')).annotate(
                     object_uuid=F('uuid')).annotate(
                     parameter_value=F('parameter_val_nominal')).annotate(
@@ -151,7 +151,7 @@ class ExperimentDetailEditView(TemplateView):
                     workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
                     )).filter(workflow_action_set__isnull=True).prefetch_related(f'{related_exp}')
         
-        q2 = WorkflowActionSet.objects.filter(parameter_val_nominal__isnull=False, workflow__experiment_workflow_workflow__experiment=kwargs['pk']).only(
+        q2 = WorkflowActionSet.objects.filter(parameter_val_nominal__isnull=False, workflow__experiment_workflow_workflow__experiment=pk).only(
                         'workflow').annotate(
                         object_description=F('description')).annotate(
                         object_uuid=F('uuid')).annotate(
@@ -162,7 +162,7 @@ class ExperimentDetailEditView(TemplateView):
                         experiment_description=F(f'{related_exp}__description')).annotate(
                         workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
                         ).prefetch_related(f'{related_exp}')
-        q3 = WorkflowActionSet.objects.filter(calculation__isnull=False, workflow__experiment_workflow_workflow__experiment=kwargs['pk']).only(
+        q3 = WorkflowActionSet.objects.filter(calculation__isnull=False, workflow__experiment_workflow_workflow__experiment=pk).only(
                             'workflow').annotate(
                             object_description=F('description')).annotate(
                             object_uuid=F('uuid')).annotate(

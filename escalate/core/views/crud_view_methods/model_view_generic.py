@@ -13,7 +13,8 @@ from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404, render
 from django.core.exceptions import FieldDoesNotExist
 import csv
-import core.views.exports.file_types as export_file_types
+#import core.views.exports.file_types as export_file_types
+import core
 
 # class with generic classes to use in models
 
@@ -146,7 +147,8 @@ class GenericModelList(GenericListView):
         context['title'] = model_name.replace('_', ' ').capitalize()
 
         export_urls = {}
-        for t in export_file_types.file_types:
+        #for t in export_file_types.file_types:
+        for t in core.views.exports.file_types.file_types:
             export_urls[t.upper()] = reverse_lazy(f'{model_name}_export_{t}')
         context['export_urls'] = export_urls
         return context

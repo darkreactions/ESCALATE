@@ -53,9 +53,13 @@ class Val:
         primitives = {'bool': bool, 'int': int, 'num': float, 'text': str, 'blob': str}
         reverse_primitives = {bool: 'bool',
                               int: 'int', float: 'num', str: 'text'}
+        default_primitives = {'bool': False, 'int': 0, 'num': 0.0, 'text': ' '}
         prim = primitives[description]
         try:
+            if value:
                 result = prim(value)
+            else:
+                result = default_primitives[description]
         except Exception as e:
             print(e)
             raise ValidationError(
