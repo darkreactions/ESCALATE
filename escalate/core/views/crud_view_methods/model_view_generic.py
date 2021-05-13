@@ -11,6 +11,8 @@ from core.forms.forms import NoteForm, TagSelectForm, UploadEdocForm
 from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404, render
 from django.core.exceptions import FieldDoesNotExist
+from core.utilities.view_utils import rgetattr
+
 
 # class with generic classes to use in models
 
@@ -107,7 +109,7 @@ class GenericModelList(GenericListView):
                 # get list of fields used to fill out one cell
                 necessary_fields = self.column_necessary_fields[field_name]
                 # get actual field value from the model
-                fields_for_col = [getattr(model, field)
+                fields_for_col = [rgetattr(model, field)
                                   for field in necessary_fields]
                 # loop to change None to '' or non-string to string because join needs strings
                 for k in range(0, len(fields_for_col)):
@@ -239,7 +241,7 @@ class GenericModelEdit:
 
         if self.object.pk is None:
             required_fields = [f.name for f in self.model._meta.get_fields(
-            ) if not getattr(f, 'null', False) is True]
+            ) if not rgetattr(f, 'null', False) is True]
 
             required_fields = [f for f in required_fields if f not in [
                 'add_date', 'mod_date', 'uuid']]
@@ -402,7 +404,7 @@ class GenericModelView(DetailView):
             # get list of fields used to fill out one detail field
             necessary_fields = self.detail_fields_need_fields[field]
             # get actual field value from the model
-            fields_for_field = [getattr(obj, field)
+            fields_for_field = [rgetattr(obj, field)
                                 for field in necessary_fields]
             # loop to change None to '' or non-string to string because join needs strings
             for i in range(0, len(fields_for_field)):

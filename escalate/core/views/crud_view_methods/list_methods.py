@@ -7,10 +7,10 @@ methods = {
         'context_object_name': 'actors',
         'table_columns': ['Name', 'Organization', 'Systemtool', 'Status', 'Actions'],
         'column_necessary_fields': {
-            'Name': ['person_first_name', 'person_last_name'],
-            'Organization': ['org_full_name'],
-            'Systemtool': ['systemtool_name'],
-            'Status': ['status_description']
+            'Name': ['person.first_name', 'person.last_name'],
+            'Organization': ['organization.full_name'],
+            'Systemtool': ['systemtool.systemtool_name'],
+            'Status': ['status.description']
         },
         'ordering': ['description'],
         'field_contains': '',
