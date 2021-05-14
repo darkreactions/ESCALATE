@@ -9,17 +9,17 @@ methods = {
                           'Systemtool model', 'Systemtool serial', 'Systemtool version'],
         'detail_fields_need_fields': {
             'Actor Description': ['description'],
-            'Status': ['status_description'],
-            'Organization': ['org_full_name'],
-            'Person': ['person_first_name', 'person_last_name'],
-            'Person Organization': ['person_org'],
-            'Systemtool': ['systemtool_name'],
-            'Systemtool description': ['systemtool_description'],
-            'Systemtool type': ['systemtool_type'],
-            'Systemtool vendor': ['systemtool_vendor'],
-            'Systemtool model': ['systemtool_model'],
-            'Systemtool serial': ['systemtool_serial'],
-            'Systemtool version': ['systemtool_version']
+            'Status': ['status.description'],
+            'Organization': ['organization.full_name'],
+            'Person': ['person.first_name', 'person.last_name'],
+            'Person Organization': ['person.organization.full_name'],
+            'Systemtool': ['systemtool.systemtool_name'],
+            'Systemtool description': ['systemtool.description'],
+            'Systemtool type': ['systemtool.systemtool_type.description'],
+            'Systemtool vendor': ['systemtool.vendor_organization.full_name'],
+            'Systemtool model': ['systemtool.model'],
+            'Systemtool serial': ['systemtool.serial'],
+            'Systemtool version': ['systemtool.ver']
         },
     },
     'Inventory': {
@@ -61,8 +61,8 @@ methods = {
         'detail_fields_need_fields': {
             'Systemtool Name': ['systemtool_name'],
             'Systemtool Description': ['description'],
-            'Systemtool Type': ['systemtool_type_description'],
-            'Systemtool Vendor': ['organization_fullname'],
+            'Systemtool Type': ['systemtool_type.description'],
+            'Systemtool Vendor': ['vendor_organization.full_name'],
             'Systemtool Model': ['model'],
             'Systemtool Serial': ['serial'],
             'Systemtool Version': ['ver']
@@ -90,7 +90,7 @@ methods = {
             'Address': ['address1', 'address2', 'zip', 'city', 'state_province', 'country'],
             'Website': ['website_url'],
             'Phone': ['phone'],
-            'Parent Organization': ['parent_org_full_name'],
+            'Parent Organization': ['parent.full_name'],
             'Add Date': ['add_date'],
             'Last Modification Date': ['mod_date']
         },
@@ -107,7 +107,7 @@ methods = {
             'Email': ['email'],
             'Title': ['title'],
             'Suffix': ['suffix'],
-            'Organization': ['organization_full_name'],
+            'Organization': ['organization.full_name'],
             'Add Date': ['add_date'],
             'Last Modification Date': ['mod_date']
         },
