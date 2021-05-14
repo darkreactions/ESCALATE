@@ -13,6 +13,7 @@
 
 {% block content %}
 <div class="container">
+  {% if title != "Edocument" %}
   <div class="export-buttons-container">
     {% for export_type, export_url in export_urls.items%}
       <button>
@@ -20,6 +21,7 @@
       </button>
     {% endfor %}
   </div>
+  {% endif %}
   <form method="post">{% csrf_token %}
     <div class="table-responsive text-nowrap">
       <table class="table table-bordered table-hover">

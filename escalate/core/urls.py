@@ -60,7 +60,7 @@ def add_urls(model_name, pattern_list):
                     path(f'{lower_case_model_name}_export_{file_type}/',
                     getattr(core.views, f'{model_name}Export{file_type.capitalize()}').as_view(),
                     name=f'{lower_case_model_name}_export_{file_type}') 
-                    for file_type in export_file_types.file_types
+                    for file_type in export_file_types.file_types if lower_case_model_name!="edocument"
                     ]
      print("passed debugging")
      return pattern_list + new_urls + export_urls
