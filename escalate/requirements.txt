@@ -21,3 +21,4 @@ coreschema
 drf-extensions
 drf-flex-fields
 numpy
+pandas

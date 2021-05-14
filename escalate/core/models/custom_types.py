@@ -54,7 +54,7 @@ class ValFormField(MultiValueField):
         return Val(null=True)
 
     def validate(self, value):
-        print(f"validating {value}")
+        #print(f"validating {value}")
         validator = ValValidator()
         validator(value)
 
@@ -86,7 +86,7 @@ class ValField(models.Field):
     
     def from_db_value(self, value, expression, connection):
         if value is None:
-            return value 
+            return Val(None, None, None, null=True) 
         
         return Val.from_db(value)
 
@@ -102,6 +102,8 @@ class ValField(models.Field):
         return Val.from_db(value)
 
     def get_prep_value(self, value):
+        if isinstance(value, dict):
+            value = Val.from_dict(value)
         return value.to_db()
     
     def get_db_prep_value(self, value, connection, prepared=False):

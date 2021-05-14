@@ -7,7 +7,7 @@ from core.utilities.experiment_utils import hcl_mix, update_dispense_action_set,
 from core.models.view_tables import WorkflowActionSet
 import numpy as np
 
-def liquid_solid_extraction(q3_formset,q3,experiment_copy_uuid,lsr_edoc,exp_name):
+def liquid_solid_extraction(data,q3,experiment_copy_uuid,lsr_edoc,exp_name):
     '''
     # logic for liquid solid extraction experiment
     '''
@@ -20,12 +20,7 @@ def liquid_solid_extraction(q3_formset,q3,experiment_copy_uuid,lsr_edoc,exp_name
     # I don't believe it is necessary in order to run properly now that it is factored out
     # if there is an issue down the line uncomment the if...else and re-indent the logic in order to reimplement
     '''
-    #if any([f.has_changed() for f in q3_formset]):
-    data = {}  # Stick form data into this dict
-    for i, form in enumerate(q3_formset):
-        if form.is_valid():
-            query = q3[i]
-            data[query.parameter_def_description] = form.cleaned_data['value'].value
+    
 
     hcl_vols, h2o_vols = hcl_mix(data['stock_concentration'],
                                  data['total_vol'],

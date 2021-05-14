@@ -3,12 +3,16 @@ Created on Mar 29, 2021
 
 @author: jpannizzo
 '''
-from core.models.view_tables import WorkflowActionSet
-from core.custom_types import Val
 import numpy as np
 from copy import deepcopy
 import os
 from tkinter.constants import CURRENT
+from django.db.models import F, Value
+
+from core.models.view_tables import WorkflowActionSet, ActionParameter, BomMaterial
+from core.custom_types import Val
+from core.models.core_tables import RetUUIDField
+
 
 def hcl_mix(stock_concentration, solution_volume, target_concentrations):
     '''
@@ -101,3 +105,55 @@ def supported_wfs():
     
     return template_list
 
+def get_action_parameter_querysets(exp_uuid):
+    related_exp = 'workflow__experiment_workflow_workflow__experiment'
+    related_exp_wf = 'workflow__experiment_workflow_workflow'
+    q1 = ActionParameter.objects.filter(**{f'{related_exp}': exp_uuid}).annotate(
+                object_description=F('action_description')).annotate(
+                object_uuid=F('uuid')).annotate(
+                parameter_value=F('parameter_val_nominal')).annotate(
+                experiment_uuid=F(f'{related_exp}__uuid')).annotate(
+                experiment_description=F(f'{related_exp}__description')).annotate(
+                workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
+                )).filter(workflow_action_set__isnull=True).prefetch_related(f'{related_exp}')
+    q2 = WorkflowActionSet.objects.filter(**{f'{related_exp}': exp_uuid, 'parameter_val_nominal__isnull': False}).annotate(
+                    object_description=F('description')).annotate(
+                    object_uuid=F('uuid')).annotate(
+                    parameter_def_description=F('parameter_def__description')).annotate(
+                    parameter_uuid=Value(None, RetUUIDField())).annotate(
+                    parameter_value=F('parameter_val_nominal')).annotate(
+                    experiment_uuid=F(f'{related_exp}__uuid')).annotate(
+                    experiment_description=F(f'{related_exp}__description')).annotate(
+                    workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
+                    ).prefetch_related(f'{related_exp}')
+    q3 = WorkflowActionSet.objects.filter(calculation__isnull=False,
+                                            workflow__experiment_workflow_workflow__experiment=exp_uuid).annotate(
+                    object_description=F('description')).annotate(
+                    object_uuid=F('uuid')).annotate(
+                    parameter_def_description=F('calculation__calculation_def__parameter_def__description')).annotate(
+                    parameter_uuid=F('calculation__calculation_def__parameter_def__uuid')).annotate(
+                    parameter_value=F('calculation__calculation_def__parameter_def__default_val')).annotate(
+                    experiment_uuid=F(f'{related_exp}__uuid')).annotate(
+                    experiment_description=F(f'{related_exp}__description')).annotate(
+                    workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')).prefetch_related(
+                    'workflow__experiment_workflow_workflow__experiment').distinct('parameter_uuid')
+    return q1, q2, q3
+
+
+def get_material_querysets(exp_uuid):
+    """[summary]
+
+    Args:
+        exp_uuid ([str]): UUID of the experiment to retrieve
+
+    Returns:
+        [Queryset]: Queryset that contains the experiment data
+    """
+    mat_q = BomMaterial.objects.filter(bom__experiment=exp_uuid).only(
+                        'uuid').annotate(
+                        object_description=F('description')).annotate(
+                        object_uuid=F('uuid')).annotate(
+                        experiment_uuid=F('bom__experiment__uuid')).annotate(
+                        experiment_description=F('bom__experiment__description')).prefetch_related('bom__experiment')
+    
+    return mat_q

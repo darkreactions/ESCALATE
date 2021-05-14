@@ -21,15 +21,19 @@ from url_filter.integrations.drf import DjangoFilterBackend
 
 from core.models.core_tables import RetUUIDField
 from core.utilities.utils import experiment_copy
-from core.utilities.experiment_utils import update_dispense_action_set
+from core.utilities.experiment_utils import update_dispense_action_set, get_action_parameter_querysets, get_material_querysets
 from .serializers import *
 import core.models
 from core.models.view_tables import (ActionParameter, WorkflowActionSet, 
-                                     Experiment, BomMaterial, 
+                                     Experiment, BomMaterial, InventoryMaterial,
                                      ParameterDef, Edocument)
 import rest_api
+from core.custom_types import Val
+from core.experiment_templates import liquid_solid_extraction, resin_weighing, perovskite_demo
 from .utils import rest_viewset_views, perform_create_views
 from .rest_docs import rest_docs
+
+SUPPORTED_CREATE_WFS = [mod for mod in dir(core.experiment_templates) if '__' not in mod]
 
 
 def save_actor_on_post(self, serializer):
@@ -84,98 +88,77 @@ create_viewset('Edocument')
 
 class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
-    def get_action_parameter_querysets(self, exp_uuid):
-        related_exp = 'workflow__experiment_workflow_workflow__experiment'
-        related_exp_wf = 'workflow__experiment_workflow_workflow'
-        q1 = ActionParameter.objects.filter(**{f'{related_exp}': exp_uuid}).annotate(
-                    object_description=F('action_description')).annotate(
-                    object_uuid=F('uuid')).annotate(
-                    parameter_value=F('parameter_val_nominal')).annotate(
-                    experiment_uuid=F(f'{related_exp}__uuid')).annotate(
-                    experiment_description=F(f'{related_exp}__description')).annotate(
-                    workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
-                    )).filter(workflow_action_set__isnull=True).prefetch_related(f'{related_exp}')
-        q2 = WorkflowActionSet.objects.filter(**{f'{related_exp}': exp_uuid, 'parameter_val__isnull': False}).annotate(
-                        object_description=F('description')).annotate(
-                        object_uuid=F('uuid')).annotate(
-                        parameter_def_description=F('parameter_def__description')).annotate(
-                        parameter_uuid=Value(None, RetUUIDField())).annotate(
-                        parameter_value=F('parameter_val_nominal')).annotate(
-                        experiment_uuid=F(f'{related_exp}__uuid')).annotate(
-                        experiment_description=F(f'{related_exp}__description')).annotate(
-                        workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
-                        ).prefetch_related(f'{related_exp}')
-        q3 = WorkflowActionSet.objects.filter(calculation__isnull=False,
-                                              workflow__experiment_workflow_workflow__experiment=exp_uuid).annotate(
-                        object_description=F('description')).annotate(
-                        object_uuid=F('uuid')).annotate(
-                        parameter_def_description=F('calculation__calculation_def__parameter_def__description')).annotate(
-                        parameter_uuid=F('calculation__calculation_def__parameter_def__uuid')).annotate(
-                        parameter_value=F('calculation__calculation_def__parameter_def__default_val')).annotate(
-                        experiment_uuid=F(f'{related_exp}__uuid')).annotate(
-                        experiment_description=F(f'{related_exp}__description')).annotate(
-                        workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')).prefetch_related(
-                        'workflow__experiment_workflow_workflow__experiment').distinct('parameter_uuid')
-        
-        return q1, q2, q3
-
-    def get_material_queryset(self, exp_uuid):
-        related_exp = 'bom__experiment'
-        experiment = Experiment.objects.get(pk=exp_uuid)
-        q1 = BomMaterial.objects.filter(bom__experiment=experiment).only(
-                'uuid').annotate(
-                object_description=F('description')).annotate(
-                object_uuid=F('uuid')).annotate(
-                experiment_uuid=F(f'{related_exp}__uuid')).annotate(
-                experiment_description=F(f'{related_exp}__description')).prefetch_related(f'{related_exp}')
-
-        return q1
-
+    
     def list(self, request, *args, **kwargs):
-        q1, q2, q3 = self.get_action_parameter_querysets(kwargs['parent_lookup_uuid'])
-        q1_mat = self.get_material_queryset(kwargs['parent_lookup_uuid'])
+        q1, q2, q3 = get_action_parameter_querysets(kwargs['parent_lookup_uuid'])
+        q1_mat = get_material_querysets(kwargs['parent_lookup_uuid'])
         
-        exp_params1 = [{'value': row.parameter_value, 'object_description': f'{row.object_description}', 'parameter_def_description': f'{row.parameter_def_description}'} for row in q1]
-        exp_params2 = [{'value': param, 'object_description': f'{row.object_description}', 'parameter_def_description': f'{row.parameter_def_description}'} for row in q2 for param in row.parameter_value]
-        exp_params3 = [{'value': row.parameter_value, 'object_description': f'{row.object_description}', 'parameter_def_description': f'{row.parameter_def_description}'} for row in q3]
+        exp_params1 = [{'nominal_value': row.parameter_value, 'actual_value': row.parameter_value,'object_description': f'{row.object_description}', 'parameter_def_description': f'{row.parameter_def_description}'} for row in q1]
+        exp_params2 = [{'nominal_value': param, 'actual_value': param, 'object_description': f'{row.object_description}', 'parameter_def_description': f'{row.parameter_def_description}'} for row in q2 for param in row.parameter_value]
+        exp_params3 = [{'nominal_value': row.parameter_value, 'actual_value': row.parameter_value, 'object_description': f'{row.object_description}', 'parameter_def_description': f'{row.parameter_def_description}'} for row in q3]
         
         results = {'experiment_parameters_1': exp_params1, 'experiment_parameters_2': exp_params2, 'experiment_parameters_3': exp_params3}
-        mat_params = [{'material_name': row.object_description , 'value': request.build_absolute_uri(reverse('bommaterial-detail', args=[row.object_uuid]))} for row in q1_mat]
+        mat_params = [{'material_name': row.object_description , 'value': request.build_absolute_uri(reverse('inventorymaterial-detail', args=[row.inventory_material.uuid]))} for row in q1_mat]
+        #mat_params = [{'material_name': row.object_description , 'value': row.object_uuid} for row in q1_mat]
+        #mat_params = {row.object_description:row.object_uuid for row in q1_mat}
         
         results.update({'material_parameters': mat_params, 'experiment_name': ''})
         serializer = ExperimentDetailSerializer(results)
         
         return Response(serializer.data)
+
+    def save_material_params(self, queryset, data):
+        for entry in data:
+            object_desc = entry['material_name']
+            query = queryset.get(object_description=object_desc)
+            uuid = entry['value'].split('/')[-2]
+            print(uuid)
+
+            query.inventory_material = InventoryMaterial.objects.get(pk=uuid)
+            query.save()
+
+    def save_params(self, queryset, data, fields):
+        for entry in data:
+            object_desc = entry['object_description']
+            param_def_desc = entry['parameter_def_description']
+            query = queryset.get(object_description=object_desc, parameter_def_description=param_def_desc)
+            
+            if fields is None:
+                update_dispense_action_set(query, entry['value'])
+            else:
+                for db_field, form_field in fields.items():
+                    setattr(query, db_field, entry[form_field])
+                    query.save()
+
     
     def create(self, request, *args, **kwargs):
         template_uuid = kwargs['parent_lookup_uuid']
-        experiment_copy_uuid = experiment_copy(template_uuid, request.data['experiment_name'])
-        q1, q2, q3 = self.get_action_parameter_querysets(experiment_copy_uuid)
-        q1_mat = self.get_material_queryset(experiment_copy_uuid)
 
-        for query_set, json_data, field in zip([q1,               q1_mat,         q2],
-                                                [request.data['experiment_parameters_1'],       
-                                                 request.data['material_parameters'], 
-                                                 request.data['experiment_parameters_2']],
-                                                ['parameter_val_nominal', 'inventory_material', None]):
-            for entry in json_data:
-                print(entry)
-                if 'parameter_def_description' in entry:
-                    object_desc = entry['object_description']
-                    param_def_desc = entry['parameter_def_description']
-                    query = query_set.get(object_description=object_desc, parameter_def_description=param_def_desc)
-                else:
-                    object_desc = entry['material_name']
-                    query = query_set.get(object_description=object_desc)
-                
-                # q2 gets handled differently because its a workflow action set
-                if query_set is q2:
-                    update_dispense_action_set(query, entry['value'])
-                else:
-                    setattr(query, field, entry['value'])
-                    query.save()
+        exp_template = Experiment.objects.get(pk=template_uuid)
+        template_name = exp_template.description
 
-        return Response({})
+        exp_name = request.data['experiment_name']
+
+        experiment_copy_uuid = experiment_copy(template_uuid, exp_name)
+        q1, q2, q3 = get_action_parameter_querysets(experiment_copy_uuid)
+        q1_mat = get_material_querysets(experiment_copy_uuid)
+
+        self.save_material_params(q1_mat, request.data['material_parameters'])
+        self.save_params(q1, request.data['experiment_parameters_1'], {'parameter_val_actual': 'actual_value', 'parameter_val_nominal': 'nominal_value'})
+        self.save_params(q2, request.data['experiment_parameters_2'], None)
+
+        if template_name in SUPPORTED_CREATE_WFS:
+            if template_name == 'liquid_solid_extraction':
+                lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
+                new_lsr_pk, lsr_msg = liquid_solid_extraction(data, q3, experiment_copy_uuid, lsr_edoc, exp_name)
+            elif template_name == 'resin_weighing':
+                lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
+                new_lsr_pk, lsr_msg = resin_weighing(experiment_copy_uuid, lsr_edoc, exp_name)
+            elif template_name == 'perovskite_demo':
+                new_lsr_pk, lsr_msg = perovskite_demo(data, q3, experiment_copy_uuid, exp_name)
+
+        return Response({'experiment_detail': request.build_absolute_uri(reverse('experiment-detail', args=[experiment_copy_uuid])),
+                        'generated_file': request.build_absolute_uri(reverse('edoc_download', args=[new_lsr_pk]))})
 
 
 

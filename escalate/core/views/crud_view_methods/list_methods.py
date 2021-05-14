@@ -34,11 +34,12 @@ methods = {
     'Material': {
         'model': core.models.view_tables.Material,
         'context_object_name': 'materials',
-        # 'table_columns': ['Chemical Name', 'Abbreviation', 'Status', 'Actions'],
-        'table_columns': ['Status', 'Actions'],
+        'table_columns': ['Chemical Name', 'Consumable', 'Composite', 'Actions'],
+        # 'table_columns': ['Status', 'Actions'],
         'column_necessary_fields': {
-            # 'Chemical Name': ['chemical_name'],
-            # 'Abbreviation': ['abbreviation'],
+            'Chemical Name': ['description'],
+            'Consumable': ['consumable'],
+            'Composite': ['composite_flg'],
             'Status': ['status_description']
         },
         'ordering': ['status_description'],
