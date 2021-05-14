@@ -12,12 +12,12 @@ methods = {
             'Status'
             ],
         'column_necessary_fields': {
-            'First Name': ['person_first_name'],
-            'Last Name': ['person_last_name'],
-            'Person Organization': ['person_org'],
-            'Organization': ['org_full_name'],
-            'Systemtool': ['systemtool_name'],
-            'Status': ['status_description']
+            'First Name': ['person.first_name'],
+            'Last Name': ['person.last_name'],
+            'Person Organization': ['person.organization.full_name'],
+            'Organization': ['organization.full_name'],
+            'Systemtool': ['systemtool.systemtool_name'],
+            'Status': ['status.description']
         }
     },
     'Inventory':{
@@ -66,8 +66,8 @@ methods = {
         'column_necessary_fields': {
             'Name': ['systemtool_name'],
             'Description': ['description'],
-            'Vendor': ['organization_fullname'],
-            'Type': ['systemtool_type_description'],
+            'Vendor': ['vendor_organization.full_name'],
+            'Type': ['systemtool_type.description'],
             'Model': ['model'],
             'Serial': ['serial'],
             'Version': ['ver']
@@ -108,7 +108,7 @@ methods = {
             'Country': ['country'],
             'Website': ['website_url'],
             'Phone': ['phone'],
-            'Parent Organization': ['parent_org_full_name']
+            'Parent Organization': ['parent.full_name']
         }
     },
     'Person':{
@@ -141,7 +141,7 @@ methods = {
             'Phone': ['phone'],
             'Email': ['email'],
             'Title': ['title'],
-            'Organization': ['organization_full_name']
+            'Organization': ['organization.full_name']
         }
     },
     'Status':{

@@ -511,7 +511,7 @@ class GenericModelExport(View):
             row = []
             for col_name in self.column_names:
                 cell_data = ""
-                fields_for_cell = [getattr(obj, field) for field in self.column_necessary_fields[col_name]]
+                fields_for_cell = [rgetattr(obj, field) for field in self.column_necessary_fields[col_name]]
                 for k in range(len(fields_for_cell)):
                     if fields_for_cell[k] == None:
                         fields_for_cell[k] = ''
