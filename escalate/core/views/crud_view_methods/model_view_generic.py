@@ -13,7 +13,7 @@ from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404, render
 from django.core.exceptions import FieldDoesNotExist
 import csv
-#import core.views.exports.file_types as export_file_types
+import core.views.exports.file_types as export_file_types
 import core
 
 # class with generic classes to use in models
