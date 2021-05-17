@@ -12,6 +12,8 @@ from core.forms.forms import NoteForm, TagSelectForm, UploadEdocForm
 from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404, render
 from django.core.exceptions import FieldDoesNotExist
+from core.utilities.view_utils import rgetattr
+
 import csv
 #import core.views.exports.file_types as export_file_types
 import core
@@ -111,7 +113,7 @@ class GenericModelList(GenericListView):
                 # get list of fields used to fill out one cell
                 necessary_fields = self.column_necessary_fields[field_name]
                 # get actual field value from the model
-                fields_for_col = [getattr(model, field)
+                fields_for_col = [rgetattr(model, field)
                                   for field in necessary_fields]
                 # loop to change None to '' or non-string to string because join needs strings
                 for k in range(0, len(fields_for_col)):
@@ -249,7 +251,7 @@ class GenericModelEdit:
 
         if self.object.pk is None:
             required_fields = [f.name for f in self.model._meta.get_fields(
-            ) if not getattr(f, 'null', False) is True]
+            ) if not rgetattr(f, 'null', False) is True]
 
             required_fields = [f for f in required_fields if f not in [
                 'add_date', 'mod_date', 'uuid']]
@@ -412,7 +414,7 @@ class GenericModelView(DetailView):
             # get list of fields used to fill out one detail field
             necessary_fields = self.detail_fields_need_fields[field]
             # get actual field value from the model
-            fields_for_field = [getattr(obj, field)
+            fields_for_field = [rgetattr(obj, field)
                                 for field in necessary_fields]
             # loop to change None to '' or non-string to string because join needs strings
             for i in range(0, len(fields_for_field)):
@@ -509,7 +511,7 @@ class GenericModelExport(View):
             row = []
             for col_name in self.column_names:
                 cell_data = ""
-                fields_for_cell = [getattr(obj, field) for field in self.column_necessary_fields[col_name]]
+                fields_for_cell = [rgetattr(obj, field) for field in self.column_necessary_fields[col_name]]
                 for k in range(len(fields_for_cell)):
                     if fields_for_cell[k] == None:
                         fields_for_cell[k] = ''
