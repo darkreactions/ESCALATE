@@ -45,6 +45,8 @@ core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   'WorkflowObject', 'UdfDef', 'Experiment', 'ExperimentWorkflow', #'ExperimentParameter',
                   'BillOfMaterials', 'BomMaterial', 'BomCompositeMaterial', 'Measure', 'MeasureType', 'MeasureDef', 'Outcome'])
 
+experiment_views = set(['ActionDef', 'BomMaterial', 'CompositeMaterial', 'Material', 'ParameterDef'])
+
 GET_only_views = set(['TypeDef'])
 
 unexposed_views = set(['TagAssign', 'Note', 'Edocument'])
@@ -70,6 +72,7 @@ rest_nested_url_views = (core_views | misc_views | custom_serializer_views |
 rest_viewset_views = (core_views | misc_views | custom_serializer_views |
                       perform_create_views | unexposed_views)
 
+rest_experiment_views = (experiment_views)
 
 def docstring(docstr, sep="\n"):
     """
