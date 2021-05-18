@@ -52,6 +52,10 @@ methods = {
         'model': core.models.view_tables.UdfDef,
         'success_url': reverse_lazy('udf_def_list'),
     },
+    'Edocument': {
+        'model': core.models.Edocument,
+        'success_url': reverse_lazy('edocument_list'),
+    },
     'InventoryMaterial': {
         'model': core.models.view_tables.InventoryMaterial,
         'success_url': reverse_lazy('inventory_material_list'),

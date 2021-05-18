@@ -2,6 +2,7 @@ from django.db.models.query import QuerySet
 from django.db.models import Q
 from django.urls import reverse_lazy, reverse
 from django.http import HttpResponse, HttpResponseRedirect, FileResponse
+from django.views import View
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 # from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
@@ -11,6 +12,9 @@ from core.forms.forms import NoteForm, TagSelectForm, UploadEdocForm
 from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404, render
 from django.core.exceptions import FieldDoesNotExist
+import csv
+import core.views.exports.file_types as export_file_types
+import core
 
 # class with generic classes to use in models
 
@@ -57,8 +61,9 @@ class GenericModelList(GenericListView):
     def get_queryset(self):
         filter_val = self.request.GET.get('filter', self.field_contains)
         new_order = self.request.session.get(f'{self.context_object_name}_order', self.ordering)
+        
         ordering = self.request.GET.get('ordering', new_order)
-
+        
         #print(f'Order field: {self.order_field} in model {self.model}')
 
         # same as <field want to order by>__icontains = filter_val
@@ -132,12 +137,20 @@ class GenericModelList(GenericListView):
                 'obj_name': str(model),
                 'obj_pk': model.pk
             }
+            if model_name=="edocument":
+                table_row_info['download_url'] = reverse('edoc_download', args=(model.pk,))
             table_data.append(table_row_info)
 
         context['add_url'] = reverse_lazy(f'{model_name}_add')
         context['table_data'] = table_data
         # get rid of underscores with spaces and capitalize
         context['title'] = model_name.replace('_', ' ').capitalize()
+
+        export_urls = {}
+        #for t in export_file_types.file_types:
+        for t in core.views.exports.file_types.file_types:
+            export_urls[t.upper()] = reverse_lazy(f'{model_name}_export_{t}')
+        context['export_urls'] = export_urls
         return context
 
     def post(self, request, *args, **kwargs):
@@ -451,7 +464,68 @@ class GenericModelView(DetailView):
         context['title'] = self.model_name.replace('_', " ").capitalize()
         context['update_url'] = reverse_lazy(
             f'{self.model_name}_update', kwargs={'pk': obj.pk})
+            
+        if self.model_name=="edocument":
+            context['download_url'] = reverse('edoc_download', args=(obj.pk,))
         context['detail_data'] = detail_data
         return context
+
+class GenericModelExport(View):
+    model = None
+    file_type = None
+    column_names = None
+    column_necessary_fields = None
+    # A related path that points to the organization this field belongs to
+    org_related_path = None
+
+    def get(self, request, *args, **kwargs):
+        if self.file_type == 'csv':
+            return self.export_csv()
+        else:
+            return HttpResponse('Failed to get requested file')
+
+    def get_queryset(self):
+        if 'current_org_id' in self.request.session:
+            if self.org_related_path:
+                org_filter_kwargs = {self.org_related_path : self.request.session['current_org_id']}
+                base_query = self.model.objects.filter(**org_filter_kwargs)
+            else:
+                try:
+                    #print(self.model._meta.get_fields())
+                    org_field = self.model._meta.get_field('organization')
+                    base_query = self.model.objects.filter(organization=self.request.session['current_org_id'])
+                except FieldDoesNotExist:
+                    base_query = self.model.objects.all()
+        else:
+            base_query = self.model.objects.none()
+        return base_query
+
+    def export_csv(self):
+        response = HttpResponse(content_type="text/csv")
+        model_string_name = self.model.__name__
+        filename = f'{model_string_name.capitalize()}.csv'
+        response['Content-Disposition'] = f'attachment; filename={filename}'
+
+        writer = csv.writer(response)
+        writer.writerow([*self.column_names])
+
+        model_objects = self.get_queryset()
+
+        for obj in model_objects:
+            row = []
+            for col_name in self.column_names:
+                cell_data = ""
+                fields_for_cell = [getattr(obj, field) for field in self.column_necessary_fields[col_name]]
+                for k in range(len(fields_for_cell)):
+                    if fields_for_cell[k] == None:
+                        fields_for_cell[k] = ''
+                    if not isinstance(fields_for_cell[k], str):
+                        fields_for_cell[k] = str(fields_for_cell[k])
+
+                    cell_data = " ".join(fields_for_cell)
+                    cell_data = cell_data.strip()
+                row.append(cell_data)
+            writer.writerow(row)
+        return response
 
 

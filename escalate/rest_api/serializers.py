@@ -35,7 +35,7 @@ class ValSerializerField(JSONField):
         return value.to_dict()
 
     def to_internal_value(self, data):
-        print(f"DATA!!: {data} : {type(data)}")
+        #print(f"DATA!!: {data} : {type(data)}")
         if not isinstance(data, dict):
             data = json.loads(data)
         return Val.from_dict(data)
@@ -276,7 +276,9 @@ class ExperimentTemplateSerializer(EdocListSerializer,
 class ExperimentQuerySerializer(Serializer):
     object_description = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)
     parameter_def_description = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)
-    value = ValSerializerField()
+    nominal_value = ValSerializerField() 
+    actual_value = ValSerializerField()
+
 
 class ExperimentMaterialSerializer(Serializer):
     material_name = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)

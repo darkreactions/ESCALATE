@@ -498,6 +498,8 @@ class TagSelectForm(forms.Form):
 class UploadEdocForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(UploadEdocForm, self).__init__(*args, **kwargs)
+
+        
         self.fields['title'].required = True
         current_file_type = self.instance.doc_type_uuid if self.instance else None
 
