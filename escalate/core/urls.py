@@ -8,7 +8,15 @@ from .views.experiment import CreateExperimentView, ExperimentDetailView, Experi
 from core.utilities.utils import view_names, camel_to_snake
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.views.generic.base import RedirectView
+from django.views.generic.detail import DetailView
+from core.views.edocument import EdocumentList, EdocumentDetailView
 import core.views.exports.file_types as export_file_types
+
+urlpatterns = [
+    path('favicon.ico', RedirectView.as_view(
+        url=staticfiles_storage.url('static/favicon.ico')))
+]
+
 
 urlpatterns = [
     path('', LoginView.as_view(), name='login'),
@@ -47,12 +55,14 @@ def add_urls(model_name, pattern_list):
                      getattr(core.views, f'{model_name}View').as_view(),
                      name=f'{lower_case_model_name}_view'),
                 ]
+     
      export_urls = [
                     path(f'{lower_case_model_name}_export_{file_type}/',
                     getattr(core.views, f'{model_name}Export{file_type.capitalize()}').as_view(),
                     name=f'{lower_case_model_name}_export_{file_type}') 
-                    for file_type in export_file_types.file_types
+                    for file_type in export_file_types.file_types if lower_case_model_name!="edocument"
                     ]
+     
      return pattern_list + new_urls + export_urls
 
 

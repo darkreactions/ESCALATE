@@ -13,7 +13,7 @@ from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404, render
 from django.core.exceptions import FieldDoesNotExist
 import csv
-#import core.views.exports.file_types as export_file_types
+import core.views.exports.file_types as export_file_types
 import core
 
 # class with generic classes to use in models
@@ -61,8 +61,9 @@ class GenericModelList(GenericListView):
     def get_queryset(self):
         filter_val = self.request.GET.get('filter', self.field_contains)
         new_order = self.request.session.get(f'{self.context_object_name}_order', self.ordering)
+        
         ordering = self.request.GET.get('ordering', new_order)
-
+        
         #print(f'Order field: {self.order_field} in model {self.model}')
 
         # same as <field want to order by>__icontains = filter_val
@@ -136,6 +137,8 @@ class GenericModelList(GenericListView):
                 'obj_name': str(model),
                 'obj_pk': model.pk
             }
+            if model_name=="edocument":
+                table_row_info['download_url'] = reverse('edoc_download', args=(model.pk,))
             table_data.append(table_row_info)
 
         context['add_url'] = reverse_lazy(f'{model_name}_add')
@@ -461,6 +464,9 @@ class GenericModelView(DetailView):
         context['title'] = self.model_name.replace('_', " ").capitalize()
         context['update_url'] = reverse_lazy(
             f'{self.model_name}_update', kwargs={'pk': obj.pk})
+            
+        if self.model_name=="edocument":
+            context['download_url'] = reverse('edoc_download', args=(obj.pk,))
         context['detail_data'] = detail_data
         return context
 

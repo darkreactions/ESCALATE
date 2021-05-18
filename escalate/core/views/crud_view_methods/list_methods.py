@@ -131,7 +131,7 @@ methods = {
     'TagType': {
         'model': core.models.view_tables.TagType,
         'context_object_name': 'tag_types',
-        'table_columns': ['Short Description', 'Description', 'Actions'],
+        'table_columns': ['Type', 'Description', 'Actions'],
         'column_necessary_fields': {
             'Short Description': ['type'],
             'Description': ['description']
@@ -146,6 +146,19 @@ methods = {
         'column_necessary_fields': {
             'Description': ['description'],
             'Value Type': ['val_type_description']
+        },
+        'ordering': ['description'],
+        'field_contains': '',
+    },
+    'Edocument':{
+        'model': core.models.Edocument,
+        'context_object_name': 'edocuments',
+        'table_columns': ['Title', 'UUID', 'Actions'], #'File Type' 'Version'
+        'column_necessary_fields': {
+            'Title':['title'],
+            # 'File Type':['doc_type_description'],
+            'UUID':['uuid'],
+            # 'Version': ['doc_ver'],
         },
         'ordering': ['description'],
         'field_contains': '',
