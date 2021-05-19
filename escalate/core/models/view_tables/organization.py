@@ -22,40 +22,40 @@ class Actor(models.Model):
                                blank=True, null=True,
                                db_column='status_uuid',
                                related_name='actor_status')
-    status_description = models.CharField(
-        max_length=255, blank=True, null=True)
+    # status_description = models.CharField(
+    #     max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
-    org_full_name = models.CharField(
-        max_length=255, blank=True, null=True, verbose_name='Organization Full Name')
-    org_short_name = models.CharField(
-        max_length=255, blank=True, null=True, verbose_name='Organization Short Name')
+    # org_full_name = models.CharField(
+    #     max_length=255, blank=True, null=True, verbose_name='Organization Full Name')
+    # org_short_name = models.CharField(
+    #     max_length=255, blank=True, null=True, verbose_name='Organization Short Name')
 
-    person_last_name = models.CharField(
-        max_length=255, blank=True, null=True, verbose_name='Person Lastname')
-    person_first_name = models.CharField(
-        max_length=255, blank=True, null=True)
-    person_last_first = models.CharField(
-        max_length=255, blank=True, null=True)
-    person_org = models.CharField(max_length=255, blank=True, null=True)
-    systemtool_name = models.CharField(
-        max_length=255, blank=True, null=True)
-    systemtool_description = models.CharField(
-        max_length=255, blank=True, null=True)
-    systemtool_type = models.CharField(
-        max_length=255, blank=True, null=True)
-    systemtool_vendor = models.CharField(
-        max_length=255, blank=True, null=True)
-    systemtool_model = models.CharField(
-        max_length=255, blank=True, null=True)
-    systemtool_serial = models.CharField(
-        max_length=255, blank=True, null=True)
-    systemtool_version = models.CharField(
-        max_length=255, blank=True, null=True)
+    # person_last_name = models.CharField(
+    #     max_length=255, blank=True, null=True, verbose_name='Person Lastname')
+    # person_first_name = models.CharField(
+    #     max_length=255, blank=True, null=True)
+    # person_last_first = models.CharField(
+    #     max_length=255, blank=True, null=True)
+    # person_org = models.CharField(max_length=255, blank=True, null=True)
+    # systemtool_name = models.CharField(
+    #     max_length=255, blank=True, null=True)
+    # systemtool_description = models.CharField(
+    #     max_length=255, blank=True, null=True)
+    # systemtool_type = models.CharField(
+    #     max_length=255, blank=True, null=True)
+    # systemtool_vendor = models.CharField(
+    #     max_length=255, blank=True, null=True)
+    # systemtool_model = models.CharField(
+    #     max_length=255, blank=True, null=True)
+    # systemtool_serial = models.CharField(
+    #     max_length=255, blank=True, null=True)
+    # systemtool_version = models.CharField(
+    #     max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
-        db_table = 'vw_actor'
+        db_table = 'actor'
 
     def __str__(self):
         return "{}".format(self.description)
@@ -75,7 +75,7 @@ class ActorPref(models.Model):
     mod_date = models.DateTimeField(auto_now=True)
     class Meta:
         managed = False
-        db_table = 'vw_actor_pref'
+        db_table = 'actor_pref'
 
     def __str__(self):
         return f"{self.pkey} : {self.pvalue}"
@@ -99,14 +99,15 @@ class Organization(models.Model):
                                blank=True, null=True,
                                db_column='parent_uuid',
                                related_name='organization_parent')
-    parent_org_full_name = models.CharField(
-        max_length=255, blank=True, null=True)
+    # parent_org_full_name = models.CharField(
+    #     max_length=255, blank=True, null=True)
+    parent_path = models.CharField(max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
-        db_table = 'vw_organization'
+        db_table = 'organization'
 
     def __str__(self):
         return "{}".format(self.full_name)
@@ -160,14 +161,14 @@ class Systemtool(models.Model):
                                             models.DO_NOTHING,
                                             db_column='vendor_organization_uuid',
                                             related_name='systemtool_vendor_organization')
-    organization_fullname = models.CharField(
-        max_length=255, blank=True, null=True)
+    # organization_fullname = models.CharField(
+    #     max_length=255, blank=True, null=True)
     systemtool_type = models.ForeignKey('SystemtoolType',
                                         models.DO_NOTHING,
                                         db_column='systemtool_type_uuid',
                                         related_name='systemtool_systemtool_type')
-    systemtool_type_description = models.CharField(
-        max_length=255, blank=True, null=True)
+    # systemtool_type_description = models.CharField(
+    #     max_length=255, blank=True, null=True)
     model = models.CharField(max_length=255, blank=True, null=True)
     serial = models.CharField(max_length=255, blank=True, null=True)
     ver = models.CharField(max_length=255,  null=True)
@@ -176,7 +177,7 @@ class Systemtool(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_systemtool'
+        db_table = 'systemtool'
 
     def __str__(self):
         return "{}".format(self.systemtool_name)
@@ -191,7 +192,7 @@ class SystemtoolType(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_systemtool_type'
+        db_table = 'systemtool_type'
 
     def __str__(self):
         return self.description
