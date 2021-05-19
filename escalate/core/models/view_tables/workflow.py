@@ -40,14 +40,14 @@ q3 = WorkflowActionSet.objects.filter(calculation__isnull=False).only(
 #q1 = ActionParameter.objects.only('action', 'parameter', 'workflow').filter(workflow_action_set__isnull=True).select_related('workflow').prefetch_related('workflow__experiment_workflow_workflow__experiment')
 #q2 = WorkflowActionSet.objects.filter(parameter_val__isnull=False).prefetch_related('workflow__experiment_workflow_workflow__experiment')
 #q3 = WorkflowActionSet.objects.filter(calculation__isnull=False).select_related('calculation', 'calculation__calculation_def').prefetch_related('calculation__calculation_def__calculation_parameter_def_assign_calculation_def__parameter_def').prefetch_related('workflow__experiment_workflow_workflow__experiment')
-
+#TODO: Verify all commented out descriptions from last push to make sure I did not break any description in Escalate
 class Action(models.Model):
     uuid = RetUUIDField(primary_key=True,
                                db_column='action_uuid')
     description = models.CharField(max_length=255,
                                    blank=True,
                                    null=True,
-                                   db_column='action_description')
+                                   db_column='description')
     action_def = models.ForeignKey('ActionDef',
                                    on_delete=models.DO_NOTHING,
                                    db_column='action_def_uuid',
@@ -81,11 +81,11 @@ class Action(models.Model):
                                null=True,
                                editable=False,
                                related_name='action_source_material')
-    source_material_description = models.CharField(max_length=255,
-                                          blank=True,
-                                          null=True,
-                                          db_column='source_material_description',
-                                          editable=False)
+    # source_material_description = models.CharField(max_length=255,
+    #                                       blank=True,
+    #                                       null=True,
+    #                                       db_column='source_material_description',
+    #                                       editable=False)
     destination_material = models.ForeignKey('BomMaterial',
                                on_delete=models.DO_NOTHING,
                                db_column='destination_material_uuid',
@@ -93,11 +93,11 @@ class Action(models.Model):
                                null=True,
                                editable=False,
                                related_name='action_destination_material')
-    destination_material_description = models.CharField(max_length=255,
-                                          blank=True,
-                                          null=True,
-                                          db_column='destination_material_description',
-                                          editable=False)
+    # destination_material_description = models.CharField(max_length=255,
+    #                                       blank=True,
+    #                                       null=True,
+    #                                       db_column='destination_material_description',
+    #                                       editable=False)
     duration = models.FloatField(db_column='duration',
                                  blank=True,
                                  null=True)
@@ -120,27 +120,27 @@ class Action(models.Model):
                               blank=True,
                               null=True,
                               editable=False, related_name='action_actor')
-    actor_description = models.CharField(max_length=255,
-                                         blank=True,
-                                         null=True,
-                                         db_column='actor_description',
-                                         editable=False)
+    # actor_description = models.CharField(max_length=255,
+    #                                      blank=True,
+    #                                      null=True,
+    #                                      db_column='actor_description',
+    #                                      editable=False)
     status = models.ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                db_column='status_uuid',
                                blank=True,
                                null=True, related_name='action_status')
-    status_description = models.CharField(max_length=255,
-                                          blank=True,
-                                          null=True,
-                                          db_column='status_description',
-                                          editable=False)
+    # status_description = models.CharField(max_length=255,
+    #                                       blank=True,
+    #                                       null=True,
+    #                                       db_column='status_description',
+    #                                       editable=False)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
-        db_table = 'vw_action'
+        db_table = 'action'
 
     def __str__(self):
         return "{}".format(self.description)
@@ -148,6 +148,7 @@ class Action(models.Model):
 
 class ActionDef(models.Model):
     uuid = RetUUIDField(primary_key=True, db_column='action_def_uuid')
+    # TODO: Look into ActionParameterDefAssign upsert
     parameter_def = models.ManyToManyField(
         'ParameterDef', through='ActionParameterDefAssign')
     description = models.CharField(max_length=255,
@@ -161,22 +162,22 @@ class ActionDef(models.Model):
                               blank=True,
                               null=True,
                               related_name='action_def_actor')
-    actor_description = models.CharField(max_length=255,
-                                         blank=True,
-                                         null=True,
-                                         db_column='actor_description',
-                                         editable=False)
+    # actor_description = models.CharField(max_length=255,
+    #                                      blank=True,
+    #                                      null=True,
+    #                                      db_column='actor_description',
+    #                                      editable=False)
     status = models.ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                db_column='status_uuid',
                                blank=True,
                                null=True,
                                related_name='action_def_status')
-    status_description = models.CharField(max_length=255,
-                                          blank=True,
-                                          null=True,
-                                          db_column='status_description',
-                                          editable=False)
+    # status_description = models.CharField(max_length=255,
+    #                                       blank=True,
+    #                                       null=True,
+    #                                       db_column='status_description',
+    #                                       editable=False)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -185,7 +186,7 @@ class ActionDef(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_action_def'
+        db_table = 'action_def'
 
 
 class ActionParameter(models.Model):
@@ -276,9 +277,9 @@ class ActionParameter(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_action_parameter'
+        db_table = 'action_parameter'
 
-
+#TODO: find upsert related to this and verify description, actor_description, parameter_val_type
 class ActionParameterDef(models.Model):
     uuid = RetUUIDField(
         primary_key=True, db_column='action_parameter_def_x_uuid')
@@ -338,7 +339,7 @@ class ActionParameterDef(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_action_parameter_def'
+        db_table = 'action_parameter_def'
         
 
 class ActionParameterDefAssign(models.Model):
@@ -359,7 +360,7 @@ class ActionParameterDefAssign(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_action_parameter_def_assign'
+        db_table = 'action_parameter_def_assign'
 
 
 class BillOfMaterials(models.Model):
@@ -388,11 +389,11 @@ class BillOfMaterials(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_bom'
+        db_table = 'bom'
 
 
 class BomMaterial(models.Model):
-    uuid = RetUUIDField(primary_key=True, db_column='bom_material_index_uuid')
+    uuid = RetUUIDField(primary_key=True, db_column='bom_material_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
     bom = models.ForeignKey('BillOfMaterials', on_delete=models.DO_NOTHING,
                             blank=True, null=True, db_column='bom_uuid',
@@ -425,7 +426,7 @@ class BomMaterial(models.Model):
     
     class Meta:
         managed = False
-        db_table = 'vw_bom_material'
+        db_table = 'bom_material'
 
     def __str__(self):
         return self.bom_description
@@ -465,7 +466,7 @@ class BomCompositeMaterial(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_bom_material_composite'
+        db_table = 'bom_material_composite'
 
 
 class Condition(models.Model):
@@ -506,17 +507,17 @@ class Condition(models.Model):
                                blank=True,
                                null=True,
                                editable=False, related_name='condition_status')
-    status_description = models.CharField(max_length=255,
-                                          blank=True,
-                                          null=True,
-                                          db_column='status_description',
-                                          editable=False)
+    # status_description = models.CharField(max_length=255,
+    #                                       blank=True,
+    #                                       null=True,
+    #                                       db_column='status_description',
+    #                                       editable=False)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
-        db_table = 'vw_condition'
+        db_table = 'condition'
 
 
 class ConditionDef(models.Model):
@@ -550,7 +551,7 @@ class ConditionDef(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_condition_def'
+        db_table = 'condition_def'
 
 
 class ConditionCalculationDefAssign(models.Model):
@@ -573,7 +574,7 @@ class ConditionCalculationDefAssign(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_condition_calculation_def_assign'
+        db_table = 'condition_calculation_def_assign'
 
 
 class ConditionPath(models.Model):
@@ -597,7 +598,7 @@ class ConditionPath(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_condition_path'
+        db_table = 'condition_path'
 
 
 class Experiment(models.Model):
@@ -608,6 +609,7 @@ class Experiment(models.Model):
                                on_delete=models.DO_NOTHING, blank=True, null=True, related_name='experiment_parent')
     owner = models.ForeignKey('Actor', db_column='owner_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
                               related_name='experiment_owner')
+    #TODO: check upsert for this
     workflow = models.ManyToManyField('Workflow', through='ExperimentWorkflow', related_name='experiment_workflow')
     owner_description = models.CharField(
         max_length=255, db_column='owner_description')
@@ -617,12 +619,12 @@ class Experiment(models.Model):
         max_length=255, db_column='operator_description')
     lab = models.ForeignKey('Actor', db_column='lab_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
                             related_name='experiment_lab')
-    lab_description = models.CharField(
-        max_length=255, db_column='lab_description')
+    # lab_description = models.CharField(
+    #     max_length=255, db_column='lab_description')
     status = models.ForeignKey(
         'Status', on_delete=models.DO_NOTHING, db_column='status_uuid', blank=True, null=True, related_name='experiment_status')
-    status_description = models.CharField(
-        max_length=255, blank=True, null=True, db_column='status_description', editable=False)
+    # status_description = models.CharField(
+    #     max_length=255, blank=True, null=True, db_column='status_description', editable=False)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -631,11 +633,11 @@ class Experiment(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_experiment'
+        db_table = 'experiment'
 
-
+"""
 class ExperimentParameter(models.Model):
-    """Note: this is currently broken but unused. Consider it deprecated"""
+    #Note: this is currently broken but unused. Consider it deprecated
     uuid = RetUUIDField(primary_key=True, db_column='parameter_uuid')
     parameter_value_nominal = CustomArrayField(ValField(), blank=True, null=True)
     parameter_value_actual = CustomArrayField(ValField(), blank=True, null=True)
@@ -660,8 +662,8 @@ class ExperimentParameter(models.Model):
                                 editable=False)
     class Meta:
         managed = False
-        db_table = 'vw_experiment_parameter'
-
+        db_table = 'experiment_parameter'
+"""
 
 class ExperimentWorkflow(models.Model):
     # note: omitted much detail here because should be nested under
@@ -679,7 +681,7 @@ class ExperimentWorkflow(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_experiment_workflow'
+        db_table = 'experiment_workflow'
 
 
 class Outcome(models.Model):
@@ -700,7 +702,7 @@ class Outcome(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_outcome'
+        db_table = 'outcome'
 
 
 class Workflow(models.Model):
@@ -728,28 +730,28 @@ class Workflow(models.Model):
                               blank=True,
                               null=True,
                               related_name='workflow_actor')
-    actor_description = models.CharField(max_length=255,
-                                         blank=True,
-                                         null=True,
-                                         db_column='actor_description',
-                                         editable=False)
+    # actor_description = models.CharField(max_length=255,
+    #                                      blank=True,
+    #                                      null=True,
+    #                                      db_column='actor_description',
+    #                                      editable=False)
     status = models.ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                db_column='status_uuid',
                                blank=True,
                                null=True,
                                related_name='workflow_status')
-    status_description = models.CharField(max_length=255,
-                                          blank=True,
-                                          null=True,
-                                          db_column='status_description',
-                                          editable=False)
+    # status_description = models.CharField(max_length=255,
+    #                                       blank=True,
+    #                                       null=True,
+    #                                       db_column='status_description',
+    #                                       editable=False)
     add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
     mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
 
     class Meta:
         managed = False
-        db_table = 'vw_workflow'
+        db_table = 'workflow'
 
 
 class WorkflowActionSet(models.Model):
@@ -799,7 +801,7 @@ class WorkflowActionSet(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_workflow_action_set'
+        db_table = 'workflow_action_set'
 
 
 class WorkflowType(models.Model):
@@ -814,7 +816,7 @@ class WorkflowType(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_workflow_type'
+        db_table = 'workflow_type'
 
 
 class WorkflowStep(models.Model):
@@ -854,11 +856,11 @@ class WorkflowStep(models.Model):
                                blank=True,
                                null=True,
                                related_name='workflow_step_status')
-    status_description = models.CharField(max_length=255,
-                                          blank=True,
-                                          null=True,
-                                          db_column='status_description',
-                                          editable=False)
+    # status_description = models.CharField(max_length=255,
+    #                                       blank=True,
+    #                                       null=True,
+    #                                       db_column='status_description',
+    #                                       editable=False)
     add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
     mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
 
@@ -890,7 +892,7 @@ class WorkflowStep(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_workflow_step'
+        db_table = 'workflow_step'
 
 
 class WorkflowObject(models.Model):
@@ -926,5 +928,5 @@ class WorkflowObject(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_workflow_object'
+        db_table = 'workflow_object'
 
