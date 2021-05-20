@@ -25,8 +25,9 @@ simple_post_data = [
                                             "unit": "M",
                                             "type": "num"
                                         },
+                        "required": True,
                         "unit_type": None,
-                        "val_type": None,
+                        #"val_type": None,
                         "actor": None,
                         "status": None
                     }],
@@ -87,8 +88,9 @@ complex_post_data = [
                                                             "unit": "M",
                                                             "type": "num"
                                                         },
+                                        "required": True,
                                         "unit_type": None,
-                                        "val_type": None,
+                                        #"val_type": None,
                                         "actor": None,
                                         "status": None
                                     }],
@@ -125,6 +127,18 @@ complex_post_data = [
                                 "systemtool_type": 'systemtooltype__url'
                             }]
                         ],
+                        [
+                            ['workflowtype', {
+                                                "description": 'Test workflow type'
+                                            }],
+                            ['workflow', {
+                                            "description": "Test",
+                                            "parent": None,
+                                            "workflow_type": 'workflowtype__url',
+                                            "actor": None,
+                                            "status": None
+                                        }],
+                        ],
                         [   ['actiondef', {
                                                 "description": "Test Action Def",
                                                 "actor": None,
@@ -143,7 +157,7 @@ complex_post_data = [
                             ['action', {
                                             "description": "Test",
                                             "duration": "10",
-                                            "repeating": True,
+                                            "repeating": 1,
                                             "action_def": 'actiondef__url',
                                             "workflow": 'workflow__url',
                                             "status": None

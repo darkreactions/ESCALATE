@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import pre_save, post_save
+from django.dispatch import receiver
 from core.models.core_tables import RetUUIDField
 from core.models.abstract_base_models import DateColumns, StatusColumn, ActorColumn
 import uuid
@@ -104,6 +106,7 @@ class Person(DateColumns):
 
     def __str__(self):
         return "{} {}".format(self.first_name, self.last_name)
+
 
 
 class Systemtool(DateColumns):
