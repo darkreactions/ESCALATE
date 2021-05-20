@@ -8,7 +8,7 @@
 from django.db import models
 from datetime import datetime
 from django.utils.timezone import now
-
+import uuid
 managed_value = False
 
 
@@ -28,7 +28,7 @@ class RetUUIDField(models.UUIDField):
 
 class TypeDef(models.Model):
 
-    uuid = RetUUIDField(primary_key=True,
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                             db_column='type_def_uuid')
 
     category = models.CharField(max_length=255,
@@ -50,7 +50,7 @@ class TypeDef(models.Model):
 
 
 class PersonTable(models.Model):
-    uuid = RetUUIDField(primary_key=True, db_column='person_uuid')
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='person_uuid')
     first_name = models.CharField(
         max_length=255)
     last_name = models.CharField(max_length=255)
@@ -84,7 +84,7 @@ class PersonTable(models.Model):
 
 
 class OrganizationTable(models.Model):
-    uuid = RetUUIDField(primary_key=True, db_column='organization_uuid')
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='organization_uuid')
     description = models.CharField(max_length=255)
     full_name = models.CharField(max_length=255)
     short_name = models.CharField(max_length=255, blank=True, null=True)

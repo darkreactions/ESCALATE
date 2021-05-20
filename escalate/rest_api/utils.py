@@ -33,7 +33,7 @@ def camel_case_uuid(text):
     return text
 
 
-misc_views = set(['Note_x'])
+misc_views = set(['NoteX'])
 
 core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   'SystemtoolType', 'Inventory', 'InventoryMaterial',

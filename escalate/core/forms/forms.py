@@ -565,7 +565,7 @@ class InventoryMaterialForm(forms.ModelForm):
     class Meta:
         model = InventoryMaterial
         fields = ['description', 'inventory', 'material', 
-                  'material_consumable', 'material_composite_flg', 
+                  #'material_consumable', 'material_composite_flg', 
                   'part_no', 'onhand_amt', 'expiration_date',
                   'location', 'status',]
 
@@ -585,8 +585,8 @@ class InventoryMaterialForm(forms.ModelForm):
             'onhand_amt': 'Amount on hand',
             'expiration_date': 'Expiration date',
             'location': 'Inventory location',
-            'material_consumable': 'Consumable',
-            'material_composite_flg': 'Composite Material'
+            #'material_consumable': 'Consumable',
+            #'material_composite_flg': 'Composite Material'
         }
         widgets = {
             'material': forms.Select(attrs=dropdown_attrs),
