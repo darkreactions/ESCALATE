@@ -80,6 +80,8 @@
                                 <li><a class="dropdown-item" href="{% url 'tag_type_list' %}">Tag Type</a></li>
                                 <li><a class="dropdown-item" href="{% url 'tag_list' %}">Tag</a></li>
                                 <li><a class="dropdown-item" href="{% url 'udf_def_list' %}">Udf def</a></li>
+                                <li><a class="dropdown-item" href="{% url 'edocument_list' %}">Edocument</a></li>
+
                             </ul>
                         </div>
                     </li>
@@ -113,7 +115,7 @@
             </div>
             <div class="dropdown">
                 <a class="btn btn-info dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    User
+                    {{ request.user.person.first_name }} {{ request.user.person.last_name }}
                 </a>
                 <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
                     <a class="dropdown-item" href="{% url 'user_profile' %}">Profile</a>

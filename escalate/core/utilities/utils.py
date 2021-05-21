@@ -9,7 +9,7 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
 
 view_names = ['Material', 'Inventory', 'Actor', 'Organization', 'Person',
               'Systemtool', 'SystemtoolType', 'UdfDef', 'Status', 'Tag',
-              'TagType', 'MaterialType', 'InventoryMaterial']
+              'TagType', 'MaterialType', 'InventoryMaterial', 'Edocument']
 
 
 def camel_to_snake(name):
