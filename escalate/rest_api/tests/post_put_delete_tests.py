@@ -55,6 +55,5 @@ def test_complex_post(api_client, post_data):
         endpoint, data, response_data = add_prev_endpoint_data(data, response_data)
         resp = api_client.post(reverse(f'{endpoint}-list'), json.dumps(data), content_type='application/json')
         response_data[endpoint] = resp.json()
-    
     assert resp.status_code == 201
 

@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from core.models.core_tables import RetUUIDField
 from core.models.custom_types import ValField, CustomArrayField
+import uuid
 
 """
 related_exp = 'workflow__experiment_workflow_workflow__experiment'
@@ -41,8 +42,9 @@ q3 = WorkflowActionSet.objects.filter(calculation__isnull=False).only(
 #q2 = WorkflowActionSet.objects.filter(parameter_val__isnull=False).prefetch_related('workflow__experiment_workflow_workflow__experiment')
 #q3 = WorkflowActionSet.objects.filter(calculation__isnull=False).select_related('calculation', 'calculation__calculation_def').prefetch_related('calculation__calculation_def__calculation_parameter_def_assign_calculation_def__parameter_def').prefetch_related('workflow__experiment_workflow_workflow__experiment')
 #TODO: Verify all commented out descriptions from last push to make sure I did not break any description in Escalate
+
 class Action(models.Model):
-    uuid = RetUUIDField(primary_key=True,
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                                db_column='action_uuid')
     description = models.CharField(max_length=255,
                                    blank=True,
@@ -120,21 +122,25 @@ class Action(models.Model):
                               blank=True,
                               null=True,
                               editable=False, related_name='action_actor')
+
     # actor_description = models.CharField(max_length=255,
     #                                      blank=True,
     #                                      null=True,
     #                                      db_column='actor_description',
     #                                      editable=False)
+
     status = models.ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                db_column='status_uuid',
                                blank=True,
                                null=True, related_name='action_status')
+
     # status_description = models.CharField(max_length=255,
     #                                       blank=True,
     #                                       null=True,
     #                                       db_column='status_description',
     #                                       editable=False)
+
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -147,8 +153,8 @@ class Action(models.Model):
 
 
 class ActionDef(models.Model):
-    uuid = RetUUIDField(primary_key=True, db_column='action_def_uuid')
     # TODO: Look into ActionParameterDefAssign upsert
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='action_def_uuid')
     parameter_def = models.ManyToManyField(
         'ParameterDef', through='ActionParameterDefAssign')
     description = models.CharField(max_length=255,
@@ -162,22 +168,26 @@ class ActionDef(models.Model):
                               blank=True,
                               null=True,
                               related_name='action_def_actor')
+
     # actor_description = models.CharField(max_length=255,
     #                                      blank=True,
     #                                      null=True,
     #                                      db_column='actor_description',
     #                                      editable=False)
+
     status = models.ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                db_column='status_uuid',
                                blank=True,
                                null=True,
                                related_name='action_def_status')
+
     # status_description = models.CharField(max_length=255,
     #                                       blank=True,
     #                                       null=True,
     #                                       db_column='status_description',
     #                                       editable=False)
+
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -190,7 +200,7 @@ class ActionDef(models.Model):
 
 
 class ActionParameter(models.Model):
-    uuid = RetUUIDField(primary_key=True,
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='parameter_x_uuid')
     
     action = models.ForeignKey('Action',
@@ -254,22 +264,12 @@ class ActionParameter(models.Model):
                               blank=True,
                               null=True,
                               editable=False, related_name='action_parameter_actor')
-    actor_description = models.CharField(max_length=255,
-                                         blank=True,
-                                         null=True,
-                                         db_column='parameter_actor_description',
-                                         editable=False)
     status = models.ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                db_column='parameter_status_uuid',
                                blank=True,
                                null=True,
                                editable=False, related_name='action_parameter_status')
-    status_description = models.CharField(max_length=255,
-                                          blank=True,
-                                          null=True,
-                                          db_column='parameter_status_description',
-                                          editable=False)
     add_date = models.DateTimeField(
         auto_now_add=True, db_column='parameter_add_date')
     mod_date = models.DateTimeField(
@@ -282,7 +282,7 @@ class ActionParameter(models.Model):
 #TODO: find upsert related to this and verify description, actor_description, parameter_val_type
 class ActionParameterDef(models.Model):
     uuid = RetUUIDField(
-        primary_key=True, db_column='action_parameter_def_x_uuid')
+        primary_key=True, default=uuid.uuid4, db_column='action_parameter_def_x_uuid')
     action_def = models.ForeignKey('ActionDef',
                                    on_delete=models.DO_NOTHING,
                                    db_column='action_def_uuid',
@@ -300,22 +300,12 @@ class ActionParameterDef(models.Model):
                               blank=True,
                               null=True,
                               editable=False, related_name='action_parameter_def_actor')
-    actor_description = models.CharField(max_length=255,
-                                         blank=True,
-                                         null=True,
-                                         db_column='actor_description',
-                                         editable=False)
     status = models.ForeignKey('Status',
                                on_delete=models.DO_NOTHING,
                                db_column='status_uuid',
                                blank=True,
                                null=True,
                                editable=False, related_name='action_parameter_def_status')
-    status_description = models.CharField(max_length=255,
-                                          blank=True,
-                                          null=True,
-                                          db_column='status_description',
-                                          editable=False)
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
@@ -344,7 +334,7 @@ class ActionParameterDef(models.Model):
 
 class ActionParameterDefAssign(models.Model):
     uuid = RetUUIDField(
-        primary_key=True, db_column='action_parameter_def_x_uuid')
+        primary_key=True, default=uuid.uuid4, db_column='action_parameter_def_x_uuid')
     parameter_def = models.ForeignKey('ParameterDef',
                                       on_delete=models.DO_NOTHING,
                                       blank=True,
@@ -364,7 +354,7 @@ class ActionParameterDefAssign(models.Model):
 
 
 class BillOfMaterials(models.Model):
-    uuid = RetUUIDField(primary_key=True, db_column='bom_uuid')
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='bom_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
     experiment = models.ForeignKey('Experiment', on_delete=models.DO_NOTHING,
                                    blank=True, null=True, db_column='experiment_uuid',
@@ -393,7 +383,7 @@ class BillOfMaterials(models.Model):
 
 
 class BomMaterial(models.Model):
-    uuid = RetUUIDField(primary_key=True, db_column='bom_material_uuid')
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='bom_material_index_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
     bom = models.ForeignKey('BillOfMaterials', on_delete=models.DO_NOTHING,
                             blank=True, null=True, db_column='bom_uuid',
@@ -433,7 +423,7 @@ class BomMaterial(models.Model):
 
 
 class BomCompositeMaterial(models.Model):
-    uuid = RetUUIDField(primary_key=True, db_column='bom_material_composite_uuid')
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='bom_material_composite_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
     bom_material = models.ForeignKey('BomMaterial', on_delete=models.DO_NOTHING,
                             blank=True, null=True, db_column='bom_material_uuid',
@@ -471,7 +461,7 @@ class BomCompositeMaterial(models.Model):
 
 class Condition(models.Model):
     # todo: link to condition calculation
-    uuid = RetUUIDField(primary_key=True, db_column='condition_uuid')
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='condition_uuid')
     condition_calculation = models.ForeignKey('ConditionCalculationDefAssign', 
                                               models.DO_NOTHING, 
                                               db_column='condition_calculation_def_x_uuid',
@@ -522,7 +512,7 @@ class Condition(models.Model):
 
 class ConditionDef(models.Model):
     uuid = RetUUIDField(
-        primary_key=True, db_column='condition_def_uuid')
+        primary_key=True, default=uuid.uuid4, db_column='condition_def_uuid')
     description = models.CharField(max_length=255,
                                    blank=True,
                                    null=True,
@@ -556,7 +546,7 @@ class ConditionDef(models.Model):
 
 class ConditionCalculationDefAssign(models.Model):
     uuid = RetUUIDField(
-        primary_key=True, db_column='condition_calculation_def_x_uuid')
+        primary_key=True, default=uuid.uuid4, db_column='condition_calculation_def_x_uuid')
     condition_def = models.ForeignKey('ConditionDef',
                               on_delete=models.DO_NOTHING,
                               db_column='condition_def_uuid',
@@ -579,7 +569,7 @@ class ConditionCalculationDefAssign(models.Model):
 
 class ConditionPath(models.Model):
     uuid = RetUUIDField(
-        primary_key=True, db_column='condition_path_uuid')
+        primary_key=True, default=uuid.uuid4, db_column='condition_path_uuid')
     condition = models.ForeignKey('Condition',
                               on_delete=models.DO_NOTHING,
                               db_column='condition_uuid',
@@ -602,7 +592,7 @@ class ConditionPath(models.Model):
 
 
 class Experiment(models.Model):
-    uuid = RetUUIDField(primary_key=True, db_column='experiment_uuid')
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='experiment_uuid')
     ref_uid = models.CharField(max_length=255, db_column='ref_uid')
     description = models.CharField(max_length=255,  db_column='description')
     parent = models.ForeignKey('TypeDef', db_column='parent_uuid',
@@ -668,7 +658,7 @@ class ExperimentParameter(models.Model):
 class ExperimentWorkflow(models.Model):
     # note: omitted much detail here because should be nested under
     # experiment, no need for redundancy.
-    uuid = RetUUIDField(primary_key=True, db_column='experiment_workflow_uuid')
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='experiment_workflow_uuid')
     experiment = models.ForeignKey('Experiment', db_column='experiment_uuid', on_delete=models.DO_NOTHING,
                                    blank=True, null=True, related_name='experiment_workflow_experiment')
     experiment_ref_uid = models.CharField(max_length=255)
@@ -685,7 +675,7 @@ class ExperimentWorkflow(models.Model):
 
 
 class Outcome(models.Model):
-    uuid = RetUUIDField(primary_key=True, db_column='outcome_uuid')
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='outcome_uuid')
     description = models.CharField(max_length=255,  db_column='description')
     experiment = models.ForeignKey('Experiment', db_column='experiment_uuid', on_delete=models.DO_NOTHING,
                                    blank=True, null=True, related_name='outcome_experiment')
@@ -706,7 +696,7 @@ class Outcome(models.Model):
 
 
 class Workflow(models.Model):
-    uuid = RetUUIDField(primary_key=True,
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='workflow_uuid')
     #step = models.ManyToManyField(
     #    'WorkflowStep', through='WorkflowStep', related_name='workflow_step')
@@ -755,7 +745,7 @@ class Workflow(models.Model):
 
 
 class WorkflowActionSet(models.Model):
-    uuid = RetUUIDField(primary_key=True, db_column='workflow_action_set_uuid')
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='workflow_action_set_uuid')
     description = models.CharField(max_length=255,
                                    blank=True,
                                    null=True)
@@ -805,7 +795,7 @@ class WorkflowActionSet(models.Model):
 
 
 class WorkflowType(models.Model):
-    uuid = RetUUIDField(primary_key=True,
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='workflow_type_uuid')
     description = models.CharField(max_length=255,
                                    blank=True,
@@ -820,7 +810,7 @@ class WorkflowType(models.Model):
 
 
 class WorkflowStep(models.Model):
-    uuid = RetUUIDField(primary_key=True,
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='workflow_step_uuid')
     workflow = models.ForeignKey('Workflow', models.DO_NOTHING,
                                  db_column='workflow_uuid',
@@ -896,7 +886,7 @@ class WorkflowStep(models.Model):
 
 
 class WorkflowObject(models.Model):
-    uuid = RetUUIDField(primary_key=True, db_column='workflow_object_uuid')
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='workflow_object_uuid')
     workflow = models.ForeignKey('Workflow', models.DO_NOTHING,
                                blank=True, null=True, 
                                db_column='workflow_uuid', related_name='workflow_object_workflow')

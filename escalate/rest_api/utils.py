@@ -33,12 +33,13 @@ def camel_case_uuid(text):
     return text
 
 
-misc_views = set(['Note_x'])
+misc_views = set(['NoteX'])
 
 core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   'SystemtoolType', 'Inventory', 'InventoryMaterial',
                   'Calculation', 'CalculationDef', 'Material',
-                  'CompositeMaterial', 'CompositeMaterialProperty', 'MaterialRefnameDef', 'MaterialType', 'MaterialTypeAssign',
+                  'CompositeMaterial', 'CompositeMaterialProperty', 'MaterialIdentifierDef', 'MaterialIdentifier',
+                  'MaterialType', 'MaterialTypeAssign',
                   'Person', 'Tag', 'TagType', 'Property', 'PropertyDef', 'UnitType',
                   'TypeDef', 'ParameterDef', 'Condition', 'ConditionDef', 'ConditionCalculationDefAssign',
                   'ActionParameter', 'ActionParameterDefAssign', 'Parameter', 'WorkflowType', 'WorkflowStep', 
