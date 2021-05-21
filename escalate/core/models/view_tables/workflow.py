@@ -3,47 +3,9 @@ from django.contrib.postgres.fields import ArrayField
 from core.models.core_tables import RetUUIDField
 from core.models.custom_types import ValField, CustomArrayField
 import uuid
+from core.models.abstract_base_models import DateColumns, StatusColumn, ActorColumn
 
-"""
-related_exp = 'workflow__experiment_workflow_workflow__experiment'
-related_exp_wf = 'workflow__experiment_workflow_workflow'
-q1 = ActionParameter.objects.only('workflow').annotate(
-                object_description=F('action__description')).annotate( 
-                object_uuid=F('action__uuid')).annotate(
-                parameter_uuid=F('parameter__uuid')).annotate(
-                parameter_value=F('parameter_val_nominal')).annotate(
-                experiment_uuid=F(f'{related_exp}__uuid')).annotate(
-                workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
-                )).filter(workflow_action_set__isnull=True).select_related(
-                    'workflow').prefetch_related(f'{related_exp}')
-
-q2 = WorkflowActionSet.objects.filter(parameter_val_nominal__isnull=False).only(
-                    'workflow').annotate(
-                    object_description=F('description')).annotate(
-                    object_uuid=F('uuid')).annotate(
-                    parameter_uuid=Value(None, RetUUIDField())).annotate(
-                    parameter_value=F('parameter_val_nominal')).annotate(
-                    experiment_uuid=F(f'{related_exp}__uuid')).annotate(
-                    workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
-                    ).prefetch_related(f'{related_exp}')
-
-
-q3 = WorkflowActionSet.objects.filter(calculation__isnull=False).only(
-                    'workflow').select_related(
-    'calculation', 'calculation__calculation_def').annotate(
-                    object_description=F('description')).annotate(
-                    object_uuid=F('uuid')).annotate(
-                    parameter_uuid=F('calculation__calculation_def__parameter_def__uuid')).annotate(
-                    parameter_value=F('calculation__calculation_def__parameter_def__default_val')).annotate(
-                    experiment_uuid=F(f'{related_exp}__uuid')).annotate(
-                    workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq').prefetch_related('workflow__experiment_workflow_workflow__experiment')
-"""
-#q1 = ActionParameter.objects.only('action', 'parameter', 'workflow').filter(workflow_action_set__isnull=True).select_related('workflow').prefetch_related('workflow__experiment_workflow_workflow__experiment')
-#q2 = WorkflowActionSet.objects.filter(parameter_val__isnull=False).prefetch_related('workflow__experiment_workflow_workflow__experiment')
-#q3 = WorkflowActionSet.objects.filter(calculation__isnull=False).select_related('calculation', 'calculation__calculation_def').prefetch_related('calculation__calculation_def__calculation_parameter_def_assign_calculation_def__parameter_def').prefetch_related('workflow__experiment_workflow_workflow__experiment')
-#TODO: Verify all commented out descriptions from last push to make sure I did not break any description in Escalate
-
-class Action(models.Model):
+class Action(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                                db_column='action_uuid')
     description = models.CharField(max_length=255,
@@ -64,18 +26,7 @@ class Action(models.Model):
                                    db_column='workflow_uuid',
                                    blank=True,
                                    null=True, related_name='action_workflow')
-    # pending exposition of workflow_action_set through api
-    # workflow_action_set = models.ForeignKey('WorkflowActionSet',
-    #                                         on_delete=models.DO_NOTHING,
-    #                                         db_column='workflow_action_set_uuid',
-    #                                         blank=True,
-    #                                         null=True,
-    #                                         )
-    # workflow_action_set_description = models.CharField(max_length=255,
-    #                                       blank=True,
-    #                                       null=True,
-    #                                       db_column='workflow_action_set_description',
-    #                                       editable=False)
+
     source_material = models.ForeignKey('BomMaterial',
                                on_delete=models.DO_NOTHING,
                                db_column='source_material_uuid',
@@ -83,11 +34,7 @@ class Action(models.Model):
                                null=True,
                                editable=False,
                                related_name='action_source_material')
-    # source_material_description = models.CharField(max_length=255,
-    #                                       blank=True,
-    #                                       null=True,
-    #                                       db_column='source_material_description',
-    #                                       editable=False)
+
     destination_material = models.ForeignKey('BomMaterial',
                                on_delete=models.DO_NOTHING,
                                db_column='destination_material_uuid',
@@ -95,54 +42,13 @@ class Action(models.Model):
                                null=True,
                                editable=False,
                                related_name='action_destination_material')
-    # destination_material_description = models.CharField(max_length=255,
-    #                                       blank=True,
-    #                                       null=True,
-    #                                       db_column='destination_material_description',
-    #                                       editable=False)
+
     duration = models.FloatField(db_column='duration',
                                  blank=True,
                                  null=True)
     repeating = models.IntegerField(db_column='repeating',
                                     blank=True,
                                     null=True)
-    # calculation_def and ref_parameter_uuid can be ignored in the django model
-    # as they are no longer essential data model components
-    # calculation_def = models.ForeignKey('CalculationDef',
-    #                                     db_column='calculation_def_uuid',
-    #                                     on_delete=models.DO_NOTHING,
-    #                                     blank=True,
-    #                                     null=True,
-    #                                     editable=False,
-    #                                     related_name='action_calculation_def'
-    #                                     )
-    actor = models.ForeignKey('Actor',
-                              on_delete=models.DO_NOTHING,
-                              db_column='actor_uuid',
-                              blank=True,
-                              null=True,
-                              editable=False, related_name='action_actor')
-
-    # actor_description = models.CharField(max_length=255,
-    #                                      blank=True,
-    #                                      null=True,
-    #                                      db_column='actor_description',
-    #                                      editable=False)
-
-    status = models.ForeignKey('Status',
-                               on_delete=models.DO_NOTHING,
-                               db_column='status_uuid',
-                               blank=True,
-                               null=True, related_name='action_status')
-
-    # status_description = models.CharField(max_length=255,
-    #                                       blank=True,
-    #                                       null=True,
-    #                                       db_column='status_description',
-    #                                       editable=False)
-
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
@@ -152,7 +58,7 @@ class Action(models.Model):
         return "{}".format(self.description)
 
 
-class ActionDef(models.Model):
+class ActionDef(DateColumns, StatusColumn, ActorColumn):
     # TODO: Look into ActionParameterDefAssign upsert
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='action_def_uuid')
     parameter_def = models.ManyToManyField(
@@ -162,34 +68,6 @@ class ActionDef(models.Model):
                                    null=True,
                                    db_column='description',
                                    )
-    actor = models.ForeignKey('Actor',
-                              on_delete=models.DO_NOTHING,
-                              db_column='actor_uuid',
-                              blank=True,
-                              null=True,
-                              related_name='action_def_actor')
-
-    # actor_description = models.CharField(max_length=255,
-    #                                      blank=True,
-    #                                      null=True,
-    #                                      db_column='actor_description',
-    #                                      editable=False)
-
-    status = models.ForeignKey('Status',
-                               on_delete=models.DO_NOTHING,
-                               db_column='status_uuid',
-                               blank=True,
-                               null=True,
-                               related_name='action_def_status')
-
-    # status_description = models.CharField(max_length=255,
-    #                                       blank=True,
-    #                                       null=True,
-    #                                       db_column='status_description',
-    #                                       editable=False)
-
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.description}"
@@ -199,7 +77,7 @@ class ActionDef(models.Model):
         db_table = 'action_def'
 
 
-class ActionParameter(models.Model):
+class ActionParameter(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='parameter_x_uuid')
     
@@ -258,29 +136,13 @@ class ActionParameter(models.Model):
     parameter_val_actual = ValField(max_length=255, blank=True,
                              null=True,
                              db_column='parameter_val_actual')
-    actor = models.ForeignKey('Actor',
-                              on_delete=models.DO_NOTHING,
-                              db_column='parameter_actor_uuid',
-                              blank=True,
-                              null=True,
-                              editable=False, related_name='action_parameter_actor')
-    status = models.ForeignKey('Status',
-                               on_delete=models.DO_NOTHING,
-                               db_column='parameter_status_uuid',
-                               blank=True,
-                               null=True,
-                               editable=False, related_name='action_parameter_status')
-    add_date = models.DateTimeField(
-        auto_now_add=True, db_column='parameter_add_date')
-    mod_date = models.DateTimeField(
-        auto_now=True, db_column='parameter_mod_date')
 
     class Meta:
         managed = False
         db_table = 'action_parameter'
 
 #TODO: find upsert related to this and verify description, actor_description, parameter_val_type
-class ActionParameterDef(models.Model):
+class ActionParameterDef(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(
         primary_key=True, default=uuid.uuid4, db_column='action_parameter_def_x_uuid')
     action_def = models.ForeignKey('ActionDef',
@@ -294,20 +156,6 @@ class ActionParameterDef(models.Model):
                                    null=True,
                                    db_column='description',
                                    editable=False)
-    actor = models.ForeignKey('Actor',
-                              on_delete=models.DO_NOTHING,
-                              db_column='actor_uuid',
-                              blank=True,
-                              null=True,
-                              editable=False, related_name='action_parameter_def_actor')
-    status = models.ForeignKey('Status',
-                               on_delete=models.DO_NOTHING,
-                               db_column='status_uuid',
-                               blank=True,
-                               null=True,
-                               editable=False, related_name='action_parameter_def_status')
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
 
     parameter_def = models.ForeignKey('ParameterDef',
                                       on_delete=models.DO_NOTHING,
@@ -332,7 +180,7 @@ class ActionParameterDef(models.Model):
         db_table = 'action_parameter_def'
         
 
-class ActionParameterDefAssign(models.Model):
+class ActionParameterDefAssign(DateColumns):
     uuid = RetUUIDField(
         primary_key=True, default=uuid.uuid4, db_column='action_parameter_def_x_uuid')
     parameter_def = models.ForeignKey('ParameterDef',
@@ -345,15 +193,13 @@ class ActionParameterDefAssign(models.Model):
                                    blank=True,
                                    null=True,
                                    db_column='action_def_uuid', related_name='action_parameter_def_assign_action_def')
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
         db_table = 'action_parameter_def_assign'
 
 
-class BillOfMaterials(models.Model):
+class BillOfMaterials(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='bom_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
     experiment = models.ForeignKey('Experiment', on_delete=models.DO_NOTHING,
@@ -362,27 +208,12 @@ class BillOfMaterials(models.Model):
     experiment_description = models.CharField(
         max_length=255, blank=True, null=True)
 
-    actor = models.ForeignKey('Actor',
-                              on_delete=models.DO_NOTHING,
-                              db_column='actor_uuid',
-                              blank=True,
-                              null=True,
-                              editable=False, related_name='bom_actor')
-    status = models.ForeignKey('Status',
-                               on_delete=models.DO_NOTHING,
-                               db_column='status_uuid',
-                               blank=True,
-                               null=True,
-                               editable=False, related_name='bom_status')
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
-
     class Meta:
         managed = False
         db_table = 'bom'
 
 
-class BomMaterial(models.Model):
+class BomMaterial(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='bom_material_index_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
     bom = models.ForeignKey('BillOfMaterials', on_delete=models.DO_NOTHING,
@@ -399,20 +230,6 @@ class BomMaterial(models.Model):
     alloc_amt_val = ValField(max_length=255, blank=True, null=True)
     used_amt_val = ValField(max_length=255, blank=True, null=True)
     putback_amt_val = ValField(max_length=255, blank=True, null=True)
-    actor = models.ForeignKey('Actor',
-                              on_delete=models.DO_NOTHING,
-                              db_column='actor_uuid',
-                              blank=True,
-                              null=True,
-                              editable=False, related_name='bom_material_actor')
-    status = models.ForeignKey('Status',
-                               on_delete=models.DO_NOTHING,
-                               db_column='status_uuid',
-                               blank=True,
-                               null=True,
-                               editable=False, related_name='bom_material_status')
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
     
     class Meta:
         managed = False
@@ -422,7 +239,7 @@ class BomMaterial(models.Model):
         return self.bom_description
 
 
-class BomCompositeMaterial(models.Model):
+class BomCompositeMaterial(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='bom_material_composite_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
     bom_material = models.ForeignKey('BomMaterial', on_delete=models.DO_NOTHING,
@@ -439,27 +256,12 @@ class BomCompositeMaterial(models.Model):
     material_description = models.CharField(max_length=255,
                                                           blank=True,
                                                           null=True)
-    actor = models.ForeignKey('Actor',
-                              on_delete=models.DO_NOTHING,
-                              db_column='actor_uuid',
-                              blank=True,
-                              null=True,
-                              editable=False, related_name='bom_composite_material_actor')
-    status = models.ForeignKey('Status',
-                               on_delete=models.DO_NOTHING,
-                               db_column='status_uuid',
-                               blank=True,
-                               null=True,
-                               editable=False, related_name='bom_composite_material_status')
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
         db_table = 'bom_material_composite'
 
-
-class Condition(models.Model):
+class Condition(DateColumns, StatusColumn, ActorColumn):
     # todo: link to condition calculation
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='condition_uuid')
     condition_calculation = models.ForeignKey('ConditionCalculationDefAssign', 
@@ -480,37 +282,13 @@ class Condition(models.Model):
     # TODO: Fix in_val and out_val on Postgres to return strings not JSON!
     in_val = ValField(max_length=255, blank=True, null=True)
     out_val = ValField(max_length=255, blank=True, null=True)
-    actor = models.ForeignKey('Actor',
-                              on_delete=models.DO_NOTHING,
-                              db_column='actor_uuid',
-                              blank=True,
-                              null=True,
-                              editable=False, related_name='condition_actor')
-    actor_description = models.CharField(max_length=255,
-                                         blank=True,
-                                         null=True,
-                                         db_column='actor_description',
-                                         editable=False)
-    status = models.ForeignKey('Status',
-                               on_delete=models.DO_NOTHING,
-                               db_column='status_uuid',
-                               blank=True,
-                               null=True,
-                               editable=False, related_name='condition_status')
-    # status_description = models.CharField(max_length=255,
-    #                                       blank=True,
-    #                                       null=True,
-    #                                       db_column='status_description',
-    #                                       editable=False)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
         db_table = 'condition'
 
 
-class ConditionDef(models.Model):
+class ConditionDef(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(
         primary_key=True, default=uuid.uuid4, db_column='condition_def_uuid')
     description = models.CharField(max_length=255,
@@ -519,32 +297,13 @@ class ConditionDef(models.Model):
                                    db_column='description',
                                    editable=False)
     calculation_def = models.ManyToManyField('CalculationDef', through='ConditionCalculationDefAssign')
-    actor = models.ForeignKey('Actor',
-                              on_delete=models.DO_NOTHING,
-                              db_column='actor_uuid',
-                              blank=True,
-                              null=True,
-                              editable=False, related_name='condition_def_actor')
-    actor_description = models.CharField(max_length=255,
-                                         blank=True,
-                                         null=True,
-                                         db_column='actor_description',
-                                         editable=False)
-    status = models.ForeignKey('Status',
-                               on_delete=models.DO_NOTHING,
-                               db_column='status_uuid',
-                               blank=True,
-                               null=True,
-                               editable=False, related_name='condition_def_status')
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
         db_table = 'condition_def'
 
 
-class ConditionCalculationDefAssign(models.Model):
+class ConditionCalculationDefAssign(DateColumns):
     uuid = RetUUIDField(
         primary_key=True, default=uuid.uuid4, db_column='condition_calculation_def_x_uuid')
     condition_def = models.ForeignKey('ConditionDef',
@@ -559,15 +318,12 @@ class ConditionCalculationDefAssign(models.Model):
                               blank=True,
                               null=True,
                               related_name='condition_calculation_def_assign_calculation_def')
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
-
     class Meta:
         managed = False
         db_table = 'condition_calculation_def_assign'
 
 
-class ConditionPath(models.Model):
+class ConditionPath(DateColumns):
     uuid = RetUUIDField(
         primary_key=True, default=uuid.uuid4, db_column='condition_path_uuid')
     condition = models.ForeignKey('Condition',
@@ -583,15 +339,13 @@ class ConditionPath(models.Model):
                               blank=True,
                               null=True,
                               related_name='condition_path_workflow_step')
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
         db_table = 'condition_path'
 
 
-class Experiment(models.Model):
+class Experiment(DateColumns, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='experiment_uuid')
     ref_uid = models.CharField(max_length=255, db_column='ref_uid')
     description = models.CharField(max_length=255,  db_column='description')
@@ -609,14 +363,6 @@ class Experiment(models.Model):
         max_length=255, db_column='operator_description')
     lab = models.ForeignKey('Actor', db_column='lab_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
                             related_name='experiment_lab')
-    # lab_description = models.CharField(
-    #     max_length=255, db_column='lab_description')
-    status = models.ForeignKey(
-        'Status', on_delete=models.DO_NOTHING, db_column='status_uuid', blank=True, null=True, related_name='experiment_status')
-    # status_description = models.CharField(
-    #     max_length=255, blank=True, null=True, db_column='status_description', editable=False)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f'{self.description}'
@@ -624,36 +370,6 @@ class Experiment(models.Model):
     class Meta:
         managed = False
         db_table = 'experiment'
-
-"""
-class ExperimentParameter(models.Model):
-    #Note: this is currently broken but unused. Consider it deprecated
-    uuid = RetUUIDField(primary_key=True, db_column='parameter_uuid')
-    parameter_value_nominal = CustomArrayField(ValField(), blank=True, null=True)
-    parameter_value_actual = CustomArrayField(ValField(), blank=True, null=True)
-    parameter_def_description = models.CharField(
-        max_length=255, db_column='parameter_def_description', editable=False)
-    object = models.ForeignKey('WorkflowObject', on_delete=models.DO_NOTHING, 
-                                db_column='object_uuid', blank=True, null=True, 
-                                related_name='experiment_parameter_object',
-                                editable=False)
-    object_description = models.CharField(blank=True, null=True,
-        max_length=255, db_column='object_description', editable=False)
-    workflow_object = models.CharField(blank=True, null=True,
-        max_length=255, db_column='workflow_object', editable=False)
-    workflow_seq = models.IntegerField(blank=True, null=True)
-    workflow_description = models.CharField(blank=True, null=True,
-        max_length=255, db_column='workflow', editable=False)
-    experiment_description = models.CharField(blank=True, null=True,
-        max_length=255, db_column='experiment', editable=False)
-    experiment = models.ForeignKey('Experiment', on_delete=models.DO_NOTHING, 
-                                db_column='experiment_uuid', blank=True, null=True, 
-                                related_name='experiment_parameter_experiment',
-                                editable=False)
-    class Meta:
-        managed = False
-        db_table = 'experiment_parameter'
-"""
 
 class ExperimentWorkflow(models.Model):
     # note: omitted much detail here because should be nested under
@@ -674,28 +390,18 @@ class ExperimentWorkflow(models.Model):
         db_table = 'experiment_workflow'
 
 
-class Outcome(models.Model):
+class Outcome(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='outcome_uuid')
     description = models.CharField(max_length=255,  db_column='description')
     experiment = models.ForeignKey('Experiment', db_column='experiment_uuid', on_delete=models.DO_NOTHING,
                                    blank=True, null=True, related_name='outcome_experiment')
-    actor = models.ForeignKey(
-        'Actor', models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True, related_name='outcome_actor')
-    actor_description = models.CharField(
-        max_length=255, blank=True, null=True, editable=False)
-    status = models.ForeignKey(
-        'Status', models.DO_NOTHING, db_column='status_uuid', blank=True, null=True, related_name='outcome_status')
-    status_description = models.CharField(
-        max_length=255, blank=True, null=True, editable=False)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
         db_table = 'outcome'
 
 
-class Workflow(models.Model):
+class Workflow(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='workflow_uuid')
     #step = models.ManyToManyField(
@@ -714,37 +420,12 @@ class Workflow(models.Model):
                                                  blank=True,
                                                  null=True,
                                                  editable=False)
-    actor = models.ForeignKey('Actor',
-                              on_delete=models.DO_NOTHING,
-                              db_column='actor_uuid',
-                              blank=True,
-                              null=True,
-                              related_name='workflow_actor')
-    # actor_description = models.CharField(max_length=255,
-    #                                      blank=True,
-    #                                      null=True,
-    #                                      db_column='actor_description',
-    #                                      editable=False)
-    status = models.ForeignKey('Status',
-                               on_delete=models.DO_NOTHING,
-                               db_column='status_uuid',
-                               blank=True,
-                               null=True,
-                               related_name='workflow_status')
-    # status_description = models.CharField(max_length=255,
-    #                                       blank=True,
-    #                                       null=True,
-    #                                       db_column='status_description',
-    #                                       editable=False)
-    add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
-    mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
 
     class Meta:
         managed = False
         db_table = 'workflow'
 
-
-class WorkflowActionSet(models.Model):
+class WorkflowActionSet(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='workflow_action_set_uuid')
     description = models.CharField(max_length=255,
                                    blank=True,
@@ -774,42 +455,26 @@ class WorkflowActionSet(models.Model):
                                related_name='workflow_action_set_calculation')
     source_material = ArrayField(RetUUIDField(blank=True, null=True), db_column='source_material_uuid')
     destination_material = ArrayField(RetUUIDField(blank=True, null=True), db_column='destination_material_uuid')
-    actor = models.ForeignKey('Actor',
-                               on_delete=models.DO_NOTHING,
-                               db_column='actor_uuid',
-                               blank=True,
-                               null=True,
-                               editable=False, related_name='workflow_action_set_actor')
-    status = models.ForeignKey('Status',
-                               on_delete=models.DO_NOTHING,
-                               db_column='status_uuid',
-                               blank=True,
-                               null=True,
-                               editable=False, related_name='workflow_action_set_status')
-    add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
-    mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
 
     class Meta:
         managed = False
         db_table = 'workflow_action_set'
 
 
-class WorkflowType(models.Model):
+class WorkflowType(DateColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='workflow_type_uuid')
     description = models.CharField(max_length=255,
                                    blank=True,
                                    null=True,
                                    db_column='description')
-    add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
-    mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
 
     class Meta:
         managed = False
         db_table = 'workflow_type'
 
 
-class WorkflowStep(models.Model):
+class WorkflowStep(DateColumns, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='workflow_step_uuid')
     workflow = models.ForeignKey('Workflow', models.DO_NOTHING,
@@ -840,52 +505,15 @@ class WorkflowStep(models.Model):
                                          blank=True,
                                          null=True,
                                          editable=False)
-    status = models.ForeignKey('Status',
-                               on_delete=models.DO_NOTHING,
-                               db_column='status_uuid',
-                               blank=True,
-                               null=True,
-                               related_name='workflow_step_status')
-    # status_description = models.CharField(max_length=255,
-    #                                       blank=True,
-    #                                       null=True,
-    #                                       db_column='status_description',
-    #                                       editable=False)
-    add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
-    mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
-
     workflow_object = models.ForeignKey('WorkflowObject', models.DO_NOTHING,
                                         db_column='workflow_object_uuid', related_name='workflow_step_workflow_object')
-    # unclear how to make this an fk for django...
-    """
-    object_uuid = models.CharField(max_length=255,
-                                   blank=True,
-                                   null=True,
-                                   db_column='object_uuid',
-                                   editable=False)
-    object_type = models.CharField(max_length=255,
-                                   blank=True,
-                                   null=True,
-                                   db_column='object_type',
-                                   editable=False)
-    object_description = models.CharField(max_length=255,
-                                          blank=True,
-                                          null=True,
-                                          db_column='object_description',
-                                          editable=False)
-    object_def_description = models.CharField(max_length=255,
-                                              blank=True,
-                                              null=True,
-                                              db_column='object_def_description',
-                                              editable=False)
-    """
 
     class Meta:
         managed = False
         db_table = 'workflow_step'
 
 
-class WorkflowObject(models.Model):
+class WorkflowObject(DateColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='workflow_object_uuid')
     workflow = models.ForeignKey('Workflow', models.DO_NOTHING,
                                blank=True, null=True, 
@@ -913,8 +541,6 @@ class WorkflowObject(models.Model):
                                               blank=True,
                                               null=True,
                                               editable=False)
-    add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
-    mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
 
     class Meta:
         managed = False
