@@ -17,7 +17,7 @@ api_view_names = []
 for method_name in view_names:
     api_view_names.append(camel_case(method_name)+'-list')
 
-
+@pytest.mark.api_get
 @pytest.mark.parametrize("name", api_view_names)
 def test_api_list_views(name):
     response = client.get(reverse(name))

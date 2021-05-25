@@ -383,10 +383,11 @@ class SystemtoolTypeForm(forms.ModelForm):
 class UdfDefForm(forms.ModelForm):
     class Meta:
         model = UdfDef
-        fields = ['description', 'val_type_description']
+        fields = ['description', #'val_type_description'
+                    ]
         labels = {
             'description': 'Description',
-            'val_type_description': 'Value type'
+            #'val_type_description': 'Value type'
         }
         CHOICES = (('1', 'int'), ('2', 'array_int'), ('3', 'num'), ('4', 'array_num'),
                    ('5', 'text'), ('6', 'array_text'), ('7',
@@ -398,8 +399,8 @@ class UdfDefForm(forms.ModelForm):
                 'rows': '3',
                 'placeholder': 'Your system tool type description'
             }),
-            'val_type_description': forms.Select(attrs={
-                'placeholder': 'Ex: text, image'}, choices=CHOICES)
+            #'val_type_description': forms.Select(attrs={
+            #    'placeholder': 'Ex: text, image'}, choices=CHOICES)
         }
 
 
