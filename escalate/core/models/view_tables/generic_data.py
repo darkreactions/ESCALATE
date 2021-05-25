@@ -4,8 +4,9 @@ from core.models.core_tables import RetUUIDField
 from core.models.custom_types import ValField, PROPERTY_CLASS_CHOICES, PROPERTY_DEF_CLASS_CHOICES, MATERIAL_CLASS_CHOICES
 from django.contrib.postgres.fields import ArrayField
 import uuid
+from core.models.abstract_base_models import DateColumns, StatusColumn, ActorColumn
 
-class Calculation(models.Model):
+class Calculation(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='calculation_uuid')
     in_val = ValField(max_length=255, blank=True, null=True)
@@ -57,13 +58,6 @@ class Calculation(models.Model):
 
     calculation_alias_name = models.CharField(
         max_length=255, blank=True, null=True)
-
-    status = models.ForeignKey('Status',
-                               models.DO_NOTHING,
-                               db_column='calculation_status_uuid',
-                               related_name='calculation_status')
-    status_description = models.CharField(max_length=255,
-                                          blank=True, null=True)
     calculation_def = models.ForeignKey('CalculationDef',
                                         models.DO_NOTHING,
                                         blank=True, null=True,
@@ -87,20 +81,14 @@ class Calculation(models.Model):
     systemtool_version = models.CharField(
         max_length=1023, blank=True, null=True)
     """
-    actor = models.ForeignKey(
-        'Actor', models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True,
-        related_name='calculation_actor')
-    #actor_description = models.CharField(
-    #    max_length=1023, blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    
 
     class Meta:
         managed = False
         db_table = 'vw_calculation'
 
 
-class CalculationDef(models.Model):
+class CalculationDef(DateColumns, ActorColumn):
     uuid = RetUUIDField(
         primary_key=True, db_column='calculation_def_uuid')
     short_name = models.CharField(max_length=255, blank=True, null=True)
@@ -134,11 +122,7 @@ class CalculationDef(models.Model):
                                    models.DO_NOTHING,
                                    db_column='systemtool_uuid', 
                                    related_name='calculation_def_systemtool')
-    actor = models.ForeignKey('Actor', models.DO_NOTHING, blank=True, 
-                              null=True, db_column='actor_uuid', 
-                              related_name='calculation_def_actor')
-    add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
-    mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
+
 
     class Meta:
         managed = False
@@ -148,7 +132,7 @@ class CalculationDef(models.Model):
         return "{}".format(self.description)
 
 
-class CalculationParameterDefAssign(models.Model):
+class CalculationParameterDefAssign(DateColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='calculation_parameter_def_x_uuid')
     parameter_def = models.ForeignKey('ParameterDef',
                                           on_delete=models.DO_NOTHING,
@@ -162,15 +146,13 @@ class CalculationParameterDefAssign(models.Model):
                                           blank=True,
                                           null=True,
                                           related_name='calculation_parameter_def_assign_calculation_def')
-    add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
-    mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
 
     class Meta:
         managed = False
         db_table = 'vw_calculation_parameter_def_assign'
 
 
-class Edocument(models.Model):
+class Edocument(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(
         primary_key=True, db_column='edocument_uuid', editable=False)
     title = models.CharField(max_length=255, blank=True,
@@ -188,17 +170,8 @@ class Edocument(models.Model):
                                 null=True, db_column='doc_ver')
     edoc_type_uuid = models.ForeignKey('TypeDef', db_column='doc_type_uuid',
                                       on_delete=models.DO_NOTHING, blank=True, null=True, editable=False)
-    actor = models.ForeignKey(
-        'Actor', models.DO_NOTHING, db_column='actor_uuid', blank=True, null=True, related_name='edocument_actor')
-    actor_description = models.CharField(max_length=255, blank=True,
-                                null=True, db_column='actor_description')
-    status = models.ForeignKey(
-        'Status', models.DO_NOTHING, db_column='status_uuid', blank=True, null=True, related_name='edocument_status')
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
     #edocument_x_uuid = RetUUIDField(editable=False)
     ref_edocument_uuid = RetUUIDField()
-
 
     class Meta:
         managed = False
@@ -207,7 +180,8 @@ class Edocument(models.Model):
     def __str__(self):
         return "{}".format(self.title)
 
-class EdocumentX(models.Model):
+
+class EdocumentX(DateColumns):
     uuid = RetUUIDField(primary_key=True, db_column='edocument_x_uuid', editable=False)
     ref_edocument_uuid = RetUUIDField()
     edocument = models.ForeignKey('Edocument',
@@ -216,15 +190,13 @@ class EdocumentX(models.Model):
                                           blank=True,
                                           null=True,
                                           related_name='edocument_x_edocument')
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
         db_table = 'edocument_x'
 
 
-class Measure(models.Model):
+class Measure(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='measure_uuid')
     measure_type = models.ForeignKey('MeasureType',
                                           on_delete=models.DO_NOTHING,
@@ -246,46 +218,18 @@ class Measure(models.Model):
                                     db_column='measure_def_uuid',
                                     on_delete=models.DO_NOTHING)
     measure_value = ValField()
-    actor_uuid = models.ForeignKey('Actor',
-                                   on_delete=models.DO_NOTHING,
-                                   db_column='actor_uuid',
-                                   blank=True,
-                                   null=True,
-                                   related_name='measure_actor')
-    status_uuid = models.ForeignKey('Status',
-                                    on_delete=models.DO_NOTHING,
-                                    db_column='status_uuid',
-                                    blank=True,
-                                    null=True,
-                                    related_name='measure_status')
-    add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
-    mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
 
     class Meta:
         managed = False
         db_table = 'measure'
 
 
-class MeasureType(models.Model):
+class MeasureType(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='measure_type_uuid')
     description = models.CharField(max_length=255,
                                    blank=True,
                                    null=True,
                                    editable=False)
-    actor_uuid = models.ForeignKey('Actor',
-                                   on_delete=models.DO_NOTHING,
-                                   db_column='actor_uuid',
-                                   blank=True,
-                                   null=True,
-                                   editable=False, related_name='measure_type_actor')
-    status_uuid = models.ForeignKey('Status',
-                                    on_delete=models.DO_NOTHING,
-                                    db_column='status_uuid',
-                                    blank=True,
-                                    null=True,
-                                    editable=False, related_name='measure_type_status')
-    add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
-    mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
 
     def __str__(self):
         return f'{self.description}'
@@ -295,7 +239,7 @@ class MeasureType(models.Model):
         db_table = 'measure_type'
 
 
-class MeasureX(models.Model):
+class MeasureX(DateColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='measure_x_uuid')
     ref_measure = RetUUIDField(db_column='ref_measure_uuid')
     measure = models.ForeignKey('Measure', models.DO_NOTHING,
@@ -304,8 +248,6 @@ class MeasureX(models.Model):
                              editable=False,
                              db_column='measure_uuid',
                              related_name='measure_x_measure')
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
@@ -315,7 +257,7 @@ class MeasureX(models.Model):
         return "{}".format(self.measure_uuid)
 
 
-class MeasureDef(models.Model):
+class MeasureDef(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='measure_def_uuid')
     default_measure_type = models.ForeignKey('MeasureType', models.DO_NOTHING,
                              blank=True,
@@ -332,20 +274,6 @@ class MeasureDef(models.Model):
                              null=True,
                              db_column='property_def_uuid',
                              related_name='measure_def_default_measure_type')
-    actor = models.ForeignKey('Actor',
-                              on_delete=models.DO_NOTHING,
-                              db_column='actor_uuid',
-                              blank=True,
-                              null=True,
-                              editable=False, related_name='measure_def_actor')
-    status = models.ForeignKey('Status',
-                               on_delete=models.DO_NOTHING,
-                               db_column='status_uuid',
-                               blank=True,
-                               null=True,
-                               related_name='measure_def_status')
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f'{self.description}'
@@ -357,16 +285,10 @@ class MeasureDef(models.Model):
 
 
 
-class Note(models.Model):
+class Note(DateColumns, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='note_uuid')
     notetext = models.TextField(blank=True, null=True,
                                 verbose_name='Note Text')
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
-    actor = models.ForeignKey('Actor', models.DO_NOTHING,
-                              db_column='actor_uuid', related_name='note_actor')
-    actor_description = models.CharField(
-        max_length=255, blank=True, null=True, editable=False)
     """
     note_x_uuid = models.ForeignKey('Note_x', models.DO_NOTHING,
                                   blank=True,
@@ -385,7 +307,7 @@ class Note(models.Model):
         return "{}".format(self.notetext)
 
 
-class NoteX(models.Model):
+class NoteX(DateColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='note_x_uuid')
     ref_note = RetUUIDField(db_column='ref_note_uuid')
     note = models.ForeignKey('Note', models.DO_NOTHING,
@@ -394,8 +316,6 @@ class NoteX(models.Model):
                              editable=False,
                              db_column='note_uuid',
                              related_name='note_x_note')
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
@@ -405,7 +325,7 @@ class NoteX(models.Model):
         return "{}".format(self.note_uuid)
 
 
-class Parameter(models.Model):
+class Parameter(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='parameter_uuid')
     parameter_def = models.ForeignKey('ParameterDef',
@@ -420,27 +340,13 @@ class Parameter(models.Model):
     parameter_val_actual = ValField(max_length=255, blank=True,
                              null=True,
                              db_column='parameter_val_actual')
-    actor = models.ForeignKey('Actor',
-                              on_delete=models.DO_NOTHING,
-                              db_column='actor_uuid',
-                              blank=True,
-                              null=True,
-                              editable=False, related_name='parameter_actor')
-    status = models.ForeignKey('Status',
-                               on_delete=models.DO_NOTHING,
-                               db_column='status_uuid',
-                               blank=True,
-                               null=True,
-                               editable=False, related_name='parameter_status')
-    add_date = models.DateTimeField(auto_now_add=True, db_column='add_date')
-    mod_date = models.DateTimeField(auto_now=True, db_column='mod_date')
 
     class Meta:
         managed = False
         db_table = 'vw_parameter'
 
 
-class ParameterDef(models.Model):
+class ParameterDef(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='parameter_def_uuid')
     description = models.CharField(max_length=255,
@@ -460,27 +366,13 @@ class ParameterDef(models.Model):
                                  blank=True,
                                  null=True, related_name='parameter_def_val_type')
     """
-    actor = models.ForeignKey('Actor',
-                              on_delete=models.DO_NOTHING,
-                              db_column='actor_uuid',
-                              blank=True,
-                              null=True,
-                              related_name='parameter_def_actor')
-    status = models.ForeignKey('Status',
-                               on_delete=models.DO_NOTHING,
-                               db_column='status_uuid',
-                               blank=True,
-                               null=True,
-                               related_name='parameter_def_status')
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
         db_table = 'parameter_def'
 
 
-class Property(models.Model):
+class Property(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='property_uuid')
 
@@ -502,19 +394,7 @@ class Property(models.Model):
                                  null=True,
                                  db_column='property_def_unit_type')
     property_class = models.CharField(max_length=64, choices=PROPERTY_CLASS_CHOICES)
-    actor = models.ForeignKey('Actor',
-                              on_delete=models.DO_NOTHING,
-                              db_column='actor_uuid',
-                              blank=True,
-                              null=True,
-                              editable=False, related_name='property_actor')
-    status = models.ForeignKey('Status',
-                               on_delete=models.DO_NOTHING,
-                               blank=True,
-                               null=True,
-                               db_column='status_uuid', related_name='property_status')
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
+    
 
     class Meta:
         managed = False
@@ -524,8 +404,7 @@ class Property(models.Model):
         return "{}".format(self.short_description)
 
 
-class PropertyDef(models.Model):
-
+class PropertyDef(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='property_def_uuid')
     description = models.CharField(max_length=255,
@@ -550,29 +429,6 @@ class PropertyDef(models.Model):
                                 blank=True,
                                 null=True,
                                 db_column='property_def_unit_type')
-    actor = models.ForeignKey('Actor',
-                              on_delete=models.DO_NOTHING,
-                              db_column='actor_uuid',
-                              blank=True,
-                              null=True,
-                              editable=False, related_name='property_def_actor')
-    actor_description = models.CharField(max_length=255,
-                                         blank=True,
-                                         null=True,
-                                         db_column='actor_description',
-                                         editable=False)
-    status = models.ForeignKey('Status',
-                               on_delete=models.DO_NOTHING,
-                               blank=True,
-                               null=True,
-                               db_column='status_uuid', related_name='property_def_status')
-    status_description = models.CharField(max_length=255,
-                                          blank=True,
-                                          null=True,
-                                          db_column='status_description',
-                                          editable=False)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
@@ -582,12 +438,10 @@ class PropertyDef(models.Model):
         return "{}".format(self.description)
 
 
-class Status(models.Model):
+class Status(DateColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='status_uuid')
     description = models.CharField(max_length=255, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
-
+    
     class Meta:
         managed = False
         db_table = 'vw_status'
@@ -596,18 +450,10 @@ class Status(models.Model):
         return "{}".format(self.description)
 
 
-class Tag(models.Model):
+class Tag(DateColumns, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='tag_uuid', editable=False)
     display_text = models.CharField(max_length=255,  null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
-    actor = models.ForeignKey('Actor', models.DO_NOTHING,
-                              db_column='actor_uuid',
-                              blank=True, null=True, related_name='tag_actor')
-    actor_description = models.CharField(
-        max_length=255, blank=True, null=True, editable=False)
-
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
 
     tag_type = models.ForeignKey('TagType', models.DO_NOTHING,
                                  db_column='tag_type_uuid',
@@ -625,15 +471,13 @@ class Tag(models.Model):
         return "{}".format(self.display_text)
 
 
-class TagAssign(models.Model):
+class TagAssign(DateColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='tag_x_uuid')
     ref_tag = RetUUIDField(db_column='ref_tag_uuid')
     tag = models.ForeignKey('Tag', models.DO_NOTHING,
                             blank=True,
                             null=True,
                             db_column='tag_uuid', related_name='tag_assign_tag')
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
@@ -643,12 +487,10 @@ class TagAssign(models.Model):
         return "{}".format(self.uuid)
 
 
-class TagType(models.Model):
+class TagType(DateColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='tag_type_uuid')
     type = models.CharField(max_length=255,  null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         managed = False
