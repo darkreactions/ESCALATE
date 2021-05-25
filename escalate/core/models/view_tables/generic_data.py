@@ -398,11 +398,30 @@ class Property(DateColumns, StatusColumn, ActorColumn):
 
     class Meta:
         managed = False
-        db_table = 'vw_property'
+        db_table = 'property'
 
     def __str__(self):
         return "{}".format(self.short_description)
+    
+class PropertyX(DateColumns):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='property_x_uuid')
+    material_uuid = models.ForeignKey('Property',
+                                 db_column='material_uuid',
+                                 on_delete=models.DO_NOTHING,
+                                 blank=True,
+                                 null=True, related_name='property_x_material_uuid')
+    property_uuid = models.ForeignKey('Property',
+                                 db_column='property_uuid',
+                                 on_delete=models.DO_NOTHING,
+                                 blank=True,
+                                 null=True, related_name='property_x_property_uuid')
+    
+    class Meta:
+        managed = False
+        db_table = 'property_x'
 
+    def __str__(self):
+        return "{}".format(self.uuid)
 
 class PropertyDef(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
