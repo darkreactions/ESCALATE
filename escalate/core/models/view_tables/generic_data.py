@@ -379,7 +379,7 @@ class Note(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_note'
+        db_table = 'note'
 
     def __str__(self):
         return "{}".format(self.notetext)
@@ -684,9 +684,23 @@ class Udf(models.Model):
     
     class Meta:
         managed = False
-        db_table = 'vw_udf'
+        db_table = 'udf'
     def __str__(self):
         return "{}".format(self.description)
+    
+class UdfX(models.Model):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='udf_x_uuid')
+    ref_uuid = RetUUIDField(db_column='ref_udf_uuid')
+    udf_uuid = models.ForeignKey('Udf', models.DO_NOTHING,
+                         blank=True,
+                         null=True,
+                         editable=False,
+                         db_column='udf_uuid',
+                         related_name='udf_x_udf_uuid')
+    
+    class Meta:
+        managed = False
+        db_table = 'udf_x'    
     
 
 class UdfDef(models.Model):
@@ -707,7 +721,7 @@ class UdfDef(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'vw_udf_def'
+        db_table = 'udf_def'
 
     def __str__(self):
         return "{}".format(self.description)

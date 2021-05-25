@@ -59,7 +59,7 @@ class Action(DateColumns, StatusColumn, ActorColumn):
 
 
 class ActionDef(DateColumns, StatusColumn, ActorColumn):
-    # TODO: Look into ActionParameterDefAssign upsert
+    # TODO: need to add through fields
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='action_def_uuid')
     parameter_def = models.ManyToManyField(
         'ParameterDef', through='ActionParameterDefAssign')
@@ -141,7 +141,7 @@ class ActionParameter(DateColumns, StatusColumn, ActorColumn):
         managed = False
         db_table = 'action_parameter'
 
-#TODO: find upsert related to this and verify description, actor_description, parameter_val_type
+#TODO: possibly update this and add ActionParameterDefX Class
 class ActionParameterDef(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(
         primary_key=True, default=uuid.uuid4, db_column='action_parameter_def_x_uuid')
@@ -296,6 +296,7 @@ class ConditionDef(DateColumns, StatusColumn, ActorColumn):
                                    null=True,
                                    db_column='description',
                                    editable=False)
+    # TODO: need to add through fields
     calculation_def = models.ManyToManyField('CalculationDef', through='ConditionCalculationDefAssign')
 
     class Meta:
@@ -353,7 +354,7 @@ class Experiment(DateColumns, StatusColumn):
                                on_delete=models.DO_NOTHING, blank=True, null=True, related_name='experiment_parent')
     owner = models.ForeignKey('Actor', db_column='owner_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
                               related_name='experiment_owner')
-    #TODO: check upsert for this
+    # TODO: need to add through fields
     workflow = models.ManyToManyField('Workflow', through='ExperimentWorkflow', related_name='experiment_workflow')
     owner_description = models.CharField(
         max_length=255, db_column='owner_description')
@@ -404,8 +405,6 @@ class Outcome(DateColumns, StatusColumn, ActorColumn):
 class Workflow(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='workflow_uuid')
-    #step = models.ManyToManyField(
-    #    'WorkflowStep', through='WorkflowStep', related_name='workflow_step')
     description = models.CharField(max_length=255,
                                    blank=True,
                                    null=True,
