@@ -15,7 +15,7 @@ from django.core.exceptions import FieldDoesNotExist
 from core.utilities.view_utils import rgetattr
 
 import csv
-import core.views.exports.file_types as export_file_types
+#import core.views.exports.file_types as export_file_types
 import core
 
 # class with generic classes to use in models

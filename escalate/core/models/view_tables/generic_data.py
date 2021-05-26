@@ -1,4 +1,6 @@
 from django.db import models
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db.models.fields import BooleanField
 from core.models.core_tables import RetUUIDField
 from core.models.custom_types import ValField, PROPERTY_CLASS_CHOICES, PROPERTY_DEF_CLASS_CHOICES, MATERIAL_CLASS_CHOICES
@@ -163,8 +165,8 @@ class Edocument(DateColumns, StatusColumn, ActorColumn):
                                 db_column='filename')
     source = models.CharField(
         max_length=255, blank=True, null=True, db_column='source')
-    # edoc_type = models.CharField(max_length=255, blank=True,
-    #                              null=True, db_column='doc_type_description')
+    edoc_type = models.CharField(max_length=255, blank=True,
+                                 null=True, db_column='doc_type_description')
     edocument = models.BinaryField(blank=True, null=True, editable=False)
     edoc_ver = models.CharField(max_length=255, blank=True,
                                 null=True, db_column='doc_ver')
@@ -283,6 +285,21 @@ class MeasureDef(DateColumns, StatusColumn, ActorColumn):
         db_table = 'measure_def'
 
 
+class NoteTest(DateColumns, ActorColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='note_uuid')
+    notetext = models.TextField(blank=True, null=True,
+                                verbose_name='Note Text')
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    ref_note_uuid = RetUUIDField(blank=True, null=True)
+    content_object = GenericForeignKey('content_type', 'ref_note_uuid')
+
+    class Meta:
+        managed = True
+        db_table = 'note_test'
+
+    def __str__(self):
+        return "{}".format(self.notetext)
+
 
 
 class Note(DateColumns, ActorColumn):
@@ -301,7 +318,7 @@ class Note(DateColumns, ActorColumn):
 
     class Meta:
         managed = False
-        db_table = 'note'
+        db_table = 'vw_note'
 
     def __str__(self):
         return "{}".format(self.notetext)
@@ -573,8 +590,8 @@ class UdfDef(models.Model):
                                  on_delete=models.DO_NOTHING,
                                  blank=True,
                                  null=True, related_name='udf_def_val_type')
-    val_type_description = models.CharField(
-        max_length=255, blank=True, null=True)
+    #val_type_description = models.CharField(
+    #    max_length=255, blank=True, null=True)
     unit = models.CharField(
         max_length=255, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)

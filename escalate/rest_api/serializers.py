@@ -147,7 +147,7 @@ class EdocumentSerializer(TagListSerializer,
         model = Edocument
         fields = ('url', 'title', 'description', 'filename',
                   'source', 'edoc_type', 'download_link',
-                  'actor', 'actor_description', 'tags', 'notes', 'edocument',
+                  'actor', 'tags', 'notes', 'edocument',
                   'ref_edocument_uuid')
         read_only_fields = ['ref_edocument_uuid', 'filename']
 

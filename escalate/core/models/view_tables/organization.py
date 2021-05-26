@@ -3,7 +3,9 @@ from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from core.models.core_tables import RetUUIDField
 from core.models.abstract_base_models import DateColumns, StatusColumn, ActorColumn
+from core.models.view_tables.generic_data import NoteTest
 import uuid
+from django.contrib.contenttypes.fields import GenericRelation
 
 class Actor(DateColumns, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='actor_uuid')
@@ -64,6 +66,7 @@ class Organization(DateColumns):
                                db_column='parent_uuid',
                                related_name='organization_parent')
     parent_path = models.CharField(max_length=255, blank=True, null=True)
+    note_test = GenericRelation(NoteTest)
 
     class Meta:
         managed = False
