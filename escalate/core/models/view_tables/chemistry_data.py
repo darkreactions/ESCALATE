@@ -127,7 +127,7 @@ class InventoryMaterial(DateColumns, StatusColumn, ActorColumn):
         db_table = 'inventory_material'
 
     def __str__(self):
-        return "{} : {}".format(self.inventory_description, self.material_description)
+        return "{} : {}".format(self.inventory, self.material)
 
 """
 class InventoryMaterialMaterial(models.Model):

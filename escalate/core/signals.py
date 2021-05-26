@@ -51,14 +51,17 @@ def create_measure_x(sender, **kwargs):
         measure_x = MeasureX(Udf=kwargs['instance'])
     measure_x.save()
     
-upsert_material_property
+"""
 @receiver(post_save, sender=Property)  
 def create_property_x(sender, **kwargs):
     """
+"""
     Creates property_x table based on property table
     
     Args:
         sender (Udf Instance): Instance of the newly created property_x
-    """
+        """
+"""
     if kwargs['created']:
         measure_x = Me
+"""

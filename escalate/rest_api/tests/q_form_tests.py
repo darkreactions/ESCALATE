@@ -10,7 +10,6 @@ from django.test import Client
 from django.urls import reverse
 from rest_framework.test import force_authenticate
 from core.models.app_tables import CustomUser
-from post_data import simple_post_data, complex_post_data
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 from django.urls import reverse

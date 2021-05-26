@@ -185,16 +185,18 @@ class WorkflowActionSetSerializer(EdocListSerializer,
     
     def get_source_material(self, obj):
         result = []
-        for uuid in obj.source_material:
-            url = f"{reverse('bommaterial-detail', args=[uuid], request=self.context['request'])}"
-            result.append(url)
+        if obj.source_material != None:
+            for uuid in obj.source_material:
+                url = f"{reverse('bommaterial-detail', args=[uuid], request=self.context['request'])}"
+                result.append(url)
         return result
     
     def get_destination_material(self, obj):
         result = []
-        for uuid in obj.destination_material:
-            url = f"{reverse('bommaterial-detail', args=[uuid], request=self.context['request'])}"
-            result.append(url)
+        if obj.destination_material != None:
+            for uuid in obj.destination_material:
+                url = f"{reverse('bommaterial-detail', args=[uuid], request=self.context['request'])}"
+                result.append(url)
         return result
 
     class Meta:

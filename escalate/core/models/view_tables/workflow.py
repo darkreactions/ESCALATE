@@ -238,7 +238,7 @@ class BomMaterial(DateColumns, StatusColumn, ActorColumn):
         db_table = 'bom_material'
 
     def __str__(self):
-        return self.bom_description
+        return self.description
 
 
 class BomCompositeMaterial(DateColumns, StatusColumn, ActorColumn):

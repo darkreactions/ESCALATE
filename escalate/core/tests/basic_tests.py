@@ -46,7 +46,7 @@ def test_details():
     response = client.get(reverse('create_user'))
     assert response.status_code == 200
 
-
+@pytest.mark.ui_basic_tests
 @pytest.mark.parametrize("name", list_names)
 def test_list_views(login, name):
     """
@@ -55,7 +55,7 @@ def test_list_views(login, name):
     response = client.get(reverse(name))
     assert response.status_code == 200
 
-
+@pytest.mark.ui_basic_tests
 @pytest.mark.parametrize("name", list_names)
 def test_detail_views(login, name):
     """
@@ -69,7 +69,7 @@ def test_detail_views(login, name):
     response = client.get(view_link)
     assert response.status_code == 200
 
-
+@pytest.mark.ui_basic_tests 
 @pytest.mark.parametrize("name", list_names)
 def test_update_views(login, name):
     """
@@ -83,7 +83,7 @@ def test_update_views(login, name):
     response = client.get(view_link)
     assert response.status_code == 200
 
-
+@pytest.mark.ui_basic_tests
 @pytest.mark.parametrize("name", list_names)
 def test_add_views(login, name):
     """

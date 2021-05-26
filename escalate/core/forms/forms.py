@@ -502,7 +502,7 @@ class UploadEdocForm(forms.ModelForm):
 
         
         self.fields['title'].required = True
-        current_file_type = self.instance.doc_type_uuid if self.instance else None
+        current_file_type = self.instance.edoc_type_uuid if self.instance else None
 
         #file needs to be not required because it can't have an initial value
         #so, if it is required, django will say the form is invalid even though

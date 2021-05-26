@@ -398,18 +398,18 @@ class Property(DateColumns, StatusColumn, ActorColumn):
                                      on_delete=models.DO_NOTHING,
                                      blank=True,
                                      null=True, related_name='property_property_def')
-    short_description = models.CharField(max_length=255,
-                                         blank=True,
-                                         null=True,
-                                         db_column='short_description')
+    #short_description = models.CharField(max_length=255,
+    #                                     blank=True,
+    #                                     null=True,
+    #                                     db_column='short_description')
     property_val = ValField(max_length=255, 
                                    blank=True,
                                    null=True,
                                    db_column='property_val')
-    unit_type = models.CharField(max_length=255,
-                                 blank=True,
-                                 null=True,
-                                 db_column='property_def_unit_type')
+    #unit_type = models.CharField(max_length=255,
+    #                             blank=True,
+    #                             null=True,
+    #                             db_column='property_def_unit_type')
     property_class = models.CharField(max_length=64, choices=PROPERTY_CLASS_CHOICES)
     
 
@@ -417,9 +417,10 @@ class Property(DateColumns, StatusColumn, ActorColumn):
         managed = False
         db_table = 'property'
 
-    def __str__(self):
-        return "{}".format(self.short_description)
+#    def __str__(self):
+#        return "{}".format(self.short_description)
     
+"""
 class PropertyX(DateColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='property_x_uuid')
     material_uuid = models.ForeignKey('Property',
@@ -439,6 +440,7 @@ class PropertyX(DateColumns):
 
     def __str__(self):
         return "{}".format(self.uuid)
+"""
 
 class PropertyDef(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
@@ -468,7 +470,7 @@ class PropertyDef(DateColumns, StatusColumn, ActorColumn):
 
     class Meta:
         managed = False
-        db_table = 'vw_property_def'
+        db_table = 'property_def'
 
     def __str__(self):
         return "{}".format(self.description)
