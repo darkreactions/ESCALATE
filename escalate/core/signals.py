@@ -1,6 +1,7 @@
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
-from core.models import Person, Actor, BomCompositeMaterial, CompositeMaterial, Measure, MeasureX, UdfX, Udf
+from core.models import Person, Actor, BomCompositeMaterial, CompositeMaterial, Measure, MeasureX, UdfX, Udf, \
+Property, PropertyX, Parameter, ParameterX, Action, ActionParameter
 
 @receiver(post_save, sender=Person)
 def create_actor(sender, **kwargs):
@@ -48,20 +49,44 @@ def create_measure_x(sender, **kwargs):
         sender (Udf Instance): Instance of the newly created measure_x
     """
     if kwargs['created']:
-        measure_x = MeasureX(Udf=kwargs['instance'])
+        measure_x = MeasureX(Measure=kwargs['instance'])
     measure_x.save()
     
-"""
 @receiver(post_save, sender=Property)  
 def create_property_x(sender, **kwargs):
     """
-"""
-    Creates property_x table based on property table
-    
-    Args:
-        sender (Udf Instance): Instance of the newly created property_x
-        """
-"""
+        Creates property_x table based on property table
+        
+        Args:
+            sender (Udf Instance): Instance of the newly created property_x
+    """
+
     if kwargs['created']:
-        measure_x = Me
-"""
+        property_x = PropertyX(Property=kwargs['instance'])
+    property_x.save()
+    
+@receiver(post_save, sender=Parameter)  
+def create_parameter_x(sender, **kwargs):
+    """
+        Creates parameter_x table based on parameter table
+        
+        Args:
+            sender (Udf Instance): Instance of the newly created parameterx
+    """
+
+    if kwargs['created']:
+        parameter_x = ParameterX(parameter=kwargs['instance'])
+    parameter_x.save()
+
+@receiver(post_save, sender=Action)  
+def create_action_parameter(sender, **kwargs):
+    """
+        Creates action_parameter table based on action table
+        
+        Args:
+            sender (Udf Instance): Instance of the newly created action_parameter
+    """
+
+    if kwargs['created']:
+        action_parameter = ActionParameter(parameter=kwargs['instance'])
+    action_parameter.save()

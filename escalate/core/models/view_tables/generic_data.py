@@ -360,8 +360,16 @@ class Parameter(DateColumns, StatusColumn, ActorColumn):
 
     class Meta:
         managed = False
-        db_table = 'vw_parameter'
+        db_table = 'parameter'
 
+class ParameterX(DateColumns):
+    uuid =RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='parameter_x_uuid')
+    parameter_uuid = RetUUIDField(db_column='parameter_uuid')
+    parameter_ref_uuid = RetUUIDField(db_column='ref_parameter_uuid')
+    
+    class Meta:
+        managed = False
+        db_table = 'parameter_x'
 
 class ParameterDef(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
