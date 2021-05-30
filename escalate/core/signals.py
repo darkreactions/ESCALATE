@@ -14,7 +14,7 @@ def create_actor(sender, **kwargs):
     if kwargs['created']:
         #actor = Actor(person=kwargs['instance'],description=kwargs['instance']['first_name'])#description is an example of a specific call
         actor = Actor(person=kwargs['instance'])
-    actor.save()
+        actor.save()
 
 @receiver(post_save, sender=CompositeMaterial) 
 def create_bom_material_composite(sender, **kwargs):
@@ -23,10 +23,11 @@ def create_bom_material_composite(sender, **kwargs):
     
     Args:
         sender (CompositeMaterial Instance): Instance of the newly created composite material
+    TODO: Probably not the right signal. Composite material should not automatically generate a BomCompositeMaterial
     """
     if kwargs['created']:
         bom_material_composite = BomCompositeMaterial(CompositeMaterial=kwargs['instance'])
-    bom_material_composite.save()
+        bom_material_composite.save()
 
 @receiver(post_save, sender=Udf) 
 def create_udf_x(sender, **kwargs):
@@ -35,10 +36,11 @@ def create_udf_x(sender, **kwargs):
     
     Args:
         sender (Udf Instance): Instance of the newly created udf_x
+    TODO: Missing ref_udf_uuid 
     """
     if kwargs['created']:
         udf_x = UdfX(Udf=kwargs['instance'])
-    udf_x.save()
+        udf_x.save()
 
 @receiver(post_save, sender=Measure)  
 def create_measure_x(sender, **kwargs):
@@ -47,24 +49,31 @@ def create_measure_x(sender, **kwargs):
     
     Args:
         sender (Udf Instance): Instance of the newly created measure_x
+    TODO: Missing ref_measure_uuid from measurex
     """
     if kwargs['created']:
         measure_x = MeasureX(Measure=kwargs['instance'])
-    measure_x.save()
-    
+        measure_x.save()
+
+
+"""
 @receiver(post_save, sender=Property)  
 def create_property_x(sender, **kwargs):
-    """
-        Creates property_x table based on property table
-        
-        Args:
-            sender (Udf Instance): Instance of the newly created property_x
-    """
+"""
 
-    if kwargs['created']:
-        property_x = PropertyX(Property=kwargs['instance'])
-    property_x.save()
+"""
+    Creates property_x table based on property table
     
+    Args:
+        sender (Udf Instance): Instance of the newly created property_x
+    TODO: Missing material, is part of upsert_material_property
+"""
+"""
+if kwargs['created']:
+    property_x = PropertyX(Property=kwargs['instance'])
+    property_x.save()
+"""
+
 @receiver(post_save, sender=Parameter)  
 def create_parameter_x(sender, **kwargs):
     """
@@ -72,11 +81,13 @@ def create_parameter_x(sender, **kwargs):
         
         Args:
             sender (Udf Instance): Instance of the newly created parameterx
+
+        TODO: Missing ref_parameter_uuid
     """
 
     if kwargs['created']:
         parameter_x = ParameterX(parameter=kwargs['instance'])
-    parameter_x.save()
+        parameter_x.save()
 
 @receiver(post_save, sender=Action)  
 def create_action_parameter(sender, **kwargs):
@@ -89,4 +100,4 @@ def create_action_parameter(sender, **kwargs):
 
     if kwargs['created']:
         action_parameter = ActionParameter(parameter=kwargs['instance'])
-    action_parameter.save()
+        action_parameter.save()

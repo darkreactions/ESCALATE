@@ -5,6 +5,9 @@ from core.models.custom_types import ValField, CustomArrayField
 import uuid
 from core.models.abstract_base_models import DateColumns, StatusColumn, ActorColumn
 
+manage_tables = False
+manage_views = False
+
 class Action(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                                db_column='action_uuid')

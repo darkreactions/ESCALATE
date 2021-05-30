@@ -284,7 +284,7 @@ class MeasureDef(DateColumns, StatusColumn, ActorColumn):
         managed = False
         db_table = 'measure_def'
 
-
+"""
 class NoteTest(DateColumns, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='note_uuid')
     notetext = models.TextField(blank=True, null=True,
@@ -299,7 +299,7 @@ class NoteTest(DateColumns, ActorColumn):
 
     def __str__(self):
         return "{}".format(self.notetext)
-
+"""
 
 
 class Note(DateColumns, ActorColumn):
@@ -396,6 +396,9 @@ class ParameterDef(DateColumns, StatusColumn, ActorColumn):
         managed = False
         db_table = 'parameter_def'
 
+    def __str__(self):
+        return "{}".format(self.description)
+
 
 class Property(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
@@ -425,8 +428,8 @@ class Property(DateColumns, StatusColumn, ActorColumn):
         managed = False
         db_table = 'property'
 
-#    def __str__(self):
-#        return "{}".format(self.short_description)
+    def __str__(self):
+        return "{} : {}".format(self.property_def, self.property_val)
     
 """
 class PropertyX(DateColumns):
@@ -490,7 +493,7 @@ class Status(DateColumns):
     
     class Meta:
         managed = False
-        db_table = 'vw_status'
+        db_table = 'status'
 
     def __str__(self):
         return "{}".format(self.description)

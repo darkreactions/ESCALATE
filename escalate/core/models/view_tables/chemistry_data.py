@@ -4,6 +4,9 @@ from core.models.custom_types import ValField, PROPERTY_CLASS_CHOICES, PROPERTY_
 import uuid
 from core.models.abstract_base_models import DateColumns, StatusColumn, ActorColumn
 
+manage_tables = False
+manage_views = False
+
 class CompositeMaterial(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='material_composite_uuid')
     composite = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
@@ -23,7 +26,7 @@ class CompositeMaterial(DateColumns, StatusColumn, ActorColumn):
         through_fields=('composite_material', 'property'))
 
     class Meta:
-        managed = False
+        managed = manage_tables
         db_table = 'material_composite'
 
 
@@ -77,7 +80,7 @@ class CompositeMaterialProperty(DateColumns):
         db_column='property_value_val')
 
     class Meta:
-        managed = False
+        managed = manage_views
         db_table = 'vw_material_composite_property'
 
 
@@ -98,7 +101,7 @@ class Inventory(DateColumns, StatusColumn, ActorColumn):
                                 related_name='inventory_lab')
 
     class Meta:
-        managed = False
+        managed = manage_tables
         db_table = 'inventory'
 
     def __str__(self):
@@ -123,7 +126,7 @@ class InventoryMaterial(DateColumns, StatusColumn, ActorColumn):
     location = models.CharField(max_length=255, blank=True, null=True)
     
     class Meta:
-        managed = False
+        managed = manage_tables
         db_table = 'inventory_material'
 
     def __str__(self):
@@ -160,19 +163,19 @@ class Material(DateColumns, StatusColumn, ActorColumn):
     description = models.CharField(max_length=255, blank=True, null=True)
     consumable = models.BooleanField(blank=True, null=True)
     #composite_flg = models.BooleanField(blank=True, null=True)
-    material_types = models.ManyToManyField('MaterialType', 
-                                            through='MaterialTypeAssign',
-                                            related_name='material_material_types')
+    #material_types = models.ManyToManyField('MaterialType', 
+    #                                        through='MaterialTypeAssign',
+    #                                        related_name='material_material_types')
     material_class = models.CharField(max_length=64, choices=MATERIAL_CLASS_CHOICES)
-    property = models.ManyToManyField('Property', through='PropertyX', 
+    property = models.ManyToManyField('Property', #through='PropertyX', 
                                       related_name='material_property')
-    identifier = models.ManyToManyField('MaterialIdentifier', through='MaterialIdentifierX', 
+    identifier = models.ManyToManyField('MaterialIdentifier', #through='MaterialIdentifierX', 
                                       related_name='material_material_identifier')
-    material_type = models.ManyToManyField('MaterialType', through='MaterialTypeX', 
+    material_type = models.ManyToManyField('MaterialType', #through='MaterialTypeX', 
                                       related_name='material_material_type')
     
     class Meta:
-        managed = False
+        managed = True
         db_table = 'material'
 
     def __str__(self):
@@ -196,7 +199,7 @@ class PropertyX(DateColumns):
                                  related_name='property_x_property')
 
     class Meta:
-        managed = False
+        managed = manage_tables
         db_table = 'property_x'
 
 
@@ -240,7 +243,7 @@ class MaterialProperty(models.Model):
     value = ValField(max_length=255, blank=True, null=True, db_column='property_value_val')
 
     class Meta:
-        managed = False
+        managed = manage_views
         db_table = 'vw_material_property'
 
 
@@ -260,7 +263,7 @@ class MaterialIdentifierX(models.Model):
                                db_column='material_refname_uuid',
                                related_name='material_identifier_x_material')
     class Meta:
-        managed = False
+        managed = manage_tables
         db_table = 'material_refname_x'
 
 class MaterialIdentifier(DateColumns, StatusColumn):
@@ -281,8 +284,11 @@ class MaterialIdentifier(DateColumns, StatusColumn):
                                related_name='material_identifier_material_identifier_def')
 
     class Meta:
-        managed = False
+        managed = manage_tables
         db_table = 'material_refname'
+    
+    def __str__(self):
+        return "{}: {}".format(self.material_identifier_def, self.description)
 
 
 class MaterialIdentifierDef(DateColumns):
@@ -291,7 +297,7 @@ class MaterialIdentifierDef(DateColumns):
     description = models.CharField(max_length=255, blank=True, null=True)
     
     class Meta:
-        managed = False
+        managed = manage_tables
         db_table = 'material_refname_def'
 
     def __str__(self):
@@ -314,7 +320,7 @@ class MaterialTypeX(DateColumns):
                                related_name='material_type_x_material_type')
 
     class Meta:
-        managed = False
+        managed = manage_tables
         db_table = 'material_type_x'
 
 
@@ -323,8 +329,8 @@ class MaterialType(DateColumns):
     description = models.TextField(blank=True, null=True)
     
     class Meta:
-        managed = False
-        db_table = 'vw_material_type'
+        managed = manage_tables
+        db_table = 'material_type'
 
     def __str__(self):
         return "{}".format(self.description)
@@ -347,5 +353,5 @@ class MaterialTypeAssign(DateColumns):
                                related_name='material_type_assign')
 
     class Meta:
-        managed = False
+        managed = manage_views
         db_table = 'vw_material_type_assign'
