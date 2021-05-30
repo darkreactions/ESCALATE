@@ -1,7 +1,9 @@
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from core.models import Person, Actor, BomCompositeMaterial, CompositeMaterial, Measure, MeasureX, UdfX, Udf, \
-Property, PropertyX, Parameter, ParameterX, Action, ActionParameter
+Property, PropertyX, Parameter, ParameterX, Action, ActionParameter, WorkflowActionSet, Workflow, ExperimentWorkflow, \
+BomCompositeMaterial, BomMaterialIndex
+from core.models.view_tables.workflow import Experiment
 
 @receiver(post_save, sender=Person)
 def create_actor(sender, **kwargs):
@@ -48,31 +50,27 @@ def create_measure_x(sender, **kwargs):
     Creates measure_x table based on Measure table
     
     Args:
-        sender (Udf Instance): Instance of the newly created measure_x
-    TODO: Missing ref_measure_uuid from measurex
+        sender (Measure Instance): Instance of the newly created measure_x
     """
     if kwargs['created']:
         measure_x = MeasureX(Measure=kwargs['instance'])
         measure_x.save()
 
 
-"""
+
 @receiver(post_save, sender=Property)  
 def create_property_x(sender, **kwargs):
-"""
-
-"""
+    """
     Creates property_x table based on property table
     
     Args:
         sender (Udf Instance): Instance of the newly created property_x
     TODO: Missing material, is part of upsert_material_property
-"""
-"""
-if kwargs['created']:
-    property_x = PropertyX(Property=kwargs['instance'])
-    property_x.save()
-"""
+    """
+    if kwargs['created']:
+        property_x = PropertyX(Property=kwargs['instance'])
+        property_x.save()
+
 
 @receiver(post_save, sender=Parameter)  
 def create_parameter_x(sender, **kwargs):
@@ -95,7 +93,7 @@ def create_action_parameter(sender, **kwargs):
         Creates action_parameter table based on action table
         
         Args:
-            sender (Udf Instance): Instance of the newly created action_parameter
+            sender (Action Instance): Instance of the newly created action_parameter
     """
 
     if kwargs['created']:

@@ -265,6 +265,20 @@ class BomCompositeMaterial(DateColumns, StatusColumn, ActorColumn):
     class Meta:
         managed = False
         db_table = 'bom_material_composite'
+        
+# bom_material_index (description, bom_material_composite_uuid)
+class BomMaterialIndex(DateColumns):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='bom_material_index_uuid')
+    description = models.ForeignKey('BomMaterialComposite', on_delete=models.DO_NOTHING,
+                            blank=True, null=True, db_column='description',
+                            related_name='bom_material_index_description')
+    bom_material_composite_uuid = models.ForeignKey('BomMaterialComposite', on_delete=models.DO_NOTHING,
+                            blank=True, null=True, db_column='bom_material_composite_uuid',
+                            related_name='bom_composite_index_bom_material_composite_uuid')
+    
+    class Meta:
+        managed = False
+        db_table = 'bom_material_index'
 
 class Condition(DateColumns, StatusColumn, ActorColumn):
     # todo: link to condition calculation
