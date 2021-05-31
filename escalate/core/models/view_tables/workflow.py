@@ -268,10 +268,16 @@ class BomCompositeMaterial(DateColumns, StatusColumn, ActorColumn):
         
 # bom_material_index (description, bom_material_composite_uuid)
 class BomMaterialIndex(DateColumns):
+    """
+    This table combines bom_material and bom_composite material so that 
+    the bom_material_index_uuid can be used as an identifier in source and destination
+    material uuids in WorkflowActionSet
+    """
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='bom_material_index_uuid')
-    description = models.ForeignKey('BomMaterialComposite', on_delete=models.DO_NOTHING,
-                            blank=True, null=True, db_column='description',
-                            related_name='bom_material_index_description')
+    #description = models.ForeignKey('BomMaterialComposite', on_delete=models.DO_NOTHING,
+    #                        blank=True, null=True, db_column='description',
+    #                        related_name='bom_material_index_description')
+    description = models.CharField(max_length=255, blank=True, null=True)
     bom_material = models.ForeignKey('BomMaterial', on_delete=models.DO_NOTHING,
                             blank=True, null=True, db_column='bom_material_uuid',
                             related_name='bom_composite_index_bom_material')
@@ -282,6 +288,7 @@ class BomMaterialIndex(DateColumns):
     class Meta:
         managed = False
         db_table = 'bom_material_index'
+
 
 class Condition(DateColumns, StatusColumn, ActorColumn):
     # todo: link to condition calculation
@@ -343,7 +350,8 @@ class ConditionCalculationDefAssign(DateColumns):
                               related_name='condition_calculation_def_assign_calculation_def')
     class Meta:
         managed = False
-        db_table = 'vw_condition_calculation_def_assign'
+        #db_table = 'vw_condition_calculation_def_assign'
+        db_table = 'condition_calculation_def_x'
 
 
 class ConditionPath(DateColumns):
