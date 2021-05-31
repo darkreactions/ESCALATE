@@ -11,26 +11,43 @@ manage_views = False
 class Action(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                                db_column='action_uuid')
-    description = models.CharField(max_length=255,
-                                   blank=True,
-                                   null=True,
-                                   db_column='description')
     action_def = models.ForeignKey('ActionDef',
                                    on_delete=models.DO_NOTHING,
                                    db_column='action_def_uuid',
                                    blank=True,
                                    null=True, related_name='action_action_def')
-    """
-    action_def_description = models.CharField(max_length=255,
-                                              blank=True,
-                                              null=True,
-                                              editable=False)
-    """
     workflow = models.ForeignKey('Workflow',
                                    on_delete=models.DO_NOTHING,
                                    db_column='workflow_uuid',
                                    blank=True,
                                    null=True, related_name='action_workflow')
+    workflow_action_set = models.ForeignKey('WorkflowActionSet',
+                                   on_delete=models.DO_NOTHING,
+                                   db_column='workflow_action_set_uuid',
+                                   blank=True,
+                                   null=True, related_name='action_workflow_action_set')
+    description = models.CharField(max_length=255,
+                                   blank=True,
+                                   null=True,
+                                   db_column='description')
+    start_date = models.DateField(db_column='start_date')
+    end_date = models.DateField(db_column='end_date') 
+    duration = models.FloatField(db_column='duration',
+                                 blank=True,
+                                 null=True)
+    repeating = models.IntegerField(db_column='repeating',
+                                    blank=True,
+                                    null=True)
+    ref_parameter = models.ForeignKey('Parameter', on_delete=models.DO_NOTHING,
+                               db_column='ref_parameter_uuid',
+                               blank=True,
+                               null=True,
+                               related_name='action_ref_parameter')
+    calculation_def = models.ForeignKey('CalculationDef', on_delete=models.DO_NOTHING,
+                               db_column='calculation_def_uuid',
+                               blank=True,
+                               null=True,
+                               related_name='action_calculation_def')
     source_material = models.ForeignKey('BomMaterial',
                                on_delete=models.DO_NOTHING,
                                db_column='source_material_uuid',
@@ -38,7 +55,6 @@ class Action(DateColumns, StatusColumn, ActorColumn):
                                null=True,
                                editable=False,
                                related_name='action_source_material')
-
     destination_material = models.ForeignKey('BomMaterial',
                                on_delete=models.DO_NOTHING,
                                db_column='destination_material_uuid',
@@ -46,15 +62,7 @@ class Action(DateColumns, StatusColumn, ActorColumn):
                                null=True,
                                editable=False,
                                related_name='action_destination_material')
-
-    duration = models.FloatField(db_column='duration',
-                                 blank=True,
-                                 null=True)
-    repeating = models.IntegerField(db_column='repeating',
-                                    blank=True,
-                                    null=True)
-    start_date = models.DateField(db_column='start_date')
-    end_date = models.DateField(db_column='end_date') 
+    #materials = models.ManyToManyField('ActionMaterials')
     class Meta:
         managed = False
         db_table = 'action'
@@ -62,6 +70,33 @@ class Action(DateColumns, StatusColumn, ActorColumn):
     def __str__(self):
         return "{}".format(self.description)
 
+
+# Potential table to eliminate WorkflowActionSet. An action can operate on one or many 
+# source-destination material pairs. Both can be represented by Action
+"""
+class ActionMaterials(DateColumns, StatusColumn, ActorColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='action_material_uuid')
+    action = models.ForeignKey('Action')
+    source_material = models.ForeignKey('BomMaterial',
+                               on_delete=models.DO_NOTHING,
+                               db_column='source_material_uuid',
+                               blank=True,
+                               null=True,
+                               editable=False,
+                               related_name='action_material_source_material')
+    destination_material = models.ForeignKey('BomMaterial',
+                               on_delete=models.DO_NOTHING,
+                               db_column='destination_material_uuid',
+                               blank=True,
+                               null=True,
+                               editable=False,
+                               related_name='action_material_destination_material')
+    parameter = models.OneToOneField('Parameter')
+
+    class Meta:
+        managed = True
+        ordering = ['add_date']
+"""
 
 class ActionDef(DateColumns, StatusColumn, ActorColumn):
     # TODO: need to add through fields
@@ -382,6 +417,7 @@ class Experiment(DateColumns, StatusColumn):
                                on_delete=models.DO_NOTHING, blank=True, null=True, related_name='experiment_experiment_type')
     ref_uid = models.CharField(max_length=255, db_column='ref_uid')
     description = models.CharField(max_length=255,  db_column='description')
+    # TODO: Does parent point to TypeDef or another Experiment?
     parent = models.ForeignKey('TypeDef', db_column='parent_uuid',
                                on_delete=models.DO_NOTHING, blank=True, null=True, related_name='experiment_parent')
     owner = models.ForeignKey('Actor', db_column='owner_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
@@ -486,6 +522,9 @@ class WorkflowActionSet(DateColumns, StatusColumn, ActorColumn):
     parameter_val_nominal = CustomArrayField(ValField(),
                                              blank=True, null=True,
                                              db_column='parameter_val')
+    parameter_val_actual = CustomArrayField(ValField(),
+                                             blank=True, null=True,
+                                             db_column='parameter_val_actual')
     calculation = models.ForeignKey('Calculation', models.DO_NOTHING,
                                blank=True, null=True, 
                                db_column='calculation_uuid', 
