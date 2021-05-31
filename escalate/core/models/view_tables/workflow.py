@@ -201,7 +201,7 @@ class ActionParameterDefAssign(DateColumns):
 
     class Meta:
         managed = False
-        db_table = 'vw_action_parameter_def_assign'
+        db_table = 'action_parameter_def_x'
 
 
 class BillOfMaterials(DateColumns, StatusColumn, ActorColumn):
@@ -272,9 +272,12 @@ class BomMaterialIndex(DateColumns):
     description = models.ForeignKey('BomMaterialComposite', on_delete=models.DO_NOTHING,
                             blank=True, null=True, db_column='description',
                             related_name='bom_material_index_description')
-    bom_material_composite_uuid = models.ForeignKey('BomMaterialComposite', on_delete=models.DO_NOTHING,
+    bom_material = models.ForeignKey('BomMaterial', on_delete=models.DO_NOTHING,
+                            blank=True, null=True, db_column='bom_material_uuid',
+                            related_name='bom_composite_index_bom_material')
+    bom_composite_material = models.ForeignKey('BomCompositeMaterial', on_delete=models.DO_NOTHING,
                             blank=True, null=True, db_column='bom_material_composite_uuid',
-                            related_name='bom_composite_index_bom_material_composite_uuid')
+                            related_name='bom_composite_index_bom_composite_material')
     
     class Meta:
         managed = False

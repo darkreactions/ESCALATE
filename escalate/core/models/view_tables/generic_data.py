@@ -357,15 +357,26 @@ class Parameter(DateColumns, StatusColumn, ActorColumn):
     parameter_val_actual = ValField(max_length=255, blank=True,
                              null=True,
                              db_column='parameter_val_actual')
-
+    """
+    # Parameter should be related to only 1 action unlike parameter_def to action_def
+    # Therefore, we don't need a cross table like parameter_x but a direct foreign key
+    # This should hold true even if parameter is related to other entities besides
+    # action. Currently, also associated with calculation 
+    action = models.ForeignKey('Action',
+                                on_delete=models.DO_NOTHING,
+                                blank=True,
+                                null=True,
+                                editable=False, related_name='parameter_action')
+    """
     class Meta:
         managed = False
         db_table = 'parameter'
 
 class ParameterX(DateColumns):
     uuid =RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='parameter_x_uuid')
-    parameter_uuid = RetUUIDField(db_column='parameter_uuid')
-    parameter_ref_uuid = RetUUIDField(db_column='ref_parameter_uuid')
+    #parameter_uuid = RetUUIDField(db_column='parameter_uuid')
+    #parameter_ref_uuid = RetUUIDField(db_column='ref_parameter_uuid')
+    parameter = 
     
     class Meta:
         managed = False
