@@ -375,8 +375,12 @@ class Parameter(DateColumns, StatusColumn, ActorColumn):
 class ParameterX(DateColumns):
     uuid =RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='parameter_x_uuid')
     #parameter_uuid = RetUUIDField(db_column='parameter_uuid')
-    #parameter_ref_uuid = RetUUIDField(db_column='ref_parameter_uuid')
-    parameter = 
+    parameter_ref_uuid = RetUUIDField(db_column='ref_parameter_uuid')
+    parameter = models.ForeignKey('Parameter', on_delete=models.DO_NOTHING,
+                                blank=True,
+                                null=True,
+                                related_name='parameter_x_parameter')
+    
     
     class Meta:
         managed = False
