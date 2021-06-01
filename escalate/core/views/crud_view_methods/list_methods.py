@@ -42,7 +42,7 @@ methods = {
             'Composite': ['composite_flg'],
             'Status': ['status_description']
         },
-        'ordering': ['status_description'],
+        'ordering': ['description'],#status_description does not exist how do we want to order Material?
         'field_contains': '',
 
     },

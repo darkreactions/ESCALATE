@@ -167,11 +167,13 @@ class Material(DateColumns, StatusColumn, ActorColumn):
     #                                        through='MaterialTypeAssign',
     #                                        related_name='material_material_types')
     material_class = models.CharField(max_length=64, choices=MATERIAL_CLASS_CHOICES)
-    property = models.ManyToManyField('Property', #through='PropertyX', 
+    
+    #need to remove through crosstables when managed by django
+    property = models.ManyToManyField('Property', through='PropertyX', 
                                       related_name='material_property')
-    identifier = models.ManyToManyField('MaterialIdentifier', #through='MaterialIdentifierX', 
+    identifier = models.ManyToManyField('MaterialIdentifier', through='MaterialIdentifierX', 
                                       related_name='material_material_identifier')
-    material_type = models.ManyToManyField('MaterialType', #through='MaterialTypeX', 
+    material_type = models.ManyToManyField('MaterialType', through='MaterialTypeX', 
                                       related_name='material_material_type')
     
     class Meta:
