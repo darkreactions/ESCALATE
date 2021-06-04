@@ -34,8 +34,9 @@ class ValFormField(MultiValueField):
         errors = self.default_error_messages.copy()
         if 'error_messages' in kwargs:
             errors.update(kwargs['error_messages'])
-        data_types = TypeDef.objects.filter(category='data')
-        data_type_choices = [(data_type.description, data_type.description) for data_type in data_types]
+        #data_types = TypeDef.objects.filter(category='data')
+        #data_type_choices = [(data_type.description, data_type.description) for data_type in data_types]
+        data_type_choices = [('num', 'num'), ('text', 'text'), ('bool', 'bool')]
         fields = (
             CharField(error_messages={
                 'incomplete': 'Must enter a value',
@@ -69,7 +70,7 @@ class CustomArrayField(ArrayField):
             for item in value
         ]
 
-class ValField(models.Field):
+class ValField(models.TextField):
     description = 'Data representation'
     formfield = ValFormField()
     def __init__(self, *args, **kwargs):
@@ -81,8 +82,8 @@ class ValField(models.Field):
 
         return name, path, args, kwargs
     
-    def db_type(self, connection):
-        return 'val'
+    #def db_type(self, connection):
+    #    return 'val'
     
     def from_db_value(self, value, expression, connection):
         if value is None:

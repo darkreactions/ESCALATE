@@ -24,7 +24,7 @@ from core.utilities.utils import experiment_copy
 from core.utilities.experiment_utils import update_dispense_action_set, get_action_parameter_querysets, get_material_querysets
 from .serializers import *
 import core.models
-from core.models.view_tables import (ActionParameter, WorkflowActionSet, 
+from core.models.view_tables import (WorkflowActionSet, #ActionParameter
                                      Experiment, BomMaterial, InventoryMaterial,
                                      ParameterDef, Edocument)
 import rest_api
@@ -43,7 +43,8 @@ def save_actor_on_post(self, serializer):
     """
     p = core.models.Person.objects.get(pk=self.request.user.person.uuid)
     actor = core.models.Actor.objects.get(person=p, organization__isnull=True)
-    serializer.save(actor=actor, actor_description=actor.description)
+    #serializer.save(actor=actor, actor_description=actor.description)
+    serializer.save(actor=actor)
 
 # Download file view
 
@@ -201,7 +202,9 @@ save_viewsets = {
     'NoteViewSet' : {'parent_lookup': 'parent_lookup_ref_note_uuid', 
                      'ref_uuid': 'ref_note_uuid'},
     'EdocumentViewSet' : {'parent_lookup': 'parent_lookup_ref_edocument_uuid', 
-                          'ref_uuid': 'ref_edocument_uuid'}
+                          'ref_uuid': 'ref_edocument_uuid'},
+    'PropertyViewSet': {'parent_lookup': 'parent_lookup_property_ref',
+                        'ref_uuid': 'property_ref'}
 }
 
 for viewset_name, kwargs in save_viewsets.items():

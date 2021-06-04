@@ -87,10 +87,29 @@ class NoteListSerializer(DynamicFieldsModelSerializer):
     notes = SerializerMethodField()
 
     def get_notes(self, obj):
-        notes = Note.objects.filter(note_x_note__ref_note=obj.uuid)
+        #notes = Note.objects.filter(note_x_note__ref_note=obj.uuid)
+        notes = Note.objects.filter(ref_note_uuid=obj.uuid)
         result_serializer = NoteSerializer(
             notes, many=True, context=self.context)
         return result_serializer.data
+
+class PropertySerializer(DynamicFieldsModelSerializer):
+
+    class Meta:
+        model = Property
+        fields = '__all__'
+        read_only_fields = ['property_ref']
+
+
+class PropertyListSerializer(DynamicFieldsModelSerializer):
+    property = SerializerMethodField()
+
+    def get_property(self, obj):
+        property = Property.objects.filter(property_ref=obj.uuid)
+        result_serializer = PropertySerializer(
+            property, many=True, context=self.context)
+        return result_serializer.data
+
 
 class MeasureSerializer(DynamicFieldsModelSerializer):
 
@@ -167,11 +186,14 @@ class EdocListSerializer(DynamicFieldsModelSerializer):
 for model_name in rest_serializer_views:
     meta_class = type('Meta', (), {'model': globals()[model_name],
                                    'fields': '__all__'})
+    base_serializers = [EdocListSerializer,
+                        TagListSerializer,
+                        NoteListSerializer,
+                        DynamicFieldsModelSerializer]
+    if model_name == 'Material':
+        base_serializers.insert(3, PropertyListSerializer)
     globals()[model_name+'Serializer'] = type(model_name+'Serializer',
-                                              tuple([EdocListSerializer,
-                                                     TagListSerializer,
-                                                     NoteListSerializer,
-                                                     DynamicFieldsModelSerializer]),
+                                              tuple(base_serializers),
                                               {'Meta': meta_class})
 
 

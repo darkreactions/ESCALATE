@@ -9,7 +9,10 @@ from django.db import models
 from datetime import datetime
 from django.utils.timezone import now
 import uuid
-managed_value = False
+
+#managed_value = False
+managed_tables = True
+managed_views = False
 
 
 class RetUUIDField(models.UUIDField):
@@ -42,71 +45,8 @@ class TypeDef(models.Model):
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
     class Meta:
-        managed = False
-        db_table = 'vw_type_def'
+        managed = managed_tables
+        db_table = 'type_def'
 
     def __str__(self):
         return self.description
-
-
-class PersonTable(models.Model):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='person_uuid')
-    first_name = models.CharField(
-        max_length=255)
-    last_name = models.CharField(max_length=255)
-    middle_name = models.CharField(
-        max_length=255, blank=True, null=True)
-    address1 = models.CharField(max_length=255, blank=True, null=True)
-    address2 = models.CharField(max_length=255, blank=True, null=True)
-    city = models.CharField(max_length=255, blank=True, null=True)
-    state_province = models.CharField(max_length=3, blank=True, null=True)
-    zip = models.CharField(max_length=255, blank=True, null=True)
-    country = models.CharField(max_length=255, blank=True, null=True)
-
-    phone = models.CharField(max_length=255, blank=True, null=True)
-    email = models.EmailField(max_length=255, blank=True, null=True)
-    title = models.CharField(max_length=255, blank=True, null=True)
-    suffix = models.CharField(max_length=255, blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
-    organization = models.ForeignKey('Organization', models.DO_NOTHING,
-                                          blank=True, null=True,
-                                          db_column='organization_uuid',
-                                          related_name='person_table_organization')
-    
-
-    class Meta:
-        managed = False
-        db_table = 'person'
-
-    def __str__(self):
-        return "{} {}".format(self.first_name, self.last_name)
-
-
-class OrganizationTable(models.Model):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='organization_uuid')
-    description = models.CharField(max_length=255)
-    full_name = models.CharField(max_length=255)
-    short_name = models.CharField(max_length=255, blank=True, null=True)
-    address1 = models.CharField(max_length=255, blank=True, null=True)
-    address2 = models.CharField(max_length=255, blank=True, null=True)
-    city = models.CharField(max_length=255, blank=True, null=True)
-    state_province = models.CharField(max_length=3, blank=True, null=True)
-    zip = models.CharField(max_length=255, blank=True, null=True)
-    country = models.CharField(max_length=255, blank=True, null=True)
-    website_url = models.CharField(max_length=255, blank=True, null=True)
-    phone = models.CharField(max_length=255, blank=True, null=True)
-
-    parent = models.ForeignKey('self', models.DO_NOTHING,
-                                    blank=True, null=True,
-                                    db_column='parent_uuid',
-                                    related_name='organization_parent')
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        managed = False
-        db_table = 'organization'
-
-    def __str__(self):
-        return "{}".format(self.full_name)

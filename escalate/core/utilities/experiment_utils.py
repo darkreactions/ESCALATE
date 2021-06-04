@@ -9,7 +9,7 @@ import os
 from tkinter.constants import CURRENT
 from django.db.models import F, Value
 
-from core.models.view_tables import WorkflowActionSet, ActionParameter, BomMaterial
+from core.models.view_tables import WorkflowActionSet, BomMaterial #ActionParameter
 from core.custom_types import Val
 from core.models.core_tables import RetUUIDField
 

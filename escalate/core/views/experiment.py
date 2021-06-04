@@ -9,7 +9,7 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 
-from core.models.view_tables import ActionParameter, WorkflowActionSet, Experiment, BomMaterial, Edocument
+from core.models.view_tables import WorkflowActionSet, Experiment, BomMaterial, Edocument #ActionParameter
 from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm, NominalActualForm
 from core.forms.forms import ExperimentNameForm

@@ -28,8 +28,9 @@ class TableWidget(Widget):
 class ValWidget(MultiWidget):
     def __init__(self, attrs={}):
         # value, unit and type
-        data_types = TypeDef.objects.filter(category='data')
-        data_type_choices = [(data_type.description, data_type.description) for data_type in data_types]
+        #data_types = TypeDef.objects.filter(category='data')
+        #data_type_choices = [(data_type.description, data_type.description) for data_type in data_types]
+        data_type_choices = [('num', 'num'), ('text', 'text'), ('bool', 'bool')]
         select_attrs = {'class': 'selectpicker',
                           'data-style': 'btn-outline-primary', 
                           'data-live-search': 'true', 

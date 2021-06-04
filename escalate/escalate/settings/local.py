@@ -26,7 +26,7 @@ else:
             "HOST": 'localhost',
             "PORT": 5432,
             'OPTIONS': {
-                'options': '-c search_path=dev'
+                #'options': '-c search_path=dev'
             }
         }
     }

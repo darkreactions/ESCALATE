@@ -4,7 +4,7 @@ from core.models.custom_types import ValField, PROPERTY_CLASS_CHOICES, PROPERTY_
 import uuid
 from core.models.abstract_base_models import DateColumns, StatusColumn, ActorColumn
 
-manage_tables = False
+manage_tables = True
 manage_views = False
 
 class CompositeMaterial(DateColumns, StatusColumn, ActorColumn):
@@ -74,7 +74,7 @@ class CompositeMaterialProperty(DateColumns):
                                                   null=True,
                                                   db_column='property_short_description',
                                                   editable=False)
-    value = ValField(max_length=255,
+    value = ValField(
         blank=True,
         null=True,
         db_column='property_value_val')
@@ -121,7 +121,7 @@ class InventoryMaterial(DateColumns, StatusColumn, ActorColumn):
     #material_composite_flg = models.BooleanField()
     part_no = models.CharField(max_length=255,
                                blank=True, null=True)
-    onhand_amt = ValField(max_length=255, blank=True, null=True)
+    onhand_amt = ValField( blank=True, null=True)
     expiration_date = models.DateTimeField(blank=True, null=True)
     location = models.CharField(max_length=255, blank=True, null=True)
     
@@ -169,11 +169,11 @@ class Material(DateColumns, StatusColumn, ActorColumn):
     material_class = models.CharField(max_length=64, choices=MATERIAL_CLASS_CHOICES)
     
     #need to remove through crosstables when managed by django
-    property = models.ManyToManyField('Property', through='PropertyX', 
-                                      related_name='material_property')
-    identifier = models.ManyToManyField('MaterialIdentifier', through='MaterialIdentifierX', 
+    #property = models.ManyToManyField('Property', blank=True, 
+    #                                  related_name='material_property')
+    identifier = models.ManyToManyField('MaterialIdentifier', blank=True,
                                       related_name='material_material_identifier')
-    material_type = models.ManyToManyField('MaterialType', through='MaterialTypeX', 
+    material_type = models.ManyToManyField('MaterialType', blank=True,
                                       related_name='material_material_type')
     
     class Meta:
@@ -183,7 +183,7 @@ class Material(DateColumns, StatusColumn, ActorColumn):
     def __str__(self):
         return "{}".format(self.description)
 
-
+"""
 class PropertyX(DateColumns):
     property = RetUUIDField(primary_key=True,
                         db_column='property_x_uuid')
@@ -242,7 +242,7 @@ class MaterialProperty(models.Model):
                                                   null=True,
                                                   db_column='property_short_description',
                                                   editable=False)
-    value = ValField(max_length=255, blank=True, null=True, db_column='property_value_val')
+    value = ValField( blank=True, null=True, db_column='property_value_val')
 
     class Meta:
         managed = manage_views
@@ -267,6 +267,7 @@ class MaterialIdentifierX(models.Model):
     class Meta:
         managed = manage_tables
         db_table = 'material_refname_x'
+"""
 
 class MaterialIdentifier(DateColumns, StatusColumn):
     uuid = RetUUIDField(
@@ -305,7 +306,7 @@ class MaterialIdentifierDef(DateColumns):
     def __str__(self):
         return "{}".format(self.description)
 
-
+"""
 class MaterialTypeX(DateColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='material_type_x_uuid')
     material = models.ForeignKey('Material',
@@ -324,7 +325,7 @@ class MaterialTypeX(DateColumns):
     class Meta:
         managed = manage_tables
         db_table = 'material_type_x'
-
+"""
 
 class MaterialType(DateColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='material_type_uuid')

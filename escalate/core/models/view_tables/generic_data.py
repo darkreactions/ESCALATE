@@ -8,10 +8,13 @@ from django.contrib.postgres.fields import ArrayField
 import uuid
 from core.models.abstract_base_models import DateColumns, StatusColumn, ActorColumn
 
+managed_tables = True
+managed_views = False
+
 class Calculation(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='calculation_uuid')
-    in_val = ValField(max_length=255, blank=True, null=True)
+    in_val = ValField( blank=True, null=True)
     """
     in_val_type = models.ForeignKey('TypeDef',
                                     models.DO_NOTHING,
@@ -26,7 +29,7 @@ class Calculation(DateColumns, StatusColumn, ActorColumn):
                                          related_name='calculation_in_val_edocument', editable=False)
 
     # in opt
-    in_opt_val = ValField(max_length=255, blank=True, null=True)
+    in_opt_val = ValField( blank=True, null=True)
     #in_opt_val = CharField(max_length=255, blank=True, null=True)
     """
     in_opt_val_value = models.TextField(blank=True, null=True, editable=False)
@@ -42,7 +45,7 @@ class Calculation(DateColumns, StatusColumn, ActorColumn):
                                              db_column='in_opt_val_edocument_uuid',
                                              related_name='calculation_in_opt_val_edocument', editable=False)
     # out
-    out_val = ValField(max_length=255, blank=True, null=True)
+    out_val = ValField( blank=True, null=True)
     #out_val = CharField(max_length=255, blank=True, null=True)
     """
     out_val_type = models.ForeignKey('TypeDef',
@@ -86,8 +89,8 @@ class Calculation(DateColumns, StatusColumn, ActorColumn):
     
 
     class Meta:
-        managed = False
-        db_table = 'vw_calculation'
+        managed = managed_tables
+        db_table = 'calculation'
 
 
 class CalculationDef(DateColumns, ActorColumn):
@@ -127,8 +130,8 @@ class CalculationDef(DateColumns, ActorColumn):
 
 
     class Meta:
-        managed = False
-        db_table = 'vw_calculation_def'
+        managed = managed_tables
+        db_table = 'calculation_def'
 
     def __str__(self):
         return "{}".format(self.description)
@@ -150,7 +153,7 @@ class CalculationParameterDefAssign(DateColumns):
                                           related_name='calculation_parameter_def_assign_calculation_def')
 
     class Meta:
-        managed = False
+        managed = managed_views
         db_table = 'vw_calculation_parameter_def_assign'
 
 
@@ -176,8 +179,8 @@ class Edocument(DateColumns, StatusColumn, ActorColumn):
     ref_edocument_uuid = RetUUIDField()
 
     class Meta:
-        managed = False
-        db_table = 'vw_edocument'
+        managed = managed_tables
+        db_table = 'edocument'
 
     def __str__(self):
         return "{}".format(self.title)
@@ -194,7 +197,7 @@ class EdocumentX(DateColumns):
                                           related_name='edocument_x_edocument')
 
     class Meta:
-        managed = False
+        managed = managed_tables
         db_table = 'edocument_x'
 
 
@@ -222,7 +225,7 @@ class Measure(DateColumns, StatusColumn, ActorColumn):
     measure_value = ValField()
 
     class Meta:
-        managed = False
+        managed = managed_tables
         db_table = 'measure'
 
 
@@ -237,7 +240,7 @@ class MeasureType(DateColumns, StatusColumn, ActorColumn):
         return f'{self.description}'
 
     class Meta:
-        managed = False
+        managed = managed_tables
         db_table = 'measure_type'
 
 
@@ -252,7 +255,7 @@ class MeasureX(DateColumns):
                              related_name='measure_x_measure')
 
     class Meta:
-        managed = False
+        managed = managed_tables
         db_table = 'measure_x'
 
     def __str__(self):
@@ -270,7 +273,7 @@ class MeasureDef(DateColumns, StatusColumn, ActorColumn):
                                    blank=True,
                                    null=True,
                                    db_column='description')
-    default_measure_value = ValField(max_length=255, )
+    default_measure_value = ValField( )
     property_def = models.ForeignKey('PropertyDef', models.DO_NOTHING,
                              blank=True,
                              null=True,
@@ -281,7 +284,7 @@ class MeasureDef(DateColumns, StatusColumn, ActorColumn):
         return f'{self.description}'
 
     class Meta:
-        managed = False
+        managed = managed_tables
         db_table = 'measure_def'
 
 """
@@ -317,8 +320,8 @@ class Note(DateColumns, ActorColumn):
     ref_note_uuid = RetUUIDField(blank=True, null=True)
 
     class Meta:
-        managed = False
-        db_table = 'vw_note'
+        managed = managed_tables
+        db_table = 'note'
 
     def __str__(self):
         return "{}".format(self.notetext)
@@ -335,7 +338,7 @@ class NoteX(DateColumns):
                              related_name='note_x_note')
 
     class Meta:
-        managed = False
+        managed = managed_tables
         db_table = 'note_x'
 
     def __str__(self):
@@ -351,10 +354,10 @@ class Parameter(DateColumns, StatusColumn, ActorColumn):
                                       blank=True,
                                       null=True,
                                       editable=False, related_name='parameter_parameter_def')
-    parameter_val_nominal = ValField(max_length=255, blank=True,
+    parameter_val_nominal = ValField( blank=True,
                              null=True,
                              db_column='parameter_val')
-    parameter_val_actual = ValField(max_length=255, blank=True,
+    parameter_val_actual = ValField( blank=True,
                              null=True,
                              db_column='parameter_val_actual')
     """
@@ -369,7 +372,7 @@ class Parameter(DateColumns, StatusColumn, ActorColumn):
                                 editable=False, related_name='parameter_action')
     """
     class Meta:
-        managed = False
+        managed = managed_tables
         db_table = 'parameter'
 
 class ParameterX(DateColumns):
@@ -383,8 +386,9 @@ class ParameterX(DateColumns):
     
     
     class Meta:
-        managed = False
+        managed = managed_tables
         db_table = 'parameter_x'
+
 
 class ParameterDef(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
@@ -393,7 +397,7 @@ class ParameterDef(DateColumns, StatusColumn, ActorColumn):
                                    blank=True,
                                    null=True,
                                    db_column='description')
-    default_val = ValField(max_length=255, db_column='default_val')
+    default_val = ValField( db_column='default_val')
     required = BooleanField()
     unit_type = models.CharField(max_length=255,
                                  blank=True,
@@ -408,7 +412,7 @@ class ParameterDef(DateColumns, StatusColumn, ActorColumn):
     """
 
     class Meta:
-        managed = False
+        managed = managed_tables
         db_table = 'parameter_def'
 
     def __str__(self):
@@ -428,19 +432,19 @@ class Property(DateColumns, StatusColumn, ActorColumn):
     #                                     blank=True,
     #                                     null=True,
     #                                     db_column='short_description')
-    property_val = ValField(max_length=255, 
-                                   blank=True,
-                                   null=True,
-                                   db_column='property_val')
+    property_val = ValField(blank=True,
+                            null=True,
+                            db_column='property_val')
     #unit_type = models.CharField(max_length=255,
     #                             blank=True,
     #                             null=True,
     #                             db_column='property_def_unit_type')
     property_class = models.CharField(max_length=64, choices=PROPERTY_CLASS_CHOICES)
+    property_ref = RetUUIDField(blank=True, null=True)
     
 
     class Meta:
-        managed = False
+        managed = managed_tables
         db_table = 'property'
 
     def __str__(self):
@@ -461,7 +465,7 @@ class PropertyX(DateColumns):
                                  null=True, related_name='property_x_property_uuid')
     
     class Meta:
-        managed = False
+        managed = managed_tables
         db_table = 'property_x'
 
     def __str__(self):
@@ -495,7 +499,7 @@ class PropertyDef(DateColumns, StatusColumn, ActorColumn):
                                 db_column='property_def_unit_type')
 
     class Meta:
-        managed = False
+        managed = managed_tables
         db_table = 'property_def'
 
     def __str__(self):
@@ -507,7 +511,7 @@ class Status(DateColumns):
     description = models.CharField(max_length=255, null=True)
     
     class Meta:
-        managed = False
+        managed = managed_tables
         db_table = 'status'
 
     def __str__(self):
@@ -528,8 +532,8 @@ class Tag(DateColumns, ActorColumn):
         max_length=255, blank=True, null=True, editable=False)
 
     class Meta:
-        managed = False
-        db_table = 'vw_tag'
+        managed = managed_tables
+        db_table = 'tag'
 
     def __str__(self):
         return "{}".format(self.display_text)
@@ -544,8 +548,8 @@ class TagAssign(DateColumns):
                             db_column='tag_uuid', related_name='tag_assign_tag')
 
     class Meta:
-        managed = False
-        db_table = 'vw_tag_assign'
+        managed = managed_tables
+        db_table = 'tag_assign'
 
     def __str__(self):
         return "{}".format(self.uuid)
@@ -557,8 +561,8 @@ class TagType(DateColumns):
     description = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
-        managed = False
-        db_table = 'vw_tag_type'
+        managed = managed_tables
+        db_table = 'tag_type'
 
     def __str__(self):
         return "{}".format(self.type)
@@ -579,7 +583,7 @@ class Udf(models.Model):
                             blank=True, null=True,
                             db_column='udf_def_uuid', related_name='udf_udf_def')
     description = models.CharField(max_length=255,  null=True)
-    udf_value = ValField(max_length=255, db_column='udf_val')
+    udf_value = ValField( db_column='udf_val')
     udf_val_edocument = models.ForeignKey('Edocument', models.DO_NOTHING,
                             blank=True, null=True,
                             db_column='udf_val_edocument_uuid', 
@@ -589,7 +593,7 @@ class Udf(models.Model):
     mod_date = models.DateTimeField(auto_now=True)
     
     class Meta:
-        managed = False
+        managed = managed_tables
         db_table = 'udf'
     def __str__(self):
         return "{}".format(self.description)
@@ -605,7 +609,7 @@ class UdfX(models.Model):
                          related_name='udf_x_udf_uuid')
     
     class Meta:
-        managed = False
+        managed = managed_tables
         db_table = 'udf_x'    
     
 
@@ -626,7 +630,7 @@ class UdfDef(models.Model):
     mod_date = models.DateTimeField(auto_now=True)
 
     class Meta:
-        managed = False
+        managed = managed_tables
         db_table = 'udf_def'
 
     def __str__(self):

@@ -1,5 +1,6 @@
 from django.db import connection as con
 
+import inflection
 
 def get_val(val):
     """Breaks val tuple into constituent parts
@@ -16,16 +17,14 @@ def get_val(val):
 
 
 def camel_case(text):
-    data = text.lower()
-    if 'view' in data[:4]:
-        data = data[4:]
-    return data
+    return inflection.camelize(text, False)
 
 
 def snake_case(text):
-    components = text.split('_')
-    return ''.join(x.title() for x in components)
+    return inflection.underscore(text)
 
+def dasherize(text):
+    return inflection.dasherize(snake_case(text))
 
 def camel_case_uuid(text):
     text = camel_case(text)
@@ -38,26 +37,33 @@ misc_views = set(['NoteX'])
 core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   'SystemtoolType', 'Inventory', 'InventoryMaterial',
                   'Calculation', 'CalculationDef', 'Material',
-                  'CompositeMaterial', 'CompositeMaterialProperty', 'MaterialIdentifierDef', 'MaterialIdentifier',
-                  'MaterialType', 'MaterialTypeAssign',
-                  'Person', 'Tag', 'TagType', 'Property', 'PropertyDef', 'UnitType',
-                  'TypeDef', 'ParameterDef', 'Condition', 'ConditionDef', 'ConditionCalculationDefAssign',
-                  'ActionParameter', 'ActionParameterDefAssign', 'Parameter', 'WorkflowType', 'WorkflowStep', 
+                  'CompositeMaterial', 'MaterialIdentifierDef', 'MaterialIdentifier',
+                  'MaterialType', 
+                  'Person', 'Tag', 'TagType', 'PropertyDef', 'UnitType',
+                  'TypeDef', 'ParameterDef', 'Condition', 'ConditionDef',
+                  #'ActionParameter', 
+                  'Parameter', 'WorkflowType', 'WorkflowStep', 
                   'WorkflowObject', 'UdfDef', 'Experiment', 'ExperimentWorkflow', 'ExperimentType', #'ExperimentParameter',
-                  'BillOfMaterials', 'BomMaterial', 'BomCompositeMaterial', 'Measure', 'MeasureType', 'MeasureDef', 'Outcome'])
+                  'BillOfMaterials', 'BomMaterial', 'BomCompositeMaterial', 'Measure', 'MeasureType', 'MeasureDef', 'Outcome',
+                  'Action', 'ActionUnit', 'BomMaterialIndex'])
+
+#Views that are a combination of multiple tables, used to be postgres views. Should be changed to something else
+combined_views = set(['CompositeMaterialProperty', 'MaterialTypeAssign', 
+                      'ConditionCalculationDefAssign', 
+                      'ActionParameterDefAssign', 'MaterialProperty'])
 
 experiment_views = set(['ActionDef', 'BomMaterial', 'CompositeMaterial', 'Material', 'ParameterDef'])
 
 GET_only_views = set(['TypeDef'])
 
-unexposed_views = set(['TagAssign', 'Note', 'Edocument'])
+unexposed_views = set(['TagAssign', 'Note', 'Edocument', 'Property'])
 
-custom_serializer_views = set(['ActionDef', 'Action', 'Workflow', 'WorkflowActionSet'])
+custom_serializer_views = set(['ActionDef', 'Workflow', 'WorkflowActionSet'])
 
 # Viewsets that are not associated with a model exclusively
 non_model_views = set(['Experiment', 'ExperimentTemplate'])
 
-perform_create_views = set(['PropertyDef', 'MaterialProperty'])
+perform_create_views = set(['PropertyDef', ])
 
 # Set of models for rest_api/serializers.py
 rest_serializer_views = core_views | misc_views | perform_create_views
@@ -107,12 +113,12 @@ expandable_fields = {
              'many_to_many': []
         },
         'fields': {
-            'parameter': ('rest_api.ActionParameterSerializer', 
+            'action_unit': ('rest_api.ActionUnitSerializer', 
                                 {
                                     'read_only': True,
                                     'many': True, 
-                                    'source': 'action_parameter_action',
-                                    'view_name': 'actionparameter-detail'
+                                    'source': 'action_unit_action',
+                                    'view_name': 'actionunit-detail'
                                 })
         }
     },

@@ -7,6 +7,9 @@ from core.models.view_tables.generic_data import Note
 import uuid
 from django.contrib.contenttypes.fields import GenericRelation
 
+managed_tables = True
+managed_views = False
+
 class Actor(DateColumns, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='actor_uuid')
     organization = models.ForeignKey('Organization',
@@ -26,11 +29,13 @@ class Actor(DateColumns, StatusColumn):
     
 
     class Meta:
-        managed = False
+        managed = managed_tables
         db_table = 'actor'
 
     def __str__(self):
-        return "{}".format(self.description)
+        rep = list(filter(lambda x: x!='None', (str(self.organization), str(self.person), str(self.systemtool), str(self.description))))
+        return '-'.join(rep)
+        #return "{}".format()
 
 
 class ActorPref(DateColumns, ActorColumn):
@@ -41,7 +46,7 @@ class ActorPref(DateColumns, ActorColumn):
         max_length=255, blank=True, null=True)
     
     class Meta:
-        managed = False
+        managed = managed_tables
         db_table = 'actor_pref'
 
     def __str__(self):
@@ -66,9 +71,9 @@ class Organization(DateColumns):
                                db_column='parent_uuid',
                                related_name='organization_parent')
     parent_path = models.CharField(max_length=255, blank=True, null=True)
-
+    
     class Meta:
-        managed = False
+        managed = managed_tables
         db_table = 'organization'
 
     def __str__(self):
@@ -103,7 +108,7 @@ class Person(DateColumns):
         related_name='person_added_organization')
 
     class Meta:
-        managed = False
+        managed = managed_tables
         db_table = 'person'
 
     def __str__(self):
@@ -129,7 +134,7 @@ class Systemtool(DateColumns):
     ver = models.CharField(max_length=255,  null=True)
 
     class Meta:
-        managed = False
+        managed = managed_tables
         db_table = 'systemtool'
 
     def __str__(self):
@@ -142,7 +147,7 @@ class SystemtoolType(DateColumns):
     description = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = managed_tables
         db_table = 'systemtool_type'
 
     def __str__(self):

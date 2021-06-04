@@ -948,7 +948,7 @@ class Property(models.Model):
     # is represented as \"{0.5,10}\" in the val string. We'll have to write a special 
     # case to parse arrays in custom_types.py/Val.from_db() function
     
-    property_val = ValField(max_length=255,
+    property_val = ValField(
                                    blank=True,
                                    null=True,
                                    db_column='property_val')
@@ -1211,7 +1211,7 @@ class ParameterDef(models.Model):
                                db_column='valunit',
                                editable=False)
     """
-    default_val = ValField(max_length=255,
+    default_val = ValField(
                            blank=True,
                            null=True,
                            db_column='default_val',

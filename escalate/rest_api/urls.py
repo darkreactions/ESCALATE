@@ -12,9 +12,8 @@ from rest_framework_extensions.routers import ExtendedSimpleRouter, NestedRouter
 #from rest_framework_nested import routers
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
-
 from rest_api import viewsets
-from .utils import camel_case, docstring, rest_exposed_url_views, rest_nested_url_views
+from .utils import camel_case, dasherize, docstring, rest_exposed_url_views, rest_nested_url_views, snake_case
 from .rest_docs import rest_docs
 from .serializers import expandable_fields
 
@@ -26,7 +25,8 @@ import core.models
 def api_root(request, format=None):
     response_object = {}
     for view_name in sorted(rest_exposed_url_views):
-        name = camel_case(view_name)
+        #name = snake_case(view_name)
+        name = view_name.lower()
         response_object[name] = reverse(
             name+'-list', request=request, format=format)
     return Response(response_object)
@@ -67,7 +67,9 @@ registered.register('edocs', viewsets.EdocumentViewSet,
 for view in rest_nested_url_views:
     model = getattr(core.models, view)
     # basename of an endpoint e.g. api/person/
-    name = camel_case(view)
+    #name = snake_case(view)
+    name = view.lower()
+    dasherized_name = dasherize(view)
     # Add to related names if a field is a foriegn key
     related_names = [f'{name}_{f.name}' for f in model._meta.get_fields(
     ) if isinstance(f, (models.ForeignKey, models.ManyToManyField))]
@@ -80,14 +82,25 @@ for view in rest_nested_url_views:
                  if isinstance(f, (models.ForeignKey, models.ManyToManyField))]
 
     # register basename, then loop through nested foreign keys and register them
-    registered = router.register(rf'{name}', getattr(
+    registered = router.register(rf'{dasherized_name}', getattr(
         viewsets, view+'ViewSet'), basename=name)
+
     for i, url in enumerate(url_names):
         related_model_name = model._meta.get_field(url).remote_field.model
         if not isinstance(related_model_name, str):
             related_model_name = related_model_name.__name__
         registered.register(rf'{url}', getattr(viewsets, related_model_name+'ViewSet'),
                             basename=f'{name}-{url}', parents_query_lookups=[related_names[i]])
+
+    for i, related_name in enumerate(many_to_one_names):
+        model_name = many_to_one_rel_model[i]
+        url = model_name.lower()
+        try:
+            viewset = getattr(viewsets, model_name+'ViewSet')
+            registered.register(rf'{url}', viewset,
+                            basename=f'{name}-{url}', parents_query_lookups=[name])
+        except:
+            pass
 
     if view in expandable_fields:
         fields = expandable_fields[view]['fields']
@@ -107,6 +120,9 @@ for view in rest_nested_url_views:
                         basename=f'{name}-tag', parents_query_lookups=['ref_tag'])
     registered.register('edocs', viewsets.EdocumentViewSet,
                         basename=f'{name}-edoc', parents_query_lookups=['ref_edocument_uuid'])
+    if name == 'material':
+        registered.register('property', viewsets.PropertyViewSet,
+                        basename=f'{name}-property', parents_query_lookups=['property_ref'])
 
 schema_patterns = [
     path('api/', include(router.urls)),
