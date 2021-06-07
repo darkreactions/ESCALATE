@@ -22,14 +22,16 @@ class CompositeMaterial(DateColumns, StatusColumn, ActorColumn):
     #component_description = models.CharField(
     #    max_length=255, blank=True, null=True, editable=False)
     addressable = models.BooleanField(blank=True, null=True)
-    property = models.ManyToManyField('Property', through='CompositeMaterialProperty', related_name='composite_material_property',
-        through_fields=('composite_material', 'property'))
+    #property = models.ManyToManyField('Property', through='CompositeMaterialProperty', related_name='composite_material_property',
+    #    through_fields=('composite_material', 'property'))
+    material_type = models.ManyToManyField('MaterialType', blank=True, 
+                                      related_name='composite_material_material_type')
 
     class Meta:
         managed = manage_tables
         db_table = 'material_composite'
 
-
+"""
 class CompositeMaterialProperty(DateColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='material_composite_uuid')
@@ -82,7 +84,7 @@ class CompositeMaterialProperty(DateColumns):
     class Meta:
         managed = manage_views
         db_table = 'vw_material_composite_property'
-
+"""
 
 class Inventory(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='inventory_uuid')
@@ -171,9 +173,9 @@ class Material(DateColumns, StatusColumn, ActorColumn):
     #need to remove through crosstables when managed by django
     #property = models.ManyToManyField('Property', blank=True, 
     #                                  related_name='material_property')
-    identifier = models.ManyToManyField('MaterialIdentifier', blank=True,
+    identifier = models.ManyToManyField('MaterialIdentifier', blank=True, 
                                       related_name='material_material_identifier')
-    material_type = models.ManyToManyField('MaterialType', blank=True,
+    material_type = models.ManyToManyField('MaterialType', blank=True, 
                                       related_name='material_material_type')
     
     class Meta:
@@ -272,7 +274,7 @@ class MaterialIdentifierX(models.Model):
 class MaterialIdentifier(DateColumns, StatusColumn):
     uuid = RetUUIDField(
         primary_key=True, db_column='material_refname_uuid')
-    description = models.CharField(max_length=255, blank=True, null=True)
+    description = models.CharField(max_length=256, blank=True, null=True)
     #abbreviation = models.CharField(max_length=255, blank=True, null=True)
     #chemical_name = models.CharField(max_length=255, blank=True, null=True)
     #inchi = models.CharField(max_length=255, blank=True, null=True)

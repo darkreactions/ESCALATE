@@ -22,7 +22,7 @@ class OrganizationPassword(models.Model):
     organization = models.OneToOneField(Organization, models.DO_NOTHING,
                                     db_column='parent_uuid',
                                     related_name='organization_password_organization')
-    password = models.CharField(max_length=255, blank=True)
+    password = models.CharField(max_length=255)
 
     def __str__(self):
         return "{}".format(self.organization.full_name)

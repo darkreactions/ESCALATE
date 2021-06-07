@@ -4,6 +4,7 @@ from core.models.core_tables import RetUUIDField
 from core.models.custom_types import ValField, CustomArrayField
 import uuid
 from core.models.abstract_base_models import DateColumns, StatusColumn, ActorColumn
+from core.managers import ExperimentTemplateManager
 
 managed_tables = True
 managed_views = False
@@ -80,8 +81,7 @@ class ActionUnit(DateColumns, StatusColumn, ActorColumn):
 class ActionDef(DateColumns, StatusColumn, ActorColumn):
     # TODO: need to add through fields
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='action_def_uuid')
-    parameter_def = models.ManyToManyField(
-        'ParameterDef', through='ActionParameterDefAssign')
+    parameter_def = models.ManyToManyField('ParameterDef', blank=True) #, through='ActionParameterDefAssign')
     description = models.CharField(max_length=255,
                                    blank=True,
                                    null=True,
@@ -95,71 +95,7 @@ class ActionDef(DateColumns, StatusColumn, ActorColumn):
         managed = managed_tables
         db_table = 'action_def'
 
-"""
-class ActionParameter(models.Model):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
-                        db_column='parameter_x_uuid')
-    
-    action = models.ForeignKey('Action',
-                               db_column='action_uuid',
-                               on_delete=models.DO_NOTHING,
-                               blank=True,
-                               null=True,
-                               editable=False,
-                               related_name='action_parameter_action')
-    
-    action_description = models.CharField(max_length=255,
-                                                 blank=True,
-                                                 null=True,
-                                                 db_column='action_description',
-                                                 editable=False)
-    workflow = models.ForeignKey('Workflow',
-                               db_column='workflow_uuid',
-                               on_delete=models.DO_NOTHING,
-                               blank=True,
-                               null=True,
-                               editable=False,
-                               related_name='action_parameter_workflow')
-    workflow_action_set = models.ForeignKey('WorkflowActionSet',
-                               db_column='workflow_action_set_uuid',
-                               on_delete=models.DO_NOTHING,
-                               blank=True,
-                               null=True,
-                               editable=False,
-                               related_name='action_parameter_workflow_action_set')
-    
-    
-    parameter = models.ForeignKey('Parameter',
-                                  db_column='parameter_uuid',
-                                  on_delete=models.DO_NOTHING,
-                                  blank=True,
-                                  null=True,
-                                  editable=False,
-                                  related_name='action_parameter_parameter')
-    
-    #parameter_uuid = RetUUIDField()
-    parameter_def = models.ForeignKey('ParameterDef',
-                                      db_column='parameter_def_uuid',
-                                      on_delete=models.DO_NOTHING,
-                                      blank=True,
-                                      null=True,
-                                      editable=False, related_name='action_parameter_parameter_def')
-    parameter_def_description = models.CharField(max_length=255,
-                                                 blank=True,
-                                                 null=True,
-                                                 db_column='parameter_def_description',
-                                                 editable=False)
-    parameter_val_nominal = ValField(blank=True,
-                             null=True,
-                             db_column='parameter_val')
-    parameter_val_actual = ValField(blank=True,
-                             null=True,
-                             db_column='parameter_val_actual')
 
-    class Meta:
-        managed = managed_views
-        db_table = 'vw_action_parameter'
-"""
 
 
 #TODO: possibly update this and add ActionParameterDefX Class
@@ -420,6 +356,19 @@ class Experiment(DateColumns, StatusColumn):
         db_table = 'experiment'
 
 
+class ExperimentTemplate(Experiment):
+    objects = ExperimentTemplateManager()
+    
+    class Meta:
+        proxy = True
+
+class ExperimentInstance(Experiment):
+    objects = ExperimentTemplateManager()
+    
+    class Meta:
+        proxy = True
+
+
 class ExperimentType(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='experiment_type_uuid')
     description = models.CharField(max_length=255,  db_column='description')
@@ -472,10 +421,14 @@ class Workflow(DateColumns, StatusColumn, ActorColumn):
     workflow_type = models.ForeignKey('WorkflowType', models.DO_NOTHING,
                                       blank=True, null=True,
                                       db_column='workflow_type_uuid', related_name='workflow_workflow_type')
-
+    experiment = models.ManyToManyField('Experiment', through='ExperimentWorkflow', related_name='workflow_experiment')
+    
     class Meta:
         managed = managed_tables
         db_table = 'workflow'
+
+    def __str__(self):
+        return f'{self.description}'
 
 class WorkflowActionSet(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='workflow_action_set_uuid')
@@ -528,6 +481,8 @@ class WorkflowType(DateColumns):
         managed = managed_tables
         db_table = 'workflow_type'
 
+    def __str__(self):
+        return f'{self.description}'
 
 class WorkflowStep(DateColumns, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,

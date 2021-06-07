@@ -26,7 +26,7 @@ from .serializers import *
 import core.models
 from core.models.view_tables import (WorkflowActionSet, #ActionParameter
                                      Experiment, BomMaterial, InventoryMaterial,
-                                     ParameterDef, Edocument)
+                                     ParameterDef, Edocument, ExperimentTemplate, ExperimentInstance)
 import rest_api
 from core.custom_types import Val
 from core.experiment_templates import liquid_solid_extraction, resin_weighing, perovskite_demo
@@ -164,15 +164,25 @@ class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
 
 
 
-class ExperimentTemplateViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
-    queryset = Experiment.objects.filter(parent__isnull=True)
+class ExperimentTemplateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    #queryset = Experiment.objects.filter(parent__isnull=True)
+    queryset = ExperimentTemplate.objects.all()
     serializer_class = ExperimentTemplateSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filter_fields =  '__all__'
 
-class ExperimentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
-    queryset = Experiment.objects.filter(parent__isnull=False)
+class ExperimentInstanceViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    #queryset = Experiment.objects.filter(parent__isnull=True)
+    queryset = ExperimentInstance.objects.all()
+    serializer_class = ExperimentInstanceSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filter_fields =  '__all__'
+
+class ExperimentViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    #queryset = Experiment.objects.filter(parent__isnull=False)
+    queryset = Experiment.objects.all()
     serializer_class = ExperimentSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend]
@@ -204,7 +214,9 @@ save_viewsets = {
     'EdocumentViewSet' : {'parent_lookup': 'parent_lookup_ref_edocument_uuid', 
                           'ref_uuid': 'ref_edocument_uuid'},
     'PropertyViewSet': {'parent_lookup': 'parent_lookup_property_ref',
-                        'ref_uuid': 'property_ref'}
+                        'ref_uuid': 'property_ref'},
+    'ParameterViewSet': {'parent_lookup': 'parent_lookup_ref_object',
+                        'ref_uuid': 'ref_object'}
 }
 
 for viewset_name, kwargs in save_viewsets.items():

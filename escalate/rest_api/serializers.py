@@ -93,6 +93,7 @@ class NoteListSerializer(DynamicFieldsModelSerializer):
             notes, many=True, context=self.context)
         return result_serializer.data
 
+
 class PropertySerializer(DynamicFieldsModelSerializer):
 
     class Meta:
@@ -108,6 +109,24 @@ class PropertyListSerializer(DynamicFieldsModelSerializer):
         property = Property.objects.filter(property_ref=obj.uuid)
         result_serializer = PropertySerializer(
             property, many=True, context=self.context)
+        return result_serializer.data
+
+
+class ParameterSerializer(DynamicFieldsModelSerializer):
+
+    class Meta:
+        model = Parameter
+        fields = '__all__'
+        read_only_fields = ['ref_object']
+
+
+class ParameterListSerializer(DynamicFieldsModelSerializer):
+    parameter = SerializerMethodField()
+
+    def get_parameter(self, obj):
+        parameter = Parameter.objects.filter(ref_object=obj.uuid)
+        result_serializer = ParameterSerializer(
+            parameter, many=True, context=self.context)
         return result_serializer.data
 
 
@@ -190,8 +209,10 @@ for model_name in rest_serializer_views:
                         TagListSerializer,
                         NoteListSerializer,
                         DynamicFieldsModelSerializer]
-    if model_name == 'Material':
+    if model_name == 'Material' or model_name == 'CompositeMaterial':
         base_serializers.insert(3, PropertyListSerializer)
+    if model_name == 'Action':
+        base_serializers.insert(3, ParameterListSerializer)
     globals()[model_name+'Serializer'] = type(model_name+'Serializer',
                                               tuple(base_serializers),
                                               {'Meta': meta_class})
@@ -284,7 +305,7 @@ class ExperimentSerializer(EdocListSerializer,
 
     expandable_fields = expandable_fields['Experiment']['fields']
 
-
+"""
 class ExperimentTemplateSerializer(EdocListSerializer,
                         TagListSerializer,
                         NoteListSerializer,
@@ -295,7 +316,30 @@ class ExperimentTemplateSerializer(EdocListSerializer,
         model = Experiment
         fields = '__all__'
     expandable_fields = expandable_fields['Experiment']['fields']
+"""
 
+class ExperimentTemplateSerializer(EdocListSerializer,
+                        TagListSerializer,
+                        NoteListSerializer,
+                        BomSerializer,
+                        DynamicFieldsModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='experiment-detail')
+    class Meta:
+        model = ExperimentTemplate
+        fields = '__all__'
+    expandable_fields = expandable_fields['Experiment']['fields']
+
+
+class ExperimentInstanceSerializer(EdocListSerializer,
+                        TagListSerializer,
+                        NoteListSerializer,
+                        BomSerializer,
+                        DynamicFieldsModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='experiment-detail')
+    class Meta:
+        model = ExperimentInstance
+        fields = '__all__'
+    expandable_fields = expandable_fields['Experiment']['fields']
 
 class ExperimentQuerySerializer(Serializer):
     object_description = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)

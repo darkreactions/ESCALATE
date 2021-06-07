@@ -32,8 +32,8 @@ class Val:
             string_list = ['']*12
             string_list[0] = str(self.val_type.uuid)
             string_list[1] = self.unit
-            string_list[self.positions[self.val_type.description]] = str(self.value)
-            return f"({','.join(string_list)})"
+            string_list[self.positions[self.val_type.description]] = f'"{str(self.value)}"'
+            return f'({",".join(string_list)})'
         else:
             return None
     

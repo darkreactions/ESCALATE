@@ -1,6 +1,6 @@
 from django.contrib.auth.base_user import BaseUserManager
 from django.utils.translation import ugettext_lazy as _
-
+from django.db import models
 
 class CustomUserManager(BaseUserManager):
     """
@@ -30,3 +30,23 @@ class CustomUserManager(BaseUserManager):
         if extra_fields.get('is_superuser') is not True:
             raise ValueError(_('Superuser must have is_superuser=True.'))
         return self.create_user(username, password, **extra_fields)
+
+
+class ExperimentTemplateManager(models.Manager):
+    def get_queryset(self):
+        return super(ExperimentTemplateManager, self).get_queryset().filter(
+            parent__isnull=True)
+
+    def create(self, **kwargs):
+        #kwargs.update({'type': 'video'})
+        kwargs.update({'parent': None})
+        return super(ExperimentTemplateManager, self).create(**kwargs)
+
+
+class ExperimentInstanceManager(models.Manager):
+    def get_queryset(self):
+        return super(ExperimentInstanceManager, self).get_queryset().filter(
+            parent__isnull=False)
+
+    def create(self, **kwargs):
+        return super(ExperimentInstanceManager, self).create(**kwargs)
