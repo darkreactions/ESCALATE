@@ -29,8 +29,9 @@ core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   #'ActionParameter', 'Parameter', 
                   'WorkflowType', 'WorkflowStep', 
                   'WorkflowObject', 'UdfDef', 'Experiment', 'ExperimentWorkflow', 'ExperimentType', #'ExperimentParameter',
-                  'BillOfMaterials', 'BomMaterial', 'BomCompositeMaterial', 'Measure', 'MeasureType', 'MeasureDef', 'Outcome',
-                  'Action', 'ActionUnit', 'ActionDef', 'BomMaterialIndex', 'ExperimentInstance'])
+                  'BillOfMaterials',  'Measure', 'MeasureType', 'MeasureDef', 'Outcome',
+                  'Action', 'ActionUnit', 'ActionDef', 'ExperimentInstance',
+                  'BaseBomMaterial'])
 
 #Views that are a combination of multiple tables, used to be postgres views. Should be changed to something else
 combined_views = set(['CompositeMaterialProperty', 'MaterialTypeAssign', 
@@ -43,7 +44,7 @@ GET_only_views = set(['TypeDef'])
 
 unexposed_views = set(['TagAssign', 'Note', 'Edocument', 'Property', 'Parameter'])
 
-custom_serializer_views = set(['Workflow', 'WorkflowActionSet'])
+custom_serializer_views = set(['Workflow', 'WorkflowActionSet', 'BomMaterial', 'BomCompositeMaterial',])
 
 # Viewsets that are not associated with a model exclusively
 non_model_views = set(['Experiment', 'ExperimentTemplate'])
@@ -79,34 +80,7 @@ def docstring(docstr, sep="\n"):
     return _decorator
 
 expandable_fields = {
-    'BomCompositeMaterial': {
-        'options': {
-            'many_to_many': []
-        },
-        'fields': {
-            'composite_material': ('rest_api.CompositeMaterialSerializer', 
-                                {
-                                    'read_only': True,
-                                    'view_name': 'compositematerial-detail'
-
-                                })
-        }
-    },
-    'BomMaterial': {
-        'options': {
-            'many_to_many': []
-        },
-        'fields': {
-            'bom_composite_material': ('rest_api.BomCompositeMaterialSerializer',
-                                    {
-                                        'source': 'bom_composite_material_bom_material',
-                                        'many': True,
-                                        'read_only': True,
-                                        'view_name': 'bomcompositematerial-detail'
-                                    }
-        )
-        }
-    },
+    
     'BillOfMaterials': {
         'options': {
             'many_to_many': []
@@ -189,6 +163,34 @@ expandable_fields = {
 }
 
 """
+'BomCompositeMaterial': {
+        'options': {
+            'many_to_many': []
+        },
+        'fields': {
+            'composite_material': ('rest_api.CompositeMaterialSerializer', 
+                                {
+                                    'read_only': True,
+                                    'view_name': 'compositematerial-detail'
+
+                                })
+        }
+    },
+    'BomMaterial': {
+        'options': {
+            'many_to_many': []
+        },
+        'fields': {
+            'bom_composite_material': ('rest_api.BomCompositeMaterialSerializer',
+                                    {
+                                        'source': 'bom_composite_material_bom_material',
+                                        'many': True,
+                                        'read_only': True,
+                                        'view_name': 'bomcompositematerial-detail'
+                                    }
+        )
+        }
+    },
 'Action': {
         'options': {
              'many_to_many': []

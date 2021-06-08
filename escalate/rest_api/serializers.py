@@ -282,6 +282,7 @@ for model_name, data in expandable_fields.items():
                                                      DynamicFieldsModelSerializer]),
                                               extra_fields)
 
+
 class BomSerializer(DynamicFieldsModelSerializer):
 
     bill_of_materials = SerializerMethodField()
@@ -292,6 +293,22 @@ class BomSerializer(DynamicFieldsModelSerializer):
         result_serializer = BillOfMaterialsSerializer(
             boms, many=True, context=self.context)
         return result_serializer.data
+
+
+class BomMaterialSerializer(DynamicFieldsModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='basebommaterial-detail')
+    class Meta:
+        model = BomMaterial
+        fields = ['url', 'description', 'inventory_material', 'alloc_amt_val', 'used_amt_val',
+                  'putback_amt_val', 'status', 'actor', 'bom', 'add_date', 'mod_date']
+
+
+class BomCompositeMaterialSerializer(DynamicFieldsModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='basebommaterial-detail')
+    class Meta:
+        model = BomCompositeMaterial
+        fields = ['url', 'description',  'status', 'actor', 
+                  'composite_material', 'bom_material', 'add_date', 'mod_date']
 
 
 class ExperimentSerializer(EdocListSerializer,

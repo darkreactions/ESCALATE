@@ -50,3 +50,21 @@ class ExperimentInstanceManager(models.Manager):
 
     def create(self, **kwargs):
         return super(ExperimentInstanceManager, self).create(**kwargs)
+
+
+class BomMaterialManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(inventory_material__isnull=False, composite_material__isnull=True)
+
+    def create(self, **kwargs):
+        kwargs.update({'composite_material': None})
+        return super().create(**kwargs)
+
+
+class BomCompositeMaterialManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(inventory_material__isnull=True, composite_material__isnull=False)
+
+    def create(self, **kwargs):
+        kwargs.update({'inventory_material': None})
+        return super().create(**kwargs)

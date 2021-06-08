@@ -4,7 +4,7 @@ from core.models.core_tables import RetUUIDField
 from core.models.custom_types import ValField, CustomArrayField
 import uuid
 from core.models.abstract_base_models import DateColumns, StatusColumn, ActorColumn
-from core.managers import ExperimentTemplateManager
+from core.managers import ExperimentTemplateManager, BomMaterialManager, BomCompositeMaterialManager
 
 managed_tables = True
 managed_views = False
@@ -17,6 +17,7 @@ class Action(DateColumns, StatusColumn, ActorColumn):
                                    db_column='action_def_uuid',
                                    blank=True,
                                    null=True, related_name='action_action_def')
+    parameter_def = models.ManyToManyField('ParameterDef', blank=True, editable=False)
     workflow = models.ForeignKey('Workflow',
                                    on_delete=models.DO_NOTHING,
                                    db_column='workflow_uuid',
@@ -26,8 +27,8 @@ class Action(DateColumns, StatusColumn, ActorColumn):
                                    blank=True,
                                    null=True,
                                    db_column='description')
-    start_date = models.DateField(db_column='start_date')
-    end_date = models.DateField(db_column='end_date') 
+    start_date = models.DateField(db_column='start_date', blank=True, null=True)
+    end_date = models.DateField(db_column='end_date', blank=True, null=True) 
     duration = models.FloatField(db_column='duration',
                                  blank=True,
                                  null=True)
@@ -57,21 +58,21 @@ class ActionUnit(DateColumns, StatusColumn, ActorColumn):
                                blank=True,
                                null=True,
                                related_name='action_unit_action')
-    source_material = models.ForeignKey('BomMaterial',
+    source_material = models.ForeignKey('BaseBomMaterial',
                                on_delete=models.DO_NOTHING,
                                db_column='source_material_uuid',
                                blank=True,
                                null=True,
                                related_name='action_unit_source_material')
-    destination_material = models.ForeignKey('BomMaterial',
+    destination_material = models.ForeignKey('BaseBomMaterial',
                                on_delete=models.DO_NOTHING,
                                db_column='destination_material_uuid',
                                blank=True,
                                null=True,
                                related_name='action_unit_destination_material')
-    parameter = models.OneToOneField('Parameter', on_delete=models.CASCADE, blank=True,
-                               null=True,
-                               related_name='action_unit_parameter')
+    #parameter = models.OneToOneField('Parameter', on_delete=models.CASCADE, blank=True,
+    #                           null=True,
+    #                           related_name='action_unit_parameter')
 
     class Meta:
         managed = True
@@ -96,66 +97,6 @@ class ActionDef(DateColumns, StatusColumn, ActorColumn):
         db_table = 'action_def'
 
 
-
-
-#TODO: possibly update this and add ActionParameterDefX Class
-class ActionParameterDef(DateColumns, StatusColumn, ActorColumn):
-    uuid = RetUUIDField(
-        primary_key=True, default=uuid.uuid4, db_column='action_parameter_def_x_uuid')
-    action_def = models.ForeignKey('ActionDef',
-                                   on_delete=models.DO_NOTHING,
-                                   db_column='action_def_uuid',
-                                   blank=True,
-                                   null=True,
-                                   editable=False, related_name='action_parameter_def_action_def')
-    description = models.CharField(max_length=255,
-                                   blank=True,
-                                   null=True,
-                                   db_column='description',
-                                   editable=False)
-
-    parameter_def = models.ForeignKey('ParameterDef',
-                                      on_delete=models.DO_NOTHING,
-                                      db_column='parameter_def_uuid',
-                                      blank=True,
-                                      null=True,
-                                      editable=False, related_name='action_parameter_def_parameter_def')
-
-    parameter_description = models.CharField(max_length=255,
-                                             blank=True,
-                                             null=True,
-                                             db_column='parameter_description',
-                                             editable=False)
-    parameter_val_type = models.ForeignKey('TypeDef',
-                                           db_column='parameter_val_type_uuid',
-                                           on_delete=models.DO_NOTHING,
-                                           blank=True,
-                                           null=True, related_name='action_parameter_def_parameter_val_type')
-
-    class Meta:
-        managed = managed_tables
-        db_table = 'action_parameter_def'
-        
-
-class ActionParameterDefAssign(DateColumns):
-    uuid = RetUUIDField(
-        primary_key=True, default=uuid.uuid4, db_column='action_parameter_def_x_uuid')
-    parameter_def = models.ForeignKey('ParameterDef',
-                                      on_delete=models.DO_NOTHING,
-                                      blank=True,
-                                      null=True,
-                                      db_column='parameter_def_uuid',
-                                      related_name='action_parameter_def_assign_parameter_def')
-    action_def = models.ForeignKey('ActionDef', on_delete=models.DO_NOTHING,
-                                   blank=True,
-                                   null=True,
-                                   db_column='action_def_uuid', related_name='action_parameter_def_assign_action_def')
-
-    class Meta:
-        managed = managed_tables
-        db_table = 'action_parameter_def_x'
-
-
 class BillOfMaterials(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='bom_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
@@ -169,24 +110,31 @@ class BillOfMaterials(DateColumns, StatusColumn, ActorColumn):
         managed = managed_tables
         db_table = 'bom'
 
+    def __str__(self):
+        return f"{self.description}"
 
-class BomMaterial(DateColumns, StatusColumn, ActorColumn):
+class BaseBomMaterial(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='bom_material_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
     bom = models.ForeignKey('BillOfMaterials', on_delete=models.DO_NOTHING,
                             blank=True, null=True, db_column='bom_uuid',
                             related_name='bom_material_bom')
-    
-    # bom_description = models.CharField(max_length=255, blank=True, null=True)
     inventory_material = models.ForeignKey('InventoryMaterial', on_delete=models.DO_NOTHING,
                                            blank=True, null=True, db_column='inventory_material_uuid',
                                            related_name='bom_material_inventory_material')
-    #material = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
+    # material = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
     #                             blank=True, null=True, db_column='material_uuid',
     #                             related_name='bom_material_material')
+    # bom_description = models.CharField(max_length=255, blank=True, null=True)
     alloc_amt_val = ValField(blank=True, null=True)
     used_amt_val = ValField(blank=True, null=True)
     putback_amt_val = ValField(blank=True, null=True)
+    bom_material = models.ForeignKey('BomMaterial', on_delete=models.DO_NOTHING,
+                            blank=True, null=True, #db_column='bom_material_uuid',
+                            related_name='bom_composite_material_bom_material')
+    composite_material = models.ForeignKey('CompositeMaterial', on_delete=models.DO_NOTHING,
+                                               blank=True, null=True, db_column='material_composite_uuid',
+                                               related_name='bom_composite_material_composite_material')
     
     class Meta:
         managed = managed_tables
@@ -196,51 +144,19 @@ class BomMaterial(DateColumns, StatusColumn, ActorColumn):
         return self.description
 
 
-class BomCompositeMaterial(DateColumns, StatusColumn, ActorColumn):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='bom_material_composite_uuid')
-    description = models.CharField(max_length=255, blank=True, null=True)
-    bom_material = models.ForeignKey('BomMaterial', on_delete=models.DO_NOTHING,
-                            blank=True, null=True, db_column='bom_material_uuid',
-                            related_name='bom_composite_material_bom_material')
-    # bom_material_description = models.CharField(max_length=255, blank=True, null=True)
+class BomMaterial(BaseBomMaterial):
+    objects = BomMaterialManager()
     
-    composite_material = models.ForeignKey('CompositeMaterial', on_delete=models.DO_NOTHING,
-                                               blank=True, null=True, db_column='material_composite_uuid',
-                                               related_name='bom_composite_material_composite_material')
-    #component = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
-    #                                           blank=True, null=True, db_column='component_uuid',
-    #                                           related_name='bom_composite_material_component')
-    #material_description = models.CharField(max_length=255,
-    #                                                      blank=True,
-    #                                                      null=True)
-
     class Meta:
-        managed = managed_tables
-        db_table = 'bom_material_composite'
+        proxy = True
+
+
+class BomCompositeMaterial(BaseBomMaterial):
+    objects = BomCompositeMaterialManager()
+    
+    class Meta:
+        proxy = True
         
-# bom_material_index (description, bom_material_composite_uuid)
-class BomMaterialIndex(DateColumns):
-    """
-    This table combines bom_material and bom_composite material so that 
-    the bom_material_index_uuid can be used as an identifier in source and destination
-    material uuids in WorkflowActionSet
-    """
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='bom_material_index_uuid')
-    #description = models.ForeignKey('BomMaterialComposite', on_delete=models.DO_NOTHING,
-    #                        blank=True, null=True, db_column='description',
-    #                        related_name='bom_material_index_description')
-    description = models.CharField(max_length=255, blank=True, null=True)
-    bom_material = models.ForeignKey('BomMaterial', on_delete=models.DO_NOTHING,
-                            blank=True, null=True, db_column='bom_material_uuid',
-                            related_name='bom_composite_index_bom_material')
-    bom_composite_material = models.ForeignKey('BomCompositeMaterial', on_delete=models.DO_NOTHING,
-                            blank=True, null=True, db_column='bom_material_composite_uuid',
-                            related_name='bom_composite_index_bom_composite_material')
-    
-    class Meta:
-        managed = managed_tables
-        db_table = 'bom_material_index'
-
 
 class Condition(DateColumns, StatusColumn, ActorColumn):
     # todo: link to condition calculation
@@ -276,32 +192,11 @@ class ConditionDef(DateColumns, StatusColumn, ActorColumn):
                                    db_column='description',
                                    editable=False)
     # TODO: need to add through fields
-    calculation_def = models.ManyToManyField('CalculationDef', through='ConditionCalculationDefAssign')
+    calculation_def = models.ManyToManyField('CalculationDef', blank=True), #through='ConditionCalculationDefAssign')
 
     class Meta:
         managed = managed_tables
         db_table = 'condition_def'
-
-
-class ConditionCalculationDefAssign(DateColumns):
-    uuid = RetUUIDField(
-        primary_key=True, default=uuid.uuid4, db_column='condition_calculation_def_x_uuid')
-    condition_def = models.ForeignKey('ConditionDef',
-                              on_delete=models.DO_NOTHING,
-                              db_column='condition_def_uuid',
-                              blank=True,
-                              null=True,
-                              related_name='condition_calculation_def_assign_condition_def')
-    calculation_def = models.ForeignKey('CalculationDef',
-                              on_delete=models.DO_NOTHING,
-                              db_column='calculation_def_uuid',
-                              blank=True,
-                              null=True,
-                              related_name='condition_calculation_def_assign_calculation_def')
-    class Meta:
-        managed = managed_tables
-        #db_table = 'vw_condition_calculation_def_assign'
-        db_table = 'condition_calculation_def_x'
 
 
 class ConditionPath(DateColumns):
@@ -344,9 +239,7 @@ class Experiment(DateColumns, StatusColumn):
     # TODO: need to add through fields
     workflow = models.ManyToManyField('Workflow', through='ExperimentWorkflow', related_name='experiment_workflow')
     # owner_description = models.CharField(max_length=255, db_column='owner_description')
-    
     # operator_description = models.CharField(max_length=255, db_column='operator_description')
-    
 
     def __str__(self):
         return f'{self.description}'
@@ -430,6 +323,7 @@ class Workflow(DateColumns, StatusColumn, ActorColumn):
     def __str__(self):
         return f'{self.description}'
 
+
 class WorkflowActionSet(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='workflow_action_set_uuid')
     description = models.CharField(max_length=255,
@@ -484,6 +378,7 @@ class WorkflowType(DateColumns):
     def __str__(self):
         return f'{self.description}'
 
+
 class WorkflowStep(DateColumns, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='workflow_step_uuid')
@@ -523,25 +418,7 @@ class WorkflowObject(DateColumns, StatusColumn):
                                   blank=True, null=True, 
                                   db_column='workflow_action_set_uuid', 
                                   related_name='workflow_object_workflow_action_set')
-    """
-    object_uuid = models.CharField(max_length=255,
-                                   blank=True,
-                                   null=True,
-                                   editable=False)
 
-    object_type = models.CharField(max_length=255,
-                                   blank=True,
-                                   null=True,
-                                   editable=False)
-    object_description = models.CharField(max_length=255,
-                                          blank=True,
-                                          null=True,
-                                          editable=False)
-    object_def_description = models.CharField(max_length=255,
-                                              blank=True,
-                                              null=True,
-                                              editable=False)
-    """
     class Meta:
         managed = managed_tables
         db_table = 'workflow_object'

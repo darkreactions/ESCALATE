@@ -30,61 +30,10 @@ class CompositeMaterial(DateColumns, StatusColumn, ActorColumn):
     class Meta:
         managed = manage_tables
         db_table = 'material_composite'
+    
+    def __str__(self):
+        return "{} - {}".format(self.composite.description, self.component.description)
 
-"""
-class CompositeMaterialProperty(DateColumns):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
-                        db_column='material_composite_uuid')
-    composite_material = models.ForeignKey('CompositeMaterial',
-                                           db_column='composite_uuid',
-                                           on_delete=models.DO_NOTHING,
-                                           blank=True, null=True,
-                                           related_name='composite_material_property_composite_material')
-    composite_class = models.CharField(max_length=64, choices=MATERIAL_CLASS_CHOICES, editable=False)
-    composite_material_description = models.CharField(max_length=255,
-                                                      blank=True,
-                                                      null=True,
-                                                      db_column='composite_description',
-                                                      editable=False)
-    component = models.ForeignKey('CompositeMaterial',
-                                  db_column='component_uuid',
-                                  on_delete=models.DO_NOTHING,
-                                  blank=True, null=True,
-                                  related_name='composite_material_property_component')
-    component_class = models.CharField(max_length=64, choices=MATERIAL_CLASS_CHOICES, editable=False)
-    property = models.ForeignKey('Property',
-                                 on_delete=models.DO_NOTHING,
-                                 db_column='property_uuid',
-                                 blank=True,
-                                 null=True,
-                                 editable=False,
-                                 related_name='composite_material_property_property')
-    property_class = models.CharField(max_length=64, choices=PROPERTY_CLASS_CHOICES)
-    property_def = models.ForeignKey('PropertyDef',
-                                     on_delete=models.DO_NOTHING,
-                                     db_column='property_def_uuid',
-                                     blank=True,
-                                     null=True, related_name='composite_material_property_property_def')
-    property_def_class = models.CharField(max_length=64, choices=PROPERTY_DEF_CLASS_CHOICES, editable=False)
-    property_description = models.CharField(max_length=255,
-                                            blank=True,
-                                            null=True,
-                                            db_column='property_description',
-                                            editable=False)
-    property_short_description = models.CharField(max_length=255,
-                                                  blank=True,
-                                                  null=True,
-                                                  db_column='property_short_description',
-                                                  editable=False)
-    value = ValField(
-        blank=True,
-        null=True,
-        db_column='property_value_val')
-
-    class Meta:
-        managed = manage_views
-        db_table = 'vw_material_composite_property'
-"""
 
 class Inventory(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='inventory_uuid')
@@ -134,30 +83,6 @@ class InventoryMaterial(DateColumns, StatusColumn, ActorColumn):
     def __str__(self):
         return "{} : {}".format(self.inventory, self.material)
 
-"""
-class InventoryMaterialMaterial(models.Model):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
-                        db_column='inventory_material_uuid')
-    inventory = models.ForeignKey('Inventory',
-                                    db_column='inventory_uuid',
-                                    on_delete=models.DO_NOTHING,
-                                    blank=True, null=True,
-                                    related_name='inventory_material_material_inventory')
-    actor = models.ForeignKey('Actor',
-                                    db_column='actor_uuid',
-                                    on_delete=models.DO_NOTHING,
-                                    blank=True, null=True,
-                                    related_name='inventory_material_material_actor')
-    material =  models.ForeignKey('Material',
-                                    db_column='material_uuid',
-                                    on_delete=models.DO_NOTHING,
-                                    blank=True, null=True,
-                                    related_name='inventory_material_material_material')
-    
-    class Meta:
-        managed = False
-        db_table = 'vw_inventory_material_material'
-"""
 
 class Material(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
@@ -185,102 +110,12 @@ class Material(DateColumns, StatusColumn, ActorColumn):
     def __str__(self):
         return "{}".format(self.description)
 
-"""
-class PropertyX(DateColumns):
-    property = RetUUIDField(primary_key=True,
-                        db_column='property_x_uuid')
-    material = models.ForeignKey('Material',
-                                 db_column='material_uuid',
-                                 on_delete=models.DO_NOTHING,
-                                 blank=True,
-                                 null=True, related_name='property_x_material')
-    property = models.ForeignKey('Property',
-                                 on_delete=models.DO_NOTHING,
-                                 db_column='property_uuid',
-                                 blank=True,
-                                 null=True,
-                                 editable=False,
-                                 related_name='property_x_property')
 
-    class Meta:
-        managed = manage_tables
-        db_table = 'property_x'
-
-
-class MaterialProperty(models.Model):
-    # TODO: Material property may need fixing. Endpoint displays all tags for all rows
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
-                        db_column='property_x_uuid')
-    material = models.ForeignKey('Material',
-                                 db_column='material_uuid',
-                                 on_delete=models.DO_NOTHING,
-                                 blank=True,
-                                 null=True, related_name='material_property_material')
-    material_class = models.CharField(max_length=64, choices=MATERIAL_CLASS_CHOICES, editable=False)
-    description = models.CharField(max_length=255,
-                                            blank=True,
-                                            null=True,
-                                            db_column='description',
-                                            editable=False)
-    property = models.ForeignKey('Property',
-                                 on_delete=models.DO_NOTHING,
-                                 db_column='property_uuid',
-                                 blank=True,
-                                 null=True,
-                                 editable=False,
-                                 related_name='material_property_property')
-    property_def = models.ForeignKey('PropertyDef',
-                                     on_delete=models.DO_NOTHING,
-                                     db_column='property_def_uuid',
-                                     blank=True,
-                                     null=True, related_name='material_property_property_def')
-    property_description = models.CharField(max_length=255,
-                                            blank=True,
-                                            null=True,
-                                            db_column='property_description',
-                                            editable=False)
-    property_short_description = models.CharField(max_length=255,
-                                                  blank=True,
-                                                  null=True,
-                                                  db_column='property_short_description',
-                                                  editable=False)
-    value = ValField( blank=True, null=True, db_column='property_value_val')
-
-    class Meta:
-        managed = manage_views
-        db_table = 'vw_material_property'
-
-
-class MaterialIdentifierX(models.Model):
-    uuid = RetUUIDField(
-        primary_key=True, db_column='material_refname_x_uuid')
-    material = models.ForeignKey('Material',
-                               on_delete=models.DO_NOTHING,
-                               blank=True,
-                               null=True,
-                               db_column='material_uuid',
-                               related_name='material_refname_x_material')
-    identifier = models.ForeignKey('MaterialIdentifier',
-                               on_delete=models.DO_NOTHING,
-                               blank=True,
-                               null=True,
-                               db_column='material_refname_uuid',
-                               related_name='material_identifier_x_material')
-    class Meta:
-        managed = manage_tables
-        db_table = 'material_refname_x'
-"""
 
 class MaterialIdentifier(DateColumns, StatusColumn):
     uuid = RetUUIDField(
         primary_key=True, db_column='material_refname_uuid')
     description = models.CharField(max_length=256, blank=True, null=True)
-    #abbreviation = models.CharField(max_length=255, blank=True, null=True)
-    #chemical_name = models.CharField(max_length=255, blank=True, null=True)
-    #inchi = models.CharField(max_length=255, blank=True, null=True)
-    #inchikey = models.CharField(max_length=255, blank=True, null=True)
-    #molecular_formula = models.CharField(max_length=255, blank=True, null=True)
-    #smiles = models.CharField(max_length=255, blank=True, null=True)
     material_identifier_def = models.ForeignKey('MaterialIdentifierDef',
                                on_delete=models.DO_NOTHING,
                                blank=True,
@@ -308,27 +143,6 @@ class MaterialIdentifierDef(DateColumns):
     def __str__(self):
         return "{}".format(self.description)
 
-"""
-class MaterialTypeX(DateColumns):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='material_type_x_uuid')
-    material = models.ForeignKey('Material',
-                               on_delete=models.DO_NOTHING,
-                               blank=True,
-                               null=True,
-                               db_column='material_uuid',
-                               related_name='material_type_x_material')
-    material_type = models.ForeignKey('MaterialType',
-                               on_delete=models.DO_NOTHING,
-                               blank=True,
-                               null=True,
-                               db_column='material_type_uuid',
-                               related_name='material_type_x_material_type')
-
-    class Meta:
-        managed = manage_tables
-        db_table = 'material_type_x'
-"""
-
 class MaterialType(DateColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='material_type_uuid')
     description = models.TextField(blank=True, null=True)
@@ -341,22 +155,3 @@ class MaterialType(DateColumns):
         return "{}".format(self.description)
 
 
-class MaterialTypeAssign(DateColumns):
-    uuid = RetUUIDField(
-        primary_key=True, db_column='material_type_x_uuid')
-    material = models.ForeignKey('Material',
-                               on_delete=models.DO_NOTHING,
-                               blank=True,
-                               null=True,
-                               db_column='material_uuid',
-                               related_name='material_type_assign_material')
-    material_type = models.ForeignKey('MaterialType',
-                               on_delete=models.DO_NOTHING,
-                               blank=True,
-                               null=True,
-                               db_column='material_type_uuid',
-                               related_name='material_type_assign')
-
-    class Meta:
-        managed = manage_views
-        db_table = 'vw_material_type_assign'

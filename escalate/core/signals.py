@@ -1,7 +1,7 @@
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from core.models import Person, Actor, Action, CompositeMaterial, Measure, MeasureX, UdfX, Udf, \
-BomCompositeMaterial, Parameter
+BomCompositeMaterial, Parameter, BomMaterial, ActionUnit
 #from core.models.view_tables.workflow import Experiment
 
 @receiver(post_save, sender=Person)
@@ -64,21 +64,49 @@ def create_parameter_x(sender, **kwargs):
     if kwargs['created']:
         parameter_x = ParameterX(parameter=kwargs['instance'])
         parameter_x.save()
-"""
 
 @receiver(post_save, sender=Action)  
 def create_action_parameter(sender, **kwargs):
-    """
-    Parameters are created here that are defined in
-    the parameter_defs associated with the action_defs
-    of this action
-    """
     if kwargs['created']:
         action = kwargs['instance']
         parameter_defs = action.action_def.parameter_def.all()
-        for p_def in parameter_defs:
-            param = Parameter(parameter_def=p_def, ref_object=action.uuid)
-            param.save()
+        action.parameter_def.add(*parameter_defs)
+        action.save()
+
+"""
+
+@receiver(pre_save, sender=ActionUnit)
+def create_parameters(sender, **kwargs):
+    """
+    Creates the appropriate parameter in actionunit based on 
+    its action's parameter_def
+    """
+    if kwargs['created']:
+        action_unit = kwargs['instance']
+        param_defs = action_unit.action.action_def.parameter_def.all()
+        for p_def in param_defs:
+            p = Parameter(parameter_def=p_def, 
+                          nominal_value=p_def.default_val, 
+                          actual_value=p_def.default_val,
+                          ref_object=action_unit.uuid)
+            p.save()
+        
 
 
+@receiver(post_save, sender=BomMaterial)
+def create_bom_composite_material(sender, **kwargs):
+    """
+    Checks if there are component materials associated
+    with Material, if there are then create corresponding 
+    BomCompositeMaterials
+    """
+    if kwargs['created']:
+        bom_material = kwargs['instance']
+        material = bom_material.inventory_material.material
+        if not material.consumable:
+            c_materials = CompositeMaterial.objects.filter(composite=material)
+            for cm in c_materials:
+                bcm = BomCompositeMaterial(description=f'{bom_material.description}: {cm.description}', 
+                                    composite_material=cm, bom_material=bom_material)
+                bcm.save()
 
