@@ -8,6 +8,9 @@ pytestmark = pytest.mark.django_db
 
 from bs4 import BeautifulSoup
 import re
+'''
+data needs to be added to db before these tests will run properly. can add data for each test or we can preload data like gary did with sql
+'''
 
 client = Client()
 
@@ -64,6 +67,8 @@ def test_detail_views(login, name):
     testco_uuid = get_testco()
     response = client.post(reverse('main_menu'), {'select_org':'select_org', 'org_select':testco_uuid})
     response = client.get(reverse(name))
+    
+    #need to add data to db before test is run
     soup = BeautifulSoup(response.content, 'html.parser')
     view_link = soup.select('.view-detail')[0]['href']
     response = client.get(view_link)

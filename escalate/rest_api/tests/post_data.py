@@ -60,10 +60,11 @@ standard_data = {
                     "title": "Test",
                     "suffix": "",
                 },
-    'actionparameterdefassign': {
-                                'parameter_def': 'parameterdef__url',
-                                'action_def': 'actiondef__url'
-                            },
+# moved to useless models
+#    'actionparameterdefassign': {
+#                                'parameter_def': 'parameterdef__url',
+#                                'action_def': 'actiondef__url'
+#                            },
     'systemtool': {
                                 "systemtool_name": "Test tool",
                                 "description": "Testing",
@@ -119,7 +120,7 @@ complex_post_data = [
                         [
                             ['actiondef', standard_data['actiondef']],
                             ['parameterdef', standard_data['parameterdef']],
-                            ['actionparameterdefassign', standard_data['actionparameterdefassign']]                                    
+#                            ['actionparameterdefassign', standard_data['actionparameterdefassign']]                                    
                         ],
                         [
                             ['organization', standard_data['organization']],
