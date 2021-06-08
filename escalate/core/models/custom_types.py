@@ -44,6 +44,9 @@ class ValFormField(MultiValueField):
             CharField(required=False),
             ChoiceField(choices=data_type_choices, initial='num')
         )
+        if 'max_length' in kwargs:
+            kwargs.pop('max_length')
+            
         super().__init__(fields, *args, **kwargs)
 
     def compress(self, data_list):
