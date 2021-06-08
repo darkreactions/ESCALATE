@@ -41,7 +41,7 @@ rest_urlpatterns = [
          viewsets.download_blob, name='edoc_download'),
 ]
 
-registered = router.register('experimenttemplate', viewsets.ExperimentTemplateViewSet, basename='experimenttemplate')
+registered = router.register('experiment-template', viewsets.ExperimentTemplateViewSet, basename='experimenttemplate')
 name = 'experimenttemplate'
 registered.register('notes', viewsets.NoteViewSet,
                     basename=f'{name}-note', parents_query_lookups=['ref_note_uuid'])
@@ -120,9 +120,12 @@ for view in rest_nested_url_views:
                         basename=f'{name}-tag', parents_query_lookups=['ref_tag'])
     registered.register('edocs', viewsets.EdocumentViewSet,
                         basename=f'{name}-edoc', parents_query_lookups=['ref_edocument_uuid'])
-    if name == 'material':
+    if name == 'material' or name=='compositematerial':
         registered.register('property', viewsets.PropertyViewSet,
                         basename=f'{name}-property', parents_query_lookups=['property_ref'])
+    if name == 'action':
+        registered.register('parameter', viewsets.ParameterViewSet,
+                        basename=f'{name}-parameter', parents_query_lookups=['ref_object'])
 
 schema_patterns = [
     path('api/', include(router.urls)),

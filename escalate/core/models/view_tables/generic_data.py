@@ -15,47 +15,16 @@ class Calculation(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='calculation_uuid')
     in_val = ValField( blank=True, null=True)
-    """
-    in_val_type = models.ForeignKey('TypeDef',
-                                    models.DO_NOTHING,
-                                    db_column='in_val_type_uuid',
-                                    related_name='calculation_in_val_type', editable=False)
-    in_val_value = models.TextField(blank=True, null=True, editable=False)
-    in_val_unit = models.TextField(blank=True, null=True, editable=False)
-    """
     in_val_edocument = models.ForeignKey('Edocument',
                                          models.DO_NOTHING,
                                          db_column='in_val_edocument_uuid',
                                          related_name='calculation_in_val_edocument', editable=False)
-
-    # in opt
     in_opt_val = ValField( blank=True, null=True)
-    #in_opt_val = CharField(max_length=255, blank=True, null=True)
-    """
-    in_opt_val_value = models.TextField(blank=True, null=True, editable=False)
-    in_opt_val_type = models.ForeignKey('TypeDef',
-                                        models.DO_NOTHING,
-                                        related_name='calculation_in_opt_val_type',
-                                        db_column='in_opt_val_type_uuid',
-                                        blank=True, null=True, editable=False)
-    in_opt_val_unit = models.TextField(blank=True, null=True, editable=False)
-    """
     in_opt_val_edocument = models.ForeignKey('Edocument',
                                              models.DO_NOTHING,
                                              db_column='in_opt_val_edocument_uuid',
                                              related_name='calculation_in_opt_val_edocument', editable=False)
-    # out
     out_val = ValField( blank=True, null=True)
-    #out_val = CharField(max_length=255, blank=True, null=True)
-    """
-    out_val_type = models.ForeignKey('TypeDef',
-                                     models.DO_NOTHING,
-                                     related_name='calculation_out_val_type',
-                                     db_column='out_val_type_uuid',
-                                     blank=True, null=True, editable=False)
-    out_val_value = models.TextField(blank=True, null=True, editable=False)
-    out_val_unit = models.TextField(blank=True, null=True, editable=False)
-    """
     out_val_edocument = models.ForeignKey('Edocument',
                                           models.DO_NOTHING,
                                           db_column='out_val_edocument_uuid',
@@ -77,17 +46,7 @@ class Calculation(DateColumns, StatusColumn, ActorColumn):
                                    models.DO_NOTHING,
                                    db_column='systemtool_uuid',
                                    related_name='calculation_systemtool')
-    """
-    systemtool_name = models.CharField(max_length=1023, blank=True, null=True)
-    systemtool_type_description = models.CharField(
-        max_length=1023, blank=True, null=True)
-    systemtool_vendor_organization = models.CharField(
-        max_length=1023, blank=True, null=True, db_column='systemtool_vendor_organization')
-    systemtool_version = models.CharField(
-        max_length=1023, blank=True, null=True)
-    """
     
-
     class Meta:
         managed = managed_tables
         db_table = 'calculation'
@@ -100,7 +59,7 @@ class CalculationDef(DateColumns, ActorColumn):
     calc_definition = models.CharField(max_length=255, blank=True, null=True)
     description = models.CharField(max_length=1023, blank=True, null=True)
     parameter_def = models.ManyToManyField('ParameterDef', 
-                                           through='CalculationParameterDefAssign', 
+                                           #through='CalculationParameterDefAssign', 
                                            related_name='calculation_def_parameter_def')
     in_source = models.ForeignKey('CalculationDef',
                                 models.DO_NOTHING,
@@ -128,33 +87,12 @@ class CalculationDef(DateColumns, ActorColumn):
                                    db_column='systemtool_uuid', 
                                    related_name='calculation_def_systemtool')
 
-
     class Meta:
         managed = managed_tables
         db_table = 'calculation_def'
 
     def __str__(self):
         return "{}".format(self.description)
-
-
-class CalculationParameterDefAssign(DateColumns):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='calculation_parameter_def_x_uuid')
-    parameter_def = models.ForeignKey('ParameterDef',
-                                          on_delete=models.DO_NOTHING,
-                                          db_column='parameter_def_uuid',
-                                          blank=True,
-                                          null=True,
-                                          related_name='calculation_parameter_def_assign_parameter_def')
-    calculation_def = models.ForeignKey('CalculationDef',
-                                          on_delete=models.DO_NOTHING,
-                                          db_column='calculation_def_uuid',
-                                          blank=True,
-                                          null=True,
-                                          related_name='calculation_parameter_def_assign_calculation_def')
-
-    class Meta:
-        managed = managed_views
-        db_table = 'vw_calculation_parameter_def_assign'
 
 
 class Edocument(DateColumns, StatusColumn, ActorColumn):
@@ -287,36 +225,11 @@ class MeasureDef(DateColumns, StatusColumn, ActorColumn):
         managed = managed_tables
         db_table = 'measure_def'
 
-"""
-class NoteTest(DateColumns, ActorColumn):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='note_uuid')
-    notetext = models.TextField(blank=True, null=True,
-                                verbose_name='Note Text')
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    ref_note_uuid = RetUUIDField(blank=True, null=True)
-    content_object = GenericForeignKey('content_type', 'ref_note_uuid')
-
-    class Meta:
-        managed = True
-        db_table = 'note_test'
-
-    def __str__(self):
-        return "{}".format(self.notetext)
-"""
-
 
 class Note(DateColumns, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='note_uuid')
     notetext = models.TextField(blank=True, null=True,
                                 verbose_name='Note Text')
-    """
-    note_x_uuid = models.ForeignKey('Note_x', models.DO_NOTHING,
-                                  blank=True,
-                                  null=True,
-                                  editable=False,
-                                  db_column='note_x_uuid',
-                                  related_name='note_note_x')
-    """
     ref_note_uuid = RetUUIDField(blank=True, null=True)
 
     class Meta:
@@ -353,13 +266,14 @@ class Parameter(DateColumns, StatusColumn, ActorColumn):
                                       on_delete=models.DO_NOTHING,
                                       blank=True,
                                       null=True,
-                                      editable=False, related_name='parameter_parameter_def')
+                                      related_name='parameter_parameter_def')
     parameter_val_nominal = ValField( blank=True,
                              null=True,
                              db_column='parameter_val')
     parameter_val_actual = ValField( blank=True,
                              null=True,
                              db_column='parameter_val_actual')
+    ref_object = RetUUIDField(blank=True, null=True)
     """
     # Parameter should be related to only 1 action unlike parameter_def to action_def
     # Therefore, we don't need a cross table like parameter_x but a direct foreign key
@@ -375,20 +289,6 @@ class Parameter(DateColumns, StatusColumn, ActorColumn):
         managed = managed_tables
         db_table = 'parameter'
 
-class ParameterX(DateColumns):
-    uuid =RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='parameter_x_uuid')
-    #parameter_uuid = RetUUIDField(db_column='parameter_uuid')
-    parameter_ref_uuid = RetUUIDField(db_column='ref_parameter_uuid')
-    parameter = models.ForeignKey('Parameter', on_delete=models.DO_NOTHING,
-                                blank=True,
-                                null=True,
-                                related_name='parameter_x_parameter')
-    
-    
-    class Meta:
-        managed = managed_tables
-        db_table = 'parameter_x'
-
 
 class ParameterDef(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
@@ -397,19 +297,12 @@ class ParameterDef(DateColumns, StatusColumn, ActorColumn):
                                    blank=True,
                                    null=True,
                                    db_column='description')
-    default_val = ValField( db_column='default_val')
+    default_val = ValField(db_column='default_val')
     required = BooleanField()
     unit_type = models.CharField(max_length=255,
                                  blank=True,
                                  null=True,
                                  db_column='parameter_def_unit_type')
-    """
-    val_type = models.ForeignKey('TypeDef',
-                                 db_column='val_type_uuid',
-                                 on_delete=models.DO_NOTHING,
-                                 blank=True,
-                                 null=True, related_name='parameter_def_val_type')
-    """
 
     class Meta:
         managed = managed_tables
@@ -428,17 +321,9 @@ class Property(DateColumns, StatusColumn, ActorColumn):
                                      on_delete=models.DO_NOTHING,
                                      blank=True,
                                      null=True, related_name='property_property_def')
-    #short_description = models.CharField(max_length=255,
-    #                                     blank=True,
-    #                                     null=True,
-    #                                     db_column='short_description')
     property_val = ValField(blank=True,
                             null=True,
                             db_column='property_val')
-    #unit_type = models.CharField(max_length=255,
-    #                             blank=True,
-    #                             null=True,
-    #                             db_column='property_def_unit_type')
     property_class = models.CharField(max_length=64, choices=PROPERTY_CLASS_CHOICES)
     property_ref = RetUUIDField(blank=True, null=True)
     
@@ -450,27 +335,6 @@ class Property(DateColumns, StatusColumn, ActorColumn):
     def __str__(self):
         return "{} : {}".format(self.property_def, self.property_val)
     
-"""
-class PropertyX(DateColumns):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='property_x_uuid')
-    material_uuid = models.ForeignKey('Property',
-                                 db_column='material_uuid',
-                                 on_delete=models.DO_NOTHING,
-                                 blank=True,
-                                 null=True, related_name='property_x_material_uuid')
-    property_uuid = models.ForeignKey('Property',
-                                 db_column='property_uuid',
-                                 on_delete=models.DO_NOTHING,
-                                 blank=True,
-                                 null=True, related_name='property_x_property_uuid')
-    
-    class Meta:
-        managed = managed_tables
-        db_table = 'property_x'
-
-    def __str__(self):
-        return "{}".format(self.uuid)
-"""
 
 class PropertyDef(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,

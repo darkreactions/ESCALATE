@@ -108,6 +108,8 @@ class ValField(models.TextField):
     def get_prep_value(self, value):
         if isinstance(value, dict):
             value = Val.from_dict(value)
+        elif value == None:
+            value = Val(None, None, None, null=True)
         return value.to_db()
     
     def get_db_prep_value(self, value, connection, prepared=False):
