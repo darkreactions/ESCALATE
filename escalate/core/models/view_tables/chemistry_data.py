@@ -133,7 +133,7 @@ class MaterialIdentifier(DateColumns, StatusColumn):
 
 class MaterialIdentifierDef(DateColumns):
     uuid = RetUUIDField(
-        primary_key=True, db_column='material_refname_def_uuid')
+        primary_key=True, default=uuid.uuid4, db_column='material_refname_def_uuid')
     description = models.CharField(max_length=255, blank=True, null=True)
     
     class Meta:
