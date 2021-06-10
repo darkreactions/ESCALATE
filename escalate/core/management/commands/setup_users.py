@@ -88,10 +88,10 @@ class Command(BaseCommand):
             o.save()
             self.stdout.write(self.style.SUCCESS(f'Created Organization {o}'))
         
-        for td in type_defs:
-            t = TypeDef(**td)
-            t.save()
-            self.stdout.write(self.style.SUCCESS(f'Created Typedef {t}'))
+        # for td in type_defs:
+        #     t = TypeDef(**td)
+        #     t.save()
+        #     self.stdout.write(self.style.SUCCESS(f'Created Typedef {t}'))
 
         for short_name, raw_password in org_passwords.items():
             org = Organization.objects.get(short_name=short_name)
