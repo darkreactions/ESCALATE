@@ -4,7 +4,8 @@ from core.models import (
     Status,
     MaterialIdentifierDef,
     MaterialType,
-    MeasureType
+    MeasureType,
+    TagType
     )
 import core.models
 
@@ -67,6 +68,24 @@ standard = {
     'measure_type': [
         {'description': 'robot'},
         {'description': 'manual'}
+    ],
+    'tag_type': [
+        {
+            'type': 'material',
+            'description': 'tags used to assist in identifying material types'
+        },
+        {
+            'type': 'actor',
+            'description': 'tags used to assist in charactizing actors'
+        },
+        {
+            'type': 'measure',
+            'description': 'tags used to assist in charactizing measures'
+        },
+        {
+            'type': 'experiment',
+            'description': 'tags used to assist in charactizing experiments, visibility'
+        }
     ]
 }
 # if object above gets too large, we can move it to its own file and import it
@@ -76,25 +95,19 @@ class Command(BaseCommand):
     help = 'Loads in initial data into the base tables'
 
     def handle(self, *args, **options):
+        self.stdout.write(self.style.NOTICE('Beginning loading standard data'))
         for model_name_raw, array_of_fields in standard.items():
             model_name = "".join([x.capitalize() for x in model_name_raw.split('_')])
             model = getattr(core.models, model_name)
             for fields_bunch in array_of_fields:
+                model_instance = model(**fields_bunch)
                 if get_or_none(model, **fields_bunch) == None:
                     #doesn't exist in table already
-                    model_instance = model(**fields_bunch)
                     model_instance.save()
                     self.stdout.write(self.style.SUCCESS(f'Created {model_name} {model_instance}'))
-            
-
-        # for td in type_defs:
-        #     t = TypeDef(**td)
-        #     t.save()
-        #     self.stdout.write(self.style.SUCCESS(f'Created Typedef {t}'))
-        # for s in statuses:
-        #     new_status = Status(**s)
-        #     new_status.save()
-        #     self.stdout.write(self.style.SUCCESS(f'Created Status {new_status}'))
+                else:
+                    self.stdout.write(self.style.NOTICE(f'Did NOT create {model_name} {model_instance}, already exists'))
+        self.stdout.write(self.style.NOTICE('Finished loading standard data')) 
 
 def get_or_none(model, **kwargs):
     try:
