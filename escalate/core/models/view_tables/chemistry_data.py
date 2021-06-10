@@ -114,7 +114,7 @@ class Material(DateColumns, StatusColumn, ActorColumn):
 
 class MaterialIdentifier(DateColumns, StatusColumn):
     uuid = RetUUIDField(
-        primary_key=True, db_column='material_refname_uuid')
+        primary_key=True, default=uuid.uuid4, db_column='material_refname_uuid')
     description = models.CharField(max_length=256, blank=True, null=True)
     material_identifier_def = models.ForeignKey('MaterialIdentifierDef',
                                on_delete=models.DO_NOTHING,
