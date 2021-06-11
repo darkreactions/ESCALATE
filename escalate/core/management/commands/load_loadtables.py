@@ -1,21 +1,24 @@
 from django.core.management.base import BaseCommand, CommandError
-from core.models.view_tables import (
+from core.models import (
+TypeDef,
 Material, 
 MaterialType, 
 MaterialIdentifier,
 MaterialIdentifierDef, 
-Status)
-from core.models import TypeDef
+Status
+)
 
 import csv
 import os
+import json
 
 class Command(BaseCommand):
     help = 'Loads initial data from load tables after a datebase refresh'
 
     def handle(self, *args, **options):
-        #self.stdout.write(self.style.SUCCESS())
+        self.stdout.write(self.style.NOTICE('Loading load tables'))
         self._load_chem_inventory()
+        self.stdout.write(self.style.NOTICE('Finished loading load tables'))
         return
 
     def _load_chem_inventory(self):
@@ -140,6 +143,30 @@ class Command(BaseCommand):
  
         self.stdout.write(self.style.NOTICE('Finished loading chem'))
 
+    # def _load_hc_inventory(self):
+    #     self.stdout.write(self.style.NOTICE('Beginning loading HC'))
+    #     filename = 'load_hc_inventory.csv'
+    #     LOAD_CHEM_INVENTORY = path_to_file(filename)
+    #     with open(LOAD_CHEM_INVENTORY, newline='') as f:
+    #         reader = csv.reader(f, delimiter="\t")
+
+    #         #first row should be header
+    #         column_names = next(reader)
+
+    #         #{'col_0': 0, 'col_1': 1, ...}
+    #         column_names_to_index = list_data_to_index(column_names)
+
+    #         print(column_names)
+    #         # for row in reader:
+    #         #     print(row)
+
+    #         #jump to top of csv
+    #         f.seek(0)
+    #         #skip initial header row
+    #         next(reader)
+    #     self.stdout.write(self.style.NOTICE('Finished loading HC'))
+
+
 def path_to_file(filename):
     script_dir = os.path.dirname(__file__)
     csv_dir = '../../../../data_model/dataload_csv'
@@ -154,5 +181,9 @@ def get_or_none(model, **kwargs):
         return model.objects.get(**kwargs)
     except model.DoesNotExist:
         return None
+
+# def dump_json(data, filename):
+#     with open(filename, 'w', encoding='utf-8') as f:
+#         json.dump(data, f, ensure_ascii=False, indent=4)
 
     
