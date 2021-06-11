@@ -5,7 +5,8 @@ from core.models import (
     MaterialIdentifierDef,
     MaterialType,
     MeasureType,
-    TagType
+    TagType,
+    SystemtoolType
     )
 import core.models
 
@@ -15,7 +16,8 @@ model_field_names = {
     'material_identifier_def': ['description'],
     'material_type': ['description'],
     'measure_type': ['description'],
-    'tag_type': ['type', 'description']
+    'tag_type': ['type', 'description'],
+    'systemtool_type': ['description'],
     }
 
 #fields for each model instance
@@ -76,6 +78,13 @@ model_field_data = {
         ['measure', 'tags used to assist in charactizing measures'],
         ['experiment', 'tags used to assist in charactizing experiments, visibility'],
     ],
+    'systemtool_type': [
+        ["Database Management System"],
+        ["ESCALATE function"],
+        ["Command-line tool"],
+        ["API"],
+        ["Python toolkit"],
+    ]
 }
 
 standard = {}
