@@ -20,76 +20,148 @@ This command may be temporary
 In the future, each model's table data will be in separate a json file formatted
 in a way so that we can use a django management command: loaddata 
 '''
-standard = {
+# standard = {
+#     'type_def': [
+#         {'category': 'data', 'description': 'text'},
+#         {'category': 'data', 'description': 'num'},
+#         {'category': 'data', 'description': 'int'},
+#         {'category': 'data', 'description': 'array_int'},
+#         {'category': 'data', 'description': 'array_num'},
+#         {'category': 'data', 'description': 'bool'},
+#     ],
+#     'status': [
+#         {'description':'inactive'},
+#         {'description':'prototype'},
+#         {'description':'active'},
+#         {'description':'do_not_use'},
+#         {'description':'test'}
+#     ],
+#     'material_identifier_def': [
+#         {'description': 'SMIRKS'},
+#         {'description': 'Chemical_Name'},
+#         {'description': 'InChI'},
+#         {'description': 'SMILES'},
+#         {'description': 'Molecular_Formula'},
+#         {'description': 'SMARTS'},
+#         {'description': 'RInChI'},
+#         {'description': 'InChIKey'},
+#         {'description': 'Abbreviation'}
+#     ],
+#     'material_type': [
+#         {'description': "plate"},
+#         {'description': "nominal"},
+#         {'description': "reference"},
+#         {'description': "human prepared"},
+#         {'description': "solvent"},
+#         {'description': "halide"},
+#         {'description': "derived"},
+#         {'description': "actual"},
+#         {'description': "solute"},
+#         {'description': "catalog"},
+#         {'description': "stock solution"},
+#         {'description': "a-cation"},
+#         {'description': "b-cation"},
+#         {'description': "gas"},
+#         {'description': "separation target"},
+#         {'description': "antisolvent"},
+#     ],
+#     'measure_type': [
+#         {'description': 'robot'},
+#         {'description': 'manual'}
+#     ],
+#     'tag_type': [
+#         {
+#             'type': 'material',
+#             'description': 'tags used to assist in identifying material types'
+#         },
+#         {
+#             'type': 'actor',
+#             'description': 'tags used to assist in charactizing actors'
+#         },
+#         {
+#             'type': 'measure',
+#             'description': 'tags used to assist in charactizing measures'
+#         },
+#         {
+#             'type': 'experiment',
+#             'description': 'tags used to assist in charactizing experiments, visibility'
+#         }
+#     ]
+# }
+# if object above gets too large, we can move it to its own file and import it
+model_field_names = {
+    'type_def' : ['category','description'],
+    'status': ['description'],
+    'material_identifier_def': ['description'],
+    'material_type': ['description'],
+    'measure_type': ['description'],
+    'tag_type': ['type', 'description']
+    }
+
+#fields for each model instance
+#the data for each field is in an array and is in the same order as the fields
+#defined above
+model_field_data = {
     'type_def': [
-        {'category': 'data', 'description': 'text'},
-        {'category': 'data', 'description': 'num'},
-        {'category': 'data', 'description': 'int'},
-        {'category': 'data', 'description': 'array_int'},
-        {'category': 'data', 'description': 'array_num'},
-        {'category': 'data', 'description': 'bool'},
+        ['data', 'text'],
+        ['data', 'num'],
+        ['data', 'int'],
+        ['data', 'array_int'],
+        ['data', 'array_num'],
+        ['data', 'bool'],
     ],
     'status': [
-        {'description':'inactive'},
-        {'description':'prototype'},
-        {'description':'active'},
-        {'description':'do_not_use'},
-        {'description':'test'}
+        ['inactive'],
+        ['prototype'],
+        ['active'],
+        ['do_not_use'],
+        ['test'],
     ],
     'material_identifier_def': [
-        {'description': 'SMIRKS'},
-        {'description': 'Chemical_Name'},
-        {'description': 'InChI'},
-        {'description': 'SMILES'},
-        {'description': 'Molecular_Formula'},
-        {'description': 'SMARTS'},
-        {'description': 'RInChI'},
-        {'description': 'InChIKey'},
-        {'description': 'Abbreviation'}
+        ['SMIRKS'],
+        ['Chemical_Name'],
+        ['InChI'],
+        ['SMILES'],
+        ['Molecular_Formula'],
+        ['SMARTS'],
+        ['RInChI'],
+        ['InChIKey'],
+        ['Abbreviation'],
     ],
     'material_type': [
-        {'description': "plate"},
-        {'description': "nominal"},
-        {'description': "reference"},
-        {'description': "human prepared"},
-        {'description': "solvent"},
-        {'description': "halide"},
-        {'description': "derived"},
-        {'description': "actual"},
-        {'description': "solute"},
-        {'description': "catalog"},
-        {'description': "stock solution"},
-        {'description': "a-cation"},
-        {'description': "b-cation"},
-        {'description': "gas"},
-        {'description': "separation target"},
-        {'description': "antisolvent"},
+        ["plate"],
+        ["nominal"],
+        ["reference"],
+        ["human prepared"],
+        ["solvent"],
+        ["halide"],
+        ["derived"],
+        ["actual"],
+        ["solute"],
+        ["catalog"],
+        ["stock solution"],
+        ["a-cation"],
+        ["b-cation"],
+        ["gas"],
+        ["separation target"],
+        ["antisolvent"],
     ],
     'measure_type': [
-        {'description': 'robot'},
-        {'description': 'manual'}
+        ['robot'],
+        ['manual'],
     ],
     'tag_type': [
-        {
-            'type': 'material',
-            'description': 'tags used to assist in identifying material types'
-        },
-        {
-            'type': 'actor',
-            'description': 'tags used to assist in charactizing actors'
-        },
-        {
-            'type': 'measure',
-            'description': 'tags used to assist in charactizing measures'
-        },
-        {
-            'type': 'experiment',
-            'description': 'tags used to assist in charactizing experiments, visibility'
-        }
-    ]
+        ['material', 'tags used to assist in identifying material types'],
+        ['actor', 'tags used to assist in charactizing actors'],
+        ['measure', 'tags used to assist in charactizing measures'],
+        ['experiment', 'tags used to assist in charactizing experiments, visibility'],
+    ],
 }
-# if object above gets too large, we can move it to its own file and import it
 
+standard = {}
+for model_name, field_names in model_field_names.items():
+    model_instances = [dict(zip(field_names, data)) for data in model_field_data[model_name]]
+    standard[model_name] = model_instances
 
 class Command(BaseCommand):
     help = 'Loads in initial data into the base tables'
