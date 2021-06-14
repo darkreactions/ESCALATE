@@ -105,7 +105,7 @@ class GenericModelList(GenericListView):
         models = context[self.context_object_name]
         model_name = self.context_object_name[:-1]  # Ex: tag_types -> tag_type
         table_data = []
-        for model in models:
+        for model_instance in models:
             table_row_data = []
 
             # loop to get each column data for one row. [:-1] because table_columns has 'Actions'
@@ -114,8 +114,18 @@ class GenericModelList(GenericListView):
                 # get list of fields used to fill out one cell
                 necessary_fields = self.column_necessary_fields[field_name]
                 # get actual field value from the model
-                fields_for_col = [rgetattr(model, field)
-                                  for field in necessary_fields]
+                fields_for_col = []
+                for field in necessary_fields:
+                    if self.model._meta.get_field(field).__class__.__name__ == 'ManyToManyField':
+                        to_add = '\n'.join([str(x) for x in getattr(model_instance, field).all()])
+                    else:
+                        #Ex: Person.organization.full_name
+                        to_add = rgetattr(model_instance, field)
+                        if to_add.__class__.__name__ == 'ManyRelatedManager':
+                            #if what we get is a many to many object instead of a flat easy to stringify field value
+                            #Ex: Model.foreignkey.manyToMany
+                            to_add = '\n'.join([str(x) for x in getattr(model_instance, field).all()])
+                    fields_for_col.append(to_add)
                 # loop to change None to '' or non-string to string because join needs strings
                 for k in range(0, len(fields_for_col)):
                     if fields_for_col[k] == None:
@@ -134,13 +144,13 @@ class GenericModelList(GenericListView):
             # name to use in template
             table_row_info = {
                 'table_row_data': table_row_data,
-                'view_url': reverse_lazy(f'{model_name}_view', kwargs={'pk': model.pk}),
-                'update_url': reverse_lazy(f'{model_name}_update', kwargs={'pk': model.pk}),
-                'obj_name': str(model),
-                'obj_pk': model.pk
+                'view_url': reverse_lazy(f'{model_name}_view', kwargs={'pk': model_instance.pk}),
+                'update_url': reverse_lazy(f'{model_name}_update', kwargs={'pk': model_instance.pk}),
+                'obj_name': str(model_instance),
+                'obj_pk': model_instance.pk
             }
             if model_name=="edocument":
-                table_row_info['download_url'] = reverse('edoc_download', args=(model.pk,))
+                table_row_info['download_url'] = reverse('edoc_download', args=(model_instance.pk,))
             table_data.append(table_row_info)
 
         context['add_url'] = reverse_lazy(f'{model_name}_add')
@@ -413,12 +423,22 @@ class GenericModelView(DetailView):
         detail_data = {}
 
         # loop to get each detail data for one detail field
-        for field in self.detail_fields:
+        for field_verbose in self.detail_fields:
             # get list of fields used to fill out one detail field
-            necessary_fields = self.detail_fields_need_fields[field]
+            necessary_fields = self.detail_fields_need_fields[field_verbose]
             # get actual field value from the model
-            fields_for_field = [rgetattr(obj, field)
-                                for field in necessary_fields]
+            fields_for_field = []
+            for field in necessary_fields:
+                if self.model._meta.get_field(field).__class__.__name__ == 'ManyToManyField':
+                    to_add = '\n'.join([str(x) for x in getattr(obj, field).all()])
+                else:
+                    #Ex: Person.organization.full_name
+                    to_add = rgetattr(obj, field)
+                    if to_add.__class__.__name__ == 'ManyRelatedManager':
+                        #if value is many to many obj get the values
+                        #Ex: Model.foreignkey.manyToMany
+                        to_add = '\n'.join([str(x) for x in getattr(obj, field).all()])
+                fields_for_field.append(to_add)
             # loop to change None to '' or non-string to string because join needs strings
             for i in range(0, len(fields_for_field)):
                 if fields_for_field[i] == None:
@@ -431,7 +451,7 @@ class GenericModelView(DetailView):
             obj_detail = obj_detail.strip()
             if len(obj_detail) == 0:
                 obj_detail = 'N/A'
-            detail_data[field] = obj_detail
+            detail_data[field_verbose] = obj_detail
 
         # get notes
         notes_raw = Note.objects.filter(ref_note_uuid=obj.pk)

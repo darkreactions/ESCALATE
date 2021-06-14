@@ -38,18 +38,16 @@ methods = {
     'Material': {
         'model': core.models.view_tables.Material,
         'model_name': 'material',
-        # 'detail_fields': ['Chemical Name', 'Abbreviation', 'Molecular Formula', 'InChI',
-        #                  'InChI Key', 'Smiles', 'Create Date', 'Status'],
-        'detail_fields': ['Create Date', 'Status'],
+        'detail_fields': ['Chemical Name', 'Other Names', 'Type', 'Material Class','Create Date', 'Last Modification Date', 'Status'],
+        # 'detail_fields': ['Create Date', 'Status'],
         'detail_fields_need_fields': {
-            # 'Chemical Name': ['chemical_name'],
-            # 'Abbreviation': ['abbreviation'],
-            # 'Molecular Formula': ['molecular_formula'],
-            # 'InChI': ['inchi'],
-            # 'InChI Key': ['inchikey'],
-            # 'Smiles': ['smiles'],
+            'Chemical Name': ['description'],
+            'Other Names': ['identifier'],
+            'Type': ['material_type'],
+            'Material Class': ['material_class'],
             'Create Date': ['add_date'],
-            'Status': ['status_description']
+            'Last Modification Date': ['mod_date'],
+            'Status': ['status']
         },
     },
     'Systemtool': {
