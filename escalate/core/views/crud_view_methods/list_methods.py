@@ -34,13 +34,13 @@ methods = {
     'Material': {
         'model': core.models.view_tables.Material,
         'context_object_name': 'materials',
-        'table_columns': ['Chemical Name', 'Consumable', 'Composite', 'Actions'],
+        'table_columns': ['Chemical Name', 'Other Names', 'Type', 'Actions'],
         # 'table_columns': ['Status', 'Actions'],
         'column_necessary_fields': {
             'Chemical Name': ['description'],
-            'Consumable': ['consumable'],
-            'Composite': ['composite_flg'],
-            'Status': ['status_description']
+            'Other Names': ['identifier'],
+            'Type': ['material_type'],
+            'Status': ['status']
         },
         'ordering': ['description'],#status_description does not exist how do we want to order Material?
         'field_contains': '',
