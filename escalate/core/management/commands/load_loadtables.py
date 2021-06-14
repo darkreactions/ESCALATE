@@ -5,7 +5,8 @@ Material,
 MaterialType, 
 MaterialIdentifier,
 MaterialIdentifierDef, 
-Status
+Status,
+Vessel
 )
 
 import csv
@@ -18,6 +19,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE('Loading load tables'))
         self._load_chem_inventory()
+        self._load_vessels()
         self.stdout.write(self.style.NOTICE('Finished loading load tables'))
         return
 
@@ -143,28 +145,54 @@ class Command(BaseCommand):
  
         self.stdout.write(self.style.NOTICE('Finished loading chem'))
 
-    # def _load_hc_inventory(self):
-    #     self.stdout.write(self.style.NOTICE('Beginning loading HC'))
-    #     filename = 'load_hc_inventory.csv'
-    #     LOAD_CHEM_INVENTORY = path_to_file(filename)
-    #     with open(LOAD_CHEM_INVENTORY, newline='') as f:
-    #         reader = csv.reader(f, delimiter="\t")
+    def _load_vessels(self):
+        self.stdout.write(self.style.NOTICE('Beginning loading vessels'))
+        filename = 'old_dev_schema_materials.csv'
+        OLD_DEV_SCHEMA_MATERIALS = path_to_file(filename)
+        with open(OLD_DEV_SCHEMA_MATERIALS, newline='') as f:
+            reader = csv.reader(f, delimiter="\t")
 
-    #         #first row should be header
-    #         column_names = next(reader)
+            #first row should be header
+            column_names = next(reader)
 
-    #         #{'col_0': 0, 'col_1': 1, ...}
-    #         column_names_to_index = list_data_to_index(column_names)
+            #{'col_0': 0, 'col_1': 1, ...}
+            column_names_to_index = list_data_to_index(column_names)
 
-    #         print(column_names)
-    #         # for row in reader:
-    #         #     print(row)
-
-    #         #jump to top of csv
-    #         f.seek(0)
-    #         #skip initial header row
-    #         next(reader)
-    #     self.stdout.write(self.style.NOTICE('Finished loading HC'))
+            new_vessels = 0
+            new_plates = 0
+            active_status = Status.objects.get(description="active")
+            for row in reader:
+                row_desc = row[column_names_to_index['description']]
+                if "Plate" in row_desc:
+                    parts = row_desc.split('#:')
+                    assert(1 <= len(parts) <= 2)
+                    plate_name = parts[0].strip() if len(parts) >= 1 else None
+                    well_number = parts[1].strip() if len(parts) > 1 else None
+                    fields = {
+                            'plate_name': plate_name,
+                            'well_number': well_number,
+                            'status': active_status
+                        }
+                    #whole plate or single vessel
+                    if "#" in row_desc and ':' in row_desc:
+                        #single vessel
+                        if get_or_none(Vessel, **fields) == None:
+                            row_vessel = Vessel(**fields)
+                            row_vessel.save()
+                            new_vessels += 1
+                    else:   
+                        #whole plate
+                        if get_or_none(Vessel, **fields) == None:
+                            row_plate = Vessel(plate_name=plate_name)
+                            row_plate.save()
+                            new_plates += 1
+            self.stdout.write(self.style.SUCCESS(f'Added {new_vessels} new vessels'))
+            self.stdout.write(self.style.SUCCESS(f'Added {new_vessels} new plates'))
+            # #jump to top of csv
+            # f.seek(0)
+            # #skip initial header row
+            # next(reader)
+        self.stdout.write(self.style.NOTICE('Finished loading vessels'))
 
 
 def path_to_file(filename):
