@@ -39,7 +39,7 @@ class Vessel(DateColumns, StatusColumn, ActorColumn):
     plate_name = models.CharField(max_length = 64, blank=True, null=True)
     
     #whole plate can leave well_number blank
-    well_number = models.CharField(max_length = 2, blank=True, null=True)
+    well_number = models.CharField(max_length = 16, blank=True, null=True)
 
     class Meta:
         managed = manage_tables
