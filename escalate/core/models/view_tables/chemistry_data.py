@@ -110,8 +110,6 @@ class Material(DateColumns, StatusColumn, ActorColumn):
     def __str__(self):
         return "{}".format(self.description)
 
-
-
 class MaterialIdentifier(DateColumns, StatusColumn):
     uuid = RetUUIDField(
         primary_key=True, default=uuid.uuid4, db_column='material_refname_uuid')
