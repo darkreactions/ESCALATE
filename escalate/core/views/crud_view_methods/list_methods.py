@@ -181,6 +181,19 @@ methods = {
         'field_contains': '',
         'org_related_path': 'inventory__lab__organization'
     },
+    'Vessel': {
+        'model': core.models.view_tables.Vessel,
+        'context_object_name': 'vessels',
+
+        'table_columns': ['Plate Name', 'Well Number', 'Actions'],
+        'column_necessary_fields': {
+            'Plate Name': ['plate_name'], 
+            'Well Number': ['well_number'], 
+        },
+        'ordering': ['plate_name'],
+        'field_contains': '',
+    },
+    
     
 
 

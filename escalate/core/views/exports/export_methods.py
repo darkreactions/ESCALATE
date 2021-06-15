@@ -230,5 +230,17 @@ methods = {
             'Status': ['status_description']
         },
         'org_related_path': 'inventory__lab__organization'
+    }, 'Vessel':{
+        'model': core.models.view_tables.Vessel,
+        'column_names': [
+            'Plate Name',
+            'Well Number',
+            'Status'
+            ],
+        'column_necessary_fields': {
+            'Plate Name': ['plate_name'],
+            'Well Number': ['well_number'],
+            'Status': ['status']
+        },
     }, 
 }
