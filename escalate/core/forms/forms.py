@@ -6,7 +6,7 @@ from core.models import (CustomUser, OrganizationPassword, )
 from core.models.view_tables import (Person, Material, Inventory, Actor, Note,
                          Organization, Systemtool, SystemtoolType,
                          UdfDef, Status, Tag, TagAssign, TagType, MaterialType,
-                         Edocument, InventoryMaterial)
+                         Edocument, InventoryMaterial, Vessel)
 from core.models.core_tables import TypeDef
 
 from packaging import version
@@ -608,3 +608,29 @@ class InventoryMaterialForm(forms.ModelForm):
 
 class ExperimentNameForm(forms.Form):
     exp_name = forms.CharField(label='Experiment Name', max_length=100)
+
+
+class VesselForm(forms.ModelForm):
+    class Meta:
+        model = Vessel
+        fields = ['plate_name', 'well_number']
+        field_classes = {
+            'plate_name': forms.CharField,
+            'well_number': forms.CharField,
+        }
+        labels = {
+            'plate_name': 'Plate Name',
+            'well_number': 'Well Number',
+        }
+        widgets = {
+            'plate_name': forms.Textarea(attrs={
+                'cols': '10',
+                'rows': '3',
+                'placeholder': 'Plate name'
+            }),
+            'well_number': forms.Textarea(attrs={
+                'cols': '10',
+                'rows': '1',
+                'placeholder': 'Well number'
+            }),
+        }
