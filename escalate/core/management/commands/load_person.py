@@ -22,7 +22,8 @@ person_data = [
     ["Gary", "Cattabriga"],
     ["Joseph", "Pannizzo"],
     ["T", "Testuser"],
-    ["Matt", "Castillo"]
+    ["Matt", "Castillo"],
+    ["Joseph", "Kawamura"]
 ]
 
 person_to_add = [dict(zip(person_relevant_fields, data)) for data in person_data]

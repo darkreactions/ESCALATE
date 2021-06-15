@@ -34,6 +34,21 @@ class CompositeMaterial(DateColumns, StatusColumn, ActorColumn):
     def __str__(self):
         return "{} - {}".format(self.composite.description, self.component.description)
 
+class Vessel(DateColumns, StatusColumn, ActorColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='vessel_uuid')
+    plate_name = models.CharField(max_length = 64, blank=True, null=True)
+    
+    #whole plate can leave well_number blank
+    well_number = models.CharField(max_length = 16, blank=True, null=True)
+
+    class Meta:
+        managed = manage_tables
+        db_table = 'vessel'
+    
+    def __str__(self):
+        return "{}  {}".format(self.plate_name, self.well_number)
+
+
 
 class Inventory(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='inventory_uuid')

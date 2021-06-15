@@ -34,6 +34,13 @@ users = {
             'last_name': 'Pannizzo'
         },
         'password': 'password1'
+    },
+    'jkawamura': {
+        'person_data': {
+            'first_name': 'Joseph',
+            'last_name': 'Kawamura'
+        },
+        'password': 'password2'
     }
 }
 
