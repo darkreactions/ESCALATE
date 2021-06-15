@@ -6,12 +6,12 @@ from core.models.core_tables import RetUUIDField
 from core.models.custom_types import ValField, PROPERTY_CLASS_CHOICES, PROPERTY_DEF_CLASS_CHOICES, MATERIAL_CLASS_CHOICES
 from django.contrib.postgres.fields import ArrayField
 import uuid
-from core.models.abstract_base_models import DateColumns, StatusColumn, ActorColumn
+from core.models.base_classes import DateColumns, StatusColumn, ActorColumn, DescriptionColumn
 
 managed_tables = True
 managed_views = False
-
-class Calculation(DateColumns, StatusColumn, ActorColumn):
+#TODO: REMOVE THIS ENTIRE MODEL AND BREAK IT INTO SEPERATE MODELS WITH BASE CLASSES
+class Calculation(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='calculation_uuid')
     in_val = ValField( blank=True, null=True)
@@ -39,9 +39,6 @@ class Calculation(DateColumns, StatusColumn, ActorColumn):
                                         related_name='calculation_calculation_def')
     short_name = models.CharField(max_length=255, blank=True, null=True)
     calc_definition = models.CharField(max_length=255, blank=True, null=True)
-
-    description = models.CharField(max_length=1023, blank=True, null=True)
-
     systemtool = models.ForeignKey('Systemtool',
                                    models.DO_NOTHING,
                                    db_column='systemtool_uuid',
@@ -52,12 +49,11 @@ class Calculation(DateColumns, StatusColumn, ActorColumn):
         db_table = 'calculation'
 
 
-class CalculationDef(DateColumns, ActorColumn):
+class CalculationDef(DateColumns, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(
         primary_key=True, db_column='calculation_def_uuid')
     short_name = models.CharField(max_length=255, blank=True, null=True)
     calc_definition = models.CharField(max_length=255, blank=True, null=True)
-    description = models.CharField(max_length=1023, blank=True, null=True)
     parameter_def = models.ManyToManyField('ParameterDef', 
                                            #through='CalculationParameterDefAssign', 
                                            related_name='calculation_def_parameter_def')
@@ -95,13 +91,11 @@ class CalculationDef(DateColumns, ActorColumn):
         return "{}".format(self.description)
 
 
-class Edocument(DateColumns, StatusColumn, ActorColumn):
+class Edocument(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(
         primary_key=True, db_column='edocument_uuid', editable=False)
     title = models.CharField(max_length=255, blank=True,
                              null=True, db_column='title')
-    description = models.CharField(max_length=255, blank=True, null=True,
-                                   db_column='description')
     filename = models.CharField(max_length=255, blank=True, null=True,
                                 db_column='filename')
     source = models.CharField(
@@ -139,7 +133,7 @@ class EdocumentX(DateColumns):
         db_table = 'edocument_x'
 
 
-class Measure(DateColumns, StatusColumn, ActorColumn):
+class Measure(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='measure_uuid')
     measure_type = models.ForeignKey('MeasureType',
                                           on_delete=models.DO_NOTHING,
@@ -153,10 +147,6 @@ class Measure(DateColumns, StatusColumn, ActorColumn):
                                          blank=True,
                                          null=True,
                                          related_name='measure_ref_measure')
-    description = models.CharField(max_length=255,
-                                   blank=True,
-                                   null=True,
-                                   )
     measure_def = models.ForeignKey('MeasureDef',
                                     db_column='measure_def_uuid',
                                     on_delete=models.DO_NOTHING)
@@ -167,12 +157,8 @@ class Measure(DateColumns, StatusColumn, ActorColumn):
         db_table = 'measure'
 
 
-class MeasureType(DateColumns, StatusColumn, ActorColumn):
+class MeasureType(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='measure_type_uuid')
-    description = models.CharField(max_length=255,
-                                   blank=True,
-                                   null=True,
-                                   editable=False)
 
     def __str__(self):
         return f'{self.description}'
@@ -200,17 +186,13 @@ class MeasureX(DateColumns):
         return "{}".format(self.measure_uuid)
 
 
-class MeasureDef(DateColumns, StatusColumn, ActorColumn):
+class MeasureDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='measure_def_uuid')
     default_measure_type = models.ForeignKey('MeasureType', models.DO_NOTHING,
                              blank=True,
                              null=True,
                              db_column='default_measure_type_uuid',
                              related_name='measure_def_default_measure_type')
-    description = models.CharField(max_length=255,
-                                   blank=True,
-                                   null=True,
-                                   db_column='description')
     default_measure_value = ValField( )
     property_def = models.ForeignKey('PropertyDef', models.DO_NOTHING,
                              blank=True,
@@ -290,13 +272,9 @@ class Parameter(DateColumns, StatusColumn, ActorColumn):
         db_table = 'parameter'
 
 
-class ParameterDef(DateColumns, StatusColumn, ActorColumn):
+class ParameterDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='parameter_def_uuid')
-    description = models.CharField(max_length=255,
-                                   blank=True,
-                                   null=True,
-                                   db_column='description')
     default_val = ValField(db_column='default_val')
     required = BooleanField()
     unit_type = models.CharField(max_length=255,
@@ -336,13 +314,9 @@ class Property(DateColumns, StatusColumn, ActorColumn):
         return "{} : {}".format(self.property_def, self.property_val)
     
 
-class PropertyDef(DateColumns, StatusColumn, ActorColumn):
+class PropertyDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='property_def_uuid')
-    description = models.CharField(max_length=255,
-                                   blank=True,
-                                   null=True,
-                                   db_column='description')
     property_def_class = models.CharField(max_length=64, choices=PROPERTY_DEF_CLASS_CHOICES)
     short_description = models.CharField(max_length=255,
                                          blank=True,
@@ -370,9 +344,8 @@ class PropertyDef(DateColumns, StatusColumn, ActorColumn):
         return "{}".format(self.description)
 
 
-class Status(DateColumns):
+class Status(DateColumns, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='status_uuid')
-    description = models.CharField(max_length=255, null=True)
     
     class Meta:
         managed = managed_tables
@@ -382,10 +355,9 @@ class Status(DateColumns):
         return "{}".format(self.description)
 
 
-class Tag(DateColumns, ActorColumn):
+class Tag(DateColumns, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='tag_uuid', editable=False)
     display_text = models.CharField(max_length=255,  null=True)
-    description = models.CharField(max_length=255, blank=True, null=True)
 
     tag_type = models.ForeignKey('TagType', models.DO_NOTHING,
                                  db_column='tag_type_uuid',
@@ -419,10 +391,9 @@ class TagAssign(DateColumns):
         return "{}".format(self.uuid)
 
 
-class TagType(DateColumns):
+class TagType(DateColumns, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='tag_type_uuid')
     type = models.CharField(max_length=255,  null=True)
-    description = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = managed_tables
@@ -432,7 +403,7 @@ class TagType(DateColumns):
         return "{}".format(self.type)
 
 
-class Udf(models.Model):
+class Udf(models.Model, DescriptionColumn):
     """
     UDF = User Defined Field
     For example, say we wanted to start tracking ‘challenge problem #’ with an experiment. 
@@ -446,7 +417,6 @@ class Udf(models.Model):
     udf_def = models.ForeignKey('UdfDef', models.DO_NOTHING,
                             blank=True, null=True,
                             db_column='udf_def_uuid', related_name='udf_udf_def')
-    description = models.CharField(max_length=255,  null=True)
     udf_value = ValField( db_column='udf_val')
     udf_val_edocument = models.ForeignKey('Edocument', models.DO_NOTHING,
                             blank=True, null=True,
@@ -477,10 +447,8 @@ class UdfX(models.Model):
         db_table = 'udf_x'    
     
 
-class UdfDef(models.Model):
+class UdfDef(models.Model, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='udf_def_uuid')
-    description = models.CharField(
-        max_length=255,  null=True)
     val_type = models.ForeignKey('TypeDef',
                                  db_column='val_type_uuid',
                                  on_delete=models.DO_NOTHING,

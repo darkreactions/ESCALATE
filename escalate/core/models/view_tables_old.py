@@ -368,7 +368,7 @@ class Material(models.Model):
         return "{}".format(self.description)
 
 
-class CompositeMaterial(models.Model):
+class Mixture(models.Model):
     uuid = RetUUIDField(primary_key=True, db_column='material_composite_uuid')
     composite = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
                                   blank=True, null=True, db_column='composite_uuid',
@@ -376,7 +376,7 @@ class CompositeMaterial(models.Model):
     composite_description = models.CharField(
         max_length=255, blank=True, null=True)
     composite_flg = models.BooleanField(blank=True, null=True)
-    component = models.ForeignKey('CompositeMaterial', on_delete=models.DO_NOTHING,
+    component = models.ForeignKey('Mixture', on_delete=models.DO_NOTHING,
                                   blank=True, null=True, db_column='component_uuid',
                                   related_name='composite_material_component')
     component_description = models.CharField(
@@ -480,7 +480,7 @@ class BomCompositeMaterial(models.Model):
                             related_name='bom_composite_material_bom_material')
     bom_material_description = models.CharField(max_length=255, blank=True, null=True)
     
-    composite_material = models.ForeignKey('CompositeMaterial', on_delete=models.DO_NOTHING,
+    composite_material = models.ForeignKey('Mixture', on_delete=models.DO_NOTHING,
                                                blank=True, null=True, db_column='material_composite_uuid',
                                                related_name='bom_composite_material_composite_material')
     component = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
@@ -1110,7 +1110,7 @@ class CompositeMaterialProperty(models.Model):
     # TODO: Material property may need fixing. Endpoint displays all tags for all rows
     uuid = RetUUIDField(primary_key=True,
                         db_column='material_composite_uuid')
-    composite_material = models.ForeignKey('CompositeMaterial',
+    composite_material = models.ForeignKey('Mixture',
                                            db_column='composite_uuid',
                                            on_delete=models.DO_NOTHING,
                                            blank=True, null=True,
@@ -1120,7 +1120,7 @@ class CompositeMaterialProperty(models.Model):
                                                       null=True,
                                                       db_column='description',
                                                       editable=False)
-    component = models.ForeignKey('CompositeMaterial',
+    component = models.ForeignKey('Mixture',
                                   db_column='component_uuid',
                                   on_delete=models.DO_NOTHING,
                                   blank=True, null=True,

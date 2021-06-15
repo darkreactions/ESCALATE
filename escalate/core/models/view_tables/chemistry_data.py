@@ -2,12 +2,12 @@ from django.db import models
 from core.models.core_tables import RetUUIDField
 from core.models.custom_types import ValField, PROPERTY_CLASS_CHOICES, PROPERTY_DEF_CLASS_CHOICES, MATERIAL_CLASS_CHOICES
 import uuid
-from core.models.abstract_base_models import DateColumns, StatusColumn, ActorColumn
+from core.models.base_classes import DateColumns, StatusColumn, ActorColumn, DescriptionColumn
 
 manage_tables = True
 manage_views = False
 
-class CompositeMaterial(DateColumns, StatusColumn, ActorColumn):
+class Mixture(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='material_composite_uuid')
     composite = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
                                   blank=True, null=True, db_column='composite_uuid',
@@ -34,25 +34,23 @@ class CompositeMaterial(DateColumns, StatusColumn, ActorColumn):
     def __str__(self):
         return "{} - {}".format(self.composite.description, self.component.description)
 
-class Vessel(DateColumns, StatusColumn, ActorColumn):
+class Vessel(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='vessel_uuid')
     plate_name = models.CharField(max_length = 64, blank=True, null=True)
-    
+
     #whole plate can leave well_number blank
     well_number = models.CharField(max_length = 16, blank=True, null=True)
 
     class Meta:
         managed = manage_tables
         db_table = 'vessel'
-    
+
     def __str__(self):
         return "{}  {}".format(self.plate_name, self.well_number)
 
 
-
-class Inventory(DateColumns, StatusColumn, ActorColumn):
+class Inventory(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='inventory_uuid')
-    description = models.CharField(max_length=255, blank=True, null=True)
     owner = models.ForeignKey('Actor', on_delete=models.DO_NOTHING,
                               blank=True, null=True,
                               db_column='owner_uuid',
@@ -74,9 +72,8 @@ class Inventory(DateColumns, StatusColumn, ActorColumn):
         return "{}".format(self.description)
 
 
-class InventoryMaterial(DateColumns, StatusColumn, ActorColumn):
+class InventoryMaterial(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='inventory_material_uuid')
-    description = models.CharField(max_length=255, blank=True, null=True)
     inventory = models.ForeignKey('Inventory', models.DO_NOTHING, db_column='inventory_uuid',
                                   related_name='inventory_material_inventory')
     material = models.ForeignKey('Material', models.DO_NOTHING,
@@ -99,10 +96,9 @@ class InventoryMaterial(DateColumns, StatusColumn, ActorColumn):
         return "{} : {}".format(self.inventory, self.material)
 
 
-class Material(DateColumns, StatusColumn, ActorColumn):
+class Material(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='material_uuid')
-    description = models.CharField(max_length=255, blank=True, null=True)
     consumable = models.BooleanField(blank=True, null=True)
     #composite_flg = models.BooleanField(blank=True, null=True)
     #material_types = models.ManyToManyField('MaterialType', 
@@ -125,10 +121,11 @@ class Material(DateColumns, StatusColumn, ActorColumn):
     def __str__(self):
         return "{}".format(self.description)
 
-class MaterialIdentifier(DateColumns, StatusColumn):
+
+
+class MaterialIdentifier(DateColumns, StatusColumn, DescriptionColumn):
     uuid = RetUUIDField(
         primary_key=True, default=uuid.uuid4, db_column='material_refname_uuid')
-    description = models.CharField(max_length=256, blank=True, null=True)
     material_identifier_def = models.ForeignKey('MaterialIdentifierDef',
                                on_delete=models.DO_NOTHING,
                                blank=True,
@@ -144,10 +141,9 @@ class MaterialIdentifier(DateColumns, StatusColumn):
         return "{}: {}".format(self.material_identifier_def, self.description)
 
 
-class MaterialIdentifierDef(DateColumns):
+class MaterialIdentifierDef(DateColumns, DescriptionColumn):
     uuid = RetUUIDField(
         primary_key=True, default=uuid.uuid4, db_column='material_refname_def_uuid')
-    description = models.CharField(max_length=255, blank=True, null=True)
     
     class Meta:
         managed = manage_tables
@@ -156,9 +152,8 @@ class MaterialIdentifierDef(DateColumns):
     def __str__(self):
         return "{}".format(self.description)
 
-class MaterialType(DateColumns):
+class MaterialType(DateColumns, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='material_type_uuid')
-    description = models.TextField(blank=True, null=True)
     
     class Meta:
         managed = manage_tables
