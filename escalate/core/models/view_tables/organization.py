@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from core.models.core_tables import RetUUIDField
-from core.models.abstract_base_models import DateColumns, StatusColumn, ActorColumn
+from core.models.base_classes import DateColumns, StatusColumn, ActorColumn, DescriptionColumn, AddressColumns
 from core.models.view_tables.generic_data import Note
 import uuid
 from django.contrib.contenttypes.fields import GenericRelation
@@ -10,7 +10,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 managed_tables = True
 managed_views = False
 
-class Actor(DateColumns, StatusColumn):
+class Actor(DateColumns, StatusColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='actor_uuid')
     organization = models.ForeignKey('Organization',
                                      on_delete=models.DO_NOTHING,
@@ -25,8 +25,6 @@ class Actor(DateColumns, StatusColumn):
                                    blank=True, null=True,
                                    db_column='systemtool_uuid',
                                    related_name='actor_systemtool')
-    description = models.CharField(max_length=255, blank=True, null=True)
-    
 
     class Meta:
         managed = managed_tables
@@ -53,19 +51,11 @@ class ActorPref(DateColumns, ActorColumn):
         return f"{self.pkey} : {self.pvalue}"
 
 
-class Organization(DateColumns):
+class Organization(DateColumns, AddressColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='organization_uuid')
-    description = models.CharField(max_length=255)
     full_name = models.CharField(max_length=255)
     short_name = models.CharField(max_length=255, blank=True, null=True)
-    address1 = models.CharField(max_length=255, blank=True, null=True)
-    address2 = models.CharField(max_length=255, blank=True, null=True)
-    city = models.CharField(max_length=255, blank=True, null=True)
-    state_province = models.CharField(max_length=3, blank=True, null=True)
-    zip = models.CharField(max_length=255, blank=True, null=True)
-    country = models.CharField(max_length=255, blank=True, null=True)
     website_url = models.CharField(max_length=255, blank=True, null=True)
-    phone = models.CharField(max_length=255, blank=True, null=True)
     parent = models.ForeignKey('self', models.DO_NOTHING,
                                blank=True, null=True,
                                db_column='parent_uuid',
@@ -80,21 +70,8 @@ class Organization(DateColumns):
         return "{}".format(self.full_name)
 
 
-class Person(DateColumns):
+class Person(DateColumns, AddressColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='person_uuid')
-    first_name = models.CharField(
-        max_length=255)
-    last_name = models.CharField(max_length=255)
-    middle_name = models.CharField(
-        max_length=255, blank=True, null=True)
-    address1 = models.CharField(max_length=255, blank=True, null=True)
-    address2 = models.CharField(max_length=255, blank=True, null=True)
-    city = models.CharField(max_length=255, blank=True, null=True)
-    state_province = models.CharField(max_length=3, blank=True, null=True)
-    zip = models.CharField(max_length=255, blank=True, null=True)
-    country = models.CharField(max_length=255, blank=True, null=True)
-
-    phone = models.CharField(max_length=255, blank=True, null=True)
     email = models.EmailField(max_length=255, blank=True, null=True)
     title = models.CharField(max_length=255, blank=True, null=True)
     suffix = models.CharField(max_length=255, blank=True, null=True)
@@ -116,11 +93,10 @@ class Person(DateColumns):
 
 
 
-class Systemtool(DateColumns):
+class Systemtool(DateColumns, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='systemtool_uuid')
     systemtool_name = models.CharField(max_length=255, null=True)
-    description = models.CharField(max_length=255, blank=True, null=True)
     vendor_organization = models.ForeignKey('Organization',
                                             models.DO_NOTHING,
                                             db_column='vendor_organization_uuid',
@@ -141,10 +117,9 @@ class Systemtool(DateColumns):
         return "{}".format(self.systemtool_name)
 
 
-class SystemtoolType(DateColumns):
+class SystemtoolType(DateColumns, DescriptionColumn):
     #systemtool_type_id = models.BigAutoField()
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='systemtool_type_uuid')
-    description = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = managed_tables

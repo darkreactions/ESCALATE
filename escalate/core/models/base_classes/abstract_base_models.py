@@ -26,3 +26,9 @@ class ActorColumn(models.Model):
                               related_name='%(class)s_actor')
     class Meta:
         abstract = True
+        
+class DescriptionColumn(models.Model):
+    description = models.CharField(max_length=255, blank=True, null=True)
+    
+    class Meta:
+        abstract= True

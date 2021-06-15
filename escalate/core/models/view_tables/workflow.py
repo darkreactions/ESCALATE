@@ -3,13 +3,13 @@ from django.contrib.postgres.fields import ArrayField
 from core.models.core_tables import RetUUIDField
 from core.models.custom_types import ValField, CustomArrayField
 import uuid
-from core.models.abstract_base_models import DateColumns, StatusColumn, ActorColumn
+from core.models.base_classes import DateColumns, StatusColumn, ActorColumn, DescriptionColumn
 from core.managers import ExperimentTemplateManager, BomMaterialManager, BomCompositeMaterialManager
 
 managed_tables = True
 managed_views = False
 
-class Action(DateColumns, StatusColumn, ActorColumn):
+class Action(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                                db_column='action_uuid')
     action_def = models.ForeignKey('ActionDef',
@@ -23,10 +23,6 @@ class Action(DateColumns, StatusColumn, ActorColumn):
                                    db_column='workflow_uuid',
                                    blank=True,
                                    null=True, related_name='action_workflow')
-    description = models.CharField(max_length=255,
-                                   blank=True,
-                                   null=True,
-                                   db_column='description')
     start_date = models.DateField(db_column='start_date', blank=True, null=True)
     end_date = models.DateField(db_column='end_date', blank=True, null=True) 
     duration = models.FloatField(db_column='duration',
@@ -79,15 +75,10 @@ class ActionUnit(DateColumns, StatusColumn, ActorColumn):
         ordering = ['add_date']
 
 
-class ActionDef(DateColumns, StatusColumn, ActorColumn):
-    # TODO: need to add through fields
+class ActionDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
+    
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='action_def_uuid')
     parameter_def = models.ManyToManyField('ParameterDef', blank=True) #, through='ActionParameterDefAssign')
-    description = models.CharField(max_length=255,
-                                   blank=True,
-                                   null=True,
-                                   db_column='description',
-                                   )
 
     def __str__(self):
         return f"{self.description}"
@@ -97,9 +88,8 @@ class ActionDef(DateColumns, StatusColumn, ActorColumn):
         db_table = 'action_def'
 
 
-class BillOfMaterials(DateColumns, StatusColumn, ActorColumn):
+class BillOfMaterials(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='bom_uuid')
-    description = models.CharField(max_length=255, blank=True, null=True)
     experiment = models.ForeignKey('Experiment', on_delete=models.DO_NOTHING,
                                    blank=True, null=True, db_column='experiment_uuid',
                                    related_name='bom_experiment')
@@ -183,15 +173,10 @@ class Condition(DateColumns, StatusColumn, ActorColumn):
         db_table = 'condition'
 
 
-class ConditionDef(DateColumns, StatusColumn, ActorColumn):
+class ConditionDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(
         primary_key=True, default=uuid.uuid4, db_column='condition_def_uuid')
-    description = models.CharField(max_length=255,
-                                   blank=True,
-                                   null=True,
-                                   db_column='description',
-                                   editable=False)
-    # TODO: need to add through fields
+    
     calculation_def = models.ManyToManyField('CalculationDef', blank=True), #through='ConditionCalculationDefAssign')
 
     class Meta:
@@ -221,12 +206,11 @@ class ConditionPath(DateColumns):
         db_table = 'condition_path'
 
 
-class Experiment(DateColumns, StatusColumn):
+class Experiment(DateColumns, StatusColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='experiment_uuid')
     experiment_type = models.ForeignKey('ExperimentType', db_column='experiment_type_uuid',
                                on_delete=models.DO_NOTHING, blank=True, null=True, related_name='experiment_experiment_type')
     ref_uid = models.CharField(max_length=255, db_column='ref_uid')
-    description = models.CharField(max_length=255,  db_column='description')
     # TODO: Does parent point to TypeDef or another Experiment?
     parent = models.ForeignKey('TypeDef', db_column='parent_uuid',
                                on_delete=models.DO_NOTHING, blank=True, null=True, related_name='experiment_parent')
@@ -236,7 +220,6 @@ class Experiment(DateColumns, StatusColumn):
                                  related_name='experiment_operator')
     lab = models.ForeignKey('Actor', db_column='lab_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
                             related_name='experiment_lab')
-    # TODO: need to add through fields
     workflow = models.ManyToManyField('Workflow', through='ExperimentWorkflow', related_name='experiment_workflow')
     # owner_description = models.CharField(max_length=255, db_column='owner_description')
     # operator_description = models.CharField(max_length=255, db_column='operator_description')
@@ -262,9 +245,8 @@ class ExperimentInstance(Experiment):
         proxy = True
 
 
-class ExperimentType(DateColumns, StatusColumn, ActorColumn):
+class ExperimentType(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='experiment_type_uuid')
-    description = models.CharField(max_length=255,  db_column='description')
 
     class Meta:
         managed = managed_tables
@@ -290,9 +272,8 @@ class ExperimentWorkflow(DateColumns):
         db_table = 'experiment_workflow'
 
 
-class Outcome(DateColumns, StatusColumn, ActorColumn):
+class Outcome(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='outcome_uuid')
-    description = models.CharField(max_length=255,  db_column='description')
     experiment = models.ForeignKey('Experiment', db_column='experiment_uuid', on_delete=models.DO_NOTHING,
                                    blank=True, null=True, related_name='outcome_experiment')
 
@@ -301,13 +282,9 @@ class Outcome(DateColumns, StatusColumn, ActorColumn):
         db_table = 'outcome'
 
 
-class Workflow(DateColumns, StatusColumn, ActorColumn):
+class Workflow(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='workflow_uuid')
-    description = models.CharField(max_length=255,
-                                   blank=True,
-                                   null=True,
-                                   db_column='description')
     parent = models.ForeignKey('Workflow', models.DO_NOTHING,
                                blank=True, null=True,
                                db_column='parent_uuid', related_name='workflow_parent')
@@ -324,11 +301,8 @@ class Workflow(DateColumns, StatusColumn, ActorColumn):
         return f'{self.description}'
 
 
-class WorkflowActionSet(DateColumns, StatusColumn, ActorColumn):
+class WorkflowActionSet(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='workflow_action_set_uuid')
-    description = models.CharField(max_length=255,
-                                   blank=True,
-                                   null=True)
     workflow = models.ForeignKey('Workflow', models.DO_NOTHING,
                                blank=True, null=True, 
                                db_column='workflow_uuid', 
@@ -363,13 +337,9 @@ class WorkflowActionSet(DateColumns, StatusColumn, ActorColumn):
         db_table = 'workflow_action_set'
 
 
-class WorkflowType(DateColumns):
+class WorkflowType(DateColumns, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='workflow_type_uuid')
-    description = models.CharField(max_length=255,
-                                   blank=True,
-                                   null=True,
-                                   db_column='description')
 
     class Meta:
         managed = managed_tables

@@ -1,6 +1,6 @@
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
-from core.models import Person, Actor, Action, CompositeMaterial, Measure, MeasureX, UdfX, Udf, \
+from core.models import Person, Actor, Action, Mixture, Measure, MeasureX, UdfX, Udf, \
 BomCompositeMaterial, Parameter, BomMaterial, ActionUnit
 #from core.models.view_tables.workflow import Experiment
 
@@ -17,10 +17,10 @@ def create_actor(sender, **kwargs):
         actor = Actor(person=kwargs['instance'])
         actor.save()
 """
-@receiver(post_save, sender=CompositeMaterial) 
+@receiver(post_save, sender=Mixture) 
 def create_bom_material_composite(sender, **kwargs):
     if kwargs['created']:
-        bom_material_composite = BomCompositeMaterial(CompositeMaterial=kwargs['instance'])
+        bom_material_composite = BomCompositeMaterial(Mixture=kwargs['instance'])
         bom_material_composite.save()
 """
     
@@ -104,7 +104,7 @@ def create_bom_composite_material(sender, **kwargs):
         bom_material = kwargs['instance']
         material = bom_material.inventory_material.material
         if not material.consumable:
-            c_materials = CompositeMaterial.objects.filter(composite=material)
+            c_materials = Mixture.objects.filter(composite=material)
             for cm in c_materials:
                 bcm = BomCompositeMaterial(description=f'{bom_material.description}: {cm.description}', 
                                     composite_material=cm, bom_material=bom_material)
