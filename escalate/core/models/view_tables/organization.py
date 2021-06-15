@@ -51,7 +51,7 @@ class ActorPref(DateColumns, ActorColumn):
         return f"{self.pkey} : {self.pvalue}"
 
 
-class Organization(DateColumns, AddressColumns):
+class Organization(DateColumns, AddressColumns, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='organization_uuid')
     full_name = models.CharField(max_length=255)
     short_name = models.CharField(max_length=255, blank=True, null=True)
@@ -74,6 +74,9 @@ class Person(DateColumns, AddressColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='person_uuid')
     email = models.EmailField(max_length=255, blank=True, null=True)
     title = models.CharField(max_length=255, blank=True, null=True)
+    first_name = models.CharField(max_length=255, blank=True, null=True)
+    middle_name = models.CharField(max_length=255, blank=True, null=True) 
+    last_name = models.CharField(max_length=255, blank=True, null=True)
     suffix = models.CharField(max_length=255, blank=True, null=True)
     organization = models.ForeignKey('Organization', models.DO_NOTHING,
                                      blank=True, null=True,
@@ -90,6 +93,8 @@ class Person(DateColumns, AddressColumns):
 
     def __str__(self):
         return "{} {}".format(self.first_name, self.last_name)
+    
+    
 
 
 

@@ -403,7 +403,7 @@ class TagType(DateColumns, DescriptionColumn):
         return "{}".format(self.type)
 
 
-class Udf(models.Model, DescriptionColumn):
+class Udf(DescriptionColumn):
     """
     UDF = User Defined Field
     For example, say we wanted to start tracking ‘challenge problem #’ with an experiment. 
@@ -447,7 +447,7 @@ class UdfX(models.Model):
         db_table = 'udf_x'    
     
 
-class UdfDef(models.Model, DescriptionColumn):
+class UdfDef(DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='udf_def_uuid')
     val_type = models.ForeignKey('TypeDef',
                                  db_column='val_type_uuid',

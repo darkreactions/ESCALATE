@@ -7,7 +7,7 @@ from core.models.base_classes import DateColumns, StatusColumn, ActorColumn, Des
 manage_tables = True
 manage_views = False
 
-class Mixture(DateColumns, StatusColumn, ActorColumn):
+class CompositeMaterial(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='material_composite_uuid')
     composite = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
                                   blank=True, null=True, db_column='composite_uuid',
