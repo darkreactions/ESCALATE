@@ -187,7 +187,7 @@ class Command(BaseCommand):
                             row_plate.save()
                             new_plates += 1
             self.stdout.write(self.style.SUCCESS(f'Added {new_vessels} new vessels'))
-            self.stdout.write(self.style.SUCCESS(f'Added {new_vessels} new plates'))
+            self.stdout.write(self.style.SUCCESS(f'Added {new_plates} new plates'))
             # #jump to top of csv
             # f.seek(0)
             # #skip initial header row

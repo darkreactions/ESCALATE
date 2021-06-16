@@ -37,7 +37,7 @@ class Command(BaseCommand):
             person_instance = Person(**fields_bunch)
             if get_or_none(Person, **fields_bunch) == None:
                 person_instance.save()
-                person_instance_actor = Actor(person=person_instance)
+                person_instance_actor = Actor(person=Person.objects.get(**fields_bunch))
                 person_instance_actor.save()
                 self.stdout.write(self.style.SUCCESS(f'Created Person {person_instance}'))
             else:
