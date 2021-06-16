@@ -37,10 +37,6 @@ class Action(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                null=True,
                                related_name='action_calculation_def')
 
-    class Meta:
-        managed = managed_tables
-        db_table = 'action'
-
     def __str__(self):
         return "{}".format(self.description)
 
@@ -70,11 +66,6 @@ class ActionUnit(DateColumns, StatusColumn, ActorColumn):
     #                           null=True,
     #                           related_name='action_unit_parameter')
 
-    class Meta:
-        managed = True
-        ordering = ['add_date']
-
-
 class ActionDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='action_def_uuid')
@@ -82,11 +73,6 @@ class ActionDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
 
     def __str__(self):
         return f"{self.description}"
-
-    class Meta:
-        managed = managed_tables
-        db_table = 'action_def'
-
 
 class BillOfMaterials(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='bom_uuid')
@@ -96,16 +82,12 @@ class BillOfMaterials(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
     #experiment_description = models.CharField(
     #    max_length=255, blank=True, null=True)
 
-    class Meta:
-        managed = managed_tables
-        db_table = 'bom'
-
     def __str__(self):
         return f"{self.description}"
 
-class BaseBomMaterial(DateColumns, StatusColumn, ActorColumn):
+# For reference Proxy Models:  https://docs.djangoproject.com/en/3.2/topics/db/models/#proxy-models
+class BaseBomMaterial(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='bom_material_uuid')
-    description = models.CharField(max_length=255, blank=True, null=True)
     bom = models.ForeignKey('BillOfMaterials', on_delete=models.DO_NOTHING,
                             blank=True, null=True, db_column='bom_uuid',
                             related_name='bom_material_bom')
@@ -125,10 +107,6 @@ class BaseBomMaterial(DateColumns, StatusColumn, ActorColumn):
     composite_material = models.ForeignKey('CompositeMaterial', on_delete=models.DO_NOTHING,
                                                blank=True, null=True, db_column='material_composite_uuid',
                                                related_name='bom_composite_material_composite_material')
-    
-    class Meta:
-        managed = managed_tables
-        db_table = 'bom_material'
 
     def __str__(self):
         return self.description
@@ -168,21 +146,11 @@ class Condition(DateColumns, StatusColumn, ActorColumn):
     in_val = ValField(blank=True, null=True)
     out_val = ValField(blank=True, null=True)
 
-    class Meta:
-        managed = managed_tables
-        db_table = 'condition'
-
-
 class ConditionDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(
         primary_key=True, default=uuid.uuid4, db_column='condition_def_uuid')
     
     calculation_def = models.ManyToManyField('CalculationDef', blank=True), #through='ConditionCalculationDefAssign')
-
-    class Meta:
-        managed = managed_tables
-        db_table = 'condition_def'
-
 
 class ConditionPath(DateColumns):
     uuid = RetUUIDField(
@@ -201,11 +169,7 @@ class ConditionPath(DateColumns):
                               null=True,
                               related_name='condition_path_workflow_step')
 
-    class Meta:
-        managed = managed_tables
-        db_table = 'condition_path'
-
-
+#For reference Proxy Models: https://docs.djangoproject.com/en/3.2/topics/db/models/#proxy-models
 class Experiment(DateColumns, StatusColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='experiment_uuid')
     experiment_type = models.ForeignKey('ExperimentType', db_column='experiment_type_uuid',
@@ -227,11 +191,6 @@ class Experiment(DateColumns, StatusColumn, DescriptionColumn):
     def __str__(self):
         return f'{self.description}'
 
-    class Meta:
-        managed = managed_tables
-        db_table = 'experiment'
-
-
 class ExperimentTemplate(Experiment):
     objects = ExperimentTemplateManager()
     
@@ -248,11 +207,6 @@ class ExperimentInstance(Experiment):
 class ExperimentType(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='experiment_type_uuid')
 
-    class Meta:
-        managed = managed_tables
-        db_table = 'experiment_type'
-
-
 class ExperimentWorkflow(DateColumns):
     # note: omitted much detail here because should be nested under
     # experiment, no need for redundancy.
@@ -267,20 +221,10 @@ class ExperimentWorkflow(DateColumns):
     #workflow_type_uuid = models.ForeignKey('WorkflowType', db_column='workflow_type_uuid',
     #                                       on_delete=models.DO_NOTHING, blank=True, null=True)
 
-    class Meta:
-        managed = managed_tables
-        db_table = 'experiment_workflow'
-
-
 class Outcome(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='outcome_uuid')
     experiment = models.ForeignKey('Experiment', db_column='experiment_uuid', on_delete=models.DO_NOTHING,
                                    blank=True, null=True, related_name='outcome_experiment')
-
-    class Meta:
-        managed = managed_tables
-        db_table = 'outcome'
-
 
 class Workflow(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
@@ -292,10 +236,6 @@ class Workflow(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                       blank=True, null=True,
                                       db_column='workflow_type_uuid', related_name='workflow_workflow_type')
     experiment = models.ManyToManyField('Experiment', through='ExperimentWorkflow', related_name='workflow_experiment')
-    
-    class Meta:
-        managed = managed_tables
-        db_table = 'workflow'
 
     def __str__(self):
         return f'{self.description}'
@@ -332,18 +272,9 @@ class WorkflowActionSet(DateColumns, StatusColumn, ActorColumn, DescriptionColum
     source_material = ArrayField(RetUUIDField(blank=True, null=True), db_column='source_material_uuid')
     destination_material = ArrayField(RetUUIDField(blank=True, null=True), db_column='destination_material_uuid')
 
-    class Meta:
-        managed = managed_tables
-        db_table = 'workflow_action_set'
-
-
 class WorkflowType(DateColumns, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='workflow_type_uuid')
-
-    class Meta:
-        managed = managed_tables
-        db_table = 'workflow_type'
 
     def __str__(self):
         return f'{self.description}'
@@ -368,11 +299,6 @@ class WorkflowStep(DateColumns, StatusColumn):
     workflow_object = models.ForeignKey('WorkflowObject', models.DO_NOTHING,
                                         db_column='workflow_object_uuid', related_name='workflow_step_workflow_object')
 
-    class Meta:
-        managed = managed_tables
-        db_table = 'workflow_step'
-
-
 class WorkflowObject(DateColumns, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='workflow_object_uuid')
     workflow = models.ForeignKey('Workflow', models.DO_NOTHING,
@@ -388,8 +314,3 @@ class WorkflowObject(DateColumns, StatusColumn):
                                   blank=True, null=True, 
                                   db_column='workflow_action_set_uuid', 
                                   related_name='workflow_object_workflow_action_set')
-
-    class Meta:
-        managed = managed_tables
-        db_table = 'workflow_object'
-
