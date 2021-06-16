@@ -26,10 +26,6 @@ class CompositeMaterial(DateColumns, StatusColumn, ActorColumn):
     #    through_fields=('composite_material', 'property'))
     material_type = models.ManyToManyField('MaterialType', blank=True, 
                                       related_name='composite_material_material_type')
-
-    class Meta:
-        managed = manage_tables
-        db_table = 'material_composite'
     
     def __str__(self):
         return "{} - {}".format(self.composite.description, self.component.description)
@@ -40,10 +36,6 @@ class Vessel(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
 
     #whole plate can leave well_number blank
     well_number = models.CharField(max_length = 16, blank=True, null=True)
-
-    class Meta:
-        managed = manage_tables
-        db_table = 'vessel'
 
     def __str__(self):
         return "{}  {}".format(self.plate_name, self.well_number)
@@ -64,10 +56,6 @@ class Inventory(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                 db_column='lab_uuid',
                                 related_name='inventory_lab')
 
-    class Meta:
-        managed = manage_tables
-        db_table = 'inventory'
-
     def __str__(self):
         return "{}".format(self.description)
 
@@ -87,10 +75,6 @@ class InventoryMaterial(DateColumns, StatusColumn, ActorColumn, DescriptionColum
     onhand_amt = ValField( blank=True, null=True)
     expiration_date = models.DateTimeField(blank=True, null=True)
     location = models.CharField(max_length=255, blank=True, null=True)
-    
-    class Meta:
-        managed = manage_tables
-        db_table = 'inventory_material'
 
     def __str__(self):
         return "{} : {}".format(self.inventory, self.material)
@@ -113,10 +97,6 @@ class Material(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                       related_name='material_material_identifier')
     material_type = models.ManyToManyField('MaterialType', blank=True, 
                                       related_name='material_material_type')
-    
-    class Meta:
-        managed = True
-        db_table = 'material'
 
     def __str__(self):
         return "{}".format(self.description)
@@ -132,10 +112,6 @@ class MaterialIdentifier(DateColumns, StatusColumn, DescriptionColumn):
                                null=True,
                                db_column='material_refname_def_uuid',
                                related_name='material_identifier_material_identifier_def')
-
-    class Meta:
-        managed = manage_tables
-        db_table = 'material_refname'
     
     def __str__(self):
         return "{}: {}".format(self.material_identifier_def, self.description)
@@ -144,22 +120,12 @@ class MaterialIdentifier(DateColumns, StatusColumn, DescriptionColumn):
 class MaterialIdentifierDef(DateColumns, DescriptionColumn):
     uuid = RetUUIDField(
         primary_key=True, default=uuid.uuid4, db_column='material_refname_def_uuid')
-    
-    class Meta:
-        managed = manage_tables
-        db_table = 'material_refname_def'
 
     def __str__(self):
         return "{}".format(self.description)
 
 class MaterialType(DateColumns, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='material_type_uuid')
-    
-    class Meta:
-        managed = manage_tables
-        db_table = 'material_type'
 
     def __str__(self):
         return "{}".format(self.description)
-
-

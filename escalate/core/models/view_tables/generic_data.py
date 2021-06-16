@@ -43,11 +43,6 @@ class Calculation(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                    models.DO_NOTHING,
                                    db_column='systemtool_uuid',
                                    related_name='calculation_systemtool')
-    
-    class Meta:
-        managed = managed_tables
-        db_table = 'calculation'
-
 
 class CalculationDef(DateColumns, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(
@@ -83,10 +78,6 @@ class CalculationDef(DateColumns, ActorColumn, DescriptionColumn):
                                    db_column='systemtool_uuid', 
                                    related_name='calculation_def_systemtool')
 
-    class Meta:
-        managed = managed_tables
-        db_table = 'calculation_def'
-
     def __str__(self):
         return "{}".format(self.description)
 
@@ -110,10 +101,6 @@ class Edocument(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     #edocument_x_uuid = RetUUIDField(editable=False)
     ref_edocument_uuid = RetUUIDField()
 
-    class Meta:
-        managed = managed_tables
-        db_table = 'edocument'
-
     def __str__(self):
         return "{}".format(self.title)
 
@@ -127,11 +114,6 @@ class EdocumentX(DateColumns):
                                           blank=True,
                                           null=True,
                                           related_name='edocument_x_edocument')
-
-    class Meta:
-        managed = managed_tables
-        db_table = 'edocument_x'
-
 
 class Measure(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='measure_uuid')
@@ -152,21 +134,11 @@ class Measure(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                     on_delete=models.DO_NOTHING)
     measure_value = ValField()
 
-    class Meta:
-        managed = managed_tables
-        db_table = 'measure'
-
-
 class MeasureType(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='measure_type_uuid')
 
     def __str__(self):
         return f'{self.description}'
-
-    class Meta:
-        managed = managed_tables
-        db_table = 'measure_type'
-
 
 class MeasureX(DateColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='measure_x_uuid')
@@ -177,10 +149,6 @@ class MeasureX(DateColumns):
                              editable=False,
                              db_column='measure_uuid',
                              related_name='measure_x_measure')
-
-    class Meta:
-        managed = managed_tables
-        db_table = 'measure_x'
 
     def __str__(self):
         return "{}".format(self.measure_uuid)
@@ -203,25 +171,16 @@ class MeasureDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     def __str__(self):
         return f'{self.description}'
 
-    class Meta:
-        managed = managed_tables
-        db_table = 'measure_def'
-
-
 class Note(DateColumns, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='note_uuid')
     notetext = models.TextField(blank=True, null=True,
                                 verbose_name='Note Text')
     ref_note_uuid = RetUUIDField(blank=True, null=True)
 
-    class Meta:
-        managed = managed_tables
-        db_table = 'note'
-
     def __str__(self):
         return "{}".format(self.notetext)
 
-
+#TODO: Test this removal
 class NoteX(DateColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='note_x_uuid')
     ref_note = RetUUIDField(db_column='ref_note_uuid')
@@ -231,10 +190,6 @@ class NoteX(DateColumns):
                              editable=False,
                              db_column='note_uuid',
                              related_name='note_x_note')
-
-    class Meta:
-        managed = managed_tables
-        db_table = 'note_x'
 
     def __str__(self):
         return "{}".format(self.note_uuid)
@@ -267,10 +222,6 @@ class Parameter(DateColumns, StatusColumn, ActorColumn):
                                 null=True,
                                 editable=False, related_name='parameter_action')
     """
-    class Meta:
-        managed = managed_tables
-        db_table = 'parameter'
-
 
 class ParameterDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
@@ -281,10 +232,6 @@ class ParameterDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                  blank=True,
                                  null=True,
                                  db_column='parameter_def_unit_type')
-
-    class Meta:
-        managed = managed_tables
-        db_table = 'parameter_def'
 
     def __str__(self):
         return "{}".format(self.description)
@@ -304,11 +251,6 @@ class Property(DateColumns, StatusColumn, ActorColumn):
                             db_column='property_val')
     property_class = models.CharField(max_length=64, choices=PROPERTY_CLASS_CHOICES)
     property_ref = RetUUIDField(blank=True, null=True)
-    
-
-    class Meta:
-        managed = managed_tables
-        db_table = 'property'
 
     def __str__(self):
         return "{} : {}".format(self.property_def, self.property_val)
@@ -336,20 +278,12 @@ class PropertyDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                 null=True,
                                 db_column='property_def_unit_type')
 
-    class Meta:
-        managed = managed_tables
-        db_table = 'property_def'
-
     def __str__(self):
         return "{}".format(self.description)
 
 
 class Status(DateColumns, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='status_uuid')
-    
-    class Meta:
-        managed = managed_tables
-        db_table = 'status'
 
     def __str__(self):
         return "{}".format(self.description)
@@ -367,10 +301,6 @@ class Tag(DateColumns, ActorColumn, DescriptionColumn):
     type_description = models.CharField(
         max_length=255, blank=True, null=True, editable=False)
 
-    class Meta:
-        managed = managed_tables
-        db_table = 'tag'
-
     def __str__(self):
         return "{}".format(self.display_text)
 
@@ -383,10 +313,6 @@ class TagAssign(DateColumns):
                             null=True,
                             db_column='tag_uuid', related_name='tag_assign_tag')
 
-    class Meta:
-        managed = managed_tables
-        db_table = 'tag_assign'
-
     def __str__(self):
         return "{}".format(self.uuid)
 
@@ -394,10 +320,6 @@ class TagAssign(DateColumns):
 class TagType(DateColumns, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='tag_type_uuid')
     type = models.CharField(max_length=255,  null=True)
-
-    class Meta:
-        managed = managed_tables
-        db_table = 'tag_type'
 
     def __str__(self):
         return "{}".format(self.type)
@@ -425,10 +347,7 @@ class Udf(DescriptionColumn):
     ref_udf = RetUUIDField(db_column='ref_udf_uuid')
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        managed = managed_tables
-        db_table = 'udf'
+
     def __str__(self):
         return "{}".format(self.description)
     
@@ -441,11 +360,6 @@ class UdfX(models.Model):
                          editable=False,
                          db_column='udf_uuid',
                          related_name='udf_x_udf_uuid')
-    
-    class Meta:
-        managed = managed_tables
-        db_table = 'udf_x'    
-    
 
 class UdfDef(DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='udf_def_uuid')
@@ -461,10 +375,5 @@ class UdfDef(DescriptionColumn):
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        managed = managed_tables
-        db_table = 'udf_def'
-
     def __str__(self):
         return "{}".format(self.description)
-
