@@ -73,19 +73,12 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE('Beginning adding systemtool'))
         for fields_bunch in systemtool_to_add:
-            systemtool_instance = Systemtool(**fields_bunch)
-            if get_or_none(Systemtool, **fields_bunch) == None:
-                systemtool_instance.save()
-                systemtool_instance_actor = Actor(systemtool=systemtool_instance)
-                systemtool_instance_actor.save()
+            systemtool_instance, created = Systemtool.objects.get_or_create(**fields_bunch)
+            if created:
+                Actor.objects.get_or_create(systemtool=systemtool_instance)
                 self.stdout.write(self.style.SUCCESS(f'Created Systemtool {systemtool_instance}'))
             else:
                 self.stdout.write(self.style.NOTICE(f'Did NOT create systemtool {systemtool_instance}, already exists'))
 
         self.stdout.write(self.style.NOTICE('Finished adding systemtool'))
 
-def get_or_none(model, **kwargs):
-    try:
-        return model.objects.get(**kwargs)
-    except model.DoesNotExist:
-        return None

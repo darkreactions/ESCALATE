@@ -46,9 +46,8 @@ class Command(BaseCommand):
                         material_types.add(mat_type_description)
             new_mat_types_counter = 0
             for mat_type_description in material_types:
-                if get_or_none(MaterialType,description=mat_type_description) == None:
-                    new_mat_type = MaterialType(description=mat_type_description)
-                    new_mat_type.save()
+                new_mat_type, created = MaterialType.objects.get_or_create(description=mat_type_description)
+                if created:
                     new_mat_types_counter += 1
             self.stdout.write(self.style.SUCCESS(f'Added {new_mat_types_counter} new material types'))
 
@@ -67,9 +66,8 @@ class Command(BaseCommand):
                 mat_description = row[column_names_to_index['ChemicalName']]
                 if mat_description == "":
                     continue
-                if get_or_none(Material,description=mat_description) == None:
-                    material = Material(description=mat_description,status=active_status)
-                    material.save()
+                material, created = Material.objects.get_or_create(description=mat_description,status=active_status)
+                if created:
                     new_mat_counter += 1
             self.stdout.write(self.style.SUCCESS(f'Added {new_mat_counter} new materials'))
 
@@ -77,14 +75,14 @@ class Command(BaseCommand):
             f.seek(0)
             #skip initial header row
             next(reader)
-                
+            
             #this block of code matches each material to its material types(s)
             for row in reader:
                 row_desc = row[column_names_to_index['ChemicalName']]
                 row_material_types_raw = [x.strip() for x in row[column_names_to_index['ChemicalCategory']].split(',')]
                 row_material_types = [MaterialType.objects.get(description=y) for y in row_material_types_raw]
-                some_material = Material.objects.get(description=row_desc)
-                some_material.material_type.add(*row_material_types)
+                row_material = Material.objects.get(description=row_desc)
+                row_material.material_type.add(*row_material_types)
             self.stdout.write(self.style.SUCCESS(f'Updated material types of materials'))
 
             #jump to top of csv
@@ -115,13 +113,12 @@ class Command(BaseCommand):
                     ref_name = row[column_names_to_index[col_name]]
                     if ref_name == "":
                         continue
-                    if get_or_none(MaterialIdentifier,description=ref_name) == None:
-                        new_material_identifier = MaterialIdentifier(
+                    new_material_identifier, created = MaterialIdentifier.objects.get_or_create(
                             description=ref_name,
                             material_identifier_def=col_name_to_material_identifier_def[col_name],
                             status=active_status
                         )
-                        new_material_identifier.save()
+                    if created:
                         new_refname_counter += 1
             self.stdout.write(self.style.SUCCESS(f'Added {new_refname_counter} new material identifiers'))
 
@@ -138,7 +135,10 @@ class Command(BaseCommand):
                     ref_name = row[column_names_to_index[col_name]]
                     if ref_name == "":
                         continue
-                    material_identifier = get_or_none(MaterialIdentifier,description=ref_name)
+                    material_identifier = get_or_none(MaterialIdentifier,
+                            description=ref_name,
+                            material_identifier_def=col_name_to_material_identifier_def[col_name],
+                            status=active_status)
                     if material_identifier != None:
                         some_material.identifier.add(material_identifier)
             self.stdout.write(self.style.SUCCESS(f'Updated material identifier for materials'))
@@ -176,15 +176,13 @@ class Command(BaseCommand):
                     #whole plate or single vessel
                     if "#" in row_desc and ':' in row_desc:
                         #single vessel
-                        if get_or_none(Vessel, **fields) == None:
-                            row_vessel = Vessel(**fields)
-                            row_vessel.save()
+                        row_vessel_instance, created = Vessel.objects.get_or_create(**fields)
+                        if created:
                             new_vessels += 1
                     else:   
                         #whole plate
-                        if get_or_none(Vessel, **fields) == None:
-                            row_plate = Vessel(plate_name=plate_name)
-                            row_plate.save()
+                        row_plate_instance, created = Vessel.objects.get_or_create(**fields)
+                        if created:
                             new_plates += 1
             self.stdout.write(self.style.SUCCESS(f'Added {new_vessels} new vessels'))
             self.stdout.write(self.style.SUCCESS(f'Added {new_plates} new plates'))

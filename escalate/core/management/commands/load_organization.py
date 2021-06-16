@@ -32,19 +32,17 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE('Beginning adding organization data'))
         for fields_bunch in orgs_to_add:
-            org_instance = Organization(**fields_bunch)
-            if get_or_none(Organization, **fields_bunch) == None:
-                org_instance.save()
-                org_instance_actor = Actor(organization=org_instance)
-                org_instance_actor.save()
+            org_instance, created = Organization.objects.get_or_create(**fields_bunch)
+            if created:
+                Actor.objects.get_or_create(organization=org_instance)
                 self.stdout.write(self.style.SUCCESS(f'Created Organization {org_instance}'))
             else:
                 self.stdout.write(self.style.NOTICE(f'Did NOT create Organization {org_instance}, already exists'))
 
         self.stdout.write(self.style.NOTICE('Finished adding organization data'))
 
-def get_or_none(model, **kwargs):
-    try:
-        return model.objects.get(**kwargs)
-    except model.DoesNotExist:
-        return None
+# def get_or_none(model, **kwargs):
+#     try:
+#         return model.objects.get(**kwargs)
+#     except model.DoesNotExist:
+#         return None
