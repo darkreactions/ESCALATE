@@ -152,7 +152,7 @@ methods = {
         'detail_fields': ['Type', 'Long Description', 'Add Date',
                           'Last Modification Date'],
         'detail_fields_need_fields': {
-            'Short Description': ['type'],
+            'Type': ['type'],
             'Long Description': ['description'],
             'Add Date': ['add_date'],
             'Last Modification Date': ['mod_date']

@@ -133,7 +133,7 @@ methods = {
         'context_object_name': 'tag_types',
         'table_columns': ['Type', 'Description', 'Actions'],
         'column_necessary_fields': {
-            'Short Description': ['type'],
+            'Type': ['type'],
             'Description': ['description']
         },
         'ordering': ['type'],
