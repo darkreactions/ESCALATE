@@ -116,7 +116,8 @@ class GenericModelList(GenericListView):
                 # get actual field value from the model
                 fields_for_col = []
                 for field in necessary_fields:
-                    if self.model._meta.get_field(field).__class__.__name__ == 'ManyToManyField':
+                    #not foreign key and manytomany
+                    if field.split('.') == 1 and self.model._meta.get_field(field).__class__.__name__ == 'ManyToManyField':
                         to_add = '\n'.join([str(x) for x in getattr(model_instance, field).all()])
                     else:
                         #Ex: Person.organization.full_name
@@ -418,7 +419,6 @@ class GenericModelView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         obj = context['object']
-
         # dict of detail field names to their value
         detail_data = {}
 
@@ -429,7 +429,8 @@ class GenericModelView(DetailView):
             # get actual field value from the model
             fields_for_field = []
             for field in necessary_fields:
-                if self.model._meta.get_field(field).__class__.__name__ == 'ManyToManyField':
+                #not foreign key and manytomany
+                if field.split('.') == 1 and self.model._meta.get_field(field).__class__.__name__ == 'ManyToManyField':
                     to_add = '\n'.join([str(x) for x in getattr(obj, field).all()])
                 else:
                     #Ex: Person.organization.full_name
