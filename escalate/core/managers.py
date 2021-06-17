@@ -57,7 +57,7 @@ class BomMaterialManager(models.Manager):
         return super().get_queryset().filter(inventory_material__isnull=False, composite_material__isnull=True)
 
     def create(self, **kwargs):
-        kwargs.update({'composite_material': None})
+        kwargs.update({'mixture': None})
         return super().create(**kwargs)
 
 

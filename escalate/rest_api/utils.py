@@ -22,7 +22,7 @@ misc_views = set(['NoteX'])
 core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   'SystemtoolType', 'Inventory', 'InventoryMaterial',
                   'Calculation', 'CalculationDef', 'Material',
-                  'CompositeMaterial', 'MaterialIdentifierDef', 'MaterialIdentifier',
+                  'Mixture', 'MaterialIdentifierDef', 'MaterialIdentifier',
                   'MaterialType', 
                   'Person', 'Tag', 'TagType', 'PropertyDef', 'UnitType',
                   'TypeDef', 'ParameterDef', 'Condition', 'ConditionDef',
@@ -38,7 +38,7 @@ combined_views = set(['CompositeMaterialProperty', 'MaterialTypeAssign',
                       'ConditionCalculationDefAssign', 
                       'ActionParameterDefAssign', 'MaterialProperty'])
 
-experiment_views = set(['ActionDef', 'BomMaterial', 'CompositeMaterial', 'Material', 'ParameterDef'])
+experiment_views = set(['ActionDef', 'BomMaterial', 'Mixture', 'Material', 'ParameterDef'])
 
 GET_only_views = set(['TypeDef'])
 
@@ -168,10 +168,10 @@ expandable_fields = {
             'many_to_many': []
         },
         'fields': {
-            'composite_material': ('rest_api.CompositeMaterialSerializer', 
+            'mixture': ('rest_api.CompositeMaterialSerializer', 
                                 {
                                     'read_only': True,
-                                    'view_name': 'compositematerial-detail'
+                                    'view_name': 'mixture-detail'
 
                                 })
         }

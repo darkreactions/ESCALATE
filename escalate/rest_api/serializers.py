@@ -209,7 +209,7 @@ for model_name in rest_serializer_views:
                         TagListSerializer,
                         NoteListSerializer,
                         DynamicFieldsModelSerializer]
-    if model_name == 'Material' or model_name == 'CompositeMaterial':
+    if model_name == 'Material' or model_name == 'Mixture':
         base_serializers.insert(3, PropertyListSerializer)
     if model_name == 'Action':
         base_serializers.insert(3, ParameterListSerializer)
@@ -308,7 +308,7 @@ class BomCompositeMaterialSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = BomCompositeMaterial
         fields = ['url', 'description',  'status', 'actor', 
-                  'composite_material', 'bom_material', 'add_date', 'mod_date']
+                  'mixture', 'bom_material', 'add_date', 'mod_date']
 
 
 class ExperimentSerializer(EdocListSerializer,

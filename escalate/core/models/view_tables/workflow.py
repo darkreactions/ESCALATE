@@ -104,7 +104,7 @@ class BaseBomMaterial(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
     bom_material = models.ForeignKey('BomMaterial', on_delete=models.DO_NOTHING,
                             blank=True, null=True, #db_column='bom_material_uuid',
                             related_name='bom_composite_material_bom_material')
-    composite_material = models.ForeignKey('CompositeMaterial', on_delete=models.DO_NOTHING,
+    mixture = models.ForeignKey('Mixture', on_delete=models.DO_NOTHING,
                                                blank=True, null=True, db_column='material_composite_uuid',
                                                related_name='bom_composite_material_composite_material')
 
