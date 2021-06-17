@@ -89,7 +89,11 @@ standard_data = {
                 "action_def": 'actiondef__url',
                 "workflow": 'workflow__url',
                 "status": None
-            }
+            },
+    'vessel': {
+                    "plate_name": "test",
+                    "well_number": "test"
+                }
 
 }
 
@@ -105,6 +109,7 @@ simple_post_data = [
     ['organization', standard_data['organization']],
     ['systemtooltype', standard_data['systemtooltype']],
     ['person', standard_data['person']],
+    ['vessel', standard_data['vessel']]
 ]
 
 # Complex post data involves setting up multiple posts to endpoints before 
