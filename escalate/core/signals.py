@@ -1,10 +1,25 @@
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
-from core.models import Person, Actor, Action, CompositeMaterial, Measure, MeasureX, UdfX, Udf, \
-BomCompositeMaterial, Parameter, BomMaterial, ActionUnit
+from core.models import (
+    Person, 
+    Actor, 
+    Organization, 
+    Systemtool, 
+    Action, 
+    CompositeMaterial, 
+    Measure, 
+    MeasureX, 
+    UdfX, 
+    Udf,
+    BomCompositeMaterial, 
+    Parameter, 
+    BomMaterial, 
+    ActionUnit)
 #from core.models.view_tables.workflow import Experiment
 
 @receiver(post_save, sender=Person)
+@receiver(post_save, sender=Organization)
+@receiver(post_save, sender=Systemtool)
 def create_actor(sender, **kwargs):
     """Creates an actor in the actor table corresponding to the newly created 
     Person
@@ -13,8 +28,9 @@ def create_actor(sender, **kwargs):
         sender (Person Instance): Instance of the newly created person
     """
     if kwargs['created']:
+        fields = {sender.__name__.lower(): kwargs['instance']}
         #actor = Actor(person=kwargs['instance'],description=kwargs['instance']['first_name'])#description is an example of a specific call
-        actor = Actor(person=kwargs['instance'])
+        actor = Actor(**fields)
         actor.save()
 """
 @receiver(post_save, sender=CompositeMaterial) 
