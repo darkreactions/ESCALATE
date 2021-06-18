@@ -384,7 +384,7 @@ class Mixture(models.Model):
     addressable = models.BooleanField(blank=True, null=True)
     property = models.ManyToManyField(
         'Property', through='CompositeMaterialProperty', related_name='composite_material_property',
-        through_fields=('composite_material', 'property'))
+        through_fields=('mixture', 'property'))
 
     actor = models.ForeignKey('Actor',
                               on_delete=models.DO_NOTHING,

@@ -201,7 +201,7 @@ methods = {
             'Expiration Date': ['expiration_date'],
             'Inventory Location' : ['location'],
             'Consumable': ['material_consumable'],
-            'Composite Material': ['material_composite_flg'],
+            'Mixture': ['material_composite_flg'],
             'Inventory': ['inventory'],
             'Status': ['status']
         },
