@@ -85,11 +85,11 @@ class Systemtool(DateColumns, DescriptionColumn):
                         db_column='systemtool_uuid')
     systemtool_name = models.CharField(max_length=255, null=True)
     vendor_organization = models.ForeignKey('Organization',
-                                            on_delete=models.DO_NOTHING,
+                                            on_delete=models.CASCADE,
                                             db_column='vendor_organization_uuid',
                                             related_name='systemtool_vendor_organization')
     systemtool_type = models.ForeignKey('SystemtoolType',
-                                        on_delete=models.DO_NOTHING,
+                                        on_delete=models.CASCADE,
                                         db_column='systemtool_type_uuid',
                                         related_name='systemtool_systemtool_type')
     model = models.CharField(max_length=255, blank=True, null=True)

@@ -19,7 +19,8 @@ class CustomUser(AbstractUser):
 
 class OrganizationPassword(models.Model):
     uuid = models.AutoField(primary_key=True)
-    organization = models.OneToOneField(Organization, models.DO_NOTHING,
+    organization = models.OneToOneField(Organization, 
+                                    on_delete=models.CASCADE,
                                     db_column='parent_uuid',
                                     related_name='organization_password_organization')
     password = models.CharField(max_length=255)
