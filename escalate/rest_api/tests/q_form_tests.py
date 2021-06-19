@@ -25,7 +25,7 @@ view_names = [name for name in view_names if name not in exceptions]
 
 api_view_names = []
 for method_name in view_names:
-    api_view_names.append(snake_case(method_name)+'-list')
+    api_view_names.append(method_name.lower()+'-list')
 
 @pytest.fixture
 def api_client():
