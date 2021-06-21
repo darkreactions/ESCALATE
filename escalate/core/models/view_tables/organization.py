@@ -13,15 +13,15 @@ managed_views = False
 class Actor(DateColumns, StatusColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='actor_uuid')
     organization = models.ForeignKey('Organization',
-                                     on_delete=models.DO_NOTHING,
+                                     on_delete=models.SET_NULL,
                                      blank=True, null=True,
                                      db_column='organization_uuid', related_name='actor_organization')
     person = models.ForeignKey('Person',
-                               on_delete=models.DO_NOTHING,
+                               on_delete=models.SET_NULL,
                                blank=True, null=True,
                                db_column='person_uuid', related_name='actor_person')
     systemtool = models.ForeignKey('Systemtool',
-                                   on_delete=models.DO_NOTHING,
+                                   on_delete=models.SET_NULL,
                                    blank=True, null=True,
                                    db_column='systemtool_uuid',
                                    related_name='actor_systemtool')
@@ -48,10 +48,11 @@ class Organization(DateColumns, AddressColumns, DescriptionColumn):
     full_name = models.CharField(max_length=255)
     short_name = models.CharField(max_length=255, blank=True, null=True)
     website_url = models.CharField(max_length=255, blank=True, null=True)
-    parent = models.ForeignKey('self', models.DO_NOTHING,
-                               blank=True, null=True,
-                               db_column='parent_uuid',
-                               related_name='organization_parent')
+    parent = models.ForeignKey('self', 
+                                on_delete=models.SET_NULL,
+                                blank=True, null=True,
+                                db_column='parent_uuid',
+                                related_name='organization_parent')
     parent_path = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
@@ -66,7 +67,8 @@ class Person(DateColumns, AddressColumns):
     middle_name = models.CharField(max_length=255, blank=True, null=True) 
     last_name = models.CharField(max_length=255, blank=True, null=True)
     suffix = models.CharField(max_length=255, blank=True, null=True)
-    organization = models.ForeignKey('Organization', models.DO_NOTHING,
+    organization = models.ForeignKey('Organization', 
+                                     on_delete=models.SET_NULL,
                                      blank=True, null=True,
                                      db_column='organization_uuid',
                                      related_name='person_organization')
@@ -83,11 +85,11 @@ class Systemtool(DateColumns, DescriptionColumn):
                         db_column='systemtool_uuid')
     systemtool_name = models.CharField(max_length=255, null=True)
     vendor_organization = models.ForeignKey('Organization',
-                                            models.DO_NOTHING,
+                                            on_delete=models.CASCADE,
                                             db_column='vendor_organization_uuid',
                                             related_name='systemtool_vendor_organization')
     systemtool_type = models.ForeignKey('SystemtoolType',
-                                        models.DO_NOTHING,
+                                        on_delete=models.CASCADE,
                                         db_column='systemtool_type_uuid',
                                         related_name='systemtool_systemtool_type')
     model = models.CharField(max_length=255, blank=True, null=True)

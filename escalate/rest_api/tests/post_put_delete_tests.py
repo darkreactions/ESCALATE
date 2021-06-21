@@ -9,6 +9,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 from django.urls import reverse
 import json
+import copy
 
 pytestmark = pytest.mark.django_db
 
@@ -50,7 +51,15 @@ def test_simple_post_and_delete(api_client, post_data):
 @pytest.mark.parametrize("post_data", complex_post_data)
 def test_complex_post(api_client, post_data):
     response_data = {}
-    for data in post_data:
+
+    #need to deep copy b/c we change nested elements of complex_post_data
+    #and those change should not persist from one test to the next
+    #Ex: workflow_type : workflowtype__url is used for multiple test
+    #cases, but workflowtype__url is changed to <url> and should be reverted
+    #back to workflowtype_url for future test cases that use it
+    post_data_deep_copy = copy.deepcopy(post_data)
+    
+    for data in post_data_deep_copy:
         #resp = api_client.post(reverse(f'{endpoint}-list'), json.dumps(data), content_type='application/json')
         endpoint, data, response_data = add_prev_endpoint_data(data, response_data)
         resp = api_client.post(reverse(f'{endpoint}-list'), json.dumps(data), content_type='application/json')
