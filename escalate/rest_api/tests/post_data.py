@@ -1,5 +1,10 @@
 ## Dictionary to store test data to be posted at each endpoint
 
+GET = 'GET'
+POST = 'POST'
+PUT = 'PUT'
+DELETE = 'DELETE'
+
 # This dictionary contains standard data for a particular endpoint
 # so that it can be re-used multiple times in different tests without 
 # repetition
@@ -60,6 +65,22 @@ standard_data = {
                     "title": "Test",
                     "suffix": "",
                 },
+    'person_update': {
+                    "uuid": "person__uuid",
+                    "first_name":"update_test",
+                    "last_name":"update_test2",
+                    "middle_name": "Test",
+                    "address1": "Test",
+                    "address2": "Test",
+                    "city": "Test",
+                    "state_province": "TT",
+                    "zip": "123124",
+                    "country": "Test",
+                    "phone": "123123123",
+                    "email": "test@test.com",
+                    "title": "Test",
+                    "suffix": "",
+    },
 # moved to useless models
 #    'actionparameterdefassign': {
 #                                'parameter_def': 'parameterdef__url',
@@ -91,9 +112,18 @@ standard_data = {
                 "status": None
             },
     'vessel': {
+                    "description": "test_desc",
                     "plate_name": "test",
-                    "well_number": "test"
-                }
+                    "well_number": "test",
+                    "actor":None,
+                    "status":None,
+                },
+    'mixture': {
+                    "composite": "material__url",
+                    "component": "material__url",
+                    "actor": None,
+                    "status": None
+    }
 
 }
 
@@ -140,5 +170,25 @@ complex_post_data = [
                             ['workflowtype', standard_data['workflowtype']],
                             ['workflow', standard_data['workflow']],
                             ['action', standard_data['action']]
+                        ],
+                        [   ['material', standard_data['material']],
+                            ['mixture', standard_data['mixture']]
                         ]
+                    ]
+
+complex_put_data =  [
+                        [
+                            {
+                                'method': POST,
+                                'url': 'person',
+                                'data': standard_data['person']
+                            },
+                            {
+                                'method': PUT,
+                                'url': 'person',
+                                'data': standard_data['person_update']
+                            }
+                        ]
+
+
                     ]
