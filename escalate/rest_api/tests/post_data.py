@@ -1,9 +1,58 @@
-## Dictionary to store test data to be posted at each endpoint
+import core
+from rest_api.utils import camel_case
 
 GET = 'GET'
 POST = 'POST'
 PUT = 'PUT'
 DELETE = 'DELETE'
+
+'''
+Shape of any test suite
+A test suite is a list of lists of dictionaries. Each list in the whole list
+represents 1 test case. Each list's element is a dictionary. The entire shape:
+
+test_suite = [
+    [
+        {
+            'method': <Http verb>,
+            'endpoint' <Api endpoint prefix>,
+            'body': standard_data[<arbitrary test name>][<request reference name>],
+            'args': [...],
+            'name': <request reference name> 
+        },
+        ...
+    ]
+]
+
+1)  The possible choices for <Http verb> are at the top of the file
+2)  Api endpoint prefix example 'systemtool-list' or 'systemtool-detail' -> 'systemtool'
+3)  Args is a list of arguements for that request
+4)  Name should some unique string among this test CASE. This string helps
+    act as a reference for the response of a request so that future requests 
+    within a test case may reference values from earlier responses
+5)  body is a dictionary mimicking the json that will be in the request body
+
+We store the body of the requests for a test case inside the standard_data dictionary
+Its shape:
+
+standard_data = {
+    '<arbitrary test name>': {
+        '<request reference name>': {
+            Dictionary representation of a model instance 
+            Keys should be the field names as in a model
+            Values are the the value for that field
+                If the value should be from a model instance that was posted
+            in <request reference name>, a request make earlier within this test case,
+            then the format for the value is 
+            '<request reference name>__<field name with desired value from previous response>'
+            if the value is a foreign key, the format is 
+            '<request reference name>__url'
+            if the value is the value for a many to many field, the format is
+            ['req0__url','req1__url',....]
+        }
+    }
+}
+'''
 
 # This dictionary contains standard data for a particular endpoint
 # so that it can be re-used multiple times in different tests without 
@@ -81,11 +130,7 @@ standard_data = {
                     "title": "Test",
                     "suffix": "",
     },
-# moved to useless models
-#    'actionparameterdefassign': {
-#                                'parameter_def': 'parameterdef__url',
-#                                'action_def': 'actiondef__url'
-#                            },
+
     'systemtool': {
                                 "systemtool_name": "Test tool",
                                 "description": "Testing",
@@ -123,8 +168,39 @@ standard_data = {
                     "component": "material__url",
                     "actor": None,
                     "status": None
-    },
+    }
+}
+
+test_data = {
     'put_test_0':{
+        'org0': {
+                    "description": "Test",
+                    "full_name": "Test",
+                    "short_name": "Test",
+                    "address1": "Test",
+                    "address2": "Test",
+                    "city": "Test",
+                    "state_province": "TT",
+                    "zip": "21345",
+                    "country": "Test",
+                    "website_url": "www.test.com",
+                    "phone": "1231231",
+                    "parent": None
+                },
+        'org1':  {
+                        "description": "Test12",
+                        "full_name": "Test12",
+                        "short_name": "Test12",
+                        "address1": "Test",
+                        "address2": "Test",
+                        "city": "Test",
+                        "state_province": "TT",
+                        "zip": "21345",
+                        "country": "Test",
+                        "website_url": "www.test.com",
+                        "phone": "1231231",
+                        "parent": None
+                    },
         'person': {
                 "first_name": "Test",
                 "last_name": "Test",
@@ -154,9 +230,9 @@ standard_data = {
                         "email": "test@test.com",
                         "title": "Test",
                         "suffix": "",
+                        "added_organization": ['org0__url','org1__url']
         },
     }
-
 }
 
 
@@ -208,22 +284,38 @@ complex_post_data = [
                         ]
                     ]
 
-complex_put_data =  [
-                        [
-                            {
-                                'method': POST,
-                                'endpoint': 'person',
-                                'body': standard_data['put_test_0']['person'],
-                                'args': []
-                            },
-                            {
-                                'method': PUT,
-                                'endpoint': 'person',
-                                'body': standard_data['put_test_0']['person_update'],
-                                'args': [
-                                    '0__uuid'
-                                    ]
-                            }
-                        ]
-                    ]
+put_tests =  [
+    [
+        {
+            'method': POST,
+            'endpoint': 'organization',
+            'body': test_data['put_test_0']['org0'],
+            'args': [],
+            'name': 'org0'
+        },
+        {
+            'method': POST,
+            'endpoint': 'organization',
+            'body': test_data['put_test_0']['org1'],
+            'args': [],
+            'name': 'org1'
+        },
+        {
+            'method': POST,
+            'endpoint': 'person',
+            'body': test_data['put_test_0']['person'],
+            'args': [],
+            'name': 'person'
+        },
+        {
+            'method': PUT,
+            'endpoint': 'person',
+            'body': test_data['put_test_0']['person_update'],
+            'args': [
+                'person__uuid'
+                ],
+            'name': 'person_update'
+        }
+    ]
+]
                 

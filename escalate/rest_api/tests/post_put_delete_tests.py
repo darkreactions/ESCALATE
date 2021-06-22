@@ -4,7 +4,7 @@ from django.test import Client
 from django.urls import reverse
 from rest_framework.test import force_authenticate
 from core.models.app_tables import CustomUser
-from post_data import simple_post_data, complex_post_data, complex_put_data
+from post_data import simple_post_data, complex_post_data, put_tests
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 from django.urls import reverse
@@ -40,6 +40,13 @@ def add_prev_endpoint_data_2(dictionary, response_data):
             if len(x) == 2:
                 prev_response_data_name, prev_key = x
                 dictionary[key] = response_data[prev_response_data_name][prev_key]
+        elif isinstance(value, list):
+            for i in range(len(value)):
+                assert(isinstance(value[i], str))
+                x = value[i].split('__')
+                if len(x) == 2:
+                    prev_response_name, prev_key = x
+                    dictionary[key][i] = response_data[prev_response_name][prev_key]
     return dictionary
 
 def add_prev_endpoint_data_to_args(args_list, response_data):
@@ -104,8 +111,8 @@ def test_complex_post(api_client, post_data):
     assert resp.status_code == 201
 
 @pytest.mark.api_post
-@pytest.mark.parametrize("post_data", complex_put_data)
-def test_complex(api_client, post_data):
+@pytest.mark.parametrize("put_test", put_tests)
+def test_put(api_client, put_test):
     response_data = {}
 
     #need to deep copy b/c we change nested elements of complex_post_data
@@ -113,10 +120,10 @@ def test_complex(api_client, post_data):
     #Ex: workflow_type : workflowtype__url is used for multiple test
     #cases, but workflowtype__url is changed to <url> and should be reverted
     #back to workflowtype_url for future test cases that use it
-    request_data_deep_copy = copy.deepcopy(post_data)
+    request_data_deep_copy = copy.deepcopy(put_test)
     
-    for index, request_data in enumerate(request_data_deep_copy):
-        endpoint, method, body, args = [request_data[key] for key in ['endpoint', 'method', 'body', 'args']]
+    for request_data in request_data_deep_copy:
+        endpoint, method, body, args, name = [request_data[key] for key in ['endpoint', 'method', 'body', 'args', 'name']]
         
         add_prev_endpoint_data_2(body, response_data)
         
@@ -126,5 +133,5 @@ def test_complex(api_client, post_data):
             resp = api_client.post(reverse(f'{endpoint}-list'), json.dumps(body), content_type='application/json')
         elif(request_data['method'] == 'PUT'):
             resp = api_client.put(reverse(f'{endpoint}-detail', args=args), json.dumps(body), content_type='application/json')
-        response_data[str(index)] = resp.json()
+        response_data[name] = resp.json()
     assert resp.status_code == 200
