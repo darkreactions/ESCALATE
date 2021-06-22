@@ -4,7 +4,10 @@ from django.test import Client
 from django.urls import reverse
 from rest_framework.test import force_authenticate
 from core.models.app_tables import CustomUser
-from post_data import simple_post_data, complex_post_data, put_tests
+from post_data import simple_post_data, complex_post_data, post_tests
+from delete_data import delete_tests
+from get_data import get_tests
+from put_data import put_tests
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 from django.urls import reverse
@@ -68,6 +71,38 @@ def add_prev_endpoint_data_to_args(args_list, response_data):
         
     return args_list
 
+def run_test(api_client, tests):
+    response_data = {}
+    #need to deep copy b/c we change nested elements of complex_post_data
+    #and those change should not persist from one test to the next
+    #Ex: workflow_type : workflowtype__url is used for multiple test
+    #cases, but workflowtype__url is changed to <url> and should be reverted
+    #back to workflowtype_url for future test cases that use it
+    request_data_deep_copy = copy.deepcopy(tests)
+    
+    for request_data in request_data_deep_copy:
+        endpoint, method, body, args, name, status_code = [request_data[key] for key \
+            in ['endpoint', 'method', 'body', 'args', 'name', 'status_code']]
+        
+        add_prev_endpoint_data_2(body, response_data)
+        
+        add_prev_endpoint_data_to_args(args, response_data)
+        
+        if(method == 'POST'):
+            resp = api_client.post(reverse(f'{endpoint}-list'), json.dumps(body), content_type='application/json')
+            response_data[name] = resp.json()
+        elif(method == 'PUT'):
+            resp = api_client.put(reverse(f'{endpoint}-detail', args=args), json.dumps(body), content_type='application/json')
+            response_data[name] = resp.json()
+        elif(method == 'GET'):
+            resp = api_client.get(reverse(f'{endpoint}-list'))
+            response_data[name] = resp.json()
+        elif(method == 'DELETE'):
+            resp = api_client.delete(reverse(f'{endpoint}-detail', args=args))
+        else:
+            assert False, 'Invalid Http method'
+        assert resp.status_code == status_code
+
 @pytest.fixture
 def api_client():
     client = APIClient()
@@ -75,63 +110,60 @@ def api_client():
     client.credentials(HTTP_AUTHORIZATION=f'Token {resp.json()["token"]}')
     return client
 
-@pytest.mark.api_post
-@pytest.mark.parametrize("post_data", simple_post_data)
-def test_simple_post(api_client, post_data):
-    endpoint, data = post_data
-    resp = api_client.post(reverse(f'{endpoint}-list'), json.dumps(data), content_type='application/json')
-    assert resp.status_code == 201
+# @pytest.mark.api_post
+# @pytest.mark.parametrize("post_data", simple_post_data)
+# def test_simple_post(api_client, post_data):
+#     endpoint, data = post_data
+#     resp = api_client.post(reverse(f'{endpoint}-list'), json.dumps(data), content_type='application/json')
+#     assert resp.status_code == 201
 
-@pytest.mark.api_post
-@pytest.mark.parametrize("post_data", simple_post_data)
-def test_simple_post_and_delete(api_client, post_data):
-    endpoint, data = post_data
-    resp = api_client.post(reverse(f'{endpoint}-list'), json.dumps(data), content_type='application/json')
-    resp = api_client.delete(reverse(f'{endpoint}-detail', args=[resp.data["uuid"]]))
-    assert resp.status_code == 204
+# @pytest.mark.api_post
+# @pytest.mark.parametrize("post_data", simple_post_data)
+# def test_simple_post_and_delete(api_client, post_data):
+#     endpoint, data = post_data
+#     resp = api_client.post(reverse(f'{endpoint}-list'), json.dumps(data), content_type='application/json')
+#     resp = api_client.delete(reverse(f'{endpoint}-detail', args=[resp.data["uuid"]]))
+#     assert resp.status_code == 204
 
 
-@pytest.mark.api_post
-@pytest.mark.parametrize("post_data", complex_post_data)
-def test_complex_post(api_client, post_data):
-    response_data = {}
+# @pytest.mark.api_post
+# @pytest.mark.parametrize("post_data", complex_post_data)
+# def test_complex_post(api_client, post_data):
+#     response_data = {}
 
-    #need to deep copy b/c we change nested elements of complex_post_data
-    #and those change should not persist from one test to the next
-    #Ex: workflow_type : workflowtype__url is used for multiple test
-    #cases, but workflowtype__url is changed to <url> and should be reverted
-    #back to workflowtype_url for future test cases that use it
-    post_data_deep_copy = copy.deepcopy(post_data)
+#     #need to deep copy b/c we change nested elements of complex_post_data
+#     #and those change should not persist from one test to the next
+#     #Ex: workflow_type : workflowtype__url is used for multiple test
+#     #cases, but workflowtype__url is changed to <url> and should be reverted
+#     #back to workflowtype_url for future test cases that use it
+#     post_data_deep_copy = copy.deepcopy(post_data)
     
-    for data in post_data_deep_copy:
-        #resp = api_client.post(reverse(f'{endpoint}-list'), json.dumps(data), content_type='application/json')
-        endpoint, final_data, response_data = add_prev_endpoint_data(data, response_data)
-        resp = api_client.post(reverse(f'{endpoint}-list'), json.dumps(final_data), content_type='application/json')
-        response_data[endpoint] = resp.json()
-    assert resp.status_code == 201
+#     for data in post_data_deep_copy:
+#         #resp = api_client.post(reverse(f'{endpoint}-list'), json.dumps(data), content_type='application/json')
+#         endpoint, final_data, response_data = add_prev_endpoint_data(data, response_data)
+#         resp = api_client.post(reverse(f'{endpoint}-list'), json.dumps(final_data), content_type='application/json')
+#         response_data[endpoint] = resp.json()
+#     assert resp.status_code == 201
 
 @pytest.mark.api_post
 @pytest.mark.parametrize("put_test", put_tests)
 def test_put(api_client, put_test):
-    response_data = {}
+    run_test(api_client, put_test)
 
-    #need to deep copy b/c we change nested elements of complex_post_data
-    #and those change should not persist from one test to the next
-    #Ex: workflow_type : workflowtype__url is used for multiple test
-    #cases, but workflowtype__url is changed to <url> and should be reverted
-    #back to workflowtype_url for future test cases that use it
-    request_data_deep_copy = copy.deepcopy(put_test)
-    
-    for request_data in request_data_deep_copy:
-        endpoint, method, body, args, name = [request_data[key] for key in ['endpoint', 'method', 'body', 'args', 'name']]
-        
-        add_prev_endpoint_data_2(body, response_data)
-        
-        add_prev_endpoint_data_to_args(args, response_data)
-        
-        if(request_data['method'] == 'POST'):
-            resp = api_client.post(reverse(f'{endpoint}-list'), json.dumps(body), content_type='application/json')
-        elif(request_data['method'] == 'PUT'):
-            resp = api_client.put(reverse(f'{endpoint}-detail', args=args), json.dumps(body), content_type='application/json')
-        response_data[name] = resp.json()
-    assert resp.status_code == 200
+@pytest.mark.api_post
+@pytest.mark.parametrize("get_test", get_tests)
+def test_get(api_client, get_test):
+    run_test(api_client, get_test)
+
+@pytest.mark.api_post
+@pytest.mark.parametrize("post_test", post_tests)
+def test_post(api_client, post_test):
+    run_test(api_client, post_test)
+
+@pytest.mark.api_post
+@pytest.mark.parametrize("delete_test", delete_tests)
+def test_delete(api_client, delete_test):
+    run_test(api_client, delete_test)
+
+
+

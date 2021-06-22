@@ -1,58 +1,6 @@
 import core
 from rest_api.utils import camel_case
-
-GET = 'GET'
-POST = 'POST'
-PUT = 'PUT'
-DELETE = 'DELETE'
-
-'''
-Shape of any test suite
-A test suite is a list of lists of dictionaries. Each list in the whole list
-represents 1 test case. Each list's element is a dictionary. The entire shape:
-
-test_suite = [
-    [
-        {
-            'method': <Http verb>,
-            'endpoint' <Api endpoint prefix>,
-            'body': standard_data[<arbitrary test name>][<request reference name>],
-            'args': [...],
-            'name': <request reference name> 
-        },
-        ...
-    ]
-]
-
-1)  The possible choices for <Http verb> are at the top of the file
-2)  Api endpoint prefix example 'systemtool-list' or 'systemtool-detail' -> 'systemtool'
-3)  Args is a list of arguements for that request
-4)  Name should some unique string among this test CASE. This string helps
-    act as a reference for the response of a request so that future requests 
-    within a test case may reference values from earlier responses
-5)  body is a dictionary mimicking the json that will be in the request body
-
-We store the body of the requests for a test case inside the standard_data dictionary
-Its shape:
-
-standard_data = {
-    '<arbitrary test name>': {
-        '<request reference name>': {
-            Dictionary representation of a model instance 
-            Keys should be the field names as in a model
-            Values are the the value for that field
-                If the value should be from a model instance that was posted
-            in <request reference name>, a request make earlier within this test case,
-            then the format for the value is 
-            '<request reference name>__<field name with desired value from previous response>'
-            if the value is a foreign key, the format is 
-            '<request reference name>__url'
-            if the value is the value for a many to many field, the format is
-            ['req0__url','req1__url',....]
-        }
-    }
-}
-'''
+from api_docs import status_codes, DELETE, PUT, POST, GET, ERROR
 
 # This dictionary contains standard data for a particular endpoint
 # so that it can be re-used multiple times in different tests without 
@@ -171,7 +119,7 @@ standard_data = {
     }
 }
 
-test_data = {
+post_test_data = {
     'put_test_0':{
         'org0': {
                     "description": "Test",
@@ -216,22 +164,6 @@ test_data = {
                 "title": "Test",
                 "suffix": "",
             },
-        'person_update': {
-                        "first_name":"update_test",
-                        "last_name":"update_test2",
-                        "middle_name": "Test",
-                        "address1": "Test",
-                        "address2": "Test",
-                        "city": "Test",
-                        "state_province": "TT",
-                        "zip": "123124",
-                        "country": "Test",
-                        "phone": "123123123",
-                        "email": "test@test.com",
-                        "title": "Test",
-                        "suffix": "",
-                        "added_organization": ['org0__url','org1__url']
-        },
     }
 }
 
@@ -283,39 +215,33 @@ complex_post_data = [
                             ['mixture', standard_data['mixture']]
                         ]
                     ]
-
-put_tests =  [
+post_tests =  [
     [
         {
             'method': POST,
             'endpoint': 'organization',
-            'body': test_data['put_test_0']['org0'],
+            'body': post_test_data['put_test_0']['org0'],
             'args': [],
-            'name': 'org0'
+            'name': 'org0',
+            'status_code': status_codes[POST]
+
         },
         {
             'method': POST,
             'endpoint': 'organization',
-            'body': test_data['put_test_0']['org1'],
+            'body': post_test_data['put_test_0']['org1'],
             'args': [],
-            'name': 'org1'
+            'name': 'org1',
+            'status_code': status_codes[POST]
         },
         {
             'method': POST,
             'endpoint': 'person',
-            'body': test_data['put_test_0']['person'],
+            'body': post_test_data['put_test_0']['person'],
             'args': [],
-            'name': 'person'
+            'name': 'person',
+            'status_code': status_codes[POST]
         },
-        {
-            'method': PUT,
-            'endpoint': 'person',
-            'body': test_data['put_test_0']['person_update'],
-            'args': [
-                'person__uuid'
-                ],
-            'name': 'person_update'
-        }
     ]
 ]
                 
