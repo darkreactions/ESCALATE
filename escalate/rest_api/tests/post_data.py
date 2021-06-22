@@ -123,6 +123,38 @@ standard_data = {
                     "component": "material__url",
                     "actor": None,
                     "status": None
+    },
+    'put_test_0':{
+        'person': {
+                "first_name": "Test",
+                "last_name": "Test",
+                "middle_name": "Test",
+                "address1": "Test",
+                "address2": "Test",
+                "city": "Test",
+                "state_province": "TT",
+                "zip": "123124",
+                "country": "Test",
+                "phone": "123123123",
+                "email": "test@test.com",
+                "title": "Test",
+                "suffix": "",
+            },
+        'person_update': {
+                        "first_name":"update_test",
+                        "last_name":"update_test2",
+                        "middle_name": "Test",
+                        "address1": "Test",
+                        "address2": "Test",
+                        "city": "Test",
+                        "state_province": "TT",
+                        "zip": "123124",
+                        "country": "Test",
+                        "phone": "123123123",
+                        "email": "test@test.com",
+                        "title": "Test",
+                        "suffix": "",
+        },
     }
 
 }
@@ -180,15 +212,18 @@ complex_put_data =  [
                         [
                             {
                                 'method': POST,
-                                'url': 'person',
-                                'data': standard_data['person']
+                                'endpoint': 'person',
+                                'body': standard_data['put_test_0']['person'],
+                                'args': []
                             },
                             {
                                 'method': PUT,
-                                'url': 'person',
-                                'data': standard_data['person_update']
+                                'endpoint': 'person',
+                                'body': standard_data['put_test_0']['person_update'],
+                                'args': [
+                                    '0__uuid'
+                                    ]
                             }
                         ]
-
-
                     ]
+                

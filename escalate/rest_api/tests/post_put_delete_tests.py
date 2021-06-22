@@ -23,15 +23,43 @@ def add_prev_endpoint_data(post_data, response_data):
                 final_data[key] = response_data[prev_endpoint][prev_key]
     return final_endpoint, final_data, response_data
 
-def add_prev_endpoint_data_2(request_data, response_data):
-    final_endpoint, final_data = request_data['url'], request_data['data']
-    for key, value in final_data.items():
+# def add_prev_endpoint_data_2(request_data, response_data):
+#     final_endpoint, final_data = request_data['url'], request_data['data']
+#     for key, value in final_data.items():
+#         if isinstance(value, str):
+#             x = value.split('__')
+#             if len(x) == 2:
+#                 prev_response_data, prev_key = x
+#                 final_data[key] = response_data[prev_response_data][prev_key]
+#     return final_endpoint, final_data, response_data
+
+def add_prev_endpoint_data_2(dictionary, response_data):
+    for key, value in dictionary.items():
         if isinstance(value, str):
             x = value.split('__')
             if len(x) == 2:
-                prev_response_data, prev_key = x
-                final_data[key] = response_data[prev_response_data][prev_key]
-    return final_endpoint, final_data, response_data
+                prev_response_data_name, prev_key = x
+                dictionary[key] = response_data[prev_response_data_name][prev_key]
+    return dictionary
+
+def add_prev_endpoint_data_to_args(args_list, response_data):
+    # turn args list to dict with key as index as string and value as list element
+    args_list_dict = {str(index): val for index, val in enumerate(args_list)}
+
+    # add prev endpoint data to args_list_dict
+    add_prev_endpoint_data_2(args_list_dict, response_data)
+
+    # take key value pairs and put it in list
+    args_list_dict_items_as_list = [x for x in args_list_dict.items()]
+
+    # sort key value pairs by index
+    args_list_dict_items_as_list.sort(key= lambda key_val: int(key_val[0]))
+
+    # replace elements in original args list with values from prev endpoints
+    for i in range(len(args_list_dict_items_as_list)):
+        args_list[i] = args_list_dict_items_as_list[i][1]
+        
+    return args_list
 
 @pytest.fixture
 def api_client():
@@ -85,16 +113,18 @@ def test_complex(api_client, post_data):
     #Ex: workflow_type : workflowtype__url is used for multiple test
     #cases, but workflowtype__url is changed to <url> and should be reverted
     #back to workflowtype_url for future test cases that use it
-    post_data_deep_copy = copy.deepcopy(post_data)
+    request_data_deep_copy = copy.deepcopy(post_data)
     
-    for request_data in post_data_deep_copy:
-        #resp = api_client.post(reverse(f'{endpoint}-list'), json.dumps(data), content_type='application/json')
-        endpoint, final_data, response_data = add_prev_endpoint_data_2(request_data, response_data)
+    for index, request_data in enumerate(request_data_deep_copy):
+        endpoint, method, body, args = [request_data[key] for key in ['endpoint', 'method', 'body', 'args']]
+        
+        add_prev_endpoint_data_2(body, response_data)
+        
+        add_prev_endpoint_data_to_args(args, response_data)
+        
         if(request_data['method'] == 'POST'):
-            resp = api_client.post(reverse(f'{endpoint}-list'), json.dumps(final_data), content_type='application/json')
+            resp = api_client.post(reverse(f'{endpoint}-list'), json.dumps(body), content_type='application/json')
         elif(request_data['method'] == 'PUT'):
-            uuid_to_put = final_data['uuid']
-            final_data.pop('uuid')
-            resp = api_client.put(reverse(f'{endpoint}-detail', args=[uuid_to_put]), json.dumps(final_data), content_type='application/json')
-        response_data[endpoint] = resp.json()
+            resp = api_client.put(reverse(f'{endpoint}-detail', args=args), json.dumps(body), content_type='application/json')
+        response_data[str(index)] = resp.json()
     assert resp.status_code == 200
