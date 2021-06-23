@@ -36,25 +36,26 @@ def random_model_dict(model_name, **kwargs):
     model_dict = {}
     for field_name, field_obj in dict_fields.items():
         field_class_name = field_obj.__class__.__name__
-        if field_class_name == "CharField":
-            if field_obj.choices != None:
-                model_dict[field_name] = field_obj.choices[0][1]
+        if field_obj.choices != None:
+            choice_idx = random.randint(0, len(field_obj.choices))
+            model_dict[field_name] = field_obj.choices[choice_idx][0]
+        else:
+            if field_class_name == "CharField":
+                length = field_obj.max_length // 3 + 1
+                rand_alpha = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = length))
+                model_dict[field_name] = rand_alpha
+            elif field_class_name == "EmailField":
+                length = field_obj.max_length // 3 + 1
+                rand_alpha = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = length))
+                model_dict[field_name] = f'{rand_alpha}@test.com'
+            elif field_class_name == "ForeignKey":
+                model_dict[field_name] = None
+            elif field_class_name == "BooleanField":
+                model_dict[field_name] = True if random.uniform(0,1) > 0.5 else False
             else:
                 length = field_obj.max_length // 3 + 1
                 rand_alpha = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = length))
                 model_dict[field_name] = rand_alpha
-        elif field_class_name == "EmailField":
-            length = field_obj.max_length // 3 + 1
-            rand_alpha = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = length))
-            model_dict[field_name] = f'{rand_alpha}@test.com'
-        elif field_class_name == "ForeignKey":
-            model_dict[field_name] = None
-        elif field_class_name == "BooleanField":
-            model_dict[field_name] = True if random.uniform(0,1) > 0.5 else False
-        else:
-            length = field_obj.max_length // 3 + 1
-            rand_alpha = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = length))
-            model_dict[field_name] = rand_alpha
     for field_name, value in kwargs.items():
         assert field_name in _field_names, "invalid field name"
         model_dict[field_name] = value
