@@ -1,4 +1,12 @@
-from .http_status_codes import status_codes, DELETE, PUT, POST, GET, ERROR
+from .model_tests_utils import (
+    status_codes,
+    DELETE,
+    PUT,
+    POST,
+    GET,
+    ERROR,
+    random_model_dict
+)
 
 org_test_data = {
     'org_test_0':{
@@ -114,6 +122,16 @@ org_tests = [
             ],
             'name': 'org0_get_1',
             'status_code': status_codes[ERROR]
+        },
+    ],
+    [
+        {
+            'method': POST,
+            'endpoint': 'organization-list',
+            'body': random_model_dict('organization'),
+            'args': [],
+            'name': 'org1',
+            'status_code': status_codes[POST]
         },
     ]
 ]

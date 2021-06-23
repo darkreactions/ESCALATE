@@ -1,4 +1,11 @@
-from .http_status_codes import status_codes, DELETE, PUT, POST, GET, ERROR
+from .model_tests_utils import (
+    status_codes,
+    DELETE,
+    PUT,
+    POST,
+    GET,
+    ERROR
+)
 
 person_test_data = {
     'person_test_0':{

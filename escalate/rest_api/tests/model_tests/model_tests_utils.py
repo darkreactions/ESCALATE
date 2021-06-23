@@ -17,7 +17,7 @@ status_codes = {
         ERROR: 404
     }
 
-def generate_random_model_dict(model_name, **kwargs):
+def random_model_dict(model_name, **kwargs):
     model_class_name = ''.join([x.capitalize() for x in model_name.split("_")])
     model = getattr(core.models, model_class_name)
     fields = [f for f in model._meta.fields]
@@ -41,15 +41,15 @@ def generate_random_model_dict(model_name, **kwargs):
                 model_dict[field_name] = field_obj.choices[0][1]
             else:
                 length = field_obj.max_length // 3 + 1
-                rand_lower = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = length))
-                model_dict[field_name] = rand_lower
+                rand_alpha = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = length))
+                model_dict[field_name] = rand_alpha
         elif field_class_name == "EmailField":
             length = field_obj.max_length // 3 + 1
             rand_alpha = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = length))
             model_dict[field_name] = f'{rand_alpha}@test.com'
         elif field_class_name == "ForeignKey":
             model_dict[field_name] = None
-        elif field_class_name == "BoolenField":
+        elif field_class_name == "BooleanField":
             model_dict[field_name] = True if random.uniform(0,1) > 0.5 else False
         else:
             length = field_obj.max_length // 3 + 1
