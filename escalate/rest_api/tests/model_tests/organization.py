@@ -1,7 +1,7 @@
 from .http_status_codes import status_codes, DELETE, PUT, POST, GET, ERROR
 
 org_test_data = {
-    'person_test_0':{
+    'org_test_0':{
         'org0': {
                     "description": "Test",
                     "full_name": "Test",
@@ -28,55 +28,22 @@ org_test_data = {
                     "country": "Test",
                     "website_url": "www.test.com",
                     "phone": "1231231",
-                    "parent": None
+                    "parent": "org0__url"
                 },
-        'person': {
-                    "first_name": "Test",
-                    "last_name": "Test",
-                    "middle_name": "Test",
-                    "address1": "Test",
-                    "address2": "Test",
-                    "city": "Test",
-                    "state_province": "TT",
-                    "zip": "123124",
-                    "country": "Test",
-                    "phone": "123123123",
-                    "email": "test@test.com",
-                    "title": "Test",
-                    "suffix": "",
+        'org0_update_0': {
+                    "description": "test_update",
+                    "full_name": "test_update",
+                    "short_name": "test_update",
+                    "address1": "test_update",
+                    "address2": "test_update",
+                    "city": "test_update",
+                    "state_province": "TF",
+                    "zip": "213453",
+                    "country": "test_update",
+                    "website_url": "www.test_update.com",
+                    "phone": "12312313",
+                    "parent": "org1__url"
                 },
-        'person_update0': {
-                    "first_name":"updated_first_name",
-                    "last_name":"updated_last_name",
-                    "middle_name": "updated_middle_name",
-                    "address1": "updated_address1",
-                    "address2": "updated_address2",
-                    "city": "updated_city",
-                    "state_province": "bb",
-                    "zip": "111111",
-                    "country": "updated_country",
-                    "phone": "1111111111",
-                    "email": "updated@test.com",
-                    "title": "updated_title",
-                    "suffix": "updated_suffix",
-                    "added_organization": ['org0__url','org1__url']
-        },
-        'person_update1': {
-            "first_name":"updated_first_name",
-            "last_name":"updated_last_name",
-            "middle_name": "updated_middle_name",
-            "address1": "updated_address1",
-            "address2": "updated_address2",
-            "city": "updated_city",
-            "state_province": "bb",
-            "zip": "111111",
-            "country": "updated_country",
-            "phone": "1111111111",
-            "email": "updated@test.com",
-            "title": "updated_title",
-            "suffix": "updated_suffix",
-            "added_organization": ['org0__url']
-        }
     }
 }
 
@@ -95,7 +62,7 @@ org_tests = [
         {
             'method': POST,
             'endpoint': 'organization-list',
-            'body': org_test_data['person_test_0']['org0'],
+            'body': org_test_data['org_test_0']['org0'],
             'args': [],
             'name': 'org0',
             'status_code': status_codes[POST]
@@ -103,87 +70,49 @@ org_tests = [
         {
             'method': POST,
             'endpoint': 'organization-list',
-            'body': org_test_data['person_test_0']['org1'],
+            'body': org_test_data['org_test_0']['org1'],
             'args': [],
             'name': 'org1',
             'status_code': status_codes[POST]
         },
         {
-            'method': POST,
-            'endpoint': 'person-list',
-            'body': org_test_data['person_test_0']['person'],
-            'args': [],
-            'name': 'person',
-            'status_code': status_codes[POST]
-        },
-        {
-            'method': GET,
-            'endpoint': 'person-detail',
-            'body': {},
-            'args': [
-                'person__uuid'
-            ],
-            'name': 'get_person',
-            'status_code': status_codes[GET]
-        },
-        {
             'method': PUT,
-            'endpoint': 'person-detail',
-            'body': org_test_data['person_test_0']['person_update0'],
+            'endpoint': 'organization-detail',
+            'body': org_test_data['org_test_0']['org0_update_0'],
             'args': [
-                'get_person__uuid'
+                'org0__uuid'
             ],
-            'name': 'person_update0',
+            'name': 'org0_update_0',
             'status_code': status_codes[PUT]
         },
         {
             'method': GET,
-            'endpoint': 'person-detail',
+            'endpoint': 'organization-detail',
             'body': {},
             'args': [
-                'person_update0__uuid'
+                'org0__uuid'
             ],
-            'name': 'get_person_update0',
-            'status_code': status_codes[GET]
-        },
-                {
-            'method': PUT,
-            'endpoint': 'person-detail',
-            'body': org_test_data['person_test_0']['person_update1'],
-            'args': [
-                'get_person_update0__uuid'
-            ],
-            'name': 'person_update1',
-            'status_code': status_codes[PUT]
-        },
-        {
-            'method': GET,
-            'endpoint': 'person-detail',
-            'body': {},
-            'args': [
-                'person_update1__uuid'
-            ],
-            'name': 'get_person_update1',
+            'name': 'org0_get_0',
             'status_code': status_codes[GET]
         },
         {
             'method': DELETE,
-            'endpoint': 'person-detail',
+            'endpoint': 'organization-detail',
             'body': {},
             'args': [
-                'get_person_update1__uuid'
+                'org0__uuid'
             ],
-            'name': 'delete_person_update1',
+            'name': 'org0_delete_0',
             'status_code': status_codes[DELETE]
         },
         {
             'method': GET,
-            'endpoint': 'person-detail',
+            'endpoint': 'organization-detail',
             'body': {},
             'args': [
-                'get_person_update1__uuid'
+                'org0__uuid'
             ],
-            'name': 'error_get_person_update1',
+            'name': 'org0_get_1',
             'status_code': status_codes[ERROR]
         },
     ]

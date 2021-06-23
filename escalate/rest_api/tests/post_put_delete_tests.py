@@ -99,7 +99,7 @@ def run_test(api_client, tests):
             resp = api_client.delete(reverse(endpoint, args=args))
         else:
             assert False, 'Invalid Http method'
-        assert resp.status_code == status_code
+        assert resp.status_code == status_code, name
 
 @pytest.fixture
 def api_client():
