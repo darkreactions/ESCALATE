@@ -217,9 +217,13 @@ complex_post_data = [
                     ]
 post_tests =  [
     [
+        #post_test0
+        #creates 2 organizations
+        #creates a person that is a part of these 2 organizations
+        #tests creating person with manytomany already
         {
             'method': POST,
-            'endpoint': 'organization',
+            'endpoint': 'organization-list',
             'body': post_test_data['put_test_0']['org0'],
             'args': [],
             'name': 'org0',
@@ -228,7 +232,7 @@ post_tests =  [
         },
         {
             'method': POST,
-            'endpoint': 'organization',
+            'endpoint': 'organization-list',
             'body': post_test_data['put_test_0']['org1'],
             'args': [],
             'name': 'org1',
@@ -236,7 +240,7 @@ post_tests =  [
         },
         {
             'method': POST,
-            'endpoint': 'person',
+            'endpoint': 'person-list',
             'body': post_test_data['put_test_0']['person'],
             'args': [],
             'name': 'person',

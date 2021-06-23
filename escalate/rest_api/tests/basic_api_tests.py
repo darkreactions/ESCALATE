@@ -19,6 +19,6 @@ for method_name in view_names:
 
 @pytest.mark.api_get
 @pytest.mark.parametrize("name", api_view_names)
-def test_api_list_views(name):
+def test_api_list_views_no_login(name):
     response = client.get(reverse(name))
     assert response.status_code == 200

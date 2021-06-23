@@ -13,6 +13,7 @@ from rest_framework.test import APIClient
 from django.urls import reverse
 import json
 import copy
+from model_tests.person import person_tests as model_tests
 
 pytestmark = pytest.mark.django_db
 
@@ -89,16 +90,16 @@ def run_test(api_client, tests):
         add_prev_endpoint_data_to_args(args, response_data)
         
         if(method == 'POST'):
-            resp = api_client.post(reverse(f'{endpoint}-list'), json.dumps(body), content_type='application/json')
+            resp = api_client.post(reverse(endpoint, args=args), json.dumps(body), content_type='application/json')
             response_data[name] = resp.json()
         elif(method == 'PUT'):
-            resp = api_client.put(reverse(f'{endpoint}-detail', args=args), json.dumps(body), content_type='application/json')
+            resp = api_client.put(reverse(endpoint, args=args), json.dumps(body), content_type='application/json')
             response_data[name] = resp.json()
         elif(method == 'GET'):
-            resp = api_client.get(reverse(f'{endpoint}-list'))
+            resp = api_client.get(reverse(endpoint, args=args))
             response_data[name] = resp.json()
         elif(method == 'DELETE'):
-            resp = api_client.delete(reverse(f'{endpoint}-detail', args=args))
+            resp = api_client.delete(reverse(endpoint, args=args))
         else:
             assert False, 'Invalid Http method'
         assert resp.status_code == status_code
@@ -145,12 +146,12 @@ def api_client():
 #         response_data[endpoint] = resp.json()
 #     assert resp.status_code == 201
 
-@pytest.mark.api_post
+@pytest.mark.api_put
 @pytest.mark.parametrize("put_test", put_tests)
 def test_put(api_client, put_test):
     run_test(api_client, put_test)
 
-@pytest.mark.api_post
+@pytest.mark.api_get
 @pytest.mark.parametrize("get_test", get_tests)
 def test_get(api_client, get_test):
     run_test(api_client, get_test)
@@ -160,10 +161,14 @@ def test_get(api_client, get_test):
 def test_post(api_client, post_test):
     run_test(api_client, post_test)
 
-@pytest.mark.api_post
+@pytest.mark.api_delete
 @pytest.mark.parametrize("delete_test", delete_tests)
 def test_delete(api_client, delete_test):
     run_test(api_client, delete_test)
 
+@pytest.mark.api_delete
+@pytest.mark.parametrize("model_test", model_tests)
+def test_delete(api_client, model_test):
+    run_test(api_client, model_test)
 
 

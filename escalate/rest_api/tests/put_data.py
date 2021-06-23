@@ -66,10 +66,15 @@ put_test_data = {
 }
 
 put_tests =  [
-    [
+    [   
+        #put_test0
+        #creates 2 organizations
+        #creates a person
+        #add both organizations to this person
+        #tests editing manytomany field for person
         {
             'method': POST,
-            'endpoint': 'organization',
+            'endpoint': 'organization-list',
             'body': put_test_data['put_test_0']['org0'],
             'args': [],
             'name': 'org0',
@@ -78,7 +83,7 @@ put_tests =  [
         },
         {
             'method': POST,
-            'endpoint': 'organization',
+            'endpoint': 'organization-list',
             'body': put_test_data['put_test_0']['org1'],
             'args': [],
             'name': 'org1',
@@ -86,7 +91,7 @@ put_tests =  [
         },
         {
             'method': POST,
-            'endpoint': 'person',
+            'endpoint': 'person-list',
             'body': put_test_data['put_test_0']['person'],
             'args': [],
             'name': 'person',
@@ -94,7 +99,7 @@ put_tests =  [
         },
         {
             'method': PUT,
-            'endpoint': 'person',
+            'endpoint': 'person-detail',
             'body': put_test_data['put_test_0']['person_update'],
             'args': [
                 'person__uuid'
