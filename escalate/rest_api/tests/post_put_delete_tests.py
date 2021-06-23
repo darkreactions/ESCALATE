@@ -4,10 +4,6 @@ from django.test import Client
 from django.urls import reverse
 from rest_framework.test import force_authenticate
 from core.models.app_tables import CustomUser
-from post_data import simple_post_data, complex_post_data, post_tests
-from delete_data import delete_tests
-from get_data import get_tests
-from put_data import put_tests
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 from django.urls import reverse

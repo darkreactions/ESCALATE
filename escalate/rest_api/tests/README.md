@@ -1,18 +1,8 @@
-GET = 'GET'
-POST = 'POST'
-PUT = 'PUT'
-DELETE = 'DELETE'
-ERROR = 'ERROR'
+The tests are split up by models. Each model's test data is in a correspondingly named file 
+in the /models_tests/ directory. New model tests must be imported into /models_tests/__init__.py 
+in order to be run by pytest. 
 
-status_codes = {
-        POST: 201,
-        PUT: 200,
-        DELETE: 204,
-        GET: 200,
-        ERROR: 404
-    }
 
-'''
 Shape of any test suite
 A test suite is a list of lists of dictionaries. Each list in the whole list
 represents 1 test case. Each list's element is a dictionary. The entire shape:
@@ -21,7 +11,7 @@ test_suite = [
     [
         {
             'method': <Http verb>,
-            'endpoint' <Api endpoint prefix>,
+            'endpoint' <Api endpoint>,
             'body': standard_data[<arbitrary test name>][<request reference name>],
             'args': [...],
             'name': <request reference name>,
@@ -31,7 +21,7 @@ test_suite = [
     ]
 ]
 
-1)  The possible choices for <Http verb> are at the top of the file
+1)  The possible choices for <Http verb> can be found in /model_tests/http_status_codes.py
 2)  Api endpoint prefix example 'systemtool-list' or 'systemtool-detail' -> 'systemtool'
 3)  Args is a list of arguements for that request
 4)  Name should some unique string among this test CASE. This string helps

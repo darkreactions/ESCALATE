@@ -1,4 +1,4 @@
-from rest_api.tests.api_docs import status_codes, DELETE, PUT, POST, GET, ERROR
+from .http_status_codes import status_codes, DELETE, PUT, POST, GET, ERROR
 
 person_test_data = {
     'person_test_0':{

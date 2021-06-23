@@ -1,6 +1,6 @@
-from rest_api.tests.api_docs import status_codes, DELETE, PUT, POST, GET, ERROR
+from .http_status_codes import status_codes, DELETE, PUT, POST, GET, ERROR
 
-person_test_data = {
+org_test_data = {
     'person_test_0':{
         'org0': {
                     "description": "Test",
@@ -95,7 +95,7 @@ org_tests = [
         {
             'method': POST,
             'endpoint': 'organization-list',
-            'body': person_test_data['person_test_0']['org0'],
+            'body': org_test_data['person_test_0']['org0'],
             'args': [],
             'name': 'org0',
             'status_code': status_codes[POST]
@@ -103,7 +103,7 @@ org_tests = [
         {
             'method': POST,
             'endpoint': 'organization-list',
-            'body': person_test_data['person_test_0']['org1'],
+            'body': org_test_data['person_test_0']['org1'],
             'args': [],
             'name': 'org1',
             'status_code': status_codes[POST]
@@ -111,7 +111,7 @@ org_tests = [
         {
             'method': POST,
             'endpoint': 'person-list',
-            'body': person_test_data['person_test_0']['person'],
+            'body': org_test_data['person_test_0']['person'],
             'args': [],
             'name': 'person',
             'status_code': status_codes[POST]
@@ -129,7 +129,7 @@ org_tests = [
         {
             'method': PUT,
             'endpoint': 'person-detail',
-            'body': person_test_data['person_test_0']['person_update0'],
+            'body': org_test_data['person_test_0']['person_update0'],
             'args': [
                 'get_person__uuid'
             ],
@@ -149,7 +149,7 @@ org_tests = [
                 {
             'method': PUT,
             'endpoint': 'person-detail',
-            'body': person_test_data['person_test_0']['person_update1'],
+            'body': org_test_data['person_test_0']['person_update1'],
             'args': [
                 'get_person_update0__uuid'
             ],
