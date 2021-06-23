@@ -13,19 +13,20 @@ from rest_framework.test import APIClient
 from django.urls import reverse
 import json
 import copy
-from model_tests.person import person_tests as model_tests
+#from model_tests.person import person_tests as model_tests
+import model_tests
 
 pytestmark = pytest.mark.django_db
 
-def add_prev_endpoint_data(post_data, response_data):
-    final_endpoint, final_data = post_data
-    for key, value in final_data.items():
-        if isinstance(value, str):
-            x = value.split('__')
-            if len(x) == 2:
-                prev_endpoint, prev_key = x
-                final_data[key] = response_data[prev_endpoint][prev_key]
-    return final_endpoint, final_data, response_data
+# def add_prev_endpoint_data(post_data, response_data):
+#     final_endpoint, final_data = post_data
+#     for key, value in final_data.items():
+#         if isinstance(value, str):
+#             x = value.split('__')
+#             if len(x) == 2:
+#                 prev_endpoint, prev_key = x
+#                 final_data[key] = response_data[prev_endpoint][prev_key]
+#     return final_endpoint, final_data, response_data
 
 # def add_prev_endpoint_data_2(request_data, response_data):
 #     final_endpoint, final_data = request_data['url'], request_data['data']
@@ -127,48 +128,16 @@ def api_client():
 #     assert resp.status_code == 204
 
 
-# @pytest.mark.api_post
-# @pytest.mark.parametrize("post_data", complex_post_data)
-# def test_complex_post(api_client, post_data):
-#     response_data = {}
+def add_pytest_test(value):
+    @pytest.mark.api_delete
+    @pytest.mark.parametrize("model_test", value)
+    def f23123(api_client, model_test):
+        run_test(api_client, model_test)
+    return f23123
 
-#     #need to deep copy b/c we change nested elements of complex_post_data
-#     #and those change should not persist from one test to the next
-#     #Ex: workflow_type : workflowtype__url is used for multiple test
-#     #cases, but workflowtype__url is changed to <url> and should be reverted
-#     #back to workflowtype_url for future test cases that use it
-#     post_data_deep_copy = copy.deepcopy(post_data)
-    
-#     for data in post_data_deep_copy:
-#         #resp = api_client.post(reverse(f'{endpoint}-list'), json.dumps(data), content_type='application/json')
-#         endpoint, final_data, response_data = add_prev_endpoint_data(data, response_data)
-#         resp = api_client.post(reverse(f'{endpoint}-list'), json.dumps(final_data), content_type='application/json')
-#         response_data[endpoint] = resp.json()
-#     assert resp.status_code == 201
-
-@pytest.mark.api_put
-@pytest.mark.parametrize("put_test", put_tests)
-def test_put(api_client, put_test):
-    run_test(api_client, put_test)
-
-@pytest.mark.api_get
-@pytest.mark.parametrize("get_test", get_tests)
-def test_get(api_client, get_test):
-    run_test(api_client, get_test)
-
-@pytest.mark.api_post
-@pytest.mark.parametrize("post_test", post_tests)
-def test_post(api_client, post_test):
-    run_test(api_client, post_test)
-
-@pytest.mark.api_delete
-@pytest.mark.parametrize("delete_test", delete_tests)
-def test_delete(api_client, delete_test):
-    run_test(api_client, delete_test)
-
-@pytest.mark.api_delete
-@pytest.mark.parametrize("model_test", model_tests)
-def test_delete(api_client, model_test):
-    run_test(api_client, model_test)
+for key, value in vars(model_tests).items():
+    if str(key).endswith('_tests'):
+        model_name = key.split('_')[0]
+        globals()[f'test_{model_name}'] = add_pytest_test(value)
 
 
