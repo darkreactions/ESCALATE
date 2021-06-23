@@ -80,18 +80,18 @@ person_test_data = {
     }
 }
 
+#creates 2 organizations
+#creates a person that is a part of these 2 organizations
+#gets that person
+#updates person
+#gets person
+#updates person by deleting from 1 added organization
+#gets person
+#deletes person
+#gets person (should return error)
+#tests creating person with manytomany already
 person_tests = [
     [       
-        #creates 2 organizations
-        #creates a person that is a part of these 2 organizations
-        #gets that person
-        #updates person
-        #gets person
-        #updates person by deleting from 1 added organization
-        #gets person
-        #deletes person
-        #gets person (should return error)
-        #tests creating person with manytomany already
         {
             'method': POST,
             'endpoint': 'organization-list',

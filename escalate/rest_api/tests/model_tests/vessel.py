@@ -1,8 +1,11 @@
 from .http_status_codes import status_codes, DELETE, PUT, POST, GET, ERROR
 
 org_test_data = {
-    'org_test_0':{
-        'org0': {
+    'vessel_test_1':{
+        'vessel0': {
+                    "plate_name": "testplate",
+                    "well_number": "2",
+                    
                     "description": "Test",
                     "full_name": "Test",
                     "short_name": "Test",
@@ -47,16 +50,18 @@ org_test_data = {
     }
 }
 
-
-
-#creates an organization
-#creates an organization that is the child of the previous org
-#updates the first organization to be a child of the second (both are parent orgs)
-#gets the first org
-#deletes the first org
-#gets the first org (should return error)
 org_tests = [
     [       
+        #creates 2 organizations
+        #creates a person that is a part of these 2 organizations
+        #gets that person
+        #updates person
+        #gets person
+        #updates person by deleting from 1 added organization
+        #gets person
+        #deletes person
+        #gets person (should return error)
+        #tests creating person with manytomany already
         {
             'method': POST,
             'endpoint': 'organization-list',
