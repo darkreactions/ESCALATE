@@ -5,9 +5,10 @@ in order to be run by pytest.
 
 Shape of any test suite
 A test suite is a list of lists of dictionaries. Each list in the whole list
-represents 1 test case. Each list's element is a dictionary. The entire shape:
+represents 1 test case. Each list's element is a dictionary. The name of the 
+test suite variable must end with '_test'. The entire shape:
 
-test_suite = [
+<model_name>_test = [
     [
         {
             'method': <Http verb>,
@@ -15,7 +16,7 @@ test_suite = [
             'body': standard_data[<arbitrary test name>][<request reference name>],
             'args': [...],
             'name': <request reference name>,
-            'response': < Http response> 
+            'status_code': <Http response code> 
         },
         ...
     ]
@@ -49,4 +50,21 @@ standard_data = {
         }
     }
 }
-'''
+
+Alternatively, there is a function called random_model_dict that takes in a model
+class and generates a dictionary with appropriate field names and random 
+valid values. Fields such as non-null foreign keys/non-null OneToOneFields and 
+ManyToManyFields are not auto-generated. The function also takes in key word 
+arguements so that someone can add/overwrite a field with a desired value.
+Example:
+some_org = random_model_dict(core.models.Organization,
+                            parent='other_org__url',
+                            short_name='abc')
+The function will create a dictionary that looks like 
+{
+    full_name: '...',
+    short_name: '...',
+    ...
+}
+Then, it takes parent and short_name and adds/overwrites the key-value pair in 
+the dictionary
