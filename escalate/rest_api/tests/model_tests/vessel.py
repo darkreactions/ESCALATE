@@ -5,7 +5,8 @@ from .model_tests_utils import (
     POST,
     GET,
     ERROR,
-    random_model_dict
+    random_model_dict,
+    check_status_code
 )
 from core.models import (
     Vessel,
@@ -24,78 +25,134 @@ vessel_test_data = {}
 vessel_tests = [
     [       
         {
+            'name': 'actor0',
             'method': POST,
             'endpoint': 'actor-list',
             'body': random_model_dict(Actor),
             'args': [],
-            'name': 'actor0',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[POST]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
         },
         {
+            'name': 'status0',
             'method': POST,
             'endpoint': 'status-list',
             'body': random_model_dict(Status),
             'args': [],
-            'name': 'status0',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[POST]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
         },
         {
+            'name': 'vessel0',
             'method': POST,
             'endpoint': 'vessel-list',
             'body': random_model_dict(Vessel, status='status0__url'),
             'args': [],
-            'name': 'vessel0',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[POST]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
         },
         {
+            'name': 'vessel0_get_0',
             'method': GET,
             'endpoint': 'vessel-detail',
             'body': {},
             'args': [
                 'vessel0__uuid'
             ],
-            'name': 'vessel0_get_0',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[GET]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': GET
+                }
+            }
         },
         {
+            'name': 'vessel0_update_0',
             'method': PUT,
             'endpoint': 'vessel-detail',
             'body': random_model_dict(Vessel, actor='actor0__url', status=None),
             'args': [
                 'vessel0__uuid'
             ],
-            'name': 'vessel0_update_0',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[PUT]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': PUT
+                }
+            }
         },
         {
+            'name': 'vessel0_get_1',
             'method': GET,
             'endpoint': 'vessel-detail',
             'body': {},
             'args': [
                 'vessel0__uuid'
             ],
-            'name': 'vessel0_get_1',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[GET]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': GET
+                }
+            }
         },
         {
+            'name': 'vessel0_delete_0',
             'method': DELETE,
             'endpoint': 'vessel-detail',
             'body': {},
             'args': [
                 'vessel0__uuid'
             ],
-            'name': 'vessel0_delete_0',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[DELETE]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': DELETE
+                }
+            }
         },
         {
+            'name': 'vessel0_get_2',
             'method': GET,
             'endpoint': 'vessel-detail',
             'body': {},
             'args': [
                 'vessel0__uuid'
             ],
-            'name': 'vessel0_get_2',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[ERROR]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': ERROR
+                }
+            }
         },
     ],
 ]

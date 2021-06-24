@@ -5,7 +5,8 @@ from .model_tests_utils import (
     POST,
     GET,
     ERROR,
-    random_model_dict
+    random_model_dict,
+    check_status_code
 )
 from core.models import (
     Organization
@@ -69,70 +70,119 @@ org_test_data = {
 org_tests = [
     [       
         {
+            'name': 'org0',
             'method': POST,
             'endpoint': 'organization-list',
             'body': random_model_dict(Organization),
             'args': [],
-            'name': 'org0',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[POST]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
         },
         {
+            'name': 'org1',
             'method': POST,
             'endpoint': 'organization-list',
             'body': org_test_data['org_test_0']['org1'],
             'args': [],
-            'name': 'org1',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[POST]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
         },
         {
+            'name': 'org0_update_0',
             'method': PUT,
             'endpoint': 'organization-detail',
             'body': org_test_data['org_test_0']['org0_update_0'],
             'args': [
                 'org0__uuid'
             ],
-            'name': 'org0_update_0',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[PUT]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': PUT
+                }
+            }
         },
         {
+            'name': 'org0_get_0',
             'method': GET,
             'endpoint': 'organization-detail',
             'body': {},
             'args': [
                 'org0__uuid'
             ],
-            'name': 'org0_get_0',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[GET]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': GET
+                }
+            }
         },        
         {
+            'name': 'org0_delete_0',
             'method': DELETE,
             'endpoint': 'organization-detail',
             'body': {},
             'args': [
                 'org0__uuid'
             ],
-            'name': 'org0_delete_0',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[DELETE]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': DELETE
+                }
+            }
         },
         {
+            'name': 'org0_get_1',
             'method': GET,
             'endpoint': 'organization-detail',
             'body': {},
             'args': [
                 'org0__uuid'
             ],
-            'name': 'org0_get_1',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[ERROR]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': ERROR
+                }
+            }
         },
     ],
     [
         {
+            'name': 'org1',
             'method': POST,
             'endpoint': 'organization-list',
             'body': random_model_dict(Organization),
             'args': [],
-            'name': 'org1',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[POST]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
         },
     ]
 ]

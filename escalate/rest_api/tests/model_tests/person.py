@@ -4,7 +4,8 @@ from .model_tests_utils import (
     PUT,
     POST,
     GET,
-    ERROR
+    ERROR,
+    check_status_code
 )
 
 person_test_data = {
@@ -100,98 +101,168 @@ person_test_data = {
 person_tests = [
     [       
         {
+            'name': 'org0',
             'method': POST,
             'endpoint': 'organization-list',
             'body': person_test_data['person_test_0']['org0'],
             'args': [],
-            'name': 'org0',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[POST]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
         },
         {
+            'name': 'org1',
             'method': POST,
             'endpoint': 'organization-list',
             'body': person_test_data['person_test_0']['org1'],
             'args': [],
-            'name': 'org1',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[POST]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
         },
         {
+            'name': 'person',
             'method': POST,
             'endpoint': 'person-list',
             'body': person_test_data['person_test_0']['person'],
             'args': [],
-            'name': 'person',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[POST]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
         },
         {
+            'name': 'get_person',
             'method': GET,
             'endpoint': 'person-detail',
             'body': {},
             'args': [
                 'person__uuid'
             ],
-            'name': 'get_person',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[GET]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': GET
+                }
+            }
         },
         {
+            'name': 'person_update0',
             'method': PUT,
             'endpoint': 'person-detail',
             'body': person_test_data['person_test_0']['person_update0'],
             'args': [
                 'get_person__uuid'
             ],
-            'name': 'person_update0',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[PUT]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': PUT
+                }
+            }
         },
         {
+            'name': 'get_person_update0',
             'method': GET,
             'endpoint': 'person-detail',
             'body': {},
             'args': [
                 'person_update0__uuid'
             ],
-            'name': 'get_person_update0',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[GET]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': GET
+                }
+            }
         },
-                {
+        {
+            'name': 'person_update1',
             'method': PUT,
             'endpoint': 'person-detail',
             'body': person_test_data['person_test_0']['person_update1'],
             'args': [
                 'get_person_update0__uuid'
             ],
-            'name': 'person_update1',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[PUT]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': PUT
+                }
+            }
         },
         {
+            'name': 'get_person_update1',
             'method': GET,
             'endpoint': 'person-detail',
             'body': {},
             'args': [
                 'person_update1__uuid'
             ],
-            'name': 'get_person_update1',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[GET]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': GET
+                }
+            }
         },
         {
+            'name': 'delete_person_update1',
             'method': DELETE,
             'endpoint': 'person-detail',
             'body': {},
             'args': [
                 'get_person_update1__uuid'
             ],
-            'name': 'delete_person_update1',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[DELETE]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': DELETE
+                }
+            }
         },
         {
+            'name': 'error_get_person_update1',
             'method': GET,
             'endpoint': 'person-detail',
             'body': {},
             'args': [
                 'get_person_update1__uuid'
             ],
-            'name': 'error_get_person_update1',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[ERROR]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': ERROR
+                }
+            }
         },
     ]
 ]

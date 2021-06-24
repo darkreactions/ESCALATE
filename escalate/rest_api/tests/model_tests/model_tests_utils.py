@@ -58,3 +58,7 @@ def random_model_dict(model, **kwargs):
         assert field_name in _field_names, "invalid field name"
         model_dict[field_name] = value
     return model_dict
+
+def check_status_code(resp, **kwargs):
+    http_res_code = kwargs['status_code']
+    return resp.status_code == status_codes[http_res_code]

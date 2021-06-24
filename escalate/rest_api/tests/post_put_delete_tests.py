@@ -71,7 +71,7 @@ def add_prev_endpoint_data_to_args(args_list, response_data):
 
 def run_test(api_client, tests):
     response_data = {}
-    #need to deep copy b/c we change nested elements of complex_post_data
+    #need to deep copy b/c we change nested elements of data that is reused for tests
     #and those change should not persist from one test to the next
     #Ex: workflow_type : workflowtype__url is used for multiple test
     #cases, but workflowtype__url is changed to <url> and should be reverted
@@ -79,13 +79,30 @@ def run_test(api_client, tests):
     request_data_deep_copy = copy.deepcopy(tests)
     
     for request_data in request_data_deep_copy:
-        endpoint, method, body, args, name, is_valid_response = [request_data[key] for key \
-            in ['endpoint', 'method', 'body', 'args', 'name', 'is_valid_response']]
+        name, endpoint, method, body, args, query_params, is_valid_response = [
+            request_data.get(key) for key \
+            in ['name', 'endpoint', 'method', 'body', 'args',
+            'query_params', 'is_valid_response']
+            ]
         
+        # don't need to set the following 2 function's return value to a variable
+        # b/c those 2 functions modify body/args in-place
+
+        # replace values of shape x__y in values of the body dict
         add_prev_endpoint_data_2(body, response_data)
         
+        # replace endpoint args of shape x__y
         add_prev_endpoint_data_to_args(args, response_data)
         
+        # add query params to endpoint
+        if query_params != None and len(query_params) > 0:
+            endpoint = f"{endpoint}/?{'&'.join(query_params)}"
+
+        # get is_valid_response function, additional args and kwargs for validation
+        is_valid_resp = is_valid_response['function']
+        is_valid_resp_args = is_valid_response['args']
+        is_valid_resp_kwargs = is_valid_response['kwargs']
+
         if(method == 'POST'):
             resp = api_client.post(reverse(endpoint, args=args), json.dumps(body), content_type='application/json')
             response_data[name] = resp.json()
@@ -98,8 +115,11 @@ def run_test(api_client, tests):
         elif(method == 'DELETE'):
             resp = api_client.delete(reverse(endpoint, args=args))
         else:
-            assert False, 'Invalid Http method'
-        assert is_valid_response(resp, response_data), method + ' ' + name
+            assert False, f'Invalid Http method!!!\n{name}'
+        assert is_valid_resp(resp,
+                            response_data=response_data,
+                            *is_valid_resp_args,
+                            **is_valid_resp_kwargs), name
 
 @pytest.fixture
 def api_client():
@@ -125,15 +145,17 @@ def api_client():
 
 
 def add_pytest_test(value):
-    @pytest.mark.api_delete
-    @pytest.mark.parametrize("model_test", value)
-    def f23123(api_client, model_test):
-        run_test(api_client, model_test)
-    return f23123
+    @pytest.mark.api_model
+    @pytest.mark.parametrize("test", value)
+    def pytest_function_to_be_ran(api_client, test):
+        run_test(api_client, test)
+    return pytest_function_to_be_ran
 
+# reads in the objects imported from the model_tests directory, finds
+# the test suites, adds a pytest function to this file
 for key, value in vars(model_tests).items():
     if str(key).endswith('_tests'):
-        model_name = key.split('_')[0]
+        model_name = key.rstrip('_tests')
         globals()[f'test_{model_name}'] = add_pytest_test(value)
 
 

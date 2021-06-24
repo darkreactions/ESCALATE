@@ -1,4 +1,4 @@
-from escalate.rest_api.tests.post_put_delete_tests import add_prev_endpoint_data_2
+from rest_api.tests.post_put_delete_tests import add_prev_endpoint_data_2
 from .model_tests_utils import (
     status_codes,
     DELETE,
@@ -6,7 +6,8 @@ from .model_tests_utils import (
     POST,
     GET,
     ERROR,
-    random_model_dict
+    random_model_dict,
+    check_status_code
 )
 from core.models import (
     Organization,
@@ -14,43 +15,58 @@ from core.models import (
     Person
 )
 
-def actor_check(resp, **kwargs):
-    actor_field = kwargs['field']
-    url = actor_field + '__url'
-    previous_resp_data = kwargs['prev_response_data']
-    filter_method = lambda actor: actor[actor_field]==add_prev_endpoint_data_2({'a':url}, previous_resp_data)['a']
-    return len(filter(filter_method, resp.json()['results'])) == 1
+def check_actor(resp, **kwargs):
+    # Ex:
+    # actor_fields = {
+    #     'organization': 'some_org__url',
+    #     'person': 'some_person__url',
+    #     ...
+    # }
+    actor_fields = kwargs['actor_fields']
+
+    response_data = kwargs['response_data']
+
+    urls = add_prev_endpoint_data_2(actor_fields, response_data)
+    
+    # find all the actors with organization=x, person=y, systemtool=z
+    filter_method = lambda actor: all(actor[actor_field] == url for actor_field, url in urls.items())
+    return len(list(filter(filter_method, resp.json()['results']))) == 1
     
 
 actor_tests = [
     [       
         {
+            'name': 'org0',
             'method': POST,
             'endpoint': 'organization-list',
             'body': random_model_dict(Organization),
             'args': [],
-            'name': 'org0',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[POST]
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
         },
         {
+            'name': 'org0_get_actor',
             'method': GET,
             'endpoint': 'actor-list',
             'body': {},
             'args': [],
+            'query_params': [],
             'name': 'org0_get_0',
-            'is_valid_response': actor_check
-
-        },   
-        {
-            'method': POST,
-            'endpoint': 'organization-list',
-            'body': org_test_data['org_test_0']['org1'],
-            'args': [],
-            'name': 'org1',
-            'is_valid_response': lambda resp, _: resp.status_code == status_codes[POST]
+            'is_valid_response': {
+                'function': check_actor,
+                'args': [],
+                'kwargs': {
+                    'actor_fields': {
+                        'organization': 'org0__url'
+                    },
+                }
+            }
         },
-    
-    
-    
-    
-    lambda resp, prev_resp_data : len(filter(lambda actor: actor['organization']==add_prev_endpoint({'a':organization__url}, prev_resp_data)['a'], resp.json()['results']))==1
+    ]
+]
