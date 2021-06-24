@@ -105,7 +105,7 @@ person_tests = [
             'body': person_test_data['person_test_0']['org0'],
             'args': [],
             'name': 'org0',
-            'status_code': status_codes[POST]
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[POST]
         },
         {
             'method': POST,
@@ -113,7 +113,7 @@ person_tests = [
             'body': person_test_data['person_test_0']['org1'],
             'args': [],
             'name': 'org1',
-            'status_code': status_codes[POST]
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[POST]
         },
         {
             'method': POST,
@@ -121,7 +121,7 @@ person_tests = [
             'body': person_test_data['person_test_0']['person'],
             'args': [],
             'name': 'person',
-            'status_code': status_codes[POST]
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[POST]
         },
         {
             'method': GET,
@@ -131,7 +131,7 @@ person_tests = [
                 'person__uuid'
             ],
             'name': 'get_person',
-            'status_code': status_codes[GET]
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[GET]
         },
         {
             'method': PUT,
@@ -141,7 +141,7 @@ person_tests = [
                 'get_person__uuid'
             ],
             'name': 'person_update0',
-            'status_code': status_codes[PUT]
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[PUT]
         },
         {
             'method': GET,
@@ -151,7 +151,7 @@ person_tests = [
                 'person_update0__uuid'
             ],
             'name': 'get_person_update0',
-            'status_code': status_codes[GET]
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[GET]
         },
                 {
             'method': PUT,
@@ -161,7 +161,7 @@ person_tests = [
                 'get_person_update0__uuid'
             ],
             'name': 'person_update1',
-            'status_code': status_codes[PUT]
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[PUT]
         },
         {
             'method': GET,
@@ -171,7 +171,7 @@ person_tests = [
                 'person_update1__uuid'
             ],
             'name': 'get_person_update1',
-            'status_code': status_codes[GET]
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[GET]
         },
         {
             'method': DELETE,
@@ -181,7 +181,7 @@ person_tests = [
                 'get_person_update1__uuid'
             ],
             'name': 'delete_person_update1',
-            'status_code': status_codes[DELETE]
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[DELETE]
         },
         {
             'method': GET,
@@ -191,7 +191,7 @@ person_tests = [
                 'get_person_update1__uuid'
             ],
             'name': 'error_get_person_update1',
-            'status_code': status_codes[ERROR]
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[ERROR]
         },
     ]
 ]

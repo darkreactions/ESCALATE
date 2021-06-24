@@ -1,122 +1,101 @@
-from .http_status_codes import status_codes, DELETE, PUT, POST, GET, ERROR
+from .model_tests_utils import (
+    status_codes,
+    DELETE,
+    PUT,
+    POST,
+    GET,
+    ERROR,
+    random_model_dict
+)
+from core.models import (
+    Vessel,
+    Actor,
+    Status
+)
 
-org_test_data = {
-    'vessel_test_1':{
-        'vessel0': {
-                    "plate_name": "testplate",
-                    "well_number": "2",
-                    
-                    "description": "Test",
-                    "full_name": "Test",
-                    "short_name": "Test",
-                    "address1": "Test",
-                    "address2": "Test",
-                    "city": "Test",
-                    "state_province": "TT",
-                    "zip": "21345",
-                    "country": "Test",
-                    "website_url": "www.test.com",
-                    "phone": "1231231",
-                    "parent": None
-                },
-        'org1': {
-                    "description": "Test12",
-                    "full_name": "Test12",
-                    "short_name": "Test12",
-                    "address1": "Test",
-                    "address2": "Test",
-                    "city": "Test",
-                    "state_province": "TT",
-                    "zip": "21345",
-                    "country": "Test",
-                    "website_url": "www.test.com",
-                    "phone": "1231231",
-                    "parent": "org0__url"
-                },
-        'org0_update_0': {
-                    "description": "test_update",
-                    "full_name": "test_update",
-                    "short_name": "test_update",
-                    "address1": "test_update",
-                    "address2": "test_update",
-                    "city": "test_update",
-                    "state_province": "TF",
-                    "zip": "213453",
-                    "country": "test_update",
-                    "website_url": "www.test_update.com",
-                    "phone": "12312313",
-                    "parent": "org1__url"
-                },
-    }
-}
+vessel_test_data = {}
 
-org_tests = [
+
+
+#creates new actor
+#creates a new status
+#creates a vessel with the status as a foreign key
+#gets the vessel
+vessel_tests = [
     [       
-        #creates 2 organizations
-        #creates a person that is a part of these 2 organizations
-        #gets that person
-        #updates person
-        #gets person
-        #updates person by deleting from 1 added organization
-        #gets person
-        #deletes person
-        #gets person (should return error)
-        #tests creating person with manytomany already
         {
             'method': POST,
-            'endpoint': 'organization-list',
-            'body': org_test_data['org_test_0']['org0'],
+            'endpoint': 'actor-list',
+            'body': random_model_dict(Actor),
             'args': [],
-            'name': 'org0',
-            'status_code': status_codes[POST]
+            'name': 'actor0',
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[POST]
         },
         {
             'method': POST,
-            'endpoint': 'organization-list',
-            'body': org_test_data['org_test_0']['org1'],
+            'endpoint': 'status-list',
+            'body': random_model_dict(Status),
             'args': [],
-            'name': 'org1',
-            'status_code': status_codes[POST]
+            'name': 'status0',
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[POST]
+        },
+        {
+            'method': POST,
+            'endpoint': 'vessel-list',
+            'body': random_model_dict(Vessel, status='status0__url'),
+            'args': [],
+            'name': 'vessel0',
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[POST]
+        },
+        {
+            'method': GET,
+            'endpoint': 'vessel-detail',
+            'body': {},
+            'args': [
+                'vessel0__uuid'
+            ],
+            'name': 'vessel0_get_0',
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[GET]
         },
         {
             'method': PUT,
-            'endpoint': 'organization-detail',
-            'body': org_test_data['org_test_0']['org0_update_0'],
+            'endpoint': 'vessel-detail',
+            'body': random_model_dict(Vessel, actor='actor0__url', status=None),
             'args': [
-                'org0__uuid'
+                'vessel0__uuid'
             ],
-            'name': 'org0_update_0',
-            'status_code': status_codes[PUT]
+            'name': 'vessel0_update_0',
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[PUT]
         },
         {
             'method': GET,
-            'endpoint': 'organization-detail',
+            'endpoint': 'vessel-detail',
             'body': {},
             'args': [
-                'org0__uuid'
+                'vessel0__uuid'
             ],
-            'name': 'org0_get_0',
-            'status_code': status_codes[GET]
+            'name': 'vessel0_get_1',
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[GET]
         },
         {
             'method': DELETE,
-            'endpoint': 'organization-detail',
+            'endpoint': 'vessel-detail',
             'body': {},
             'args': [
-                'org0__uuid'
+                'vessel0__uuid'
             ],
-            'name': 'org0_delete_0',
-            'status_code': status_codes[DELETE]
+            'name': 'vessel0_delete_0',
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[DELETE]
         },
         {
             'method': GET,
-            'endpoint': 'organization-detail',
+            'endpoint': 'vessel-detail',
             'body': {},
             'args': [
-                'org0__uuid'
+                'vessel0__uuid'
             ],
-            'name': 'org0_get_1',
-            'status_code': status_codes[ERROR]
+            'name': 'vessel0_get_2',
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[ERROR]
         },
-    ]
+    ],
 ]

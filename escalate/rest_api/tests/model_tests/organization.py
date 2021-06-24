@@ -71,10 +71,10 @@ org_tests = [
         {
             'method': POST,
             'endpoint': 'organization-list',
-            'body': org_test_data['org_test_0']['org0'],
+            'body': random_model_dict(Organization),
             'args': [],
             'name': 'org0',
-            'status_code': status_codes[POST]
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[POST]
         },
         {
             'method': POST,
@@ -82,7 +82,7 @@ org_tests = [
             'body': org_test_data['org_test_0']['org1'],
             'args': [],
             'name': 'org1',
-            'status_code': status_codes[POST]
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[POST]
         },
         {
             'method': PUT,
@@ -92,7 +92,7 @@ org_tests = [
                 'org0__uuid'
             ],
             'name': 'org0_update_0',
-            'status_code': status_codes[PUT]
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[PUT]
         },
         {
             'method': GET,
@@ -102,8 +102,8 @@ org_tests = [
                 'org0__uuid'
             ],
             'name': 'org0_get_0',
-            'status_code': status_codes[GET]
-        },
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[GET]
+        },        
         {
             'method': DELETE,
             'endpoint': 'organization-detail',
@@ -112,7 +112,7 @@ org_tests = [
                 'org0__uuid'
             ],
             'name': 'org0_delete_0',
-            'status_code': status_codes[DELETE]
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[DELETE]
         },
         {
             'method': GET,
@@ -122,7 +122,7 @@ org_tests = [
                 'org0__uuid'
             ],
             'name': 'org0_get_1',
-            'status_code': status_codes[ERROR]
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[ERROR]
         },
     ],
     [
@@ -132,7 +132,7 @@ org_tests = [
             'body': random_model_dict(Organization),
             'args': [],
             'name': 'org1',
-            'status_code': status_codes[POST]
+            'is_valid_response': lambda resp, _: resp.status_code == status_codes[POST]
         },
     ]
 ]

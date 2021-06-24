@@ -79,8 +79,8 @@ def run_test(api_client, tests):
     request_data_deep_copy = copy.deepcopy(tests)
     
     for request_data in request_data_deep_copy:
-        endpoint, method, body, args, name, status_code = [request_data[key] for key \
-            in ['endpoint', 'method', 'body', 'args', 'name', 'status_code']]
+        endpoint, method, body, args, name, is_valid_response = [request_data[key] for key \
+            in ['endpoint', 'method', 'body', 'args', 'name', 'is_valid_response']]
         
         add_prev_endpoint_data_2(body, response_data)
         
@@ -99,7 +99,7 @@ def run_test(api_client, tests):
             resp = api_client.delete(reverse(endpoint, args=args))
         else:
             assert False, 'Invalid Http method'
-        assert resp.status_code == status_code, name
+        assert is_valid_response(resp, response_data), method + ' ' + name
 
 @pytest.fixture
 def api_client():
