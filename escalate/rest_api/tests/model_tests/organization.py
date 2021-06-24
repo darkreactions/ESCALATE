@@ -7,6 +7,9 @@ from .model_tests_utils import (
     ERROR,
     random_model_dict
 )
+from core.models import (
+    Organization
+)
 
 org_test_data = {
     'org_test_0':{
@@ -128,7 +131,7 @@ org_tests = [
         {
             'method': POST,
             'endpoint': 'organization-list',
-            'body': random_model_dict('organization'),
+            'body': random_model_dict(Organization),
             'args': [],
             'name': 'org1',
             'status_code': status_codes[POST]

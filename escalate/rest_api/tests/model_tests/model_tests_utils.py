@@ -17,9 +17,7 @@ status_codes = {
         ERROR: 404
     }
 
-def random_model_dict(model_name, **kwargs):
-    model_class_name = ''.join([x.capitalize() for x in model_name.split("_")])
-    model = getattr(core.models, model_class_name)
+def random_model_dict(model, **kwargs):
     fields = [f for f in model._meta.fields]
 
     _field_names = set([f.name for f in fields])
