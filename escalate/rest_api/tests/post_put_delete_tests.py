@@ -111,6 +111,7 @@ def run_test(api_client, tests):
             response_data[name] = resp.json()
         elif(method == 'GET'):
             resp = api_client.get(reverse(endpoint, args=args))
+            print(resp.json().items())
             response_data[name] = resp.json()
         elif(method == 'DELETE'):
             resp = api_client.delete(reverse(endpoint, args=args))
@@ -155,7 +156,7 @@ def add_pytest_test(value):
 # the test suites, adds a pytest function to this file
 for key, value in vars(model_tests).items():
     if str(key).endswith('_tests'):
-        model_name = key.rstrip('_tests')
+        model_name = key.replace('_tests', '')
         globals()[f'test_{model_name}'] = add_pytest_test(value)
 
 

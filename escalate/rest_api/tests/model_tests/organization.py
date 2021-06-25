@@ -6,7 +6,8 @@ from .model_tests_utils import (
     GET,
     ERROR,
     random_model_dict,
-    check_status_code
+    check_status_code,
+    compare_data
 )
 from core.models import (
     Organization
@@ -61,13 +62,15 @@ org_test_data = {
 
 
 
+org_tests = [
+
+##----TEST 0----##
 #creates an organization
 #creates an organization that is the child of the previous org
 #updates the first organization to be a child of the second (both are parent orgs)
 #gets the first org
 #deletes the first org
 #gets the first org (should return error)
-org_tests = [
     [       
         {
             'name': 'org0',
@@ -168,4 +171,25 @@ org_tests = [
             }
         },
     ],
+    
+##----TEST 1----##
+#creates an organization and checks that the response data matches the 
+#request data stored in the body entry
+    [   
+        {
+            'name': 'org0',
+            'method': POST,
+            'endpoint': 'organization-list',
+            'body': (request_body := random_model_dict(Organization)),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': compare_data,
+                'args': [],
+                'kwargs': {
+                    'request_body':request_body,
+                }
+            }
+        },
+    ]
 ]

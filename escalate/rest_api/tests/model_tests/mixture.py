@@ -10,30 +10,31 @@ from .model_tests_utils import (
     compare_data
 )
 from core.models import (
-    Vessel,
-    Actor,
-    Status
+    Mixture,
+    Material,
+    MaterialType
 )
 
-vessel_test_data = {}
+mixture_test_data = {}
 
-vessel_tests = [
+mixture_tests = [
 
 ##----TEST 0----##
-#creates new actor
-#creates a new status
-#creates a vessel with the status as a foreign key
-#gets the vessel
-#updates the vessel to have the previously defined actor as a foreign key
-#gets the vessel
-#deletes the vessel
-#gets the vessel (should return error)
-    [       
+#creates a material
+#creates a second material
+#creates a materialtype
+#creates a mixture with materialtype as a manytomany key and the two materials as foreign keys
+#gets the mixture
+#updates the mixture to no longer have manytomany/foreign keys
+#gets the mixture
+#deletes the mixture
+#gets the mixture (should return error)
+    [      
         {
-            'name': 'actor0',
+            'name': 'material0',
             'method': POST,
-            'endpoint': 'actor-list',
-            'body': random_model_dict(Actor),
+            'endpoint': 'material-list',
+            'body': random_model_dict(Material),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -45,10 +46,10 @@ vessel_tests = [
             }
         },
         {
-            'name': 'status0',
+            'name': 'material1',
             'method': POST,
-            'endpoint': 'status-list',
-            'body': random_model_dict(Status),
+            'endpoint': 'material-list',
+            'body': random_model_dict(Material),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -60,10 +61,10 @@ vessel_tests = [
             }
         },
         {
-            'name': 'vessel0',
+            'name': 'materialtype0',
             'method': POST,
-            'endpoint': 'vessel-list',
-            'body': random_model_dict(Vessel, status='status0__url'),
+            'endpoint': 'materialtype-list',
+            'body': random_model_dict(MaterialType),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -75,12 +76,28 @@ vessel_tests = [
             }
         },
         {
-            'name': 'vessel0_get_0',
+            'name': 'mixture0',
+            'method': POST,
+            'endpoint': 'mixture-list',
+            'body': random_model_dict(Mixture, composite='material0__url', component='material1__url', \
+                    material_type=['materialtype0__url']),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        },
+        {
+            'name': 'mixture0_get_0',
             'method': GET,
-            'endpoint': 'vessel-detail',
+            'endpoint': 'mixture-detail',
             'body': {},
             'args': [
-                'vessel0__uuid'
+                'mixture0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -92,12 +109,12 @@ vessel_tests = [
             }
         },
         {
-            'name': 'vessel0_update_0',
+            'name': 'mixture0_update_0',
             'method': PUT,
-            'endpoint': 'vessel-detail',
-            'body': random_model_dict(Vessel, actor='actor0__url'),
+            'endpoint': 'mixture-detail',
+            'body': random_model_dict(Mixture),
             'args': [
-                'vessel0__uuid'
+                'mixture0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -109,12 +126,12 @@ vessel_tests = [
             }
         },
         {
-            'name': 'vessel0_get_1',
+            'name': 'mixture0_get_1',
             'method': GET,
-            'endpoint': 'vessel-detail',
+            'endpoint': 'mixture-detail',
             'body': {},
             'args': [
-                'vessel0__uuid'
+                'mixture0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -126,12 +143,12 @@ vessel_tests = [
             }
         },
         {
-            'name': 'vessel0_delete_0',
+            'name': 'mixture0_delete_0',
             'method': DELETE,
-            'endpoint': 'vessel-detail',
+            'endpoint': 'mixture-detail',
             'body': {},
             'args': [
-                'vessel0__uuid'
+                'mixture0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -143,12 +160,12 @@ vessel_tests = [
             }
         },
         {
-            'name': 'vessel0_get_2',
+            'name': 'mixture0_get_2',
             'method': GET,
-            'endpoint': 'vessel-detail',
+            'endpoint': 'mixture-detail',
             'body': {},
             'args': [
-                'vessel0__uuid'
+                'mixture0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -162,14 +179,14 @@ vessel_tests = [
     ],
 
 ##----TEST 1----##
-#creates a vessel and checks that the response data matches the 
+#creates a mixture and checks that the response data matches the 
 #request data stored in the body entry
     [   
         {
-            'name': 'vessel0',
+            'name': 'mixture0',
             'method': POST,
-            'endpoint': 'vessel-list',
-            'body': (request_body := random_model_dict(Vessel)),
+            'endpoint': 'mixture-list',
+            'body': (request_body := random_model_dict(Mixture)),
             'args': [],
             'query_params': [],
             'is_valid_response': {

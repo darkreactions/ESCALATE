@@ -39,7 +39,7 @@ def random_model_dict(model, **kwargs):
     for field_name, field_obj in dict_fields.items():
         field_class_name = field_obj.__class__.__name__
         if field_obj.choices != None:
-            choice_idx = random.randint(0, len(field_obj.choices))
+            choice_idx = random.randint(0, len(field_obj.choices)-1)
             model_dict[field_name] = field_obj.choices[choice_idx][0]
         else:
             if field_class_name == "CharField":

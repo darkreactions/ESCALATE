@@ -12,7 +12,8 @@ from .model_tests_utils import (
 
 from core.models import (
     Organization,
-    Person
+    Person,
+    Actor
 )
 
 person_test_data = {
@@ -97,35 +98,23 @@ person_test_data = {
 
 
 
-#creates 2 organizations
-#creates a person that is a part of these 2 organizations
-#gets that person
+person_tests = [
+##----TEST 0----##
+#creates an organization
+#creates a person
+#creates an actor with the person and organization as foreign keys
+    #this will populate the added_organization field in person with
+    #the corresponding organization in the actor table
+#deletes the actor
+    #empties the added_organization field
+#gets the person
 #updates person
-#gets person
-#updates person by deleting from 1 added organization
 #gets person
 #deletes person
 #gets person (should return error)
-#tests creating person with manytomany already
-person_tests = [
-    [       
+    [   
         {
             'name': 'org0',
-            'method': POST,
-            'endpoint': 'organization-list',
-            'body': random_model_dict(Organization),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'org1',
             'method': POST,
             'endpoint': 'organization-list',
             'body': random_model_dict(Organization),
@@ -151,6 +140,38 @@ person_tests = [
                 'args': [],
                 'kwargs': {
                     'status_code': POST
+                }
+            }
+        },
+        {
+            'name': 'actor0',
+            'method': POST,
+            'endpoint': 'actor-list',
+            'body': random_model_dict(Actor, organization='org0__url', person='person0__url'),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        },
+        {
+            'name': 'actor0_delete_0',
+            'method': DELETE,
+            'endpoint': 'actor-detail',
+            'body': {},
+            'args': [
+                'actor0__uuid'
+            ],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': DELETE
                 }
             }
         },
@@ -206,41 +227,7 @@ person_tests = [
             }
         },
         {
-            'name': 'person0_update_1',
-            'method': PUT,
-            'endpoint': 'person-detail',
-            'body': person_test_data['person_test_0']['person_update1'],
-            'args': [
-                'person0__uuid'
-            ],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': PUT
-                }
-            }
-        },
-        {
-            'name': 'person0_get_2',
-            'method': GET,
-            'endpoint': 'person-detail',
-            'body': {},
-            'args': [
-                'person0__uuid'
-            ],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': GET
-                }
-            }
-        },
-        {
-            'name': 'person0_delete_1',
+            'name': 'person0_delete_0',
             'method': DELETE,
             'endpoint': 'person-detail',
             'body': {},
@@ -274,22 +261,11 @@ person_tests = [
             }
         },
     ],
+
+##----TEST 1----##
+#creates a person and checks that the response data matches the 
+#request data stored in the body entry
     [   
-        {
-            'name': 'org0',
-            'method': POST,
-            'endpoint': 'organization-list',
-            'body': random_model_dict(Organization),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
         {
             'name': 'person0',
             'method': POST,

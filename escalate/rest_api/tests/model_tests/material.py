@@ -10,30 +10,47 @@ from .model_tests_utils import (
     compare_data
 )
 from core.models import (
-    Vessel,
-    Actor,
-    Status
+    Material,
+    MaterialIdentifier,
+    MaterialIdentifierDef,
+    MaterialType
 )
 
-vessel_test_data = {}
+material_test_data = {}
 
-vessel_tests = [
+material_tests = [
 
 ##----TEST 0----##
-#creates new actor
-#creates a new status
-#creates a vessel with the status as a foreign key
-#gets the vessel
-#updates the vessel to have the previously defined actor as a foreign key
-#gets the vessel
-#deletes the vessel
-#gets the vessel (should return error)
-    [       
+#creates a materialidentifierdef
+#creates materialidentifier with the previous entry as a manytomany key
+#creates a materialtype
+#creates a material with the most recent two entries as manytomany keys
+#gets the material
+#updates the material to no longer have manytomany keys
+#gets the material
+#deletes the material
+#gets the material (should return error)
+    [      
         {
-            'name': 'actor0',
+            'name': 'materialidentifierdef0',
             'method': POST,
-            'endpoint': 'actor-list',
-            'body': random_model_dict(Actor),
+            'endpoint': 'materialidentifierdef-list',
+            'body': random_model_dict(MaterialIdentifierDef),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        }, 
+        {
+            'name': 'materialidentifier0',
+            'method': POST,
+            'endpoint': 'materialidentifier-list',
+            'body': random_model_dict(MaterialIdentifier, material_identifier_def='materialidentifierdef0__url'),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -45,10 +62,10 @@ vessel_tests = [
             }
         },
         {
-            'name': 'status0',
+            'name': 'materialtype0',
             'method': POST,
-            'endpoint': 'status-list',
-            'body': random_model_dict(Status),
+            'endpoint': 'materialtype-list',
+            'body': random_model_dict(MaterialType),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -60,10 +77,10 @@ vessel_tests = [
             }
         },
         {
-            'name': 'vessel0',
+            'name': 'material0',
             'method': POST,
-            'endpoint': 'vessel-list',
-            'body': random_model_dict(Vessel, status='status0__url'),
+            'endpoint': 'material-list',
+            'body': random_model_dict(Material, identifier=['materialidentifier0__url'], material_type=['materialtype0__url']),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -75,12 +92,12 @@ vessel_tests = [
             }
         },
         {
-            'name': 'vessel0_get_0',
+            'name': 'material0_get_0',
             'method': GET,
-            'endpoint': 'vessel-detail',
+            'endpoint': 'material-detail',
             'body': {},
             'args': [
-                'vessel0__uuid'
+                'material0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -92,12 +109,12 @@ vessel_tests = [
             }
         },
         {
-            'name': 'vessel0_update_0',
+            'name': 'material0_update_0',
             'method': PUT,
-            'endpoint': 'vessel-detail',
-            'body': random_model_dict(Vessel, actor='actor0__url'),
+            'endpoint': 'material-detail',
+            'body': random_model_dict(Material),
             'args': [
-                'vessel0__uuid'
+                'material0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -109,12 +126,12 @@ vessel_tests = [
             }
         },
         {
-            'name': 'vessel0_get_1',
+            'name': 'material0_get_1',
             'method': GET,
-            'endpoint': 'vessel-detail',
+            'endpoint': 'material-detail',
             'body': {},
             'args': [
-                'vessel0__uuid'
+                'material0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -126,12 +143,12 @@ vessel_tests = [
             }
         },
         {
-            'name': 'vessel0_delete_0',
+            'name': 'material0_delete_0',
             'method': DELETE,
-            'endpoint': 'vessel-detail',
+            'endpoint': 'material-detail',
             'body': {},
             'args': [
-                'vessel0__uuid'
+                'material0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -143,12 +160,12 @@ vessel_tests = [
             }
         },
         {
-            'name': 'vessel0_get_2',
+            'name': 'material0_get_2',
             'method': GET,
-            'endpoint': 'vessel-detail',
+            'endpoint': 'material-detail',
             'body': {},
             'args': [
-                'vessel0__uuid'
+                'material0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -162,14 +179,14 @@ vessel_tests = [
     ],
 
 ##----TEST 1----##
-#creates a vessel and checks that the response data matches the 
+#creates a material and checks that the response data matches the 
 #request data stored in the body entry
     [   
         {
-            'name': 'vessel0',
+            'name': 'material0',
             'method': POST,
-            'endpoint': 'vessel-list',
-            'body': (request_body := random_model_dict(Vessel)),
+            'endpoint': 'material-list',
+            'body': (request_body := random_model_dict(Material)),
             'args': [],
             'query_params': [],
             'is_valid_response': {
