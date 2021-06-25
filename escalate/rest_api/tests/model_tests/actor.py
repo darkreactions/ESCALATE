@@ -12,7 +12,8 @@ from .model_tests_utils import (
 from core.models import (
     Organization,
     Systemtool,
-    Person
+    Person,
+    SystemtoolType
 )
 
 def check_actor(resp, **kwargs):
@@ -57,7 +58,6 @@ actor_tests = [
             'body': {},
             'args': [],
             'query_params': [],
-            'name': 'org0_get_0',
             'is_valid_response': {
                 'function': check_actor,
                 'args': [],
@@ -68,5 +68,85 @@ actor_tests = [
                 }
             }
         },
+        {
+            'name': 'person0',
+            'method': POST,
+            'endpoint': 'person-list',
+            'body': random_model_dict(Person),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        },
+        {
+            'name': 'person0_get_actor',
+            'method': GET,
+            'endpoint': 'actor-list',
+            'body': {},
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_actor,
+                'args': [],
+                'kwargs': {
+                    'actor_fields': {
+                        'person': 'person0__url'
+                    },
+                }
+            }  
+        },
+        {
+            'name': 'systemtooltype0',
+            'method': POST,
+            'endpoint': 'systemtooltype-list',
+            'body': random_model_dict(SystemtoolType),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        },
+        {
+            'name': 'systemtool0',
+            'method': POST,
+            'endpoint': 'systemtool-list',
+            'body': random_model_dict(Systemtool, vendor_organization='org0__url', \
+                    systemtool_type='systemtooltype0__url'),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        },
+        {
+            'name': 'systemtool0_get_actor',
+            'method': GET,
+            'endpoint': 'actor-list',
+            'body': {},
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_actor,
+                'args': [],
+                'kwargs': {
+                    'actor_fields': {
+                        'systemtool': 'systemtool0__url'
+                    },
+                }
+            }
+        }
     ]
 ]
