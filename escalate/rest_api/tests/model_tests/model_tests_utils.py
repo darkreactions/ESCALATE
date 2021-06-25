@@ -59,7 +59,7 @@ def random_model_dict(model, **kwargs):
                 rand_alpha = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = length))
                 model_dict[field_name] = rand_alpha
     for field_name, value in kwargs.items():
-        assert field_name in _field_names, "invalid field name"
+        assert field_name in _field_names, f"invalid field name: {field_name}"
         model_dict[field_name] = value
     return model_dict
 
