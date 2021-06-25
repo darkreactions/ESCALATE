@@ -172,7 +172,7 @@ person_tests = [
             'name': 'person0_update_0',
             'method': PUT,
             'endpoint': 'person-detail',
-            'body': random_model_dict(Person, added_organization="org0__url"),
+            'body': random_model_dict(Person, added_organization=["org0__url"]),
             'args': [
                 'person0__uuid'
             ],

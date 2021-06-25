@@ -22,15 +22,11 @@ status_codes = {
 def random_model_dict(model, **kwargs):
     fields = [f for f in model._meta.fields]
     manytomany = [f for f in model._meta.many_to_many]
+
     all_fields = [*fields, *manytomany]
     _field_names = set([f.name for f in all_fields])
-    print(_field_names)
 
-    # fields = [f for f in model._meta.fields]
-    # test = [f.name for f in fields]
-    # _field_names = set(test)
-    # print(_field_names)
-    is_flat = lambda field: not(
+    can_generate_random_val = lambda field: not(
         field.__class__.__name__ == 'RetUUIDField' or
         field.name == 'add_date' or
         field.name == 'mod_date' or
@@ -38,7 +34,7 @@ def random_model_dict(model, **kwargs):
         (field.__class__.__name__ == 'ForeignKey' and not field.null) or 
         (field.__class__.__name__ == 'OneToOneField' and not field.null)
         )
-    dict_fields = {f.name:f for f in filter(is_flat, fields)}
+    dict_fields = {f.name:f for f in filter(can_generate_random_val, all_fields)}
     model_dict = {}
     for field_name, field_obj in dict_fields.items():
         field_class_name = field_obj.__class__.__name__
