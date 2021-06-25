@@ -1,6 +1,6 @@
 import random
 import string
-
+from rest_api.tests.post_put_delete_tests import add_prev_endpoint_data_2
 from django.db.models.fields.related import ManyToManyField
 import core
 
@@ -66,3 +66,17 @@ def random_model_dict(model, **kwargs):
 def check_status_code(resp, **kwargs):
     http_res_code = kwargs['status_code']
     return resp.status_code == status_codes[http_res_code]
+
+
+def compare_data(resp, **kwargs):
+    body = kwargs['request_body']
+    response_data = kwargs['response_data']
+    add_prev_endpoint_data_2(body, response_data)
+
+    for key, value in resp.json().items():
+        if key in body.keys():
+            if value != body[key]:
+                print(f'expected: {key} {body[key]}')
+                print(f'got: {key} {value}')
+                return False
+    return True

@@ -115,7 +115,7 @@ def run_test(api_client, tests):
         elif(method == 'DELETE'):
             resp = api_client.delete(reverse(endpoint, args=args))
         else:
-            assert False, f'Invalid Http method!!!\n{name}'
+            assert False, f'Invalid Http method!!!\n{name}' 
         assert is_valid_resp(resp,
                             response_data=response_data,
                             *is_valid_resp_args,

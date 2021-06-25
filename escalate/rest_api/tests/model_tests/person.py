@@ -6,7 +6,8 @@ from .model_tests_utils import (
     GET,
     ERROR,
     random_model_dict,
-    check_status_code
+    check_status_code,
+    compare_data
 )
 
 from core.models import (
@@ -94,6 +95,8 @@ person_test_data = {
     }
 }
 
+
+
 #creates 2 organizations
 #creates a person that is a part of these 2 organizations
 #gets that person
@@ -172,7 +175,7 @@ person_tests = [
             'name': 'person0_update_0',
             'method': PUT,
             'endpoint': 'person-detail',
-            'body': random_model_dict(Person, added_organization=["org0__url"]),
+            'body': random_model_dict(Person),
             'args': [
                 'person0__uuid'
             ],
@@ -270,5 +273,39 @@ person_tests = [
                 }
             }
         },
+    ],
+    [   
+        {
+            'name': 'org0',
+            'method': POST,
+            'endpoint': 'organization-list',
+            'body': random_model_dict(Organization),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        },
+        {
+            'name': 'person0',
+            'method': POST,
+            'endpoint': 'person-list',
+            'body': (request_body := random_model_dict(Person)),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': compare_data,
+                'args': [],
+                'kwargs': {
+                    'request_body':request_body,
+                }
+            }
+        },
     ]
 ]
+
+
