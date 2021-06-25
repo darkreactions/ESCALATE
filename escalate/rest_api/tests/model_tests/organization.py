@@ -88,7 +88,7 @@ org_tests = [
             'name': 'org1',
             'method': POST,
             'endpoint': 'organization-list',
-            'body': org_test_data['org_test_0']['org1'],
+            'body': random_model_dict(Organization, parent='org0__url'),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -103,7 +103,7 @@ org_tests = [
             'name': 'org0_update_0',
             'method': PUT,
             'endpoint': 'organization-detail',
-            'body': org_test_data['org_test_0']['org0_update_0'],
+            'body': random_model_dict(Organization, parent='org1__url'),
             'args': [
                 'org0__uuid'
             ],
@@ -168,21 +168,4 @@ org_tests = [
             }
         },
     ],
-    [
-        {
-            'name': 'org1',
-            'method': POST,
-            'endpoint': 'organization-list',
-            'body': random_model_dict(Organization),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-    ]
 ]

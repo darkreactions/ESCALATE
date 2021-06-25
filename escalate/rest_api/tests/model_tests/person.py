@@ -5,7 +5,13 @@ from .model_tests_utils import (
     POST,
     GET,
     ERROR,
+    random_model_dict,
     check_status_code
+)
+
+from core.models import (
+    Organization,
+    Person
 )
 
 person_test_data = {
@@ -104,7 +110,7 @@ person_tests = [
             'name': 'org0',
             'method': POST,
             'endpoint': 'organization-list',
-            'body': person_test_data['person_test_0']['org0'],
+            'body': random_model_dict(Organization),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -119,7 +125,7 @@ person_tests = [
             'name': 'org1',
             'method': POST,
             'endpoint': 'organization-list',
-            'body': person_test_data['person_test_0']['org1'],
+            'body': random_model_dict(Organization),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -131,10 +137,10 @@ person_tests = [
             }
         },
         {
-            'name': 'person',
+            'name': 'person0',
             'method': POST,
             'endpoint': 'person-list',
-            'body': person_test_data['person_test_0']['person'],
+            'body': random_model_dict(Person),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -146,12 +152,12 @@ person_tests = [
             }
         },
         {
-            'name': 'get_person',
+            'name': 'person0_get_0',
             'method': GET,
             'endpoint': 'person-detail',
             'body': {},
             'args': [
-                'person__uuid'
+                'person0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -163,12 +169,12 @@ person_tests = [
             }
         },
         {
-            'name': 'person_update0',
+            'name': 'person0_update_0',
             'method': PUT,
             'endpoint': 'person-detail',
             'body': person_test_data['person_test_0']['person_update0'],
             'args': [
-                'get_person__uuid'
+                'person0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -180,12 +186,12 @@ person_tests = [
             }
         },
         {
-            'name': 'get_person_update0',
+            'name': 'person0_get_1',
             'method': GET,
             'endpoint': 'person-detail',
             'body': {},
             'args': [
-                'person_update0__uuid'
+                'person0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -197,12 +203,12 @@ person_tests = [
             }
         },
         {
-            'name': 'person_update1',
+            'name': 'person0_update_1',
             'method': PUT,
             'endpoint': 'person-detail',
             'body': person_test_data['person_test_0']['person_update1'],
             'args': [
-                'get_person_update0__uuid'
+                'person0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -214,12 +220,12 @@ person_tests = [
             }
         },
         {
-            'name': 'get_person_update1',
+            'name': 'person0_get_2',
             'method': GET,
             'endpoint': 'person-detail',
             'body': {},
             'args': [
-                'person_update1__uuid'
+                'person0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -231,12 +237,12 @@ person_tests = [
             }
         },
         {
-            'name': 'delete_person_update1',
+            'name': 'person0_delete_1',
             'method': DELETE,
             'endpoint': 'person-detail',
             'body': {},
             'args': [
-                'get_person_update1__uuid'
+                'person0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -248,12 +254,12 @@ person_tests = [
             }
         },
         {
-            'name': 'error_get_person_update1',
+            'name': 'person0_get_3',
             'method': GET,
             'endpoint': 'person-detail',
             'body': {},
             'args': [
-                'get_person_update1__uuid'
+                'person0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {

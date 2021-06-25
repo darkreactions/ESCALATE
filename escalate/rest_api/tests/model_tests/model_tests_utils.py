@@ -19,9 +19,9 @@ status_codes = {
 
 def random_model_dict(model, **kwargs):
     fields = [f for f in model._meta.fields]
-
-    _field_names = set([f.name for f in fields])
-
+    test = [f.name for f in fields]
+    _field_names = set(test)
+    #print(test)
     is_flat = lambda field: not(
         field.__class__.__name__ == 'RetUUIDField' or
         field.name == 'add_date' or
