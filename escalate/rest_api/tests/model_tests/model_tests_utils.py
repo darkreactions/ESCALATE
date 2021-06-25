@@ -1,5 +1,7 @@
 import random
 import string
+
+from django.db.models.fields.related import ManyToManyField
 import core
 
 
@@ -19,9 +21,15 @@ status_codes = {
 
 def random_model_dict(model, **kwargs):
     fields = [f for f in model._meta.fields]
-    test = [f.name for f in fields]
-    _field_names = set(test)
-    #print(test)
+    manytomany = [f for f in model._meta.many_to_many]
+    all_fields = [*fields, *manytomany]
+    _field_names = set([f.name for f in all_fields])
+    print(_field_names)
+
+    # fields = [f for f in model._meta.fields]
+    # test = [f.name for f in fields]
+    # _field_names = set(test)
+    # print(_field_names)
     is_flat = lambda field: not(
         field.__class__.__name__ == 'RetUUIDField' or
         field.name == 'add_date' or
