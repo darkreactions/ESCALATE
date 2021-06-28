@@ -52,9 +52,12 @@ def random_model_dict(model, **kwargs):
                 model_dict[field_name] = f'{rand_alpha}@test.com'
             elif field_class_name == "ForeignKey":
                 model_dict[field_name] = None
+            elif field_class_name == "OneToOneField":
+                model_dict[field_name] = None
             elif field_class_name == "BooleanField":
                 model_dict[field_name] = True if random.uniform(0,1) > 0.5 else False
             else:
+                print(field_obj.__class__.__name__)
                 length = field_obj.max_length // 3 + 1
                 rand_alpha = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = length))
                 model_dict[field_name] = rand_alpha
