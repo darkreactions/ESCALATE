@@ -1,4 +1,4 @@
-from .model_tests_utils import (
+from ..model_tests_utils import (
     status_codes,
     DELETE,
     PUT,

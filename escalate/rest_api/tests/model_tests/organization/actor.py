@@ -1,5 +1,5 @@
 from rest_api.tests.post_put_delete_tests import add_prev_endpoint_data_2
-from .model_tests_utils import (
+from ..model_tests_utils import (
     status_codes,
     DELETE,
     PUT,

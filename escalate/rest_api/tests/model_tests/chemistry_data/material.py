@@ -1,4 +1,4 @@
-from .model_tests_utils import (
+from ..model_tests_utils import (
     status_codes,
     DELETE,
     PUT,
@@ -10,31 +10,32 @@ from .model_tests_utils import (
     compare_data
 )
 from core.models import (
-    Mixture,
     Material,
+    MaterialIdentifier,
+    MaterialIdentifierDef,
     MaterialType
 )
 
-mixture_test_data = {}
+material_test_data = {}
 
-mixture_tests = [
+material_tests = [
 
 ##----TEST 0----##
-#creates a material
-#creates a second material
+#creates a materialidentifierdef
+#creates materialidentifier with the previous entry as a manytomany key
 #creates a materialtype
-#creates a mixture with materialtype as a manytomany key and the two materials as foreign keys
-#gets the mixture
-#updates the mixture to no longer have manytomany/foreign keys
-#gets the mixture
-#deletes the mixture
-#gets the mixture (should return error)
+#creates a material with the most recent two entries as manytomany keys
+#gets the material
+#updates the material to no longer have manytomany keys
+#gets the material
+#deletes the material
+#gets the material (should return error)
     [      
         {
-            'name': 'material0',
+            'name': 'materialidentifierdef0',
             'method': POST,
-            'endpoint': 'material-list',
-            'body': random_model_dict(Material),
+            'endpoint': 'materialidentifierdef-list',
+            'body': random_model_dict(MaterialIdentifierDef),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -44,12 +45,12 @@ mixture_tests = [
                     'status_code': POST
                 }
             }
-        },
+        }, 
         {
-            'name': 'material1',
+            'name': 'materialidentifier0',
             'method': POST,
-            'endpoint': 'material-list',
-            'body': random_model_dict(Material),
+            'endpoint': 'materialidentifier-list',
+            'body': random_model_dict(MaterialIdentifier, material_identifier_def='materialidentifierdef0__url'),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -76,11 +77,10 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0',
+            'name': 'material0',
             'method': POST,
-            'endpoint': 'mixture-list',
-            'body': random_model_dict(Mixture, composite='material0__url', component='material1__url', \
-                    material_type=['materialtype0__url']),
+            'endpoint': 'material-list',
+            'body': random_model_dict(Material, identifier=['materialidentifier0__url'], material_type=['materialtype0__url']),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -92,12 +92,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_get_0',
+            'name': 'material0_get_0',
             'method': GET,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'material-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'material0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -109,12 +109,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_update_0',
+            'name': 'material0_update_0',
             'method': PUT,
-            'endpoint': 'mixture-detail',
-            'body': random_model_dict(Mixture),
+            'endpoint': 'material-detail',
+            'body': random_model_dict(Material),
             'args': [
-                'mixture0__uuid'
+                'material0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -126,12 +126,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_get_1',
+            'name': 'material0_get_1',
             'method': GET,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'material-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'material0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -143,12 +143,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_delete_0',
+            'name': 'material0_delete_0',
             'method': DELETE,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'material-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'material0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -160,12 +160,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_get_2',
+            'name': 'material0_get_2',
             'method': GET,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'material-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'material0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -179,14 +179,14 @@ mixture_tests = [
     ],
 
 ##----TEST 1----##
-#creates a mixture and checks that the response data matches the 
+#creates a material and checks that the response data matches the 
 #request data stored in the body entry
     [   
         {
-            'name': 'mixture0',
+            'name': 'material0',
             'method': POST,
-            'endpoint': 'mixture-list',
-            'body': (request_body := random_model_dict(Mixture)),
+            'endpoint': 'material-list',
+            'body': (request_body := random_model_dict(Material)),
             'args': [],
             'query_params': [],
             'is_valid_response': {
