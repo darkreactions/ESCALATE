@@ -19,6 +19,14 @@ inventory_test_data = {}
 
 inventory_tests = [
 ##----TEST 0----##
+# creates 6 actors
+# creates 2 statuses
+# creates an inventory with 3 of the actors and a status
+# gets it
+# updates inventory with 3 other actors and the other status
+# gets it
+# deletes it 
+# gets it (should error)
     [
         *[{
             'name': name,
@@ -162,7 +170,7 @@ inventory_tests = [
         },
     ],
 ##----TEST 1----##
-#creates a material and checks that the response data matches the 
+#creates a inventory and checks that the response data matches the 
 #request data stored in the body entry
     [
         *[{
