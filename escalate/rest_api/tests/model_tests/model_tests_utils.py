@@ -3,6 +3,7 @@ import string
 from rest_api.tests.post_put_delete_tests import add_prev_endpoint_data_2
 from django.db.models.fields.related import ManyToManyField
 import core
+import datetime
 
 
 GET = 'GET'
@@ -54,6 +55,16 @@ def random_model_dict(model, **kwargs):
                 model_dict[field_name] = None
             elif field_class_name == "OneToOneField":
                 model_dict[field_name] = None
+            elif field_class_name == "DateTimeField":
+                rand_year = random.randint(2000, int(str(datetime.datetime.today()).split()[0]))
+                rand_month = rand.randint(1,12)
+                if rand_month == 2:
+                    rand_day = random.randint(1, 28 if rand_year % 4 != 0 else 29)
+                else:
+                    rand_day = random.randint(1, 30 if rand_month % 2 == 0 else 31)
+                model_dict[field_name] = f'{rand_year}-{rand_month}-{rand_day}'
+            elif field_class_name == "FloatField" or field_class_name == "BigIntegerField":
+                model_dict[field_name] = random.randint(0,255)
             elif field_class_name == "BooleanField":
                 model_dict[field_name] = True if random.uniform(0,1) > 0.5 else False
             else:
