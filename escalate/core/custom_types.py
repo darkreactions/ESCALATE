@@ -26,6 +26,9 @@ class Val:
                 self.value = self.convert_value()
             self.unit = unit
             #print(self.val_type.description, self.value, self.unit)
+        else:
+            self.value = None
+            self.val_type = None
     
     def to_db(self):
         if not self.null:

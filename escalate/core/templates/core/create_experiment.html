@@ -30,7 +30,7 @@
         <form method="post">{% csrf_token %}
           <select id="org_select" name="select_exp_template" class="form-control selectpicker" data-style="btn-dark"
             data-live-search='true'>
-            <option value="" {% if not request.session.experiment_template_uuid %} selected {% endif %}>────────────</option>
+            <option value="" {% if not request.session.experiment_template_uuid %} selected {% endif %}></option>
             {% for exp in all_experiments %}
             <option value={{ exp.uuid }} {% ifequal request.session.experiment_template_uuid|stringformat:"s" exp.uuid|stringformat:"s" %} selected {% endifequal %}>
                 {{ exp.description }}

@@ -210,7 +210,12 @@ class Parameter(DateColumns, StatusColumn, ActorColumn):
     parameter_val_actual = ValField( blank=True,
                              null=True,
                              db_column='parameter_val_actual')
-    ref_object = RetUUIDField(blank=True, null=True)
+    #ref_object = RetUUIDField(blank=True, null=True)
+    action = models.ForeignKey('Action',
+                                      on_delete=models.DO_NOTHING,
+                                      blank=True,
+                                      null=True,
+                                      related_name='parameter_action')
     """
     # Parameter should be related to only 1 action unlike parameter_def to action_def
     # Therefore, we don't need a cross table like parameter_x but a direct foreign key

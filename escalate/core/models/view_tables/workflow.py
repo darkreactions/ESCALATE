@@ -176,6 +176,7 @@ class Experiment(DateColumns, StatusColumn, DescriptionColumn):
                                on_delete=models.DO_NOTHING, blank=True, null=True, related_name='experiment_experiment_type')
     ref_uid = models.CharField(max_length=255, db_column='ref_uid')
     # TODO: Does parent point to TypeDef or another Experiment?
+    # update to point to an experiment parent. 
     parent = models.ForeignKey('TypeDef', db_column='parent_uuid',
                                on_delete=models.DO_NOTHING, blank=True, null=True, related_name='experiment_parent')
     owner = models.ForeignKey('Actor', db_column='owner_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,

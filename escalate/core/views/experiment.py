@@ -14,11 +14,12 @@ from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm, NominalActualForm
 from core.forms.forms import ExperimentNameForm
 from core.utilities.utils import experiment_copy
-from core.utilities.experiment_utils import update_dispense_action_set, get_action_parameter_querysets, get_material_querysets
+from core.utilities.experiment_utils import update_dispense_action_set, get_action_parameter_querysets, get_material_querysets, supported_wfs
 import core.models
 from core.models.view_tables import Note, TagAssign, Tag
 from core.experiment_templates import liquid_solid_extraction, resin_weighing, perovskite_demo
 from core.custom_types import Val
+import core.experiment_templates
 
 #SUPPORTED_CREATE_WFS = ['liquid_solid_extraction', 'resin_weighing']
 #SUPPORTED_CREATE_WFS = supported_wfs() 
@@ -84,14 +85,15 @@ class CreateExperimentView(TemplateView):
         for row in q1:
             data = {'value': row.parameter_value, \
                 'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])}
-            if 'array' in row.parameter_value.val_type.description:
-                data['actual_value'] = Val.from_dict({'type':'array_num', \
-                                                      'value':[0]*len(row.parameter_value.value), \
-                                                      'unit':row.parameter_value.unit})
-            else:
-                data['actual_value'] = Val.from_dict({'type':'num', \
-                                                      'value':0, \
-                                                      'unit':row.parameter_value.unit})
+            if not row.parameter_value.null:
+                if 'array' in row.parameter_value.val_type:
+                    data['actual_value'] = Val.from_dict({'type':'array_num', \
+                                                          'value':[0]*len(row.parameter_value.value), \
+                                                          'unit':row.parameter_value.unit})
+                else:
+                    data['actual_value'] = Val.from_dict({'type':'num', \
+                                                          'value':0, \
+                                                          'unit':row.parameter_value.unit})
             
             initial_q1.append(data)
 
