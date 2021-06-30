@@ -3,6 +3,7 @@ import string
 from rest_api.tests.post_put_delete_tests import add_prev_endpoint_data_2
 from django.db.models.fields.related import ManyToManyField
 import core
+import datetime
 
 
 GET = 'GET'
@@ -31,8 +32,8 @@ def random_model_dict(model, **kwargs):
         field.name == 'add_date' or
         field.name == 'mod_date' or
         field.__class__.__name__ == 'ManyToManyField' or
-        (field.__class__.__name__ == 'ForeignKey' and not field.null) or 
-        (field.__class__.__name__ == 'OneToOneField' and not field.null)
+        field.__class__.__name__ == 'ForeignKey' or 
+        field.__class__.__name__ == 'OneToOneField'
         )
     dict_fields = {f.name:f for f in filter(can_generate_random_val, all_fields)}
     model_dict = {}
@@ -50,11 +51,20 @@ def random_model_dict(model, **kwargs):
                 length = field_obj.max_length // 3 + 1
                 rand_alpha = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = length))
                 model_dict[field_name] = f'{rand_alpha}@test.com'
-            elif field_class_name == "ForeignKey":
-                model_dict[field_name] = None
+            elif field_class_name == "DateTimeField":
+                rand_year = random.randint(2000, int(str(datetime.datetime.today()).split()[0]))
+                rand_month = rand.randint(1,12)
+                if rand_month == 2:
+                    rand_day = random.randint(1, 28 if rand_year % 4 != 0 else 29)
+                else:
+                    rand_day = random.randint(1, 30 if rand_month % 2 == 0 else 31)
+                model_dict[field_name] = f'{rand_year}-{rand_month}-{rand_day}'
+            elif field_class_name == "FloatField" or field_class_name == "BigIntegerField":
+                model_dict[field_name] = random.randint(0,255)
             elif field_class_name == "BooleanField":
                 model_dict[field_name] = True if random.uniform(0,1) > 0.5 else False
             else:
+                print(field_obj.__class__.__name__)
                 length = field_obj.max_length // 3 + 1
                 rand_alpha = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = length))
                 model_dict[field_name] = rand_alpha

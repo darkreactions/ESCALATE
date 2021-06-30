@@ -1,5 +1,4 @@
-from .model_tests_utils import (
-    status_codes,
+from ..model_tests_utils import (
     DELETE,
     PUT,
     POST,
@@ -9,27 +8,27 @@ from .model_tests_utils import (
     check_status_code,
     compare_data
 )
+
 from core.models import (
-    SystemtoolType
+    Status
 )
 
-systemtooltype_test_data = {}
+status_data = {}
 
-systemtooltype_tests = [
-
+status_tests = [
 ##----TEST 0----##
-#creates a systemtooltype
-#gets the systemtooltype
-#puts the systemtooltype with vendor_organization as the 2nd organization and systemtooltype_type as the 2nd systemtooltype_type
-#gets the updated systemtooltype
-#deletes the updated systemtooltype
-#gets the systemtooltype (should return error)
-    [      
+# creates a status
+# gets it
+# puts it
+# gets it
+# deletes it 
+# gets it (should error)
+    [
         {
-            'name': 'systemtooltype0',
+            'name': 'status',
             'method': POST,
-            'endpoint': 'systemtooltype-list',
-            'body': random_model_dict(SystemtoolType),
+            'endpoint': 'status-list',
+            'body': random_model_dict(Status),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -41,12 +40,12 @@ systemtooltype_tests = [
             }
         },
         {
-            'name': 'systemtooltype0_get_0',
+            'name': 'status_get',
             'method': GET,
-            'endpoint': 'systemtooltype-detail',
+            'endpoint': 'status-detail',
             'body': {},
             'args': [
-                'systemtooltype0__uuid'
+                'status__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -58,12 +57,12 @@ systemtooltype_tests = [
             }
         },
         {
-            'name': 'systemtooltype0_update_0',
+            'name': 'status_update',
             'method': PUT,
-            'endpoint': 'systemtooltype-detail',
-            'body': random_model_dict(SystemtoolType),
+            'endpoint': 'status-detail',
+            'body': random_model_dict(Status),
             'args': [
-                'systemtooltype0__uuid'
+                'status__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -75,12 +74,12 @@ systemtooltype_tests = [
             }
         },
         {
-            'name': 'systemtooltype0_get_1',
+            'name': 'status_update_get',
             'method': GET,
-            'endpoint': 'systemtooltype-detail',
+            'endpoint': 'status-detail',
             'body': {},
             'args': [
-                'systemtooltype0__uuid'
+                'status__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -92,12 +91,12 @@ systemtooltype_tests = [
             }
         },
         {
-            'name': 'systemtooltype0_delete_0',
+            'name': 'status_update_del',
             'method': DELETE,
-            'endpoint': 'systemtooltype-detail',
+            'endpoint': 'status-detail',
             'body': {},
             'args': [
-                'systemtooltype0__uuid'
+                'status__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -109,12 +108,12 @@ systemtooltype_tests = [
             }
         },
         {
-            'name': 'systemtooltype0_get_2',
+            'name': 'status_update_del_get',
             'method': GET,
-            'endpoint': 'systemtooltype-detail',
+            'endpoint': 'status-detail',
             'body': {},
             'args': [
-                'systemtooltype0__uuid'
+                'status__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -126,23 +125,21 @@ systemtooltype_tests = [
             }
         },
     ],
-
 ##----TEST 1----##
-#creates a systemtooltype and checks that the response data matches the 
-#request data stored in the body entry
-    [   
+# creates a status and checks if the response data matches the request data
+    [
         {
-            'name': 'systemtooltype0',
+            'name': 'status',
             'method': POST,
-            'endpoint': 'systemtooltype-list',
-            'body': (systemtooltype_posted := random_model_dict(SystemtoolType)),
+            'endpoint': 'status-list',
+            'body': (request_body := random_model_dict(Status)),
             'args': [],
             'query_params': [],
             'is_valid_response': {
                 'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'request_body': systemtooltype_posted
+                    'request_body': request_body
                 }
             }
         },

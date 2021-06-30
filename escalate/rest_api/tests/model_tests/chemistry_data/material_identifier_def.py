@@ -1,4 +1,5 @@
-from .model_tests_utils import (
+from rest_api.tests.post_put_delete_tests import add_prev_endpoint_data_2
+from ..model_tests_utils import (
     status_codes,
     DELETE,
     PUT,
@@ -10,30 +11,25 @@ from .model_tests_utils import (
     compare_data
 )
 from core.models import (
-    Vessel,
-    Actor,
-    Status
+    MaterialIdentifierDef,
 )
 
-vessel_test_data = {}
+material_identifier_def_data = {}
 
-vessel_tests = [
-
+material_identifier_def_tests = [
 ##----TEST 0----##
-#creates new actor
-#creates a new status
-#creates a vessel with the status as a foreign key
-#gets the vessel
-#updates the vessel to have the previously defined actor as a foreign key
-#gets the vessel
-#deletes the vessel
-#gets the vessel (should return error)
-    [       
+# creates a material identifier def
+# gets it
+# puts it
+# gets it
+# deletes it
+# gets it (should error)
+    [
         {
-            'name': 'actor0',
+            'name': 'mat_iden_def',
             'method': POST,
-            'endpoint': 'actor-list',
-            'body': random_model_dict(Actor),
+            'endpoint': 'materialidentifierdef-list',
+            'body': random_model_dict(MaterialIdentifierDef),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -45,42 +41,12 @@ vessel_tests = [
             }
         },
         {
-            'name': 'status0',
-            'method': POST,
-            'endpoint': 'status-list',
-            'body': random_model_dict(Status),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'vessel0',
-            'method': POST,
-            'endpoint': 'vessel-list',
-            'body': random_model_dict(Vessel, status='status0__url'),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'vessel0_get_0',
+            'name': 'mat_iden_def_get',
             'method': GET,
-            'endpoint': 'vessel-detail',
+            'endpoint': 'materialidentifierdef-detail',
             'body': {},
             'args': [
-                'vessel0__uuid'
+                'mat_iden_def__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -92,12 +58,12 @@ vessel_tests = [
             }
         },
         {
-            'name': 'vessel0_update_0',
+            'name': 'mat_iden_def_update',
             'method': PUT,
-            'endpoint': 'vessel-detail',
-            'body': random_model_dict(Vessel, actor='actor0__url'),
+            'endpoint': 'materialidentifierdef-detail',
+            'body': random_model_dict(MaterialIdentifierDef),
             'args': [
-                'vessel0__uuid'
+                'mat_iden_def__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -109,12 +75,12 @@ vessel_tests = [
             }
         },
         {
-            'name': 'vessel0_get_1',
+            'name': 'mat_iden_def_update_get',
             'method': GET,
-            'endpoint': 'vessel-detail',
+            'endpoint': 'materialidentifierdef-detail',
             'body': {},
             'args': [
-                'vessel0__uuid'
+                'mat_iden_def__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -126,12 +92,12 @@ vessel_tests = [
             }
         },
         {
-            'name': 'vessel0_delete_0',
+            'name': 'mat_iden_def_update_del',
             'method': DELETE,
-            'endpoint': 'vessel-detail',
+            'endpoint': 'materialidentifierdef-detail',
             'body': {},
             'args': [
-                'vessel0__uuid'
+                'mat_iden_def__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -143,12 +109,12 @@ vessel_tests = [
             }
         },
         {
-            'name': 'vessel0_get_2',
+            'name': 'mat_iden_def_del_get',
             'method': GET,
-            'endpoint': 'vessel-detail',
+            'endpoint': 'materialidentifierdef-detail',
             'body': {},
             'args': [
-                'vessel0__uuid'
+                'mat_iden_def__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -160,25 +126,23 @@ vessel_tests = [
             }
         },
     ],
-
 ##----TEST 1----##
-#creates a vessel and checks that the response data matches the 
-#request data stored in the body entry
-    [   
+# creates a material identifier def and compares request body with response body
+    [
         {
-            'name': 'vessel0',
+            'name': 'mat_iden_def',
             'method': POST,
-            'endpoint': 'vessel-list',
-            'body': (request_body := random_model_dict(Vessel)),
+            'endpoint': 'materialidentifierdef-list',
+            'body': (request_body := random_model_dict(MaterialIdentifierDef)),
             'args': [],
             'query_params': [],
             'is_valid_response': {
                 'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'request_body':request_body,
+                    'request_body': request_body
                 }
             }
-        },
+        } 
     ]
 ]
