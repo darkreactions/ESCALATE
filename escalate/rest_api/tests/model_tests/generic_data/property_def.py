@@ -124,7 +124,7 @@ property_def_tests = [
 # request data
     [
         {
-            'name': 'propery_def',
+            'name': 'property_def',
             'method': POST,
             'endpoint': 'propertydef-list',
             'body': (request_body := random_model_dict(PropertyDef)),
