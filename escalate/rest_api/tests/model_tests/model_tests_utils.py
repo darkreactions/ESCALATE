@@ -32,8 +32,8 @@ def random_model_dict(model, **kwargs):
         field.name == 'add_date' or
         field.name == 'mod_date' or
         field.__class__.__name__ == 'ManyToManyField' or
-        (field.__class__.__name__ == 'ForeignKey' and not field.null) or 
-        (field.__class__.__name__ == 'OneToOneField' and not field.null)
+        field.__class__.__name__ == 'ForeignKey' or 
+        field.__class__.__name__ == 'OneToOneField'
         )
     dict_fields = {f.name:f for f in filter(can_generate_random_val, all_fields)}
     model_dict = {}
@@ -51,10 +51,6 @@ def random_model_dict(model, **kwargs):
                 length = field_obj.max_length // 3 + 1
                 rand_alpha = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = length))
                 model_dict[field_name] = f'{rand_alpha}@test.com'
-            elif field_class_name == "ForeignKey":
-                model_dict[field_name] = None
-            elif field_class_name == "OneToOneField":
-                model_dict[field_name] = None
             elif field_class_name == "DateTimeField":
                 rand_year = random.randint(2000, int(str(datetime.datetime.today()).split()[0]))
                 rand_month = rand.randint(1,12)
