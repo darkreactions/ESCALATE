@@ -44,9 +44,6 @@ class TypeDef(models.Model):
                                    db_column='description')
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
-    class Meta:
-        managed = managed_tables
-        db_table = 'type_def'
 
     def __str__(self):
         return self.description

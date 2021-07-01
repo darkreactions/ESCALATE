@@ -34,9 +34,9 @@ class ValFormField(MultiValueField):
         errors = self.default_error_messages.copy()
         if 'error_messages' in kwargs:
             errors.update(kwargs['error_messages'])
-        data_types = TypeDef.objects.filter(category='data')
-        data_type_choices = [(data_type.description, data_type.description) for data_type in data_types]
-        #data_type_choices = [('num', 'num'), ('text', 'text'), ('bool', 'bool')]
+        #data_types = TypeDef.objects.filter(category='data')
+        #data_type_choices = [(data_type.description, data_type.description) for data_type in data_types]
+        data_type_choices = [('num', 'num'), ('text', 'text'), ('bool', 'bool')]
         fields = (
             CharField(error_messages={
                 'incomplete': 'Must enter a value',

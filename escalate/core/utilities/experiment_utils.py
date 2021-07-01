@@ -117,7 +117,7 @@ def get_action_parameter_querysets(exp_uuid):
                 parameter_def_description=F('workflow__action_workflow__parameter_action__parameter_def__description')).annotate(
                 experiment_uuid=F('uuid')).annotate(
                 experiment_description=F('description')).annotate(
-                workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'#what is this?
+                workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
                 ))#.filter(workflow_action_set__isnull=True).prefetch_related(f'{related_exp}')
     '''
     q1 = ActionParameter.objects.filter(**{f'{related_exp}': exp_uuid}).annotate(
