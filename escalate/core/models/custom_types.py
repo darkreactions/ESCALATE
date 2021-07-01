@@ -9,7 +9,7 @@ from django.forms import MultiWidget, TextInput, Select, MultiValueField, CharFi
 from core.custom_types import Val
 from core.validators import ValValidator
 from core.models.core_tables import TypeDef
-from core.widgets import ValWidget
+from core.widgets import ValFormField
 
 """
 v_type_uuid uuid, 0
@@ -25,42 +25,6 @@ v_source_uuid uuid, 9
 v_bool boolean, 10
 v_bool_array boolean[] 11
 """
-
-
-class ValFormField(MultiValueField):
-    widget = ValWidget()
-
-    def __init__(self, *args, **kwargs):
-        errors = self.default_error_messages.copy()
-        if 'error_messages' in kwargs:
-            errors.update(kwargs['error_messages'])
-        #data_types = TypeDef.objects.filter(category='data')
-        #data_type_choices = [(data_type.description, data_type.description) for data_type in data_types]
-        data_type_choices = [('num', 'num'), ('text', 'text'), ('bool', 'bool')]
-        fields = (
-            CharField(error_messages={
-                'incomplete': 'Must enter a value',
-            }),
-            CharField(required=False),
-            ChoiceField(choices=data_type_choices, initial='num')
-        )
-        if 'max_length' in kwargs:
-            kwargs.pop('max_length')
-            
-        super().__init__(fields, *args, **kwargs)
-
-    def compress(self, data_list):
-        if data_list:
-            value, unit, val_type_text = data_list
-            val_type = TypeDef.objects.get(category='data', description=val_type_text)
-            val = Val(val_type, value, unit)
-            return val
-        return Val(null=True)
-
-    def validate(self, value):
-        #print(f"validating {value}")
-        validator = ValValidator()
-        validator(value)
 
 class CustomArrayField(ArrayField):
     def _from_db_value(self, value, expression, connection):
@@ -123,14 +87,13 @@ class ValField(models.TextField):
     def value_from_object(self, obj):
         obj = super().value_from_object(obj)
         return obj
-
+    
     def formfield(self, **kwargs):
         # This is a fairly standard way to set up some defaults
         # while letting the caller override them.
         defaults = {'form_class': ValFormField}
         defaults.update(kwargs)
         return super().formfield(**defaults)
-
 
 # enum choices for {property(_def), material} class choices
 # these are enum types in postgres, so will be shortened to ints there.

@@ -1,7 +1,7 @@
 from django.forms import Select, Form, ModelChoiceField, HiddenInput, CharField
 from core.models.core_tables import TypeDef
 import core.models.view_tables as vt
-from core.models.custom_types import ValFormField
+from core.widgets import ValFormField
 from .forms import dropdown_attrs
 
 class SingleValForm(Form):
