@@ -63,9 +63,28 @@ def random_model_dict(model, **kwargs):
                 model_dict[field_name] = random.randint(0,255)
             elif field_class_name == "BooleanField":
                 model_dict[field_name] = True if random.uniform(0,1) > 0.5 else False
+            elif field_class_name == "ValField":
+                type_choices = ['text', 'num', 'int', 'array_int', 'array_num', 'bool']
+                rand_type = type_choices[random.randint(0, len(type_choices) - 1)]
+                rand_unit = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = 3))
+                if rand_type == 'text':
+                    rand_value = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = 10))
+                elif rand_type == 'num':
+                    rand_value = round(random.uniform(0,100),4)
+                elif rand_type == 'int':
+                    rand_value = random.randint(0,100)
+                elif rand_type == 'array_int':
+                    rand_value = [random.randint(0,100) for i in range(10)]
+                elif rand_type == 'array_num':
+                    rand_value = [round(random.uniform(0,100),4) for i in range (10)]
+                elif rand_type == 'bool':
+                    rand_value = True if random.uniform(0,1) > 0.5 else False
+                else:
+                    rand_value = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = 20))
+                model_dict[field_name] = {'type':rand_type, 'unit':rand_unit, 'value':rand_value}
             else:
-                print(field_obj.__class__.__name__)
-                length = field_obj.max_length // 3 + 1
+                print(field_name, field_obj.__class__.__name__)
+                length = random.randint(0,25)
                 rand_alpha = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = length))
                 model_dict[field_name] = rand_alpha
     for field_name, value in kwargs.items():
