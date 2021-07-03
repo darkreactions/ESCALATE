@@ -6,7 +6,11 @@ MaterialType,
 MaterialIdentifier,
 MaterialIdentifierDef, 
 Status,
-Vessel
+Vessel,
+ParameterDef,
+ActionDef,
+CalculationDef,
+Systemtool
 )
 
 import csv
@@ -20,6 +24,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.NOTICE('Loading load tables'))
         self._load_chem_inventory()
         self._load_vessels()
+        self._load_experiment_related_def()
         self.stdout.write(self.style.NOTICE('Finished loading load tables'))
         return
 
@@ -191,7 +196,165 @@ class Command(BaseCommand):
             # #skip initial header row
             # next(reader)
         self.stdout.write(self.style.NOTICE('Finished loading vessels'))
+    
+    def _load_experiment_related_def(self):
+        self.stdout.write(self.style.NOTICE('Beginning experiment related def'))
+        self._load_parameter_def()
+        self._load_action_def()
+        self._load_calculation_def()
+        self.stdout.write(self.style.NOTICE('Finished loading experiment related def'))
+    
+    def _load_parameter_def(self):
+        self.stdout.write(self.style.NOTICE('Beginning loading parameter def'))
+        filename = 'load_parameter_def.csv'
+        PARAMETER_DEF = path_to_file(filename)
+        
+        active_status = Status.objects.get(description="active")
 
+        def to_bool(s):
+            if x == 't' or s == 'true' or s == 'TRUE' or s:
+                return True
+            else:
+                return False
+
+        with open(PARAMETER_DEF, newline='') as f:
+            reader = csv.reader(f, delimiter="\t")
+
+            #first row should be header
+            column_names = next(reader)
+
+            #{'col_0': 0, 'col_1': 1, ...}
+            column_names_to_index = list_data_to_index(column_names)
+
+            new_parameter_def = 0
+            for row in reader:
+                description = row[column_names_to_index['description']]
+                type_ = row[column_names_to_index['type']]
+                value_from_csv = row[column_names_to_index['value']]
+                if type_ == 'text':
+                    value = value_from_csv
+                elif type_ == 'num':
+                    value = float(value_from_csv)
+                elif type_ == 'int':
+                    value = int(value_from_csv)
+                elif type_ == 'array_int':
+                    value = [int(x.strip()) for x in value_from_csv.split(',')]
+                elif type_ == 'array_num':
+                    value = [float(x.strip()) for x in value_from_csv.split(',')]
+                elif type_ == 'bool':
+                    value = to_bool(value_from_csv)
+                elif type_ == 'array_bool':
+                    value = [to_bool(x.strip()) for x in value_from_csv.split(',')]
+                elif type_ == 'array_text':
+                    value = [x.strip() for x in value_from_csv.split(',')]
+                else:
+                    assert False, f'{type_} is an invalid type'
+                unit = row[column_names_to_index['unit']]
+                if (x := row[column_names_to_index['required']]) == 't' or x == 'true' or x == 'TRUE' or x:
+                    required = True
+                else:
+                    required = False
+                unit_type = None if (y := row[column_names_to_index['unit_type']]) == '' else y
+                fields = {
+                    'description': description.strip(),
+                    'default_val': {
+                        'value': value,
+                        'type': type_,
+                        'unit': unit
+                    },
+                    'unit_type': unit_type,
+                    'required': required,
+                    'status': active_status
+                }
+                row_parameter_def_instance, created = ParameterDef.objects.get_or_create(**fields)
+                if created:
+                    new_parameter_def += 1
+            self.stdout.write(self.style.SUCCESS(f'Added {new_parameter_def} new parameter def'))   
+        self.stdout.write(self.style.NOTICE('Finished loading parameter def'))         
+
+    def _load_action_def(self):
+        self.stdout.write(self.style.NOTICE('Beginning loading action def'))
+        filename = 'load_action_def.csv'
+        ACTION_DEF = path_to_file(filename)
+        with open(ACTION_DEF, newline='') as f:
+            reader = csv.reader(f, delimiter="\t")
+
+            #first row should be header
+            column_names = next(reader)
+
+            #{'col_0': 0, 'col_1': 1, ...}
+            column_names_to_index = list_data_to_index(column_names)
+
+            new_action_def = 0
+            for row in reader:
+                description = row[column_names_to_index['description']]
+                parameter_def_descriptions = [x.strip() for x in y.split(',')] if (y := row[column_names_to_index['parameter_def_descriptions']]) != '' else []
+                action_def_instance, created = ActionDef.objects.get_or_create(description=description)
+                if created:
+                    new_action_def += 1
+                action_def_instance.parameter_def.add(*[ParameterDef.objects.get(description=x) for x in parameter_def_descriptions])
+            self.stdout.write(self.style.SUCCESS(f'Added {new_action_def} new action def'))            
+        self.stdout.write(self.style.NOTICE('Finished loading action def'))
+    
+    def _load_calculation_def(self):
+        self.stdout.write(self.style.NOTICE('Beginning loading calculation def'))
+        filename = 'load_calculation_def.csv'
+        CALCULATION_DEF = path_to_file(filename)
+        with open(CALCULATION_DEF, newline='') as f:
+            reader = csv.reader(f, delimiter="\t")
+
+            #first row should be header
+            column_names = next(reader)
+
+            #{'col_0': 0, 'col_1': 1, ...}
+            column_names_to_index = list_data_to_index(column_names)
+
+            new_calculation_def = 0
+
+            # create calculation def
+            for row in reader:
+                description = row[column_names_to_index['description']]
+                short_name = row[column_names_to_index['short_name']]
+                calc_definition = row[column_names_to_index['calc_definition']]
+                in_type__description = row[column_names_to_index['in_type__description']]
+                in_opt_type__description = row[column_names_to_index['in_opt_type__description']]
+                out_type__description = row[column_names_to_index['out_type__description']]
+                systemtool_name = row[column_names_to_index['systemtool_name']]
+                fields = {
+                    'description': description,
+                    'short_name': short_name,
+                    'calc_definition': calc_definition,
+                    'in_type': TypeDef.objects.get(description=in_type__description,category='data') if in_type__description != '' else None,
+                    'in_opt_type': TypeDef.objects.get(description=in_opt_type__description,category='data') if in_opt_type__description != '' else None,
+                    'out_type': TypeDef.objects.get(description=out_type__description,category='data') if out_type__description != '' else None,
+                    'systemtool': Systemtool.objects.get(systemtool_name=systemtool_name) if systemtool_name != '' else None
+                }
+                calculation_def_instance, created = CalculationDef.objects.get_or_create(**fields)
+                if created:
+                    new_calculation_def += 1
+                parameter_def_descriptions = [x.strip() for x in y.split(',')] if (y := row[column_names_to_index['parameter_def_descriptions']]) != '' else [] 
+                calculation_def_instance.parameter_def.add(*[ParameterDef.objects.get(description=d) for d in parameter_def_descriptions])
+            #jump to top of csv
+            f.seek(0)
+            #skip initial header row
+            next(reader)
+
+            #go back and save self foreign keys 
+            for row in reader:
+                short_name = row[column_names_to_index['short_name']]
+                row_calculation_def_instance = CalculationDef.objects.get(short_name=short_name)
+                
+                in_source__short_name = row[column_names_to_index['in_source__short_name']]
+                in_opt_source__short_name = row[column_names_to_index['in_opt_source__short_name']]
+                fields = {
+                    'in_source': CalculationDef.objects.get(short_name=in_source__short_name) if in_source__short_name != '' else None,
+                    'in_opt_source': CalculationDef.objects.get(short_name=in_opt_source__short_name) if in_opt_source__short_name != '' else None
+                }
+                for field, value in fields.items():
+                    setattr(row_calculation_def_instance, field, value)
+                row_calculation_def_instance.save(update_fields=['in_source','in_opt_source'])
+            self.stdout.write(self.style.SUCCESS(f'Added {new_calculation_def} new calculation def'))            
+        self.stdout.write(self.style.NOTICE('Finished loading calculation def'))
 
 def path_to_file(filename):
     script_dir = os.path.dirname(__file__)
