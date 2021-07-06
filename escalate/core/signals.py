@@ -22,13 +22,14 @@ from core.models import (
 @receiver(post_save, sender=Systemtool)
 def create_actor(sender, **kwargs):
     """Creates an actor in the actor table corresponding to the newly created 
-    Person
+    Person/Organization/Systemtool
 
     Args:
-        sender (Person Instance): Instance of the newly created person
+        sender (Model Instance): Instance of the newly created model
     """
     if kwargs['created']:
         fields = {sender.__name__.lower(): kwargs['instance']}
+        fields['description'] = str(kwargs['instance'])
         #actor = Actor(person=kwargs['instance'],description=kwargs['instance']['first_name'])#description is an example of a specific call
         actor = Actor(**fields)
         actor.save()
