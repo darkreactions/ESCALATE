@@ -63,7 +63,6 @@ class Command(BaseCommand):
 
             #query it once 
             active_status = Status.objects.get(description="active")
-            # active_status = get_or_none(Status,description='active')
 
             #this block of code loads new materials not in db
             new_mat_counter = 0
@@ -140,7 +139,7 @@ class Command(BaseCommand):
                     ref_name = row[column_names_to_index[col_name]]
                     if ref_name == "":
                         continue
-                    material_identifier = get_or_none(MaterialIdentifier,
+                    material_identifier = MaterialIdentifier.objects.get(
                             description=ref_name,
                             material_identifier_def=col_name_to_material_identifier_def[col_name],
                             status=active_status)
@@ -211,12 +210,6 @@ class Command(BaseCommand):
         
         active_status = Status.objects.get(description="active")
 
-        def to_bool(s):
-            if x == 't' or s == 'true' or s == 'TRUE' or s:
-                return True
-            else:
-                return False
-
         with open(PARAMETER_DEF, newline='') as f:
             reader = csv.reader(f, delimiter="\t")
 
@@ -250,11 +243,8 @@ class Command(BaseCommand):
                 else:
                     assert False, f'{type_} is an invalid type'
                 unit = row[column_names_to_index['unit']]
-                if (x := row[column_names_to_index['required']]) == 't' or x == 'true' or x == 'TRUE' or x:
-                    required = True
-                else:
-                    required = False
-                unit_type = None if (y := row[column_names_to_index['unit_type']]) == '' else y
+                required = to_bool(row[column_names_to_index['required']])
+                unit_type = None if not string_is_null(y := row[column_names_to_index['unit_type']]) else y
                 fields = {
                     'description': description.strip(),
                     'default_val': {
@@ -288,7 +278,7 @@ class Command(BaseCommand):
             new_action_def = 0
             for row in reader:
                 description = row[column_names_to_index['description']]
-                parameter_def_descriptions = [x.strip() for x in y.split(',')] if (y := row[column_names_to_index['parameter_def_descriptions']]) != '' else []
+                parameter_def_descriptions = [x.strip() for x in y.split(',')] if not string_is_null(y := row[column_names_to_index['parameter_def_descriptions']]) else []
                 action_def_instance, created = ActionDef.objects.get_or_create(description=description)
                 if created:
                     new_action_def += 1
@@ -324,15 +314,15 @@ class Command(BaseCommand):
                     'description': description,
                     'short_name': short_name,
                     'calc_definition': calc_definition,
-                    'in_type': TypeDef.objects.get(description=in_type__description,category='data') if in_type__description != '' else None,
-                    'in_opt_type': TypeDef.objects.get(description=in_opt_type__description,category='data') if in_opt_type__description != '' else None,
-                    'out_type': TypeDef.objects.get(description=out_type__description,category='data') if out_type__description != '' else None,
-                    'systemtool': Systemtool.objects.get(systemtool_name=systemtool_name) if systemtool_name != '' else None
+                    'in_type': TypeDef.objects.get(description=in_type__description,category='data') if not string_is_null(in_type__description) else None,
+                    'in_opt_type': TypeDef.objects.get(description=in_opt_type__description,category='data') if not string_is_null(in_opt_type__description) else None,
+                    'out_type': TypeDef.objects.get(description=out_type__description,category='data') if not string_is_null(out_type__description) else None,
+                    'systemtool': Systemtool.objects.get(systemtool_name=systemtool_name) if not string_is_null(systemtool_name) else None
                 }
                 calculation_def_instance, created = CalculationDef.objects.get_or_create(**fields)
                 if created:
                     new_calculation_def += 1
-                parameter_def_descriptions = [x.strip() for x in y.split(',')] if (y := row[column_names_to_index['parameter_def_descriptions']]) != '' else [] 
+                parameter_def_descriptions = [x.strip() for x in y.split(',')] if not string_is_null(y := row[column_names_to_index['parameter_def_descriptions']]) else [] 
                 calculation_def_instance.parameter_def.add(*[ParameterDef.objects.get(description=d) for d in parameter_def_descriptions])
             #jump to top of csv
             f.seek(0)
@@ -347,8 +337,8 @@ class Command(BaseCommand):
                 in_source__short_name = row[column_names_to_index['in_source__short_name']]
                 in_opt_source__short_name = row[column_names_to_index['in_opt_source__short_name']]
                 fields = {
-                    'in_source': CalculationDef.objects.get(short_name=in_source__short_name) if in_source__short_name != '' else None,
-                    'in_opt_source': CalculationDef.objects.get(short_name=in_opt_source__short_name) if in_opt_source__short_name != '' else None
+                    'in_source': CalculationDef.objects.get(short_name=in_source__short_name) if not string_is_null(in_source__short_name) else None,
+                    'in_opt_source': CalculationDef.objects.get(short_name=in_opt_source__short_name) if not string_is_null(in_opt_source__short_name) else None
                 }
                 for field, value in fields.items():
                     setattr(row_calculation_def_instance, field, value)
@@ -365,14 +355,14 @@ def list_data_to_index(list_data):
     #hopefully list has hashable elements
     return {list_data[i]:i for i in range(len(list_data))}
 
-def get_or_none(model, **kwargs):
-    try:
-        return model.objects.get(**kwargs)
-    except model.DoesNotExist:
-        return None
+def string_is_null(s):
+    return s == None or s.strip() == '' or s.lower() == 'null'
 
-# def dump_json(data, filename):
-#     with open(filename, 'w', encoding='utf-8') as f:
-#         json.dump(data, f, ensure_ascii=False, indent=4)
+def to_bool(s):
+    if s == 't' or s.lower() == 'true' or s:
+        return True
+    else:
+        return False
+
 
     
