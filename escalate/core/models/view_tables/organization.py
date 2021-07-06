@@ -3,7 +3,7 @@ from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from core.models.core_tables import RetUUIDField
 from core.models.base_classes import DateColumns, StatusColumn, ActorColumn, DescriptionColumn, AddressColumns
-from core.models.view_tables.generic_data import Note
+from core.models.view_tables.generic_data import Status
 import uuid
 from django.contrib.contenttypes.fields import GenericRelation
 
@@ -58,6 +58,18 @@ class Organization(DateColumns, AddressColumns, DescriptionColumn):
     def __str__(self):
         return "{}".format(self.full_name)
 
+    def add_person(self, person, *args):
+        people_to_add = [person, *args]
+        active_status = Status.objects.get(description="active")
+        for person_to_add in people_to_add:
+            fields = {
+                'person': person_to_add,
+                'organization': self,
+                'description': f'{str(person_to_add)} ({str(self)})',
+                'status': active_status
+            }
+            Actor.objects.get_or_create(**fields)
+
 
 class Person(DateColumns, AddressColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='person_uuid')
@@ -79,6 +91,18 @@ class Person(DateColumns, AddressColumns):
 
     def __str__(self):
         return "{} {}".format(self.first_name, self.last_name)
+
+    def add_to_organization(self, organization, *args):
+        organizations_to_add_to = [organization, *args]
+        active_status = Status.objects.get(description="active")
+        for organization in organizations_to_add_to:
+            fields = {
+                'person': self,
+                'organization': organization,
+                'description': f'{str(self)} ({str(organization)})',
+                'status': active_status
+            }
+            Actor.objects.get_or_create(**fields)
 
 class Systemtool(DateColumns, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,

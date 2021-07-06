@@ -113,5 +113,5 @@ class Command(BaseCommand):
             for username, data in users.items():
                 person = Person.objects.get(**data['person_data'])
                 organization = Organization.objects.get(full_name=org.full_name)  # need to get from view table
-                actor, created = Actor.objects.get_or_create(person=person, organization=organization)
+                person.add_to_organization(organization)
                 self.stdout.write(self.style.SUCCESS(f'Added user {person} to org {org}'))

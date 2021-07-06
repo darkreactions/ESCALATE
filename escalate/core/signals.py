@@ -14,7 +14,9 @@ from core.models import (
     BomCompositeMaterial, 
     Parameter, 
     BomMaterial, 
-    ActionUnit)
+    ActionUnit,
+    Status
+)
 #from core.models.view_tables.workflow import Experiment
 
 @receiver(post_save, sender=Person)
@@ -30,7 +32,7 @@ def create_actor(sender, **kwargs):
     if kwargs['created']:
         fields = {sender.__name__.lower(): kwargs['instance']}
         fields['description'] = str(kwargs['instance'])
-        #actor = Actor(person=kwargs['instance'],description=kwargs['instance']['first_name'])#description is an example of a specific call
+        fields['status'] = Status.objects.get(description='active')
         actor = Actor(**fields)
         actor.save()
 """
