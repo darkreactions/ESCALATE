@@ -13,6 +13,7 @@ from core.models import (
     ActionDef,
     Workflow,
     ParameterDef,
+    CalculationDef,
     Action
 )
 
@@ -93,13 +94,43 @@ action_tests = [
                 }
             }
         },
+        # {
+        #     'name': 'calculationdef0',
+        #     'method': POST,
+        #     'endpoint': 'calculationdef-list',
+        #     'body': random_model_dict(CalculationDef),
+        #     'args': [],
+        #     'query_params': [],
+        #     'is_valid_response': {
+        #         'function': check_status_code,
+        #         'args': [],
+        #         'kwargs': {
+        #             'status_code': POST
+        #         }
+        #     }
+        # },
         {
-            'name': 'parameterdef0',
+            'name': 'action0',
             'method': POST,
-            'endpoint': 'parameterdef-list',
+            'endpoint': 'action-list',
+            'body': random_model_dict(Action), 
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        },
+        {
+            'name': 'action0_get_0',
+            'method': GET,
+            'endpoint': 'action-detail',
             'body': {},
             'args': [
-                'systemtooltype0__uuid'
+                'action0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -110,94 +141,95 @@ action_tests = [
                 }
             }
         },
-        # {
-        #     'name': 'systemtooltype0_update_0',
-        #     'method': PUT,
-        #     'endpoint': 'systemtooltype-detail',
-        #     'body': random_model_dict(SystemtoolType),
-        #     'args': [
-        #         'systemtooltype0__uuid'
-        #     ],
-        #     'query_params': [],
-        #     'is_valid_response': {
-        #         'function': check_status_code,
-        #         'args': [],
-        #         'kwargs': {
-        #             'status_code': PUT
-        #         }
-        #     }
-        # },
-        # {
-        #     'name': 'systemtooltype0_get_1',
-        #     'method': GET,
-        #     'endpoint': 'systemtooltype-detail',
-        #     'body': {},
-        #     'args': [
-        #         'systemtooltype0__uuid'
-        #     ],
-        #     'query_params': [],
-        #     'is_valid_response': {
-        #         'function': check_status_code,
-        #         'args': [],
-        #         'kwargs': {
-        #             'status_code': GET
-        #         }
-        #     }
-        # },
-        # {
-        #     'name': 'systemtooltype0_delete_0',
-        #     'method': DELETE,
-        #     'endpoint': 'systemtooltype-detail',
-        #     'body': {},
-        #     'args': [
-        #         'systemtooltype0__uuid'
-        #     ],
-        #     'query_params': [],
-        #     'is_valid_response': {
-        #         'function': check_status_code,
-        #         'args': [],
-        #         'kwargs': {
-        #             'status_code': DELETE
-        #         }
-        #     }
-        # },
-        # {
-        #     'name': 'systemtooltype0_get_2',
-        #     'method': GET,
-        #     'endpoint': 'systemtooltype-detail',
-        #     'body': {},
-        #     'args': [
-        #         'systemtooltype0__uuid'
-        #     ],
-        #     'query_params': [],
-        #     'is_valid_response': {
-        #         'function': check_status_code,
-        #         'args': [],
-        #         'kwargs': {
-        #             'status_code': ERROR
-        #         }
-        #     }
-        # },
+    
+        {
+            'name': 'action0_update_0',
+            'method': PUT,
+            'endpoint': 'action-detail',
+            'body': random_model_dict(Action),
+            'args': [
+                'action0__uuid'
+            ],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': PUT
+                }
+            }
+        },
+        {
+            'name': 'action0_get_1',
+            'method': GET,
+            'endpoint': 'action-detail',
+            'body': {},
+            'args': [
+                'action0__uuid'
+            ],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': GET
+                }
+            }
+        },
+        {
+            'name': 'action0_delete_0',
+            'method': DELETE,
+            'endpoint': 'action-detail',
+            'body': {},
+            'args': [
+                'action0__uuid'
+            ],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': DELETE
+                }
+            }
+        },
+        {
+            'name': 'action0_get_2',
+            'method': GET,
+            'endpoint': 'action-detail',
+            'body': {},
+            'args': [
+                'action0__uuid'
+            ],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': ERROR
+                }
+            }
+        },
     ],
 
 ##----TEST 1----##
 #creates a systemtooltype and checks that the response data matches the 
 #request data stored in the body entry
-    # [   
-    #     {
-    #         'name': 'systemtooltype0',
-    #         'method': POST,
-    #         'endpoint': 'systemtooltype-list',
-    #         'body': (systemtooltype_posted := random_model_dict(SystemtoolType)),
-    #         'args': [],
-    #         'query_params': [],
-    #         'is_valid_response': {
-    #             'function': compare_data,
-    #             'args': [],
-    #             'kwargs': {
-    #                 'request_body': systemtooltype_posted
-    #             }
-    #         }
-    #     },
-    # ]
+    [   
+        {
+            'name': 'action0',
+            'method': POST,
+            'endpoint': 'action-list',
+            'body': (systemtooltype_posted := random_model_dict(Action)),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': compare_data,
+                'args': [],
+                'kwargs': {
+                    'request_body': systemtooltype_posted
+                }
+            }
+        },
+    ]
 ]

@@ -124,7 +124,7 @@ class ParameterListSerializer(DynamicFieldsModelSerializer):
     parameter = SerializerMethodField()
 
     def get_parameter(self, obj):
-        parameter = Parameter.objects.filter(ref_object=obj.uuid)
+        parameter = Parameter.objects.filter(action=obj.uuid)
         result_serializer = ParameterSerializer(
             parameter, many=True, context=self.context)
         return result_serializer.data

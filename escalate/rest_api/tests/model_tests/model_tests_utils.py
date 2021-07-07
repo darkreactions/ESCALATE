@@ -51,15 +51,19 @@ def random_model_dict(model, **kwargs):
                 length = field_obj.max_length // 3 + 1
                 rand_alpha = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = length))
                 model_dict[field_name] = f'{rand_alpha}@test.com'
-            elif field_class_name == "DateTimeField":
-                rand_year = random.randint(2000, int(str(datetime.datetime.today()).split()[0]))
-                rand_month = rand.randint(1,12)
+            elif field_class_name == "DateField":
+                rand_year = random.randint(2000, int(str(datetime.datetime.today().year)))
+                rand_month = random.randint(1,12)
                 if rand_month == 2:
                     rand_day = random.randint(1, 28 if rand_year % 4 != 0 else 29)
                 else:
                     rand_day = random.randint(1, 30 if rand_month % 2 == 0 else 31)
+                if rand_month < 10:
+                    rand_month = '0' + str(rand_month)
+                if rand_day < 10:
+                    rand_day = '0' + str(rand_day)
                 model_dict[field_name] = f'{rand_year}-{rand_month}-{rand_day}'
-            elif field_class_name == "FloatField" or field_class_name == "BigIntegerField":
+            elif field_class_name == "FloatField" or field_class_name == "BigIntegerField" or field_class_name == "IntegerField":
                 model_dict[field_name] = random.randint(0,255)
             elif field_class_name == "BooleanField":
                 model_dict[field_name] = True if random.uniform(0,1) > 0.5 else False
@@ -95,6 +99,8 @@ def random_model_dict(model, **kwargs):
 
 def check_status_code(resp, **kwargs):
     http_res_code = kwargs['status_code']
+    print(http_res_code)
+    print(resp.status_code)
     return resp.status_code == status_codes[http_res_code]
 
 
