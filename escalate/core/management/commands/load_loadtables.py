@@ -1,16 +1,18 @@
 from django.core.management.base import BaseCommand, CommandError
 from core.models import (
-TypeDef,
+ActionDef,
+CalculationDef,
+Inventory,
+InventoryMaterial,
 Material, 
 MaterialType, 
 MaterialIdentifier,
 MaterialIdentifierDef, 
-Status,
-Vessel,
 ParameterDef,
-ActionDef,
-CalculationDef,
-Systemtool
+Status,
+Systemtool,
+TypeDef,
+Vessel,
 )
 
 import csv
@@ -22,7 +24,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE('Loading load tables'))
-        self._load_chem_inventory()
+        # self._load_chem_inventory()
+        self._load_material_identifier()
+        self._load_material()
+        self._load_inventory_material()
         self._load_vessels()
         self._load_experiment_related_def()
         self.stdout.write(self.style.NOTICE('Finished loading load tables'))
@@ -148,6 +153,138 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f'Updated material identifier for materials'))
  
         self.stdout.write(self.style.NOTICE('Finished loading chem'))
+    
+    def _load_material_identifier(self):
+        self.stdout.write(self.style.NOTICE('Beginning loading material identifier'))
+        filename = 'load_material_identifier.csv'
+        MATERIAL_IDENTIFIERS = path_to_file(filename)
+        with open(MATERIAL_IDENTIFIERS, newline='') as f:
+            reader = csv.reader(f, delimiter="\t")
+
+            #first row should be header
+            column_names = next(reader)
+
+            #{'col_0': 0, 'col_1': 1, ...}
+            column_names_to_index = list_data_to_index(column_names)
+
+            active_status = Status.objects.get(description="active")
+
+            material_identifier_def = {x.description:x for x in MaterialIdentifierDef.objects.all()}
+
+            new_material_identifier = 0
+            for row in reader:
+                description = clean_string(row[column_names_to_index['description']])
+                material_identifier_def__description = clean_string(row[column_names_to_index['material_identifier_def__description']])
+                fields = {
+                    'description': description,
+                    'material_identifier_def': material_identifier_def[y] if not string_is_null(y := material_identifier_def__description) else None,
+                    'status': active_status
+                }
+                material_identifier_instance, created = MaterialIdentifier.objects.get_or_create(**fields)
+                if created:
+                    new_material_identifier += 1
+            # #jump to top of csv
+            # f.seek(0)
+            # #skip initial header row
+            # next(reader)
+
+            self.stdout.write(self.style.SUCCESS(f'Added {new_material_identifier} new material identifiers'))
+        self.stdout.write(self.style.NOTICE('Finished loading material identifier'))
+
+    def _load_material(self):
+        self.stdout.write(self.style.NOTICE('Beginning loading material'))
+        filename = 'load_material.csv'
+        MATERIAL = path_to_file(filename)
+        with open(MATERIAL, newline='') as f:
+            reader = csv.reader(f, delimiter="\t")
+
+            #first row should be header
+            column_names = next(reader)
+
+            #{'col_0': 0, 'col_1': 1, ...}
+            column_names_to_index = list_data_to_index(column_names)
+
+            material_identifier_def = {x.description:x for x in MaterialIdentifierDef.objects.all()}
+
+            new_material = 0
+            for row in reader:
+                description = clean_string(row[column_names_to_index['description']])
+                material_class = clean_string(row[column_names_to_index['material_class']])
+                consumable = clean_string(row[column_names_to_index['consumable']])
+                
+                fields = {
+                    'description': description,
+                    'material_class': material_class,
+                    'consumable': to_bool(consumable),
+                }
+                material_instance, created = Material.objects.get_or_create(**fields)
+                
+                material_identifier__description = [x.strip() for x in y.split('|')] if not string_is_null(y := row[column_names_to_index['material_identifier__description']]) else []
+                material_identifier_def__description = [x.strip() for x in y.split('|')] if not string_is_null(y := row[column_names_to_index['material_identifier_def__description']]) else []
+
+                material_type__description = [x.strip() for x in z.split('|')] if not string_is_null(z := row[column_names_to_index['material_type__description']]) else []
+
+                material_instance.identifier.add(*[MaterialIdentifier.objects.get(description=descr,
+                                                material_identifier_def=material_identifier_def[def_descr])
+                                                for descr,def_descr in zip(material_identifier__description,material_identifier_def__description)])
+                material_instance.material_type.add(*[MaterialType.objects.get(description=d) for d in material_type__description])
+                
+                if created:
+                    new_material += 1
+            # #jump to top of csv
+            # f.seek(0)
+            # #skip initial header row
+            # next(reader)
+
+            self.stdout.write(self.style.SUCCESS(f'Added {new_material} new materials'))
+        self.stdout.write(self.style.NOTICE('Finished loading material'))
+
+    def _load_inventory_material(self):
+        self.stdout.write(self.style.NOTICE('Beginning loading inventory material'))
+        filename = 'load_inventory_material.csv'
+        INVENTORY_MATERIALS = path_to_file(filename)
+        with open(INVENTORY_MATERIALS, newline='') as f:
+            reader = csv.reader(f, delimiter="\t")
+
+            #first row should be header
+            column_names = next(reader)
+
+            #{'col_0': 0, 'col_1': 1, ...}
+            column_names_to_index = list_data_to_index(column_names)
+
+            new_inventory_material = 0
+            for row in reader:
+                description = clean_string(row[column_names_to_index['description']])
+                inventory_description = clean_string(row[column_names_to_index['inventory_description']])
+                material_description = clean_string(row[column_names_to_index['material_description']])
+                part_no = clean_string(row[column_names_to_index['part_no']])
+                
+                type_ = clean_string(row[column_names_to_index['type']])
+                unit = clean_string(row[column_names_to_index['unit']])
+                value_from_csv = clean_string(row[column_names_to_index['value']])
+
+                expiration_date = clean_string(row[column_names_to_index['expiration_date']])
+                location = clean_string(row[column_names_to_index['location']])
+
+                fields = {
+                    'description': description,
+                    'inventory': Inventory.objects.get(description=inventory_description) if not string_is_null(inventory_description) else None,
+                    'material': Material.objects.get(description=material_description) if not string_is_null(material_description) else None,
+                    'part_no': part_no,
+                    'onhand_amt': get_val_field_dict(type_, unit, value_from_csv),
+                    'expiration_date': expiration_date if not string_is_null(expiration_date) else None,
+                    'location': location
+                }
+
+                inventory_material_instance, created = InventoryMaterial.objects.get_or_create(**fields)
+                if created:
+                    new_inventory_material += 1
+            self.stdout.write(self.style.SUCCESS(f'Added {new_inventory_material} new inventory materials'))
+            # #jump to top of csv
+            # f.seek(0)
+            # #skip initial header row
+            # next(reader)
+        self.stdout.write(self.style.NOTICE('Finished loading inventory material'))
 
     def _load_vessels(self):
         self.stdout.write(self.style.NOTICE('Beginning loading vessels'))
@@ -166,7 +303,7 @@ class Command(BaseCommand):
             new_plates = 0
             active_status = Status.objects.get(description="active")
             for row in reader:
-                row_desc = row[column_names_to_index['description']]
+                row_desc = clean_string(row[column_names_to_index['description']])
                 if "Plate" in row_desc:
                     parts = row_desc.split('#:')
                     assert(1 <= len(parts) <= 2)
@@ -221,37 +358,15 @@ class Command(BaseCommand):
 
             new_parameter_def = 0
             for row in reader:
-                description = row[column_names_to_index['description']]
-                type_ = row[column_names_to_index['type']]
-                value_from_csv = row[column_names_to_index['value']]
-                if type_ == 'text':
-                    value = value_from_csv
-                elif type_ == 'num':
-                    value = float(value_from_csv)
-                elif type_ == 'int':
-                    value = int(value_from_csv)
-                elif type_ == 'array_int':
-                    value = [int(x.strip()) for x in value_from_csv.split(',')]
-                elif type_ == 'array_num':
-                    value = [float(x.strip()) for x in value_from_csv.split(',')]
-                elif type_ == 'bool':
-                    value = to_bool(value_from_csv)
-                elif type_ == 'array_bool':
-                    value = [to_bool(x.strip()) for x in value_from_csv.split(',')]
-                elif type_ == 'array_text':
-                    value = [x.strip() for x in value_from_csv.split(',')]
-                else:
-                    assert False, f'{type_} is an invalid type'
-                unit = row[column_names_to_index['unit']]
+                description = clean_string(row[column_names_to_index['description']])
+                type_ = clean_string(row[column_names_to_index['type']])
+                value_from_csv = clean_string(row[column_names_to_index['value']])
+                unit = clean_string(row[column_names_to_index['unit']])
                 required = to_bool(row[column_names_to_index['required']])
-                unit_type = None if not string_is_null(y := row[column_names_to_index['unit_type']]) else y
+                unit_type = clean_string(row[column_names_to_index['unit_type']])
                 fields = {
-                    'description': description.strip(),
-                    'default_val': {
-                        'value': value,
-                        'type': type_,
-                        'unit': unit
-                    },
+                    'description': description,
+                    'default_val': get_val_field_dict(type_, unit, value_from_csv),
                     'unit_type': unit_type,
                     'required': required,
                     'status': active_status
@@ -277,7 +392,7 @@ class Command(BaseCommand):
 
             new_action_def = 0
             for row in reader:
-                description = row[column_names_to_index['description']]
+                description = clean_string(row[column_names_to_index['description']])
                 parameter_def_descriptions = [x.strip() for x in y.split(',')] if not string_is_null(y := row[column_names_to_index['parameter_def_descriptions']]) else []
                 action_def_instance, created = ActionDef.objects.get_or_create(description=description)
                 if created:
@@ -303,13 +418,13 @@ class Command(BaseCommand):
 
             # create calculation def
             for row in reader:
-                description = row[column_names_to_index['description']]
-                short_name = row[column_names_to_index['short_name']]
-                calc_definition = row[column_names_to_index['calc_definition']]
-                in_type__description = row[column_names_to_index['in_type__description']]
-                in_opt_type__description = row[column_names_to_index['in_opt_type__description']]
-                out_type__description = row[column_names_to_index['out_type__description']]
-                systemtool_name = row[column_names_to_index['systemtool_name']]
+                description = clean_string(row[column_names_to_index['description']])
+                short_name = clean_string(row[column_names_to_index['short_name']])
+                calc_definition = clean_string(row[column_names_to_index['calc_definition']])
+                in_type__description = clean_string(row[column_names_to_index['in_type__description']])
+                in_opt_type__description = clean_string(row[column_names_to_index['in_opt_type__description']])
+                out_type__description = clean_string(row[column_names_to_index['out_type__description']])
+                systemtool_name = clean_string(row[column_names_to_index['systemtool_name']])
                 fields = {
                     'description': description,
                     'short_name': short_name,
@@ -346,6 +461,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f'Added {new_calculation_def} new calculation def'))            
         self.stdout.write(self.style.NOTICE('Finished loading calculation def'))
 
+
 def path_to_file(filename):
     script_dir = os.path.dirname(__file__)
     csv_dir = '../../../../data_model/dataload_csv'
@@ -358,11 +474,43 @@ def list_data_to_index(list_data):
 def string_is_null(s):
     return s == None or s.strip() == '' or s.lower() == 'null'
 
+def clean_string(s):
+    if s != None:
+        return s.strip()
+    return None
+
 def to_bool(s):
     if s == 't' or s.lower() == 'true' or s:
         return True
     else:
         return False
+
+def get_val_field_dict(type_, unit, value_from_csv):
+    if type_ == 'text':
+        value = value_from_csv
+    elif type_ == 'num':
+        value = float(value_from_csv) if not string_is_null(value_from_csv) else 0.0
+    elif type_ == 'int':
+        value = int(value_from_csv) if not string_is_null(value_from_csv) else 0
+    elif type_ == 'array_int':
+        value = [int(x.strip()) for x in value_from_csv.split(',')] if not string_is_null(value_from_csv) else []
+    elif type_ == 'array_num':
+        value = [float(x.strip()) for x in value_from_csv.split(',')] if not string_is_null(value_from_csv) else []
+    elif type_ == 'bool':
+        value = to_bool(value_from_csv) if not string_is_null(value_from_csv) else False
+    elif type_ == 'array_bool':
+        value = [to_bool(x.strip()) for x in value_from_csv.split(',')] if not string_is_null(value_from_csv) else []
+    elif type_ == 'array_text':
+        value = [x.strip() for x in value_from_csv.split(',')] if not string_is_null(value_from_csv) else []
+    elif type_ == 'blob':
+        value = value_from_csv
+    else:
+        assert False, f'{type_} is an invalid type'
+    return {
+        'type': type_,
+        'unit': unit,
+        'value': value
+    }
 
 
     
