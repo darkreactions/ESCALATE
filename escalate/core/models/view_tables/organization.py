@@ -70,6 +70,11 @@ class Organization(DateColumns, AddressColumns, DescriptionColumn):
             }
             Actor.objects.get_or_create(**fields)
 
+    def remove_person(self, person, *args):
+        people_to_remove = [person, *args]
+        people_uuid = [person.pk for person in people_to_remove]
+        Actor.objects.filter(organization=self.pk,person__in=people_uuid).delete()
+
 
 class Person(DateColumns, AddressColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='person_uuid')
@@ -103,6 +108,11 @@ class Person(DateColumns, AddressColumns):
                 'status': active_status
             }
             Actor.objects.get_or_create(**fields)
+
+    def remove_from_organization(self, organization, *args):
+        organizations_to_remove_from = [organization, *args]
+        organizations_uuid = [org.pk for org in organizations_to_remove_from]
+        Actor.objects.filter(person=self.pk,organization__in=organizations_uuid).delete()
 
 class Systemtool(DateColumns, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
