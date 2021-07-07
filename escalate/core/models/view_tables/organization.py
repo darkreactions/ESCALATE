@@ -60,6 +60,9 @@ class Organization(DateColumns, AddressColumns, DescriptionColumn):
 
     def add_person(self, person, *args):
         people_to_add = [person, *args]
+        for p in people_to_add:
+            assert isinstance(p, Person), f'{p} is not a Person instance'
+
         active_status = Status.objects.get(description="active")
         for person_to_add in people_to_add:
             fields = {
@@ -72,6 +75,9 @@ class Organization(DateColumns, AddressColumns, DescriptionColumn):
 
     def remove_person(self, person, *args):
         people_to_remove = [person, *args]
+        for p in people_to_remove:
+            assert isinstance(p, Person), f'{p} is not a Person instance'
+
         people_uuid = [person.pk for person in people_to_remove]
         Actor.objects.filter(organization=self.pk,person__in=people_uuid).delete()
 
@@ -99,6 +105,9 @@ class Person(DateColumns, AddressColumns):
 
     def add_to_organization(self, organization, *args):
         organizations_to_add_to = [organization, *args]
+        for org in organizations_to_add_to:
+            assert isinstance(org, Organization), f'{org} is not an Organization instance'
+        
         active_status = Status.objects.get(description="active")
         for organization in organizations_to_add_to:
             fields = {
@@ -111,6 +120,9 @@ class Person(DateColumns, AddressColumns):
 
     def remove_from_organization(self, organization, *args):
         organizations_to_remove_from = [organization, *args]
+        for org in organizations_to_remove_from:
+            assert isinstance(org, Organization), f'{org} is not an Organization instance'
+
         organizations_uuid = [org.pk for org in organizations_to_remove_from]
         Actor.objects.filter(person=self.pk,organization__in=organizations_uuid).delete()
 
