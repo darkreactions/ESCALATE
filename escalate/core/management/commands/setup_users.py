@@ -51,29 +51,6 @@ org_passwords = {
     'TC': 'test',
 }
 
-# organizations = [{'description' : 'Lawrence Berkeley',
-#                  'full_name' : 'Lawrence Berkeley',
-#                  'short_name' : 'LBL'},
-#                  {'description' : 'Haverford College',
-#                  'full_name' : 'Haverford College',
-#                  'short_name' : 'HC'},
-#                  {'description' : 'Norquist Lab',
-#                  'full_name' : 'Norquist Lab',
-#                  'short_name' : 'NL'},
-#                  {'description' : 'TestCo',
-#                  'full_name' : 'TestCo',
-#                  'short_name' : 'TC'},]
-
-# type_defs = [
-#     {'category': 'data', 'description': 'text'},
-#     {'category': 'data', 'description': 'num'},
-#     {'category': 'data', 'description': 'int'},
-#     {'category': 'data', 'description': 'array_int'},
-#     {'category': 'data', 'description': 'array_num'},
-#     {'category': 'data', 'description': 'bool'},
-# ]
-
-
 class Command(BaseCommand):
     help = 'Sets up users after a database refresh'
 
@@ -92,16 +69,6 @@ class Command(BaseCommand):
             user.save()
             self.stdout.write(self.style.SUCCESS(f'Created User {username}'))
 
-        # for org in organizations:
-        #     o = Organization(**org)
-        #     o.save()
-        #     self.stdout.write(self.style.SUCCESS(f'Created Organization {o}'))
-        
-        # for td in type_defs:
-        #     t = TypeDef(**td)
-        #     t.save()
-        #     self.stdout.write(self.style.SUCCESS(f'Created Typedef {t}'))
-
         for short_name, raw_password in org_passwords.items():
             org = Organization.objects.get(short_name=short_name)
             org_pwd, created = OrganizationPassword.objects.get_or_create(organization=org)
@@ -115,3 +82,4 @@ class Command(BaseCommand):
                 organization = Organization.objects.get(full_name=org.full_name)  # need to get from view table
                 person.add_to_organization(organization)
                 self.stdout.write(self.style.SUCCESS(f'Added user {person} to org {org}'))
+        
