@@ -1,0 +1,5 @@
+description	ref_uid	experiment_type_description	parent_experiment_description	owner_description	operator_description	lab_description
+test_wf_1	test_wf_1			HC	Mike Tynes	HC
+perovskite_demo	perovskite_demo			HC	Mike Tynes	HC
+resin_weighing	test_resin_weigh			TC	Mike Tynes	TC
+liquid_solid_extraction	test_liq_sol			TC	Mike Tynes	TC
