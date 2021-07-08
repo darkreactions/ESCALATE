@@ -97,15 +97,20 @@ def create_parameters(sender, **kwargs):
     Creates the appropriate parameter in actionunit based on 
     its action's parameter_def
     """
-    if kwargs['created']:
-        action_unit = kwargs['instance']
-        param_defs = action_unit.action.action_def.parameter_def.all()
-        for p_def in param_defs:
-            p = Parameter(parameter_def=p_def, 
-                          nominal_value=p_def.default_val, 
-                          actual_value=p_def.default_val,
-                          ref_object=action_unit.uuid)
-            p.save()
+    try:
+        kwargs['created']
+    except:
+        print("error")
+    else:
+        if kwargs['created']:
+            action_unit = kwargs['instance']
+            param_defs = action_unit.action.action_def.parameter_def.all()
+            for p_def in param_defs:
+                p = Parameter(parameter_def=p_def, 
+                            nominal_value=p_def.default_val, 
+                            actual_value=p_def.default_val,
+                            ref_object=action_unit.uuid)
+                p.save()
         
 
 

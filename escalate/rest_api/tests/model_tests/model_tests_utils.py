@@ -70,7 +70,6 @@ def random_model_dict(model, **kwargs):
             elif field_class_name == "ValField":
                 type_choices = ['text', 'num', 'int', 'array_int', 'array_num', 'bool']
                 rand_type = type_choices[random.randint(0, len(type_choices) - 1)]
-                print(rand_type)
                 rand_unit = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = 3))
                 if rand_type == 'text':
                     rand_value = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = 10))
