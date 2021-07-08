@@ -1,18 +1,24 @@
 from django.core.management.base import BaseCommand, CommandError
 from core.models import (
-ActionDef,
-CalculationDef,
-Inventory,
-InventoryMaterial,
-Material, 
-MaterialType, 
-MaterialIdentifier,
-MaterialIdentifierDef, 
-ParameterDef,
-Status,
-Systemtool,
-TypeDef,
-Vessel,
+    Actor,
+    ActionDef,
+    CalculationDef,
+    Experiment,
+    ExperimentType,
+    ExperimentWorkflow,
+    Inventory,
+    InventoryMaterial,
+    Material, 
+    MaterialType, 
+    MaterialIdentifier,
+    MaterialIdentifierDef, 
+    ParameterDef,
+    Status,
+    Systemtool,
+    TypeDef,
+    Vessel,
+    Workflow,
+    WorkflowType
 )
 
 import csv
@@ -30,6 +36,7 @@ class Command(BaseCommand):
         self._load_inventory_material()
         self._load_vessels()
         self._load_experiment_related_def()
+        self._load_experiment_and_workflow()
         self.stdout.write(self.style.NOTICE('Finished loading load tables'))
         return
 
@@ -460,6 +467,110 @@ class Command(BaseCommand):
                 row_calculation_def_instance.save(update_fields=['in_source','in_opt_source'])
             self.stdout.write(self.style.SUCCESS(f'Added {new_calculation_def} new calculation def'))            
         self.stdout.write(self.style.NOTICE('Finished loading calculation def'))
+
+    def _load_experiment_and_workflow(self):
+        self.stdout.write(self.style.NOTICE('Beginning loading experiment and workflow'))
+
+        EXPERIMENT = path_to_file('load_experiment.csv')
+        with open(EXPERIMENT, newline='') as f:
+            reader = csv.reader(f, delimiter="\t")
+
+            #first row should be header
+            column_names = next(reader)
+
+            #{'col_0': 0, 'col_1': 1, ...}
+            column_names_to_index = list_data_to_index(column_names)
+
+            experiment_type = {x.description:x for x in ExperimentType.objects.all()}
+
+            new_experiment = 0
+            for row in reader:
+                description = clean_string(row[column_names_to_index['description']])
+                ref_uid = clean_string(row[column_names_to_index['ref_uid']])
+                experiment_type_description = clean_string(row[column_names_to_index['experiment_type_description']])
+                owner_description = clean_string(row[column_names_to_index['owner_description']])
+                operator_description = clean_string(row[column_names_to_index['operator_description']])
+                lab_description = clean_string(row[column_names_to_index['lab_description']])
+
+                fields = {
+                    'description': description,
+                    'ref_uid': ref_uid,
+                    'experiment_type': experiment_type[descr] if not string_is_null(descr := experiment_type_description) else None,
+                    'owner': Actor.objects.get(description=owner_description) if not string_is_null(owner_description) else None,
+                    'operator': Actor.objects.get(description=operator_description) if not string_is_null(operator_description) else None,
+                    'lab': Actor.objects.get(description=lab_description) if not string_is_null(lab_description) else None,
+                }
+                experiment_instnace, created = Experiment.objects.get_or_create(**fields)
+                if created:
+                    new_experiment += 1
+
+            #jump to top of csv
+            f.seek(0)
+            #skip initial header row
+            next(reader)
+
+            # go back and save parent
+            for row in reader:
+                description = clean_string(row[column_names_to_index['description']])
+                parent_description = clean_string(row[column_names_to_index['parent_description']])
+                row_experiment_instance = Experiment.objects.get(description=description)
+                row_experiment_instance.parent = Experiment.objects.get(description=parent_description) if not string_is_null(parent_description) else None
+                row_experiment_instance.save(update_fields=['parent'])
+            self.stdout.write(self.style.SUCCESS(f'Added {new_experiment} new experiments')) 
+
+        WORKFLOW = path_to_file('load_workflow.csv') 
+        with open(WORKFLOW, newline='') as f:
+            reader = csv.reader(f, delimiter="\t")
+
+            #first row should be header
+            column_names = next(reader)
+
+            #{'col_0': 0, 'col_1': 1, ...}
+            column_names_to_index = list_data_to_index(column_names)  
+
+            workflow_type = {x.description:x for x in WorkflowType.objects.all()} 
+
+            new_workflow = 0
+            for row in reader:
+                description = clean_string(row[column_names_to_index['description']])
+                workflow_type_description = clean_string(row[column_names_to_index['workflow_type_description']])
+
+                fields = {
+                    'description': description,
+                    'workflow_type': workflow_type[y] if not string_is_null(y := workflow_type_description) else None,
+                }
+                workflow_instance, created = Workflow.objects.get_or_create(**fields)
+                if created:
+                    new_workflow += 1
+                experiment_description = [x.strip() for x in y.split(',')] if not string_is_null(y := clean_string(row[column_names_to_index['experiment_description']])) else []
+                experiment_workflow_seq_num = [x.strip() for x in y.split(',')] if not string_is_null(y := clean_string(row[column_names_to_index['experiment_workflow_seq_num']])) else []
+
+                for exp_desc, exp_wf_seq_num in zip(experiment_description, experiment_workflow_seq_num):
+                    fields = {
+                        'experiment': Experiment.objects.get(description=exp_desc) if not string_is_null(exp_desc) else None,
+                        'workflow': workflow_instance,
+                        'experiment_workflow_seq': int(exp_wf_seq_num) if not string_is_null(exp_wf_seq_num) else -1
+                    }
+                    ExperimentWorkflow.objects.get_or_create(**fields)
+ 
+            #jump to top of csv
+            f.seek(0)
+            #skip initial header row
+            next(reader)
+
+            for row in reader:
+                description = clean_string(row[column_names_to_index['description']])
+                parent_description = clean_string(row[column_names_to_index['parent_description']])
+                
+                row_workflow_instance = Workflow.objects.get(description=description)
+                parent = Workflow.objects.get(description=parent_description) if not string_is_null(parent_description) else None
+
+                row_workflow_instance.parent = parent
+
+                row_workflow_instance.save(update_fields=['parent'])
+            self.stdout.write(self.style.SUCCESS(f'Added {new_workflow} new workflows'))
+
+        self.stdout.write(self.style.NOTICE('Finished loading experiment and workflow'))
 
 
 def path_to_file(filename):
