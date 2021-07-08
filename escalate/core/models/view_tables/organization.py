@@ -78,8 +78,7 @@ class Organization(DateColumns, AddressColumns, DescriptionColumn):
         for p in people_to_remove:
             assert isinstance(p, Person), f'{p} is not a Person instance'
 
-        people_uuid = [person.pk for person in people_to_remove]
-        Actor.objects.filter(organization=self.pk,person__in=people_uuid).delete()
+        Actor.objects.filter(organization=self.pk,person__in=people_to_remove).delete()
 
 
 class Person(DateColumns, AddressColumns):
@@ -123,8 +122,7 @@ class Person(DateColumns, AddressColumns):
         for org in organizations_to_remove_from:
             assert isinstance(org, Organization), f'{org} is not an Organization instance'
 
-        organizations_uuid = [org.pk for org in organizations_to_remove_from]
-        Actor.objects.filter(person=self.pk,organization__in=organizations_uuid).delete()
+        Actor.objects.filter(person=self.pk,organization__in=organizations_to_remove_from).delete()
 
 class Systemtool(DateColumns, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
