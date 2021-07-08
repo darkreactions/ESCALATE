@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 from core.models import (
     Actor,
     ActionDef,
+    BillOfMaterials,
     CalculationDef,
     Experiment,
     ExperimentType,
@@ -500,9 +501,12 @@ class Command(BaseCommand):
                     'operator': Actor.objects.get(description=operator_description) if not string_is_null(operator_description) else None,
                     'lab': Actor.objects.get(description=lab_description) if not string_is_null(lab_description) else None,
                 }
-                experiment_instnace, created = Experiment.objects.get_or_create(**fields)
+                experiment_instance, created = Experiment.objects.get_or_create(**fields)
                 if created:
                     new_experiment += 1
+
+                bom_description = clean_string(row[column_names_to_index['bom_description']])
+                BillOfMaterials.objects.get_or_create(description=bom_description,experiment=experiment_instance)
 
             #jump to top of csv
             f.seek(0)
@@ -572,6 +576,8 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.NOTICE('Finished loading experiment and workflow'))
 
+    def _load_action(self):
+        pass
 
 def path_to_file(filename):
     script_dir = os.path.dirname(__file__)
