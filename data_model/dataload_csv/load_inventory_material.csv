@@ -1,4 +1,4 @@
-description	inventory_description	material_description	part_no	type	unit	value	expiration_date	location
+description	inventory_description	material_description	part_no	onhand_amt_type	onhand_amt_unit	onhand_amt_value	expiration_date	location
 1,4-Benzene diammonium iodide	Haverford Inventory	1,4-Benzene diammonium iodide		num		2		
 1,4-Diazabicyclo[2,2,2]octane-1,4-diium Iodide	Haverford Inventory	1,4-Diazabicyclo[2,2,2]octane-1,4-diium Iodide	MS129400-10	num		2		
 2-Pyrrolidin-1-ium-1-ylethylammonium bromide	Haverford Inventory	2-Pyrrolidin-1-ium-1-ylethylammonium bromide		num		2		
@@ -54,7 +54,7 @@ Pyrrolidinium Iodide	Haverford Inventory	Pyrrolidinium Iodide	MS119700-100	num		
 benzylammonium bromide	Haverford Inventory	Benzylammonium Bromide	900885-5g	num		6		
 dimethylammonium bromide	Haverford Inventory	Dimethylammonium bromide	1830936	num		2		
 ethane-1,2-diammonium bromide	Haverford Inventory	Ethane-1,2-diammonium bromide	624-59-9	num		1		
-formamidinium bromide	Haverford Inventory	Formamidinium bromide	15886-06-07	num		2		
+formamidinium bromide	Haverford Inventory	Formamidinium bromide	146958-06-7	num		2		
 guanidinium bromide	Haverford Inventory	Guanidinium bromide	900839-25g	num		2		
 iso-Butylammonium iodide	Haverford Inventory	iso-Butylammonium iodide	MS107000-100	num		2		
 iso-Pentylammonium iodide	Haverford Inventory	iso-Pentylammonium iodide	MS100710-100	num		1		
@@ -130,14 +130,23 @@ n-Propylammonium iodide	LBL Inventory	N-propylammonium Iodide	MS103000-100	num	g
 neo-Pentylammonium iodide	LBL Inventory	neo-Pentylammonium iodide	MS100740-100	num	g	18		
 t-Butylammonium iodide	LBL Inventory	t-Butylammonium Iodide	MS106000-100	num	g	163		
 tert-Octylammonium iodide	LBL Inventory	tert-Octylammonium iodide	MS100830-100	num	g	74		
-24 well plate	Test Inventory	Plate: 24 well	part# 24wp_123	num		10	2022-12-31 00:00:00+00	Shelf 1, Bin 1
-Filter Plate	Test Inventory	Filter Plate: 48 Well	part# 24wp_123	num		10	2022-12-31 00:00:00+00	Shelf 1, Bin 1
+24 well plate	Test Inventory	Plate: 24 well	part# 24wp_123	int		10	2022-12-31 00:00:00+00	Shelf 1, Bin 1
+Filter Plate	Test Inventory	Filter Plate: 48 Well	part# 24wp_123	int		10	2022-12-31 00:00:00+00	Shelf 1, Bin 1
 Water	Test Inventory	Water	part# h2o	num	mL	5000	2021-12-31 00:00:00+00	Shelf 2, Bin 1
 HCL	Test Inventory	Hydrochloric acid	part# hcl_222	num	mL	1000	2021-12-31 00:00:00+00	Shelf 10, Bin 1
 Resin: RE	Test Inventory	Rare Earth	part# EichromRE	num	g	100	2021-12-31 00:00:00+00	Shelf 5, Bin 1
-CoCl2 Stock	Test Inventory	CoCl2 Stock	part# CoCl2-stock_002	num	mL	100	2021-12-31 00:00:00+00	Shelf xx, Bin x2
-HCl-12M	Test Inventory	HCl-12M	part# hcl12M_202011	num	mL	1000	2022-12-31 00:00:00+00	Shelf 03, Bin 22
-Resin: TRU	Test Inventory	TRU		num				
-Resin: BDGA	Test Inventory	BDGA		num				
-Resin: AG1-X8	Test Inventory	Anion, AG1-X8		num				
-Resin: 50WX8	Test Inventory	Cation, 50WX8		num				
+CoCl2 Stock	Test Inventory	CoCl2 Stock	part# CoCl2-stock_002	int	mL	100	2021-12-31 00:00:00+00	Shelf xx, Bin x2
+HCl-12M	Test Inventory	HCl-12M	part# hcl12M_202011	int	mL	1000	2022-12-31 00:00:00+00	Shelf 03, Bin 22
+Resin: TRU	Test Inventory	TRU						
+Resin: BDGA	Test Inventory	BDGA						
+Resin: AG1-X8	Test Inventory	Anion, AG1-X8						
+Resin: 50WX8	Test Inventory	Cation, 50WX8						
+Wf1 Plate	Haverford Inventory	Plate: 24 well						
+Stock A	Haverford Inventory	Stock A						
+Stock B	Haverford Inventory	Stock B						
+Stock FAH	Haverford Inventory	Stock FAH						
+Neat GBL	Haverford Inventory	Gamma-Butyrolactone						
+Lead Diiodide	Haverford Inventory	Lead Diiodide						
+Ethylammonium Iodide	Haverford Inventory	Ethylammonium Iodide						
+Tube: 5mL	Haverford Inventory	Tube: 5mL						
+Plate: 96 Well	Haverford Inventory	Plate: 96 Well						
