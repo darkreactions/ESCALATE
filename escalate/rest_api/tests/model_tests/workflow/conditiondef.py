@@ -10,90 +10,24 @@ from ..model_tests_utils import (
     compare_data
 )
 from core.models import (
-    ActionDef,
-    Workflow,
-    ParameterDef,
+    ConditionDef,
     CalculationDef,
-    Action
 )
 
-action_test_data = {}
+conditiondef_test_data = {}
 
-action_tests = [
+conditiondef_tests = [
 
 ##----TEST 0----##
-#creates an actiondef
-#creates a parameterdef
-#creates a second parameterdef
-#creates a workflow
-#creates a calculationdef
-#creates an action with all of the previous entries as foreign keys (one of the two parameterdefs is put in the manytomanyfield)
-#gets the action
-#puts the action adding the other parameterdef to the manytomany field
-#gets the updated action
-#deletes the updated action
-#gets the action (should return error)
+#creates two calculationdefs
+#creates an conditiondef with one of the calculationdefs in the manytomany field
+#gets the conditiondef
+#updates the conditiondef with the other calculationdef
+#gets the conditiondef
+#deletes the conditiondef
+#gets the conditiondef (should return error)
     [      
-        {
-            'name': 'actiondef0',
-            'method': POST,
-            'endpoint': 'actiondef-list',
-            'body': random_model_dict(ActionDef),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'parameterdef0',
-            'method': POST,
-            'endpoint': 'parameterdef-list',
-            'body': random_model_dict(ParameterDef),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'parameterdef1',
-            'method': POST,
-            'endpoint': 'parameterdef-list',
-            'body': random_model_dict(ParameterDef),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'workflow0',
-            'method': POST,
-            'endpoint': 'workflow-list',
-            'body': random_model_dict(Workflow),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
+        
         {
             'name': 'calculationdef0',
             'method': POST,
@@ -110,13 +44,10 @@ action_tests = [
             }
         },
         {
-            'name': 'action0',
+            'name': 'calculationdef1',
             'method': POST,
-            'endpoint': 'action-list',
-            'body': random_model_dict(Action, action_def='actiondef0__url',
-                                                parameter_def='parameterdef0__url',
-                                                workflow='workflow0__url',
-                                                calculation_def='calculationdef0__url'), 
+            'endpoint': 'calculationdef-list',
+            'body': random_model_dict(CalculationDef),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -128,12 +59,27 @@ action_tests = [
             }
         },
         {
-            'name': 'action0_get_0',
+            'name': 'conditiondef0',
+            'method': POST,
+            'endpoint': 'conditiondef-list',
+            'body': random_model_dict(ConditionDef, calculation_def=['calculationdef0__url']),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        },
+        {
+            'name': 'conditiondef0_get_0',
             'method': GET,
-            'endpoint': 'action-detail',
+            'endpoint': 'conditiondef-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'conditiondef0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -146,12 +92,12 @@ action_tests = [
         },
     
         {
-            'name': 'action0_update_0',
+            'name': 'conditiondef0_update_0',
             'method': PUT,
-            'endpoint': 'action-detail',
-            'body': random_model_dict(Action),
+            'endpoint': 'conditiondef-detail',
+            'body': random_model_dict(ConditionDef, calculation_def=['calculationdef1__url']),
             'args': [
-                'action0__uuid'
+                'conditiondef0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -163,12 +109,12 @@ action_tests = [
             }
         },
         {
-            'name': 'action0_get_1',
+            'name': 'conditiondef0_get_1',
             'method': GET,
-            'endpoint': 'action-detail',
+            'endpoint': 'conditiondef-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'conditiondef0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -180,12 +126,12 @@ action_tests = [
             }
         },
         {
-            'name': 'action0_delete_0',
+            'name': 'conditiondef0_delete_0',
             'method': DELETE,
-            'endpoint': 'action-detail',
+            'endpoint': 'conditiondef-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'conditiondef0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -197,12 +143,12 @@ action_tests = [
             }
         },
         {
-            'name': 'action0_get_2',
+            'name': 'conditiondef0_get_2',
             'method': GET,
-            'endpoint': 'action-detail',
+            'endpoint': 'conditiondef-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'conditiondef0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -216,21 +162,37 @@ action_tests = [
     ],
 
 ##----TEST 1----##
-#creates an action and checks that the response data matches the 
-#request data stored in the body entry
+#creates a calculationdef
+#creates an conditiondef with the calculation def in the manytomany field
+#and checks that the response data matches the request data stored in the body entry
     [   
         {
-            'name': 'action0',
+            'name': 'calculationdef0',
             'method': POST,
-            'endpoint': 'action-list',
-            'body': (action_posted := random_model_dict(Action)),
+            'endpoint': 'calculationdef-list',
+            'body': random_model_dict(CalculationDef),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        },
+        {
+            'name': 'conditiondef0',
+            'method': POST,
+            'endpoint': 'conditiondef-list',
+            'body': (conditiondef_posted := random_model_dict(ConditionDef, calculation_def=['calculationdef0__url'])),
             'args': [],
             'query_params': [],
             'is_valid_response': {
                 'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'request_body': action_posted
+                    'request_body': conditiondef_posted
                 }
             }
         },

@@ -10,35 +10,50 @@ from ..model_tests_utils import (
     compare_data
 )
 from core.models import (
-    ActionDef,
-    Workflow,
-    ParameterDef,
-    CalculationDef,
-    Action
+    BaseBomMaterial,
+    InventoryMaterial,
+    BomMaterial,
+    Mixture,
+    BillOfMaterials
 )
 
-action_test_data = {}
+basebommaterial_test_data = {}
 
-action_tests = [
+basebommaterial_tests = [
 
 ##----TEST 0----##
-#creates an actiondef
-#creates a parameterdef
-#creates a second parameterdef
-#creates a workflow
-#creates a calculationdef
-#creates an action with all of the previous entries as foreign keys (one of the two parameterdefs is put in the manytomanyfield)
-#gets the action
-#puts the action adding the other parameterdef to the manytomany field
-#gets the updated action
-#deletes the updated action
-#gets the action (should return error)
+#creates a billofmaterials
+#creates an inventorymaterial
+#creates a bommaterial
+#creates a mixture
+#creates a basebommaterial with all of the previous entries as foreign keys
+#gets the basebommaterial
+#puts the basebommaterial adding the other parameterdef to the manytomany field
+#gets the updated basebommaterial
+#deletes the updated basebommaterial
+#gets the basebommaterial (should return error)
     [      
         {
-            'name': 'actiondef0',
+            'name': 'billofmaterials0',
             'method': POST,
-            'endpoint': 'actiondef-list',
-            'body': random_model_dict(ActionDef),
+            'endpoint': 'billofmaterials-list',
+            'body': random_model_dict(BillOfMaterials),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        },
+        ##THIS NEEDS TO BE DEBUGGED##
+        {
+            'name': 'inventorymaterial0',
+            'method': POST,
+            'endpoint': 'inventorymaterial-list',
+            'body': random_model_dict(InventoryMaterial),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -50,10 +65,10 @@ action_tests = [
             }
         },
         {
-            'name': 'parameterdef0',
+            'name': 'bommaterial',
             'method': POST,
-            'endpoint': 'parameterdef-list',
-            'body': random_model_dict(ParameterDef),
+            'endpoint': 'bommaterial-list',
+            'body': random_model_dict(BomMaterial),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -65,10 +80,10 @@ action_tests = [
             }
         },
         {
-            'name': 'parameterdef1',
+            'name': 'mixture0',
             'method': POST,
-            'endpoint': 'parameterdef-list',
-            'body': random_model_dict(ParameterDef),
+            'endpoint': 'mixture-list',
+            'body': random_model_dict(Mixture),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -80,10 +95,13 @@ action_tests = [
             }
         },
         {
-            'name': 'workflow0',
+            'name': 'basebommaterial0',
             'method': POST,
-            'endpoint': 'workflow-list',
-            'body': random_model_dict(Workflow),
+            'endpoint': 'basebommaterial-list',
+            'body': random_model_dict(BaseBomMaterial, bom='billofmaterials0__url',
+                                                inventory_material='inventorymaterial0__url',
+                                                bom_material='bommaterial0__url',
+                                                mixture='mixture0__url'), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -95,45 +113,12 @@ action_tests = [
             }
         },
         {
-            'name': 'calculationdef0',
-            'method': POST,
-            'endpoint': 'calculationdef-list',
-            'body': random_model_dict(CalculationDef),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'action0',
-            'method': POST,
-            'endpoint': 'action-list',
-            'body': random_model_dict(Action, action_def='actiondef0__url',
-                                                parameter_def='parameterdef0__url',
-                                                workflow='workflow0__url',
-                                                calculation_def='calculationdef0__url'), 
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'action0_get_0',
+            'name': 'basebommaterial0_get_0',
             'method': GET,
-            'endpoint': 'action-detail',
+            'endpoint': 'basebommaterial-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'basebommaterial0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -146,12 +131,12 @@ action_tests = [
         },
     
         {
-            'name': 'action0_update_0',
+            'name': 'basebommaterial0_update_0',
             'method': PUT,
-            'endpoint': 'action-detail',
-            'body': random_model_dict(Action),
+            'endpoint': 'basebommaterial-detail',
+            'body': random_model_dict(BaseBomMaterial),
             'args': [
-                'action0__uuid'
+                'basebommaterial0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -163,12 +148,12 @@ action_tests = [
             }
         },
         {
-            'name': 'action0_get_1',
+            'name': 'basebommaterial0_get_1',
             'method': GET,
-            'endpoint': 'action-detail',
+            'endpoint': 'basebommaterial-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'basebommaterial0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -180,12 +165,12 @@ action_tests = [
             }
         },
         {
-            'name': 'action0_delete_0',
+            'name': 'basebommaterial0_delete_0',
             'method': DELETE,
-            'endpoint': 'action-detail',
+            'endpoint': 'basebommaterial-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'basebommaterial0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -197,12 +182,12 @@ action_tests = [
             }
         },
         {
-            'name': 'action0_get_2',
+            'name': 'basebommaterial0_get_2',
             'method': GET,
-            'endpoint': 'action-detail',
+            'endpoint': 'basebommaterial-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'basebommaterial0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -216,21 +201,21 @@ action_tests = [
     ],
 
 ##----TEST 1----##
-#creates an action and checks that the response data matches the 
+#creates an basebommaterial and checks that the response data matches the 
 #request data stored in the body entry
     [   
         {
-            'name': 'action0',
+            'name': 'basebommaterial0',
             'method': POST,
-            'endpoint': 'action-list',
-            'body': (action_posted := random_model_dict(Action)),
+            'endpoint': 'basebommaterial-list',
+            'body': (basebommaterial_posted := random_model_dict(BaseBomMaterial)),
             'args': [],
             'query_params': [],
             'is_valid_response': {
                 'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'request_body': action_posted
+                    'request_body': basebommaterial_posted
                 }
             }
         },
