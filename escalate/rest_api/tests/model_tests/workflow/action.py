@@ -30,9 +30,9 @@ action_tests = [
 #creates an action with all of the previous entries as foreign keys (one of the two parameterdefs is put in the manytomanyfield)
 #gets the action
 #puts the action adding the other parameterdef to the manytomany field
-#gets the updated systemtooltype
-#deletes the updated systemtooltype
-#gets the systemtooltype (should return error)
+#gets the updated action
+#deletes the updated action
+#gets the action (should return error)
     [      
         {
             'name': 'actiondef0',
@@ -222,14 +222,14 @@ action_tests = [
             'name': 'action0',
             'method': POST,
             'endpoint': 'action-list',
-            'body': (systemtooltype_posted := random_model_dict(Action)),
+            'body': (action_posted := random_model_dict(Action)),
             'args': [],
             'query_params': [],
             'is_valid_response': {
                 'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'request_body': systemtooltype_posted
+                    'request_body': action_posted
                 }
             }
         },

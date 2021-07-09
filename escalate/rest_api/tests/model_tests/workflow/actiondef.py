@@ -185,14 +185,14 @@ actiondef_tests = [
             'name': 'actiondef0',
             'method': POST,
             'endpoint': 'actiondef-list',
-            'body': (systemtooltype_posted := random_model_dict(ActionDef, parameter_def=['parameterdef0__url'])),
+            'body': (actiondef_posted := random_model_dict(ActionDef, parameter_def=['parameterdef0__url'])),
             'args': [],
             'query_params': [],
             'is_valid_response': {
                 'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'request_body': systemtooltype_posted
+                    'request_body': actiondef_posted
                 }
             }
         },

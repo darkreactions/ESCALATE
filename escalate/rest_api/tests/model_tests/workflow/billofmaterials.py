@@ -11,35 +11,27 @@ from ..model_tests_utils import (
 )
 from core.models import (
     BillOfMaterials,
-    ActionDef,
-    Workflow,
-    ParameterDef,
-    CalculationDef,
-    Action
+    Experiment
 )
 
-action_test_data = {}
+billofmaterials_test_data = {}
 
-action_tests = [
+billofmaterials_tests = [
 
 ##----TEST 0----##
-#creates an actiondef
-#creates a parameterdef
-#creates a second parameterdef
-#creates a workflow
-#creates a calculationdef
-#creates an action with all of the previous entries as foreign keys (one of the two parameterdefs is put in the manytomanyfield)
-#gets the action
-#puts the action adding the other parameterdef to the manytomany field
-#gets the updated systemtooltype
-#deletes the updated systemtooltype
-#gets the systemtooltype (should return error)
+#creates an experiment
+#creates an billofmaterials with experiment as a foreign key
+#gets the billofmaterials
+#puts the billofmaterials
+#gets the updated billofmaterials
+#deletes the updated billofmaterials
+#gets the billofmaterials (should return error)
     [      
         {
-            'name': 'actiondef0',
+            'name': 'experiment0',
             'method': POST,
-            'endpoint': 'actiondef-list',
-            'body': random_model_dict(ActionDef),
+            'endpoint': 'experiment-list',
+            'body': random_model_dict(Experiment),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -51,10 +43,10 @@ action_tests = [
             }
         },
         {
-            'name': 'parameterdef0',
+            'name': 'billofmaterials0',
             'method': POST,
-            'endpoint': 'parameterdef-list',
-            'body': random_model_dict(ParameterDef),
+            'endpoint': 'billofmaterials-list',
+            'body': random_model_dict(BillOfMaterials, experiment='experiment0__url'),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -66,74 +58,12 @@ action_tests = [
             }
         },
         {
-            'name': 'parameterdef1',
-            'method': POST,
-            'endpoint': 'parameterdef-list',
-            'body': random_model_dict(ParameterDef),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'workflow0',
-            'method': POST,
-            'endpoint': 'workflow-list',
-            'body': random_model_dict(Workflow),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        # {
-        #     'name': 'calculationdef0',
-        #     'method': POST,
-        #     'endpoint': 'calculationdef-list',
-        #     'body': random_model_dict(CalculationDef),
-        #     'args': [],
-        #     'query_params': [],
-        #     'is_valid_response': {
-        #         'function': check_status_code,
-        #         'args': [],
-        #         'kwargs': {
-        #             'status_code': POST
-        #         }
-        #     }
-        # },
-        {
-            'name': 'action0',
-            'method': POST,
-            'endpoint': 'action-list',
-            'body': random_model_dict(Action, action_def='actiondef0__url',
-                                                parameter_def='parameterdef0__url',
-                                                workflow='workflow0__url'), 
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'action0_get_0',
+            'name': 'billofmaterials0_get_0',
             'method': GET,
-            'endpoint': 'action-detail',
+            'endpoint': 'billofmaterials-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'billofmaterials0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -146,12 +76,12 @@ action_tests = [
         },
     
         {
-            'name': 'action0_update_0',
+            'name': 'billofmaterials0_update_0',
             'method': PUT,
-            'endpoint': 'action-detail',
-            'body': random_model_dict(Action),
+            'endpoint': 'billofmaterials-detail',
+            'body': random_model_dict(BillOfMaterials),
             'args': [
-                'action0__uuid'
+                'billofmaterials0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -163,12 +93,12 @@ action_tests = [
             }
         },
         {
-            'name': 'action0_get_1',
+            'name': 'billofmaterials0_get_1',
             'method': GET,
-            'endpoint': 'action-detail',
+            'endpoint': 'billofmaterials-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'billofmaterials0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -180,12 +110,12 @@ action_tests = [
             }
         },
         {
-            'name': 'action0_delete_0',
+            'name': 'billofmaterials0_delete_0',
             'method': DELETE,
-            'endpoint': 'action-detail',
+            'endpoint': 'billofmaterials-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'billofmaterials0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -197,12 +127,12 @@ action_tests = [
             }
         },
         {
-            'name': 'action0_get_2',
+            'name': 'billofmaterials0_get_2',
             'method': GET,
-            'endpoint': 'action-detail',
+            'endpoint': 'billofmaterials-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'billofmaterials0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -216,21 +146,21 @@ action_tests = [
     ],
 
 ##----TEST 1----##
-#creates an action and checks that the response data matches the 
+#creates an billofmaterials and checks that the response data matches the 
 #request data stored in the body entry
     [   
         {
-            'name': 'action0',
+            'name': 'billofmaterials0',
             'method': POST,
-            'endpoint': 'action-list',
-            'body': (systemtooltype_posted := random_model_dict(Action)),
+            'endpoint': 'billofmaterials-list',
+            'body': (billofmaterials_posted := random_model_dict(BillOfMaterials)),
             'args': [],
             'query_params': [],
             'is_valid_response': {
                 'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'request_body': systemtooltype_posted
+                    'request_body': billofmaterials_posted
                 }
             }
         },

@@ -189,14 +189,14 @@ actionunit_tests = [
             'name': 'actionunit0',
             'method': POST,
             'endpoint': 'actionunit-list',
-            'body': (systemtooltype_posted := random_model_dict(ActionUnit)),
+            'body': (actionunit_posted := random_model_dict(ActionUnit)),
             'args': [],
             'query_params': [],
             'is_valid_response': {
                 'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'request_body': systemtooltype_posted
+                    'request_body': actionunit_posted
                 }
             }
         },
