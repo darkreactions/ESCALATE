@@ -13,6 +13,7 @@ from core.models import (
     MaterialType, 
     MaterialIdentifier,
     MaterialIdentifierDef, 
+    Mixture,
     ParameterDef,
     Status,
     Systemtool,
@@ -38,6 +39,7 @@ class Command(BaseCommand):
         self._load_vessels()
         self._load_experiment_related_def()
         self._load_experiment_and_workflow()
+        self._load_mixture()
         self.stdout.write(self.style.NOTICE('Finished loading load tables'))
         return
 
@@ -341,6 +343,8 @@ class Command(BaseCommand):
             # next(reader)
         self.stdout.write(self.style.NOTICE('Finished loading vessels'))
     
+#---------------EXPERIMENT--------------
+
     def _load_experiment_related_def(self):
         self.stdout.write(self.style.NOTICE('Beginning experiment related def'))
         self._load_parameter_def()
@@ -575,6 +579,38 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f'Added {new_workflow} new workflows'))
 
         self.stdout.write(self.style.NOTICE('Finished loading experiment and workflow'))
+
+    def _load_mixture(self):
+        self.stdout.write(self.style.NOTICE('Beginning loading mixture'))
+        filename = 'load_mixture.csv'
+        MIXTURE = path_to_file(filename)
+        with open(MIXTURE, newline='') as f:
+            reader = csv.reader(f, delimiter="\t")
+
+            #first row should be header
+            column_names = next(reader)
+
+            #{'col_0': 0, 'col_1': 1, ...}
+            column_names_to_index = list_data_to_index(column_names)
+
+            new_mixture = 0
+            for row in reader:
+                material_composite_description = clean_string(row[column_names_to_index['material_composite_description']])
+                material_component_description = clean_string(row[column_names_to_index['material_component_description']])
+                addressable = clean_string(row[column_names_to_index['addressable']])
+                fields = {
+                    'composite': Material.objects.get(description=y) if not string_is_null(y := material_composite_description) else None,
+                    'composite': Material.objects.get(description=y) if not string_is_null(y := material_component_description) else None,
+                    'addressable': to_bool(addressable)
+                }
+                mixture_instance, created = Mixture.objects.get_or_create(**fields)
+                if created:
+                    new_mixture += 1
+            self.stdout.write(self.style.SUCCESS(f'Added {new_mixture} new mixture'))            
+        self.stdout.write(self.style.NOTICE('Finished loading mixture'))
+
+    def _load_base_bom_material(self):
+        pass
 
     def _load_action(self):
         pass
