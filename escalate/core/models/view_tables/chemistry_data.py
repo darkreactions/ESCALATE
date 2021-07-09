@@ -28,7 +28,7 @@ class Mixture(DateColumns, StatusColumn, ActorColumn):
                                       related_name='composite_material_material_type')
     
     def __str__(self):
-        return "{} - {}".format(self.composite.description, self.component.description)
+        return "{} - {}".format(self.composite.description if self.composite else "", self.component.description if self.component else '')
 
 class Vessel(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='vessel_uuid')
