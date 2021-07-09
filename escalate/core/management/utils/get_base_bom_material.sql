@@ -1,13 +1,14 @@
 select 
-bom_mat_idx.description as base_bom_material_description,
+bom_mat_idx.description,
 ---
-bom.description as bom_material_bom_description,
-inv_mat.description as bom_material_inventory_material_description,
+bom.description as bom_description,
+inv_mat.description as inventory_material_description,
 bom_mat.alloc_amt_val,
 bom_mat.used_amt_val,
 bom_mat.putback_amt_val,
 --
-bom_mat_comp_bom_mat.description as bom_composite_material_bom_material_description,
+bom_mat_comp_bom_mat.description as bom_material_description,
+bom_mat_comp_bom.description as bom_material_bom_description,
 composite.description as bom_composite_material_composite_description,
 component.description as bom_composite_material_component_description
 from dev.bom_material_index bom_mat_idx
@@ -36,6 +37,9 @@ left join dev.material composite on (
 )
 left join dev.material component on (
 	mat_comp.component_uuid = component.material_uuid
+)
+left join dev.bom bom_mat_comp_bom on (
+	bom_mat_comp_bom_mat.bom_uuid = bom_mat_comp_bom.bom_uuid
 )
 ---
 ;
