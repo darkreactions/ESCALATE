@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from core.models import (
     Actor,
+    Action,
     ActionDef,
     BaseBomMaterial,
     BomMaterial,
@@ -43,6 +44,7 @@ class Command(BaseCommand):
         self._load_experiment_and_workflow()
         self._load_mixture()
         self._load_base_bom_material()
+        self._load_action()
         self.stdout.write(self.style.NOTICE('Finished loading load tables'))
         return
 
@@ -704,7 +706,50 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f'Added {new_bom_composite_material} new bom composite materials')) 
 
     def _load_action(self):
-        pass
+        self.stdout.write(self.style.NOTICE('Beginning loading action'))
+        filename = 'load_action.csv'
+        ACTION = path_to_file(filename)
+        with open(ACTION, newline='') as f:
+            reader = csv.reader(f, delimiter="\t")
+
+            #first row should be header
+            column_names = next(reader)
+
+            #{'col_0': 0, 'col_1': 1, ...}
+            column_names_to_index = list_data_to_index(column_names)
+
+            new_action = 0
+            for row in reader:
+                description = clean_string(row[column_names_to_index['description']])
+                action_def_description = clean_string(row[column_names_to_index['action_def_description']])
+                workflow_description = clean_string(row[column_names_to_index['workflow_description']])
+                start_date = clean_string(row[column_names_to_index['start_date']])
+                end_date = clean_string(row[column_names_to_index['end_date']])
+                duration = clean_string(row[column_names_to_index['duration']])
+                repeating = clean_string(row[column_names_to_index['repeating']])
+                calculation_def_short_name = clean_string(row[column_names_to_index['calculation_def_short_name']])
+
+                fields = {
+                    'description': description,
+                    'action_def': ActionDef.objects.get(description=y) if not string_is_null(y := action_def_description) else None,
+                    'workflow': Workflow.objects.get(description=y) if not string_is_null(y := workflow_description) else None,
+                    'start_date': start_date if not string_is_null(start_date) else None,
+                    'end_date': end_date if not string_is_null(end_date) else None,
+                    'duration': int(duration) if not string_is_null(duration) else None,
+                    'repeating': int(repeating) if not string_is_null(repeating) else None,
+                    'calculation_def': CalculationDef.objects.get(short_name=y) if not string_is_null(y:=calculation_def_short_name) else None
+                }
+
+                action_instance, created = Action.objects.get_or_create(**fields)
+
+                if created:
+                    new_action += 1
+
+                parameter_def_description = [x.strip() for x in y.split(',')] if not string_is_null(y := row[column_names_to_index['parameter_def_description']]) else []
+                action_instance.parameter_def.add(*[ParameterDef.objects.get(description=d) for d in parameter_def_description])
+
+            self.stdout.write(self.style.SUCCESS(f'Added {new_action} new action'))            
+        self.stdout.write(self.style.NOTICE('Finished loading action'))
 
 def path_to_file(filename):
     script_dir = os.path.dirname(__file__)
