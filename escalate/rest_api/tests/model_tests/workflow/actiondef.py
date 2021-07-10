@@ -62,14 +62,15 @@ actiondef_tests = [
             'name': 'actiondef0',
             'method': POST,
             'endpoint': 'actiondef-list',
-            'body': random_model_dict(ActionDef, parameter_def=['parameterdef0__url']),
+            'body': (request_body := random_model_dict(ActionDef, parameter_def=['parameterdef0__url'])),
             'args': [],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': POST
+                    'status_code': POST,
+                    'request_body': request_body
                 }
             }
         },
@@ -95,16 +96,17 @@ actiondef_tests = [
             'name': 'actiondef0_update_0',
             'method': PUT,
             'endpoint': 'actiondef-detail',
-            'body': random_model_dict(ActionDef, parameter_def=['parameterdef1__url']),
+            'body': (request_body := random_model_dict(ActionDef, parameter_def=['parameterdef1__url'])),
             'args': [
                 'actiondef0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': PUT
+                    'status_code': PUT,
+                    'request_body': request_body
                 }
             }
         },
@@ -160,41 +162,4 @@ actiondef_tests = [
             }
         },
     ],
-
-##----TEST 1----##
-#creates a parameterdef
-#creates an actiondef with the parameter def in the manytomany field
-#and checks that the response data matches the request data stored in the body entry
-    [   
-        {
-            'name': 'parameterdef0',
-            'method': POST,
-            'endpoint': 'parameterdef-list',
-            'body': random_model_dict(ParameterDef),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'actiondef0',
-            'method': POST,
-            'endpoint': 'actiondef-list',
-            'body': (actiondef_posted := random_model_dict(ActionDef, parameter_def=['parameterdef0__url'])),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': compare_data,
-                'args': [],
-                'kwargs': {
-                    'request_body': actiondef_posted
-                }
-            }
-        },
-    ]
 ]

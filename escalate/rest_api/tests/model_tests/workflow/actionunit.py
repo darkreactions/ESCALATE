@@ -79,16 +79,17 @@ actionunit_tests = [
             'name': 'actionunit0',
             'method': POST,
             'endpoint': 'actionunit-list',
-            'body': random_model_dict(ActionUnit, action='action0__url',
+            'body': (request_body := random_model_dict(ActionUnit, action='action0__url',
                                                 source_material='basebommaterial0__url',
-                                                destination_material='basebommaterial1__url'), 
+                                                destination_material='basebommaterial1__url')), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': POST
+                    'status_code': POST,
+                    'request_body': request_body
                 }
             }
         },
@@ -114,17 +115,18 @@ actionunit_tests = [
             'name': 'actionunit0_update_0',
             'method': PUT,
             'endpoint': 'actionunit-detail',
-            'body': random_model_dict(ActionUnit, destination_material='basebommaterial0__url',
-                                                source_material='basebommaterial1__url'),
+            'body': (request_body := random_model_dict(ActionUnit, destination_material='basebommaterial0__url',
+                                                source_material='basebommaterial1__url')),
             'args': [
                 'actionunit0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': PUT
+                    'status_code': PUT,
+                    'request_body': request_body
                 }
             }
         },
@@ -180,25 +182,4 @@ actionunit_tests = [
             }
         },
     ],
-
-##----TEST 1----##
-#creates a systemtooltype and checks that the response data matches the 
-#request data stored in the body entry
-    [   
-        {
-            'name': 'actionunit0',
-            'method': POST,
-            'endpoint': 'actionunit-list',
-            'body': (actionunit_posted := random_model_dict(ActionUnit)),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': compare_data,
-                'args': [],
-                'kwargs': {
-                    'request_body': actionunit_posted
-                }
-            }
-        },
-    ]
 ]
