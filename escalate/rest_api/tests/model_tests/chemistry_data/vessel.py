@@ -63,14 +63,15 @@ vessel_tests = [
             'name': 'vessel0',
             'method': POST,
             'endpoint': 'vessel-list',
-            'body': random_model_dict(Vessel, status='status0__url'),
+            'body': (request_body := random_model_dict(Vessel, status='status0__url')),
             'args': [],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': POST
+                    'status_code': POST,
+                    'request_body': request_body
                 }
             }
         },
@@ -95,16 +96,17 @@ vessel_tests = [
             'name': 'vessel0_update_0',
             'method': PUT,
             'endpoint': 'vessel-detail',
-            'body': random_model_dict(Vessel, actor='actor0__url'),
+            'body': (request_body := random_model_dict(Vessel, actor='actor0__url')),
             'args': [
                 'vessel0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': PUT
+                    'status_code': PUT,
+                    'request_body': request_body
                 }
             }
         },
@@ -160,25 +162,4 @@ vessel_tests = [
             }
         },
     ],
-
-##----TEST 1----##
-#creates a vessel and checks that the response data matches the 
-#request data stored in the body entry
-    [   
-        {
-            'name': 'vessel0',
-            'method': POST,
-            'endpoint': 'vessel-list',
-            'body': (request_body := random_model_dict(Vessel)),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': compare_data,
-                'args': [],
-                'kwargs': {
-                    'request_body':request_body,
-                }
-            }
-        },
-    ]
 ]

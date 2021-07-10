@@ -98,14 +98,16 @@ def random_model_dict(model, **kwargs):
 
 def check_status_code(resp, **kwargs):
     http_res_code = kwargs['status_code']
-    print(http_res_code)
-    print(resp.status_code)
     return resp.status_code == status_codes[http_res_code]
 
 
 def compare_data(resp, **kwargs):
     body = kwargs['request_body']
     response_data = kwargs['response_data']
+    http_res_code = kwargs['status_code']
+    if resp.status_code != status_codes[http_res_code]:
+        print(f'Expected: {http_res_code} Got: {resp.status_code}')
+        return False
     add_prev_endpoint_data_2(body, response_data)
 
     for key, value in resp.json().items():

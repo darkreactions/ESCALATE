@@ -28,14 +28,15 @@ status_tests = [
             'name': 'status',
             'method': POST,
             'endpoint': 'status-list',
-            'body': random_model_dict(Status),
+            'body': (request_body := random_model_dict(Status)),
             'args': [],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': POST
+                    'status_code': POST,
+                    'request_body': request_body
                 }
             }
         },
@@ -60,16 +61,17 @@ status_tests = [
             'name': 'status_update',
             'method': PUT,
             'endpoint': 'status-detail',
-            'body': random_model_dict(Status),
+            'body': (request_body := random_model_dict(Status)),
             'args': [
                 'status__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': PUT
+                    'status_code': PUT,
+                    'request_body': request_body
                 }
             }
         },
@@ -125,23 +127,4 @@ status_tests = [
             }
         },
     ],
-##----TEST 1----##
-# creates a status and checks if the response data matches the request data
-    [
-        {
-            'name': 'status',
-            'method': POST,
-            'endpoint': 'status-list',
-            'body': (request_body := random_model_dict(Status)),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': compare_data,
-                'args': [],
-                'kwargs': {
-                    'request_body': request_body
-                }
-            }
-        },
-    ]
 ]

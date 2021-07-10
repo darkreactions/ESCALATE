@@ -10,31 +10,31 @@ from ..model_tests_utils import (
     compare_data
 )
 from core.models import (
-    Mixture,
-    Material,
-    MaterialType
+    Condition,
+    WorkflowStep,
+    ConditionPath
 )
 
-mixture_test_data = {}
+conditionpath_test_data = {}
 
-mixture_tests = [
+conditionpath_tests = [
 
 ##----TEST 0----##
-#creates a material
-#creates a second material
-#creates a materialtype
-#creates a mixture with materialtype as a manytomany key and the two materials as foreign keys
-#gets the mixture
-#updates the mixture to no longer have manytomany/foreign keys
-#gets the mixture
-#deletes the mixture
-#gets the mixture (should return error)
+#cretaes a condition
+#creates a workflowstep
+#creates a conditionpath with the previous two entries as foreign keys
+#gets the conditionpath
+#updates the conditionpath with the other calculationdef
+#gets the conditionpath
+#deletes the conditionpath
+#gets the conditionpath (should return error)
     [      
+        
         {
-            'name': 'material0',
+            'name': 'condition0',
             'method': POST,
-            'endpoint': 'material-list',
-            'body': random_model_dict(Material),
+            'endpoint': 'condition-list',
+            'body': random_model_dict(Condition),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -46,10 +46,10 @@ mixture_tests = [
             }
         },
         {
-            'name': 'material1',
+            'name': 'workflowstep0',
             'method': POST,
-            'endpoint': 'material-list',
-            'body': random_model_dict(Material),
+            'endpoint': 'workflowstep-list',
+            'body': random_model_dict(WorkflowStep),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -61,10 +61,11 @@ mixture_tests = [
             }
         },
         {
-            'name': 'materialtype0',
+            'name': 'conditionpath0',
             'method': POST,
-            'endpoint': 'materialtype-list',
-            'body': random_model_dict(MaterialType),
+            'endpoint': 'conditionpath-list',
+            'body': random_model_dict(ConditionPath, #calculation_def=['calculationdef0__url']
+            ),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -76,29 +77,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0',
-            'method': POST,
-            'endpoint': 'mixture-list',
-            'body': (request_body := random_model_dict(Mixture, composite='material0__url', component='material1__url', \
-                    material_type=['materialtype0__url'])),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': compare_data,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST,
-                    'request_body': request_body
-                }
-            }
-        },
-        {
-            'name': 'mixture0_get_0',
+            'name': 'conditionpath0_get_0',
             'method': GET,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'conditionpath-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'conditionpath0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -109,31 +93,32 @@ mixture_tests = [
                 }
             }
         },
+    
         {
-            'name': 'mixture0_update_0',
+            'name': 'conditionpath0_update_0',
             'method': PUT,
-            'endpoint': 'mixture-detail',
-            'body': (request_body := random_model_dict(Mixture)),
+            'endpoint': 'conditionpath-detail',
+            'body': random_model_dict(ConditionPath, #calculation_def=['calculationdef1__url']
+            ),
             'args': [
-                'mixture0__uuid'
+                'conditionpath0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
-                'function': compare_data,
+                'function': check_status_code,
                 'args': [],
                 'kwargs': {
-                    'status_code': PUT,
-                    'request_body': request_body
+                    'status_code': PUT
                 }
             }
         },
         {
-            'name': 'mixture0_get_1',
+            'name': 'conditionpath0_get_1',
             'method': GET,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'conditionpath-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'conditionpath0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -145,12 +130,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_delete_0',
+            'name': 'conditionpath0_delete_0',
             'method': DELETE,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'conditionpath-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'conditionpath0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -162,12 +147,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_get_2',
+            'name': 'conditionpath0_get_2',
             'method': GET,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'conditionpath-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'conditionpath0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -179,4 +164,27 @@ mixture_tests = [
             }
         },
     ],
+
+##----TEST 1----##
+#creates a calculationdef
+#creates an conditionpath with the calculation def in the manytomany field
+#and checks that the response data matches the request data stored in the body entry
+    [   
+        {
+            'name': 'conditionpath0',
+            'method': POST,
+            'endpoint': 'conditionpath-list',
+            'body': (conditionpath_posted := random_model_dict(ConditionPath, #calculation_def=['calculationdef0__url']
+            )),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': compare_data,
+                'args': [],
+                'kwargs': {
+                    'request_body': conditionpath_posted
+                }
+            }
+        },
+    ]
 ]

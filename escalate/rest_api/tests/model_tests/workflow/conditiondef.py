@@ -28,41 +28,42 @@ conditiondef_tests = [
 #gets the conditiondef (should return error)
     [      
         
-        {
-            'name': 'calculationdef0',
-            'method': POST,
-            'endpoint': 'calculationdef-list',
-            'body': random_model_dict(CalculationDef),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'calculationdef1',
-            'method': POST,
-            'endpoint': 'calculationdef-list',
-            'body': random_model_dict(CalculationDef),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
+        # {
+        #     'name': 'calculationdef0',
+        #     'method': POST,
+        #     'endpoint': 'calculationdef-list',
+        #     'body': random_model_dict(CalculationDef),
+        #     'args': [],
+        #     'query_params': [],
+        #     'is_valid_response': {
+        #         'function': check_status_code,
+        #         'args': [],
+        #         'kwargs': {
+        #             'status_code': POST
+        #         }
+        #     }
+        # },
+        # {
+        #     'name': 'calculationdef1',
+        #     'method': POST,
+        #     'endpoint': 'calculationdef-list',
+        #     'body': random_model_dict(CalculationDef),
+        #     'args': [],
+        #     'query_params': [],
+        #     'is_valid_response': {
+        #         'function': check_status_code,
+        #         'args': [],
+        #         'kwargs': {
+        #             'status_code': POST
+        #         }
+        #     }
+        # },
         {
             'name': 'conditiondef0',
             'method': POST,
             'endpoint': 'conditiondef-list',
-            'body': random_model_dict(ConditionDef, calculation_def=['calculationdef0__url']),
+            'body': random_model_dict(ConditionDef, #calculation_def=['calculationdef0__url']
+            ),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -95,7 +96,8 @@ conditiondef_tests = [
             'name': 'conditiondef0_update_0',
             'method': PUT,
             'endpoint': 'conditiondef-detail',
-            'body': random_model_dict(ConditionDef, calculation_def=['calculationdef1__url']),
+            'body': random_model_dict(ConditionDef, #calculation_def=['calculationdef1__url']
+            ),
             'args': [
                 'conditiondef0__uuid'
             ],
@@ -166,26 +168,27 @@ conditiondef_tests = [
 #creates an conditiondef with the calculation def in the manytomany field
 #and checks that the response data matches the request data stored in the body entry
     [   
-        {
-            'name': 'calculationdef0',
-            'method': POST,
-            'endpoint': 'calculationdef-list',
-            'body': random_model_dict(CalculationDef),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
+        # {
+        #     'name': 'calculationdef0',
+        #     'method': POST,
+        #     'endpoint': 'calculationdef-list',
+        #     'body': random_model_dict(CalculationDef),
+        #     'args': [],
+        #     'query_params': [],
+        #     'is_valid_response': {
+        #         'function': check_status_code,
+        #         'args': [],
+        #         'kwargs': {
+        #             'status_code': POST
+        #         }
+        #     }
+        # },
         {
             'name': 'conditiondef0',
             'method': POST,
             'endpoint': 'conditiondef-list',
-            'body': (conditiondef_posted := random_model_dict(ConditionDef, calculation_def=['calculationdef0__url'])),
+            'body': (conditiondef_posted := random_model_dict(ConditionDef, #calculation_def=['calculationdef0__url']
+            )),
             'args': [],
             'query_params': [],
             'is_valid_response': {

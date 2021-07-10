@@ -65,16 +65,17 @@ material_identifier_tests = [
             'name': 'mat_iden',
             'method': POST,
             'endpoint': 'materialidentifier-list',
-            'body': random_model_dict(MaterialIdentifier,
+            'body': (request_body := random_model_dict(MaterialIdentifier,
                                       material_identifier_def='mat_iden_def0__url',
-                                      status='status0__url'),
+                                      status='status0__url')),
             'args': [],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': POST
+                    'status_code': POST,
+                    'request_body': request_body
                 }
             }
         },
@@ -99,18 +100,19 @@ material_identifier_tests = [
             'name': 'mat_iden_update',
             'method': PUT,
             'endpoint': 'materialidentifier-detail',
-            'body': random_model_dict(MaterialIdentifier,
+            'body': (request_body := random_model_dict(MaterialIdentifier,
                                       material_identifier_def='mat_iden_def1__url',
-                                      status='status1__url'),
+                                      status='status1__url')),
             'args': [
                 'mat_iden__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': PUT
+                    'status_code': PUT,
+                    'request_body': request_body
                 }
             }
         },
@@ -166,56 +168,4 @@ material_identifier_tests = [
             }
         }
     ],
-##----TEST 1----##
-# creates a material identifier and checks if the response
-# data is the same as the request data
-    [
-        {
-            'name': 'mat_iden_def',
-            'method': POST,
-            'endpoint': 'materialidentifierdef-list',
-            'body': random_model_dict(MaterialIdentifierDef),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'status',
-            'method': POST,
-            'endpoint': 'status-list',
-            'body': random_model_dict(Status),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'status',
-            'method': POST,
-            'endpoint': 'materialidentifier-list',
-            'body': (request_body := random_model_dict(MaterialIdentifier,
-                                      material_identifier_def='mat_iden_def__url',
-                                      status='status__url')),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': compare_data,
-                'args': [],
-                'kwargs': {
-                    'request_body': request_body
-                }
-            }
-        }
-    ]
 ]

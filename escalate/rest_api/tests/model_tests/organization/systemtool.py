@@ -95,14 +95,15 @@ systemtool_tests = [
             'name': 'systemtool0',
             'method': POST,
             'endpoint': 'systemtool-list',
-            'body': random_model_dict(Systemtool,vendor_organization='org0__url',systemtool_type='systemtool_type0__url'),
+            'body': (request_body := random_model_dict(Systemtool,vendor_organization='org0__url',systemtool_type='systemtool_type0__url')),
             'args': [],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': POST
+                    'status_code': POST,
+                    'request_body': request_body
                 }
             }
         },
@@ -127,16 +128,17 @@ systemtool_tests = [
             'name': 'systemtool0_update0',
             'method': PUT,
             'endpoint': 'systemtool-detail',
-            'body': random_model_dict(Systemtool,vendor_organization='org1__url',systemtool_type='systemtool_type1__url'),
+            'body': (request_body := random_model_dict(Systemtool,vendor_organization='org1__url',systemtool_type='systemtool_type1__url')),
             'args': [
                 'systemtool0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': PUT
+                    'status_code': PUT,
+                    'request_body': request_body
                 }
             }
         },
@@ -192,55 +194,4 @@ systemtool_tests = [
             }
         },
     ],
-
-##----TEST 1----##
-#creates a systemtool and checks that the response data matches the 
-#request data stored in the body entry
-    [   
-        {
-            'name': 'systemtool_type0',
-            'method': POST,
-            'endpoint': 'systemtooltype-list',
-            'body': random_model_dict(SystemtoolType),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'org0',
-            'method': POST,
-            'endpoint': 'organization-list',
-            'body': random_model_dict(Organization),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'systemtool0',
-            'method': POST,
-            'endpoint': 'systemtool-list',
-            'body': (systemtool_posted := random_model_dict(Systemtool,vendor_organization='org0__url',systemtool_type='systemtool_type0__url')),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': compare_data,
-                'args': [],
-                'kwargs': {
-                    'request_body': systemtool_posted
-                }
-            }
-        },
-    ]
 ]
