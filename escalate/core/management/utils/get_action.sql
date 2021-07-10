@@ -19,12 +19,6 @@ left join dev.workflow wf on (
 left join dev.calculation_def calc_def on (
 	act.calculation_def_uuid = calc_def.calculation_def_uuid
 )
-left join dev.material mat_source on (
-	act.source_material_uuid = mat_source.material_uuid
-)
-left join dev.material mat_dest on (
-	act.destination_material_uuid = mat_dest.material_uuid
-)
 left join dev.workflow_action_set wf_act_set on (
 	act.workflow_action_set_uuid = wf_act_set.workflow_action_set_uuid
 )
