@@ -42,6 +42,13 @@ users = {
         },
         'password': 'password2'
     }
+    'nsmina': {
+        'person_data': {
+            'first_name': 'Nicole',
+            'last_name': 'Smina'
+        },
+        'password': 'helloworld23'
+    },
 }
 
 org_passwords = {
