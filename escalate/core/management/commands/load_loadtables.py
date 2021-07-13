@@ -3,6 +3,7 @@ from core.models import (
     Actor,
     Action,
     ActionDef,
+    ActionUnit,
     BaseBomMaterial,
     BomMaterial,
     BillOfMaterials,
@@ -45,6 +46,7 @@ class Command(BaseCommand):
         self._load_mixture()
         self._load_base_bom_material()
         self._load_action()
+        self._load_action_unit()
         self.stdout.write(self.style.NOTICE('Finished loading load tables'))
         return
 
@@ -750,6 +752,56 @@ class Command(BaseCommand):
 
             self.stdout.write(self.style.SUCCESS(f'Added {new_action} new action'))            
         self.stdout.write(self.style.NOTICE('Finished loading action'))
+
+    def _load_action_unit(self):
+        self.stdout.write(self.style.NOTICE('Beginning loading action unit'))
+        filename = 'load_action_unit.csv'
+        ACTION_UNIT = path_to_file(filename)
+        with open(ACTION_UNIT, newline='') as f:
+            reader = csv.reader(f, delimiter="\t")
+
+            #first row should be header
+            column_names = next(reader)
+
+            #{'col_0': 0, 'col_1': 1, ...}
+            column_names_to_index = list_data_to_index(column_names)
+
+            new_action_unit = 0
+            for row in reader:
+                action_description = clean_string(row[column_names_to_index['action_description']])
+                action_workflow_description = clean_string(row[column_names_to_index['action_workflow_description']])
+
+                source_material_description = clean_string(row[column_names_to_index['source_material_description']])
+                source_material_bom_description = clean_string(row[column_names_to_index['source_material_bom_description']])
+                
+                destination_material_description = clean_string(row[column_names_to_index['destination_material_description']])
+                destination_material_bom_description = clean_string(row[column_names_to_index['destination_material_bom_description']])
+
+                source_material_bom = BillOfMaterials.objects.get(
+                    description=source_material_bom_description,
+                ) if not string_is_null(source_material_bom_description) else None
+
+                destination_material_bom = BillOfMaterials.objects.get(
+                    description=destination_material_bom_description,
+                ) if not string_is_null(destination_material_bom_description) else None
+
+                fields = {
+                    'action': Action.objects.get(description=action_description,
+                                                 workflow__description=action_workflow_description
+                    ) if not string_is_null(action_description) else None,
+                    'source_material': BaseBomMaterial.objects.get(description=source_material_description,
+                                                                   bom=source_material_bom
+                    ) if not string_is_null(source_material_description) else None,
+                    'destination_material': BaseBomMaterial.objects.get(description=destination_material_description,
+                                                                   bom=destination_material_bom
+                    ) if not string_is_null(destination_material_description) else None,
+                }
+
+                action_unit_instance = ActionUnit.objects.create(**fields)
+
+                new_action_unit += 1
+            self.stdout.write(self.style.SUCCESS(f'Added {new_action_unit} new action units'))            
+        self.stdout.write(self.style.NOTICE('Finished loading action unit'))
 
 def path_to_file(filename):
     script_dir = os.path.dirname(__file__)
