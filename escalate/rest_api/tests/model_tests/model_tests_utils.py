@@ -38,7 +38,7 @@ def random_model_dict(model, **kwargs):
         field.name == 'mod_date' or
         field.__class__.__name__ == 'ManyToManyField' or
         field.__class__.__name__ == 'ForeignKey' or 
-        field.__class__.__name__ == 'OneToOneField' or 
+        field.__class__.__name__ == 'OneToOneField' or
         field.editable == False
         )
     dict_fields = {f.name:f for f in filter(can_generate_random_val, all_fields)}
@@ -99,6 +99,8 @@ def random_model_dict(model, **kwargs):
                 model_dict[field_name] = rand_alpha
     for field_name, value in kwargs.items():
         assert field_name in _field_names, f"Invalid field name: {field_name} in {model._meta.model_name}. Valid field names are: {_field_names}"
+        valid_field = [f for f in all_fields if f.name == field_name]
+        assert valid_field[0].editable != False, f"The {field_name} {valid_field[0].__class__.__name__} in the {model.__name__} model test is not editable. Remove it from the test case."
         model_dict[field_name] = value
     return model_dict
 
