@@ -10,31 +10,30 @@ from ..model_tests_utils import (
     compare_data
 )
 from core.models import (
-    Condition,
-    WorkflowStep,
-    ConditionPath
+    InventoryMaterial,
+    Inventory,
+    Material
 )
 
-conditionpath_test_data = {}
+inventorymaterial_test_data = {}
 
-conditionpath_tests = [
+inventorymaterial_tests = [
 
 ##----TEST 0----##
-#cretaes a condition
-#creates a workflowstep
-#creates a conditionpath with the previous two entries as foreign keys
-#gets the conditionpath
-#updates the conditionpath with the other calculationdef
-#gets the conditionpath
-#deletes the conditionpath
-#gets the conditionpath (should return error)
+#creates an inventory
+#creates a material
+#creates an inventorymaterial with all of the previous entries as foreign keys
+#gets the action
+#puts the inventorymaterial adding the other parameterdef to the manytomany field
+#gets the updated inventorymaterial
+#deletes the updated inventorymaterial
+#gets the inventorymaterial (should return error)
     [      
-        
         {
-            'name': 'condition0',
+            'name': 'inventory0',
             'method': POST,
-            'endpoint': 'condition-list',
-            'body': random_model_dict(Condition),
+            'endpoint': 'inventory-list',
+            'body': random_model_dict(Inventory),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -46,10 +45,10 @@ conditionpath_tests = [
             }
         },
         {
-            'name': 'workflowstep0',
+            'name': 'material0',
             'method': POST,
-            'endpoint': 'workflowstep-list',
-            'body': random_model_dict(WorkflowStep),
+            'endpoint': 'material-list',
+            'body': random_model_dict(Material),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -61,28 +60,29 @@ conditionpath_tests = [
             }
         },
         {
-            'name': 'conditionpath0',
+            'name': 'inventorymaterial0',
             'method': POST,
-            'endpoint': 'conditionpath-list',
-            'body': random_model_dict(ConditionPath, #calculation_def=['calculationdef0__url']
-            ),
+            'endpoint': 'inventorymaterial-list',
+            'body': (request_body := random_model_dict(InventoryMaterial, inventory='inventory0__url',
+                                                material='material0__url',)), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': POST
+                    'status_code': POST,
+                    'request_body': request_body
                 }
             }
         },
         {
-            'name': 'conditionpath0_get_0',
+            'name': 'inventorymaterial0_get_0',
             'method': GET,
-            'endpoint': 'conditionpath-detail',
+            'endpoint': 'inventorymaterial-detail',
             'body': {},
             'args': [
-                'conditionpath0__uuid'
+                'inventorymaterial0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -95,30 +95,30 @@ conditionpath_tests = [
         },
     
         {
-            'name': 'conditionpath0_update_0',
+            'name': 'inventorymaterial0_update_0',
             'method': PUT,
-            'endpoint': 'conditionpath-detail',
-            'body': random_model_dict(ConditionPath, #calculation_def=['calculationdef1__url']
-            ),
+            'endpoint': 'inventorymaterial-detail',
+            'body': (request_body := random_model_dict(InventoryMaterial)),
             'args': [
-                'conditionpath0__uuid'
+                'inventorymaterial0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': PUT
+                    'status_code': PUT,
+                    'request_body': request_body
                 }
             }
         },
         {
-            'name': 'conditionpath0_get_1',
+            'name': 'inventorymaterial0_get_1',
             'method': GET,
-            'endpoint': 'conditionpath-detail',
+            'endpoint': 'inventorymaterial-detail',
             'body': {},
             'args': [
-                'conditionpath0__uuid'
+                'inventorymaterial0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -130,12 +130,12 @@ conditionpath_tests = [
             }
         },
         {
-            'name': 'conditionpath0_delete_0',
+            'name': 'inventorymaterial0_delete_0',
             'method': DELETE,
-            'endpoint': 'conditionpath-detail',
+            'endpoint': 'inventorymaterial-detail',
             'body': {},
             'args': [
-                'conditionpath0__uuid'
+                'inventorymaterial0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -147,12 +147,12 @@ conditionpath_tests = [
             }
         },
         {
-            'name': 'conditionpath0_get_2',
+            'name': 'inventorymaterial0_get_2',
             'method': GET,
-            'endpoint': 'conditionpath-detail',
+            'endpoint': 'inventorymaterial-detail',
             'body': {},
             'args': [
-                'conditionpath0__uuid'
+                'inventorymaterial0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -164,27 +164,4 @@ conditionpath_tests = [
             }
         },
     ],
-
-##----TEST 1----##
-#creates a calculationdef
-#creates an conditionpath with the calculation def in the manytomany field
-#and checks that the response data matches the request data stored in the body entry
-    [   
-        {
-            'name': 'conditionpath0',
-            'method': POST,
-            'endpoint': 'conditionpath-list',
-            'body': (conditionpath_posted := random_model_dict(ConditionPath, #calculation_def=['calculationdef0__url']
-            )),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': compare_data,
-                'args': [],
-                'kwargs': {
-                    'request_body': conditionpath_posted
-                }
-            }
-        },
-    ]
 ]

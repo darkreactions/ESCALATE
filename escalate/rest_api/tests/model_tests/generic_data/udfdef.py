@@ -1,4 +1,5 @@
 from ..model_tests_utils import (
+    status_codes,
     DELETE,
     PUT,
     POST,
@@ -8,44 +9,62 @@ from ..model_tests_utils import (
     check_status_code,
     compare_data
 )
-
 from core.models import (
-    Edocument
+    UdfDef,
+    TypeDef
 )
 
-edocument_data = {}
+udfdef_test_data = {}
 
-edocument_tests = [
+udfdef_tests = [
+
 ##----TEST 0----##
-#create edocument
-#get edocument
-#update edocument
-#get
-#delete
-#get (should return error)
-    [
+#creates a typedef
+#creates a udfdef with typedef as a foreign key
+#gets the udfdef
+#puts the udfdef 
+#gets the updated udfdef
+#deletes the updated udfdef
+#gets the udfdef (should return error)
+    [   
         {
-            'name': 'edocument',
+            'name': 'typedef0',
             'method': POST,
-            'endpoint': 'edocument-list',
-            'body': random_model_dict(Edocument),
+            'endpoint': 'typedef-list',
+            'body': random_model_dict(TypeDef), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
                 'function': check_status_code,
                 'args': [],
                 'kwargs': {
-                    'status_code': POST
+                    'status_code': POST,
+                }
+            }
+        },   
+        {
+            'name': 'udfdef0',
+            'method': POST,
+            'endpoint': 'udfdef-list',
+            'body': (request_body := random_model_dict(UdfDef, val_type='typedef0__url')), 
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': compare_data,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST,
+                    'request_body': request_body
                 }
             }
         },
         {
-            'name': 'edocument_get',
+            'name': 'udfdef0_get_0',
             'method': GET,
-            'endpoint': 'edocument-detail',
+            'endpoint': 'udfdef-detail',
             'body': {},
             'args': [
-                'edocument__uuid'
+                'udfdef0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -56,30 +75,32 @@ edocument_tests = [
                 }
             }
         },
+    
         {
-            'name': 'edocument_update',
+            'name': 'udfdef0_update_0',
             'method': PUT,
-            'endpoint': 'edocument-detail',
-            'body': random_model_dict(Edocument),
+            'endpoint': 'udfdef-detail',
+            'body': (request_body := random_model_dict(UdfDef)),
             'args': [
-                'edocument__uuid'
+                'udfdef0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': PUT
+                    'status_code': PUT,
+                    'request_body': request_body
                 }
             }
         },
         {
-            'name': 'edocument_update_get',
+            'name': 'udfdef0_get_1',
             'method': GET,
-            'endpoint': 'edocument-detail',
+            'endpoint': 'udfdef-detail',
             'body': {},
             'args': [
-                'edocument__uuid'
+                'udfdef0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -91,12 +112,12 @@ edocument_tests = [
             }
         },
         {
-            'name': 'edocument_update_del',
+            'name': 'udfdef0_delete_0',
             'method': DELETE,
-            'endpoint': 'edocument-detail',
+            'endpoint': 'udfdef-detail',
             'body': {},
             'args': [
-                'edocument__uuid'
+                'udfdef0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -108,12 +129,12 @@ edocument_tests = [
             }
         },
         {
-            'name': 'propery_def_update_del_get',
+            'name': 'udfdef0_get_2',
             'method': GET,
-            'endpoint': 'edocument-detail',
+            'endpoint': 'udfdef-detail',
             'body': {},
             'args': [
-                'edocument__uuid'
+                'udfdef0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -125,24 +146,4 @@ edocument_tests = [
             }
         },
     ],
-##----TEST 1----##
-# creates a property def and checks if the response data matches the
-# request data
-    [
-        {
-            'name': 'edocument',
-            'method': POST,
-            'endpoint': 'edocument-list',
-            'body': (request_body := random_model_dict(Edocument)),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': compare_data,
-                'args': [],
-                'kwargs': {
-                    'request_body': request_body
-                }
-            }
-        },
-    ]
 ]

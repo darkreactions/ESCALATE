@@ -81,7 +81,7 @@ experiment_tests = [
             'name': 'experiment0',
             'method': POST,
             'endpoint': 'experiment-list',
-            'body': (experiment_posted := random_model_dict(Experiment, experiment_type='experimenttype0__url',
+            'body': (request_body := random_model_dict(Experiment, experiment_type='experimenttype0__url',
                                                 parent='typedef0__url',
                                                 owner='actor0__url',
                                                 operator='actor1__url',
@@ -93,7 +93,7 @@ experiment_tests = [
                 'args': [],
                 'kwargs': {
                     'status_code': POST,
-                    'request_body': experiment_posted
+                    'request_body': request_body
                 }
             }
         },
@@ -118,7 +118,7 @@ experiment_tests = [
             'name': 'experiment0_update_0',
             'method': PUT,
             'endpoint': 'experiment-detail',
-            'body': (experiment_updated := random_model_dict(Experiment)), 
+            'body': (request_body := random_model_dict(Experiment)), 
             'args': [
                 'experiment0__uuid'
             ],
@@ -128,7 +128,7 @@ experiment_tests = [
                 'args': [],
                 'kwargs': {
                     'status_code': PUT,
-                    'request_body': experiment_updated
+                    'request_body': request_body
                 }
             }
         },

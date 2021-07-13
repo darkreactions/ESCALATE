@@ -98,17 +98,18 @@ basebommaterial_tests = [
             'name': 'basebommaterial0',
             'method': POST,
             'endpoint': 'basebommaterial-list',
-            'body': random_model_dict(BaseBomMaterial, bom='billofmaterials0__url',
+            'body': (request_body := random_model_dict(BaseBomMaterial, bom='billofmaterials0__url',
                                                 inventory_material='inventorymaterial0__url',
                                                 bom_material='bommaterial0__url',
-                                                mixture='mixture0__url'), 
+                                                mixture='mixture0__url')), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': POST
+                    'status_code': POST,
+                    'request_body': request_body
                 }
             }
         },
@@ -134,16 +135,17 @@ basebommaterial_tests = [
             'name': 'basebommaterial0_update_0',
             'method': PUT,
             'endpoint': 'basebommaterial-detail',
-            'body': random_model_dict(BaseBomMaterial),
+            'body': (request_body := random_model_dict(BaseBomMaterial)),
             'args': [
                 'basebommaterial0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': PUT
+                    'status_code': PUT,
+                    'request_body': request_body
                 }
             }
         },
@@ -199,25 +201,4 @@ basebommaterial_tests = [
             }
         },
     ],
-
-##----TEST 1----##
-#creates an basebommaterial and checks that the response data matches the 
-#request data stored in the body entry
-    [   
-        {
-            'name': 'basebommaterial0',
-            'method': POST,
-            'endpoint': 'basebommaterial-list',
-            'body': (basebommaterial_posted := random_model_dict(BaseBomMaterial)),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': compare_data,
-                'args': [],
-                'kwargs': {
-                    'request_body': basebommaterial_posted
-                }
-            }
-        },
-    ]
 ]

@@ -1,4 +1,5 @@
 from ..model_tests_utils import (
+    createSystemtool,
     status_codes,
     DELETE,
     PUT,
@@ -7,46 +8,54 @@ from ..model_tests_utils import (
     ERROR,
     random_model_dict,
     check_status_code,
-    compare_data
+    compare_data,
+    createSystemtool
 )
 from core.models import (
-    BillOfMaterials,
-    Experiment
+    Calculation,
+    CalculationDef,
+    Systemtool,
+    Organization,
+    SystemtoolType
 )
 
-billofmaterials_test_data = {}
+calculation_test_data = {}
 
-billofmaterials_tests = [
+calculation_tests = [
 
 ##----TEST 0----##
-#creates an experiment
-#creates an billofmaterials with experiment as a foreign key
-#gets the billofmaterials
-#puts the billofmaterials
-#gets the updated billofmaterials
-#deletes the updated billofmaterials
-#gets the billofmaterials (should return error)
-    [      
+#creates a systemtool
+#creates a calculationdef
+#creates a calculation with the previous entries as a foreign key
+#gets the calculation
+#puts the calculation
+#gets the updated calculation
+#deletes the updated calculation
+#gets the calculation (should return error)
+    [    
+        *createSystemtool(1),
+        # {
+        #     'name': 'calculationdef0',
+        #     'method': POST,
+        #     'endpoint': 'calculationdef-list',
+        #     'body': random_model_dict(CalculationDef),
+        #     'args': [],
+        #     'query_params': [],
+        #     'is_valid_response': {
+        #         'function': check_status_code,
+        #         'args': [],
+        #         'kwargs': {
+        #             'status_code': POST
+        #         }
+        #     }
+        # },    
         {
-            'name': 'experiment0',
+            'name': 'calculation0',
             'method': POST,
-            'endpoint': 'experiment-list',
-            'body': random_model_dict(Experiment),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'billofmaterials0',
-            'method': POST,
-            'endpoint': 'billofmaterials-list',
-            'body': (request_body := random_model_dict(BillOfMaterials, experiment='experiment0__url')),
+            'endpoint': 'calculation-list',
+            'body': (request_body := random_model_dict(Calculation, systemtool='systemtool0__url', 
+                                                                    # calculation_def='calculationdef0__url'
+                                                                    )),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -59,12 +68,12 @@ billofmaterials_tests = [
             }
         },
         {
-            'name': 'billofmaterials0_get_0',
+            'name': 'calculation0_get_0',
             'method': GET,
-            'endpoint': 'billofmaterials-detail',
+            'endpoint': 'calculation-detail',
             'body': {},
             'args': [
-                'billofmaterials0__uuid'
+                'calculation0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -75,14 +84,13 @@ billofmaterials_tests = [
                 }
             }
         },
-    
         {
-            'name': 'billofmaterials0_update_0',
+            'name': 'calculation0_update_0',
             'method': PUT,
-            'endpoint': 'billofmaterials-detail',
-            'body': (request_body := random_model_dict(BillOfMaterials)),
+            'endpoint': 'calculation-detail',
+            'body': (request_body := random_model_dict(Calculation)),
             'args': [
-                'billofmaterials0__uuid'
+                'calculation0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -95,12 +103,12 @@ billofmaterials_tests = [
             }
         },
         {
-            'name': 'billofmaterials0_get_1',
+            'name': 'calculation0_get_1',
             'method': GET,
-            'endpoint': 'billofmaterials-detail',
+            'endpoint': 'calculation-detail',
             'body': {},
             'args': [
-                'billofmaterials0__uuid'
+                'calculation0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -112,12 +120,12 @@ billofmaterials_tests = [
             }
         },
         {
-            'name': 'billofmaterials0_delete_0',
+            'name': 'calculation0_delete_0',
             'method': DELETE,
-            'endpoint': 'billofmaterials-detail',
+            'endpoint': 'calculation-detail',
             'body': {},
             'args': [
-                'billofmaterials0__uuid'
+                'calculation0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -129,12 +137,12 @@ billofmaterials_tests = [
             }
         },
         {
-            'name': 'billofmaterials0_get_2',
+            'name': 'calculation0_get_2',
             'method': GET,
-            'endpoint': 'billofmaterials-detail',
+            'endpoint': 'calculation-detail',
             'body': {},
             'args': [
-                'billofmaterials0__uuid'
+                'calculation0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -145,5 +153,5 @@ billofmaterials_tests = [
                 }
             }
         },
-    ],
+     ],
 ]

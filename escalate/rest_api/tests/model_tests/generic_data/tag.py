@@ -10,43 +10,43 @@ from ..model_tests_utils import (
     compare_data
 )
 from core.models import (
-    BillOfMaterials,
-    Experiment
+    Tag,
+    TagType
 )
 
-billofmaterials_test_data = {}
+tag_test_data = {}
 
-billofmaterials_tests = [
+tag_tests = [
 
 ##----TEST 0----##
-#creates an experiment
-#creates an billofmaterials with experiment as a foreign key
-#gets the billofmaterials
-#puts the billofmaterials
-#gets the updated billofmaterials
-#deletes the updated billofmaterials
-#gets the billofmaterials (should return error)
-    [      
+#creates a tagtype
+#creates a tag with tag type as a foreign key
+#gets the tag
+#puts the tag 
+#gets the updated tag
+#deletes the updated tag
+#gets the tag (should return error)
+    [   
         {
-            'name': 'experiment0',
+            'name': 'tagtype0',
             'method': POST,
-            'endpoint': 'experiment-list',
-            'body': random_model_dict(Experiment),
+            'endpoint': 'tagtype-list',
+            'body': random_model_dict(TagType), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
                 'function': check_status_code,
                 'args': [],
                 'kwargs': {
-                    'status_code': POST
+                    'status_code': POST,
                 }
             }
-        },
+        },   
         {
-            'name': 'billofmaterials0',
+            'name': 'tag0',
             'method': POST,
-            'endpoint': 'billofmaterials-list',
-            'body': (request_body := random_model_dict(BillOfMaterials, experiment='experiment0__url')),
+            'endpoint': 'tag-list',
+            'body': (request_body := random_model_dict(Tag, tag_type='tagtype0__url')), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -59,12 +59,12 @@ billofmaterials_tests = [
             }
         },
         {
-            'name': 'billofmaterials0_get_0',
+            'name': 'tag0_get_0',
             'method': GET,
-            'endpoint': 'billofmaterials-detail',
+            'endpoint': 'tag-detail',
             'body': {},
             'args': [
-                'billofmaterials0__uuid'
+                'tag0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -77,12 +77,12 @@ billofmaterials_tests = [
         },
     
         {
-            'name': 'billofmaterials0_update_0',
+            'name': 'tag0_update_0',
             'method': PUT,
-            'endpoint': 'billofmaterials-detail',
-            'body': (request_body := random_model_dict(BillOfMaterials)),
+            'endpoint': 'tag-detail',
+            'body': (request_body := random_model_dict(Tag)),
             'args': [
-                'billofmaterials0__uuid'
+                'tag0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -95,12 +95,12 @@ billofmaterials_tests = [
             }
         },
         {
-            'name': 'billofmaterials0_get_1',
+            'name': 'tag0_get_1',
             'method': GET,
-            'endpoint': 'billofmaterials-detail',
+            'endpoint': 'tag-detail',
             'body': {},
             'args': [
-                'billofmaterials0__uuid'
+                'tag0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -112,12 +112,12 @@ billofmaterials_tests = [
             }
         },
         {
-            'name': 'billofmaterials0_delete_0',
+            'name': 'tag0_delete_0',
             'method': DELETE,
-            'endpoint': 'billofmaterials-detail',
+            'endpoint': 'tag-detail',
             'body': {},
             'args': [
-                'billofmaterials0__uuid'
+                'tag0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -129,12 +129,12 @@ billofmaterials_tests = [
             }
         },
         {
-            'name': 'billofmaterials0_get_2',
+            'name': 'tag0_get_2',
             'method': GET,
-            'endpoint': 'billofmaterials-detail',
+            'endpoint': 'tag-detail',
             'body': {},
             'args': [
-                'billofmaterials0__uuid'
+                'tag0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {

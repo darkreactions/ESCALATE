@@ -94,36 +94,38 @@ action_tests = [
                 }
             }
         },
-        {
-            'name': 'calculationdef0',
-            'method': POST,
-            'endpoint': 'calculationdef-list',
-            'body': random_model_dict(CalculationDef),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
+        # {
+        #     'name': 'calculationdef0',
+        #     'method': POST,
+        #     'endpoint': 'calculationdef-list',
+        #     'body': random_model_dict(CalculationDef),
+        #     'args': [],
+        #     'query_params': [],
+        #     'is_valid_response': {
+        #         'function': check_status_code,
+        #         'args': [],
+        #         'kwargs': {
+        #             'status_code': POST
+        #         }
+        #     }
+        # },
         {
             'name': 'action0',
             'method': POST,
             'endpoint': 'action-list',
-            'body': random_model_dict(Action, action_def='actiondef0__url',
+            'body': (request_body := random_model_dict(Action, action_def='actiondef0__url',
                                                 parameter_def='parameterdef0__url',
                                                 workflow='workflow0__url',
-                                                calculation_def='calculationdef0__url'), 
+                                                # calculation_def='calculationdef0__url'
+                                                )), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': POST
+                    'status_code': POST,
+                    'request_body': request_body
                 }
             }
         },
@@ -149,16 +151,17 @@ action_tests = [
             'name': 'action0_update_0',
             'method': PUT,
             'endpoint': 'action-detail',
-            'body': random_model_dict(Action),
+            'body': (request_body := random_model_dict(Action)),
             'args': [
                 'action0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': PUT
+                    'status_code': PUT,
+                    'request_body': request_body
                 }
             }
         },
@@ -214,25 +217,4 @@ action_tests = [
             }
         },
     ],
-
-##----TEST 1----##
-#creates an action and checks that the response data matches the 
-#request data stored in the body entry
-    [   
-        {
-            'name': 'action0',
-            'method': POST,
-            'endpoint': 'action-list',
-            'body': (action_posted := random_model_dict(Action)),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': compare_data,
-                'args': [],
-                'kwargs': {
-                    'request_body': action_posted
-                }
-            }
-        },
-    ]
 ]

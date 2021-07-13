@@ -46,14 +46,15 @@ condition_tests = [
             'name': 'condition0',
             'method': POST,
             'endpoint': 'condition-list',
-            'body': random_model_dict(Condition, condition_def='conditiondef0__url'),
+            'body': (request_body := random_model_dict(Condition, condition_def='conditiondef0__url')),
             'args': [],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': POST
+                    'status_code': POST,
+                    'request_body': request_body
                 }
             }
         },
@@ -78,16 +79,17 @@ condition_tests = [
             'name': 'condition0_update_0',
             'method': PUT,
             'endpoint': 'condition-detail',
-            'body': random_model_dict(Condition),
+            'body': (request_body := random_model_dict(Condition)),
             'args': [
                 'condition0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': PUT
+                    'status_code': PUT,
+                    'request_body': request_body
                 }
             }
         },
@@ -143,25 +145,4 @@ condition_tests = [
             }
         },
     ],
-
-##----TEST 1----##
-#creates a condition and checks that the response data matches the 
-#request data stored in the body entry
-    [   
-        {
-            'name': 'condition0',
-            'method': POST,
-            'endpoint': 'condition-list',
-            'body': (condition_posted := random_model_dict(Condition)),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': compare_data,
-                'args': [],
-                'kwargs': {
-                    'request_body': condition_posted
-                }
-            }
-        },
-    ]
 ]

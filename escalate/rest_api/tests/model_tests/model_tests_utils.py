@@ -4,6 +4,11 @@ from rest_api.tests.post_put_delete_tests import add_prev_endpoint_data_2
 from django.db.models.fields.related import ManyToManyField
 import core
 import datetime
+from core.models import (
+    SystemtoolType,
+    Organization,
+    Systemtool
+)
 
 
 GET = 'GET'
@@ -33,7 +38,8 @@ def random_model_dict(model, **kwargs):
         field.name == 'mod_date' or
         field.__class__.__name__ == 'ManyToManyField' or
         field.__class__.__name__ == 'ForeignKey' or 
-        field.__class__.__name__ == 'OneToOneField'
+        field.__class__.__name__ == 'OneToOneField' or 
+        field.editable == False
         )
     dict_fields = {f.name:f for f in filter(can_generate_random_val, all_fields)}
     model_dict = {}
@@ -106,7 +112,7 @@ def compare_data(resp, **kwargs):
     response_data = kwargs['response_data']
     http_res_code = kwargs['status_code']
     if resp.status_code != status_codes[http_res_code]:
-        print(f'Expected: {http_res_code} Got: {resp.status_code}')
+        print(f'Expected: {status_codes[http_res_code]} Got: {resp.status_code}')
         return False
     add_prev_endpoint_data_2(body, response_data)
 
@@ -117,3 +123,59 @@ def compare_data(resp, **kwargs):
                 print(f'got: {key} {value}')
                 return False
     return True
+
+def createSystemtool(amount):
+    systemtools = []
+    systemtool_base =  [
+    [    
+            {
+                'name': f'systemtooltype{number}',
+                'method': POST,
+                'endpoint': 'systemtooltype-list',
+                'body': random_model_dict(SystemtoolType),
+                'args': [],
+                'query_params': [],
+                'is_valid_response': {
+                    'function': check_status_code,
+                    'args': [],
+                    'kwargs': {
+                        'status_code': POST
+                    }
+                }
+            },
+            {
+                'name': f'org{number}',
+                'method': POST,
+                'endpoint': 'organization-list',
+                'body': random_model_dict(Organization),
+                'args': [],
+                'query_params': [],
+                'is_valid_response': {
+                    'function': check_status_code,
+                    'args': [],
+                    'kwargs': {
+                        'status_code': POST
+                    }
+                }
+            },
+            {
+                'name': f'systemtool{number}',
+                'method': POST,
+                'endpoint': 'systemtool-list',
+                'body': random_model_dict(Systemtool, vendor_organization=f'org{number}__url',systemtool_type=f'systemtooltype{number}__url'),
+                'args': [],
+                'query_params': [],
+                'is_valid_response': {
+                    'function': check_status_code,
+                    'args': [],
+                    'kwargs': {
+                        'status_code': POST
+                    }
+                }
+            },
+        ] for number in range(amount)
+    ]
+
+    for list in systemtool_base:
+        systemtools += list
+    return systemtools
