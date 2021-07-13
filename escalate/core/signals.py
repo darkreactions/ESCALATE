@@ -100,14 +100,19 @@ def create_parameters(sender, **kwargs):
     Creates the appropriate parameter in actionunit based on 
     its action's parameter_def
     """
-    if kwargs['created']:
-        action_unit = kwargs['instance']
+
+    # created isnt a kwarg for pre-save. Either make it post save or 
+    # do something like this
+
+    action_unit = kwargs['instance']
+    try:
+        ActionUnit.objects.get(pk=action_unit.pk)
+    except ActionUnit.DoesNotExist:
         param_defs = action_unit.action.action_def.parameter_def.all()
         for p_def in param_defs:
             p = Parameter(parameter_def=p_def, 
-                          nominal_value=p_def.default_val, 
-                          actual_value=p_def.default_val,
-                          ref_object=action_unit.uuid)
+                        parameter_val_nominal=p_def.default_val, 
+                        parameter_val_actual=p_def.default_val)
             p.save()
         
 
