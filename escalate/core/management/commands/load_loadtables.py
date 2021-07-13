@@ -767,6 +767,11 @@ class Command(BaseCommand):
                 mixture_component_description = clean_string(
                     row[column_names_to_index['mixture_component_description']])
 
+                mixture_composite = Material.objects.get(description=mixture_composite_description) \
+                    if not string_is_null(mixture_composite_description) else None
+                mixture_component = Material.objects.get(description=mixture_component_description) \
+                    if not string_is_null(mixture_component_description) else None
+
                 fields = {
                     'description': description,
                     'bom': BillOfMaterials.objects.get(description=bom_description) if not string_is_null(bom_description) else None,
@@ -774,9 +779,9 @@ class Command(BaseCommand):
                     'alloc_amt_val': get_val_field_dict(alloc_amt_val_type, alloc_amt_val_unit, alloc_amt_val_value),
                     'used_amt_val': get_val_field_dict(used_amt_val_type, used_amt_val_unit, used_amt_val_value),
                     'putback_amt_val': get_val_field_dict(putback_amt_val_type, putback_amt_val_unit, putback_amt_val_value),
-                    'mixture': Mixture.objects.get(composite__description=mixture_composite_description,
-                                                   component__description=mixture_component_description
-                                                   ) if not string_is_null(mixture_composite_description) or not string_is_null(mixture_component_description) else None
+                    'mixture': Mixture.objects.get(composite=mixture_composite,
+                                                   component=mixture_component
+                                                   ) if mixture_composite != None or mixture_component != None else None
                 }
 
                 base_bom_material_instance, created = BaseBomMaterial.objects.get_or_create(
@@ -807,13 +812,18 @@ class Command(BaseCommand):
                 mixture_component_description = clean_string(
                     row[column_names_to_index['mixture_component_description']])
 
+                mixture_composite = Material.objects.get(description=mixture_composite_description) \
+                    if not string_is_null(mixture_composite_description) else None
+                mixture_component = Material.objects.get(description=mixture_component_description) \
+                    if not string_is_null(mixture_component_description) else None
+
                 fields = {
                     'description': description,
                     'bom': BillOfMaterials.objects.get(description=bom_description) if not string_is_null(bom_description) else None,
                     'inventory_material': InventoryMaterial.objects.get(description=y) if not string_is_null(y := inventory_material_description) else None,
-                    'mixture': Mixture.objects.get(composite__description=mixture_composite_description,
-                                                   component__description=mixture_component_description
-                                                   ) if not string_is_null(mixture_composite_description) or not string_is_null(mixture_component_description) else None
+                    'mixture': Mixture.objects.get(composite=mixture_composite,
+                                                   component=mixture_component
+                                                   ) if mixture_composite != None or mixture_component != None else None
                 }
 
                 bom_material_description = clean_string(
@@ -924,16 +934,22 @@ class Command(BaseCommand):
                 destination_material_bom_description = clean_string(
                     row[column_names_to_index['destination_material_bom_description']])
 
+                source_material_bom = BillOfMaterials.objects.get(description=source_material_bom_description) \
+                    if not string_is_null(source_material_bom_description) else None
+
+                destination_material_bom = BillOfMaterials.objects.get(description=destination_material_bom_description) \
+                    if not string_is_null(destination_material_bom_description) else None
+
                 fields = {
                     'action': Action.objects.get(description=action_description,
                                                  workflow__description=action_workflow_description
                                                  ) if not string_is_null(action_description) else None,
                     'source_material': BaseBomMaterial.objects.get(description=source_material_description,
-                                                                   bom__description=source_material_bom_description
-                                                                   ) if not string_is_null(source_material_bom_description) else None,
+                                                                   bom=source_material_bom
+                                                                   ) if not string_is_null(source_material_description) else None,
                     'destination_material': BaseBomMaterial.objects.get(description=destination_material_description,
-                                                                        bom__description=destination_material_bom_description
-                                                                        ) if not string_is_null(destination_material_bom_description) else None,
+                                                                        bom=destination_material_bom
+                                                                        ) if not string_is_null(destination_material_description) else None,
                 }
 
                 action_unit_instance = ActionUnit.objects.create(**fields)
