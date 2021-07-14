@@ -1,0 +1,29 @@
+description	parent_description	workflow_type_description	actor_description	experiment_description	experiment_workflow_seq_num
+weigh resins		template	Mike Tynes	resin_weighing	1
+Liq-Sol Sample H2O		template	Mike Tynes	liquid_solid_extraction	1
+Liq-Sol Sample HCl		template	Mike Tynes	liquid_solid_extraction	2
+Liq-Sol Sample CoCl2		template	Mike Tynes	liquid_solid_extraction	3
+Liq-Sol Assay Samples		template	Mike Tynes	liquid_solid_extraction	4
+Liq-Sol Add Resin		template	Mike Tynes	liquid_solid_extraction	5
+Liq-Sol Sample to Resin		template	Mike Tynes	liquid_solid_extraction	6
+Liq-Sol Contact Vortex		template	Mike Tynes	liquid_solid_extraction	7
+Preheat Plate		template	Mike Tynes		
+Dispense Solvent		template	Mike Tynes	test_wf_1	1
+Dispense Stock A		template	Mike Tynes	test_wf_1	2
+Dispense Stock B		template	Mike Tynes	test_wf_1	3
+Dispense Acid Vol 1		template	Mike Tynes	test_wf_1	4
+Heat Stir 1		template	Mike Tynes		
+Dispense Acid Vol 2		template	Mike Tynes	test_wf_1	5
+Heat Stir 2		template	Mike Tynes		
+Heat		template	Mike Tynes		
+Perovskite Demo: Preheat Plate		template	Mike Tynes	perovskite_demo	1
+Perovskite Demo: Prepare Stock A		template	Mike Tynes	perovskite_demo	2
+Perovskite Demo: Prepare Stock B		template	Mike Tynes	perovskite_demo	3
+Perovskite Demo: Dispense Solvent		template	Mike Tynes	perovskite_demo	4
+Perovskite Demo: Dispense Stock A		template	Mike Tynes	perovskite_demo	5
+Perovskite Demo: Dispense Stock B		template	Mike Tynes	perovskite_demo	6
+Perovskite Demo: Dispense Acid Vol 1		template	Mike Tynes	perovskite_demo	7
+Perovskite Demo: Heat Stir 1		template	Mike Tynes	perovskite_demo	8
+Perovskite Demo: Dispense Acid Vol 2		template	Mike Tynes	perovskite_demo	9
+Perovskite Demo: Heat Stir 2		template	Mike Tynes	perovskite_demo	10
+Perovskite Demo: Heat		template	Mike Tynes	perovskite_demo	11

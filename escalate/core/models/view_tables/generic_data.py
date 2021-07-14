@@ -46,7 +46,7 @@ class Calculation(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
 
 class CalculationDef(DateColumns, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(
-        primary_key=True, db_column='calculation_def_uuid')
+        primary_key=True, default=uuid.uuid4 ,db_column='calculation_def_uuid')
     short_name = models.CharField(max_length=255, blank=True, null=True)
     calc_definition = models.CharField(max_length=255, blank=True, null=True)
     parameter_def = models.ManyToManyField('ParameterDef', 
@@ -55,19 +55,23 @@ class CalculationDef(DateColumns, ActorColumn, DescriptionColumn):
     in_source = models.ForeignKey('CalculationDef',
                                 models.DO_NOTHING,
                                 db_column='in_source_uuid',
-                                related_name='calculation_def_in_source')
+                                related_name='calculation_def_in_source',
+                                blank=True, null=True)
     in_type = models.ForeignKey('TypeDef',
                                 models.DO_NOTHING,
                                 db_column='in_type_uuid',
-                                related_name='calculation_def_in_type')
+                                related_name='calculation_def_in_type',
+                                blank=True, null=True)
     in_opt_source = models.ForeignKey('CalculationDef',
                                 models.DO_NOTHING,
                                 db_column='in_opt_source_uuid',
-                                related_name='calculation_def_in_opt_source')
+                                related_name='calculation_def_in_opt_source',
+                                blank=True, null=True)
     in_opt_type = models.ForeignKey('TypeDef',
                                 models.DO_NOTHING,
                                 db_column='in_opt_type_uuid',
-                                related_name='calculation_def_in_opt_type')
+                                related_name='calculation_def_in_opt_type',
+                                blank=True, null=True)
     out_type = models.ForeignKey('TypeDef',
                                  models.DO_NOTHING,
                                  blank=True, null=True,
@@ -76,7 +80,8 @@ class CalculationDef(DateColumns, ActorColumn, DescriptionColumn):
     systemtool = models.ForeignKey('Systemtool',
                                    models.DO_NOTHING,
                                    db_column='systemtool_uuid', 
-                                   related_name='calculation_def_systemtool')
+                                   related_name='calculation_def_systemtool',
+                                   blank=True, null=True)
 
     def __str__(self):
         return "{}".format(self.description)
