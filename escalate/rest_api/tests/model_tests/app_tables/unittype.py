@@ -1,5 +1,4 @@
 from ..model_tests_utils import (
-    createSystemtool,
     status_codes,
     DELETE,
     PUT,
@@ -8,51 +7,29 @@ from ..model_tests_utils import (
     ERROR,
     random_model_dict,
     check_status_code,
-    compare_data,
-    createSystemtool
+    compare_data
 )
 from core.models import (
-    Calculation,
-    CalculationDef,
+    UnitType,
 )
 
-calculation_test_data = {}
+unittype_test_data = {}
 
-calculation_tests = [
+unittype_tests = [
 
 ##----TEST 0----##
-#creates a systemtool
-#creates a calculationdef
-#creates a calculation with the previous entries as a foreign key
-#gets the calculation
-#puts the calculation
-#gets the updated calculation
-#deletes the updated calculation
-#gets the calculation (should return error)
-    [    
-        *createSystemtool(1),
-        # {
-        #     'name': 'calculationdef0',
-        #     'method': POST,
-        #     'endpoint': 'calculationdef-list',
-        #     'body': random_model_dict(CalculationDef),
-        #     'args': [],
-        #     'query_params': [],
-        #     'is_valid_response': {
-        #         'function': check_status_code,
-        #         'args': [],
-        #         'kwargs': {
-        #             'status_code': POST
-        #         }
-        #     }
-        # },    
+#creates an unittype
+#gets the action
+#puts the unittype adding the other parameterdef to the manytomany field
+#gets the updated unittype
+#deletes the updated unittype
+#gets the unittype (should return error)
+    [      
         {
-            'name': 'calculation0',
+            'name': 'unittype0',
             'method': POST,
-            'endpoint': 'calculation-list',
-            'body': (request_body := random_model_dict(Calculation, systemtool='systemtool0__url', 
-                                                                    # calculation_def='calculationdef0__url'
-                                                                    )),
+            'endpoint': 'unittype-list',
+            'body': (request_body := random_model_dict(UnitType)), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -65,12 +42,12 @@ calculation_tests = [
             }
         },
         {
-            'name': 'calculation0_get_0',
+            'name': 'unittype0_get_0',
             'method': GET,
-            'endpoint': 'calculation-detail',
+            'endpoint': 'unittype-detail',
             'body': {},
             'args': [
-                'calculation0__uuid'
+                'unittype0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -81,13 +58,14 @@ calculation_tests = [
                 }
             }
         },
+    
         {
-            'name': 'calculation0_update_0',
+            'name': 'unittype0_update_0',
             'method': PUT,
-            'endpoint': 'calculation-detail',
-            'body': (request_body := random_model_dict(Calculation)),
+            'endpoint': 'unittype-detail',
+            'body': (request_body := random_model_dict(UnitType)),
             'args': [
-                'calculation0__uuid'
+                'unittype0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -100,12 +78,12 @@ calculation_tests = [
             }
         },
         {
-            'name': 'calculation0_get_1',
+            'name': 'unittype0_get_1',
             'method': GET,
-            'endpoint': 'calculation-detail',
+            'endpoint': 'unittype-detail',
             'body': {},
             'args': [
-                'calculation0__uuid'
+                'unittype0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -117,12 +95,12 @@ calculation_tests = [
             }
         },
         {
-            'name': 'calculation0_delete_0',
+            'name': 'unittype0_delete_0',
             'method': DELETE,
-            'endpoint': 'calculation-detail',
+            'endpoint': 'unittype-detail',
             'body': {},
             'args': [
-                'calculation0__uuid'
+                'unittype0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -134,12 +112,12 @@ calculation_tests = [
             }
         },
         {
-            'name': 'calculation0_get_2',
+            'name': 'unittype0_get_2',
             'method': GET,
-            'endpoint': 'calculation-detail',
+            'endpoint': 'unittype-detail',
             'body': {},
             'args': [
-                'calculation0__uuid'
+                'unittype0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -150,5 +128,5 @@ calculation_tests = [
                 }
             }
         },
-     ],
+    ],
 ]

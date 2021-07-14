@@ -10,47 +10,28 @@ from ..model_tests_utils import (
     compare_data
 )
 from core.models import (
-    ActionDef,
-    Workflow,
-    ParameterDef,
-    CalculationDef,
-    Action
+    WorkflowType,
+    Experiment,
+    Workflow
 )
 
-action_test_data = {}
+workflow_test_data = {}
 
-action_tests = [
+workflow_tests = [
 
 ##----TEST 0----##
-#creates an actiondef
-#creates a parameterdef
-#creates a second parameterdef
+#creates an experiment
+#creates a workflowtype
 #creates a workflow
-#creates a calculationdef
-#creates an action with all of the previous entries as foreign keys (one of the two parameterdefs is put in the manytomanyfield)
-#gets the action
-#puts the action adding the other parameterdef to the manytomany field
-#gets the updated action
-#deletes the updated action
-#gets the action (should return error)
+#creates an workflow with the previous three entries as foreign keys/manytomanyfields
+#gets the workflow
+#puts the workflow adding the other parameterdef to the manytomany field
+#gets the updated workflow
+#deletes the updated workflow
+#gets the workflow (should return error)
     [      
-        {
-            'name': 'actiondef0',
-            'method': POST,
-            'endpoint': 'actiondef-list',
-            'body': random_model_dict(ActionDef),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'workflow0',
+        *[{
+            'name': name,
             'method': POST,
             'endpoint': 'workflow-list',
             'body': random_model_dict(Workflow),
@@ -63,30 +44,27 @@ action_tests = [
                     'status_code': POST
                 }
             }
-        },
-        # {
-        #     'name': 'calculationdef0',
-        #     'method': POST,
-        #     'endpoint': 'calculationdef-list',
-        #     'body': random_model_dict(CalculationDef),
-        #     'args': [],
-        #     'query_params': [],
-        #     'is_valid_response': {
-        #         'function': check_status_code,
-        #         'args': [],
-        #         'kwargs': {
-        #             'status_code': POST
-        #         }
-        #     }
-        # },
-        {
-            'name': 'action0',
+        } for name in ['workflow0', 'workflow1']],
+        *[{
+            'name': name,
             'method': POST,
-            'endpoint': 'action-list',
-            'body': (request_body := random_model_dict(Action, action_def='actiondef0__url',
-                                                workflow='workflow0__url',
-                                                # calculation_def='calculationdef0__url'
-                                                )), 
+            'endpoint': 'workflowtype-list',
+            'body': random_model_dict(WorkflowType),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        } for name in ['workflowtype0', 'workflowtype1']],
+        {
+            'name': 'workflow0',
+            'method': POST,
+            'endpoint': 'workflow-list',
+            'body': (request_body := random_model_dict(Workflow, parent='workflow0__url', workflow_type='workflowtype0__url')), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -99,12 +77,12 @@ action_tests = [
             }
         },
         {
-            'name': 'action0_get_0',
+            'name': 'workflow0_get_0',
             'method': GET,
-            'endpoint': 'action-detail',
+            'endpoint': 'workflow-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'workflow0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -117,12 +95,12 @@ action_tests = [
         },
     
         {
-            'name': 'action0_update_0',
+            'name': 'workflow0_update_0',
             'method': PUT,
-            'endpoint': 'action-detail',
-            'body': (request_body := random_model_dict(Action)),
+            'endpoint': 'workflow-detail',
+            'body': (request_body := random_model_dict(Workflow, parent='workflow1__url', workflow_type='workflowtype1__url')),
             'args': [
-                'action0__uuid'
+                'workflow0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -135,12 +113,12 @@ action_tests = [
             }
         },
         {
-            'name': 'action0_get_1',
+            'name': 'workflow0_get_1',
             'method': GET,
-            'endpoint': 'action-detail',
+            'endpoint': 'workflow-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'workflow0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -152,12 +130,12 @@ action_tests = [
             }
         },
         {
-            'name': 'action0_delete_0',
+            'name': 'workflow0_delete_0',
             'method': DELETE,
-            'endpoint': 'action-detail',
+            'endpoint': 'workflow-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'workflow0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -169,12 +147,12 @@ action_tests = [
             }
         },
         {
-            'name': 'action0_get_2',
+            'name': 'workflow0_get_2',
             'method': GET,
-            'endpoint': 'action-detail',
+            'endpoint': 'workflow-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'workflow0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {

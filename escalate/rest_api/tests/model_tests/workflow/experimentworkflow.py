@@ -10,35 +10,30 @@ from ..model_tests_utils import (
     compare_data
 )
 from core.models import (
-    ActionDef,
-    Workflow,
-    ParameterDef,
-    CalculationDef,
-    Action
+    ExperimentWorkflow,
+    Experiment,
+    Workflow
 )
 
-action_test_data = {}
+experimentworkflow_test_data = {}
 
-action_tests = [
+experimentworkflow_tests = [
 
 ##----TEST 0----##
-#creates an actiondef
-#creates a parameterdef
-#creates a second parameterdef
+#creates an experiment
 #creates a workflow
-#creates a calculationdef
-#creates an action with all of the previous entries as foreign keys (one of the two parameterdefs is put in the manytomanyfield)
-#gets the action
-#puts the action adding the other parameterdef to the manytomany field
-#gets the updated action
-#deletes the updated action
-#gets the action (should return error)
+#creates an experimentworkflow with the previous two entries as foreign keys
+#gets the experimentworkflow
+#puts the experimentworkflow adding the other parameterdef to the manytomany field
+#gets the updated experimentworkflow
+#deletes the updated experimentworkflow
+#gets the experimentworkflow (should return error)
     [      
-        {
-            'name': 'actiondef0',
+        *[{
+            'name': name,
             'method': POST,
-            'endpoint': 'actiondef-list',
-            'body': random_model_dict(ActionDef),
+            'endpoint': 'experiment-list',
+            'body': random_model_dict(Experiment),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -48,9 +43,9 @@ action_tests = [
                     'status_code': POST
                 }
             }
-        },
-        {
-            'name': 'workflow0',
+        } for name in ['experiment0', 'experiment1']],
+        *[{
+            'name': name,
             'method': POST,
             'endpoint': 'workflow-list',
             'body': random_model_dict(Workflow),
@@ -63,30 +58,13 @@ action_tests = [
                     'status_code': POST
                 }
             }
-        },
-        # {
-        #     'name': 'calculationdef0',
-        #     'method': POST,
-        #     'endpoint': 'calculationdef-list',
-        #     'body': random_model_dict(CalculationDef),
-        #     'args': [],
-        #     'query_params': [],
-        #     'is_valid_response': {
-        #         'function': check_status_code,
-        #         'args': [],
-        #         'kwargs': {
-        #             'status_code': POST
-        #         }
-        #     }
-        # },
+        } for name in ['workflow0', 'workflow1']],
         {
-            'name': 'action0',
+            'name': 'experimentworkflow0',
             'method': POST,
-            'endpoint': 'action-list',
-            'body': (request_body := random_model_dict(Action, action_def='actiondef0__url',
-                                                workflow='workflow0__url',
-                                                # calculation_def='calculationdef0__url'
-                                                )), 
+            'endpoint': 'experimentworkflow-list',
+            'body': (request_body := random_model_dict(ExperimentWorkflow, experiment='experiment0__url',
+                                                workflow='workflow0__url')), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -99,12 +77,12 @@ action_tests = [
             }
         },
         {
-            'name': 'action0_get_0',
+            'name': 'experimentworkflow0_get_0',
             'method': GET,
-            'endpoint': 'action-detail',
+            'endpoint': 'experimentworkflow-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'experimentworkflow0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -117,12 +95,13 @@ action_tests = [
         },
     
         {
-            'name': 'action0_update_0',
+            'name': 'experimentworkflow0_update_0',
             'method': PUT,
-            'endpoint': 'action-detail',
-            'body': (request_body := random_model_dict(Action)),
+            'endpoint': 'experimentworkflow-detail',
+            'body': (request_body := random_model_dict(ExperimentWorkflow, experiment='experiment1__url',
+                                                workflow='workflow1__url')),
             'args': [
-                'action0__uuid'
+                'experimentworkflow0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -135,12 +114,12 @@ action_tests = [
             }
         },
         {
-            'name': 'action0_get_1',
+            'name': 'experimentworkflow0_get_1',
             'method': GET,
-            'endpoint': 'action-detail',
+            'endpoint': 'experimentworkflow-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'experimentworkflow0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -152,12 +131,12 @@ action_tests = [
             }
         },
         {
-            'name': 'action0_delete_0',
+            'name': 'experimentworkflow0_delete_0',
             'method': DELETE,
-            'endpoint': 'action-detail',
+            'endpoint': 'experimentworkflow-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'experimentworkflow0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -169,12 +148,12 @@ action_tests = [
             }
         },
         {
-            'name': 'action0_get_2',
+            'name': 'experimentworkflow0_get_2',
             'method': GET,
-            'endpoint': 'action-detail',
+            'endpoint': 'experimentworkflow-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'experimentworkflow0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {

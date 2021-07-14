@@ -10,35 +10,28 @@ from ..model_tests_utils import (
     compare_data
 )
 from core.models import (
-    ActionDef,
-    Workflow,
-    ParameterDef,
-    CalculationDef,
-    Action
+    Outcome,
+    Experiment,
 )
 
-action_test_data = {}
+outcome_test_data = {}
 
-action_tests = [
+outcome_tests = [
 
 ##----TEST 0----##
-#creates an actiondef
-#creates a parameterdef
-#creates a second parameterdef
-#creates a workflow
-#creates a calculationdef
-#creates an action with all of the previous entries as foreign keys (one of the two parameterdefs is put in the manytomanyfield)
-#gets the action
-#puts the action adding the other parameterdef to the manytomany field
-#gets the updated action
-#deletes the updated action
-#gets the action (should return error)
+#creates an experiment
+#creates an outcome with the previous two entries as foreign keys
+#gets the outcome
+#puts the outcome adding the other parameterdef to the manytomany field
+#gets the updated outcome
+#deletes the updated outcome
+#gets the outcome (should return error)
     [      
-        {
-            'name': 'actiondef0',
+        *[{
+            'name': name,
             'method': POST,
-            'endpoint': 'actiondef-list',
-            'body': random_model_dict(ActionDef),
+            'endpoint': 'experiment-list',
+            'body': random_model_dict(Experiment),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -48,45 +41,12 @@ action_tests = [
                     'status_code': POST
                 }
             }
-        },
+        } for name in ['experiment0', 'experiment1']],
         {
-            'name': 'workflow0',
+            'name': 'outcome0',
             'method': POST,
-            'endpoint': 'workflow-list',
-            'body': random_model_dict(Workflow),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        # {
-        #     'name': 'calculationdef0',
-        #     'method': POST,
-        #     'endpoint': 'calculationdef-list',
-        #     'body': random_model_dict(CalculationDef),
-        #     'args': [],
-        #     'query_params': [],
-        #     'is_valid_response': {
-        #         'function': check_status_code,
-        #         'args': [],
-        #         'kwargs': {
-        #             'status_code': POST
-        #         }
-        #     }
-        # },
-        {
-            'name': 'action0',
-            'method': POST,
-            'endpoint': 'action-list',
-            'body': (request_body := random_model_dict(Action, action_def='actiondef0__url',
-                                                workflow='workflow0__url',
-                                                # calculation_def='calculationdef0__url'
-                                                )), 
+            'endpoint': 'outcome-list',
+            'body': (request_body := random_model_dict(Outcome, experiment='experiment0__url')), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -99,12 +59,12 @@ action_tests = [
             }
         },
         {
-            'name': 'action0_get_0',
+            'name': 'outcome0_get_0',
             'method': GET,
-            'endpoint': 'action-detail',
+            'endpoint': 'outcome-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'outcome0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -117,12 +77,12 @@ action_tests = [
         },
     
         {
-            'name': 'action0_update_0',
+            'name': 'outcome0_update_0',
             'method': PUT,
-            'endpoint': 'action-detail',
-            'body': (request_body := random_model_dict(Action)),
+            'endpoint': 'outcome-detail',
+            'body': (request_body := random_model_dict(Outcome, experiment='experiment0__url')),
             'args': [
-                'action0__uuid'
+                'outcome0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -135,12 +95,12 @@ action_tests = [
             }
         },
         {
-            'name': 'action0_get_1',
+            'name': 'outcome0_get_1',
             'method': GET,
-            'endpoint': 'action-detail',
+            'endpoint': 'outcome-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'outcome0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -152,12 +112,12 @@ action_tests = [
             }
         },
         {
-            'name': 'action0_delete_0',
+            'name': 'outcome0_delete_0',
             'method': DELETE,
-            'endpoint': 'action-detail',
+            'endpoint': 'outcome-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'outcome0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -169,12 +129,12 @@ action_tests = [
             }
         },
         {
-            'name': 'action0_get_2',
+            'name': 'outcome0_get_2',
             'method': GET,
-            'endpoint': 'action-detail',
+            'endpoint': 'outcome-detail',
             'body': {},
             'args': [
-                'action0__uuid'
+                'outcome0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
