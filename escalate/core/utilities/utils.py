@@ -13,6 +13,7 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
 def experiment_copy(template_experiment_uuid, copy_experiment_description):
     # Get parent Experiment from template_experiment_uuid
     exp_get = Experiment.objects.get(uuid=template_experiment_uuid)
+    old_exp_get = deepcopy(exp_get)
     # experiment row creation, overwrites original experiment template object with new experiment object. 
     # Makes an experiment template object parent    
     exp_get.uuid = None
