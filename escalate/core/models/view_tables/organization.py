@@ -3,7 +3,7 @@ from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from core.models.core_tables import RetUUIDField
 from core.models.base_classes import DateColumns, StatusColumn, ActorColumn, DescriptionColumn, AddressColumns
-from core.models.view_tables.generic_data import Note
+from core.models.view_tables.generic_data import Status
 import uuid
 from django.contrib.contenttypes.fields import GenericRelation
 
@@ -58,6 +58,28 @@ class Organization(DateColumns, AddressColumns, DescriptionColumn):
     def __str__(self):
         return "{}".format(self.full_name)
 
+    def add_person(self, person, *args):
+        people_to_add = [person, *args]
+        for p in people_to_add:
+            assert isinstance(p, Person), f'{p} is not a Person instance'
+
+        active_status = Status.objects.get(description="active")
+        for person_to_add in people_to_add:
+            fields = {
+                'person': person_to_add,
+                'organization': self,
+                'description': f'{str(person_to_add)} ({str(self)})',
+                'status': active_status
+            }
+            Actor.objects.get_or_create(**fields)
+
+    def remove_person(self, person, *args):
+        people_to_remove = [person, *args]
+        for p in people_to_remove:
+            assert isinstance(p, Person), f'{p} is not a Person instance'
+
+        Actor.objects.filter(organization=self.pk,person__in=people_to_remove).delete()
+
 
 class Person(DateColumns, AddressColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='person_uuid')
@@ -79,6 +101,28 @@ class Person(DateColumns, AddressColumns):
 
     def __str__(self):
         return "{} {}".format(self.first_name, self.last_name)
+
+    def add_to_organization(self, organization, *args):
+        organizations_to_add_to = [organization, *args]
+        for org in organizations_to_add_to:
+            assert isinstance(org, Organization), f'{org} is not an Organization instance'
+        
+        active_status = Status.objects.get(description="active")
+        for organization in organizations_to_add_to:
+            fields = {
+                'person': self,
+                'organization': organization,
+                'description': f'{str(self)} ({str(organization)})',
+                'status': active_status
+            }
+            Actor.objects.get_or_create(**fields)
+
+    def remove_from_organization(self, organization, *args):
+        organizations_to_remove_from = [organization, *args]
+        for org in organizations_to_remove_from:
+            assert isinstance(org, Organization), f'{org} is not an Organization instance'
+
+        Actor.objects.filter(person=self.pk,organization__in=organizations_to_remove_from).delete()
 
 class Systemtool(DateColumns, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
