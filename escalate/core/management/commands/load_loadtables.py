@@ -239,6 +239,8 @@ class Command(BaseCommand):
             # {'col_0': 0, 'col_1': 1, ...}
             column_names_to_index = list_data_to_index(column_names)
 
+            active_status = Status.objects.get(description="active")
+
             material_identifier_def = {
                 x.description: x for x in MaterialIdentifierDef.objects.all()}
 
@@ -255,6 +257,7 @@ class Command(BaseCommand):
                     'description': description,
                     'material_class': material_class,
                     'consumable': to_bool(consumable),
+                    'status': active_status
                 }
                 material_instance, created = Material.objects.get_or_create(
                     **fields)
@@ -298,6 +301,8 @@ class Command(BaseCommand):
             # {'col_0': 0, 'col_1': 1, ...}
             column_names_to_index = list_data_to_index(column_names)
 
+            active_status = Status.objects.get(description="active")
+
             new_inventory_material = 0
             for row in reader:
                 description = clean_string(
@@ -326,7 +331,8 @@ class Command(BaseCommand):
                     'part_no': part_no,
                     'onhand_amt': get_val_field_dict(onhand_amt_type, onhand_amt_unit, onhand_amt_value),
                     'expiration_date': expiration_date if not string_is_null(expiration_date) else None,
-                    'location': location
+                    'location': location,
+                    'status': active_status
                 }
 
                 inventory_material_instance, created = InventoryMaterial.objects.get_or_create(
@@ -410,8 +416,6 @@ class Command(BaseCommand):
         filename = 'load_parameter_def.csv'
         PARAMETER_DEF = path_to_file(filename)
 
-        active_status = Status.objects.get(description="active")
-
         with open(PARAMETER_DEF, newline='') as f:
             reader = csv.reader(f, delimiter="\t")
 
@@ -420,6 +424,8 @@ class Command(BaseCommand):
 
             # {'col_0': 0, 'col_1': 1, ...}
             column_names_to_index = list_data_to_index(column_names)
+
+            active_status = Status.objects.get(description="active")
 
             new_parameter_def = 0
             for row in reader:
@@ -460,6 +466,8 @@ class Command(BaseCommand):
             # {'col_0': 0, 'col_1': 1, ...}
             column_names_to_index = list_data_to_index(column_names)
 
+            active_status = Status.objects.get(description="active")
+
             new_action_def = 0
             for row in reader:
                 description = clean_string(
@@ -467,7 +475,7 @@ class Command(BaseCommand):
                 parameter_def_descriptions = [x.strip() for x in y.split(',')] if not string_is_null(
                     y := row[column_names_to_index['parameter_def_descriptions']]) else []
                 action_def_instance, created = ActionDef.objects.get_or_create(
-                    description=description)
+                    description=description, status=active_status)
                 if created:
                     new_action_def += 1
                 action_def_instance.parameter_def.add(
@@ -565,6 +573,8 @@ class Command(BaseCommand):
             # {'col_0': 0, 'col_1': 1, ...}
             column_names_to_index = list_data_to_index(column_names)
 
+            active_status = Status.objects.get(description="active")
+
             experiment_type = {
                 x.description: x for x in ExperimentType.objects.all()}
 
@@ -589,6 +599,7 @@ class Command(BaseCommand):
                     'owner': Actor.objects.get(description=owner_description) if not string_is_null(owner_description) else None,
                     'operator': Actor.objects.get(description=operator_description) if not string_is_null(operator_description) else None,
                     'lab': Actor.objects.get(description=lab_description) if not string_is_null(lab_description) else None,
+                    'status': active_status
                 }
                 experiment_instance, created = Experiment.objects.get_or_create(
                     **fields)
@@ -598,7 +609,7 @@ class Command(BaseCommand):
                 bom_description = clean_string(
                     row[column_names_to_index['bom_description']])
                 BillOfMaterials.objects.get_or_create(
-                    description=bom_description, experiment=experiment_instance)
+                    description=bom_description, experiment=experiment_instance, status=active_status)
 
             # jump to top of csv
             f.seek(0)
@@ -642,6 +653,7 @@ class Command(BaseCommand):
                 fields = {
                     'description': description,
                     'workflow_type': workflow_type[y] if not string_is_null(y := workflow_type_description) else None,
+                    'status': active_status
                 }
                 workflow_instance, created = Workflow.objects.get_or_create(
                     **fields)
@@ -698,6 +710,8 @@ class Command(BaseCommand):
             # {'col_0': 0, 'col_1': 1, ...}
             column_names_to_index = list_data_to_index(column_names)
 
+            active_status = Status.objects.get(description="active")
+
             new_mixture = 0
             for row in reader:
                 material_composite_description = clean_string(
@@ -709,7 +723,8 @@ class Command(BaseCommand):
                 fields = {
                     'composite': Material.objects.get(description=y) if not string_is_null(y := material_composite_description) else None,
                     'component': Material.objects.get(description=y) if not string_is_null(y := material_component_description) else None,
-                    'addressable': to_bool(addressable)
+                    'addressable': to_bool(addressable),
+                    'status': active_status
                 }
                 mixture_instance, created = Mixture.objects.get_or_create(
                     **fields)
@@ -733,6 +748,8 @@ class Command(BaseCommand):
 
             # {'col_0': 0, 'col_1': 1, ...}
             column_names_to_index = list_data_to_index(column_names)
+
+            active_status = Status.objects.get(description="active")
 
             new_base_bom_material = 0
             new_bom_material = 0
@@ -781,7 +798,8 @@ class Command(BaseCommand):
                     'putback_amt_val': get_val_field_dict(putback_amt_val_type, putback_amt_val_unit, putback_amt_val_value),
                     'mixture': Mixture.objects.get(composite=mixture_composite,
                                                    component=mixture_component
-                                                   ) if mixture_composite != None or mixture_component != None else None
+                                                   ) if mixture_composite != None or mixture_component != None else None,
+                    'status': active_status
                 }
 
                 base_bom_material_instance, created = BaseBomMaterial.objects.get_or_create(
@@ -861,6 +879,8 @@ class Command(BaseCommand):
             # {'col_0': 0, 'col_1': 1, ...}
             column_names_to_index = list_data_to_index(column_names)
 
+            active_status = Status.objects.get(description="active")
+
             new_action = 0
             for row in reader:
                 description = clean_string(
@@ -886,7 +906,8 @@ class Command(BaseCommand):
                     'end_date': end_date if not string_is_null(end_date) else None,
                     'duration': int(duration) if not string_is_null(duration) else None,
                     'repeating': int(repeating) if not string_is_null(repeating) else None,
-                    'calculation_def': CalculationDef.objects.get(short_name=y) if not string_is_null(y := calculation_def_short_name) else None
+                    'calculation_def': CalculationDef.objects.get(short_name=y) if not string_is_null(y := calculation_def_short_name) else None,
+                    'status': active_status
                 }
 
                 action_instance, created = Action.objects.get_or_create(

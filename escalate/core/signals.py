@@ -114,11 +114,13 @@ def create_parameters(sender, **kwargs):
         ActionUnit.objects.get(pk=action_unit.pk)
     except ActionUnit.DoesNotExist:
         param_defs = action_unit.action.action_def.parameter_def.all()
+        active_status = Status.objects.get(description="active")
         for p_def in param_defs:
             p = Parameter(parameter_def=p_def,
                           parameter_val_nominal=p_def.default_val,
                           parameter_val_actual=p_def.default_val,
-                          action=action_unit.action)
+                          action=action_unit.action,
+                          status=active_status)
             p.save()
 
 
