@@ -61,7 +61,8 @@ class CreateExperimentView(TemplateView):
 
     def get_action_parameter_forms(self, exp_uuid, context):
         # workflow__experiment_workflow_workflow__experiment=exp_uuid
-        q1, q2, q3 = get_action_parameter_querysets(exp_uuid)
+        #q1, q2, q3 = get_action_parameter_querysets(exp_uuid)
+        q1 = get_action_parameter_querysets(exp_uuid)
         """
         This happens before copy, in the template. The only way to identify a parameter is 
         through a combination of object_description and parameter_def_description.
@@ -75,8 +76,8 @@ class CreateExperimentView(TemplateView):
 
         #create empty lists for initial q1-q3
         initial_q1 = []
-        initial_q2 = []
-        initial_q3 = []
+        #initial_q2 = []
+        #initial_q3 = []
         '''
         using for loop instead of list comprehension to account for arrays
         this will be basis for implementing new array ui
@@ -98,6 +99,7 @@ class CreateExperimentView(TemplateView):
             initial_q1.append(data)
 
         #q2 initial
+        '''
         for row in q2:
             for param in row.parameter_value:
                 data = {'value': param, \
@@ -112,8 +114,10 @@ class CreateExperimentView(TemplateView):
                                                           'unit':param.unit})
                 
                 initial_q2.append(data)
-            
+        '''
+               
         #q3 initial
+        '''
         for row in q3:
             data = {'value': row.parameter_value, \
                 'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])}
@@ -127,21 +131,23 @@ class CreateExperimentView(TemplateView):
                                                       'unit':row.parameter_value.unit})
             
             initial_q3.append(data)
-            
+        '''
+                
         q1_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q1]
-        q2_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q2 for param in row.parameter_value]
-        q3_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q3]
+        #q2_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q2 for param in row.parameter_value]
+        #q3_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q3]
 
         context['q1_param_formset'] = self.NominalActualFormSet(initial=initial_q1, 
                                                             prefix='q1_param',)
+        '''
         context['q2_param_formset'] = self.NominalActualFormSet(initial=initial_q2, 
                                                             prefix='q2_param',)
         context['q3_param_formset'] = self.NominalActualFormSet(initial=initial_q3, 
                                                             prefix='q3_param',)
-
+        '''
         context['q1_param_details'] = q1_details
-        context['q2_param_details'] = q2_details
-        context['q3_param_details'] = q3_details
+        #context['q2_param_details'] = q2_details
+        #context['q3_param_details'] = q3_details
     
         return context
 
@@ -223,15 +229,15 @@ class CreateExperimentView(TemplateView):
         # construct all formsets
         exp_name_form = ExperimentNameForm(request.POST)
         q1_formset = self.NominalActualFormSet(request.POST, prefix='q1_param')
-        q2_formset = self.NominalActualFormSet(request.POST, prefix='q2_param')
-        q3_formset = self.NominalActualFormSet(request.POST, prefix='q3_param')
+        #q2_formset = self.NominalActualFormSet(request.POST, prefix='q2_param')
+        #q3_formset = self.NominalActualFormSet(request.POST, prefix='q3_param')
         q1_material_formset = self.MaterialFormSet(request.POST,
                                                     prefix='q1_material',
                                                     form_kwargs={'org_uuid': self.request.session['current_org_id']})
         if all([exp_name_form.is_valid(),
                 q1_formset.is_valid(), 
-                q2_formset.is_valid(), 
-                q3_formset.is_valid(), 
+                #q2_formset.is_valid(), 
+                #q3_formset.is_valid(), 
                 q1_material_formset.is_valid()]):
             
             exp_name = exp_name_form.cleaned_data['exp_name']
@@ -240,30 +246,33 @@ class CreateExperimentView(TemplateView):
             experiment_copy_uuid = experiment_copy(str(exp_template.uuid), exp_name)
 
             # get the elements of the new experiment that we need to update with the form values
-            q1, q2, q3 = get_action_parameter_querysets(experiment_copy_uuid)
+            #q1, q2, q3 = get_action_parameter_querysets(experiment_copy_uuid)
+            q1 = get_action_parameter_querysets(experiment_copy_uuid)
             q1_material = get_material_querysets(experiment_copy_uuid)
             
             self.save_forms(q1, q1_formset, {'parameter_val_nominal': 'value', 'parameter_val_actual': 'actual_value'})
             self.save_forms(q1_material, q1_material_formset, {'inventory_material': 'value'})
-            self.save_forms(q2, q2_formset, None)
+            #self.save_forms(q2, q2_formset, None)
 
             # begin: template-specific logic
             if template_name in SUPPORTED_CREATE_WFS:
                 #if any([f.has_changed() for f in q3_formset]):
                 data = {}  # Stick form data into this dict
-                for i, form in enumerate(q3_formset):
+                #for i, form in enumerate(q3_formset):
+                for i, form in enumerate(q1_formset):
                     if form.is_valid():
-                        query = q3[i]
+                        #query = q3[i]
+                        query = q1[i]
                         data[query.parameter_def_description] = form.cleaned_data['value'].value
                 
                 if template_name == 'liquid_solid_extraction':
                     lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
-                    new_lsr_pk, lsr_msg = liquid_solid_extraction(data, q3, experiment_copy_uuid, lsr_edoc, exp_name)
+                    new_lsr_pk, lsr_msg = liquid_solid_extraction(data, q1, experiment_copy_uuid, lsr_edoc, exp_name)
                 elif template_name == 'resin_weighing':
                     lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
                     new_lsr_pk, lsr_msg = resin_weighing(experiment_copy_uuid, lsr_edoc, exp_name)
                 elif template_name == 'perovskite_demo':
-                    new_lsr_pk, lsr_msg = perovskite_demo(data, q3, experiment_copy_uuid, exp_name)
+                    new_lsr_pk, lsr_msg = perovskite_demo(data, q1, experiment_copy_uuid, exp_name)
 
                 # handle library studio file if relevant
                 if new_lsr_pk is not None:
@@ -386,14 +395,15 @@ class ExperimentDetailView(DetailView):
         # dict of detail field names to their value
         detail_data = {}
 
-        q1, q2, q3 = get_action_parameter_querysets(exp.uuid)
+        #q1, q2, q3 = get_action_parameter_querysets(exp.uuid)
+        q1 = get_action_parameter_querysets(exp.uuid)
         mat_q = get_material_querysets(exp.uuid)
         edocs = Edocument.objects.filter(ref_edocument_uuid=exp.uuid)
 
         detail_data = {row.object_description : row.inventory_material for row in mat_q}
         detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q1})
-        detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q2})
-        detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q3})
+        #detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q2})
+        #detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q3})
 
         link_data = {f'{lsr_edoc.title} download link' : self.request.build_absolute_uri(reverse('edoc_download', args=[lsr_edoc.pk])) for lsr_edoc in edocs}
         

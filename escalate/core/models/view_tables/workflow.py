@@ -290,6 +290,9 @@ class WorkflowStep(DateColumns, StatusColumn):
     workflow_action_set = models.ForeignKey('WorkflowActionSet', models.DO_NOTHING,
                                  db_column='workflow_action_set_uuid',
                                  related_name='workflow_step_workflow_action_set')
+    action = models.ForeignKey('Action', models.DO_NOTHING,
+                           blank=True, null=True, 
+                           db_column='action_uuid', related_name='workflow_step_action') 
     parent = models.ForeignKey('WorkflowStep', models.DO_NOTHING,
                                blank=True, null=True, 
                                db_column='parent_uuid', related_name='workflow_step_parent')
