@@ -195,9 +195,8 @@ class Experiment(DateColumns, StatusColumn, DescriptionColumn):
                                         on_delete=models.DO_NOTHING, blank=True, null=True, related_name='experiment_experiment_type')
     ref_uid = models.CharField(max_length=255, db_column='ref_uid')
     # update to point to an experiment parent. 
-    parent = models.ForeignKey('Experiment', models.DO_NOTHING,
-                               blank=True, null=True,
-                               db_column='parent_uuid', related_name='experiment_parent')
+    parent = models.ForeignKey('Experiment', db_column='parent_uuid',
+                               on_delete=models.DO_NOTHING, blank=True, null=True, related_name='experiment_parent')
     owner = models.ForeignKey('Actor', db_column='owner_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
                               related_name='experiment_owner')
     operator = models.ForeignKey('Actor', db_column='operator_uuid', on_delete=models.DO_NOTHING, blank=True, null=True,
@@ -320,15 +319,19 @@ class WorkflowStep(DateColumns, StatusColumn):
     workflow = models.ForeignKey('Workflow', models.DO_NOTHING,
                                  db_column='workflow_uuid',
                                  related_name='workflow_step_workflow')
+    '''
     workflow_action_set = models.ForeignKey('WorkflowActionSet', models.DO_NOTHING,
                                  db_column='workflow_action_set_uuid',
-                                 related_name='workflow_step_workflow_action_set')
+                                 related_name='workflow_step_workflow_action_set', 
+                                 null=True, blank=True)
+    '''
     action = models.ForeignKey('Action', models.DO_NOTHING,
                            blank=True, null=True, 
                            db_column='action_uuid', related_name='workflow_step_action') 
-    parent = models.ForeignKey('WorkflowStep', models.DO_NOTHING,
+    parent = models.ForeignKey('Workflow', models.DO_NOTHING,
                                blank=True, null=True,
                                db_column='parent_uuid', related_name='workflow_step_parent')
+
     parent_path = models.CharField(max_length=255,
                                    blank=True,
                                    null=True,

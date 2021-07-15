@@ -20,6 +20,7 @@ from core.models.view_tables import Note, TagAssign, Tag
 from core.experiment_templates import liquid_solid_extraction, resin_weighing, perovskite_demo
 from core.custom_types import Val
 import core.experiment_templates
+from core.models.view_tables import Parameter
 
 #SUPPORTED_CREATE_WFS = ['liquid_solid_extraction', 'resin_weighing']
 #SUPPORTED_CREATE_WFS = supported_wfs() 
@@ -87,7 +88,7 @@ class CreateExperimentView(TemplateView):
             data = {'value': row.parameter_value, \
                 'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])}
             if not row.parameter_value.null:
-                if 'array' in row.parameter_value.val_type:
+                if 'array' in row.parameter_value.val_type.description:
                     data['actual_value'] = Val.from_dict({'type':'array_num', \
                                                           'value':[0]*len(row.parameter_value.value), \
                                                           'unit':row.parameter_value.unit})
@@ -186,7 +187,7 @@ class CreateExperimentView(TemplateView):
         return render(request, self.template_name, context)
     # end: self.post()
 
-    def save_forms(self, queries, formset, fields):
+    def save_forms_q1(self, queries, formset, fields):
         """Saves custom formset into queries
 
         Args:
@@ -205,13 +206,41 @@ class CreateExperimentView(TemplateView):
                     query = queries.get(object_description=desc[0])
 
                 # q2 gets handled differently because its a workflow action set
+                '''
                 if fields is None:
                     update_dispense_action_set(query, data['value'])
                 else:
                     for db_field, form_field in fields.items():
                         setattr(query, db_field, data[form_field])
-                query.save(update_fields=list(fields.keys()))
+                '''
+                parameter = Parameter.objects.get(uuid=query.parameter_uuid)
+                for db_field, form_field in fields.items():
+                    setattr(parameter, db_field, data[form_field])
+                parameter.save(update_fields=list(fields.keys()))
         #queries.save()
+
+    def save_forms_q_material(self, queries, formset, fields):
+        """
+        Saves custom formset into queries
+        Args:
+            queries ([Queryset]): List of queries into which the forms values are saved
+            formset ([Formset]): Formset
+            fields (dict): Dictionary to map the column in queryset with field in formset
+        """
+        for form in formset:
+            if form.has_changed():
+                data = form.cleaned_data
+                desc = json.loads(data['uuid'])
+                if len(desc) == 2:
+                    object_desc, param_def_desc = desc
+                    query = queries.get(object_description=object_desc, parameter_def_description=param_def_desc)
+                else:
+                    query = queries.get(object_description=desc[0])
+
+                for db_field, form_field in fields.items():
+                    setattr(query, db_field, data[form_field])
+
+                query.save(update_fields=list(fields.keys()))
 
     def process_formsets(self, request, context):
         """Creates formsets and gets data from the post request.
@@ -250,8 +279,8 @@ class CreateExperimentView(TemplateView):
             q1 = get_action_parameter_querysets(experiment_copy_uuid)
             q1_material = get_material_querysets(experiment_copy_uuid)
             
-            self.save_forms(q1, q1_formset, {'parameter_val_nominal': 'value', 'parameter_val_actual': 'actual_value'})
-            self.save_forms(q1_material, q1_material_formset, {'inventory_material': 'value'})
+            self.save_forms_q1(q1, q1_formset, {'parameter_val_nominal': 'value', 'parameter_val_actual': 'actual_value'})
+            self.save_forms_q_material(q1_material, q1_material_formset, {'inventory_material': 'value'})
             #self.save_forms(q2, q2_formset, None)
 
             # begin: template-specific logic

@@ -125,7 +125,7 @@ for view in rest_nested_url_views:
                         basename=f'{name}-property', parents_query_lookups=['property_ref'])
     if name == 'action':
         registered.register('parameter', viewsets.ParameterViewSet,
-                        basename=f'{name}-parameter', parents_query_lookups=['ref_object'])
+                        basename=f'{name}-parameter', parents_query_lookups=['action'])
 
 schema_patterns = [
     path('api/', include(router.urls)),

@@ -216,7 +216,7 @@ save_viewsets = {
     'PropertyViewSet': {'parent_lookup': 'parent_lookup_property_ref',
                         'ref_uuid': 'property_ref'},
     'ParameterViewSet': {'parent_lookup': 'parent_lookup_ref_object',
-                        'ref_uuid': 'ref_object'}
+                        'ref_uuid': 'action'}
 }
 
 for viewset_name, kwargs in save_viewsets.items():
