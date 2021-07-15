@@ -6,6 +6,7 @@ from .tag import *
 from .tagtype import *
 from .udfdef import *
 from .measuretype import *
-
+from .measuredef import *
+from .measure import *
 
 #calculation requires edocument which, currently, cannot be created. Will get back to this
