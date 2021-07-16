@@ -88,8 +88,7 @@ class CalculationDef(DateColumns, ActorColumn, DescriptionColumn):
 
 
 class Edocument(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
-    uuid = RetUUIDField(
-        primary_key=True, db_column='edocument_uuid', editable=False)
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='edocument_uuid', editable=False)
     title = models.CharField(max_length=255, blank=True,
                              null=True, db_column='title')
     filename = models.CharField(max_length=255, blank=True, null=True,
