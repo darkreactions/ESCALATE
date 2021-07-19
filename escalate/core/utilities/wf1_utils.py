@@ -10,8 +10,8 @@ def make_well_list(container_name,
     vial_df = pd.DataFrame({'Vial Site': well_names, 'Labware ID:': container_name})
     return vial_df
 
-def generate_robot_file(reaction_volumes=None, reaction_parameters=None,
-                        plate_name='Symyx_96_well_0003', well_count=96):
+def generate_robot_file(reaction_volumes, reaction_parameters,
+                        plate_name, well_count):
     #'Temperature (C):'-> vw_action_parameter.parameter_value_nominal (text)
     #'Stir Rate (rpm):'->vw_action_parameter.parameter_value_nominal (text)
     if reaction_parameters is None:
@@ -25,6 +25,16 @@ def generate_robot_file(reaction_volumes=None, reaction_parameters=None,
                                         ],
                 'Parameter Values': [105, 750, 900, 1200, 21600, 85],
         })
+    else:
+        reaction_params = reaction_parameters.keys()
+        parameter_vals = reaction_parameters.values()
+        #q1 = pd.DataFrame.from_dict(reaction_parameters)
+        rxn_parameters = pd.DataFrame({
+            'Reaction Parameters': reaction_params,
+            'Parameter Values': parameter_vals
+        })
+
+
     df_tray = make_well_list(plate_name, well_count)
     if reaction_volumes is None:
         reagent_colnames = ['Reagent1 (ul)', 'Reagent2 (ul)', 'Reagent3 (ul)', 
@@ -33,6 +43,22 @@ def generate_robot_file(reaction_volumes=None, reaction_parameters=None,
         reaction_volumes = pd.DataFrame({
             reagent_col: [0]*len(df_tray) for reagent_col in reagent_colnames
         })
+    else:
+        #q1_formset = pd.DataFrame.from_dict(reaction_volumes)
+        #these values need to replace 0's. Ask help regarding this
+        reaction_vol = []
+        #this_rv = reaction_volumes
+        for current_reaction_volume in reaction_volumes:
+            #this_value = current_reaction_volume.parameter_value.value
+            reaction_vol.append(current_reaction_volume.parameter_value.value)
+        reagent_colnames = ['Reagent1 (ul)', 'Reagent2 (ul)', 'Reagent3 (ul)', 
+                            'Reagent4 (ul)', 'Reagent5 (ul)', 'Reagent6 (ul)',
+                            'Reagent7 (ul)', 'Reagent8 (ul)', 'Reagent9 (ul)']
+        reaction_volumes = pd.DataFrame({
+            reagent_col: [0]*len(df_tray) for reagent_col in reagent_colnames
+        })
+        
+
     rxn_conditions = pd.DataFrame({
         'Reagents': ['Reagent1', 'Reagent2', 'Reagent3', 'Reagent4', 'Reagent5', 'Reagent6', 'Reagent7', 'Reagent8', 'Reagent9', ],
         'Reagent identity': ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
