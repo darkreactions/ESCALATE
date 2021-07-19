@@ -10,31 +10,33 @@ from ..model_tests_utils import (
     compare_data
 )
 from core.models import (
-    Mixture,
-    Material,
-    MaterialType
+    ExperimentType,
+    TypeDef,
+    Actor,
+    Workflow,
+    Experiment
 )
 
-mixture_test_data = {}
+experiment_test_data = {}
 
-mixture_tests = [
+experiment_tests = [
 
 ##----TEST 0----##
-#creates a material
-#creates a second material
-#creates a materialtype
-#creates a mixture with materialtype as a manytomany key and the two materials as foreign keys
-#gets the mixture
-#updates the mixture to no longer have manytomany/foreign keys
-#gets the mixture
-#deletes the mixture
-#gets the mixture (should return error)
+#creates an experiment type
+#creates a typedef
+#creates three actors
+#creates an experiment with all of the previous entries as foreign keys (one of the two parameterdefs is put in the manytomanyfield)
+#gets the experiment
+#puts the experiment adding the other parameterdef to the manytomany field
+#gets the updated experiment
+#deletes the updated experiment
+#gets the experiment (should return error)
     [      
         {
-            'name': 'material0',
+            'name': 'experimenttype0',
             'method': POST,
-            'endpoint': 'material-list',
-            'body': random_model_dict(Material),
+            'endpoint': 'experimenttype-list',
+            'body': random_model_dict(ExperimentType),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -46,10 +48,10 @@ mixture_tests = [
             }
         },
         {
-            'name': 'material1',
+            'name': 'typedef0',
             'method': POST,
-            'endpoint': 'material-list',
-            'body': random_model_dict(Material),
+            'endpoint': 'typedef-list',
+            'body': random_model_dict(TypeDef),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -60,11 +62,11 @@ mixture_tests = [
                 }
             }
         },
-        {
-            'name': 'materialtype0',
+        *[{
+            'name': name,
             'method': POST,
-            'endpoint': 'materialtype-list',
-            'body': random_model_dict(MaterialType),
+            'endpoint': 'actor-list',
+            'body': random_model_dict(Actor),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -74,13 +76,16 @@ mixture_tests = [
                     'status_code': POST
                 }
             }
-        },
+        } for name in ['actor0', 'actor1', 'actor2']],
         {
-            'name': 'mixture0',
+            'name': 'experiment0',
             'method': POST,
-            'endpoint': 'mixture-list',
-            'body': (request_body := random_model_dict(Mixture, composite='material0__url', component='material1__url', \
-                    material_type=['materialtype0__url'])),
+            'endpoint': 'experiment-list',
+            'body': (request_body := random_model_dict(Experiment, experiment_type='experimenttype0__url',
+                                                parent='typedef0__url',
+                                                owner='actor0__url',
+                                                operator='actor1__url',
+                                                lab='actor2__url',)), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -93,12 +98,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_get_0',
+            'name': 'experiment0_get_0',
             'method': GET,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'experiment-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'experiment0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -110,12 +115,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_update_0',
+            'name': 'experiment0_update_0',
             'method': PUT,
-            'endpoint': 'mixture-detail',
-            'body': (request_body := random_model_dict(Mixture)),
+            'endpoint': 'experiment-detail',
+            'body': (request_body := random_model_dict(Experiment)), 
             'args': [
-                'mixture0__uuid'
+                'experiment0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -128,12 +133,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_get_1',
+            'name': 'experiment0_get_1',
             'method': GET,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'experiment-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'experiment0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -145,12 +150,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_delete_0',
+            'name': 'experiment0_delete_0',
             'method': DELETE,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'experiment-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'experiment0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -162,12 +167,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_get_2',
+            'name': 'experiment0_get_2',
             'method': GET,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'experiment-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'experiment0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {

@@ -1,4 +1,5 @@
 from ..model_tests_utils import (
+    status_codes,
     DELETE,
     PUT,
     POST,
@@ -8,28 +9,27 @@ from ..model_tests_utils import (
     check_status_code,
     compare_data
 )
-
 from core.models import (
-    ParameterDef,
-    TypeDef
+    ExperimentType,
 )
 
-parameter_def_data = {}
+experimenttype_test_data = {}
 
-parameter_def_tests = [
+experimenttype_tests = [
+
 ##----TEST 0----##
-# creates a parameter_def
-# gets it
-# puts it
-# gets it
-# deletes it
-# gets it (should error)
-    [
+#creates an experimenttype
+#gets the action
+#puts the experimenttype adding the other parameterdef to the manytomany field
+#gets the updated experimenttype
+#deletes the updated experimenttype
+#gets the experimenttype (should return error)
+    [      
         {
-            'name': 'parameterdef',
+            'name': 'experimenttype0',
             'method': POST,
-            'endpoint': 'parameterdef-list',
-            'body': (request_body := random_model_dict(ParameterDef)),
+            'endpoint': 'experimenttype-list',
+            'body': (request_body := random_model_dict(ExperimentType)), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -42,12 +42,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_get',
+            'name': 'experimenttype0_get_0',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'experimenttype-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'experimenttype0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -58,13 +58,14 @@ parameter_def_tests = [
                 }
             }
         },
+    
         {
-            'name': 'parameterdef_update',
+            'name': 'experimenttype0_update_0',
             'method': PUT,
-            'endpoint': 'parameterdef-detail',
-            'body': (request_body := random_model_dict(ParameterDef)),
+            'endpoint': 'experimenttype-detail',
+            'body': (request_body := random_model_dict(ExperimentType)),
             'args': [
-                'parameterdef__uuid'
+                'experimenttype0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -77,12 +78,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_update_get',
+            'name': 'experimenttype0_get_1',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'experimenttype-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'experimenttype0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -94,12 +95,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_update_del',
+            'name': 'experimenttype0_delete_0',
             'method': DELETE,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'experimenttype-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'experimenttype0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -111,12 +112,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'properydef_update_del_get',
+            'name': 'experimenttype0_get_2',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'experimenttype-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'experimenttype0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {

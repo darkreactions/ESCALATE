@@ -1,4 +1,5 @@
 from ..model_tests_utils import (
+    status_codes,
     DELETE,
     PUT,
     POST,
@@ -8,28 +9,44 @@ from ..model_tests_utils import (
     check_status_code,
     compare_data
 )
-
 from core.models import (
-    ParameterDef,
-    TypeDef
+    Outcome,
+    Experiment,
 )
 
-parameter_def_data = {}
+outcome_test_data = {}
 
-parameter_def_tests = [
+outcome_tests = [
+
 ##----TEST 0----##
-# creates a parameter_def
-# gets it
-# puts it
-# gets it
-# deletes it
-# gets it (should error)
-    [
-        {
-            'name': 'parameterdef',
+#creates an experiment
+#creates an outcome with the previous two entries as foreign keys
+#gets the outcome
+#puts the outcome adding the other parameterdef to the manytomany field
+#gets the updated outcome
+#deletes the updated outcome
+#gets the outcome (should return error)
+    [      
+        *[{
+            'name': name,
             'method': POST,
-            'endpoint': 'parameterdef-list',
-            'body': (request_body := random_model_dict(ParameterDef)),
+            'endpoint': 'experiment-list',
+            'body': random_model_dict(Experiment),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        } for name in ['experiment0', 'experiment1']],
+        {
+            'name': 'outcome0',
+            'method': POST,
+            'endpoint': 'outcome-list',
+            'body': (request_body := random_model_dict(Outcome, experiment='experiment0__url')), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -42,12 +59,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_get',
+            'name': 'outcome0_get_0',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'outcome-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'outcome0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -58,13 +75,14 @@ parameter_def_tests = [
                 }
             }
         },
+    
         {
-            'name': 'parameterdef_update',
+            'name': 'outcome0_update_0',
             'method': PUT,
-            'endpoint': 'parameterdef-detail',
-            'body': (request_body := random_model_dict(ParameterDef)),
+            'endpoint': 'outcome-detail',
+            'body': (request_body := random_model_dict(Outcome, experiment='experiment0__url')),
             'args': [
-                'parameterdef__uuid'
+                'outcome0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -77,12 +95,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_update_get',
+            'name': 'outcome0_get_1',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'outcome-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'outcome0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -94,12 +112,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_update_del',
+            'name': 'outcome0_delete_0',
             'method': DELETE,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'outcome-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'outcome0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -111,12 +129,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'properydef_update_del_get',
+            'name': 'outcome0_get_2',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'outcome-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'outcome0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {

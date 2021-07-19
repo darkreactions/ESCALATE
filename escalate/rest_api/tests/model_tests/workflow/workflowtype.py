@@ -1,4 +1,5 @@
 from ..model_tests_utils import (
+    status_codes,
     DELETE,
     PUT,
     POST,
@@ -8,28 +9,27 @@ from ..model_tests_utils import (
     check_status_code,
     compare_data
 )
-
 from core.models import (
-    ParameterDef,
-    TypeDef
+    WorkflowType,
 )
 
-parameter_def_data = {}
+workflowtype_test_data = {}
 
-parameter_def_tests = [
+workflowtype_tests = [
+
 ##----TEST 0----##
-# creates a parameter_def
-# gets it
-# puts it
-# gets it
-# deletes it
-# gets it (should error)
-    [
+#creates an workflowtype
+#gets the action
+#puts the workflowtype adding the other parameterdef to the manytomany field
+#gets the updated workflowtype
+#deletes the updated workflowtype
+#gets the workflowtype (should return error)
+    [      
         {
-            'name': 'parameterdef',
+            'name': 'workflowtype0',
             'method': POST,
-            'endpoint': 'parameterdef-list',
-            'body': (request_body := random_model_dict(ParameterDef)),
+            'endpoint': 'workflowtype-list',
+            'body': (request_body := random_model_dict(WorkflowType)), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -42,12 +42,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_get',
+            'name': 'workflowtype0_get_0',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'workflowtype-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'workflowtype0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -58,13 +58,14 @@ parameter_def_tests = [
                 }
             }
         },
+    
         {
-            'name': 'parameterdef_update',
+            'name': 'workflowtype0_update_0',
             'method': PUT,
-            'endpoint': 'parameterdef-detail',
-            'body': (request_body := random_model_dict(ParameterDef)),
+            'endpoint': 'workflowtype-detail',
+            'body': (request_body := random_model_dict(WorkflowType)),
             'args': [
-                'parameterdef__uuid'
+                'workflowtype0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -77,12 +78,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_update_get',
+            'name': 'workflowtype0_get_1',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'workflowtype-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'workflowtype0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -94,12 +95,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_update_del',
+            'name': 'workflowtype0_delete_0',
             'method': DELETE,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'workflowtype-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'workflowtype0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -111,12 +112,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'properydef_update_del_get',
+            'name': 'workflowtype0_get_2',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'workflowtype-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'workflowtype0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {

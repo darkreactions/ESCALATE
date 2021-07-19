@@ -10,60 +10,60 @@ from ..model_tests_utils import (
     compare_data
 )
 from core.models import (
-    Vessel,
-    Actor,
-    Status
+    ConditionDef,
+    CalculationDef,
 )
 
-vessel_test_data = {}
+conditiondef_test_data = {}
 
-vessel_tests = [
+conditiondef_tests = [
 
 ##----TEST 0----##
-#creates new actor
-#creates a new status
-#creates a vessel with the status as a foreign key
-#gets the vessel
-#updates the vessel to have the previously defined actor as a foreign key
-#gets the vessel
-#deletes the vessel
-#gets the vessel (should return error)
-    [       
+#creates two calculationdefs
+#creates an conditiondef with one of the calculationdefs in the manytomany field
+#gets the conditiondef
+#updates the conditiondef with the other calculationdef
+#gets the conditiondef
+#deletes the conditiondef
+#gets the conditiondef (should return error)
+    [      
+        
+        # {
+        #     'name': 'calculationdef0',
+        #     'method': POST,
+        #     'endpoint': 'calculationdef-list',
+        #     'body': random_model_dict(CalculationDef),
+        #     'args': [],
+        #     'query_params': [],
+        #     'is_valid_response': {
+        #         'function': check_status_code,
+        #         'args': [],
+        #         'kwargs': {
+        #             'status_code': POST
+        #         }
+        #     }
+        # },
+        # {
+        #     'name': 'calculationdef1',
+        #     'method': POST,
+        #     'endpoint': 'calculationdef-list',
+        #     'body': random_model_dict(CalculationDef),
+        #     'args': [],
+        #     'query_params': [],
+        #     'is_valid_response': {
+        #         'function': check_status_code,
+        #         'args': [],
+        #         'kwargs': {
+        #             'status_code': POST
+        #         }
+        #     }
+        # },
         {
-            'name': 'actor0',
+            'name': 'conditiondef0',
             'method': POST,
-            'endpoint': 'actor-list',
-            'body': random_model_dict(Actor),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'status0',
-            'method': POST,
-            'endpoint': 'status-list',
-            'body': random_model_dict(Status),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'vessel0',
-            'method': POST,
-            'endpoint': 'vessel-list',
-            'body': (request_body := random_model_dict(Vessel, status='status0__url')),
+            'endpoint': 'conditiondef-list',
+            'body': (request_body := random_model_dict(ConditionDef, #calculation_def=['calculationdef0__url']
+            )),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -76,12 +76,12 @@ vessel_tests = [
             }
         },
         {
-            'name': 'vessel0_get_0',
+            'name': 'conditiondef0_get_0',
             'method': GET,
-            'endpoint': 'vessel-detail',
+            'endpoint': 'conditiondef-detail',
             'body': {},
             'args': [
-                'vessel0__uuid'
+                'conditiondef0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -92,13 +92,15 @@ vessel_tests = [
                 }
             }
         },
+    
         {
-            'name': 'vessel0_update_0',
+            'name': 'conditiondef0_update_0',
             'method': PUT,
-            'endpoint': 'vessel-detail',
-            'body': (request_body := random_model_dict(Vessel, actor='actor0__url')),
+            'endpoint': 'conditiondef-detail',
+            'body': (request_body := random_model_dict(ConditionDef, #calculation_def=['calculationdef1__url']
+            )),
             'args': [
-                'vessel0__uuid'
+                'conditiondef0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -111,12 +113,12 @@ vessel_tests = [
             }
         },
         {
-            'name': 'vessel0_get_1',
+            'name': 'conditiondef0_get_1',
             'method': GET,
-            'endpoint': 'vessel-detail',
+            'endpoint': 'conditiondef-detail',
             'body': {},
             'args': [
-                'vessel0__uuid'
+                'conditiondef0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -128,12 +130,12 @@ vessel_tests = [
             }
         },
         {
-            'name': 'vessel0_delete_0',
+            'name': 'conditiondef0_delete_0',
             'method': DELETE,
-            'endpoint': 'vessel-detail',
+            'endpoint': 'conditiondef-detail',
             'body': {},
             'args': [
-                'vessel0__uuid'
+                'conditiondef0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -145,12 +147,12 @@ vessel_tests = [
             }
         },
         {
-            'name': 'vessel0_get_2',
+            'name': 'conditiondef0_get_2',
             'method': GET,
-            'endpoint': 'vessel-detail',
+            'endpoint': 'conditiondef-detail',
             'body': {},
             'args': [
-                'vessel0__uuid'
+                'conditiondef0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {

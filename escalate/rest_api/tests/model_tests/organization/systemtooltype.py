@@ -29,14 +29,15 @@ systemtooltype_tests = [
             'name': 'systemtooltype0',
             'method': POST,
             'endpoint': 'systemtooltype-list',
-            'body': random_model_dict(SystemtoolType),
+            'body': (request_body := random_model_dict(SystemtoolType)),
             'args': [],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': POST
+                    'status_code': POST,
+                    'request_body': request_body
                 }
             }
         },
@@ -61,16 +62,17 @@ systemtooltype_tests = [
             'name': 'systemtooltype0_update_0',
             'method': PUT,
             'endpoint': 'systemtooltype-detail',
-            'body': random_model_dict(SystemtoolType),
+            'body': (request_body := random_model_dict(SystemtoolType)),
             'args': [
                 'systemtooltype0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': PUT
+                    'status_code': PUT,
+                    'request_body': request_body
                 }
             }
         },
@@ -126,25 +128,4 @@ systemtooltype_tests = [
             }
         },
     ],
-
-##----TEST 1----##
-#creates a systemtooltype and checks that the response data matches the 
-#request data stored in the body entry
-    [   
-        {
-            'name': 'systemtooltype0',
-            'method': POST,
-            'endpoint': 'systemtooltype-list',
-            'body': (systemtooltype_posted := random_model_dict(SystemtoolType)),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': compare_data,
-                'args': [],
-                'kwargs': {
-                    'request_body': systemtooltype_posted
-                }
-            }
-        },
-    ]
 ]

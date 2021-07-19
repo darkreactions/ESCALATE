@@ -132,14 +132,15 @@ person_tests = [
             'name': 'person0',
             'method': POST,
             'endpoint': 'person-list',
-            'body': random_model_dict(Person),
+            'body': (request_body := random_model_dict(Person)),
             'args': [],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': POST
+                    'status_code': POST,
+                    'request_body': request_body
                 }
             }
         },
@@ -196,16 +197,17 @@ person_tests = [
             'name': 'person0_update_0',
             'method': PUT,
             'endpoint': 'person-detail',
-            'body': random_model_dict(Person),
+            'body': (request_body := random_model_dict(Person)),
             'args': [
                 'person0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': PUT
+                    'status_code': PUT,
+                    'request_body': request_body
                 }
             }
         },
@@ -261,27 +263,6 @@ person_tests = [
             }
         },
     ],
-
-##----TEST 1----##
-#creates a person and checks that the response data matches the 
-#request data stored in the body entry
-    [   
-        {
-            'name': 'person0',
-            'method': POST,
-            'endpoint': 'person-list',
-            'body': (request_body := random_model_dict(Person)),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': compare_data,
-                'args': [],
-                'kwargs': {
-                    'request_body':request_body,
-                }
-            }
-        },
-    ]
 ]
 
 
