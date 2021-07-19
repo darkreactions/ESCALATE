@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from core.models import (
     TypeDef,
+    WorkflowType,
     Status,
     MaterialIdentifierDef,
     MaterialType,
@@ -12,6 +13,7 @@ import core.models
 
 model_field_names = {
     'type_def' : ['category','description'],
+    'workflow_type': ['description'],
     'status': ['description'],
     'material_identifier_def': ['description'],
     'material_type': ['description'],
@@ -31,6 +33,21 @@ model_field_data = {
         ['data', 'array_int'],
         ['data', 'array_num'],
         ['data', 'bool'],
+        ["data", "blob"],
+        ["data", "array_bool"],
+        ["data", "array_text"],
+        ["file", "svg"],
+        ["file", "text"],
+        ["file", "pdf"],
+        ["file", "xrd"],
+        ["file", "png"],
+        ["file", "jpg"],
+    ],
+    'workflow_type': [
+        ["workflow_action_set"],
+        ["model"],
+        ["template"],
+        ["actual"],
     ],
     'status': [
         ['inactive'],

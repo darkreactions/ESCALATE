@@ -25,7 +25,7 @@ methods = {
             'Owner': ['owner'],
             'Operator': ['operator'],
             'Lab': ['lab'],
-            'Status': ['status_description'],
+            'Status': ['status'],
             'Actor': ['actor']
         },
         'ordering': ['description'],
@@ -167,12 +167,10 @@ methods = {
         'model': core.models.view_tables.InventoryMaterial,
         'context_object_name': 'inventory_materials',
 
-        'table_columns': ['Description', 'Material','Amount On Hand', 'Expiration Date', 'Location', 'Composite', 'Consumable', 'Actions'],
+        'table_columns': ['Description', 'Material','Amount On Hand', 'Expiration Date', 'Location', 'Actions'],
         'column_necessary_fields': {
             'Description': ['description'], 
-            'Material': ['material_description'], 
-            'Composite': ['material_composite_flg'], 
-            'Consumable': ['material_consumable'], 
+            'Material': ['material.description'], 
             'Amount On Hand': ['onhand_amt'], 
             'Expiration Date': ['expiration_date'], 
             'Location': ['location'],

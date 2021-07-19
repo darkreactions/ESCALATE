@@ -1,0 +1,85 @@
+description	short_name	calc_definition	parameter_def_descriptions	in_source__short_name	in_type__description	in_opt_source__short_name	in_opt_type__description	out_type__description	systemtool_name
+asa-	asa-_standardize	wateraccessiblesurfacearea asa-		standardize	text	chrg_per_asa_standardize		num	cxcalc
+calculates the van der waals volume of the molecule	vanderwaalsvolume_standardize	volume 		standardize	text	chrg_per_vol_standardize		num	cxcalc
+ring atom count	ringatomcount_standardize	ringatomcount		standardize	text			int	cxcalc
+smiles svg image	molimage	svg			text				molconvert
+molecule mass calculation from (standardized) smiles	molweight_standardize	mass		standardize	text			num	cxcalc
+hydrogen bond acceptor multiplicity in molecule	accsitecount_standardize	acceptorsitecount		standardize	text			int	cxcalc
+calculates the size of the molecule perpendicular to the maximal projection area surface	lengthperpendiculartothemaxarea_standardize	maximalprojectionsize  		standardize	text			num	cxcalc
+heteroaliphatic ring count	heteroaliphaticringcount_standardize	heteroaliphaticringcount		standardize	text			int	cxcalc
+number of dihydropyridines	fr_dihydropyridine_standardize	fr_dihydropyridine		standardize	text			int	RDKit
+WF1: return array of mL vols for 12M HCL for 5mL target across concentration array	TC_WF1_HCL12M_5mL_concentration	math_op_arr(math_op_arr('hcl_concentrations', '/', stock_concentration), '*', total_vol)	stock_concentration,total_vol,hcl_concentrations					array_num	postgres
+carbo ring count	carboringcount_standardize	carboringcount		standardize	text			int	cxcalc
+carboaromatic ring count	carboaromaticringcount_standardize	carboaromaticringcount		standardize	text			int	cxcalc
+calculates the size of the molecule perpendicular to the minimal projection area surface	minimalprojectionsize_standardize	minimalprojectionsize		standardize	text			num	cxcalc
+asa, asa+, asa-, asa_h, asa_p	asa_standardize	wateraccessiblesurfacearea asa		standardize	text			num	cxcalc
+charge_cnt / asa-	chrg_per_asa_standardize	charge_cnt / asa-		charge_cnt_standardize	num		num	num	escalate
+molecular polarizability calculation	molpol_standardize	molpol 		standardize	text			num	cxcalc
+aromatic ring count	aromaticringcount_standardize	aromaticringcount 		standardize	text			int	cxcalc
+molecular surface area calculation (3d)	msareavdwp_standardize	msa -t vanderwaals -H 3.0		standardize	text			num	cxcalc
+aromatic atom count	aromaticatomcount_standardize	aromaticatomcount		standardize	text			int	cxcalc
+number of tertiary amines	fr_nh0_standardize	fr_NH0		standardize	text			int	RDKit
+chain atom count	chainatomcount_standardize	chainatomcount		standardize	text			int	cxcalc
+asa_p	asa_p_standardize	wateraccessiblesurfacearea asa_p		standardize	text			num	cxcalc
+topological polar surface area calculation (2d)	protpsa_standardize	psa -H 3.0		standardize	text			num	cxcalc
+largest ring size	largestringsize_standardize	largestringsize		standardize	text			int	cxcalc
+number of piperdine rings	fr_piperdine_standardize	fr_piperdine		standardize	text			int	RDKit
+the cyclomatic number	cyclomaticnumber_standardize	cyclomaticnumber		standardize	text			int	cxcalc
+Null calculation: dispense stock A into samples	sampleStockA	null	Sample Stock A Volume						
+heteroaromatic ring count	heteroaromaticringcount_standardize	heteroaromaticringcount		standardize	text			int	cxcalc
+the balaban index	balabanindex_standardize	balabanindex		standardize	text			int	cxcalc
+number of nitrogen atoms in the molecule 	atomcount_n_standardize	atomcount -z 7 		standardize	text			int	cxcalc
+smallest ring size	smallestringsize_standardize	smallestringsize		standardize	text			int	cxcalc
+calculates the maximal projection area	maximalprojectionarea_standardize	maximalprojectionarea 		standardize	text			num	cxcalc
+average molecular polarizability calculation	avgpol_standardize	avgpol		standardize	text			num	cxcalc
+number of imines	fr_imine_standardize	fr_Imine		standardize	text			int	RDKit
+carboaliphatic ring count	carboaliphaticringcount_standardize	carboaliphaticringcount		standardize	text			int	cxcalc
+number of primary amines	fr_nh1_standardize	fr_NH1		standardize	text			int	RDKit
+calculates the size of the molecule perpendicular to the maximal projection area surface	maximalprojectionsize_standardize	maximalprojectionsize		standardize	text			num	cxcalc
+molecular surface area calculation (3d)	msareaasap_standardize	msa -t ASA+ -H 3.0		standardize	text			num	cxcalc
+van der waals surface area calculation	vanderwaalssurfacearea_standardize	vdwsa		standardize	text			num	cxcalc
+calculates the size of the molecule perpendicular to the minimal projection area surface	lengthperpendiculartotheminarea_standardize	minimalprojectionsize 		standardize	text			num	cxcalc
+molecular surface area calculation (3d)	molsurfaceareavdwp_standardize	molecularsurfacearea -t vanderwaals -H 3.0		standardize	text			num	cxcalc
+WF1: return array of mL vols for H2O for 5mL target across concentration array	TC_WF1_H2O_5mL_concentration	math_op_arr(math_op_arr(math_op_arr('hcl_concentrations', '/', stock_concentration), '*', (math_op(0, '-', total_vol))), '+', total_vol)	stock_concentration,total_vol,hcl_concentrations					array_num	postgres
+charge count / vanderwaalsvolume	chrg_per_vol_standardize	charge_cnt / vanderwaalsvolume		charge_cnt_standardize	num		num	num	escalate
+bond count	bondcount_standardize	bondcount		standardize	text			int	cxcalc
+Null calculation: dispense solvent into samples	sampleSolvent	null	Sample Solvent Volume						
+hydrogen bond donor atom count in molecule	hdonorcount_standardize	donorcount -H 3.0		standardize	text			int	cxcalc
+the number of tetrahedral stereogenic center atoms	chiralcentercount_standardize	chiralcentercount		standardize	text			int	cxcalc
+calculates the minimal projection radius	minimalprojectionradius_standardize	minimalprojectionradius 		standardize	text			num	cxcalc
+topological polar surface area calculation (2d)	polarsurfacearea_standardize	polarsurfacearea 		standardize	text			num	cxcalc
+molecular surface area calculation (3d)	molsurfaceareaasap_standardize	molecularsurfacearea -t ASA+ -H 3.0		standardize	text			num	cxcalc
+Null calculation: dispense Acid 1 into samples	sampleAcid1	null	Sample Acid Volume 1						
+calculates the minimal projection area	minimalprojectionarea_standardize	minimalprojectionarea 		standardize	text			num	cxcalc
+number of secondary amines	fr_nh2_standardize	fr_NH2		standardize	text			int	RDKit
+refractivity calculation	refractivity_standardize	refractivity 		standardize	text			num	cxcalc
+molecule mass calculation	molweight	mass			text			num	cxcalc
+number of piperzine rings	fr_piperzine_standardize	fr_piperzine		standardize	text			int	RDKit
+number of guanidine groups	fr_guanido_standardize	fr_guanido		standardize	text			int	RDKit
+hydrogen bond acceptor atom count in molecule	acceptorcount_standardize	acceptorcount		standardize	text			int	cxcalc
+number of postive charges (+) in the SMILES string	charge_cnt_standardize	get_charge_count		standardize	text			num	escalate
+smiles standardized	standardize	-c removefragment:method=keeplargest			text			text	standardize
+number of aromatic nitrogens	fr_arn_standardize	fr_ArN		standardize	text			int	RDKit
+Null calculation: dispense Acid 2 into samples	sampleAcid2	null	Sample Acid Volume 2						
+return numeric from indexed array	num_array_index	[x, y, z], 2 -> y						num	escalate
+asa+	asa+_standardize	wateraccessiblesurfacearea asa+		standardize	text			num	cxcalc
+number of aromatic amines	fr_ar_nh_standardize	fr_Ar_NH		standardize	text			int	RDKit
+number of carbon atoms in the molecule 	atomcount_c_standardize	atomcount -z 6		standardize	text			int	cxcalc
+Null calculation: dispense stock B into samples	sampleStockB	null	Sample Stock B Volume						
+wiener index	wienerindex_standardize	wienerindex		standardize	text			int	cxcalc
+hydrogen bond acceptor atom count in molecule	hacceptorcount_standardize	acceptorcount -H 3.0		standardize	text			int	cxcalc
+chemical fingerprint ecpf	ecpf4_256_6_standardize	-k ECFP -2 -f 256 -n 6		standardize	text				generatemd
+aliphatic atom count	aliphaticatomcount_standardize	aliphaticatomcount		standardize	text			int	cxcalc
+hyper wiener index	hyperwienerindex_standardize	hyperwienerindex		standardize	text			int	cxcalc
+number of quarternary nitrogens	fr_quatn_standardize	fr_quatN		standardize	text			int	RDKit
+hydrogen bond donor atom count in molecule	donorcount_standardize	donorcount		standardize	text			int	cxcalc
+hydrogen bond donor multiplicity in molecule	donsitecount_standardize	donorsitecount		standardize	text			int	cxcalc
+number of pyridine rings	fr_pyridine_standardize	fr_pyridine		standardize	text			int	RDKit
+rotatable bond count	rotatablebondcount_standardize	rotatablebondcount		standardize	text			int	cxcalc
+calculates the maximal projection radius	maximalprojectionradius_standardize	maximalprojectionradius 		standardize	text			num	cxcalc
+calculate density	density	density			text			num	escalate
+asa_h	asa_h_standardize	wateraccessiblesurfacearea asa_h		standardize	text			num	cxcalc
+wiener polarity	wienerpolarity_standardize	wienerpolarity 		standardize	text			num	cxcalc
+aliphatic ring count	aliphaticringcount_standardize	aliphaticringcount 		standardize	text			int	cxcalc
+number of amidine groups	fr_amidine_standardize	fr_amidine		standardize	text			int	RDKit
+topological polar surface area calculation (2d)	protpolarsurfacearea_standardize	polarsurfacearea -H 3.0		standardize	text			num	cxcalc

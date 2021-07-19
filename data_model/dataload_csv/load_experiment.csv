@@ -1,0 +1,5 @@
+description	ref_uid	experiment_type_description	parent_description	owner_description	operator_description	lab_description	bom_description
+test_wf_1	test_wf_1			Haverford College	Mike Tynes	Haverford College	Test WF1 Materials
+perovskite_demo	perovskite_demo			Haverford College	Mike Tynes	Haverford College	Perovskite Demo Materials
+resin_weighing	test_resin_weigh			TestCo	Mike Tynes	TestCo	resin weighing Dev Materials
+liquid_solid_extraction	test_liq_sol			TestCo	Mike Tynes	TestCo	Liq-Sol Dev Materials 

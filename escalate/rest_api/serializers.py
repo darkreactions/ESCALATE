@@ -117,7 +117,7 @@ class ParameterSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = Parameter
         fields = '__all__'
-        read_only_fields = ['ref_object']
+        read_only_fields = ['action']
 
 
 class ParameterListSerializer(DynamicFieldsModelSerializer):

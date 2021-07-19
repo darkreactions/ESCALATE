@@ -10,7 +10,6 @@ from core.models import (
     Systemtool
 )
 
-
 GET = 'GET'
 POST = 'POST'
 PUT = 'PUT'
@@ -74,7 +73,17 @@ def random_model_dict(model, **kwargs):
             elif field_class_name == "BooleanField":
                 model_dict[field_name] = True if random.uniform(0,1) > 0.5 else False
             elif field_class_name == "ValField":
-                type_choices = ['text', 'num', 'int', 'array_int', 'array_num', 'bool']
+                type_choices = [
+                    'text',
+                    'num',
+                    'int',
+                    'array_int',
+                    'array_num',
+                    'bool',
+                    "blob",
+                    "array_bool",
+                    "array_text",
+                ]
                 rand_type = type_choices[random.randint(0, len(type_choices) - 1)]
                 rand_unit = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = 3))
                 if rand_type == 'text':
@@ -89,8 +98,12 @@ def random_model_dict(model, **kwargs):
                     rand_value = [round(random.uniform(0,100),4) for i in range (10)]
                 elif rand_type == 'bool':
                     rand_value = True if random.uniform(0,1) > 0.5 else False
+                elif rand_type == 'array_text':
+                    rand_value = [''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = 5)) for i in range(10)]
+                elif rand_type == 'array_bool':
+                    rand_value = [(True if random.uniform(0,1) > 0.5 else False) for i in range(10)]
                 else:
-                    rand_value = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = 20))
+                    rand_value = None
                 model_dict[field_name] = {'type':rand_type, 'unit':rand_unit, 'value':rand_value}
             else:
                 print(field_name, field_obj.__class__.__name__)
