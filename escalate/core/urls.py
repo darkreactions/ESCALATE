@@ -1,9 +1,10 @@
 from django.urls import path, include
 import core.views
 from .views import (LoginView, CreateUserView, MainMenuView, WorkflowView,
-                    ModelTagCreate, ModelTagUpdate, logout_view, UserProfileView, 
+                    ModelTagCreate, ModelTagUpdate, logout_view, UserProfileView,
                     change_password, UserProfileEdit)
-from .views.misc_views import ExperimentDetailEditView #ParameterEditView, MaterialEditView, 
+# ParameterEditView, MaterialEditView,
+from .views.misc_views import ExperimentDetailEditView
 from .views.experiment import CreateExperimentView, ExperimentDetailView, ExperimentListView
 from core.utilities.utils import view_names, camel_to_snake
 from django.contrib.staticfiles.storage import staticfiles_storage
@@ -29,17 +30,23 @@ urlpatterns = [
     path('user_profile_edit/', UserProfileEdit.as_view(), name='user_profile_edit'),
     #path('param_edit/<uuid:pk>', ParameterEditView.as_view(), name='parameter_edit'),
     #path('mat_edit/<uuid:pk>', MaterialEditView.as_view(), name='material_edit'),
-    path('create_experiment/', CreateExperimentView.as_view(), name='create_experiment'),
+    path('edocument_list/', EdocumentList.as_view(), name='edocument_list'),
+    path('edocument_list/', EdocumentDetailView.as_view(), name='edocument_view'),
+    path('create_experiment/', CreateExperimentView.as_view(),
+         name='create_experiment'),
     path('experiment_list/', ExperimentListView.as_view(), name='experiment_list'),
-    path('experiment_view/<uuid:pk>', ExperimentDetailView.as_view(), name='experiment_view'),
-    path('experiment_update/<uuid:pk>', ExperimentDetailEditView.as_view(), name='experiment_update'),
-    path('favicon.ico', RedirectView.as_view(url=staticfiles_storage.url('static/favicon.ico'))),
+    path('experiment_view/<uuid:pk>',
+         ExperimentDetailView.as_view(), name='experiment_view'),
+    path('experiment_update/<uuid:pk>',
+         ExperimentDetailEditView.as_view(), name='experiment_update'),
+    path('favicon.ico', RedirectView.as_view(
+        url=staticfiles_storage.url('static/favicon.ico'))),
 ]
 
 
 def add_urls(model_name, pattern_list):
-     lower_case_model_name = camel_to_snake(model_name)
-     new_urls = [path(f'{lower_case_model_name}_list/',
+    lower_case_model_name = camel_to_snake(model_name)
+    new_urls = [path(f'{lower_case_model_name}_list/',
                      getattr(core.views, f'{model_name}List').as_view(),
                      name=f'{lower_case_model_name}_list'),
                 path(f'{lower_case_model_name}/',
@@ -55,15 +62,16 @@ def add_urls(model_name, pattern_list):
                      getattr(core.views, f'{model_name}View').as_view(),
                      name=f'{lower_case_model_name}_view'),
                 ]
-     
-     export_urls = [
-                    path(f'{lower_case_model_name}_export_{file_type}/',
-                    getattr(core.views, f'{model_name}Export{file_type.capitalize()}').as_view(),
-                    name=f'{lower_case_model_name}_export_{file_type}') 
-                    for file_type in export_file_types.file_types if lower_case_model_name!="edocument"
-                    ]
-     
-     return pattern_list + new_urls + export_urls
+
+    export_urls = [
+        path(f'{lower_case_model_name}_export_{file_type}/',
+             getattr(
+                 core.views, f'{model_name}Export{file_type.capitalize()}').as_view(),
+             name=f'{lower_case_model_name}_export_{file_type}')
+        for file_type in export_file_types.file_types if lower_case_model_name != "edocument"
+    ]
+
+    return pattern_list + new_urls + export_urls
 
 
 for model_name in view_names:
