@@ -1,5 +1,5 @@
 from django.db.models.query import QuerySet
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.urls import reverse_lazy, reverse
 from django.http import HttpResponse, HttpResponseRedirect, FileResponse
 from django.views import View
@@ -12,10 +12,14 @@ from core.forms.forms import NoteForm, TagSelectForm, UploadEdocForm
 from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404, render
 from django.core.exceptions import FieldDoesNotExist
-from core.utilities.view_utils import rgetattr
+from core.utilities.view_utils import rgetattr, get_all_related_fields, get_model_of_related_field
 
 import csv
-#import core.views.exports.file_types as export_file_types
+import functools
+import urllib
+import urllib.parse as urlparse
+import re
+# import core.views.exports.file_types as export_file_types
 import core
 
 # class with generic classes to use in models
@@ -27,6 +31,7 @@ class GenericListView(ListView):
         context = super(GenericListView, self).get_context_data(**kwargs)
         context['filter'] = self.request.GET.get('filter', '')
         return context
+
 
 class GenericModelList(GenericListView):
     template_name = 'core/generic/list.html'
@@ -55,52 +60,95 @@ class GenericModelList(GenericListView):
 
     paginate_by = 10
 
-
     def header_to_necessary_fields(self, field_raw):
         # get the fields that make up the header column
         return self.column_necessary_fields[field_raw]
 
     def get_queryset(self):
-        filter_val = self.request.GET.get('filter', self.field_contains)
-        new_order = self.request.session.get(f'{self.context_object_name}_order', self.ordering)
-        
-        ordering = self.request.GET.get('ordering', new_order)
-        
-        #print(f'Order field: {self.order_field} in model {self.model}')
+        filter_val = self.request.GET.get('filter', '')
 
-        # same as <field want to order by>__icontains = filter_val
-        #filter_kwargs = {'{}__{}'.format(
-        #    "".join(order_field.split('-')), 'icontains'): filter_val}
-        ordering = [f for f in ordering if getattr(self.model, f.strip('-')).__class__.__name__ != 'ManyToManyDescriptor']
-        #print(getattr(self.model, ordering[0].strip('-')).__class__.__name__)
-        order = self.ordering[0].strip('-') if len(ordering) < 1 else "".join(ordering[0].split('-'))
-        print(order)
-        filter_kwargs = {f'{order}__icontains': filter_val}
+        ui_order_dict = {col_name: self.request.GET.get(
+            f'{col_name}_sort', None) for col_name in self.table_columns if self.request.GET.get(
+            f'{col_name}_sort', None)}
+
+        ui_order = []
+        for col_name, order in ui_order_dict.items():
+            col_necessary_fields = self.header_to_necessary_fields(col_name)
+            # replaces . with __ so django orm can read it
+            col_necessary_fields_as_query = [
+                "__".join(f.split(".")) for f in col_necessary_fields]
+            if order == 'asc' or order == None:
+                ui_order = [*ui_order, *col_necessary_fields_as_query]
+            else:
+                # des
+                ui_order = [*ui_order,
+                            *[f'-{f}' for f in col_necessary_fields_as_query]]
+
+        ordering = ui_order if len(ui_order) > 0 else self.ordering
+
+        filter_kwargs = {
+            f'{f.strip("-")}__icontains': filter_val for f in ordering}
+
+        # might not need to do this, maybe order by number of m2m
 
         # Filter by organization if it exists in the model
-        if 'current_org_id' in self.request.session:
-            if self.org_related_path:
-                org_filter_kwargs = {self.org_related_path : self.request.session['current_org_id']}
-                base_query = self.model.objects.filter(**org_filter_kwargs)
+        if self.request.user.is_superuser:
+            base_query = self.model.objects.all()
+        else:
+            if 'current_org_id' in self.request.session:
+                if self.org_related_path:
+                    org_filter_kwargs = {
+                        self.org_related_path: self.request.session['current_org_id']}
+                    base_query = self.model.objects.filter(**org_filter_kwargs)
+                else:
+                    try:
+                        org_field = self.model._meta.get_field('organization')
+                        base_query = self.model.objects.filter(
+                            organization=self.request.session['current_org_id'])
+                    except FieldDoesNotExist:
+                        base_query = self.model.objects.all()
             else:
-                try:
-                    #print(self.model._meta.get_fields())
-                    org_field = self.model._meta.get_field('organization')
-                    base_query = self.model.objects.filter(organization=self.request.session['current_org_id'])
-                except FieldDoesNotExist:
-                    base_query = self.model.objects.all()
-        else:
-            base_query = self.model.objects.none()
+                base_query = self.model.objects.none()
 
-
+        all_related_fields = get_all_related_fields(self.model)
+        # filter
         if filter_val != None:
-            new_queryset = base_query.filter(
-                **filter_kwargs).select_related().order_by(*ordering)
+            new_queryset = base_query
+            for related_field_query in list(filter_kwargs.keys()):
+                print(related_field_query)
+                related_field = related_field_query.replace(
+                    '__icontains', '')
+                final_field_model = get_model_of_related_field(
+                    self.model, related_field, all_related_fields=all_related_fields)
+                final_field = related_field.split('__')[-1]
+                final_field_class_name = final_field_model._meta.get_field(
+                    final_field).__class__.__name__
+                if final_field_class_name == 'ManyToManyField':
+                    new_queryset = new_queryset.annotate(
+                        **{f'{related_field}_count': Count(related_field)})
+                    filter_kwargs.pop(related_field_query)
+                    filter_kwargs[f'{related_field}_count__gte'] = 0
+            filter_query = functools.reduce(lambda q1, q2: q1 | q2, [
+                Q(**{k: v}) for k, v in filter_kwargs.items()])
+            new_queryset = new_queryset.filter(filter_query)
         else:
-            new_queryset = base_query.select_related().order_by(*ordering)
+            new_queryset = base_query
 
-        # new_queryset = base_query
-        return new_queryset
+        # order
+        if ordering != None and len(ordering) > 0:
+            for i in range(len(ordering)):
+                related_field = ordering[i]
+                final_field_model = get_model_of_related_field(
+                    self.model, related_field, all_related_fields=all_related_fields)
+                final_field = related_field.split('__')[-1].strip('-')
+                final_field_class_name = final_field_model._meta.get_field(
+                    final_field).__class__.__name__
+                if final_field_class_name == 'ManyToManyField':
+                    new_queryset = new_queryset.annotate(
+                        **{f"{related_field.strip('-')}_count": Count(related_field.strip('-'))})
+                    ordering[i] = f"{related_field}_count"
+            new_queryset = new_queryset.order_by(*ordering)
+        return new_queryset.select_related()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -111,24 +159,26 @@ class GenericModelList(GenericListView):
         for model_instance in models:
             table_row_data = []
 
-            # loop to get each column data for one row. [:-1] because table_columns has 'Actions'
-            header_names = self.table_columns[:-1]
+            # loop to get each column data for one row.
+            header_names = self.table_columns
             for field_name in header_names:
                 # get list of fields used to fill out one cell
                 necessary_fields = self.column_necessary_fields[field_name]
                 # get actual field value from the model
                 fields_for_col = []
                 for field in necessary_fields:
-                    #not foreign key and manytomany
+                    # not foreign key and manytomany
                     if field.split('.') == 1 and self.model._meta.get_field(field).__class__.__name__ == 'ManyToManyField':
-                        to_add = '\n'.join([str(x) for x in getattr(model_instance, field).all()])
+                        to_add = '\n'.join(
+                            [str(x) for x in getattr(model_instance, field).all()])
                     else:
-                        #Ex: Person.organization.full_name
+                        # Ex: Person.organization.full_name
                         to_add = rgetattr(model_instance, field)
                         if to_add.__class__.__name__ == 'ManyRelatedManager':
-                            #if what we get is a many to many object instead of a flat easy to stringify field value
-                            #Ex: Model.foreignkey.manyToMany
-                            to_add = '\n'.join([str(x) for x in getattr(model_instance, field).all()])
+                            # if what we get is a many to many object instead of a flat easy to stringify field value
+                            # Ex: Model.foreignkey.manyToMany
+                            to_add = '\n'.join(
+                                [str(x) for x in getattr(model_instance, field).all()])
                     fields_for_col.append(to_add)
                 # loop to change None to '' or non-string to string because join needs strings
                 for k in range(0, len(fields_for_col)):
@@ -153,37 +203,45 @@ class GenericModelList(GenericListView):
                 'obj_name': str(model_instance),
                 'obj_pk': model_instance.pk
             }
-            if model_name=="edocument":
-                table_row_info['download_url'] = reverse('edoc_download', args=(model_instance.pk,))
+            if model_name == "edocument":
+                table_row_info['download_url'] = reverse(
+                    'edoc_download', args=(model_instance.pk,))
             table_data.append(table_row_info)
-
         context['add_url'] = reverse_lazy(f'{model_name}_add')
         context['table_data'] = table_data
         # get rid of underscores with spaces and capitalize
         context['title'] = model_name.replace('_', ' ').capitalize()
 
         export_urls = {}
-        #for t in export_file_types.file_types:
+        # for t in export_file_types.file_types:
         for t in core.views.exports.file_types.file_types:
             export_urls[t.upper()] = reverse_lazy(f'{model_name}_export_{t}')
         context['export_urls'] = export_urls
         return context
 
-    def post(self, request, *args, **kwargs):
-        if request.POST.get('sort',None) != None:
-            order_raw = request.POST.get('sort').split('_')
-            header, order, *_rest = order_raw
-            if order == 'des':
-                request.session[f'{self.context_object_name}_order'] = [f"-{f}" for f in self.header_to_necessary_fields(header)]
-            else:
-                request.session[f'{self.context_object_name}_order'] = self.header_to_necessary_fields(header)
+    def post(self, *args, **kwargs):
+        order_raw = self.request.POST.get('sort', None)
+        if order_raw:
+            col, order = order_raw.split('_')
 
+            # get current query string from path
+            parsed = urlparse.urlparse(self.request.get_full_path())
+            query = urlparse.parse_qs(parsed.query)
 
-        # break up cases on which one was clicked
-        # should be one of table_columns
-        # find index
-        # go to same index in column_necessary_fields
-        # order by 0th field for that one
+            query_params = {q: p[0] for q, p in query.items()}
+
+            # add clicked column and order to query params
+            query_params[f'{col}_sort'] = order
+
+            # build nwe query string
+            new_query_string_raw = '&'.join(
+                [f'{q}={p}' for q, p in query_params.items()])
+            new_query_string = '&'.join(
+                [f'{q}={p}' for q, p in query_params.items()])
+
+            # add back query params
+            new_path = f"{reverse(f'{self.context_object_name[:-1]}_list')}?{new_query_string}"
+            return HttpResponseRedirect(new_path)
         return HttpResponseRedirect(reverse(f'{self.context_object_name[:-1]}_list'))
 
 
@@ -205,7 +263,7 @@ class GenericModelEdit:
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
+
         if self.context_object_name in context:
 
             model = context[self.context_object_name]
@@ -220,7 +278,7 @@ class GenericModelEdit:
             edoc_forms = self.EdocFormSet(
                 queryset=edocuments,
                 prefix='edoc')
-   
+
             context['edoc_forms'] = edoc_forms
             edoc_files = []
             for edoc in edocuments:
@@ -273,10 +331,8 @@ class GenericModelEdit:
             required_fields = [f for f in required_fields if f not in [
                 'add_date', 'mod_date', 'uuid']]
 
-
             query = {k: v for k, v in self.object.__dict__.items() if (
                 k in required_fields)}
-
 
             self.object = self.model.objects.filter(**query).latest('mod_date')
 
@@ -289,7 +345,7 @@ class GenericModelEdit:
             for tag in existing_tags:
                 if tag not in submitted_tags:
                     if self.request.user.is_authenticated:
-                        #this tag is not assign to this model anymore
+                        # this tag is not assign to this model anymore
                         # delete TagAssign for existing tags that are no longer used
                         TagAssign.objects.filter(tag=tag).delete()
             for tag in submitted_tags:
@@ -335,11 +391,12 @@ class GenericModelEdit:
             if self.request.POST.get('add_note'):
                 self.success_url = reverse_lazy(
                     f'{self.context_object_name}_update', kwargs={'pk': self.object.pk})
-        
+
         if self.EdocFormSet != None:
             actor = Actor.objects.get(
                 person=self.request.user.person.pk, organization=None)
-            formset = self.EdocFormSet(self.request.POST, self.request.FILES, prefix='edoc')
+            formset = self.EdocFormSet(
+                self.request.POST, self.request.FILES, prefix='edoc')
             # Loop through every edoc form
             for form in formset:
                 # Only if the form has changed make an update, otherwise ignore
@@ -347,38 +404,40 @@ class GenericModelEdit:
                     if self.request.user.is_authenticated:
                         edoc = form.save(commit=False)
                         if form.cleaned_data['file']:
-                            #New edoc or update file of existing edoc
-                            
+                            # New edoc or update file of existing edoc
+
                             file = form.cleaned_data['file']
                             # Hopefuly every file name is structed as <name>.<ext>
                             _file_name_detached, ext, *_ = file.name.split('.')
 
                             edoc.edocument = file.read()
                             edoc.filename = file.name
-                            
-                            #file type that the user entered
+
+                            # file type that the user entered
                             file_type_user = form.cleaned_data['file_type']
 
-                            #try to get the file_type from db that is spelled the same as the file extension
+                            # try to get the file_type from db that is spelled the same as the file extension
                             try:
-                                file_type_db = TypeDef.objects.get(category="file",description=ext)
+                                file_type_db = TypeDef.objects.get(
+                                    category="file", description=ext)
                             except TypeDef.DoesNotExist:
                                 file_type_db = None
 
                             if file_type_db:
-                                #found find file type corresponding to file extension
-                                #use that file type instead of what user entered
+                                # found find file type corresponding to file extension
+                                # use that file type instead of what user entered
                                 edoc.doc_type_uuid = file_type_db
                             else:
-                                #did not find file type corresponding to file extension
-                                #use file type user entered in form
+                                # did not find file type corresponding to file extension
+                                # use file type user entered in form
 
-                                #default file type in case file ext is not in db and user did not 
-                                #enter a file type
-                                default_type = TypeDef.objects.get(category="file",description="text")
-                                
+                                # default file type in case file ext is not in db and user did not
+                                # enter a file type
+                                default_type = TypeDef.objects.get(
+                                    category="file", description="text")
+
                                 edoc.doc_type_uuid = file_type_user if file_type_user else default_type
-                        
+
                         # Get the appropriate actor and then add it to the edoc
                         edoc.actor = actor
                         # Get the appropriate uuid of the record being changed.
@@ -392,7 +451,7 @@ class GenericModelEdit:
             # Choose which website we are redirected to
             if self.request.POST.get('add_edoc'):
                 self.success_url = reverse_lazy(
-                    f'{self.context_object_name}_update', kwargs={'pk': self.object.pk})            
+                    f'{self.context_object_name}_update', kwargs={'pk': self.object.pk})
 
         return HttpResponseRedirect(self.get_success_url())
 
@@ -432,16 +491,18 @@ class GenericModelView(DetailView):
             # get actual field value from the model
             fields_for_field = []
             for field in necessary_fields:
-                #not foreign key and manytomany
+                # not foreign key and manytomany
                 if field.split('.') == 1 and self.model._meta.get_field(field).__class__.__name__ == 'ManyToManyField':
-                    to_add = '\n'.join([str(x) for x in getattr(obj, field).all()])
+                    to_add = '\n'.join([str(x)
+                                       for x in getattr(obj, field).all()])
                 else:
-                    #Ex: Person.organization.full_name
+                    # Ex: Person.organization.full_name
                     to_add = rgetattr(obj, field)
                     if to_add.__class__.__name__ == 'ManyRelatedManager':
-                        #if value is many to many obj get the values
-                        #Ex: Model.foreignkey.manyToMany
-                        to_add = '\n'.join([str(x) for x in getattr(obj, field).all()])
+                        # if value is many to many obj get the values
+                        # Ex: Model.foreignkey.manyToMany
+                        to_add = '\n'.join([str(x)
+                                           for x in getattr(obj, field).all()])
                 fields_for_field.append(to_add)
             # loop to change None to '' or non-string to string because join needs strings
             for i in range(0, len(fields_for_field)):
@@ -485,16 +546,16 @@ class GenericModelView(DetailView):
                 'download_url': download_url
             })
         context['Edocs'] = edocs
-            
 
         context['title'] = self.model_name.replace('_', " ").capitalize()
         context['update_url'] = reverse_lazy(
             f'{self.model_name}_update', kwargs={'pk': obj.pk})
-            
-        if self.model_name=="edocument":
+
+        if self.model_name == "edocument":
             context['download_url'] = reverse('edoc_download', args=(obj.pk,))
         context['detail_data'] = detail_data
         return context
+
 
 class GenericModelExport(View):
     model = None
@@ -513,13 +574,15 @@ class GenericModelExport(View):
     def get_queryset(self):
         if 'current_org_id' in self.request.session:
             if self.org_related_path:
-                org_filter_kwargs = {self.org_related_path : self.request.session['current_org_id']}
+                org_filter_kwargs = {
+                    self.org_related_path: self.request.session['current_org_id']}
                 base_query = self.model.objects.filter(**org_filter_kwargs)
             else:
                 try:
-                    #print(self.model._meta.get_fields())
+                    # print(self.model._meta.get_fields())
                     org_field = self.model._meta.get_field('organization')
-                    base_query = self.model.objects.filter(organization=self.request.session['current_org_id'])
+                    base_query = self.model.objects.filter(
+                        organization=self.request.session['current_org_id'])
                 except FieldDoesNotExist:
                     base_query = self.model.objects.all()
         else:
@@ -541,7 +604,8 @@ class GenericModelExport(View):
             row = []
             for col_name in self.column_names:
                 cell_data = ""
-                fields_for_cell = [rgetattr(obj, field) for field in self.column_necessary_fields[col_name]]
+                fields_for_cell = [
+                    rgetattr(obj, field) for field in self.column_necessary_fields[col_name]]
                 for k in range(len(fields_for_cell)):
                     if fields_for_cell[k] == None:
                         fields_for_cell[k] = ''
@@ -553,5 +617,3 @@ class GenericModelExport(View):
                 row.append(cell_data)
             writer.writerow(row)
         return response
-
-
