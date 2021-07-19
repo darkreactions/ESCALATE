@@ -38,7 +38,7 @@ methods = {
     'Material': {
         'model': core.models.view_tables.Material,
         'context_object_name': 'materials',
-        'table_columns': ['Chemical Name', 'Other Names', 'Type', ],
+        'table_columns': ['Chemical Name', 'Other Names', 'Type', 'Status'],
         'column_necessary_fields': {
             'Chemical Name': ['description'],
             'Other Names': ['identifier'],
