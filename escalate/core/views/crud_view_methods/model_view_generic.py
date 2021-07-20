@@ -604,16 +604,32 @@ class GenericModelExport(View):
             row = []
             for col_name in self.column_names:
                 cell_data = ""
-                fields_for_cell = [
-                    rgetattr(obj, field) for field in self.column_necessary_fields[col_name]]
-                for k in range(len(fields_for_cell)):
-                    if fields_for_cell[k] == None:
-                        fields_for_cell[k] = ''
-                    if not isinstance(fields_for_cell[k], str):
-                        fields_for_cell[k] = str(fields_for_cell[k])
-
-                    cell_data = " ".join(fields_for_cell)
-                    cell_data = cell_data.strip()
+                necessary_fields = self.column_necessary_fields[col_name]
+                fields_for_cell = []
+                for field in necessary_fields:
+                    # not foreign key and manytomany
+                    if field.split('.') == 1 and self.model._meta.get_field(field).__class__.__name__ == 'ManyToManyField':
+                        to_add = '\n'.join([str(x)
+                                        for x in getattr(obj, field).all()])
+                    else:
+                        # Ex: Person.organization.full_name
+                        to_add = rgetattr(obj, field)
+                        if to_add.__class__.__name__ == 'ManyRelatedManager':
+                            # if value is many to many obj get the values
+                            # Ex: Model.foreignkey.manyToMany
+                            to_add = ','.join([str(x)
+                                            for x in getattr(obj, field).all()])
+                    fields_for_cell.append(to_add)
+                # loop to change None to '' or non-string to string because join needs strings
+                for i in range(0, len(fields_for_cell)):
+                    if fields_for_cell[i] == None:
+                        fields_for_cell[i] = ''
+                    elif not isinstance(fields_for_cell[i], str):
+                        fields_for_cell[i] = str(fields_for_cell[i])
+                    else:
+                        continue
+                cell_data = ' '.join(fields_for_cell)
+                cell_data = cell_data.strip()
                 row.append(cell_data)
             writer.writerow(row)
         return response
