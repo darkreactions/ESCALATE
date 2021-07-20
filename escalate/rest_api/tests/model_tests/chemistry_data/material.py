@@ -80,14 +80,15 @@ material_tests = [
             'name': 'material0',
             'method': POST,
             'endpoint': 'material-list',
-            'body': random_model_dict(Material, identifier=['materialidentifier0__url'], material_type=['materialtype0__url']),
+            'body': (request_body := random_model_dict(Material, identifier=['materialidentifier0__url'], material_type=['materialtype0__url'])),
             'args': [],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': POST
+                    'status_code': POST,
+                    'request_body': request_body
                 }
             }
         },
@@ -112,16 +113,17 @@ material_tests = [
             'name': 'material0_update_0',
             'method': PUT,
             'endpoint': 'material-detail',
-            'body': random_model_dict(Material),
+            'body': (request_body := random_model_dict(Material)),
             'args': [
                 'material0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': PUT
+                    'status_code': PUT,
+                    'request_body': request_body
                 }
             }
         },
@@ -177,25 +179,4 @@ material_tests = [
             }
         },
     ],
-
-##----TEST 1----##
-#creates a material and checks that the response data matches the 
-#request data stored in the body entry
-    [   
-        {
-            'name': 'material0',
-            'method': POST,
-            'endpoint': 'material-list',
-            'body': (request_body := random_model_dict(Material)),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': compare_data,
-                'args': [],
-                'kwargs': {
-                    'request_body':request_body,
-                }
-            }
-        },
-    ]
 ]

@@ -10,31 +10,50 @@ from ..model_tests_utils import (
     compare_data
 )
 from core.models import (
+    BaseBomMaterial,
+    InventoryMaterial,
+    BomMaterial,
     Mixture,
-    Material,
-    MaterialType
+    BillOfMaterials
 )
 
-mixture_test_data = {}
+basebommaterial_test_data = {}
 
-mixture_tests = [
+basebommaterial_tests = [
 
 ##----TEST 0----##
-#creates a material
-#creates a second material
-#creates a materialtype
-#creates a mixture with materialtype as a manytomany key and the two materials as foreign keys
-#gets the mixture
-#updates the mixture to no longer have manytomany/foreign keys
-#gets the mixture
-#deletes the mixture
-#gets the mixture (should return error)
+#creates a billofmaterials
+#creates an inventorymaterial
+#creates a bommaterial
+#creates a mixture
+#creates a basebommaterial with all of the previous entries as foreign keys
+#gets the basebommaterial
+#puts the basebommaterial adding the other parameterdef to the manytomany field
+#gets the updated basebommaterial
+#deletes the updated basebommaterial
+#gets the basebommaterial (should return error)
     [      
         {
-            'name': 'material0',
+            'name': 'billofmaterials0',
             'method': POST,
-            'endpoint': 'material-list',
-            'body': random_model_dict(Material),
+            'endpoint': 'billofmaterials-list',
+            'body': random_model_dict(BillOfMaterials),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        },
+        ##THIS NEEDS TO BE DEBUGGED##
+        {
+            'name': 'inventorymaterial0',
+            'method': POST,
+            'endpoint': 'inventorymaterial-list',
+            'body': random_model_dict(InventoryMaterial),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -46,25 +65,10 @@ mixture_tests = [
             }
         },
         {
-            'name': 'material1',
+            'name': 'bommaterial',
             'method': POST,
-            'endpoint': 'material-list',
-            'body': random_model_dict(Material),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'materialtype0',
-            'method': POST,
-            'endpoint': 'materialtype-list',
-            'body': random_model_dict(MaterialType),
+            'endpoint': 'bommaterial-list',
+            'body': random_model_dict(BomMaterial),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -79,8 +83,25 @@ mixture_tests = [
             'name': 'mixture0',
             'method': POST,
             'endpoint': 'mixture-list',
-            'body': (request_body := random_model_dict(Mixture, composite='material0__url', component='material1__url', \
-                    material_type=['materialtype0__url'])),
+            'body': random_model_dict(Mixture),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        },
+        {
+            'name': 'basebommaterial0',
+            'method': POST,
+            'endpoint': 'basebommaterial-list',
+            'body': (request_body := random_model_dict(BaseBomMaterial, bom='billofmaterials0__url',
+                                                inventory_material='inventorymaterial0__url',
+                                                bom_material='bommaterial0__url',
+                                                mixture='mixture0__url')), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -93,12 +114,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_get_0',
+            'name': 'basebommaterial0_get_0',
             'method': GET,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'basebommaterial-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'basebommaterial0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -109,13 +130,14 @@ mixture_tests = [
                 }
             }
         },
+    
         {
-            'name': 'mixture0_update_0',
+            'name': 'basebommaterial0_update_0',
             'method': PUT,
-            'endpoint': 'mixture-detail',
-            'body': (request_body := random_model_dict(Mixture)),
+            'endpoint': 'basebommaterial-detail',
+            'body': (request_body := random_model_dict(BaseBomMaterial)),
             'args': [
-                'mixture0__uuid'
+                'basebommaterial0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -128,12 +150,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_get_1',
+            'name': 'basebommaterial0_get_1',
             'method': GET,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'basebommaterial-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'basebommaterial0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -145,12 +167,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_delete_0',
+            'name': 'basebommaterial0_delete_0',
             'method': DELETE,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'basebommaterial-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'basebommaterial0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -162,12 +184,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_get_2',
+            'name': 'basebommaterial0_get_2',
             'method': GET,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'basebommaterial-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'basebommaterial0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {

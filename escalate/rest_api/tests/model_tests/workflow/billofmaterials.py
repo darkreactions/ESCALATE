@@ -1,4 +1,5 @@
 from ..model_tests_utils import (
+    status_codes,
     DELETE,
     PUT,
     POST,
@@ -8,28 +9,44 @@ from ..model_tests_utils import (
     check_status_code,
     compare_data
 )
-
 from core.models import (
-    ParameterDef,
-    TypeDef
+    BillOfMaterials,
+    Experiment
 )
 
-parameter_def_data = {}
+billofmaterials_test_data = {}
 
-parameter_def_tests = [
+billofmaterials_tests = [
+
 ##----TEST 0----##
-# creates a parameter_def
-# gets it
-# puts it
-# gets it
-# deletes it
-# gets it (should error)
-    [
+#creates an experiment
+#creates an billofmaterials with experiment as a foreign key
+#gets the billofmaterials
+#puts the billofmaterials
+#gets the updated billofmaterials
+#deletes the updated billofmaterials
+#gets the billofmaterials (should return error)
+    [      
         {
-            'name': 'parameterdef',
+            'name': 'experiment0',
             'method': POST,
-            'endpoint': 'parameterdef-list',
-            'body': (request_body := random_model_dict(ParameterDef)),
+            'endpoint': 'experiment-list',
+            'body': random_model_dict(Experiment),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        },
+        {
+            'name': 'billofmaterials0',
+            'method': POST,
+            'endpoint': 'billofmaterials-list',
+            'body': (request_body := random_model_dict(BillOfMaterials, experiment='experiment0__url')),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -42,12 +59,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_get',
+            'name': 'billofmaterials0_get_0',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'billofmaterials-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'billofmaterials0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -58,13 +75,14 @@ parameter_def_tests = [
                 }
             }
         },
+    
         {
-            'name': 'parameterdef_update',
+            'name': 'billofmaterials0_update_0',
             'method': PUT,
-            'endpoint': 'parameterdef-detail',
-            'body': (request_body := random_model_dict(ParameterDef)),
+            'endpoint': 'billofmaterials-detail',
+            'body': (request_body := random_model_dict(BillOfMaterials)),
             'args': [
-                'parameterdef__uuid'
+                'billofmaterials0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -77,12 +95,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_update_get',
+            'name': 'billofmaterials0_get_1',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'billofmaterials-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'billofmaterials0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -94,12 +112,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_update_del',
+            'name': 'billofmaterials0_delete_0',
             'method': DELETE,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'billofmaterials-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'billofmaterials0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -111,12 +129,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'properydef_update_del_get',
+            'name': 'billofmaterials0_get_2',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'billofmaterials-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'billofmaterials0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {

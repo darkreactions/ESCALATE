@@ -81,11 +81,11 @@ standard_data = {
 }
 ```
 
-Alternatively, there is a function called random_model_dict that takes in a model
-class and generates a dictionary with appropriate field names and random 
-valid values. Fields such as non-null foreign keys/non-null OneToOneFields and 
+Alternatively, there is a function called random_model_dict in /model_tests_utils.py/ 
+that takes in a model class and generates a dictionary with appropriate field names
+and random valid values. Fields such as non-null foreign keys/non-null OneToOneFields and 
 ManyToManyFields are not auto-generated. The function also takes in key word 
-arguements so that you can add/overwrite a field with a desired value.
+arguments so that you can add/overwrite a field with a desired value.
 Example:
 ```python
 some_org = random_model_dict(core.models.Organization,
@@ -100,6 +100,23 @@ some_org = random_model_dict(core.models.Organization,
 # Then, it takes parent and short_name and adds/overwrites the key-value pair in 
 # the dictionary
 ```
+
+Additionally, batches of test suite entries for models that are frequently reused 
+can be generated using methods with the naming pattern create<modelname> 
+(ex. createSystemtool). These methods take a single argument specifying how many
+models should be made and return a list of test suite entries that need to be unpacked.
+Example:
+```python
+*createSystemtool(1)
+```
+
+The above example will generate a systemtooltype, an organization, and a systemtool with 
+the first two entries as foreign keys (as is required by the systemtool model). The request reference
+name of the generated systemtool(s) will be of the pattern `systemtool<number>` (Ex. systemtool0)
+The generated systemtools can be referenced using this name in the same way as standard test 
+suite entries.
+
+
 
 template for a model's test suite: 
 

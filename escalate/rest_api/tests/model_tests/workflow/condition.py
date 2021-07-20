@@ -1,4 +1,5 @@
 from ..model_tests_utils import (
+    status_codes,
     DELETE,
     PUT,
     POST,
@@ -8,28 +9,44 @@ from ..model_tests_utils import (
     check_status_code,
     compare_data
 )
-
 from core.models import (
-    ParameterDef,
-    TypeDef
+    ConditionDef,
+    Condition
 )
 
-parameter_def_data = {}
+condition_test_data = {}
 
-parameter_def_tests = [
+condition_tests = [
+
 ##----TEST 0----##
-# creates a parameter_def
-# gets it
-# puts it
-# gets it
-# deletes it
-# gets it (should error)
-    [
+#creates a conditiondef
+#creates a condition with the previous entry as a foreign key
+#gets the condition
+#puts the condition
+#gets the updated condition
+#deletes the updated condition
+#gets the condition (should return error)
+    [    
         {
-            'name': 'parameterdef',
+            'name': 'conditiondef0',
             'method': POST,
-            'endpoint': 'parameterdef-list',
-            'body': (request_body := random_model_dict(ParameterDef)),
+            'endpoint': 'conditiondef-list',
+            'body': random_model_dict(ConditionDef),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        },  
+        {
+            'name': 'condition0',
+            'method': POST,
+            'endpoint': 'condition-list',
+            'body': (request_body := random_model_dict(Condition, condition_def='conditiondef0__url')),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -42,12 +59,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_get',
+            'name': 'condition0_get_0',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'condition-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'condition0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -59,12 +76,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_update',
+            'name': 'condition0_update_0',
             'method': PUT,
-            'endpoint': 'parameterdef-detail',
-            'body': (request_body := random_model_dict(ParameterDef)),
+            'endpoint': 'condition-detail',
+            'body': (request_body := random_model_dict(Condition)),
             'args': [
-                'parameterdef__uuid'
+                'condition0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -77,12 +94,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_update_get',
+            'name': 'condition0_get_1',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'condition-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'condition0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -94,12 +111,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_update_del',
+            'name': 'condition0_delete_0',
             'method': DELETE,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'condition-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'condition0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -111,12 +128,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'properydef_update_del_get',
+            'name': 'condition0_get_2',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'condition-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'condition0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {

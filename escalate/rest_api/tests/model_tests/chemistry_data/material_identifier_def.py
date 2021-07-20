@@ -29,14 +29,15 @@ material_identifier_def_tests = [
             'name': 'mat_iden_def',
             'method': POST,
             'endpoint': 'materialidentifierdef-list',
-            'body': random_model_dict(MaterialIdentifierDef),
+            'body': (request_body := random_model_dict(MaterialIdentifierDef)),
             'args': [],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': POST
+                    'status_code': POST,
+                    'request_body': request_body
                 }
             }
         },
@@ -61,16 +62,17 @@ material_identifier_def_tests = [
             'name': 'mat_iden_def_update',
             'method': PUT,
             'endpoint': 'materialidentifierdef-detail',
-            'body': random_model_dict(MaterialIdentifierDef),
+            'body': (request_body := random_model_dict(MaterialIdentifierDef)),
             'args': [
                 'mat_iden_def__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': PUT
+                    'status_code': PUT,
+                    'request_body': request_body
                 }
             }
         },
@@ -126,23 +128,4 @@ material_identifier_def_tests = [
             }
         },
     ],
-##----TEST 1----##
-# creates a material identifier def and compares request body with response body
-    [
-        {
-            'name': 'mat_iden_def',
-            'method': POST,
-            'endpoint': 'materialidentifierdef-list',
-            'body': (request_body := random_model_dict(MaterialIdentifierDef)),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': compare_data,
-                'args': [],
-                'kwargs': {
-                    'request_body': request_body
-                }
-            }
-        } 
-    ]
 ]

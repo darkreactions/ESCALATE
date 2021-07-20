@@ -22,14 +22,15 @@ property_def_tests = [
             'name': 'property_def',
             'method': POST,
             'endpoint': 'propertydef-list',
-            'body': random_model_dict(PropertyDef),
+            'body': (request_body := random_model_dict(PropertyDef)),
             'args': [],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': POST
+                    'status_code': POST,
+                    'request_body': request_body
                 }
             }
         },
@@ -54,16 +55,17 @@ property_def_tests = [
             'name': 'property_def_update',
             'method': PUT,
             'endpoint': 'propertydef-detail',
-            'body': random_model_dict(PropertyDef),
+            'body': (request_body := random_model_dict(PropertyDef)),
             'args': [
                 'property_def__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': PUT
+                    'status_code': PUT,
+                    'request_body': request_body
                 }
             }
         },
@@ -119,24 +121,4 @@ property_def_tests = [
             }
         },
     ],
-##----TEST 1----##
-# creates a property def and checks if the response data matches the
-# request data
-    [
-        {
-            'name': 'property_def',
-            'method': POST,
-            'endpoint': 'propertydef-list',
-            'body': (request_body := random_model_dict(PropertyDef)),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': compare_data,
-                'args': [],
-                'kwargs': {
-                    'request_body': request_body
-                }
-            }
-        },
-    ]
 ]

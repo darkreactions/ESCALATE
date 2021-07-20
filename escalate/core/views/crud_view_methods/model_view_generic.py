@@ -71,7 +71,10 @@ class GenericModelList(GenericListView):
         # same as <field want to order by>__icontains = filter_val
         #filter_kwargs = {'{}__{}'.format(
         #    "".join(order_field.split('-')), 'icontains'): filter_val}
-        order = "".join(ordering[0].split('-'))
+        ordering = [f for f in ordering if getattr(self.model, f.strip('-')).__class__.__name__ != 'ManyToManyDescriptor']
+        #print(getattr(self.model, ordering[0].strip('-')).__class__.__name__)
+        order = self.ordering[0].strip('-') if len(ordering) < 1 else "".join(ordering[0].split('-'))
+        print(order)
         filter_kwargs = {f'{order}__icontains': filter_val}
 
         # Filter by organization if it exists in the model

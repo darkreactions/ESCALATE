@@ -72,10 +72,11 @@ inventory_tests = [
             'args': [],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
                     'status_code': POST,
+                    'request_body': request_body,
                 }
             }
         },
@@ -110,10 +111,11 @@ inventory_tests = [
             ],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
                     'status_code': PUT,
+                    'request_body': request_body
                 }
             }
         },
@@ -169,58 +171,4 @@ inventory_tests = [
             }
         },
     ],
-##----TEST 1----##
-#creates a inventory and checks that the response data matches the 
-#request data stored in the body entry
-    [
-        *[{
-            'name': name,
-            'method': POST,
-            'endpoint': 'actor-list',
-            'body': random_model_dict(Actor),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST,
-                }
-            }
-        } for name in ['owner', 'operator', 'lab']],
-        {
-            'name': 'status',
-            'method': POST,
-            'endpoint': 'status-list',
-            'body': random_model_dict(Status),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST,
-                }
-            }
-        },
-        {
-            'name': 'inventory',
-            'method': POST,
-            'endpoint': 'inventory-list',
-            'body': (request_body := random_model_dict(Inventory,
-                                                       owner='owner__url',
-                                                       operator='operator__url',
-                                                       lab='lab__url',
-                                                       status='status__url')),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': compare_data,
-                'args': [],
-                'kwargs': {
-                    'request_body': request_body,
-                }
-            }
-        },
-    ]
 ]

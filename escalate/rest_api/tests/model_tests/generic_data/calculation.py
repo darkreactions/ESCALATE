@@ -1,4 +1,6 @@
 from ..model_tests_utils import (
+    createSystemtool,
+    status_codes,
     DELETE,
     PUT,
     POST,
@@ -6,30 +8,51 @@ from ..model_tests_utils import (
     ERROR,
     random_model_dict,
     check_status_code,
-    compare_data
+    compare_data,
+    createSystemtool
 )
-
 from core.models import (
-    ParameterDef,
-    TypeDef
+    Calculation,
+    CalculationDef,
 )
 
-parameter_def_data = {}
+calculation_test_data = {}
 
-parameter_def_tests = [
+calculation_tests = [
+
 ##----TEST 0----##
-# creates a parameter_def
-# gets it
-# puts it
-# gets it
-# deletes it
-# gets it (should error)
-    [
+#creates a systemtool
+#creates a calculationdef
+#creates a calculation with the previous entries as a foreign key
+#gets the calculation
+#puts the calculation
+#gets the updated calculation
+#deletes the updated calculation
+#gets the calculation (should return error)
+    [    
+        *createSystemtool(1),
+        # {
+        #     'name': 'calculationdef0',
+        #     'method': POST,
+        #     'endpoint': 'calculationdef-list',
+        #     'body': random_model_dict(CalculationDef),
+        #     'args': [],
+        #     'query_params': [],
+        #     'is_valid_response': {
+        #         'function': check_status_code,
+        #         'args': [],
+        #         'kwargs': {
+        #             'status_code': POST
+        #         }
+        #     }
+        # },    
         {
-            'name': 'parameterdef',
+            'name': 'calculation0',
             'method': POST,
-            'endpoint': 'parameterdef-list',
-            'body': (request_body := random_model_dict(ParameterDef)),
+            'endpoint': 'calculation-list',
+            'body': (request_body := random_model_dict(Calculation, systemtool='systemtool0__url', 
+                                                                    # calculation_def='calculationdef0__url'
+                                                                    )),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -42,12 +65,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_get',
+            'name': 'calculation0_get_0',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'calculation-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'calculation0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -59,12 +82,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_update',
+            'name': 'calculation0_update_0',
             'method': PUT,
-            'endpoint': 'parameterdef-detail',
-            'body': (request_body := random_model_dict(ParameterDef)),
+            'endpoint': 'calculation-detail',
+            'body': (request_body := random_model_dict(Calculation)),
             'args': [
-                'parameterdef__uuid'
+                'calculation0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -77,12 +100,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_update_get',
+            'name': 'calculation0_get_1',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'calculation-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'calculation0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -94,12 +117,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_update_del',
+            'name': 'calculation0_delete_0',
             'method': DELETE,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'calculation-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'calculation0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -111,12 +134,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'properydef_update_del_get',
+            'name': 'calculation0_get_2',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'calculation-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'calculation0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -127,5 +150,5 @@ parameter_def_tests = [
                 }
             }
         },
-    ],
+     ],
 ]
