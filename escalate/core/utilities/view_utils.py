@@ -30,7 +30,7 @@ def getattr_or_none(obj, attr):
 def get_all_related_fields_backward(model):
     def _get_all_fields_rec(model, all_related_fields, parent_model=None, parent_field_name=None):
         # key is name of a field, value is the name of foreign key field in the model that has the field in the key
-        model_fields = [*model._meta.fields, *model._meta.many_to_many]
+        model_fields = model._meta.get_fields()
         for field_obj in model_fields:
             field_details = FrozenDict(**{
                 'model': model,
