@@ -31,7 +31,7 @@ methods = {
             'Owner': ['owner'],
             'Operator': ['operator'],
             'Lab': ['lab'],
-            'Status': ['status'],
+            'Status': ['status.description'],
             'Actor': ['actor']
         },
     },
@@ -47,7 +47,7 @@ methods = {
             'Material Class': ['material_class'],
             'Create Date': ['add_date'],
             'Last Modification Date': ['mod_date'],
-            'Status': ['status']
+            'Status': ['status.description']
         },
     },
     'Systemtool': {
@@ -199,7 +199,7 @@ methods = {
             'On hand amount' : ['onhand_amt'],
             'Expiration Date': ['expiration_date'],
             'Inventory Location' : ['location'],
-            'Status': ['status']
+            'Status': ['status.description']
         },
     },
     'Experiment': {
@@ -208,7 +208,7 @@ methods = {
         'detail_fields': ['Description', 'Status',],
         'detail_fields_need_fields': {
             'Description': ['description'],
-            'Status': ['status']
+            'Status': ['status.description']
         },
     },
     'Vessel': {
@@ -218,7 +218,7 @@ methods = {
         'detail_fields_need_fields': {
             'Plate Name': ['plate_name'],
             'Well Number': ['well_number'],
-            'Status': ['status'],
+            'Status': ['status.description'],
             'Date Added': ['add_date'],
             'Last Modified': ['mod_date'],
         },

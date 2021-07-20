@@ -30,7 +30,7 @@ methods = {
             'Owner': ['owner'],
             'Operator': ['operator'],
             'Lab': ['lab'],
-            'Status': ['status']
+            'Status': ['status.description']
         },
         'ordering': ['description'],
         'field_contains': ''
@@ -43,7 +43,7 @@ methods = {
             'Chemical Name': ['description'],
             'Other Names': ['identifier'],
             'Type': ['material_type'],
-            'Status': ['status']
+            'Status': ['status.description']
         },
         'ordering': ['description'],
         'field_contains': ''
