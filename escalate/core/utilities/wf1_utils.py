@@ -1,10 +1,12 @@
 import pandas as pd
 import tempfile
+import re
 
 def make_well_list(container_name, 
               well_count, 
-              column_order=['A', 'C', 'E', 'G', 'B', 'D', 'F', 'H'], # order is set by how the robot draws from the solvent wells
-              total_rows=8):
+              #column_order=['A', 'C', 'E', 'G', 'B', 'D', 'F', 'H'], # order is set by how the robot draws from the solvent wells
+              column_order=['A', 'C', 'B', 'D'], # 24 well plate
+              total_rows=4):
     row_limit = int(well_count / total_rows) # 8 rows in a 96 plate
     well_names = [f'{col}{row}' for row in range(1, row_limit+1) for col in column_order][:well_count]
     vial_df = pd.DataFrame({'Vial Site': well_names, 'Labware ID:': container_name})
@@ -44,19 +46,37 @@ def generate_robot_file(reaction_volumes, reaction_parameters,
             reagent_col: [0]*len(df_tray) for reagent_col in reagent_colnames
         })
     else:
-        #q1_formset = pd.DataFrame.from_dict(reaction_volumes)
-        #these values need to replace 0's. Ask help regarding this
-        reaction_vol = []
-        #this_rv = reaction_volumes
-        for current_reaction_volume in reaction_volumes:
-            #this_value = current_reaction_volume.parameter_value.value
-            reaction_vol.append(current_reaction_volume.parameter_value.value)
         reagent_colnames = ['Reagent1 (ul)', 'Reagent2 (ul)', 'Reagent3 (ul)', 
                             'Reagent4 (ul)', 'Reagent5 (ul)', 'Reagent6 (ul)',
                             'Reagent7 (ul)', 'Reagent8 (ul)', 'Reagent9 (ul)']
-        reaction_volumes = pd.DataFrame({
+        reaction_volumes_output = pd.DataFrame({
             reagent_col: [0]*len(df_tray) for reagent_col in reagent_colnames
         })
+        reaction_volumes_output = pd.concat([df_tray, reaction_volumes_output], axis=1)
+        REAG_MAPPING = {
+            "Stock A": 2, 
+            "Stock B": 3, 
+            "Solvent": 1, 
+            "Acid Vol 1": 6, 
+            "Acid Vol 2": 7
+        }
+
+        for current_reaction_volume in reaction_volumes:
+            #this_value = current_reaction_volume.parameter_value.value
+            object_value = current_reaction_volume.parameter_value.value
+            object_description = current_reaction_volume.object_description
+            if object_description != None and "Dispense" in object_description:
+                try:
+                    source_material = get_source_name(object_description)
+                except:
+                    print(object_description)
+                vial_site = get_vial_site(object_description)
+                reag_num = REAG_MAPPING.get(source_material)
+                reag_name = f"Reagent{reag_num} (ul)"
+                reaction_volumes_output.loc[
+                    reaction_volumes_output['Vial Site'] == vial_site, 
+                    reag_name
+                ] = object_value
         
 
     rxn_conditions = pd.DataFrame({
@@ -74,10 +94,21 @@ def generate_robot_file(reaction_volumes, reaction_parameters,
         'Reagent Temperature': [45]*9
     })
     
-    outframe = pd.concat([df_tray['Vial Site'], reaction_volumes, 
+    outframe = pd.concat([#df_tray['Vial Site'],
+                          reaction_volumes_output, 
                           df_tray['Labware ID:'], rxn_parameters, 
                           rxn_conditions], sort=False, axis=1)
     temp = tempfile.TemporaryFile()
     outframe.to_excel(temp, sheet_name='NIMBUS_reaction', index=False)
     temp.seek(0)
     return temp
+
+#regex for perovskite demo to retrieve source name
+#needs to be replaced
+def get_source_name(dispense_string): 
+    return re.search('^(Perovskite Demo: )?Dispense ([A-Za-z0-9 ]+):', dispense_string).group(2)
+
+#regex for perovskite demo to retrieve vial site
+#needs to be replaced
+def get_vial_site(dispense_string):
+    return re.search('Plate well#: ([A-Z][0-9])', dispense_string).group(1)
