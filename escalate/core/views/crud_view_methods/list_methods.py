@@ -20,9 +20,9 @@ methods = {
         'table_columns': ['Description', 'Owner', 'Operator', 'Lab', 'Status'],
         'column_necessary_fields': {
             'Description': ['description'],
-            'Owner': ['owner'],
-            'Operator': ['operator'],
-            'Lab': ['lab'],
+            'Owner': ['owner.description'],
+            'Operator': ['operator.description'],
+            'Lab': ['lab.description'],
             'Status': ['status.description']
         },
         'ordering': ['description'],
@@ -47,8 +47,8 @@ methods = {
         'column_necessary_fields': {
             'Name': ['systemtool_name'],
             'Description': ['description'],
-            'Systemtool Type': ['systemtool_type'],
-            'Vendor Organization': ['vendor_organization']
+            'Systemtool Type': ['systemtool_type.description'],
+            'Vendor Organization': ['vendor_organization.full_name']
         },
         'ordering': ['systemtool_name'],
         'field_contains': ''
@@ -80,7 +80,7 @@ methods = {
             'Name': ['first_name', 'middle_name', 'last_name'],
             'Address': ['address1', 'address2', 'zip', 'city', 'state_province', 'country'],
             'Email': ['email'],
-            'Organization': ['organization'],
+            'Organization': ['organization.full_name'],
             'Added Organization': ['added_organization']
         },
         'ordering': ['first_name', 'middle_name', 'last_name'],
@@ -106,12 +106,11 @@ methods = {
     },
     'Tag': {
         'model': core.models.view_tables.Tag,
-        'table_columns': ['Name', 'Description', 'Actor', 'Tag Type', ],
+        'table_columns': ['Name', 'Description', 'Tag Type', ],
         'column_necessary_fields': {
             'Name': ['display_text'],
             'Description': ['description'],
-            'Actor': ['actor_description'],
-            'Tag Type': ['tag_type']
+            'Tag Type': ['tag_type.type']
         },
         'ordering': ['display_text'],
         'field_contains': ''
@@ -131,7 +130,7 @@ methods = {
         'table_columns': ['Description', 'Value Type', ],
         'column_necessary_fields': {
             'Description': ['description'],
-            'Value Type': ['val_type_description']
+            'Value Type': ['val_type.category', 'val_type.description']
         },
         'ordering': ['description'],
         'field_contains': ''
@@ -151,9 +150,10 @@ methods = {
     # },
     'InventoryMaterial': {
         'model': core.models.view_tables.InventoryMaterial,
-        'table_columns': ['Description', 'Material', 'Amount On Hand', 'Expiration Date', 'Location', ],
+        'table_columns': ['Description', 'Inventory', 'Material', 'Amount On Hand', 'Expiration Date', 'Location', ],
         'column_necessary_fields': {
             'Description': ['description'],
+            'Inventory': ['inventory.description'],
             'Material': ['material.description'],
             'Amount On Hand': ['onhand_amt'],
             'Expiration Date': ['expiration_date'],

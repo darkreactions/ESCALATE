@@ -14,6 +14,7 @@ from django.shortcuts import get_object_or_404, render
 from django.core.exceptions import FieldDoesNotExist
 from core.utilities.view_utils import rgetattr, get_all_related_fields, get_model_of_related_field
 from django.core import serializers
+from core.utilities.utils import camel_to_snake
 
 import csv
 import functools
@@ -59,7 +60,7 @@ class GenericModelList(GenericListView):
 
     @property
     def context_object_name(self):
-        return f'{self.model.__name__.lower()}s' if self.model != None else None
+        return f'{camel_to_snake(self.model.__name__)}s' if self.model != None else None
 
     def header_to_necessary_fields(self, field_raw):
         # get the fields that make up the header column
@@ -130,6 +131,7 @@ class GenericModelList(GenericListView):
                         **{f'{related_field}_count': Count(related_field)})
                     filter_kwargs.pop(related_field_query)
                     filter_kwargs[f'{related_field}_count__gte'] = 0
+            print(filter_kwargs)
             filter_query = functools.reduce(lambda q1, q2: q1 | q2, [
                 Q(**{k: v}) for k, v in filter_kwargs.items()]) if len(filter_kwargs) > 0 else Q()
             new_queryset = new_queryset.filter(filter_query)
@@ -157,7 +159,6 @@ class GenericModelList(GenericListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        print(context)
         context['table_columns'] = self.table_columns
         models = context[self.context_object_name]
         model_name = self.context_object_name[:-1]  # Ex: tag_types -> tag_type
@@ -269,7 +270,7 @@ class GenericModelEdit:
 
     @property
     def context_object_name(self):
-        return self.model.__name__.lower() if self.model != None else None
+        return camel_to_snake(self.model.__name__) if self.model != None else None
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -490,7 +491,7 @@ class GenericModelView(DetailView):
 
     @property
     def context_object_name(self):
-        return self.model.__name__.lower() if self.model != None else None
+        return camel_to_snake(self.model.__name__) if self.model != None else None
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -681,7 +682,7 @@ class GenericModelExport(View):
     def export_csv(self):
         response = HttpResponse(content_type="text/csv")
         model_string_name = self.model.__name__
-        filename = f'{model_string_name.capitalize()}.csv'
+        filename = f'{model_string_name}.csv'
         response['Content-Disposition'] = f'attachment; filename={filename}'
 
         writer = csv.writer(response)

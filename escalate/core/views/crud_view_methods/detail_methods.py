@@ -134,17 +134,14 @@ methods = {
     'Tag': {
         'model': core.models.view_tables.Tag,
         'model_name': 'tag',
-        'detail_fields': ['Tag Name', 'Description', 'Actor', 'Add Date', 'Last Modification Date',
-                        #   'Tag Type', 
-                          'Tag Type Description'],
+        'detail_fields': ['Tag Name', 'Description', 'Add Date', 'Last Modification Date',
+                          'Tag Type'],
         'detail_fields_need_fields': {
             'Tag Name': ['display_text'],
             'Description': ['description'],
-            'Actor': ['description'],
             'Add Date': ['add_date'],
             'Last Modification Date': ['mod_date'],
-            'Tag Type': ['type'],
-            'Tag Type Description': ['type_description']
+            'Tag Type': ['tag_type.type']
         },
     },
     'TagType': {
