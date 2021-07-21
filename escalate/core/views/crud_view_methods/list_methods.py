@@ -5,9 +5,9 @@ methods = {
     'Actor': {
         'model': core.models.view_tables.Actor,
         'context_object_name': 'actors',
-        'table_columns': ['Name', 'Organization', 'Systemtool', 'Status', ],
+        'table_columns': ['Person', 'Organization', 'Systemtool', 'Status', ],
         'column_necessary_fields': {
-            'Name': ['person.first_name', 'person.last_name'],
+            'Person': ['person.first_name', 'person.middle_name', 'person.last_name'],
             'Organization': ['organization.full_name'],
             'Systemtool': ['systemtool.systemtool_name'],
             'Status': ['status.description']
