@@ -13,13 +13,12 @@ from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404, render
 from django.core.exceptions import FieldDoesNotExist
 from core.utilities.view_utils import rgetattr, get_all_related_fields, get_model_of_related_field
+from django.core import serializers
 
 import csv
 import functools
 import urllib
 import urllib.parse as urlparse
-import re
-# import core.views.exports.file_types as export_file_types
 import core
 
 # class with generic classes to use in models
@@ -65,11 +64,11 @@ class GenericModelList(GenericListView):
         return self.column_necessary_fields[field_raw]
 
     def get_queryset(self):
-        filter_val = self.request.GET.get('filter', '')
+        filter_val = self.request.GET.get('filter', self.field_contains)
 
         ui_order_dict = {col_name: self.request.GET.get(
-            f'{col_name}_sort', None) for col_name in self.table_columns if self.request.GET.get(
-            f'{col_name}_sort', None)}
+            f'{col_name}_sort') for col_name in self.table_columns if self.request.GET.get(
+            f'{col_name}_sort', None) != None}
 
         ui_order = []
         for col_name, order in ui_order_dict.items():
@@ -115,7 +114,6 @@ class GenericModelList(GenericListView):
         if filter_val != None:
             new_queryset = base_query
             for related_field_query in list(filter_kwargs.keys()):
-                print(related_field_query)
                 related_field = related_field_query.replace(
                     '__icontains', '')
                 final_field_model = get_model_of_related_field(
@@ -129,7 +127,7 @@ class GenericModelList(GenericListView):
                     filter_kwargs.pop(related_field_query)
                     filter_kwargs[f'{related_field}_count__gte'] = 0
             filter_query = functools.reduce(lambda q1, q2: q1 | q2, [
-                Q(**{k: v}) for k, v in filter_kwargs.items()])
+                Q(**{k: v}) for k, v in filter_kwargs.items()]) if len(filter_kwargs) > 0 else Q()
             new_queryset = new_queryset.filter(filter_query)
         else:
             new_queryset = base_query
@@ -148,6 +146,10 @@ class GenericModelList(GenericListView):
                         **{f"{related_field.strip('-')}_count": Count(related_field.strip('-'))})
                     ordering[i] = f"{related_field}_count"
             new_queryset = new_queryset.order_by(*ordering)
+        
+        model_name = self.context_object_name[:-1]
+        if (queryset_serialized := self.request.session.get(f'{model_name}_queryset_serialized', None)) != None:
+            self.request.session[f'{model_name}_queryset_serialized'] = serializers.serialize('json', new_queryset)
         return new_queryset.select_related()
 
     def get_context_data(self, **kwargs):
@@ -213,9 +215,12 @@ class GenericModelList(GenericListView):
         context['title'] = model_name.replace('_', ' ').capitalize()
 
         export_urls = {}
+
+        _parsed = urlparse.urlparse(self.request.get_full_path())
+        query_string = '&'.join([f'{q}={p[0]}' for q, p in urlparse.parse_qs(_parsed.query).items()])
         # for t in export_file_types.file_types:
         for t in core.views.exports.file_types.file_types:
-            export_urls[t.upper()] = reverse_lazy(f'{model_name}_export_{t}')
+            export_urls[t.upper()] = reverse_lazy(f'{model_name}_export_{t}') + (f'?{query_string}' if len(query_string) > 0 else '')
         context['export_urls'] = export_urls
         return context
 
@@ -233,14 +238,12 @@ class GenericModelList(GenericListView):
             # add clicked column and order to query params
             query_params[f'{col}_sort'] = order
 
-            # build nwe query string
-            new_query_string_raw = '&'.join(
-                [f'{q}={p}' for q, p in query_params.items()])
+            # build new query string
             new_query_string = '&'.join(
                 [f'{q}={p}' for q, p in query_params.items()])
 
             # add back query params
-            new_path = f"{reverse(f'{self.context_object_name[:-1]}_list')}?{new_query_string}"
+            new_path = reverse(f'{self.context_object_name[:-1]}_list') + (f'?{new_query_string}' if len(new_query_string) > 0 else '')
             return HttpResponseRedirect(new_path)
         return HttpResponseRedirect(reverse(f'{self.context_object_name[:-1]}_list'))
 
@@ -564,6 +567,7 @@ class GenericModelExport(View):
     column_necessary_fields = None
     # A related path that points to the organization this field belongs to
     org_related_path = None
+    field_contains = ''
 
     def get(self, request, *args, **kwargs):
         if self.file_type == 'csv':
@@ -571,23 +575,94 @@ class GenericModelExport(View):
         else:
             return HttpResponse('Failed to get requested file')
 
+    def header_to_necessary_fields(self, field_raw):
+        # get the fields that make up the header column
+        return self.column_necessary_fields[field_raw]
+
     def get_queryset(self):
-        if 'current_org_id' in self.request.session:
-            if self.org_related_path:
-                org_filter_kwargs = {
-                    self.org_related_path: self.request.session['current_org_id']}
-                base_query = self.model.objects.filter(**org_filter_kwargs)
+        filter_val = self.request.GET.get('filter', self.field_contains)
+    
+        ui_order_dict = {col_name: self.request.GET.get(
+            f'{col_name}_sort') for col_name in self.column_names if self.request.GET.get(
+            f'{col_name}_sort', None) != None}
+
+        ui_order = []
+        for col_name, order in ui_order_dict.items():
+            col_necessary_fields = self.header_to_necessary_fields(col_name)
+            # replaces . with __ so django orm can read it
+            col_necessary_fields_as_query = [
+                "__".join(f.split(".")) for f in col_necessary_fields]
+            if order == 'asc' or order == None:
+                ui_order = [*ui_order, *col_necessary_fields_as_query]
             else:
-                try:
-                    # print(self.model._meta.get_fields())
-                    org_field = self.model._meta.get_field('organization')
-                    base_query = self.model.objects.filter(
-                        organization=self.request.session['current_org_id'])
-                except FieldDoesNotExist:
-                    base_query = self.model.objects.all()
+                # des
+                ui_order = [*ui_order,
+                            *[f'-{f}' for f in col_necessary_fields_as_query]]
+
+        ordering = ui_order if len(ui_order) > 0 else []
+
+        filter_kwargs = {
+            f'{f.strip("-")}__icontains': filter_val for f in ordering}
+
+        # might not need to do this, maybe order by number of m2m
+
+        # Filter by organization if it exists in the model
+        if self.request.user.is_superuser:
+            base_query = self.model.objects.all()
         else:
-            base_query = self.model.objects.none()
-        return base_query
+            if 'current_org_id' in self.request.session:
+                if self.org_related_path:
+                    org_filter_kwargs = {
+                        self.org_related_path: self.request.session['current_org_id']}
+                    base_query = self.model.objects.filter(**org_filter_kwargs)
+                else:
+                    try:
+                        org_field = self.model._meta.get_field('organization')
+                        base_query = self.model.objects.filter(
+                            organization=self.request.session['current_org_id'])
+                    except FieldDoesNotExist:
+                        base_query = self.model.objects.all()
+            else:
+                base_query = self.model.objects.none()
+
+        all_related_fields = get_all_related_fields(self.model)
+        # filter
+        if filter_val != None:
+            new_queryset = base_query
+            for related_field_query in list(filter_kwargs.keys()):
+                related_field = related_field_query.replace(
+                    '__icontains', '')
+                final_field_model = get_model_of_related_field(
+                    self.model, related_field, all_related_fields=all_related_fields)
+                final_field = related_field.split('__')[-1]
+                final_field_class_name = final_field_model._meta.get_field(
+                    final_field).__class__.__name__
+                if final_field_class_name == 'ManyToManyField':
+                    new_queryset = new_queryset.annotate(
+                        **{f'{related_field}_count': Count(related_field)})
+                    filter_kwargs.pop(related_field_query)
+                    filter_kwargs[f'{related_field}_count__gte'] = 0
+            filter_query = functools.reduce(lambda q1, q2: q1 | q2, [
+                Q(**{k: v}) for k, v in filter_kwargs.items()]) if len(filter_kwargs) > 0 else Q()
+            new_queryset = new_queryset.filter(filter_query)
+        else:
+            new_queryset = base_query
+
+        # order
+        if ordering != None and len(ordering) > 0:
+            for i in range(len(ordering)):
+                related_field = ordering[i]
+                final_field_model = get_model_of_related_field(
+                    self.model, related_field, all_related_fields=all_related_fields)
+                final_field = related_field.split('__')[-1].strip('-')
+                final_field_class_name = final_field_model._meta.get_field(
+                    final_field).__class__.__name__
+                if final_field_class_name == 'ManyToManyField':
+                    new_queryset = new_queryset.annotate(
+                        **{f"{related_field.strip('-')}_count": Count(related_field.strip('-'))})
+                    ordering[i] = f"{related_field}_count"
+            new_queryset = new_queryset.order_by(*ordering)
+        return new_queryset.select_related()
 
     def export_csv(self):
         response = HttpResponse(content_type="text/csv")
@@ -597,8 +672,12 @@ class GenericModelExport(View):
 
         writer = csv.writer(response)
         writer.writerow([*self.column_names])
-
-        model_objects = self.get_queryset()
+        
+        model_name = self.model.__class__.__name__
+        if (queryset_serialized := self.request.session.get(f'{model_name}_queryset_serialized', None)) != None:
+            model_objects = [serialized_obj.object for serialized_obj in serializers.deserialize('json', queryset_serialized)]
+        else:
+            model_objects = self.get_queryset()
 
         for obj in model_objects:
             row = []
