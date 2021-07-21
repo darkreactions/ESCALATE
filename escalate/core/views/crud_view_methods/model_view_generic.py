@@ -85,8 +85,10 @@ class GenericModelList(GenericListView):
 
         ordering = ui_order if len(ui_order) > 0 else self.ordering
 
+        _all_necessary_fields_dot = [fields[i] for fields in self.column_necessary_fields.values() for i in range(len(fields))]
+        all_necessary_fields_dunder = ['__'.join(field.split('.')) for field in _all_necessary_fields_dot]
         filter_kwargs = {
-            f'{f.strip("-")}__icontains': filter_val for f in ordering}
+            f'{f}__icontains': filter_val for f in all_necessary_fields_dunder}
 
         # might not need to do this, maybe order by number of m2m
 
@@ -148,8 +150,7 @@ class GenericModelList(GenericListView):
             new_queryset = new_queryset.order_by(*ordering)
         
         model_name = self.context_object_name[:-1]
-        if (queryset_serialized := self.request.session.get(f'{model_name}_queryset_serialized', None)) != None:
-            self.request.session[f'{model_name}_queryset_serialized'] = serializers.serialize('json', new_queryset)
+        self.request.session[f'{model_name}_queryset_serialized'] = serializers.serialize('json', new_queryset)
         return new_queryset.select_related()
 
     def get_context_data(self, **kwargs):
@@ -568,6 +569,7 @@ class GenericModelExport(View):
     # A related path that points to the organization this field belongs to
     org_related_path = None
     field_contains = ''
+    ordering = None
 
     def get(self, request, *args, **kwargs):
         if self.file_type == 'csv':
@@ -599,10 +601,12 @@ class GenericModelExport(View):
                 ui_order = [*ui_order,
                             *[f'-{f}' for f in col_necessary_fields_as_query]]
 
-        ordering = ui_order if len(ui_order) > 0 else []
+        ordering = ui_order if len(ui_order) > 0 else self.ordering
 
+        _all_necessary_fields_dot = [fields[i] for fields in self.column_necessary_fields.values() for i in range(len(fields))]
+        all_necessary_fields_dunder = ['__'.join(field.split('.')) for field in _all_necessary_fields_dot]
         filter_kwargs = {
-            f'{f.strip("-")}__icontains': filter_val for f in ordering}
+            f'{f}__icontains': filter_val for f in all_necessary_fields_dunder}
 
         # might not need to do this, maybe order by number of m2m
 
@@ -673,7 +677,7 @@ class GenericModelExport(View):
         writer = csv.writer(response)
         writer.writerow([*self.column_names])
         
-        model_name = self.model.__class__.__name__
+        model_name = self.model.__name__.lower()
         if (queryset_serialized := self.request.session.get(f'{model_name}_queryset_serialized', None)) != None:
             model_objects = [serialized_obj.object for serialized_obj in serializers.deserialize('json', queryset_serialized)]
         else:
