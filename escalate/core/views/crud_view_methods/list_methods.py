@@ -4,7 +4,6 @@ import core.models
 methods = {
     'Actor': {
         'model': core.models.view_tables.Actor,
-        'context_object_name': 'actors',
         'table_columns': ['Person', 'Organization', 'Systemtool', 'Status', ],
         'column_necessary_fields': {
             'Person': ['person.first_name', 'person.middle_name', 'person.last_name'],
@@ -18,7 +17,6 @@ methods = {
 
     'Inventory': {
         'model': core.models.view_tables.Inventory,
-        'context_object_name': 'inventorys',
         'table_columns': ['Description', 'Owner', 'Operator', 'Lab', 'Status'],
         'column_necessary_fields': {
             'Description': ['description'],
@@ -32,7 +30,6 @@ methods = {
     },
     'Material': {
         'model': core.models.view_tables.Material,
-        'context_object_name': 'materials',
         'table_columns': ['Chemical Name', 'Other Names', 'Type', 'Status'],
         'column_necessary_fields': {
             'Chemical Name': ['description'],
@@ -46,7 +43,6 @@ methods = {
     },
     'Systemtool': {
         'model': core.models.view_tables.Systemtool,
-        'context_object_name': 'systemtools',
         'table_columns': ['Name', 'Description', 'Systemtool Type', 'Vendor Organization', ],
         'column_necessary_fields': {
             'Name': ['systemtool_name'],
@@ -59,7 +55,6 @@ methods = {
     },
     'MaterialType': {
         'model': core.models.view_tables.MaterialType,
-        'context_object_name': 'material_types',
         'table_columns': ['Description', ],
         'column_necessary_fields': {
             'Description': ['description']
@@ -69,7 +64,6 @@ methods = {
     },
     'Organization': {
         'model': core.models.view_tables.Organization,
-        'context_object_name': 'organizations',
         'table_columns': ['Full Name', 'Address', 'Website', ],
         'column_necessary_fields': {
             'Full Name': ['full_name'],
@@ -81,7 +75,6 @@ methods = {
     },
     'Person': {
         'model': core.models.view_tables.Person,
-        'context_object_name': 'persons',
         'table_columns': ['Name', 'Address', 'Email', 'Organization', 'Added Organization'],
         'column_necessary_fields': {
             'Name': ['first_name', 'middle_name', 'last_name'],
@@ -95,7 +88,6 @@ methods = {
     },
     'Status': {
         'model': core.models.view_tables.Status,
-        'context_object_name': 'statuss',
         'table_columns': ['Description', ],
         'column_necessary_fields': {
             'Description': ['description']
@@ -105,7 +97,6 @@ methods = {
     },
     'SystemtoolType': {
         'model': core.models.view_tables.SystemtoolType,
-        'context_object_name': 'systemtool_types',
         'table_columns': ['Description', ],
         'column_necessary_fields': {
             'Description': ['description']
@@ -115,7 +106,6 @@ methods = {
     },
     'Tag': {
         'model': core.models.view_tables.Tag,
-        'context_object_name': 'tags',
         'table_columns': ['Name', 'Description', 'Actor', 'Tag Type', ],
         'column_necessary_fields': {
             'Name': ['display_text'],
@@ -128,7 +118,6 @@ methods = {
     },
     'TagType': {
         'model': core.models.view_tables.TagType,
-        'context_object_name': 'tag_types',
         'table_columns': ['Type', 'Description', ],
         'column_necessary_fields': {
             'Type': ['type'],
@@ -139,7 +128,6 @@ methods = {
     },
     'UdfDef': {
         'model': core.models.view_tables.UdfDef,
-        'context_object_name': 'udf_defs',
         'table_columns': ['Description', 'Value Type', ],
         'column_necessary_fields': {
             'Description': ['description'],
@@ -163,8 +151,6 @@ methods = {
     # },
     'InventoryMaterial': {
         'model': core.models.view_tables.InventoryMaterial,
-        'context_object_name': 'inventory_materials',
-
         'table_columns': ['Description', 'Material', 'Amount On Hand', 'Expiration Date', 'Location', ],
         'column_necessary_fields': {
             'Description': ['description'],
@@ -179,8 +165,6 @@ methods = {
     },
     'Vessel': {
         'model': core.models.view_tables.Vessel,
-        'context_object_name': 'vessels',
-
         'table_columns': ['Plate Name', 'Well Number', ],
         'column_necessary_fields': {
             'Plate Name': ['plate_name'],
@@ -189,9 +173,4 @@ methods = {
         'ordering': ['plate_name'],
         'field_contains': ''
     },
-
-
-
-
-
 }

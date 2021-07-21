@@ -38,9 +38,7 @@ class GenericModelList(GenericListView):
     # Override the 2 fields below in subclass
     model = None
     # lowercase, snake case and plural. Ex:tag_types or inventorys
-    context_object_name = None
 
-    # for get_context_data method.
     # Override 2 fields below in subclass
     table_columns = None  # list of strings of column names
     # should be a dictionary with keys from table_columns
@@ -58,6 +56,10 @@ class GenericModelList(GenericListView):
     org_related_path = None
 
     paginate_by = 10
+
+    @property
+    def context_object_name(self):
+        return f'{self.model.__name__.lower()}s' if self.model != None else None
 
     def header_to_necessary_fields(self, field_raw):
         # get the fields that make up the header column
@@ -155,6 +157,7 @@ class GenericModelList(GenericListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        print(context)
         context['table_columns'] = self.table_columns
         models = context[self.context_object_name]
         model_name = self.context_object_name[:-1]  # Ex: tag_types -> tag_type
@@ -254,7 +257,6 @@ class GenericModelEdit:
 
     # override in subclass
     model = None
-    context_object_name = None
     form_class = None
 
     # success_url = reverse_lazy(f'{context_object_name}_list')
@@ -264,6 +266,10 @@ class GenericModelEdit:
     EdocFormSet = modelformset_factory(
         Edocument, form=UploadEdocForm, can_delete=True
     )
+
+    @property
+    def context_object_name(self):
+        return self.model.__name__.lower() if self.model != None else None
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -482,9 +488,13 @@ class GenericModelView(DetailView):
     # Fields in list of fields should be spelled exactly
     # Ex: {'Name': ['first_name','middle_name','last_name']}
 
+    @property
+    def context_object_name(self):
+        return self.model.__name__.lower() if self.model != None else None
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        obj = context['object']
+        obj = context[self.context_object_name]
         # dict of detail field names to their value
         detail_data = {}
 
