@@ -338,9 +338,9 @@ class WorkflowStep(DateColumns, StatusColumn):
                                    editable=False)
     workflow_object = models.ForeignKey('WorkflowObject', models.DO_NOTHING,
                                         db_column='workflow_object_uuid', related_name='workflow_step_workflow_object')
-    action = models.ForeignKey('Action', models.DO_NOTHING,
-                               blank=True, null=True,
-                               db_column='action_uuid', related_name='workflow_step_action')
+    # action = models.ForeignKey('Action', models.DO_NOTHING,
+    #                            blank=True, null=True,
+    #                            db_column='action_uuid', related_name='workflow_step_action')
 
 
 class WorkflowObject(DateColumns, StatusColumn):
