@@ -131,7 +131,6 @@ class GenericModelList(GenericListView):
                         **{f'{related_field}_count': Count(related_field)})
                     filter_kwargs.pop(related_field_query)
                     filter_kwargs[f'{related_field}_count__gte'] = 0
-            print(filter_kwargs)
             filter_query = functools.reduce(lambda q1, q2: q1 | q2, [
                 Q(**{k: v}) for k, v in filter_kwargs.items()]) if len(filter_kwargs) > 0 else Q()
             new_queryset = new_queryset.filter(filter_query)
