@@ -13,6 +13,10 @@
             </tr>
             {% endfor %}
             <tr>
+              <td>Tags:</td>
+              <td>{{Tags}}</td>
+            </tr>
+            <tr>
               <td>Notes:</td>
               <td>{% for note in Notes %} {{note|linebreaks}} {% endfor %}</td>
             </tr>
