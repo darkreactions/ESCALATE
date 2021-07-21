@@ -534,7 +534,7 @@ class GenericModelView(DetailView):
         tags = []
         for tag in tags_raw:
             tags.append(tag.display_text.strip())
-        detail_data['Tags'] = ', '.join(tags)
+        context['Tags'] = ', '.join(tags)
 
         # get edocuments
         edocs_raw = Edocument.objects.filter(ref_edocument_uuid=obj.pk)
