@@ -1,49 +1,44 @@
-{% extends 'core/base.html' %}
-{% load static %}
-
-{% block content %}
+{% extends 'core/base.html' %} {% load static %} {% block content %}
 <div class="container">
-    <div class="card">
-        <div class="card-body">
-            <h2>{{ title }}</h2>
-            <div class="table-responsive">
-            <table class="table table-striped table-bordered ">
-                <tbody>
-                    {% for label, value in detail_data.items %}
-                    <tr>
-                        <td>{{ label }}</td>
-                        <td style="white-space:pre">{{ value }}</td>
-                    </tr>
-                    {% endfor %}
-                    <tr>
-                        <td>Notes:</td>
-                        <td>
-                            {% for note in Notes %}
-                            {{note|linebreaks}}
-                            {% endfor %}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Documents:</td>
-                        <td>
-                            {% for edoc in Edocs %}
-                            <a href="{{edoc.download_url}}" download>{{edoc.filename|linebreaks}}</a>
-                            
-                            {% endfor %}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-            <a href="{{ update_url }}" class="btn btn-raised btn-primary active">
-                <i class="fa fa-edit fa-lg"></i>Edit
-            </a>
-            {% if download_url %}
-                <a href="{{ download_url }}" class="btn btn-raised btn-primary active">
-                    <i class="fa fa-download fa-lg"></i>Download
-                </a>
-            {% endif %}
-        </div>
+  <div class="card">
+    <div class="card-body">
+      <h2>{{ title }}</h2>
+      <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+          <tbody>
+            {% for label, value in detail_data.items %}
+            <tr>
+              <td>{{ label }}:</td>
+              <td style="white-space: pre">{{ value }}</td>
+            </tr>
+            {% endfor %}
+            <tr>
+              <td>Notes:</td>
+              <td>{% for note in Notes %} {{note|linebreaks}} {% endfor %}</td>
+            </tr>
+            <tr>
+              <td>Documents:</td>
+              <td>
+                {% for edoc in Edocs %}
+                <a href="{{edoc.download_url}}" download
+                  >{{edoc.filename|linebreaks}}</a
+                >
+
+                {% endfor %}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <a href="{{ update_url }}" class="btn btn-raised btn-primary active">
+        <i class="fa fa-edit fa-lg"></i>Edit
+      </a>
+      {% if download_url %}
+      <a href="{{ download_url }}" class="btn btn-raised btn-primary active">
+        <i class="fa fa-download fa-lg"></i>Download
+      </a>
+      {% endif %}
     </div>
+  </div>
 </div>
 {% endblock %}
