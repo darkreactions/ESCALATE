@@ -188,7 +188,7 @@ class GenericModelList(GenericListView):
                         fields_for_col[k] = ''
                     if not isinstance(fields_for_col[k], str):
                         fields_for_col[k] = str(fields_for_col[k])
-                col_data = " ".join(fields_for_col)
+                col_data = ' '.join(list(filter(lambda s: len(s) != 0, fields_for_col)))
                 # take away any leading and trailing whitespace
                 col_data = col_data.strip()
                 # change the cell data to be N/A if it is empty string at this point
@@ -515,7 +515,7 @@ class GenericModelView(DetailView):
                     fields_for_field[i] = str(fields_for_field[i])
                 else:
                     continue
-            obj_detail = ' '.join(fields_for_field)
+            obj_detail = ' '.join(list(filter(lambda s: len(s) != 0, fields_for_field)))
             obj_detail = obj_detail.strip()
             if len(obj_detail) == 0:
                 obj_detail = 'N/A'
