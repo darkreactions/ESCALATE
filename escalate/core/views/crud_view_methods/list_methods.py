@@ -82,11 +82,13 @@ methods = {
     'Person': {
         'model': core.models.view_tables.Person,
         'context_object_name': 'persons',
-        'table_columns': ['Name', 'Address', 'Email', ],
+        'table_columns': ['Name', 'Address', 'Email', 'Organization', 'Added Organization'],
         'column_necessary_fields': {
             'Name': ['first_name', 'middle_name', 'last_name'],
             'Address': ['address1', 'address2', 'zip', 'city', 'state_province', 'country'],
-            'Email': ['email']
+            'Email': ['email'],
+            'Organization': ['organization'],
+            'Added Organization': ['added_organization']
         },
         'ordering': ['first_name', 'middle_name', 'last_name'],
         'field_contains': ''

@@ -142,7 +142,8 @@ methods = {
             'Phone',
             'Email',
             'Title',
-            'Organization'
+            'Organization',
+            'Added Organization'
             ],
         'column_necessary_fields': {
             'First Name': ['first_name'],
@@ -157,7 +158,8 @@ methods = {
             'Phone': ['phone'],
             'Email': ['email'],
             'Title': ['title'],
-            'Organization': ['organization.full_name']
+            'Organization': ['organization.full_name'],
+            'Added Organization': ['added_organization']
         },
         'field_contains': '',
         'ordering': ['first_name', 'middle_name', 'last_name']

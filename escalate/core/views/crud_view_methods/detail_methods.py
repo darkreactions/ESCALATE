@@ -97,7 +97,7 @@ methods = {
         'model': core.models.view_tables.Person,
         'model_name': 'person',
         'detail_fields': ['Full Name', 'Address', 'Phone', 'Email', 'Title',
-                          'Suffix', 'Organization', 'Add Date', 'Last Modification Date'],
+                          'Suffix', 'Organization', 'Added Organization', 'Add Date', 'Last Modification Date'],
         'detail_fields_need_fields': {
             'Full Name': ['first_name', 'middle_name', 'last_name'],
             'Address': ['address1', 'address2', 'zip', 'city', 'state_province', 'country'],
@@ -106,6 +106,7 @@ methods = {
             'Title': ['title'],
             'Suffix': ['suffix'],
             'Organization': ['organization.full_name'],
+            'Added Organization': ['added_organization'],
             'Add Date': ['add_date'],
             'Last Modification Date': ['mod_date']
         },
