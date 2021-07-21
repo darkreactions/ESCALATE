@@ -13,12 +13,7 @@ methods = {
             'Status': ['status.description']
         },
         'ordering': ['description'],
-        'field_contains': {
-            'Name': '',
-            'Organization': '',
-            'Systemtool': '',
-            'Status': ''
-        },
+        'field_contains': ''
     },
 
     'Inventory': {
@@ -93,7 +88,7 @@ methods = {
             'Address': ['address1', 'address2', 'zip', 'city', 'state_province', 'country'],
             'Email': ['email']
         },
-        'ordering': ['first_name'],
+        'ordering': ['first_name', 'middle_name', 'last_name'],
         'field_contains': ''
     },
     'Status': {

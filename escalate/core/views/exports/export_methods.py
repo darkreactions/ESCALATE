@@ -18,7 +18,9 @@ methods = {
             'Organization': ['organization.full_name'],
             'Systemtool': ['systemtool.systemtool_name'],
             'Status': ['status.description']
-        }
+        },
+        'field_contains': '',
+        'ordering': ['description']
     },
     'Inventory':{
         'model': core.models.view_tables.Inventory,
@@ -31,26 +33,34 @@ methods = {
             ],
         'column_necessary_fields': {
             'Description': ['description'],
-            'Owner': ['owner_description'],
-            'Operator': ['operator_description'],
-            'Lab': ['lab_description'],
-            'Status': ['status_description']
-        }
+            'Owner': ['owner.description'],
+            'Operator': ['operator.description'],
+            'Lab': ['lab.description'],
+            'Status': ['status.description']
+        },
+        'field_contains': '',
+        'ordering': ['description']
     },
     'Material':{
         'model': core.models.view_tables.Material,
         'column_names': [
             'Chemical Name',
             'Consumable',
-            'Composite',
+            'Material Class',
+            'Identifier',
+            'Material Type',
             'Status'
             ],
         'column_necessary_fields': {
             'Chemical Name': ['description'],
             'Consumable': ['consumable'],
-            'Composite': ['composite_flg'],
-            'Status': ['status_description']
-        }
+            'Material Class': ['material_class'],
+            'Identifier': ['identifier'],
+            'Material Type': ['material_type'],
+            'Status': ['status.description']
+        },
+        'field_contains': '',
+        'ordering': ['description']
     },
     'Systemtool':{
         'model': core.models.view_tables.Systemtool,
@@ -71,7 +81,9 @@ methods = {
             'Model': ['model'],
             'Serial': ['serial'],
             'Version': ['ver']
-        }
+        },
+        'field_contains': '',
+        'ordering': ['systemtool_name']
     },
     'MaterialType':{
         'model': core.models.view_tables.MaterialType,
@@ -80,7 +92,9 @@ methods = {
             ],
         'column_necessary_fields': {
             'Description': ['description']
-        }
+        },
+        'field_contains': '',
+        'material_type': ['description']
     },
     'Organization':{
         'model': core.models.view_tables.Organization,
@@ -109,7 +123,9 @@ methods = {
             'Website': ['website_url'],
             'Phone': ['phone'],
             'Parent Organization': ['parent.full_name']
-        }
+        },
+        'field_contains': '',
+        'ordering': ['full_name']
     },
     'Person':{
         'model': core.models.view_tables.Person,
@@ -142,7 +158,9 @@ methods = {
             'Email': ['email'],
             'Title': ['title'],
             'Organization': ['organization.full_name']
-        }
+        },
+        'field_contains': '',
+        'ordering': ['first_name', 'middle_name', 'last_name']
     },
     'Status':{
         'model': core.models.view_tables.Status,
@@ -151,7 +169,9 @@ methods = {
             ],
         'column_necessary_fields': {
             'Description': ['description'],
-        }
+        },
+        'field_contains': '',
+        'ordering': ['description']
     },
     'SystemtoolType':{
         'model': core.models.view_tables.SystemtoolType,
@@ -160,7 +180,9 @@ methods = {
             ],
         'column_necessary_fields': {
             'Description': ['description'],
-        }
+        },
+        'field_contains': '',
+        'ordering': ['description']
     },
     'Tag':{
         'model': core.models.view_tables.Tag,
@@ -175,7 +197,9 @@ methods = {
             'Description': ['description'],
             'Tag Type': ['type'],
             'Tag Type Description': ['type_description'],
-        }
+        },
+        'field_contains': '',
+        'ordering': ['display_text']
     },
     'TagType':{
         'model': core.models.view_tables.TagType,
@@ -186,7 +210,9 @@ methods = {
         'column_necessary_fields': {
             'Type': ['type'],
             'Description': ['description'],
-        }
+        },
+        'field_contains': '',
+        'ordering': ['type']
     },
     'UdfDef':{
         'model': core.models.view_tables.UdfDef,
@@ -201,7 +227,9 @@ methods = {
             'Value Type': ['val_type'],
             'Value Type Description': ['val_type_description'],
             'Unit': ['unit']
-        }
+        },
+        'field_contains': '',
+        'ordering': ['description']
     },
     'InventoryMaterial':{
         'model': core.models.view_tables.InventoryMaterial,
@@ -209,8 +237,6 @@ methods = {
             'Description',
             'Inventory',
             'Material',
-            'Material Consumable',
-            'Material Composite',
             'Part Number',
             'On Hand Amount',
             'Expiration Date',
@@ -219,18 +245,19 @@ methods = {
             ],
         'column_necessary_fields': {
             'Description': ['description'],
-            'Inventory': ['inventory_description'],
-            'Material': ['material_description'],
-            'Material Consumable': ['material_consumable'],
-            'Material Composite': ['material_composite_flg'],
+            'Inventory': ['inventory.description'],
+            'Material': ['material.description'],
             'Part Number': ['part_no'],
             'On Hand Amount': ['onhand_amt'],
             'Expiration Date': ['expiration_date'],
             'Location': ['location'],
-            'Status': ['status_description']
+            'Status': ['status.description']
         },
+        'field_contains': '',
+        'ordering': ['description'],
         'org_related_path': 'inventory__lab__organization'
-    }, 'Vessel':{
+    },
+    'Vessel':{
         'model': core.models.view_tables.Vessel,
         'column_names': [
             'Plate Name',
@@ -240,7 +267,9 @@ methods = {
         'column_necessary_fields': {
             'Plate Name': ['plate_name'],
             'Well Number': ['well_number'],
-            'Status': ['status']
+            'Status': ['status.description']
         },
+        'field_contains': '',
+        'ordering': ['plate_name']
     }, 
 }
