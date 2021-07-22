@@ -13,7 +13,7 @@
 
 {% block content %}
 <div class="container">
-  {% if title != "Edocument" %}
+  {% if export_urls %}
   <div class="export-buttons-container">
     {% for export_type, export_url in export_urls.items%}
       <button>

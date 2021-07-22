@@ -132,11 +132,11 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
         # need to find out more about how this would work
     return exp_get.uuid
 
-
+# list of model class names that have at least one view auto generated
 view_names = ['Material', 'Inventory', 'Actor', 'Organization', 'Person',
               'Systemtool', 'InventoryMaterial', 'Vessel',
               'SystemtoolType', 'UdfDef', 'Status', 'Tag',
-              'TagType', 'MaterialType'
+              'TagType', 'MaterialType', 'Experiment'
               ]
 
 

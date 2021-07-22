@@ -173,4 +173,14 @@ methods = {
         'ordering': ['plate_name'],
         'field_contains': ''
     },
+    'Experiment': {
+        'model': core.models.view_tables.Experiment,
+        'table_columns': ['Description'],
+        'column_necessary_fields': {
+            'Description': ['description']
+        },
+        'ordering': ['description'],
+        'field_contains': '',
+        'org_related_path': 'lab__organization'
+    }
 }

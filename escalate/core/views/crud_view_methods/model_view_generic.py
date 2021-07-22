@@ -15,6 +15,7 @@ from django.core.exceptions import FieldDoesNotExist
 from core.utilities.view_utils import rgetattr, get_all_related_fields, get_model_of_related_field
 from django.core import serializers
 from core.utilities.utils import camel_to_snake
+from ..exports.export_methods import methods as export_methods
 
 import csv
 import functools
@@ -153,7 +154,8 @@ class GenericModelList(GenericListView):
             new_queryset = new_queryset.order_by(*ordering)
         
         model_name = self.context_object_name[:-1]
-        self.request.session[f'{model_name}_queryset_serialized'] = serializers.serialize('json', new_queryset)
+        if self.model.__name__ in export_methods.keys():
+            self.request.session[f'{model_name}_queryset_serialized'] = serializers.serialize('json', new_queryset)
         return new_queryset.select_related()
 
     def get_context_data(self, **kwargs):
@@ -219,13 +221,13 @@ class GenericModelList(GenericListView):
         context['title'] = model_name.replace('_', ' ').capitalize()
 
         export_urls = {}
-
-        _parsed = urlparse.urlparse(self.request.get_full_path())
-        query_string = '&'.join([f'{q}={p[0]}' for q, p in urlparse.parse_qs(_parsed.query).items()])
-        # for t in export_file_types.file_types:
-        for t in core.views.exports.file_types.file_types:
-            export_urls[t.upper()] = reverse_lazy(f'{model_name}_export_{t}') + (f'?{query_string}' if len(query_string) > 0 else '')
-        context['export_urls'] = export_urls
+        if self.model.__name__ in export_methods.keys():
+            _parsed = urlparse.urlparse(self.request.get_full_path())
+            query_string = '&'.join([f'{q}={p[0]}' for q, p in urlparse.parse_qs(_parsed.query).items()])
+            # for t in export_file_types.file_types:
+            for t in core.views.exports.file_types.file_types:
+                export_urls[t.upper()] = reverse_lazy(f'{model_name}_export_{t}') + (f'?{query_string}' if len(query_string) > 0 else '')
+            context['export_urls'] = export_urls
         return context
 
     def post(self, *args, **kwargs):
