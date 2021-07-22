@@ -16,6 +16,9 @@ def generate_robot_file(reaction_volumes, reaction_parameters,
                         plate_name, well_count):
     #'Temperature (C):'-> vw_action_parameter.parameter_value_nominal (text)
     #'Stir Rate (rpm):'->vw_action_parameter.parameter_value_nominal (text)
+
+    #Will use default WF1 parameters until we clean up our parameter UI
+    reaction_parameters = None
     if reaction_parameters is None:
         rxn_parameters = pd.DataFrame({
                 'Reaction Parameters': ['Temperature (C):', 
