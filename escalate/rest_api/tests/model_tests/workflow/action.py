@@ -10,31 +10,35 @@ from ..model_tests_utils import (
     compare_data
 )
 from core.models import (
-    Mixture,
-    Material,
-    MaterialType
+    ActionDef,
+    Workflow,
+    ParameterDef,
+    CalculationDef,
+    Action
 )
 
-mixture_test_data = {}
+action_test_data = {}
 
-mixture_tests = [
+action_tests = [
 
 ##----TEST 0----##
-#creates a material
-#creates a second material
-#creates a materialtype
-#creates a mixture with materialtype as a manytomany key and the two materials as foreign keys
-#gets the mixture
-#updates the mixture to no longer have manytomany/foreign keys
-#gets the mixture
-#deletes the mixture
-#gets the mixture (should return error)
+#creates an actiondef
+#creates a parameterdef
+#creates a second parameterdef
+#creates a workflow
+#creates a calculationdef
+#creates an action with all of the previous entries as foreign keys (one of the two parameterdefs is put in the manytomanyfield)
+#gets the action
+#puts the action adding the other parameterdef to the manytomany field
+#gets the updated action
+#deletes the updated action
+#gets the action (should return error)
     [      
         {
-            'name': 'material0',
+            'name': 'actiondef0',
             'method': POST,
-            'endpoint': 'material-list',
-            'body': random_model_dict(Material),
+            'endpoint': 'actiondef-list',
+            'body': random_model_dict(ActionDef),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -46,10 +50,10 @@ mixture_tests = [
             }
         },
         {
-            'name': 'material1',
+            'name': 'workflow0',
             'method': POST,
-            'endpoint': 'material-list',
-            'body': random_model_dict(Material),
+            'endpoint': 'workflow-list',
+            'body': random_model_dict(Workflow),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -60,27 +64,29 @@ mixture_tests = [
                 }
             }
         },
+        # {
+        #     'name': 'calculationdef0',
+        #     'method': POST,
+        #     'endpoint': 'calculationdef-list',
+        #     'body': random_model_dict(CalculationDef),
+        #     'args': [],
+        #     'query_params': [],
+        #     'is_valid_response': {
+        #         'function': check_status_code,
+        #         'args': [],
+        #         'kwargs': {
+        #             'status_code': POST
+        #         }
+        #     }
+        # },
         {
-            'name': 'materialtype0',
+            'name': 'action0',
             'method': POST,
-            'endpoint': 'materialtype-list',
-            'body': random_model_dict(MaterialType),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'mixture0',
-            'method': POST,
-            'endpoint': 'mixture-list',
-            'body': (request_body := random_model_dict(Mixture, composite='material0__url', component='material1__url', \
-                    material_type=['materialtype0__url'])),
+            'endpoint': 'action-list',
+            'body': (request_body := random_model_dict(Action, action_def='actiondef0__url',
+                                                workflow='workflow0__url',
+                                                # calculation_def='calculationdef0__url'
+                                                )), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -93,12 +99,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_get_0',
+            'name': 'action0_get_0',
             'method': GET,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'action-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'action0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -109,13 +115,14 @@ mixture_tests = [
                 }
             }
         },
+    
         {
-            'name': 'mixture0_update_0',
+            'name': 'action0_update_0',
             'method': PUT,
-            'endpoint': 'mixture-detail',
-            'body': (request_body := random_model_dict(Mixture)),
+            'endpoint': 'action-detail',
+            'body': (request_body := random_model_dict(Action)),
             'args': [
-                'mixture0__uuid'
+                'action0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -128,12 +135,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_get_1',
+            'name': 'action0_get_1',
             'method': GET,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'action-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'action0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -145,12 +152,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_delete_0',
+            'name': 'action0_delete_0',
             'method': DELETE,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'action-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'action0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -162,12 +169,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_get_2',
+            'name': 'action0_get_2',
             'method': GET,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'action-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'action0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {

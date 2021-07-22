@@ -161,11 +161,11 @@ class Condition(DateColumns, StatusColumn, ActorColumn):
 
 
 class ConditionDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
-    uuid = RetUUIDField(
-        primary_key=True, default=uuid.uuid4, db_column='condition_def_uuid')
 
-    # through='ConditionCalculationDefAssign')
-    calculation_def = models.ManyToManyField('CalculationDef', blank=True),
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='condition_def_uuid')
+    calculation_def = models.ManyToManyField('CalculationDef', blank=True), #through='ConditionCalculationDefAssign')
+    def __str__(self):
+        return f"{self.description}"
 
 
 class ConditionPath(DateColumns):

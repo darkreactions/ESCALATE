@@ -91,14 +91,15 @@ org_tests = [
             'name': 'org1',
             'method': POST,
             'endpoint': 'organization-list',
-            'body': random_model_dict(Organization, parent='org0__url'),
+            'body': (request_body := random_model_dict(Organization, parent='org0__url')),
             'args': [],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': POST
+                    'status_code': POST,
+                    'request_body': request_body
                 }
             }
         },
@@ -106,16 +107,17 @@ org_tests = [
             'name': 'org0_update_0',
             'method': PUT,
             'endpoint': 'organization-detail',
-            'body': random_model_dict(Organization, parent='org1__url'),
+            'body': (request_body := random_model_dict(Organization, parent='org1__url')),
             'args': [
                 'org0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': PUT
+                    'status_code': PUT,
+                    'request_body': request_body
                 }
             }
         },
@@ -171,25 +173,4 @@ org_tests = [
             }
         },
     ],
-    
-##----TEST 1----##
-#creates an organization and checks that the response data matches the 
-#request data stored in the body entry
-    [   
-        {
-            'name': 'org0',
-            'method': POST,
-            'endpoint': 'organization-list',
-            'body': (request_body := random_model_dict(Organization)),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': compare_data,
-                'args': [],
-                'kwargs': {
-                    'request_body':request_body,
-                }
-            }
-        },
-    ]
 ]

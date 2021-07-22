@@ -7,34 +7,37 @@ from ..model_tests_utils import (
     ERROR,
     random_model_dict,
     check_status_code,
-    compare_data
+    compare_data,
+    createSystemtool
 )
 from core.models import (
-    Mixture,
-    Material,
-    MaterialType
+    Workflow,
+    WorkflowActionSet,
+    WorkflowStep,
+    WorkflowObject,
 )
 
-mixture_test_data = {}
+workflowstep_test_data = {}
 
-mixture_tests = [
+workflowstep_tests = [
 
 ##----TEST 0----##
-#creates a material
-#creates a second material
-#creates a materialtype
-#creates a mixture with materialtype as a manytomany key and the two materials as foreign keys
-#gets the mixture
-#updates the mixture to no longer have manytomany/foreign keys
-#gets the mixture
-#deletes the mixture
-#gets the mixture (should return error)
+#creates a workflow
+#creates a workflowactionset
+#creates a workflowstep
+#creates a workflowobject
+#creates an workflowstep with the previous three entries as foreign keys
+#gets the workflowstep
+#puts the workflowstep adding the other parameterdef to the manytomany field
+#gets the updated workflowstep
+#deletes the updated workflowstep
+#gets the workflowstep (should return error)
     [      
-        {
-            'name': 'material0',
+        *[{
+            'name': name,
             'method': POST,
-            'endpoint': 'material-list',
-            'body': random_model_dict(Material),
+            'endpoint': 'workflow-list',
+            'body': random_model_dict(Workflow),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -44,12 +47,12 @@ mixture_tests = [
                     'status_code': POST
                 }
             }
-        },
-        {
-            'name': 'material1',
+        } for name in ['workflow0', 'workflow1']],
+        *[{
+            'name': name,
             'method': POST,
-            'endpoint': 'material-list',
-            'body': random_model_dict(Material),
+            'endpoint': 'workflowactionset-list',
+            'body': random_model_dict(WorkflowActionSet),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -59,12 +62,12 @@ mixture_tests = [
                     'status_code': POST
                 }
             }
-        },
-        {
-            'name': 'materialtype0',
+        } for name in ['workflowactionset0', 'workflowactionset1']],
+        *[{
+            'name': name,
             'method': POST,
-            'endpoint': 'materialtype-list',
-            'body': random_model_dict(MaterialType),
+            'endpoint': 'workflowstep-list',
+            'body': random_model_dict(WorkflowStep),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -74,13 +77,29 @@ mixture_tests = [
                     'status_code': POST
                 }
             }
-        },
-        {
-            'name': 'mixture0',
+        } for name in ['workflowstep0', 'workflowstep1']],
+        *[{
+            'name': name,
             'method': POST,
-            'endpoint': 'mixture-list',
-            'body': (request_body := random_model_dict(Mixture, composite='material0__url', component='material1__url', \
-                    material_type=['materialtype0__url'])),
+            'endpoint': 'workflowobject-list',
+            'body': random_model_dict(WorkflowObject),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        } for name in ['workflowobject0', 'workflowobject1']],
+        {
+            'name': 'workflowstep0',
+            'method': POST,
+            'endpoint': 'workflowstep-list',
+            'body': (request_body := random_model_dict(WorkflowStep, workflow='workflow0__url', parent='workflowstep0__url',
+                                                        workflow_action_set='workflowactionset0__url',
+                                                        workflow_object='workflowobject0__url')), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -93,12 +112,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_get_0',
+            'name': 'workflowstep0_get_0',
             'method': GET,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'workflowstep-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'workflowstep0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -109,13 +128,16 @@ mixture_tests = [
                 }
             }
         },
+    
         {
-            'name': 'mixture0_update_0',
+            'name': 'workflowstep0_update_0',
             'method': PUT,
-            'endpoint': 'mixture-detail',
-            'body': (request_body := random_model_dict(Mixture)),
+            'endpoint': 'workflowstep-detail',
+          'body': (request_body := random_model_dict(WorkflowStep, workflow='workflow1__url', parent='workflowstep1__url',
+                                                        workflow_action_set='workflowactionset1__url',
+                                                        workflow_object='workflowobject1__url')), 
             'args': [
-                'mixture0__uuid'
+                'workflowstep0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -128,12 +150,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_get_1',
+            'name': 'workflowstep0_get_1',
             'method': GET,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'workflowstep-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'workflowstep0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -145,12 +167,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_delete_0',
+            'name': 'workflowstep0_delete_0',
             'method': DELETE,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'workflowstep-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'workflowstep0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -162,12 +184,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_get_2',
+            'name': 'workflowstep0_get_2',
             'method': GET,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'workflowstep-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'workflowstep0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {

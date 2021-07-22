@@ -10,26 +10,40 @@ from ..model_tests_utils import (
     compare_data
 )
 from core.models import (
-    Mixture,
-    Material,
-    MaterialType
+    InventoryMaterial,
+    Inventory,
+    Material
 )
 
-mixture_test_data = {}
+inventorymaterial_test_data = {}
 
-mixture_tests = [
+inventorymaterial_tests = [
 
 ##----TEST 0----##
+#creates an inventory
 #creates a material
-#creates a second material
-#creates a materialtype
-#creates a mixture with materialtype as a manytomany key and the two materials as foreign keys
-#gets the mixture
-#updates the mixture to no longer have manytomany/foreign keys
-#gets the mixture
-#deletes the mixture
-#gets the mixture (should return error)
+#creates an inventorymaterial with all of the previous entries as foreign keys
+#gets the action
+#puts the inventorymaterial adding the other parameterdef to the manytomany field
+#gets the updated inventorymaterial
+#deletes the updated inventorymaterial
+#gets the inventorymaterial (should return error)
     [      
+        {
+            'name': 'inventory0',
+            'method': POST,
+            'endpoint': 'inventory-list',
+            'body': random_model_dict(Inventory),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        },
         {
             'name': 'material0',
             'method': POST,
@@ -46,41 +60,11 @@ mixture_tests = [
             }
         },
         {
-            'name': 'material1',
+            'name': 'inventorymaterial0',
             'method': POST,
-            'endpoint': 'material-list',
-            'body': random_model_dict(Material),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'materialtype0',
-            'method': POST,
-            'endpoint': 'materialtype-list',
-            'body': random_model_dict(MaterialType),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
-            'name': 'mixture0',
-            'method': POST,
-            'endpoint': 'mixture-list',
-            'body': (request_body := random_model_dict(Mixture, composite='material0__url', component='material1__url', \
-                    material_type=['materialtype0__url'])),
+            'endpoint': 'inventorymaterial-list',
+            'body': (request_body := random_model_dict(InventoryMaterial, inventory='inventory0__url',
+                                                material='material0__url',)), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -93,12 +77,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_get_0',
+            'name': 'inventorymaterial0_get_0',
             'method': GET,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'inventorymaterial-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'inventorymaterial0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -109,13 +93,14 @@ mixture_tests = [
                 }
             }
         },
+    
         {
-            'name': 'mixture0_update_0',
+            'name': 'inventorymaterial0_update_0',
             'method': PUT,
-            'endpoint': 'mixture-detail',
-            'body': (request_body := random_model_dict(Mixture)),
+            'endpoint': 'inventorymaterial-detail',
+            'body': (request_body := random_model_dict(InventoryMaterial)),
             'args': [
-                'mixture0__uuid'
+                'inventorymaterial0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -128,12 +113,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_get_1',
+            'name': 'inventorymaterial0_get_1',
             'method': GET,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'inventorymaterial-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'inventorymaterial0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -145,12 +130,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_delete_0',
+            'name': 'inventorymaterial0_delete_0',
             'method': DELETE,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'inventorymaterial-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'inventorymaterial0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -162,12 +147,12 @@ mixture_tests = [
             }
         },
         {
-            'name': 'mixture0_get_2',
+            'name': 'inventorymaterial0_get_2',
             'method': GET,
-            'endpoint': 'mixture-detail',
+            'endpoint': 'inventorymaterial-detail',
             'body': {},
             'args': [
-                'mixture0__uuid'
+                'inventorymaterial0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {

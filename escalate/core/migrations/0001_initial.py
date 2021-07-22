@@ -99,7 +99,7 @@ class Migration(migrations.Migration):
                 ('add_date', models.DateTimeField(auto_now_add=True)),
                 ('mod_date', models.DateTimeField(auto_now=True)),
                 ('description', models.CharField(blank=True, max_length=255, null=True)),
-                ('uuid', core.models.core_tables.RetUUIDField(db_column='edocument_uuid', editable=False, primary_key=True, serialize=False)),
+                ('uuid', core.models.core_tables.RetUUIDField(db_column='edocument_uuid', default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ('title', models.CharField(blank=True, db_column='title', max_length=255, null=True)),
                 ('filename', models.CharField(blank=True, db_column='filename', max_length=255, null=True)),
                 ('source', models.CharField(blank=True, db_column='source', max_length=255, null=True)),
@@ -924,17 +924,17 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='calculation',
             name='in_opt_val_edocument',
-            field=models.ForeignKey(db_column='in_opt_val_edocument_uuid', editable=False, on_delete=django.db.models.deletion.DO_NOTHING, related_name='calculation_in_opt_val_edocument', to='core.Edocument'),
+            field=models.ForeignKey(blank=True, db_column='in_opt_val_edocument_uuid', editable=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='calculation_in_opt_val_edocument', to='core.Edocument'),
         ),
         migrations.AddField(
             model_name='calculation',
             name='in_val_edocument',
-            field=models.ForeignKey(db_column='in_val_edocument_uuid', editable=False, on_delete=django.db.models.deletion.DO_NOTHING, related_name='calculation_in_val_edocument', to='core.Edocument'),
+            field=models.ForeignKey(blank=True, db_column='in_val_edocument_uuid', editable=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='calculation_in_val_edocument', to='core.Edocument'),
         ),
         migrations.AddField(
             model_name='calculation',
             name='out_val_edocument',
-            field=models.ForeignKey(db_column='out_val_edocument_uuid', editable=False, on_delete=django.db.models.deletion.DO_NOTHING, related_name='calculation_out_val_edocument', to='core.Edocument'),
+            field=models.ForeignKey(blank=True, db_column='out_val_edocument_uuid', editable=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='calculation_out_val_edocument', to='core.Edocument'),
         ),
         migrations.AddField(
             model_name='calculation',

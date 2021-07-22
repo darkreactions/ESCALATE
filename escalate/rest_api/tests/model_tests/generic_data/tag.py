@@ -1,4 +1,5 @@
 from ..model_tests_utils import (
+    status_codes,
     DELETE,
     PUT,
     POST,
@@ -8,28 +9,44 @@ from ..model_tests_utils import (
     check_status_code,
     compare_data
 )
-
 from core.models import (
-    ParameterDef,
-    TypeDef
+    Tag,
+    TagType
 )
 
-parameter_def_data = {}
+tag_test_data = {}
 
-parameter_def_tests = [
+tag_tests = [
+
 ##----TEST 0----##
-# creates a parameter_def
-# gets it
-# puts it
-# gets it
-# deletes it
-# gets it (should error)
-    [
+#creates a tagtype
+#creates a tag with tag type as a foreign key
+#gets the tag
+#puts the tag 
+#gets the updated tag
+#deletes the updated tag
+#gets the tag (should return error)
+    [   
         {
-            'name': 'parameterdef',
+            'name': 'tagtype0',
             'method': POST,
-            'endpoint': 'parameterdef-list',
-            'body': (request_body := random_model_dict(ParameterDef)),
+            'endpoint': 'tagtype-list',
+            'body': random_model_dict(TagType), 
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST,
+                }
+            }
+        },   
+        {
+            'name': 'tag0',
+            'method': POST,
+            'endpoint': 'tag-list',
+            'body': (request_body := random_model_dict(Tag, tag_type='tagtype0__url')), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -42,12 +59,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_get',
+            'name': 'tag0_get_0',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'tag-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'tag0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -58,13 +75,14 @@ parameter_def_tests = [
                 }
             }
         },
+    
         {
-            'name': 'parameterdef_update',
+            'name': 'tag0_update_0',
             'method': PUT,
-            'endpoint': 'parameterdef-detail',
-            'body': (request_body := random_model_dict(ParameterDef)),
+            'endpoint': 'tag-detail',
+            'body': (request_body := random_model_dict(Tag)),
             'args': [
-                'parameterdef__uuid'
+                'tag0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -77,12 +95,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_update_get',
+            'name': 'tag0_get_1',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'tag-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'tag0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -94,12 +112,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_update_del',
+            'name': 'tag0_delete_0',
             'method': DELETE,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'tag-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'tag0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -111,12 +129,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'properydef_update_del_get',
+            'name': 'tag0_get_2',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'tag-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'tag0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {

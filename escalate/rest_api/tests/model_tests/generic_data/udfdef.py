@@ -1,4 +1,5 @@
 from ..model_tests_utils import (
+    status_codes,
     DELETE,
     PUT,
     POST,
@@ -8,28 +9,44 @@ from ..model_tests_utils import (
     check_status_code,
     compare_data
 )
-
 from core.models import (
-    ParameterDef,
+    UdfDef,
     TypeDef
 )
 
-parameter_def_data = {}
+udfdef_test_data = {}
 
-parameter_def_tests = [
+udfdef_tests = [
+
 ##----TEST 0----##
-# creates a parameter_def
-# gets it
-# puts it
-# gets it
-# deletes it
-# gets it (should error)
-    [
+#creates a typedef
+#creates a udfdef with typedef as a foreign key
+#gets the udfdef
+#puts the udfdef 
+#gets the updated udfdef
+#deletes the updated udfdef
+#gets the udfdef (should return error)
+    [   
         {
-            'name': 'parameterdef',
+            'name': 'typedef0',
             'method': POST,
-            'endpoint': 'parameterdef-list',
-            'body': (request_body := random_model_dict(ParameterDef)),
+            'endpoint': 'typedef-list',
+            'body': random_model_dict(TypeDef), 
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST,
+                }
+            }
+        },   
+        {
+            'name': 'udfdef0',
+            'method': POST,
+            'endpoint': 'udfdef-list',
+            'body': (request_body := random_model_dict(UdfDef, val_type='typedef0__url')), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -42,12 +59,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_get',
+            'name': 'udfdef0_get_0',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'udfdef-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'udfdef0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -58,13 +75,14 @@ parameter_def_tests = [
                 }
             }
         },
+    
         {
-            'name': 'parameterdef_update',
+            'name': 'udfdef0_update_0',
             'method': PUT,
-            'endpoint': 'parameterdef-detail',
-            'body': (request_body := random_model_dict(ParameterDef)),
+            'endpoint': 'udfdef-detail',
+            'body': (request_body := random_model_dict(UdfDef)),
             'args': [
-                'parameterdef__uuid'
+                'udfdef0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -77,12 +95,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_update_get',
+            'name': 'udfdef0_get_1',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'udfdef-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'udfdef0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -94,12 +112,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_update_del',
+            'name': 'udfdef0_delete_0',
             'method': DELETE,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'udfdef-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'udfdef0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -111,12 +129,12 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'properydef_update_del_get',
+            'name': 'udfdef0_get_2',
             'method': GET,
-            'endpoint': 'parameterdef-detail',
+            'endpoint': 'udfdef-detail',
             'body': {},
             'args': [
-                'parameterdef__uuid'
+                'udfdef0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
