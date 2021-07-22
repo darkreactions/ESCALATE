@@ -48,17 +48,17 @@ experiment_tests = [
             }
         },
         {
-            'name': 'typedef0',
+            'name': 'experiment0',
             'method': POST,
-            'endpoint': 'typedef-list',
-            'body': random_model_dict(TypeDef),
+            'endpoint': 'experiment-list',
+            'body': random_model_dict(Experiment), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
                 'function': check_status_code,
                 'args': [],
                 'kwargs': {
-                    'status_code': POST
+                    'status_code': POST,
                 }
             }
         },
@@ -78,14 +78,15 @@ experiment_tests = [
             }
         } for name in ['actor0', 'actor1', 'actor2']],
         {
-            'name': 'experiment0',
+            'name': 'experiment1',
             'method': POST,
             'endpoint': 'experiment-list',
             'body': (request_body := random_model_dict(Experiment, experiment_type='experimenttype0__url',
-                                                parent='typedef0__url',
+                                                parent='experiment0__url',
                                                 owner='actor0__url',
                                                 operator='actor1__url',
-                                                lab='actor2__url',)), 
+                                                lab='actor2__url'
+                                                )), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -98,12 +99,12 @@ experiment_tests = [
             }
         },
         {
-            'name': 'experiment0_get_0',
+            'name': 'experiment1_get_0',
             'method': GET,
             'endpoint': 'experiment-detail',
             'body': {},
             'args': [
-                'experiment0__uuid'
+                'experiment1__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -115,12 +116,12 @@ experiment_tests = [
             }
         },
         {
-            'name': 'experiment0_update_0',
+            'name': 'experiment1_update_0',
             'method': PUT,
             'endpoint': 'experiment-detail',
             'body': (request_body := random_model_dict(Experiment)), 
             'args': [
-                'experiment0__uuid'
+                'experiment1__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -133,12 +134,12 @@ experiment_tests = [
             }
         },
         {
-            'name': 'experiment0_get_1',
+            'name': 'experiment1_get_1',
             'method': GET,
             'endpoint': 'experiment-detail',
             'body': {},
             'args': [
-                'experiment0__uuid'
+                'experiment1__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -150,12 +151,12 @@ experiment_tests = [
             }
         },
         {
-            'name': 'experiment0_delete_0',
+            'name': 'experiment1_delete_0',
             'method': DELETE,
             'endpoint': 'experiment-detail',
             'body': {},
             'args': [
-                'experiment0__uuid'
+                'experiment1__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -167,12 +168,12 @@ experiment_tests = [
             }
         },
         {
-            'name': 'experiment0_get_2',
+            'name': 'experiment1_get_2',
             'method': GET,
             'endpoint': 'experiment-detail',
             'body': {},
             'args': [
-                'experiment0__uuid'
+                'experiment1__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
