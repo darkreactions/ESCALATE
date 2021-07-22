@@ -7,7 +7,7 @@ class Val:
     positions = {
             'text' : 2, 'array_text' : 3, 'int' : 4, 'array_int': 5, 'num': 6,
             'array_num': 7, 'blob': 8, 'blob_array': 9, 'bool': 10,
-            'bool_array': 11
+            'array_bool': 11
         }
     def __init__(self, val_type, value, unit, null=False, raw_string=''):
         self.null = null
@@ -56,7 +56,7 @@ class Val:
         primitives = {'bool': bool, 'int': int, 'num': float, 'text': str, 'blob': str}
         reverse_primitives = {bool: 'bool',
                               int: 'int', float: 'num', str: 'text'}
-        default_primitives = {'bool': False, 'int': 0, 'num': 0.0, 'text': ' ', 'blob': ' '}
+        default_primitives = {'bool': False, 'int': 0, 'num': 0.0, 'text': ' '}
         prim = primitives[description]
         try:
             if value:
@@ -132,7 +132,7 @@ class Val:
 
     @classmethod
     def from_dict(cls, json_data):
-        if json_data is None or json_data == "null":
+        if json_data is None:
             return cls(None, None, None, null=True)
         else:
             required_keys = set(['type', 'value', 'unit'])
