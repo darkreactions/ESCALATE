@@ -9,7 +9,6 @@ from .views.experiment import (CreateExperimentView, ExperimentDetailView,
 # ExperimentListView
 )
 from core.utilities.utils import view_names, camel_to_snake
-from core.utilities.view_utils import getattr_or_none
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
@@ -51,25 +50,25 @@ def add_urls(model_name, pattern_list):
      lower_case_model_name = camel_to_snake(model_name)
 
      new_urls = []
-     if getattr_or_none(core.views, f'{model_name}List') != None:
+     if (list_view_class := getattr(core.views, f'{model_name}List', None)) != None:
           new_urls.append(path(f'{lower_case_model_name}_list/',
-                     getattr(core.views, f'{model_name}List').as_view(),
+                     list_view_class.as_view(),
                      name=f'{lower_case_model_name}_list'))
-     if getattr_or_none(core.views, f'{model_name}Create') != None:
+     if (create_view_class := getattr(core.views, f'{model_name}Create', None)) != None:
           new_urls.append(path(f'{lower_case_model_name}/',
-                         getattr(core.views, f'{model_name}Create').as_view(),
+                         create_view_class.as_view(),
                          name=f'{lower_case_model_name}_add'))
-     if getattr_or_none(core.views, f'{model_name}Update') != None:
+     if (update_view_class := getattr(core.views, f'{model_name}Update', None)) != None:
           new_urls.append(path(f'{lower_case_model_name}/<uuid:pk>',
                          getattr(core.views, f'{model_name}Update').as_view(),
                          name=f'{lower_case_model_name}_update'))
-     if getattr_or_none(core.views, f'{model_name}Delete') != None:
+     if (delete_view_class := getattr(core.views, f'{model_name}Delete', None)) != None:
           new_urls.append(path(f'{lower_case_model_name}/<uuid:pk>/delete',
-                         getattr(core.views, f'{model_name}Delete').as_view(),
+                         delete_view_class.as_view(),
                          name=f'{lower_case_model_name}_delete'))
-     if getattr_or_none(core.views, f'{model_name}View') != None:
+     if (detail_view_class := getattr(core.views, f'{model_name}View', None)) != None:
           new_urls.append(path(f'{lower_case_model_name}/<uuid:pk>/view',
-                         getattr(core.views, f'{model_name}View').as_view(),
+                         detail_view_class.as_view(),
                          name=f'{lower_case_model_name}_view'))
      # new_urls = [path(f'{lower_case_model_name}_list/',
      #                     getattr(core.views, f'{model_name}List').as_view(),
@@ -90,11 +89,10 @@ def add_urls(model_name, pattern_list):
 
      export_urls = [
           path(f'{lower_case_model_name}_export_{file_type}/',
-               getattr(
-                    core.views, f'{model_name}Export{file_type.capitalize()}').as_view(),
+               export_view_class.as_view(),
                name=f'{lower_case_model_name}_export_{file_type}')
-          for file_type in export_file_types.file_types if getattr_or_none(
-                    core.views, f'{model_name}Export{file_type.capitalize()}') != None
+          for file_type in export_file_types.file_types if (export_view_class := getattr(
+                    core.views, f'{model_name}Export{file_type.capitalize()}', None)) != None
      ]
 
      return pattern_list + new_urls + export_urls

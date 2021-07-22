@@ -19,14 +19,6 @@ def rgetattr(obj, attr, *args):
             return getattr(obj, attr, *args)
     return functools.reduce(_getattr, [obj] + attr.split('.'))
 
-
-def getattr_or_none(obj, attr):
-    try:
-        return getattr(obj, attr)
-    except:
-        return None
-
-
 def get_all_related_fields_backward(model):
     def _get_all_fields_rec(model, all_related_fields, parent_model=None, parent_field_name=None):
         # key is name of a field, value is the name of foreign key field in the model that has the field in the key
@@ -41,7 +33,7 @@ def get_all_related_fields_backward(model):
                 'field_name': parent_field_name
             })
             if field_details not in all_related_fields:
-                field_rel_class = getattr_or_none(field_obj, 'rel_class')
+                field_rel_class = getattr(field_obj, 'rel_class', None)
                 if field_rel_class:
                     # not flat field
                     #fk or oneToOne or manyToMany
@@ -62,8 +54,6 @@ def get_all_related_fields_backward(model):
     _get_all_fields_rec(model, all_related_fields)
     return all_related_fields
 
-# builds a trie structure to map out all of a model's fields and all of its foreign key models' fields
-
 
 def get_all_related_fields(top_level_model):
     all_related_fields = {}
@@ -76,7 +66,7 @@ def get_all_related_fields(top_level_model):
                 'model': model,
                 'field_name': field_name
             })
-            field_rel_class = getattr_or_none(field_obj, 'rel_class')
+            field_rel_class = getattr(field_obj, 'rel_class', None)
             if field_rel_class:
                 field_rel_class_name = field_rel_class.__name__
                 if field_rel_class_name != 'ManyToManyRel':
