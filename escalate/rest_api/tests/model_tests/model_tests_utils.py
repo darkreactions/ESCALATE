@@ -33,6 +33,7 @@ def random_model_dict(model, **kwargs):
 
     can_generate_random_val = lambda field: not(
         field.__class__.__name__ == 'RetUUIDField' or
+        field.__class__.__name__ == 'SlugField' or
         field.name == 'add_date' or
         field.name == 'mod_date' or
         field.__class__.__name__ == 'ManyToManyField' or
