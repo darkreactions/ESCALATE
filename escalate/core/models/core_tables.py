@@ -9,6 +9,9 @@ from django.db import models
 from datetime import datetime
 from django.utils.timezone import now
 import uuid
+from django_extensions.db.fields import AutoSlugField
+from core.utils_no_dependencies import rgetattr
+from django.utils.text import slugify as django_slugify
 
 #managed_value = False
 managed_tables = True
@@ -28,6 +31,32 @@ class RetUUIDField(models.UUIDField):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+def custom_slugify(content):
+    if content == None:
+        return ''
+    content = django_slugify(content)
+    return content
+
+class SlugField(AutoSlugField):
+    def __init__(self, *args, **kwargs):
+        if kwargs.get('slugify_function', None) == None:
+            kwargs['slugify_function'] = custom_slugify
+        super().__init__(*args, **kwargs)
+
+    def get_slug_fields(self, model_instance, lookup_value):
+        if callable(lookup_value):
+            # A function has been provided
+            return "%s" % lookup_value(model_instance)
+
+        lookup_value_path = '.'.join(lookup_value.split('__'))
+        attr = rgetattr(model_instance, lookup_value_path, None)
+        
+        if attr.__class__.__name__ == 'ManyRelatedManager':
+            return '-'.join(attr.all())
+        if callable(attr):
+            return "%s" % attr()
+        return str(attr)
+
 
 class TypeDef(models.Model):
 
@@ -44,6 +73,12 @@ class TypeDef(models.Model):
                                    db_column='description')
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
+    internal_slug = SlugField(populate_from=[
+                                    'category',
+                                    'description',
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
 
     def __str__(self):
         return self.description

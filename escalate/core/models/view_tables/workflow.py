@@ -1,10 +1,11 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
-from core.models.core_tables import RetUUIDField
+from core.models.core_tables import RetUUIDField, SlugField
 from core.models.custom_types import ValField, CustomArrayField
 import uuid
 from core.models.base_classes import DateColumns, StatusColumn, ActorColumn, DescriptionColumn
 from core.managers import ExperimentTemplateManager, BomMaterialManager, BomCompositeMaterialManager
+
 
 managed_tables = True
 managed_views = False
@@ -39,6 +40,13 @@ class Action(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                         blank=True,
                                         null=True,
                                         related_name='action_calculation_def')
+    internal_slug = SlugField(populate_from=[
+                                    'description',
+                                    'workflow',
+                                    'action_def__internal_slug'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
 
     def __str__(self):
         return "{}".format(self.description)
@@ -69,6 +77,13 @@ class ActionUnit(DateColumns, StatusColumn, ActorColumn):
     # parameter = models.OneToOneField('Parameter', on_delete=models.CASCADE, blank=True,
     #                           null=True,
     #                           related_name='action_unit_parameter')
+    internal_slug = SlugField(populate_from=[
+                                    'source_material__internal_slug',
+                                    'action__internal_slug',
+                                    'destination_material__internal_slug'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
 
 
 class ActionDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
@@ -77,6 +92,11 @@ class ActionDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                         db_column='action_def_uuid')
     # , through='ActionParameterDefAssign')
     parameter_def = models.ManyToManyField('ParameterDef', blank=True)
+    internal_slug = SlugField(populate_from=[
+                                    'description'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
 
     def __str__(self):
         return f"{self.description}"
@@ -90,6 +110,12 @@ class BillOfMaterials(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
                                    related_name='bom_experiment')
     # experiment_description = models.CharField(
     #    max_length=255, blank=True, null=True)
+    internal_slug = SlugField(populate_from=[
+                                    'description',
+                                    'experiment__internal_slug'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
 
     def __str__(self):
         return f"{self.description}"
@@ -119,6 +145,13 @@ class BaseBomMaterial(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
     mixture = models.ForeignKey('Mixture', on_delete=models.DO_NOTHING,
                                 blank=True, null=True, db_column='material_composite_uuid',
                                 related_name='bom_composite_material_composite_material')
+    internal_slug = SlugField(populate_from=[
+                                    'description',
+                                    'bom__internal_slug',
+                                    'inventory_material__internal_slug'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
 
     def __str__(self):
         return self.description
@@ -154,16 +187,26 @@ class Condition(DateColumns, StatusColumn, ActorColumn):
                                              editable=False)
     condition_def = models.ForeignKey('ConditionDef', models.DO_NOTHING,
                                       db_column='condition_def_uuid', related_name='condition_condition_def')
-
     # TODO: Fix in_val and out_val on Postgres to return strings not JSON!
     in_val = ValField(blank=True, null=True)
     out_val = ValField(blank=True, null=True)
+    internal_slug = SlugField(populate_from=[
+                                    'condition_description',
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
+
 
 
 class ConditionDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
 
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='condition_def_uuid')
     calculation_def = models.ManyToManyField('CalculationDef', blank=True), #through='ConditionCalculationDefAssign')
+    internal_slug = SlugField(populate_from=[
+                                    'description'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
     def __str__(self):
         return f"{self.description}"
 
@@ -184,6 +227,12 @@ class ConditionPath(DateColumns):
                                       blank=True,
                                       null=True,
                                       related_name='condition_path_workflow_step')
+    internal_slug = SlugField(populate_from=[
+                                    'condition__internal_slug',
+                                    'workflow_step__internal_slug'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
 
 # For reference Proxy Models: https://docs.djangoproject.com/en/3.2/topics/db/models/#proxy-models
 
@@ -207,6 +256,11 @@ class Experiment(DateColumns, StatusColumn, DescriptionColumn):
         'Workflow', through='ExperimentWorkflow', related_name='experiment_workflow')
     # owner_description = models.CharField(max_length=255, db_column='owner_description')
     # operator_description = models.CharField(max_length=255, db_column='operator_description')
+    internal_slug = SlugField(populate_from=[
+                                    'description',
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
 
     def __str__(self):
         return f'{self.description}'
@@ -229,6 +283,11 @@ class ExperimentInstance(Experiment):
 class ExperimentType(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='experiment_type_uuid')
+    internal_slug = SlugField(populate_from=[
+                                    'description'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
 
 
 class ExperimentWorkflow(DateColumns):
@@ -245,6 +304,13 @@ class ExperimentWorkflow(DateColumns):
                                  on_delete=models.DO_NOTHING, blank=True, null=True, related_name='experiment_workflow_workflow')
     # workflow_type_uuid = models.ForeignKey('WorkflowType', db_column='workflow_type_uuid',
     #                                       on_delete=models.DO_NOTHING, blank=True, null=True)
+    internal_slug = SlugField(populate_from=[
+                                    'experiment__internal_slug',
+                                    'workflow__internal_slug',
+                                    'experiment_workflow_seq'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
 
 
 class Outcome(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
@@ -252,6 +318,12 @@ class Outcome(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                         db_column='outcome_uuid')
     experiment = models.ForeignKey('Experiment', db_column='experiment_uuid', on_delete=models.DO_NOTHING,
                                    blank=True, null=True, related_name='outcome_experiment')
+    internal_slug = SlugField(populate_from=[
+                                    'experiment__internal_slug',
+                                    'description'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
 
 
 class Workflow(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
@@ -265,6 +337,11 @@ class Workflow(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                       db_column='workflow_type_uuid', related_name='workflow_workflow_type')
     experiment = models.ManyToManyField(
         'Experiment', through='ExperimentWorkflow', related_name='workflow_experiment')
+    internal_slug = SlugField(populate_from=[
+                                    'description',
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
 
     def __str__(self):
         return f'{self.description}'
@@ -308,6 +385,11 @@ class WorkflowActionSet(DateColumns, StatusColumn, ActorColumn, DescriptionColum
 class WorkflowType(DateColumns, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='workflow_type_uuid')
+    internal_slug = SlugField(populate_from=[
+                                    'description'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
 
     def __str__(self):
         return f'{self.description}'
@@ -338,9 +420,12 @@ class WorkflowStep(DateColumns, StatusColumn):
                                    editable=False)
     workflow_object = models.ForeignKey('WorkflowObject', models.DO_NOTHING,
                                         db_column='workflow_object_uuid', related_name='workflow_step_workflow_object')
-    action = models.ForeignKey('Action', models.DO_NOTHING,
-                               blank=True, null=True,
-                               db_column='action_uuid', related_name='workflow_step_action')
+    internal_slug = SlugField(populate_from=[
+                                    'workflow__internal_slug',
+                                    'action__internal_slug'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
 
 
 class WorkflowObject(DateColumns, StatusColumn):
@@ -359,3 +444,10 @@ class WorkflowObject(DateColumns, StatusColumn):
                                             blank=True, null=True,
                                             db_column='workflow_action_set_uuid',
                                             related_name='workflow_object_workflow_action_set')
+    internal_slug = SlugField(populate_from=[
+                                    'workflow__internal_slug',
+                                    'action__internal_slug',
+                                    'condition__internal_slug'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
