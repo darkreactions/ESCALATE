@@ -175,18 +175,12 @@ class GenericModelList(GenericListView):
                 # get actual field value from the model
                 fields_for_col = []
                 for field in necessary_fields:
-                    # not foreign key and manytomany
-                    if field.split('.') == 1 and self.model._meta.get_field(field).__class__.__name__ == 'ManyToManyField':
+                    to_add = rgetattr(model_instance, field)
+                    if to_add.__class__.__name__ == 'ManyRelatedManager':
+                        # if what we get is a many to many object instead of a flat easy to stringify field value
+                        # Ex: Model.something.manyToMany
                         to_add = '\n'.join(
                             [str(x) for x in getattr(model_instance, field).all()])
-                    else:
-                        # Ex: Person.organization.full_name
-                        to_add = rgetattr(model_instance, field)
-                        if to_add.__class__.__name__ == 'ManyRelatedManager':
-                            # if what we get is a many to many object instead of a flat easy to stringify field value
-                            # Ex: Model.foreignkey.manyToMany
-                            to_add = '\n'.join(
-                                [str(x) for x in getattr(model_instance, field).all()])
                     fields_for_col.append(to_add)
                 # loop to change None to '' or non-string to string because join needs strings
                 for k in range(0, len(fields_for_col)):
@@ -507,18 +501,12 @@ class GenericModelView(DetailView):
             # get actual field value from the model
             fields_for_field = []
             for field in necessary_fields:
-                # not foreign key and manytomany
-                if field.split('.') == 1 and self.model._meta.get_field(field).__class__.__name__ == 'ManyToManyField':
+                to_add = rgetattr(obj, field)
+                if to_add.__class__.__name__ == 'ManyRelatedManager':
+                    # if value is many to many obj get the values
+                    # Ex: Model.something.manyToMany
                     to_add = '\n'.join([str(x)
-                                       for x in getattr(obj, field).all()])
-                else:
-                    # Ex: Person.organization.full_name
-                    to_add = rgetattr(obj, field)
-                    if to_add.__class__.__name__ == 'ManyRelatedManager':
-                        # if value is many to many obj get the values
-                        # Ex: Model.foreignkey.manyToMany
-                        to_add = '\n'.join([str(x)
-                                           for x in getattr(obj, field).all()])
+                                        for x in getattr(obj, field).all()])
                 fields_for_field.append(to_add)
             # loop to change None to '' or non-string to string because join needs strings
             for i in range(0, len(fields_for_field)):
