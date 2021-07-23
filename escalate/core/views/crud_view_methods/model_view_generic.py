@@ -12,7 +12,7 @@ from core.forms.forms import NoteForm, TagSelectForm, UploadEdocForm
 from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404, render
 from django.core.exceptions import FieldDoesNotExist
-from core.utilities.view_utils import rgetattr, get_all_related_fields, get_model_of_related_field
+from core.utils_no_dependencies import rgetattr, get_all_related_fields, get_model_of_related_field
 from django.core import serializers
 from core.utilities.utils import camel_to_snake
 from ..exports.export_methods import methods as export_methods
