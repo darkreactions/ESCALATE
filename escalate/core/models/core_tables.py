@@ -11,7 +11,6 @@ from django.utils.timezone import now
 import uuid
 from django_extensions.db.fields import AutoSlugField
 from core.utils_no_dependencies import rgetattr
-from django.utils.text import slugify as django_slugify
 import unicodedata
 import re
 
