@@ -14,7 +14,7 @@ from core.models import (
     Workflow,
     Action,
     Condition,
-    WorkflowActionSet,
+    ConditionDef,
     WorkflowObject,
 )
 
@@ -51,8 +51,8 @@ workflowobject_tests = [
         *[{
             'name': name,
             'method': POST,
-            'endpoint': 'action-list',
-            'body': random_model_dict(Action),
+            'endpoint': 'conditiondef-list',
+            'body': random_model_dict(ConditionDef),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -62,12 +62,12 @@ workflowobject_tests = [
                     'status_code': POST
                 }
             }
-        } for name in ['action0', 'action1']],
+        } for name in ['conditiondef0', 'conditiondef1']], 
         *[{
-            'name': name,
+            'name': 'condition' + str(i),
             'method': POST,
             'endpoint': 'condition-list',
-            'body': random_model_dict(Condition),
+            'body': random_model_dict(Condition, condition_def='conditiondef'+str(i)+'__url'),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -77,28 +77,13 @@ workflowobject_tests = [
                     'status_code': POST
                 }
             }
-        } for name in ['condition0', 'condition1']],
-        *[{
-            'name': name,
-            'method': POST,
-            'endpoint': 'workflowactionset-list',
-            'body': random_model_dict(WorkflowActionSet),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        } for name in ['workflowactionset0', 'workflowactionset1']],
+        } for i in range(2)],
         {
             'name': 'workflowobject0',
             'method': POST,
             'endpoint': 'workflowobject-list',
-            'body': (request_body := random_model_dict(WorkflowObject, workflow='workflow0__url', action='action0__url',
-                                                        condition='condition0__url', workflow_action_set='workflowactionset0__url')), 
+            'body': (request_body := random_model_dict(WorkflowObject, workflow='workflow0__url',
+                                                        condition='condition0__url')), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -132,8 +117,8 @@ workflowobject_tests = [
             'name': 'workflowobject0_update_0',
             'method': PUT,
             'endpoint': 'workflowobject-detail',
-           'body': (request_body := random_model_dict(WorkflowObject, workflow='workflow1__url', action='action1__url',
-                                                        condition='condition1__url', workflow_action_set='workflowactionset1__url')), 
+           'body': (request_body := random_model_dict(WorkflowObject, workflow='workflow1__url',
+                                                        condition='condition1__url')), 
             'args': [
                 'workflowobject0__uuid'
             ],

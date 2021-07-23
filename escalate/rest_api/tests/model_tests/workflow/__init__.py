@@ -10,7 +10,6 @@ from .experimenttype import *
 from .experimentworkflow import *
 from .outcome import *
 from .workflow import *
-from .workflowactionset import *
 from .workflowobject import *
 from .workflowtype import *
 from .workflowstep import *

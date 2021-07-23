@@ -27,8 +27,8 @@ condition_tests = [
 #deletes the updated condition
 #gets the condition (should return error)
     [    
-        {
-            'name': 'conditiondef0',
+        *[{
+            'name': name,
             'method': POST,
             'endpoint': 'conditiondef-list',
             'body': random_model_dict(ConditionDef),
@@ -41,7 +41,7 @@ condition_tests = [
                     'status_code': POST
                 }
             }
-        },  
+        } for name in ['conditiondef0', 'conditiondef1']],  
         {
             'name': 'condition0',
             'method': POST,
@@ -79,7 +79,7 @@ condition_tests = [
             'name': 'condition0_update_0',
             'method': PUT,
             'endpoint': 'condition-detail',
-            'body': (request_body := random_model_dict(Condition)),
+            'body': (request_body := random_model_dict(Condition, condition_def='conditiondef1__url')),
             'args': [
                 'condition0__uuid'
             ],

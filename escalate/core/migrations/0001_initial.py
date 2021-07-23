@@ -358,7 +358,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='UnitType',
             fields=[
-                ('uuid', models.UUIDField(primary_key=True, serialize=False)),
+                ('uuid', models.UUIDField(default=uuid.uuid4, primary_key=True, serialize=False)),
                 ('description', models.CharField(blank=True, db_column='description', max_length=255, null=True)),
                 ('standard_unit', models.CharField(blank=True, db_column='standard_unit', max_length=255, null=True)),
                 ('allowed_units', django.contrib.postgres.fields.ArrayField(base_field=models.CharField(max_length=255), size=None)),

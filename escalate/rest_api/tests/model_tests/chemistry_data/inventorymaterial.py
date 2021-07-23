@@ -64,7 +64,8 @@ inventorymaterial_tests = [
             'method': POST,
             'endpoint': 'inventorymaterial-list',
             'body': (request_body := random_model_dict(InventoryMaterial, inventory='inventory0__url',
-                                                material='material0__url',)), 
+                                                #material='material0__url'
+                                                )), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
