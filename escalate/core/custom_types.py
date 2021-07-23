@@ -138,7 +138,7 @@ class Val:
             required_keys = set(['type', 'value', 'unit'])
             # Check if all keys are present in 
             if not all(k in json_data for k in required_keys):
-                    raise ValidationError(f'Missing key "{required_keys - set(json.loads(json_data).keys())}". ', 'invalid')
+                    raise ValidationError(f'Missing key "{required_keys - set(json_data.keys())}". ', 'invalid')
             
             val_type = cls.validate_type(json_data["type"])
             return cls(val_type, json_data['value'], json_data['unit'])
