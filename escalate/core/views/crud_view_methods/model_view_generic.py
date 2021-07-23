@@ -128,13 +128,11 @@ class GenericModelList(GenericListView):
                 final_field_class_name = final_field_model._meta.get_field(
                     final_field).__class__.__name__
                 if final_field_class_name == 'ManyToManyField':
-                    new_queryset = new_queryset.annotate(
-                        **{f'{related_field}_count': Count(related_field)})
                     filter_kwargs.pop(related_field_query)
-                    filter_kwargs[f'{related_field}_count__gte'] = 0
+                    filter_kwargs[f'{related_field}__internal_slug__icontains'] = filter_val
             filter_query = functools.reduce(lambda q1, q2: q1 | q2, [
                 Q(**{k: v}) for k, v in filter_kwargs.items()]) if len(filter_kwargs) > 0 else Q()
-            new_queryset = new_queryset.filter(filter_query)
+            new_queryset = new_queryset.filter(filter_query).distinct()
         else:
             new_queryset = base_query
 
@@ -642,13 +640,11 @@ class GenericModelExport(View):
                 final_field_class_name = final_field_model._meta.get_field(
                     final_field).__class__.__name__
                 if final_field_class_name == 'ManyToManyField':
-                    new_queryset = new_queryset.annotate(
-                        **{f'{related_field}_count': Count(related_field)})
                     filter_kwargs.pop(related_field_query)
-                    filter_kwargs[f'{related_field}_count__gte'] = 0
+                    filter_kwargs[f'{related_field}__internal_slug__icontains'] = filter_val
             filter_query = functools.reduce(lambda q1, q2: q1 | q2, [
                 Q(**{k: v}) for k, v in filter_kwargs.items()]) if len(filter_kwargs) > 0 else Q()
-            new_queryset = new_queryset.filter(filter_query)
+            new_queryset = new_queryset.filter(filter_query).distict()
         else:
             new_queryset = base_query
 
