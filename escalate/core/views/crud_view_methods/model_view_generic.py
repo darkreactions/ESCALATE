@@ -68,7 +68,7 @@ class GenericModelList(GenericListView):
         return self.column_necessary_fields[field_raw]
 
     def get_queryset(self):
-        filter_val = self.request.GET.get('filter', self.field_contains)
+        filter_val = self.request.GET.get('filter', self.field_contains).strip()
 
         ui_order_dict = {col_name: self.request.GET.get(
             f'{col_name}_sort') for col_name in self.table_columns if self.request.GET.get(
@@ -580,7 +580,7 @@ class GenericModelExport(View):
         return self.column_necessary_fields[field_raw]
 
     def get_queryset(self):
-        filter_val = self.request.GET.get('filter', self.field_contains)
+        filter_val = self.request.GET.get('filter', self.field_contains).strip()
     
         ui_order_dict = {col_name: self.request.GET.get(
             f'{col_name}_sort') for col_name in self.column_names if self.request.GET.get(
