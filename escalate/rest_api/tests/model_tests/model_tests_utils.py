@@ -86,7 +86,7 @@ def random_model_dict(model, **kwargs):
                     'array_int',
                     'array_num',
                     'bool',
-                    "blob",
+                    #"blob",
                     "array_bool",
                     "array_text",
                 ]

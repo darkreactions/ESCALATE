@@ -15,7 +15,8 @@ from core.models import (
     BomMaterial,
     Mixture,
     BillOfMaterials,
-    Inventory
+    Inventory,
+    Material
 )
 
 basebommaterial_test_data = {}
@@ -67,8 +68,8 @@ basebommaterial_tests = [
         *[{
             'name': name,
             'method': POST,
-            'endpoint': 'inventorymaterial-list',
-            'body': (request_body := random_model_dict(InventoryMaterial, inventory='inventory0__url')), 
+            'endpoint': 'material-list',
+            'body': (request_body := random_model_dict(Material)), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -79,12 +80,29 @@ basebommaterial_tests = [
                     'request_body': request_body
                 }
             }
-        } for name in ['inventorymaterial0', 'inventorymaterial1']],
+        } for name in ['material0', 'material1']],
         *[{
-            'name': name,
+            'name': 'inventorymaterial'+str(i),
+            'method': POST,
+            'endpoint': 'inventorymaterial-list',
+            'body': (request_body := random_model_dict(InventoryMaterial, inventory='inventory'+str(i)+'__url',
+                                                        material='material'+str(i)+'__url')), 
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': compare_data,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST,
+                    'request_body': request_body
+                }
+            }
+        } for i in range(2)],
+        *[{
+            'name': 'bommaterial' + str(i),
             'method': POST,
             'endpoint': 'bommaterial-list',
-            'body': random_model_dict(BomMaterial),
+            'body': random_model_dict(BomMaterial, inventory_material='inventorymaterial'+str(i)+'__url'),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -94,7 +112,7 @@ basebommaterial_tests = [
                     'status_code': POST
                 }
             }
-        } for name in ['bommaterial0', 'bommaterial1']],
+        } for i in range(2)],
         *[{
             'name': name,
             'method': POST,

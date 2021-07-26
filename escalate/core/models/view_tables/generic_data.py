@@ -17,16 +17,16 @@ class Calculation(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     in_val = ValField( blank=True, null=True)
     in_val_edocument = models.ForeignKey('Edocument',
                                          models.DO_NOTHING,
-                                         db_column='in_val_edocument_uuid',
+                                         db_column='in_val_edocument_uuid', blank=True, null=True,
                                          related_name='calculation_in_val_edocument', editable=False)
     in_opt_val = ValField( blank=True, null=True)
     in_opt_val_edocument = models.ForeignKey('Edocument',
-                                             models.DO_NOTHING,
+                                             models.DO_NOTHING,blank=True, null=True,
                                              db_column='in_opt_val_edocument_uuid',
                                              related_name='calculation_in_opt_val_edocument', editable=False)
     out_val = ValField( blank=True, null=True)
     out_val_edocument = models.ForeignKey('Edocument',
-                                          models.DO_NOTHING,
+                                          models.DO_NOTHING, blank=True, null=True,
                                           db_column='out_val_edocument_uuid',
                                           related_name='calculation_out_val_edocument', editable=False)
 

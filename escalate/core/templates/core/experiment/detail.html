@@ -17,7 +17,9 @@
                     {% for filename, link in file_download_links.items %}
                     <tr>
                         <td>{{ filename }}</td>
-                        <td><a href="{{ link }}">Download file</a></td>
+                        <td><a href="{{ link }}"><strong>Download file</strong>
+                            <i class="fa fa-download"></i>
+                        </a></td>
                     </tr>
                     {% endfor %}
                     <tr>

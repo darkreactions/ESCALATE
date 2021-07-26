@@ -45,8 +45,8 @@ actionunit_tests = [
                 }
             }
         } for name in ['basebommaterial0', 'basebommaterial1']],
-        {
-            'name': 'action0',
+        *[{
+            'name': name,
             'method': POST,
             'endpoint': 'action-list',
             'body': random_model_dict(Action),
@@ -59,7 +59,7 @@ actionunit_tests = [
                     'status_code': POST
                 }
             }
-        },
+        } for name in ['action0', 'action1']],
         {
             'name': 'actionunit0',
             'method': POST,
@@ -100,7 +100,8 @@ actionunit_tests = [
             'name': 'actionunit0_update_0',
             'method': PUT,
             'endpoint': 'actionunit-detail',
-            'body': (request_body := random_model_dict(ActionUnit, destination_material='basebommaterial0__url',
+            'body': (request_body := random_model_dict(ActionUnit, action='action1__url',
+                                                destination_material='basebommaterial0__url',
                                                 source_material='basebommaterial1__url')),
             'args': [
                 'actionunit0__uuid'
