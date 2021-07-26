@@ -73,7 +73,7 @@ def random_model_dict(model, **kwargs):
                     rand_day = '0' + str(rand_day)
                 model_dict[field_name] = f'{rand_year}-{rand_month}-{rand_day}'
             elif field_class_name == "DateTimeField":
-                model_dict[field_name] = str(datetime.datetime.today())
+                model_dict[field_name] = str(datetime.datetime.today()).replace(' ', 'T') + 'Z'
             elif field_class_name == "FloatField" or field_class_name == "BigIntegerField" or field_class_name == "IntegerField":
                 model_dict[field_name] = random.randint(0,255)
             elif field_class_name == "BooleanField":

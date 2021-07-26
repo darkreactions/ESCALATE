@@ -28,8 +28,8 @@ actiondef_tests = [
 #gets the actiondef (should return error)
     [      
         
-        {
-            'name': 'parameterdef0',
+        *[{
+            'name': name,
             'method': POST,
             'endpoint': 'parameterdef-list',
             'body': random_model_dict(ParameterDef),
@@ -42,22 +42,7 @@ actiondef_tests = [
                     'status_code': POST
                 }
             }
-        },
-        {
-            'name': 'parameterdef1',
-            'method': POST,
-            'endpoint': 'parameterdef-list',
-            'body': random_model_dict(ParameterDef),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
+        } for name in ['parameterdef0', 'parameterdef1']],
         {
             'name': 'actiondef0',
             'method': POST,

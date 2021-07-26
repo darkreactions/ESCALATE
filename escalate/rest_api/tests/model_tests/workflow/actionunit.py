@@ -30,8 +30,8 @@ actionunit_tests = [
 #deletes the updated systemtooltype
 #gets the systemtooltype (should return error)
     [      
-        {
-            'name': 'basebommaterial0',
+        *[{
+            'name': name,
             'method': POST,
             'endpoint': 'basebommaterial-list',
             'body': random_model_dict(BaseBomMaterial),
@@ -44,22 +44,7 @@ actionunit_tests = [
                     'status_code': POST
                 }
             }
-        },
-        {
-            'name': 'basebommaterial1',
-            'method': POST,
-            'endpoint': 'basebommaterial-list',
-            'body': random_model_dict(BaseBomMaterial),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
+        } for name in ['basebommaterial0', 'basebommaterial1']],
         {
             'name': 'action0',
             'method': POST,
