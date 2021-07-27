@@ -10,8 +10,7 @@ from ..model_tests_utils import (
 )
 
 from core.models import (
-    ParameterDef,
-    TypeDef
+    ParameterDef
 )
 
 parameter_def_data = {}
@@ -42,7 +41,7 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_get',
+            'name': 'parameterdef_get_0',
             'method': GET,
             'endpoint': 'parameterdef-detail',
             'body': {},
@@ -77,7 +76,7 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_update_get',
+            'name': 'parameterdef_get_1',
             'method': GET,
             'endpoint': 'parameterdef-detail',
             'body': {},
@@ -94,7 +93,7 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'parameterdef_update_del',
+            'name': 'parameterdef_delete_0',
             'method': DELETE,
             'endpoint': 'parameterdef-detail',
             'body': {},
@@ -111,7 +110,7 @@ parameter_def_tests = [
             }
         },
         {
-            'name': 'properydef_update_del_get',
+            'name': 'properydef_get_2',
             'method': GET,
             'endpoint': 'parameterdef-detail',
             'body': {},

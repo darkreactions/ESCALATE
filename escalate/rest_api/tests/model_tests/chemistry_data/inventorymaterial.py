@@ -29,8 +29,8 @@ inventorymaterial_tests = [
 #deletes the updated inventorymaterial
 #gets the inventorymaterial (should return error)
     [      
-        {
-            'name': 'inventory0',
+        *[{
+            'name': name,
             'method': POST,
             'endpoint': 'inventory-list',
             'body': random_model_dict(Inventory),
@@ -43,9 +43,9 @@ inventorymaterial_tests = [
                     'status_code': POST
                 }
             }
-        },
-        {
-            'name': 'material0',
+        } for name in ['inventory0', 'inventory1']],
+        *[{
+            'name': name,
             'method': POST,
             'endpoint': 'material-list',
             'body': random_model_dict(Material),
@@ -58,14 +58,13 @@ inventorymaterial_tests = [
                     'status_code': POST
                 }
             }
-        },
+        } for name in ['material0', 'material1']],
         {
             'name': 'inventorymaterial0',
             'method': POST,
             'endpoint': 'inventorymaterial-list',
             'body': (request_body := random_model_dict(InventoryMaterial, inventory='inventory0__url',
-                                                #material='material0__url'
-                                                )), 
+                                                material='material0__url')), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -99,7 +98,8 @@ inventorymaterial_tests = [
             'name': 'inventorymaterial0_update_0',
             'method': PUT,
             'endpoint': 'inventorymaterial-detail',
-            'body': (request_body := random_model_dict(InventoryMaterial)),
+            'body': (request_body := random_model_dict(InventoryMaterial, inventory='inventory1__url',
+                                                material='material1__url')), 
             'args': [
                 'inventorymaterial0__uuid'
             ],

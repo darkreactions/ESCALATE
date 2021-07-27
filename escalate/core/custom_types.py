@@ -56,7 +56,7 @@ class Val:
         primitives = {'bool': bool, 'int': int, 'num': float, 'text': str, 'blob': str}
         reverse_primitives = {bool: 'bool',
                               int: 'int', float: 'num', str: 'text'}
-        default_primitives = {'bool': False, 'int': 0, 'num': 0.0, 'text': ' '}
+        default_primitives = {'bool': False, 'int': 0, 'num': 0.0, 'text': ' ', 'blob':' '}
         prim = primitives[description]
         try:
             if value:
@@ -138,7 +138,10 @@ class Val:
             required_keys = set(['type', 'value', 'unit'])
             # Check if all keys are present in 
             if not all(k in json_data for k in required_keys):
-                    raise ValidationError(f'Missing key "{required_keys - set(json.loads(json_data).keys())}". ', 'invalid')
+                try:
+                    raise ValidationError(f'Missing key "{required_keys - set(json_data.keys())}". ', 'invalid')
+                except:
+                    print('Data does not have attribute keys')
             
             val_type = cls.validate_type(json_data["type"])
             return cls(val_type, json_data['value'], json_data['unit'])

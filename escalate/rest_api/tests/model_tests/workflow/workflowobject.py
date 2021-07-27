@@ -64,7 +64,7 @@ workflowobject_tests = [
             }
         } for name in ['conditiondef0', 'conditiondef1']], 
         *[{
-            'name': 'condition' + str(i),
+            'name': 'condition'+str(i),
             'method': POST,
             'endpoint': 'condition-list',
             'body': random_model_dict(Condition, condition_def='conditiondef'+str(i)+'__url'),
@@ -83,7 +83,8 @@ workflowobject_tests = [
             'method': POST,
             'endpoint': 'workflowobject-list',
             'body': (request_body := random_model_dict(WorkflowObject, workflow='workflow0__url',
-                                                        condition='condition0__url')), 
+                                                        condition='condition0__url'
+                                                        )), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -118,7 +119,8 @@ workflowobject_tests = [
             'method': PUT,
             'endpoint': 'workflowobject-detail',
            'body': (request_body := random_model_dict(WorkflowObject, workflow='workflow1__url',
-                                                        condition='condition1__url')), 
+                                                        #condition='condition1__url'
+                                                        )), 
             'args': [
                 'workflowobject0__uuid'
             ],
