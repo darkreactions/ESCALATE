@@ -299,15 +299,26 @@ class CreateExperimentView(TemplateView):
                 
                 if template_name == 'liquid_solid_extraction':
                     lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
+                    xls_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='XLS file')
                     new_lsr_pk, lsr_msg = liquid_solid_extraction(data, q1, experiment_copy_uuid, lsr_edoc, exp_name)
                 elif template_name == 'resin_weighing':
                     lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
+                    xls_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='XLS file')
                     new_lsr_pk, lsr_msg = resin_weighing(experiment_copy_uuid, lsr_edoc, exp_name)
                 elif template_name == 'perovskite_demo':
                     new_lsr_pk, lsr_msg = perovskite_demo(data, q1, experiment_copy_uuid, exp_name)
 
+                # link_data = {f'{lsr_edoc.title}' : self.request.build_absolute_uri(reverse('edoc_download', args=[lsr_edoc.pk]))}
                 # handle library studio file if relevant
+
+                #this is done for the purposes of the perovskite_demo
+                #will likely need to be changed to new_xls_pk in the future
+                
                 if new_lsr_pk is not None:
+                    context['xls_download_link'] = reverse('edoc_download', args=[new_lsr_pk])
+                if str(self.request.session['current_org_name']) != "TestCo":
+                    context['lsr_download_link'] = None
+                elif new_lsr_pk is not None:
                     context['lsr_download_link'] = reverse('edoc_download', args=[new_lsr_pk])
                 else:
                     messages.error(request, f'LSRGenerator failed with message: "{lsr_msg}"')
@@ -438,7 +449,6 @@ class ExperimentDetailView(DetailView):
         detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q1})
         #detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q2})
         #detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q3})
-
         link_data = {f'{lsr_edoc.title}' : self.request.build_absolute_uri(reverse('edoc_download', args=[lsr_edoc.pk])) for lsr_edoc in edocs}
         
 
