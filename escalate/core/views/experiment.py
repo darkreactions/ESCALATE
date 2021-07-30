@@ -53,7 +53,10 @@ class CreateExperimentView(TemplateView):
     def get_context_data(self, **kwargs):    
         # Select templates that belong to the current lab
         context = super().get_context_data(**kwargs)
-        org_id = self.request.session['current_org_id']
+        if 'current_org_id' in self.request.session:
+            org_id = self.request.session['current_org_id']
+        else:
+            org_id = None
         lab = Actor.objects.get(organization=org_id, person__isnull=True)
         self.all_experiments = Experiment.objects.filter(parent__isnull=True, lab=lab)
         context['all_experiments'] = self.all_experiments
@@ -431,7 +434,6 @@ class ExperimentDetailView(DetailView):
         q1 = get_action_parameter_querysets(exp.uuid)
         mat_q = get_material_querysets(exp.uuid)
         edocs = Edocument.objects.filter(ref_edocument_uuid=exp.uuid)
-
         detail_data = {row.object_description : row.inventory_material for row in mat_q}
         detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q1})
         #detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q2})
@@ -453,7 +455,7 @@ class ExperimentDetailView(DetailView):
         tags = []
         for tag in tags_raw:
             tags.append(tag.display_text.strip())
-        detail_data['Tags'] = ', '.join(tags)
+        context['tags'] = ', '.join(tags)
 
         context['title'] = self.model_name.replace('_', " ").capitalize()
         context['update_url'] = reverse_lazy(

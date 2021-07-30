@@ -14,7 +14,7 @@
             {% endfor %}
             <tr>
               <td>Tags:</td>
-              <td>{{Tags}}</td>
+              <td>{{tags}}</td>
             </tr>
             <tr>
               <td>Notes:</td>
@@ -23,7 +23,7 @@
             <tr>
               <td>Documents:</td>
               <td>
-                {% for edoc in Edocs %}
+                {% for edoc in edocs %}
                 <a href="{{edoc.download_url}}" download
                   >{{edoc.filename|linebreaks}}</a
                 >

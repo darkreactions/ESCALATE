@@ -533,7 +533,7 @@ class GenericModelView(DetailView):
         tags = []
         for tag in tags_raw:
             tags.append(tag.display_text.strip())
-        context['Tags'] = ', '.join(tags)
+        context['tags'] = ', '.join(tags)
 
         # get edocuments
         edocs_raw = Edocument.objects.filter(ref_edocument_uuid=obj.pk)
@@ -547,7 +547,7 @@ class GenericModelView(DetailView):
                 'filename': filename,
                 'download_url': download_url
             })
-        context['Edocs'] = edocs
+        context['edocs'] = edocs
 
         context['title'] = self.model_name.replace('_', " ").capitalize()
         context['update_url'] = reverse_lazy(

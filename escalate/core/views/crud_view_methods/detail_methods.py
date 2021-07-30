@@ -200,15 +200,15 @@ methods = {
             'Status': ['status.description']
         },
     },
-    'Experiment': {
-        'model': core.models.view_tables.Experiment,
-        'model_name': 'experiment',
-        'detail_fields': ['Description', 'Status',],
-        'detail_fields_need_fields': {
-            'Description': ['description'],
-            'Status': ['status.description']
-        },
-    },
+    # 'Experiment': {
+    #     'model': core.models.view_tables.Experiment,
+    #     'model_name': 'experiment',
+    #     'detail_fields': ['Description', 'Status',],
+    #     'detail_fields_need_fields': {
+    #         'Description': ['description'],
+    #         'Status': ['status.description']
+    #     },
+    # },
     'Vessel': {
         'model': core.models.view_tables.Vessel,
         'model_name': 'vessel',
