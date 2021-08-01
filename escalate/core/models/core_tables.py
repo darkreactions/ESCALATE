@@ -32,13 +32,6 @@ class RetUUIDField(models.UUIDField):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-def custom_slugify1(content):
-    if content == None:
-        return ''
-    content = django_slugify(content)
-    return content
-
-
 def custom_slugify(content, allow_unicode=False):
     if content == None:
         return ''
@@ -75,7 +68,7 @@ class SlugField(AutoSlugField):
             return '-'.join(attr.all())
         if callable(attr):
             return "%s" % attr()
-        return str(attr)
+        return str(attr) if attr != None else ''
 
 
 class TypeDef(models.Model):
