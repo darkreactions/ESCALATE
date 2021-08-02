@@ -181,6 +181,9 @@ methods = {
         },
         'ordering': ['description'],
         'field_contains': '',
-        'org_related_path': 'lab__organization'
+        'org_related_path': 'lab__organization',
+        'default_filter_kwargs': {
+            'parent__isnull': False
+        }
     }
 }

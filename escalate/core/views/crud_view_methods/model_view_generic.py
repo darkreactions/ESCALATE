@@ -58,6 +58,8 @@ class GenericModelList(GenericListView):
     # A related path that points to the organization this field belongs to
     org_related_path = None
 
+    default_filter_kwargs = None
+
     paginate_by = 10
 
     @property
@@ -95,8 +97,6 @@ class GenericModelList(GenericListView):
         filter_kwargs = {
             f'{f}__icontains': filter_val for f in all_necessary_fields_dunder}
 
-        # might not need to do this, maybe order by number of m2m
-
         # Filter by organization if it exists in the model
         if self.request.user.is_superuser:
             base_query = self.model.objects.all()
@@ -115,6 +115,9 @@ class GenericModelList(GenericListView):
                         base_query = self.model.objects.all()
             else:
                 base_query = self.model.objects.none()
+        
+        if self.default_filter_kwargs:
+            base_query = base_query.filter(**self.default_filter_kwargs)
 
         all_related_fields = get_all_related_fields(self.model)
         # filter
