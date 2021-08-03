@@ -73,9 +73,13 @@ class GenericModelList(GenericListView):
     def get_queryset(self):
         filter_val = self.request.GET.get('filter', self.field_contains).strip()
 
-        ui_order_dict = {col_name: self.request.GET.get(
-            f'{col_name}_sort') for col_name in self.table_columns if self.request.GET.get(
-            f'{col_name}_sort', None) != None}
+        #Ex: [('first_name_sort', 'asc'),...]
+        ui_order_raw = list(
+            filter(lambda k_v: k_v[0].endswith('_sort') and k_v[0].replace('_sort', '') in self.table_columns,
+            list(self.request.GET.items())
+            ))
+        #Ex: {'first_name':'asc'}
+        ui_order_dict = {k_v[0].replace('_sort',''):k_v[1] for k_v in ui_order_raw}
 
         ui_order = []
         for col_name, order in ui_order_dict.items():
@@ -586,9 +590,13 @@ class GenericModelExport(View):
     def get_queryset(self):
         filter_val = self.request.GET.get('filter', self.field_contains).strip()
     
-        ui_order_dict = {col_name: self.request.GET.get(
-            f'{col_name}_sort') for col_name in self.column_names if self.request.GET.get(
-            f'{col_name}_sort', None) != None}
+        #Ex: [('first_name_sort', 'asc'),...]
+        ui_order_raw = list(
+            filter(lambda k_v: k_v[0].endswith('_sort') and k_v[0].replace('_sort', '') in self.table_columns,
+            list(self.request.GET.items())
+            ))
+        #Ex: {'first_name':'asc'}
+        ui_order_dict = {k_v[0].replace('_sort',''):k_v[1] for k_v in ui_order_raw}
 
         ui_order = []
         for col_name, order in ui_order_dict.items():
