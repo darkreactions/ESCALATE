@@ -92,14 +92,16 @@ class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
     
     def list(self, request, *args, **kwargs):
-        q1, q2, q3 = get_action_parameter_querysets(kwargs['parent_lookup_uuid'])
+        #q1, q2, q3 = get_action_parameter_querysets(kwargs['parent_lookup_uuid'])
+        q1 = get_action_parameter_querysets(kwargs['parent_lookup_uuid'])
         q1_mat = get_material_querysets(kwargs['parent_lookup_uuid'])
         
         exp_params1 = [{'nominal_value': row.parameter_value, 'actual_value': row.parameter_value,'object_description': f'{row.object_description}', 'parameter_def_description': f'{row.parameter_def_description}'} for row in q1]
-        exp_params2 = [{'nominal_value': param, 'actual_value': param, 'object_description': f'{row.object_description}', 'parameter_def_description': f'{row.parameter_def_description}'} for row in q2 for param in row.parameter_value]
-        exp_params3 = [{'nominal_value': row.parameter_value, 'actual_value': row.parameter_value, 'object_description': f'{row.object_description}', 'parameter_def_description': f'{row.parameter_def_description}'} for row in q3]
+        #exp_params2 = [{'nominal_value': param, 'actual_value': param, 'object_description': f'{row.object_description}', 'parameter_def_description': f'{row.parameter_def_description}'} for row in q2 for param in row.parameter_value]
+        #exp_params3 = [{'nominal_value': row.parameter_value, 'actual_value': row.parameter_value, 'object_description': f'{row.object_description}', 'parameter_def_description': f'{row.parameter_def_description}'} for row in q3]
         
-        results = {'experiment_parameters_1': exp_params1, 'experiment_parameters_2': exp_params2, 'experiment_parameters_3': exp_params3}
+        #results = {'experiment_parameters_1': exp_params1, 'experiment_parameters_2': exp_params2, 'experiment_parameters_3': exp_params3}
+        results = {'experiment_parameters_1': exp_params1}
         mat_params = [{'material_name': row.object_description , 'value': request.build_absolute_uri(reverse('inventorymaterial-detail', args=[row.inventory_material.uuid]))} for row in q1_mat]
         #mat_params = [{'material_name': row.object_description , 'value': row.object_uuid} for row in q1_mat]
         #mat_params = {row.object_description:row.object_uuid for row in q1_mat}
@@ -142,22 +144,26 @@ class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
         exp_name = request.data['experiment_name']
 
         experiment_copy_uuid = experiment_copy(template_uuid, exp_name)
-        q1, q2, q3 = get_action_parameter_querysets(experiment_copy_uuid)
+        #q1, q2, q3 = get_action_parameter_querysets(experiment_copy_uuid)
+        q1 = get_action_parameter_querysets(experiment_copy_uuid)
+        
         q1_mat = get_material_querysets(experiment_copy_uuid)
 
         self.save_material_params(q1_mat, request.data['material_parameters'])
         self.save_params(q1, request.data['experiment_parameters_1'], {'parameter_val_actual': 'actual_value', 'parameter_val_nominal': 'nominal_value'})
-        self.save_params(q2, request.data['experiment_parameters_2'], None)
+        #self.save_params(q2, request.data['experiment_parameters_2'], None)
 
         if template_name in SUPPORTED_CREATE_WFS:
             if template_name == 'liquid_solid_extraction':
                 lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
-                new_lsr_pk, lsr_msg = liquid_solid_extraction(data, q3, experiment_copy_uuid, lsr_edoc, exp_name)
+                #new_lsr_pk, lsr_msg = liquid_solid_extraction(data, q3, experiment_copy_uuid, lsr_edoc, exp_name)
+                new_lsr_pk, lsr_msg = liquid_solid_extraction(data, q1, experiment_copy_uuid, lsr_edoc, exp_name)
             elif template_name == 'resin_weighing':
                 lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
                 new_lsr_pk, lsr_msg = resin_weighing(experiment_copy_uuid, lsr_edoc, exp_name)
             elif template_name == 'perovskite_demo':
-                new_lsr_pk, lsr_msg = perovskite_demo(data, q3, experiment_copy_uuid, exp_name)
+                #new_lsr_pk, lsr_msg = perovskite_demo(data, q3, experiment_copy_uuid, exp_name)
+                new_lsr_pk, lsr_msg = perovskite_demo(data, q1, experiment_copy_uuid, exp_name)
 
         return Response({'experiment_detail': request.build_absolute_uri(reverse('experiment-detail', args=[experiment_copy_uuid])),
                         'generated_file': request.build_absolute_uri(reverse('edoc_download', args=[new_lsr_pk]))})
