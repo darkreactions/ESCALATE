@@ -120,7 +120,7 @@ material_composites = [
 r_material_composites = {}
 for mat in material_composites:
     material_composite = dict(zip(material_composite_fields, mat))
-    r = post_data('compositematerial', material_composite, token_header)
+    r = post_data('mixture', material_composite, token_header)
     r = requests.get(r['url']).json()
     r_material_composites[(r['composite_description'], r['component_description'])] = r
 print(r_material_composites)

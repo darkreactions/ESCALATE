@@ -15,7 +15,7 @@ DATABASES = {
         "HOST": 'escalate-postgres',
         "PORT": 5432,
         'OPTIONS': {
-            'options': '-c search_path=prod'
+            #'options': '-c search_path=prod'
         }
     }
 }

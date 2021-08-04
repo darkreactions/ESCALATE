@@ -1,0 +1,77 @@
+short_name	calc_definition	description	systemtool_name	systemtool_ver	in_calc_source	in_type	in_opt_calc_source	in_opt_type	out_type
+molweight	mass	molecule mass calculation	cxcalc	19.27.0		text			num
+standardize	-c removefragment:method=keeplargest	smiles standardized	standardize	19.27.0		text			text
+molimage	svg	smiles svg image	molconvert	19.27.0		text			blob_svg
+density	density	calculate density	escalate	3.0.0		text			num
+molweight_standardize	mass	molecule mass calculation from (standardized) smiles	cxcalc	19.27.0	standardize	text			num
+atomcount_n_standardize	atomcount -z 7 	number of nitrogen atoms in the molecule 	cxcalc	19.27.0	standardize	text			int
+avgpol_standardize	avgpol	average molecular polarizability calculation	cxcalc	19.27.0	standardize	text			num
+molpol_standardize	molpol 	molecular polarizability calculation	cxcalc	19.27.0	standardize	text			num
+refractivity_standardize	refractivity 	refractivity calculation	cxcalc	19.27.0	standardize	text			num
+aliphaticringcount_standardize	aliphaticringcount 	aliphatic ring count	cxcalc	19.27.0	standardize	text			int
+aromaticringcount_standardize	aromaticringcount 	aromatic ring count	cxcalc	19.27.0	standardize	text			int
+aromaticatomcount_standardize	aromaticatomcount	aromatic atom count	cxcalc	19.27.0	standardize	text			int
+bondcount_standardize	bondcount	bond count	cxcalc	19.27.0	standardize	text			int
+carboaliphaticringcount_standardize	carboaliphaticringcount	carboaliphatic ring count	cxcalc	19.27.0	standardize	text			int
+carboaromaticringcount_standardize	carboaromaticringcount	carboaromatic ring count	cxcalc	19.27.0	standardize	text			int
+carboringcount_standardize	carboringcount	carbo ring count	cxcalc	19.27.0	standardize	text			int
+chainatomcount_standardize	chainatomcount	chain atom count	cxcalc	19.27.0	standardize	text			int
+ringatomcount_standardize	ringatomcount	ring atom count	cxcalc	19.27.0	standardize	text			int
+smallestringsize_standardize	smallestringsize	smallest ring size	cxcalc	19.27.0	standardize	text			int
+largestringsize_standardize	largestringsize	largest ring size	cxcalc	19.27.0	standardize	text			int
+heteroaliphaticringcount_standardize	heteroaliphaticringcount	heteroaliphatic ring count	cxcalc	19.27.0	standardize	text			int
+rotatablebondcount_standardize	rotatablebondcount	rotatable bond count	cxcalc	19.27.0	standardize	text			int
+balabanindex_standardize	balabanindex	the balaban index	cxcalc	19.27.0	standardize	text			int
+cyclomaticnumber_standardize	cyclomaticnumber	the cyclomatic number	cxcalc	19.27.0	standardize	text			int
+hyperwienerindex_standardize	hyperwienerindex	hyper wiener index	cxcalc	19.27.0	standardize	text			int
+wienerindex_standardize	wienerindex	wiener index	cxcalc	19.27.0	standardize	text			int
+wienerpolarity_standardize	wienerpolarity 	wiener polarity	cxcalc	19.27.0	standardize	text			num
+minimalprojectionarea_standardize	minimalprojectionarea 	calculates the minimal projection area	cxcalc	19.27.0	standardize	text			num
+maximalprojectionarea_standardize	maximalprojectionarea 	calculates the maximal projection area	cxcalc	19.27.0	standardize	text			num
+maximalprojectionradius_standardize	maximalprojectionradius 	calculates the maximal projection radius	cxcalc	19.27.0	standardize	text			num
+lengthperpendiculartotheminarea_standardize	minimalprojectionsize 	calculates the size of the molecule perpendicular to the minimal projection area surface	cxcalc	19.27.0	standardize	text			num
+lengthperpendiculartothemaxarea_standardize	maximalprojectionsize  	calculates the size of the molecule perpendicular to the maximal projection area surface	cxcalc	19.27.0	standardize	text			num
+vanderwaalsvolume_standardize	volume 	calculates the van der waals volume of the molecule	cxcalc	19.27.0	standardize	text			num
+vanderwaalssurfacearea_standardize	vdwsa	van der waals surface area calculation	cxcalc	19.27.0	standardize	text			num
+asa_standardize	wateraccessiblesurfacearea asa	asa, asa+, asa-, asa_h, asa_p	cxcalc	19.27.0	standardize	text			num
+polarsurfacearea_standardize	polarsurfacearea 	topological polar surface area calculation (2d)	cxcalc	19.27.0	standardize	text			num
+acceptorcount_standardize	acceptorcount	hydrogen bond acceptor atom count in molecule	cxcalc	19.27.0	standardize	text			int
+accsitecount_standardize	acceptorsitecount	hydrogen bond acceptor multiplicity in molecule	cxcalc	19.27.0	standardize	text			int
+donorcount_standardize	donorcount	hydrogen bond donor atom count in molecule	cxcalc	19.27.0	standardize	text			int
+donsitecount_standardize	donorsitecount	hydrogen bond donor multiplicity in molecule	cxcalc	19.27.0	standardize	text			int
+maximalprojectionsize_standardize	maximalprojectionsize	calculates the size of the molecule perpendicular to the maximal projection area surface	cxcalc	19.27.0	standardize	text			num
+molsurfaceareavdwp_standardize	molecularsurfacearea -t vanderwaals -H 3.0	molecular surface area calculation (3d)	cxcalc	19.27.0	standardize	text			num
+msareavdwp_standardize	msa -t vanderwaals -H 3.0	molecular surface area calculation (3d)	cxcalc	19.27.0	standardize	text			num
+molsurfaceareaasap_standardize	molecularsurfacearea -t ASA+ -H 3.0	molecular surface area calculation (3d)	cxcalc	19.27.0	standardize	text			num
+msareaasap_standardize	msa -t ASA+ -H 3.0	molecular surface area calculation (3d)	cxcalc	19.27.0	standardize	text			num
+protpolarsurfacearea_standardize	polarsurfacearea -H 3.0	topological polar surface area calculation (2d)	cxcalc	19.27.0	standardize	text			num
+protpsa_standardize	psa -H 3.0	topological polar surface area calculation (2d)	cxcalc	19.27.0	standardize	text			num
+hacceptorcount_standardize	acceptorcount -H 3.0	hydrogen bond acceptor atom count in molecule	cxcalc	19.27.0	standardize	text			int
+hdonorcount_standardize	donorcount -H 3.0	hydrogen bond donor atom count in molecule	cxcalc	19.27.0	standardize	text			int
+fr_amidine_standardize	fr_amidine	number of amidine groups	RDKit	19.03.4	standardize	text			int
+fr_dihydropyridine_standardize	fr_dihydropyridine	number of dihydropyridines	RDKit	19.03.4	standardize	text			int
+fr_guanido_standardize	fr_guanido	number of guanidine groups	RDKit	19.03.4	standardize	text			int
+fr_piperdine_standardize	fr_piperdine	number of piperdine rings	RDKit	19.03.4	standardize	text			int
+fr_piperzine_standardize	fr_piperzine	number of piperzine rings	RDKit	19.03.4	standardize	text			int
+fr_pyridine_standardize	fr_pyridine	number of pyridine rings	RDKit	19.03.4	standardize	text			int
+asa-_standardize	wateraccessiblesurfacearea asa-	asa-	cxcalc	19.27.0	standardize	text			num
+asa_h_standardize	wateraccessiblesurfacearea asa_h	asa_h	cxcalc	19.27.0	standardize	text			num
+asa_p_standardize	wateraccessiblesurfacearea asa_p	asa_p	cxcalc	19.27.0	standardize	text			num
+asa+_standardize	wateraccessiblesurfacearea asa+	asa+	cxcalc	19.27.0	standardize	text			num
+fr_nh2_standardize	fr_NH2	number of secondary amines	RDKit	19.03.4	standardize	text			int
+fr_nh1_standardize	fr_NH1	number of primary amines	RDKit	19.03.4	standardize	text			int
+fr_nh0_standardize	fr_NH0	number of tertiary amines	RDKit	19.03.4	standardize	text			int
+fr_quatn_standardize	fr_quatN	number of quarternary nitrogens	RDKit	19.03.4	standardize	text			int
+fr_arn_standardize	fr_ArN	number of aromatic nitrogens	RDKit	19.03.4	standardize	text			int
+fr_ar_nh_standardize	fr_Ar_NH	number of aromatic amines	RDKit	19.03.4	standardize	text			int
+fr_imine_standardize	fr_Imine	number of imines	RDKit	19.03.4	standardize	text			int
+aliphaticatomcount_standardize	aliphaticatomcount	aliphatic atom count	cxcalc	19.27.0	standardize	text			int
+ecpf4_256_6_standardize	-k ECFP -2 -f 256 -n 6	chemical fingerprint ecpf	generatemd	19.6.0	standardize	text			blob_text
+atomcount_c_standardize	atomcount -z 6	number of carbon atoms in the molecule 	cxcalc	19.27.0	standardize	text			int
+chiralcentercount_standardize	chiralcentercount	the number of tetrahedral stereogenic center atoms	cxcalc	19.27.0	standardize	text			int
+minimalprojectionradius_standardize	minimalprojectionradius 	calculates the minimal projection radius	cxcalc	19.27.0	standardize	text			num
+minimalprojectionsize_standardize	minimalprojectionsize	calculates the size of the molecule perpendicular to the minimal projection area surface	cxcalc	19.27.0	standardize	text			num
+heteroaromaticringcount_standardize	heteroaromaticringcount	heteroaromatic ring count	cxcalc	19.27.0	standardize	text			int
+charge_cnt_standardize	get_charge_count	number of postive charges (+) in the SMILES string	escalate	3.0.0	standardize	text			num
+chrg_per_vol_standardize	charge_cnt / vanderwaalsvolume	charge count / vanderwaalsvolume	escalate	3.0.0	charge_cnt_standardize	int	vanderwaalsvolume_standardize	int	num
+chrg_per_asa_standardize	charge_cnt / asa-	charge_cnt / asa-	escalate	3.0.0	charge_cnt_standardize	int	asa-_standardize	int	num

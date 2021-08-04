@@ -2,11 +2,11 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth.hashers import make_password
 from django.contrib.admin import widgets
-from core.models import (CustomUser,  PersonTable, OrganizationPassword, )
+from core.models import (CustomUser, OrganizationPassword, )
 from core.models.view_tables import (Person, Material, Inventory, Actor, Note,
                          Organization, Systemtool, SystemtoolType,
                          UdfDef, Status, Tag, TagAssign, TagType, MaterialType,
-                         Edocument, InventoryMaterial)
+                         Edocument, InventoryMaterial, Vessel)
 from core.models.core_tables import TypeDef
 
 from packaging import version
@@ -110,7 +110,7 @@ class PersonForm(PersonFormData, forms.ModelForm):
 
 class PersonTableForm(PersonFormData, forms.ModelForm):
     class Meta(PersonFormData.Meta):
-        model = PersonTable
+        model = Person
 
 
 class MaterialForm(forms.ModelForm):
@@ -383,10 +383,11 @@ class SystemtoolTypeForm(forms.ModelForm):
 class UdfDefForm(forms.ModelForm):
     class Meta:
         model = UdfDef
-        fields = ['description', 'val_type_description']
+        fields = ['description', #'val_type_description'
+                    ]
         labels = {
             'description': 'Description',
-            'val_type_description': 'Value type'
+            #'val_type_description': 'Value type'
         }
         CHOICES = (('1', 'int'), ('2', 'array_int'), ('3', 'num'), ('4', 'array_num'),
                    ('5', 'text'), ('6', 'array_text'), ('7',
@@ -398,8 +399,8 @@ class UdfDefForm(forms.ModelForm):
                 'rows': '3',
                 'placeholder': 'Your system tool type description'
             }),
-            'val_type_description': forms.Select(attrs={
-                'placeholder': 'Ex: text, image'}, choices=CHOICES)
+            #'val_type_description': forms.Select(attrs={
+            #    'placeholder': 'Ex: text, image'}, choices=CHOICES)
         }
 
 
@@ -501,7 +502,7 @@ class UploadEdocForm(forms.ModelForm):
 
         
         self.fields['title'].required = True
-        current_file_type = self.instance.doc_type_uuid if self.instance else None
+        current_file_type = self.instance.edoc_type_uuid if self.instance else None
 
         #file needs to be not required because it can't have an initial value
         #so, if it is required, django will say the form is invalid even though
@@ -567,7 +568,7 @@ class InventoryMaterialForm(forms.ModelForm):
     class Meta:
         model = InventoryMaterial
         fields = ['description', 'inventory', 'material', 
-                  'material_consumable', 'material_composite_flg', 
+                  #'material_consumable', 'material_composite_flg', 
                   'part_no', 'onhand_amt', 'expiration_date',
                   'location', 'status',]
 
@@ -587,8 +588,8 @@ class InventoryMaterialForm(forms.ModelForm):
             'onhand_amt': 'Amount on hand',
             'expiration_date': 'Expiration date',
             'location': 'Inventory location',
-            'material_consumable': 'Consumable',
-            'material_composite_flg': 'Composite Material'
+            #'material_consumable': 'Consumable',
+            #'material_composite_flg': 'Composite Material'
         }
         widgets = {
             'material': forms.Select(attrs=dropdown_attrs),
@@ -607,3 +608,29 @@ class InventoryMaterialForm(forms.ModelForm):
 
 class ExperimentNameForm(forms.Form):
     exp_name = forms.CharField(label='Experiment Name', max_length=100)
+
+
+class VesselForm(forms.ModelForm):
+    class Meta:
+        model = Vessel
+        fields = ['plate_name', 'well_number']
+        field_classes = {
+            'plate_name': forms.CharField,
+            'well_number': forms.CharField,
+        }
+        labels = {
+            'plate_name': 'Plate Name',
+            'well_number': 'Well Number',
+        }
+        widgets = {
+            'plate_name': forms.Textarea(attrs={
+                'cols': '10',
+                'rows': '3',
+                'placeholder': 'Plate name'
+            }),
+            'well_number': forms.Textarea(attrs={
+                'cols': '10',
+                'rows': '1',
+                'placeholder': 'Well number'
+            }),
+        }

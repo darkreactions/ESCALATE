@@ -20,7 +20,7 @@ from url_filter.integrations.drf import DjangoFilterBackend
 # App imports
 
 from .serializers import *
-from .utils import (camel_case_uuid, camel_case, core_views, custom_serializer_views,
+from .utils import (camel_case_uuid, snake_case, core_views, custom_serializer_views,
                     perform_create_views, GET_only_views, docstring)
 import core.models
 import rest_api
@@ -62,7 +62,7 @@ def create_view(model_name, lookup_field=None):
     methods_list = {"queryset": model.objects.all(),
                     "serializer_class": modelSerializer,
                     "permission_classes": [IsAuthenticatedOrReadOnly],
-                    "name": camel_case(model_name)+'-list',
+                    "name": snake_case(model_name)+'-list',
                     "filter_backends": [DjangoFilterBackend],
                     "filter_fields": '__all__',
                     "__doc__": rest_docs.get(model_name.lower(), '')
@@ -72,7 +72,7 @@ def create_view(model_name, lookup_field=None):
 
     methods_detail = {"queryset": model.objects.all(),
                       "serializer_class": modelSerializer,
-                      "name": camel_case(model_name)+'-detail',
+                      "name": snake_case(model_name)+'-detail',
                       "__doc__": rest_docs.get(model_name.lower()+'_detail', '')}
 
     list_view, detail_view = (ListAPIView, RetrieveAPIView) if model_name in GET_only_views else (ListCreateAPIView, RetrieveUpdateAPIView)

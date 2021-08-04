@@ -9,16 +9,20 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 
-from core.models.view_tables import ActionParameter, WorkflowActionSet, Experiment, BomMaterial, Edocument
+from core.models.view_tables import WorkflowActionSet, Experiment, BomMaterial, Edocument #ActionParameter
 from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm, NominalActualForm
 from core.forms.forms import ExperimentNameForm
 from core.utilities.utils import experiment_copy
-from core.utilities.experiment_utils import update_dispense_action_set, get_action_parameter_querysets, get_material_querysets
+from core.utilities.experiment_utils import update_dispense_action_set, get_action_parameter_querysets, get_material_querysets, supported_wfs
 import core.models
 from core.models.view_tables import Note, TagAssign, Tag
 from core.experiment_templates import liquid_solid_extraction, resin_weighing, perovskite_demo
 from core.custom_types import Val
+import core.experiment_templates
+from core.models.view_tables import Parameter
+# from .crud_view_methods.model_view_generic import GenericModelList
+# from .crud_views import LoginRequired
 
 #SUPPORTED_CREATE_WFS = ['liquid_solid_extraction', 'resin_weighing']
 #SUPPORTED_CREATE_WFS = supported_wfs() 
@@ -51,7 +55,10 @@ class CreateExperimentView(TemplateView):
     def get_context_data(self, **kwargs):    
         # Select templates that belong to the current lab
         context = super().get_context_data(**kwargs)
-        org_id = self.request.session['current_org_id']
+        if 'current_org_id' in self.request.session:
+            org_id = self.request.session['current_org_id']
+        else:
+            org_id = None
         lab = Actor.objects.get(organization=org_id, person__isnull=True)
         self.all_experiments = Experiment.objects.filter(parent__isnull=True, lab=lab)
         context['all_experiments'] = self.all_experiments
@@ -60,7 +67,8 @@ class CreateExperimentView(TemplateView):
 
     def get_action_parameter_forms(self, exp_uuid, context):
         # workflow__experiment_workflow_workflow__experiment=exp_uuid
-        q1, q2, q3 = get_action_parameter_querysets(exp_uuid)
+        #q1, q2, q3 = get_action_parameter_querysets(exp_uuid)
+        q1 = get_action_parameter_querysets(exp_uuid)
         """
         This happens before copy, in the template. The only way to identify a parameter is 
         through a combination of object_description and parameter_def_description.
@@ -74,8 +82,8 @@ class CreateExperimentView(TemplateView):
 
         #create empty lists for initial q1-q3
         initial_q1 = []
-        initial_q2 = []
-        initial_q3 = []
+        #initial_q2 = []
+        #initial_q3 = []
         '''
         using for loop instead of list comprehension to account for arrays
         this will be basis for implementing new array ui
@@ -84,18 +92,20 @@ class CreateExperimentView(TemplateView):
         for row in q1:
             data = {'value': row.parameter_value, \
                 'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])}
-            if 'array' in row.parameter_value.val_type.description:
-                data['actual_value'] = Val.from_dict({'type':'array_num', \
-                                                      'value':[0]*len(row.parameter_value.value), \
-                                                      'unit':row.parameter_value.unit})
-            else:
-                data['actual_value'] = Val.from_dict({'type':'num', \
-                                                      'value':0, \
-                                                      'unit':row.parameter_value.unit})
+            if not row.parameter_value.null:
+                if 'array' in row.parameter_value.val_type.description:
+                    data['actual_value'] = Val.from_dict({'type':'array_num', \
+                                                          'value':[0]*len(row.parameter_value.value), \
+                                                          'unit':row.parameter_value.unit})
+                else:
+                    data['actual_value'] = Val.from_dict({'type':'num', \
+                                                          'value':0, \
+                                                          'unit':row.parameter_value.unit})
             
             initial_q1.append(data)
 
         #q2 initial
+        '''
         for row in q2:
             for param in row.parameter_value:
                 data = {'value': param, \
@@ -110,8 +120,10 @@ class CreateExperimentView(TemplateView):
                                                           'unit':param.unit})
                 
                 initial_q2.append(data)
-            
+        '''
+               
         #q3 initial
+        '''
         for row in q3:
             data = {'value': row.parameter_value, \
                 'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])}
@@ -125,21 +137,23 @@ class CreateExperimentView(TemplateView):
                                                       'unit':row.parameter_value.unit})
             
             initial_q3.append(data)
-            
+        '''
+                
         q1_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q1]
-        q2_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q2 for param in row.parameter_value]
-        q3_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q3]
+        #q2_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q2 for param in row.parameter_value]
+        #q3_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q3]
 
         context['q1_param_formset'] = self.NominalActualFormSet(initial=initial_q1, 
                                                             prefix='q1_param',)
+        '''
         context['q2_param_formset'] = self.NominalActualFormSet(initial=initial_q2, 
                                                             prefix='q2_param',)
         context['q3_param_formset'] = self.NominalActualFormSet(initial=initial_q3, 
                                                             prefix='q3_param',)
-
+        '''
         context['q1_param_details'] = q1_details
-        context['q2_param_details'] = q2_details
-        context['q3_param_details'] = q3_details
+        #context['q2_param_details'] = q2_details
+        #context['q3_param_details'] = q3_details
     
         return context
 
@@ -178,7 +192,7 @@ class CreateExperimentView(TemplateView):
         return render(request, self.template_name, context)
     # end: self.post()
 
-    def save_forms(self, queries, formset, fields):
+    def save_forms_q1(self, queries, formset, fields):
         """Saves custom formset into queries
 
         Args:
@@ -197,13 +211,41 @@ class CreateExperimentView(TemplateView):
                     query = queries.get(object_description=desc[0])
 
                 # q2 gets handled differently because its a workflow action set
+                '''
                 if fields is None:
                     update_dispense_action_set(query, data['value'])
                 else:
                     for db_field, form_field in fields.items():
                         setattr(query, db_field, data[form_field])
-                query.save(update_fields=list(fields.keys()))
+                '''
+                parameter = Parameter.objects.get(uuid=query.parameter_uuid)
+                for db_field, form_field in fields.items():
+                    setattr(parameter, db_field, data[form_field])
+                parameter.save(update_fields=list(fields.keys()))
         #queries.save()
+
+    def save_forms_q_material(self, queries, formset, fields):
+        """
+        Saves custom formset into queries
+        Args:
+            queries ([Queryset]): List of queries into which the forms values are saved
+            formset ([Formset]): Formset
+            fields (dict): Dictionary to map the column in queryset with field in formset
+        """
+        for form in formset:
+            if form.has_changed():
+                data = form.cleaned_data
+                desc = json.loads(data['uuid'])
+                if len(desc) == 2:
+                    object_desc, param_def_desc = desc
+                    query = queries.get(object_description=object_desc, parameter_def_description=param_def_desc)
+                else:
+                    query = queries.get(object_description=desc[0])
+
+                for db_field, form_field in fields.items():
+                    setattr(query, db_field, data[form_field])
+
+                query.save(update_fields=list(fields.keys()))
 
     def process_formsets(self, request, context):
         """Creates formsets and gets data from the post request.
@@ -221,15 +263,15 @@ class CreateExperimentView(TemplateView):
         # construct all formsets
         exp_name_form = ExperimentNameForm(request.POST)
         q1_formset = self.NominalActualFormSet(request.POST, prefix='q1_param')
-        q2_formset = self.NominalActualFormSet(request.POST, prefix='q2_param')
-        q3_formset = self.NominalActualFormSet(request.POST, prefix='q3_param')
+        #q2_formset = self.NominalActualFormSet(request.POST, prefix='q2_param')
+        #q3_formset = self.NominalActualFormSet(request.POST, prefix='q3_param')
         q1_material_formset = self.MaterialFormSet(request.POST,
                                                     prefix='q1_material',
                                                     form_kwargs={'org_uuid': self.request.session['current_org_id']})
         if all([exp_name_form.is_valid(),
                 q1_formset.is_valid(), 
-                q2_formset.is_valid(), 
-                q3_formset.is_valid(), 
+                #q2_formset.is_valid(), 
+                #q3_formset.is_valid(), 
                 q1_material_formset.is_valid()]):
             
             exp_name = exp_name_form.cleaned_data['exp_name']
@@ -238,33 +280,47 @@ class CreateExperimentView(TemplateView):
             experiment_copy_uuid = experiment_copy(str(exp_template.uuid), exp_name)
 
             # get the elements of the new experiment that we need to update with the form values
-            q1, q2, q3 = get_action_parameter_querysets(experiment_copy_uuid)
+            #q1, q2, q3 = get_action_parameter_querysets(experiment_copy_uuid)
+            q1 = get_action_parameter_querysets(experiment_copy_uuid)
             q1_material = get_material_querysets(experiment_copy_uuid)
             
-            self.save_forms(q1, q1_formset, {'parameter_val_nominal': 'value', 'parameter_val_actual': 'actual_value'})
-            self.save_forms(q1_material, q1_material_formset, {'inventory_material': 'value'})
-            self.save_forms(q2, q2_formset, None)
+            self.save_forms_q1(q1, q1_formset, {'parameter_val_nominal': 'value', 'parameter_val_actual': 'actual_value'})
+            self.save_forms_q_material(q1_material, q1_material_formset, {'inventory_material': 'value'})
+            #self.save_forms(q2, q2_formset, None)
 
             # begin: template-specific logic
             if template_name in SUPPORTED_CREATE_WFS:
                 #if any([f.has_changed() for f in q3_formset]):
                 data = {}  # Stick form data into this dict
-                for i, form in enumerate(q3_formset):
+                #for i, form in enumerate(q3_formset):
+                for i, form in enumerate(q1_formset):
                     if form.is_valid():
-                        query = q3[i]
+                        #query = q3[i]
+                        query = q1[i]
                         data[query.parameter_def_description] = form.cleaned_data['value'].value
                 
                 if template_name == 'liquid_solid_extraction':
                     lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
-                    new_lsr_pk, lsr_msg = liquid_solid_extraction(data, q3, experiment_copy_uuid, lsr_edoc, exp_name)
+                    xls_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='XLS file')
+                    new_lsr_pk, lsr_msg = liquid_solid_extraction(data, q1, experiment_copy_uuid, lsr_edoc, exp_name)
                 elif template_name == 'resin_weighing':
                     lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
+                    xls_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='XLS file')
                     new_lsr_pk, lsr_msg = resin_weighing(experiment_copy_uuid, lsr_edoc, exp_name)
                 elif template_name == 'perovskite_demo':
-                    new_lsr_pk, lsr_msg = perovskite_demo(data, q3, experiment_copy_uuid, exp_name)
+                    new_lsr_pk, lsr_msg = perovskite_demo(data, q1, experiment_copy_uuid, exp_name)
 
+                # link_data = {f'{lsr_edoc.title}' : self.request.build_absolute_uri(reverse('edoc_download', args=[lsr_edoc.pk]))}
                 # handle library studio file if relevant
+
+                #this is done for the purposes of the perovskite_demo
+                #will likely need to be changed to new_xls_pk in the future
+                
                 if new_lsr_pk is not None:
+                    context['xls_download_link'] = reverse('edoc_download', args=[new_lsr_pk])
+                if str(self.request.session['current_org_name']) != "TestCo":
+                    context['lsr_download_link'] = None
+                elif new_lsr_pk is not None:
                     context['lsr_download_link'] = reverse('edoc_download', args=[new_lsr_pk])
                 else:
                     messages.error(request, f'LSRGenerator failed with message: "{lsr_msg}"')
@@ -274,97 +330,23 @@ class CreateExperimentView(TemplateView):
 
 # end: class CreateExperimentView()
 
-
-class ExperimentListView(ListView):
-    template_name = 'core/experiment/list.html'
-    model = core.models.view_tables.Experiment
-    field_contains = ''
-    order_field = 'description'
-    org_related_path = 'lab__organization'
-    table_columns = ['Description', 'Actions']
-    column_necessary_fields = {'Description': ['description'], 
-                               }
-    context_object_name= 'experiments'
-
-    def get_context_data(self, **kwargs):
-        context = super(ExperimentListView, self).get_context_data(**kwargs)
-        context['filter'] = self.request.GET.get('filter', '')
-        return context
-    
-    def get_queryset(self):
-        filter_val = self.request.GET.get('filter', self.field_contains)
-        order = "".join(self.request.session.get(f'experiments_order',self.order_field).split('-'))
-        ordering = self.request.GET.get('ordering', order)
-
-        #order = "".join(order_field)
-        filter_kwargs = {f'{order}__icontains': filter_val}
-
-        # Filter by organization if it exists in the model
-        if 'current_org_id' in self.request.session:
-            org_filter_kwargs = {self.org_related_path : self.request.session['current_org_id'],
-                                 'parent__isnull':False}
-            base_query = self.model.objects.filter(**org_filter_kwargs)
-        else:
-            base_query = self.model.objects.none()
-        
-        
-        if filter_val != None:
-            new_queryset = base_query.filter(
-                **filter_kwargs).select_related().order_by(ordering)
-        else:
-            new_queryset = base_query
-        
-        new_queryset = base_query
-        return new_queryset
-    
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['table_columns'] = self.table_columns
-        models = context[self.context_object_name]
-        model_name = self.context_object_name[:-1]  # Ex: tag_types -> tag_type
-        table_data = []
-        for model in models:
-            table_row_data = []
-
-            # loop to get each column data for one row. [:-1] because table_columns has 'Actions'
-            header_names = self.table_columns[:-1]
-            for field_name in header_names:
-                # get list of fields used to fill out one cell
-                necessary_fields = self.column_necessary_fields[field_name]
-                # get actual field value from the model
-                fields_for_col = [getattr(model, field)
-                                  for field in necessary_fields]
-                # loop to change None to '' or non-string to string because join needs strings
-                for k in range(0, len(fields_for_col)):
-                    if fields_for_col[k] == None:
-                        fields_for_col[k] = ''
-                    if not isinstance(fields_for_col[k], str):
-                        fields_for_col[k] = str(fields_for_col[k])
-                col_data = " ".join(fields_for_col)
-                # take away any leading and trailing whitespace
-                col_data = col_data.strip()
-                # change the cell data to be N/A if it is empty string at this point
-                if len(col_data) == 0:
-                    col_data = 'N/A'
-                table_row_data.append(col_data)
-
-            # dict containing the data, view and update url, primary key and obj
-            # name to use in template
-            table_row_info = {
-                'table_row_data': table_row_data,
-                'view_url': reverse_lazy(f'{model_name}_view', kwargs={'pk': model.pk}),
-                'update_url': reverse_lazy(f'{model_name}_update', kwargs={'pk': model.pk}),
-                'obj_name': str(model),
-                'obj_pk': model.pk
-            }
-            table_data.append(table_row_info)
-
-        context['add_url'] = reverse_lazy(f'{model_name}_add')
-        context['table_data'] = table_data
-        # get rid of underscores with spaces and capitalize
-        context['title'] = model_name.replace('_', ' ').capitalize()
-        return context
+'''
+Made experiment list view to be auto generated like the other models because it doesn't seem to have any 
+different functionality and the code for it below is old and doesn't work
+Below is what gets autogenerated for reference
+'''
+# class ExperimentListView(LoginRequired, GenericModelList):
+#     model = core.models.view_tables.Experiment
+#     table_columns = ['Description']
+#     column_necessary_fields = {
+#         'Description': ['description']
+#     }
+#     ordering = ['description']
+#     field_contains = ''
+#     org_related_path = 'lab__organization'
+#     default_filter_kwarg= {
+#         'parent__isnull': False
+#     }
 
 
 class ExperimentDetailView(DetailView):
@@ -384,16 +366,15 @@ class ExperimentDetailView(DetailView):
         # dict of detail field names to their value
         detail_data = {}
 
-        q1, q2, q3 = get_action_parameter_querysets(exp.uuid)
+        #q1, q2, q3 = get_action_parameter_querysets(exp.uuid)
+        q1 = get_action_parameter_querysets(exp.uuid)
         mat_q = get_material_querysets(exp.uuid)
         edocs = Edocument.objects.filter(ref_edocument_uuid=exp.uuid)
-
         detail_data = {row.object_description : row.inventory_material for row in mat_q}
         detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q1})
-        detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q2})
-        detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q3})
-
-        link_data = {f'{lsr_edoc.title} download link' : self.request.build_absolute_uri(reverse('edoc_download', args=[lsr_edoc.pk])) for lsr_edoc in edocs}
+        #detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q2})
+        #detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q3})
+        link_data = {f'{lsr_edoc.title}' : self.request.build_absolute_uri(reverse('edoc_download', args=[lsr_edoc.pk])) for lsr_edoc in edocs}
         
 
         # get notes
@@ -409,7 +390,7 @@ class ExperimentDetailView(DetailView):
         tags = []
         for tag in tags_raw:
             tags.append(tag.display_text.strip())
-        detail_data['Tags'] = ', '.join(tags)
+        context['tags'] = ', '.join(tags)
 
         context['title'] = self.model_name.replace('_', " ").capitalize()
         context['update_url'] = reverse_lazy(

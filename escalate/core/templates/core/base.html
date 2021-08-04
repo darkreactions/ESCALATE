@@ -65,17 +65,18 @@
                         <a class="nav-link dropdown-toggle {% if not request.session.current_org_id %}disabled{% endif %}" href="#" id="dropdown" data-toggle="dropdown">Models</a>
                         <div class="dropdown-menu">
                             <ul class="list-unstyled">
-                                <li><a class="dropdown-item" href="{% url 'material_type_list' %}">Material Type</a>
-                                </li>
                                 <li><a class="dropdown-item" href="{% url 'material_list' %}">Material</a></li>
+                                <li><a class="dropdown-item" href="{% url 'vessel_list' %}">Vessels</a></li>
                                 <li><a class="dropdown-item" href="{% url 'inventory_list' %}">Inventory</a></li>
                                 <li><a class="dropdown-item" href="{% url 'inventory_material_list' %}">Inventory Material</a></li>
                                 <li><a class="dropdown-item" href="{% url 'actor_list' %}">Actor</a></li>
                                 <li><a class="dropdown-item" href="{% url 'organization_list' %}">Organization</a></li>
                                 <li><a class="dropdown-item" href="{% url 'person_list' %}">Person</a></li>
+                                <li><a class="dropdown-item" href="{% url 'systemtool_list' %}">Systemtool</a></li>
                                 <li><a class="dropdown-item" href="{% url 'systemtool_type_list' %}">Systemtool Type</a>
                                 </li>
-                                <li><a class="dropdown-item" href="{% url 'systemtool_list' %}">Systemtool</a></li>
+                                <li><a class="dropdown-item" href="{% url 'material_type_list' %}">Material Type</a>
+                                </li>
                                 <li><a class="dropdown-item" href="{% url 'status_list' %}">Status</a></li>
                                 <li><a class="dropdown-item" href="{% url 'tag_type_list' %}">Tag Type</a></li>
                                 <li><a class="dropdown-item" href="{% url 'tag_list' %}">Tag</a></li>
@@ -93,7 +94,7 @@
                                     <a class="dropdown-item {% if url_name == 'experiment_list' %}active{% endif %}" href="{% url 'experiment_list' %}">Experiment List</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item {% if url_name == 'create_experiment' %}active{% endif %}" href="{% url 'create_experiment' %}">Create Experiment</a>
+                                    <a class="dropdown-item {% if url_name == 'create_experiment' %}active{% endif %}" href="{% url 'experiment_add' %}">Create Experiment</a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item {% if url_name == 'workflow' %}active{% endif %}" href="{% url 'workflow' %}">Workflow</a>

@@ -114,8 +114,8 @@ for ord, well in enumerate(well_names):
                 'actor': actor['url'],
                 'status': test_status['url']
                 }
-    well_comp_entry = post_data('compositematerial', data=mat_comp, headers=token_header)
-    well_comp_entry = get_data('compositematerial', data={'component_description': well_entry['description']}, headers=token_header)
+    well_comp_entry = post_data('mixture', data=mat_comp, headers=token_header)
+    well_comp_entry = get_data('mixture', data={'component_description': well_entry['description']}, headers=token_header)
     mat_prop = {'material': well_entry['url'],
                 'property_def': well_ord_prop_def['url'],
                 'property_value': str(ord),
@@ -194,7 +194,7 @@ material_composites = [
 r_material_composites = {}
 for mat in material_composites:
     material_composite = dict(zip(material_composite_fields, mat))
-    r = post_data('compositematerial', material_composite, token_header)
+    r = post_data('mixture', material_composite, token_header)
     r = requests.get(r['url']).json()
     r_material_composites[(r['composite_description'], r['component_description'])] = r
 print(r_material_composites)

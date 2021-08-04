@@ -8,8 +8,15 @@
 from django.db import models
 from datetime import datetime
 from django.utils.timezone import now
+import uuid
+from django_extensions.db.fields import AutoSlugField
+from core.utils_no_dependencies import rgetattr
+import unicodedata
+import re
 
-managed_value = False
+#managed_value = False
+managed_tables = True
+managed_views = False
 
 
 class RetUUIDField(models.UUIDField):
@@ -25,10 +32,48 @@ class RetUUIDField(models.UUIDField):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+def custom_slugify(content, allow_unicode=False):
+    if content == None:
+        return ''
+    # modified from https://docs.djangoproject.com/en/3.0/_modules/django/utils/text/
+    if allow_unicode:
+        content = unicodedata.normalize('NFKC', content)
+    else:
+        content = unicodedata.normalize('NFKD', content).encode('ascii', 'ignore').decode('ascii')
+    content = content.lower()
+    # matches chars that are not a word char or not whitespace or not a hyphen char and replaces with hyphen
+    # catches stuff like quotes, commas, parantheses, etc
+    # materials identifier has weird chars so commented out line below
+    # content = re.sub(r'[^\w\s-]', '-', content)
+    # matches 1 or more hypens and/or whitespace and replaces with one hyphen
+    content = re.sub(r'[-\s]+', '-', content)
+    return content.strip('-_')
+
+
+class SlugField(AutoSlugField):
+    def __init__(self, *args, **kwargs):
+        if kwargs.get('slugify_function', None) == None:
+            kwargs['slugify_function'] = lambda s: custom_slugify(s, allow_unicode=True)
+        super().__init__(*args, **kwargs)
+
+    def get_slug_fields(self, model_instance, lookup_value):
+        if callable(lookup_value):
+            # A function has been provided
+            return "%s" % lookup_value(model_instance)
+
+        lookup_value_path = '.'.join(lookup_value.split('__'))
+        attr = rgetattr(model_instance, lookup_value_path, None)
+        
+        if attr.__class__.__name__ == 'ManyRelatedManager':
+            return '-'.join(attr.all())
+        if callable(attr):
+            return "%s" % attr()
+        return str(attr) if attr != None else ''
+
 
 class TypeDef(models.Model):
 
-    uuid = RetUUIDField(primary_key=True,
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                             db_column='type_def_uuid')
 
     category = models.CharField(max_length=255,
@@ -41,72 +86,12 @@ class TypeDef(models.Model):
                                    db_column='description')
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
-    class Meta:
-        managed = False
-        db_table = 'vw_type_def'
+    internal_slug = SlugField(populate_from=[
+                                    'category',
+                                    'description',
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
 
     def __str__(self):
         return self.description
-
-
-class PersonTable(models.Model):
-    uuid = RetUUIDField(primary_key=True, db_column='person_uuid')
-    first_name = models.CharField(
-        max_length=255)
-    last_name = models.CharField(max_length=255)
-    middle_name = models.CharField(
-        max_length=255, blank=True, null=True)
-    address1 = models.CharField(max_length=255, blank=True, null=True)
-    address2 = models.CharField(max_length=255, blank=True, null=True)
-    city = models.CharField(max_length=255, blank=True, null=True)
-    state_province = models.CharField(max_length=3, blank=True, null=True)
-    zip = models.CharField(max_length=255, blank=True, null=True)
-    country = models.CharField(max_length=255, blank=True, null=True)
-
-    phone = models.CharField(max_length=255, blank=True, null=True)
-    email = models.EmailField(max_length=255, blank=True, null=True)
-    title = models.CharField(max_length=255, blank=True, null=True)
-    suffix = models.CharField(max_length=255, blank=True, null=True)
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
-    organization = models.ForeignKey('Organization', models.DO_NOTHING,
-                                          blank=True, null=True,
-                                          db_column='organization_uuid',
-                                          related_name='person_table_organization')
-    
-
-    class Meta:
-        managed = False
-        db_table = 'person'
-
-    def __str__(self):
-        return "{} {}".format(self.first_name, self.last_name)
-
-
-class OrganizationTable(models.Model):
-    uuid = RetUUIDField(primary_key=True, db_column='organization_uuid')
-    description = models.CharField(max_length=255)
-    full_name = models.CharField(max_length=255)
-    short_name = models.CharField(max_length=255, blank=True, null=True)
-    address1 = models.CharField(max_length=255, blank=True, null=True)
-    address2 = models.CharField(max_length=255, blank=True, null=True)
-    city = models.CharField(max_length=255, blank=True, null=True)
-    state_province = models.CharField(max_length=3, blank=True, null=True)
-    zip = models.CharField(max_length=255, blank=True, null=True)
-    country = models.CharField(max_length=255, blank=True, null=True)
-    website_url = models.CharField(max_length=255, blank=True, null=True)
-    phone = models.CharField(max_length=255, blank=True, null=True)
-
-    parent = models.ForeignKey('self', models.DO_NOTHING,
-                                    blank=True, null=True,
-                                    db_column='parent_uuid',
-                                    related_name='organization_parent')
-    add_date = models.DateTimeField(auto_now_add=True)
-    mod_date = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        managed = False
-        db_table = 'organization'
-
-    def __str__(self):
-        return "{}".format(self.full_name)

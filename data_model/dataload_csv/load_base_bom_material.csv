@@ -1,0 +1,240 @@
+description	bom_description	inventory_material_description	alloc_amt_val_type	alloc_amt_val_unit	alloc_amt_val_value	used_amt_val_type	used_amt_val_unit	used_amt_val_value	putback_amt_val_type	putback_amt_val_unit	putback_amt_val_value	bom_material_description	bom_material_bom_description	mixture_composite_description	mixture_component_description
+Resin	resin weighing Dev Materials	Resin: RE	num	mg	60	num	mg	0	num	mg	0				
+Resin Plate: Plate well#: A1												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: A1
+Resin Plate: Plate well#: A2												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: A2
+Resin Plate: Plate well#: A3												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: A3
+Resin Plate: Plate well#: A4												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: A4
+Resin Plate: Plate well#: A5												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: A5
+Resin Plate: Plate well#: A6												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: A6
+Resin Plate: Plate well#: B1												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: B1
+Resin Plate: Plate well#: B2												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: B2
+Resin Plate: Plate well#: B3												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: B3
+Resin Plate: Plate well#: B4												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: B4
+Resin Plate: Plate well#: B5												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: B5
+Resin Plate: Plate well#: B6												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: B6
+Resin Plate: Plate well#: C1												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: C1
+Resin Plate: Plate well#: C2												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: C2
+Resin Plate: Plate well#: C3												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: C3
+Resin Plate: Plate well#: C4												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: C4
+Resin Plate: Plate well#: C5												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: C5
+Resin Plate: Plate well#: C6												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: C6
+Resin Plate: Plate well#: D1												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: D1
+Resin Plate: Plate well#: D2												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: D2
+Resin Plate: Plate well#: D3												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: D3
+Resin Plate: Plate well#: D4												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: D4
+Resin Plate: Plate well#: D5												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: D5
+Resin Plate: Plate well#: D6												Resin Plate	resin weighing Dev Materials	Plate: 24 well	Plate well#: D6
+Resin Plate	resin weighing Dev Materials	24 well plate	int		1				int		0				
+HCl-12M	Liq-Sol Dev Materials 	HCl-12M	num	mL	60	num	mg	0	num	mL	0				
+H2O	Liq-Sol Dev Materials 	Water	num	mL	60	num	mL	0	num	mL	0				
+Metal Stock	Liq-Sol Dev Materials 	CoCl2 Stock	num	mL	1.2	num	mL	0	num	mL	0				
+Resin	Liq-Sol Dev Materials 	Resin: RE	num	g	0.6	num	g	0	num	g	0				
+Sample Prep Plate: Plate well#: A1												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A1
+Sample Prep Plate: Plate well#: A2												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A2
+Sample Prep Plate: Plate well#: A3												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A3
+Sample Prep Plate: Plate well#: A4												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A4
+Sample Prep Plate: Plate well#: A5												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A5
+Sample Prep Plate: Plate well#: A6												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A6
+Sample Prep Plate: Plate well#: B1												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B1
+Sample Prep Plate: Plate well#: B2												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B2
+Sample Prep Plate: Plate well#: B3												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B3
+Sample Prep Plate: Plate well#: B4												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B4
+Sample Prep Plate: Plate well#: B5												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B5
+Sample Prep Plate: Plate well#: B6												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B6
+Sample Prep Plate: Plate well#: C1												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C1
+Sample Prep Plate: Plate well#: C2												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C2
+Sample Prep Plate: Plate well#: C3												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C3
+Sample Prep Plate: Plate well#: C4												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C4
+Sample Prep Plate: Plate well#: C5												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C5
+Sample Prep Plate: Plate well#: C6												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C6
+Sample Prep Plate: Plate well#: D1												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D1
+Sample Prep Plate: Plate well#: D2												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D2
+Sample Prep Plate: Plate well#: D3												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D3
+Sample Prep Plate: Plate well#: D4												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D4
+Sample Prep Plate: Plate well#: D5												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D5
+Sample Prep Plate: Plate well#: D6												Sample Prep Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D6
+Sample Prep Plate	Liq-Sol Dev Materials 	24 well plate	int		1				int		0				
+Assay Sample Plate 1: Plate well#: A1												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A1
+Assay Sample Plate 1: Plate well#: A2												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A2
+Assay Sample Plate 1: Plate well#: A3												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A3
+Assay Sample Plate 1: Plate well#: A4												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A4
+Assay Sample Plate 1: Plate well#: A5												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A5
+Assay Sample Plate 1: Plate well#: A6												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A6
+Assay Sample Plate 1: Plate well#: B1												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B1
+Assay Sample Plate 1: Plate well#: B2												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B2
+Assay Sample Plate 1: Plate well#: B3												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B3
+Assay Sample Plate 1: Plate well#: B4												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B4
+Assay Sample Plate 1: Plate well#: B5												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B5
+Assay Sample Plate 1: Plate well#: B6												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B6
+Assay Sample Plate 1: Plate well#: C1												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C1
+Assay Sample Plate 1: Plate well#: C2												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C2
+Assay Sample Plate 1: Plate well#: C3												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C3
+Assay Sample Plate 1: Plate well#: C4												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C4
+Assay Sample Plate 1: Plate well#: C5												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C5
+Assay Sample Plate 1: Plate well#: C6												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C6
+Assay Sample Plate 1: Plate well#: D1												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D1
+Assay Sample Plate 1: Plate well#: D2												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D2
+Assay Sample Plate 1: Plate well#: D3												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D3
+Assay Sample Plate 1: Plate well#: D4												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D4
+Assay Sample Plate 1: Plate well#: D5												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D5
+Assay Sample Plate 1: Plate well#: D6												Assay Sample Plate 1	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D6
+Assay Sample Plate 1	Liq-Sol Dev Materials 	24 well plate	int		1				int		0				
+Resin Plate: Plate well#: A1												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A1
+Resin Plate: Plate well#: A2												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A2
+Resin Plate: Plate well#: A3												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A3
+Resin Plate: Plate well#: A4												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A4
+Resin Plate: Plate well#: A5												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A5
+Resin Plate: Plate well#: A6												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A6
+Resin Plate: Plate well#: B1												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B1
+Resin Plate: Plate well#: B2												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B2
+Resin Plate: Plate well#: B3												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B3
+Resin Plate: Plate well#: B4												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B4
+Resin Plate: Plate well#: B5												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B5
+Resin Plate: Plate well#: B6												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B6
+Resin Plate: Plate well#: C1												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C1
+Resin Plate: Plate well#: C2												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C2
+Resin Plate: Plate well#: C3												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C3
+Resin Plate: Plate well#: C4												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C4
+Resin Plate: Plate well#: C5												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C5
+Resin Plate: Plate well#: C6												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C6
+Resin Plate: Plate well#: D1												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D1
+Resin Plate: Plate well#: D2												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D2
+Resin Plate: Plate well#: D3												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D3
+Resin Plate: Plate well#: D4												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D4
+Resin Plate: Plate well#: D5												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D5
+Resin Plate: Plate well#: D6												Resin Plate	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D6
+Resin Plate	Liq-Sol Dev Materials 	24 well plate	int		1				int		0				
+Assay Sample Plate 2: Plate well#: A1												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A1
+Assay Sample Plate 2: Plate well#: A2												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A2
+Assay Sample Plate 2: Plate well#: A3												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A3
+Assay Sample Plate 2: Plate well#: A4												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A4
+Assay Sample Plate 2: Plate well#: A5												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A5
+Assay Sample Plate 2: Plate well#: A6												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: A6
+Assay Sample Plate 2: Plate well#: B1												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B1
+Assay Sample Plate 2: Plate well#: B2												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B2
+Assay Sample Plate 2: Plate well#: B3												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B3
+Assay Sample Plate 2: Plate well#: B4												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B4
+Assay Sample Plate 2: Plate well#: B5												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B5
+Assay Sample Plate 2: Plate well#: B6												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: B6
+Assay Sample Plate 2: Plate well#: C1												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C1
+Assay Sample Plate 2: Plate well#: C2												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C2
+Assay Sample Plate 2: Plate well#: C3												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C3
+Assay Sample Plate 2: Plate well#: C4												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C4
+Assay Sample Plate 2: Plate well#: C5												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C5
+Assay Sample Plate 2: Plate well#: C6												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: C6
+Assay Sample Plate 2: Plate well#: D1												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D1
+Assay Sample Plate 2: Plate well#: D2												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D2
+Assay Sample Plate 2: Plate well#: D3												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D3
+Assay Sample Plate 2: Plate well#: D4												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D4
+Assay Sample Plate 2: Plate well#: D5												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D5
+Assay Sample Plate 2: Plate well#: D6												Assay Sample Plate 2	Liq-Sol Dev Materials 	Plate: 24 well	Plate well#: D6
+Assay Sample Plate 2	Liq-Sol Dev Materials 	24 well plate	int		1				int		0				
+Filter Plate: Filter Plate well#: A1												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: A1
+Filter Plate: Filter Plate well#: A2												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: A2
+Filter Plate: Filter Plate well#: A3												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: A3
+Filter Plate: Filter Plate well#: A4												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: A4
+Filter Plate: Filter Plate well#: A5												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: A5
+Filter Plate: Filter Plate well#: A6												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: A6
+Filter Plate: Filter Plate well#: A7												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: A7
+Filter Plate: Filter Plate well#: A8												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: A8
+Filter Plate: Filter Plate well#: B1												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: B1
+Filter Plate: Filter Plate well#: B2												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: B2
+Filter Plate: Filter Plate well#: B3												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: B3
+Filter Plate: Filter Plate well#: B4												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: B4
+Filter Plate: Filter Plate well#: B5												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: B5
+Filter Plate: Filter Plate well#: B6												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: B6
+Filter Plate: Filter Plate well#: B7												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: B7
+Filter Plate: Filter Plate well#: B8												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: B8
+Filter Plate: Filter Plate well#: C1												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: C1
+Filter Plate: Filter Plate well#: C2												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: C2
+Filter Plate: Filter Plate well#: C3												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: C3
+Filter Plate: Filter Plate well#: C4												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: C4
+Filter Plate: Filter Plate well#: C5												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: C5
+Filter Plate: Filter Plate well#: C6												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: C6
+Filter Plate: Filter Plate well#: C7												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: C7
+Filter Plate: Filter Plate well#: C8												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: C8
+Filter Plate: Filter Plate well#: D1												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: D1
+Filter Plate: Filter Plate well#: D2												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: D2
+Filter Plate: Filter Plate well#: D3												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: D3
+Filter Plate: Filter Plate well#: D4												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: D4
+Filter Plate: Filter Plate well#: D5												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: D5
+Filter Plate: Filter Plate well#: D6												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: D6
+Filter Plate: Filter Plate well#: D7												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: D7
+Filter Plate: Filter Plate well#: D8												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: D8
+Filter Plate: Filter Plate well#: E1												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: E1
+Filter Plate: Filter Plate well#: E2												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: E2
+Filter Plate: Filter Plate well#: E3												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: E3
+Filter Plate: Filter Plate well#: E4												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: E4
+Filter Plate: Filter Plate well#: E5												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: E5
+Filter Plate: Filter Plate well#: E6												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: E6
+Filter Plate: Filter Plate well#: E7												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: E7
+Filter Plate: Filter Plate well#: E8												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: E8
+Filter Plate: Filter Plate well#: F1												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: F1
+Filter Plate: Filter Plate well#: F2												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: F2
+Filter Plate: Filter Plate well#: F3												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: F3
+Filter Plate: Filter Plate well#: F4												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: F4
+Filter Plate: Filter Plate well#: F5												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: F5
+Filter Plate: Filter Plate well#: F6												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: F6
+Filter Plate: Filter Plate well#: F7												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: F7
+Filter Plate: Filter Plate well#: F8												Filter Plate	Liq-Sol Dev Materials 	Filter Plate: 48 Well	Filter Plate well#: F8
+Filter Plate	Liq-Sol Dev Materials 	Filter Plate	int		1				int		0				
+Acid	Test WF1 Materials	Stock FAH													
+Solvent	Test WF1 Materials	Neat GBL													
+Stock A	Test WF1 Materials	Stock A													
+Stock B	Test WF1 Materials	Stock B													
+Plate: Plate well#: A1												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: A1
+Plate: Plate well#: A2												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: A2
+Plate: Plate well#: A3												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: A3
+Plate: Plate well#: A4												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: A4
+Plate: Plate well#: A5												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: A5
+Plate: Plate well#: A6												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: A6
+Plate: Plate well#: B1												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: B1
+Plate: Plate well#: B2												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: B2
+Plate: Plate well#: B3												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: B3
+Plate: Plate well#: B4												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: B4
+Plate: Plate well#: B5												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: B5
+Plate: Plate well#: B6												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: B6
+Plate: Plate well#: C1												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: C1
+Plate: Plate well#: C2												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: C2
+Plate: Plate well#: C3												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: C3
+Plate: Plate well#: C4												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: C4
+Plate: Plate well#: C5												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: C5
+Plate: Plate well#: C6												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: C6
+Plate: Plate well#: D1												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: D1
+Plate: Plate well#: D2												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: D2
+Plate: Plate well#: D3												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: D3
+Plate: Plate well#: D4												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: D4
+Plate: Plate well#: D5												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: D5
+Plate: Plate well#: D6												Plate	Test WF1 Materials	Plate: 24 well	Plate well#: D6
+Plate	Test WF1 Materials	Wf1 Plate													
+Acid	Perovskite Demo Materials	Stock FAH													
+Solvent	Perovskite Demo Materials	Neat GBL													
+Organic	Perovskite Demo Materials	Ethylammonium Iodide													
+Inorganic	Perovskite Demo Materials	Lead Diiodide													
+Plate: Plate well#: A1												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: A1
+Plate: Plate well#: A2												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: A2
+Plate: Plate well#: A3												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: A3
+Plate: Plate well#: A4												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: A4
+Plate: Plate well#: A5												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: A5
+Plate: Plate well#: A6												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: A6
+Plate: Plate well#: B1												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: B1
+Plate: Plate well#: B2												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: B2
+Plate: Plate well#: B3												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: B3
+Plate: Plate well#: B4												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: B4
+Plate: Plate well#: B5												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: B5
+Plate: Plate well#: B6												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: B6
+Plate: Plate well#: C1												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: C1
+Plate: Plate well#: C2												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: C2
+Plate: Plate well#: C3												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: C3
+Plate: Plate well#: C4												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: C4
+Plate: Plate well#: C5												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: C5
+Plate: Plate well#: C6												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: C6
+Plate: Plate well#: D1												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: D1
+Plate: Plate well#: D2												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: D2
+Plate: Plate well#: D3												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: D3
+Plate: Plate well#: D4												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: D4
+Plate: Plate well#: D5												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: D5
+Plate: Plate well#: D6												Plate	Perovskite Demo Materials	Plate: 24 well	Plate well#: D6
+Plate	Perovskite Demo Materials	Wf1 Plate													
+Stock A Vial	Perovskite Demo Materials	Tube: 5mL													
+Stock B Vial	Perovskite Demo Materials	Tube: 5mL													

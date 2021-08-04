@@ -9,17 +9,17 @@ methods = {
                           'Systemtool model', 'Systemtool serial', 'Systemtool version'],
         'detail_fields_need_fields': {
             'Actor Description': ['description'],
-            'Status': ['status_description'],
-            'Organization': ['org_full_name'],
-            'Person': ['person_first_name', 'person_last_name'],
-            'Person Organization': ['person_org'],
-            'Systemtool': ['systemtool_name'],
-            'Systemtool description': ['systemtool_description'],
-            'Systemtool type': ['systemtool_type'],
-            'Systemtool vendor': ['systemtool_vendor'],
-            'Systemtool model': ['systemtool_model'],
-            'Systemtool serial': ['systemtool_serial'],
-            'Systemtool version': ['systemtool_version']
+            'Status': ['status.description'],
+            'Organization': ['organization.full_name'],
+            'Person': ['person.first_name', 'person.last_name'],
+            'Person Organization': ['person.organization.full_name'],
+            'Systemtool': ['systemtool.systemtool_name'],
+            'Systemtool description': ['systemtool.description'],
+            'Systemtool type': ['systemtool.systemtool_type.description'],
+            'Systemtool vendor': ['systemtool.vendor_organization.full_name'],
+            'Systemtool model': ['systemtool.model'],
+            'Systemtool serial': ['systemtool.serial'],
+            'Systemtool version': ['systemtool.ver']
         },
     },
     'Inventory': {
@@ -31,25 +31,23 @@ methods = {
             'Owner': ['owner'],
             'Operator': ['operator'],
             'Lab': ['lab'],
-            'Status': ['status'],
+            'Status': ['status.description'],
             'Actor': ['actor']
         },
     },
     'Material': {
         'model': core.models.view_tables.Material,
         'model_name': 'material',
-        # 'detail_fields': ['Chemical Name', 'Abbreviation', 'Molecular Formula', 'InChI',
-        #                  'InChI Key', 'Smiles', 'Create Date', 'Status'],
-        'detail_fields': ['Create Date', 'Status'],
+        'detail_fields': ['Chemical Name', 'Other Names', 'Type', 'Material Class','Create Date', 'Last Modification Date', 'Status'],
+        # 'detail_fields': ['Create Date', 'Status'],
         'detail_fields_need_fields': {
-            # 'Chemical Name': ['chemical_name'],
-            # 'Abbreviation': ['abbreviation'],
-            # 'Molecular Formula': ['molecular_formula'],
-            # 'InChI': ['inchi'],
-            # 'InChI Key': ['inchikey'],
-            # 'Smiles': ['smiles'],
+            'Chemical Name': ['description'],
+            'Other Names': ['identifier'],
+            'Type': ['material_type'],
+            'Material Class': ['material_class'],
             'Create Date': ['add_date'],
-            'Status': ['status_description']
+            'Last Modification Date': ['mod_date'],
+            'Status': ['status.description']
         },
     },
     'Systemtool': {
@@ -61,8 +59,8 @@ methods = {
         'detail_fields_need_fields': {
             'Systemtool Name': ['systemtool_name'],
             'Systemtool Description': ['description'],
-            'Systemtool Type': ['systemtool_type_description'],
-            'Systemtool Vendor': ['organization_fullname'],
+            'Systemtool Type': ['systemtool_type.description'],
+            'Systemtool Vendor': ['vendor_organization.full_name'],
             'Systemtool Model': ['model'],
             'Systemtool Serial': ['serial'],
             'Systemtool Version': ['ver']
@@ -90,7 +88,7 @@ methods = {
             'Address': ['address1', 'address2', 'zip', 'city', 'state_province', 'country'],
             'Website': ['website_url'],
             'Phone': ['phone'],
-            'Parent Organization': ['parent_org_full_name'],
+            'Parent Organization': ['parent.full_name'],
             'Add Date': ['add_date'],
             'Last Modification Date': ['mod_date']
         },
@@ -99,7 +97,7 @@ methods = {
         'model': core.models.view_tables.Person,
         'model_name': 'person',
         'detail_fields': ['Full Name', 'Address', 'Phone', 'Email', 'Title',
-                          'Suffix', 'Organization', 'Add Date', 'Last Modification Date'],
+                          'Suffix', 'Organization', 'Added Organization', 'Add Date', 'Last Modification Date'],
         'detail_fields_need_fields': {
             'Full Name': ['first_name', 'middle_name', 'last_name'],
             'Address': ['address1', 'address2', 'zip', 'city', 'state_province', 'country'],
@@ -107,7 +105,8 @@ methods = {
             'Email': ['email'],
             'Title': ['title'],
             'Suffix': ['suffix'],
-            'Organization': ['organization_full_name'],
+            'Organization': ['organization.full_name'],
+            'Added Organization': ['added_organization'],
             'Add Date': ['add_date'],
             'Last Modification Date': ['mod_date']
         },
@@ -135,17 +134,14 @@ methods = {
     'Tag': {
         'model': core.models.view_tables.Tag,
         'model_name': 'tag',
-        'detail_fields': ['Tag Name', 'Description', 'Actor', 'Add Date', 'Last Modification Date',
-                        #   'Tag Type', 
-                          'Tag Type Description'],
+        'detail_fields': ['Tag Name', 'Description', 'Add Date', 'Last Modification Date',
+                          'Tag Type'],
         'detail_fields_need_fields': {
             'Tag Name': ['display_text'],
             'Description': ['description'],
-            'Actor': ['description'],
             'Add Date': ['add_date'],
             'Last Modification Date': ['mod_date'],
-            'Tag Type': ['type'],
-            'Tag Type Description': ['type_description']
+            'Tag Type': ['tag_type.type']
         },
     },
     'TagType': {
@@ -154,7 +150,7 @@ methods = {
         'detail_fields': ['Type', 'Long Description', 'Add Date',
                           'Last Modification Date'],
         'detail_fields_need_fields': {
-            'Short Description': ['type'],
+            'Type': ['type'],
             'Long Description': ['description'],
             'Add Date': ['add_date'],
             'Last Modification Date': ['mod_date']
@@ -191,30 +187,38 @@ methods = {
         'model': core.models.view_tables.InventoryMaterial,
         'model_name': 'inventory_material',
         'detail_fields': ['Description', 'Inventory', 'Material', 
-                            'Consumable', 'Composite Material', 
                             'Part Number', 'On hand amount', 'Expiration Date',
                             'Inventory Location', 'Status',],
         'detail_fields_need_fields': {
             'Description': ['description'],
+            'Inventory': ['inventory.description'],
             'Material' : ['material'],
-            'Actor': ['actor'],
             'Part Number' : ['part_no'],
             'On hand amount' : ['onhand_amt'],
             'Expiration Date': ['expiration_date'],
             'Inventory Location' : ['location'],
-            'Consumable': ['material_consumable'],
-            'Composite Material': ['material_composite_flg'],
-            'Inventory': ['inventory'],
-            'Status': ['status']
+            'Status': ['status.description']
         },
     },
-    'Experiment': {
-        'model': core.models.view_tables.Experiment,
-        'model_name': 'experiment',
-        'detail_fields': ['Description', 'Status',],
+    # 'Experiment': {
+    #     'model': core.models.view_tables.Experiment,
+    #     'model_name': 'experiment',
+    #     'detail_fields': ['Description', 'Status',],
+    #     'detail_fields_need_fields': {
+    #         'Description': ['description'],
+    #         'Status': ['status.description']
+    #     },
+    # },
+    'Vessel': {
+        'model': core.models.view_tables.Vessel,
+        'model_name': 'vessel',
+        'detail_fields': ['Plate Name', 'Well Number', 'Status', 'Date Added','Last Modified'],
         'detail_fields_need_fields': {
-            'Description': ['description'],
-            'Status': ['status']
+            'Plate Name': ['plate_name'],
+            'Well Number': ['well_number'],
+            'Status': ['status.description'],
+            'Date Added': ['add_date'],
+            'Last Modified': ['mod_date'],
         },
     },
 

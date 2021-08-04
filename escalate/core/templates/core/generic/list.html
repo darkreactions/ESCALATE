@@ -13,7 +13,7 @@
 
 {% block content %}
 <div class="container">
-  {% if title != "Edocument" %}
+  {% if export_urls %}
   <div class="export-buttons-container">
     {% for export_type, export_url in export_urls.items%}
       <button>
@@ -30,16 +30,15 @@
             {% for header in table_columns %}
             <th>
               {{ header }}
-              {% if header != "Actions" %}
               <button type="submit" name="sort" value="{{header}}_asc" onclick="this.form.submit()">
                 <i class="fas fa-sort-amount-up"></i>
               </button>
               <button type="submit" name="sort" value="{{header}}_des" onclick="this.form.submit()">
                 <i class="fas fa-sort-amount-down-alt"></i>
               </button>
-              {% endif %}
             </th>
             {% endfor %}
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -71,7 +70,7 @@
           {% for row_info in table_data %}
           <tr class="text-nowrap">
             {% for col_data in row_info.table_row_data %}
-            <td >{{ col_data }}</td>
+            <td style="white-space:pre">{{ col_data }}</td>
             {% endfor %}
             <td>
               {% if row_info.download_url %}

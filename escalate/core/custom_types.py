@@ -7,7 +7,7 @@ class Val:
     positions = {
             'text' : 2, 'array_text' : 3, 'int' : 4, 'array_int': 5, 'num': 6,
             'array_num': 7, 'blob': 8, 'blob_array': 9, 'bool': 10,
-            'bool_array': 11
+            'array_bool': 11
         }
     def __init__(self, val_type, value, unit, null=False, raw_string=''):
         self.null = null
@@ -26,14 +26,17 @@ class Val:
                 self.value = self.convert_value()
             self.unit = unit
             #print(self.val_type.description, self.value, self.unit)
+        else:
+            self.value = None
+            self.val_type = None
     
     def to_db(self):
         if not self.null:
             string_list = ['']*12
             string_list[0] = str(self.val_type.uuid)
             string_list[1] = self.unit
-            string_list[self.positions[self.val_type.description]] = str(self.value)
-            return f"({','.join(string_list)})"
+            string_list[self.positions[self.val_type.description]] = f'"{str(self.value)}"'
+            return f'({",".join(string_list)})'
         else:
             return None
     
@@ -53,7 +56,7 @@ class Val:
         primitives = {'bool': bool, 'int': int, 'num': float, 'text': str, 'blob': str}
         reverse_primitives = {bool: 'bool',
                               int: 'int', float: 'num', str: 'text'}
-        default_primitives = {'bool': False, 'int': 0, 'num': 0.0, 'text': ' '}
+        default_primitives = {'bool': False, 'int': 0, 'num': 0.0, 'text': ' ', 'blob':' '}
         prim = primitives[description]
         try:
             if value:
@@ -135,7 +138,10 @@ class Val:
             required_keys = set(['type', 'value', 'unit'])
             # Check if all keys are present in 
             if not all(k in json_data for k in required_keys):
+                try:
                     raise ValidationError(f'Missing key "{required_keys - set(json_data.keys())}". ', 'invalid')
+                except:
+                    print('Data does not have attribute keys')
             
             val_type = cls.validate_type(json_data["type"])
             return cls(val_type, json_data['value'], json_data['unit'])

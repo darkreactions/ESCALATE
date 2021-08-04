@@ -8,8 +8,8 @@ from django.contrib.postgres.fields import ArrayField
 from django.forms import MultiWidget, TextInput, Select, MultiValueField, CharField, ChoiceField
 from core.custom_types import Val
 from core.validators import ValValidator
-from core.models.core_tables import TypeDef
-from core.widgets import ValWidget
+from core.widgets import ValFormField
+
 
 """
 v_type_uuid uuid, 0
@@ -26,38 +26,6 @@ v_bool boolean, 10
 v_bool_array boolean[] 11
 """
 
-
-class ValFormField(MultiValueField):
-    widget = ValWidget()
-
-    def __init__(self, *args, **kwargs):
-        errors = self.default_error_messages.copy()
-        if 'error_messages' in kwargs:
-            errors.update(kwargs['error_messages'])
-        data_types = TypeDef.objects.filter(category='data')
-        data_type_choices = [(data_type.description, data_type.description) for data_type in data_types]
-        fields = (
-            CharField(error_messages={
-                'incomplete': 'Must enter a value',
-            }),
-            CharField(required=False),
-            ChoiceField(choices=data_type_choices, initial='num')
-        )
-        super().__init__(fields, *args, **kwargs)
-
-    def compress(self, data_list):
-        if data_list:
-            value, unit, val_type_text = data_list
-            val_type = TypeDef.objects.get(category='data', description=val_type_text)
-            val = Val(val_type, value, unit)
-            return val
-        return Val(null=True)
-
-    def validate(self, value):
-        #print(f"validating {value}")
-        validator = ValValidator()
-        validator(value)
-
 class CustomArrayField(ArrayField):
     def _from_db_value(self, value, expression, connection):
         
@@ -69,7 +37,7 @@ class CustomArrayField(ArrayField):
             for item in value
         ]
 
-class ValField(models.Field):
+class ValField(models.TextField):
     description = 'Data representation'
     formfield = ValFormField()
     def __init__(self, *args, **kwargs):
@@ -81,8 +49,8 @@ class ValField(models.Field):
 
         return name, path, args, kwargs
     
-    def db_type(self, connection):
-        return 'val'
+    #def db_type(self, connection):
+    #    return 'val'
     
     def from_db_value(self, value, expression, connection):
         if value is None:
@@ -104,6 +72,8 @@ class ValField(models.Field):
     def get_prep_value(self, value):
         if isinstance(value, dict):
             value = Val.from_dict(value)
+        elif value == None:
+            value = Val(None, None, None, null=True)
         return value.to_db()
     
     def get_db_prep_value(self, value, connection, prepared=False):
@@ -117,7 +87,7 @@ class ValField(models.Field):
     def value_from_object(self, obj):
         obj = super().value_from_object(obj)
         return obj
-
+    
     def formfield(self, **kwargs):
         # This is a fairly standard way to set up some defaults
         # while letting the caller override them.

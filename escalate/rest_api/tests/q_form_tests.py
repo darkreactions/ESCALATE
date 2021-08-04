@@ -10,11 +10,10 @@ from django.test import Client
 from django.urls import reverse
 from rest_framework.test import force_authenticate
 from core.models.app_tables import CustomUser
-from post_data import simple_post_data, complex_post_data
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 from django.urls import reverse
-from rest_api.utils import rest_experiment_views, camel_case
+from rest_api.utils import rest_experiment_views, snake_case
 import json
 
 pytestmark = pytest.mark.django_db
@@ -26,7 +25,7 @@ view_names = [name for name in view_names if name not in exceptions]
 
 api_view_names = []
 for method_name in view_names:
-    api_view_names.append(camel_case(method_name)+'-list')
+    api_view_names.append(method_name.lower()+'-list')
 
 @pytest.fixture
 def api_client():

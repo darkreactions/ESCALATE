@@ -1,31 +1,15 @@
 from django.db import connection as con
 
-
-def get_val(val):
-    """Breaks val tuple into constituent parts
-    Currently unused, supplanted by core.custom_types.Val
-    """
-    cur = con.cursor()
-    cur.execute(f"select get_val (%s::val);", [val])
-    result = cur.fetchone()
-    val_type = val_unit = val_val = None
-    if result is not None:
-        tuple_str = result[0]
-        val_type, val_unit, val_val = tuple_str.strip(')(').split(',')
-    return val_type, val_unit, val_val
-
+import inflection
 
 def camel_case(text):
-    data = text.lower()
-    if 'view' in data[:4]:
-        data = data[4:]
-    return data
-
+    return inflection.camelize(text, False)
 
 def snake_case(text):
-    components = text.split('_')
-    return ''.join(x.title() for x in components)
+    return inflection.underscore(text)
 
+def dasherize(text):
+    return inflection.dasherize(snake_case(text))
 
 def camel_case_uuid(text):
     text = camel_case(text)
@@ -33,30 +17,39 @@ def camel_case_uuid(text):
     return text
 
 
-misc_views = set(['Note_x'])
+misc_views = set(['NoteX'])
 
 core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   'SystemtoolType', 'Inventory', 'InventoryMaterial',
                   'Calculation', 'CalculationDef', 'Material',
-                  'CompositeMaterial', 'CompositeMaterialProperty', 'MaterialRefnameDef', 'MaterialType', 'MaterialTypeAssign',
-                  'Person', 'Tag', 'TagType', 'Property', 'PropertyDef', 'UnitType',
-                  'TypeDef', 'ParameterDef', 'Condition', 'ConditionDef', 'ConditionCalculationDefAssign',
-                  'ActionParameter', 'ActionParameterDefAssign', 'Parameter', 'WorkflowType', 'WorkflowStep', 
-                  'WorkflowObject', 'UdfDef', 'Experiment', 'ExperimentWorkflow', #'ExperimentParameter',
-                  'BillOfMaterials', 'BomMaterial', 'BomCompositeMaterial', 'Measure', 'MeasureType', 'MeasureDef', 'Outcome'])
+                  'Mixture', 'MaterialIdentifierDef', 'MaterialIdentifier',
+                  'MaterialType', 
+                  'Person', 'Tag', 'TagType', 'PropertyDef', 'UnitType',
+                  'TypeDef', 'ParameterDef', 'Condition', 'ConditionDef',
+                  #'ActionParameter', 'Parameter', 
+                  'WorkflowType', 'WorkflowStep', 
+                  'WorkflowObject', 'UdfDef', 'Experiment', 'ExperimentWorkflow', 'ExperimentType', #'ExperimentParameter',
+                  'BillOfMaterials',  'Measure', 'MeasureType', 'MeasureDef', 'Outcome',
+                  'Action', 'ActionUnit', 'ActionDef', 'ExperimentInstance',
+                  'BaseBomMaterial', 'Vessel'])
 
-experiment_views = set(['ActionDef', 'BomMaterial', 'CompositeMaterial', 'Material', 'ParameterDef'])
+#Views that are a combination of multiple tables, used to be postgres views. Should be changed to something else
+combined_views = set(['CompositeMaterialProperty', 'MaterialTypeAssign', 
+                      'ConditionCalculationDefAssign', 
+                      'ActionParameterDefAssign', 'MaterialProperty'])
+
+experiment_views = set(['ActionDef', 'BomMaterial', 'Mixture', 'Material', 'ParameterDef'])
 
 GET_only_views = set(['TypeDef'])
 
-unexposed_views = set(['TagAssign', 'Note', 'Edocument'])
+unexposed_views = set(['TagAssign', 'Note', 'Edocument', 'Property', 'Parameter'])
 
-custom_serializer_views = set(['ActionDef', 'Action', 'Workflow', 'WorkflowActionSet'])
+custom_serializer_views = set(['Workflow', 'WorkflowActionSet', 'BomMaterial', 'BomCompositeMaterial',])
 
 # Viewsets that are not associated with a model exclusively
 non_model_views = set(['Experiment', 'ExperimentTemplate'])
 
-perform_create_views = set(['PropertyDef', 'MaterialProperty'])
+perform_create_views = set(['PropertyDef', ])
 
 # Set of models for rest_api/serializers.py
 rest_serializer_views = core_views | misc_views | perform_create_views
@@ -87,62 +80,7 @@ def docstring(docstr, sep="\n"):
     return _decorator
 
 expandable_fields = {
-    'ActionDef': {
-        'options': {
-             'many_to_many': []
-        },
-        'fields': {
-            'parameter_def': ('rest_api.ParameterDefSerializer', 
-                                {
-                                    'read_only': True,
-                                    'many': True, 
-                                    #'source': 'parameter_action',
-                                    'view_name': 'parameterdef-detail'
-                                })
-        }
-    },
-    'Action': {
-        'options': {
-             'many_to_many': []
-        },
-        'fields': {
-            'parameter': ('rest_api.ActionParameterSerializer', 
-                                {
-                                    'read_only': True,
-                                    'many': True, 
-                                    'source': 'action_parameter_action',
-                                    'view_name': 'actionparameter-detail'
-                                })
-        }
-    },
-    'BomCompositeMaterial': {
-        'options': {
-            'many_to_many': []
-        },
-        'fields': {
-            'composite_material': ('rest_api.CompositeMaterialSerializer', 
-                                {
-                                    'read_only': True,
-                                    'view_name': 'compositematerial-detail'
-
-                                })
-        }
-    },
-    'BomMaterial': {
-        'options': {
-            'many_to_many': []
-        },
-        'fields': {
-            'bom_composite_material': ('rest_api.BomCompositeMaterialSerializer',
-                                    {
-                                        'source': 'bom_composite_material_bom_material',
-                                        'many': True,
-                                        'read_only': True,
-                                        'view_name': 'bomcompositematerial-detail'
-                                    }
-        )
-        }
-    },
+    
     'BillOfMaterials': {
         'options': {
             'many_to_many': []
@@ -195,18 +133,6 @@ expandable_fields = {
                   })
         }
     },
-    'ExperimentWorkflow': {
-        'options': {
-            'many_to_many': []
-        },
-        'fields': {
-            'workflow': ('rest_api.WorkflowSerializer',
-                        {
-                            'read_only': True,
-                            'view_name': 'workflow-detail'
-                        })
-        }
-    },
     'Experiment': {
         'options': {
             'many_to_many': ['workflow']
@@ -235,3 +161,77 @@ expandable_fields = {
     }
 
 }
+
+"""
+'BomCompositeMaterial': {
+        'options': {
+            'many_to_many': []
+        },
+        'fields': {
+            'mixture': ('rest_api.CompositeMaterialSerializer', 
+                                {
+                                    'read_only': True,
+                                    'view_name': 'mixture-detail'
+
+                                })
+        }
+    },
+    'BomMaterial': {
+        'options': {
+            'many_to_many': []
+        },
+        'fields': {
+            'bom_composite_material': ('rest_api.BomCompositeMaterialSerializer',
+                                    {
+                                        'source': 'bom_composite_material_bom_material',
+                                        'many': True,
+                                        'read_only': True,
+                                        'view_name': 'bomcompositematerial-detail'
+                                    }
+        )
+        }
+    },
+'Action': {
+        'options': {
+             'many_to_many': []
+        },
+        'fields': {
+            'action_unit': ('rest_api.ActionUnitSerializer', 
+                                {
+                                    'read_only': True,
+                                    'many': True, 
+                                    'source': 'action_unit_action',
+                                    'view_name': 'actionunit-detail'
+                                }),
+                                
+
+        }
+    },
+'ExperimentWorkflow': {
+        'options': {
+            'many_to_many': []
+        },
+        'fields': {
+            'workflow': ('rest_api.WorkflowSerializer',
+                        {
+                            #'read_only': True,
+                            'view_name': 'workflow-detail'
+                        })
+        }
+    },
+
+    'ActionDef': {
+        'options': {
+             'many_to_many': []
+        },
+        'fields': {
+            'parameter_def': ('rest_api.ParameterDefSerializer', 
+                                {
+                                    'read_only': True,
+                                    'many': True, 
+                                    #'source': 'parameter_action',
+                                    'view_name': 'parameterdef-detail'
+                                })
+        }
+    },
+"""

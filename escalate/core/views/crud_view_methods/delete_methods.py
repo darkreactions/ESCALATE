@@ -63,6 +63,10 @@ methods = {
     'Experiment': {
         'model': core.models.view_tables.Experiment,
         'success_url': reverse_lazy('experiment_list'),
-    }
+    },
+    'Vessel': {
+        'model': core.models.view_tables.Vessel,
+        'success_url': reverse_lazy('vessel_list'),
+    },
 
 }

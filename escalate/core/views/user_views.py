@@ -14,7 +14,7 @@ from core.forms.forms import (CustomUserCreationForm, PersonTableForm,
                         JoinOrganizationForm, PersonForm)
 from core.models.view_tables import Actor, Person, Organization, Edocument
 from core.models.app_tables import CustomUser, OrganizationPassword
-from core.models.core_tables import PersonTable, OrganizationTable, TypeDef
+from core.models.core_tables import TypeDef
 from core.forms.forms import UploadEdocForm
 from django.forms import modelformset_factory
 
@@ -33,7 +33,7 @@ class CreateUserView(View):
         user_form = CustomUserCreationForm(request.POST)
         if person_form.is_valid() and user_form.is_valid():
             person = person_form.save()
-            p = PersonTable.objects.get(pk=person.pk)
+            p = Person.objects.get(pk=person.pk)
 
             user = user_form.save(commit=False)
             user.person = p

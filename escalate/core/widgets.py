@@ -5,6 +5,7 @@ from core.validators import ValValidator
 from core.models.core_tables import TypeDef
 import json
 import numpy as np
+from django.forms import MultiWidget, TextInput, Select, MultiValueField, CharField, ChoiceField
 
 class TableWidget(Widget):
     input_type = None  # Subclasses must define this.
@@ -29,7 +30,10 @@ class ValWidget(MultiWidget):
     def __init__(self, attrs={}):
         # value, unit and type
         data_types = TypeDef.objects.filter(category='data')
-        data_type_choices = [(data_type.description, data_type.description) for data_type in data_types]
+        try:
+            data_type_choices = [(data_type.description, data_type.description) for data_type in data_types]
+        except Exception as e:
+            data_type_choices = [('num', 'num'), ('text', 'text'), ('bool', 'bool')]
         select_attrs = {'class': 'selectpicker',
                           'data-style': 'btn-outline-primary', 
                           'data-live-search': 'true', 
@@ -48,7 +52,8 @@ class ValWidget(MultiWidget):
 
     def decompress(self, value):
         if isinstance(value, Val):
-            return [value.value, value.unit, str(value.val_type.description), value.value, ]
+            if not value.null:
+                return [value.value, value.unit, str(value.val_type.description), value.value, ]
 
         return [None, None, None, None]
 
@@ -76,6 +81,39 @@ class ValWidget(MultiWidget):
 
         return context
 
+class ValFormField(MultiValueField):
+    widget = ValWidget()
 
+    def __init__(self, *args, **kwargs):
+        errors = self.default_error_messages.copy()
+        if 'error_messages' in kwargs:
+            errors.update(kwargs['error_messages'])
+        data_types = TypeDef.objects.filter(category='data')
+        try:
+            data_type_choices = [(data_type.description, data_type.description) for data_type in data_types]
+        except Exception as e:
+            data_type_choices = [('num', 'num'), ('text', 'text'), ('bool', 'bool')]
+        fields = (
+            CharField(error_messages={
+                'incomplete': 'Must enter a value',
+            }),
+            CharField(required=False),
+            ChoiceField(choices=data_type_choices, initial='num')
+        )
+        if 'max_length' in kwargs:
+            kwargs.pop('max_length')
+            
+        super().__init__(fields, *args, **kwargs)
 
+    def compress(self, data_list):
+        if data_list:
+            value, unit, val_type_text = data_list
+            val_type = TypeDef.objects.get(category='data', description=val_type_text)
+            val = Val(val_type, value, unit)
+            return val
+        return Val(null=True)
 
+    def validate(self, value):
+        #print(f"validating {value}")
+        validator = ValValidator()
+        validator(value)
