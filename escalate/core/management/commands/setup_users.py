@@ -35,6 +35,13 @@ users = {
         },
         'password': 'password1'
     },
+    'nsmina': {
+        'person_data': {
+            'first_name': 'Nicole',
+            'last_name': 'Smina'
+        },
+        'password': 'password11'
+    },
     'jkawamura': {
         'person_data': {
             'first_name': 'Joseph',
