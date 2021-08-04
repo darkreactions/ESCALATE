@@ -2,11 +2,12 @@ from django.db import models
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db.models.fields import BooleanField
-from core.models.core_tables import RetUUIDField
+from core.models.core_tables import RetUUIDField, SlugField
 from core.models.custom_types import ValField, PROPERTY_CLASS_CHOICES, PROPERTY_DEF_CLASS_CHOICES, MATERIAL_CLASS_CHOICES
 from django.contrib.postgres.fields import ArrayField
 import uuid
 from core.models.base_classes import DateColumns, StatusColumn, ActorColumn, DescriptionColumn
+
 
 managed_tables = True
 managed_views = False
@@ -82,6 +83,13 @@ class CalculationDef(DateColumns, ActorColumn, DescriptionColumn):
                                    db_column='systemtool_uuid', 
                                    related_name='calculation_def_systemtool',
                                    blank=True, null=True)
+    internal_slug = SlugField(populate_from=[
+                                    'description',
+                                    'short_name',
+                                    'calc_definition'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
 
     def __str__(self):
         return "{}".format(self.description)
@@ -104,6 +112,12 @@ class Edocument(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                       on_delete=models.DO_NOTHING, blank=True, null=True, editable=False)
     #edocument_x_uuid = RetUUIDField(editable=False)
     ref_edocument_uuid = RetUUIDField()
+    internal_slug = SlugField(populate_from=[
+                                    'filename',
+                                    'edoc_ver'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
 
     def __str__(self):
         return "{}".format(self.title)
@@ -137,6 +151,11 @@ class Measure(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                     db_column='measure_def_uuid',
                                     on_delete=models.DO_NOTHING)
     measure_value = ValField()
+    internal_slug = SlugField(populate_from=[
+                                'description'
+                                ],
+                            overwrite=True, 
+                            max_length=255)
 
 class MeasureType(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='measure_type_uuid')
@@ -180,6 +199,11 @@ class Note(DateColumns, ActorColumn):
     notetext = models.TextField(blank=True, null=True,
                                 verbose_name='Note Text')
     ref_note_uuid = RetUUIDField(blank=True, null=True)
+    internal_slug = SlugField(populate_from=[
+                                    'description'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
 
     def __str__(self):
         return "{}".format(self.notetext)
@@ -241,6 +265,11 @@ class ParameterDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                  blank=True,
                                  null=True,
                                  db_column='parameter_def_unit_type')
+    internal_slug = SlugField(populate_from=[
+                                    'description'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
 
     def __str__(self):
         return "{}".format(self.description)

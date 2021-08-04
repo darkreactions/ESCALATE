@@ -21,6 +21,8 @@ from core.experiment_templates import liquid_solid_extraction, resin_weighing, p
 from core.custom_types import Val
 import core.experiment_templates
 from core.models.view_tables import Parameter
+# from .crud_view_methods.model_view_generic import GenericModelList
+# from .crud_views import LoginRequired
 
 #SUPPORTED_CREATE_WFS = ['liquid_solid_extraction', 'resin_weighing']
 #SUPPORTED_CREATE_WFS = supported_wfs() 
@@ -53,7 +55,10 @@ class CreateExperimentView(TemplateView):
     def get_context_data(self, **kwargs):    
         # Select templates that belong to the current lab
         context = super().get_context_data(**kwargs)
-        org_id = self.request.session['current_org_id']
+        if 'current_org_id' in self.request.session:
+            org_id = self.request.session['current_org_id']
+        else:
+            org_id = None
         lab = Actor.objects.get(organization=org_id, person__isnull=True)
         self.all_experiments = Experiment.objects.filter(parent__isnull=True, lab=lab)
         context['all_experiments'] = self.all_experiments
@@ -325,97 +330,23 @@ class CreateExperimentView(TemplateView):
 
 # end: class CreateExperimentView()
 
-
-class ExperimentListView(ListView):
-    template_name = 'core/experiment/list.html'
-    model = core.models.view_tables.Experiment
-    field_contains = ''
-    order_field = 'description'
-    org_related_path = 'lab__organization'
-    table_columns = ['Description', 'Actions']
-    column_necessary_fields = {'Description': ['description'], 
-                               }
-    context_object_name= 'experiments'
-
-    def get_context_data(self, **kwargs):
-        context = super(ExperimentListView, self).get_context_data(**kwargs)
-        context['filter'] = self.request.GET.get('filter', '')
-        return context
-    
-    def get_queryset(self):
-        filter_val = self.request.GET.get('filter', self.field_contains)
-        order = "".join(self.request.session.get(f'experiments_order',self.order_field).split('-'))
-        ordering = self.request.GET.get('ordering', order)
-
-        #order = "".join(order_field)
-        filter_kwargs = {f'{order}__icontains': filter_val}
-
-        # Filter by organization if it exists in the model
-        if 'current_org_id' in self.request.session:
-            org_filter_kwargs = {self.org_related_path : self.request.session['current_org_id'],
-                                 'parent__isnull':False}
-            base_query = self.model.objects.filter(**org_filter_kwargs)
-        else:
-            base_query = self.model.objects.none()
-        
-        
-        if filter_val != None:
-            new_queryset = base_query.filter(
-                **filter_kwargs).select_related().order_by(ordering)
-        else:
-            new_queryset = base_query
-        
-        new_queryset = base_query
-        return new_queryset
-    
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['table_columns'] = self.table_columns
-        models = context[self.context_object_name]
-        model_name = self.context_object_name[:-1]  # Ex: tag_types -> tag_type
-        table_data = []
-        for model in models:
-            table_row_data = []
-
-            # loop to get each column data for one row. [:-1] because table_columns has 'Actions'
-            header_names = self.table_columns[:-1]
-            for field_name in header_names:
-                # get list of fields used to fill out one cell
-                necessary_fields = self.column_necessary_fields[field_name]
-                # get actual field value from the model
-                fields_for_col = [getattr(model, field)
-                                  for field in necessary_fields]
-                # loop to change None to '' or non-string to string because join needs strings
-                for k in range(0, len(fields_for_col)):
-                    if fields_for_col[k] == None:
-                        fields_for_col[k] = ''
-                    if not isinstance(fields_for_col[k], str):
-                        fields_for_col[k] = str(fields_for_col[k])
-                col_data = " ".join(fields_for_col)
-                # take away any leading and trailing whitespace
-                col_data = col_data.strip()
-                # change the cell data to be N/A if it is empty string at this point
-                if len(col_data) == 0:
-                    col_data = 'N/A'
-                table_row_data.append(col_data)
-
-            # dict containing the data, view and update url, primary key and obj
-            # name to use in template
-            table_row_info = {
-                'table_row_data': table_row_data,
-                'view_url': reverse_lazy(f'{model_name}_view', kwargs={'pk': model.pk}),
-                'update_url': reverse_lazy(f'{model_name}_update', kwargs={'pk': model.pk}),
-                'obj_name': str(model),
-                'obj_pk': model.pk
-            }
-            table_data.append(table_row_info)
-
-        context['add_url'] = reverse_lazy(f'{model_name}_add')
-        context['table_data'] = table_data
-        # get rid of underscores with spaces and capitalize
-        context['title'] = model_name.replace('_', ' ').capitalize()
-        return context
+'''
+Made experiment list view to be auto generated like the other models because it doesn't seem to have any 
+different functionality and the code for it below is old and doesn't work
+Below is what gets autogenerated for reference
+'''
+# class ExperimentListView(LoginRequired, GenericModelList):
+#     model = core.models.view_tables.Experiment
+#     table_columns = ['Description']
+#     column_necessary_fields = {
+#         'Description': ['description']
+#     }
+#     ordering = ['description']
+#     field_contains = ''
+#     org_related_path = 'lab__organization'
+#     default_filter_kwarg= {
+#         'parent__isnull': False
+#     }
 
 
 class ExperimentDetailView(DetailView):
@@ -439,7 +370,6 @@ class ExperimentDetailView(DetailView):
         q1 = get_action_parameter_querysets(exp.uuid)
         mat_q = get_material_querysets(exp.uuid)
         edocs = Edocument.objects.filter(ref_edocument_uuid=exp.uuid)
-
         detail_data = {row.object_description : row.inventory_material for row in mat_q}
         detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q1})
         #detail_data.update({f'{row.object_description} {row.parameter_def_description}': f'{row.parameter_value}' for row in q2})
@@ -460,7 +390,7 @@ class ExperimentDetailView(DetailView):
         tags = []
         for tag in tags_raw:
             tags.append(tag.display_text.strip())
-        detail_data['Tags'] = ', '.join(tags)
+        context['tags'] = ', '.join(tags)
 
         context['title'] = self.model_name.replace('_', " ").capitalize()
         context['update_url'] = reverse_lazy(

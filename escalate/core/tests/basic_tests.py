@@ -101,6 +101,8 @@ def test_add_views(login, name):
     """
     Opens add page for each model in list_names
     """
+    testco_uuid = get_testco()
+    response = client.post(reverse('main_menu'), {'select_org':'select_org', 'org_select':testco_uuid})
     response = client.get(reverse(name))
     soup = BeautifulSoup(response.content, 'html.parser')
     view_link = soup.select('.view-add')[0]['href']
