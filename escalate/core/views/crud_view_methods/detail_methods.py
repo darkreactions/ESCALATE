@@ -178,7 +178,7 @@ methods = {
             'Description': ['description'],
             'Source':['source'],
             # 'Document Type':['doc_type_description'],
-            'Status': ['status_description'],
+            'Status': ['status.description'],
             'Add Date': ['add_date'],
             'Last Modification Date': ['mod_date']
         },

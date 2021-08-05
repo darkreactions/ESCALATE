@@ -136,7 +136,7 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
 view_names = ['Material', 'Inventory', 'Actor', 'Organization', 'Person',
               'Systemtool', 'InventoryMaterial', 'Vessel',
               'SystemtoolType', 'UdfDef', 'Status', 'Tag',
-              'TagType', 'MaterialType', 'Experiment'
+              'TagType', 'MaterialType', 'Experiment', 'Edocument'
               ]
 
 

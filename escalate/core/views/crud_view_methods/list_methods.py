@@ -135,19 +135,19 @@ methods = {
         'ordering': ['description'],
         'field_contains': ''
     },
-    # 'Edocument': {
-    #     'model': core.models.Edocument,
-    #     'context_object_name': 'edocuments',
-    #     'table_columns': ['Title', 'UUID', ],  # 'File Type' 'Version'
-    #     'column_necessary_fields': {
-    #         'Title': ['title'],
-    #         # 'File Type':['doc_type_description'],
-    #         'UUID': ['uuid'],
-    #         # 'Version': ['doc_ver'],
-    #     },
-    #     'ordering': ['description'],
-    #     'field_contains': '',
-    # },
+    'Edocument': {
+        'model': core.models.Edocument,
+        'context_object_name': 'edocuments',
+        'table_columns': ['Title', 'Description', 'File Type', 'Version'],
+        'column_necessary_fields': {
+            'Title': ['title'],
+            'Description': ['description'],
+            'File Type':['edoc_type_uuid.description'],
+            'Version': ['edoc_ver'],
+        },
+        'ordering': ['description'],
+        'field_contains': '',
+    },
     'InventoryMaterial': {
         'model': core.models.view_tables.InventoryMaterial,
         'table_columns': ['Description', 'Inventory', 'Material', 'Amount On Hand', 'Expiration Date', 'Location', ],
