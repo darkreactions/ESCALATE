@@ -31,7 +31,7 @@ methods = {
             'Owner': ['owner'],
             'Operator': ['operator'],
             'Lab': ['lab'],
-            'Status': ['status'],
+            'Status': ['status.description'],
             'Actor': ['actor']
         },
     },
@@ -47,7 +47,7 @@ methods = {
             'Material Class': ['material_class'],
             'Create Date': ['add_date'],
             'Last Modification Date': ['mod_date'],
-            'Status': ['status']
+            'Status': ['status.description']
         },
     },
     'Systemtool': {
@@ -97,7 +97,7 @@ methods = {
         'model': core.models.view_tables.Person,
         'model_name': 'person',
         'detail_fields': ['Full Name', 'Address', 'Phone', 'Email', 'Title',
-                          'Suffix', 'Organization', 'Add Date', 'Last Modification Date'],
+                          'Suffix', 'Organization', 'Added Organization', 'Add Date', 'Last Modification Date'],
         'detail_fields_need_fields': {
             'Full Name': ['first_name', 'middle_name', 'last_name'],
             'Address': ['address1', 'address2', 'zip', 'city', 'state_province', 'country'],
@@ -106,6 +106,7 @@ methods = {
             'Title': ['title'],
             'Suffix': ['suffix'],
             'Organization': ['organization.full_name'],
+            'Added Organization': ['added_organization'],
             'Add Date': ['add_date'],
             'Last Modification Date': ['mod_date']
         },
@@ -133,17 +134,14 @@ methods = {
     'Tag': {
         'model': core.models.view_tables.Tag,
         'model_name': 'tag',
-        'detail_fields': ['Tag Name', 'Description', 'Actor', 'Add Date', 'Last Modification Date',
-                        #   'Tag Type', 
-                          'Tag Type Description'],
+        'detail_fields': ['Tag Name', 'Description', 'Add Date', 'Last Modification Date',
+                          'Tag Type'],
         'detail_fields_need_fields': {
             'Tag Name': ['display_text'],
             'Description': ['description'],
-            'Actor': ['description'],
             'Add Date': ['add_date'],
             'Last Modification Date': ['mod_date'],
-            'Tag Type': ['type'],
-            'Tag Type Description': ['type_description']
+            'Tag Type': ['tag_type.type']
         },
     },
     'TagType': {
@@ -189,32 +187,28 @@ methods = {
         'model': core.models.view_tables.InventoryMaterial,
         'model_name': 'inventory_material',
         'detail_fields': ['Description', 'Inventory', 'Material', 
-                            'Consumable', 'Composite Material', 
                             'Part Number', 'On hand amount', 'Expiration Date',
                             'Inventory Location', 'Status',],
         'detail_fields_need_fields': {
             'Description': ['description'],
+            'Inventory': ['inventory.description'],
             'Material' : ['material'],
-            'Actor': ['actor'],
             'Part Number' : ['part_no'],
             'On hand amount' : ['onhand_amt'],
             'Expiration Date': ['expiration_date'],
             'Inventory Location' : ['location'],
-            'Consumable': ['material_consumable'],
-            'Mixture': ['material_composite_flg'],
-            'Inventory': ['inventory'],
-            'Status': ['status']
+            'Status': ['status.description']
         },
     },
-    'Experiment': {
-        'model': core.models.view_tables.Experiment,
-        'model_name': 'experiment',
-        'detail_fields': ['Description', 'Status',],
-        'detail_fields_need_fields': {
-            'Description': ['description'],
-            'Status': ['status']
-        },
-    },
+    # 'Experiment': {
+    #     'model': core.models.view_tables.Experiment,
+    #     'model_name': 'experiment',
+    #     'detail_fields': ['Description', 'Status',],
+    #     'detail_fields_need_fields': {
+    #         'Description': ['description'],
+    #         'Status': ['status.description']
+    #     },
+    # },
     'Vessel': {
         'model': core.models.view_tables.Vessel,
         'model_name': 'vessel',
@@ -222,7 +216,7 @@ methods = {
         'detail_fields_need_fields': {
             'Plate Name': ['plate_name'],
             'Well Number': ['well_number'],
-            'Status': ['status'],
+            'Status': ['status.description'],
             'Date Added': ['add_date'],
             'Last Modified': ['mod_date'],
         },

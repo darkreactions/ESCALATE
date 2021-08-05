@@ -44,3 +44,4 @@ class UnitType(models.Model):
     # class Meta:
     #     managed = True
     #     db_table = 'unit_type'
+    
