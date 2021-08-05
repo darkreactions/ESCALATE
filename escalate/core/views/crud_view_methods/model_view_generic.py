@@ -474,8 +474,6 @@ class GenericModelEdit:
 class GenericModelView(DetailView):
     # Override below 2 in subclass
     model = None
-    model_name = None  # lowercase, snake case. Ex:tag_type or inventory
-
     template_name = 'core/generic/detail.html'
 
     # Override below 2 in subclass
@@ -554,11 +552,11 @@ class GenericModelView(DetailView):
             })
         context['edocs'] = edocs
 
-        context['title'] = self.model_name.replace('_', " ").capitalize()
+        context['title'] = self.context_object_name.replace('_', " ").capitalize()
         context['update_url'] = reverse_lazy(
-            f'{self.model_name}_update', kwargs={'pk': obj.pk})
+            f'{self.context_object_name}_update', kwargs={'pk': obj.pk})
 
-        if self.model_name == "edocument":
+        if self.context_object_name == "edocument":
             context['download_url'] = reverse('edoc_download', args=(obj.pk,))
         context['detail_data'] = detail_data
         return context
