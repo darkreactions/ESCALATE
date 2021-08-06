@@ -80,7 +80,7 @@ methods = {
             'Zip',
             'City',
             'State/Province',
-            'Country'
+            'Country',
             'Website',
             'Parent Organization'    
         ],
