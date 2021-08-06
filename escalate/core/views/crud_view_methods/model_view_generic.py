@@ -228,7 +228,7 @@ class GenericModelList(GenericModelListBase, ListView):
             _parsed = urlparse.urlparse(self.request.get_full_path())
             query_string = '&'.join([f'{q}={p[0]}' for q, p in urlparse.parse_qs(_parsed.query).items()])
             for file_type in export_file_types:
-                export_urls[file_type.upper()] = reverse_lazy(f'{model_name}_export_{file_type}') + (f'?{query_string}' if len(query_string) > 0 else '')
+                export_urls[file_type] = reverse_lazy(f'{model_name}_export_{file_type}') + (f'?{query_string}' if len(query_string) > 0 else '')
             context['export_urls'] = export_urls
         return context
 
