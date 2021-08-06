@@ -111,4 +111,14 @@ def test_generic_list_views(login, name):
 
     #TODO test clicking export buttons
 
+@pytest.mark.ui_basic_tests
+@pytest.mark.parametrize("name", export_names)
+def test_generic_export_views(login, name):
+    """
+    Opens detail page for each model's list view in list_names
+    """
+    set_client_org_to_testco()
+
+    response = client.get(reverse(name))
+    assert response.status_code == 200, f'{name} FAILED'
 
