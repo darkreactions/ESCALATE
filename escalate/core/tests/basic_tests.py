@@ -38,7 +38,7 @@ for model_name in view_names:
         for file_type in export_file_types:
             export_names.append(f'{camel_to_snake(model_name)}_export_{file_type}')
 
-def get_testco(login=False):
+def get_organization(organization,login=False,):
     """
     Gets the value of Testco based on the dropdown menu in a specific page
     """
@@ -50,11 +50,11 @@ def get_testco(login=False):
         page = 'user_profile'
     response = client.get(reverse(page))
     soup = BeautifulSoup(response.content, 'html.parser')
-    return soup.find(id=select_id).find_all('option', text=re.compile('TestCo'))[0]['value']
+    return soup.find(id=select_id).find_all('option', text=re.compile(organization))[0]['value']
 
-def set_client_org_to_testco():
-    testco_uuid = get_testco()
-    client.post(reverse('main_menu'), {'select_org':'select_org', 'org_select':testco_uuid})
+def set_client_org_to_org(organization):
+    uuid = get_organization(organization)
+    client.post(reverse('main_menu'), {'select_org':'select_org', 'org_select': uuid})
 
 @pytest.fixture
 def login():
@@ -62,7 +62,7 @@ def login():
     Logs user in and adds the organization to the user
     """
     client.post('', {'username': 'vshekar', 'password': 'copperhead123'})
-    client.post(reverse('user_profile'), {'add_org': 'add_org', 'organization': get_testco(login=True), 'password': 'test'})
+    client.post(reverse('user_profile'), {'add_org': 'add_org', 'organization': get_organization('TestCo',login=True), 'password': 'test'})
 
 
 def test_create_user():
@@ -73,11 +73,29 @@ def test_create_user():
     assert response.status_code == 200
 
 @pytest.mark.ui_basic_tests
+def test_workflow(login):
+    """
+    Opens user_profile page
+    """
+    set_client_org_to_org('TestCo')
+    response = client.get(reverse('workflow'))
+    assert response.status_code == 200
+
+@pytest.mark.ui_basic_tests
+def test_create_experiment(login):
+    """
+    Creates experiment
+    """
+    set_client_org_to_org('Haverford College')
+    response = client.get(reverse('experiment_add'))
+    assert response.status_code == 200
+
+@pytest.mark.ui_basic_tests
 def test_user_profile(login):
     """
     Opens user_profile page
     """
-    set_client_org_to_testco()
+    set_client_org_to_org('TestCo')
     response = client.get(reverse('user_profile'))
     assert response.status_code == 200
     soup = BeautifulSoup(response.content, 'html.parser')
@@ -105,7 +123,7 @@ def test_generic_list_views(login, name):
     """
     Opens detail page for each model's list view in list_names
     """
-    set_client_org_to_testco()
+    set_client_org_to_org('TestCo')
 
     response = client.get(reverse(name))
     #test list view rendering
@@ -144,7 +162,7 @@ def test_generic_export_views(login, name):
     """
     Opens detail page for each model's list view in list_names
     """
-    set_client_org_to_testco()
+    set_client_org_to_org('TestCo')
 
     response = client.get(reverse(name))
     assert response.status_code == 200, f'{name} FAILED'
