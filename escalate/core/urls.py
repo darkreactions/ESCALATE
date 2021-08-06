@@ -12,7 +12,7 @@ from core.utilities.utils import view_names, camel_to_snake
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
-from core.views.exports import file_types as export_file_types
+from core.views.exports.file_types import file_types as export_file_types
 
 urlpatterns = [
     path('favicon.ico', RedirectView.as_view(

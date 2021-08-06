@@ -4,11 +4,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 
 import core.models
 import core.forms
-from core.views.exports import (
-    GenericModelExport,
-    export_methods,
-    file_types as export_file_types
-)
+from core.views.exports.model_export_generic import GenericModelExport
+from core.views.exports.export_methods import methods as export_methods
+from core.views.exports.file_types import file_types as export_file_types
+
 
 class LoginRequired(LoginRequiredMixin):
     login_url = '/'
@@ -22,5 +21,5 @@ def create_export_view(model_name, methods):
         globals()[class_name] = type(class_name,
                                           tuple([LoginRequired, GenericModelExport]), methods)
 
-for model_name, methods_list in export_methods.methods.items():
+for model_name, methods_list in export_methods.items():
     create_export_view(model_name, methods_list)
