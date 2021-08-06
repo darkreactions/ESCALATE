@@ -73,6 +73,33 @@ def test_create_user():
     assert response.status_code == 200
 
 @pytest.mark.ui_basic_tests
+def test_user_profile(login):
+    """
+    Opens user_profile page
+    """
+    set_client_org_to_testco()
+    response = client.get(reverse('user_profile'))
+    assert response.status_code == 200
+    soup = BeautifulSoup(response.content, 'html.parser')
+    
+    #test editting user profile
+    edit_elements = soup.select('.edit-account-profile')
+    if(len(edit_elements) > 0):
+        edit_link = edit_elements[0]['href']
+        response = client.get(edit_link)
+        assert response.status_code == 200, f'clicking edit profile from user profile FAILED'
+    else:
+        assert True
+    #test clicking change password
+    password_elements = soup.select('.edit-account-password')
+    if(len(password_elements) > 0):
+        password_link = password_elements[0]['href']
+        response = client.get(password_link)
+        assert response.status_code == 200, f'clicking change password from user profile FAILED'
+    else:
+        assert True
+
+@pytest.mark.ui_basic_tests
 @pytest.mark.parametrize("name", list_names)
 def test_generic_list_views(login, name):
     """
