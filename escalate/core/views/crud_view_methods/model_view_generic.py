@@ -189,7 +189,7 @@ class GenericModelList(GenericModelListBase, ListView):
                         # if what we get is a many to many object instead of a flat easy to stringify field value
                         # Ex: Model.something.manyToMany
                         to_add = '\n'.join(
-                            [str(x) for x in getattr(model_instance, field).all()])
+                            [str(x) for x in to_add.all()])
                     fields_for_col.append(to_add)
                 # loop to change None to '' or non-string to string because join needs strings
                 for k in range(0, len(fields_for_col)):
@@ -310,9 +310,9 @@ class GenericModelEdit:
             context['note_forms'] = self.NoteFormSet(
                 queryset=self.model.objects.none(),
                 prefix='note')
-#            context['edoc_forms'] = self.EdocFormSet(
-#                querySet=Edocument.objects.none(),
-#                prefix='edoc')
+            context['edoc_forms'] = self.EdocFormSet(
+                queryset=Edocument.objects.none(),
+                prefix='edoc')
             context['edoc_files'] = []
             context['tag_select_form'] = TagSelectForm()
 
@@ -511,7 +511,7 @@ class GenericModelView(DetailView):
                     # if value is many to many obj get the values
                     # Ex: Model.something.manyToMany
                     to_add = '\n'.join([str(x)
-                                        for x in getattr(obj, field).all()])
+                                        for x in to_add.all()])
                 fields_for_field.append(to_add)
             # loop to change None to '' or non-string to string because join needs strings
             for i in range(0, len(fields_for_field)):
@@ -521,6 +521,7 @@ class GenericModelView(DetailView):
                     fields_for_field[i] = str(fields_for_field[i])
                 else:
                     continue
+            # concactenate all the fields for field that as not empty strings
             obj_detail = ' '.join(list(filter(lambda s: len(s) != 0, fields_for_field)))
             obj_detail = obj_detail.strip()
             if len(obj_detail) == 0:
@@ -560,6 +561,7 @@ class GenericModelView(DetailView):
         context['update_url'] = reverse_lazy(
             f'{self.context_object_name}_update', kwargs={'pk': obj.pk})
 
+        #hacky way to additionally add a download button for only for edocument list
         if self.context_object_name == "edocument":
             context['download_url'] = reverse('edoc_download', args=(obj.pk,))
         context['detail_data'] = detail_data
