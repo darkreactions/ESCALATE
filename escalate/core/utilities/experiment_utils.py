@@ -113,10 +113,10 @@ def get_action_parameter_querysets(exp_uuid):
     q1 = Experiment.objects.filter(uuid=exp_uuid).prefetch_related('workflow__action_workflow__action_unit_action').annotate(
                 object_description=F('workflow__action_workflow__description')).annotate(
                 object_uuid=F('workflow__action_workflow__uuid')).annotate(
-                parameter_uuid=F('workflow__action_workflow__parameter_action')).annotate(
-                parameter_value=F('workflow__action_workflow__parameter_action__parameter_val_nominal')).annotate(
-                parameter_value_actual=F('workflow__action_workflow__parameter_action__parameter_val_actual')).annotate(
-                parameter_def_description=F('workflow__action_workflow__parameter_action__parameter_def__description')).annotate(
+                parameter_uuid=F('workflow__action_workflow__action_unit_action__parameter_action')).annotate(
+                parameter_value=F('workflow__action_workflow__action_unit_action__parameter_action__parameter_val_nominal')).annotate(
+                parameter_value_actual=F('workflow__action_workflow__action_unit_action__parameter_action__parameter_val_actual')).annotate(
+                parameter_def_description=F('workflow__action_workflow__action_unit_action__parameter_action__parameter_def__description')).annotate(
                 experiment_uuid=F('uuid')).annotate(
                 experiment_description=F('description')).annotate(
                 workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'

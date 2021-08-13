@@ -239,7 +239,7 @@ class Parameter(DateColumns, StatusColumn, ActorColumn):
                              null=True,
                              db_column='parameter_val_actual')
     #ref_object = RetUUIDField(blank=True, null=True)
-    action = models.ForeignKey('Action',
+    action = models.ForeignKey('ActionUnit',
                                       on_delete=models.DO_NOTHING,
                                       blank=True,
                                       null=True,
@@ -253,7 +253,7 @@ class Parameter(DateColumns, StatusColumn, ActorColumn):
                                 on_delete=models.DO_NOTHING,
                                 blank=True,
                                 null=True,
-                                editable=False, related_name='parameter_action')
+                                related_name='parameter_action')
     """
 
 class ParameterDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):

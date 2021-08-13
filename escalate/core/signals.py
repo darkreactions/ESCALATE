@@ -99,7 +99,7 @@ def create_action_parameter(sender, **kwargs):
 """
 
 
-@receiver(pre_save, sender=ActionUnit)
+@receiver(post_save, sender=ActionUnit)
 def create_parameters(sender, **kwargs):
     """
     Creates the appropriate parameter in actionunit based on 
@@ -111,19 +111,20 @@ def create_parameters(sender, **kwargs):
     # do something like this
     
     action_unit = kwargs['instance']
+    '''
     try:
         ActionUnit.objects.get(pk=action_unit.pk)
     except ActionUnit.DoesNotExist:
-        param_defs = action_unit.action.action_def.parameter_def.all()
-        active_status = Status.objects.get(description="active")
-        for p_def in param_defs:
-            p = Parameter(parameter_def=p_def,
-                          parameter_val_nominal=p_def.default_val,
-                          parameter_val_actual=p_def.default_val,
-                          action=action_unit.action,
-                          status=active_status)
-            p.save()
-
+    '''
+    param_defs = action_unit.action.action_def.parameter_def.all()
+    active_status = Status.objects.get(description="active")
+    for p_def in param_defs:
+        p = Parameter(parameter_def=p_def,
+                        parameter_val_nominal=p_def.default_val,
+                        parameter_val_actual=p_def.default_val,
+                        action=action_unit,
+                        status=active_status)
+        p.save()
 
 
 @receiver(post_save, sender=BomMaterial)
