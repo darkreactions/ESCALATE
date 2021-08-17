@@ -122,7 +122,7 @@ def create_parameters(sender, **kwargs):
         p = Parameter(parameter_def=p_def,
                         parameter_val_nominal=p_def.default_val,
                         parameter_val_actual=p_def.default_val,
-                        action=action_unit,
+                        action_unit=action_unit,
                         status=active_status)
         p.save()
 
