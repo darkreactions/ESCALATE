@@ -101,7 +101,7 @@ def generate_robot_file(reaction_volumes, reaction_parameters,
                           reaction_volumes_output, 
                           df_tray['Labware ID:'], rxn_parameters, 
                           rxn_conditions], sort=False, axis=1)
-    temp = tempfile.TemporaryFile()
+    temp = tempfile.TemporaryFile(suffix='.xls')
     outframe.to_excel(temp, sheet_name='NIMBUS_reaction', index=False)
     temp.seek(0)
     return temp
