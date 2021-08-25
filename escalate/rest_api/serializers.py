@@ -211,7 +211,7 @@ for model_name in rest_serializer_views:
                         DynamicFieldsModelSerializer]
     if model_name == 'Material' or model_name == 'Mixture':
         base_serializers.insert(3, PropertyListSerializer)
-    if model_name == 'Action':
+    if model_name == 'ActionUnit':
         base_serializers.insert(3, ParameterListSerializer)
     globals()[model_name+'Serializer'] = type(model_name+'Serializer',
                                               tuple(base_serializers),
