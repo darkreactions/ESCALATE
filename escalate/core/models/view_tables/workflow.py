@@ -55,7 +55,7 @@ class Action(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
 # Potential table to eliminate WorkflowActionSet. An action can operate on one or many
 # source-destination material pairs. Both can be represented by Action
 
-class ActionUnit(DateColumns, StatusColumn, ActorColumn):
+class ActionUnit(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='action_material_uuid')
     action = models.ForeignKey('Action', on_delete=models.CASCADE,
@@ -84,6 +84,9 @@ class ActionUnit(DateColumns, StatusColumn, ActorColumn):
                                     ],
                               overwrite=True, 
                               max_length=255)
+    
+    def __str__(self):
+        return f"{self.description}"
 
 
 class ActionDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
