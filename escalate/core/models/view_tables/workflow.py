@@ -245,7 +245,10 @@ class Experiment(DateColumns, StatusColumn, DescriptionColumn):
                         db_column='experiment_uuid')
     experiment_type = models.ForeignKey('ExperimentType', db_column='experiment_type_uuid',
                                         on_delete=models.CASCADE, blank=True, null=True, related_name='experiment_experiment_type')
-    ref_uid = models.CharField(max_length=255, db_column='ref_uid')
+    ref_uid = models.CharField(max_length=255,
+                               db_column='ref_uid',
+                               blank=True,
+                               null=True)
     # update to point to an experiment parent. 
     parent = models.ForeignKey('Experiment', db_column='parent_uuid',
                                on_delete=models.CASCADE, blank=True, null=True, related_name='experiment_parent')
