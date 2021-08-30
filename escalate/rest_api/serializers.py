@@ -176,7 +176,7 @@ class EdocumentSerializer(TagListSerializer,
         validated_data['edocument'] = validated_data['edocument'].read()
         doc_type = TypeDef.objects.get(category='file',
                                        description=validated_data['edoc_type'])
-        validated_data['doc_type_uuid'] = doc_type
+        validated_data['edoc_type_uuid'] = doc_type
         edoc = Edocument(**validated_data)
         edoc.save()
         return edoc
