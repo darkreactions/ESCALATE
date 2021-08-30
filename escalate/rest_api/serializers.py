@@ -373,8 +373,8 @@ class ExperimentDetailSerializer(Serializer):
     experiment_name = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)
     material_parameters = ExperimentMaterialSerializer(many=True)
     experiment_parameters_1 = ExperimentQuerySerializer(many=True)
-    experiment_parameters_2 = ExperimentQuerySerializer(many=True)
-    experiment_parameters_3 = ExperimentQuerySerializer(many=True)
+    #experiment_parameters_2 = ExperimentQuerySerializer(many=True)
+    #experiment_parameters_3 = ExperimentQuerySerializer(many=True)
     
     class Meta:
         fields = '__all__'
