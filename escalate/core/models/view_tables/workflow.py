@@ -267,6 +267,12 @@ class Experiment(DateColumns, StatusColumn, DescriptionColumn):
                                     ],
                               overwrite=True, 
                               max_length=255)
+    completion_status = models.CharField(db_column='completion_status',
+                                  max_length=255, 
+                                  default="Pending")
+    priority = models.CharField(db_column='priority',
+                                  max_length=255, 
+                                  default="1")
 
     def __str__(self):
         return f'{self.description}'

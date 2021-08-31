@@ -175,9 +175,14 @@ methods = {
     },
     'Experiment': {
         'model': core.models.view_tables.Experiment,
-        'table_columns': ['Description'],
+        'table_columns': ['Experiment Name','Date Queued','Operator', 'Status', 'Priority'],
         'column_necessary_fields': {
-            'Description': ['description']
+            'Experiment Name': ['description'],
+            #'Experiment Template': ['workflow'],
+            'Date Queued': ['add_date'],
+            'Operator': ['operator.description'],
+            'Status': ['completion_status'],
+            'Priority': ['priority']
         },
         'ordering': ['description'],
         'field_contains': '',
