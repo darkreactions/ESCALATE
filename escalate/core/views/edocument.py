@@ -1,4 +1,4 @@
-from django.urls import reverse_lazy, reverse
+#TODO delete this file, we won't use it (probably?)
 from django.shortcuts import redirect
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
@@ -10,6 +10,7 @@ from core.forms.forms import ActorForm
 from core.views.crud_view_methods.model_view_generic import GenericListView
 
 import tempfile
+from django.urls import reverse, reverse_lazy
 
 
 class EdocumentList(GenericListView):
@@ -18,23 +19,6 @@ class EdocumentList(GenericListView):
     context_object_name = 'edocument'
 
     model = Edocument
-
-    def get_queryset(self):
-
-        # added get_queryset method
-        filter_val = self.request.GET.get('filter', '')
-        ordering = self.request.GET.get('ordering', 'title')
-        # order by description
-        if filter_val != None:
-            new_queryset = self.model.objects.filter(
-                title__icontains=filter_val).select_related().order_by(ordering)
-            # filter by decription being a empty/nonempty string
-        else:
-            new_queryset = self.model.objects.all().select_related().order_by(ordering)
-        return new_queryset
-
-    # def download_trial(self, uuid):
-    #     return HttpResponseRedirect(reverse('edoc_download', args=(uuid,)))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -48,7 +32,7 @@ class EdocumentList(GenericListView):
             # data for the object we want to display for a row
             table_row_data.append(item.title)
             # table_row_data.append(item.doc_type_description)
-            table_row_data.append(item.doc_ver)
+            table_row_data.append(item.edoc_ver)
 
             table_row_data.append(item.uuid)
 
@@ -71,22 +55,6 @@ class EdocumentList(GenericListView):
         context['table_data'] = table_data
         context['title'] = 'Edocuments'
         return context
-
-    """
-    context_object_name = 'actors'
-    table_columns = ['Name', 'Organization', 'Systemtool', 'Status']
-    column_necessary_fields = {
-        'Name': ['person_first_name', 'person_last_name'],
-        'Organization': ['org_full_name'],
-        'Systemtool': ['systemtool_name'],
-        'Status': ['actor_status_description']
-    }
-    order_field = 'actor_description'
-    field_contains = ''
-
-    # Need this
-    table_columns += ['Actions']
-    """
 
     def post(self, *args, **kwargs):
         return HttpResponseRedirect(reverse(f'edocument_list'))

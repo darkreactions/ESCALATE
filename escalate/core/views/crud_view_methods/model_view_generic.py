@@ -2,7 +2,6 @@ from django.db.models.query import QuerySet
 from django.db.models import Q, Count
 from django.urls import reverse_lazy, reverse
 from django.http import HttpResponse, HttpResponseRedirect, FileResponse
-from django.views import View
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 # from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
@@ -15,10 +14,10 @@ from django.core.exceptions import FieldDoesNotExist
 from core.utils_no_dependencies import rgetattr, get_all_related_fields, get_model_of_related_field
 from django.core import serializers
 from core.utilities.utils import camel_to_snake
-from ..exports.export_methods import methods as export_methods
+from ..exports.export_methods import (methods as export_methods)
+from ..exports.file_types import (file_types as export_file_types)
 from core.models.core_tables import custom_slugify
 
-import csv
 import functools
 import urllib
 import urllib.parse as urlparse
@@ -27,17 +26,14 @@ import core
 # class with generic classes to use in models
 
 
-class GenericListView(ListView):
+# class GenericListView(ListView):
 
-    def get_context_data(self, **kwargs):
-        context = super(GenericListView, self).get_context_data(**kwargs)
-        context['filter'] = self.request.GET.get('filter', '')
-        return context
+#     def get_context_data(self, **kwargs):
+#         context = super(GenericListView, self).get_context_data(**kwargs)
+#         context['filter'] = self.request.GET.get('filter', '')
+#         return context
 
-
-class GenericModelList(GenericListView):
-    template_name = 'core/generic/list.html'
-
+class GenericModelListBase:
     # Override the 2 fields below in subclass
     model = None
     # lowercase, snake case and plural. Ex:tag_types or inventorys
@@ -60,11 +56,6 @@ class GenericModelList(GenericListView):
 
     default_filter_kwargs = None
 
-    paginate_by = 10
-
-    @property
-    def context_object_name(self):
-        return f'{camel_to_snake(self.model.__name__)}s' if self.model != None else None
 
     def header_to_necessary_fields(self, field_raw):
         # get the fields that make up the header column
@@ -159,10 +150,22 @@ class GenericModelList(GenericListView):
                     ordering[i] = f"{related_field}_count"
             new_queryset = new_queryset.order_by(*ordering)
         
+        return new_queryset.select_related()
+
+class GenericModelList(GenericModelListBase, ListView):
+    template_name = 'core/generic/list.html'
+    paginate_by = 10
+
+    @property
+    def context_object_name(self):
+        return f'{camel_to_snake(self.model.__name__)}s' if self.model != None else None
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
         model_name = self.context_object_name[:-1]
         if self.model.__name__ in export_methods.keys():
-            self.request.session[f'{model_name}_queryset_serialized'] = serializers.serialize('json', new_queryset)
-        return new_queryset.select_related()
+            self.request.session[f'{model_name}_queryset_serialized'] = serializers.serialize('json', queryset)
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -186,7 +189,7 @@ class GenericModelList(GenericListView):
                         # if what we get is a many to many object instead of a flat easy to stringify field value
                         # Ex: Model.something.manyToMany
                         to_add = '\n'.join(
-                            [str(x) for x in getattr(model_instance, field).all()])
+                            [str(x) for x in to_add.all()])
                     fields_for_col.append(to_add)
                 # loop to change None to '' or non-string to string because join needs strings
                 for k in range(0, len(fields_for_col)):
@@ -224,9 +227,8 @@ class GenericModelList(GenericListView):
         if self.model.__name__ in export_methods.keys():
             _parsed = urlparse.urlparse(self.request.get_full_path())
             query_string = '&'.join([f'{q}={p[0]}' for q, p in urlparse.parse_qs(_parsed.query).items()])
-            # for t in export_file_types.file_types:
-            for t in core.views.exports.file_types.file_types:
-                export_urls[t.upper()] = reverse_lazy(f'{model_name}_export_{t}') + (f'?{query_string}' if len(query_string) > 0 else '')
+            for file_type in export_file_types:
+                export_urls[file_type] = reverse_lazy(f'{model_name}_export_{file_type}') + (f'?{query_string}' if len(query_string) > 0 else '')
             context['export_urls'] = export_urls
         return context
 
@@ -252,7 +254,6 @@ class GenericModelList(GenericListView):
             new_path = reverse(f'{self.context_object_name[:-1]}_list') + (f'?{new_query_string}' if len(new_query_string) > 0 else '')
             return HttpResponseRedirect(new_path)
         return HttpResponseRedirect(reverse(f'{self.context_object_name[:-1]}_list'))
-
 
 class GenericModelEdit:
     template_name = 'core/generic/edit_note_tag.html'
@@ -309,9 +310,9 @@ class GenericModelEdit:
             context['note_forms'] = self.NoteFormSet(
                 queryset=self.model.objects.none(),
                 prefix='note')
-#            context['edoc_forms'] = self.EdocFormSet(
-#                querySet=Edocument.objects.none(),
-#                prefix='edoc')
+            context['edoc_forms'] = self.EdocFormSet(
+                queryset=Edocument.objects.none(),
+                prefix='edoc')
             context['edoc_files'] = []
             context['tag_select_form'] = TagSelectForm()
 
@@ -477,8 +478,6 @@ class GenericModelEdit:
 class GenericModelView(DetailView):
     # Override below 2 in subclass
     model = None
-    model_name = None  # lowercase, snake case. Ex:tag_type or inventory
-
     template_name = 'core/generic/detail.html'
 
     # Override below 2 in subclass
@@ -512,7 +511,7 @@ class GenericModelView(DetailView):
                     # if value is many to many obj get the values
                     # Ex: Model.something.manyToMany
                     to_add = '\n'.join([str(x)
-                                        for x in getattr(obj, field).all()])
+                                        for x in to_add.all()])
                 fields_for_field.append(to_add)
             # loop to change None to '' or non-string to string because join needs strings
             for i in range(0, len(fields_for_field)):
@@ -522,6 +521,7 @@ class GenericModelView(DetailView):
                     fields_for_field[i] = str(fields_for_field[i])
                 else:
                     continue
+            # concactenate all the fields for field that as not empty strings
             obj_detail = ' '.join(list(filter(lambda s: len(s) != 0, fields_for_field)))
             obj_detail = obj_detail.strip()
             if len(obj_detail) == 0:
@@ -557,170 +557,13 @@ class GenericModelView(DetailView):
             })
         context['edocs'] = edocs
 
-        context['title'] = self.model_name.replace('_', " ").capitalize()
+        context['title'] = self.context_object_name.replace('_', " ").capitalize()
         context['update_url'] = reverse_lazy(
-            f'{self.model_name}_update', kwargs={'pk': obj.pk})
+            f'{self.context_object_name}_update', kwargs={'pk': obj.pk})
 
-        if self.model_name == "edocument":
+        #hacky way to additionally add a download button for only for edocument list
+        if self.context_object_name == "edocument":
             context['download_url'] = reverse('edoc_download', args=(obj.pk,))
         context['detail_data'] = detail_data
         return context
 
-
-class GenericModelExport(View):
-    model = None
-    file_type = None
-    column_names = None
-    column_necessary_fields = None
-    # A related path that points to the organization this field belongs to
-    org_related_path = None
-    field_contains = ''
-    ordering = None
-
-    def get(self, request, *args, **kwargs):
-        if self.file_type == 'csv':
-            return self.export_csv()
-        else:
-            return HttpResponse('Failed to get requested file')
-
-    def header_to_necessary_fields(self, field_raw):
-        # get the fields that make up the header column
-        return self.column_necessary_fields[field_raw]
-
-    def get_queryset(self):
-        filter_val = self.request.GET.get('filter', self.field_contains).strip()
-    
-        #Ex: [('first_name_sort', 'asc'),...]
-        ui_order_raw = list(
-            filter(lambda k_v: k_v[0].endswith('_sort') and k_v[0].replace('_sort', '') in self.table_columns,
-            list(self.request.GET.items())
-            ))
-        #Ex: {'first_name':'asc'}
-        ui_order_dict = {k_v[0].replace('_sort',''):k_v[1] for k_v in ui_order_raw}
-
-        ui_order = []
-        for col_name, order in ui_order_dict.items():
-            col_necessary_fields = self.header_to_necessary_fields(col_name)
-            # replaces . with __ so django orm can read it
-            col_necessary_fields_as_query = [
-                "__".join(f.split(".")) for f in col_necessary_fields]
-            if order == 'asc' or order == None:
-                ui_order = [*ui_order, *col_necessary_fields_as_query]
-            else:
-                # des
-                ui_order = [*ui_order,
-                            *[f'-{f}' for f in col_necessary_fields_as_query]]
-
-        ordering = ui_order if len(ui_order) > 0 else self.ordering
-
-        _all_necessary_fields_dot = [fields[i] for fields in self.column_necessary_fields.values() for i in range(len(fields))]
-        all_necessary_fields_dunder = ['__'.join(field.split('.')) for field in _all_necessary_fields_dot]
-        filter_kwargs = {
-            f'{f}__icontains': filter_val for f in all_necessary_fields_dunder}
-
-        # might not need to do this, maybe order by number of m2m
-
-        # Filter by organization if it exists in the model
-        if self.request.user.is_superuser:
-            base_query = self.model.objects.all()
-        else:
-            if 'current_org_id' in self.request.session:
-                if self.org_related_path:
-                    org_filter_kwargs = {
-                        self.org_related_path: self.request.session['current_org_id']}
-                    base_query = self.model.objects.filter(**org_filter_kwargs)
-                else:
-                    try:
-                        org_field = self.model._meta.get_field('organization')
-                        base_query = self.model.objects.filter(
-                            organization=self.request.session['current_org_id'])
-                    except FieldDoesNotExist:
-                        base_query = self.model.objects.all()
-            else:
-                base_query = self.model.objects.none()
-
-        all_related_fields = get_all_related_fields(self.model)
-        # filter
-        if filter_val != None:
-            new_queryset = base_query
-            for related_field_query in list(filter_kwargs.keys()):
-                related_field = related_field_query.replace(
-                    '__icontains', '')
-                final_field_model = get_model_of_related_field(
-                    self.model, related_field, all_related_fields=all_related_fields)
-                final_field = related_field.split('__')[-1]
-                final_field_class_name = final_field_model._meta.get_field(
-                    final_field).__class__.__name__
-                if final_field_class_name == 'ManyToManyField':
-                    filter_kwargs.pop(related_field_query)
-                    filter_kwargs[f'{related_field}__internal_slug__icontains'] = custom_slugify(filter_val)
-            filter_query = functools.reduce(lambda q1, q2: q1 | q2, [
-                Q(**{k: v}) for k, v in filter_kwargs.items()]) if len(filter_kwargs) > 0 else Q()
-            new_queryset = new_queryset.filter(filter_query).distict()
-        else:
-            new_queryset = base_query
-
-        # order
-        if ordering != None and len(ordering) > 0:
-            for i in range(len(ordering)):
-                related_field = ordering[i]
-                final_field_model = get_model_of_related_field(
-                    self.model, related_field, all_related_fields=all_related_fields)
-                final_field = related_field.split('__')[-1].strip('-')
-                final_field_class_name = final_field_model._meta.get_field(
-                    final_field).__class__.__name__
-                if final_field_class_name == 'ManyToManyField':
-                    new_queryset = new_queryset.annotate(
-                        **{f"{related_field.strip('-')}_count": Count(related_field.strip('-'))})
-                    ordering[i] = f"{related_field}_count"
-            new_queryset = new_queryset.order_by(*ordering)
-        return new_queryset.select_related()
-
-    def export_csv(self):
-        response = HttpResponse(content_type="text/csv")
-        model_string_name = self.model.__name__
-        filename = f'{model_string_name}.csv'
-        response['Content-Disposition'] = f'attachment; filename={filename}'
-
-        writer = csv.writer(response)
-        writer.writerow([*self.column_names])
-        
-        model_name = self.model.__name__.lower()
-        if (queryset_serialized := self.request.session.get(f'{model_name}_queryset_serialized', None)) != None:
-            model_objects = [serialized_obj.object for serialized_obj in serializers.deserialize('json', queryset_serialized)]
-        else:
-            model_objects = self.get_queryset()
-
-        for obj in model_objects:
-            row = []
-            for col_name in self.column_names:
-                cell_data = ""
-                necessary_fields = self.column_necessary_fields[col_name]
-                fields_for_cell = []
-                for field in necessary_fields:
-                    # not foreign key and manytomany
-                    if field.split('.') == 1 and self.model._meta.get_field(field).__class__.__name__ == 'ManyToManyField':
-                        to_add = '\n'.join([str(x)
-                                        for x in getattr(obj, field).all()])
-                    else:
-                        # Ex: Person.organization.full_name
-                        to_add = rgetattr(obj, field)
-                        if to_add.__class__.__name__ == 'ManyRelatedManager':
-                            # if value is many to many obj get the values
-                            # Ex: Model.foreignkey.manyToMany
-                            to_add = ','.join([str(x)
-                                            for x in getattr(obj, field).all()])
-                    fields_for_cell.append(to_add)
-                # loop to change None to '' or non-string to string because join needs strings
-                for i in range(0, len(fields_for_cell)):
-                    if fields_for_cell[i] == None:
-                        fields_for_cell[i] = ''
-                    elif not isinstance(fields_for_cell[i], str):
-                        fields_for_cell[i] = str(fields_for_cell[i])
-                    else:
-                        continue
-                cell_data = ' '.join(fields_for_cell)
-                cell_data = cell_data.strip()
-                row.append(cell_data)
-            writer.writerow(row)
-        return response
