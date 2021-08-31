@@ -23,7 +23,7 @@
 ## Requirements
 - Running ESCALATE v3 Postgres database
 - Python 3.8+
-- Django 2.2.x (Upgrade to 3.0 in progress)
+- Django 3.0.12
 
 
 ## Getting started

@@ -124,7 +124,7 @@ class ParameterListSerializer(DynamicFieldsModelSerializer):
     parameter = SerializerMethodField()
 
     def get_parameter(self, obj):
-        parameter = Parameter.objects.filter(action=obj.uuid)
+        parameter = Parameter.objects.filter(action_unit=obj.uuid)
         result_serializer = ParameterSerializer(
             parameter, many=True, context=self.context)
         return result_serializer.data
@@ -176,7 +176,7 @@ class EdocumentSerializer(TagListSerializer,
         validated_data['edocument'] = validated_data['edocument'].read()
         doc_type = TypeDef.objects.get(category='file',
                                        description=validated_data['edoc_type'])
-        validated_data['doc_type_uuid'] = doc_type
+        validated_data['edoc_type_uuid'] = doc_type
         edoc = Edocument(**validated_data)
         edoc.save()
         return edoc
@@ -211,7 +211,7 @@ for model_name in rest_serializer_views:
                         DynamicFieldsModelSerializer]
     if model_name == 'Material' or model_name == 'Mixture':
         base_serializers.insert(3, PropertyListSerializer)
-    if model_name == 'Action':
+    if model_name == 'ActionUnit':
         base_serializers.insert(3, ParameterListSerializer)
     globals()[model_name+'Serializer'] = type(model_name+'Serializer',
                                               tuple(base_serializers),
@@ -373,8 +373,8 @@ class ExperimentDetailSerializer(Serializer):
     experiment_name = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)
     material_parameters = ExperimentMaterialSerializer(many=True)
     experiment_parameters_1 = ExperimentQuerySerializer(many=True)
-    experiment_parameters_2 = ExperimentQuerySerializer(many=True)
-    experiment_parameters_3 = ExperimentQuerySerializer(many=True)
+    #experiment_parameters_2 = ExperimentQuerySerializer(many=True)
+    #experiment_parameters_3 = ExperimentQuerySerializer(many=True)
     
     class Meta:
         fields = '__all__'
