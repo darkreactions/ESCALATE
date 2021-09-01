@@ -147,10 +147,15 @@ class MaterialIdentifier(DateColumns, StatusColumn, DescriptionColumn):
                                     ],
                               overwrite=True, 
                               max_length=255)
+    full_description = models.CharField(max_length=1024, blank=True, null=True)
     
     def __str__(self):
-        return "{}: {}".format(self.material_identifier_def, self.description)
+        #return "{}: {}".format(self.material_identifier_def, self.description)
+        return self.full_description
 
+    def save(self, *args, **kwargs):
+        self.full_description = f"{self.material_identifier_def}: {self.description}"
+        super().save(*args, **kwargs)
 
 class MaterialIdentifierDef(DateColumns, DescriptionColumn):
     uuid = RetUUIDField(
