@@ -24,10 +24,11 @@
               <td>Documents:</td>
               <td>
                 {% for edoc in edocs %}
-                <a href="{{edoc.download_url}}" download
-                  >{{edoc.filename|linebreaks}}</a
-                >
-
+                <a href="{{edoc.download_url}}" download>
+                  <div class="edocument-download-button-content-container" style="display:flex;justify-content:left">
+                    <i class="fa fa-download fa-lg"></i><strong>{{edoc.filename|linebreaks}}</strong>
+                  </div>
+                </a>
                 {% endfor %}
               </td>
             </tr>

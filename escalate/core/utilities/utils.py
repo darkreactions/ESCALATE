@@ -136,7 +136,7 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
 view_names = ['Material', 'Inventory', 'Actor', 'Organization', 'Person',
               'Systemtool', 'InventoryMaterial', 'Vessel',
               'SystemtoolType', 'UdfDef', 'Status', 'Tag',
-              'TagType', 'MaterialType', 'Experiment'
+              'TagType', 'MaterialType', 'Experiment', 'Edocument'
               ]
 
 
@@ -144,3 +144,43 @@ def camel_to_snake(name):
     name = ''.join(['_'+i.lower() if i.isupper()
                     else i for i in name]).lstrip('_')
     return name
+
+class Node:
+    def __init__(self, data):
+        self.left = None
+        self.right = None
+        self.data = data
+
+    # Insert Node
+    def insert(self, data):
+        if self.data:
+            if data < self.data:
+                if self.left is None:
+                    self.left = Node(data)
+                else:
+                    self.left.insert(data)
+            else:# data > self.data:
+                if self.right is None:
+                    self.right = Node(data)
+                else:
+                    self.right.insert(data)
+        else:
+            self.data = data
+    
+    # Print the Tree
+    def PrintTree(self):
+        if self.left:
+            self.left.PrintTree()
+        print( self.data),
+        if self.right:
+            self.right.PrintTree()
+    
+    # Inorder traversal
+    # Left -> Root -> Right
+    def inorderTraversal(self, root):
+        res = []
+        if root:
+            res = self.inorderTraversal(root.left)
+            res.append(root.data)
+            res = res + self.inorderTraversal(root.right)
+        return res

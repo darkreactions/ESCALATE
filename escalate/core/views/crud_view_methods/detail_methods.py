@@ -3,7 +3,6 @@ import core.models
 methods = {
     'Actor': {
         'model': core.models.view_tables.Actor,
-        'model_name': 'actor',
         'detail_fields': ['Actor Description', 'Status', 'Organization', 'Person', 'Person Organization',
                           'Systemtool', 'Systemtool description', 'Systemtool type', 'Systemtool vendor',
                           'Systemtool model', 'Systemtool serial', 'Systemtool version'],
@@ -24,7 +23,6 @@ methods = {
     },
     'Inventory': {
         'model': core.models.view_tables.Inventory,
-        'model_name': 'inventory',
         'detail_fields': ['Description', 'Owner', 'Operator', 'Lab', 'Status', 'Actor'],
         'detail_fields_need_fields': {
             'Description': ['description'],
@@ -37,9 +35,7 @@ methods = {
     },
     'Material': {
         'model': core.models.view_tables.Material,
-        'model_name': 'material',
         'detail_fields': ['Chemical Name', 'Other Names', 'Type', 'Material Class','Create Date', 'Last Modification Date', 'Status'],
-        # 'detail_fields': ['Create Date', 'Status'],
         'detail_fields_need_fields': {
             'Chemical Name': ['description'],
             'Other Names': ['identifier'],
@@ -52,7 +48,6 @@ methods = {
     },
     'Systemtool': {
         'model': core.models.view_tables.Systemtool,
-        'model_name': 'systemtool',
         'detail_fields': ['Systemtool Name', 'Systemtool Description', 'Systemtool Type',
                           'Systemtool Vendor', 'Systemtool Model', 'Systemtool Serial',
                           'Systemtool Version'],
@@ -68,7 +63,6 @@ methods = {
     },
     'MaterialType': {
         'model': core.models.view_tables.MaterialType,
-        'model_name': 'material_type',
         'detail_fields': ['Description', 'Add Date', 'Last Modification Date'],
         'detail_fields_need_fields': {
             'Description': ['description'],
@@ -78,7 +72,6 @@ methods = {
     },
     'Organization': {
         'model': core.models.view_tables.Organization,
-        'model_name': 'organization',
         'detail_fields': ['Full Name', 'Short Name', 'Description', 'Address', 'Website',
                           'Phone', 'Parent Organization', 'Add Date', 'Last Modification Date'],
         'detail_fields_need_fields': {
@@ -95,7 +88,6 @@ methods = {
     },
     'Person': {
         'model': core.models.view_tables.Person,
-        'model_name': 'person',
         'detail_fields': ['Full Name', 'Address', 'Phone', 'Email', 'Title',
                           'Suffix', 'Organization', 'Added Organization', 'Add Date', 'Last Modification Date'],
         'detail_fields_need_fields': {
@@ -113,7 +105,6 @@ methods = {
     },
     'Status': {
         'model': core.models.view_tables.Status,
-        'model_name': 'status',
         'detail_fields': ['Description', 'Add Date', 'Last Modification Date'],
         'detail_fields_need_fields': {
             'Description': ['description'],
@@ -123,7 +114,6 @@ methods = {
     },
     'SystemtoolType': {
         'model': core.models.view_tables.SystemtoolType,
-        'model_name': 'systemtool_type',
         'detail_fields': ['Description', 'Add Date', 'Last Modification Date'],
         'detail_fields_need_fields': {
             'Description': ['description'],
@@ -133,7 +123,6 @@ methods = {
     },
     'Tag': {
         'model': core.models.view_tables.Tag,
-        'model_name': 'tag',
         'detail_fields': ['Tag Name', 'Description', 'Add Date', 'Last Modification Date',
                           'Tag Type'],
         'detail_fields_need_fields': {
@@ -146,7 +135,6 @@ methods = {
     },
     'TagType': {
         'model': core.models.view_tables.TagType,
-        'model_name': 'tag_type',
         'detail_fields': ['Type', 'Long Description', 'Add Date',
                           'Last Modification Date'],
         'detail_fields_need_fields': {
@@ -158,7 +146,6 @@ methods = {
     },
     'UdfDef': {
         'model': core.models.view_tables.UdfDef,
-        'model_name': 'udf_def',
         'detail_fields': ['Description', 'Value Type',
                           'Add Date', 'Last Modification Date'],
         'detail_fields_need_fields': {
@@ -170,7 +157,6 @@ methods = {
     },
     'Edocument':{
         'model': core.models.Edocument,
-        'model_name': 'edocument',
         'detail_fields': ['Title', 'Description', 'Source', 'Status', #, 'Document Type'
                           'Add Date', 'Last Modification Date'],
         'detail_fields_need_fields': {
@@ -178,14 +164,13 @@ methods = {
             'Description': ['description'],
             'Source':['source'],
             # 'Document Type':['doc_type_description'],
-            'Status': ['status_description'],
+            'Status': ['status.description'],
             'Add Date': ['add_date'],
             'Last Modification Date': ['mod_date']
         },
     },
     'InventoryMaterial': {
         'model': core.models.view_tables.InventoryMaterial,
-        'model_name': 'inventory_material',
         'detail_fields': ['Description', 'Inventory', 'Material', 
                             'Part Number', 'On hand amount', 'Expiration Date',
                             'Inventory Location', 'Status',],
@@ -201,8 +186,7 @@ methods = {
         },
     },
     # 'Experiment': {
-    #     'model': core.models.view_tables.Experiment,
-    #     'model_name': 'experiment',
+    #     'model': core.models.view_tables.Experiment,     
     #     'detail_fields': ['Description', 'Status',],
     #     'detail_fields_need_fields': {
     #         'Description': ['description'],
@@ -211,7 +195,6 @@ methods = {
     # },
     'Vessel': {
         'model': core.models.view_tables.Vessel,
-        'model_name': 'vessel',
         'detail_fields': ['Plate Name', 'Well Number', 'Status', 'Date Added','Last Modified'],
         'detail_fields_need_fields': {
             'Plate Name': ['plate_name'],

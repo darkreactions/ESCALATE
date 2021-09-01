@@ -12,8 +12,7 @@ from core.utilities.utils import view_names, camel_to_snake
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
-from core.views.edocument import EdocumentList, EdocumentDetailView
-import core.views.exports.file_types as export_file_types
+from core.views.exports.file_types import file_types as export_file_types
 
 urlpatterns = [
     path('favicon.ico', RedirectView.as_view(
@@ -32,8 +31,6 @@ urlpatterns = [
     path('user_profile_edit/', UserProfileEdit.as_view(), name='user_profile_edit'),
     #path('param_edit/<uuid:pk>', ParameterEditView.as_view(), name='parameter_edit'),
     #path('mat_edit/<uuid:pk>', MaterialEditView.as_view(), name='material_edit'),
-    path('edocument_list/', EdocumentList.as_view(), name='edocument_list'),
-    path('edocument_list/', EdocumentDetailView.as_view(), name='edocument_view'),
     path('experiment/', CreateExperimentView.as_view(),
          name='experiment_add'),
 #     path('experiment_list/', ExperimentListView.as_view(), name='experiment_list'),
@@ -91,7 +88,7 @@ def add_urls(model_name, pattern_list):
           path(f'{lower_case_model_name}_export_{file_type}/',
                export_view_class.as_view(),
                name=f'{lower_case_model_name}_export_{file_type}')
-          for file_type in export_file_types.file_types if (export_view_class := getattr(
+          for file_type in export_file_types if (export_view_class := getattr(
                     core.views, f'{model_name}Export{file_type.capitalize()}', None)) != None
      ]
 

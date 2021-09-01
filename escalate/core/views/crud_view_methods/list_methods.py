@@ -135,19 +135,19 @@ methods = {
         'ordering': ['description'],
         'field_contains': ''
     },
-    # 'Edocument': {
-    #     'model': core.models.Edocument,
-    #     'context_object_name': 'edocuments',
-    #     'table_columns': ['Title', 'UUID', ],  # 'File Type' 'Version'
-    #     'column_necessary_fields': {
-    #         'Title': ['title'],
-    #         # 'File Type':['doc_type_description'],
-    #         'UUID': ['uuid'],
-    #         # 'Version': ['doc_ver'],
-    #     },
-    #     'ordering': ['description'],
-    #     'field_contains': '',
-    # },
+    'Edocument': {
+        'model': core.models.Edocument,
+        'context_object_name': 'edocuments',
+        'table_columns': ['Title', 'Description', 'File Type', 'Version'],
+        'column_necessary_fields': {
+            'Title': ['title'],
+            'Description': ['description'],
+            'File Type':['edoc_type_uuid.description'],
+            'Version': ['edoc_ver'],
+        },
+        'ordering': ['description'],
+        'field_contains': '',
+    },
     'InventoryMaterial': {
         'model': core.models.view_tables.InventoryMaterial,
         'table_columns': ['Description', 'Inventory', 'Material', 'Amount On Hand', 'Expiration Date', 'Location', ],
@@ -175,9 +175,14 @@ methods = {
     },
     'Experiment': {
         'model': core.models.view_tables.Experiment,
-        'table_columns': ['Description'],
+        'table_columns': ['Experiment Name','Date Queued','Operator', 'Status', 'Priority'],
         'column_necessary_fields': {
-            'Description': ['description']
+            'Experiment Name': ['description'],
+            #'Experiment Template': ['workflow'],
+            'Date Queued': ['add_date'],
+            'Operator': ['operator.description'],
+            'Status': ['completion_status'],
+            'Priority': ['priority']
         },
         'ordering': ['description'],
         'field_contains': '',

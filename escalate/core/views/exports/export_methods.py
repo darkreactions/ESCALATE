@@ -80,7 +80,7 @@ methods = {
             'Zip',
             'City',
             'State/Province',
-            'Country'
+            'Country',
             'Website',
             'Parent Organization'    
         ],
@@ -120,7 +120,7 @@ methods = {
         'column_necessary_fields': {
             'First Name': ['first_name'],
             'Middle Name': ['middle_name'],
-            'Last Name': ['Last Name'],
+            'Last Name': ['last_name'],
             'Address1': ['address1'],
             'Address2': ['address2'],
             'Zip': ['zip'],
