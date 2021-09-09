@@ -40,7 +40,7 @@ class Mixture(DateColumns, StatusColumn, ActorColumn):
 class Vessel(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='vessel_uuid')
     plate_name = models.CharField(max_length = 64, blank=True, null=True)
-
+    
     #whole plate can leave well_number blank
     well_number = models.CharField(max_length = 16, blank=True, null=True)
     internal_slug = SlugField(populate_from=[

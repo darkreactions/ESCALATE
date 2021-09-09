@@ -68,3 +68,11 @@ class BomCompositeMaterialManager(models.Manager):
     def create(self, **kwargs):
         kwargs.update({'inventory_material': None})
         return super().create(**kwargs)
+
+class BomVesselManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(vessel__isnull=True, mixture__isnull=True)
+
+    def create(self, **kwargs):
+        kwargs.update({'inventory_material': None})
+        return super().create(**kwargs)

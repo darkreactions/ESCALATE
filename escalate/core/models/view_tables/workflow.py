@@ -4,7 +4,7 @@ from core.models.core_tables import RetUUIDField, SlugField
 from core.models.custom_types import ValField, CustomArrayField
 import uuid
 from core.models.base_classes import DateColumns, StatusColumn, ActorColumn, DescriptionColumn
-from core.managers import ExperimentTemplateManager, BomMaterialManager, BomCompositeMaterialManager
+from core.managers import ExperimentTemplateManager, BomMaterialManager, BomCompositeMaterialManager, BomVesselManager
 
 
 managed_tables = True
@@ -135,6 +135,9 @@ class BaseBomMaterial(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
     inventory_material = models.ForeignKey('InventoryMaterial', on_delete=models.CASCADE,
                                            blank=True, null=True, db_column='inventory_material_uuid',
                                            related_name='bom_material_inventory_material')
+    vessel = models.ForeignKey('Vessel', on_delete=models.CASCADE,
+                                       blank=True, null=True, db_column='vessel_uuid',
+                                       related_name='bom_material_vessel')
     # material = models.ForeignKey('Material', on_delete=models.CASCADE,
     #                             blank=True, null=True, db_column='material_uuid',
     #                             related_name='bom_material_material')
@@ -169,6 +172,12 @@ class BomMaterial(BaseBomMaterial):
 
 class BomCompositeMaterial(BaseBomMaterial):
     objects = BomCompositeMaterialManager()
+
+    class Meta:
+        proxy = True
+
+class BomVessel(BaseBomMaterial):
+    objects = BomVesselManager()
 
     class Meta:
         proxy = True
