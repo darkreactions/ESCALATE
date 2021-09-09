@@ -74,5 +74,5 @@ class BomVesselManager(models.Manager):
         return super().get_queryset().filter(vessel__isnull=True, mixture__isnull=True)
 
     def create(self, **kwargs):
-        kwargs.update({'inventory_material': None})
+        kwargs.update({'vessel': None})
         return super().create(**kwargs)
