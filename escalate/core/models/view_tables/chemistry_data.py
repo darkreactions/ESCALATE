@@ -73,8 +73,7 @@ class Contents(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                 blank=True, null=True,
                                 db_column='bom_material_uuid',
                                 related_name='contents_bom_material_uuid')
-    valtype = models.CharField(max_length=255,
-                               blank=True, null=True)
+    valtype = ValField(blank=True, null=True)
     
     def __str__(self):
         return f'{self.description}'
