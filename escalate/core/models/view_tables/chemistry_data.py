@@ -40,7 +40,8 @@ class Mixture(DateColumns, StatusColumn, ActorColumn):
 class Vessel(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='vessel_uuid')
     plate_name = models.CharField(max_length = 64, blank=True, null=True)
-    
+    total_volume = models.CharField(max_length=255,blank=True, null=True)
+    dead_volume = models.CharField(max_length=255,blank=True, null=True)
     #whole plate can leave well_number blank
     well_number = models.CharField(max_length = 16, blank=True, null=True)
     internal_slug = SlugField(populate_from=[
@@ -53,6 +54,16 @@ class Vessel(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     def __str__(self):
         return "{}  {}".format(self.plate_name, self.well_number)
 
+class VesselObject(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='vessel_object_uuid')
+    model_uuid = models.ForeignKey('Vessel', on_delete=models.DO_NOTHING,
+                              blank=True, null=True,
+                              db_column='vessel_model_uuid',
+                              related_name='vessel_object_vessel_model_uuid')
+    contents = models.CharField(max_length=255,blank=True, null=True)
+    
+    def __str__(self):
+        return f'{self.description}'
 
 class Inventory(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='inventory_uuid')
