@@ -171,7 +171,6 @@ class EdocumentSerializer(TagListSerializer,
         return value
 
     def create(self, validated_data):
-        
         validated_data['filename'] = validated_data['edocument'].name
         validated_data['edocument'] = validated_data['edocument'].read()
         doc_type = TypeDef.objects.get(category='file',

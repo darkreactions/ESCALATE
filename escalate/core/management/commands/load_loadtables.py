@@ -350,7 +350,8 @@ class Command(BaseCommand):
 
     def _load_vessels(self):
         self.stdout.write(self.style.NOTICE('Beginning loading vessels'))
-        filename = 'old_dev_schema_materials.csv'
+        #filename = 'old_dev_schema_materials.csv'
+        filename = 'load_vessel.csv'
         OLD_DEV_SCHEMA_MATERIALS = path_to_file(filename)
         with open(OLD_DEV_SCHEMA_MATERIALS, newline='') as f:
             reader = csv.reader(f, delimiter="\t")
@@ -367,29 +368,29 @@ class Command(BaseCommand):
             for row in reader:
                 row_desc = clean_string(
                     row[column_names_to_index['description']])
-                if "Plate" in row_desc:
-                    parts = row_desc.split('#:')
-                    assert(1 <= len(parts) <= 2)
-                    plate_name = parts[0].strip() if len(parts) >= 1 else None
-                    well_number = parts[1].strip() if len(parts) > 1 else None
-                    fields = {
-                        'plate_name': plate_name,
-                        'well_number': well_number,
-                        'status': active_status
-                    }
-                    # whole plate or single vessel
-                    if "#" in row_desc and ':' in row_desc:
-                        # single vessel
-                        row_vessel_instance, created = Vessel.objects.get_or_create(
-                            **fields)
-                        if created:
-                            new_vessels += 1
-                    else:
-                        # whole plate
-                        row_plate_instance, created = Vessel.objects.get_or_create(
-                            **fields)
-                        if created:
-                            new_plates += 1
+                #if "Plate" in row_desc:
+                parts = row_desc.split('#:')
+                assert(1 <= len(parts) <= 2)
+                plate_name = parts[0].strip() if len(parts) >= 1 else None
+                well_number = parts[1].strip() if len(parts) > 1 else None
+                fields = {
+                    'plate_name': plate_name,
+                    'well_number': well_number,
+                    'status': active_status
+                }
+                # whole plate or single vessel
+                if "#" in row_desc and ':' in row_desc:
+                    # single vessel
+                    row_vessel_instance, created = Vessel.objects.get_or_create(
+                        **fields)
+                    if created:
+                        new_vessels += 1
+                else:
+                    # whole plate
+                    row_plate_instance, created = Vessel.objects.get_or_create(
+                        **fields)
+                    if created:
+                        new_plates += 1
             self.stdout.write(self.style.SUCCESS(
                 f'Added {new_vessels} new vessels'))
             self.stdout.write(self.style.SUCCESS(
