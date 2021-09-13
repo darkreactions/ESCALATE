@@ -64,13 +64,13 @@ class ActionUnit(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                related_name='action_unit_action')
     source_material = models.ForeignKey('BaseBomMaterial',
                                         on_delete=models.CASCADE,
-                                        db_column='source_material_uuid',
+                                        db_column='source_uuid',
                                         blank=True,
                                         null=True,
                                         related_name='action_unit_source_material')
     destination_material = models.ForeignKey('BaseBomMaterial',
                                              on_delete=models.CASCADE,
-                                             db_column='destination_material_uuid',
+                                             db_column='destination_uuid',
                                              blank=True,
                                              null=True,
                                              related_name='action_unit_destination_material')
@@ -398,9 +398,9 @@ class WorkflowActionSet(DateColumns, StatusColumn, ActorColumn, DescriptionColum
                                     db_column='calculation_uuid',
                                     related_name='workflow_action_set_calculation')
     source_material = ArrayField(RetUUIDField(
-        blank=True, null=True), db_column='source_material_uuid')
+        blank=True, null=True), db_column='source_uuid')
     destination_material = ArrayField(RetUUIDField(
-        blank=True, null=True), db_column='destination_material_uuid')
+        blank=True, null=True), db_column='destination_uuid')
 
 
 class WorkflowType(DateColumns, DescriptionColumn):
