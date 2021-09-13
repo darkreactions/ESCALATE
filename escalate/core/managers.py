@@ -54,7 +54,7 @@ class ExperimentInstanceManager(models.Manager):
 
 class BomMaterialManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(inventory_material__isnull=False, mixture__isnull=True)
+        return super().get_queryset().filter(vessel__isnull=True,inventory_material__isnull=False, mixture__isnull=True)
 
     def create(self, **kwargs):
         kwargs.update({'mixture': None})
@@ -63,7 +63,7 @@ class BomMaterialManager(models.Manager):
 
 class BomCompositeMaterialManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(inventory_material__isnull=True, mixture__isnull=False)
+        return super().get_queryset().filter(vessel__isnull=True,inventory_material__isnull=True, mixture__isnull=False)
 
     def create(self, **kwargs):
         kwargs.update({'inventory_material': None})
@@ -71,7 +71,7 @@ class BomCompositeMaterialManager(models.Manager):
 
 class BomVesselManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(vessel__isnull=True, mixture__isnull=True)
+        return super().get_queryset().filter(vessel__isnull=False, mixture__isnull=True,inventory_material__isnull=True)
 
     def create(self, **kwargs):
         kwargs.update({'vessel': None})
