@@ -4,13 +4,14 @@ Created on Mar 30, 2021
 @author: jpannizzo
 '''
 from core.utilities.experiment_utils import update_lsr_edoc
-from core.models.view_tables import WorkflowActionSet
+from core.models.view_tables import WorkflowActionSet, Edocument
 
-def resin_weighing(experiment_copy_uuid,lsr_edoc,exp_name):
+def resin_weighing(data, q1, experiment_copy_uuid, exp_name, exp_template):
     '''
     # logic for resin weighing experiment
     '''
-    
+    lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
+    xls_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='XLS file')
     #workflow for experiment
     related_exp = 'workflow__experiment_workflow_workflow__experiment'
     resin_dispense_action_set = WorkflowActionSet.objects.get(**{f'{related_exp}': experiment_copy_uuid,

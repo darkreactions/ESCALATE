@@ -299,17 +299,23 @@ class CreateExperimentView(TemplateView):
                         query = q1[i]
                         data[query.parameter_def_description] = form.cleaned_data['value'].value
                 
+                # Scans experiment_templates and picks up functions that have the same name as template_name
+                template_function = getattr(core.experiment_templates, template_name)
+                new_lsr_pk, lsr_msg = template_function(data, q1, experiment_copy_uuid, exp_name, exp_template)
+
+                """
                 if template_name == 'liquid_solid_extraction':
                     lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
                     xls_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='XLS file')
-                    new_lsr_pk, lsr_msg = liquid_solid_extraction(data, q1, experiment_copy_uuid, lsr_edoc, exp_name)
+                    new_lsr_pk, lsr_msg = liquid_solid_extraction(data, q1, experiment_copy_uuid, exp_name, exp_template)
                 elif template_name == 'resin_weighing':
                     lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
                     xls_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='XLS file')
                     new_lsr_pk, lsr_msg = resin_weighing(experiment_copy_uuid, lsr_edoc, exp_name)
                 elif template_name == 'perovskite_demo':
                     new_lsr_pk, lsr_msg = perovskite_demo(data, q1, experiment_copy_uuid, exp_name)
-
+                """
+                
                 # link_data = {f'{lsr_edoc.title}' : self.request.build_absolute_uri(reverse('edoc_download', args=[lsr_edoc.pk]))}
                 # handle library studio file if relevant
 
