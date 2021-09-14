@@ -31,7 +31,7 @@ core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   'WorkflowObject', 'UdfDef', 'Experiment', 'ExperimentWorkflow', 'ExperimentType', #'ExperimentParameter',
                   'BillOfMaterials',  'Measure', 'MeasureType', 'MeasureDef', 'Outcome',
                   'Action', 'ActionUnit', 'ActionDef', 'ExperimentInstance',
-                  'BaseBomMaterial', 'Vessel'])
+                  'BaseBomMaterial', 'Vessel', 'VesselInstance', 'Contents'])
 
 #Views that are a combination of multiple tables, used to be postgres views. Should be changed to something else
 combined_views = set(['CompositeMaterialProperty', 'MaterialTypeAssign', 
