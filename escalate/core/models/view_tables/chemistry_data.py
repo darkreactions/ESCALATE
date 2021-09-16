@@ -203,3 +203,29 @@ class MaterialType(DateColumns, DescriptionColumn):
 
     def __str__(self):
         return "{}".format(self.description)
+
+
+class ReagentTemplate(DateColumns, DescriptionColumn, StatusColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
+    internal_slug = SlugField(populate_from=[
+                                'description'
+                                ],
+                            overwrite=True, 
+                            max_length=255)
+    material_type = models.ManyToManyField('MaterialType', blank=True, 
+                                      related_name='reagent_template_material_type')
+
+    def __str__(self):
+        return self.description
+
+class Reagent(DateColumns, DescriptionColumn, StatusColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
+    reagent_template = models.ForeignKey('ReagentTemplate', on_delete=models.DO_NOTHING,
+                          related_name='reagent_reagent_template')
+    experiment_template = models.ForeignKey('ExperimentTemplate', on_delete=models.DO_NOTHING,
+                          related_name='reagent_experiment_template')
+    nominal = ValField()
+    actual = ValField()
+    
+    def __str__(self):
+        return self.description

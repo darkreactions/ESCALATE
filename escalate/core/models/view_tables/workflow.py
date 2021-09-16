@@ -282,6 +282,7 @@ class Experiment(DateColumns, StatusColumn, DescriptionColumn):
     priority = models.CharField(db_column='priority',
                                   max_length=255, 
                                   default="1")
+    reagent_templates = models.ManyToManyField('ReagentTemplate', related_name='experiment_reagent_template')
 
     def __str__(self):
         return f'{self.description}'

@@ -7,7 +7,6 @@ from core.models.view_tables import WorkflowActionSet, Experiment, BomMaterial #
 from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import InventoryMaterialForm, NominalActualForm
 
-from core.forms.forms import ExperimentNameForm
 from core.utilities.utils import experiment_copy
 import json
 from django.shortcuts import render

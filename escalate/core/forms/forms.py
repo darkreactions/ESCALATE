@@ -1,3 +1,4 @@
+
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth.hashers import make_password
@@ -6,7 +7,7 @@ from core.models import (CustomUser, OrganizationPassword, )
 from core.models.view_tables import (Person, Material, Inventory, Actor, Note,
                          Organization, Systemtool, SystemtoolType,
                          UdfDef, Status, Tag, TagAssign, TagType, MaterialType,
-                         Edocument, InventoryMaterial, Vessel)
+                         Edocument, InventoryMaterial, Vessel, Experiment)
 from core.models.core_tables import TypeDef
 
 from packaging import version
@@ -605,9 +606,6 @@ class InventoryMaterialForm(forms.ModelForm):
                 'placeholder': 'Location'}),
             'status': forms.Select(attrs=dropdown_attrs),
         }
-
-class ExperimentNameForm(forms.Form):
-    exp_name = forms.CharField(label='Experiment Name', max_length=100)
 
 
 class VesselForm(forms.ModelForm):
