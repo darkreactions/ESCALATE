@@ -35,11 +35,11 @@ class Action(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     repeating = models.IntegerField(db_column='repeating',
                                     blank=True,
                                     null=True)
-    calculation_def = models.ForeignKey('CalculationDef', on_delete=models.CASCADE,
-                                        db_column='calculation_def_uuid',
-                                        blank=True,
-                                        null=True,
-                                        related_name='action_calculation_def')
+    #calculation_def = models.ForeignKey('CalculationDef', on_delete=models.CASCADE,
+    #                                    db_column='calculation_def_uuid',
+    #                                    blank=True,
+    #                                    null=True,
+    #                                    related_name='action_calculation_def')
     internal_slug = SlugField(populate_from=[
                                     'description',
                                     'workflow',
@@ -333,10 +333,10 @@ class WorkflowActionSet(DateColumns, StatusColumn, ActorColumn, DescriptionColum
     parameter_val_actual = CustomArrayField(ValField(),
                                             blank=True, null=True,
                                             db_column='parameter_val_actual')
-    calculation = models.ForeignKey('Calculation', models.CASCADE,
-                                    blank=True, null=True,
-                                    db_column='calculation_uuid',
-                                    related_name='workflow_action_set_calculation')
+    #calculation = models.ForeignKey('Calculation', models.CASCADE,
+    #                                blank=True, null=True,
+    #                                db_column='calculation_uuid',
+    #                                related_name='workflow_action_set_calculation')
     source_material = ArrayField(RetUUIDField(
         blank=True, null=True), db_column='source_uuid')
     destination_material = ArrayField(RetUUIDField(
@@ -398,9 +398,9 @@ class WorkflowObject(DateColumns, StatusColumn):
     action = models.ForeignKey('Action', models.CASCADE,
                                blank=True, null=True,
                                db_column='action_uuid', related_name='workflow_object_action')
-    condition = models.ForeignKey('Condition', models.CASCADE,
-                                  blank=True, null=True,
-                                  db_column='condition_uuid', related_name='workflow_object_condition')
+    #condition = models.ForeignKey('Condition', models.CASCADE,
+    #                              blank=True, null=True,
+    #                              db_column='condition_uuid', related_name='workflow_object_condition')
     workflow_action_set = models.ForeignKey('WorkflowActionSet', models.CASCADE,
                                             blank=True, null=True,
                                             db_column='workflow_action_set_uuid',
