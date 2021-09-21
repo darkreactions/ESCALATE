@@ -7,7 +7,7 @@ from core.models import (
     BaseBomMaterial,
     BomMaterial,
     BillOfMaterials,
-    CalculationDef,
+    #CalculationDef,
     Experiment,
     ExperimentType,
     ExperimentWorkflow,
@@ -408,7 +408,7 @@ class Command(BaseCommand):
             'Beginning experiment related def'))
         self._load_parameter_def()
         self._load_action_def()
-        self._load_calculation_def()
+        #self._load_calculation_def()
         self.stdout.write(self.style.NOTICE(
             'Finished loading experiment related def'))
 
@@ -526,6 +526,7 @@ class Command(BaseCommand):
                     'out_type': TypeDef.objects.get(description=out_type__description, category='data') if not string_is_null(out_type__description) else None,
                     'systemtool': Systemtool.objects.get(systemtool_name=systemtool_name) if not string_is_null(systemtool_name) else None
                 }
+                """
                 calculation_def_instance, created = CalculationDef.objects.get_or_create(
                     **fields)
                 if created:
@@ -534,6 +535,8 @@ class Command(BaseCommand):
                     y := row[column_names_to_index['parameter_def_descriptions']]) else []
                 calculation_def_instance.parameter_def.add(
                     *[ParameterDef.objects.get(description=d) for d in parameter_def_descriptions])
+                """
+                
             # jump to top of csv
             f.seek(0)
             # skip initial header row
@@ -907,7 +910,7 @@ class Command(BaseCommand):
                     'end_date': end_date if not string_is_null(end_date) else None,
                     'duration': int(duration) if not string_is_null(duration) else None,
                     'repeating': int(repeating) if not string_is_null(repeating) else None,
-                    'calculation_def': CalculationDef.objects.get(short_name=y) if not string_is_null(y := calculation_def_short_name) else None,
+                    #'calculation_def': CalculationDef.objects.get(short_name=y) if not string_is_null(y := calculation_def_short_name) else None,
                     'status': active_status
                 }
 
