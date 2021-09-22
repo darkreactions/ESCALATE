@@ -5,7 +5,7 @@ from core.models.core_tables import RetUUIDField, SlugField
 from core.models.base_classes import DateColumns, StatusColumn, ActorColumn, DescriptionColumn, AddressColumns
 from core.models.view_tables.generic_data import Status
 import uuid
-from django.contrib.contenttypes.fields import GenericRelation
+#from django.contrib.contenttypes.fields import GenericRelation
 
 
 managed_tables = True

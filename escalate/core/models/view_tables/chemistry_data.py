@@ -217,14 +217,23 @@ class ReagentTemplate(DateColumns, DescriptionColumn, StatusColumn):
     def __str__(self):
         return self.description
 
-class Reagent(DateColumns, DescriptionColumn, StatusColumn):
+class ReagentInstance(DateColumns, DescriptionColumn, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
     reagent_template = models.ForeignKey('ReagentTemplate', on_delete=models.DO_NOTHING,
-                          related_name='reagent_reagent_template')
+                          related_name='reagent_instance_reagent_template')
     experiment_template = models.ForeignKey('ExperimentTemplate', on_delete=models.DO_NOTHING,
-                          related_name='reagent_experiment_template')
-    nominal = ValField()
-    actual = ValField()
+                          related_name='reagent_instance_experiment_template')
     
     def __str__(self):
         return self.description
+
+class ReagentInstanceValue(DateColumns, StatusColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
+    reagent_instance = models.ForeignKey('ReagentInstance', on_delete=models.DO_NOTHING,
+                          related_name='reagent_instance_value_reagent_instance')
+    nominal_value = ValField(null=True, blank=True)
+    actual_value = ValField(null=True, blank=True)
+    material = models.ForeignKey('InventoryMaterial', on_delete=models.DO_NOTHING,
+                          related_name='reagent_instance_value_inventory_material')
+
+

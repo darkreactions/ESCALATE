@@ -1,6 +1,6 @@
 from django.db import models
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
+#from django.contrib.contenttypes.fields import GenericForeignKey
+#from django.contrib.contenttypes.models import ContentType
 from django.db.models.fields import BooleanField
 from core.models.core_tables import RetUUIDField, SlugField
 from core.models.custom_types import ValField, PROPERTY_CLASS_CHOICES, PROPERTY_DEF_CLASS_CHOICES, MATERIAL_CLASS_CHOICES
