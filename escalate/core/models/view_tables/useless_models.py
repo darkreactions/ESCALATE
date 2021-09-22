@@ -392,3 +392,67 @@ class BomCompositeMaterial(DateColumns, StatusColumn, ActorColumn):
     class Meta:
         managed = managed_tables
         db_table = 'bom_material_composite'
+
+
+class Condition(DateColumns, StatusColumn, ActorColumn):
+    # todo: link to condition calculation
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
+                        db_column='condition_uuid')
+    """
+    condition_calculation = models.ForeignKey('ConditionCalculationDefAssign', 
+                                              models.CASCADE, 
+                                              db_column='condition_calculation_def_x_uuid',
+                                              related_name='condition_condition_calculation')
+    """
+    condition_description = models.CharField(max_length=255,
+                                             blank=True,
+                                             null=True,
+                                             editable=False)
+    condition_def = models.ForeignKey('ConditionDef', models.CASCADE,
+                                      db_column='condition_def_uuid', related_name='condition_condition_def')
+    # TODO: Fix in_val and out_val on Postgres to return strings not JSON!
+    in_val = ValField(blank=True, null=True)
+    out_val = ValField(blank=True, null=True)
+    internal_slug = SlugField(populate_from=[
+                                    'condition_description',
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
+
+
+
+class ConditionDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
+
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='condition_def_uuid')
+    calculation_def = models.ManyToManyField('CalculationDef', blank=True), #through='ConditionCalculationDefAssign')
+    internal_slug = SlugField(populate_from=[
+                                    'description'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
+    def __str__(self):
+        return f"{self.description}"
+
+
+class ConditionPath(DateColumns):
+    uuid = RetUUIDField(
+        primary_key=True, default=uuid.uuid4, db_column='condition_path_uuid')
+    condition = models.ForeignKey('Condition',
+                                  on_delete=models.CASCADE,
+                                  db_column='condition_uuid',
+                                  blank=True,
+                                  null=True,
+                                  related_name='condition_path_condition')
+    condition_out_val = ValField(blank=True, null=True)
+    workflow_step = models.ForeignKey('WorkflowStep',
+                                      on_delete=models.CASCADE,
+                                      db_column='workflow_uuid',
+                                      blank=True,
+                                      null=True,
+                                      related_name='condition_path_workflow_step')
+    internal_slug = SlugField(populate_from=[
+                                    'condition__internal_slug',
+                                    'workflow_step__internal_slug'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)

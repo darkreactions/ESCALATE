@@ -35,11 +35,11 @@ class Action(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     repeating = models.IntegerField(db_column='repeating',
                                     blank=True,
                                     null=True)
-    calculation_def = models.ForeignKey('CalculationDef', on_delete=models.CASCADE,
-                                        db_column='calculation_def_uuid',
-                                        blank=True,
-                                        null=True,
-                                        related_name='action_calculation_def')
+    #calculation_def = models.ForeignKey('CalculationDef', on_delete=models.CASCADE,
+    #                                    db_column='calculation_def_uuid',
+    #                                    blank=True,
+    #                                    null=True,
+    #                                    related_name='action_calculation_def')
     internal_slug = SlugField(populate_from=[
                                     'description',
                                     'workflow',
@@ -183,68 +183,7 @@ class BomVessel(BaseBomMaterial):
         proxy = True
 
 
-class Condition(DateColumns, StatusColumn, ActorColumn):
-    # todo: link to condition calculation
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
-                        db_column='condition_uuid')
-    """
-    condition_calculation = models.ForeignKey('ConditionCalculationDefAssign', 
-                                              models.CASCADE, 
-                                              db_column='condition_calculation_def_x_uuid',
-                                              related_name='condition_condition_calculation')
-    """
-    condition_description = models.CharField(max_length=255,
-                                             blank=True,
-                                             null=True,
-                                             editable=False)
-    condition_def = models.ForeignKey('ConditionDef', models.CASCADE,
-                                      db_column='condition_def_uuid', related_name='condition_condition_def')
-    # TODO: Fix in_val and out_val on Postgres to return strings not JSON!
-    in_val = ValField(blank=True, null=True)
-    out_val = ValField(blank=True, null=True)
-    internal_slug = SlugField(populate_from=[
-                                    'condition_description',
-                                    ],
-                              overwrite=True, 
-                              max_length=255)
 
-
-
-class ConditionDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
-
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='condition_def_uuid')
-    calculation_def = models.ManyToManyField('CalculationDef', blank=True), #through='ConditionCalculationDefAssign')
-    internal_slug = SlugField(populate_from=[
-                                    'description'
-                                    ],
-                              overwrite=True, 
-                              max_length=255)
-    def __str__(self):
-        return f"{self.description}"
-
-
-class ConditionPath(DateColumns):
-    uuid = RetUUIDField(
-        primary_key=True, default=uuid.uuid4, db_column='condition_path_uuid')
-    condition = models.ForeignKey('Condition',
-                                  on_delete=models.CASCADE,
-                                  db_column='condition_uuid',
-                                  blank=True,
-                                  null=True,
-                                  related_name='condition_path_condition')
-    condition_out_val = ValField(blank=True, null=True)
-    workflow_step = models.ForeignKey('WorkflowStep',
-                                      on_delete=models.CASCADE,
-                                      db_column='workflow_uuid',
-                                      blank=True,
-                                      null=True,
-                                      related_name='condition_path_workflow_step')
-    internal_slug = SlugField(populate_from=[
-                                    'condition__internal_slug',
-                                    'workflow_step__internal_slug'
-                                    ],
-                              overwrite=True, 
-                              max_length=255)
 
 # For reference Proxy Models: https://docs.djangoproject.com/en/3.2/topics/db/models/#proxy-models
 
@@ -282,6 +221,9 @@ class Experiment(DateColumns, StatusColumn, DescriptionColumn):
     priority = models.CharField(db_column='priority',
                                   max_length=255, 
                                   default="1")
+    reagent_templates = models.ManyToManyField('ReagentTemplate', 
+                                                blank=True, 
+                                                related_name='experiment_reagent_template')
 
     def __str__(self):
         return f'{self.description}'
@@ -393,10 +335,10 @@ class WorkflowActionSet(DateColumns, StatusColumn, ActorColumn, DescriptionColum
     parameter_val_actual = CustomArrayField(ValField(),
                                             blank=True, null=True,
                                             db_column='parameter_val_actual')
-    calculation = models.ForeignKey('Calculation', models.CASCADE,
-                                    blank=True, null=True,
-                                    db_column='calculation_uuid',
-                                    related_name='workflow_action_set_calculation')
+    #calculation = models.ForeignKey('Calculation', models.CASCADE,
+    #                                blank=True, null=True,
+    #                                db_column='calculation_uuid',
+    #                                related_name='workflow_action_set_calculation')
     source_material = ArrayField(RetUUIDField(
         blank=True, null=True), db_column='source_uuid')
     destination_material = ArrayField(RetUUIDField(
@@ -458,9 +400,9 @@ class WorkflowObject(DateColumns, StatusColumn):
     action = models.ForeignKey('Action', models.CASCADE,
                                blank=True, null=True,
                                db_column='action_uuid', related_name='workflow_object_action')
-    condition = models.ForeignKey('Condition', models.CASCADE,
-                                  blank=True, null=True,
-                                  db_column='condition_uuid', related_name='workflow_object_condition')
+    #condition = models.ForeignKey('Condition', models.CASCADE,
+    #                              blank=True, null=True,
+    #                              db_column='condition_uuid', related_name='workflow_object_condition')
     workflow_action_set = models.ForeignKey('WorkflowActionSet', models.CASCADE,
                                             blank=True, null=True,
                                             db_column='workflow_action_set_uuid',

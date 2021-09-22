@@ -21,17 +21,20 @@ misc_views = set(['NoteX'])
 
 core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   'SystemtoolType', 'Inventory', 'InventoryMaterial',
-                  'Calculation', 'CalculationDef', 'Material',
+                    #'Calculation', 'CalculationDef',
+                  'Material',
                   'Mixture', 'MaterialIdentifierDef', 'MaterialIdentifier',
                   'MaterialType', 
                   'Person', 'Tag', 'TagType', 'PropertyDef', 'UnitType',
-                  'TypeDef', 'ParameterDef', 'Condition', 'ConditionDef',
+                  'TypeDef', 'ParameterDef', 
+                  #'Condition', 'ConditionDef',
                   #'ActionParameter', 'Parameter', 
                   'WorkflowType', 'WorkflowStep', 
                   'WorkflowObject', 'UdfDef', 'Experiment', 'ExperimentWorkflow', 'ExperimentType', #'ExperimentParameter',
                   'BillOfMaterials',  'Measure', 'MeasureType', 'MeasureDef', 'Outcome',
                   'Action', 'ActionUnit', 'ActionDef', 'ExperimentInstance',
-                  'BaseBomMaterial', 'Vessel', 'VesselInstance', 'Contents'])
+                  'BaseBomMaterial', 'Vessel', 'VesselInstance', 'Contents', 
+                  'ReagentInstance', 'ReagentInstanceValue', 'ReagentTemplate', ])
 
 #Views that are a combination of multiple tables, used to be postgres views. Should be changed to something else
 combined_views = set(['CompositeMaterialProperty', 'MaterialTypeAssign', 

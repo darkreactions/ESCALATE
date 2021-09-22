@@ -56,24 +56,23 @@ class Vessel(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
 
 class VesselInstance(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='vessel_instance_uuid')
-    model_uuid = models.ForeignKey('Vessel', on_delete=models.DO_NOTHING,
+    vessel_template = models.ForeignKey('Vessel', on_delete=models.DO_NOTHING,
                               blank=True, null=True,
-                              db_column='vessel_model_uuid',
-                              related_name='vessel_instance_vessel_model_uuid')
+                              related_name='vessel_instance_vessel_template')
 
     def __str__(self):
         return f'{self.description}'
     
 class Contents(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='contents_uuid')
-    vessel_instance_uuid = models.ForeignKey('VesselInstance', on_delete=models.DO_NOTHING,
+    vessel_instance = models.ForeignKey('VesselInstance', on_delete=models.DO_NOTHING,
                               blank=True, null=True,
-                              related_name='contents_vessel_instance_uuid')
-    base_bom_material = models.OneToOneField('BaseBomMaterial', on_delete=models.DO_NOTHING,
+                              related_name='contents_vessel_instance')
+    base_bom_material = models.ForeignKey('BaseBomMaterial', on_delete=models.DO_NOTHING,
                                 blank=True, null=True,
                                 db_column='bom_material_uuid',
                                 related_name='contents_bom_material_uuid')
-    valtype = ValField(blank=True, null=True)
+    value = ValField(blank=True, null=True)
     
     def __str__(self):
         return f'{self.description}'
@@ -203,3 +202,38 @@ class MaterialType(DateColumns, DescriptionColumn):
 
     def __str__(self):
         return "{}".format(self.description)
+
+
+class ReagentTemplate(DateColumns, DescriptionColumn, StatusColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
+    internal_slug = SlugField(populate_from=[
+                                'description'
+                                ],
+                            overwrite=True, 
+                            max_length=255)
+    material_type = models.ManyToManyField('MaterialType', blank=True, 
+                                      related_name='reagent_template_material_type')
+
+    def __str__(self):
+        return self.description
+
+class ReagentInstance(DateColumns, DescriptionColumn, StatusColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
+    reagent_template = models.ForeignKey('ReagentTemplate', on_delete=models.DO_NOTHING,
+                          related_name='reagent_instance_reagent_template')
+    experiment_template = models.ForeignKey('ExperimentTemplate', on_delete=models.DO_NOTHING,
+                          related_name='reagent_instance_experiment_template')
+    
+    def __str__(self):
+        return self.description
+
+class ReagentInstanceValue(DateColumns, StatusColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
+    reagent_instance = models.ForeignKey('ReagentInstance', on_delete=models.DO_NOTHING,
+                          related_name='reagent_instance_value_reagent_instance')
+    nominal_value = ValField(null=True, blank=True)
+    actual_value = ValField(null=True, blank=True)
+    material = models.ForeignKey('InventoryMaterial', on_delete=models.DO_NOTHING,
+                          related_name='reagent_instance_value_inventory_material')
+
+

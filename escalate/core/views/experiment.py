@@ -1,3 +1,4 @@
+
 from core.models.view_tables.organization import Actor
 import json
 from django.db.models import F, Value
@@ -12,7 +13,7 @@ from django.views.generic.detail import DetailView
 from core.models.view_tables import WorkflowActionSet, Experiment, BomMaterial, Edocument #ActionParameter
 from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm, NominalActualForm
-from core.forms.forms import ExperimentNameForm
+from core.forms.custom_types import ExperimentNameForm, ExperimentTemplateForm, ReagentForm, BaseReagentFormSet
 from core.utilities.utils import experiment_copy
 from core.utilities.randomSampling import generateExperiments
 from core.utilities.experiment_utils import update_dispense_action_set, get_action_parameter_querysets, get_material_querysets, supported_wfs
@@ -44,25 +45,18 @@ class BaseUUIDFormSet(BaseFormSet):
 
 class CreateExperimentView(TemplateView):
     template_name = "core/create_experiment.html"
+    form_class = ExperimentTemplateForm
     MaterialFormSet = formset_factory(InventoryMaterialForm, extra=0)
     NominalActualFormSet = formset_factory(NominalActualForm, extra=0)
-
-    def __init__(self, *args, **kwargs):
-        #self.all_experiments = Experiment.objects.filter(parent__isnull=True)
-        super().__init__(*args, **kwargs)
-        #print(kwargs)
-        
+    ReagentFormSet = formset_factory(ReagentForm, extra=0, formset=BaseReagentFormSet)
 
     def get_context_data(self, **kwargs):    
         # Select templates that belong to the current lab
         context = super().get_context_data(**kwargs)
-        if 'current_org_id' in self.request.session:
-            org_id = self.request.session['current_org_id']
-        else:
-            org_id = None
-        lab = Actor.objects.get(organization=org_id, person__isnull=True)
-        self.all_experiments = Experiment.objects.filter(parent__isnull=True, lab=lab)
-        context['all_experiments'] = self.all_experiments
+        
+        #lab = Actor.objects.get(organization=org_id, person__isnull=True)
+        #self.all_experiments = Experiment.objects.filter(parent__isnull=True, lab=lab)
+        #context['all_experiments'] = self.all_experiments
         return context
         
 
@@ -83,8 +77,6 @@ class CreateExperimentView(TemplateView):
 
         #create empty lists for initial q1-q3
         initial_q1 = []
-        #initial_q2 = []
-        #initial_q3 = []
         '''
         using for loop instead of list comprehension to account for arrays
         this will be basis for implementing new array ui
@@ -104,65 +96,17 @@ class CreateExperimentView(TemplateView):
                                                           'unit':row.parameter_value.unit})
             
             initial_q1.append(data)
-
-        #q2 initial
-        '''
-        for row in q2:
-            for param in row.parameter_value:
-                data = {'value': param, \
-                    'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])}
-                if 'array' in param.val_type.description:
-                    data['actual_value'] = Val.from_dict({'type':'array_num', \
-                                                          'value':[0]*len(param.value), \
-                                                          'unit':param.unit})
-                else:
-                    data['actual_value'] = Val.from_dict({'type':'num', \
-                                                          'value':0, \
-                                                          'unit':param.unit})
-                
-                initial_q2.append(data)
-        '''
-               
-        #q3 initial
-        '''
-        for row in q3:
-            data = {'value': row.parameter_value, \
-                'uuid': json.dumps([f'{row.object_description}', f'{row.parameter_def_description}'])}
-            if 'array' in row.parameter_value.val_type.description:
-                data['actual_value'] = Val.from_dict({'type':'array_num', \
-                                                      'value':[0]*len(row.parameter_value.value), \
-                                                      'unit':row.parameter_value.unit})
-            else:
-                data['actual_value'] = Val.from_dict({'type':'num', \
-                                                      'value':0, \
-                                                      'unit':row.parameter_value.unit})
-            
-            initial_q3.append(data)
-        '''
-                
+        
         q1_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q1]
-        #q2_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q2 for param in row.parameter_value]
-        #q3_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q3]
-
         context['q1_param_formset'] = self.NominalActualFormSet(initial=initial_q1, 
                                                             prefix='q1_param',)
-        '''
-        context['q2_param_formset'] = self.NominalActualFormSet(initial=initial_q2, 
-                                                            prefix='q2_param',)
-        context['q3_param_formset'] = self.NominalActualFormSet(initial=initial_q3, 
-                                                            prefix='q3_param',)
-        '''
         context['q1_param_details'] = q1_details
-        #context['q2_param_details'] = q2_details
-        #context['q3_param_details'] = q3_details
-    
+        
         return context
 
     def get_material_forms(self, exp_uuid, context):
         
         q1 = get_material_querysets(exp_uuid)
-
-        # context['q1_formset'] = self.ParameterFormSet(initial=[{'value': row.parameter_value} for row in q1])
         initial_q1 = [{'value': row.inventory_material, 'uuid': json.dumps([f'{row.object_description}'])} for row in q1]
         q1_details = [f'{row.object_description}' for row in q1]
         
@@ -174,16 +118,60 @@ class CreateExperimentView(TemplateView):
 
         return context
 
+    def get_reagent_forms(self, exp_template, context):
+        if 'current_org_id' in self.request.session:
+            org_id = self.request.session['current_org_id']
+        else:
+            org_id = None
+        formsets = []
+        reagent_template_names = []
+        for index, reagent_template in enumerate(exp_template.reagent_templates.all()):
+            reagent_template_names.append(reagent_template.description)
+            mat_types_list = []
+            initial = []
+            for material_type in reagent_template.material_type.all():
+                mat_types_list.append(material_type)
+                initial.append({})
+
+            formsets.append(self.ReagentFormSet(prefix=f'reagent_{index}', 
+                                                initial=initial,
+                                                form_kwargs={'lab_uuid': org_id, 
+                                                'mat_types_list':mat_types_list,
+                                                'reagent_index':index}))
+        #for form in formset:
+        #    form.fields[]
+        context['reagent_formset'] = formsets
+        context['reagent_template_names'] = reagent_template_names
+        return context
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        if 'current_org_id' in self.request.session:
+            org_id = self.request.session['current_org_id']
+        else:
+            org_id = None
+        context['experiment_template_select_form'] = ExperimentTemplateForm(org_id=org_id)
+
+        return render(request, self.template_name, context)
+
+
     def post(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
-        if 'select_exp_template' in request.POST:
-            exp_uuid = request.POST['select_exp_template']
+        if 'select_experiment_template' in request.POST:
+            exp_uuid = request.POST['select_experiment_template']
             if exp_uuid:
                 request.session['experiment_template_uuid'] = exp_uuid
                 context['selected_exp_template'] = Experiment.objects.get(uuid=exp_uuid)
+                context['manual'] = int(request.POST['manual'])
+                context['automated'] = int(request.POST['automated'])
                 context['experiment_name_form'] = ExperimentNameForm()
                 context = self.get_action_parameter_forms(exp_uuid, context)
-                context = self.get_material_forms(exp_uuid, context)
+
+                if context['manual']:
+                    context = self.get_material_forms(exp_uuid, context)
+                
+                if context['automated']:
+                    context = self.get_reagent_forms(context['selected_exp_template'], context)
             else:
                 request.session['experiment_template_uuid'] = None
         # begin: create experiment
@@ -210,15 +198,6 @@ class CreateExperimentView(TemplateView):
                     query = queries.get(object_description=object_desc, parameter_def_description=param_def_desc)
                 else:
                     query = queries.get(object_description=desc[0])
-
-                # q2 gets handled differently because its a workflow action set
-                '''
-                if fields is None:
-                    update_dispense_action_set(query, data['value'])
-                else:
-                    for db_field, form_field in fields.items():
-                        setattr(query, db_field, data[form_field])
-                '''
                 parameter = Parameter.objects.get(uuid=query.parameter_uuid)
                 for db_field, form_field in fields.items():
                     setattr(parameter, db_field, data[form_field])
@@ -264,30 +243,22 @@ class CreateExperimentView(TemplateView):
         # construct all formsets
         exp_name_form = ExperimentNameForm(request.POST)
         q1_formset = self.NominalActualFormSet(request.POST, prefix='q1_param')
-        #q2_formset = self.NominalActualFormSet(request.POST, prefix='q2_param')
-        #q3_formset = self.NominalActualFormSet(request.POST, prefix='q3_param')
         q1_material_formset = self.MaterialFormSet(request.POST,
                                                     prefix='q1_material',
                                                     form_kwargs={'org_uuid': self.request.session['current_org_id']})
         if all([exp_name_form.is_valid(),
                 q1_formset.is_valid(), 
-                #q2_formset.is_valid(), 
-                #q3_formset.is_valid(), 
                 q1_material_formset.is_valid()]):
             
             exp_name = exp_name_form.cleaned_data['exp_name']
-
             # make the experiment copy: this will be our new experiment
             experiment_copy_uuid = experiment_copy(str(exp_template.uuid), exp_name)
-
             # get the elements of the new experiment that we need to update with the form values
-            #q1, q2, q3 = get_action_parameter_querysets(experiment_copy_uuid)
             q1 = get_action_parameter_querysets(experiment_copy_uuid)
             q1_material = get_material_querysets(experiment_copy_uuid)
             
             self.save_forms_q1(q1, q1_formset, {'parameter_val_nominal': 'value', 'parameter_val_actual': 'actual_value'})
             self.save_forms_q_material(q1_material, q1_material_formset, {'inventory_material': 'value'})
-            #self.save_forms(q2, q2_formset, None)
             
             '''
             this will be moved
@@ -304,38 +275,16 @@ class CreateExperimentView(TemplateView):
 
             # begin: template-specific logic
             if template_name in SUPPORTED_CREATE_WFS:
-                #if any([f.has_changed() for f in q3_formset]):
                 data = {}  # Stick form data into this dict
-                #for i, form in enumerate(q3_formset):
                 for i, form in enumerate(q1_formset):
                     if form.is_valid():
-                        #query = q3[i]
                         query = q1[i]
                         data[query.parameter_def_description] = form.cleaned_data['value'].value
                 
                 # Scans experiment_templates and picks up functions that have the same name as template_name
                 template_function = getattr(core.experiment_templates, template_name)
                 new_lsr_pk, lsr_msg = template_function(data, q1, experiment_copy_uuid, exp_name, exp_template)
-
-                """
-                if template_name == 'liquid_solid_extraction':
-                    lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
-                    xls_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='XLS file')
-                    new_lsr_pk, lsr_msg = liquid_solid_extraction(data, q1, experiment_copy_uuid, exp_name, exp_template)
-                elif template_name == 'resin_weighing':
-                    lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
-                    xls_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='XLS file')
-                    new_lsr_pk, lsr_msg = resin_weighing(experiment_copy_uuid, lsr_edoc, exp_name)
-                elif template_name == 'perovskite_demo':
-                    new_lsr_pk, lsr_msg = perovskite_demo(data, q1, experiment_copy_uuid, exp_name)
-                """
-                
-                # link_data = {f'{lsr_edoc.title}' : self.request.build_absolute_uri(reverse('edoc_download', args=[lsr_edoc.pk]))}
-                # handle library studio file if relevant
-
-                #this is done for the purposes of the perovskite_demo
-                #will likely need to be changed to new_xls_pk in the future
-                
+               
                 if new_lsr_pk is not None:
                     context['xls_download_link'] = reverse('edoc_download', args=[new_lsr_pk])
                 if str(self.request.session['current_org_name']) != "TestCo":
