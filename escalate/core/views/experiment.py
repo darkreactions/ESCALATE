@@ -14,6 +14,7 @@ from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm, NominalActualForm
 from core.forms.forms import ExperimentNameForm
 from core.utilities.utils import experiment_copy
+from core.utilities.randomSampling import generateExperiments
 from core.utilities.experiment_utils import update_dispense_action_set, get_action_parameter_querysets, get_material_querysets, supported_wfs
 import core.models
 from core.models.view_tables import Note, TagAssign, Tag
@@ -287,6 +288,19 @@ class CreateExperimentView(TemplateView):
             self.save_forms_q1(q1, q1_formset, {'parameter_val_nominal': 'value', 'parameter_val_actual': 'actual_value'})
             self.save_forms_q_material(q1_material, q1_material_formset, {'inventory_material': 'value'})
             #self.save_forms(q2, q2_formset, None)
+            
+            '''
+            this will be moved
+            temp flag for random sampler.
+            '''
+            randomSampler = 1
+            thisMaterial = {}
+            if randomSampler == 1:
+                for i, thisQuery in enumerate(q1_material):
+                    #need to filter out vessels
+                    currentMaterial = q1_material[i].inventory_material.material
+                    thisMaterial[currentMaterial] = [0,0,0,0]#what does each input mean?
+                randomSamplerReturnData = generateExperiments(thisMaterial)
 
             # begin: template-specific logic
             if template_name in SUPPORTED_CREATE_WFS:
