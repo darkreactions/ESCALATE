@@ -122,6 +122,11 @@ class InventoryMaterial(DateColumns, StatusColumn, ActorColumn, DescriptionColum
                                     ],
                               overwrite=True, 
                               max_length=255)
+    phase = models.CharField(max_length=6, 
+                             choices=[('liquid', 'Liquid'), 
+                                      ('solid', 'Solid'),
+                                      ('gas', 'Gas')],
+                            blank=True, null=True)
 
     def __str__(self):
         return "{} : {}".format(self.inventory, self.material)
