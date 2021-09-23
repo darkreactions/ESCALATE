@@ -165,7 +165,7 @@ class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
                 #new_lsr_pk, lsr_msg = perovskite_demo(data, q3, experiment_copy_uuid, exp_name)
                 new_lsr_pk, lsr_msg = perovskite_demo(data, q1, experiment_copy_uuid, exp_name, exp_template)
 
-        return Response({'experiment_detail': request.build_absolute_uri(reverse('experiment-detail', args=[experiment_copy_uuid])),
+        return Response({'experiment_detail': request.build_absolute_uri(reverse('experiment-instance-detail', args=[experiment_copy_uuid])),
                         'generated_file': request.build_absolute_uri(reverse('edoc_download', args=[new_lsr_pk]))})
 
 

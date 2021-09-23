@@ -341,7 +341,7 @@ class ExperimentTemplateSerializer(EdocListSerializer,
                         NoteListSerializer,
                         BomSerializer,
                         DynamicFieldsModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='experiment-detail')
+    #url = serializers.HyperlinkedIdentityField(view_name='experiment-detail')
     class Meta:
         model = ExperimentTemplate
         fields = '__all__'
@@ -353,7 +353,7 @@ class ExperimentInstanceSerializer(EdocListSerializer,
                         NoteListSerializer,
                         BomSerializer,
                         DynamicFieldsModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='experiment-detail')
+    #url = serializers.HyperlinkedIdentityField(view_name='experiment-detail')
     class Meta:
         model = ExperimentInstance
         fields = '__all__'
