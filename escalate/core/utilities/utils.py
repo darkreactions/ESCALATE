@@ -1,6 +1,6 @@
 from django.db import connection as con
 from django.db.models import F
-from core.models.view_tables import Parameter, BomMaterial, Action, ActionUnit, Experiment, BillOfMaterials, ExperimentWorkflow, Workflow, WorkflowObject, WorkflowStep
+from core.models.view_tables import Parameter, BomMaterial, Action, ActionUnit, ExperimentTemplate, ExperimentInstance, BillOfMaterials, ExperimentWorkflow, Workflow, WorkflowObject, WorkflowStep
 from copy import deepcopy
 import uuid
 '''
@@ -15,15 +15,21 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
 
 def experiment_copy(template_experiment_uuid, copy_experiment_description):
     # Get parent Experiment from template_experiment_uuid
-    exp_get = Experiment.objects.get(uuid=template_experiment_uuid)
+    exp_get = ExperimentTemplate.objects.get(uuid=template_experiment_uuid)
     old_exp_get = deepcopy(exp_get)
     # experiment row creation, overwrites original experiment template object with new experiment object.
     # Makes an experiment template object parent
-    exp_get.uuid = None
-    exp_get.parent = old_exp_get
+    #exp_get.uuid = None
+    #exp_get.parent = old_exp_get
+    exp_get = ExperimentInstance(ref_uid=old_exp_get.ref_uid, parent = old_exp_get,
+                                 owner = old_exp_get.owner, operator = old_exp_get.operator,
+                                 lab = old_exp_get.lab,)
+    #exp_get.workflow.set(old_exp_get.workflow.all())
+
     # If copy_experiment_description null replace with "Copy of " + description from exp_get
     if copy_experiment_description is None:
         copy_experiment_description = "Copy of " + exp_get.description
+
     exp_get.description = copy_experiment_description
     # post
     exp_get.save()
@@ -36,7 +42,8 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
         bom_get = deepcopy(this_bom)
         # update new bom and update fields
         bom_get.uuid = None
-        bom_get.experiment = exp_get
+        bom_get.experiment = None
+        bom_get.experiment_instance = exp_get
         # post
         bom_get.save()
 
@@ -53,7 +60,7 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
 
     # Get all Experiment Workflow objects based on experiment template uuid
     experiment_workflow_filter = ExperimentWorkflow.objects.all().filter(
-        experiment=old_exp_get)
+        experiment_template=old_exp_get)
     # create empty workflow_step parent
     workflow_step_parent = None
 
@@ -73,7 +80,7 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
         # create copy of current experiment workflow object from experiment_workflow_filter
         #this_experiment_workflow = current_object
         this_experiment_workflow = ExperimentWorkflow(workflow=this_workflow,
-                                                      experiment=exp_get,
+                                                      experiment_instance=exp_get,
                                                       experiment_workflow_seq=current_object.experiment_workflow_seq)
         # update experiment workflow uuid, workflow uuid, and experiment uuid for experiment workflow
         #this_experiment_workflow.uuid = None
@@ -136,7 +143,7 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
 view_names = ['Material', 'Inventory', 'Actor', 'Organization', 'Person',
               'Systemtool', 'InventoryMaterial', 'Vessel',
               'SystemtoolType', 'UdfDef', 'Status', 'Tag',
-              'TagType', 'MaterialType', 'Experiment', 'Edocument'
+              'TagType', 'MaterialType', 'ExperimentInstance', 'Edocument'
               ]
 
 

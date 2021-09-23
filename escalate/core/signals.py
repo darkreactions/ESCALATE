@@ -34,8 +34,9 @@ def create_actor(sender, **kwargs):
         fields = {sender.__name__.lower(): kwargs['instance']}
         fields['description'] = str(kwargs['instance'])
         fields['status'] = Status.objects.get(description='active')
-        actor = Actor(**fields)
-        actor.save()
+        #actor = Actor(**fields)
+        #actor.save()
+        Actor.objects.get_or_create(**fields)
 
 
 @receiver(post_save, sender=Udf)
@@ -82,16 +83,18 @@ def create_parameters(sender, **kwargs):
         ActionUnit.objects.get(pk=action_unit.pk)
     except ActionUnit.DoesNotExist:
     '''
-    param_defs = action_unit.action.action_def.parameter_def.all()
-    active_status = Status.objects.get(description="active")
-    for p_def in param_defs:
-        p = Parameter(parameter_def=p_def,
-                        parameter_val_nominal=p_def.default_val,
-                        parameter_val_actual=p_def.default_val,
-                        action_unit=action_unit,
-                        status=active_status)
-        p.save()
-
+    try:
+        param_defs = action_unit.action.action_def.parameter_def.all()
+        active_status = Status.objects.get(description="active")
+        for p_def in param_defs:
+            p = Parameter(parameter_def=p_def,
+                            parameter_val_nominal=p_def.default_val,
+                            parameter_val_actual=p_def.default_val,
+                            action_unit=action_unit,
+                            status=active_status)
+            p.save()
+    except Exception as e:
+        print(f'Exception {e}')
 
 @receiver(post_save, sender=BomMaterial)
 def create_bom_composite_material(sender, **kwargs):

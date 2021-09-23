@@ -30,7 +30,7 @@ core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   #'Condition', 'ConditionDef',
                   #'ActionParameter', 'Parameter', 
                   'WorkflowType', 'WorkflowStep', 
-                  'WorkflowObject', 'UdfDef', 'Experiment', 'ExperimentWorkflow', 'ExperimentType', #'ExperimentParameter',
+                  'WorkflowObject', 'UdfDef', 'ExperimentTemplate', 'ExperimentWorkflow', 'ExperimentType', #'ExperimentParameter',
                   'BillOfMaterials',  'Measure', 'MeasureType', 'MeasureDef', 'Outcome',
                   'Action', 'ActionUnit', 'ActionDef', 'ExperimentInstance',
                   'BaseBomMaterial', 'Vessel', 'VesselInstance', 'Contents', 
@@ -50,7 +50,8 @@ unexposed_views = set(['TagAssign', 'Note', 'Edocument', 'Property', 'Parameter'
 custom_serializer_views = set(['Workflow', 'WorkflowActionSet', 'BomMaterial', 'BomCompositeMaterial',])
 
 # Viewsets that are not associated with a model exclusively
-non_model_views = set(['Experiment', 'ExperimentTemplate'])
+#non_model_views = set(['Experiment', 'ExperimentTemplate'])
+non_model_views = set()
 
 perform_create_views = set(['PropertyDef', ])
 
@@ -136,7 +137,34 @@ expandable_fields = {
                   })
         }
     },
-    'Experiment': {
+    'ExperimentTemplate': {
+        'options': {
+            'many_to_many': ['workflow']
+        },
+        'fields': {
+            'workflow': ('rest_api.WorkflowSerializer',
+                     {
+                         'many': True,
+                     }),
+            'bill_of_materials': ('rest_api.BillOfMaterialsSerializer',
+                                {
+                                    'source': 'bom_experiment',
+                                    'many': True,
+                                    'read_only': True,
+                                    'view_name': 'billofmaterials-detail'
+                                }),
+            'outcome': ('rest_api.OutcomeSerializer',
+                        {
+                            'source': 'outcome_experiment',
+                            'many': True,
+                            'read_only': True,
+                            'view_name': 'outcome-detail'
+                        })
+        }
+        
+    },
+
+    'ExperimentInstance': {
         'options': {
             'many_to_many': ['workflow']
         },

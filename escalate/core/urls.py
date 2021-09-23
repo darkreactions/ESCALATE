@@ -32,12 +32,12 @@ urlpatterns = [
     #path('param_edit/<uuid:pk>', ParameterEditView.as_view(), name='parameter_edit'),
     #path('mat_edit/<uuid:pk>', MaterialEditView.as_view(), name='material_edit'),
     path('experiment/', CreateExperimentView.as_view(),
-         name='experiment_add'),
+         name='experiment_instance_add'),
 #     path('experiment_list/', ExperimentListView.as_view(), name='experiment_list'),
     path('experiment/<uuid:pk>/view',
-         ExperimentDetailView.as_view(), name='experiment_view'),
+         ExperimentDetailView.as_view(), name='experiment_instance_view'),
     path('experiment/<uuid:pk>',
-         ExperimentDetailEditView.as_view(), name='experiment_update'),
+         ExperimentDetailEditView.as_view(), name='experiment_instance_update'),
     path('favicon.ico', RedirectView.as_view(
         url=staticfiles_storage.url('static/favicon.ico'))),
 ]

@@ -226,8 +226,8 @@ class ReagentInstance(DateColumns, DescriptionColumn, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
     reagent_template = models.ForeignKey('ReagentTemplate', on_delete=models.DO_NOTHING,
                           related_name='reagent_instance_reagent_template')
-    experiment_template = models.ForeignKey('ExperimentTemplate', on_delete=models.DO_NOTHING,
-                          related_name='reagent_instance_experiment_template')
+    experiment = models.ForeignKey('ExperimentInstance', on_delete=models.DO_NOTHING,
+                          related_name='reagent_instance_experiment_instance')
     
     def __str__(self):
         return self.description

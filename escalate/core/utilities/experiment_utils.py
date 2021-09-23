@@ -9,7 +9,7 @@ import os
 from tkinter.constants import CURRENT
 from django.db.models import F, Value
 
-from core.models.view_tables import WorkflowActionSet, BomMaterial, Action, ActionUnit, Experiment #ActionParameter
+from core.models.view_tables import WorkflowActionSet, BomMaterial, Action, ActionUnit, ExperimentTemplate, ExperimentInstance #ActionParameter
 from core.custom_types import Val
 from core.models.core_tables import RetUUIDField
 
@@ -105,12 +105,17 @@ def supported_wfs():
     
     return template_list
 
-def get_action_parameter_querysets(exp_uuid):
+def get_action_parameter_querysets(exp_uuid, template=True):
     related_exp = 'workflow__experiment_workflow_workflow__experiment'
     related_exp_wf = 'workflow__experiment_workflow_workflow'
     #factored out until new workflow changes are implemented
 
-    q1 = Experiment.objects.filter(uuid=exp_uuid).prefetch_related('workflow__action_workflow__action_unit_action').annotate(
+    if template:
+        model = ExperimentTemplate
+    else:
+        model = ExperimentInstance
+
+    q1 = model.objects.filter(uuid=exp_uuid).prefetch_related('workflow__action_workflow__action_unit_action').annotate(
                 object_description=F('workflow__action_workflow__description')).annotate(
                 object_uuid=F('workflow__action_workflow__uuid')).annotate(
                 parameter_uuid=F('workflow__action_workflow__action_unit_action__parameter_action_unit')).annotate(
@@ -121,42 +126,11 @@ def get_action_parameter_querysets(exp_uuid):
                 experiment_description=F('description')).annotate(
                 workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
                 ))#.filter(workflow_action_set__isnull=True).prefetch_related(f'{related_exp}')
-    '''
-    q1 = ActionParameter.objects.filter(**{f'{related_exp}': exp_uuid}).annotate(
-                object_description=F('action_description')).annotate(
-                object_uuid=F('uuid')).annotate(
-                parameter_value=F('parameter_val_nominal')).annotate(
-                experiment_uuid=F(f'{related_exp}__uuid')).annotate(
-                experiment_description=F(f'{related_exp}__description')).annotate(
-                workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
-                )).filter(workflow_action_set__isnull=True).prefetch_related(f'{related_exp}')
     
-    q2 = WorkflowActionSet.objects.filter(**{f'{related_exp}': exp_uuid, 'parameter_val_nominal__isnull': False}).annotate(
-                    object_description=F('description')).annotate(
-                    object_uuid=F('uuid')).annotate(
-                    parameter_def_description=F('parameter_def__description')).annotate(
-                    parameter_uuid=Value(None, RetUUIDField())).annotate(
-                    parameter_value=F('parameter_val_nominal')).annotate(
-                    experiment_uuid=F(f'{related_exp}__uuid')).annotate(
-                    experiment_description=F(f'{related_exp}__description')).annotate(
-                    workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
-                    ).prefetch_related(f'{related_exp}')
-    q3 = WorkflowActionSet.objects.filter(calculation__isnull=False,
-                                            workflow__experiment_workflow_workflow__experiment=exp_uuid).annotate(
-                    object_description=F('description')).annotate(
-                    object_uuid=F('uuid')).annotate(
-                    parameter_def_description=F('calculation__calculation_def__parameter_def__description')).annotate(
-                    parameter_uuid=F('calculation__calculation_def__parameter_def__uuid')).annotate(
-                    parameter_value=F('calculation__calculation_def__parameter_def__default_val')).annotate(
-                    experiment_uuid=F(f'{related_exp}__uuid')).annotate(
-                    experiment_description=F(f'{related_exp}__description')).annotate(
-                    workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')).prefetch_related(
-                    'workflow__experiment_workflow_workflow__experiment').distinct('parameter_uuid')
-    '''
     return q1
 
 
-def get_material_querysets(exp_uuid):
+def get_material_querysets(exp_uuid, template=True):
     """[summary]
 
     Args:
@@ -165,11 +139,17 @@ def get_material_querysets(exp_uuid):
     Returns:
         [Queryset]: Queryset that contains the experiment data
     """
-    mat_q = BomMaterial.objects.filter(bom__experiment=exp_uuid).only(
+    if template:
+        exp_relation = 'bom__experiment'
+    else:
+        exp_relation = 'bom__experiment_instance'
+
+    #bom__experiment=exp_uuid
+    mat_q = BomMaterial.objects.filter(**{exp_relation: exp_uuid}).only(
                         'uuid').annotate(
                         object_description=F('description')).annotate(
                         object_uuid=F('uuid')).annotate(
-                        experiment_uuid=F('bom__experiment__uuid')).annotate(
-                        experiment_description=F('bom__experiment__description')).prefetch_related('bom__experiment')
+                        experiment_uuid=F(f'{exp_relation}__uuid')).annotate(
+                        experiment_description=F(f'{exp_relation}__description')).prefetch_related(f'{exp_relation}')
     
     return mat_q

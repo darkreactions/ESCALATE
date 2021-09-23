@@ -44,7 +44,7 @@ class ExperimentTemplateForm(Form):
         lab = vt.Actor.objects.get(organization=org_id, person__isnull=True)
         super().__init__(*args, **kwargs)
         #self.fields['organization'].queryset = OrganizationPassword.objects.all()
-        self.fields['select_experiment_template'].choices = [(exp.uuid, exp.description) for exp in vt.Experiment.objects.filter(parent__isnull=True, lab=lab)]
+        self.fields['select_experiment_template'].choices = [(exp.uuid, exp.description) for exp in vt.ExperimentTemplate.objects.filter(lab=lab)]
 
 
 class ReagentForm(Form):

@@ -52,7 +52,7 @@ registered.register('edocs', viewsets.EdocumentViewSet,
 registered.register('create', viewsets.ExperimentCreateViewSet, basename=f'{name}-create',
                     parents_query_lookups=['uuid'])
 
-registered = router.register('experiment', viewsets.ExperimentViewSet, basename='experiment')
+#registered = router.register('experiment', viewsets.ExperimentViewSet, basename='experiment')
 name = 'experiment'
 registered.register('notes', viewsets.NoteViewSet,
                     basename=f'{name}-note', parents_query_lookups=['ref_note_uuid'])

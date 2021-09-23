@@ -310,6 +310,9 @@ class BomCompositeMaterialSerializer(DynamicFieldsModelSerializer):
                   'mixture', 'bom_material', 'add_date', 'mod_date']
 
 
+
+
+"""
 class ExperimentSerializer(EdocListSerializer,
                         TagListSerializer,
                         NoteListSerializer,
@@ -321,7 +324,6 @@ class ExperimentSerializer(EdocListSerializer,
 
     expandable_fields = expandable_fields['Experiment']['fields']
 
-"""
 class ExperimentTemplateSerializer(EdocListSerializer,
                         TagListSerializer,
                         NoteListSerializer,
@@ -343,7 +345,7 @@ class ExperimentTemplateSerializer(EdocListSerializer,
     class Meta:
         model = ExperimentTemplate
         fields = '__all__'
-    expandable_fields = expandable_fields['Experiment']['fields']
+    expandable_fields = expandable_fields['ExperimentTemplate']['fields']
 
 
 class ExperimentInstanceSerializer(EdocListSerializer,
@@ -355,7 +357,7 @@ class ExperimentInstanceSerializer(EdocListSerializer,
     class Meta:
         model = ExperimentInstance
         fields = '__all__'
-    expandable_fields = expandable_fields['Experiment']['fields']
+    expandable_fields = expandable_fields['ExperimentInstance']['fields']
 
 class ExperimentQuerySerializer(Serializer):
     object_description = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)
