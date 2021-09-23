@@ -232,7 +232,7 @@ class ReagentInstance(DateColumns, DescriptionColumn, StatusColumn):
     def __str__(self):
         return self.description
 
-class ReagentInstanceValue(DateColumns, StatusColumn):
+class ReagentInstanceValue(DateColumns, DescriptionColumn, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
     reagent_instance = models.ForeignKey('ReagentInstance', on_delete=models.DO_NOTHING,
                           related_name='reagent_instance_value_reagent_instance')
