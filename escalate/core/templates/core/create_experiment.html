@@ -49,6 +49,7 @@
                 {{ experiment_name_form|crispy }}
                 
                 {% if automated > 0 %}
+                {{ reagent_formset.management_form }}
                   {% for reagent_form in reagent_formset %}
                   <div class="card">
                     <div class="card-body">
@@ -58,7 +59,7 @@
                   </div>
                     <br>
                   {% endfor %}
-
+                  <input type="hidden" id="automated" name="automated" value="{{ automated }}">
                 {% endif %}
                 {% if manual > 0 %}
                 <div class="treeview-animated border mx-4 my-4">
@@ -102,7 +103,7 @@
                           {% endfor %}
                       </ul>
                   </div>
-                  
+                  <input type="hidden" id="manual" name="manual" value="{{ manual }}">
                 {% endif %}
                 <div class="text-right">
                     <button class="btn btn-outline-primary" type="submit" name="create_exp" value="create_exp">Create Experiment</button>
