@@ -175,9 +175,11 @@ class CreateExperimentView(TemplateView):
             else:
                 request.session['experiment_template_uuid'] = None
         # begin: create experiment
-        elif 'create_exp' in request.POST:
+        elif 'create_exp' in request.POST and 'manual' in request.POST:
             context = self.process_formsets(request, context)
             # end: create experiment
+        elif 'create_exp' in request.POST and 'automated' in request.POST:
+            print(request.POST['automated'])
         return render(request, self.template_name, context)
     # end: self.post()
 
