@@ -34,8 +34,10 @@ def random_model_dict(model, **kwargs):
     can_generate_random_val = lambda field: not(
         field.__class__.__name__ == 'RetUUIDField' or
         field.__class__.__name__ == 'SlugField' or
+        field.__class__.__name__ == 'UUIDField' or
         field.name == 'add_date' or
         field.name == 'mod_date' or
+        field.name == 'full_description' or
         field.__class__.__name__ == 'ManyToManyField' or
         field.__class__.__name__ == 'ForeignKey' or 
         field.__class__.__name__ == 'OneToOneField' or
@@ -50,7 +52,7 @@ def random_model_dict(model, **kwargs):
             model_dict[field_name] = field_obj.choices[choice_idx][0]
         else:
             if field_class_name == "CharField":
-                length = field_obj.max_length // 3 + 1
+                length = field_obj.max_length // 3 - 1
                 rand_alpha = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = length))
                 model_dict[field_name] = rand_alpha
             elif field_class_name == "ArrayField" and field_obj.base_field.__class__.__name__=="CharField":
