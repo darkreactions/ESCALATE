@@ -325,6 +325,8 @@ class Outcome(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                         db_column='outcome_uuid')
     experiment = models.ForeignKey('ExperimentTemplate', db_column='experiment_uuid', on_delete=models.CASCADE,
                                    blank=True, null=True, related_name='outcome_experiment')
+    experiment_instance = models.ForeignKey('ExperimentInstance', on_delete=models.CASCADE,
+                                   blank=True, null=True, related_name='outcome_experiment_instance')
     internal_slug = SlugField(populate_from=[
                                     'experiment__internal_slug',
                                     'description'

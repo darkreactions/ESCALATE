@@ -170,6 +170,11 @@ class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
 
 
 
+
+
+
+
+"""
 class ExperimentTemplateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     #queryset = Experiment.objects.filter(parent__isnull=True)
     queryset = ExperimentTemplate.objects.all()
@@ -177,7 +182,6 @@ class ExperimentTemplateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filter_fields =  '__all__'
-
 class ExperimentInstanceViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     #queryset = Experiment.objects.filter(parent__isnull=True)
     queryset = ExperimentInstance.objects.all()
@@ -185,8 +189,6 @@ class ExperimentInstanceViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filter_fields =  '__all__'
-
-"""
 class ExperimentViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     #queryset = Experiment.objects.filter(parent__isnull=False)
     queryset = Experiment.objects.all()

@@ -342,22 +342,47 @@ class ExperimentTemplateSerializer(EdocListSerializer,
                         BomSerializer,
                         DynamicFieldsModelSerializer):
     #url = serializers.HyperlinkedIdentityField(view_name='experiment-detail')
+    
     class Meta:
         model = ExperimentTemplate
         fields = '__all__'
     expandable_fields = expandable_fields['ExperimentTemplate']['fields']
 
 
+
+"""
+
+class ReagentInstanceSerializer(EdocListSerializer,
+                        TagListSerializer,
+                        NoteListSerializer,
+                        DynamicFieldsModelSerializer):
+    reagent_values = SerializerMethodField()
+
+    def get_reagent_values(self, obj):
+        reagent_values = ReagentInstanceValue.objects.filter(reagent_instance=obj)
+        result_serializer = ReagentInstanceValueSerializer(reagent_values, many=True, context=self.context)
+        return result_serializer.data
+    class Meta:
+        model = ReagentInstance
+        fields = '__all__'
 class ExperimentInstanceSerializer(EdocListSerializer,
                         TagListSerializer,
                         NoteListSerializer,
                         BomSerializer,
                         DynamicFieldsModelSerializer):
     #url = serializers.HyperlinkedIdentityField(view_name='experiment-detail')
+    #reagents = SerializerMethodField()
+
+    def get_reagents(self, obj):
+        reagents = ReagentInstance.objects.filter(experiment=obj)
+        result_serializer = ReagentInstanceSerializer(reagents, many=True, context=self.context)
+        return result_serializer.data
     class Meta:
         model = ExperimentInstance
         fields = '__all__'
     expandable_fields = expandable_fields['ExperimentInstance']['fields']
+
+"""
 
 class ExperimentQuerySerializer(Serializer):
     object_description = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)

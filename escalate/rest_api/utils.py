@@ -137,6 +137,19 @@ expandable_fields = {
                   })
         }
     },
+    'ReagentInstance':{
+        'options': {
+        },
+        'fields': {
+            'reagent_values': ('rest_api.ReagentInstanceValueSerializer',
+                     {
+                         'source': 'reagent_instance_value_reagent_instance',
+                         'many': True,
+                         'read_only': True,
+                         'view_name': 'reagentinstancevalue-detail',
+                     }),
+        }
+    },
     'ExperimentTemplate': {
         'options': {
             'many_to_many': ['workflow']
@@ -175,14 +188,19 @@ expandable_fields = {
                      }),
             'bill_of_materials': ('rest_api.BillOfMaterialsSerializer',
                                 {
-                                    'source': 'bom_experiment',
+                                    'source': 'bom_experiment_instance',
                                     'many': True,
                                     'read_only': True,
                                     'view_name': 'billofmaterials-detail'
                                 }),
+            'reagents': ('rest_api.ReagentInstanceSerializer', 
+                        {'source': 'reagent_instance_experiment_instance',
+                                    'many': True,
+                                    'read_only': True,
+                                    'view_name': 'reagentinstance-detail'}),
             'outcome': ('rest_api.OutcomeSerializer',
                         {
-                            'source': 'outcome_experiment',
+                            'source': 'outcome_experiment_instance',
                             'many': True,
                             'read_only': True,
                             'view_name': 'outcome-detail'

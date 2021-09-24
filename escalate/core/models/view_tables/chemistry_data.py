@@ -3,7 +3,7 @@ from core.models.core_tables import RetUUIDField, SlugField
 from core.models.custom_types import ValField, PROPERTY_CLASS_CHOICES, PROPERTY_DEF_CLASS_CHOICES, MATERIAL_CLASS_CHOICES
 import uuid
 from core.models.base_classes import DateColumns, StatusColumn, ActorColumn, DescriptionColumn
-
+from django.contrib.postgres.fields import ArrayField
 
 manage_tables = True
 manage_views = False
@@ -218,6 +218,7 @@ class ReagentTemplate(DateColumns, DescriptionColumn, StatusColumn):
                             max_length=255)
     material_type = models.ManyToManyField('MaterialType', blank=True, 
                                       related_name='reagent_template_material_type')
+    value_descriptions = ArrayField(models.CharField(max_length=1024, blank=True, null=True), blank=True, null=True)
 
     def __str__(self):
         return self.description
@@ -239,6 +240,7 @@ class ReagentInstanceValue(DateColumns, DescriptionColumn, StatusColumn):
     nominal_value = ValField(null=True, blank=True)
     actual_value = ValField(null=True, blank=True)
     material = models.ForeignKey('InventoryMaterial', on_delete=models.DO_NOTHING,
+                            null=True, blank=True,
                           related_name='reagent_instance_value_inventory_material')
 
 
