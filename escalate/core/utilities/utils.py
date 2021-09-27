@@ -149,11 +149,11 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
         # different requirements. For e.g. "concentration" and "amount" for the same
         # reagent need different ReagentInstanceValues
         for val_description in reagent_template.value_descriptions:
-            reagent_instance_value = ReagentInstanceValue(reagent_instance=reagent_instance,
-                                                        description=val_description)
-            reagent_instance_value.save()
-
-
+            for material_type in reagent_template.material_type.all():
+                reagent_instance_value = ReagentInstanceValue(reagent_instance=reagent_instance,
+                                                             description=val_description,
+                                                             material_type=material_type)
+                reagent_instance_value.save()
     
     return exp_instance.uuid
 

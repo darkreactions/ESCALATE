@@ -11,5 +11,5 @@ elif [[ "$1" = "reset" ]]; then
     python manage.py loaddata all_data
 elif [[ "$1" = "backup" ]]; then
     python manage.py dumpdata --exclude=contenttypes > ./core/fixtures/all_data.json
-
+fi
 

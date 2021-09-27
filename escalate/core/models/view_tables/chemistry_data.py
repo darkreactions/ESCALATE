@@ -242,5 +242,8 @@ class ReagentInstanceValue(DateColumns, DescriptionColumn, StatusColumn):
     material = models.ForeignKey('InventoryMaterial', on_delete=models.DO_NOTHING,
                             null=True, blank=True,
                           related_name='reagent_instance_value_inventory_material')
+    material_type = models.ForeignKey('MaterialType', on_delete=models.DO_NOTHING,
+                          null=True, blank=True,
+                          related_name='reagent_instance_value_material_type')
 
 

@@ -10,6 +10,10 @@
         <p> Created Experiment! </p>
             <p>Experiment name: {{ new_exp_name }}</p>
             <p> <a href={{ experiment_link }}> View experiment details</a></p>
+            <form action="{{ reagent_prep_link }}">
+              <button class="btn btn-outline-primary" type="submit">Prepare Reagent</button>
+            </form>
+            
             {% if xls_download_link is not None %}
               <p> <a href={{ xls_download_link }}> Download Excel file </a></p>
             {% endif %}
