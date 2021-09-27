@@ -9,7 +9,7 @@ import os
 from tkinter.constants import CURRENT
 from django.db.models import F, Value
 
-from core.models.view_tables import WorkflowActionSet, BomMaterial, Action, ActionUnit, Experiment #ActionParameter
+from core.models.view_tables import WorkflowActionSet, BomMaterial, Action, ActionUnit, Experiment, ReagentInstance #ActionParameter
 from core.custom_types import Val
 from core.models.core_tables import RetUUIDField
 
@@ -173,3 +173,24 @@ def get_material_querysets(exp_uuid):
                         experiment_description=F('bom__experiment__description')).prefetch_related('bom__experiment')
     
     return mat_q
+
+def get_reagent_querysets(exp_uuid):
+    """[summary]
+
+    Args:
+        exp_uuid ([str]): UUID of the experiment to retrieve
+
+    Returns:
+        [Queryset]: Queryset that contains the experiment data
+    """ 
+    reagent_q = ReagentInstance.objects.filter(experiment_template__uuid=exp_uuid).prefetch_related('experiment_template__workflow__action_workflow__action_unit_action').annotate(
+                object_description=F('experiment_template__workflow__action_workflow__description')).annotate(
+                object_uuid=F('experiment_template__workflow__action_workflow__uuid')).annotate(
+                parameter_uuid=F('experiment_template__workflow__action_workflow__action_unit_action__parameter_action_unit')).annotate(
+                parameter_value=F('experiment_template__workflow__action_workflow__action_unit_action__parameter_action_unit__parameter_val_nominal')).annotate(
+                parameter_value_actual=F('experiment_template__workflow__action_workflow__action_unit_action__parameter_action_unit__parameter_val_actual')).annotate(
+                parameter_def_description=F('experiment_template__workflow__action_workflow__action_unit_action__parameter_action_unit__parameter_def__description')).annotate(
+                experiment_uuid=F('experiment_template__uuid')).annotate(
+                experiment_description=F('experiment_template__description')).annotate(
+                #workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
+                ))

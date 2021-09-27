@@ -16,7 +16,7 @@ from core.forms.custom_types import SingleValForm, InventoryMaterialForm, Nomina
 from core.forms.custom_types import ExperimentNameForm, ExperimentTemplateForm, ReagentForm, BaseReagentFormSet
 from core.utilities.utils import experiment_copy
 from core.utilities.randomSampling import generateExperiments
-from core.utilities.experiment_utils import update_dispense_action_set, get_action_parameter_querysets, get_material_querysets, supported_wfs
+from core.utilities.experiment_utils import update_dispense_action_set, get_action_parameter_querysets, get_material_querysets, supported_wfs, get_reagent_querysets
 import core.models
 from core.models.view_tables import Note, TagAssign, Tag
 from core.experiment_templates import liquid_solid_extraction, resin_weighing, perovskite_demo
@@ -175,11 +175,13 @@ class CreateExperimentView(TemplateView):
             else:
                 request.session['experiment_template_uuid'] = None
         # begin: create experiment
-        elif 'create_exp' in request.POST and 'manual' in request.POST:
-            context = self.process_formsets(request, context)
+        elif 'create_exp' in request.POST:
+            #TODO: this needs to be something less ad-hoc. add an automated flag instead of looking for the first reagent chemical
+            if request.POST['reagent_1-0-chemical']:
+                context = self.process_automated_formsets(request, context)#need to create new process function
+            else:
+                context = self.process_formsets(request, context)
             # end: create experiment
-        elif 'create_exp' in request.POST and 'automated' in request.POST:
-            print(request.POST['automated'])
         return render(request, self.template_name, context)
     # end: self.post()
 
@@ -262,19 +264,6 @@ class CreateExperimentView(TemplateView):
             self.save_forms_q1(q1, q1_formset, {'parameter_val_nominal': 'value', 'parameter_val_actual': 'actual_value'})
             self.save_forms_q_material(q1_material, q1_material_formset, {'inventory_material': 'value'})
             
-            '''
-            this will be moved
-            temp flag for random sampler.
-            '''
-            randomSampler = 1
-            thisMaterial = {}
-            if randomSampler == 1:
-                for i, thisQuery in enumerate(q1_material):
-                    #need to filter out vessels
-                    currentMaterial = q1_material[i].inventory_material.material
-                    thisMaterial[currentMaterial] = [0,0,0,0]#what does each input mean?
-                randomSamplerReturnData = generateExperiments(thisMaterial)
-
             # begin: template-specific logic
             if template_name in SUPPORTED_CREATE_WFS:
                 data = {}  # Stick form data into this dict
@@ -297,6 +286,64 @@ class CreateExperimentView(TemplateView):
                     messages.error(request, f'LSRGenerator failed with message: "{lsr_msg}"')
                 context['experiment_link'] = reverse('experiment_view', args=[experiment_copy_uuid])
                 context['new_exp_name'] = exp_name
+        return context
+
+
+    def process_automated_formsets(self, request, context):
+        """Creates formsets and gets data from the post request.
+
+        Args:
+            request ([Django Request]): Should be the POST request
+            context (dict): Context dictionary
+
+        Returns:
+            context [dict]: Context dict, returned to the page
+        """
+        # get the experiment template uuid and name
+        exp_template = Experiment.objects.get(pk=request.session['experiment_template_uuid'])
+        template_name = exp_template.description
+        # construct all formsets
+        exp_name_form = ExperimentNameForm(request.POST)
+        
+        formsets = []
+        for index, form in enumerate(exp_template.reagent_templates.all()):
+            formsets.append(self.ReagentFormSet(request.POST, prefix=f'reagent_{index}'))
+        
+        if exp_name_form.is_valid():
+            for reagent_formset in formsets:            
+                if reagent_formset.is_valid():    
+                    exp_name = exp_name_form.cleaned_data['exp_name']
+                    # make the experiment copy: this will be our new experiment
+                    experiment_copy_uuid = experiment_copy(str(exp_template.uuid), exp_name)
+                    # get the elements of the new experiment that we need to update with the form values
+                    '''
+                    verify this works
+                    '''
+                    q1 = get_reagent_querysets(experiment_copy_uuid)
+                    '''
+                    verify fields are correct. they should be since we are using the same variable names as q1
+                    '''
+                    self.save_forms_q1(q1, reagent_formset, {'parameter_val_nominal': 'value', 'parameter_val_actual': 'actual_value'})
+                    data = {}  # Stick form data into this dict
+                    for i, form in enumerate(reagent_formset):
+                        if form.is_valid():
+                            query = q1[i]
+                            data[query.parameter_def_description] = form.cleaned_data['value'].value
+                    
+                    # Scans experiment_templates and picks up functions that have the same name as template_name
+                    template_function = getattr(core.experiment_templates, template_name)
+                    new_lsr_pk, lsr_msg = template_function(data, q1, experiment_copy_uuid, exp_name, exp_template)
+                   
+                    if new_lsr_pk is not None:
+                        context['xls_download_link'] = reverse('edoc_download', args=[new_lsr_pk])
+                    if str(self.request.session['current_org_name']) != "TestCo":
+                        context['lsr_download_link'] = None
+                    elif new_lsr_pk is not None:
+                        context['lsr_download_link'] = reverse('edoc_download', args=[new_lsr_pk])
+                    else:
+                        messages.error(request, f'LSRGenerator failed with message: "{lsr_msg}"')
+                    context['experiment_link'] = reverse('experiment_view', args=[experiment_copy_uuid])
+                    context['new_exp_name'] = exp_name
         return context
 
 # end: class CreateExperimentView()
