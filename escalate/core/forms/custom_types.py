@@ -112,9 +112,14 @@ class ReagentValueForm(ModelForm):
         model = vt.ReagentInstanceValue
         fields = '__all__'
 
-class BaseReagentFormSet(BaseModelFormSet):
+class BaseReagentModelFormSet(BaseModelFormSet):
     def get_form_kwargs(self, index):
          kwargs = super().get_form_kwargs(index)
          kwargs['index'] = index
          return kwargs
 
+class BaseReagentFormSet(BaseFormSet):
+    def get_form_kwargs(self, index):
+         kwargs = super().get_form_kwargs(index)
+         kwargs['index'] = index
+         return kwargs
