@@ -7,7 +7,7 @@ from core.models import (CustomUser, OrganizationPassword, )
 from core.models.view_tables import (Person, Material, Inventory, Actor, Note,
                          Organization, Systemtool, SystemtoolType,
                          UdfDef, Status, Tag, TagAssign, TagType, MaterialType,
-                         Edocument, InventoryMaterial, Vessel, Experiment)
+                         Edocument, InventoryMaterial, Vessel)
 from core.models.core_tables import TypeDef
 
 from packaging import version

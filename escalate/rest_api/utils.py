@@ -30,7 +30,7 @@ core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   #'Condition', 'ConditionDef',
                   #'ActionParameter', 'Parameter', 
                   'WorkflowType', 'WorkflowStep', 
-                  'WorkflowObject', 'UdfDef', 'Experiment', 'ExperimentWorkflow', 'ExperimentType', #'ExperimentParameter',
+                  'WorkflowObject', 'UdfDef', 'ExperimentTemplate', 'ExperimentWorkflow', 'ExperimentType', #'ExperimentParameter',
                   'BillOfMaterials',  'Measure', 'MeasureType', 'MeasureDef', 'Outcome',
                   'Action', 'ActionUnit', 'ActionDef', 'ExperimentInstance',
                   'BaseBomMaterial', 'Vessel', 'VesselInstance', 'Contents', 
@@ -50,7 +50,8 @@ unexposed_views = set(['TagAssign', 'Note', 'Edocument', 'Property', 'Parameter'
 custom_serializer_views = set(['Workflow', 'WorkflowActionSet', 'BomMaterial', 'BomCompositeMaterial',])
 
 # Viewsets that are not associated with a model exclusively
-non_model_views = set(['Experiment', 'ExperimentTemplate'])
+#non_model_views = set(['Experiment', 'ExperimentTemplate'])
+non_model_views = set()
 
 perform_create_views = set(['PropertyDef', ])
 
@@ -136,7 +137,20 @@ expandable_fields = {
                   })
         }
     },
-    'Experiment': {
+    'ReagentInstance':{
+        'options': {
+        },
+        'fields': {
+            'reagent_values': ('rest_api.ReagentInstanceValueSerializer',
+                     {
+                         'source': 'reagent_instance_value_reagent_instance',
+                         'many': True,
+                         'read_only': True,
+                         'view_name': 'reagentinstancevalue-detail',
+                     }),
+        }
+    },
+    'ExperimentTemplate': {
         'options': {
             'many_to_many': ['workflow']
         },
@@ -155,6 +169,38 @@ expandable_fields = {
             'outcome': ('rest_api.OutcomeSerializer',
                         {
                             'source': 'outcome_experiment',
+                            'many': True,
+                            'read_only': True,
+                            'view_name': 'outcome-detail'
+                        })
+        }
+        
+    },
+
+    'ExperimentInstance': {
+        'options': {
+            'many_to_many': ['workflow']
+        },
+        'fields': {
+            'workflow': ('rest_api.WorkflowSerializer',
+                     {
+                         'many': True,
+                     }),
+            'bill_of_materials': ('rest_api.BillOfMaterialsSerializer',
+                                {
+                                    'source': 'bom_experiment_instance',
+                                    'many': True,
+                                    'read_only': True,
+                                    'view_name': 'billofmaterials-detail'
+                                }),
+            'reagents': ('rest_api.ReagentInstanceSerializer', 
+                        {'source': 'reagent_instance_experiment_instance',
+                                    'many': True,
+                                    'read_only': True,
+                                    'view_name': 'reagentinstance-detail'}),
+            'outcome': ('rest_api.OutcomeSerializer',
+                        {
+                            'source': 'outcome_experiment_instance',
                             'many': True,
                             'read_only': True,
                             'view_name': 'outcome-detail'

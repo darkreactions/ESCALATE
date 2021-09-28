@@ -1,6 +1,11 @@
 from django.db import connection as con
 from django.db.models import F
-from core.models.view_tables import Parameter, BomMaterial, Action, ActionUnit, Experiment, BillOfMaterials, ExperimentWorkflow, Workflow, WorkflowObject, WorkflowStep
+from core.models.view_tables import (Parameter, BomMaterial, Action, ActionUnit, 
+                                     ExperimentTemplate, ExperimentInstance, 
+                                     BillOfMaterials, ExperimentWorkflow, 
+                                     Workflow, WorkflowObject, WorkflowStep,
+                                     ReagentTemplate, ReagentInstance,
+                                     ReagentInstanceValue)
 from copy import deepcopy
 import uuid
 '''
@@ -15,89 +20,92 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
 
 def experiment_copy(template_experiment_uuid, copy_experiment_description):
     # Get parent Experiment from template_experiment_uuid
-    exp_get = Experiment.objects.get(uuid=template_experiment_uuid)
-    old_exp_get = deepcopy(exp_get)
+    exp_template = ExperimentTemplate.objects.get(uuid=template_experiment_uuid)
     # experiment row creation, overwrites original experiment template object with new experiment object.
     # Makes an experiment template object parent
-    exp_get.uuid = None
-    exp_get.parent = old_exp_get
+    exp_instance = ExperimentInstance(ref_uid=exp_template.ref_uid, parent = exp_template,
+                                 owner = exp_template.owner, operator = exp_template.operator,
+                                 lab = exp_template.lab,)
+    
+
     # If copy_experiment_description null replace with "Copy of " + description from exp_get
     if copy_experiment_description is None:
-        copy_experiment_description = "Copy of " + exp_get.description
-    exp_get.description = copy_experiment_description
+        copy_experiment_description = "Copy of " + exp_instance.description
+
+    exp_instance.description = copy_experiment_description
     # post
-    exp_get.save()
+    exp_instance.save()
 
     # create old bom object based on experiment uuid
-    old_bom_get = BillOfMaterials.objects.filter(
-        experiment=template_experiment_uuid)
-    for this_bom in old_bom_get.iterator():
+    template_boms = BillOfMaterials.objects.filter(experiment=template_experiment_uuid)
+    for temp_bom in template_boms.iterator():
         # create copy for new bom
-        bom_get = deepcopy(this_bom)
+        instance_bom = deepcopy(temp_bom)
         # update new bom and update fields
-        bom_get.uuid = None
-        bom_get.experiment = exp_get
+        instance_bom.uuid = None
+        instance_bom.experiment = None
+        instance_bom.experiment_instance = exp_instance
         # post
-        bom_get.save()
+        instance_bom.save()
 
         # Create old bom material object
-        old_bom_material_get = BomMaterial.objects.filter(bom=this_bom.uuid)
-        for this_bom_material in old_bom_material_get:
+        template_bom_mats = BomMaterial.objects.filter(bom=temp_bom.uuid)
+        for temp_bom_mat in template_bom_mats:
             # copy for new bom material
-            bom_material_get = deepcopy(this_bom_material)
+            instance_bom_mat = deepcopy(temp_bom_mat)
             # update new bom material
-            bom_material_get.uuid = None
-            bom_material_get.bom = bom_get
+            instance_bom_mat.uuid = None
+            instance_bom_mat.bom = instance_bom
             # post
-            bom_material_get.save()
+            instance_bom_mat.save()
 
     # Get all Experiment Workflow objects based on experiment template uuid
     experiment_workflow_filter = ExperimentWorkflow.objects.all().filter(
-        experiment=old_exp_get)
+        experiment_template=exp_template)
     # create empty workflow_step parent
     workflow_step_parent = None
 
     # itterate over them all and update workflow, experiment workflow, and workflowactionset(action, actionunit, parameter)
-    for current_object in experiment_workflow_filter.iterator():
+    for template_exp_wf in experiment_workflow_filter.iterator():
         # create new workflow for current object
         # this needs to be double checked to verify it works correctly
         #this_workflow = Workflow.objects.get(uuid=current_object.workflow.uuid)
-        this_workflow = current_object.workflow
-        template_workflow = deepcopy(this_workflow)
+        instance_workflow = template_exp_wf.workflow
+        template_workflow = deepcopy(instance_workflow)
         # update uuid so it generates it's own uuid
-        this_workflow.uuid = None
+        instance_workflow.uuid = None
         #this_workflow.experiment = exp_get
         # post
-        this_workflow.save()
+        instance_workflow.save()
 
         # create copy of current experiment workflow object from experiment_workflow_filter
         #this_experiment_workflow = current_object
-        this_experiment_workflow = ExperimentWorkflow(workflow=this_workflow,
-                                                      experiment=exp_get,
-                                                      experiment_workflow_seq=current_object.experiment_workflow_seq)
+        instance_exp_wf = ExperimentWorkflow(workflow=instance_workflow,
+                                                      experiment_instance=exp_instance,
+                                                      experiment_workflow_seq=template_exp_wf.experiment_workflow_seq)
         # update experiment workflow uuid, workflow uuid, and experiment uuid for experiment workflow
         #this_experiment_workflow.uuid = None
         #this_experiment_workflow.workflow = this_workflow
         #this_experiment_workflow.experiment = exp_get
         # post
-        this_experiment_workflow.save()
+        instance_exp_wf.save()
 
         # create action query and loop through the actions and update
         # need to add loop
-        get_action = Action.objects.filter(workflow=template_workflow)
-        for current_action in get_action.iterator():
-            action_template = deepcopy(current_action)
+        template_actions = Action.objects.filter(workflow=template_workflow)
+        for temp_action in template_actions.iterator():
+            instance_action = deepcopy(temp_action)
             # create new uuid, workflow should already be correct, if it is not set workflow uuid to current workflow uuid
-            current_action.uuid = None
-            current_action.workflow = this_workflow
+            instance_action.uuid = None
+            instance_action.workflow = instance_workflow
             # post
-            current_action.save()
+            instance_action.save()
 
             # get all action units and create uuids for them and assign action uuid to action unit
-            get_action_unit = ActionUnit.objects.filter(action=action_template)
-            for current_action_unit in get_action_unit.iterator():
+            template_action_units = ActionUnit.objects.filter(action=temp_action)
+            for current_action_unit in template_action_units.iterator():
                 current_action_unit.uuid = None
-                current_action_unit.action = current_action
+                current_action_unit.action = instance_action
                 current_action_unit.save()
 
             # get all parameters and create uuids for them and assign action uuid to each parameter
@@ -113,16 +121,16 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
             already done in WorkflowStep
             '''
             # create workflow object
-            q_workflow_object = WorkflowObject(workflow=this_workflow,
-                                               action=current_action)
+            q_workflow_object = WorkflowObject(workflow=instance_workflow,
+                                               action=instance_action)
             q_workflow_object.save()
 
             # create workflow steps
             # this is most likely going to need revisions and possible updates to model to change workflow_action_set_uuid -> action_uuid
-            q_workflow_step = WorkflowStep(workflow=this_workflow,
+            q_workflow_step = WorkflowStep(workflow=instance_workflow,
                                            workflow_object=q_workflow_object,
-                                           parent=this_workflow,  # this was workflowstep and needs to be fixed
-                                           status=current_action.status)
+                                           parent=instance_workflow,  # this was workflowstep and needs to be fixed
+                                           status=instance_action.status)
             q_workflow_step.save()
             workflow_step_parent = q_workflow_step.uuid
 
@@ -130,13 +138,30 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
         # If so create condition, figure out conditional requirements, and loop through conditions like action
         # and update workflow_step
         # need to find out more about how this would work
-    return exp_get.uuid
+    
+    # Iterate over all reagent-templates and create reagentintances and reagentinstancevalues
+    for reagent_template in exp_template.reagent_templates.all():
+        reagent_instance = ReagentInstance(reagent_template=reagent_template,
+                                            experiment=exp_instance,
+                                            description=f'{exp_instance.description} : {reagent_template.description}')
+        reagent_instance.save()
+        #Iterate over value_descriptions so that there are different ReagentInstanceValues based on
+        # different requirements. For e.g. "concentration" and "amount" for the same
+        # reagent need different ReagentInstanceValues
+        for val_description in reagent_template.value_descriptions:
+            for material_type in reagent_template.material_type.all():
+                reagent_instance_value = ReagentInstanceValue(reagent_instance=reagent_instance,
+                                                             description=val_description,
+                                                             material_type=material_type)
+                reagent_instance_value.save()
+    
+    return exp_instance.uuid
 
 # list of model class names that have at least one view auto generated
 view_names = ['Material', 'Inventory', 'Actor', 'Organization', 'Person',
               'Systemtool', 'InventoryMaterial', 'Vessel',
               'SystemtoolType', 'UdfDef', 'Status', 'Tag',
-              'TagType', 'MaterialType', 'Experiment', 'Edocument'
+              'TagType', 'MaterialType', 'ExperimentInstance', 'Edocument'
               ]
 
 

@@ -173,8 +173,8 @@ methods = {
         'ordering': ['plate_name'],
         'field_contains': ''
     },
-    'Experiment': {
-        'model': core.models.view_tables.Experiment,
+    'ExperimentInstance': {
+        'model': core.models.view_tables.ExperimentInstance,
         'table_columns': ['Experiment Name','Date Queued','Submitted By', 'Status', 'Priority'],
         'column_necessary_fields': {
             'Experiment Name': ['description'],

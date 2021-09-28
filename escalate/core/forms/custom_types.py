@@ -1,11 +1,13 @@
 from core.widgets import ValWidget
-from django.forms import Select, Form, ModelChoiceField, HiddenInput, CharField, ChoiceField, IntegerField, BaseFormSet
+from django.forms import (Select, Form, ModelChoiceField, HiddenInput, 
+                          CharField, ChoiceField, IntegerField, BaseFormSet, BaseModelFormSet,
+                          ModelForm)
 from core.models.core_tables import TypeDef
 import core.models.view_tables as vt
 from core.widgets import ValFormField
 from .forms import dropdown_attrs
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import ButtonHolder, Layout, Fieldset, Submit
+from crispy_forms.layout import Layout, Submit, Row, Column
 
 class SingleValForm(Form):
     value = ValFormField(required=False)
@@ -44,7 +46,7 @@ class ExperimentTemplateForm(Form):
         lab = vt.Actor.objects.get(organization=org_id, person__isnull=True)
         super().__init__(*args, **kwargs)
         #self.fields['organization'].queryset = OrganizationPassword.objects.all()
-        self.fields['select_experiment_template'].choices = [(exp.uuid, exp.description) for exp in vt.Experiment.objects.filter(parent__isnull=True, lab=lab)]
+        self.fields['select_experiment_template'].choices = [(exp.uuid, exp.description) for exp in vt.ExperimentTemplate.objects.filter(lab=lab)]
 
 
 class ReagentForm(Form):
@@ -71,11 +73,48 @@ class ReagentForm(Form):
         self.fields['chemical'].choices = [(im.uuid, im.description) for im in inventory_materials]
         self.fields['chemical'].label = f'Chemical {chemical_index+1}: {material_type.description}'
 
-        print('_')
-        
+class ReagentValueForm(ModelForm):
 
-class BaseReagentFormSet(BaseFormSet):
-     def get_form_kwargs(self, index):
+    def __init__(self, *args, **kwargs):
+        disabled_fields = kwargs.pop('disabled_fields', [])
+        lab_uuid = kwargs.pop('lab_uuid')
+        material_types = kwargs.pop('material_types')
+        index = kwargs.pop('index')
+        super().__init__(*args, **kwargs)
+        inventory_materials = vt.InventoryMaterial.objects.filter(inventory__lab=lab_uuid)
+        self.fields['material'].choices = [(im.uuid, im.description) for im in inventory_materials]
+        for field in disabled_fields:
+            self.fields[field].disabled = True
+
+    @staticmethod
+    def get_helper():
+        fields = ['material_type', 'material', 'nominal_value', 'actual_value']
+        #css = {field:'form-group col-md-6 mb-0' for field in fields}
+
+
+        helper = FormHelper()
+        helper.form_class = 'form-horizontal'
+        helper.label_class = 'col-lg-2'
+        helper.field_class = 'col-lg-8'
+        helper.layout = Layout(
+            Row(
+                Column('material_type'),
+                Column('material'),
+            ),
+            Row(
+                Column('nominal_value'),
+                Column('actual_value'),
+            )
+        )
+        return helper
+
+    class Meta:
+        model = vt.ReagentInstanceValue
+        fields = '__all__'
+
+class BaseReagentFormSet(BaseModelFormSet):
+    def get_form_kwargs(self, index):
          kwargs = super().get_form_kwargs(index)
          kwargs['index'] = index
          return kwargs
+

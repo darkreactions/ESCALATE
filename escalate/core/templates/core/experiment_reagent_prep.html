@@ -1,0 +1,21 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load index %}
+
+{% block content %}
+{{ reagent_formset.management_form }}
+{% for reagent_formset in reagent_formsets %}
+<div class="card">
+<div class="card-body">
+    <h5 class="card-title">Reagent {{ forloop.counter }} : {{ reagent_template_names|index:forloop.counter0 }}</h5>
+    {% for reagent_form in reagent_formset %}
+        {% crispy reagent_form helper %}
+        <hr>
+    {% endfor %}
+</div>
+</div>
+<br>
+{% endfor %}
+<input type="hidden" id="automated" name="automated" value="{{ automated }}">
+{% endblock %}

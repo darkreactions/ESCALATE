@@ -60,8 +60,8 @@ methods = {
         'model': core.models.view_tables.InventoryMaterial,
         'success_url': reverse_lazy('inventory_material_list'),
     },
-    'Experiment': {
-        'model': core.models.view_tables.Experiment,
+    'ExperimentInstance': {
+        'model': core.models.view_tables.ExperimentInstance,
         'success_url': reverse_lazy('experiment_list'),
     },
     'Vessel': {

@@ -8,7 +8,7 @@ from core.models import (
     BomMaterial,
     BillOfMaterials,
     #CalculationDef,
-    Experiment,
+    ExperimentTemplate,
     ExperimentType,
     ExperimentWorkflow,
     Inventory,
@@ -605,7 +605,7 @@ class Command(BaseCommand):
                     'lab': Actor.objects.get(description=lab_description) if not string_is_null(lab_description) else None,
                     'status': active_status
                 }
-                experiment_instance, created = Experiment.objects.get_or_create(
+                experiment_instance, created = ExperimentTemplate.objects.get_or_create(
                     **fields)
                 if created:
                     new_experiment += 1
@@ -626,11 +626,11 @@ class Command(BaseCommand):
                     row[column_names_to_index['description']])
                 parent_description = clean_string(
                     row[column_names_to_index['parent_description']])
-                row_experiment_instance = Experiment.objects.get(
+                row_experiment_instance = ExperimentTemplate.objects.get(
                     description=description)
-                row_experiment_instance.parent = Experiment.objects.get(
+                row_experiment_instance.parent = ExperimentTemplate.objects.get(
                     description=parent_description) if not string_is_null(parent_description) else None
-                row_experiment_instance.save(update_fields=['parent'])
+                #row_experiment_instance.save(update_fields=['parent'])
             self.stdout.write(self.style.SUCCESS(
                 f'Added {new_experiment} new experiments'))
 
@@ -670,7 +670,7 @@ class Command(BaseCommand):
 
                 for exp_desc, exp_wf_seq_num in zip(experiment_description, experiment_workflow_seq_num):
                     fields = {
-                        'experiment': Experiment.objects.get(description=exp_desc) if not string_is_null(exp_desc) else None,
+                        'experiment_template': ExperimentTemplate.objects.get(description=exp_desc) if not string_is_null(exp_desc) else None,
                         'workflow': workflow_instance,
                         'experiment_workflow_seq': int(exp_wf_seq_num) if not string_is_null(exp_wf_seq_num) else -1
                     }
