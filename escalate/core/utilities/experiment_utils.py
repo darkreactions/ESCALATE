@@ -184,13 +184,15 @@ def get_reagent_querysets(exp_uuid):
         [Queryset]: Queryset that contains the experiment data
     """ 
     reagent_q = ReagentInstance.objects.filter(experiment_template__uuid=exp_uuid).prefetch_related('experiment_template__workflow__action_workflow__action_unit_action').annotate(
-                object_description=F('experiment_template__workflow__action_workflow__description')).annotate(
-                object_uuid=F('experiment_template__workflow__action_workflow__uuid')).annotate(
+                #object_description=F('experiment_template__workflow__action_workflow__description')).annotate(
+                object_description=F('description')).annotate(
+                #object_uuid=F('experiment_template__workflow__action_workflow__uuid')).annotate(
+                object_uuid=F('uuid')).annotate(
                 parameter_uuid=F('experiment_template__workflow__action_workflow__action_unit_action__parameter_action_unit')).annotate(
                 parameter_value=F('experiment_template__workflow__action_workflow__action_unit_action__parameter_action_unit__parameter_val_nominal')).annotate(
                 parameter_value_actual=F('experiment_template__workflow__action_workflow__action_unit_action__parameter_action_unit__parameter_val_actual')).annotate(
                 parameter_def_description=F('experiment_template__workflow__action_workflow__action_unit_action__parameter_action_unit__parameter_def__description')).annotate(
                 experiment_uuid=F('experiment_template__uuid')).annotate(
-                experiment_description=F('experiment_template__description')).annotate(
+                experiment_description=F('experiment_template__description'))#.annotate(
                 #workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
-                ))
+                #)
