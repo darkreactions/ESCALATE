@@ -14,7 +14,7 @@ from django.views.generic.detail import DetailView
 from core.models.view_tables import WorkflowActionSet, ExperimentTemplate, ExperimentInstance, BomMaterial, Edocument, ReagentInstanceValue
 from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm, NominalActualForm, ReagentValueForm
-from core.forms.custom_types import ExperimentNameForm, ExperimentTemplateForm, ReagentForm, BaseReagentFormSet
+from core.forms.custom_types import ExperimentNameForm, ExperimentTemplateForm, ReagentForm, BaseReagentFormSet, BaseReagentModelFormSet
 from core.utilities.utils import experiment_copy
 from core.utilities.randomSampling import generateExperiments
 from core.utilities.experiment_utils import update_dispense_action_set, get_action_parameter_querysets, get_material_querysets, supported_wfs, get_reagent_querysets
@@ -135,12 +135,12 @@ class CreateExperimentView(TemplateView):
             for material_type in reagent_template.material_type.all():
                 mat_types_list.append(material_type)
                 initial.append({})
-
-            formsets.append(self.ReagentFormSet(prefix=f'reagent_{index}', 
+            fset = self.ReagentFormSet(prefix=f'reagent_{index}', 
                                                 initial=initial,
                                                 form_kwargs={'lab_uuid': org_id, 
                                                 'mat_types_list':mat_types_list,
-                                                'reagent_index':index}))
+                                                'reagent_index':index})
+            formsets.append(fset)
         #for form in formset:
         #    form.fields[]
         context['reagent_formset'] = formsets
@@ -485,7 +485,7 @@ class ExperimentReagentPrepView(TemplateView):
     #form_class = ExperimentTemplateForm
     #ReagentFormSet = formset_factory(ReagentForm, extra=0, formset=BaseReagentFormSet)
     ReagentFormSet = modelformset_factory(ReagentInstanceValue, extra=0, form=ReagentValueForm,
-                                            formset=BaseReagentFormSet,
+                                            formset=BaseReagentModelFormSet,
                                           fields=('material', 'material_type', 'nominal_value','actual_value'),
                                           widgets={'nominal_value': ValWidget(),
                                                     'actual_value':ValWidget})
