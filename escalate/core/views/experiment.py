@@ -368,7 +368,7 @@ class ExperimentReagentPrepView(TemplateView):
     #ReagentFormSet = formset_factory(ReagentForm, extra=0, formset=BaseReagentFormSet)
     ReagentFormSet = modelformset_factory(ReagentInstanceValue, extra=0, form=ReagentValueForm,
                                             formset=BaseReagentModelFormSet,
-                                          fields=('material', 'material_type', 'nominal_value','actual_value'),
+                                          fields=('uuid','material', 'material_type', 'nominal_value','actual_value'),
                                           widgets={'nominal_value': ValWidget(),
                                                     'actual_value':ValWidget})
 
@@ -396,6 +396,7 @@ class ExperimentReagentPrepView(TemplateView):
             }
         
         context['helper'] = ReagentValueForm.get_helper()
+        context['helper'].form_tag = False
         for index, reagent_instance in enumerate(reagent_instances):
             reagent_names.append(reagent_instance.description)
             
@@ -409,4 +410,22 @@ class ExperimentReagentPrepView(TemplateView):
         #    form.fields[]
         context['reagent_formsets'] = formsets
         context['reagent_template_names'] = reagent_names
+        context['reagent_prep_link'] = reverse('reagent_prep', args=[experiment.uuid])
         return context
+    
+    
+    def post(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        print(request.POST)
+        experiment_instance_uuid = request.resolver_match.kwargs['pk']
+        experiment = ExperimentInstance.objects.get(uuid=experiment_instance_uuid)
+        reagent_instances = experiment.reagent_instance_experiment_instance.all()
+        for index, reagent_instance in enumerate(reagent_instances):
+            fset = self.ReagentFormSet(request.POST, prefix=f'reagent_{index}')
+            if fset.is_valid():
+                fset.save()
+            else:
+                print(fset.errors)
+        return render(request, self.template_name, context)
+    
+    

@@ -4,18 +4,25 @@
 {% load index %}
 
 {% block content %}
-{{ reagent_formset.management_form }}
-{% for reagent_formset in reagent_formsets %}
-<div class="card">
-<div class="card-body">
-    <h5 class="card-title">Reagent {{ forloop.counter }} : {{ reagent_template_names|index:forloop.counter0 }}</h5>
-    {% for reagent_form in reagent_formset %}
-        {% crispy reagent_form helper %}
-        <hr>
+
+<form method="post"  action="">{% csrf_token %}
+    {% for reagent_formset in reagent_formsets %}
+        {{ reagent_formset.management_form }}
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Reagent {{ forloop.counter }} : {{ reagent_template_names|index:forloop.counter0 }}</h5>
+                {% for reagent_form in reagent_formset %}
+                    {% crispy reagent_form helper %}
+                    <hr>
+                {% endfor %}
+            </div>
+        </div>
+        <br>
     {% endfor %}
-</div>
-</div>
-<br>
-{% endfor %}
-<input type="hidden" id="automated" name="automated" value="{{ automated }}">
+    <input type="hidden" id="automated" name="automated" value="{{ automated }}">
+    <div class="text-left">
+        <button class="btn btn-outline-primary" type="submit">Prepare Reagent</button>
+    </div>
+    
+</form>
 {% endblock %}
