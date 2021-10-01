@@ -9,7 +9,7 @@ import os
 from tkinter.constants import CURRENT
 from django.db.models import F, Value
 
-from core.models.view_tables import WorkflowActionSet, BomMaterial, Action, ActionUnit, ExperimentTemplate, ExperimentInstance, ReagentInstance #ActionParameter
+from core.models.view_tables import WorkflowActionSet, BomMaterial, Action, ActionUnit, ExperimentTemplate, ExperimentInstance, ReagentInstanceValue #ActionParameter
 from core.custom_types import Val
 from core.models.core_tables import RetUUIDField
 
@@ -161,18 +161,28 @@ def get_reagent_querysets(exp_uuid):
         exp_uuid ([str]): UUID of the experiment to retrieve
 
     Returns:
-        [Queryset]: Queryset that contains the experiment data
+        [Queryset]: Queryset that contains the reagent data
     """ 
-    reagent_q = ReagentInstance.objects.filter(experiment_template__uuid=exp_uuid).prefetch_related('experiment_template__workflow__action_workflow__action_unit_action').annotate(
-                #object_description=F('experiment_template__workflow__action_workflow__description')).annotate(
-                object_description=F('description')).annotate(
-                #object_uuid=F('experiment_template__workflow__action_workflow__uuid')).annotate(
+    '''
+    reagent_q = ReagentInstance.objects.filter(experiment__uuid=exp_uuid).annotate(
                 object_uuid=F('uuid')).annotate(
-                parameter_uuid=F('experiment_template__workflow__action_workflow__action_unit_action__parameter_action_unit')).annotate(
-                parameter_value=F('experiment_template__workflow__action_workflow__action_unit_action__parameter_action_unit__parameter_val_nominal')).annotate(
-                parameter_value_actual=F('experiment_template__workflow__action_workflow__action_unit_action__parameter_action_unit__parameter_val_actual')).annotate(
-                parameter_def_description=F('experiment_template__workflow__action_workflow__action_unit_action__parameter_action_unit__parameter_def__description')).annotate(
-                experiment_uuid=F('experiment_template__uuid')).annotate(
-                experiment_description=F('experiment_template__description'))#.annotate(
-                #workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
-                #)
+                object_description=F('description')).annotate(
+                instance_uuid=F('reagent_instance_value_reagent_instance__uuid')).annotate(
+                instance_value=F('reagent_instance_value_reagent_instance__nominal_value')).annotate(
+                instance_value_actual=F('reagent_instance_value_reagent_instance__actual_value')).annotate(
+                instance_material_type_id=F('reagent_instance_value_reagent_instance__material_type')).annotate(
+                instance_description=F('reagent_instance_value_reagent_instance__description')).annotate(
+                experiment_uuid=F('experiment__uuid')).annotate(
+                experiment_description=F('experiment__description'))#.annotate(
+    '''
+    reagent_q = ReagentInstanceValue.objects.filter(reagent_instance__experiment__uuid=exp_uuid)
+    """
+    .annotate(
+    mat_type=F('material_type')).annotate(
+    value_nominal=F('nominal_value')).annotate(
+    value_actual=F('actual_value')).annotate(
+    parent_uuid=F('reagent_instance__uuid'))
+    """
+    
+    return reagent_q
+                
