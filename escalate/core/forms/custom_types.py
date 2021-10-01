@@ -48,6 +48,17 @@ class ExperimentTemplateForm(Form):
         #self.fields['organization'].queryset = OrganizationPassword.objects.all()
         self.fields['select_experiment_template'].choices = [(exp.uuid, exp.description) for exp in vt.ExperimentTemplate.objects.filter(lab=lab)]
 
+class QueueStatusForm(Form):
+    widget = Select(attrs={'class': 'selectpicker',
+                           'data-style': "btn-dark",
+                           'data-live-search': 'true'})
+    select_queue_status = ChoiceField(widget=widget)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # todo how to set default to what is already selected?
+        self.fields['select_queue_status'].choices = [('foo', 'Pending'), ('bar' ,'Running'), ('qux', 'Completed')]
+
 
 class ReagentForm(Form):
     widget = Select(attrs={'class': 'selectpicker', 

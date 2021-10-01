@@ -5,7 +5,7 @@ from django.forms import formset_factory, ModelChoiceField
 
 from core.models.view_tables import WorkflowActionSet, ExperimentInstance, ExperimentTemplate, BomMaterial #ActionParameter
 from core.models.core_tables import RetUUIDField
-from core.forms.custom_types import InventoryMaterialForm, NominalActualForm
+from core.forms.custom_types import InventoryMaterialForm, NominalActualForm, QueueStatusForm
 
 from core.utilities.utils import experiment_copy
 import json
@@ -24,6 +24,7 @@ class ExperimentDetailEditView(TemplateView):
     template_name = "core/experiment_detail_editor.html"
     NominalActualFormSet = formset_factory(NominalActualForm, extra=0)
     MaterialFormSet = formset_factory(InventoryMaterialForm, extra=0)
+    #QueueStatusFormSet = formset_factory(QueueStatusForm, extra=0)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -46,7 +47,8 @@ class ExperimentDetailEditView(TemplateView):
                     object_uuid=F('uuid')).annotate(
                     experiment_uuid=F(f'{related_exp_material}__uuid')).annotate(
                     experiment_description=F(f'{related_exp_material}__description')).prefetch_related(f'{related_exp_material}')
-            
+
+        #q1 = get_action_parameter_querysets(exp.uuid)
         # q1 = ActionParameter.objects.filter(workflow__experiment_workflow_workflow__experiment=pk).only('uuid').annotate(
         #             object_description=F('action_description')).annotate(
         #             object_uuid=F('uuid')).annotate(
@@ -144,7 +146,7 @@ class ExperimentDetailEditView(TemplateView):
         # context['q1_formset'] = self.NominalActualFormSet(initial=initial_q1, prefix='q1_param')
         # context['q2_formset'] = self.NominalActualFormSet(initial=initial_q2, prefix='q2_param')
         # context['q3_formset'] = self.NominalActualFormSet(initial=initial_q3, prefix='q3_param')
-
+        context['queue_status_form'] = QueueStatusForm()
         context['q1_material'] = q1_material
         # context['q1'] = q1
         # context['q2'] = q2
@@ -159,67 +161,67 @@ class ExperimentDetailEditView(TemplateView):
         return context
         
     def post(self, request, *args, **kwargs):
-        context = self.get_context_data(**kwargs)
-        # get the experiment template uuid and name
-        exp_template = ExperimentTemplate.objects.get(pk=request.session['experiment_template_uuid'])
-        #print("THIS IS THE EXPERIMENT TEMPLATE:",exp_template)
-        template_name = exp_template.description
-        #print("THIS IS THE EXPERIMENT DESCRIPTION:",exp_template.uuid)
-
-
-        # construct all formsets
-        q1_formset = self.NominalActualFormSet(request.POST, prefix='q1_param')
-        q2_formset = self.NominalActualFormSet(request.POST, prefix='q2_param')
-        q3_formset = self.NominalActualFormSet(request.POST, prefix='q3_param')
-        q1_material_formset = self.MaterialFormSet(request.POST,
-                                                   prefix='q1_material',
-                                                   form_kwargs={'org_uuid': self.request.session['current_org_id']})
-
-        if all([q1_formset.is_valid(), 
-                q2_formset.is_valid(), 
-                q3_formset.is_valid(), 
-                q1_material_formset.is_valid()]):
-            
-            q1 = context['q1']
-            q1_material = context['q1_material']
-            q2 = context['q2']
-            q3 = context['q3']
-
-            # update values of new experiment where no special logic is required
-            for query_set, query_form_set in zip([q1, q1_material, q2, q3],
-                                                 [q1_formset, q1_material_formset, q2_formset, q3_formset]):
-                for i, form in enumerate(query_form_set):
-                    if form.has_changed() and form.is_valid():
-                        data = form.cleaned_data
-                        print(data.keys())
-                        desc = json.loads(data['uuid'])
-                        if len(desc) == 2:
-                            object_desc, param_def_desc = desc
-                            query = query_set.get(object_description=object_desc, parameter_def_description=param_def_desc)
-                        else:
-                            query = query_set.get(object_description=desc[0])
-
-                        # need to update value for material, q1-q3 nominal
-                        # need to update actual_value for q1,q3 actual and need to create new method for q2
-                        if query_form_set is q2_formset:
-                            update_dispense_action_set(query, data['value'])
-                            update_dispense_action_set(query, data['actual_value'])
-                        elif query_form_set is q1_material_formset:
-                            setattr(query, 'inventory_material', data['value'])
-                        else:
-                            setattr(query, 'parameter_val', data['value'])
-                            setattr(query, 'parameter_val_actual', data['actual_value'])
-                            query.save()
-                        
-            context['experiment_link'] = reverse('experiment_list')
-            render(request, self.template_name, context)
-            #render(request, self.template_name, context)
-        else:
-            return render(request, self.template_name, context)
-            print("q1: ",q1_formset.errors)
-            print("q2: ",q2_formset.errors)
-            print("q3: ",q3_formset.errors)
-            print("q1_material: ",q1_material_formset.errors)
-# this might not be needed       
+#         context = self.get_context_data(**kwargs)
+#         # get the experiment template uuid and name
+#         exp_template = ExperimentTemplate.objects.get(pk=request.session['experiment_template_uuid'])
+#         #print("THIS IS THE EXPERIMENT TEMPLATE:",exp_template)
+#         template_name = exp_template.description
+#         #print("THIS IS THE EXPERIMENT DESCRIPTION:",exp_template.uuid)
+#
+#
+#         # construct all formsets
+#         q1_formset = self.NominalActualFormSet(request.POST, prefix='q1_param')
+#         q2_formset = self.NominalActualFormSet(request.POST, prefix='q2_param')
+#         q3_formset = self.NominalActualFormSet(request.POST, prefix='q3_param')
+#         q1_material_formset = self.MaterialFormSet(request.POST,
+#                                                    prefix='q1_material',
+#                                                    form_kwargs={'org_uuid': self.request.session['current_org_id']})
+#
+#         if all([q1_formset.is_valid(),
+#                 q2_formset.is_valid(),
+#                 q3_formset.is_valid(),
+#                 q1_material_formset.is_valid()]):
+#
+#             q1 = context['q1']
+#             q1_material = context['q1_material']
+#             q2 = context['q2']
+#             q3 = context['q3']
+#
+#             # update values of new experiment where no special logic is required
+#             for query_set, query_form_set in zip([q1, q1_material, q2, q3],
+#                                                  [q1_formset, q1_material_formset, q2_formset, q3_formset]):
+#                 for i, form in enumerate(query_form_set):
+#                     if form.has_changed() and form.is_valid():
+#                         data = form.cleaned_data
+#                         print(data.keys())
+#                         desc = json.loads(data['uuid'])
+#                         if len(desc) == 2:
+#                             object_desc, param_def_desc = desc
+#                             query = query_set.get(object_description=object_desc, parameter_def_description=param_def_desc)
+#                         else:
+#                             query = query_set.get(object_description=desc[0])
+#
+#                         # need to update value for material, q1-q3 nominal
+#                         # need to update actual_value for q1,q3 actual and need to create new method for q2
+#                         if query_form_set is q2_formset:
+#                             update_dispense_action_set(query, data['value'])
+#                             update_dispense_action_set(query, data['actual_value'])
+#                         elif query_form_set is q1_material_formset:
+#                             setattr(query, 'inventory_material', data['value'])
+#                         else:
+#                             setattr(query, 'parameter_val', data['value'])
+#                             setattr(query, 'parameter_val_actual', data['actual_value'])
+#                             query.save()
+#
+#             context['experiment_link'] = reverse('experiment_list')
+#             render(request, self.template_name, context)
+#             #render(request, self.template_name, context)
+#         else:
+#             return render(request, self.template_name, context)
+#             print("q1: ",q1_formset.errors)
+#             print("q2: ",q2_formset.errors)
+#             print("q3: ",q3_formset.errors)
+#             print("q1_material: ",q1_material_formset.errors)
+# # this might not be needed
         return render(request, self.template_name, context)
 # end: self.post()
