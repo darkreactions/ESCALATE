@@ -416,7 +416,6 @@ class ExperimentReagentPrepView(TemplateView):
     
     def post(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
-        print(request.POST)
         experiment_instance_uuid = request.resolver_match.kwargs['pk']
         experiment = ExperimentInstance.objects.get(uuid=experiment_instance_uuid)
         reagent_instances = experiment.reagent_instance_experiment_instance.all()
