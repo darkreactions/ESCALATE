@@ -30,11 +30,14 @@ core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   #'Condition', 'ConditionDef',
                   #'ActionParameter', 'Parameter', 
                   'WorkflowType', 'WorkflowStep', 
-                  'WorkflowObject', 'UdfDef', 'ExperimentTemplate', 'ExperimentWorkflow', 'ExperimentType', #'ExperimentParameter',
-                  'BillOfMaterials',  'Measure', 'MeasureType', 'MeasureDef', 'Outcome',
+                  'WorkflowObject', 'UdfDef', 'ExperimentTemplate', 
+                  'ExperimentWorkflow', 'ExperimentType', #'ExperimentParameter',
+                  'BillOfMaterials',  'Measure', 'MeasureType', 
+                  'MeasureDef', 'OutcomeTemplate', 'OutcomeInstance',
                   'Action', 'ActionUnit', 'ActionDef', 'ExperimentInstance',
                   'BaseBomMaterial', 'Vessel', 'VesselInstance', 'Contents', 
-                  'ReagentInstance', 'ReagentInstanceValue', 'ReagentTemplate', ])
+                  'ReagentInstance', 'ReagentTemplate', 'ReagentMaterialTemplate',
+                  'DefaultValues' ])
 
 #Views that are a combination of multiple tables, used to be postgres views. Should be changed to something else
 combined_views = set(['CompositeMaterialProperty', 'MaterialTypeAssign', 
@@ -137,19 +140,7 @@ expandable_fields = {
                   })
         }
     },
-    'ReagentInstance':{
-        'options': {
-        },
-        'fields': {
-            'reagent_values': ('rest_api.ReagentInstanceValueSerializer',
-                     {
-                         'source': 'reagent_instance_value_reagent_instance',
-                         'many': True,
-                         'read_only': True,
-                         'view_name': 'reagentinstancevalue-detail',
-                     }),
-        }
-    },
+   
     'ExperimentTemplate': {
         'options': {
             'many_to_many': ['workflow']
@@ -166,7 +157,7 @@ expandable_fields = {
                                     'read_only': True,
                                     'view_name': 'billofmaterials-detail'
                                 }),
-            'outcome': ('rest_api.OutcomeSerializer',
+            'outcome_template': ('rest_api.OutcomeTemplateSerializer',
                         {
                             'source': 'outcome_experiment',
                             'many': True,
@@ -198,9 +189,9 @@ expandable_fields = {
                                     'many': True,
                                     'read_only': True,
                                     'view_name': 'reagentinstance-detail'}),
-            'outcome': ('rest_api.OutcomeSerializer',
+            'outcome_instance': ('rest_api.OutcomeInstanceSerializer',
                         {
-                            'source': 'outcome_experiment_instance',
+                            'source': 'outcome_instance_experiment_instance',
                             'many': True,
                             'read_only': True,
                             'view_name': 'outcome-detail'
@@ -212,6 +203,19 @@ expandable_fields = {
 }
 
 """
+ 'ReagentInstance':{
+        'options': {
+        },
+        'fields': {
+            'reagent_values': ('rest_api.ReagentInstanceSerializer',
+                     {
+                         'source': 'reagent_instance_value_reagent_instance',
+                         'many': True,
+                         'read_only': True,
+                         'view_name': 'reagentinstancevalue-detail',
+                     }),
+        }
+    },
 'BomCompositeMaterial': {
         'options': {
             'many_to_many': []

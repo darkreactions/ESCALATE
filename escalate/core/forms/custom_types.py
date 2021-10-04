@@ -114,7 +114,7 @@ class ReagentValueForm(ModelForm):
         return helper
 
     class Meta:
-        model = vt.ReagentInstanceValue
+        model = vt.ReagentInstance
         fields = '__all__'
 
 class BaseReagentModelFormSet(BaseModelFormSet):

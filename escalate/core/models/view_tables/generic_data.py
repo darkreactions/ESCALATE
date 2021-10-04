@@ -7,6 +7,7 @@ from core.models.custom_types import ValField, PROPERTY_CLASS_CHOICES, PROPERTY_
 from django.contrib.postgres.fields import ArrayField
 import uuid
 from core.models.base_classes import DateColumns, StatusColumn, ActorColumn, DescriptionColumn
+from core.managers import OutcomeInstanceValueManager, ReagentInstanceValueManager
 
 
 managed_tables = True
@@ -415,3 +416,47 @@ class UdfDef(DescriptionColumn):
 
     def __str__(self):
         return "{}".format(self.description)
+
+
+class DefaultValues(DateColumns, ActorColumn, DescriptionColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,)
+    default_nominal_value = ValField(blank=True, null=True)
+    default_actual_value = ValField(blank=True, null=True)
+
+    def __str__(self):
+        return self.description
+
+class ValueInstance(DateColumns, ActorColumn, DescriptionColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,)
+    value_template = models.ForeignKey('DefaultValues', on_delete=models.DO_NOTHING,
+                                 blank=True,
+                                 null=True, related_name='value_instance_value_template')
+    nominal_value = ValField(blank=True, null=True)
+    actual_value = ValField(blank=True, null=True)
+    # Foreignkey to specific tables that need values. 
+    # Avoiding GenericForeignKey due to performance and complexity
+    outcome_instance = models.ForeignKey('OutcomeInstance',
+                                 on_delete=models.DO_NOTHING,
+                                 blank=True,
+                                 null=True, related_name='value_instance_outcome')
+    reagent_instance = models.ForeignKey('ReagentInstance', on_delete=models.DO_NOTHING,
+                          related_name='reagent_instance_value_reagent_instance')
+    
+    def save(self, *args, **kwargs):
+        if self.value_template is not None:
+            self.nominal_value = self.value_template.default_nominal_value
+            self.actual_value = self.value_template.default_actual_value
+        super().save(*args, **kwargs)
+
+
+class OutcomeInstanceValue(ValueInstance):
+    objects = OutcomeInstanceValueManager()
+
+    class Meta:
+        proxy = True
+
+class ReagentInstanceValue(ValueInstance):
+    objects = ReagentInstanceValueManager()
+
+    class Meta:
+        proxy = True

@@ -185,17 +185,7 @@ class BomVessel(BaseBomMaterial):
     class Meta:
         proxy = True
 
-
-
-
-# For reference Proxy Models: https://docs.djangoproject.com/en/3.2/topics/db/models/#proxy-models
-
-
-#class Experiment(DateColumns, StatusColumn, DescriptionColumn):
-    
-
 class ExperimentTemplate(DateColumns, StatusColumn, DescriptionColumn):
-#class ExperimentTemplate(Experiment):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
     experiment_type = models.ForeignKey('ExperimentType', on_delete=models.CASCADE, 
                                         blank=True, null=True, 
@@ -204,9 +194,6 @@ class ExperimentTemplate(DateColumns, StatusColumn, DescriptionColumn):
                                db_column='ref_uid',
                                blank=True,
                                null=True)
-    # update to point to an experiment parent. 
-    #parent = models.ForeignKey('Experiment', db_column='parent_uuid',
-    #                           on_delete=models.CASCADE, blank=True, null=True, related_name='experiment_parent')
     owner = models.ForeignKey('Actor', db_column='owner_uuid', on_delete=models.CASCADE, blank=True, null=True,
                               related_name='experiment_template_owner')
     operator = models.ForeignKey('Actor', db_column='operator_uuid', on_delete=models.CASCADE, blank=True, null=True,
@@ -215,22 +202,17 @@ class ExperimentTemplate(DateColumns, StatusColumn, DescriptionColumn):
                             related_name='experiment_template_lab')
     workflow = models.ManyToManyField(
         'Workflow', through='ExperimentWorkflow', related_name='experiment_template_workflow')
-    # owner_description = models.CharField(max_length=255, db_column='owner_description')
-    # operator_description = models.CharField(max_length=255, db_column='operator_description')
     internal_slug = SlugField(populate_from=[
                                     'description',
                                     ],
                               overwrite=True, 
                               max_length=255)
-    #completion_status = models.CharField(db_column='completion_status',
-    #                              max_length=255, 
-    #                              default="Pending")
-    #priority = models.CharField(db_column='priority',
-    #                             max_length=255, 
-    #                              default="1")
     reagent_templates = models.ManyToManyField('ReagentTemplate', 
                                                 blank=True, 
                                                 related_name='experiment_template_reagent_template')
+    outcome_templates = models.ManyToManyField('OutcomeTemplate',
+                                                blank=True, 
+                                                related_name='experiment_template_outcome_template')
 
     def __str__(self):
         return f'{self.description}'
@@ -276,6 +258,7 @@ class ExperimentInstance(DateColumns, StatusColumn, DescriptionColumn):
     #reagents = models.ManyToManyField('ReagentInstance', 
     #                                  blank=True, 
     #                                  related_name='experiment_instance_reagent_instance')
+    
 
     def __str__(self):
         return f'{self.description}'
@@ -320,15 +303,28 @@ class ExperimentWorkflow(DateColumns):
                               max_length=255)
 
 
-class Outcome(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
+class OutcomeTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='outcome_uuid')
     experiment = models.ForeignKey('ExperimentTemplate', db_column='experiment_uuid', on_delete=models.CASCADE,
                                    blank=True, null=True, related_name='outcome_experiment')
-    experiment_instance = models.ForeignKey('ExperimentInstance', on_delete=models.CASCADE,
-                                   blank=True, null=True, related_name='outcome_experiment_instance')
     internal_slug = SlugField(populate_from=[
                                     'experiment__internal_slug',
+                                    'description'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
+
+
+class OutcomeInstance(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
+                        db_column='outcome_uuid')
+    outcome_template = models.ForeignKey('OutcomeTemplate', on_delete=models.CASCADE,
+                                   blank=True, null=True, related_name='outcome_instance_outcome_template')
+    experiment_instance = models.ForeignKey('ExperimentInstance', on_delete=models.CASCADE,
+                                   blank=True, null=True, related_name='outcome_instance_experiment_instance')
+    internal_slug = SlugField(populate_from=[
+                                    'experiment_instance__internal_slug',
                                     'description'
                                     ],
                               overwrite=True, 

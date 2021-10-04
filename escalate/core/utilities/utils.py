@@ -141,19 +141,21 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
     
     # Iterate over all reagent-templates and create reagentintances and reagentinstancevalues
     for reagent_template in exp_template.reagent_templates.all():
-        reagent_instance = ReagentInstance(reagent_template=reagent_template,
-                                            experiment=exp_instance,
-                                            description=f'{exp_instance.description} : {reagent_template.description}')
-        reagent_instance.save()
         #Iterate over value_descriptions so that there are different ReagentInstanceValues based on
         # different requirements. For e.g. "concentration" and "amount" for the same
         # reagent need different ReagentInstanceValues
         for val_description in reagent_template.value_descriptions:
             for material_type in reagent_template.material_type.all():
-                reagent_instance_value = ReagentInstanceValue(reagent_instance=reagent_instance,
-                                                             description=val_description,
-                                                             material_type=material_type)
-                reagent_instance_value.save()
+                reagent_instance = ReagentInstance(reagent_template=reagent_template,
+                                            experiment=exp_instance,
+                                            description=f'{exp_instance.description} : {reagent_template.description} : {val_description}',
+                                            material_type=material_type)
+                reagent_instance.save()
+
+                #reagent_instance_value = ReagentInstanceValue(reagent_instance=reagent_instance,
+                #                                             description=val_description,
+                #                                             material_type=material_type)
+                #reagent_instance_value.save()
     
     return exp_instance.uuid
 

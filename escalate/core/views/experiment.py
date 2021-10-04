@@ -11,13 +11,21 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 
-from core.models.view_tables import WorkflowActionSet, ExperimentTemplate, ExperimentInstance, BomMaterial, Edocument, ReagentInstanceValue, ReagentInstance, ReagentTemplate, InventoryMaterial
+from core.models.view_tables import (WorkflowActionSet, ExperimentTemplate, 
+                                     ExperimentInstance, BomMaterial, Edocument, 
+                                     ReagentInstanceValue, ReagentInstance, 
+                                     ReagentTemplate, InventoryMaterial)
 from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm, NominalActualForm, ReagentValueForm
-from core.forms.custom_types import ExperimentNameForm, ExperimentTemplateForm, ReagentForm, BaseReagentFormSet, BaseReagentModelFormSet
+from core.forms.custom_types import (ExperimentNameForm, ExperimentTemplateForm, 
+                                     ReagentForm, BaseReagentFormSet, 
+                                     BaseReagentModelFormSet)
 from core.utilities.utils import experiment_copy
 from core.utilities.randomSampling import generateExperiments
-from core.utilities.experiment_utils import update_dispense_action_set, get_action_parameter_querysets, get_material_querysets, supported_wfs, get_reagent_querysets
+from core.utilities.experiment_utils import (update_dispense_action_set, 
+                                             get_action_parameter_querysets, 
+                                             get_material_querysets, 
+                                             supported_wfs, get_reagent_querysets)
 import core.models
 from core.models.view_tables import Note, TagAssign, Tag
 from core.experiment_templates import liquid_solid_extraction, resin_weighing, perovskite_demo
@@ -132,15 +140,21 @@ class CreateExperimentView(TemplateView):
             reagent_template_names.append(reagent_template.description)
             mat_types_list = []
             initial = []
-            for material_type in reagent_template.material_type.all():
+            #for material_type in reagent_template.material_type.all():
+            for reagent_material_template in reagent_template.reagent_material_reagent_template.filter(value_description='concentration'):
+                material_type = reagent_material_template.material_type
                 mat_types_list.append(material_type)
-                initial.append({'reagent_template_uuid': reagent_template.uuid, 'material_type':material_type.uuid})
-            fset = self.ReagentFormSet(prefix=f'reagent_{index}', 
-                                                initial=initial,
-                                                form_kwargs={'lab_uuid': org_id, 
-                                                'mat_types_list':mat_types_list,
-                                                'reagent_index':index})
-            formsets.append(fset)
+                initial.append({'reagent_template_uuid': reagent_template.uuid, 
+                                'material_type':material_type.uuid,
+                                'desired_concentration':reagent_material_template.default_value.default_nominal_value})
+            
+            if mat_types_list:
+                fset = self.ReagentFormSet(prefix=f'reagent_{index}', 
+                                                        initial=initial,
+                                                        form_kwargs={'lab_uuid': org_id, 
+                                                        'mat_types_list':mat_types_list,
+                                                        'reagent_index':index})
+                formsets.append(fset)
         #for form in formset:
         #    form.fields[]
         context['reagent_formset'] = formsets
@@ -236,8 +250,11 @@ class CreateExperimentView(TemplateView):
     def save_forms_reagent(self, queries, formset, fields, exp_uuid):
         
         '''
-        need a way to query the db table rows. in material and q1 we query based on description however we only have the chemical uuid and desired concentration 
-        in the form. we can pass the copy experiment uuid and call that potentially to get the reagentinstance/reagentinstancevalue uuid
+        need a way to query the db table rows. in material and q1 we query 
+        based on description however we only have the chemical uuid and 
+        desired concentration 
+        in the form. we can pass the copy experiment uuid and call that p
+        otentially to get the reagentinstance/reagentinstancevalue uuid
         once this is finished test to make sure the data is saved correctly in the db.
         '''
         for form in formset:
@@ -246,13 +263,17 @@ class CreateExperimentView(TemplateView):
                 chemical_id = data['chemical']
                 reagent_template_uuid = data['reagent_template_uuid']
                 material_type_uuid = data['material_type']
-                reagent_instance = ReagentInstance.objects.get(reagent_template=reagent_template_uuid, experiment=exp_uuid)
-                reagent_instance_value = ReagentInstanceValue.objects.get(reagent_instance=reagent_instance, 
-                                                                          material_type__uuid=material_type_uuid,
-                                                                          description='concentration')
-                
-                reagent_instance_value.material = InventoryMaterial.objects.get(uuid=data['chemical'])
-                reagent_instance_value.nominal_value = data['desired_concentration']
+                reagent_instance = ReagentInstance.objects.get(reagent_template=reagent_template_uuid, 
+                                                               experiment=exp_uuid,
+                                                               material_type__uuid=material_type_uuid,
+                                                               description__contains='concentration'
+                                                               )
+                #reagent_instance_value = ReagentInstanceValue.objects.get(reagent_instance=reagent_instance, 
+                #                                                          material_type__uuid=material_type_uuid,
+                #                                                          description='concentration')
+                if data['chemical']:
+                    reagent_instance.material = InventoryMaterial.objects.get(uuid=data['chemical'])
+                reagent_instance.nominal_value = data['desired_concentration']
 
     def process_formsets(self, request, context):
         """Creates formsets and gets data from the post request.
@@ -349,9 +370,12 @@ class CreateExperimentView(TemplateView):
                     self.save_forms_reagent(q_reagent, reagent_formset, {'nominal_value': 'value'}, experiment_copy_uuid)
                     
                     '''
-                    this process of creating the data structure to pass into the random sampler needs to be less ad-hoc and more generalized moving forward
-                    need to remove static cleaned_data element calls. however, forms will always be process in the same order
-                    if elif statements for current_mat_list are not needed but add some clarity to the code
+                    this process of creating the data structure to pass into the 
+                    random sampler needs to be less ad-hoc and more generalized moving forward
+                    need to remove static cleaned_data element calls. however, 
+                    forms will always be process in the same order
+                    if elif statements for current_mat_list are not needed but 
+                    add some clarity to the code
                     '''
                     #create exp_concentrations data structure to pass into random sampler
                     current_mat_list = reagent_formset.form_kwargs['mat_types_list']
@@ -474,7 +498,8 @@ class ExperimentReagentPrepView(TemplateView):
     #ReagentFormSet = formset_factory(ReagentForm, extra=0, formset=BaseReagentFormSet)
     ReagentFormSet = modelformset_factory(ReagentInstanceValue, extra=0, form=ReagentValueForm,
                                             formset=BaseReagentModelFormSet,
-                                          fields=('uuid','material', 'material_type', 'nominal_value','actual_value'),
+                                          #fields=('uuid','material', 'material_type', 'nominal_value','actual_value'),
+                                          fields=('uuid','nominal_value','actual_value'),
                                           widgets={'nominal_value': ValWidget(),
                                                     'actual_value':ValWidget})
 
