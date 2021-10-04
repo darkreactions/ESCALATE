@@ -117,6 +117,7 @@ def get_action_parameter_querysets(exp_uuid, template=True):
 
     q1 = model.objects.filter(uuid=exp_uuid).prefetch_related('workflow__action_workflow__action_unit_action').annotate(
                 object_description=F('workflow__action_workflow__description')).annotate(
+                object_def_description=F('workflow__action_workflow__action_def__description')).annotate(
                 object_uuid=F('workflow__action_workflow__uuid')).annotate(
                 parameter_uuid=F('workflow__action_workflow__action_unit_action__parameter_action_unit')).annotate(
                 parameter_value=F('workflow__action_workflow__action_unit_action__parameter_action_unit__parameter_val_nominal')).annotate(
