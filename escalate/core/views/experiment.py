@@ -340,126 +340,60 @@ class CreateExperimentView(TemplateView):
         if exp_name_form.is_valid():
             #experiment name
             exp_name = exp_name_form.cleaned_data['exp_name']
+            exp_concentrations = {}
             # make the experiment copy: this will be our new experiment
             experiment_copy_uuid = experiment_copy(str(exp_template.uuid), exp_name)
             for reagent_formset in formsets:            
                 if reagent_formset.is_valid():
                     q_reagent = get_reagent_querysets(experiment_copy_uuid)
-                    #reagent_instance_uuid = q_reagent[0].parent_uuid
                     self.save_forms_reagent(q_reagent, reagent_formset, {'nominal_value': 'value'}, experiment_copy_uuid)
                     
-        
-    def process_automated_formsets2(self, request, context):
-        """Creates formsets and gets data from the post request.
-
-        Args:
-            request ([Django Request]): Should be the POST request
-            context (dict): Context dictionary
-
-        Returns:
-            context [dict]: Context dict, returned to the page
-        """
-        # get the experiment template uuid and name
-        exp_template = ExperimentTemplate.objects.get(pk=request.session['experiment_template_uuid'])
-        template_name = exp_template.description
-        # construct all formsets
-        exp_name_form = ExperimentNameForm(request.POST)
-        
-        if 'current_org_id' in self.request.session:
-            org_id = self.request.session['current_org_id']
-        else:
-            org_id = None
-        formsets = []
-        reagent_template_names = []
-        for index, form in enumerate(exp_template.reagent_templates.all()):
-            reagent_template_names.append(form.description)
-            mat_types_list = []
-            initial = []
-            for material_type in form.material_type.all():
-                mat_types_list.append(material_type)
-                initial.append({})
-            formsets.append(self.ReagentFormSet(request.POST, prefix=f'reagent_{index}',
-                                                initial=initial,
-                                                form_kwargs={'lab_uuid': org_id, 
-                                                'mat_types_list':mat_types_list,
-                                                'reagent_index':index}))
-        
-        
-        if exp_name_form.is_valid():
-            this_material = {}
-            #experiment name
-            exp_name = exp_name_form.cleaned_data['exp_name']
-            # make the experiment copy: this will be our new experiment
-            experiment_copy_uuid = experiment_copy(str(exp_template.uuid), exp_name)
-            for reagent_formset in formsets:            
-                if reagent_formset.is_valid():    
-                    # get the elements of the new experiment that we need to update with the form values
                     '''
-                    verify this works. I think it does
+                    this process of creating the data structure to pass into the random sampler needs to be less ad-hoc and more generalized moving forward
+                    need to remove static cleaned_data element calls. however, forms will always be process in the same order
+                    if elif statements for current_mat_list are not needed but add some clarity to the code
                     '''
-                    #q1 = get_reagent_querysets(experiment_copy_uuid)
-                    
-                    #get current index of reagent_formset, current material, current material type, and desired concentration for that reagent
-                    current_reagent_index = reagent_formset.form_kwargs['reagent_index']
-                    current_material_type = reagent_formset.form_kwargs['mat_types_list'][0] 
-                    current_desired_concentration = reagent_formset[0].cleaned_data['desired_concentration'].value
-                    #looks into the chemical field in the curren reagent index. Once there looks into field.choices.
-                    #choices has 2 objects. [0] is [UUID, Chemical Name], [1] is [UUID, Material Type].
-                    #we select choices[0] and then select the element [1] for Chemical Name
-                    current_material = reagent_formset[0]['chemical'].field.choices[0][1]
-                    
-                    if "acid" in current_material_type.description.lower():
-                        this_material[current_material]=[0,0,current_desired_concentration,0]
-                    elif "solvent" in current_material_type.description.lower():
-                        this_material[current_material]=[0,current_desired_concentration,0,0]
-                    elif "amine" in current_material_type.description.lower():
-                        this_material[current_material]=[current_desired_concentration,0,0,0]
-                    #else inorganic/iodide/lead
-                    else: 
-                        this_material[current_material]=[0,0,0,current_desired_concentration]
-                        
-                    '''
-                    pass to sampler. desired_concentration needs to default to NUM
-                    sampler input is as followed:
-                    'Reagent': [amine desired concentration, solvent desired concentrtion, acid desired concentration, iodide desired concentration]
-                    possibly run generateExperiments when all the materials are finished
-                    '''
+                    #create exp_concentrations data structure to pass into random sampler
+                    current_mat_list = reagent_formset.form_kwargs['mat_types_list']
+                    (concentration1, concentration2, concentration3) = (None, None, None)
+                    if len(current_mat_list) == 1:
+                        if "acid" in (current_mat_list[0].description).lower():
+                            #reagent 2
+                            concentration1 = reagent_formset.cleaned_data[0]['desired_concentration'].value
+                            exp_concentrations["Reagent 2"] = [0,0,concentration1,0]
+                        elif "solvent" in (current_mat_list[0].description).lower():
+                            #reagent 4
+                            concentration1 = reagent_formset.cleaned_data[0]['desired_concentration'].value
+                            exp_concentrations["Reagent 4"] = [0,concentration1,0,0]
+                    elif len(current_mat_list) == 2:
+                        #reagent 1
+                        for element in current_mat_list:
+                            if "organic" in (element.description).lower():
+                                #organic
+                                concentration1 = reagent_formset.cleaned_data[0]['desired_concentration'].value
+                            elif "solvent" in (element.description).lower():
+                                #solvent
+                                concentration2 = reagent_formset.cleaned_data[1]['desired_concentration'].value
+                        exp_concentrations["Reagent 1"] = [concentration1,concentration2,0,0]
+                    elif len(current_mat_list) == 3:
+                        #reagent 3
+                        for element in current_mat_list:
+                            if "inorganic" in (element.description).lower():
+                                #inorganic
+                                concentration1 = reagent_formset.cleaned_data[0]['desired_concentration'].value
+                            elif "organic" in (element.description).lower():
+                                #organic
+                                concentration2 = reagent_formset.cleaned_data[1]['desired_concentration'].value
+                            elif "solvent" in (element.description).lower():
+                                #solvent
+                                concentration3 = reagent_formset.cleaned_data[2]['desired_concentration'].value
+                        exp_concentrations["Reagent 3"] = [concentration2,concentration3,0,concentration1]
+                           
             #generate desired volume for current reagent
-            desired_volume = generateExperiments(this_material)
-                        
-            '''
-            doesn't work.
-            will need to make reagent version of save forms
-            '''
-            #self.save_forms_q1(q1, reagent_formset, {'parameter_val_nominal': 'value', 'parameter_val_actual': 'actual_value'})
-            '''
-            data = {}  # Stick form data into this dict
-            for i, form in enumerate(reagent_formset):
-                if form.is_valid():
-                    query = q1[i]
-                    data[query.parameter_def_description] = form.cleaned_data['value'].value
-            
-            # Scans experiment_templates and picks up functions that have the same name as template_name
-            template_function = getattr(core.experiment_templates, template_name)
-            new_lsr_pk, lsr_msg = template_function(data, q1, experiment_copy_uuid, exp_name, exp_template)
-           
-            if new_lsr_pk is not None:
-                context['xls_download_link'] = reverse('edoc_download', args=[new_lsr_pk])
-            if str(self.request.session['current_org_name']) != "TestCo":
-                context['lsr_download_link'] = None
-            elif new_lsr_pk is not None:
-                context['lsr_download_link'] = reverse('edoc_download', args=[new_lsr_pk])
-            else:
-                messages.error(request, f'LSRGenerator failed with message: "{lsr_msg}"')
-            context['experiment_link'] = reverse('experiment_view', args=[experiment_copy_uuid])
-            context['new_exp_name'] = exp_name
-            '''
+            desired_volume = generateExperiments(exp_concentrations)
+            #TODO: pass desired_volume to nicoles code
+            #TODO: update actions/parameters with volumes for each reagent and print to robot file
         return context
-
-    '''
-    this function should retrieve data from copied experiment and send to sampler. all logic to save data should be handled in process_automated_formset
-    '''
-    #def save_automated_formsets(self, exp_uuid):
 # end: class CreateExperimentView()
 
 '''
