@@ -53,8 +53,10 @@ class ReagentForm(Form):
     widget = Select(attrs={'class': 'selectpicker', 
                                  'data-style':"btn-dark",
                                  'data-live-search':'true', })
-    chemical = ChoiceField(widget=widget)
+    chemical = ChoiceField(widget=widget, required=False)
     desired_concentration = ValFormField(required=False)
+    reagent_template_uuid = CharField(widget=HiddenInput())
+    material_type = CharField(widget=HiddenInput())
 
     def __init__(self, *args, **kwargs):
         material_types_list = kwargs.pop('mat_types_list')
@@ -64,12 +66,12 @@ class ReagentForm(Form):
         material_type = material_types_list[chemical_index]
         # TODO: Make inventory materials is being requested since the current inventory should be checked
         # For debugging, I am requesting data from materials directly
-        #inventory_materials = vt.InventoryMaterial.objects.filter(inventory__lab=lab_uuid, material__material_type=material_type)
-        inventory_materials = vt.Material.objects.filter(material_type=material_type)
+        inventory_materials = vt.InventoryMaterial.objects.filter(material__material_type=material_type)
+        #inventory_materials = vt.Material.objects.filter(material_type=material_type)
 
         super().__init__(*args, **kwargs)
         # Uncomment below if switching back to inventory material
-        #self.fields['chemical'].choices = [(im.material__uuid, im.material__description) for im in inventory_materials]
+        #self.fields['chemical'].choices = [(im.material.uuid, im.material.description) for im in inventory_materials]
         self.fields['chemical'].choices = [(im.uuid, im.description) for im in inventory_materials]
         self.fields['chemical'].label = f'Chemical {chemical_index+1}: {material_type.description}'
 
