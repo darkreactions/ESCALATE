@@ -355,13 +355,12 @@ class CreateExperimentView(TemplateView):
                     '''
                     #create exp_concentrations data structure to pass into random sampler
                     current_mat_list = reagent_formset.form_kwargs['mat_types_list']
-                    (concentration1, concentration2, concentration3) = (None, None, None)
                     if len(current_mat_list) == 1:
                         if "acid" in (current_mat_list[0].description).lower():
                             #reagent 2
                             concentration1 = reagent_formset.cleaned_data[0]['desired_concentration'].value
                             exp_concentrations["Reagent 2"] = [0,0,concentration1,0]
-                        elif "solvent" in (current_mat_list[0].description).lower():
+                        elif "pure solvent" in (current_mat_list[0].description).lower():
                             #reagent 4
                             concentration1 = reagent_formset.cleaned_data[0]['desired_concentration'].value
                             exp_concentrations["Reagent 4"] = [0,concentration1,0,0]
@@ -389,10 +388,13 @@ class CreateExperimentView(TemplateView):
                                 concentration3 = reagent_formset.cleaned_data[2]['desired_concentration'].value
                         exp_concentrations["Reagent 3"] = [concentration2,concentration3,0,concentration1]
                            
+            #retrieve # of experiments to be generated (# of vial locations)
+            exp_number = int(request.POST['automated'])
             #generate desired volume for current reagent
-            desired_volume = generateExperiments(exp_concentrations)
-            #TODO: pass desired_volume to nicoles code
-            #TODO: update actions/parameters with volumes for each reagent and print to robot file
+            desired_volume = generateExperiments(exp_concentrations, exp_number)
+            #retrieve q1 information to update
+            q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
+
         return context
 # end: class CreateExperimentView()
 
