@@ -9,7 +9,7 @@ import os
 from tkinter.constants import CURRENT
 from django.db.models import F, Value
 
-from core.models.view_tables import WorkflowActionSet, BomMaterial, Action, ActionUnit, ExperimentTemplate, ExperimentInstance #ActionParameter
+from core.models.view_tables import WorkflowActionSet, BomMaterial, Action, ActionUnit, ExperimentTemplate, ExperimentInstance, ReagentInstanceValue #ActionParameter
 from core.custom_types import Val
 from core.models.core_tables import RetUUIDField
 
@@ -153,3 +153,36 @@ def get_material_querysets(exp_uuid, template=True):
                         experiment_description=F(f'{exp_relation}__description')).prefetch_related(f'{exp_relation}')
     
     return mat_q
+
+def get_reagent_querysets(exp_uuid):
+    """[summary]
+
+    Args:
+        exp_uuid ([str]): UUID of the experiment to retrieve
+
+    Returns:
+        [Queryset]: Queryset that contains the reagent data
+    """ 
+    '''
+    reagent_q = ReagentInstance.objects.filter(experiment__uuid=exp_uuid).annotate(
+                object_uuid=F('uuid')).annotate(
+                object_description=F('description')).annotate(
+                instance_uuid=F('reagent_instance_value_reagent_instance__uuid')).annotate(
+                instance_value=F('reagent_instance_value_reagent_instance__nominal_value')).annotate(
+                instance_value_actual=F('reagent_instance_value_reagent_instance__actual_value')).annotate(
+                instance_material_type_id=F('reagent_instance_value_reagent_instance__material_type')).annotate(
+                instance_description=F('reagent_instance_value_reagent_instance__description')).annotate(
+                experiment_uuid=F('experiment__uuid')).annotate(
+                experiment_description=F('experiment__description'))#.annotate(
+    '''
+    reagent_q = ReagentInstanceValue.objects.filter(reagent_instance__experiment__uuid=exp_uuid)
+    """
+    .annotate(
+    mat_type=F('material_type')).annotate(
+    value_nominal=F('nominal_value')).annotate(
+    value_actual=F('actual_value')).annotate(
+    parent_uuid=F('reagent_instance__uuid'))
+    """
+    
+    return reagent_q
+                
