@@ -390,7 +390,8 @@ class CreateExperimentView(TemplateView):
             #generate desired volume for current reagent
             desired_volume = generateExperiments(exp_concentrations, exp_number)
             
-            q1 = save_actions(experiment_copy_uuid, desired_volume)
+            save_actions(experiment_copy_uuid, desired_volume, exp_number)
+            q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
             
             #robotfile generation
             if exp_template.description in SUPPORTED_CREATE_WFS:

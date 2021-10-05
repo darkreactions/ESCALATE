@@ -9,7 +9,7 @@ import os
 from tkinter.constants import CURRENT
 from django.db.models import F, Value
 
-from core.models.view_tables import (WorkflowActionSet, BomMaterial, Action, 
+from core.models.view_tables import (WorkflowActionSet, BomMaterial, Action, Parameter,
                                             ActionUnit, ExperimentTemplate, 
                                             ExperimentInstance, ReagentMaterialInstance)
 from core.custom_types import Val
@@ -230,10 +230,30 @@ def prepare_reagents(reagent_formset, exp_concentrations):
     return exp_concentrations
 
 
-def save_actions(experiment_copy_uuid, desired_volume):
+def save_actions(experiment_copy_uuid, desired_volume, num_of_experiments):
     #retrieve q1 information to update
     q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
     #create counters for acid, solvent, stock a, stock b to keep track of current element in those lists
+    
+
+    action_reagent_map = {'dispense solvent': ('Reagent 1', 1.0),
+                          'dispense acid vol 1': ('Reagent 7', 0.5),
+                          'dispense acid vol 2': ('Reagent 7', 0.5),
+                          'dispense stock a': ('Reagent 2', 1.0),
+                          'dispense stock b': ('Reagent 3', 1.0)}
+    for action_description, (reagent_name, mult_factor) in action_reagent_map.items():
+        # get actions from q1 based on keys in action_reagent_map
+        actions = q1.filter(object_description__icontains=action_description)
+        # If number of experiments requested is < actions only choose the first n actions
+        # Otherwise choose all
+        actions = actions[:num_of_experiments] if num_of_experiments < len(actions) else actions
+        for i, action in enumerate(actions):
+            parameter = Parameter.objects.get(uuid=action.parameter_uuid)
+            #action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
+            parameter.parameter_val_nominal.value = desired_volume[reagent_name][i] * mult_factor
+            parameter.save()
+
+    """
     (acid1_count, acid2_count, solvent_count, stocka_count, stockb_count) = (0,0,0,0,0)
     for q1_details in q1:
         if "dispense" in q1_details.object_def_description:
@@ -255,7 +275,10 @@ def save_actions(experiment_copy_uuid, desired_volume):
                 stocka_count += 1
             elif "dispense stock b" in (q1_details.object_description).lower(): 
                 q1_details.parameter_value.value = desired_volume['Reagent 3'][stockb_count]
-                stockb_count += 1 
+                stockb_count += 1
         #save changes to parameter nominal value
         q1_details.save()
+    """
+    
+        
     return q1

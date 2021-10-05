@@ -189,7 +189,9 @@ def in_hull(points, x):
 def allowedExperiments(reagents, maxConcentration, minConcentration):
     """ Find the allowed ConvexHull given the reagent definitions and max/min concentration. 
 
-    Note that, relative to the Mathematica code, the location of max and min concentration in the function arguments are swapped. This allows for the case where you only want to give a max concentration. 
+    Note that, relative to the Mathematica code, the location of max and min 
+    concentration in the function arguments are swapped. 
+    This allows for the case where you only want to give a max concentration. 
 
     Because this generates a scipy ConvexHull, it is susceptible to dimensional constraints. 
 
@@ -451,4 +453,7 @@ def generate3DExperiments(reagentDefs, nExpt=96, maxMolarity=9., finalVolume=500
         dic[k] = list(np.round((finalVolume*np.array(v))))
     return dic
 
+
+if __name__=='__main__':
+    generateExperiments(reagentVectors, 5)
 
