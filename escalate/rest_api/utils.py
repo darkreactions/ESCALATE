@@ -36,7 +36,7 @@ core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   'MeasureDef', 'OutcomeTemplate', 'OutcomeInstance',
                   'Action', 'ActionUnit', 'ActionDef', 'ExperimentInstance',
                   'BaseBomMaterial', 'Vessel', 'VesselInstance', 'Contents', 
-                  'ReagentInstance', 'ReagentTemplate', 'ReagentMaterialTemplate',
+                  'ReagentMaterialInstance', 'ReagentTemplate', 'ReagentMaterialTemplate',
                   'DefaultValues' ])
 
 #Views that are a combination of multiple tables, used to be postgres views. Should be changed to something else
@@ -184,11 +184,11 @@ expandable_fields = {
                                     'read_only': True,
                                     'view_name': 'billofmaterials-detail'
                                 }),
-            'reagents': ('rest_api.ReagentInstanceSerializer', 
+            'reagents': ('rest_api.ReagentMaterialInstanceSerializer', 
                         {'source': 'reagent_instance_experiment_instance',
                                     'many': True,
                                     'read_only': True,
-                                    'view_name': 'reagentinstance-detail'}),
+                                    'view_name': 'reagentmaterialinstance-detail'}),
             'outcome_instance': ('rest_api.OutcomeInstanceSerializer',
                         {
                             'source': 'outcome_instance_experiment_instance',

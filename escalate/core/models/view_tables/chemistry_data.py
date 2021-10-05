@@ -230,38 +230,43 @@ class ReagentTemplate(DateColumns, DescriptionColumn, StatusColumn):
 class ReagentMaterialTemplate(DateColumns, DescriptionColumn, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
     reagent_template = models.ForeignKey('ReagentTemplate', on_delete=models.DO_NOTHING,
-                          related_name='reagent_material_reagent_template')
+                          related_name='reagent_material_template_reagent_template')
     material_type = models.ForeignKey('MaterialType', blank=True, null=True, 
                                       on_delete=models.DO_NOTHING,
                                       related_name='reagent_material_template_material_type')
     value_description = models.CharField(max_length=1024, blank=True, null=True)
     default_value = models.ForeignKey('DefaultValues', on_delete=models.DO_NOTHING,
                                  blank=True,
-                                 null=True, related_name='reagent_template_default_values')
+                                 null=True, related_name='reagent_material_template_default_values')
     def __str__(self):
         return self.description
 
 
-class ReagentInstance(DateColumns, DescriptionColumn, StatusColumn):
+class ReagentMaterialInstance(DateColumns, DescriptionColumn, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
-    reagent_template = models.ForeignKey('ReagentTemplate', on_delete=models.DO_NOTHING,
-                          related_name='reagent_instance_reagent_template')
+    # reagent_template = models.ForeignKey('ReagentTemplate', on_delete=models.DO_NOTHING,
+    #                      related_name='reagent_instance_reagent_template')
     experiment = models.ForeignKey('ExperimentInstance', on_delete=models.DO_NOTHING,
                           related_name='reagent_instance_experiment_instance')
     material = models.ForeignKey('InventoryMaterial', on_delete=models.DO_NOTHING,
                             null=True, blank=True,
                           related_name='reagent_instance_value_inventory_material')
-    material_type = models.ForeignKey('MaterialType', on_delete=models.DO_NOTHING,
-                          null=True, blank=True,
-                          related_name='reagent_instance_value_material_type')
+    reagent_material_template = models.ForeignKey('ReagentMaterialTemplate', 
+                            on_delete=models.DO_NOTHING, null=True, blank=True,
+                          related_name='reagent_material_instance_reagent_material_template')
+    # material_type = models.ForeignKey('MaterialType', on_delete=models.DO_NOTHING,
+    #                      null=True, blank=True,
+    #                      related_name='reagent_instance_value_material_type')
     nominal_value = ValField(blank=True, null=True)
     actual_value = ValField(blank=True, null=True)
     
 
     def save(self, *args, **kwargs):
-        if self.default_values is not None:
-            self.nominal_value = self.default_values.default_nominal_value
-            self.actual_value = self.default_values.default_actual_value
+        if self.reagent_material_template.default_value is not None:
+            if self.nominal_value is None:
+                self.nominal_value = self.reagent_material_template.default_value.default_nominal_value
+            if self.actual_value is None:
+                self.actual_value = self.reagent_material_template.default_value.default_actual_value
         super().save(*args, **kwargs)
     
     def __str__(self):

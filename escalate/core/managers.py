@@ -89,14 +89,3 @@ class OutcomeInstanceValueManager(models.Manager):
     def create(self, **kwargs):
         return super().create(**kwargs)
 
-class ReagentInstanceValueManager(models.Manager):
-    """Stores the nominal and actual values related to an outcome instance
-
-    Args:
-        models ([type]): [description]
-    """
-    def get_queryset(self):
-        return super().get_queryset().filter(reagent_instance__isnull=False)
-
-    def create(self, **kwargs):
-        return super().create(**kwargs)

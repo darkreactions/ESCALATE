@@ -3,9 +3,9 @@ from django.db.models import F
 from core.models.view_tables import (Parameter, BomMaterial, Action, ActionUnit, 
                                      ExperimentTemplate, ExperimentInstance, 
                                      BillOfMaterials, ExperimentWorkflow, 
-                                     Workflow, WorkflowObject, WorkflowStep,
-                                     ReagentTemplate, ReagentInstance,
-                                     ReagentInstanceValue)
+                                     WorkflowObject, WorkflowStep,
+                                     ReagentMaterialInstance,
+                                     )
 from copy import deepcopy
 import uuid
 '''
@@ -144,19 +144,15 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
         #Iterate over value_descriptions so that there are different ReagentInstanceValues based on
         # different requirements. For e.g. "concentration" and "amount" for the same
         # reagent need different ReagentInstanceValues
-        for val_description in reagent_template.value_descriptions:
-            for material_type in reagent_template.material_type.all():
-                reagent_instance = ReagentInstance(reagent_template=reagent_template,
-                                            experiment=exp_instance,
-                                            description=f'{exp_instance.description} : {reagent_template.description} : {val_description}',
-                                            material_type=material_type)
-                reagent_instance.save()
+        #for val_description in reagent_template.value_descriptions:
+        for reagent_material_template in reagent_template.reagent_material_template_reagent_template.filter(value_description='concentration'):
+            #for material_type in reagent_template.material_type.all():
+            reagent_instance = ReagentMaterialInstance(reagent_material_template=reagent_material_template,
+                                        experiment=exp_instance,
+                                        description=f'{exp_instance.description} : {reagent_template.description} : {reagent_material_template.value_description}',
+                                        )
+            reagent_instance.save()
 
-                #reagent_instance_value = ReagentInstanceValue(reagent_instance=reagent_instance,
-                #                                             description=val_description,
-                #                                             material_type=material_type)
-                #reagent_instance_value.save()
-    
     return exp_instance.uuid
 
 # list of model class names that have at least one view auto generated

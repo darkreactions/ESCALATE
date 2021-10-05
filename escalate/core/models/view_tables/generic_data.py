@@ -7,7 +7,7 @@ from core.models.custom_types import ValField, PROPERTY_CLASS_CHOICES, PROPERTY_
 from django.contrib.postgres.fields import ArrayField
 import uuid
 from core.models.base_classes import DateColumns, StatusColumn, ActorColumn, DescriptionColumn
-from core.managers import OutcomeInstanceValueManager, ReagentInstanceValueManager
+from core.managers import OutcomeInstanceValueManager
 
 
 managed_tables = True
@@ -439,8 +439,8 @@ class ValueInstance(DateColumns, ActorColumn, DescriptionColumn):
                                  on_delete=models.DO_NOTHING,
                                  blank=True,
                                  null=True, related_name='value_instance_outcome')
-    reagent_instance = models.ForeignKey('ReagentInstance', on_delete=models.DO_NOTHING,
-                          related_name='reagent_instance_value_reagent_instance')
+    #reagent_instance = models.ForeignKey('ReagentInstance', on_delete=models.DO_NOTHING,
+    #                      related_name='reagent_instance_value_reagent_instance')
     
     def save(self, *args, **kwargs):
         if self.value_template is not None:
@@ -451,12 +451,6 @@ class ValueInstance(DateColumns, ActorColumn, DescriptionColumn):
 
 class OutcomeInstanceValue(ValueInstance):
     objects = OutcomeInstanceValueManager()
-
-    class Meta:
-        proxy = True
-
-class ReagentInstanceValue(ValueInstance):
-    objects = ReagentInstanceValueManager()
 
     class Meta:
         proxy = True
