@@ -22,14 +22,14 @@ from core.forms.custom_types import (ExperimentNameForm, ExperimentTemplateForm,
                                      ReagentForm, BaseReagentFormSet, 
                                      BaseReagentModelFormSet)
 from core.utilities.utils import experiment_copy
-from core.utilities.randomSampling import generateExperiments
 from core.utilities.experiment_utils import (update_dispense_action_set, 
                                              get_action_parameter_querysets, 
                                              get_material_querysets, 
-                                             supported_wfs, get_reagent_querysets)
+                                             supported_wfs, get_reagent_querysets,
+                                             prepare_reagents, save_actions)
+from core.utilities.randomSampling import generateExperiments
 import core.models
 from core.models.view_tables import Note, TagAssign, Tag
-from core.experiment_templates import liquid_solid_extraction, resin_weighing, perovskite_demo
 from core.custom_types import Val
 import core.experiment_templates
 from core.models.view_tables import Parameter
@@ -248,7 +248,7 @@ class CreateExperimentView(TemplateView):
 
                 query.save(update_fields=list(fields.keys()))
 
-    def save_forms_reagent(self, queries, formset, fields, exp_uuid):
+    def save_forms_reagent(self, formset, exp_uuid, exp_concentrations):
         
         '''
         need a way to query the db table rows. in material and q1 we query 
@@ -258,24 +258,26 @@ class CreateExperimentView(TemplateView):
         otentially to get the reagentinstance/reagentinstancevalue uuid
         once this is finished test to make sure the data is saved correctly in the db.
         '''
+        positions = {
+            'organic': 0,
+            'solvent': 1,
+            'acid': 2,
+            'inorganic': 3
+        }
+        vector = [0,0,0,0]
         for form in formset:
             if form.has_changed():
                 data = form.cleaned_data 
-                chemical_id = data['chemical']
                 reagent_template_uuid = data['reagent_template_uuid']
-                material_type_uuid = data['material_type']
                 reagent_instance = ReagentMaterialInstance.objects.get(reagent_material_template=reagent_template_uuid, 
                                                                experiment=exp_uuid,
-                                                               #material_type__uuid=material_type_uuid,
-                                                               #description__contains='concentration'
                                                                )
-                #reagent_instance_value = ReagentInstanceValue.objects.get(reagent_instance=reagent_instance, 
-                #                                                          material_type__uuid=material_type_uuid,
-                #                                                          description='concentration')
-                if data['chemical']:
-                    reagent_instance.material = InventoryMaterial.objects.get(uuid=data['chemical'])
                 reagent_instance.nominal_value = data['desired_concentration']
+                reagent_instance.material = InventoryMaterial.objects.get(uuid=data['chemical']) if data['chemical'] else None
                 reagent_instance.save()
+                mat_type = reagent_instance.reagent_material_template.material_type
+                vector[positions[mat_type.description]] = data['desired_concentration']
+        return vector
 
     def process_formsets(self, request, context):
         """Creates formsets and gets data from the post request.
@@ -363,14 +365,15 @@ class CreateExperimentView(TemplateView):
         if exp_name_form.is_valid():
             #experiment name
             exp_name = exp_name_form.cleaned_data['exp_name']
-            exp_concentrations = {}
+            
             # make the experiment copy: this will be our new experiment
             experiment_copy_uuid = experiment_copy(str(exp_template.uuid), exp_name)
+            # q_reagent = get_reagent_querysets(experiment_copy_uuid)
+            exp_concentrations = {}
             for reagent_formset in formsets:            
                 if reagent_formset.is_valid():
-                    q_reagent = get_reagent_querysets(experiment_copy_uuid)
-                    self.save_forms_reagent(q_reagent, reagent_formset, {'nominal_value': 'value'}, experiment_copy_uuid)
-                    
+                    vector = self.save_forms_reagent(reagent_formset, experiment_copy_uuid, exp_concentrations)
+                    exp_concentrations = prepare_reagents(reagent_formset, exp_concentrations)
                     '''
                     this process of creating the data structure to pass into the 
                     random sampler needs to be less ad-hoc and more generalized moving forward
@@ -380,75 +383,18 @@ class CreateExperimentView(TemplateView):
                     add some clarity to the code
                     '''
                     #create exp_concentrations data structure to pass into random sampler
-                    current_mat_list = reagent_formset.form_kwargs['mat_types_list']
-                    if len(current_mat_list) == 1:
-                        if "acid" in (current_mat_list[0].description).lower():
-                            #reagent 2, Acid
-                            concentration1 = reagent_formset.cleaned_data[0]['desired_concentration'].value
-                            exp_concentrations["Reagent 2"] = [0,0,concentration1,0]
-                        elif "solvent" in (current_mat_list[0].description).lower():
-                            #reagent 4, Solvent
-                            concentration1 = reagent_formset.cleaned_data[0]['desired_concentration'].value
-                            exp_concentrations["Reagent 4"] = [0,concentration1,0,0]
-                    elif len(current_mat_list) == 2:
-                        #reagent 1, Stock A
-                        for element in current_mat_list:
-                            if "organic" in (element.description).lower():
-                                #organic
-                                concentration1 = reagent_formset.cleaned_data[0]['desired_concentration'].value
-                            elif "solvent" in (element.description).lower():
-                                #solvent
-                                concentration2 = reagent_formset.cleaned_data[1]['desired_concentration'].value
-                        exp_concentrations["Reagent 1"] = [concentration1,concentration2,0,0]
-                    elif len(current_mat_list) == 3:
-                        #reagent 3, Stock B
-                        for element in current_mat_list:
-                            if "inorganic" in (element.description).lower():
-                                #inorganic
-                                concentration1 = reagent_formset.cleaned_data[0]['desired_concentration'].value
-                            elif "organic" in (element.description).lower():
-                                #organic
-                                concentration2 = reagent_formset.cleaned_data[1]['desired_concentration'].value
-                            elif "solvent" in (element.description).lower():
-                                #solvent
-                                concentration3 = reagent_formset.cleaned_data[2]['desired_concentration'].value
-                        exp_concentrations["Reagent 3"] = [concentration2,concentration3,0,concentration1]
+                    
                            
             #retrieve # of experiments to be generated (# of vial locations)
             exp_number = int(request.POST['automated'])
             #generate desired volume for current reagent
             desired_volume = generateExperiments(exp_concentrations, exp_number)
-            #retrieve q1 information to update
-            q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
-            #create counters for acid, solvent, stock a, stock b to keep track of current element in those lists
-            (acid1_count, acid2_count, solvent_count, stocka_count, stockb_count) = (0,0,0,0,0)
-            for q1_details in q1:
-                if "dispense" in q1_details.object_def_description:
-                    if "dispense solvent" in (q1_details.object_description).lower():
-                        q1_details.parameter_value.value = desired_volume['Reagent 4'][solvent_count]
-                        solvent_count += 1
-                    elif "dispense acid vol 1" in (q1_details.object_description).lower():
-                        acid1_vol = 0
-                        acid1_vol = (desired_volume['Reagent 2'][acid1_count])*0.5
-                        q1_details.parameter_value.value = acid1_vol
-                        acid1_count += 1
-                    elif "dispense acid vol 2" in (q1_details.object_description).lower():
-                        acid2_vol = 0
-                        acid2_vol = (desired_volume['Reagent 2'][acid2_count])*0.5
-                        q1_details.parameter_value.value = acid2_vol
-                        acid2_count += 1
-                    elif "dispense stock a" in (q1_details.object_description).lower():
-                        q1_details.parameter_value.value = desired_volume['Reagent 1'][stocka_count]
-                        stocka_count += 1
-                    elif "dispense stock b" in (q1_details.object_description).lower(): 
-                        q1_details.parameter_value.value = desired_volume['Reagent 3'][stockb_count]
-                        stockb_count += 1 
-                #save changes to parameter nominal value
-                q1_details.save()
+            
+            q1 = save_actions(experiment_copy_uuid, desired_volume)
             
             #robotfile generation
-            if template_name in SUPPORTED_CREATE_WFS:
-                template_function = getattr(core.experiment_templates, template_name)
+            if exp_template.description in SUPPORTED_CREATE_WFS:
+                template_function = getattr(core.experiment_templates, exp_template.description)
                 new_lsr_pk, lsr_msg = template_function(None, q1, experiment_copy_uuid, exp_name, exp_template)
                 
                 if new_lsr_pk is not None:
