@@ -9,7 +9,9 @@ import os
 from tkinter.constants import CURRENT
 from django.db.models import F, Value
 
-from core.models.view_tables import WorkflowActionSet, BomMaterial, Action, ActionUnit, ExperimentTemplate, ExperimentInstance, ReagentInstanceValue #ActionParameter
+from core.models.view_tables import (WorkflowActionSet, BomMaterial, Action, 
+                                            ActionUnit, ExperimentTemplate, 
+                                            ExperimentInstance, ReagentMaterialInstance)
 from core.custom_types import Val
 from core.models.core_tables import RetUUIDField
 
@@ -176,7 +178,7 @@ def get_reagent_querysets(exp_uuid):
                 experiment_uuid=F('experiment__uuid')).annotate(
                 experiment_description=F('experiment__description'))#.annotate(
     '''
-    reagent_q = ReagentInstanceValue.objects.filter(reagent_instance__experiment__uuid=exp_uuid)
+    reagent_q = ReagentMaterialInstance.objects.filter(experiment__uuid=exp_uuid)
     """
     .annotate(
     mat_type=F('material_type')).annotate(

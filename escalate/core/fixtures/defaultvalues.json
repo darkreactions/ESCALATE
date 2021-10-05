@@ -1,0 +1,38 @@
+[
+{
+    "model": "core.defaultvalues",
+    "pk": "3b1a537b-f962-4700-8163-5544664d5276",
+    "fields": {
+        "add_date": "2021-10-04T21:32:49.661",
+        "mod_date": "2021-10-04T21:32:49.661",
+        "actor": null,
+        "description": "Zero ml",
+        "default_nominal_value": "(c14bdf12-b063-4b14-b8d6-0dd3ff234063,ml,,,,,\"0\",,,,,)",
+        "default_actual_value": "(c14bdf12-b063-4b14-b8d6-0dd3ff234063,ml,,,,,\"0\",,,,,)"
+    }
+},
+{
+    "model": "core.defaultvalues",
+    "pk": "cf46d5a2-92ce-4015-8d5b-aaa2cf13f527",
+    "fields": {
+        "add_date": "2021-10-04T21:32:30.818",
+        "mod_date": "2021-10-04T21:32:30.818",
+        "actor": null,
+        "description": "Zero grams",
+        "default_nominal_value": "(c14bdf12-b063-4b14-b8d6-0dd3ff234063,gm,,,,,\"0\",,,,,)",
+        "default_actual_value": "(c14bdf12-b063-4b14-b8d6-0dd3ff234063,gm,,,,,\"0\",,,,,)"
+    }
+},
+{
+    "model": "core.defaultvalues",
+    "pk": "e37e0855-7c38-4ab5-aa4a-e55229bce007",
+    "fields": {
+        "add_date": "2021-10-04T21:32:11.755",
+        "mod_date": "2021-10-04T21:32:11.755",
+        "actor": null,
+        "description": "Zero concentration",
+        "default_nominal_value": "(c14bdf12-b063-4b14-b8d6-0dd3ff234063,M,,,,,\"0\",,,,,)",
+        "default_actual_value": "(c14bdf12-b063-4b14-b8d6-0dd3ff234063,M,,,,,\"0\",,,,,)"
+    }
+}
+]

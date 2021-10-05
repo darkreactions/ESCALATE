@@ -246,10 +246,15 @@ class WorkflowActionSetSerializer(EdocListSerializer,
         fields = '__all__'
 
 
-class OutcomeSerializer(MeasureListSerializer, DynamicFieldsModelSerializer):
-    
+#class OutcomeInstanceSerializer(MeasureListSerializer, DynamicFieldsModelSerializer):
+class OutcomeInstanceSerializer(DynamicFieldsModelSerializer):
     class Meta:
-        model = Outcome
+        model = OutcomeInstance
+        fields = '__all__'
+
+class OutcomeTemplateSerializer(DynamicFieldsModelSerializer):
+    class Meta:
+        model = OutcomeTemplate
         fields = '__all__'
 
 
