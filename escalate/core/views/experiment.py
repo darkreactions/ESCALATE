@@ -1,5 +1,6 @@
 
 
+from scipy.sparse import data
 from core.models.view_tables.organization import Actor
 import json
 from django.db.models import F, Value
@@ -355,18 +356,17 @@ class CreateExperimentView(TemplateView):
                     '''
                     #create exp_concentrations data structure to pass into random sampler
                     current_mat_list = reagent_formset.form_kwargs['mat_types_list']
-                    (concentration1, concentration2, concentration3) = (None, None, None)
                     if len(current_mat_list) == 1:
                         if "acid" in (current_mat_list[0].description).lower():
-                            #reagent 2
+                            #reagent 2, Acid
                             concentration1 = reagent_formset.cleaned_data[0]['desired_concentration'].value
                             exp_concentrations["Reagent 2"] = [0,0,concentration1,0]
                         elif "solvent" in (current_mat_list[0].description).lower():
-                            #reagent 4
+                            #reagent 4, Solvent
                             concentration1 = reagent_formset.cleaned_data[0]['desired_concentration'].value
                             exp_concentrations["Reagent 4"] = [0,concentration1,0,0]
                     elif len(current_mat_list) == 2:
-                        #reagent 1
+                        #reagent 1, Stock A
                         for element in current_mat_list:
                             if "organic" in (element.description).lower():
                                 #organic
@@ -376,7 +376,7 @@ class CreateExperimentView(TemplateView):
                                 concentration2 = reagent_formset.cleaned_data[1]['desired_concentration'].value
                         exp_concentrations["Reagent 1"] = [concentration1,concentration2,0,0]
                     elif len(current_mat_list) == 3:
-                        #reagent 3
+                        #reagent 3, Stock B
                         for element in current_mat_list:
                             if "inorganic" in (element.description).lower():
                                 #inorganic
@@ -389,10 +389,54 @@ class CreateExperimentView(TemplateView):
                                 concentration3 = reagent_formset.cleaned_data[2]['desired_concentration'].value
                         exp_concentrations["Reagent 3"] = [concentration2,concentration3,0,concentration1]
                            
+            #retrieve # of experiments to be generated (# of vial locations)
+            exp_number = int(request.POST['automated'])
             #generate desired volume for current reagent
-            desired_volume = generateExperiments(exp_concentrations)
-            #TODO: pass desired_volume to nicoles code
-            #TODO: update actions/parameters with volumes for each reagent and print to robot file
+            desired_volume = generateExperiments(exp_concentrations, exp_number)
+            #retrieve q1 information to update
+            q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
+            #create counters for acid, solvent, stock a, stock b to keep track of current element in those lists
+            (acid1_count, acid2_count, solvent_count, stocka_count, stockb_count) = (0,0,0,0,0)
+            for q1_details in q1:
+                if "dispense" in q1_details.object_def_description:
+                    if "dispense solvent" in (q1_details.object_description).lower():
+                        q1_details.parameter_value.value = desired_volume['Reagent 4'][solvent_count]
+                        solvent_count += 1
+                    elif "dispense acid vol 1" in (q1_details.object_description).lower():
+                        acid1_vol = 0
+                        acid1_vol = (desired_volume['Reagent 2'][acid1_count])*0.5
+                        q1_details.parameter_value.value = acid1_vol
+                        acid1_count += 1
+                    elif "dispense acid vol 2" in (q1_details.object_description).lower():
+                        acid2_vol = 0
+                        acid2_vol = (desired_volume['Reagent 2'][acid2_count])*0.5
+                        q1_details.parameter_value.value = acid2_vol
+                        acid2_count += 1
+                    elif "dispense stock a" in (q1_details.object_description).lower():
+                        q1_details.parameter_value.value = desired_volume['Reagent 1'][stocka_count]
+                        stocka_count += 1
+                    elif "dispense stock b" in (q1_details.object_description).lower(): 
+                        q1_details.parameter_value.value = desired_volume['Reagent 3'][stockb_count]
+                        stockb_count += 1 
+                #save changes to parameter nominal value
+                q1_details.save()
+            
+            #robotfile generation
+            if template_name in SUPPORTED_CREATE_WFS:
+                template_function = getattr(core.experiment_templates, template_name)
+                new_lsr_pk, lsr_msg = template_function(None, q1, experiment_copy_uuid, exp_name, exp_template)
+                
+                if new_lsr_pk is not None:
+                    context['xls_download_link'] = reverse('edoc_download', args=[new_lsr_pk])
+                if str(self.request.session['current_org_name']) != "TestCo":
+                    context['lsr_download_link'] = None
+                elif new_lsr_pk is not None:
+                    context['lsr_download_link'] = reverse('edoc_download', args=[new_lsr_pk])
+                else:
+                    messages.error(request, f'LSRGenerator failed with message: "{lsr_msg}"')
+                context['experiment_link'] = reverse('experiment_instance_view', args=[experiment_copy_uuid])
+                context['reagent_prep_link'] = reverse('reagent_prep', args=[experiment_copy_uuid])
+                context['new_exp_name'] = exp_name                     
         return context
 # end: class CreateExperimentView()
 

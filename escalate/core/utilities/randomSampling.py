@@ -344,7 +344,7 @@ def sampleUntilSuccessful(corners, boundingCuboid):
 
 
 # %%
-def generateExperiments(reagentDefs, excludedReagentsDef=None, nExpt=96, maxMolarity=9., finalVolume=500.):
+def generateExperiments(reagentDefs, nExpt, excludedReagentsDef=None, maxMolarity=9., finalVolume=500.):
     if excludedReagentsDef == None:
         """ This is the main interface that takes in the dictionary of reagent definitions, decides what experiment generation code to run, and returns the results. 
 
@@ -368,9 +368,9 @@ def generateExperiments(reagentDefs, excludedReagentsDef=None, nExpt=96, maxMola
         """
         speciesDimensionality = len(list(dropZeroColumns(reagentDefs).values())[0])
         if speciesDimensionality <= 3:
-            return generate3DExperiments(dropZeroColumns(reagentDefs), nExpt=96, maxMolarity=9., finalVolume=500.,processValues='round')
+            return generate3DExperiments(dropZeroColumns(reagentDefs), nExpt, maxMolarity=9., finalVolume=500.,processValues='round')
         else:
-            return generateHitAndRunExperiments(dropZeroColumns(reagentDefs), nExpt=96., maxMolarity=9., finalVolume=500.,processValues='round')
+            return generateHitAndRunExperiments(dropZeroColumns(reagentDefs), nExpt, maxMolarity=9., finalVolume=500.,processValues='round')
     else:
         nonzeroReagentsDef = dropZeroColumns(reagentDefs)
         nonzeroExcludedReagentsDef = dropZeroColumns(excludedReagentsDef)

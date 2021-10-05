@@ -160,3 +160,6 @@ SWAGGER_SETTINGS = {
         }
     },
 }
+
+#Flag to increase AutoSlugField generation
+EXTENSIONS_MAX_UNIQUE_QUERY_ATTEMPTS=10000
