@@ -9,9 +9,12 @@ import os
 from tkinter.constants import CURRENT
 from django.db.models import F, Value
 
-from core.models.view_tables import WorkflowActionSet, BomMaterial, Action, ActionUnit, ExperimentTemplate, ExperimentInstance, ReagentInstanceValue #ActionParameter
+from core.models.view_tables import (WorkflowActionSet, BomMaterial, Action, Parameter,
+                                            ActionUnit, ExperimentTemplate, 
+                                            ExperimentInstance, ReagentMaterialInstance)
 from core.custom_types import Val
 from core.models.core_tables import RetUUIDField
+
 
 
 def hcl_mix(stock_concentration, solution_volume, target_concentrations):
@@ -176,7 +179,7 @@ def get_reagent_querysets(exp_uuid):
                 experiment_uuid=F('experiment__uuid')).annotate(
                 experiment_description=F('experiment__description'))#.annotate(
     '''
-    reagent_q = ReagentInstanceValue.objects.filter(reagent_instance__experiment__uuid=exp_uuid)
+    reagent_q = ReagentMaterialInstance.objects.filter(experiment__uuid=exp_uuid)
     """
     .annotate(
     mat_type=F('material_type')).annotate(
@@ -186,4 +189,96 @@ def get_reagent_querysets(exp_uuid):
     """
     
     return reagent_q
-                
+
+
+def prepare_reagents(reagent_formset, exp_concentrations):
+     
+    current_mat_list = reagent_formset.form_kwargs['mat_types_list']
+    if len(current_mat_list) == 1:
+        if "acid" in (current_mat_list[0].description).lower():
+            #reagent 2, Acid
+            concentration1 = reagent_formset.cleaned_data[0]['desired_concentration'].value
+            exp_concentrations["Reagent 7"] = [0,0,concentration1,0]
+        elif "solvent" in (current_mat_list[0].description).lower():
+            #reagent 4, Solvent
+            concentration1 = reagent_formset.cleaned_data[0]['desired_concentration'].value
+            exp_concentrations["Reagent 1"] = [0,concentration1,0,0]
+    elif len(current_mat_list) == 2:
+        #reagent 1, Stock A
+        for element in current_mat_list:
+            if "organic" in (element.description).lower():
+                #organic
+                concentration1 = reagent_formset.cleaned_data[0]['desired_concentration'].value
+            elif "solvent" in (element.description).lower():
+                #solvent
+                concentration2 = reagent_formset.cleaned_data[1]['desired_concentration'].value
+        exp_concentrations["Reagent 3"] = [concentration1,concentration2,0,0]
+    elif len(current_mat_list) == 3:
+        #reagent 3, Stock B
+        for element in current_mat_list:
+            if "inorganic" in (element.description).lower():
+                #inorganic
+                concentration1 = reagent_formset.cleaned_data[0]['desired_concentration'].value
+            elif "organic" in (element.description).lower():
+                #organic
+                concentration2 = reagent_formset.cleaned_data[1]['desired_concentration'].value
+            elif "solvent" in (element.description).lower():
+                #solvent
+                concentration3 = reagent_formset.cleaned_data[2]['desired_concentration'].value
+        exp_concentrations["Reagent 2"] = [concentration2,concentration3,0,concentration1]
+
+    return exp_concentrations
+
+
+def save_actions(experiment_copy_uuid, desired_volume, num_of_experiments):
+    #retrieve q1 information to update
+    q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
+    #create counters for acid, solvent, stock a, stock b to keep track of current element in those lists
+    
+
+    action_reagent_map = {'dispense solvent': ('Reagent 1', 1.0),
+                          'dispense acid vol 1': ('Reagent 7', 0.5),
+                          'dispense acid vol 2': ('Reagent 7', 0.5),
+                          'dispense stock a': ('Reagent 2', 1.0),
+                          'dispense stock b': ('Reagent 3', 1.0)}
+    for action_description, (reagent_name, mult_factor) in action_reagent_map.items():
+        # get actions from q1 based on keys in action_reagent_map
+        actions = q1.filter(object_description__icontains=action_description)
+        # If number of experiments requested is < actions only choose the first n actions
+        # Otherwise choose all
+        actions = actions[:num_of_experiments] if num_of_experiments < len(actions) else actions
+        for i, action in enumerate(actions):
+            parameter = Parameter.objects.get(uuid=action.parameter_uuid)
+            #action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
+            parameter.parameter_val_nominal.value = desired_volume[reagent_name][i] * mult_factor
+            parameter.save()
+
+    """
+    (acid1_count, acid2_count, solvent_count, stocka_count, stockb_count) = (0,0,0,0,0)
+    for q1_details in q1:
+        if "dispense" in q1_details.object_def_description:
+            if "dispense solvent" in (q1_details.object_description).lower():
+                q1_details.parameter_value.value = desired_volume['Reagent 4'][solvent_count]
+                solvent_count += 1
+            elif "dispense acid vol 1" in (q1_details.object_description).lower():
+                acid1_vol = 0
+                acid1_vol = (desired_volume['Reagent 2'][acid1_count])*0.5
+                q1_details.parameter_value.value = acid1_vol
+                acid1_count += 1
+            elif "dispense acid vol 2" in (q1_details.object_description).lower():
+                acid2_vol = 0
+                acid2_vol = (desired_volume['Reagent 2'][acid2_count])*0.5
+                q1_details.parameter_value.value = acid2_vol
+                acid2_count += 1
+            elif "dispense stock a" in (q1_details.object_description).lower():
+                q1_details.parameter_value.value = desired_volume['Reagent 1'][stocka_count]
+                stocka_count += 1
+            elif "dispense stock b" in (q1_details.object_description).lower(): 
+                q1_details.parameter_value.value = desired_volume['Reagent 3'][stockb_count]
+                stockb_count += 1
+        #save changes to parameter nominal value
+        q1_details.save()
+    """
+    
+        
+    return q1

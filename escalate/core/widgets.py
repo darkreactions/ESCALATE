@@ -111,7 +111,7 @@ class ValFormField(MultiValueField):
             val_type = TypeDef.objects.get(category='data', description=val_type_text)
             val = Val(val_type, value, unit)
             return val
-        return Val(null=True)
+        return Val(None, None, None, null=True)
 
     def validate(self, value):
         #print(f"validating {value}")

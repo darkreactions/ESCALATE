@@ -6,7 +6,7 @@
 # %%
 import itertools
 import random
-import matplotlib.pyplot as plt 
+#import matplotlib.pyplot as plt 
 from scipy.spatial import ConvexHull
 from scipy.optimize import Bounds
 from scipy.optimize import linprog

@@ -7,7 +7,7 @@ import core.models.view_tables as vt
 from core.widgets import ValFormField
 from .forms import dropdown_attrs
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit, Row, Column
+from crispy_forms.layout import Layout, Submit, Row, Column, Hidden
 
 class SingleValForm(Form):
     value = ValFormField(required=False)
@@ -79,18 +79,20 @@ class ReagentValueForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         disabled_fields = kwargs.pop('disabled_fields', [])
-        lab_uuid = kwargs.pop('lab_uuid')
-        material_types = kwargs.pop('material_types')
-        index = kwargs.pop('index')
+        lab_uuid = kwargs.pop('lab_uuid', None)
+        material_types = kwargs.pop('material_types', None)
+        index = kwargs.pop('index', None)
         super().__init__(*args, **kwargs)
-        inventory_materials = vt.InventoryMaterial.objects.filter(inventory__lab=lab_uuid)
-        self.fields['material'].choices = [(im.uuid, im.description) for im in inventory_materials]
+        if lab_uuid is not None:
+            inventory_materials = vt.InventoryMaterial.objects.filter(inventory__lab=lab_uuid)
+            self.fields['material'].choices = [(im.uuid, im.description) for im in inventory_materials]
         for field in disabled_fields:
             self.fields[field].disabled = True
+        self.fields['uuid'].widget = HiddenInput()
 
     @staticmethod
     def get_helper():
-        fields = ['material_type', 'material', 'nominal_value', 'actual_value']
+        fields = ['uuid', 'material_type', 'material', 'nominal_value', 'actual_value']
         #css = {field:'form-group col-md-6 mb-0' for field in fields}
 
 
@@ -106,12 +108,13 @@ class ReagentValueForm(ModelForm):
             Row(
                 Column('nominal_value'),
                 Column('actual_value'),
-            )
+            ),
+            Row('uuid')
         )
         return helper
 
     class Meta:
-        model = vt.ReagentInstanceValue
+        model = vt.ReagentMaterialInstance
         fields = '__all__'
 
 class BaseReagentModelFormSet(BaseModelFormSet):
