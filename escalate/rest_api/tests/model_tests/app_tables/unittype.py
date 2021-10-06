@@ -19,8 +19,8 @@ unittype_tests = [
 
 ##----TEST 0----##
 #creates an unittype
-#gets the action
-#puts the unittype adding the other parameterdef to the manytomany field
+#gets the unittype
+#puts the unittype 
 #gets the updated unittype
 #deletes the updated unittype
 #gets the unittype (should return error)

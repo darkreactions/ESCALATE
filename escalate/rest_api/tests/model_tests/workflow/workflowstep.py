@@ -12,7 +12,7 @@ from ..model_tests_utils import (
 )
 from core.models import (
     Workflow,
-    WorkflowActionSet,
+    Action,
     WorkflowStep,
     WorkflowObject,
 )
@@ -51,45 +51,30 @@ workflowstep_tests = [
         *[{
             'name': name,
             'method': POST,
-            'endpoint': 'workflowactionset-list',
-            'body': random_model_dict(WorkflowActionSet),
+            'endpoint': 'action-list',
+            'body': random_model_dict(Action), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
                 'function': check_status_code,
                 'args': [],
                 'kwargs': {
-                    'status_code': POST
+                    'status_code': POST,
                 }
             }
-        } for name in ['workflowactionset0', 'workflowactionset1']],
-        *[{
-            'name': name,
-            'method': POST,
-            'endpoint': 'workflowstep-list',
-            'body': random_model_dict(WorkflowStep),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        } for name in ['workflowstep0', 'workflowstep1']],
+        } for name in ['action0', 'action1']],
         *[{
             'name': name,
             'method': POST,
             'endpoint': 'workflowobject-list',
-            'body': random_model_dict(WorkflowObject),
+            'body': random_model_dict(WorkflowObject), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
                 'function': check_status_code,
                 'args': [],
                 'kwargs': {
-                    'status_code': POST
+                    'status_code': POST,
                 }
             }
         } for name in ['workflowobject0', 'workflowobject1']],
@@ -97,9 +82,8 @@ workflowstep_tests = [
             'name': 'workflowstep0',
             'method': POST,
             'endpoint': 'workflowstep-list',
-            'body': (request_body := random_model_dict(WorkflowStep, workflow='workflow0__url', parent='workflowstep0__url',
-                                                        workflow_action_set='workflowactionset0__url',
-                                                        workflow_object='workflowobject0__url')), 
+            'body': (request_body := random_model_dict(WorkflowStep, workflow='workflow0__url', parent='workflow1__url',
+                                                        action='action0__url', workflow_object='workflowobject0__url')), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -133,9 +117,8 @@ workflowstep_tests = [
             'name': 'workflowstep0_update_0',
             'method': PUT,
             'endpoint': 'workflowstep-detail',
-          'body': (request_body := random_model_dict(WorkflowStep, workflow='workflow1__url', parent='workflowstep1__url',
-                                                        workflow_action_set='workflowactionset1__url',
-                                                        workflow_object='workflowobject1__url')), 
+          'body': (request_body := random_model_dict(WorkflowStep, workflow='workflow1__url', parent='workflow0__url',
+                                                        action='action1__url', workflow_object='workflowobject1__url')),  
             'args': [
                 'workflowstep0__uuid'
             ],

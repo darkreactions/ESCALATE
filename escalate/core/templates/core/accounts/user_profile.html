@@ -10,7 +10,7 @@
         <div class="d-flex flex-column align-items-center text-center">
 
           {% if profile_pic_edoc %}
-            <embed src="{{ profile_pic_edoc.download_url }}" type="image/png" width="150px" alt="Admin"  class="rounded-circle" >
+            <img src="{{ profile_pic_edoc.download_url }}" type="image/png" width="150px" alt="Admin"  class="rounded-circle" >
           {% else %}
             <img src="{% static 'avatar.png' %}" alt="Admin" class="rounded-circle" width="150">
           {% endif %}
@@ -19,7 +19,7 @@
             <h4>{{ request.user.person.first_name }} {{ request.user.person.last_name }}</h4>
             <p class="text-secondary mb-1">{{ request.user.person.title }}</p>
             <p class="text-muted font-size-sm">{{ request.user.person.organization.full_name }}</p>
-            <a href="{% url 'change_password' %}" class="btn btn-outline-primary">Change Password</a>
+            <a href="{% url 'change_password' %}" class="btn btn-outline-primary change-account-password">Change Password</a>
           </div>
         </div>
       </div>
@@ -103,7 +103,7 @@
                       {% endfor %}
               </ul>
               {% endif %}
-              <a href="{% url 'user_profile_edit' %}" class="btn btn-outline-primary">Edit Profile</a>
+              <a href="{% url 'user_profile_edit' %}" class="btn btn-outline-primary edit-account-profile">Edit Profile</a>
               <button type="button" class="btn btn-outline-primary" data-toggle="modal"
                         data-target="#deleteModal" >Join Lab</button>
             </div>

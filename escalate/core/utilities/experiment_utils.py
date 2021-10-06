@@ -9,9 +9,12 @@ import os
 from tkinter.constants import CURRENT
 from django.db.models import F, Value
 
-from core.models.view_tables import WorkflowActionSet, BomMaterial, Action, ActionUnit, Experiment #ActionParameter
+from core.models.view_tables import (WorkflowActionSet, BomMaterial, Action, Parameter,
+                                            ActionUnit, ExperimentTemplate, 
+                                            ExperimentInstance, ReagentMaterialInstance)
 from core.custom_types import Val
 from core.models.core_tables import RetUUIDField
+
 
 
 def hcl_mix(stock_concentration, solution_volume, target_concentrations):
@@ -105,58 +108,33 @@ def supported_wfs():
     
     return template_list
 
-def get_action_parameter_querysets(exp_uuid):
+def get_action_parameter_querysets(exp_uuid, template=True):
     related_exp = 'workflow__experiment_workflow_workflow__experiment'
     related_exp_wf = 'workflow__experiment_workflow_workflow'
     #factored out until new workflow changes are implemented
 
-    q1 = Experiment.objects.filter(uuid=exp_uuid).prefetch_related('workflow__action_workflow__action_unit_action').annotate(
+    if template:
+        model = ExperimentTemplate
+    else:
+        model = ExperimentInstance
+
+    q1 = model.objects.filter(uuid=exp_uuid).prefetch_related('workflow__action_workflow__action_unit_action').annotate(
                 object_description=F('workflow__action_workflow__description')).annotate(
+                object_def_description=F('workflow__action_workflow__action_def__description')).annotate(
                 object_uuid=F('workflow__action_workflow__uuid')).annotate(
-                parameter_uuid=F('workflow__action_workflow__parameter_action')).annotate(
-                parameter_value=F('workflow__action_workflow__parameter_action__parameter_val_nominal')).annotate(
-                parameter_value_actual=F('workflow__action_workflow__parameter_action__parameter_val_actual')).annotate(
-                parameter_def_description=F('workflow__action_workflow__parameter_action__parameter_def__description')).annotate(
+                parameter_uuid=F('workflow__action_workflow__action_unit_action__parameter_action_unit')).annotate(
+                parameter_value=F('workflow__action_workflow__action_unit_action__parameter_action_unit__parameter_val_nominal')).annotate(
+                parameter_value_actual=F('workflow__action_workflow__action_unit_action__parameter_action_unit__parameter_val_actual')).annotate(
+                parameter_def_description=F('workflow__action_workflow__action_unit_action__parameter_action_unit__parameter_def__description')).annotate(
                 experiment_uuid=F('uuid')).annotate(
                 experiment_description=F('description')).annotate(
                 workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
                 ))#.filter(workflow_action_set__isnull=True).prefetch_related(f'{related_exp}')
-    '''
-    q1 = ActionParameter.objects.filter(**{f'{related_exp}': exp_uuid}).annotate(
-                object_description=F('action_description')).annotate(
-                object_uuid=F('uuid')).annotate(
-                parameter_value=F('parameter_val_nominal')).annotate(
-                experiment_uuid=F(f'{related_exp}__uuid')).annotate(
-                experiment_description=F(f'{related_exp}__description')).annotate(
-                workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
-                )).filter(workflow_action_set__isnull=True).prefetch_related(f'{related_exp}')
     
-    q2 = WorkflowActionSet.objects.filter(**{f'{related_exp}': exp_uuid, 'parameter_val_nominal__isnull': False}).annotate(
-                    object_description=F('description')).annotate(
-                    object_uuid=F('uuid')).annotate(
-                    parameter_def_description=F('parameter_def__description')).annotate(
-                    parameter_uuid=Value(None, RetUUIDField())).annotate(
-                    parameter_value=F('parameter_val_nominal')).annotate(
-                    experiment_uuid=F(f'{related_exp}__uuid')).annotate(
-                    experiment_description=F(f'{related_exp}__description')).annotate(
-                    workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')
-                    ).prefetch_related(f'{related_exp}')
-    q3 = WorkflowActionSet.objects.filter(calculation__isnull=False,
-                                            workflow__experiment_workflow_workflow__experiment=exp_uuid).annotate(
-                    object_description=F('description')).annotate(
-                    object_uuid=F('uuid')).annotate(
-                    parameter_def_description=F('calculation__calculation_def__parameter_def__description')).annotate(
-                    parameter_uuid=F('calculation__calculation_def__parameter_def__uuid')).annotate(
-                    parameter_value=F('calculation__calculation_def__parameter_def__default_val')).annotate(
-                    experiment_uuid=F(f'{related_exp}__uuid')).annotate(
-                    experiment_description=F(f'{related_exp}__description')).annotate(
-                    workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq')).prefetch_related(
-                    'workflow__experiment_workflow_workflow__experiment').distinct('parameter_uuid')
-    '''
     return q1
 
 
-def get_material_querysets(exp_uuid):
+def get_material_querysets(exp_uuid, template=True):
     """[summary]
 
     Args:
@@ -165,11 +143,142 @@ def get_material_querysets(exp_uuid):
     Returns:
         [Queryset]: Queryset that contains the experiment data
     """
-    mat_q = BomMaterial.objects.filter(bom__experiment=exp_uuid).only(
+    if template:
+        exp_relation = 'bom__experiment'
+    else:
+        exp_relation = 'bom__experiment_instance'
+
+    #bom__experiment=exp_uuid
+    mat_q = BomMaterial.objects.filter(**{exp_relation: exp_uuid}).only(
                         'uuid').annotate(
                         object_description=F('description')).annotate(
                         object_uuid=F('uuid')).annotate(
-                        experiment_uuid=F('bom__experiment__uuid')).annotate(
-                        experiment_description=F('bom__experiment__description')).prefetch_related('bom__experiment')
+                        experiment_uuid=F(f'{exp_relation}__uuid')).annotate(
+                        experiment_description=F(f'{exp_relation}__description')).prefetch_related(f'{exp_relation}')
     
     return mat_q
+
+def get_reagent_querysets(exp_uuid):
+    """[summary]
+
+    Args:
+        exp_uuid ([str]): UUID of the experiment to retrieve
+
+    Returns:
+        [Queryset]: Queryset that contains the reagent data
+    """ 
+    '''
+    reagent_q = ReagentInstance.objects.filter(experiment__uuid=exp_uuid).annotate(
+                object_uuid=F('uuid')).annotate(
+                object_description=F('description')).annotate(
+                instance_uuid=F('reagent_instance_value_reagent_instance__uuid')).annotate(
+                instance_value=F('reagent_instance_value_reagent_instance__nominal_value')).annotate(
+                instance_value_actual=F('reagent_instance_value_reagent_instance__actual_value')).annotate(
+                instance_material_type_id=F('reagent_instance_value_reagent_instance__material_type')).annotate(
+                instance_description=F('reagent_instance_value_reagent_instance__description')).annotate(
+                experiment_uuid=F('experiment__uuid')).annotate(
+                experiment_description=F('experiment__description'))#.annotate(
+    '''
+    reagent_q = ReagentMaterialInstance.objects.filter(experiment__uuid=exp_uuid)
+    """
+    .annotate(
+    mat_type=F('material_type')).annotate(
+    value_nominal=F('nominal_value')).annotate(
+    value_actual=F('actual_value')).annotate(
+    parent_uuid=F('reagent_instance__uuid'))
+    """
+    
+    return reagent_q
+
+
+def prepare_reagents(reagent_formset, exp_concentrations):
+     
+    current_mat_list = reagent_formset.form_kwargs['mat_types_list']
+    if len(current_mat_list) == 1:
+        if "acid" in (current_mat_list[0].description).lower():
+            #reagent 2, Acid
+            concentration1 = reagent_formset.cleaned_data[0]['desired_concentration'].value
+            exp_concentrations["Reagent 7"] = [0,0,concentration1,0]
+        elif "solvent" in (current_mat_list[0].description).lower():
+            #reagent 4, Solvent
+            concentration1 = reagent_formset.cleaned_data[0]['desired_concentration'].value
+            exp_concentrations["Reagent 1"] = [0,concentration1,0,0]
+    elif len(current_mat_list) == 2:
+        #reagent 1, Stock A
+        for element in current_mat_list:
+            if "organic" in (element.description).lower():
+                #organic
+                concentration1 = reagent_formset.cleaned_data[0]['desired_concentration'].value
+            elif "solvent" in (element.description).lower():
+                #solvent
+                concentration2 = reagent_formset.cleaned_data[1]['desired_concentration'].value
+        exp_concentrations["Reagent 3"] = [concentration1,concentration2,0,0]
+    elif len(current_mat_list) == 3:
+        #reagent 3, Stock B
+        for element in current_mat_list:
+            if "inorganic" in (element.description).lower():
+                #inorganic
+                concentration1 = reagent_formset.cleaned_data[0]['desired_concentration'].value
+            elif "organic" in (element.description).lower():
+                #organic
+                concentration2 = reagent_formset.cleaned_data[1]['desired_concentration'].value
+            elif "solvent" in (element.description).lower():
+                #solvent
+                concentration3 = reagent_formset.cleaned_data[2]['desired_concentration'].value
+        exp_concentrations["Reagent 2"] = [concentration2,concentration3,0,concentration1]
+
+    return exp_concentrations
+
+
+def save_actions(experiment_copy_uuid, desired_volume, num_of_experiments):
+    #retrieve q1 information to update
+    q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
+    #create counters for acid, solvent, stock a, stock b to keep track of current element in those lists
+    
+
+    action_reagent_map = {'dispense solvent': ('Reagent 1', 1.0),
+                          'dispense acid vol 1': ('Reagent 7', 0.5),
+                          'dispense acid vol 2': ('Reagent 7', 0.5),
+                          'dispense stock a': ('Reagent 2', 1.0),
+                          'dispense stock b': ('Reagent 3', 1.0)}
+    for action_description, (reagent_name, mult_factor) in action_reagent_map.items():
+        # get actions from q1 based on keys in action_reagent_map
+        actions = q1.filter(object_description__icontains=action_description)
+        # If number of experiments requested is < actions only choose the first n actions
+        # Otherwise choose all
+        actions = actions[:num_of_experiments] if num_of_experiments < len(actions) else actions
+        for i, action in enumerate(actions):
+            parameter = Parameter.objects.get(uuid=action.parameter_uuid)
+            #action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
+            parameter.parameter_val_nominal.value = desired_volume[reagent_name][i] * mult_factor
+            parameter.save()
+
+    """
+    (acid1_count, acid2_count, solvent_count, stocka_count, stockb_count) = (0,0,0,0,0)
+    for q1_details in q1:
+        if "dispense" in q1_details.object_def_description:
+            if "dispense solvent" in (q1_details.object_description).lower():
+                q1_details.parameter_value.value = desired_volume['Reagent 4'][solvent_count]
+                solvent_count += 1
+            elif "dispense acid vol 1" in (q1_details.object_description).lower():
+                acid1_vol = 0
+                acid1_vol = (desired_volume['Reagent 2'][acid1_count])*0.5
+                q1_details.parameter_value.value = acid1_vol
+                acid1_count += 1
+            elif "dispense acid vol 2" in (q1_details.object_description).lower():
+                acid2_vol = 0
+                acid2_vol = (desired_volume['Reagent 2'][acid2_count])*0.5
+                q1_details.parameter_value.value = acid2_vol
+                acid2_count += 1
+            elif "dispense stock a" in (q1_details.object_description).lower():
+                q1_details.parameter_value.value = desired_volume['Reagent 1'][stocka_count]
+                stocka_count += 1
+            elif "dispense stock b" in (q1_details.object_description).lower(): 
+                q1_details.parameter_value.value = desired_volume['Reagent 3'][stockb_count]
+                stockb_count += 1
+        #save changes to parameter nominal value
+        q1_details.save()
+    """
+    
+        
+    return q1

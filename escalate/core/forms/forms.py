@@ -1,3 +1,4 @@
+
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth.hashers import make_password
@@ -605,9 +606,6 @@ class InventoryMaterialForm(forms.ModelForm):
                 'placeholder': 'Location'}),
             'status': forms.Select(attrs=dropdown_attrs),
         }
-
-class ExperimentNameForm(forms.Form):
-    exp_name = forms.CharField(label='Experiment Name', max_length=100)
 
 
 class VesselForm(forms.ModelForm):

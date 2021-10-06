@@ -8,8 +8,8 @@ from django.contrib.postgres.fields import ArrayField
 from django.forms import MultiWidget, TextInput, Select, MultiValueField, CharField, ChoiceField
 from core.custom_types import Val
 from core.validators import ValValidator
-from core.models.core_tables import TypeDef
 from core.widgets import ValFormField
+
 
 """
 v_type_uuid uuid, 0
@@ -64,7 +64,7 @@ class ValField(models.TextField):
         elif isinstance(value, (list, tuple)):
             return Val(*value)
         
-        if value is None:
+        if value is None or value == '':
             return value
         
         return Val.from_db(value)
@@ -72,7 +72,7 @@ class ValField(models.TextField):
     def get_prep_value(self, value):
         if isinstance(value, dict):
             value = Val.from_dict(value)
-        elif value == None:
+        elif value == None or value=='':
             value = Val(None, None, None, null=True)
         return value.to_db()
     
@@ -94,6 +94,7 @@ class ValField(models.TextField):
         defaults = {'form_class': ValFormField}
         defaults.update(kwargs)
         return super().formfield(**defaults)
+
 
 # enum choices for {property(_def), material} class choices
 # these are enum types in postgres, so will be shortened to ints there.

@@ -13,11 +13,11 @@
 
 {% block content %}
 <div class="container">
-  {% if title != "Edocument" %}
+  {% if export_urls %}
   <div class="export-buttons-container">
     {% for export_type, export_url in export_urls.items%}
-      <button>
-        <a href="{{export_url}}" style="color:black;">{{export_type}}</a>
+      <button class="export-button export-{{export_type}}-button">
+        <a href="{{export_url}}" style="color:black;" class="export-{{export_type}}">Export to {{export_type}}</a>
       </button>
     {% endfor %}
   </div>
@@ -30,16 +30,15 @@
             {% for header in table_columns %}
             <th>
               {{ header }}
-              {% if header != "Actions" %}
               <button type="submit" name="sort" value="{{header}}_asc" onclick="this.form.submit()">
                 <i class="fas fa-sort-amount-up"></i>
               </button>
               <button type="submit" name="sort" value="{{header}}_des" onclick="this.form.submit()">
                 <i class="fas fa-sort-amount-down-alt"></i>
               </button>
-              {% endif %}
             </th>
             {% endfor %}
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>

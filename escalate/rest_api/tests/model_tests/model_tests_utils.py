@@ -33,6 +33,7 @@ def random_model_dict(model, **kwargs):
 
     can_generate_random_val = lambda field: not(
         field.__class__.__name__ == 'RetUUIDField' or
+        field.__class__.__name__ == 'SlugField' or
         field.name == 'add_date' or
         field.name == 'mod_date' or
         field.__class__.__name__ == 'ManyToManyField' or
@@ -52,6 +53,9 @@ def random_model_dict(model, **kwargs):
                 length = field_obj.max_length // 3 + 1
                 rand_alpha = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = length))
                 model_dict[field_name] = rand_alpha
+            elif field_class_name == "ArrayField" and field_obj.base_field.__class__.__name__=="CharField":
+                length = field_obj.base_field.max_length // 3 + 1
+                model_dict[field_name] = [''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = length)) for i in range(10)]
             elif field_class_name == "EmailField":
                 length = field_obj.max_length // 3 + 1
                 rand_alpha = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = length))
@@ -68,6 +72,8 @@ def random_model_dict(model, **kwargs):
                 if rand_day < 10:
                     rand_day = '0' + str(rand_day)
                 model_dict[field_name] = f'{rand_year}-{rand_month}-{rand_day}'
+            elif field_class_name == "DateTimeField":
+                model_dict[field_name] = str(datetime.datetime.today()).replace(' ', 'T') + 'Z'
             elif field_class_name == "FloatField" or field_class_name == "BigIntegerField" or field_class_name == "IntegerField":
                 model_dict[field_name] = random.randint(0,255)
             elif field_class_name == "BooleanField":
@@ -80,7 +86,7 @@ def random_model_dict(model, **kwargs):
                     'array_int',
                     'array_num',
                     'bool',
-                    "blob",
+                    #"blob",
                     "array_bool",
                     "array_text",
                 ]

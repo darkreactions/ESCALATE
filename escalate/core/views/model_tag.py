@@ -49,7 +49,7 @@ class ModelTagEdit():
             if self.TagFormSet != None:
                 formset = self.TagFormSet(request.POST,prefix='tag')
                 actor = Actor.objects.get(
-                    person=request.user.person.pk)
+                    person=request.user.person.pk, organization=None, systemtool=None)
                 # Loop through every tag form
                 for form in formset:
                     # Only if the form has changed make an update, otherwise ignore

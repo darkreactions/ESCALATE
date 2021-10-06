@@ -30,7 +30,7 @@ class OrganizationPassword(models.Model):
 
 
 class UnitType(models.Model):
-    uuid = models.UUIDField(primary_key=True)
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4)
     description = models.CharField(max_length=255,
                                    blank=True,
                                    null=True,
@@ -44,3 +44,4 @@ class UnitType(models.Model):
     # class Meta:
     #     managed = True
     #     db_table = 'unit_type'
+    

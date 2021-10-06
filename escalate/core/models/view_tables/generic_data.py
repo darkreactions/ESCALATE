@@ -1,12 +1,14 @@
 from django.db import models
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
+#from django.contrib.contenttypes.fields import GenericForeignKey
+#from django.contrib.contenttypes.models import ContentType
 from django.db.models.fields import BooleanField
-from core.models.core_tables import RetUUIDField
+from core.models.core_tables import RetUUIDField, SlugField
 from core.models.custom_types import ValField, PROPERTY_CLASS_CHOICES, PROPERTY_DEF_CLASS_CHOICES, MATERIAL_CLASS_CHOICES
 from django.contrib.postgres.fields import ArrayField
 import uuid
 from core.models.base_classes import DateColumns, StatusColumn, ActorColumn, DescriptionColumn
+from core.managers import OutcomeInstanceValueManager
+
 
 managed_tables = True
 managed_views = False
@@ -17,16 +19,16 @@ class Calculation(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     in_val = ValField( blank=True, null=True)
     in_val_edocument = models.ForeignKey('Edocument',
                                          models.DO_NOTHING,
-                                         db_column='in_val_edocument_uuid',
+                                         db_column='in_val_edocument_uuid', blank=True, null=True,
                                          related_name='calculation_in_val_edocument', editable=False)
     in_opt_val = ValField( blank=True, null=True)
     in_opt_val_edocument = models.ForeignKey('Edocument',
-                                             models.DO_NOTHING,
+                                             models.DO_NOTHING,blank=True, null=True,
                                              db_column='in_opt_val_edocument_uuid',
                                              related_name='calculation_in_opt_val_edocument', editable=False)
     out_val = ValField( blank=True, null=True)
     out_val_edocument = models.ForeignKey('Edocument',
-                                          models.DO_NOTHING,
+                                          models.DO_NOTHING, blank=True, null=True,
                                           db_column='out_val_edocument_uuid',
                                           related_name='calculation_out_val_edocument', editable=False)
 
@@ -82,14 +84,20 @@ class CalculationDef(DateColumns, ActorColumn, DescriptionColumn):
                                    db_column='systemtool_uuid', 
                                    related_name='calculation_def_systemtool',
                                    blank=True, null=True)
+    internal_slug = SlugField(populate_from=[
+                                    'description',
+                                    'short_name',
+                                    'calc_definition'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
 
     def __str__(self):
         return "{}".format(self.description)
 
 
 class Edocument(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
-    uuid = RetUUIDField(
-        primary_key=True, db_column='edocument_uuid', editable=False)
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='edocument_uuid', editable=False)
     title = models.CharField(max_length=255, blank=True,
                              null=True, db_column='title')
     filename = models.CharField(max_length=255, blank=True, null=True,
@@ -105,6 +113,12 @@ class Edocument(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                       on_delete=models.DO_NOTHING, blank=True, null=True, editable=False)
     #edocument_x_uuid = RetUUIDField(editable=False)
     ref_edocument_uuid = RetUUIDField()
+    internal_slug = SlugField(populate_from=[
+                                    'filename',
+                                    'edoc_ver'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
 
     def __str__(self):
         return "{}".format(self.title)
@@ -138,6 +152,11 @@ class Measure(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                     db_column='measure_def_uuid',
                                     on_delete=models.DO_NOTHING)
     measure_value = ValField()
+    internal_slug = SlugField(populate_from=[
+                                'description'
+                                ],
+                            overwrite=True, 
+                            max_length=255)
 
 class MeasureType(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='measure_type_uuid')
@@ -181,6 +200,11 @@ class Note(DateColumns, ActorColumn):
     notetext = models.TextField(blank=True, null=True,
                                 verbose_name='Note Text')
     ref_note_uuid = RetUUIDField(blank=True, null=True)
+    internal_slug = SlugField(populate_from=[
+                                    'description'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
 
     def __str__(self):
         return "{}".format(self.notetext)
@@ -216,11 +240,11 @@ class Parameter(DateColumns, StatusColumn, ActorColumn):
                              null=True,
                              db_column='parameter_val_actual')
     #ref_object = RetUUIDField(blank=True, null=True)
-    action = models.ForeignKey('Action',
+    action_unit = models.ForeignKey('ActionUnit',
                                       on_delete=models.DO_NOTHING,
                                       blank=True,
                                       null=True,
-                                      related_name='parameter_action')
+                                      related_name='parameter_action_unit')
     """
     # Parameter should be related to only 1 action unlike parameter_def to action_def
     # Therefore, we don't need a cross table like parameter_x but a direct foreign key
@@ -230,7 +254,7 @@ class Parameter(DateColumns, StatusColumn, ActorColumn):
                                 on_delete=models.DO_NOTHING,
                                 blank=True,
                                 null=True,
-                                editable=False, related_name='parameter_action')
+                                related_name='parameter_action')
     """
 
 class ParameterDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
@@ -242,6 +266,11 @@ class ParameterDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                  blank=True,
                                  null=True,
                                  db_column='parameter_def_unit_type')
+    internal_slug = SlugField(populate_from=[
+                                    'description'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
 
     def __str__(self):
         return "{}".format(self.description)
@@ -387,3 +416,41 @@ class UdfDef(DescriptionColumn):
 
     def __str__(self):
         return "{}".format(self.description)
+
+
+class DefaultValues(DateColumns, ActorColumn, DescriptionColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,)
+    default_nominal_value = ValField(blank=True, null=True)
+    default_actual_value = ValField(blank=True, null=True)
+
+    def __str__(self):
+        return self.description
+
+class ValueInstance(DateColumns, ActorColumn, DescriptionColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,)
+    value_template = models.ForeignKey('DefaultValues', on_delete=models.DO_NOTHING,
+                                 blank=True,
+                                 null=True, related_name='value_instance_value_template')
+    nominal_value = ValField(blank=True, null=True)
+    actual_value = ValField(blank=True, null=True)
+    # Foreignkey to specific tables that need values. 
+    # Avoiding GenericForeignKey due to performance and complexity
+    outcome_instance = models.ForeignKey('OutcomeInstance',
+                                 on_delete=models.DO_NOTHING,
+                                 blank=True,
+                                 null=True, related_name='value_instance_outcome')
+    #reagent_instance = models.ForeignKey('ReagentInstance', on_delete=models.DO_NOTHING,
+    #                      related_name='reagent_instance_value_reagent_instance')
+    
+    def save(self, *args, **kwargs):
+        if self.value_template is not None:
+            self.nominal_value = self.value_template.default_nominal_value
+            self.actual_value = self.value_template.default_actual_value
+        super().save(*args, **kwargs)
+
+
+class OutcomeInstanceValue(ValueInstance):
+    objects = OutcomeInstanceValueManager()
+
+    class Meta:
+        proxy = True

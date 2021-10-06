@@ -14,7 +14,9 @@ from core.models import (
     InventoryMaterial,
     BomMaterial,
     Mixture,
-    BillOfMaterials
+    BillOfMaterials,
+    Inventory,
+    Material
 )
 
 basebommaterial_test_data = {}
@@ -33,8 +35,8 @@ basebommaterial_tests = [
 #deletes the updated basebommaterial
 #gets the basebommaterial (should return error)
     [      
-        {
-            'name': 'billofmaterials0',
+        *[{
+            'name': name,
             'method': POST,
             'endpoint': 'billofmaterials-list',
             'body': random_model_dict(BillOfMaterials),
@@ -47,28 +49,60 @@ basebommaterial_tests = [
                     'status_code': POST
                 }
             }
-        },
-        ##THIS NEEDS TO BE DEBUGGED##
-        {
-            'name': 'inventorymaterial0',
+        } for name in ['billofmaterials0', 'billofmaterials1']],
+        *[{
+            'name': name,
+            'method': POST,
+            'endpoint': 'inventory-list',
+            'body': random_model_dict(Inventory),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        } for name in ['inventory0', 'inventory1']],
+        *[{
+            'name': name,
+            'method': POST,
+            'endpoint': 'material-list',
+            'body': (request_body := random_model_dict(Material)), 
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': compare_data,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST,
+                    'request_body': request_body
+                }
+            }
+        } for name in ['material0', 'material1']],
+        *[{
+            'name': 'inventorymaterial'+str(i),
             'method': POST,
             'endpoint': 'inventorymaterial-list',
-            'body': random_model_dict(InventoryMaterial),
+            'body': (request_body := random_model_dict(InventoryMaterial, inventory='inventory'+str(i)+'__url',
+                                                        material='material'+str(i)+'__url')), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
-                'function': check_status_code,
+                'function': compare_data,
                 'args': [],
                 'kwargs': {
-                    'status_code': POST
+                    'status_code': POST,
+                    'request_body': request_body
                 }
             }
-        },
-        {
-            'name': 'bommaterial',
+        } for i in range(2)],
+        *[{
+            'name': 'bommaterial' + str(i),
             'method': POST,
             'endpoint': 'bommaterial-list',
-            'body': random_model_dict(BomMaterial),
+            'body': random_model_dict(BomMaterial, inventory_material='inventorymaterial'+str(i)+'__url'),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -78,9 +112,9 @@ basebommaterial_tests = [
                     'status_code': POST
                 }
             }
-        },
-        {
-            'name': 'mixture0',
+        } for i in range(2)],
+        *[{
+            'name': name,
             'method': POST,
             'endpoint': 'mixture-list',
             'body': random_model_dict(Mixture),
@@ -93,7 +127,7 @@ basebommaterial_tests = [
                     'status_code': POST
                 }
             }
-        },
+        } for name in ['mixture0', 'mixture1']],
         {
             'name': 'basebommaterial0',
             'method': POST,
@@ -135,7 +169,10 @@ basebommaterial_tests = [
             'name': 'basebommaterial0_update_0',
             'method': PUT,
             'endpoint': 'basebommaterial-detail',
-            'body': (request_body := random_model_dict(BaseBomMaterial)),
+            'body': (request_body := random_model_dict(BaseBomMaterial, bom='billofmaterials1__url',
+                                                inventory_material='inventorymaterial1__url',
+                                                bom_material='bommaterial1__url',
+                                                mixture='mixture1__url')), 
             'args': [
                 'basebommaterial0__uuid'
             ],

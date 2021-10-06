@@ -15,7 +15,7 @@ from core.models import (
     Parameter,
     BomMaterial,
     ActionUnit,
-    Status
+    Status,
 )
 #from core.models.view_tables.workflow import Experiment
 
@@ -34,17 +34,9 @@ def create_actor(sender, **kwargs):
         fields = {sender.__name__.lower(): kwargs['instance']}
         fields['description'] = str(kwargs['instance'])
         fields['status'] = Status.objects.get(description='active')
-        actor = Actor(**fields)
-        actor.save()
-
-
-"""
-@receiver(post_save, sender=CompositeMaterial) 
-def create_bom_material_composite(sender, **kwargs):
-    if kwargs['created']:
-        bom_material_composite = BomCompositeMaterial(CompositeMaterial=kwargs['instance'])
-        bom_material_composite.save()
-"""
+        #actor = Actor(**fields)
+        #actor.save()
+        Actor.objects.get_or_create(**fields)
 
 
 @receiver(post_save, sender=Udf)
@@ -74,32 +66,7 @@ def create_measure_x(sender, **kwargs):
         measure_x.save()
 
 
-"""
-@receiver(post_save, sender=Property)  
-def create_property_x(sender, **kwargs):
-    if kwargs['created']:
-        property_x = PropertyX(property=kwargs['instance'])
-        property_x.save()
-
-
-@receiver(post_save, sender=Parameter)  
-def create_parameter_x(sender, **kwargs):
-    if kwargs['created']:
-        parameter_x = ParameterX(parameter=kwargs['instance'])
-        parameter_x.save()
-
-@receiver(post_save, sender=Action)  
-def create_action_parameter(sender, **kwargs):
-    if kwargs['created']:
-        action = kwargs['instance']
-        parameter_defs = action.action_def.parameter_def.all()
-        action.parameter_def.add(*parameter_defs)
-        action.save()
-
-"""
-
-
-@receiver(pre_save, sender=ActionUnit)
+@receiver(post_save, sender=ActionUnit)
 def create_parameters(sender, **kwargs):
     """
     Creates the appropriate parameter in actionunit based on 
@@ -111,20 +78,23 @@ def create_parameters(sender, **kwargs):
     # do something like this
     
     action_unit = kwargs['instance']
+    '''
     try:
         ActionUnit.objects.get(pk=action_unit.pk)
     except ActionUnit.DoesNotExist:
+    '''
+    try:
         param_defs = action_unit.action.action_def.parameter_def.all()
         active_status = Status.objects.get(description="active")
         for p_def in param_defs:
             p = Parameter(parameter_def=p_def,
-                          parameter_val_nominal=p_def.default_val,
-                          parameter_val_actual=p_def.default_val,
-                          action=action_unit.action,
-                          status=active_status)
+                            parameter_val_nominal=p_def.default_val,
+                            parameter_val_actual=p_def.default_val,
+                            action_unit=action_unit,
+                            status=active_status)
             p.save()
-
-
+    except Exception as e:
+        print(f'Exception {e}')
 
 @receiver(post_save, sender=BomMaterial)
 def create_bom_composite_material(sender, **kwargs):

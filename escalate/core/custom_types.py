@@ -2,12 +2,15 @@ import csv
 import json
 from django.core.exceptions import ValidationError
 from core.models.core_tables import TypeDef
+from core.cached_queries import get_val_types
+import uuid
 
 class Val:
+
     positions = {
             'text' : 2, 'array_text' : 3, 'int' : 4, 'array_int': 5, 'num': 6,
             'array_num': 7, 'blob': 8, 'blob_array': 9, 'bool': 10,
-            'bool_array': 11
+            'array_bool': 11
         }
     def __init__(self, val_type, value, unit, null=False, raw_string=''):
         self.null = null
@@ -25,6 +28,7 @@ class Val:
             if isinstance(self.value, str):
                 self.value = self.convert_value()
             self.unit = unit
+            self.str_value = raw_string
             #print(self.val_type.description, self.value, self.unit)
         else:
             self.value = None
@@ -56,7 +60,7 @@ class Val:
         primitives = {'bool': bool, 'int': int, 'num': float, 'text': str, 'blob': str}
         reverse_primitives = {bool: 'bool',
                               int: 'int', float: 'num', str: 'text'}
-        default_primitives = {'bool': False, 'int': 0, 'num': 0.0, 'text': ' '}
+        default_primitives = {'bool': False, 'int': 0, 'num': 0.0, 'text': ' ', 'blob':' '}
         prim = primitives[description]
         try:
             if value:
@@ -89,9 +93,10 @@ class Val:
     
     def __str__(self):
         if not self.null:
-            return f'{self.value} {self.unit}'
+            #return f'{self.value} {self.unit}'
+            return self.str_value
         else:
-            return 'null'
+            return ''
     
     def __repr__(self):
         if not self.null:
@@ -112,8 +117,9 @@ class Val:
         #print(args)
         type_uuid = args[0]
         unit = args[1]
-        val_type = TypeDef.objects.get(pk=type_uuid)
+        val_type = get_val_types()[uuid.UUID(type_uuid)]
         
+
         # Values should be from index 2 onwards.
         value = args[cls.positions[val_type.description]]
         
@@ -138,7 +144,10 @@ class Val:
             required_keys = set(['type', 'value', 'unit'])
             # Check if all keys are present in 
             if not all(k in json_data for k in required_keys):
+                try:
                     raise ValidationError(f'Missing key "{required_keys - set(json_data.keys())}". ', 'invalid')
+                except:
+                    print('Data does not have attribute keys')
             
             val_type = cls.validate_type(json_data["type"])
             return cls(val_type, json_data['value'], json_data['unit'])
@@ -146,11 +155,15 @@ class Val:
     @classmethod
     def validate_type(cls, type_string):
         # Check if type exists in database
-        try:
-            val_type = TypeDef.objects.get(category='data', description=type_string)
-        except TypeDef.DoesNotExist:
-            val_types = TypeDef.objects.filter(category='data')
-            options = [val.description for val in val_types]
+        val_type = None
+        val_types = get_val_types().values()
+        for vt in val_types:
+            if vt.category == 'data' and vt.description == type_string:
+                val_type = vt
+                break
+        #except TypeDef.DoesNotExist:
+        if val_type is None:
+            options = [val.description for val in cls.val_types]
             raise ValidationError(f'Data type {type_string} does not exist. Options are: {", ".join(options)}', code='invalid')
         return val_type
 

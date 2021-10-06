@@ -4,10 +4,10 @@ Created on Mar 30, 2021
 @author: jpannizzo
 '''
 from core.utilities.experiment_utils import hcl_mix, update_dispense_action_set, update_lsr_edoc
-from core.models.view_tables import WorkflowActionSet
+from core.models.view_tables import WorkflowActionSet, Edocument
 import numpy as np
 
-def liquid_solid_extraction(data,q3,experiment_copy_uuid,lsr_edoc,exp_name):
+def liquid_solid_extraction(data, q3,experiment_copy_uuid,exp_name, exp_template):
     '''
     # logic for liquid solid extraction experiment
     '''
@@ -20,7 +20,8 @@ def liquid_solid_extraction(data,q3,experiment_copy_uuid,lsr_edoc,exp_name):
     # I don't believe it is necessary in order to run properly now that it is factored out
     # if there is an issue down the line uncomment the if...else and re-indent the logic in order to reimplement
     '''
-    
+    lsr_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='LSR file')
+    xls_edoc = Edocument.objects.get(ref_edocument_uuid=exp_template.uuid, title='XLS file')
 
     hcl_vols, h2o_vols = hcl_mix(data['stock_concentration'],
                                  data['total_vol'],

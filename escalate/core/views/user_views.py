@@ -127,8 +127,8 @@ class UserProfileEdit(LoginRequiredMixin, View):
 
     def post(self, request, *args, **kwargs):
         form = PersonTableForm(request.POST, instance=request.user.person)
-        profile_image_edoc = Edocument.objects.get(ref_edocument_uuid=request.user.person.pk)
-        edocumentForm = UploadEdocForm(request.POST, request.FILES, instance=profile_image_edoc)
+        profile_image_edoc = Edocument.objects.get_or_create(ref_edocument_uuid=request.user.person.pk, title=str(request.user.username) + "_avatar")
+        edocumentForm = UploadEdocForm(request.POST, request.FILES, instance=profile_image_edoc[0])
 
         if self.request.user.is_authenticated:
             if form.is_valid() and edocumentForm.is_valid():

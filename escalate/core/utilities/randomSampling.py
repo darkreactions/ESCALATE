@@ -4,6 +4,7 @@
 # # Dependencies 
 # Created by wrborrelli
 # %%
+
 import sys
 import itertools
 import matplotlib.pyplot as plt
@@ -19,10 +20,12 @@ from pint import UnitRegistry
 units = UnitRegistry()
 Q_ = units.Quantity
 
+
 # %% [markdown]
 # # Sample Inputs
 
 # %%
+
 reagent1= {'Gamma-Butyrolactone': '0.0 M'}
 
 reagent2= {'Lead Diiodide': '1.81 M',
@@ -37,12 +40,11 @@ reagent7= {'Formic Acid': '26.5 M'}
 reagents = [reagent1, reagent2, reagent3, reagent7]
 descriptions=['Reagent1', 'Reagent2', 'Reagent3', 'Reagent7']
 
-
 # %%
 nExpt = 96
 maxMolarity = 15.0
-finalVolume = '500 ul'
 
+finalVolume = '500 ul'
 
 # %% [markdown]
 # ## Helper Functions
@@ -355,6 +357,7 @@ def sampleUntilSuccessful(corners, boundingCuboid):
             i += 1
     return sample
 
+
 # %%
 def generate_vectors(descriptions, reagents):
     
@@ -441,14 +444,11 @@ def generateExperiments(reagents, descriptions, nExpt, excludedReagents=None, ma
     finalVolume=v1.magnitude
     
     if excludedReagentsDef == None:
-        """ This is the main interface that takes in the dictionary of reagent definitions, decides what experiment generation code to run, and returns the results. 
-
+      """ This is the main interface that takes in the dictionary of reagent definitions, decides what experiment generation code to run, and returns the results. 
         If no excluded reagents are given, the species dimensionality decides which block runs:
             <= 3 --> generate3DExperiments runs 
-            >3 --? generateHitAndRunExperiments runs 
-
+            >3 --> generateHitAndRunExperiments runs 
         If excluded reagents are given, it finds the allowed-excluded hull intersection, then samples from the combined allowed-intersection hull via a bounding box, only taking points that are both inside the total hull and outside the intersection. This isn't super efficient but it runs quick for only 96 expts. I did this because finding the complex polygon is 3D that is given by the difference in both hulls is not easily implemented. 
-
         Args:
             reagentDefs: Dictionary of reagents, output of generate_vectors() function. 
             excludedReagentDefs: (optional) Dictionary of reagents you would like to exclude from experiment generation. 
@@ -465,9 +465,11 @@ def generateExperiments(reagents, descriptions, nExpt, excludedReagents=None, ma
         """
         speciesDimensionality = len(list(dropZeroColumns(reagentDefs).values())[0])
         if speciesDimensionality <= 3:
+
             return generate3DExperiments(reagents, descriptions, nExpt, maxMolarity=9., finalVolume='500. uL', desiredUnit='uL', processValues='round')
         else:
             return generateHitAndRunExperiments(reagents, descriptions, nExpt, maxMolarity=9., finalVolume='500. uL', desiredUnit='uL', processValues='round')
+
     else:
         nonzeroReagentsDef = dropZeroColumns(reagentDefs)
         nonzeroExcludedReagentsDef = dropZeroColumns(excludedReagentsDef)
@@ -494,7 +496,7 @@ def generateExperiments(reagents, descriptions, nExpt, excludedReagents=None, ma
                 if desiredUnit!=units('ul'):
                     for key, val in dic.items():
                         dic[key]=(Q_(val, 'ul')).to(desiredUnit)
-                
+
                 return dic
             else:
                 return print('Volume of remaining space is zero')
@@ -522,6 +524,7 @@ def generateHitAndRunExperiments(reagents, descriptions, nExpt=96, maxMolarity=9
     finalVolume=v1.magnitude
     
     reagentDefs = generate_vectors(descriptions, reagents) #convert reagent input into proper vector format
+
     nonzeroReagentDefs = dropZeroColumns(reagentDefs)
     dimensionality = len(np.array(list(nonzeroReagentDefs.values()))[0])
     hullCorners = np.array(list(nonzeroReagentDefs.values()))
@@ -538,6 +541,7 @@ def generateHitAndRunExperiments(reagents, descriptions, nExpt=96, maxMolarity=9
         results = np.transpose(results)
         results = list(map(list, results))
     r_keys = np.array(list(reagentDefs.keys()))
+
     output= dict(zip(r_keys, results))
     desiredUnit = Q_(1, desiredUnit).units
     
@@ -570,12 +574,14 @@ def generate3DExperiments(reagents, descriptions, nExpt=96, maxMolarity=9., fina
     finalVolume=v1.magnitude
     
     reagentDefs = generate_vectors(descriptions, reagents) #convert reagent input into proper vector format
+
     nonzeroReagentDefs = dropZeroColumns(reagentDefs)
     hull = allowedExperiments(nonzeroReagentDefs, maxMolarity)
     sample_cs = sampleConcentrations(hull, nExpt)
     dic = convertConcentrationsToVolumes(reagentDefs, sample_cs)
     for k, v in dic.items():
         dic[k] = list(np.round((finalVolume*np.array(v))))
+
     desiredUnit = Q_(1, desiredUnit).units
 
     if desiredUnit!=units('ul'):
@@ -586,4 +592,3 @@ def generate3DExperiments(reagents, descriptions, nExpt=96, maxMolarity=9., fina
 
 if __name__=='__main__':
     generateExperiments(reagents, descriptions, 5)
-    

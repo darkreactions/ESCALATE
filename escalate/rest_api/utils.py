@@ -21,17 +21,23 @@ misc_views = set(['NoteX'])
 
 core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   'SystemtoolType', 'Inventory', 'InventoryMaterial',
-                  'Calculation', 'CalculationDef', 'Material',
+                    #'Calculation', 'CalculationDef',
+                  'Material',
                   'Mixture', 'MaterialIdentifierDef', 'MaterialIdentifier',
                   'MaterialType', 
                   'Person', 'Tag', 'TagType', 'PropertyDef', 'UnitType',
-                  'TypeDef', 'ParameterDef', 'Condition', 'ConditionDef',
+                  'TypeDef', 'ParameterDef', 
+                  #'Condition', 'ConditionDef',
                   #'ActionParameter', 'Parameter', 
                   'WorkflowType', 'WorkflowStep', 
-                  'WorkflowObject', 'UdfDef', 'Experiment', 'ExperimentWorkflow', 'ExperimentType', #'ExperimentParameter',
-                  'BillOfMaterials',  'Measure', 'MeasureType', 'MeasureDef', 'Outcome',
+                  'WorkflowObject', 'UdfDef', 'ExperimentTemplate', 
+                  'ExperimentWorkflow', 'ExperimentType', #'ExperimentParameter',
+                  'BillOfMaterials',  'Measure', 'MeasureType', 
+                  'MeasureDef', 'OutcomeTemplate', 'OutcomeInstance',
                   'Action', 'ActionUnit', 'ActionDef', 'ExperimentInstance',
-                  'BaseBomMaterial', 'Vessel'])
+                  'BaseBomMaterial', 'Vessel', 'VesselInstance', 'Contents', 
+                  'ReagentMaterialInstance', 'ReagentTemplate', 'ReagentMaterialTemplate',
+                  'DefaultValues' ])
 
 #Views that are a combination of multiple tables, used to be postgres views. Should be changed to something else
 combined_views = set(['CompositeMaterialProperty', 'MaterialTypeAssign', 
@@ -47,7 +53,8 @@ unexposed_views = set(['TagAssign', 'Note', 'Edocument', 'Property', 'Parameter'
 custom_serializer_views = set(['Workflow', 'WorkflowActionSet', 'BomMaterial', 'BomCompositeMaterial',])
 
 # Viewsets that are not associated with a model exclusively
-non_model_views = set(['Experiment', 'ExperimentTemplate'])
+#non_model_views = set(['Experiment', 'ExperimentTemplate'])
+non_model_views = set()
 
 perform_create_views = set(['PropertyDef', ])
 
@@ -133,7 +140,8 @@ expandable_fields = {
                   })
         }
     },
-    'Experiment': {
+   
+    'ExperimentTemplate': {
         'options': {
             'many_to_many': ['workflow']
         },
@@ -149,9 +157,41 @@ expandable_fields = {
                                     'read_only': True,
                                     'view_name': 'billofmaterials-detail'
                                 }),
-            'outcome': ('rest_api.OutcomeSerializer',
+            'outcome_template': ('rest_api.OutcomeTemplateSerializer',
                         {
                             'source': 'outcome_experiment',
+                            'many': True,
+                            'read_only': True,
+                            'view_name': 'outcome-detail'
+                        })
+        }
+        
+    },
+
+    'ExperimentInstance': {
+        'options': {
+            'many_to_many': ['workflow']
+        },
+        'fields': {
+            'workflow': ('rest_api.WorkflowSerializer',
+                     {
+                         'many': True,
+                     }),
+            'bill_of_materials': ('rest_api.BillOfMaterialsSerializer',
+                                {
+                                    'source': 'bom_experiment_instance',
+                                    'many': True,
+                                    'read_only': True,
+                                    'view_name': 'billofmaterials-detail'
+                                }),
+            'reagents': ('rest_api.ReagentMaterialInstanceSerializer', 
+                        {'source': 'reagent_instance_experiment_instance',
+                                    'many': True,
+                                    'read_only': True,
+                                    'view_name': 'reagentmaterialinstance-detail'}),
+            'outcome_instance': ('rest_api.OutcomeInstanceSerializer',
+                        {
+                            'source': 'outcome_instance_experiment_instance',
                             'many': True,
                             'read_only': True,
                             'view_name': 'outcome-detail'
@@ -163,6 +203,19 @@ expandable_fields = {
 }
 
 """
+ 'ReagentInstance':{
+        'options': {
+        },
+        'fields': {
+            'reagent_values': ('rest_api.ReagentInstanceSerializer',
+                     {
+                         'source': 'reagent_instance_value_reagent_instance',
+                         'many': True,
+                         'read_only': True,
+                         'view_name': 'reagentinstancevalue-detail',
+                     }),
+        }
+    },
 'BomCompositeMaterial': {
         'options': {
             'many_to_many': []

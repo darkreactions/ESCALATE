@@ -124,7 +124,7 @@ class ParameterListSerializer(DynamicFieldsModelSerializer):
     parameter = SerializerMethodField()
 
     def get_parameter(self, obj):
-        parameter = Parameter.objects.filter(action=obj.uuid)
+        parameter = Parameter.objects.filter(action_unit=obj.uuid)
         result_serializer = ParameterSerializer(
             parameter, many=True, context=self.context)
         return result_serializer.data
@@ -171,12 +171,11 @@ class EdocumentSerializer(TagListSerializer,
         return value
 
     def create(self, validated_data):
-        
         validated_data['filename'] = validated_data['edocument'].name
         validated_data['edocument'] = validated_data['edocument'].read()
         doc_type = TypeDef.objects.get(category='file',
                                        description=validated_data['edoc_type'])
-        validated_data['doc_type_uuid'] = doc_type
+        validated_data['edoc_type_uuid'] = doc_type
         edoc = Edocument(**validated_data)
         edoc.save()
         return edoc
@@ -211,7 +210,7 @@ for model_name in rest_serializer_views:
                         DynamicFieldsModelSerializer]
     if model_name == 'Material' or model_name == 'Mixture':
         base_serializers.insert(3, PropertyListSerializer)
-    if model_name == 'Action':
+    if model_name == 'ActionUnit':
         base_serializers.insert(3, ParameterListSerializer)
     globals()[model_name+'Serializer'] = type(model_name+'Serializer',
                                               tuple(base_serializers),
@@ -247,10 +246,15 @@ class WorkflowActionSetSerializer(EdocListSerializer,
         fields = '__all__'
 
 
-class OutcomeSerializer(MeasureListSerializer, DynamicFieldsModelSerializer):
-    
+#class OutcomeInstanceSerializer(MeasureListSerializer, DynamicFieldsModelSerializer):
+class OutcomeInstanceSerializer(DynamicFieldsModelSerializer):
     class Meta:
-        model = Outcome
+        model = OutcomeInstance
+        fields = '__all__'
+
+class OutcomeTemplateSerializer(DynamicFieldsModelSerializer):
+    class Meta:
+        model = OutcomeTemplate
         fields = '__all__'
 
 
@@ -311,6 +315,9 @@ class BomCompositeMaterialSerializer(DynamicFieldsModelSerializer):
                   'mixture', 'bom_material', 'add_date', 'mod_date']
 
 
+
+
+"""
 class ExperimentSerializer(EdocListSerializer,
                         TagListSerializer,
                         NoteListSerializer,
@@ -322,7 +329,6 @@ class ExperimentSerializer(EdocListSerializer,
 
     expandable_fields = expandable_fields['Experiment']['fields']
 
-"""
 class ExperimentTemplateSerializer(EdocListSerializer,
                         TagListSerializer,
                         NoteListSerializer,
@@ -340,23 +346,48 @@ class ExperimentTemplateSerializer(EdocListSerializer,
                         NoteListSerializer,
                         BomSerializer,
                         DynamicFieldsModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='experiment-detail')
+    #url = serializers.HyperlinkedIdentityField(view_name='experiment-detail')
+    
     class Meta:
         model = ExperimentTemplate
         fields = '__all__'
-    expandable_fields = expandable_fields['Experiment']['fields']
+    expandable_fields = expandable_fields['ExperimentTemplate']['fields']
 
 
+
+"""
+
+class ReagentInstanceSerializer(EdocListSerializer,
+                        TagListSerializer,
+                        NoteListSerializer,
+                        DynamicFieldsModelSerializer):
+    reagent_values = SerializerMethodField()
+
+    def get_reagent_values(self, obj):
+        reagent_values = ReagentInstanceValue.objects.filter(reagent_instance=obj)
+        result_serializer = ReagentInstanceValueSerializer(reagent_values, many=True, context=self.context)
+        return result_serializer.data
+    class Meta:
+        model = ReagentInstance
+        fields = '__all__'
 class ExperimentInstanceSerializer(EdocListSerializer,
                         TagListSerializer,
                         NoteListSerializer,
                         BomSerializer,
                         DynamicFieldsModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='experiment-detail')
+    #url = serializers.HyperlinkedIdentityField(view_name='experiment-detail')
+    #reagents = SerializerMethodField()
+
+    def get_reagents(self, obj):
+        reagents = ReagentInstance.objects.filter(experiment=obj)
+        result_serializer = ReagentInstanceSerializer(reagents, many=True, context=self.context)
+        return result_serializer.data
     class Meta:
         model = ExperimentInstance
         fields = '__all__'
-    expandable_fields = expandable_fields['Experiment']['fields']
+    expandable_fields = expandable_fields['ExperimentInstance']['fields']
+
+"""
 
 class ExperimentQuerySerializer(Serializer):
     object_description = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)
@@ -373,8 +404,8 @@ class ExperimentDetailSerializer(Serializer):
     experiment_name = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)
     material_parameters = ExperimentMaterialSerializer(many=True)
     experiment_parameters_1 = ExperimentQuerySerializer(many=True)
-    experiment_parameters_2 = ExperimentQuerySerializer(many=True)
-    experiment_parameters_3 = ExperimentQuerySerializer(many=True)
+    #experiment_parameters_2 = ExperimentQuerySerializer(many=True)
+    #experiment_parameters_3 = ExperimentQuerySerializer(many=True)
     
     class Meta:
         fields = '__all__'

@@ -7,8 +7,8 @@ from core.models import (
     BaseBomMaterial,
     BomMaterial,
     BillOfMaterials,
-    CalculationDef,
-    Experiment,
+    #CalculationDef,
+    ExperimentTemplate,
     ExperimentType,
     ExperimentWorkflow,
     Inventory,
@@ -350,7 +350,8 @@ class Command(BaseCommand):
 
     def _load_vessels(self):
         self.stdout.write(self.style.NOTICE('Beginning loading vessels'))
-        filename = 'old_dev_schema_materials.csv'
+        #filename = 'old_dev_schema_materials.csv'
+        filename = 'load_vessel.csv'
         OLD_DEV_SCHEMA_MATERIALS = path_to_file(filename)
         with open(OLD_DEV_SCHEMA_MATERIALS, newline='') as f:
             reader = csv.reader(f, delimiter="\t")
@@ -367,29 +368,29 @@ class Command(BaseCommand):
             for row in reader:
                 row_desc = clean_string(
                     row[column_names_to_index['description']])
-                if "Plate" in row_desc:
-                    parts = row_desc.split('#:')
-                    assert(1 <= len(parts) <= 2)
-                    plate_name = parts[0].strip() if len(parts) >= 1 else None
-                    well_number = parts[1].strip() if len(parts) > 1 else None
-                    fields = {
-                        'plate_name': plate_name,
-                        'well_number': well_number,
-                        'status': active_status
-                    }
-                    # whole plate or single vessel
-                    if "#" in row_desc and ':' in row_desc:
-                        # single vessel
-                        row_vessel_instance, created = Vessel.objects.get_or_create(
-                            **fields)
-                        if created:
-                            new_vessels += 1
-                    else:
-                        # whole plate
-                        row_plate_instance, created = Vessel.objects.get_or_create(
-                            **fields)
-                        if created:
-                            new_plates += 1
+                #if "Plate" in row_desc:
+                parts = row_desc.split('#:')
+                assert(1 <= len(parts) <= 2)
+                plate_name = parts[0].strip() if len(parts) >= 1 else None
+                well_number = parts[1].strip() if len(parts) > 1 else None
+                fields = {
+                    'plate_name': plate_name,
+                    'well_number': well_number,
+                    'status': active_status
+                }
+                # whole plate or single vessel
+                if "#" in row_desc and ':' in row_desc:
+                    # single vessel
+                    row_vessel_instance, created = Vessel.objects.get_or_create(
+                        **fields)
+                    if created:
+                        new_vessels += 1
+                else:
+                    # whole plate
+                    row_plate_instance, created = Vessel.objects.get_or_create(
+                        **fields)
+                    if created:
+                        new_plates += 1
             self.stdout.write(self.style.SUCCESS(
                 f'Added {new_vessels} new vessels'))
             self.stdout.write(self.style.SUCCESS(
@@ -407,7 +408,7 @@ class Command(BaseCommand):
             'Beginning experiment related def'))
         self._load_parameter_def()
         self._load_action_def()
-        self._load_calculation_def()
+        #self._load_calculation_def()
         self.stdout.write(self.style.NOTICE(
             'Finished loading experiment related def'))
 
@@ -525,6 +526,7 @@ class Command(BaseCommand):
                     'out_type': TypeDef.objects.get(description=out_type__description, category='data') if not string_is_null(out_type__description) else None,
                     'systemtool': Systemtool.objects.get(systemtool_name=systemtool_name) if not string_is_null(systemtool_name) else None
                 }
+                """
                 calculation_def_instance, created = CalculationDef.objects.get_or_create(
                     **fields)
                 if created:
@@ -533,6 +535,8 @@ class Command(BaseCommand):
                     y := row[column_names_to_index['parameter_def_descriptions']]) else []
                 calculation_def_instance.parameter_def.add(
                     *[ParameterDef.objects.get(description=d) for d in parameter_def_descriptions])
+                """
+                
             # jump to top of csv
             f.seek(0)
             # skip initial header row
@@ -601,7 +605,7 @@ class Command(BaseCommand):
                     'lab': Actor.objects.get(description=lab_description) if not string_is_null(lab_description) else None,
                     'status': active_status
                 }
-                experiment_instance, created = Experiment.objects.get_or_create(
+                experiment_instance, created = ExperimentTemplate.objects.get_or_create(
                     **fields)
                 if created:
                     new_experiment += 1
@@ -622,11 +626,11 @@ class Command(BaseCommand):
                     row[column_names_to_index['description']])
                 parent_description = clean_string(
                     row[column_names_to_index['parent_description']])
-                row_experiment_instance = Experiment.objects.get(
+                row_experiment_instance = ExperimentTemplate.objects.get(
                     description=description)
-                row_experiment_instance.parent = Experiment.objects.get(
+                row_experiment_instance.parent = ExperimentTemplate.objects.get(
                     description=parent_description) if not string_is_null(parent_description) else None
-                row_experiment_instance.save(update_fields=['parent'])
+                #row_experiment_instance.save(update_fields=['parent'])
             self.stdout.write(self.style.SUCCESS(
                 f'Added {new_experiment} new experiments'))
 
@@ -666,7 +670,7 @@ class Command(BaseCommand):
 
                 for exp_desc, exp_wf_seq_num in zip(experiment_description, experiment_workflow_seq_num):
                     fields = {
-                        'experiment': Experiment.objects.get(description=exp_desc) if not string_is_null(exp_desc) else None,
+                        'experiment_template': ExperimentTemplate.objects.get(description=exp_desc) if not string_is_null(exp_desc) else None,
                         'workflow': workflow_instance,
                         'experiment_workflow_seq': int(exp_wf_seq_num) if not string_is_null(exp_wf_seq_num) else -1
                     }
@@ -906,7 +910,7 @@ class Command(BaseCommand):
                     'end_date': end_date if not string_is_null(end_date) else None,
                     'duration': int(duration) if not string_is_null(duration) else None,
                     'repeating': int(repeating) if not string_is_null(repeating) else None,
-                    'calculation_def': CalculationDef.objects.get(short_name=y) if not string_is_null(y := calculation_def_short_name) else None,
+                    #'calculation_def': CalculationDef.objects.get(short_name=y) if not string_is_null(y := calculation_def_short_name) else None,
                     'status': active_status
                 }
 
