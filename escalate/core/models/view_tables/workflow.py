@@ -342,8 +342,8 @@ class OutcomeInstance(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
 
     def save(self, *args, **kwargs):
         if self.outcome_template.default_value is not None:
-            self.nominal_value = self.outcome_template.default_value.nominal_value
-            self.actual_value = self.outcome_template.default_value.actual_value
+            self.nominal_value = self.outcome_template.default_value.default_nominal_value
+            self.actual_value = self.outcome_template.default_value.default_actual_value
         super().save(*args, **kwargs)
 
 

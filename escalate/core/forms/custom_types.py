@@ -108,7 +108,7 @@ class ReagentValueForm(Form):
             ),
             Row(
                 Column(Field('nominal_value', readonly=is_readonly('nominal_value'))),
-                Column(Field('actual_value', readonly=is_readonly('actual_value'))),
+                Column(Field('actual_value')),
             ),
             Row('uuid')
         )
@@ -132,9 +132,29 @@ class BaseReagentFormSet(BaseFormSet):
          kwargs['index'] = index
          return kwargs
 
-"""
-class OutcomeInstanceFormSet(ModelForm):
+
+class OutcomeInstanceForm(ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance:
+            self.fields['actual_value'].label = f'Outcome of: {self.instance.description}'
+        self.fields['file'].required = False
+
+    @staticmethod
+    def get_helper(readonly_fields=[]):
+        helper = FormHelper()
+        helper.form_class = 'form-horizontal'
+        helper.label_class = 'col-lg-4'
+        helper.field_class = 'col-lg-6'
+        helper.layout = Layout(
+            Row(
+                Column(Field('actual_value')),
+                Column(Field('file')),
+            ),
+        )
+        return helper
 
     class Meta:
         model = vt.OutcomeInstance
-"""
+        fields = ['actual_value', 'file']

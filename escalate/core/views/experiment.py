@@ -11,16 +11,17 @@ from django.contrib import messages
 from django.urls import reverse, reverse_lazy
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
+from django.http import HttpResponseRedirect
 
 from core.models.view_tables import (ExperimentTemplate, 
                                      ExperimentInstance, Edocument, 
                                      ReagentMaterialValueInstance, ReagentMaterialInstance,
-                                     InventoryMaterial)
+                                     InventoryMaterial, OutcomeInstance)
 # from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm, NominalActualForm, ReagentValueForm
 from core.forms.custom_types import (ExperimentNameForm, ExperimentTemplateForm, 
                                      ReagentForm, BaseReagentFormSet, 
-                                     BaseReagentModelFormSet)
+                                     BaseReagentModelFormSet, OutcomeInstanceForm)
 from core.utilities.utils import experiment_copy
 from core.utilities.experiment_utils import (update_dispense_action_set, 
                                              get_action_parameter_querysets, 
@@ -34,6 +35,8 @@ from core.custom_types import Val
 import core.experiment_templates
 from core.models.view_tables import Parameter
 from core.widgets import ValWidget
+
+#from escalate.core.widgets import ValFormField
 
 # from .crud_view_methods.model_view_generic import GenericModelList
 # from .crud_views import LoginRequired
@@ -501,19 +504,10 @@ class ExperimentReagentPrepView(TemplateView):
 
     def get_reagent_forms(self, experiment, context):
         reagent_templates = experiment.parent.reagent_templates.all()
-        
-
-        if 'current_org_id' in self.request.session:
-            org_id = self.request.session['current_org_id']
-        else:
-            org_id = None
         formsets = []
         reagent_names = []
-
         form_kwargs = {
                 'disabled_fields': ['material', 'material_type', 'nominal_value'],
-                #'lab_uuid': org_id,
-                #'material_types': []
             }
         
         context['helper'] = ReagentValueForm.get_helper(readonly_fields=['material', 'material_type', 'nominal_value'])
@@ -528,25 +522,17 @@ class ExperimentReagentPrepView(TemplateView):
                 
                 reagent_names.append(reagent_material_instance.description)
                 rmvi = reagent_material_instance.reagent_material_value_instance_reagent_material_instance.all().get(reagent_material_value_template__description='amount')
-                #material = reagent_material_instance.material.material.description
                 initial.append({'material_type':reagent_material_instance.reagent_material_template.material_type.description,  
                                 'material' : reagent_material_instance.material,
                                 'nominal_value' : rmvi.nominal_value,
                                 'actual_value': rmvi.actual_value,
                                 'uuid': rmvi.uuid})
-                #form_kwargs['material_types'].append(reagent_instance.reagent_material_template.material_type) 
-            #qset = reagent_instance.reagent_instance_value_reagent_instance.all().filter(description='amount')
-            #qset.append(reagent_instance)
-            #material_types = [q.material_type for q in qset]
-            #material_types = reagent_instance.reagent_template.material_type.all()
                 
             fset = self.ReagentFormSet(prefix=f'reagent_{index}', initial=initial, form_kwargs=form_kwargs)
             formsets.append(fset)
-        #for form in formset:
-        #    form.fields[]
         context['reagent_formsets'] = formsets
-        context['reagent_template_names'] = reagent_names
-        context['reagent_prep_link'] = reverse('reagent_prep', args=[experiment.uuid])
+        # context['reagent_template_names'] = reagent_names
+        
         return context
     
     
@@ -554,13 +540,46 @@ class ExperimentReagentPrepView(TemplateView):
         context = self.get_context_data(**kwargs)
         experiment_instance_uuid = request.resolver_match.kwargs['pk']
         experiment = ExperimentInstance.objects.get(uuid=experiment_instance_uuid)
-        reagent_instances = experiment.reagent_instance_experiment_instance.all()
-        for index, reagent_instance in enumerate(reagent_instances):
+        reagent_templates = experiment.parent.reagent_templates.all()
+        formsets = []
+        valid_forms = True
+        for index in range(len(reagent_templates)):
             fset = self.ReagentFormSet(request.POST, prefix=f'reagent_{index}')
+            formsets.append(fset)
             if fset.is_valid():
-                fset.save()
+                for form in fset:
+                    rmvi = ReagentMaterialValueInstance.objects.get(uuid=form.cleaned_data['uuid'])
+                    rmvi.actual_value = form.cleaned_data['actual_value']
+                    rmvi.save()
             else:
-                print(fset.errors)
+                valid_forms = False
+        
+        if valid_forms:
+            return HttpResponseRedirect(reverse('experiment_instance_list'))
+        else:
+            return render(request, self.template_name, context)
+
+    
+
+class ExperimentOutcomeView(TemplateView):
+    template_name = "core/experiment_outcome.html"
+    ReagentFormSet = modelformset_factory(OutcomeInstance, 
+                                          form=OutcomeInstanceForm, 
+                                          extra=0, 
+                                          widgets={'actual_value': ValWidget()})
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        pk = kwargs['pk']
+        experiment = ExperimentInstance.objects.get(pk=pk)
+        context = self.get_outcome_forms(experiment, context)
         return render(request, self.template_name, context)
     
-    
+    def get_outcome_forms(self, experiment, context):
+        outcome_instances = experiment.outcome_instance_experiment_instance.all()
+
+        outcome_formset = self.ReagentFormSet(queryset=outcome_instances)
+        context['outcome_formset'] = outcome_formset
+        context['helper'] = OutcomeInstanceForm.get_helper()
+        context['helper'].form_tag = False
+        return context

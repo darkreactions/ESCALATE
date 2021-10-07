@@ -1,14 +1,26 @@
 [
 {
     "model": "core.defaultvalues",
+    "pk": "212239ba-77d2-4356-a566-ce72ff9dbbe1",
+    "fields": {
+        "add_date": "2021-10-07T15:13:14.781",
+        "mod_date": "2021-10-07T15:13:14.781",
+        "actor": null,
+        "description": "Zero no unit",
+        "default_nominal_value": "(c14bdf12-b063-4b14-b8d6-0dd3ff234063,,,,,,\"0\",,,,,)",
+        "default_actual_value": "(c14bdf12-b063-4b14-b8d6-0dd3ff234063,,,,,,\"0\",,,,,)"
+    }
+},
+{
+    "model": "core.defaultvalues",
     "pk": "3b1a537b-f962-4700-8163-5544664d5276",
     "fields": {
         "add_date": "2021-10-04T21:32:49.661",
         "mod_date": "2021-10-04T21:32:49.661",
         "actor": null,
         "description": "Zero ml",
-        "default_nominal_value": "(c14bdf12-b063-4b14-b8d6-0dd3ff234063,ml,,,,,\"0\",,,,,)",
-        "default_actual_value": "(c14bdf12-b063-4b14-b8d6-0dd3ff234063,ml,,,,,\"0\",,,,,)"
+        "default_nominal_value": "(c14bdf12-b063-4b14-b8d6-0dd3ff234063,ml,,,,,\"0.0\",,,,,)",
+        "default_actual_value": "(c14bdf12-b063-4b14-b8d6-0dd3ff234063,ml,,,,,\"0.0\",,,,,)"
     }
 },
 {
@@ -19,8 +31,8 @@
         "mod_date": "2021-10-04T21:32:30.818",
         "actor": null,
         "description": "Zero grams",
-        "default_nominal_value": "(c14bdf12-b063-4b14-b8d6-0dd3ff234063,gm,,,,,\"0\",,,,,)",
-        "default_actual_value": "(c14bdf12-b063-4b14-b8d6-0dd3ff234063,gm,,,,,\"0\",,,,,)"
+        "default_nominal_value": "(c14bdf12-b063-4b14-b8d6-0dd3ff234063,gm,,,,,\"0.0\",,,,,)",
+        "default_actual_value": "(c14bdf12-b063-4b14-b8d6-0dd3ff234063,gm,,,,,\"0.0\",,,,,)"
     }
 },
 {
@@ -31,8 +43,8 @@
         "mod_date": "2021-10-04T21:32:11.755",
         "actor": null,
         "description": "Zero concentration",
-        "default_nominal_value": "(c14bdf12-b063-4b14-b8d6-0dd3ff234063,M,,,,,\"0\",,,,,)",
-        "default_actual_value": "(c14bdf12-b063-4b14-b8d6-0dd3ff234063,M,,,,,\"0\",,,,,)"
+        "default_nominal_value": "(c14bdf12-b063-4b14-b8d6-0dd3ff234063,M,,,,,\"0.0\",,,,,)",
+        "default_actual_value": "(c14bdf12-b063-4b14-b8d6-0dd3ff234063,M,,,,,\"0.0\",,,,,)"
     }
 }
 ]

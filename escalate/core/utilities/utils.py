@@ -165,6 +165,7 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
             outcome_instance = OutcomeInstance(outcome_template=outcome_template,
                                                experiment_instance=exp_instance,
                                                description=label)
+            outcome_instance.save()
 
     return exp_instance.uuid
 

@@ -1,0 +1,22 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load index %}
+
+{% block content %}
+
+<form method="post"  action="">{% csrf_token %}
+        <div class="card">
+            <div class="card-body">
+                {{ outcome_formset.management_form }}
+                {% crispy outcome_formset helper %}
+            </div>
+        </div>
+        <br>
+    <input type="hidden" id="automated" name="automated" value="{{ automated }}">
+    <div class="text-left">
+        <button class="btn btn-outline-primary" type="submit">Submit Outcomes</button>
+    </div>
+    
+</form>
+{% endblock %}

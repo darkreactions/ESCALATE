@@ -6,7 +6,7 @@ from .views import (LoginView, CreateUserView, MainMenuView, WorkflowView,
 # ParameterEditView, MaterialEditView,
 from .views.misc_views import ExperimentDetailEditView
 from .views.experiment import (CreateExperimentView, ExperimentDetailView,
-                              ExperimentReagentPrepView
+                              ExperimentReagentPrepView, ExperimentOutcomeView,
 # ExperimentListView
 )
 from core.utilities.utils import view_names, camel_to_snake
@@ -41,6 +41,8 @@ urlpatterns = [
          ExperimentDetailEditView.as_view(), name='experiment_instance_update'),
      path('experiment/<uuid:pk>/reagent_prep',
          ExperimentReagentPrepView.as_view(), name='reagent_prep'),
+     path('experiment/<uuid:pk>/outcome',
+         ExperimentOutcomeView.as_view(), name='outcome'),
     path('favicon.ico', RedirectView.as_view(
         url=staticfiles_storage.url('static/favicon.ico'))),
 ]
