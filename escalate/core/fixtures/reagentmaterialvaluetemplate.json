@@ -1,0 +1,170 @@
+[
+{
+    "model": "core.reagentmaterialvaluetemplate",
+    "pk": "0779620d-3776-4833-8c36-ead45cd03f44",
+    "fields": {
+        "add_date": "2021-10-07T02:27:49.850",
+        "mod_date": "2021-10-07T02:27:49.850",
+        "status": "6378ad3a-a963-4100-8675-0540043bedfd",
+        "description": "amount",
+        "reagent_material_template": "88619511-3e5c-4e01-82d8-d486c56630f8",
+        "default_value": "cf46d5a2-92ce-4015-8d5b-aaa2cf13f527"
+    }
+},
+{
+    "model": "core.reagentmaterialvaluetemplate",
+    "pk": "1d4ff25b-c553-4332-ba7d-2657a3ee51d6",
+    "fields": {
+        "add_date": "2021-10-07T02:26:59.135",
+        "mod_date": "2021-10-07T02:26:59.135",
+        "status": "6378ad3a-a963-4100-8675-0540043bedfd",
+        "description": "concentration",
+        "reagent_material_template": "88619511-3e5c-4e01-82d8-d486c56630f8",
+        "default_value": "e37e0855-7c38-4ab5-aa4a-e55229bce007"
+    }
+},
+{
+    "model": "core.reagentmaterialvaluetemplate",
+    "pk": "21714a42-0e38-4b84-9539-cbcf381e2e76",
+    "fields": {
+        "add_date": "2021-10-07T02:27:57.793",
+        "mod_date": "2021-10-07T02:27:57.793",
+        "status": "6378ad3a-a963-4100-8675-0540043bedfd",
+        "description": "amount",
+        "reagent_material_template": "d6d99202-7998-4a06-8984-af2908eb8c4e",
+        "default_value": "3b1a537b-f962-4700-8163-5544664d5276"
+    }
+},
+{
+    "model": "core.reagentmaterialvaluetemplate",
+    "pk": "34d09d1d-204d-4780-857e-d5990f801cb0",
+    "fields": {
+        "add_date": "2021-10-07T02:27:06.436",
+        "mod_date": "2021-10-07T02:27:06.436",
+        "status": "6378ad3a-a963-4100-8675-0540043bedfd",
+        "description": "concentration",
+        "reagent_material_template": "f3e89c17-1b91-40ee-a483-fae0e84f6050",
+        "default_value": "e37e0855-7c38-4ab5-aa4a-e55229bce007"
+    }
+},
+{
+    "model": "core.reagentmaterialvaluetemplate",
+    "pk": "3de20c3a-d942-4526-ad9e-41e73a7d1ba1",
+    "fields": {
+        "add_date": "2021-10-07T02:27:39.431",
+        "mod_date": "2021-10-07T02:27:39.431",
+        "status": "6378ad3a-a963-4100-8675-0540043bedfd",
+        "description": "amount",
+        "reagent_material_template": "18f3de09-6127-4ee3-86d5-157055b158d8",
+        "default_value": "3b1a537b-f962-4700-8163-5544664d5276"
+    }
+},
+{
+    "model": "core.reagentmaterialvaluetemplate",
+    "pk": "6f82e3fe-e71f-45d5-b562-8fbf506798e7",
+    "fields": {
+        "add_date": "2021-10-07T02:27:09.754",
+        "mod_date": "2021-10-07T02:27:09.754",
+        "status": "6378ad3a-a963-4100-8675-0540043bedfd",
+        "description": "concentration",
+        "reagent_material_template": "f4d658f8-468b-48e4-9230-9c1305a13b3d",
+        "default_value": "e37e0855-7c38-4ab5-aa4a-e55229bce007"
+    }
+},
+{
+    "model": "core.reagentmaterialvaluetemplate",
+    "pk": "7cf2ca7a-0a5f-48d4-9e56-1e929ce11fe3",
+    "fields": {
+        "add_date": "2021-10-07T02:27:29.186",
+        "mod_date": "2021-10-07T02:27:29.186",
+        "status": "6378ad3a-a963-4100-8675-0540043bedfd",
+        "description": "amount",
+        "reagent_material_template": "09bbd833-1c95-4624-8529-9f967d8c4c9c",
+        "default_value": "3b1a537b-f962-4700-8163-5544664d5276"
+    }
+},
+{
+    "model": "core.reagentmaterialvaluetemplate",
+    "pk": "806dacdf-7a6d-4033-896c-0dd97f7b4375",
+    "fields": {
+        "add_date": "2021-10-07T02:27:03.128",
+        "mod_date": "2021-10-07T02:27:03.129",
+        "status": "6378ad3a-a963-4100-8675-0540043bedfd",
+        "description": "concentration",
+        "reagent_material_template": "d6d99202-7998-4a06-8984-af2908eb8c4e",
+        "default_value": "e37e0855-7c38-4ab5-aa4a-e55229bce007"
+    }
+},
+{
+    "model": "core.reagentmaterialvaluetemplate",
+    "pk": "85003bab-61d0-4fad-813a-997c993547c3",
+    "fields": {
+        "add_date": "2021-10-07T02:26:16.690",
+        "mod_date": "2021-10-07T02:26:16.690",
+        "status": "6378ad3a-a963-4100-8675-0540043bedfd",
+        "description": "concentration",
+        "reagent_material_template": "09bbd833-1c95-4624-8529-9f967d8c4c9c",
+        "default_value": "e37e0855-7c38-4ab5-aa4a-e55229bce007"
+    }
+},
+{
+    "model": "core.reagentmaterialvaluetemplate",
+    "pk": "8b121b83-3a7d-49e5-9c75-49f162eeeebd",
+    "fields": {
+        "add_date": "2021-10-07T02:28:10.302",
+        "mod_date": "2021-10-07T02:28:10.302",
+        "status": "6378ad3a-a963-4100-8675-0540043bedfd",
+        "description": "amount",
+        "reagent_material_template": "f4d658f8-468b-48e4-9230-9c1305a13b3d",
+        "default_value": "cf46d5a2-92ce-4015-8d5b-aaa2cf13f527"
+    }
+},
+{
+    "model": "core.reagentmaterialvaluetemplate",
+    "pk": "cdfb4420-7051-495f-a6c7-c3a3ee7585f5",
+    "fields": {
+        "add_date": "2021-10-07T02:28:03.163",
+        "mod_date": "2021-10-07T02:28:03.163",
+        "status": "6378ad3a-a963-4100-8675-0540043bedfd",
+        "description": "amount",
+        "reagent_material_template": "f3e89c17-1b91-40ee-a483-fae0e84f6050",
+        "default_value": "cf46d5a2-92ce-4015-8d5b-aaa2cf13f527"
+    }
+},
+{
+    "model": "core.reagentmaterialvaluetemplate",
+    "pk": "e1018cb5-7443-496c-876b-e062837dfa2e",
+    "fields": {
+        "add_date": "2021-10-07T02:26:55.354",
+        "mod_date": "2021-10-07T02:26:55.354",
+        "status": "6378ad3a-a963-4100-8675-0540043bedfd",
+        "description": "concentration",
+        "reagent_material_template": "19c66235-b929-4d7c-a7ab-013838781863",
+        "default_value": "e37e0855-7c38-4ab5-aa4a-e55229bce007"
+    }
+},
+{
+    "model": "core.reagentmaterialvaluetemplate",
+    "pk": "e12abc36-940c-4777-9c7f-a62ecc27270d",
+    "fields": {
+        "add_date": "2021-10-07T02:27:44.348",
+        "mod_date": "2021-10-07T02:27:44.348",
+        "status": "6378ad3a-a963-4100-8675-0540043bedfd",
+        "description": "amount",
+        "reagent_material_template": "19c66235-b929-4d7c-a7ab-013838781863",
+        "default_value": "3b1a537b-f962-4700-8163-5544664d5276"
+    }
+},
+{
+    "model": "core.reagentmaterialvaluetemplate",
+    "pk": "f0748a55-1387-4c5c-b823-502a9d05f4f8",
+    "fields": {
+        "add_date": "2021-10-07T02:26:49.359",
+        "mod_date": "2021-10-07T02:26:49.359",
+        "status": "6378ad3a-a963-4100-8675-0540043bedfd",
+        "description": "concentration",
+        "reagent_material_template": "18f3de09-6127-4ee3-86d5-157055b158d8",
+        "default_value": "e37e0855-7c38-4ab5-aa4a-e55229bce007"
+    }
+}
+]

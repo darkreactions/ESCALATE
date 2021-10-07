@@ -4,10 +4,12 @@ from core.models.view_tables import (Parameter, BomMaterial, Action, ActionUnit,
                                      ExperimentTemplate, ExperimentInstance, 
                                      BillOfMaterials, ExperimentWorkflow, 
                                      WorkflowObject, WorkflowStep,
-                                     ReagentMaterialInstance,
+                                     ReagentMaterialInstance, OutcomeInstance,
+                                     ReagentMaterialValueInstance
                                      )
 from copy import deepcopy
 import uuid
+
 '''
 def experiment_copy(template_experiment_uuid, copy_experiment_description):
     """Wrapper of the ESCALATE postgres function experiment_copy"""
@@ -145,13 +147,24 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
         # different requirements. For e.g. "concentration" and "amount" for the same
         # reagent need different ReagentInstanceValues
         #for val_description in reagent_template.value_descriptions:
-        for reagent_material_template in reagent_template.reagent_material_template_reagent_template.filter(value_description='concentration'):
-            #for material_type in reagent_template.material_type.all():
-            reagent_instance = ReagentMaterialInstance(reagent_material_template=reagent_material_template,
+        for reagent_material_template in reagent_template.reagent_material_template_reagent_template.all():
+            reagent_material_instance = ReagentMaterialInstance(reagent_material_template=reagent_material_template,
                                         experiment=exp_instance,
-                                        description=f'{exp_instance.description} : {reagent_template.description} : {reagent_material_template.value_description}',
+                                        description=f'{exp_instance.description} : {reagent_template.description} : {reagent_material_template.description}',
                                         )
-            reagent_instance.save()
+            reagent_material_instance.save()
+            for reagent_material_value_template in reagent_material_template.reagent_material_value_template_reagent_material_template.all():
+                reagent_material_value_instance = ReagentMaterialValueInstance(reagent_material_instance=reagent_material_instance,
+                                                                                reagent_material_value_template=reagent_material_value_template,
+                                                                                description=reagent_material_value_template.description)
+                reagent_material_value_instance.save()
+
+
+    for outcome_template in exp_template.outcome_template_experiment_template.all():
+        for label in outcome_template.instance_labels:
+            outcome_instance = OutcomeInstance(outcome_template=outcome_template,
+                                               experiment_instance=exp_instance,
+                                               description=label)
 
     return exp_instance.uuid
 
