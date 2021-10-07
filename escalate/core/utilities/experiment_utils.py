@@ -232,7 +232,8 @@ def prepare_reagents(reagent_formset, exp_concentrations):
 
 def generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, num_of_experiments):
 
-    desired_volume = generateExperiments(exp_concentrations, num_of_experiments)
+    desired_volume = generateExperiments(exp_concentrations,['Reagent1', 'Reagent2', 'Reagent3', 'Reagent7'], num_of_experiments)
+    #desired_volume = generateExperiments(reagents, descriptions, num_of_experiments)
     #retrieve q1 information to update
     q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
     #create counters for acid, solvent, stock a, stock b to keep track of current element in those lists

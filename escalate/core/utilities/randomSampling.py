@@ -429,22 +429,26 @@ def generate_vectors(descriptions, reagents):
 
 # %%
 def generateExperiments(reagents, descriptions, nExpt, excludedReagents=None, maxMolarity=9., finalVolume='500. uL', desiredUnit='uL'):
+#def generateExperiments(reagentDefs, nExpt, excludedReagentDefs=None, maxMolarity=9., finalVolume='500. uL', desiredUnit='uL'):
     
     #convert reagent input into proper vector format
-    reagentDefs = generate_vectors(descriptions, reagents) 
+    # reagentDefs = generate_vectors(descriptions, reagents) 
     
-    if excludedReagents != None:
-        excludedReagentDefs = generate_vectors(descriptions, excludedReagents)
-    else:
-        excludedReagentDefs == None
+    # excludedReagentDefs = None
+    # if excludedReagents != None:
+    #    excludedReagentDefs = generate_vectors(descriptions, excludedReagents)
+    
+        
     
     #convert input volume to microliters, if it isn't already
-    v=finalVol.split()
-    v1=Q_(float(v[0]), v[1]).to(units.ul)
+    # v=finalVolume.split()
+    #v1=Q_(float(v[0]), v[1]).to(units.ul)
+    v1 = Q_(finalVolume)
     finalVolume=v1.magnitude
     
-    if excludedReagentsDef == None:
-      """ This is the main interface that takes in the dictionary of reagent definitions, decides what experiment generation code to run, and returns the results. 
+    #if excludedReagentDefs is None:
+    if excludedReagents is None:
+        """ This is the main interface that takes in the dictionary of reagent definitions, decides what experiment generation code to run, and returns the results. 
         If no excluded reagents are given, the species dimensionality decides which block runs:
             <= 3 --> generate3DExperiments runs 
             >3 --> generateHitAndRunExperiments runs 
@@ -463,7 +467,7 @@ def generateExperiments(reagents, descriptions, nExpt, excludedReagents=None, ma
             volumes : {reagents : volumes}
             }
         """
-        speciesDimensionality = len(list(dropZeroColumns(reagentDefs).values())[0])
+        speciesDimensionality = len(list(dropZeroColumns(reagents).values())[0])
         if speciesDimensionality <= 3:
 
             return generate3DExperiments(reagents, descriptions, nExpt, maxMolarity=9., finalVolume='500. uL', desiredUnit='uL', processValues='round')
@@ -471,8 +475,8 @@ def generateExperiments(reagents, descriptions, nExpt, excludedReagents=None, ma
             return generateHitAndRunExperiments(reagents, descriptions, nExpt, maxMolarity=9., finalVolume='500. uL', desiredUnit='uL', processValues='round')
 
     else:
-        nonzeroReagentsDef = dropZeroColumns(reagentDefs)
-        nonzeroExcludedReagentsDef = dropZeroColumns(excludedReagentsDef)
+        nonzeroReagentsDef = dropZeroColumns(reagents)
+        nonzeroExcludedReagentsDef = dropZeroColumns(excludedReagents)
         if len(list(nonzeroReagentsDef.values())[0]) > 3:
             return print('Difference sampling only implemented for <= 3 species')
         else:
@@ -569,16 +573,16 @@ def generate3DExperiments(reagents, descriptions, nExpt=96, maxMolarity=9., fina
     """
     
     #convert input volume to microliters, if it isn't already
-    v=finalVol.split()
+    v=finalVolume.split()
     v1=Q_(float(v[0]), v[1]).to(units.ul)
     finalVolume=v1.magnitude
     
-    reagentDefs = generate_vectors(descriptions, reagents) #convert reagent input into proper vector format
+    #reagentDefs = generate_vectors(descriptions, reagents) #convert reagent input into proper vector format
 
-    nonzeroReagentDefs = dropZeroColumns(reagentDefs)
+    nonzeroReagentDefs = dropZeroColumns(reagents)
     hull = allowedExperiments(nonzeroReagentDefs, maxMolarity)
     sample_cs = sampleConcentrations(hull, nExpt)
-    dic = convertConcentrationsToVolumes(reagentDefs, sample_cs)
+    dic = convertConcentrationsToVolumes(nonzeroReagentDefs, sample_cs)
     for k, v in dic.items():
         dic[k] = list(np.round((finalVolume*np.array(v))))
 
