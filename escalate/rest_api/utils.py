@@ -37,6 +37,7 @@ core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   'Action', 'ActionUnit', 'ActionDef', 'ExperimentInstance',
                   'BaseBomMaterial', 'Vessel', 'VesselInstance', 'Contents', 
                   'ReagentMaterialInstance', 'ReagentTemplate', 'ReagentMaterialTemplate',
+                  'ReagentMaterialValueInstance', 'ReagentMaterialValueTemplate',
                   'DefaultValues' ])
 
 #Views that are a combination of multiple tables, used to be postgres views. Should be changed to something else

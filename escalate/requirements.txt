@@ -27,3 +27,4 @@ openpyxl
 xlwt
 matplotlib
 scipy
+pint

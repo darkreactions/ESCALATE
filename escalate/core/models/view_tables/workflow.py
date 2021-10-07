@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
+
 from core.models.core_tables import RetUUIDField, SlugField
 from core.models.custom_types import ValField, CustomArrayField
 import uuid
@@ -79,12 +80,14 @@ class ActionUnit(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     #                           null=True,
     #                           related_name='action_unit_parameter')
     internal_slug = SlugField(populate_from=[
-                                    'source_material__internal_slug',
-                                    'action__internal_slug',
+                                    #'source_material__internal_slug',
+                                    #'action__internal_slug',
+                                    'uuid',
                                     'destination_material__internal_slug'
                                     ],
                               overwrite=True, 
                               max_length=255)
+    #internal_slug = CharField(max_length=255)
     
     def __str__(self):
         return f"{self.description}"
@@ -307,13 +310,17 @@ class OutcomeTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='outcome_uuid')
     experiment = models.ForeignKey('ExperimentTemplate', db_column='experiment_uuid', on_delete=models.CASCADE,
-                                   blank=True, null=True, related_name='outcome_experiment')
+                                   blank=True, null=True, related_name='outcome_template_experiment_template')
+    instance_labels = ArrayField(models.CharField(null=True, blank=True, max_length=255), null=True, blank=True)
+    default_value = models.ForeignKey('DefaultValues', on_delete=models.DO_NOTHING, 
+                                      blank=True, null=True, related_name='outcome_template_default_value')
     internal_slug = SlugField(populate_from=[
                                     'experiment__internal_slug',
                                     'description'
                                     ],
                               overwrite=True, 
                               max_length=255)
+    
 
 
 class OutcomeInstance(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
@@ -329,6 +336,15 @@ class OutcomeInstance(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
                                     ],
                               overwrite=True, 
                               max_length=255)
+    nominal_value = ValField(blank=True, null=True)
+    actual_value = ValField(blank=True, null=True)
+    file = models.FileField()
+
+    def save(self, *args, **kwargs):
+        if self.outcome_template.default_value is not None:
+            self.nominal_value = self.outcome_template.default_value.nominal_value
+            self.actual_value = self.outcome_template.default_value.actual_value
+        super().save(*args, **kwargs)
 
 
 class Workflow(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):

@@ -17,5 +17,6 @@ elif [[ "$1" = "backup" ]]; then
     python manage.py dumpdata --exclude=contenttypes > ./core/fixtures/all_data.json
     python manage.py dumpdata --indent 4 core.defaultvalues > ./core/fixtures/defaultvalues.json
     python manage.py dumpdata --indent 4 core.reagentmaterialtemplate > ./core/fixtures/reagentmaterialtemplate.json
+    python manage.py dumpdata --indent 4 core.reagentmaterialvaluetemplate > ./core/fixtures/reagentmaterialvaluetemplate.json
 fi
 

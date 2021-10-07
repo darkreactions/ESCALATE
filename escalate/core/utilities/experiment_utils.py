@@ -14,8 +14,8 @@ from core.models.view_tables import (WorkflowActionSet, BomMaterial, Action, Par
                                             ExperimentInstance, ReagentMaterialInstance)
 from core.custom_types import Val
 from core.models.core_tables import RetUUIDField
-
-
+from core.utilities.randomSampling import generateExperiments
+from core.utilities.wf1_utils import make_well_list
 
 def hcl_mix(stock_concentration, solution_volume, target_concentrations):
     '''
@@ -230,7 +230,10 @@ def prepare_reagents(reagent_formset, exp_concentrations):
     return exp_concentrations
 
 
-def save_actions(experiment_copy_uuid, desired_volume, num_of_experiments):
+def generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, num_of_experiments):
+
+    desired_volume = generateExperiments(exp_concentrations,['Reagent1', 'Reagent2', 'Reagent3', 'Reagent7'], num_of_experiments)
+    #desired_volume = generateExperiments(reagents, descriptions, num_of_experiments)
     #retrieve q1 information to update
     q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
     #create counters for acid, solvent, stock a, stock b to keep track of current element in those lists
@@ -242,12 +245,13 @@ def save_actions(experiment_copy_uuid, desired_volume, num_of_experiments):
                           'dispense stock a': ('Reagent 2', 1.0),
                           'dispense stock b': ('Reagent 3', 1.0)}
     for action_description, (reagent_name, mult_factor) in action_reagent_map.items():
-        # get actions from q1 based on keys in action_reagent_map
-        actions = q1.filter(object_description__icontains=action_description)
-        # If number of experiments requested is < actions only choose the first n actions
-        # Otherwise choose all
-        actions = actions[:num_of_experiments] if num_of_experiments < len(actions) else actions
-        for i, action in enumerate(actions):
+        for i, vial in enumerate(make_well_list(container_name='Symyx_96_well_0003', well_count=num_of_experiments)['Vial Site']):
+            # get actions from q1 based on keys in action_reagent_map
+            action = q1.get(object_description__icontains=action_description, object_description__contains=vial)
+            # If number of experiments requested is < actions only choose the first n actions
+            # Otherwise choose all
+            #actions = actions[:num_of_experiments] if num_of_experiments < len(actions) else actions
+            #for i, action in enumerate(actions):
             parameter = Parameter.objects.get(uuid=action.parameter_uuid)
             #action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
             parameter.parameter_val_nominal.value = desired_volume[reagent_name][i] * mult_factor

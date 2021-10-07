@@ -7,7 +7,7 @@ import core.models.view_tables as vt
 from core.widgets import ValFormField
 from .forms import dropdown_attrs
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit, Row, Column, Hidden
+from crispy_forms.layout import Layout, Submit, Row, Column, Hidden, Field
 
 class SingleValForm(Form):
     value = ValFormField(required=False)
@@ -75,26 +75,27 @@ class ReagentForm(Form):
         self.fields['chemical'].choices = [(im.uuid, im.description) for im in inventory_materials]
         self.fields['chemical'].label = f'Chemical {chemical_index+1}: {material_type.description}'
 
-class ReagentValueForm(ModelForm):
+
+class ReagentValueForm(Form):
+    material_type = CharField(required=False)
+    material = CharField(required=False)
+    nominal_value = ValFormField(required=False)
+    actual_value = ValFormField()
+    uuid = CharField(widget=HiddenInput())
 
     def __init__(self, *args, **kwargs):
         disabled_fields = kwargs.pop('disabled_fields', [])
-        lab_uuid = kwargs.pop('lab_uuid', None)
-        material_types = kwargs.pop('material_types', None)
-        index = kwargs.pop('index', None)
+        chemical_index = kwargs.pop('index')
         super().__init__(*args, **kwargs)
-        if lab_uuid is not None:
-            inventory_materials = vt.InventoryMaterial.objects.filter(inventory__lab=lab_uuid)
-            self.fields['material'].choices = [(im.uuid, im.description) for im in inventory_materials]
         for field in disabled_fields:
             self.fields[field].disabled = True
-        self.fields['uuid'].widget = HiddenInput()
 
     @staticmethod
-    def get_helper():
-        fields = ['uuid', 'material_type', 'material', 'nominal_value', 'actual_value']
+    def get_helper(readonly_fields=[]):
+        #fields = ['uuid', 'material_type', 'material', 'nominal_value', 'actual_value']
         #css = {field:'form-group col-md-6 mb-0' for field in fields}
-
+        def is_readonly(field):
+            return True if field in readonly_fields else False
 
         helper = FormHelper()
         helper.form_class = 'form-horizontal'
@@ -102,20 +103,21 @@ class ReagentValueForm(ModelForm):
         helper.field_class = 'col-lg-8'
         helper.layout = Layout(
             Row(
-                Column('material_type'),
-                Column('material'),
+                Column(Field('material_type', readonly=is_readonly('material_type'), css_class='form-control-plaintext')),
+                Column(Field('material', readonly=is_readonly('material'), css_class='form-control-plaintext')),
             ),
             Row(
-                Column('nominal_value'),
-                Column('actual_value'),
+                Column(Field('nominal_value', readonly=is_readonly('nominal_value'))),
+                Column(Field('actual_value', readonly=is_readonly('actual_value'))),
             ),
             Row('uuid')
         )
         return helper
 
-    class Meta:
-        model = vt.ReagentMaterialInstance
-        fields = '__all__'
+    #class Meta:
+    #    model = vt.ReagentMaterialInstance
+    #    fields = '__all__'
+
 
 class BaseReagentModelFormSet(BaseModelFormSet):
     def get_form_kwargs(self, index):
@@ -123,8 +125,16 @@ class BaseReagentModelFormSet(BaseModelFormSet):
          kwargs['index'] = index
          return kwargs
 
+
 class BaseReagentFormSet(BaseFormSet):
     def get_form_kwargs(self, index):
          kwargs = super().get_form_kwargs(index)
          kwargs['index'] = index
          return kwargs
+
+"""
+class OutcomeInstanceFormSet(ModelForm):
+
+    class Meta:
+        model = vt.OutcomeInstance
+"""
