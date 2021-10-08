@@ -320,6 +320,11 @@ class GenericModelEdit:
 
         return context
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['model_obj_pk'] = self.object.pk if self.object else None
+        return kwargs
+
     def post(self, request, *args, **kwargs):
         if 'pk' in self.kwargs:
             model = get_object_or_404(self.model, pk=self.kwargs['pk'])

@@ -117,55 +117,18 @@ class PersonTableForm(PersonFormData, forms.ModelForm):
 class MaterialForm(forms.ModelForm):
     class Meta:
         model = Material
-        fields = ['status']
-        """
-            'abbreviation': forms.CharField,
-            'chemical_name': forms.CharField,
-            'inchi': forms.CharField,
-            'inchikey': forms.CharField,
-            'molecular_formula': forms.CharField,
-            'smiles': forms.CharField
-        """
+        fields = ['consumable', 'material_class', 'identifier', 'material_type', 'status']
         field_classes = {
             'create_date': forms.SplitDateTimeField,
-
         }
-        """
-                    'abbreviation': 'Abbreviation',
-            'chemical_name': 'Chemical name',
-            'inchi': 'International Chemical Identifier (InChI)',
-            'inchikey': 'International Chemical Identifier key (InChI key)',
-            'molecular_formula': 'Molecular formula',
-            'smiles': 'Smiles',
-        """
         labels = {
             'create_date': 'Create date',
             'material_status': 'Status'
         }
-        """
-        'abbreviation': forms.TextInput(attrs={'placeholder': 'Ex: Water'}),
-            'chemical_name': forms.TextInput(attrs={
-                'placeholder': 'Ex: Dihydrogen Monoxide'}),
-            'inchi': forms.TextInput(attrs={'placeholder': 'Ex: 1S/H2O/h1H2'}),
-            'inchikey': forms.TextInput(attrs={
-                'placeholder': 'Ex: XLYOFNOQVPJJNP-UHFFFAOYSA-N'}),
-            'molecular_formula': forms.TextInput(attrs={
-                'placeholder': 'Ex: H2O'}),
-            'smiles': forms.TextInput(attrs={'placeholder': 'Ex: O'}),
-        """
         widgets = {
-            'create_date': forms.SplitDateTimeWidget(
-                date_format='%d-%m-%Y',
-                date_attrs={
-                    'placeholder': 'DD-MM-YYYY'
-                },
-                time_format='%H:%M',
-                time_attrs={
-                    'placeholder': 'HH-MM'
-                }
-            ),
-
-            'material_status': forms.Select(attrs=dropdown_attrs),
+            'consumable': forms.CheckboxInput(),
+            'material_class': forms.RadioSelect(choices=model._meta.get_field('material_class').choices),
+            'status': forms.Select(attrs=dropdown_attrs),
         }
 
 
