@@ -106,7 +106,7 @@ class PropertyListSerializer(DynamicFieldsModelSerializer):
     property = SerializerMethodField()
 
     def get_property(self, obj):
-        property = Property.objects.filter(property_ref=obj.uuid)
+        property = Property.objects.filter(material=obj.uuid)
         result_serializer = PropertySerializer(
             property, many=True, context=self.context)
         return result_serializer.data

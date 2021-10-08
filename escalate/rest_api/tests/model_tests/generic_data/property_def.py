@@ -10,7 +10,7 @@ from ..model_tests_utils import (
 )
 
 from core.models import (
-    PropertyDef
+    PropertyTemplate
 )
 
 property_def_data = {}
@@ -21,8 +21,8 @@ property_def_tests = [
         {
             'name': 'property_def',
             'method': POST,
-            'endpoint': 'propertydef-list',
-            'body': (request_body := random_model_dict(PropertyDef)),
+            'endpoint': 'propertytemplate-list',
+            'body': (request_body := random_model_dict(PropertyTemplate)),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -37,7 +37,7 @@ property_def_tests = [
         {
             'name': 'property_def_get',
             'method': GET,
-            'endpoint': 'propertydef-detail',
+            'endpoint': 'propertytemplate-detail',
             'body': {},
             'args': [
                 'property_def__uuid'
@@ -54,8 +54,8 @@ property_def_tests = [
         {
             'name': 'property_def_update',
             'method': PUT,
-            'endpoint': 'propertydef-detail',
-            'body': (request_body := random_model_dict(PropertyDef)),
+            'endpoint': 'propertytemplate-detail',
+            'body': (request_body := random_model_dict(PropertyTemplate)),
             'args': [
                 'property_def__uuid'
             ],
@@ -72,7 +72,7 @@ property_def_tests = [
         {
             'name': 'property_def_update_get',
             'method': GET,
-            'endpoint': 'propertydef-detail',
+            'endpoint': 'propertytemplate-detail',
             'body': {},
             'args': [
                 'property_def__uuid'
@@ -89,7 +89,7 @@ property_def_tests = [
         {
             'name': 'property_def_update_del',
             'method': DELETE,
-            'endpoint': 'propertydef-detail',
+            'endpoint': 'propertytemplate-detail',
             'body': {},
             'args': [
                 'property_def__uuid'
@@ -106,7 +106,7 @@ property_def_tests = [
         {
             'name': 'propery_def_update_del_get',
             'method': GET,
-            'endpoint': 'propertydef-detail',
+            'endpoint': 'propertytemplate-detail',
             'body': {},
             'args': [
                 'property_def__uuid'

@@ -186,7 +186,7 @@ class MeasureDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                              db_column='default_measure_type_uuid',
                              related_name='measure_def_default_measure_type')
     default_measure_value = ValField( )
-    property_def = models.ForeignKey('PropertyDef', models.DO_NOTHING,
+    property_def = models.ForeignKey('PropertyTemplate', models.DO_NOTHING,
                              blank=True,
                              null=True,
                              db_column='property_def_uuid',
@@ -280,22 +280,28 @@ class Property(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='property_uuid')
 
-    property_def = models.ForeignKey('PropertyDef',
+    property_template = models.ForeignKey('PropertyTemplate',
                                      db_column='property_def_uuid',
                                      on_delete=models.DO_NOTHING,
                                      blank=True,
-                                     null=True, related_name='property_property_def')
-    property_val = ValField(blank=True,
-                            null=True,
-                            db_column='property_val')
-    property_class = models.CharField(max_length=64, choices=PROPERTY_CLASS_CHOICES)
-    property_ref = RetUUIDField(blank=True, null=True)
+                                     null=True, related_name='property_pt')
+    nominal_value = ValField(blank=True, null=True)
+    value = ValField(blank=True, null=True)
+    # property_class = models.CharField(max_length=64, choices=PROPERTY_CLASS_CHOICES)
+    # property_ref = RetUUIDField(blank=True, null=True)
+    material = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
+                                 blank=True,
+                                 null=True, related_name='property_m')
+    reagent = models.ForeignKey('Reagent', blank=True,
+                                 null=True, on_delete=models.DO_NOTHING,
+                                 related_name='property_r')
+    
 
     def __str__(self):
         return "{} : {}".format(self.property_def, self.property_val)
     
 
-class PropertyDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
+class PropertyTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='property_def_uuid')
     property_def_class = models.CharField(max_length=64, choices=PROPERTY_DEF_CLASS_CHOICES)
@@ -303,6 +309,13 @@ class PropertyDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                          blank=True,
                                          null=True,
                                          db_column='short_description')
+    default_value = models.ForeignKey('DefaultValues',
+                                      on_delete=models.DO_NOTHING,
+                                      blank=True,
+                                      null=True, 
+                                      related_name='property_template_dv')
+    
+    """
     val_type = models.ForeignKey('TypeDef',
                                  db_column='val_type_uuid',
                                  on_delete=models.DO_NOTHING,
@@ -316,6 +329,8 @@ class PropertyDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                 blank=True,
                                 null=True,
                                 db_column='property_def_unit_type')
+    """
+    
 
     def __str__(self):
         return "{}".format(self.description)
@@ -420,8 +435,8 @@ class UdfDef(DescriptionColumn):
 
 class DefaultValues(DateColumns, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,)
-    default_nominal_value = ValField(blank=True, null=True)
-    default_actual_value = ValField(blank=True, null=True)
+    nominal_value = ValField(blank=True, null=True)
+    actual_value = ValField(blank=True, null=True)
 
     def __str__(self):
         return self.description

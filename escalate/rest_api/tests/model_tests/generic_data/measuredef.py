@@ -12,7 +12,7 @@ from ..model_tests_utils import (
 from core.models import (
     MeasureDef,
     MeasureType,
-    PropertyDef
+    PropertyTemplate
 )
 
 measuredef_test_data = {}
@@ -48,8 +48,8 @@ measuredef_tests = [
         *[{
             'name': name,
             'method': POST,
-            'endpoint': 'propertydef-list',
-            'body': (request_body := random_model_dict(PropertyDef)), 
+            'endpoint': 'propertytemplate-list',
+            'body': (request_body := random_model_dict(PropertyTemplate)), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
