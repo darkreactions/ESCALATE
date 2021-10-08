@@ -228,7 +228,7 @@ class Command(BaseCommand):
 
     def _load_material(self):
         self.stdout.write(self.style.NOTICE('Beginning loading material'))
-        filename = 'load_material.csv'
+        filename = 'load_material.txt'
         MATERIAL = path_to_file(filename)
         with open(MATERIAL, newline='') as f:
             reader = csv.reader(f, delimiter="\t")
@@ -266,7 +266,7 @@ class Command(BaseCommand):
                     y := row[column_names_to_index['material_identifier__description']]) else []
                 material_identifier_def__description = [x.strip() for x in y.split('|')] if not string_is_null(
                     y := row[column_names_to_index['material_identifier_def__description']]) else []
-
+                
                 material_type__description = [x.strip() for x in z.split('|')] if not string_is_null(
                     z := row[column_names_to_index['material_type__description']]) else []
 
@@ -275,7 +275,7 @@ class Command(BaseCommand):
                                                    for descr, def_descr in zip(material_identifier__description, material_identifier_def__description)])
                 material_instance.material_type.add(
                     *[MaterialType.objects.get(description=d) for d in material_type__description])
-
+                
                 if created:
                     new_material += 1
             # #jump to top of csv
