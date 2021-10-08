@@ -4,6 +4,7 @@
 # # Dependencies 
 # Created by wrborrelli
 # %%
+import sys
 import itertools
 import random
 #import matplotlib.pyplot as plt 
@@ -17,48 +18,53 @@ from scipy.spatial import HalfspaceIntersection
 from scipy.spatial.qhull import _Qhull
 import numpy as np
 
+import pint
+from pint import UnitRegistry
+units = UnitRegistry()
+Q_ = units.Quantity
+
 # %% [markdown]
 # # Helper Functions
 # %% [markdown]
-# def convex_hull_intersection(points1: np.ndarray, points2: np.ndarray, vis2d=False):
-#     """ Returns the points corresponding to the intersecting region of two convex hulls (up to however  many dimensions scipy ConvexHull takes (9D I think).
-#     
-#     Args:
-#         points1: np.array() of points corresponding to the first convex hull.
-#         points2: np.array() of points corresponding to the second convex hull. 
-#         vis2d: True/False if you want to visualize the resulting region (2D hulls only)
-# 
-#     Returns:
-#         np.array() of points corresponding to the intersection region. 
-#     """
-# 
-#     assert points1.shape[1] == points2.shape[1]
-#     hull1 = ConvexHull(points1)
-#     hull2 = ConvexHull(points2)
-#     A = np.vstack((hull1.equations[:, :-1], hull2.equations[:, :-1]))
-#     b = np.hstack((hull1.equations[:, -1], hull2.equations[:, -1]))
-#     res = linprog(c=np.zeros(A.shape[1]), A_ub=A, b_ub=-b, method="interior-point")
-#     feasible_point = res.x
-#     hint = HalfspaceIntersection(np.vstack((hull1.equations, hull2.equations)), feasible_point)
-# 
-#     if vis2d:
-#         fig = plt.figure()
-#         ax = fig.add_subplot(1, 1, 1, aspect='equal')
-#         xlim, ylim = (0, 1), (0, 1)
-#         ax.set_xlim(xlim)
-#         ax.set_ylim(ylim)
-# 
-#         for simplex in hull1.simplices:
-#             ax.plot(points1[simplex, 0], points1[simplex, 1], 'r-')
-# 
-#         for simplex in hull2.simplices:
-#             ax.plot(points2[simplex, 0], points2[simplex, 1], 'b-')
-# 
-#         x, y = zip(*hint.intersections)
-#         ax.plot(x, y, 'k^', markersize=8)
-#         plt.savefig("{}".format(__file__).replace(".py", ".png"))
-# 
-#     return hint.intersections
+def convex_hull_intersection(points1: np.ndarray, points2: np.ndarray, vis2d=False):
+    """ Returns the points corresponding to the intersecting region of two convex hulls (up to however  many dimensions scipy ConvexHull takes (9D I think).
+   
+     Args:
+         points1: np.array() of points corresponding to the first convex hull.
+         points2: np.array() of points corresponding to the second convex hull. 
+         vis2d: True/False if you want to visualize the resulting region (2D hulls only)
+ 
+     Returns:
+         np.array() of points corresponding to the intersection region. 
+    """
+
+    assert points1.shape[1] == points2.shape[1]
+    hull1 = ConvexHull(points1)
+    hull2 = ConvexHull(points2)
+    A = np.vstack((hull1.equations[:, :-1], hull2.equations[:, :-1]))
+    b = np.hstack((hull1.equations[:, -1], hull2.equations[:, -1]))
+    res = linprog(c=np.zeros(A.shape[1]), A_ub=A, b_ub=-b, method="interior-point")
+    feasible_point = res.x
+    hint = HalfspaceIntersection(np.vstack((hull1.equations, hull2.equations)), feasible_point)
+ 
+    if vis2d:
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1, aspect='equal')
+        xlim, ylim = (0, 1), (0, 1)
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+ 
+        for simplex in hull1.simplices:
+             ax.plot(points1[simplex, 0], points1[simplex, 1], 'r-')
+ 
+        for simplex in hull2.simplices:
+             ax.plot(points2[simplex, 0], points2[simplex, 1], 'b-')
+ 
+        x, y = zip(*hint.intersections)
+        ax.plot(x, y, 'k^', markersize=8)
+        plt.savefig("{}".format(__file__).replace(".py", ".png"))
+
+    return hint.intersections
 
 # %%
 def get_hull_centroid(hull: ConvexHull):
@@ -313,22 +319,109 @@ def achievableGrid(reagents, maximumConcentration=9., deltaV=10., totalVolume=50
     pts_in_hull = np.array(all_grid_pts)[np.where(bools == True)[0]] # returns coords of pts from grid that are inside the hull 
     return pts_in_hull
 
+def generate_vectors(descriptions, reagents):
+    
+    """
+    Returns a dictionary where keys are reagent descriptions,
+    and values are concentration vectors for components in the reagent.
+    This dictionary can then be passed into GenerateExperiments.
+    
+    Sample input:  descriptions=['Reagent 1', 'Reagent 2', 'Reagent 3', 'Reagent 7']
+                   reagents=[reagent1, reagent2, reagent3, reagent7]
+                    
+    where each variable in the reagents list is defined as follows:
+    
+    reagent1= {'Gamma-Butyrolactone': '0.0 M'}
+
+    reagent2= {'Lead Diiodide': '1.81 M',
+     'Formamidinium Iodide': '1.36 M',
+     'Gamma-Butyrolactone': '0.0 M'}
+
+    reagent3 ={'Formamidinium Iodide': '2.63 M', 
+               'Gamma-Butyrolactone': '0.0 M'}
+
+    reagent7= {'Formic Acid': '26.5 M'}
+    
+    Input can be queried directly from database.
+    """
+    
+    #error handling: concentrations must be in molarity. otherwise code breaks
+    for entry in reagents:
+        for key, val in entry.items():
+            conc_unit=val.split()[1]
+            if units(conc_unit)!=units('molar'): 
+                print('TypeError: Concentration must be a molarity. Please convert and re-enter.')
+                sys.exit()
+    
+    names=[]
+    for entry in reagents:
+        for key in entry:
+            if key not in names:
+                names.append(key) #add all chemicals to list of chemical names
+    raw_vectors={}
+    for name in names:
+        raw_vectors[name]=[] #instantiate a series of vectors where keys are chemical names
+        #values are empty lists to which concentrations will be appended
+    
+    for name in names: #loop through and append concentrations to appropriate values list
+        for entry in reagents:
+            if name in entry.keys():
+                val=entry[name].split()
+                raw_vectors[name].append(float(val[0]))
+            else:
+                raw_vectors[name].append(0.0) #if a chemical is not present, append 0.0 as its concentration
+                
+    array=[]
+    
+    for val in raw_vectors.values(): #create an array of the concentration lists
+        array.append(val) 
+    
+    new_array= np.array(array).transpose() #transpose the array 
+    
+    reagent_vectors={} 
+    
+    for i in range(len(descriptions)): #generate dictionary with keys=reagent descriptions and vals=concentration vectors 
+        reagent_vectors[descriptions[i]]=list(new_array[i])
+
+    return reagent_vectors    
 
 # %%
-def generateEnumerations(reagentDefs, uniqueChemicalNames, deltaV=10., maxMolarity=9., finalVolume=500., processValues='round'):
+def generateEnumerations(reagents, descriptions, dV='10. uL', maxMolarity=9., finalVol='500. uL', desiredUnit='uL', processValues='round'):
     """ Generates the enumerations for the defined reagents and unique chemical names supplied. 
 
     Args:
-        reagentDefs: Dictionary defining the reagents. 
-        uniqueChemicalNames: A list of the unique chemical names (strings). 
-        deltaV: (optional) The volume increment. 
+        reagents: list of dictionaries, where each list corresponds to a reagent. keys are chemical components and values are concentrations for the components
+        descriptions: list of names of reagents, e.g. ['Reagent 1', 'Reagent 2', 'Reagent 3', Reagent 7']
+        dV: (optional) The volume increment. (default is 10. uL)
+            ***must be input as a string with value and units
         maxMolarity: (optional) The max imposed concentration (default is 9.).
-        finalVolume: (optional) The final volume (default is 500.).
+        finalVol: (optional) The final volume (default is 500. uL).
+            ***must be input as a string with value and units
+        desiredUnit: (optional): The unit in which final volumes should be expressed (default is uL)
         processValues: (optional) Currently only does rounding. 
 
     Returns:
         Nested dictionary {concentrations : {unique_chem_names : np.array() of concentrations}, volumes : {reagents : rounded volumes}}
     """
+    #convert reagent input into proper vector format
+    reagentDefs = generate_vectors(descriptions, reagents)
+
+    #generate list of chemical names
+    uniqueChemNames=[]
+    for i in reagents:
+        for key in i.keys():
+            if key not in uniqueChemNames:
+                uniqueChemNames.append(key)
+                
+    #convert input volumes to microliters, if they aren't already
+    v=finalVol.split()
+    v1=Q_(float(v[0]), v[1]).to(units.ul)
+    finalVolume=v1.magnitude
+    
+    v2=dV.split()
+    v3=Q_(float(v2[0]), v2[1]).to(units.ul)
+    deltaV=v3.magnitude
+    
     nonzeroReagentDefs, nonzeroChemicalNames = dropZeroColumns(reagentDefs, uniqueChemNames)
     hull = allowedExperiments(nonzeroReagentDefs, maxMolarity)
     concentrationSpaceResults = achievableGrid(nonzeroReagentDefs, maxMolarity, deltaV, finalVolume)
@@ -337,6 +430,13 @@ def generateEnumerations(reagentDefs, uniqueChemicalNames, deltaV=10., maxMolari
         dic[k] = tuple(np.round((finalVolume*np.array(v))))
     volumeSpaceResults = dic
     conc_dic = dict(zip(nonzeroChemicalNames, np.transpose(concentrationSpaceResults)))
+    
+    desiredUnit = Q_(1, desiredUnit).units
+    
+    if desiredUnit!=units('ul'):
+        for key, val in volumeSpaceResults.items():
+            volumeSpaceResults[key]=(Q_(val, 'ul')).to(desiredUnit)
+    
     return {'concentrations' : conc_dic, 'volumes' : volumeSpaceResults}
 
 
