@@ -623,3 +623,213 @@ InChI=1S/C3H9N.BrH/c1-3(2)4;/h3H,4H2,1-2H3;1H	InChI
 Imidazole hydrobromide	Chemical_Name
 IDBr	Abbreviation
 n-BtBr	Abbreviation
+N,N-Dimethylmethyleneammonium iodide	Chemical_Name
+NNDimethylmethyleneammoniumIodide	Abbreviation
+InChI=1S/C3H8N.HI/c1-4(2)3;/h1H2,2-3H3;1H/q+1;/p-1	InChI
+VVDUZZGYBOWDSQ-UHFFFAOYSA-M	InChIKey
+2-Fluoroethylamine hydrochloride	Chemical_Name
+2Fluoroethylaminehydrochloride	Abbreviation
+InChI=1S/C2H6FN.ClH/c3-1-2-4;/h1-2,4H2;1H	InChI
+YRRZGBOZBIVMJT-UHFFFAOYSA-N	InChIKey
+Iodomethyltrimethylammonium iodide	Chemical_Name
+Iodomethyltrimethylammoniumiodide	Abbreviation
+InChI=1S/C4H11IN.HI/c1-6(2,3)4-5;/h4H2,1-3H3;1H/q+1;/p-1	InChI
+IFVIWWQMNYZYFQ-UHFFFAOYSA-M	InChIKey
+Water	Chemical_Name
+H2O	Abbreviation
+InChI=1S/H2O/h1H2	InChI
+XLYOFNOQVPJJNP-UHFFFAOYSA-N	InChIKey
+1-Butyl-1-methylpyrrolidinium iodide	Chemical_Name
+1Butyl1methylpyrrolidiniumiodide	Abbreviation
+InChI=1S/C9H20N.HI/c1-3-4-7-10(2)8-5-6-9-10;/h3-9H2,1-2H3;1H/q+1;/p-1	InChI
+BEZANEDYKZXSCF-UHFFFAOYSA-M	InChIKey
+Diethanolammonium iodide	Chemical_Name
+Diethanolammoniumiodide	Abbreviation
+InChI=1S/C4H11NO2.HI/c6-3-1-5-2-4-7;/h5-7H,1-4H2;1H	InChI
+QZTGNBUTHRNAPP-UHFFFAOYSA-N	InChIKey
+Ethanolammonium Iodide	Chemical_Name
+Ethanolammoniumiodide	Abbreviation
+InChI=1S/C2H7NO.HI/c3-1-2-4;/h4H,1-3H2;1H	InChI
+WBUUOQGFAPWFMC-UHFFFAOYSA-N	InChIKey
+2-Thiophenemethylammonium iodide	Chemical_Name
+2Thiophenmethylammoniumiodide	Abbreviation
+InChI=1S/C5H8NS.HI/c6-4-5-2-1-3-7-5;/h1,3H,2,4,6H2;1H	InChI
+QTWVKKIQSUTRSU-UHFFFAOYSA-N	InChIKey
+4-Hydroxyphenethylammonium iodide	Chemical_Name
+4Hydroxyphenethylammoniumiodide	Abbreviation
+InChI=1S/C8H11NO.HI/c9-6-5-7-1-3-8(10)4-2-7;/h1-4,10H,5-6,9H2;1H	InChI
+HJFYRMFYQMIZDG-UHFFFAOYSA-N	InChIKey
+4-Chlorophenylammonium iodide	Chemical_Name
+4Chlorophenylammoniumiodide	Abbreviation
+InChI=1S/C6H6ClN.HI/c7-5-1-3-6(8)4-2-5;/h1-4H,8H2;1H	InChI
+NJQKYAASWUGXIT-UHFFFAOYSA-N	InChIKey
+4-Chlorophenethylammonium iodide	Chemical_Name
+4Chlorophenethylammoniumiodide	Abbreviation
+InChI=1S/C8H10ClN.HI/c9-8-3-1-7(2-4-8)5-6-10;/h1-4H,5-6,10H2;1H	InChI
+ZKRCWINLLKOVCL-UHFFFAOYSA-N	InChIKey
+Di-propylammonium iodide	Chemical_Name
+Dipropylammoniumiodide	Abbreviation
+InChI=1S/C6H15N.HI/c1-3-5-7-6-4-2;/h7H,3-6H2,1-2H3;1H	InChI
+OXVTTWZGFRRUCD-UHFFFAOYSA-N	InChIKey
+Diphenylammonium iodide	Chemical_Name
+Diphenylammoniumiodide	Abbreviation
+InChI=1S/C12H11N.HI/c1-3-7-11(8-4-1)13-12-9-5-2-6-10-12;/h1-10,13H;1H	InChI
+UEQHJXUGBQCDJY-UHFFFAOYSA-N	InChIKey
+2,2-dimethylpropane-1,3-diammonium iodide	Chemical_Name
+22dimethylpropane13diammoniumiodide	Abbreviation
+InChI=1S/C5H14N2.2HI/c1-5(2,3-6)4-7;;/h3-4,6-7H2,1-2H3;2*1H	InChI
+ODZKCFHAXXFIQC-UHFFFAOYSA-N	InChIKey
+2-Methoxyethylammonium iodide	Chemical_Name
+2methoxyethylammoniumiodide	Abbreviation
+InChI=1S/C3H9NO.HI/c1-5-3-2-4;/h2-4H2,1H3;1H	InChI
+SCDXFIYEBSXILC-UHFFFAOYSA-N	InChIKey
+1-Butyl-1-methylpiperadine bromide	Chemical_Name
+1Butyl1methylpiperadinebromide	Abbreviation
+InChI=1S/C10H22N.BrH/c1-3-4-8-11(2)9-6-5-7-10-11;/h3-10H2,1-2H3;1H/q+1;/p-1	InChI
+WYABBCZMFVULEF-UHFFFAOYSA-M	InChIKey
+1-Butyl-1-methylpiperidinium iodide	Chemical_Name
+1Butyl1methylpiperidiniumiodide	Abbreviation
+InChI=1S/C10H22N.HI/c1-3-4-8-11(2)9-6-5-7-10-11;/h3-10H2,1-2H3;1H/q+1;/p-1	InChI
+OOAKIOMAIRZQKN-UHFFFAOYSA-M	InChIKey
+2-Thiopheneethylammonium iodide	Chemical_Name
+2Thiopheneethylammoniumiodide	Abbreviation
+InChI=1S/C6H9NS.HI/c7-4-3-6-2-1-5-8-6;/h1-2,5H,3-4,7H2;1H	InChI
+KLYROMPVPJRYBI-UHFFFAOYSA-N	InChIKey
+Ethyltriphenylphosphonium iodide 	Chemical_Name
+Ethyltriphenylphosphoniumiodide 	Abbreviation
+InChI=1S/C20H20P.HI/c1-2-21(18-12-6-3-7-13-18,19-14-8-4-9-15-19)20-16-10-5-11-17-20;/h3-17H,2H2,1H3;1H/q+1;/p-1	InChI
+SLAFUPJSGFVWPP-UHFFFAOYSA-M	InChIKey
+Methylphenylphosphonium iodide	Chemical_Name
+Methylphenylphosphoniumiodide	Abbreviation
+InChI=1S/C19H18P.HI/c1-20(17-11-5-2-6-12-17,18-13-7-3-8-14-18)19-15-9-4-10-16-19;/h2-16H,1H3;1H/q+1;	InChI
+JNMIXMFEVJHFNY-UHFFFAOYSA-N	InChIKey
+Iodomethyltriphenylphosphonium iodide	Chemical_Name
+iodomethyltriphenylphosphoniumiodide	Abbreviation
+InChI=1S/C19H17IP.HI/c20-16-21(17-10-4-1-5-11-17,18-12-6-2-7-13-18)19-14-8-3-9-15-19;/h1-15H,16H2;1H/q+1;/p-1	InChI
+NAVMMSRRNOXQMJ-UHFFFAOYSA-M	InChIKey
+1,3-dimethylpyridinium iodide	Chemical_Name
+13dimethylpyridinium	Abbreviation
+InChI=1S/C7H10N.HI/c1-7-4-3-5-8(2)6-7;/h3-6H,1-2H3;1H/q+1;	InChI
+BVUPLMFUPRCOEH-UHFFFAOYSA-N	InChIKey
+1,4-dimethylpyridinium iodide	Chemical_Name
+14DMPI	Abbreviation
+InChI=1S/C7H10N.HI/c1-7-3-5-8(2)6-4-7;/h3-6H,1-2H3;1H/q+1;/p-1	InChI
+YOBTXORLVXZWSR-UHFFFAOYSA-M	InChIKey
+isopropyltriphenylphosphonium iodide	Chemical_Name
+isopropyltriphenylphosphoniumiodide	Abbreviation
+InChI=1S/C21H22P.HI/c1-18(2)22(19-12-6-3-7-13-19,20-14-8-4-9-15-20)21-16-10-5-11-17-21;/h3-18H,1-2H3;1H/q+1;/p-1	InChI
+HHBXWXJLQYJJBW-UHFFFAOYSA-M	InChIKey
+1-Aminopyridinium iodide	Chemical_Name
+1aminopyridiniumiodide	Abbreviation
+InChI=1S/C5H7N2.HI/c6-7-4-2-1-3-5-7;/h1-5H,6H2;1H/q+1;/p-1	InChI
+NDRLPYIMWROJBG-UHFFFAOYSA-M	InChIKey
+tetrabutylammonium iodide	Chemical_Name
+tetrabutylammoniumiodide	Abbreviation
+InChI=1S/C16H36N.HI/c1-5-9-13-17(14-10-6-2,15-11-7-3)16-12-8-4;/h5-16H2,1-4H3;1H/q+1;/p-1	InChI
+DPKBAXPHAYBPRL-UHFFFAOYSA-M	InChIKey
+1-butyl-4-methylpyridinium iodide	Chemical_Name
+1butyl4methylpyridiniumiodide	Abbreviation
+InChI=1S/C10H16N.HI/c1-3-4-7-11-8-5-10(2)6-9-11;/h5-6,8-9H,3-4,7H2,1-2H3;1H/q+1;/p-1	InChI
+RSJCFBORABJFGA-UHFFFAOYSA-M	InChIKey
+Phenyltriethylammonium iodide	Chemical_Name
+phenyltriethylammoniumiodide	Abbreviation
+InChI=1S/C12H20N.HI/c1-4-13(5-2,6-3)12-10-8-7-9-11-12;/h7-11H,4-6H2,1-3H3;1H/q+1;/p-1	InChI
+WMSWXWGJYOIACA-UHFFFAOYSA-M	InChIKey
+2-Chloro-1-methylpyridinium iodide	Chemical_Name
+2chloro1methylpyridiniumiodide	Abbreviation
+InChI=1S/C6H7ClN.HI/c1-8-5-3-2-4-6(8)7;/h2-5H,1H3;1H/q+1;/p-1	InChI
+ABFPKTQEQNICFT-UHFFFAOYSA-M	InChIKey
+4-Chlorophenethylammonium bromide	Chemical_Name
+4chlorophenethylammoniumbromide	Abbreviation
+diphenylammonium bromide	Chemical_Name
+4-Chlorophenylammonium bromide	Chemical_Name
+4-hydroxyphenethylammonium bromide	Chemical_Name
+2-thiophenemethylammonium bromide	Chemical_Name
+trimethylammonium bromide	Chemical_Name
+iso-pentylammonium bromide	Chemical_Name
+Methyltriphenylphosphonium bromide	Chemical_Name
+2-(2-Naphthyl)ethylamine hydrochloride	Chemical_Name
+Naphthylethylaminehydrochloride	Abbreviation
+InChI=1S/C12H13N.ClH/c13-8-7-10-5-6-11-3-1-2-4-12(11)9-10;/h1-6,9H,7-8,13H2;1H	InChI
+VJPPXKBLHHCXLG-UHFFFAOYSA-N	InChIKey
+Piperidinium bromide	Chemical_Name
+Piperidiniumbromide	Abbreviation
+InChI=1S/C5H11N.BrH/c1-2-4-6-5-3-1;/h6H,1-5H2;1H	InChI
+ROFVJSWBDQUQGW-UHFFFAOYSA-N	InChIKey
+Nonanoic Acid	Chemical_Name
+Nonanoicacid	Abbreviation
+InChI=1S/C9H18O2/c1-2-3-4-5-6-7-8-9(10)11/h2-8H2,1H3,(H,10,11)	InChI
+FBUKVWPVBMHYJY-UHFFFAOYSA-N	InChIKey
+Octylamine	Chemical_Name
+Octylamine	Abbreviation
+InChI=1S/C8H19N/c1-2-3-4-5-6-7-8-9/h2-9H2,1H3	InChI
+IOQPZZOEVPZRBK-UHFFFAOYSA-N	InChIKey
+1-Bromooctane	Chemical_Name
+1bromooctane	Abbreviation
+InChI=1S/C8H17Br/c1-2-3-4-5-6-7-8-9/h2-8H2,1H3	InChI
+VMKOFRJSULQZRM-UHFFFAOYSA-N	InChIKey
+Trioctylphosphine	Chemical_Name
+Trioctylphosphine	Abbreviation
+InChI=1S/C24H51P/c1-4-7-10-13-16-19-22-25(23-20-17-14-11-8-5-2)24-21-18-15-12-9-6-3/h4-24H2,1-3H3	InChI
+RMZAYIKUYWXQPB-UHFFFAOYSA-N	InChIKey
+1-Octanol	Chemical_Name
+1Octanol	Abbreviation
+InChI=1S/C8H18O/c1-2-3-4-5-6-7-8-9/h9H,2-8H2,1H3	InChI
+KBPLFHHGFOOTCA-UHFFFAOYSA-N	InChIKey
+2,2'-Biquinoline	Chemical_Name
+22biquinoline	Abbreviation
+InChI=1S/C18H12N2/c1-3-7-15-13(5-1)9-11-17(19-15)18-12-10-14-6-2-4-8-16(14)20-18/h1-12H	InChI
+WPTCSQBWLUUYDV-UHFFFAOYSA-N	InChIKey
+4,4'-Dimethyl-2,2'-dipyridyl	Chemical_Name
+44dimethyl22dipyridyl	Abbreviation
+InChI=1S/C12H12N2/c1-9-3-5-13-11(7-9)12-8-10(2)4-6-14-12/h3-8H,1-2H3	InChI
+NBPGPQJFYXNFKN-UHFFFAOYSA-N	InChIKey
+6,6'-Dimethyl-2,2'-dipyridyl	Chemical_Name
+66dimethyl22dipyridyl	Abbreviation
+InChI=1S/C12H12N2/c1-9-5-3-7-11(13-9)12-8-4-6-10(2)14-12/h3-8H,1-2H3	InChI
+OHJPGUSXUGHOGE-UHFFFAOYSA-N	InChIKey
+2,6-Bis(2-pyridyl)-4(1H)-pyridone	Chemical_Name
+26Bis2pyridyl41Hpyridone	Abbreviation
+InChI=1S/C15H11N3O/c19-11-9-14(12-5-1-3-7-16-12)18-15(10-11)13-6-2-4-8-17-13/h1-10H,(H,18,19)	InChI
+HRORSVNZQWCZTD-UHFFFAOYSA-N	InChIKey
+6,6''-Dibromo-2,2':6',2''-terpyridine	Chemical_Name
+66Dibromo2262terpyridine	Abbreviation
+InChI=1S/C15H9Br2N3/c16-14-8-2-6-12(19-14)10-4-1-5-11(18-10)13-7-3-9-15(17)20-13/h1-9H	InChI
+PYMBATDYUCQLBC-UHFFFAOYSA-N	InChIKey
+5,5'-Dimethyl-2,2'-dipyridyl	Chemical_Name
+55Dimethyl22dipyridyl	Abbreviation
+InChI=1S/C12H12N2/c1-9-3-5-11(13-7-9)12-6-4-10(2)8-14-12/h3-8H,1-2H3	InChI
+PTRATZCAGVBFIQ-UHFFFAOYSA-N	InChIKey
+2,2'-bipyridine-3,3'-diol	Chemical_Name
+22bipyridine33diol	Abbreviation
+InChI=1S/C10H8N2O2/c13-7-3-1-5-11-9(7)10-8(14)4-2-6-12-10/h1-6,13-14H	InChI
+RJNRKZBHLCOHNM-UHFFFAOYSA-N	InChIKey
+2,2'-bipyridine-4,4'-dicarboxaldehyde	Chemical_Name
+22bipyridine44dicarboxaldehyde	Abbreviation
+InChI=1S/C12H8N2O2/c15-7-9-1-3-13-11(5-9)12-6-10(8-16)2-4-14-12/h1-8H	InChI
+UJCACAOPZBJKIW-UHFFFAOYSA-N	InChIKey
+2,2'-bipyridyl	Chemical_Name
+22bipyridyl	Abbreviation
+InChI=1S/C10H8N2/c1-3-7-11-9(5-1)10-6-2-4-8-12-10/h1-8H	InChI
+ROFVEXUMMXZLPA-UHFFFAOYSA-N	InChIKey
+4,4'-di-tert-butyl-2,2'-dipyridyl	Chemical_Name
+44ditertbutyl22dipyridyl	Abbreviation
+InChI=1S/C18H24N2/c1-17(2,3)13-7-9-19-15(11-13)16-12-14(8-10-20-16)18(4,5)6/h7-12H,1-6H3	InChI
+TXNLQUKVUJITMX-UHFFFAOYSA-N	InChIKey
+4-4'-dimethoxy-2-2'-bipyridine	Chemical_Name
+44dimethoxy22bipyridine	Abbreviation
+InChI=1S/C12H12N2O2/c1-15-9-3-5-13-11(7-9)12-8-10(16-2)4-6-14-12/h3-8H,1-2H3	InChI
+IMEVSAIFJKKDAP-UHFFFAOYSA-N	InChIKey
+2,2-Bipyridine-3,3?�??��dicarboxylic acid	Chemical_Name
+Trimethyl2,2:6,2terpyridine4,4,4tricarboxylate	Chemical_Name
+Trimethyl2262terpyridine444tricarboxylate	Abbreviation
+InChI=1S/C21H17N3O6/c1-28-19(25)12-4-6-22-15(8-12)17-10-14(21(27)30-3)11-18(24-17)16-9-13(5-7-23-16)20(26)29-2/h4-11H,1-3H3	InChI
+YDXTYOYBYASPDS-UHFFFAOYSA-N	InChIKey
+4'-(4-Methylphenyl)-2,2':6',2''-terpyridine	Chemical_Name
+44Methylphenyl2262terpyridine	Abbreviation
+InChI=1S/C22H17N3/c1-16-8-10-17(11-9-16)18-14-21(19-6-2-4-12-23-19)25-22(15-18)20-7-3-5-13-24-20/h2-15H,1H3	InChI
+IDJYBUVHZHLIIT-UHFFFAOYSA-N	InChIKey
+4,4,4-Tri-tert-Butyl-2,2:6,2-terpyridine	Chemical_Name
+444TritertButyl2262terpyridine	Abbreviation
+InChI=1S/C27H35N3/c1-25(2,3)18-10-12-28-21(14-18)23-16-20(27(7,8)9)17-24(30-23)22-15-19(11-13-29-22)26(4,5)6/h10-17H,1-9H3	InChI
+QMABMHJGSFUTPF-UHFFFAOYSA-N	InChIKey
