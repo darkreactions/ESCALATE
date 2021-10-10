@@ -53,7 +53,7 @@ class Command(BaseCommand):
 
     def _load_chem_inventory(self):
         self.stdout.write(self.style.NOTICE('Beginning loading chem'))
-        filename = 'load_chem_inventory.csv'
+        filename = 'load_chem_inventory.txt'
         LOAD_CHEM_INVENTORY = path_to_file(filename)
         with open(LOAD_CHEM_INVENTORY, newline='') as f:
             reader = csv.reader(f, delimiter="\t")
@@ -111,6 +111,8 @@ class Command(BaseCommand):
             # this block of code matches each material to its material types(s)
             for row in reader:
                 row_desc = row[column_names_to_index['ChemicalName']]
+                if (string_is_null(row[column_names_to_index['ChemicalCategory']])):
+                    continue
                 row_material_types_raw = [
                     x.strip() for x in row[column_names_to_index['ChemicalCategory']].split(',')]
                 row_material_types = [MaterialType.objects.get(
@@ -252,6 +254,7 @@ class Command(BaseCommand):
                     row[column_names_to_index['material_class']])
                 consumable = clean_string(
                     row[column_names_to_index['consumable']])
+                print(description)
 
                 fields = {
                     'description': description,

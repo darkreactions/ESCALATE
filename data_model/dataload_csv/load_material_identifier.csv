@@ -613,3 +613,13 @@ C6H16IN	Molecular_Formula
 C5H16I2N2	Molecular_Formula
 C3H5IN2	Molecular_Formula
 CH6IN3	Molecular_Formula
+ACBr	Abbreviation
+BnNH3Br	Abbreviation
+C8H12BrN	Abbreviation
+KFXBDBPOGBBVMC-UHFFFAOYSA-N	InChIKey
+InChI=1S/C6H8N2.2HI/c7-5-1-2-6(8)4-3-5;;/h1-4H,7-8H2;2*1H	InChI
+IPABr	Abbreviation
+InChI=1S/C3H9N.BrH/c1-3(2)4;/h3H,4H2,1-2H3;1H	InChI
+Imidazole hydrobromide	Chemical_Name
+IDBr	Abbreviation
+n-BtBr	Abbreviation
