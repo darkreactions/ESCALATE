@@ -4,7 +4,7 @@ from core.utilities.wf1_utils import generate_robot_file
 
 #
 def perovskite_demo(data, q1, experiment_copy_uuid, exp_name, exp_template):
-    robotfile_blob = generate_robot_file(q1,data,'Symyx_96_well_0003',24)
+    robotfile_blob = generate_robot_file(q1,data,'Symyx_96_well_0003',96)
     doc_type = TypeDef.objects.get(category='file', description='text')
     robotfile_edoc = Edocument(title=f'{experiment_copy_uuid}_{exp_name}_RobotInput.xls',
                                filename=f'{experiment_copy_uuid}_{exp_name}_RobotInput.xls',
