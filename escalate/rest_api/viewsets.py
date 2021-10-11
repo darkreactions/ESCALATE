@@ -211,7 +211,8 @@ class SaveViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        create_args = {self.ref_uuid: kwargs[self.parent_lookup]}
+        material = Material.objects.get(uuid=kwargs[self.parent_lookup])
+        create_args = {self.ref_uuid: material}
         self.perform_create(serializer, **create_args)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
@@ -223,8 +224,8 @@ save_viewsets = {
                      'ref_uuid': 'ref_note_uuid'},
     'EdocumentViewSet' : {'parent_lookup': 'parent_lookup_ref_edocument_uuid', 
                           'ref_uuid': 'ref_edocument_uuid'},
-    'PropertyViewSet': {'parent_lookup': 'parent_lookup_property_ref',
-                        'ref_uuid': 'property_ref'},
+    'PropertyViewSet': {'parent_lookup': 'parent_lookup_material',
+                        'ref_uuid': 'material'},
     'ParameterViewSet': {'parent_lookup': 'parent_lookup_ref_object',
                         'ref_uuid': 'action'}
 }

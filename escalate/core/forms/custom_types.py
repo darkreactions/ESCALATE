@@ -66,7 +66,7 @@ class ReagentForm(Form):
         material_type = material_types_list[chemical_index]
         # TODO: Make inventory materials is being requested since the current inventory should be checked
         # For debugging, I am requesting data from materials directly
-        inventory_materials = vt.InventoryMaterial.objects.filter(material__material_type=material_type)
+        inventory_materials = vt.InventoryMaterial.objects.filter(material__material_type=material_type, inventory__lab__organization=lab_uuid)
         #inventory_materials = vt.Material.objects.filter(material_type=material_type)
 
         super().__init__(*args, **kwargs)
