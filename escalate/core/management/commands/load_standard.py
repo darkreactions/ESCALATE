@@ -84,6 +84,10 @@ model_field_data = {
         ["gas"],
         ["separation target"],
         ["antisolvent"],
+        ["acid"],
+        ["organic"],
+        ["inorganic"],
+        ["polymer"]
     ],
     'measure_type': [
         ['robot'],
