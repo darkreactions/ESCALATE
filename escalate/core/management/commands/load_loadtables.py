@@ -7,7 +7,7 @@ from core.models import (
     BaseBomMaterial,
     BomMaterial,
     BillOfMaterials,
-    #CalculationDef,
+    DefaultValues,
     ExperimentTemplate,
     ExperimentType,
     ExperimentWorkflow,
@@ -19,6 +19,8 @@ from core.models import (
     MaterialIdentifierDef,
     Mixture,
     ParameterDef,
+    PropertyTemplate,
+    Property,
     Status,
     Systemtool,
     TypeDef,
@@ -37,7 +39,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE('Loading load tables'))
-        # self._load_chem_inventory()
+        self._load_chem_inventory()
         self._load_material_identifier()
         self._load_material()
         self._load_inventory_material()
@@ -53,7 +55,47 @@ class Command(BaseCommand):
 
     def _load_chem_inventory(self):
         self.stdout.write(self.style.NOTICE('Beginning loading chem'))
-        filename = 'load_chem_inventory.csv'
+       
+        #query for status
+        active_status = Status.objects.get(description="active")
+        #create default values
+        DefaultValues.objects.get_or_create(
+                description="g/ml",
+                actual_value={
+                    "value": "0.0",
+                    "unit": "g/ml",
+                    "type": "num",
+                })
+        gml_dv = DefaultValues.objects.get(description="g/ml")
+        
+        DefaultValues.objects.get_or_create(
+                description="g/mol",
+                actual_value={
+                    "value": "0.0",
+                    "unit": "g/mol",
+                    "type": "num",
+                })
+        gmol_dv = DefaultValues.objects.get(description="g/mol")
+
+        #create property templates
+        PropertyTemplate.objects.get_or_create(
+                        description="MolecularWeight",
+                        property_def_class="intrinsic",
+                        status=active_status,
+                        default_value=gml_dv,
+                    )
+        mw = PropertyTemplate.objects.get(description="MolecularWeight")
+        
+        PropertyTemplate.objects.get_or_create(
+                        description="Density",
+                        property_def_class="intrinsic",
+                        status=active_status,
+                        default_value=gmol_dv,
+                    )
+        density = PropertyTemplate.objects.get(description="Density")
+
+        
+        filename = 'load_chem_inventory.txt'
         LOAD_CHEM_INVENTORY = path_to_file(filename)
         with open(LOAD_CHEM_INVENTORY, newline='') as f:
             reader = csv.reader(f, delimiter="\t")
@@ -179,7 +221,30 @@ class Command(BaseCommand):
                         some_material.identifier.add(material_identifier)
             self.stdout.write(self.style.SUCCESS(
                 f'Updated material identifier for materials'))
-
+            
+            # jump to top of csv
+            f.seek(0)
+            # skip initial header row
+            next(reader)
+            #update molecular weight and density
+            for row in reader:
+                row_desc = row[column_names_to_index['ChemicalName']]
+                some_material = Material.objects.get(description=row_desc)
+                
+                Property.objects.get_or_create(
+                    material=some_material,
+                    property_template=mw,
+                    value=row[column_names_to_index['MolecularWeight']]
+                )
+                Property.objects.get_or_create(
+                    material=some_material,
+                    property_template=density,
+                    value=row[column_names_to_index['Density']]
+                )
+                
+            self.stdout.write(self.style.SUCCESS(
+                f'Updated molecular weight and density for materials'))
+                
         self.stdout.write(self.style.NOTICE('Finished loading chem'))
 
     def _load_material_identifier(self):
@@ -228,7 +293,7 @@ class Command(BaseCommand):
 
     def _load_material(self):
         self.stdout.write(self.style.NOTICE('Beginning loading material'))
-        filename = 'load_material.txt'
+        filename = 'load_material.csv'
         MATERIAL = path_to_file(filename)
         with open(MATERIAL, newline='') as f:
             reader = csv.reader(f, delimiter="\t")
