@@ -402,7 +402,7 @@ class CreateExperimentView(TemplateView):
             #robotfile generation
             if exp_template.description in SUPPORTED_CREATE_WFS:
                 template_function = getattr(core.experiment_templates, exp_template.description)
-                new_lsr_pk, lsr_msg = template_function(None, q1, experiment_copy_uuid, exp_name, exp_template)
+                new_lsr_pk, lsr_msg = template_function(None, q1, experiment_copy_uuid, exp_name, exp_template,exp_number)
                 
                 if new_lsr_pk is not None:
                     context['xls_download_link'] = reverse('edoc_download', args=[new_lsr_pk])
