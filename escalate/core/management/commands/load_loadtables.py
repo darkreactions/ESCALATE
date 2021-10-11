@@ -223,6 +223,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(
                 f'Updated material identifier for materials'))
             
+            '''
             # jump to top of csv
             f.seek(0)
             # skip initial header row
@@ -245,8 +246,8 @@ class Command(BaseCommand):
                 
             self.stdout.write(self.style.SUCCESS(
                 f'Updated molecular weight and density for materials'))
-                
-        self.stdout.write(self.style.NOTICE('Finished loading chem'))
+            '''    
+            self.stdout.write(self.style.NOTICE('Finished loading chem'))
 
     def _load_material_identifier(self):
         self.stdout.write(self.style.NOTICE(
@@ -295,7 +296,7 @@ class Command(BaseCommand):
     def _load_material(self):
         self.stdout.write(self.style.NOTICE('Beginning loading material'))
 
-        filenames = ['load_material.txt', 'load_material.csv']
+        filenames = ['load_material.txt']
         for filename in filenames:
             MATERIAL = path_to_file(filename)
             with open(MATERIAL, newline='') as f:
