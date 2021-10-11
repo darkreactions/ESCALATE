@@ -17,6 +17,7 @@ from core.custom_types import Val
 from core.models.core_tables import RetUUIDField
 from core.utilities.randomSampling import generateExperiments
 from core.utilities.wf1_utils import make_well_list
+from .calculations import conc_to_amount
 
 def hcl_mix(stock_concentration, solution_volume, target_concentrations):
     '''
@@ -281,5 +282,6 @@ def generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, num_
             parameter.parameter_val_nominal.value = desired_volume[reagent_name][i] * mult_factor
             parameter.save()
 
+    conc_to_amount(experiment_copy_uuid)
         
     return q1

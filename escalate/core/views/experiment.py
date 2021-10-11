@@ -198,6 +198,7 @@ class CreateExperimentView(TemplateView):
                 request.session['experiment_template_uuid'] = None
         # begin: create experiment
         elif 'create_exp' in request.POST:
+            # TODO: Remove check for formset, instead create boolean in get function
             if "reagent_0-TOTAL_FORMS" in request.POST:
                 context = self.process_automated_formsets(request, context)
             else:
@@ -280,6 +281,7 @@ class CreateExperimentView(TemplateView):
                 reagent_instance.save()
                 reagent_material_value = reagent_instance.reagent_material_value_rmi.get(template__description='concentration')
                 reagent_material_value.nominal_value = data['desired_concentration']
+                reagent_material_value.save()
                 mat_type = reagent_instance.template.material_type
                 vector[positions[mat_type.description]] = data['desired_concentration']
         return vector

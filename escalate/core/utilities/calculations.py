@@ -5,12 +5,13 @@ import pint
 from pint import UnitRegistry
 
 from core.models.view_tables.chemistry_data import ReagentMaterial
-from core.utilities.experiment_utils import get_action_parameter_querysets
+from core.models.view_tables import ExperimentInstance
+#from core.utilities.experiment_utils import get_action_parameter_querysets
 
 units = UnitRegistry()
 Q_ = units.Quantity
 
-def conc_to_amount(exp_instance):
+def conc_to_amount(exp_uuid):
     """
     Function to generate amounts from desired concentrations
     based on generate_input_f but using django models
@@ -20,6 +21,7 @@ def conc_to_amount(exp_instance):
     """
     
     #reagent_templates = exp_instance.parent.reagent_templates.all()
+    exp_instance = ExperimentInstance.objects.filter(uuid=exp_uuid).prefetch_related()[0]
 
     for reagent in exp_instance.reagent_ei.all():
         input_data = {}
@@ -31,10 +33,10 @@ def conc_to_amount(exp_instance):
             conc=Q_(conc_val, conc_unit)
             phase = reagent_material.material.phase
 
-            mw_prop = reagent_material.material.material.property_material.get(property_template__description__icontains='molecular weight')
-            mw = Q_(mw_prop.property_val.value, mw_prop.property_val.unit).to(units.g/units.mol)
-            density_prop = reagent_material.material.material.property_material.get(property_template__description__icontains='density')
-            d = d=Q_(density_prop.value, density_prop.unit).to(units.g/units.ml)
+            mw_prop = reagent_material.material.material.property_m.get(property_template__description__icontains='molecular weight')
+            mw = Q_(mw_prop.value.value, mw_prop.value.unit).to(units.g/units.mol)
+            density_prop = reagent_material.material.material.property_m.get(property_template__description__icontains='density')
+            d = d=Q_(density_prop.value.value, density_prop.value.unit).to(units.g/units.ml)
 
             input_data[reagent_material]={'concentration': conc, 
                               'phase': phase, 
@@ -48,7 +50,7 @@ def conc_to_amount(exp_instance):
         for reagent_material, amount in amounts.items():
             db_amount = reagent_material.reagent_material_value_rmi.get(template__description='amount')
             db_amount.nominal_value.value = amount.magnitude
-            db_amount.nominal_value.unit = amount.unit
+            db_amount.nominal_value.unit = str(amount.units)
             db_amount.save()
 
     #return amounts
