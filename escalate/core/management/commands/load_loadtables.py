@@ -53,7 +53,7 @@ class Command(BaseCommand):
 
     def _load_chem_inventory(self):
         self.stdout.write(self.style.NOTICE('Beginning loading chem'))
-        filename = 'load_chem_inventory.csv'
+        filename = 'load_chem_inventory.txt'
         LOAD_CHEM_INVENTORY = path_to_file(filename)
         with open(LOAD_CHEM_INVENTORY, newline='') as f:
             reader = csv.reader(f, delimiter="\t")
@@ -111,6 +111,8 @@ class Command(BaseCommand):
             # this block of code matches each material to its material types(s)
             for row in reader:
                 row_desc = row[column_names_to_index['ChemicalName']]
+                if (string_is_null(row[column_names_to_index['ChemicalCategory']])):
+                    continue
                 row_material_types_raw = [
                     x.strip() for x in row[column_names_to_index['ChemicalCategory']].split(',')]
                 row_material_types = [MaterialType.objects.get(
@@ -228,63 +230,64 @@ class Command(BaseCommand):
 
     def _load_material(self):
         self.stdout.write(self.style.NOTICE('Beginning loading material'))
-        filename = 'load_material.txt'
-        MATERIAL = path_to_file(filename)
-        with open(MATERIAL, newline='') as f:
-            reader = csv.reader(f, delimiter="\t")
+        filenames = ['load_material.txt', 'load_material.csv']
+        for filename in filenames:
+            MATERIAL = path_to_file(filename)
+            with open(MATERIAL, newline='') as f:
+                reader = csv.reader(f, delimiter="\t")
 
-            # first row should be header
-            column_names = next(reader)
+                # first row should be header
+                column_names = next(reader)
 
-            # {'col_0': 0, 'col_1': 1, ...}
-            column_names_to_index = list_data_to_index(column_names)
+                # {'col_0': 0, 'col_1': 1, ...}
+                column_names_to_index = list_data_to_index(column_names)
 
-            active_status = Status.objects.get(description="active")
+                active_status = Status.objects.get(description="active")
 
-            material_identifier_def = {
-                x.description: x for x in MaterialIdentifierDef.objects.all()}
+                material_identifier_def = {
+                    x.description: x for x in MaterialIdentifierDef.objects.all()}
 
-            new_material = 0
-            for row in reader:
-                description = clean_string(
-                    row[column_names_to_index['description']])
-                material_class = clean_string(
-                    row[column_names_to_index['material_class']])
-                consumable = clean_string(
-                    row[column_names_to_index['consumable']])
+                new_material = 0
+                for row in reader:
+                    description = clean_string(
+                        row[column_names_to_index['description']])
+                    material_class = clean_string(
+                        row[column_names_to_index['material_class']])
+                    consumable = clean_string(
+                        row[column_names_to_index['consumable']])
 
-                fields = {
-                    'description': description,
-                    'material_class': material_class,
-                    'consumable': to_bool(consumable),
-                    'status': active_status
-                }
-                material_instance, created = Material.objects.get_or_create(
-                    **fields)
+                    fields = {
+                        'description': description,
+                        'material_class': material_class,
+                        'consumable': to_bool(consumable),
+                        'status': active_status
+                    }
+                    material_instance, created = Material.objects.get_or_create(
+                        **fields)
 
-                material_identifier__description = [x.strip() for x in y.split('|')] if not string_is_null(
-                    y := row[column_names_to_index['material_identifier__description']]) else []
-                material_identifier_def__description = [x.strip() for x in y.split('|')] if not string_is_null(
-                    y := row[column_names_to_index['material_identifier_def__description']]) else []
-                
-                material_type__description = [x.strip() for x in z.split('|')] if not string_is_null(
-                    z := row[column_names_to_index['material_type__description']]) else []
+                    material_identifier__description = [x.strip() for x in y.split('|')] if not string_is_null(
+                        y := row[column_names_to_index['material_identifier__description']]) else []
+                    material_identifier_def__description = [x.strip() for x in y.split('|')] if not string_is_null(
+                        y := row[column_names_to_index['material_identifier_def__description']]) else []
+                    
+                    material_type__description = [x.strip() for x in z.split('|')] if not string_is_null(
+                        z := row[column_names_to_index['material_type__description']]) else []
 
-                material_instance.identifier.add(*[MaterialIdentifier.objects.get(description=descr,
-                                                                                  material_identifier_def=material_identifier_def[def_descr])
-                                                   for descr, def_descr in zip(material_identifier__description, material_identifier_def__description)])
-                material_instance.material_type.add(
-                    *[MaterialType.objects.get(description=d) for d in material_type__description])
-                
-                if created:
-                    new_material += 1
-            # #jump to top of csv
-            # f.seek(0)
-            # #skip initial header row
-            # next(reader)
+                    material_instance.identifier.add(*[MaterialIdentifier.objects.get(description=descr,
+                                                                                    material_identifier_def=material_identifier_def[def_descr])
+                                                    for descr, def_descr in zip(material_identifier__description, material_identifier_def__description)])
+                    material_instance.material_type.add(
+                        *[MaterialType.objects.get(description=d) for d in material_type__description])
+                    
+                    if created:
+                        new_material += 1
+                # #jump to top of csv
+                # f.seek(0)
+                # #skip initial header row
+                # next(reader)
 
-            self.stdout.write(self.style.SUCCESS(
-                f'Added {new_material} new materials'))
+                self.stdout.write(self.style.SUCCESS(
+                    f'Added {new_material} new materials'))
         self.stdout.write(self.style.NOTICE('Finished loading material'))
 
     def _load_inventory_material(self):

@@ -87,6 +87,7 @@ model_field_data = {
         ["acid"],
         ["organic"],
         ["inorganic"],
+        ["polymer"]
     ],
     'measure_type': [
         ['robot'],
