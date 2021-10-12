@@ -37,7 +37,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE('Loading load tables'))
-        # self._load_chem_inventory()
+        self._load_chem_inventory()
         self._load_material_identifier()
         self._load_material()
         self._load_inventory_material()
@@ -253,17 +253,21 @@ class Command(BaseCommand):
                         row[column_names_to_index['description']])
                     material_class = clean_string(
                         row[column_names_to_index['material_class']])
-                    consumable = clean_string(
-                        row[column_names_to_index['consumable']])
+                    consumable = to_bool(clean_string(
+                        row[column_names_to_index['consumable']]))
 
-                    fields = {
-                        'description': description,
-                        'material_class': material_class,
-                        'consumable': to_bool(consumable),
-                        'status': active_status
-                    }
+                    # fields = {
+                    #     'description': description,
+                    #     'material_class': material_class,
+                    #     'consumable': to_bool(consumable),
+                    #     'status': active_status
+                    # }
                     material_instance, created = Material.objects.get_or_create(
-                        **fields)
+                        **{'description':description, 'status':active_status})
+                    material_instance.material_class = material_class
+                    material_instance.consumable = consumable
+                    material_instance.status = active_status
+
 
                     material_identifier__description = [x.strip() for x in y.split('|')] if not string_is_null(
                         y := row[column_names_to_index['material_identifier__description']]) else []
@@ -278,7 +282,7 @@ class Command(BaseCommand):
                                                     for descr, def_descr in zip(material_identifier__description, material_identifier_def__description)])
                     material_instance.material_type.add(
                         *[MaterialType.objects.get(description=d) for d in material_type__description])
-                    
+                    material_instance.save(update_fields=['material_class','consumable' ])
                     if created:
                         new_material += 1
                 # #jump to top of csv
@@ -1051,3 +1055,10 @@ def get_val_field_dict(type_, unit, value_from_csv):
         'unit': unit,
         'value': value
     }
+
+def get_or_none(model_cls, fields):
+    try:
+        obj = model_cls.objects.get(**fields)
+        return obj
+    except:
+        return None
