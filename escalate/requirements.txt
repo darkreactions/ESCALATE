@@ -28,3 +28,4 @@ xlwt
 matplotlib
 scipy
 pint
+ipython
