@@ -58,13 +58,16 @@
                   <div class="card">
                     <div class="card-body">
                       <h5 class="card-title">Reagent {{ forloop.counter }} : {{ reagent_template_names|index:forloop.counter0 }}</h5>
-                      {{ reagent_form|crispy }}
+                      {% crispy reagent_form reagent_formset_helper %}
                     </div>
                   </div>
                     <br>
+                    
                   {% endfor %}
                   <input type="hidden" id="automated" name="automated" value="{{ automated }}">
                 {% endif %}
+
+
                 {% if manual > 0 %}
                 <div class="treeview-animated border mx-4 my-4">
                   <h6 class="pt-3 pl-3">Experiment Parameters for {{ selected_exp_template.description }}</h6>

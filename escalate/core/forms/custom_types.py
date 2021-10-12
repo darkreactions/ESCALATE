@@ -75,6 +75,21 @@ class ReagentForm(Form):
         self.fields['chemical'].choices = [(im.uuid, im.description) for im in inventory_materials]
         self.fields['chemical'].label = f'Chemical {chemical_index+1}: {material_type.description}'
 
+    def get_helper():
+        helper = FormHelper()
+        helper.form_class = 'form-horizontal'
+        helper.label_class = 'col-lg-3'
+        helper.field_class = 'col-lg-8'
+        helper.layout = Layout(
+            Row(
+                Column(Field('chemical')),
+                Column(Field('desired_concentration')),
+            ),
+            Field('reagent_template_uuid'),
+            Field('material_type')
+        )
+        return helper
+
 
 class ReagentValueForm(Form):
     material_type = CharField(required=False)

@@ -140,12 +140,12 @@ class CreateExperimentView(TemplateView):
             org_id = None
         formsets = []
         reagent_template_names = []
-        for index, reagent_template in enumerate(exp_template.reagent_templates.all()):
+        for index, reagent_template in enumerate(exp_template.reagent_templates.all().order_by('description')):
             reagent_template_names.append(reagent_template.description)
             mat_types_list = []
             initial = []
             #for material_type in reagent_template.material_type.all():
-            for reagent_material_template in reagent_template.reagent_material_template_rt.all():
+            for reagent_material_template in reagent_template.reagent_material_template_rt.all().order_by('description'):
                 for reagent_material_value_template in reagent_material_template.reagent_material_value_template_rmt.filter(description='concentration'):
                     material_type = reagent_material_template.material_type
                     mat_types_list.append(material_type)
@@ -162,6 +162,7 @@ class CreateExperimentView(TemplateView):
                 formsets.append(fset)
         #for form in formset:
         #    form.fields[]
+        context['reagent_formset_helper'] = ReagentForm.get_helper()
         context['reagent_formset'] = formsets
         context['reagent_template_names'] = reagent_template_names
         return context
