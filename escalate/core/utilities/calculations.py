@@ -1,7 +1,4 @@
 import requests
-from IPython.display import display, HTML
-
-import pint
 from pint import UnitRegistry
 
 from core.models.view_tables.chemistry_data import ReagentMaterial
