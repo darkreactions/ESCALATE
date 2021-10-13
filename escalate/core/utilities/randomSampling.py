@@ -472,7 +472,7 @@ def generateExperiments(reagents, descriptions, nExpt, excludedReagents=None, ma
 
             return generate3DExperiments(reagents, descriptions, nExpt, maxMolarity=9., finalVolume='500. uL', desiredUnit='uL', processValues='round')
         else:
-            return generateHitAndRunExperiments(reagents, descriptions, nExpt, maxMolarity=9., finalVolume='500. uL', desiredUnit='uL', processValues='round')
+            return generateHitAndRunExperiments(reagents, descriptions, nExpt, maxMolarity=9., finalVol='500. uL', desiredUnit='uL', processValues='round')
 
     else:
         nonzeroReagentsDef = dropZeroColumns(reagents)
