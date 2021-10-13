@@ -163,6 +163,7 @@ class CreateExperimentView(TemplateView):
         #for form in formset:
         #    form.fields[]
         context['reagent_formset_helper'] = ReagentForm.get_helper()
+        context['reagent_formset_helper'].form_tag = False
         context['reagent_formset'] = formsets
         context['reagent_template_names'] = reagent_template_names
         return context

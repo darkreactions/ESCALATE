@@ -51,7 +51,7 @@ class ExperimentTemplateForm(Form):
 
 class ReagentForm(Form):
     widget = Select(attrs={'class': 'selectpicker', 
-                                 'data-style':"btn-dark",
+                                 'data-style':"btn-outline",
                                  'data-live-search':'true', })
     chemical = ChoiceField(widget=widget, required=False)
     desired_concentration = ValFormField(required=False)
@@ -75,6 +75,7 @@ class ReagentForm(Form):
         self.fields['chemical'].choices = [(im.uuid, im.description) for im in inventory_materials]
         self.fields['chemical'].label = f'Chemical {chemical_index+1}: {material_type.description}'
 
+    @staticmethod
     def get_helper():
         helper = FormHelper()
         helper.form_class = 'form-horizontal'
