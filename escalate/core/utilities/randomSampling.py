@@ -472,7 +472,7 @@ def generateExperiments(reagents, descriptions, nExpt, excludedReagents=None, ma
 
             return generate3DExperiments(reagents, descriptions, nExpt, maxMolarity=9., finalVolume='500. uL', desiredUnit='uL', processValues='round')
         else:
-            return generateHitAndRunExperiments(reagents, descriptions, nExpt, maxMolarity=9., finalVol='500. uL', desiredUnit='uL', processValues='round')
+            return generateHitAndRunExperiments(reagents, descriptions, nExpt, maxMolarity=9., finalVolume='500. uL', desiredUnit='uL', processValues='round')
 
     else:
         nonzeroReagentsDef = dropZeroColumns(reagents)
@@ -528,8 +528,8 @@ def generateHitAndRunExperiments(reagents, descriptions, nExpt=96, maxMolarity=9
     # finalVolume=v1.magnitude
     finalVolume = Q_(finalVolume).to(units.ul)
     
-    reagentDefs = generate_vectors(descriptions, reagents) #convert reagent input into proper vector format
-
+    #reagentDefs = generate_vectors(descriptions, reagents) #convert reagent input into proper vector format
+    reagentDefs = reagents
     nonzeroReagentDefs = dropZeroColumns(reagentDefs)
     dimensionality = len(np.array(list(nonzeroReagentDefs.values()))[0])
     hullCorners = np.array(list(nonzeroReagentDefs.values()))

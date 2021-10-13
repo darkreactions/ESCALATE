@@ -362,10 +362,10 @@ class CreateExperimentView(TemplateView):
             org_id = None
         formsets = []
         reagent_template_names = []
-        for index, form in enumerate(exp_template.reagent_templates.all()):
+        for index, form in enumerate(exp_template.reagent_templates.all().order_by('description')):
             reagent_template_names.append(form.description)
             mat_types_list = []
-            for reagent_material_template in form.reagent_material_template_rt.all():
+            for reagent_material_template in form.reagent_material_template_rt.all().order_by('description'):
                 for reagent_material_value_template in reagent_material_template.reagent_material_value_template_rmt.filter(description='concentration'):
                     mat_types_list.append(reagent_material_template.material_type)
                     formsets.append(self.ReagentFormSet(request.POST, prefix=f'reagent_{index}',
@@ -567,7 +567,7 @@ class ExperimentReagentPrepView(TemplateView):
 
 class ExperimentOutcomeView(TemplateView):
     template_name = "core/experiment_outcome.html"
-    ReagentFormSet = modelformset_factory(OutcomeInstance, 
+    OutcomeFormSet = modelformset_factory(OutcomeInstance, 
                                           form=OutcomeInstanceForm, 
                                           extra=0, 
                                           widgets={'actual_value': ValWidget()})
@@ -582,7 +582,7 @@ class ExperimentOutcomeView(TemplateView):
     def get_outcome_forms(self, experiment, context):
         outcome_instances = experiment.outcome_instance_experiment_instance.all()
 
-        outcome_formset = self.ReagentFormSet(queryset=outcome_instances)
+        outcome_formset = self.OutcomeFormSet(queryset=outcome_instances)
         context['outcome_formset'] = outcome_formset
         context['helper'] = OutcomeInstanceForm.get_helper()
         context['helper'].form_tag = False
