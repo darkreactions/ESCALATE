@@ -57,7 +57,7 @@ class Val:
         return converted_value
     
     def convert_single_value(self, description, value):
-        primitives = {'bool': bool, 'int': int, 'num': float, 'text': str, 'blob': str}
+        primitives = {'bool': bool, 'int': lambda x: int(float(x)), 'num': float, 'text': str, 'blob': str}
         reverse_primitives = {bool: 'bool',
                               int: 'int', float: 'num', str: 'text'}
         default_primitives = {'bool': False, 'int': 0, 'num': 0.0, 'text': ' ', 'blob':' '}
