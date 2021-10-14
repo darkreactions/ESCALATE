@@ -133,11 +133,13 @@ class CreateExperimentView(TemplateView):
 
         return context
     
-    def get_colors(self):
+    def get_colors(self, reagent_form):
       context = self.get_context_data(**kwargs)
-      context['colors']=['pink', 'rebeccapurple', 'lightpurple', 'purple']
+      context['colors']=['pink', 'rebeccapurple', 'aqua', 'lavender', 'purple', 'violet', 'turquoise', 'deeppink']
+      if range(len(reagent_form)>8:
+        for i in range(len(reagent_form)/2 +1):
+          context['colors'].append('pink', 'rebeccapurple')
       return context
-    
     
     def get_reagent_forms(self, exp_template, context):
         if 'current_org_id' in self.request.session:
