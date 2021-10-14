@@ -42,21 +42,15 @@ def generate_robot_file(reaction_volumes, reaction_parameters,
 
 
     df_tray = make_well_list(plate_name, well_count)
-    if reaction_volumes is None:
-        reagent_colnames = ['Reagent1 (ul)', 'Reagent2 (ul)', 'Reagent3 (ul)', 
+    reagent_colnames = ['Reagent1 (ul)', 'Reagent2 (ul)', 'Reagent3 (ul)', 
                             'Reagent4 (ul)', 'Reagent5 (ul)', 'Reagent6 (ul)',
                             'Reagent7 (ul)', 'Reagent8 (ul)', 'Reagent9 (ul)']
-        reaction_volumes = pd.DataFrame({
+    reaction_volumes_output = pd.DataFrame({
             reagent_col: [0]*len(df_tray) for reagent_col in reagent_colnames
         })
-    else:
-        reagent_colnames = ['Reagent1 (ul)', 'Reagent2 (ul)', 'Reagent3 (ul)', 
-                            'Reagent4 (ul)', 'Reagent5 (ul)', 'Reagent6 (ul)',
-                            'Reagent7 (ul)', 'Reagent8 (ul)', 'Reagent9 (ul)']
-        reaction_volumes_output = pd.DataFrame({
-            reagent_col: [0]*len(df_tray) for reagent_col in reagent_colnames
-        })
-        reaction_volumes_output = pd.concat([df_tray, reaction_volumes_output], axis=1)
+
+    if reaction_volumes is not None:
+        reaction_volumes_output = pd.concat([df_tray['Vial Site'], reaction_volumes_output], axis=1)
         REAG_MAPPING = {
             "Stock A": 2, 
             "Stock B": 3, 

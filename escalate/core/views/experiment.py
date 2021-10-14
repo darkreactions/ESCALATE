@@ -580,10 +580,17 @@ class ExperimentOutcomeView(TemplateView):
         return render(request, self.template_name, context)
     
     def get_outcome_forms(self, experiment, context):
-        outcome_instances = experiment.outcome_instance_experiment_instance.all()
+        outcome_instances = experiment.outcome_instance_experiment_instance.all().order_by('description')
 
         outcome_formset = self.OutcomeFormSet(queryset=outcome_instances)
         context['outcome_formset'] = outcome_formset
         context['helper'] = OutcomeInstanceForm.get_helper()
         context['helper'].form_tag = False
         return context
+
+    def post(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        #experiment_instance_uuid = request.resolver_match.kwargs['pk']
+        outcome_formset = self.OutcomeFormSet(request.POST)
+        if outcome_formset.is_valid():
+            outcome_formset.save()
