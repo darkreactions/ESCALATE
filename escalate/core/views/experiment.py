@@ -132,7 +132,13 @@ class CreateExperimentView(TemplateView):
         context['q1_material_details'] = q1_details
 
         return context
-
+    
+    def get_colors(self):
+      context = self.get_context_data(**kwargs)
+      context['colors']=['pink', 'rebeccapurple', 'lightpurple', 'purple']
+      return context
+    
+    
     def get_reagent_forms(self, exp_template, context):
         if 'current_org_id' in self.request.session:
             org_id = self.request.session['current_org_id']
