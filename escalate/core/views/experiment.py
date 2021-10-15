@@ -133,7 +133,7 @@ class CreateExperimentView(TemplateView):
 
         return context
     
-    def get_colors(number_of_colors):
+    def get_colors(self, number_of_colors):
       colors=['f0a2e6', 'bba2e6', '7ce1e4', '8de47c', 'e4be7c']
       factor = int(number_of_colors/5)
       remainder = number_of_colors % 5
