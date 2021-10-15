@@ -7,19 +7,32 @@
 
 <form method="post">{% csrf_token %}
     {{ q1_material_formset.management_form }}
-{#    {{ q1_formset.management_form }}#}
-{#    {{ q2_formset.management_form }}#}
-{#    {{ q3_formset.management_form }}#}
-    <p> Queue Status </p>
-    <div class="row">
-      <div class="col-md-12 text-secondary">
-        <form method="post">{% csrf_token %}
-            {{ queue_status_form|crispy }}
-            <div>
-            <button class="btn btn-outline-primary" type="submit">Select Status</button>
-            </div>
-        </form>
-      </div>
+    <div class="treeview-animated border mx-4 my-4">
+        <h6 class="pt-3 pl-3">Overview of queued experiment {{ experiment.description }}</h6>
+        <hr>
+        <ul>
+        {% for k, v in overview_info %}
+            <li>
+                {{ k }} : {{ v }}
+            </li>
+        {% endfor %}
+        </ul>
+        {% crispy queue_status_form helper %}
+    </div>
+    <div class="treeview-animated border mx-4 my-4">
+    <table class="table table-striped table-bordered"><tbody>
+    <h6 class="pt-3 pl-3">Files associated with {{ experiment.description }}</h6>
+    <hr>
+    {% for filename, link in edocs.items %}
+        <tr>
+            <td>{{ filename }}</td>
+            <td><a href="{{ link }}"><strong>Download</strong>
+                <i class="fa fa-download"></i>
+            </a></td>
+        </tr>
+    {% endfor %}
+    </tbody></table>
+    <p>Upload New File: </p> {{ edoc_upload_form.file }}
     </div>
     <div class="treeview-animated border mx-4 my-4">
         <h6 class="pt-3 pl-3">Material Parameters for {{ experiment.description }}</h6>
@@ -40,56 +53,6 @@
             {% endfor %}
         </ul>
     </div>
-{#    <div class="treeview-animated border mx-4 my-4">#}
-{#        <h6 class="pt-3 pl-3">Experiment Parameters for {{ experiment.description }}</h6>#}
-{#        <hr>#}
-{#        <ul class="treeview-animated-list">#}
-{#            {% for f in q1_formset %}#}
-{#            <li class="treeview-animated-items">#}
-{#              <a class="closed">#}
-{#                <i class="fas fa-angle-right"></i>#}
-{#                <span><i class="fas fa-table ic-w mx-1"></i>{{ q1_details|index:forloop.counter0 }}</span>#}
-{#              </a>#}
-{#              <ul class="nested">#}
-{#                <li>#}
-{#                    {{ f|crispy }}#}
-{#                </li>#}
-{#              </ul>#}
-{#            </li>#}
-{#            {% endfor %}#}
-{##}
-{#            {% for f in q2_formset %}#}
-{#            <li class="treeview-animated-items">#}
-{#              <a class="closed">#}
-{#                <i class="fas fa-angle-right"></i>#}
-{#                <span><i class="fas fa-table ic-w mx-1"></i>{{ q2_details|index:forloop.counter0 }}</span>#}
-{#              </a>#}
-{#              <ul class="nested">#}
-{#                <li>#}
-{#                    {{ f|crispy }}#}
-{#                </li>#}
-{#              </ul>#}
-{#            </li>#}
-{#            {% endfor %}#}
-{##}
-{#            {% for f in q3_formset %}#}
-{#            <li class="treeview-animated-items">#}
-{#              <a class="closed">#}
-{#                <i class="fas fa-angle-right"></i>#}
-{#                <span><i class="fas fa-table ic-w mx-1"></i>{{ q3_details|index:forloop.counter0 }}</span>#}
-{#              </a>#}
-{#              <ul class="nested">#}
-{#                <li>#}
-{#                    {{ f|crispy }}#}
-{#                </li>#}
-{#              </ul>#}
-{#            </li>#}
-{#            {% endfor %}#}
-{#        </ul>#}
-{#     </div>   #}
-{#	 <div class="text-center">#}
-{#         <button class="btn btn-outline-primary" type="submit" name="update_exp" value="update_exp">Submit</button>#}
-{#     </div>#}
 </form>
 
 

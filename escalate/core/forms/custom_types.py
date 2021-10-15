@@ -13,7 +13,6 @@ class SingleValForm(Form):
     value = ValFormField(required=False)
     uuid = CharField(widget=HiddenInput)
 
-    
 
 class InventoryMaterialForm(Form):
     value = ModelChoiceField(queryset=vt.InventoryMaterial.objects.all())
@@ -48,17 +47,40 @@ class ExperimentTemplateForm(Form):
         #self.fields['organization'].queryset = OrganizationPassword.objects.all()
         self.fields['select_experiment_template'].choices = [(exp.uuid, exp.description) for exp in vt.ExperimentTemplate.objects.filter(lab=lab)]
 
+
 class QueueStatusForm(Form):
     widget = Select(attrs={'class': 'selectpicker',
-                           'data-style': "btn-dark",
-                           'data-live-search': 'true'})
+                           'data-style': 'btn-light',
+                           'data-live-search': 'false'})
     select_queue_status = ChoiceField(widget=widget)
+    select_queue_priority = ChoiceField(widget=widget)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, experiment, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # todo how to set default to what is already selected?
-        self.fields['select_queue_status'].choices = [('foo', 'Pending'), ('bar' ,'Running'), ('qux', 'Completed')]
+        self.fields['select_queue_status'].choices = [('Pending', 'Pending'),
+                                                      ('Running' ,'Running'),
+                                                      ('Completed', 'Completed')]
+        self.fields['select_queue_status'].initial = experiment.completion_status
+        self.fields['select_queue_priority'].choices = [('1', '1'),
+                                                        ('2' ,'2'),
+                                                        ('3', '3')]
+        self.fields['select_queue_priority'].initial = experiment.priority
 
+    @staticmethod
+    def get_helper():
+        helper = FormHelper()
+        helper.form_class = 'form-horizontal'
+        helper.label_class = 'col-lg-3'
+        helper.field_class = 'col-lg-8'
+        helper.layout = Layout(
+            Row(
+                Column(Field('select_queue_status'))
+            ),
+            Row(
+                Column(Field('select_queue_priority'))
+            ),
+        )
+        return helper
 
 class ReagentForm(Form):
     widget = Select(attrs={'class': 'selectpicker', 
