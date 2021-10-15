@@ -174,6 +174,7 @@ class CreateExperimentView(TemplateView):
         context['reagent_formset_helper'].form_tag = False
         context['reagent_formset'] = formsets
         context['reagent_template_names'] = reagent_template_names
+        context['colors'] = self.get_colors(formsets)
         return context
 
     def get(self, request, *args, **kwargs):
