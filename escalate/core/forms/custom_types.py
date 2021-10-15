@@ -158,15 +158,15 @@ class OutcomeInstanceForm(ModelForm):
         self.fields['file'].required = False
 
     @staticmethod
-    def get_helper(readonly_fields=[]):
+    def get_helper():
         helper = FormHelper()
         helper.form_class = 'form-horizontal'
-        helper.label_class = 'col-lg-4'
-        helper.field_class = 'col-lg-6'
+        helper.label_class = 'col-lg-3'
+        helper.field_class = 'col-lg-8'
         helper.layout = Layout(
             Row(
                 Column(Field('actual_value')),
-                Column(Field('file')),
+                Row(Field('file')),
             ),
         )
         return helper
@@ -174,3 +174,44 @@ class OutcomeInstanceForm(ModelForm):
     class Meta:
         model = vt.OutcomeInstance
         fields = ['actual_value', 'file']
+
+
+class PropertyForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        nominal_value_label = 'Nominal Value'
+        value_label = 'Value'
+        if 'nominal_value_label' in kwargs:
+            nominal_value_label = kwargs.pop('nominal_value_label')
+        if 'value_label' in kwargs:
+            value_label = kwargs.pop('value_label')
+
+        disabled_fields = kwargs.pop('disabled_fields', [])
+        
+        super().__init__(*args, **kwargs)
+
+        self.fields['nominal_value'].label = nominal_value_label
+        self.fields['value'].label = value_label
+        for field in disabled_fields:
+            self.fields[field].disabled = True
+
+    @staticmethod
+    def get_helper(readonly_fields=[]):
+        helper = FormHelper()
+        helper.form_class = 'form-horizontal'
+        helper.label_class = 'col-lg-3'
+        helper.field_class = 'col-lg-8'
+        helper.layout = Layout(
+            Row(
+                Column(Field('nominal_value', readonly=True)),
+                Column(Field('value')),
+            ),
+        )
+        return helper
+
+    class Meta:
+        model = vt.Property
+        fields = ['nominal_value', 'value']
+        widgets = {
+            'nominal_value': ValWidget(),
+            'value': ValWidget()
+        }

@@ -21,7 +21,7 @@ from core.models.view_tables import (ExperimentTemplate,
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm, NominalActualForm, ReagentValueForm
 from core.forms.custom_types import (ExperimentNameForm, ExperimentTemplateForm, 
                                      ReagentForm, BaseReagentFormSet, 
-                                     BaseReagentModelFormSet, OutcomeInstanceForm)
+                                     PropertyForm, OutcomeInstanceForm)
 from core.utilities.utils import experiment_copy
 from core.utilities.experiment_utils import (update_dispense_action_set, 
                                              get_action_parameter_querysets, 
@@ -509,6 +509,7 @@ class ExperimentReagentPrepView(TemplateView):
     def get_reagent_forms(self, experiment, context):
         formsets = []
         reagent_names = []
+        reagent_total_volume_forms = []
         form_kwargs = {
                 'disabled_fields': ['material', 'material_type', 'nominal_value'],
             }
@@ -516,11 +517,19 @@ class ExperimentReagentPrepView(TemplateView):
         context['helper'] = ReagentValueForm.get_helper(readonly_fields=['material', 'material_type', 'nominal_value'])
         context['helper'].form_tag = False
 
+        context['volume_form_helper'] = PropertyForm.get_helper()
+        context['volume_form_helper'].form_tag = False
+
         
         #for index, reagent_template in enumerate(reagent_templates):
         for index, reagent in enumerate(experiment.reagent_ei.all()):
             reagent_materials = reagent.reagent_material_r.filter(reagent_material_value_rmi__description='amount')
                                                                   #  template__reagent_template=)
+            property = reagent.property_r.get(property_template__description__iexact='total volume')
+            reagent_total_volume_forms.append(PropertyForm(instance=property, 
+                                                           nominal_value_label = 'Calculated Volume',
+                                                           value_label = 'Measured Volume',
+                                                           disabled_fields=['nominal_value'])) 
             initial = []
             for reagent_material in reagent_materials:
                 
@@ -534,7 +543,8 @@ class ExperimentReagentPrepView(TemplateView):
                 
             fset = self.ReagentFormSet(prefix=f'reagent_{index}', initial=initial, form_kwargs=form_kwargs)
             formsets.append(fset)
-        context['reagent_formsets'] = formsets
+        context['reagent_formsets'] = zip(formsets, reagent_total_volume_forms)
+        # context['reagent_total_volume_forms'] = 
         # context['reagent_template_names'] = reagent_names
         
         return context
@@ -548,6 +558,11 @@ class ExperimentReagentPrepView(TemplateView):
         formsets = []
         valid_forms = True
         for index in range(len(reagent_templates)):
+            property_form = PropertyForm(request.POST)
+            if property_form.is_valid():
+                property_form.save()
+            else:
+                valid_forms = False
             fset = self.ReagentFormSet(request.POST, prefix=f'reagent_{index}')
             formsets.append(fset)
             if fset.is_valid():
@@ -557,6 +572,7 @@ class ExperimentReagentPrepView(TemplateView):
                     rmvi.save()
             else:
                 valid_forms = False
+        
         
         if valid_forms:
             return HttpResponseRedirect(reverse('experiment_instance_list'))
