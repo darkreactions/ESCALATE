@@ -133,11 +133,10 @@ class CreateExperimentView(TemplateView):
 
         return context
     
-    def get_colors(self, number_of_colors):
-      colors=['deeppink', 'blueviolet', 'blue', 'coral', 'lightseagreen']
-      factor = int(number_of_colors/5)
-      remainder = number_of_colors % 5
-      total_colors = colors*factor + colors[:remainder]
+    def get_colors(self, number_of_colors, colors=['deeppink', 'blueviolet', 'blue', 'coral', 'lightseagreen', 'orange', 'crimson']):
+      factor = int(number_of_colors/len(colors))    
+      remainder = number_of_colors % len(colors)
+      total_colors = colors*factor + colors[:remainder]         
       return total_colors
     
     def get_reagent_forms(self, exp_template, context):
@@ -513,7 +512,12 @@ class ExperimentReagentPrepView(TemplateView):
         context = self.get_reagent_forms(experiment, context)
         return render(request, self.template_name, context)
     
-
+    def get_colors(self, number_of_colors, colors=['deeppink', 'blueviolet', 'blue', 'coral', 'lightseagreen', 'orange', 'crimson']):
+      factor = int(number_of_colors/len(colors))    
+      remainder = number_of_colors % len(colors)
+      total_colors = colors*factor + colors[:remainder]         
+      return total_colors
+    
     def get_reagent_forms(self, experiment, context):
         formsets = []
         reagent_names = []
@@ -544,9 +548,9 @@ class ExperimentReagentPrepView(TemplateView):
             formsets.append(fset)
         context['reagent_formsets'] = formsets
         # context['reagent_template_names'] = reagent_names
+        context['colors'] = self.get_colors(len(formsets))
         
         return context
-    
     
     def post(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
@@ -570,9 +574,8 @@ class ExperimentReagentPrepView(TemplateView):
             return HttpResponseRedirect(reverse('experiment_instance_list'))
         else:
             return render(request, self.template_name, context)
-
-    
-
+          
+         
 class ExperimentOutcomeView(TemplateView):
     template_name = "core/experiment_outcome.html"
     OutcomeFormSet = modelformset_factory(OutcomeInstance, 
