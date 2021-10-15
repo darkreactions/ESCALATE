@@ -133,13 +133,12 @@ class CreateExperimentView(TemplateView):
 
         return context
     
-    def get_colors(self, reagent_form):
-      context = self.get_context_data(**kwargs)
-      context['colors']=['pink', 'rebeccapurple', 'aqua', 'lavender', 'purple', 'violet', 'turquoise', 'deeppink']
-      if range(len(reagent_form))>8:
-        for i in range(len(reagent_form)/2 +1):
-          context['colors'].append('pink', 'rebeccapurple')
-      return context
+    def get_colors(number_of_colors):
+      colors=['f0a2e6', 'bba2e6', '7ce1e4', '8de47c', 'e4be7c']
+      factor = int(number_of_colors/5)
+      remainder = number_of_colors % 5
+      total_colors = colors*factor + colors[:remainder]
+      return total_colors
     
     def get_reagent_forms(self, exp_template, context):
         if 'current_org_id' in self.request.session:
@@ -174,7 +173,7 @@ class CreateExperimentView(TemplateView):
         context['reagent_formset_helper'].form_tag = False
         context['reagent_formset'] = formsets
         context['reagent_template_names'] = reagent_template_names
-        context['colors'] = self.get_colors(formsets)
+        context['colors'] = self.get_colors(len(formsets))
         return context
 
     def get(self, request, *args, **kwargs):
