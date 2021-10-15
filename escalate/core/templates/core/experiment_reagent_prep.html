@@ -9,6 +9,7 @@
     {% for reagent_formset in reagent_formsets %}
         {{ reagent_formset.management_form }}
         <div class="card">
+            <div class="card text-white" style="background-color: {{ colors|index:forloop.counter0 }}" >
             <div class="card-body">
                 <h5>Reagent {{ forloop.counter }}</h5>
                 {% for reagent_form in reagent_formset %}
