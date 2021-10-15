@@ -39,9 +39,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE('Loading load tables'))
-        self._load_chem_inventory()
         self._load_material_identifier()
         self._load_material()
+        self._load_chem_inventory()
         self._load_inventory_material()
         self._load_vessels()
         self._load_experiment_related_def()
@@ -223,7 +223,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(
                 f'Updated material identifier for materials'))
             
-            '''
+            
             # jump to top of csv
             f.seek(0)
             # skip initial header row
@@ -231,23 +231,28 @@ class Command(BaseCommand):
             #update molecular weight and density
             for row in reader:
                 row_desc = row[column_names_to_index['ChemicalName']]
-                some_material = Material.objects.get(description=row_desc)
+                some_material, created = Material.objects.get_or_create(
+                        **{'description':row_desc, 'status':active_status})
                 
-                Property.objects.get_or_create(
+                #create property instances
+                #not currently working, error occurs when passing material object in to property
+                '''
+                Property.objects.create(
                     material=some_material,
                     property_template=mw,
                     value=row[column_names_to_index['MolecularWeight']]
                 )
-                Property.objects.get_or_create(
+                Property.objects.create(
                     material=some_material,
                     property_template=density,
                     value=row[column_names_to_index['Density']]
                 )
-                
+                '''
             self.stdout.write(self.style.SUCCESS(
                 f'Updated molecular weight and density for materials'))
-            '''    
+   
             self.stdout.write(self.style.NOTICE('Finished loading chem'))
+            
 
     def _load_material_identifier(self):
         self.stdout.write(self.style.NOTICE(
@@ -321,6 +326,16 @@ class Command(BaseCommand):
                         row[column_names_to_index['material_class']])
                     consumable = to_bool(clean_string(
                         row[column_names_to_index['consumable']]))
+                    mat_type_desc = clean_string(
+                        row[column_names_to_index['material_type__description']])
+                    #update phase, model update to include phase into materials and foreign key material from inventory material
+                    phase = None
+                    if "acid" in mat_type_desc:
+                        phase = "liquid"
+                    elif "solvent" in mat_type_desc:
+                        phase = "liquid"
+                    elif "organic" in mat_type_desc:
+                        phase = "solid"
 
                     # fields = {
                     #     'description': description,
@@ -333,7 +348,7 @@ class Command(BaseCommand):
                     material_instance.material_class = material_class
                     material_instance.consumable = consumable
                     material_instance.status = active_status
-
+                    material_instance.phase = phase
 
                     material_identifier__description = [x.strip() for x in y.split('|')] if not string_is_null(
                         y := row[column_names_to_index['material_identifier__description']]) else []
@@ -1074,8 +1089,7 @@ class Command(BaseCommand):
                 new_action_unit += 1
             self.stdout.write(self.style.SUCCESS(
                 f'Added {new_action_unit} new action units'))
-        self.stdout.write(self.style.NOTICE('Finished loading action unit'))
-
+        self.stdout.write(self.style.NOTICE('Finished loading action unit'))  
 
 def path_to_file(filename):
     script_dir = os.path.dirname(__file__)
