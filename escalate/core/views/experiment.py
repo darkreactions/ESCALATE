@@ -343,6 +343,7 @@ class CreateExperimentView(TemplateView):
                     messages.error(request, f'LSRGenerator failed with message: "{lsr_msg}"')
                 context['experiment_link'] = reverse('experiment_instance_view', args=[experiment_copy_uuid])
                 context['reagent_prep_link'] = reverse('reagent_prep', args=[experiment_copy_uuid])
+                context['outcome_link'] = reverse('outcome', args=[experiment_copy_uuid])
                 context['new_exp_name'] = exp_name
         return context
 
@@ -416,6 +417,7 @@ class CreateExperimentView(TemplateView):
                     messages.error(request, f'LSRGenerator failed with message: "{lsr_msg}"')
                 context['experiment_link'] = reverse('experiment_instance_view', args=[experiment_copy_uuid])
                 context['reagent_prep_link'] = reverse('reagent_prep', args=[experiment_copy_uuid])
+                context['outcome_link'] = reverse('outcome', args=[experiment_copy_uuid])
                 context['new_exp_name'] = exp_name                     
         return context
 # end: class CreateExperimentView()
