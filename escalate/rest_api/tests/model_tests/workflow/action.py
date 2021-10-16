@@ -64,28 +64,43 @@ action_tests = [
                 }
             }
         },
-        # {
-        #     'name': 'calculationdef0',
-        #     'method': POST,
-        #     'endpoint': 'calculationdef-list',
-        #     'body': random_model_dict(CalculationDef),
-        #     'args': [],
-        #     'query_params': [],
-        #     'is_valid_response': {
-        #         'function': check_status_code,
-        #         'args': [],
-        #         'kwargs': {
-        #             'status_code': POST
-        #         }
-        #     }
-        # },
+        {
+            'name': 'parameterdef0',
+            'method': POST,
+            'endpoint': 'parameterdef-list',
+            'body': random_model_dict(ParameterDef),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        },
+        {
+            'name': 'calculationdef0',
+            'method': POST,
+            'endpoint': 'calculationdef-list',
+            'body': random_model_dict(CalculationDef, parameter_def=['parameterdef0__url']),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        },
         {
             'name': 'action0',
             'method': POST,
             'endpoint': 'action-list',
             'body': (request_body := random_model_dict(Action, action_def='actiondef0__url',
                                                 workflow='workflow0__url',
-                                                # calculation_def='calculationdef0__url'
+                                                calculation_def='calculationdef0__url'
                                                 )), 
             'args': [],
             'query_params': [],
