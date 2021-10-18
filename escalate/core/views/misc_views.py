@@ -77,11 +77,13 @@ class ExperimentDetailEditView(TemplateView):
 
         # todo [x]: use django crispy and helper like in reagent
         # todo [x]: build edoc form with Edocument.objects.filter(ref_edocument_uuid=experiment.uuid)
-        # todo []: plugin file form field: check user profile forms for profile upload
+        # todo [x]: plugin file form field: check user profile forms for profile upload
         # todo [x]: mimic download from detailview (not detaileditview)
         # todo []: add post functionailty
         return context
         
     def post(self, request, *args, **kwargs):
+        if 'update_exp' in request.POST:
+            pass
         pass
         # return render(request, self.template_name, context)
