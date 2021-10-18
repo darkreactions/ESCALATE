@@ -121,10 +121,10 @@ def generate_input_f(reagent, MW, density):
     return input_data  
 
 
-def calculate_amounts(input_data, total_vol):
+def calculate_amounts(input_data, target_vol, dead_vol='3000 uL'):
     
     """ 
-    Given input data from helper function and a total volume (string with units), 
+    Given input data from helper function and target/dead volumes (strings with units), 
     returns amounts of each reagent component needed to achieve desired concentrations.
     For solids/solutes, amounts will be reported in grams.
     For liquid/solvent, amount will be reported in mL.
@@ -132,20 +132,26 @@ def calculate_amounts(input_data, total_vol):
     """
     
     #input_data comes from helper function above
-    #total vol must be input as a string with units
+    #target_vol and dead_vol must be input as strings with units
 
     amounts={} 
     
-    #convert volume to mL and store in proper Pint format
-    mag=float(total_vol.split()[0])
-    unit= str(total_vol.split()[1])
-    total_vol = Q_(mag, unit).to(units.ml)
+    #convert volumes to mL and store in proper Pint format
+    mag_t=float(total_vol.split()[0])
+    unit_t= str(total_vol.split()[1])
+    
+    mag_d=float(dead_vol.split()[0])
+    unit_d=str(dead_vol.split()[1])
+    
+    vol = Q_(mag_t, unit_t).to(units.ml)
+    dead = Q_(mag_d, unit_d).to(units.ml)
+    total_vol=vol+dead
 
     for key, val in input_data.items():
         if val['phase']=='solid': #for all solids 
             grams=total_vol*val['concentration'].to(units.mol/units.ml) * val['molecular weight'] 
             #convert concentration to moles to mass
-            amounts[key]=grams 
+            amounts[key]=round(grams, 2) 
 
     for substance, amount in amounts.items(): #for all solids
         total_vol-=amount/input_data[substance]['density'] #find the volume 
@@ -154,18 +160,17 @@ def calculate_amounts(input_data, total_vol):
     for key, val in input_data.items():
         if val['phase']=='liquid': #for the solvent(s)
             if 'volume fraction' in val.keys(): #if there is more than one solvent
-                amounts[key]=total_vol * val['volume fraction'] #amount is a fraction of the remaining available volume
+                amounts[key]=round(total_vol * val['volume fraction'], 2) #amount is a fraction of the remaining available volume
             else: #if there's just one solvent
-                amounts[key]=total_vol #amount is the remaining available volume
+                amounts[key]=round(total_vol, 2) #amount is the remaining available volume
 
     """
     for key, val in amounts.items(): #convert amounts from Pint format to strings with val and unit
-        num=val.magnitude
+        num=round(val.magnitude, 2)
         unit=val.units
         value=str(num) + ' ' + str(unit)
         amounts[key]=value
     """
-    
     
     return amounts
 
