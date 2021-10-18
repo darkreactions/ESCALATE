@@ -10,8 +10,14 @@
         <p> Created Experiment! </p>
             <p>Experiment name: {{ new_exp_name }}</p>
             <p> <a href={{ experiment_link }}> View experiment details</a></p>
+            <form action="{{ reagent_prep_link }}">
+              <button class="btn btn-outline-primary" type="submit">Prepare Reagent</button>
+            </form>
+            <form action="{{ outcome_link }}">
+              <button class="btn btn-outline-primary" type="submit">Submit Outcomes</button>
+            </form>
             {% if xls_download_link is not None %}
-              <p> <a href={{ xls_download_link }}> Download Excel file </a></p>
+              <p> <a href={{ xls_download_link }}> Download Robot file </a></p>
             {% endif %}
             {% if lsr_download_link is not None %}
               <p> <a href={{ lsr_download_link }}> Download LibraryStudio file </a></p>
@@ -31,19 +37,11 @@
     <div class="row">
       <div class="col-md-12 text-secondary">
         <form method="post">{% csrf_token %}
-          <select id="org_select" name="select_exp_template" class="form-control selectpicker" data-style="btn-dark"
-            data-live-search='true'>
-            <option value="" {% if not request.session.experiment_template_uuid %} selected {% endif %}></option>
-            {% for exp in all_experiments %}
-            <option value={{ exp.uuid }} {% ifequal request.session.experiment_template_uuid|stringformat:"s" exp.uuid|stringformat:"s" %} selected {% endifequal %}>
-                {{ exp.description }}
-            </option>
-            {% endfor %}
-          </select>
-          <div>
-            <button class="btn btn-outline-primary" type="submit">Select Template</button>
-        </div>
-        </form>
+        {{ experiment_template_select_form|crispy }}
+        <div>
+          <button class="btn btn-outline-primary" type="submit">Select Template</button>
+      </div>
+      </form>
       </div>
     </div>
     {% endif %}
@@ -52,89 +50,82 @@
     <p>Selected experiment {{ selected_exp_template.description }}</p>
     <div class="row">
         <div class="col-md-12">
+            
             <form method="post">{% csrf_token %}
-                {{ q1_material_formset.management_form }}
-                {{ q1_param_formset.management_form }}
-                {{ q2_param_formset.management_form }}
-                {{ q3_param_formset.management_form }}
                 {{ experiment_name_form|crispy }}
-                <div class="treeview-animated border mx-4 my-4">
-                    <h6 class="pt-3 pl-3">Experiment Materials for {{ selected_exp_template.description }}</h6>
-                    <hr>
-                    <ul class="treeview-animated-list">
-                        {% for f in q1_material_formset %}
-                        <li class="treeview-animated-items">
-                          <a class="closed">
-                            <i class="fas fa-angle-right"></i>
-                            <span><i class="fas fa-table ic-w mx-1"></i>{{ q1_material_details|index:forloop.counter0 }}</span>
-                          </a>
-                          <ul class="nested">
-                            <li>
-                                {{ f|crispy }}
-                            </li>
-                          </ul>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                <div class="treeview-animated border mx-4 my-4">
-                    <h6 class="pt-3 pl-3">Experiment Parameters for {{ selected_exp_template.description }}</h6>
-                    <hr>
-                    <ul class="treeview-animated-list">
-                        {% for f in q1_param_formset %}
-                        <li class="treeview-animated-items">
-                          <a class="closed">
-                            <i class="fas fa-angle-right"></i>
-                            <span><i class="fas fa-table ic-w mx-1"></i>{{ q1_param_details|index:forloop.counter0 }}</span>
-                          </a>
-                          <ul class="nested">
-                            <li>
-                                {{ f|crispy }}
-                            </li>
-                          </ul>
-                        </li>
-                        {% endfor %}
+                
+                {% if automated > 0 %}
+                {{ reagent_formset.management_form }}
+                  {% for reagent_form in reagent_formset %}
+                  <div class="card text-white" style="background-color: {{ colors|index:forloop.counter0 }}" >
+                    <div class="card-header ">Reagent {{ forloop.counter }} : {{ reagent_template_names|index:forloop.counter0 }}</div>
+                    <div class="card-body ">
+                      <!--h5 class="card-title"></h5-->
+                      {% crispy reagent_form reagent_formset_helper %}
+                    </div>
+                  </div>
+                    <br>
+                    
+                  {% endfor %}
+                  <input type="hidden" id="automated" name="automated" value="{{ automated }}">
+                {% endif %}
 
-                        {% for f in q2_param_formset %}
-                        <li class="treeview-animated-items">
-                          <a class="closed">
-                            <i class="fas fa-angle-right"></i>
-                            <span><i class="fas fa-table ic-w mx-1"></i>{{ q2_param_details|index:forloop.counter0 }}</span>
-                          </a>
-                          <ul class="nested">
-                            <li>
-                                {{ f|crispy }}
-                            </li>
-                          </ul>
-                        </li>
-                        {% endfor %}
 
-                        {% for f in q3_param_formset %}
-                        <li class="treeview-animated-items">
-                          <a class="closed">
-                            <i class="fas fa-angle-right"></i>
-                            <span><i class="fas fa-table ic-w mx-1"></i>{{ q3_param_details|index:forloop.counter0 }}</span>
-                          </a>
-                          <ul class="nested">
-                            <li>
-                                {{ f|crispy }}
-                            </li>
-                          </ul>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
+                {% if manual > 0 %}
+                <div class="treeview-animated border mx-4 my-4">
+                  <h6 class="pt-3 pl-3">Experiment Parameters for {{ selected_exp_template.description }}</h6>
+                  <hr>
+                  <ul class="treeview-animated-list">
+                      {% for f in q1_param_formset %}
+                      <li class="treeview-animated-items">
+                        <a class="closed">
+                          <i class="fas fa-angle-right"></i>
+                          <span><i class="fas fa-table ic-w mx-1"></i>{{ q1_param_details|index:forloop.counter0 }}</span>
+                        </a>
+                        <ul class="nested">
+                          <li>
+                              {{ f|crispy }}
+                          </li>
+                        </ul>
+                      </li>
+                      {% endfor %}
+                  </ul>
+              </div>
+
+                  {{ q1_material_formset.management_form }}
+                  {{ q1_param_formset.management_form }}
+                  <div class="treeview-animated border mx-4 my-4">
+                      <h6 class="pt-3 pl-3">Experiment Materials for {{ selected_exp_template.description }}</h6>
+                      <hr>
+                      <ul class="treeview-animated-list">
+                          {% for f in q1_material_formset %}
+                          <li class="treeview-animated-items">
+                            <a class="closed">
+                              <i class="fas fa-angle-right"></i>
+                              <span><i class="fas fa-table ic-w mx-1"></i>{{ q1_material_details|index:forloop.counter0 }}</span>
+                            </a>
+                            <ul class="nested">
+                              <li>
+                                  {{ f|crispy }}
+                              </li>
+                            </ul>
+                          </li>
+                          {% endfor %}
+                      </ul>
+                  </div>
+                  <input type="hidden" id="manual" name="manual" value="{{ manual }}">
+                {% endif %}
                 <div class="text-right">
                     <button class="btn btn-outline-primary" type="submit" name="create_exp" value="create_exp">Create Experiment</button>
                 </div>
 
             </form>
+            
         </div>
 
     </div>
 
-
-    {% endif %}
+      {% endif %}
     {% endif %}
     
 </div>

@@ -74,5 +74,18 @@ class BomVesselManager(models.Manager):
         return super().get_queryset().filter(vessel__isnull=False, mixture__isnull=True,inventory_material__isnull=True)
 
     def create(self, **kwargs):
-        kwargs.update({'vessel': None})
+        #kwargs.update({'vessel': None})
         return super().create(**kwargs)
+
+class OutcomeInstanceValueManager(models.Manager):
+    """Stores the nominal and actual values related to an outcome instance
+
+    Args:
+        models ([type]): [description]
+    """
+    def get_queryset(self):
+        return super().get_queryset().filter(outcome_instance__isnull=False)
+
+    def create(self, **kwargs):
+        return super().create(**kwargs)
+

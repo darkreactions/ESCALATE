@@ -7,8 +7,8 @@ from core.models import (
     BaseBomMaterial,
     BomMaterial,
     BillOfMaterials,
-    CalculationDef,
-    Experiment,
+    DefaultValues,
+    ExperimentTemplate,
     ExperimentType,
     ExperimentWorkflow,
     Inventory,
@@ -19,6 +19,8 @@ from core.models import (
     MaterialIdentifierDef,
     Mixture,
     ParameterDef,
+    PropertyTemplate,
+    Property,
     Status,
     Systemtool,
     TypeDef,
@@ -37,14 +39,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE('Loading load tables'))
-        # self._load_chem_inventory()
         self._load_material_identifier()
         self._load_material()
+        self._load_chem_inventory()
         self._load_inventory_material()
         self._load_vessels()
         self._load_experiment_related_def()
         self._load_experiment_and_workflow()
-        self._load_mixture()
+        #self._load_mixture()
         self._load_base_bom_material()
         self._load_action()
         self._load_action_unit()
@@ -53,7 +55,46 @@ class Command(BaseCommand):
 
     def _load_chem_inventory(self):
         self.stdout.write(self.style.NOTICE('Beginning loading chem'))
-        filename = 'load_chem_inventory.csv'
+
+        #query for status
+        active_status = Status.objects.get(description="active")
+        #create default values
+        DefaultValues.objects.get_or_create(
+                description="g/ml",
+                actual_value={
+                    "value": "0.0",
+                    "unit": "g/ml",
+                    "type": "num",
+                })
+        gml_dv = DefaultValues.objects.get(description="g/ml")
+        
+        DefaultValues.objects.get_or_create(
+                description="g/mol",
+                actual_value={
+                    "value": "0.0",
+                    "unit": "g/mol",
+                    "type": "num",
+                })
+        gmol_dv = DefaultValues.objects.get(description="g/mol")
+
+        #create property templates
+        PropertyTemplate.objects.get_or_create(
+                        description="MolecularWeight",
+                        property_def_class="intrinsic",
+                        status=active_status,
+                        default_value=gml_dv,
+                    )
+        mw = PropertyTemplate.objects.get(description="MolecularWeight")
+        
+        PropertyTemplate.objects.get_or_create(
+                        description="Density",
+                        property_def_class="intrinsic",
+                        status=active_status,
+                        default_value=gmol_dv,
+                    )
+        density = PropertyTemplate.objects.get(description="Density")
+
+        filename = 'load_chem_inventory.txt'
         LOAD_CHEM_INVENTORY = path_to_file(filename)
         with open(LOAD_CHEM_INVENTORY, newline='') as f:
             reader = csv.reader(f, delimiter="\t")
@@ -111,6 +152,8 @@ class Command(BaseCommand):
             # this block of code matches each material to its material types(s)
             for row in reader:
                 row_desc = row[column_names_to_index['ChemicalName']]
+                if (string_is_null(row[column_names_to_index['ChemicalCategory']])):
+                    continue
                 row_material_types_raw = [
                     x.strip() for x in row[column_names_to_index['ChemicalCategory']].split(',')]
                 row_material_types = [MaterialType.objects.get(
@@ -179,8 +222,37 @@ class Command(BaseCommand):
                         some_material.identifier.add(material_identifier)
             self.stdout.write(self.style.SUCCESS(
                 f'Updated material identifier for materials'))
-
-        self.stdout.write(self.style.NOTICE('Finished loading chem'))
+            
+            
+            # jump to top of csv
+            f.seek(0)
+            # skip initial header row
+            next(reader)
+            #update molecular weight and density
+            for row in reader:
+                row_desc = row[column_names_to_index['ChemicalName']]
+                some_material, created = Material.objects.get_or_create(
+                        **{'description':row_desc, 'status':active_status})
+                
+                #create property instances
+                #not currently working, error occurs when passing material object in to property
+                '''
+                Property.objects.create(
+                    material=some_material,
+                    property_template=mw,
+                    value=row[column_names_to_index['MolecularWeight']]
+                )
+                Property.objects.create(
+                    material=some_material,
+                    property_template=density,
+                    value=row[column_names_to_index['Density']]
+                )
+                '''
+            self.stdout.write(self.style.SUCCESS(
+                f'Updated molecular weight and density for materials'))
+   
+            self.stdout.write(self.style.NOTICE('Finished loading chem'))
+            
 
     def _load_material_identifier(self):
         self.stdout.write(self.style.NOTICE(
@@ -228,69 +300,85 @@ class Command(BaseCommand):
 
     def _load_material(self):
         self.stdout.write(self.style.NOTICE('Beginning loading material'))
-        filename = 'load_material.csv'
-        MATERIAL = path_to_file(filename)
-        with open(MATERIAL, newline='') as f:
-            reader = csv.reader(f, delimiter="\t")
 
-            # first row should be header
-            column_names = next(reader)
+        filenames = ['load_material.txt']
+        for filename in filenames:
+            MATERIAL = path_to_file(filename)
+            with open(MATERIAL, newline='') as f:
+                reader = csv.reader(f, delimiter="\t")
+                
+                # first row should be header
+                column_names = next(reader)
 
-            # {'col_0': 0, 'col_1': 1, ...}
-            column_names_to_index = list_data_to_index(column_names)
+                # {'col_0': 0, 'col_1': 1, ...}
+                column_names_to_index = list_data_to_index(column_names)
 
-            active_status = Status.objects.get(description="active")
+                active_status = Status.objects.get(description="active")
 
-            material_identifier_def = {
-                x.description: x for x in MaterialIdentifierDef.objects.all()}
+                material_identifier_def = {
+                    x.description: x for x in MaterialIdentifierDef.objects.all()}
 
-            new_material = 0
-            for row in reader:
-                description = clean_string(
-                    row[column_names_to_index['description']])
-                material_class = clean_string(
-                    row[column_names_to_index['material_class']])
-                consumable = clean_string(
-                    row[column_names_to_index['consumable']])
+                new_material = 0
+                for row in reader:
+                    description = clean_string(
+                        row[column_names_to_index['description']])
+                    material_class = clean_string(
+                        row[column_names_to_index['material_class']])
+                    consumable = to_bool(clean_string(
+                        row[column_names_to_index['consumable']]))
+                    mat_type_desc = clean_string(
+                        row[column_names_to_index['material_type__description']])
+                    #update phase, model update to include phase into materials and foreign key material from inventory material
+                    phase = None
+                    if "acid" in mat_type_desc:
+                        phase = "liquid"
+                    elif "solvent" in mat_type_desc:
+                        phase = "liquid"
+                    elif "organic" in mat_type_desc:
+                        phase = "solid"
 
-                fields = {
-                    'description': description,
-                    'material_class': material_class,
-                    'consumable': to_bool(consumable),
-                    'status': active_status
-                }
-                material_instance, created = Material.objects.get_or_create(
-                    **fields)
+                    # fields = {
+                    #     'description': description,
+                    #     'material_class': material_class,
+                    #     'consumable': to_bool(consumable),
+                    #     'status': active_status
+                    # }
+                    material_instance, created = Material.objects.get_or_create(
+                        **{'description':description, 'status':active_status})
+                    material_instance.material_class = material_class
+                    material_instance.consumable = consumable
+                    material_instance.status = active_status
+                    material_instance.phase = phase
 
-                material_identifier__description = [x.strip() for x in y.split('|')] if not string_is_null(
-                    y := row[column_names_to_index['material_identifier__description']]) else []
-                material_identifier_def__description = [x.strip() for x in y.split('|')] if not string_is_null(
-                    y := row[column_names_to_index['material_identifier_def__description']]) else []
+                    material_identifier__description = [x.strip() for x in y.split('|')] if not string_is_null(
+                        y := row[column_names_to_index['material_identifier__description']]) else []
+                    material_identifier_def__description = [x.strip() for x in y.split('|')] if not string_is_null(
+                        y := row[column_names_to_index['material_identifier_def__description']]) else []
+                    
+                    material_type__description = [x.strip() for x in z.split('|')] if not string_is_null(
+                        z := row[column_names_to_index['material_type__description']]) else []
 
-                material_type__description = [x.strip() for x in z.split('|')] if not string_is_null(
-                    z := row[column_names_to_index['material_type__description']]) else []
+                    material_instance.identifier.add(*[MaterialIdentifier.objects.get(description=descr,
+                                                                                    material_identifier_def=material_identifier_def[def_descr])
+                                                    for descr, def_descr in zip(material_identifier__description, material_identifier_def__description)])
+                    material_instance.material_type.add(
+                        *[MaterialType.objects.get(description=d) for d in material_type__description])
+                    material_instance.save(update_fields=['material_class','consumable' ])
+                    if created:
+                        new_material += 1
+                # #jump to top of csv
+                # f.seek(0)
+                # #skip initial header row
+                # next(reader)
 
-                material_instance.identifier.add(*[MaterialIdentifier.objects.get(description=descr,
-                                                                                  material_identifier_def=material_identifier_def[def_descr])
-                                                   for descr, def_descr in zip(material_identifier__description, material_identifier_def__description)])
-                material_instance.material_type.add(
-                    *[MaterialType.objects.get(description=d) for d in material_type__description])
-
-                if created:
-                    new_material += 1
-            # #jump to top of csv
-            # f.seek(0)
-            # #skip initial header row
-            # next(reader)
-
-            self.stdout.write(self.style.SUCCESS(
-                f'Added {new_material} new materials'))
+                self.stdout.write(self.style.SUCCESS(
+                    f'Added {new_material} new materials'))
         self.stdout.write(self.style.NOTICE('Finished loading material'))
 
     def _load_inventory_material(self):
         self.stdout.write(self.style.NOTICE(
             'Beginning loading inventory material'))
-        filename = 'load_inventory_material.csv'
+        filename = 'load_inventory_material.txt'
         INVENTORY_MATERIALS = path_to_file(filename)
         with open(INVENTORY_MATERIALS, newline='') as f:
             reader = csv.reader(f, delimiter="\t")
@@ -327,16 +415,23 @@ class Command(BaseCommand):
                 fields = {
                     'description': description,
                     'inventory': Inventory.objects.get(description=inventory_description) if not string_is_null(inventory_description) else None,
-                    'material': Material.objects.get(description=material_description) if not string_is_null(material_description) else None,
+                    #'material': Material.objects.get(description=material_description) if not string_is_null(material_description) else None,
                     'part_no': part_no,
                     'onhand_amt': get_val_field_dict(onhand_amt_type, onhand_amt_unit, onhand_amt_value),
-                    'expiration_date': expiration_date if not string_is_null(expiration_date) else None,
+                    #'expiration_date': expiration_date if not string_is_null(expiration_date) else None,
                     'location': location,
                     'status': active_status
                 }
-
+                
                 inventory_material_instance, created = InventoryMaterial.objects.get_or_create(
                     **fields)
+
+                try:
+                    material_object = Material.objects.get(description=material_description)
+                    inventory_material_instance.material = material_object
+                except Material.DoesNotExist:
+                    inventory_material_instance.material = None
+
                 if created:
                     new_inventory_material += 1
             self.stdout.write(self.style.SUCCESS(
@@ -408,7 +503,7 @@ class Command(BaseCommand):
             'Beginning experiment related def'))
         self._load_parameter_def()
         self._load_action_def()
-        self._load_calculation_def()
+        #self._load_calculation_def()
         self.stdout.write(self.style.NOTICE(
             'Finished loading experiment related def'))
 
@@ -526,6 +621,7 @@ class Command(BaseCommand):
                     'out_type': TypeDef.objects.get(description=out_type__description, category='data') if not string_is_null(out_type__description) else None,
                     'systemtool': Systemtool.objects.get(systemtool_name=systemtool_name) if not string_is_null(systemtool_name) else None
                 }
+                """
                 calculation_def_instance, created = CalculationDef.objects.get_or_create(
                     **fields)
                 if created:
@@ -534,6 +630,8 @@ class Command(BaseCommand):
                     y := row[column_names_to_index['parameter_def_descriptions']]) else []
                 calculation_def_instance.parameter_def.add(
                     *[ParameterDef.objects.get(description=d) for d in parameter_def_descriptions])
+                """
+                
             # jump to top of csv
             f.seek(0)
             # skip initial header row
@@ -602,7 +700,7 @@ class Command(BaseCommand):
                     'lab': Actor.objects.get(description=lab_description) if not string_is_null(lab_description) else None,
                     'status': active_status
                 }
-                experiment_instance, created = Experiment.objects.get_or_create(
+                experiment_instance, created = ExperimentTemplate.objects.get_or_create(
                     **fields)
                 if created:
                     new_experiment += 1
@@ -623,11 +721,11 @@ class Command(BaseCommand):
                     row[column_names_to_index['description']])
                 parent_description = clean_string(
                     row[column_names_to_index['parent_description']])
-                row_experiment_instance = Experiment.objects.get(
+                row_experiment_instance = ExperimentTemplate.objects.get(
                     description=description)
-                row_experiment_instance.parent = Experiment.objects.get(
+                row_experiment_instance.parent = ExperimentTemplate.objects.get(
                     description=parent_description) if not string_is_null(parent_description) else None
-                row_experiment_instance.save(update_fields=['parent'])
+                #row_experiment_instance.save(update_fields=['parent'])
             self.stdout.write(self.style.SUCCESS(
                 f'Added {new_experiment} new experiments'))
 
@@ -667,7 +765,7 @@ class Command(BaseCommand):
 
                 for exp_desc, exp_wf_seq_num in zip(experiment_description, experiment_workflow_seq_num):
                     fields = {
-                        'experiment': Experiment.objects.get(description=exp_desc) if not string_is_null(exp_desc) else None,
+                        'experiment_template': ExperimentTemplate.objects.get(description=exp_desc) if not string_is_null(exp_desc) else None,
                         'workflow': workflow_instance,
                         'experiment_workflow_seq': int(exp_wf_seq_num) if not string_is_null(exp_wf_seq_num) else -1
                     }
@@ -785,33 +883,36 @@ class Command(BaseCommand):
                 mixture_component_description = clean_string(
                     row[column_names_to_index['mixture_component_description']])
 
-                mixture_composite = Material.objects.get(description=mixture_composite_description) \
-                    if not string_is_null(mixture_composite_description) else None
-                mixture_component = Material.objects.get(description=mixture_component_description) \
-                    if not string_is_null(mixture_component_description) else None
+                #mixture_composite = Material.objects.get(description=mixture_composite_description) \
+                #    if not string_is_null(mixture_composite_description) else None
+                #mixture_component = Material.objects.get(description=mixture_component_description) \
+                #    if not string_is_null(mixture_component_description) else None
 
                 fields = {
                     'description': description,
                     'bom': BillOfMaterials.objects.get(description=bom_description) if not string_is_null(bom_description) else None,
-                    'inventory_material': InventoryMaterial.objects.get(description=y) if not string_is_null(y := inventory_material_description) else None,
+                    #'inventory_material': InventoryMaterial.objects.get(description=y) if not string_is_null(y := inventory_material_description) else None,
                     'alloc_amt_val': get_val_field_dict(alloc_amt_val_type, alloc_amt_val_unit, alloc_amt_val_value),
                     'used_amt_val': get_val_field_dict(used_amt_val_type, used_amt_val_unit, used_amt_val_value),
                     'putback_amt_val': get_val_field_dict(putback_amt_val_type, putback_amt_val_unit, putback_amt_val_value),
-                    'mixture': Mixture.objects.get(composite=mixture_composite,
-                                                   component=mixture_component
-                                                   ) if mixture_composite != None or mixture_component != None else None,
+                    #'mixture': Mixture.objects.get(composite=mixture_composite,
+                    #                               component=mixture_component
+                    #                               ) if mixture_composite != None or mixture_component != None else None,
                     'status': active_status
                 }
 
                 base_bom_material_instance, created = BaseBomMaterial.objects.get_or_create(
                     **fields)
 
+                try:
+                    inventory_material_object = InventoryMaterial.objects.get(description=inventory_material_description)
+                    base_bom_material_instance.inventory_material = inventory_material_object
+                    new_bom_material += 1
+                except InventoryMaterial.DoesNotExist:
+                    base_bom_material_instance.inventory_material = None
+
                 if created:
                     new_base_bom_material += 1
-                    if fields['inventory_material'] != None and fields['mixture'] == None:
-                        new_bom_material += 1
-                    elif fields['inventory_material'] == None and fields['mixture'] != None:
-                        new_bom_composite_material += 1
 
             # jump to top of csv
             f.seek(0)
@@ -831,18 +932,18 @@ class Command(BaseCommand):
                 mixture_component_description = clean_string(
                     row[column_names_to_index['mixture_component_description']])
 
-                mixture_composite = Material.objects.get(description=mixture_composite_description) \
-                    if not string_is_null(mixture_composite_description) else None
-                mixture_component = Material.objects.get(description=mixture_component_description) \
-                    if not string_is_null(mixture_component_description) else None
+                #mixture_composite = Material.objects.get(description=mixture_composite_description) \
+                #    if not string_is_null(mixture_composite_description) else None
+                #mixture_component = Material.objects.get(description=mixture_component_description) \
+                #    if not string_is_null(mixture_component_description) else None
 
                 fields = {
                     'description': description,
                     'bom': BillOfMaterials.objects.get(description=bom_description) if not string_is_null(bom_description) else None,
-                    'inventory_material': InventoryMaterial.objects.get(description=y) if not string_is_null(y := inventory_material_description) else None,
-                    'mixture': Mixture.objects.get(composite=mixture_composite,
-                                                   component=mixture_component
-                                                   ) if mixture_composite != None or mixture_component != None else None
+                    #'inventory_material': InventoryMaterial.objects.get(description=y) if not string_is_null(y := inventory_material_description) else None
+                    #'mixture': Mixture.objects.get(composite=mixture_composite,
+                    #                               component=mixture_component
+                    #                               ) if mixture_composite != None or mixture_component != None else None
                 }
 
                 bom_material_description = clean_string(
@@ -855,8 +956,17 @@ class Command(BaseCommand):
                 row_base_bom_material_instance = BaseBomMaterial.objects.get(
                     **fields)
 
-                row_base_bom_material_instance.bom_material = BomMaterial.objects.get(
-                    description=y, bom=bom_material_bom) if not string_is_null(y := bom_material_description) else None
+                try:
+                    inventory_material_object = InventoryMaterial.objects.get(description=inventory_material_description)
+                    row_base_bom_material_instance.inventory_material = inventory_material_object
+                except InventoryMaterial.DoesNotExist:
+                    row_base_bom_material_instance.inventory_material = None
+                
+                try:
+                    row_base_bom_material_instance.bom_material = BomMaterial.objects.get(
+                        description=bom_material_description, bom=bom_material_bom)
+                except BomMaterial.DoesNotExist:
+                    row_base_bom_material_instance.bom_material = None
 
                 row_base_bom_material_instance.save(
                     update_fields=['bom_material'])
@@ -864,8 +974,8 @@ class Command(BaseCommand):
                 f'Added {new_base_bom_material} new base bom materials'))
             self.stdout.write(self.style.SUCCESS(
                 f'Added {new_bom_material} new bom materials'))
-            self.stdout.write(self.style.SUCCESS(
-                f'Added {new_bom_composite_material} new bom composite materials'))
+            #self.stdout.write(self.style.SUCCESS(
+            #    f'Added {new_bom_composite_material} new bom composite materials'))
 
     def _load_action(self):
         self.stdout.write(self.style.NOTICE('Beginning loading action'))
@@ -907,7 +1017,7 @@ class Command(BaseCommand):
                     'end_date': end_date if not string_is_null(end_date) else None,
                     'duration': int(duration) if not string_is_null(duration) else None,
                     'repeating': int(repeating) if not string_is_null(repeating) else None,
-                    'calculation_def': CalculationDef.objects.get(short_name=y) if not string_is_null(y := calculation_def_short_name) else None,
+                    #'calculation_def': CalculationDef.objects.get(short_name=y) if not string_is_null(y := calculation_def_short_name) else None,
                     'status': active_status
                 }
 
@@ -979,8 +1089,7 @@ class Command(BaseCommand):
                 new_action_unit += 1
             self.stdout.write(self.style.SUCCESS(
                 f'Added {new_action_unit} new action units'))
-        self.stdout.write(self.style.NOTICE('Finished loading action unit'))
-
+        self.stdout.write(self.style.NOTICE('Finished loading action unit'))  
 
 def path_to_file(filename):
     script_dir = os.path.dirname(__file__)
@@ -1045,3 +1154,10 @@ def get_val_field_dict(type_, unit, value_from_csv):
         'unit': unit,
         'value': value
     }
+
+def get_or_none(model_cls, fields):
+    try:
+        obj = model_cls.objects.get(**fields)
+        return obj
+    except:
+        return None

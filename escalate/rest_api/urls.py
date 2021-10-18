@@ -52,7 +52,7 @@ registered.register('edocs', viewsets.EdocumentViewSet,
 registered.register('create', viewsets.ExperimentCreateViewSet, basename=f'{name}-create',
                     parents_query_lookups=['uuid'])
 
-registered = router.register('experiment', viewsets.ExperimentViewSet, basename='experiment')
+#registered = router.register('experiment', viewsets.ExperimentViewSet, basename='experiment')
 name = 'experiment'
 registered.register('notes', viewsets.NoteViewSet,
                     basename=f'{name}-note', parents_query_lookups=['ref_note_uuid'])
@@ -122,7 +122,7 @@ for view in rest_nested_url_views:
                         basename=f'{name}-edoc', parents_query_lookups=['ref_edocument_uuid'])
     if name == 'material' or name=='mixture':
         registered.register('property', viewsets.PropertyViewSet,
-                        basename=f'{name}-property', parents_query_lookups=['property_ref'])
+                        basename=f'{name}-property', parents_query_lookups=['material'])
     if name == 'action':
         registered.register('parameter', viewsets.ParameterViewSet,
                         basename=f'{name}-parameter', parents_query_lookups=['action'])

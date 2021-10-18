@@ -64,7 +64,7 @@ class ValField(models.TextField):
         elif isinstance(value, (list, tuple)):
             return Val(*value)
         
-        if value is None:
+        if value is None or value == '':
             return value
         
         return Val.from_db(value)
@@ -72,7 +72,7 @@ class ValField(models.TextField):
     def get_prep_value(self, value):
         if isinstance(value, dict):
             value = Val.from_dict(value)
-        elif value == None:
+        elif value == None or value=='':
             value = Val(None, None, None, null=True)
         return value.to_db()
     

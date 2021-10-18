@@ -28,6 +28,7 @@ class Val:
             if isinstance(self.value, str):
                 self.value = self.convert_value()
             self.unit = unit
+            self.str_value = raw_string
             #print(self.val_type.description, self.value, self.unit)
         else:
             self.value = None
@@ -56,7 +57,7 @@ class Val:
         return converted_value
     
     def convert_single_value(self, description, value):
-        primitives = {'bool': bool, 'int': int, 'num': float, 'text': str, 'blob': str}
+        primitives = {'bool': bool, 'int': lambda x: int(float(x)), 'num': float, 'text': str, 'blob': str}
         reverse_primitives = {bool: 'bool',
                               int: 'int', float: 'num', str: 'text'}
         default_primitives = {'bool': False, 'int': 0, 'num': 0.0, 'text': ' ', 'blob':' '}
@@ -92,9 +93,10 @@ class Val:
     
     def __str__(self):
         if not self.null:
-            return f'{self.value} {self.unit}'
+            #return f'{self.value} {self.unit}'
+            return self.str_value
         else:
-            return 'null'
+            return ''
     
     def __repr__(self):
         if not self.null:

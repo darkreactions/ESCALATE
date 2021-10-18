@@ -1,12 +1,13 @@
 from django.db import models
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
+#from django.contrib.contenttypes.fields import GenericForeignKey
+#from django.contrib.contenttypes.models import ContentType
 from django.db.models.fields import BooleanField
 from core.models.core_tables import RetUUIDField, SlugField
 from core.models.custom_types import ValField, PROPERTY_CLASS_CHOICES, PROPERTY_DEF_CLASS_CHOICES, MATERIAL_CLASS_CHOICES
 from django.contrib.postgres.fields import ArrayField
 import uuid
 from core.models.base_classes import DateColumns, StatusColumn, ActorColumn, DescriptionColumn
+from core.managers import OutcomeInstanceValueManager
 
 
 managed_tables = True
@@ -185,7 +186,7 @@ class MeasureDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                              db_column='default_measure_type_uuid',
                              related_name='measure_def_default_measure_type')
     default_measure_value = ValField( )
-    property_def = models.ForeignKey('PropertyDef', models.DO_NOTHING,
+    property_def = models.ForeignKey('PropertyTemplate', models.DO_NOTHING,
                              blank=True,
                              null=True,
                              db_column='property_def_uuid',
@@ -279,22 +280,28 @@ class Property(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='property_uuid')
 
-    property_def = models.ForeignKey('PropertyDef',
+    property_template = models.ForeignKey('PropertyTemplate',
                                      db_column='property_def_uuid',
                                      on_delete=models.DO_NOTHING,
                                      blank=True,
-                                     null=True, related_name='property_property_def')
-    property_val = ValField(blank=True,
-                            null=True,
-                            db_column='property_val')
-    property_class = models.CharField(max_length=64, choices=PROPERTY_CLASS_CHOICES)
-    property_ref = RetUUIDField(blank=True, null=True)
+                                     null=True, related_name='property_pt')
+    nominal_value = ValField(blank=True, null=True)
+    value = ValField(blank=True, null=True)
+    # property_class = models.CharField(max_length=64, choices=PROPERTY_CLASS_CHOICES)
+    # property_ref = RetUUIDField(blank=True, null=True)
+    material = models.ForeignKey('Material', on_delete=models.DO_NOTHING,
+                                 blank=True,
+                                 null=True, related_name='property_m')
+    reagent = models.ForeignKey('Reagent', blank=True,
+                                 null=True, on_delete=models.DO_NOTHING,
+                                 related_name='property_r')
+    
 
     def __str__(self):
         return "{} : {}".format(self.property_def, self.property_val)
     
 
-class PropertyDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
+class PropertyTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='property_def_uuid')
     property_def_class = models.CharField(max_length=64, choices=PROPERTY_DEF_CLASS_CHOICES)
@@ -302,6 +309,13 @@ class PropertyDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                          blank=True,
                                          null=True,
                                          db_column='short_description')
+    default_value = models.ForeignKey('DefaultValues',
+                                      on_delete=models.DO_NOTHING,
+                                      blank=True,
+                                      null=True, 
+                                      related_name='property_template_dv')
+    
+    """
     val_type = models.ForeignKey('TypeDef',
                                  db_column='val_type_uuid',
                                  on_delete=models.DO_NOTHING,
@@ -315,6 +329,8 @@ class PropertyDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                 blank=True,
                                 null=True,
                                 db_column='property_def_unit_type')
+    """
+    
 
     def __str__(self):
         return "{}".format(self.description)
@@ -415,3 +431,41 @@ class UdfDef(DescriptionColumn):
 
     def __str__(self):
         return "{}".format(self.description)
+
+
+class DefaultValues(DateColumns, ActorColumn, DescriptionColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,)
+    nominal_value = ValField(blank=True, null=True)
+    actual_value = ValField(blank=True, null=True)
+
+    def __str__(self):
+        return self.description
+
+class ValueInstance(DateColumns, ActorColumn, DescriptionColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,)
+    value_template = models.ForeignKey('DefaultValues', on_delete=models.DO_NOTHING,
+                                 blank=True,
+                                 null=True, related_name='value_instance_value_template')
+    nominal_value = ValField(blank=True, null=True)
+    actual_value = ValField(blank=True, null=True)
+    # Foreignkey to specific tables that need values. 
+    # Avoiding GenericForeignKey due to performance and complexity
+    outcome_instance = models.ForeignKey('OutcomeInstance',
+                                 on_delete=models.DO_NOTHING,
+                                 blank=True,
+                                 null=True, related_name='value_instance_outcome')
+    #reagent_instance = models.ForeignKey('ReagentInstance', on_delete=models.DO_NOTHING,
+    #                      related_name='reagent_instance_value_reagent_instance')
+    
+    def save(self, *args, **kwargs):
+        if self.value_template is not None:
+            self.nominal_value = self.value_template.default_nominal_value
+            self.actual_value = self.value_template.default_actual_value
+        super().save(*args, **kwargs)
+
+
+class OutcomeInstanceValue(ValueInstance):
+    objects = OutcomeInstanceValueManager()
+
+    class Meta:
+        proxy = True

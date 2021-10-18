@@ -1,0 +1,16 @@
+[
+{
+    "model": "core.propertytemplate",
+    "pk": "b4a5b0f7-e306-4f1f-9b34-4b213a595c53",
+    "fields": {
+        "add_date": "2021-10-08T14:13:12.266",
+        "mod_date": "2021-10-08T14:13:12.266",
+        "status": "6378ad3a-a963-4100-8675-0540043bedfd",
+        "actor": "f2320c4b-51ae-436e-9d0d-4243d866c254",
+        "description": "total volume",
+        "property_def_class": "extrinsic",
+        "short_description": "volume",
+        "default_value": "3b1a537b-f962-4700-8163-5544664d5276"
+    }
+}
+]

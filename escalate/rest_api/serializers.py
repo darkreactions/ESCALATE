@@ -36,6 +36,8 @@ class ValSerializerField(JSONField):
 
     def to_internal_value(self, data):
         #print(f"DATA!!: {data} : {type(data)}")
+        if data == '"null"':
+            data = 'null'
         if not isinstance(data, dict):
             data = json.loads(data)
         return Val.from_dict(data)
@@ -99,14 +101,15 @@ class PropertySerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = Property
         fields = '__all__'
-        read_only_fields = ['property_ref']
+        #read_only_fields = ['property_ref']
+        read_only_fields = ['material']
 
 
 class PropertyListSerializer(DynamicFieldsModelSerializer):
     property = SerializerMethodField()
 
     def get_property(self, obj):
-        property = Property.objects.filter(property_ref=obj.uuid)
+        property = Property.objects.filter(material=obj.uuid)
         result_serializer = PropertySerializer(
             property, many=True, context=self.context)
         return result_serializer.data
@@ -246,10 +249,15 @@ class WorkflowActionSetSerializer(EdocListSerializer,
         fields = '__all__'
 
 
-class OutcomeSerializer(MeasureListSerializer, DynamicFieldsModelSerializer):
-    
+#class OutcomeInstanceSerializer(MeasureListSerializer, DynamicFieldsModelSerializer):
+class OutcomeInstanceSerializer(DynamicFieldsModelSerializer):
     class Meta:
-        model = Outcome
+        model = OutcomeInstance
+        fields = '__all__'
+
+class OutcomeTemplateSerializer(DynamicFieldsModelSerializer):
+    class Meta:
+        model = OutcomeTemplate
         fields = '__all__'
 
 
@@ -310,6 +318,9 @@ class BomCompositeMaterialSerializer(DynamicFieldsModelSerializer):
                   'mixture', 'bom_material', 'add_date', 'mod_date']
 
 
+
+
+"""
 class ExperimentSerializer(EdocListSerializer,
                         TagListSerializer,
                         NoteListSerializer,
@@ -321,7 +332,6 @@ class ExperimentSerializer(EdocListSerializer,
 
     expandable_fields = expandable_fields['Experiment']['fields']
 
-"""
 class ExperimentTemplateSerializer(EdocListSerializer,
                         TagListSerializer,
                         NoteListSerializer,
@@ -339,23 +349,48 @@ class ExperimentTemplateSerializer(EdocListSerializer,
                         NoteListSerializer,
                         BomSerializer,
                         DynamicFieldsModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='experiment-detail')
+    #url = serializers.HyperlinkedIdentityField(view_name='experiment-detail')
+    
     class Meta:
         model = ExperimentTemplate
         fields = '__all__'
-    expandable_fields = expandable_fields['Experiment']['fields']
+    expandable_fields = expandable_fields['ExperimentTemplate']['fields']
 
 
+
+"""
+
+class ReagentInstanceSerializer(EdocListSerializer,
+                        TagListSerializer,
+                        NoteListSerializer,
+                        DynamicFieldsModelSerializer):
+    reagent_values = SerializerMethodField()
+
+    def get_reagent_values(self, obj):
+        reagent_values = ReagentInstanceValue.objects.filter(reagent_instance=obj)
+        result_serializer = ReagentInstanceValueSerializer(reagent_values, many=True, context=self.context)
+        return result_serializer.data
+    class Meta:
+        model = ReagentInstance
+        fields = '__all__'
 class ExperimentInstanceSerializer(EdocListSerializer,
                         TagListSerializer,
                         NoteListSerializer,
                         BomSerializer,
                         DynamicFieldsModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='experiment-detail')
+    #url = serializers.HyperlinkedIdentityField(view_name='experiment-detail')
+    #reagents = SerializerMethodField()
+
+    def get_reagents(self, obj):
+        reagents = ReagentInstance.objects.filter(experiment=obj)
+        result_serializer = ReagentInstanceSerializer(reagents, many=True, context=self.context)
+        return result_serializer.data
     class Meta:
         model = ExperimentInstance
         fields = '__all__'
-    expandable_fields = expandable_fields['Experiment']['fields']
+    expandable_fields = expandable_fields['ExperimentInstance']['fields']
+
+"""
 
 class ExperimentQuerySerializer(Serializer):
     object_description = CharField(max_length=255, min_length=None, allow_blank=False, trim_whitespace=True)

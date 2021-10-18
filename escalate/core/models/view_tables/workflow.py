@@ -1,10 +1,12 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
+
 from core.models.core_tables import RetUUIDField, SlugField
 from core.models.custom_types import ValField, CustomArrayField
 import uuid
 from core.models.base_classes import DateColumns, StatusColumn, ActorColumn, DescriptionColumn
-from core.managers import ExperimentTemplateManager, BomMaterialManager, BomCompositeMaterialManager, BomVesselManager
+from core.managers import (ExperimentTemplateManager, ExperimentInstanceManager,
+                            BomMaterialManager, BomCompositeMaterialManager, BomVesselManager)
 
 
 managed_tables = True
@@ -35,11 +37,11 @@ class Action(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     repeating = models.IntegerField(db_column='repeating',
                                     blank=True,
                                     null=True)
-    calculation_def = models.ForeignKey('CalculationDef', on_delete=models.CASCADE,
-                                        db_column='calculation_def_uuid',
-                                        blank=True,
-                                        null=True,
-                                        related_name='action_calculation_def')
+    #calculation_def = models.ForeignKey('CalculationDef', on_delete=models.CASCADE,
+    #                                    db_column='calculation_def_uuid',
+    #                                    blank=True,
+    #                                    null=True,
+    #                                    related_name='action_calculation_def')
     internal_slug = SlugField(populate_from=[
                                     'description',
                                     'workflow',
@@ -78,12 +80,14 @@ class ActionUnit(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     #                           null=True,
     #                           related_name='action_unit_parameter')
     internal_slug = SlugField(populate_from=[
-                                    'source_material__internal_slug',
-                                    'action__internal_slug',
+                                    #'source_material__internal_slug',
+                                    #'action__internal_slug',
+                                    'uuid',
                                     'destination_material__internal_slug'
                                     ],
                               overwrite=True, 
                               max_length=255)
+    #internal_slug = CharField(max_length=255)
     
     def __str__(self):
         return f"{self.description}"
@@ -108,9 +112,11 @@ class ActionDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
 class BillOfMaterials(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(
         primary_key=True, default=uuid.uuid4, db_column='bom_uuid')
-    experiment = models.ForeignKey('Experiment', on_delete=models.CASCADE,
+    experiment = models.ForeignKey('ExperimentTemplate', on_delete=models.CASCADE,
                                    blank=True, null=True, db_column='experiment_uuid',
                                    related_name='bom_experiment')
+    experiment_instance = models.ForeignKey('ExperimentInstance', on_delete=models.CASCADE,
+                                   blank=True, null=True, related_name='bom_experiment_instance')
     # experiment_description = models.CharField(
     #    max_length=255, blank=True, null=True)
     internal_slug = SlugField(populate_from=[
@@ -182,93 +188,63 @@ class BomVessel(BaseBomMaterial):
     class Meta:
         proxy = True
 
-
-class Condition(DateColumns, StatusColumn, ActorColumn):
-    # todo: link to condition calculation
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
-                        db_column='condition_uuid')
-    """
-    condition_calculation = models.ForeignKey('ConditionCalculationDefAssign', 
-                                              models.CASCADE, 
-                                              db_column='condition_calculation_def_x_uuid',
-                                              related_name='condition_condition_calculation')
-    """
-    condition_description = models.CharField(max_length=255,
-                                             blank=True,
-                                             null=True,
-                                             editable=False)
-    condition_def = models.ForeignKey('ConditionDef', models.CASCADE,
-                                      db_column='condition_def_uuid', related_name='condition_condition_def')
-    # TODO: Fix in_val and out_val on Postgres to return strings not JSON!
-    in_val = ValField(blank=True, null=True)
-    out_val = ValField(blank=True, null=True)
+class ExperimentTemplate(DateColumns, StatusColumn, DescriptionColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
+    experiment_type = models.ForeignKey('ExperimentType', on_delete=models.CASCADE, 
+                                        blank=True, null=True, 
+                                        related_name='experiment_template_experiment_type')
+    ref_uid = models.CharField(max_length=255,
+                               db_column='ref_uid',
+                               blank=True,
+                               null=True)
+    owner = models.ForeignKey('Actor', db_column='owner_uuid', on_delete=models.CASCADE, blank=True, null=True,
+                              related_name='experiment_template_owner')
+    operator = models.ForeignKey('Actor', db_column='operator_uuid', on_delete=models.CASCADE, blank=True, null=True,
+                                 related_name='experiment_template_operator')
+    lab = models.ForeignKey('Actor', db_column='lab_uuid', on_delete=models.CASCADE, blank=True, null=True,
+                            related_name='experiment_template_lab')
+    workflow = models.ManyToManyField(
+        'Workflow', through='ExperimentWorkflow', related_name='experiment_template_workflow')
     internal_slug = SlugField(populate_from=[
-                                    'condition_description',
+                                    'description',
                                     ],
                               overwrite=True, 
                               max_length=255)
+    reagent_templates = models.ManyToManyField('ReagentTemplate', 
+                                                blank=True, 
+                                                related_name='experiment_template_reagent_template')
+    outcome_templates = models.ManyToManyField('OutcomeTemplate',
+                                                blank=True, 
+                                                related_name='experiment_template_outcome_template')
 
-
-
-class ConditionDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
-
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='condition_def_uuid')
-    calculation_def = models.ManyToManyField('CalculationDef', blank=True), #through='ConditionCalculationDefAssign')
-    internal_slug = SlugField(populate_from=[
-                                    'description'
-                                    ],
-                              overwrite=True, 
-                              max_length=255)
     def __str__(self):
-        return f"{self.description}"
+        return f'{self.description}'
+    #objects = ExperimentTemplateManager()
+
+    #class Meta:
+    #    proxy = True
 
 
-class ConditionPath(DateColumns):
-    uuid = RetUUIDField(
-        primary_key=True, default=uuid.uuid4, db_column='condition_path_uuid')
-    condition = models.ForeignKey('Condition',
-                                  on_delete=models.CASCADE,
-                                  db_column='condition_uuid',
-                                  blank=True,
-                                  null=True,
-                                  related_name='condition_path_condition')
-    condition_out_val = ValField(blank=True, null=True)
-    workflow_step = models.ForeignKey('WorkflowStep',
-                                      on_delete=models.CASCADE,
-                                      db_column='workflow_uuid',
-                                      blank=True,
-                                      null=True,
-                                      related_name='condition_path_workflow_step')
-    internal_slug = SlugField(populate_from=[
-                                    'condition__internal_slug',
-                                    'workflow_step__internal_slug'
-                                    ],
-                              overwrite=True, 
-                              max_length=255)
-
-# For reference Proxy Models: https://docs.djangoproject.com/en/3.2/topics/db/models/#proxy-models
-
-
-class Experiment(DateColumns, StatusColumn, DescriptionColumn):
+class ExperimentInstance(DateColumns, StatusColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='experiment_uuid')
-    experiment_type = models.ForeignKey('ExperimentType', db_column='experiment_type_uuid',
-                                        on_delete=models.CASCADE, blank=True, null=True, related_name='experiment_experiment_type')
+    #experiment_type = models.ForeignKey('ExperimentType', db_column='experiment_type_uuid',
+    #                                    on_delete=models.CASCADE, blank=True, null=True, related_name='experiment_experiment_type')
     ref_uid = models.CharField(max_length=255,
                                db_column='ref_uid',
                                blank=True,
                                null=True)
     # update to point to an experiment parent. 
-    parent = models.ForeignKey('Experiment', db_column='parent_uuid',
-                               on_delete=models.CASCADE, blank=True, null=True, related_name='experiment_parent')
+    parent = models.ForeignKey('ExperimentTemplate', db_column='parent_uuid',
+                               on_delete=models.CASCADE, blank=True, null=True, related_name='experiment_instance_parent')
     owner = models.ForeignKey('Actor', db_column='owner_uuid', on_delete=models.CASCADE, blank=True, null=True,
-                              related_name='experiment_owner')
+                              related_name='experiment_instance_owner')
     operator = models.ForeignKey('Actor', db_column='operator_uuid', on_delete=models.CASCADE, blank=True, null=True,
-                                 related_name='experiment_operator')
+                                 related_name='experiment_instance_operator')
     lab = models.ForeignKey('Actor', db_column='lab_uuid', on_delete=models.CASCADE, blank=True, null=True,
-                            related_name='experiment_lab')
+                            related_name='experiment_instance_lab')
     workflow = models.ManyToManyField(
-        'Workflow', through='ExperimentWorkflow', related_name='experiment_workflow')
+        'Workflow', through='ExperimentWorkflow', related_name='experiment_instance_workflow')
     # owner_description = models.CharField(max_length=255, db_column='owner_description')
     # operator_description = models.CharField(max_length=255, db_column='operator_description')
     internal_slug = SlugField(populate_from=[
@@ -282,23 +258,17 @@ class Experiment(DateColumns, StatusColumn, DescriptionColumn):
     priority = models.CharField(db_column='priority',
                                   max_length=255, 
                                   default="1")
+    #reagents = models.ManyToManyField('ReagentInstance', 
+    #                                  blank=True, 
+    #                                  related_name='experiment_instance_reagent_instance')
+    
 
     def __str__(self):
         return f'{self.description}'
+    #objects = ExperimentInstanceManager()
 
-
-class ExperimentTemplate(Experiment):
-    objects = ExperimentTemplateManager()
-
-    class Meta:
-        proxy = True
-
-
-class ExperimentInstance(Experiment):
-    objects = ExperimentTemplateManager()
-
-    class Meta:
-        proxy = True
+    #class Meta:
+    #    proxy = True
 
 
 class ExperimentType(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
@@ -316,8 +286,10 @@ class ExperimentWorkflow(DateColumns):
     # experiment, no need for redundancy.
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='experiment_workflow_uuid')
-    experiment = models.ForeignKey('Experiment', db_column='experiment_uuid', on_delete=models.CASCADE,
-                                   blank=True, null=True, related_name='experiment_workflow_experiment')
+    experiment_template = models.ForeignKey('ExperimentTemplate', on_delete=models.CASCADE,
+                                   blank=True, null=True, related_name='experiment_template_workflow_experiment')
+    experiment_instance = models.ForeignKey('ExperimentInstance', on_delete=models.CASCADE,
+                                   blank=True, null=True, related_name='experiment_instance_workflow_experiment')
     # experiment_ref_uid = models.CharField(max_length=255)
     # experiment_description = models.CharField(max_length=255)
     experiment_workflow_seq = models.IntegerField()
@@ -334,17 +306,45 @@ class ExperimentWorkflow(DateColumns):
                               max_length=255)
 
 
-class Outcome(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
+class OutcomeTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='outcome_uuid')
-    experiment = models.ForeignKey('Experiment', db_column='experiment_uuid', on_delete=models.CASCADE,
-                                   blank=True, null=True, related_name='outcome_experiment')
+    experiment = models.ForeignKey('ExperimentTemplate', db_column='experiment_uuid', on_delete=models.CASCADE,
+                                   blank=True, null=True, related_name='outcome_template_experiment_template')
+    instance_labels = ArrayField(models.CharField(null=True, blank=True, max_length=255), null=True, blank=True)
+    default_value = models.ForeignKey('DefaultValues', on_delete=models.DO_NOTHING, 
+                                      blank=True, null=True, related_name='outcome_template_default_value')
     internal_slug = SlugField(populate_from=[
                                     'experiment__internal_slug',
                                     'description'
                                     ],
                               overwrite=True, 
                               max_length=255)
+    
+
+
+class OutcomeInstance(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
+                        db_column='outcome_uuid')
+    outcome_template = models.ForeignKey('OutcomeTemplate', on_delete=models.CASCADE,
+                                   blank=True, null=True, related_name='outcome_instance_outcome_template')
+    experiment_instance = models.ForeignKey('ExperimentInstance', on_delete=models.CASCADE,
+                                   blank=True, null=True, related_name='outcome_instance_experiment_instance')
+    internal_slug = SlugField(populate_from=[
+                                    'experiment_instance__internal_slug',
+                                    'description'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
+    nominal_value = ValField(blank=True, null=True)
+    actual_value = ValField(blank=True, null=True)
+    file = models.FileField()
+
+    def save(self, *args, **kwargs):
+        if self.outcome_template.default_value is not None:
+            self.nominal_value = self.outcome_template.default_value.nominal_value
+            self.actual_value = self.outcome_template.default_value.actual_value
+        super().save(*args, **kwargs)
 
 
 class Workflow(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
@@ -357,7 +357,7 @@ class Workflow(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                       blank=True, null=True,
                                       db_column='workflow_type_uuid', related_name='workflow_workflow_type')
     experiment = models.ManyToManyField(
-        'Experiment', through='ExperimentWorkflow', related_name='workflow_experiment')
+        'ExperimentTemplate', through='ExperimentWorkflow', related_name='workflow_experiment')
     internal_slug = SlugField(populate_from=[
                                     'description',
                                     ],
@@ -393,10 +393,10 @@ class WorkflowActionSet(DateColumns, StatusColumn, ActorColumn, DescriptionColum
     parameter_val_actual = CustomArrayField(ValField(),
                                             blank=True, null=True,
                                             db_column='parameter_val_actual')
-    calculation = models.ForeignKey('Calculation', models.CASCADE,
-                                    blank=True, null=True,
-                                    db_column='calculation_uuid',
-                                    related_name='workflow_action_set_calculation')
+    #calculation = models.ForeignKey('Calculation', models.CASCADE,
+    #                                blank=True, null=True,
+    #                                db_column='calculation_uuid',
+    #                                related_name='workflow_action_set_calculation')
     source_material = ArrayField(RetUUIDField(
         blank=True, null=True), db_column='source_uuid')
     destination_material = ArrayField(RetUUIDField(
@@ -458,9 +458,9 @@ class WorkflowObject(DateColumns, StatusColumn):
     action = models.ForeignKey('Action', models.CASCADE,
                                blank=True, null=True,
                                db_column='action_uuid', related_name='workflow_object_action')
-    condition = models.ForeignKey('Condition', models.CASCADE,
-                                  blank=True, null=True,
-                                  db_column='condition_uuid', related_name='workflow_object_condition')
+    #condition = models.ForeignKey('Condition', models.CASCADE,
+    #                              blank=True, null=True,
+    #                              db_column='condition_uuid', related_name='workflow_object_condition')
     workflow_action_set = models.ForeignKey('WorkflowActionSet', models.CASCADE,
                                             blank=True, null=True,
                                             db_column='workflow_action_set_uuid',

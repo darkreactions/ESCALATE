@@ -4,6 +4,8 @@
 # # Dependencies 
 # Created by wrborrelli
 # %%
+
+import sys
 import itertools
 import matplotlib.pyplot as plt
 from scipy.spatial import ConvexHull
@@ -13,25 +15,36 @@ from scipy.spatial import HalfspaceIntersection
 import numpy as np
 from numpy.linalg import lstsq
 
+import pint
+from pint import UnitRegistry
+units = UnitRegistry()
+Q_ = units.Quantity
+
+
 # %% [markdown]
 # # Sample Inputs
 
 # %%
-reagentVectors = {'Reagent2 (ul)': [1.8, 0, 0, 2.3], 'Reagent3 (ul)': [3.51, 0, 0, 0], 'Reagent1 (ul)': [0, 0, 0, 0], 'Reagent7 (ul)': [0, 0, 26.50445361720617, 0]}
 
+reagent1= {'Gamma-Butyrolactone': '0.0 M'}
 
-# %%
-rvecs3D = {'Reagent2 (ul)': [1.8, 0, 0], 'Reagent3 (ul)': [0, 0, 0], 'Reagent1 (ul)': [0, 0, 26.5], 'Reagent7 (ul)': [0, 2, 1]}
+reagent2= {'Lead Diiodide': '1.81 M',
+ 'Formamidinium Iodide': '1.36 M',
+ 'Gamma-Butyrolactone': '0.0 M'}
 
+reagent3 ={'Formamidinium Iodide': '2.63 M', 
+           'Gamma-Butyrolactone': '0.0 M'}
+
+reagent7= {'Formic Acid': '26.5 M'}
+
+reagents = [reagent1, reagent2, reagent3, reagent7]
+descriptions=['Reagent1', 'Reagent2', 'Reagent3', 'Reagent7']
 
 # %%
 nExpt = 96
 maxMolarity = 15.0
-finalVolume = 500
 
-
-# %%
-uniqueChemNames = ["4Hydroxyphenethylammoniumiodide", "DMF", "FAH", "PbI2"]
+finalVolume = '500 ul'
 
 # %% [markdown]
 # ## Helper Functions
@@ -189,7 +202,9 @@ def in_hull(points, x):
 def allowedExperiments(reagents, maxConcentration, minConcentration):
     """ Find the allowed ConvexHull given the reagent definitions and max/min concentration. 
 
-    Note that, relative to the Mathematica code, the location of max and min concentration in the function arguments are swapped. This allows for the case where you only want to give a max concentration. 
+    Note that, relative to the Mathematica code, the location of max and min 
+    concentration in the function arguments are swapped. 
+    This allows for the case where you only want to give a max concentration. 
 
     Because this generates a scipy ConvexHull, it is susceptible to dimensional constraints. 
 
@@ -344,36 +359,124 @@ def sampleUntilSuccessful(corners, boundingCuboid):
 
 
 # %%
-def generateExperiments(reagentDefs, excludedReagentsDef=None, nExpt=96, maxMolarity=9., finalVolume=500.):
-    if excludedReagentsDef == None:
-        """ This is the main interface that takes in the dictionary of reagent definitions, decides what experiment generation code to run, and returns the results. 
+def generate_vectors(descriptions, reagents):
+    
+    """
+    Returns a dictionary where keys are reagent descriptions,
+    and values are concentration vectors for components in the reagent.
+    This dictionary can then be passed into GenerateExperiments.
+    
+    Sample input:  descriptions=['Reagent 1', 'Reagent 2', 'Reagent 3', 'Reagent 7']
+                   reagents=[reagent1, reagent2, reagent3, reagent7]
+                    
+    where each variable in the reagents list is defined as follows:
+    
+    reagent1= {'Gamma-Butyrolactone': '0.0 M'}
 
+    reagent2= {'Lead Diiodide': '1.81 M',
+     'Formamidinium Iodide': '1.36 M',
+     'Gamma-Butyrolactone': '0.0 M'}
+
+    reagent3 ={'Formamidinium Iodide': '2.63 M', 
+               'Gamma-Butyrolactone': '0.0 M'}
+
+    reagent7= {'Formic Acid': '26.5 M'}
+    
+    Input can be queried directly from database.
+    """
+    
+    #error handling: concentrations must be in molarity. otherwise code breaks
+    for entry in reagents:
+        for key, val in entry.items():
+            conc_unit=val.split()[1]
+            if units(conc_unit)!=units('molar'): 
+                print('TypeError: Concentration must be a molarity. Please convert and re-enter.')
+                sys.exit()
+    
+    names=[]
+    for entry in reagents:
+        for key in entry:
+            if key not in names:
+                names.append(key) #add all chemicals to list of chemical names
+    raw_vectors={}
+    for name in names:
+        raw_vectors[name]=[] #instantiate a series of vectors where keys are chemical names
+        #values are empty lists to which concentrations will be appended
+    
+    for name in names: #loop through and append concentrations to appropriate values list
+        for entry in reagents:
+            if name in entry.keys():
+                val=entry[name].split()
+                raw_vectors[name].append(float(val[0]))
+            else:
+                raw_vectors[name].append(0.0) #if a chemical is not present, append 0.0 as its concentration
+                
+    array=[]
+    
+    for val in raw_vectors.values(): #create an array of the concentration lists
+        array.append(val) 
+    
+    new_array= np.array(array).transpose() #transpose the array 
+    
+    reagent_vectors={} 
+    
+    for i in range(len(descriptions)): #generate dictionary with keys=reagent descriptions and vals=concentration vectors 
+        reagent_vectors[descriptions[i]]=list(new_array[i])
+
+    return reagent_vectors
+  
+# %%
+
+# %%
+def generateExperiments(reagents, descriptions, nExpt, excludedReagents=None, maxMolarity=9., finalVolume='500. uL', desiredUnit='uL'):
+#def generateExperiments(reagentDefs, nExpt, excludedReagentDefs=None, maxMolarity=9., finalVolume='500. uL', desiredUnit='uL'):
+    
+    #convert reagent input into proper vector format
+    # reagentDefs = generate_vectors(descriptions, reagents) 
+    
+    # excludedReagentDefs = None
+    # if excludedReagents != None:
+    #    excludedReagentDefs = generate_vectors(descriptions, excludedReagents)
+    
+        
+    
+    #convert input volume to microliters, if it isn't already
+    # v=finalVolume.split()
+    #v1=Q_(float(v[0]), v[1]).to(units.ul)
+    v1 = Q_(finalVolume).to(units.ul)
+    finalVolume=v1.magnitude
+    
+    #if excludedReagentDefs is None:
+    if excludedReagents is None:
+        """ This is the main interface that takes in the dictionary of reagent definitions, decides what experiment generation code to run, and returns the results. 
         If no excluded reagents are given, the species dimensionality decides which block runs:
             <= 3 --> generate3DExperiments runs 
-            >3 --? generateHitAndRunExperiments runs 
-
+            >3 --> generateHitAndRunExperiments runs 
         If excluded reagents are given, it finds the allowed-excluded hull intersection, then samples from the combined allowed-intersection hull via a bounding box, only taking points that are both inside the total hull and outside the intersection. This isn't super efficient but it runs quick for only 96 expts. I did this because finding the complex polygon is 3D that is given by the difference in both hulls is not easily implemented. 
-
         Args:
-            reagentDefs: Dictionary of reagents. 
+            reagentDefs: Dictionary of reagents, output of generate_vectors() function. 
             excludedReagentDefs: (optional) Dictionary of reagents you would like to exclude from experiment generation. 
             nExpt: (optional) The number of experiments you want to generate (default is 96).
             maxMolarity: (optional) The max molarity you want to impose (default is 9.).
-            finalVolume: (optional) The final volume you want to impose (default 500.).
+            finalVolume: (optional) The final volume you want to impose (default 500. ul).
+                ***must be input as a string with value and units
+            desiredUnit: (optional): The unit in which final volumes should be expressed (default ul)
 
         Returns:
             Nested dictionary of {concentrations : {unique_reagent_names : sampled concecntrations},
             volumes : {reagents : volumes}
             }
         """
-        speciesDimensionality = len(list(dropZeroColumns(reagentDefs).values())[0])
+        speciesDimensionality = len(list(dropZeroColumns(reagents).values())[0])
         if speciesDimensionality <= 3:
-            return generate3DExperiments(dropZeroColumns(reagentDefs), nExpt=96, maxMolarity=9., finalVolume=500.,processValues='round')
+
+            return generate3DExperiments(reagents, descriptions, nExpt, maxMolarity=9., finalVolume='500. uL', desiredUnit='uL', processValues='round')
         else:
-            return generateHitAndRunExperiments(dropZeroColumns(reagentDefs), nExpt=96., maxMolarity=9., finalVolume=500.,processValues='round')
+            return generateHitAndRunExperiments(reagents, descriptions, nExpt, maxMolarity=9., finalVolume='500. uL', desiredUnit='uL', processValues='round')
+
     else:
-        nonzeroReagentsDef = dropZeroColumns(reagentDefs)
-        nonzeroExcludedReagentsDef = dropZeroColumns(excludedReagentsDef)
+        nonzeroReagentsDef = dropZeroColumns(reagents)
+        nonzeroExcludedReagentsDef = dropZeroColumns(excludedReagents)
         if len(list(nonzeroReagentsDef.values())[0]) > 3:
             return print('Difference sampling only implemented for <= 3 species')
         else:
@@ -391,25 +494,42 @@ def generateExperiments(reagentDefs, excludedReagentsDef=None, nExpt=96, maxMola
                 dic = convertConcentrationsToVolumes(nonzeroReagentsDef, pts)
                 for k, v in dic.items():
                     dic[k] = list(np.round((finalVolume*np.array(v))))
+                
+                desiredUnit = Q_(1, desiredUnit).units
+    
+                if desiredUnit!=units('ul'):
+                    for key, val in dic.items():
+                        dic[key]=(Q_(val, 'ul')).to(desiredUnit)
+
                 return dic
             else:
                 return print('Volume of remaining space is zero')
 
 
 # %%
-def generateHitAndRunExperiments(reagentDefs, nExpt=96, maxMolarity=9., finalVolume=500., processValues='round'):
+def generateHitAndRunExperiments(reagents, descriptions, nExpt=96, maxMolarity=9., finalVolume='500 uL', desiredUnit='uL', processValues='round'):
     """ This generates hit and run experiments. This block runs if species dimensionality is > 3. 
-
     Args:
-        reagentDefs: Dictionary of reagents. 
+        reagents: list of dictionaries, where each list corresponds to a reagent. keys are chemical components and values are concentrations for the components
+        descriptions: list of names of reagents, e.g. ['Reagent 1', 'Reagent 2', 'Reagent 3', Reagent 7']
         nExpt: (optional) The number of experiments to generate (default is 96).
         maxMolarity: (optional) The max molarity you want to impose (default is 9.).
-            finalVolume: (optional) The final volume you want to impose (default 500.).
-            processValues: (optional) Doesn't currently support an operation other than rounding the volumes to whole number (default is round). 
-
+        finalVolume: (optional) The final volume you want to impose (default 500. ul).
+            ***must be input as a string with value and units
+        desiredUnit: (optional): The unit in which final volumes should be expressed (default ul)
+        processValues: (optional) Doesn't currently support an operation other than rounding the volumes to whole number (default is round). 
     Returns:
-        Dictionary of {reagents : 96 volumes}
+        Dictionary of {reagents : 96 volumes, expressed in terms of desiredUnit}
     """
+    
+    # convert input volume to microliters, if it isn't already
+    # v=finalVolume.split()
+    # v1=Q_(float(v[0]), v[1]).to(units.ul)
+    # finalVolume=v1.magnitude
+    finalVolume = Q_(finalVolume).to(units.ul)
+    
+    #reagentDefs = generate_vectors(descriptions, reagents) #convert reagent input into proper vector format
+    reagentDefs = reagents
     nonzeroReagentDefs = dropZeroColumns(reagentDefs)
     dimensionality = len(np.array(list(nonzeroReagentDefs.values()))[0])
     hullCorners = np.array(list(nonzeroReagentDefs.values()))
@@ -426,29 +546,54 @@ def generateHitAndRunExperiments(reagentDefs, nExpt=96, maxMolarity=9., finalVol
         results = np.transpose(results)
         results = list(map(list, results))
     r_keys = np.array(list(reagentDefs.keys()))
-    return dict(zip(r_keys, results))
+
+    output= dict(zip(r_keys, results))
+    desiredUnit = Q_(1, desiredUnit).units
+    
+    if desiredUnit!=units('ul'):
+        for key, val in output.items():
+            output[key]=(Q_(val, 'ul')).to(desiredUnit)
+    return output
 
 
 # %%
-def generate3DExperiments(reagentDefs, nExpt=96, maxMolarity=9., finalVolume=500., processValues='round'):
+def generate3DExperiments(reagents, descriptions, nExpt=96, maxMolarity=9., finalVolume='500 uL', desiredUnit='uL', processValues='round'):
     """ This generates hit and run experiments. This block runs if species dimensionality is <= 3. 
-
     Args:
-        reagentDefs: Dictionary of reagents. 
+        reagents: list of dictionaries, where each list corresponds to a reagent. keys are chemical components and values are concentrations for the components
+        descriptions: list of names of reagents, e.g. ['Reagent 1', 'Reagent 2', 'Reagent 3', Reagent 7']
         nExpt: (optional) The number of experiments to generate (default is 96).
         maxMolarity: (optional) The max molarity you want to impose (default is 9.).
-            finalVolume: (optional) The final volume you want to impose (default 500.).
-            processValues: (optional) Doesn't currently support an operation other than rounding the volumes to whole number (default is round). 
+        finalVolume: (optional) The final volume you want to impose (default 500. ul).
+            ***must be input as a string with value and units
+        desiredUnit: (optional): The unit in which final volumes should be expressed (default ul)
+        processValues: (optional) Doesn't currently support an operation other than rounding the volumes to whole number (default is round). 
     
     Returns:
-        Dictionary of {reagents : 96 volumes}
+        Dictionary of {reagents : 96 volumes, expressed in terms of desiredUnit}
     """
-    nonzeroReagentDefs = dropZeroColumns(reagentDefs)
+    
+    #convert input volume to microliters, if it isn't already
+    v=finalVolume.split()
+    v1=Q_(float(v[0]), v[1]).to(units.ul)
+    finalVolume=v1.magnitude
+    
+    #reagentDefs = generate_vectors(descriptions, reagents) #convert reagent input into proper vector format
+
+    nonzeroReagentDefs = dropZeroColumns(reagents)
     hull = allowedExperiments(nonzeroReagentDefs, maxMolarity)
     sample_cs = sampleConcentrations(hull, nExpt)
-    dic = convertConcentrationsToVolumes(reagentDefs, sample_cs)
+    dic = convertConcentrationsToVolumes(nonzeroReagentDefs, sample_cs)
     for k, v in dic.items():
         dic[k] = list(np.round((finalVolume*np.array(v))))
+
+    desiredUnit = Q_(1, desiredUnit).units
+
+    if desiredUnit!=units('ul'):
+        for key, val in dic.items():
+            dic[key]=Q_(val, 'ul').to(desiredUnit)
     return dic
 
 
+if __name__=='__main__':
+    generateExperiments(reagents, descriptions, 5)
