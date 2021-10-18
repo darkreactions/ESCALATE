@@ -12,7 +12,7 @@ from django.db.models import F, Value
 from core.models.view_tables import (WorkflowActionSet, BomMaterial, Action, Parameter,
                                             ActionUnit, ExperimentTemplate, 
                                             ExperimentInstance, ReagentMaterial,
-                                            Reagent, Property)
+                                            Reagent, Property, Vessel)
 from core.custom_types import Val
 from core.models.core_tables import RetUUIDField
 from core.utilities.randomSampling import generateExperiments
@@ -159,6 +159,13 @@ def get_material_querysets(exp_uuid, template=True):
                         experiment_description=F(f'{exp_relation}__description')).prefetch_related(f'{exp_relation}')
     
     return mat_q
+
+def get_vessel_querysets():
+    '''
+    Return vessels with no well numbers. This will return all the parent vessels.
+    '''
+    vessel_q = Vessel.objects.filter(well_number__isnull=True)
+    return vessel_q
 
 def get_reagent_querysets(exp_uuid):
     """[summary]
