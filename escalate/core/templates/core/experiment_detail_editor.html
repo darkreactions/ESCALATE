@@ -17,12 +17,15 @@
             </li>
         {% endfor %}
         </ul>
-        {% crispy queue_status_form helper %}
+        <div class="container">
+            {% crispy queue_status_form helper %}
+        </div>
     </div>
     <div class="treeview-animated border mx-4 my-4">
-    <table class="table table-striped table-bordered"><tbody>
     <h6 class="pt-3 pl-3">Files associated with {{ experiment.description }}</h6>
     <hr>
+    <div class="container">
+    <table class="table table-striped table-bordered"><tbody>
     {% for filename, link in edocs.items %}
         <tr>
             <td>{{ filename }}</td>
@@ -33,6 +36,8 @@
     {% endfor %}
     </tbody></table>
     <p>Upload New File: </p> {{ edoc_upload_form.file }}
+    </div>
+    <br>
     </div>
     <div class="treeview-animated border mx-4 my-4">
         <h6 class="pt-3 pl-3">Material Parameters for {{ experiment.description }}</h6>
