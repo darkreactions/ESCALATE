@@ -3,6 +3,7 @@ from django.views.generic import TemplateView
 from django.forms import formset_factory, ModelChoiceField
 from django.urls import reverse
 from django.forms import modelformset_factory
+from django.shortcuts import render
 
 from core.forms.forms import UploadEdocForm
 from core.models.view_tables import WorkflowActionSet, ExperimentInstance, ExperimentTemplate, BomMaterial, Edocument #ActionParameter
@@ -63,6 +64,7 @@ class ExperimentDetailEditView(TemplateView):
         qs = QueueStatusForm(experiment)
         context['queue_status_form'] = qs
         context['helper'] = qs.get_helper()
+        context['helper'].form_tag = False
 
 
         edocs = Edocument.objects.filter(ref_edocument_uuid=experiment.uuid)
@@ -81,9 +83,15 @@ class ExperimentDetailEditView(TemplateView):
         # todo [x]: mimic download from detailview (not detaileditview)
         # todo []: add post functionailty
         return context
-        
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        return render(request, self.template_name, context)
+
     def post(self, request, *args, **kwargs):
+        context = self.get_context_data(*args, **kwargs)
         if 'update_exp' in request.POST:
-            pass
-        pass
+            print('pass')
+
+        # redirect back to list view
         # return render(request, self.template_name, context)
