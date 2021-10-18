@@ -78,6 +78,16 @@
                         <i class="fa fa-download"></i>
                     </a>
               {% endif %}
+              {% if row_info.outcome_url %}
+              <a href="{% url 'outcome' row_info.obj_pk %}" class="btn btn-raised text-secondary px-1 view-detail">
+                <i class="fas fa-poll"></i>
+              </a>
+              {% endif %}
+              {% if row_info.reagent_prep_url %}
+              <a href="{% url 'reagent_prep' row_info.obj_pk %}" class="btn btn-raised text-secondary px-1 view-detail">
+                <i class="fas fa-vial"></i>
+              </a>
+              {% endif %}
               <a href="{{ row_info.view_url }}" class="btn btn-raised text-secondary px-1 view-detail">
                 <i class="fa fa-eye"></i>
               </a>

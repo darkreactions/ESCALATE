@@ -264,8 +264,8 @@ def generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, num_
     for reagent in reagents:
         label = reagent_template_reagent_map[reagent.template.description]
         prop = reagent.property_r.get(property_template__description__icontains='total volume')
-        prop.value.value = sum(desired_volume[label])
-        prop.value.unit = 'uL'
+        prop.nominal_value.value = sum(desired_volume[label])
+        prop.nominal_value.unit = 'uL'
         prop.save()
     
     # This loop adds individual well volmes to each action in the database

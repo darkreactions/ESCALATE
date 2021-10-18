@@ -21,7 +21,7 @@ from core.models.view_tables import (ExperimentTemplate,
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm, NominalActualForm, ReagentValueForm
 from core.forms.custom_types import (ExperimentNameForm, ExperimentTemplateForm, 
                                      ReagentForm, BaseReagentFormSet, 
-                                     BaseReagentModelFormSet, OutcomeInstanceForm)
+                                     PropertyForm, OutcomeInstanceForm)
 from core.utilities.utils import experiment_copy
 from core.utilities.experiment_utils import (update_dispense_action_set, 
                                              get_action_parameter_querysets, 
@@ -163,6 +163,7 @@ class CreateExperimentView(TemplateView):
         #for form in formset:
         #    form.fields[]
         context['reagent_formset_helper'] = ReagentForm.get_helper()
+        context['reagent_formset_helper'].form_tag = False
         context['reagent_formset'] = formsets
         context['reagent_template_names'] = reagent_template_names
         return context
@@ -342,6 +343,7 @@ class CreateExperimentView(TemplateView):
                     messages.error(request, f'LSRGenerator failed with message: "{lsr_msg}"')
                 context['experiment_link'] = reverse('experiment_instance_view', args=[experiment_copy_uuid])
                 context['reagent_prep_link'] = reverse('reagent_prep', args=[experiment_copy_uuid])
+                context['outcome_link'] = reverse('outcome', args=[experiment_copy_uuid])
                 context['new_exp_name'] = exp_name
         return context
 
@@ -361,10 +363,10 @@ class CreateExperimentView(TemplateView):
             org_id = None
         formsets = []
         reagent_template_names = []
-        for index, form in enumerate(exp_template.reagent_templates.all()):
+        for index, form in enumerate(exp_template.reagent_templates.all().order_by('description')):
             reagent_template_names.append(form.description)
             mat_types_list = []
-            for reagent_material_template in form.reagent_material_template_rt.all():
+            for reagent_material_template in form.reagent_material_template_rt.all().order_by('description'):
                 for reagent_material_value_template in reagent_material_template.reagent_material_value_template_rmt.filter(description='concentration'):
                     mat_types_list.append(reagent_material_template.material_type)
                     formsets.append(self.ReagentFormSet(request.POST, prefix=f'reagent_{index}',
@@ -415,6 +417,7 @@ class CreateExperimentView(TemplateView):
                     messages.error(request, f'LSRGenerator failed with message: "{lsr_msg}"')
                 context['experiment_link'] = reverse('experiment_instance_view', args=[experiment_copy_uuid])
                 context['reagent_prep_link'] = reverse('reagent_prep', args=[experiment_copy_uuid])
+                context['outcome_link'] = reverse('outcome', args=[experiment_copy_uuid])
                 context['new_exp_name'] = exp_name                     
         return context
 # end: class CreateExperimentView()
@@ -508,6 +511,7 @@ class ExperimentReagentPrepView(TemplateView):
     def get_reagent_forms(self, experiment, context):
         formsets = []
         reagent_names = []
+        reagent_total_volume_forms = []
         form_kwargs = {
                 'disabled_fields': ['material', 'material_type', 'nominal_value'],
             }
@@ -515,11 +519,19 @@ class ExperimentReagentPrepView(TemplateView):
         context['helper'] = ReagentValueForm.get_helper(readonly_fields=['material', 'material_type', 'nominal_value'])
         context['helper'].form_tag = False
 
+        context['volume_form_helper'] = PropertyForm.get_helper()
+        context['volume_form_helper'].form_tag = False
+
         
         #for index, reagent_template in enumerate(reagent_templates):
         for index, reagent in enumerate(experiment.reagent_ei.all()):
             reagent_materials = reagent.reagent_material_r.filter(reagent_material_value_rmi__description='amount')
                                                                   #  template__reagent_template=)
+            property = reagent.property_r.get(property_template__description__iexact='total volume')
+            reagent_total_volume_forms.append(PropertyForm(instance=property, 
+                                                           nominal_value_label = 'Calculated Volume',
+                                                           value_label = 'Measured Volume',
+                                                           disabled_fields=['nominal_value'])) 
             initial = []
             for reagent_material in reagent_materials:
                 
@@ -533,7 +545,8 @@ class ExperimentReagentPrepView(TemplateView):
                 
             fset = self.ReagentFormSet(prefix=f'reagent_{index}', initial=initial, form_kwargs=form_kwargs)
             formsets.append(fset)
-        context['reagent_formsets'] = formsets
+        context['reagent_formsets'] = zip(formsets, reagent_total_volume_forms)
+        # context['reagent_total_volume_forms'] = 
         # context['reagent_template_names'] = reagent_names
         
         return context
@@ -547,6 +560,11 @@ class ExperimentReagentPrepView(TemplateView):
         formsets = []
         valid_forms = True
         for index in range(len(reagent_templates)):
+            property_form = PropertyForm(request.POST)
+            if property_form.is_valid():
+                property_form.save()
+            else:
+                valid_forms = False
             fset = self.ReagentFormSet(request.POST, prefix=f'reagent_{index}')
             formsets.append(fset)
             if fset.is_valid():
@@ -557,6 +575,7 @@ class ExperimentReagentPrepView(TemplateView):
             else:
                 valid_forms = False
         
+        
         if valid_forms:
             return HttpResponseRedirect(reverse('experiment_instance_list'))
         else:
@@ -566,7 +585,7 @@ class ExperimentReagentPrepView(TemplateView):
 
 class ExperimentOutcomeView(TemplateView):
     template_name = "core/experiment_outcome.html"
-    ReagentFormSet = modelformset_factory(OutcomeInstance, 
+    OutcomeFormSet = modelformset_factory(OutcomeInstance, 
                                           form=OutcomeInstanceForm, 
                                           extra=0, 
                                           widgets={'actual_value': ValWidget()})
@@ -579,10 +598,17 @@ class ExperimentOutcomeView(TemplateView):
         return render(request, self.template_name, context)
     
     def get_outcome_forms(self, experiment, context):
-        outcome_instances = experiment.outcome_instance_experiment_instance.all()
+        outcome_instances = experiment.outcome_instance_experiment_instance.all().order_by('description')
 
-        outcome_formset = self.ReagentFormSet(queryset=outcome_instances)
+        outcome_formset = self.OutcomeFormSet(queryset=outcome_instances)
         context['outcome_formset'] = outcome_formset
         context['helper'] = OutcomeInstanceForm.get_helper()
         context['helper'].form_tag = False
         return context
+
+    def post(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        #experiment_instance_uuid = request.resolver_match.kwargs['pk']
+        outcome_formset = self.OutcomeFormSet(request.POST)
+        if outcome_formset.is_valid():
+            outcome_formset.save()

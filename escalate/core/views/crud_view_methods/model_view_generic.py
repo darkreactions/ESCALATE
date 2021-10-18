@@ -217,6 +217,12 @@ class GenericModelList(GenericModelListBase, ListView):
             if model_name == "edocument":
                 table_row_info['download_url'] = reverse(
                     'edoc_download', args=(model_instance.pk,))
+            # Following links show up to the right of experiment list
+            if model_name == 'experiment_instance':
+                table_row_info['outcome_url'] = reverse(
+                    'outcome', args=(model_instance.pk,))
+                table_row_info['reagent_prep_url'] = reverse(
+                    'reagent_prep', args=(model_instance.pk,))
             table_data.append(table_row_info)
         context['add_url'] = reverse_lazy(f'{model_name}_add')
         context['table_data'] = table_data
