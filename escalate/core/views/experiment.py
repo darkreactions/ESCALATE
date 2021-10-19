@@ -21,13 +21,13 @@ from core.models.view_tables import (ExperimentTemplate,
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm, NominalActualForm, ReagentValueForm
 from core.forms.custom_types import (ExperimentNameForm, ExperimentTemplateForm, 
                                      ReagentForm, BaseReagentFormSet, 
-                                     PropertyForm, OutcomeInstanceForm)
+                                     PropertyForm, OutcomeInstanceForm, VesselForm)
 from core.utilities.utils import experiment_copy
 from core.utilities.experiment_utils import (update_dispense_action_set, 
                                              get_action_parameter_querysets, 
                                              get_material_querysets, 
                                              supported_wfs, get_reagent_querysets,
-                                             prepare_reagents, generate_experiments_and_save)
+                                             prepare_reagents, generate_experiments_and_save, get_vessel_querysets)
 
 import core.models
 from core.models.view_tables import Note, TagAssign, Tag
@@ -172,8 +172,12 @@ class CreateExperimentView(TemplateView):
         context['reagent_formset_helper'].form_tag = False
         context['reagent_formset'] = formsets
         context['reagent_template_names'] = reagent_template_names
+
+        #get vessel data for selection
+        initial_vessel = VesselForm()
+        context['reagent_material_formset'] = initial_vessel
         context['colors'] = self.get_colors(len(formsets))
-        return context
+
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
@@ -557,9 +561,8 @@ class ExperimentReagentPrepView(TemplateView):
                 
             fset = self.ReagentFormSet(prefix=f'reagent_{index}', initial=initial, form_kwargs=form_kwargs)
             formsets.append(fset)
+
         context['reagent_formsets'] = zip(formsets, reagent_total_volume_forms)
-        # context['reagent_total_volume_forms'] = 
-        # context['reagent_template_names'] = reagent_names
         context['colors'] = self.get_colors(len(formsets))
         
         return context

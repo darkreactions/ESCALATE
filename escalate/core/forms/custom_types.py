@@ -13,7 +13,16 @@ class SingleValForm(Form):
     value = ValFormField(required=False)
     uuid = CharField(widget=HiddenInput)
 
-    
+class VesselForm(Form):
+    v_query = vt.Vessel.objects.all()
+    value = ModelChoiceField(queryset=v_query, initial={'value': v_query[0]})
+    value.widget = Select(attrs=dropdown_attrs)
+    #uuid = CharField(widget=HiddenInput)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['value'].queryset = vt.Vessel.objects.filter(well_number__isnull=True)
+
 
 class InventoryMaterialForm(Form):
     value = ModelChoiceField(queryset=vt.InventoryMaterial.objects.all())
