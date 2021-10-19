@@ -30,7 +30,7 @@ def conc_to_amount(exp_uuid):
             conc=Q_(conc_val, conc_unit)
             phase = reagent_material.material.phase
 
-            mw_prop = reagent_material.material.material.property_m.get(property_template__description__icontains='molecular weight')
+            mw_prop = reagent_material.material.material.property_m.get(property_template__description__icontains='molecularweight')
             mw = Q_(mw_prop.value.value, mw_prop.value.unit).to(units.g/units.mol)
             density_prop = reagent_material.material.material.property_m.get(property_template__description__icontains='density')
             d = d=Q_(density_prop.value.value, density_prop.value.unit).to(units.g/units.ml)
@@ -40,7 +40,7 @@ def conc_to_amount(exp_uuid):
                               'molecular weight': mw, 
                               'density': d}
         prop = reagent.property_r.get(property_template__description__icontains='total volume')
-        total_vol = f'{prop.value.value} {prop.value.unit}'
+        total_vol = f'{prop.nominal_value.value} {prop.nominal_value.unit}'
 
         amounts = calculate_amounts(input_data, total_vol)
         # Amounts should be a dictionary with key as ReagentMaterials and values as amounts

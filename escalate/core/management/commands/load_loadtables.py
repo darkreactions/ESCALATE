@@ -27,7 +27,10 @@ from core.models import (
     TypeDef,
     Vessel,
     Workflow,
-    WorkflowType
+    WorkflowType,
+    ReagentTemplate,
+    ReagentMaterialTemplate, 
+    ReagentMaterialValueTemplate
 )
 
 import csv
@@ -51,8 +54,51 @@ class Command(BaseCommand):
         self._load_base_bom_material()
         self._load_action()
         self._load_action_unit()
+        self._load_reagents_and_outcomes()
         self.stdout.write(self.style.NOTICE('Finished loading load tables'))
         return
+
+    def _load_reagents_and_outcomes(self):
+        exp_template = ExperimentTemplate.objects.get(description='perovskite_demo')
+        reagents = {'organic, solvent':['organic', 'solvent'], 
+                    'Pure acid':['acid'], 
+                    'inorganic, organic, solvent':['inorganic', 'organic', 'solvent'], 
+                    'Pure Solvent':['solvent']}
+        
+        volume_val = {'value': 0, 'unit':'ml', 'type':'num'}
+        amount_val = {'value': 0, 'unit':'gm', 'type':'num'}
+        conc_val = {'value': 0, 'unit':'M', 'type':'num'}
+        default_volume, created = DefaultValues.objects.get_or_create(**{'description':'Zero ml', 
+                                                              'nominal_value': volume_val,
+                                                              'actual_value': volume_val
+                                                              })
+        default_amount, created = DefaultValues.objects.get_or_create(**{'description':'Zero gm', 
+                                                              'nominal_value': amount_val,
+                                                              'actual_value': amount_val})
+        default_conc, created = DefaultValues.objects.get_or_create(**{'description':'Zero M', 
+                                                              'nominal_value': conc_val,
+                                                              'actual_value': conc_val})
+        reagent_values = {'concentration': default_conc, 'amount': default_amount}
+        total_volume_prop, created = PropertyTemplate.objects.get_or_create(**{"description": "total volume",
+                                                                    "property_def_class": "extrinsic",
+                                                                    "short_description": "volume",
+                                                                    "default_value":default_volume})
+        for r, rms in reagents.items():
+            reagent_template, created = ReagentTemplate.objects.get_or_create(description=r,)
+            reagent_template.properties.add(total_volume_prop)
+            exp_template.reagent_templates.add(reagent_template)
+            for rm in rms:
+                self.stdout.write(self.style.NOTICE(f'{rm}'))
+                material_type = MaterialType.objects.get(description=rm)
+                reagent_material_template, created = ReagentMaterialTemplate.objects.get_or_create(**{'description':f'{r}: {rm}', 
+                                                                                                    'reagent_template':reagent_template,
+                                                                                                    'material_type':material_type})
+                
+                for rv, default in reagent_values.items():
+                    rmv_template, created = ReagentMaterialValueTemplate.objects.get_or_create(**{'description':rv,
+                                                                                       'reagent_material_template':reagent_material_template,
+                                                                                       'default_value':default})
+
 
     def _load_chem_inventory(self):
         self.stdout.write(self.style.NOTICE('Beginning loading chem'))
@@ -237,18 +283,23 @@ class Command(BaseCommand):
                 
                 #create property instances
                 #not currently working, error occurs when passing material object in to property
-                '''
+                mw_val = row[column_names_to_index['MolecularWeight']]
+                den_val = row[column_names_to_index['Density']]
+                mw_value = {'value': float(mw_val) if mw_val else None,
+                            'unit': 'g/mol', 'type': 'num'}
+                density_value = {'value': float(den_val) if den_val else None,
+                            'unit': 'g/mL', 'type': 'num'}
                 Property.objects.create(
                     material=some_material,
                     property_template=mw,
-                    value=row[column_names_to_index['MolecularWeight']]
+                    value=mw_value
                 )
                 Property.objects.create(
                     material=some_material,
                     property_template=density,
-                    value=row[column_names_to_index['Density']]
+                    value=density_value
                 )
-                '''
+                
             self.stdout.write(self.style.SUCCESS(
                 f'Updated molecular weight and density for materials'))
    

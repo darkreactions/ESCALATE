@@ -178,6 +178,8 @@ class CreateExperimentView(TemplateView):
         context['reagent_material_formset'] = initial_vessel
         context['colors'] = self.get_colors(len(formsets))
 
+        return context
+
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
