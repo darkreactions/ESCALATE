@@ -30,12 +30,16 @@ from core.models import (
     WorkflowType,
     ReagentTemplate,
     ReagentMaterialTemplate, 
-    ReagentMaterialValueTemplate
+    ReagentMaterialValueTemplate,
+    OutcomeTemplate
 )
 
 import csv
 import os
 import json
+import math
+
+
 
 
 class Command(BaseCommand):
@@ -68,6 +72,7 @@ class Command(BaseCommand):
         volume_val = {'value': 0, 'unit':'ml', 'type':'num'}
         amount_val = {'value': 0, 'unit':'gm', 'type':'num'}
         conc_val = {'value': 0, 'unit':'M', 'type':'num'}
+        crystal_score_val = {'value': 0, 'unit':'', 'type':'int'}
         default_volume, created = DefaultValues.objects.get_or_create(**{'description':'Zero ml', 
                                                               'nominal_value': volume_val,
                                                               'actual_value': volume_val
@@ -78,6 +83,9 @@ class Command(BaseCommand):
         default_conc, created = DefaultValues.objects.get_or_create(**{'description':'Zero M', 
                                                               'nominal_value': conc_val,
                                                               'actual_value': conc_val})
+        default_crystal_score, created = DefaultValues.objects.get_or_create(**{'description':'Zero Crystal score', 
+                                                              'nominal_value': crystal_score_val,
+                                                              'actual_value': crystal_score_val})
         reagent_values = {'concentration': default_conc, 'amount': default_amount}
         total_volume_prop, created = PropertyTemplate.objects.get_or_create(**{"description": "total volume",
                                                                     "property_def_class": "extrinsic",
@@ -98,7 +106,15 @@ class Command(BaseCommand):
                     rmv_template, created = ReagentMaterialValueTemplate.objects.get_or_create(**{'description':rv,
                                                                                        'reagent_material_template':reagent_material_template,
                                                                                        'default_value':default})
-
+        column_order=['A', 'C', 'E', 'G', 'B', 'D', 'F', 'H']
+        total_columns=8
+        well_count = 96
+        row_limit = math.ceil(well_count / total_columns)                                                                         
+        well_names = [f'{col}{row}' for row in range(1, row_limit+1) for col in column_order]
+        OutcomeTemplate.objects.get_or_create(description = 'Crystal score', 
+                                              experiment = exp_template,
+                                              instance_labels = well_names,
+                                              default_value = default_crystal_score)
 
     def _load_chem_inventory(self):
         self.stdout.write(self.style.NOTICE('Beginning loading chem'))
