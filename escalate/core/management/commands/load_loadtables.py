@@ -329,6 +329,7 @@ class Command(BaseCommand):
                     mat_type_desc = clean_string(
                         row[column_names_to_index['material_type__description']])
                     #update phase, model update to include phase into materials and foreign key material from inventory material
+                    '''
                     phase = None
                     if "acid" in mat_type_desc:
                         phase = "liquid"
@@ -336,6 +337,7 @@ class Command(BaseCommand):
                         phase = "liquid"
                     elif "organic" in mat_type_desc:
                         phase = "solid"
+                    '''
 
                     # fields = {
                     #     'description': description,
@@ -348,7 +350,7 @@ class Command(BaseCommand):
                     material_instance.material_class = material_class
                     material_instance.consumable = consumable
                     material_instance.status = active_status
-                    material_instance.phase = phase
+                    #material_instance.phase = phase
 
                     material_identifier__description = [x.strip() for x in y.split('|')] if not string_is_null(
                         y := row[column_names_to_index['material_identifier__description']]) else []
