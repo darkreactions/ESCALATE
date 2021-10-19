@@ -125,10 +125,11 @@ class InventoryMaterial(DateColumns, StatusColumn, ActorColumn, DescriptionColum
                                     ],
                               overwrite=True, 
                               max_length=255)
-    phase = models.ForeignKey('Material', models.DO_NOTHING,
-                                 db_column='material_phase',
-                                 blank=True, null=True,
-                                 related_name='inventory_material_phase')
+    phase = models.CharField(max_length=6, 
+                             choices=[('liquid', 'Liquid'), 
+                                      ('solid', 'Solid'),
+                                      ('gas', 'Gas')],
+                            blank=True, null=True)
 
     def __str__(self):
         return "{} : {}".format(self.inventory, self.material)
@@ -156,11 +157,6 @@ class Material(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
                                     ],
                               overwrite=True, 
                               max_length=255)
-    phase = models.CharField(max_length=6, 
-                             choices=[('liquid', 'Liquid'), 
-                                      ('solid', 'Solid'),
-                                      ('gas', 'Gas')],
-                            blank=True, null=True)
 
     def __str__(self):
         return "{}".format(self.description)
