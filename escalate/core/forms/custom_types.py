@@ -15,7 +15,7 @@ class SingleValForm(Form):
 
 class VesselForm(Form):
     v_query = vt.Vessel.objects.all()
-    value = ModelChoiceField(queryset=v_query, initial={'value': v_query[0]})
+    value = ModelChoiceField(queryset=v_query)
     value.widget = Select(attrs=dropdown_attrs)
     #uuid = CharField(widget=HiddenInput)
 

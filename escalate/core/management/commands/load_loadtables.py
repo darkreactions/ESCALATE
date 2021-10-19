@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
+from django.db.models import Q
 from core.models import (
     Actor,
     Action,
@@ -414,19 +415,32 @@ class Command(BaseCommand):
                     row[column_names_to_index['expiration_date']])
                 location = clean_string(row[column_names_to_index['location']])
 
-                fields = {
-                    'description': description,
-                    'inventory': Inventory.objects.get(description=inventory_description) if not string_is_null(inventory_description) else None,
-                    #'material': Material.objects.get(description=material_description) if not string_is_null(material_description) else None,
-                    'part_no': part_no,
-                    'onhand_amt': get_val_field_dict(onhand_amt_type, onhand_amt_unit, onhand_amt_value),
-                    #'expiration_date': expiration_date if not string_is_null(expiration_date) else None,
-                    'location': location,
-                    'status': active_status
-                }
+                try:
+                    material = Material.objects.get(description=material_description) if not string_is_null(material_description) else None
+                    phase = None
+                    if material is not None:
+                        if material.material_type.filter(Q(description='acid') | Q(description='solvent') | Q(description='antisolvent')).exists():
+                            phase = 'liquid'
+                        elif material.material_type.filter(Q(description='organic')).exists():
+                            phase = 'solid'
+                    fields = {
+                        'description': description,
+                        'inventory': Inventory.objects.get(description=inventory_description) if not string_is_null(inventory_description) else None,
+                        'material': material,
+                        'part_no': part_no,
+                        'onhand_amt': get_val_field_dict(onhand_amt_type, onhand_amt_unit, onhand_amt_value),
+                        #'expiration_date': expiration_date if not string_is_null(expiration_date) else None,
+                        'phase': phase,
+                        'location': location,
+                        'status': active_status
+                    }
+                    inventory_material_instance, created = InventoryMaterial.objects.get_or_create(
+                        **fields)
+                except Exception as e:
+                    print(e)
+                    print(material_description)
                 
-                inventory_material_instance, created = InventoryMaterial.objects.get_or_create(
-                    **fields)
+                
 
                 try:
                     material_object = Material.objects.get(description=material_description)
