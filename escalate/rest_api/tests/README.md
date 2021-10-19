@@ -34,7 +34,7 @@ test suite variable must end with '_tests'. The entire shape:
     within a test case may reference values from earlier responses
 *  The possible choices for <Http verb> can be found in /model_tests/http_status_codes.py
 *  'endpoint' is the api endpoint name defined in django. Ex: 'systemtool-list'
-*  'args' is a list of arguements for that request's endpoint
+*  'args' is a list of arguments for that request's endpoint
 *  'body' is a dictionary mimicking the json that will be in the request body
 *  'query_params' is a list of filter fields ex: `['first_name=Gary',]`
 *  'is_valid_response' is a dictionary that contains a function that will be used 

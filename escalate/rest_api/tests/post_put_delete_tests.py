@@ -116,6 +116,10 @@ def run_test(api_client, tests):
             resp = api_client.delete(reverse(endpoint, args=args))
         else:
             assert False, f'Invalid Http method!!!\n{name}' 
+        print('args: ', args, '\n')
+        print('request body: ', json.dumps(body), '\n')
+        if method != 'DELETE': print('request name: ', name, "\n", 'response: ', response_data[name],"\n", resp)
+        print(reverse(endpoint, args=args), "\n\n")
         assert is_valid_resp(resp,
                             response_data=response_data,
                             *is_valid_resp_args,

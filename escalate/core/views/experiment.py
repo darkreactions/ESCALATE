@@ -132,7 +132,13 @@ class CreateExperimentView(TemplateView):
         context['q1_material_details'] = q1_details
 
         return context
-
+    
+    def get_colors(self, number_of_colors, colors=['deeppink', 'blueviolet', 'blue', 'coral', 'lightseagreen', 'orange', 'crimson']):
+      factor = int(number_of_colors/len(colors))    
+      remainder = number_of_colors % len(colors)
+      total_colors = colors*factor + colors[:remainder]         
+      return total_colors
+    
     def get_reagent_forms(self, exp_template, context):
         if 'current_org_id' in self.request.session:
             org_id = self.request.session['current_org_id']
@@ -166,13 +172,12 @@ class CreateExperimentView(TemplateView):
         context['reagent_formset_helper'].form_tag = False
         context['reagent_formset'] = formsets
         context['reagent_template_names'] = reagent_template_names
+
         #get vessel data for selection
-        #q_vessel = get_vessel_querysets()
         initial_vessel = VesselForm()
         context['reagent_material_formset'] = initial_vessel
-        #context['reagent_material_details'] = vessel_details
+        context['colors'] = self.get_colors(len(formsets))
 
-        return context
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
@@ -513,7 +518,12 @@ class ExperimentReagentPrepView(TemplateView):
         context = self.get_reagent_forms(experiment, context)
         return render(request, self.template_name, context)
     
-
+    def get_colors(self, number_of_colors, colors=['deeppink', 'blueviolet', 'blue', 'coral', 'lightseagreen', 'orange', 'crimson']):
+      factor = int(number_of_colors/len(colors))    
+      remainder = number_of_colors % len(colors)
+      total_colors = colors*factor + colors[:remainder]         
+      return total_colors
+    
     def get_reagent_forms(self, experiment, context):
         formsets = []
         reagent_names = []
@@ -551,9 +561,11 @@ class ExperimentReagentPrepView(TemplateView):
                 
             fset = self.ReagentFormSet(prefix=f'reagent_{index}', initial=initial, form_kwargs=form_kwargs)
             formsets.append(fset)
-        context['reagent_formsets'] = zip(formsets, reagent_total_volume_forms)       
+
+        context['reagent_formsets'] = zip(formsets, reagent_total_volume_forms)
+        context['colors'] = self.get_colors(len(formsets))
+        
         return context
-    
     
     def post(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
@@ -583,9 +595,8 @@ class ExperimentReagentPrepView(TemplateView):
             return HttpResponseRedirect(reverse('experiment_instance_list'))
         else:
             return render(request, self.template_name, context)
-
-    
-
+          
+         
 class ExperimentOutcomeView(TemplateView):
     template_name = "core/experiment_outcome.html"
     OutcomeFormSet = modelformset_factory(OutcomeInstance, 
