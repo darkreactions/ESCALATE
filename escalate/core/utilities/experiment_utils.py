@@ -260,10 +260,10 @@ def generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, num_
                           'dispense stock b': ('Reagent 3', 1.0)}
 
     reagent_template_reagent_map = {
-        'Pure Solvent': 'Reagent 1',
-        'Pure acid': 'Reagent 7',
-        'inorganic, organic, solvent': 'Reagent 2',
-        'organic, solvent': 'Reagent 3',
+        'Reagent 1 - Solvent': 'Reagent 1',
+        'Reagent 7 - Acid': 'Reagent 7',
+        'Reagent 2 - Stock A': 'Reagent 2',
+        'Reagent 3 - Stock B': 'Reagent 3',
     }
 
     # This loop sums the volume of all generated experiment for each reagent and saves to database
