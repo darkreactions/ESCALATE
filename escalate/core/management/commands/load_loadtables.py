@@ -64,10 +64,10 @@ class Command(BaseCommand):
 
     def _load_reagents_and_outcomes(self):
         exp_template = ExperimentTemplate.objects.get(description='perovskite_demo')
-        reagents = {'organic, solvent':['organic', 'solvent'], 
-                    'Pure acid':['acid'], 
-                    'inorganic, organic, solvent':['inorganic', 'organic', 'solvent'], 
-                    'Pure Solvent':['solvent']}
+        reagents = {'Reagent 3 - Stock B':['organic', 'solvent'], 
+                    'Reagent 7 - Acid':['acid'], 
+                    'Reagent 2 - Stock A':['inorganic', 'organic', 'solvent'], 
+                    'Reagent 1 - Solvent':['solvent']}
         
         volume_val = {'value': 0, 'unit':'ml', 'type':'num'}
         amount_val = {'value': 0, 'unit':'gm', 'type':'num'}
