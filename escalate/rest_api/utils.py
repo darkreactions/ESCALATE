@@ -161,7 +161,7 @@ expandable_fields = {
                             'source': 'outcome_experiment',
                             'many': True,
                             'read_only': True,
-                            'view_name': 'outcome-detail'
+                            'view_name': 'outcometemplate-detail'
                         })
         }
         
@@ -193,7 +193,7 @@ expandable_fields = {
                             'source': 'outcome_instance_experiment_instance',
                             'many': True,
                             'read_only': True,
-                            'view_name': 'outcome-detail'
+                            'view_name': 'outcomeinstance-detail'
                         })
         }
         
