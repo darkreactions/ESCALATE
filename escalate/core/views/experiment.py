@@ -175,8 +175,16 @@ class CreateExperimentView(TemplateView):
 
         #get vessel data for selection
         initial_vessel = VesselForm()
-        context['reagent_material_formset'] = initial_vessel
+        context['vessel_form'] = initial_vessel
+
+        # Dead volume form
+        initial = {'value':Val.from_dict({'value':4000, 'unit': 'uL', 'type':'num'})}
+        dead_volume_form = SingleValForm(prefix='dead_volume', initial=initial)
+        context['dead_volume_form'] = dead_volume_form
+
         context['colors'] = self.get_colors(len(formsets))
+
+        return context
 
 
     def get(self, request, *args, **kwargs):
@@ -211,8 +219,7 @@ class CreateExperimentView(TemplateView):
                 request.session['experiment_template_uuid'] = None
         # begin: create experiment
         elif 'create_exp' in request.POST:
-            # TODO: Remove check for formset, instead create boolean in get function
-            if "reagent_0-TOTAL_FORMS" in request.POST:
+            if "automated" in request.POST:
                 context = self.process_automated_formsets(request, context)
             else:
                 context = self.process_formsets(request, context)
@@ -390,7 +397,6 @@ class CreateExperimentView(TemplateView):
             
             # make the experiment copy: this will be our new experiment
             experiment_copy_uuid = experiment_copy(str(exp_template.uuid), exp_name)
-            # q_reagent = get_reagent_querysets(experiment_copy_uuid)
             exp_concentrations = {}
             for reagent_formset in formsets:            
                 if reagent_formset.is_valid():
@@ -404,13 +410,19 @@ class CreateExperimentView(TemplateView):
                     if elif statements for current_mat_list are not needed but 
                     add some clarity to the code
                     '''
-                    #create exp_concentrations data structure to pass into random sampler
+            
+            # Save dead volumes should probably be in a separate function
+            dead_volume_form = SingleValForm(request.POST, prefix='dead_volume')
+            if dead_volume_form.is_valid():
+                dead_volume = dead_volume_form.value
+            else:
+                dead_volume = None
                     
                            
             #retrieve # of experiments to be generated (# of vial locations)
             exp_number = int(request.POST['automated'])
             #generate desired volume for current reagent
-            generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, exp_number)
+            generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, exp_number, dead_volume)
             q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
             
             #robotfile generation

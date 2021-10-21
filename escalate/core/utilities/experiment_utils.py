@@ -220,7 +220,7 @@ def prepare_reagents(reagent_formset, exp_concentrations):
     return exp_concentrations
 
 
-def generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, num_of_experiments):
+def generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, num_of_experiments, dead_volume):
     """
     Generates random experiments using sampler and saves it to 
     different actions hard coded in action_reagent_map
@@ -248,6 +248,7 @@ def generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, num_
     }
 
     # This loop sums the volume of all generated experiment for each reagent and saves to database
+    # Also saves dead volume if passed to function
     reagents = Reagent.objects.filter(experiment=experiment_copy_uuid)
     for reagent in reagents:
         label = reagent_template_reagent_map[reagent.template.description]
@@ -255,6 +256,10 @@ def generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, num_
         prop.nominal_value.value = sum(desired_volume[label])
         prop.nominal_value.unit = 'uL'
         prop.save()
+        if dead_volume is not None:
+            dv_prop = reagent.property_r.get(property_template__description__icontains='dead volume')
+            dv_prop.nominal_value = dead_volume
+            dv_prop.save()
     
     # This loop adds individual well volmes to each action in the database
     for action_description, (reagent_name, mult_factor) in action_reagent_map.items():

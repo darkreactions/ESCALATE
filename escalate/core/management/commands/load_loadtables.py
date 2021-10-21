@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
+from django.db.models import Q
 from core.models import (
     Actor,
     Action,
@@ -26,12 +27,19 @@ from core.models import (
     TypeDef,
     Vessel,
     Workflow,
-    WorkflowType
+    WorkflowType,
+    ReagentTemplate,
+    ReagentMaterialTemplate, 
+    ReagentMaterialValueTemplate,
+    OutcomeTemplate
 )
 
 import csv
 import os
 import json
+import math
+
+
 
 
 class Command(BaseCommand):
@@ -50,8 +58,85 @@ class Command(BaseCommand):
         self._load_base_bom_material()
         self._load_action()
         self._load_action_unit()
+        self._load_reagents_and_outcomes()
         self.stdout.write(self.style.NOTICE('Finished loading load tables'))
         return
+
+    def _load_reagents_and_outcomes(self):
+        exp_template = ExperimentTemplate.objects.get(description='perovskite_demo')
+        # Dictionary of reagent name keys and chemical types values
+        reagents = {'organic, solvent':['organic', 'solvent'], 
+                    'Pure acid':['acid'], 
+                    'inorganic, organic, solvent':['inorganic', 'organic', 'solvent'], 
+                    'Pure Solvent':['solvent']}
+        
+        # Vals for each default value
+        volume_val = {'value': 0, 'unit':'ml', 'type':'num'}
+        dead_vol_val = {'value': 4000, 'unit':'uL', 'type':'num'}
+        amount_val = {'value': 0, 'unit':'gm', 'type':'num'}
+        conc_val = {'value': 0, 'unit':'M', 'type':'num'}
+        crystal_score_val = {'value': 0, 'unit':'', 'type':'int'}
+
+        #Create default values
+        default_volume, created = DefaultValues.objects.get_or_create(**{'description':'Zero ml', 
+                                                              'nominal_value': volume_val,
+                                                              'actual_value': volume_val
+                                                              })
+        default_dead_volume, created = DefaultValues.objects.get_or_create(**{'description':'WF1 dead volume', 
+                                                              'nominal_value': dead_vol_val,
+                                                              'actual_value': dead_vol_val
+                                                              })
+        default_amount, created = DefaultValues.objects.get_or_create(**{'description':'Zero gm', 
+                                                              'nominal_value': amount_val,
+                                                              'actual_value': amount_val})
+        default_conc, created = DefaultValues.objects.get_or_create(**{'description':'Zero M', 
+                                                              'nominal_value': conc_val,
+                                                              'actual_value': conc_val})
+        default_crystal_score, created = DefaultValues.objects.get_or_create(**{'description':'Zero Crystal score', 
+                                                              'nominal_value': crystal_score_val,
+                                                              'actual_value': crystal_score_val})
+
+        # Concentration and amount data to be stored for each reagent material
+        reagent_values = {'concentration': default_conc, 'amount': default_amount}
+        
+        # Create total volume and dead volume property templates for each reagent
+        total_volume_prop, created = PropertyTemplate.objects.get_or_create(**{"description": "total volume",
+                                                                    "property_def_class": "extrinsic",
+                                                                    "short_description": "volume",
+                                                                    "default_value":default_volume})
+        dead_volume_prop, created = PropertyTemplate.objects.get_or_create(**{"description": "dead volume",
+                                                                    "property_def_class": "extrinsic",
+                                                                    "short_description": "dead volume",
+                                                                    "default_value":default_dead_volume})
+        
+        # Loop through each reagent in reagents dict and create ReagentTemplates, 
+        # corresponding ReagentMaterialTemplates and their Value Templates (ReagentMaterialValueTemplate)
+        for r, rms in reagents.items():
+            reagent_template, created = ReagentTemplate.objects.get_or_create(description=r,)
+            reagent_template.properties.add(total_volume_prop)
+            reagent_template.properties.add(dead_volume_prop)
+            exp_template.reagent_templates.add(reagent_template)
+            for rm in rms:
+                self.stdout.write(self.style.NOTICE(f'{rm}'))
+                material_type = MaterialType.objects.get(description=rm)
+                reagent_material_template, created = ReagentMaterialTemplate.objects.get_or_create(**{'description':f'{r}: {rm}', 
+                                                                                                    'reagent_template':reagent_template,
+                                                                                                    'material_type':material_type})
+                
+                for rv, default in reagent_values.items():
+                    rmv_template, created = ReagentMaterialValueTemplate.objects.get_or_create(**{'description':rv,
+                                                                                       'reagent_material_template':reagent_material_template,
+                                                                                  'default_value':default})
+        # Create outcome templates, Currently hard coded to capture 96 values
+        column_order=['A', 'C', 'E', 'G', 'B', 'D', 'F', 'H']
+        total_columns=8
+        well_count = 96
+        row_limit = math.ceil(well_count / total_columns)                                                                         
+        well_names = [f'{col}{row}' for row in range(1, row_limit+1) for col in column_order]
+        OutcomeTemplate.objects.get_or_create(description = 'Crystal score', 
+                                              experiment = exp_template,
+                                              instance_labels = well_names,
+                                              default_value = default_crystal_score)
 
     def _load_chem_inventory(self):
         self.stdout.write(self.style.NOTICE('Beginning loading chem'))
@@ -236,18 +321,23 @@ class Command(BaseCommand):
                 
                 #create property instances
                 #not currently working, error occurs when passing material object in to property
-                '''
+                mw_val = row[column_names_to_index['MolecularWeight']]
+                den_val = row[column_names_to_index['Density']]
+                mw_value = {'value': float(mw_val) if mw_val else None,
+                            'unit': 'g/mol', 'type': 'num'}
+                density_value = {'value': float(den_val) if den_val else None,
+                            'unit': 'g/mL', 'type': 'num'}
                 Property.objects.create(
                     material=some_material,
                     property_template=mw,
-                    value=row[column_names_to_index['MolecularWeight']]
+                    value=mw_value
                 )
                 Property.objects.create(
                     material=some_material,
                     property_template=density,
-                    value=row[column_names_to_index['Density']]
+                    value=density_value
                 )
-                '''
+                
             self.stdout.write(self.style.SUCCESS(
                 f'Updated molecular weight and density for materials'))
    
@@ -414,19 +504,32 @@ class Command(BaseCommand):
                     row[column_names_to_index['expiration_date']])
                 location = clean_string(row[column_names_to_index['location']])
 
-                fields = {
-                    'description': description,
-                    'inventory': Inventory.objects.get(description=inventory_description) if not string_is_null(inventory_description) else None,
-                    #'material': Material.objects.get(description=material_description) if not string_is_null(material_description) else None,
-                    'part_no': part_no,
-                    'onhand_amt': get_val_field_dict(onhand_amt_type, onhand_amt_unit, onhand_amt_value),
-                    #'expiration_date': expiration_date if not string_is_null(expiration_date) else None,
-                    'location': location,
-                    'status': active_status
-                }
+                try:
+                    material = Material.objects.get(description=material_description) if not string_is_null(material_description) else None
+                    phase = None
+                    if material is not None:
+                        if material.material_type.filter(Q(description='acid') | Q(description='solvent') | Q(description='antisolvent')).exists():
+                            phase = 'liquid'
+                        elif material.material_type.filter(Q(description='organic')).exists():
+                            phase = 'solid'
+                    fields = {
+                        'description': description,
+                        'inventory': Inventory.objects.get(description=inventory_description) if not string_is_null(inventory_description) else None,
+                        'material': material,
+                        'part_no': part_no,
+                        'onhand_amt': get_val_field_dict(onhand_amt_type, onhand_amt_unit, onhand_amt_value),
+                        #'expiration_date': expiration_date if not string_is_null(expiration_date) else None,
+                        'phase': phase,
+                        'location': location,
+                        'status': active_status
+                    }
+                    inventory_material_instance, created = InventoryMaterial.objects.get_or_create(
+                        **fields)
+                except Exception as e:
+                    print(e)
+                    print(material_description)
                 
-                inventory_material_instance, created = InventoryMaterial.objects.get_or_create(
-                    **fields)
+                
 
                 try:
                     material_object = Material.objects.get(description=material_description)
