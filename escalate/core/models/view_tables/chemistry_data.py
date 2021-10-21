@@ -5,6 +5,8 @@ import uuid
 from core.models.base_classes import DateColumns, StatusColumn, ActorColumn, DescriptionColumn
 from django.contrib.postgres.fields import ArrayField
 
+from core.models.view_tables.generic_data import Property
+
 manage_tables = True
 manage_views = False
 
@@ -217,6 +219,9 @@ class ReagentTemplate(DateColumns, DescriptionColumn, StatusColumn):
                                 ],
                             overwrite=True, 
                             max_length=255)
+    properties = models.ManyToManyField('PropertyTemplate', blank=True,
+                                 related_name='reagent_template_p',
+                                 )
 
     def __str__(self):
         return self.description
@@ -224,10 +229,10 @@ class ReagentTemplate(DateColumns, DescriptionColumn, StatusColumn):
 class ReagentMaterialTemplate(DateColumns, DescriptionColumn, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
     reagent_template = models.ForeignKey('ReagentTemplate', on_delete=models.DO_NOTHING,
-                          related_name='reagent_material_template_reagent_template')
+                          related_name='reagent_material_template_rt')
     material_type = models.ForeignKey('MaterialType', blank=True, null=True, 
                                       on_delete=models.DO_NOTHING,
-                                      related_name='reagent_material_template_material_type')
+                                      related_name='reagent_material_template_mt')
     def __str__(self):
         return self.description
 
@@ -235,42 +240,74 @@ class ReagentMaterialTemplate(DateColumns, DescriptionColumn, StatusColumn):
 class ReagentMaterialValueTemplate(DateColumns, DescriptionColumn, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
     reagent_material_template = models.ForeignKey('ReagentMaterialTemplate', on_delete=models.DO_NOTHING,
-                                                    related_name='reagent_material_value_template_reagent_material_template')
+                                                    related_name='reagent_material_value_template_rmt')
     default_value = models.ForeignKey('DefaultValues', on_delete=models.DO_NOTHING,
                                  blank=True,
-                                 null=True, related_name='reagent_material_template_default_values')
+                                 null=True, related_name='reagent_material_value_template_dv')
 
 
-class ReagentMaterialInstance(DateColumns, DescriptionColumn, StatusColumn):
+class Reagent(DateColumns, DescriptionColumn, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
     experiment = models.ForeignKey('ExperimentInstance', on_delete=models.DO_NOTHING,
-                          related_name='reagent_instance_experiment_instance')
+                          related_name='reagent_ei')
+    template = models.ForeignKey('ReagentTemplate', 
+                            on_delete=models.DO_NOTHING, null=True, blank=True,
+                          related_name='reagent_rt')
+
+    def save(self, *args, **kwargs):
+        """
+        When initializing a reagent, if no properties are
+        associated with the reagent, look up the reagent
+        template and add properties with defaul values
+        based on the property template associated with the
+        reagent template
+        This also covers the case when we are updating a
+        reagent so the if block does not execute
+        """
+        super().save(*args, **kwargs)
+        if not self.property_r.exists():
+            for prop_temp in self.template.properties.all():
+                prop = Property(property_template=prop_temp,
+                         nominal_value=prop_temp.default_value.nominal_value,
+                         value=prop_temp.default_value.actual_value,
+                         reagent=self)
+                prop.save()
+        
+
+    
+
+class ReagentMaterial(DateColumns, DescriptionColumn, StatusColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
+    #experiment = models.ForeignKey('ExperimentInstance', on_delete=models.DO_NOTHING,
+    #                      related_name='reagent_material_ei')
+    reagent = models.ForeignKey('Reagent', on_delete=models.DO_NOTHING,
+                          related_name='reagent_material_r')
     material = models.ForeignKey('InventoryMaterial', on_delete=models.DO_NOTHING,
                             null=True, blank=True,
-                          related_name='reagent_instance_value_inventory_material')
-    reagent_material_template = models.ForeignKey('ReagentMaterialTemplate', 
+                          related_name='reagent_material_im')
+    template = models.ForeignKey('ReagentMaterialTemplate', 
                             on_delete=models.DO_NOTHING, null=True, blank=True,
-                          related_name='reagent_material_instance_reagent_material_template')
-   
+                          related_name='reagent_material_rmt')
 
-class ReagentMaterialValueInstance(DateColumns, DescriptionColumn, StatusColumn):
+
+class ReagentMaterialValue(DateColumns, DescriptionColumn, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
     nominal_value = ValField(blank=True, null=True)
     actual_value = ValField(blank=True, null=True)
-    reagent_material_instance = models.ForeignKey('ReagentMaterialInstance', 
+    reagent_material = models.ForeignKey('ReagentMaterial', 
                                                   on_delete=models.DO_NOTHING, 
                                                   null=True, blank=True,
-                                                  related_name='reagent_material_value_instance_reagent_material_instance')
-    reagent_material_value_template = models.ForeignKey('ReagentMaterialValueTemplate', 
-                                                  on_delete=models.DO_NOTHING, 
-                                                  null=True, blank=True,
-                                                  related_name='reagent_material_value_instance_reagent_material_value_template')
+                                                  related_name='reagent_material_value_rmi')
+    template = models.ForeignKey('ReagentMaterialValueTemplate', 
+                                    on_delete=models.DO_NOTHING, 
+                                    null=True, blank=True,
+                                    related_name='reagent_material_value_rmvt')
     def save(self, *args, **kwargs):
-        if self.reagent_material_value_template.default_value is not None:
+        if self.template.default_value is not None:
             if self.nominal_value is None:
-                self.nominal_value = self.reagent_material_value_template.default_value.default_nominal_value
+                self.nominal_value = self.template.default_value.nominal_value
             if self.actual_value is None:
-                self.actual_value = self.reagent_material_value_template.default_value.default_actual_value
+                self.actual_value = self.template.default_value.actual_value
         super().save(*args, **kwargs)
     
     def __str__(self):

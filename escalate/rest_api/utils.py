@@ -21,23 +21,21 @@ misc_views = set(['NoteX'])
 
 core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   'SystemtoolType', 'Inventory', 'InventoryMaterial',
-                    #'Calculation', 'CalculationDef',
                   'Material',
                   'Mixture', 'MaterialIdentifierDef', 'MaterialIdentifier',
                   'MaterialType', 
-                  'Person', 'Tag', 'TagType', 'PropertyDef', 'UnitType',
+                  'Person', 'Tag', 'TagType', 'PropertyTemplate', 'UnitType',
                   'TypeDef', 'ParameterDef', 
-                  #'Condition', 'ConditionDef',
-                  #'ActionParameter', 'Parameter', 
                   'WorkflowType', 'WorkflowStep', 
                   'WorkflowObject', 'UdfDef', 'ExperimentTemplate', 
-                  'ExperimentWorkflow', 'ExperimentType', #'ExperimentParameter',
+                  'ExperimentWorkflow', 'ExperimentType', 
                   'BillOfMaterials',  'Measure', 'MeasureType', 
                   'MeasureDef', 'OutcomeTemplate', 'OutcomeInstance',
                   'Action', 'ActionUnit', 'ActionDef', 'ExperimentInstance',
                   'BaseBomMaterial', 'Vessel', 'VesselInstance', 'Contents', 
-                  'ReagentMaterialInstance', 'ReagentTemplate', 'ReagentMaterialTemplate',
-                  'ReagentMaterialValueInstance', 'ReagentMaterialValueTemplate',
+                  'Reagent', 'ReagentMaterial', 'ReagentMaterialValue',
+                  'ReagentTemplate', 'ReagentMaterialTemplate',
+                  'ReagentMaterialValueTemplate',
                   'DefaultValues' ])
 
 #Views that are a combination of multiple tables, used to be postgres views. Should be changed to something else
@@ -57,7 +55,7 @@ custom_serializer_views = set(['Workflow', 'WorkflowActionSet', 'BomMaterial', '
 #non_model_views = set(['Experiment', 'ExperimentTemplate'])
 non_model_views = set()
 
-perform_create_views = set(['PropertyDef', ])
+perform_create_views = set(['PropertyTemplate', ])
 
 # Set of models for rest_api/serializers.py
 rest_serializer_views = core_views | misc_views | perform_create_views
@@ -185,11 +183,11 @@ expandable_fields = {
                                     'read_only': True,
                                     'view_name': 'billofmaterials-detail'
                                 }),
-            'reagents': ('rest_api.ReagentMaterialInstanceSerializer', 
-                        {'source': 'reagent_instance_experiment_instance',
+            'reagents': ('rest_api.ReagentSerializer', 
+                        {'source': 'reagent_ei',
                                     'many': True,
                                     'read_only': True,
-                                    'view_name': 'reagentmaterialinstance-detail'}),
+                                    'view_name': 'reagentmaterial-detail'}),
             'outcome_instance': ('rest_api.OutcomeInstanceSerializer',
                         {
                             'source': 'outcome_instance_experiment_instance',

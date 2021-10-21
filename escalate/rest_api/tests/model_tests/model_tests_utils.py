@@ -4,6 +4,7 @@ from rest_api.tests.post_put_delete_tests import add_prev_endpoint_data_2
 from django.db.models.fields.related import ManyToManyField
 import core
 import datetime
+import json
 from core.models import (
     SystemtoolType,
     Organization,
@@ -34,8 +35,10 @@ def random_model_dict(model, **kwargs):
     can_generate_random_val = lambda field: not(
         field.__class__.__name__ == 'RetUUIDField' or
         field.__class__.__name__ == 'SlugField' or
+        field.__class__.__name__ == 'UUIDField' or
         field.name == 'add_date' or
         field.name == 'mod_date' or
+        field.name == 'full_description' or
         field.__class__.__name__ == 'ManyToManyField' or
         field.__class__.__name__ == 'ForeignKey' or 
         field.__class__.__name__ == 'OneToOneField' or
@@ -50,7 +53,7 @@ def random_model_dict(model, **kwargs):
             model_dict[field_name] = field_obj.choices[choice_idx][0]
         else:
             if field_class_name == "CharField":
-                length = field_obj.max_length // 3 + 1
+                length = field_obj.max_length // 3 - 1
                 rand_alpha = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = length))
                 model_dict[field_name] = rand_alpha
             elif field_class_name == "ArrayField" and field_obj.base_field.__class__.__name__=="CharField":
@@ -73,7 +76,7 @@ def random_model_dict(model, **kwargs):
                     rand_day = '0' + str(rand_day)
                 model_dict[field_name] = f'{rand_year}-{rand_month}-{rand_day}'
             elif field_class_name == "DateTimeField":
-                model_dict[field_name] = str(datetime.datetime.today()).replace(' ', 'T') + 'Z'
+                model_dict[field_name] = str(datetime.datetime.today()).replace(' ', 'T')
             elif field_class_name == "FloatField" or field_class_name == "BigIntegerField" or field_class_name == "IntegerField":
                 model_dict[field_name] = random.randint(0,255)
             elif field_class_name == "BooleanField":
@@ -86,9 +89,9 @@ def random_model_dict(model, **kwargs):
                     'array_int',
                     'array_num',
                     'bool',
-                    #"blob",
-                    "array_bool",
-                    "array_text",
+                    #    "blob",
+                    #"array_bool",
+                    #'array_text',
                 ]
                 rand_type = type_choices[random.randint(0, len(type_choices) - 1)]
                 rand_unit = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase, k = 3))
@@ -110,7 +113,7 @@ def random_model_dict(model, **kwargs):
                     rand_value = [(True if random.uniform(0,1) > 0.5 else False) for i in range(10)]
                 else:
                     rand_value = None
-                model_dict[field_name] = {'type':rand_type, 'unit':rand_unit, 'value':rand_value}
+                model_dict[field_name] = {"type":rand_type, "unit":rand_unit, "value":rand_value}
             else:
                 print(field_name, field_obj.__class__.__name__)
                 length = random.randint(0,25)

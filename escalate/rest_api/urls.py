@@ -122,7 +122,7 @@ for view in rest_nested_url_views:
                         basename=f'{name}-edoc', parents_query_lookups=['ref_edocument_uuid'])
     if name == 'material' or name=='mixture':
         registered.register('property', viewsets.PropertyViewSet,
-                        basename=f'{name}-property', parents_query_lookups=['property_ref'])
+                        basename=f'{name}-property', parents_query_lookups=['material'])
     if name == 'action':
         registered.register('parameter', viewsets.ParameterViewSet,
                         basename=f'{name}-parameter', parents_query_lookups=['action'])

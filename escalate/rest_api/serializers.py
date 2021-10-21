@@ -36,6 +36,8 @@ class ValSerializerField(JSONField):
 
     def to_internal_value(self, data):
         #print(f"DATA!!: {data} : {type(data)}")
+        if data == '"null"':
+            data = 'null'
         if not isinstance(data, dict):
             data = json.loads(data)
         return Val.from_dict(data)
@@ -99,14 +101,15 @@ class PropertySerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = Property
         fields = '__all__'
-        read_only_fields = ['property_ref']
+        #read_only_fields = ['property_ref']
+        read_only_fields = ['material']
 
 
 class PropertyListSerializer(DynamicFieldsModelSerializer):
     property = SerializerMethodField()
 
     def get_property(self, obj):
-        property = Property.objects.filter(property_ref=obj.uuid)
+        property = Property.objects.filter(material=obj.uuid)
         result_serializer = PropertySerializer(
             property, many=True, context=self.context)
         return result_serializer.data

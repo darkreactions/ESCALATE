@@ -4,8 +4,8 @@ from core.models.view_tables import (Parameter, BomMaterial, Action, ActionUnit,
                                      ExperimentTemplate, ExperimentInstance, 
                                      BillOfMaterials, ExperimentWorkflow, 
                                      WorkflowObject, WorkflowStep,
-                                     ReagentMaterialInstance, OutcomeInstance,
-                                     ReagentMaterialValueInstance
+                                     ReagentMaterial, OutcomeInstance,
+                                     ReagentMaterialValue, Reagent
                                      )
 from copy import deepcopy
 import uuid
@@ -147,17 +147,19 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
         # different requirements. For e.g. "concentration" and "amount" for the same
         # reagent need different ReagentInstanceValues
         #for val_description in reagent_template.value_descriptions:
-        for reagent_material_template in reagent_template.reagent_material_template_reagent_template.all():
-            reagent_material_instance = ReagentMaterialInstance(reagent_material_template=reagent_material_template,
-                                        experiment=exp_instance,
+        reagent = Reagent(experiment=exp_instance, template=reagent_template)
+        reagent.save()
+        for reagent_material_template in reagent_template.reagent_material_template_rt.all():
+            reagent_material = ReagentMaterial(template=reagent_material_template,
+                                        reagent=reagent,
                                         description=f'{exp_instance.description} : {reagent_template.description} : {reagent_material_template.description}',
                                         )
-            reagent_material_instance.save()
-            for reagent_material_value_template in reagent_material_template.reagent_material_value_template_reagent_material_template.all():
-                reagent_material_value_instance = ReagentMaterialValueInstance(reagent_material_instance=reagent_material_instance,
-                                                                                reagent_material_value_template=reagent_material_value_template,
-                                                                                description=reagent_material_value_template.description)
-                reagent_material_value_instance.save()
+            reagent_material.save()
+            for reagent_material_value_template in reagent_material_template.reagent_material_value_template_rmt.all():
+                reagent_material_value = ReagentMaterialValue(reagent_material=reagent_material,
+                                                              template=reagent_material_value_template,
+                                                              description=reagent_material_value_template.description)
+                reagent_material_value.save()
 
 
     for outcome_template in exp_template.outcome_template_experiment_template.all():

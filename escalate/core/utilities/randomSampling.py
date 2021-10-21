@@ -443,7 +443,7 @@ def generateExperiments(reagents, descriptions, nExpt, excludedReagents=None, ma
     #convert input volume to microliters, if it isn't already
     # v=finalVolume.split()
     #v1=Q_(float(v[0]), v[1]).to(units.ul)
-    v1 = Q_(finalVolume)
+    v1 = Q_(finalVolume).to(units.ul)
     finalVolume=v1.magnitude
     
     #if excludedReagentDefs is None:
@@ -507,7 +507,7 @@ def generateExperiments(reagents, descriptions, nExpt, excludedReagents=None, ma
 
 
 # %%
-def generateHitAndRunExperiments(reagents, descriptions, nExpt=96, maxMolarity=9., finalVol='500 uL', desiredUnit='uL', processValues='round'):
+def generateHitAndRunExperiments(reagents, descriptions, nExpt=96, maxMolarity=9., finalVolume='500 uL', desiredUnit='uL', processValues='round'):
     """ This generates hit and run experiments. This block runs if species dimensionality is > 3. 
     Args:
         reagents: list of dictionaries, where each list corresponds to a reagent. keys are chemical components and values are concentrations for the components
@@ -522,13 +522,14 @@ def generateHitAndRunExperiments(reagents, descriptions, nExpt=96, maxMolarity=9
         Dictionary of {reagents : 96 volumes, expressed in terms of desiredUnit}
     """
     
-    #convert input volume to microliters, if it isn't already
-    v=finalVol.split()
-    v1=Q_(float(v[0]), v[1]).to(units.ul)
+    # convert input volume to microliters, if it isn't already
+    #v=finalVolume.split()
+    v1=Q_(finalVolume).to(units.ul)
     finalVolume=v1.magnitude
+    # finalVolume = Q_(finalVolume).to(units.ul)
     
-    reagentDefs = generate_vectors(descriptions, reagents) #convert reagent input into proper vector format
-
+    #reagentDefs = generate_vectors(descriptions, reagents) #convert reagent input into proper vector format
+    reagentDefs = reagents
     nonzeroReagentDefs = dropZeroColumns(reagentDefs)
     dimensionality = len(np.array(list(nonzeroReagentDefs.values()))[0])
     hullCorners = np.array(list(nonzeroReagentDefs.values()))

@@ -1,11 +1,56 @@
 import requests
-from IPython.display import display, HTML
-
-import pint
 from pint import UnitRegistry
+
+from core.models.view_tables.chemistry_data import ReagentMaterial
+from core.models.view_tables import ExperimentInstance
+#from core.utilities.experiment_utils import get_action_parameter_querysets
+
 units = UnitRegistry()
 Q_ = units.Quantity
 
+def conc_to_amount(exp_uuid):
+    """
+    Function to generate amounts from desired concentrations
+    based on generate_input_f but using django models
+
+    args:
+        exp_instance - ExperimentInstance django model
+    """
+    
+    #reagent_templates = exp_instance.parent.reagent_templates.all()
+    exp_instance = ExperimentInstance.objects.filter(uuid=exp_uuid).prefetch_related()[0]
+
+    for reagent in exp_instance.reagent_ei.all():
+        input_data = {}
+        reagent_materials = reagent.reagent_material_r.all()
+        for reagent_material in reagent_materials:
+            conc = reagent_material.reagent_material_value_rmi.get(template__description='concentration')
+            conc_val = conc.nominal_value.value
+            conc_unit = conc.nominal_value.unit
+            conc=Q_(conc_val, conc_unit)
+            phase = reagent_material.material.phase
+
+            mw_prop = reagent_material.material.material.property_m.get(property_template__description__icontains='molecularweight')
+            mw = Q_(mw_prop.value.value, mw_prop.value.unit).to(units.g/units.mol)
+            density_prop = reagent_material.material.material.property_m.get(property_template__description__icontains='density')
+            d = d=Q_(density_prop.value.value, density_prop.value.unit).to(units.g/units.ml)
+
+            input_data[reagent_material]={'concentration': conc, 
+                              'phase': phase, 
+                              'molecular weight': mw, 
+                              'density': d}
+        prop = reagent.property_r.get(property_template__description__icontains='total volume')
+        total_vol = f'{prop.nominal_value.value} {prop.nominal_value.unit}'
+
+        amounts = calculate_amounts(input_data, total_vol)
+        # Amounts should be a dictionary with key as ReagentMaterials and values as amounts
+        for reagent_material, amount in amounts.items():
+            db_amount = reagent_material.reagent_material_value_rmi.get(template__description='amount')
+            db_amount.nominal_value.value = amount.magnitude
+            db_amount.nominal_value.unit = str(amount.units)
+            db_amount.save()
+
+    #return amounts
 
 def generate_input_f(reagent, MW, density):
     """ A helper function to properly formate input for concentration-to-amount calculations.
@@ -113,11 +158,14 @@ def calculate_amounts(input_data, total_vol):
             else: #if there's just one solvent
                 amounts[key]=total_vol #amount is the remaining available volume
 
+    """
     for key, val in amounts.items(): #convert amounts from Pint format to strings with val and unit
         num=val.magnitude
         unit=val.units
         value=str(num) + ' ' + str(unit)
         amounts[key]=value
+    """
+    
     
     return amounts
 

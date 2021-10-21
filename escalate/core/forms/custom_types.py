@@ -13,7 +13,16 @@ class SingleValForm(Form):
     value = ValFormField(required=False)
     uuid = CharField(widget=HiddenInput)
 
-    
+class VesselForm(Form):
+    v_query = vt.Vessel.objects.all()
+    value = ModelChoiceField(queryset=v_query)
+    value.widget = Select(attrs=dropdown_attrs)
+    #uuid = CharField(widget=HiddenInput)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['value'].queryset = vt.Vessel.objects.filter(well_number__isnull=True)
+
 
 class InventoryMaterialForm(Form):
     value = ModelChoiceField(queryset=vt.InventoryMaterial.objects.all())
@@ -51,7 +60,7 @@ class ExperimentTemplateForm(Form):
 
 class ReagentForm(Form):
     widget = Select(attrs={'class': 'selectpicker', 
-                                 'data-style':"btn-dark",
+                                 'data-style':"btn-outline",
                                  'data-live-search':'true', })
     chemical = ChoiceField(widget=widget, required=False)
     desired_concentration = ValFormField(required=False)
@@ -66,7 +75,7 @@ class ReagentForm(Form):
         material_type = material_types_list[chemical_index]
         # TODO: Make inventory materials is being requested since the current inventory should be checked
         # For debugging, I am requesting data from materials directly
-        inventory_materials = vt.InventoryMaterial.objects.filter(material__material_type=material_type)
+        inventory_materials = vt.InventoryMaterial.objects.filter(material__material_type=material_type, inventory__lab__organization=lab_uuid)
         #inventory_materials = vt.Material.objects.filter(material_type=material_type)
 
         super().__init__(*args, **kwargs)
@@ -74,6 +83,22 @@ class ReagentForm(Form):
         #self.fields['chemical'].choices = [(im.material.uuid, im.material.description) for im in inventory_materials]
         self.fields['chemical'].choices = [(im.uuid, im.description) for im in inventory_materials]
         self.fields['chemical'].label = f'Chemical {chemical_index+1}: {material_type.description}'
+
+    @staticmethod
+    def get_helper():
+        helper = FormHelper()
+        helper.form_class = 'form-horizontal'
+        helper.label_class = 'col-lg-3'
+        helper.field_class = 'col-lg-8'
+        helper.layout = Layout(
+            Row(
+                Column(Field('chemical')),
+                Column(Field('desired_concentration')),
+            ),
+            Field('reagent_template_uuid'),
+            Field('material_type')
+        )
+        return helper
 
 
 class ReagentValueForm(Form):
@@ -115,7 +140,7 @@ class ReagentValueForm(Form):
         return helper
 
     #class Meta:
-    #    model = vt.ReagentMaterialInstance
+    #    model = vt.ReagentMaterial
     #    fields = '__all__'
 
 
@@ -142,15 +167,15 @@ class OutcomeInstanceForm(ModelForm):
         self.fields['file'].required = False
 
     @staticmethod
-    def get_helper(readonly_fields=[]):
+    def get_helper():
         helper = FormHelper()
         helper.form_class = 'form-horizontal'
-        helper.label_class = 'col-lg-4'
-        helper.field_class = 'col-lg-6'
+        helper.label_class = 'col-lg-3'
+        helper.field_class = 'col-lg-8'
         helper.layout = Layout(
             Row(
                 Column(Field('actual_value')),
-                Column(Field('file')),
+                Row(Field('file')),
             ),
         )
         return helper
@@ -158,3 +183,44 @@ class OutcomeInstanceForm(ModelForm):
     class Meta:
         model = vt.OutcomeInstance
         fields = ['actual_value', 'file']
+
+
+class PropertyForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        nominal_value_label = 'Nominal Value'
+        value_label = 'Value'
+        if 'nominal_value_label' in kwargs:
+            nominal_value_label = kwargs.pop('nominal_value_label')
+        if 'value_label' in kwargs:
+            value_label = kwargs.pop('value_label')
+
+        disabled_fields = kwargs.pop('disabled_fields', [])
+        
+        super().__init__(*args, **kwargs)
+
+        self.fields['nominal_value'].label = nominal_value_label
+        self.fields['value'].label = value_label
+        for field in disabled_fields:
+            self.fields[field].disabled = True
+
+    @staticmethod
+    def get_helper(readonly_fields=[]):
+        helper = FormHelper()
+        helper.form_class = 'form-horizontal'
+        helper.label_class = 'col-lg-3'
+        helper.field_class = 'col-lg-8'
+        helper.layout = Layout(
+            Row(
+                Column(Field('nominal_value', readonly=True)),
+                Column(Field('value')),
+            ),
+        )
+        return helper
+
+    class Meta:
+        model = vt.Property
+        fields = ['nominal_value', 'value']
+        widgets = {
+            'nominal_value': ValWidget(),
+            'value': ValWidget()
+        }
