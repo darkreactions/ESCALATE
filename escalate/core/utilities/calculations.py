@@ -40,9 +40,19 @@ def conc_to_amount(exp_uuid):
                               'molecular weight': mw, 
                               'density': d}
         prop = reagent.property_r.get(property_template__description__icontains='total volume')
-        total_vol = f'{prop.nominal_value.value} {prop.nominal_value.unit}'
+        total_vol = Q_(f'{prop.nominal_value.value} {prop.nominal_value.unit}')
 
-        amounts = calculate_amounts(input_data, total_vol)
+        dead_vol_prop = reagent.property_r.get(property_template__description__icontains='dead volume')
+        dead_vol = Q_(f'{dead_vol_prop.nominal_value.value} {dead_vol_prop.nominal_value.unit}')
+
+        amounts = calculate_amounts(input_data, total_vol, dead_vol=dead_vol)
+
+        # Updating total volume to include dead volume
+        total_vol = total_vol + dead_vol
+        prop.nominal_value.value = total_vol.magnitude
+        prop.nominal_value.unit = str(total_vol.units)
+        prop.save()
+        
         # Amounts should be a dictionary with key as ReagentMaterials and values as amounts
         for reagent_material, amount in amounts.items():
             db_amount = reagent_material.reagent_material_value_rmi.get(template__description='amount')
@@ -137,14 +147,14 @@ def calculate_amounts(input_data, target_vol, dead_vol='3000 uL'):
     amounts={} 
     
     #convert volumes to mL and store in proper Pint format
-    mag_t=float(total_vol.split()[0])
-    unit_t= str(total_vol.split()[1])
+    #mag_t=float(total_vol.split()[0])
+    #unit_t= str(total_vol.split()[1])
     
-    mag_d=float(dead_vol.split()[0])
-    unit_d=str(dead_vol.split()[1])
+    #mag_d=float(dead_vol.split()[0])
+    #unit_d=str(dead_vol.split()[1])
     
-    vol = Q_(mag_t, unit_t).to(units.ml)
-    dead = Q_(mag_d, unit_d).to(units.ml)
+    vol = Q_(target_vol).to(units.ml)
+    dead = Q_(dead_vol).to(units.ml)
     total_vol=vol+dead
 
     for key, val in input_data.items():

@@ -64,18 +64,27 @@ class Command(BaseCommand):
 
     def _load_reagents_and_outcomes(self):
         exp_template = ExperimentTemplate.objects.get(description='perovskite_demo')
+        # Dictionary of reagent name keys and chemical types values
         reagents = {'organic, solvent':['organic', 'solvent'], 
                     'Pure acid':['acid'], 
                     'inorganic, organic, solvent':['inorganic', 'organic', 'solvent'], 
                     'Pure Solvent':['solvent']}
         
+        # Vals for each default value
         volume_val = {'value': 0, 'unit':'ml', 'type':'num'}
+        dead_vol_val = {'value': 4000, 'unit':'uL', 'type':'num'}
         amount_val = {'value': 0, 'unit':'gm', 'type':'num'}
         conc_val = {'value': 0, 'unit':'M', 'type':'num'}
         crystal_score_val = {'value': 0, 'unit':'', 'type':'int'}
+
+        #Create default values
         default_volume, created = DefaultValues.objects.get_or_create(**{'description':'Zero ml', 
                                                               'nominal_value': volume_val,
                                                               'actual_value': volume_val
+                                                              })
+        default_dead_volume, created = DefaultValues.objects.get_or_create(**{'description':'WF1 dead volume', 
+                                                              'nominal_value': dead_vol_val,
+                                                              'actual_value': dead_vol_val
                                                               })
         default_amount, created = DefaultValues.objects.get_or_create(**{'description':'Zero gm', 
                                                               'nominal_value': amount_val,
@@ -86,14 +95,26 @@ class Command(BaseCommand):
         default_crystal_score, created = DefaultValues.objects.get_or_create(**{'description':'Zero Crystal score', 
                                                               'nominal_value': crystal_score_val,
                                                               'actual_value': crystal_score_val})
+
+        # Concentration and amount data to be stored for each reagent material
         reagent_values = {'concentration': default_conc, 'amount': default_amount}
+        
+        # Create total volume and dead volume property templates for each reagent
         total_volume_prop, created = PropertyTemplate.objects.get_or_create(**{"description": "total volume",
                                                                     "property_def_class": "extrinsic",
                                                                     "short_description": "volume",
                                                                     "default_value":default_volume})
+        dead_volume_prop, created = PropertyTemplate.objects.get_or_create(**{"description": "dead volume",
+                                                                    "property_def_class": "extrinsic",
+                                                                    "short_description": "dead volume",
+                                                                    "default_value":default_dead_volume})
+        
+        # Loop through each reagent in reagents dict and create ReagentTemplates, 
+        # corresponding ReagentMaterialTemplates and their Value Templates (ReagentMaterialValueTemplate)
         for r, rms in reagents.items():
             reagent_template, created = ReagentTemplate.objects.get_or_create(description=r,)
             reagent_template.properties.add(total_volume_prop)
+            reagent_template.properties.add(dead_volume_prop)
             exp_template.reagent_templates.add(reagent_template)
             for rm in rms:
                 self.stdout.write(self.style.NOTICE(f'{rm}'))
@@ -105,7 +126,8 @@ class Command(BaseCommand):
                 for rv, default in reagent_values.items():
                     rmv_template, created = ReagentMaterialValueTemplate.objects.get_or_create(**{'description':rv,
                                                                                        'reagent_material_template':reagent_material_template,
-                                                                                       'default_value':default})
+                                                                                  'default_value':default})
+        # Create outcome templates, Currently hard coded to capture 96 values
         column_order=['A', 'C', 'E', 'G', 'B', 'D', 'F', 'H']
         total_columns=8
         well_count = 96
