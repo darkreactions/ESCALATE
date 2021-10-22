@@ -121,25 +121,28 @@ class MaterialForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         # pk of model that is passed in to filter for tags belonging to the model
         material_instance = kwargs.get("instance", None)
-        if material_instance:
-            current_material_identifiers = material_instance.identifier.all()
-            current_material_types = material_instance.material_type.all() 
-        else:
-            current_material_identifiers = MaterialIdentifier.objects.none()
-            current_material_types = MaterialType.objects.none()
+
+        current_material_identifiers = material_instance.identifier.all() if material_instance else MaterialIdentifier.objects.none()
+        current_material_types = material_instance.material_type.all() if material_instance else MaterialType.objects.none()
+        
         super(MaterialForm, self).__init__(*args, **kwargs)
 
         self.fields['identifier'] = forms.ModelMultipleChoiceField(
-            initial=current_material_identifiers, required=False, queryset=MaterialIdentifier.objects.all())
+            initial=current_material_identifiers,
+            required=False,
+            queryset=MaterialIdentifier.objects.all())
         self.fields['identifier'].widget.attrs.update(dropdown_attrs)
+        
         self.fields['material_type'] = forms.ModelMultipleChoiceField(
-            initial=current_material_types, required=False, queryset=MaterialType.objects.all())
+            initial=current_material_types,
+            required=False,
+            queryset=MaterialType.objects.all())
         self.fields['material_type'].widget.attrs.update(dropdown_attrs)
     class Meta:
         model = Material
         fields = ['consumable', 'material_class', 'identifier', 'material_type', 'status']
         field_classes = {
-            'create_date': forms.SplitDateTimeField,
+            # 'create_date': forms.SplitDateTimeField,
         }
         labels = {
             'create_date': 'Create date',
