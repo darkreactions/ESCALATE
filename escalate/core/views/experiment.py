@@ -21,13 +21,13 @@ from core.models.view_tables import (ExperimentTemplate,
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm, NominalActualForm, ReagentValueForm
 from core.forms.custom_types import (ExperimentNameForm, ExperimentTemplateForm, 
                                      ReagentForm, BaseReagentFormSet, 
-                                     PropertyForm, OutcomeInstanceForm, VesselForm)
+                                     PropertyForm, OutcomeInstanceForm, VesselForm, ReactionParameterForm)
 from core.utilities.utils import experiment_copy
 from core.utilities.experiment_utils import (update_dispense_action_set, 
                                              get_action_parameter_querysets, 
                                              get_material_querysets, 
                                              supported_wfs, get_reagent_querysets,
-                                             prepare_reagents, generate_experiments_and_save, get_vessel_querysets)
+                                             prepare_reagents, generate_experiments_and_save, get_reaction_parameter_querysets)
 
 import core.models
 from core.models.view_tables import Note, TagAssign, Tag
@@ -64,6 +64,7 @@ class CreateExperimentView(TemplateView):
     MaterialFormSet = formset_factory(InventoryMaterialForm, extra=0)
     NominalActualFormSet = formset_factory(NominalActualForm, extra=0)
     ReagentFormSet = formset_factory(ReagentForm, extra=0, formset=BaseReagentFormSet)
+    ReactionParameterFormset = formset_factory(ReactionParameterForm, extra=0)
 
     def get_context_data(self, **kwargs):    
         # Select templates that belong to the current lab
@@ -181,7 +182,20 @@ class CreateExperimentView(TemplateView):
         initial = {'value':Val.from_dict({'value':4000, 'unit': 'uL', 'type':'num'})}
         dead_volume_form = SingleValForm(prefix='dead_volume', initial=initial)
         context['dead_volume_form'] = dead_volume_form
-
+        
+        #reaction parameter form
+        rp_wfs = get_reaction_parameter_querysets(exp_template.uuid)
+        rp_labels = []
+        for rp in rp_wfs:
+            rp_label = str(rp.workflow.description)
+            rp_labels.append(rp_label)
+        rp_labels.sort()
+        
+        initial= {'value':Val.from_dict({'value':0, 'unit': '', 'type':'num'})}
+        rp_form = ReactionParameterForm(initial=initial)
+        context['reaction_parameter_form'] = rp_form
+        context['reaction_parameter_labels'] = rp_labels
+        
         context['colors'] = self.get_colors(len(formsets))
 
         return context

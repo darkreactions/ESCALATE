@@ -12,7 +12,7 @@ from django.db.models import F, Value
 from core.models.view_tables import (WorkflowActionSet, BomMaterial, Action, Parameter,
                                             ActionUnit, ExperimentTemplate, 
                                             ExperimentInstance, ReagentMaterial,
-                                            Reagent, Property, Vessel)
+                                            Reagent, Property, Vessel, ExperimentWorkflow)
 from core.custom_types import Val
 from core.models.core_tables import RetUUIDField
 from core.utilities.randomSampling import generateExperiments
@@ -166,6 +166,10 @@ def get_vessel_querysets():
     '''
     vessel_q = Vessel.objects.filter(well_number__isnull=True)
     return vessel_q
+
+def get_reaction_parameter_querysets(exp_template):
+    rp = ExperimentWorkflow.objects.filter(experiment_template=exp_template)
+    return rp
 
 def get_reagent_querysets(exp_uuid):
     """[summary]

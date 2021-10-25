@@ -21,9 +21,8 @@ class VesselForm(Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['value'].queryset = vt.Vessel.objects.filter(well_number__isnull=True)
-
-
+        self.fields['value'].queryset = vt.Vessel.objects.filter(well_number__isnull=True) 
+        
 class InventoryMaterialForm(Form):
     value = ModelChoiceField(queryset=vt.InventoryMaterial.objects.all())
     value.widget = Select(attrs=dropdown_attrs)
@@ -57,7 +56,9 @@ class ExperimentTemplateForm(Form):
         #self.fields['organization'].queryset = OrganizationPassword.objects.all()
         self.fields['select_experiment_template'].choices = [(exp.uuid, exp.description) for exp in vt.ExperimentTemplate.objects.filter(lab=lab)]
 
-
+class ReactionParameterForm(Form):
+    value = ValFormField(required=False, label='')
+   
 class ReagentForm(Form):
     widget = Select(attrs={'class': 'selectpicker', 
                                  'data-style':"btn-outline",

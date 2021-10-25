@@ -351,12 +351,13 @@ class ReactionParameterProfile(StatusColumn, ActorColumn, DateColumns):
                         db_column='reaction_parameter_profile_uuid')
     workflow = models.ForeignKey('Workflow', models.CASCADE,
                                blank=True, null=True,
-                               db_column='parent_uuid', related_name='reaction_parameter_profile_workflow')
+                               related_name='reaction_parameter_profile_workflow')
     organization = models.ForeignKey('Organization', models.CASCADE,
                                blank=True, null=True,
-                               db_column='parent_uuid', related_name='reaction_parameter_profile_organization')
-    experiment = models.ManyToManyField(
-        'ExperimentTemplate', through='ExperimentWorkflow', related_name='reaction_parameter_profile_experiment')
+                               related_name='reaction_parameter_profile_organization')
+    # directly call experiment template
+    #experiment = models.ManyToManyField(
+    #    'ExperimentTemplate', through='ExperimentWorkflow', related_name='reaction_parameter_profile_experiment')
     parameter_value = models.CharField(max_length=255,
                                    blank=True, null=True,
                                    db_column='reaction_parameter_profile_parameter_value')
