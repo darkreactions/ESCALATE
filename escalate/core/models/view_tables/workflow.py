@@ -80,9 +80,10 @@ class ActionUnit(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     #                           null=True,
     #                           related_name='action_unit_parameter')
     internal_slug = SlugField(populate_from=[
-                                    #'source_material__internal_slug',
-                                    #'action__internal_slug',
                                     'uuid',
+                                    'action__description',
+                                    'source_material__internal_slug',
+                                    #'action__internal_slug',
                                     'destination_material__internal_slug'
                                     ],
                               overwrite=True, 

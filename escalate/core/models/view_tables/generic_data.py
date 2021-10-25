@@ -260,8 +260,9 @@ class Parameter(DateColumns, StatusColumn, ActorColumn):
 class ParameterDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='parameter_def_uuid')
-    default_val = ValField(db_column='default_val')
-    required = BooleanField()
+    # TODO: Created relation with DefaultValues table
+    default_val = ValField(db_column='default_val', blank=True, null=True)
+    required = BooleanField(blank=True, null=True)
     unit_type = models.CharField(max_length=255,
                                  blank=True,
                                  null=True,

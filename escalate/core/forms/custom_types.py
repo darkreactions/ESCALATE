@@ -21,7 +21,7 @@ class VesselForm(Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['value'].queryset = vt.Vessel.objects.filter(well_number__isnull=True)
+        self.fields['value'].queryset = vt.Vessel.objects.filter(parent__isnull=True)
 
 
 class InventoryMaterialForm(Form):

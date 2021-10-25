@@ -319,6 +319,9 @@ class CreateExperimentView(TemplateView):
         # get the experiment template uuid and name
         exp_template = ExperimentTemplate.objects.get(pk=request.session['experiment_template_uuid'])
         template_name = exp_template.description
+        # ref_uid will be used to identify python functions specifically for this 
+        # ref_uid should follow function naming rules for Python
+        template_ref_uid = exp_template.ref_uid
         # construct all formsets
         exp_name_form = ExperimentNameForm(request.POST)
         q1_formset = self.NominalActualFormSet(request.POST, prefix='q1_param')
@@ -340,7 +343,7 @@ class CreateExperimentView(TemplateView):
             self.save_forms_q_material(q1_material, q1_material_formset, {'inventory_material': 'value'})
             
             # begin: template-specific logic
-            if template_name in SUPPORTED_CREATE_WFS:
+            if template_ref_uid in SUPPORTED_CREATE_WFS:
                 data = {}  # Stick form data into this dict
                 for i, form in enumerate(q1_formset):
                     if form.is_valid():
@@ -348,7 +351,7 @@ class CreateExperimentView(TemplateView):
                         data[query.parameter_def_description] = form.cleaned_data['value'].value
                 
                 # Scans experiment_templates and picks up functions that have the same name as template_name
-                template_function = getattr(core.experiment_templates, template_name)
+                template_function = getattr(core.experiment_templates, template_ref_uid)
                 new_lsr_pk, lsr_msg = template_function(data, q1, experiment_copy_uuid, exp_name, exp_template)
                
                 if new_lsr_pk is not None:
@@ -426,8 +429,8 @@ class CreateExperimentView(TemplateView):
             q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
             
             #robotfile generation
-            if exp_template.description in SUPPORTED_CREATE_WFS:
-                template_function = getattr(core.experiment_templates, exp_template.description)
+            if exp_template.ref_uid in SUPPORTED_CREATE_WFS:
+                template_function = getattr(core.experiment_templates, exp_template.ref_uid)
                 new_lsr_pk, lsr_msg = template_function(None, q1, experiment_copy_uuid, exp_name, exp_template)
                 
                 if new_lsr_pk is not None:

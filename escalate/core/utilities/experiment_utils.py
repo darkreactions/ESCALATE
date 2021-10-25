@@ -114,20 +114,26 @@ def get_action_parameter_querysets(exp_uuid, template=True):
     related_exp = 'workflow__experiment_workflow_workflow__experiment'
     related_exp_wf = 'workflow__experiment_workflow_workflow'
     #factored out until new workflow changes are implemented
+    
+    # Related action unit
+    related_au = 'workflow__action_workflow__action_unit_action'
 
     if template:
         model = ExperimentTemplate
     else:
         model = ExperimentInstance
 
-    q1 = model.objects.filter(uuid=exp_uuid).prefetch_related('workflow__action_workflow__action_unit_action').annotate(
+    q1 = model.objects.filter(uuid=exp_uuid).prefetch_related(related_au).annotate(
                 object_description=F('workflow__action_workflow__description')).annotate(
                 object_def_description=F('workflow__action_workflow__action_def__description')).annotate(
                 object_uuid=F('workflow__action_workflow__uuid')).annotate(
-                parameter_uuid=F('workflow__action_workflow__action_unit_action__parameter_action_unit')).annotate(
-                parameter_value=F('workflow__action_workflow__action_unit_action__parameter_action_unit__parameter_val_nominal')).annotate(
-                parameter_value_actual=F('workflow__action_workflow__action_unit_action__parameter_action_unit__parameter_val_actual')).annotate(
-                parameter_def_description=F('workflow__action_workflow__action_unit_action__parameter_action_unit__parameter_def__description')).annotate(
+                action_unit_description=F(f'{related_au}__description')).annotate(
+                action_unit_source=F(f'{related_au}__source_material__vessel__description')).annotate(
+                action_unit_destination=F(f'{related_au}__destination_material__vessel__description')).annotate(
+                parameter_uuid=F(f'{related_au}__parameter_action_unit')).annotate(
+                parameter_value=F(f'{related_au}__parameter_action_unit__parameter_val_nominal')).annotate(
+                parameter_value_actual=F(f'{related_au}__parameter_action_unit__parameter_val_actual')).annotate(
+                parameter_def_description=F(f'{related_au}__parameter_action_unit__parameter_def__description')).annotate(
                 experiment_uuid=F('uuid')).annotate(
                 experiment_description=F('description')).annotate(
                 workflow_seq=F(f'{related_exp_wf}__experiment_workflow_seq'
@@ -252,12 +258,14 @@ def generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, num_
     #desired_volume = generateExperiments(reagents, descriptions, num_of_experiments)
     #retrieve q1 information to update
     q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
+    experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
+    
     #create counters for acid, solvent, stock a, stock b to keep track of current element in those lists
     action_reagent_map = {'dispense solvent': ('Reagent 1', 1.0),
                           'dispense acid vol 1': ('Reagent 7', 0.5),
                           'dispense acid vol 2': ('Reagent 7', 0.5),
                           'dispense stock a': ('Reagent 2', 1.0),
-                          'dispense stock b': ('Reagent 3', 1.0)}
+                          'dispense stock b': ('Reagent 3', 1.0),}
 
     reagent_template_reagent_map = {
         'Pure Solvent': 'Reagent 1',
@@ -282,9 +290,22 @@ def generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, num_
     
     # This loop adds individual well volmes to each action in the database
     for action_description, (reagent_name, mult_factor) in action_reagent_map.items():
-        for i, vial in enumerate(make_well_list(container_name='Symyx_96_well_0003', well_count=num_of_experiments)['Vial Site']):
+        if experiment.parent.ref_uid == 'workflow_1':
+            well_list = make_well_list(container_name='Symyx_96_well_0003', 
+                                       well_count=num_of_experiments, 
+                                       column_order=['A', 'C', 'E', 'G', 'B', 'D', 'F', 'H'],
+                                       total_columns=8)['Vial Site']
+        elif experiment.parent.ref_uid == 'perovskite_demo':
+            well_list = make_well_list(container_name='Symyx_96_well_0003', 
+                                       well_count=num_of_experiments)['Vial Site']
+
+        for i, vial in enumerate(well_list):
             # get actions from q1 based on keys in action_reagent_map
-            action = q1.get(object_description__icontains=action_description, object_description__contains=vial)
+            if experiment.parent.ref_uid == 'workflow_1':
+                action = q1.get(action_unit_description__icontains=action_description, action_unit_description__endswith=vial)
+            elif experiment.parent.ref_uid == 'perovskite_demo':
+                action = q1.get(object_description__icontains=action_description, object_description__contains=vial)
+            
             # If number of experiments requested is < actions only choose the first n actions
             # Otherwise choose all
             #actions = actions[:num_of_experiments] if num_of_experiments < len(actions) else actions
