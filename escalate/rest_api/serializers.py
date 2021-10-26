@@ -220,34 +220,6 @@ for model_name in rest_serializer_views:
                                               {'Meta': meta_class})
 
 
-class WorkflowActionSetSerializer(EdocListSerializer,
-                        TagListSerializer,
-                        NoteListSerializer,
-                        DynamicFieldsModelSerializer):
-    
-    source_material = SerializerMethodField()
-    destination_material = SerializerMethodField()
-    
-    def get_source_material(self, obj):
-        result = []
-        if obj.source_material != None:
-            for uuid in obj.source_material:
-                url = f"{reverse('bommaterial-detail', args=[uuid], request=self.context['request'])}"
-                result.append(url)
-        return result
-    
-    def get_destination_material(self, obj):
-        result = []
-        if obj.destination_material != None:
-            for uuid in obj.destination_material:
-                url = f"{reverse('bommaterial-detail', args=[uuid], request=self.context['request'])}"
-                result.append(url)
-        return result
-
-    class Meta:
-        model = WorkflowActionSet
-        fields = '__all__'
-
 
 #class OutcomeInstanceSerializer(MeasureListSerializer, DynamicFieldsModelSerializer):
 class OutcomeInstanceSerializer(DynamicFieldsModelSerializer):
@@ -413,6 +385,35 @@ class ExperimentDetailSerializer(Serializer):
     class Meta:
         fields = '__all__'
 
+"""
+class WorkflowActionSetSerializer(EdocListSerializer,
+                        TagListSerializer,
+                        NoteListSerializer,
+                        DynamicFieldsModelSerializer):
+    
+    source_material = SerializerMethodField()
+    destination_material = SerializerMethodField()
+    
+    def get_source_material(self, obj):
+        result = []
+        if obj.source_material != None:
+            for uuid in obj.source_material:
+                url = f"{reverse('bommaterial-detail', args=[uuid], request=self.context['request'])}"
+                result.append(url)
+        return result
+    
+    def get_destination_material(self, obj):
+        result = []
+        if obj.destination_material != None:
+            for uuid in obj.destination_material:
+                url = f"{reverse('bommaterial-detail', args=[uuid], request=self.context['request'])}"
+                result.append(url)
+        return result
+
+    class Meta:
+        model = WorkflowActionSet
+        fields = '__all__'
+
 class WorkflowSerializer(EdocListSerializer,
                         TagListSerializer,
                         NoteListSerializer,
@@ -449,3 +450,5 @@ class WorkflowSerializer(EdocListSerializer,
         model = Workflow
         fields = '__all__'
         expandable_fields = expandable_fields['Workflow']['fields']
+
+"""

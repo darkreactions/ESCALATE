@@ -11,10 +11,10 @@ from ..model_tests_utils import (
     createSystemtool
 )
 from core.models import (
-    Workflow,
+    ActionSequence,
     Action,
-    WorkflowStep,
-    WorkflowObject,
+    ActionSequenceStep,
+    ActionSequenceObject,
 )
 
 workflowstep_test_data = {}
@@ -37,7 +37,7 @@ workflowstep_tests = [
             'name': name,
             'method': POST,
             'endpoint': 'workflow-list',
-            'body': random_model_dict(Workflow),
+            'body': random_model_dict(ActionSequence),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -67,7 +67,7 @@ workflowstep_tests = [
             'name': name,
             'method': POST,
             'endpoint': 'workflowobject-list',
-            'body': random_model_dict(WorkflowObject), 
+            'body': random_model_dict(ActionSequenceObject), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -82,7 +82,7 @@ workflowstep_tests = [
             'name': 'workflowstep0',
             'method': POST,
             'endpoint': 'workflowstep-list',
-            'body': (request_body := random_model_dict(WorkflowStep, workflow='workflow0__url', parent='workflow1__url',
+            'body': (request_body := random_model_dict(ActionSequenceStep, workflow='workflow0__url', parent='workflow1__url',
                                                         action='action0__url', workflow_object='workflowobject0__url')), 
             'args': [],
             'query_params': [],
@@ -117,7 +117,7 @@ workflowstep_tests = [
             'name': 'workflowstep0_update_0',
             'method': PUT,
             'endpoint': 'workflowstep-detail',
-          'body': (request_body := random_model_dict(WorkflowStep, workflow='workflow1__url', parent='workflow0__url',
+          'body': (request_body := random_model_dict(ActionSequenceStep, workflow='workflow1__url', parent='workflow0__url',
                                                         action='action1__url', workflow_object='workflowobject1__url')),  
             'args': [
                 'workflowstep0__uuid'

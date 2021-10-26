@@ -4,7 +4,7 @@ Created on Mar 30, 2021
 @author: jpannizzo
 '''
 from core.utilities.experiment_utils import hcl_mix, update_dispense_action_set, update_lsr_edoc
-from core.models.view_tables import WorkflowActionSet, Edocument
+from core.models.view_tables import Edocument
 import numpy as np
 
 def liquid_solid_extraction(data, q3,experiment_copy_uuid,exp_name, exp_template):

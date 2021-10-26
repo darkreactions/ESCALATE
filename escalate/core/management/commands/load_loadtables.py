@@ -11,7 +11,7 @@ from core.models import (
     DefaultValues,
     ExperimentTemplate,
     ExperimentType,
-    ExperimentWorkflow,
+    ExperimentActionSequence,
     Inventory,
     InventoryMaterial,
     Material,
@@ -26,8 +26,8 @@ from core.models import (
     Systemtool,
     TypeDef,
     Vessel,
-    Workflow,
-    WorkflowType,
+    ActionSequence,
+    ActionSequenceType,
     ReagentTemplate,
     ReagentMaterialTemplate, 
     ReagentMaterialValueTemplate,
@@ -54,7 +54,7 @@ class Command(BaseCommand):
         self._load_inventory_material()
         self._load_vessels()
         self._load_experiment_related_def()
-        self._load_experiment_and_workflow()
+        self._load_experiment_and_action_sequence()
         #self._load_mixture()
         self._load_base_bom_material()
         self._load_action()
@@ -137,26 +137,26 @@ class Command(BaseCommand):
                     rmv_template, created = ReagentMaterialValueTemplate.objects.get_or_create(**{'description':rv,
                                                                                        'reagent_material_template':reagent_material_template,
                                                                                   'default_value':default})
-        # Create workflow -> Actions -> ActionUnits
-        # TODO: Rename workflow to action sequence
+        # Create ActionSequence -> Actions -> ActionUnits
+        # TODO: Rename ActionSequence to action sequence
         action_sequences = {
-            'Preheat Plate': Workflow.objects.create(description='Preheat Plate'),
-            'Prepare stock A': Workflow.objects.create(description='Prepare stock A'),
-            'Prepare stock B': Workflow.objects.create(description='Prepare stock B'),
-            'Dispense Solvent': Workflow.objects.create(description='Dispense Solvent'),
-            'Dispense Stock A': Workflow.objects.create(description='Dispense Stock A'),
-            'Dispense Stock B': Workflow.objects.create(description='Dispense Stock B'),
-            'Dispense Acid Volume 1': Workflow.objects.create(description='Dispense Acid Volume 1'),
-            'Heat stir 1': Workflow.objects.create(description='Heat stir 1'),
-            'Dispense Acid Volume 2': Workflow.objects.create(description='Dispense Acid Volume 2'),
-            'Heat stir 2': Workflow.objects.create(description='Heat stir 2'),
-            'Heat': Workflow.objects.create(description='Heat'),
+            'Preheat Plate': ActionSequence.objects.create(description='Preheat Plate'),
+            'Prepare stock A': ActionSequence.objects.create(description='Prepare stock A'),
+            'Prepare stock B': ActionSequence.objects.create(description='Prepare stock B'),
+            'Dispense Solvent': ActionSequence.objects.create(description='Dispense Solvent'),
+            'Dispense Stock A': ActionSequence.objects.create(description='Dispense Stock A'),
+            'Dispense Stock B': ActionSequence.objects.create(description='Dispense Stock B'),
+            'Dispense Acid Volume 1': ActionSequence.objects.create(description='Dispense Acid Volume 1'),
+            'Heat stir 1': ActionSequence.objects.create(description='Heat stir 1'),
+            'Dispense Acid Volume 2': ActionSequence.objects.create(description='Dispense Acid Volume 2'),
+            'Heat stir 2': ActionSequence.objects.create(description='Heat stir 2'),
+            'Heat': ActionSequence.objects.create(description='Heat'),
         }
 
         for i, action_seq in enumerate(action_sequences.values()):
-            ac_sq = ExperimentWorkflow(experiment_template=exp_template, 
-                                       experiment_workflow_seq=i,
-                                       workflow=action_seq)
+            ac_sq = ExperimentActionSequence(experiment_template=exp_template, 
+                                       experiment_action_sequence_seq=i,
+                                       action_sequence=action_seq)
             ac_sq.save()
 
         column_order='ACEGBDFH'
@@ -218,7 +218,7 @@ class Command(BaseCommand):
         for action_tuple in actions:
             action_desc, action_def_desc, (source_col, source_desc), (dest_col, dest_desc), action_seq = action_tuple
             action_def, created = ActionDef.objects.get_or_create(description=action_def_desc)
-            action = Action(description=action_desc, action_def=action_def, workflow=action_sequences[action_seq])
+            action = Action(description=action_desc, action_def=action_def, action_sequence=action_sequences[action_seq])
             action.save()
             for param_def_desc in action_parameter_def[action_def_desc]:
                 param, created = ParameterDef.objects.get_or_create(description=param_def_desc, default_val=Val.from_dict({'value': 0, 'unit':'uL', 'type':'num'}))
@@ -971,9 +971,9 @@ class Command(BaseCommand):
         self.stdout.write(self.style.NOTICE(
             'Finished loading calculation def'))
 
-    def _load_experiment_and_workflow(self):
+    def _load_experiment_and_action_sequence(self):
         self.stdout.write(self.style.NOTICE(
-            'Beginning loading experiment and workflow'))
+            'Beginning loading experiment and action_sequence'))
 
         EXPERIMENT = path_to_file('load_experiment.csv')
         with open(EXPERIMENT, newline='') as f:
@@ -1052,37 +1052,37 @@ class Command(BaseCommand):
             # {'col_0': 0, 'col_1': 1, ...}
             column_names_to_index = list_data_to_index(column_names)
 
-            workflow_type = {
-                x.description: x for x in WorkflowType.objects.all()}
+            action_sequence_type = {
+                x.description: x for x in ActionSequenceType.objects.all()}
 
-            new_workflow = 0
+            new_action_sequence = 0
             for row in reader:
                 description = clean_string(
                     row[column_names_to_index['description']])
-                workflow_type_description = clean_string(
+                action_sequence_type_description = clean_string(
                     row[column_names_to_index['workflow_type_description']])
 
                 fields = {
                     'description': description,
-                    'workflow_type': workflow_type[y] if not string_is_null(y := workflow_type_description) else None,
+                    'action_sequence_type': action_sequence_type[y] if not string_is_null(y := action_sequence_type_description) else None,
                     'status': active_status
                 }
-                workflow_instance, created = Workflow.objects.get_or_create(
+                action_sequence_instance, created = ActionSequence.objects.get_or_create(
                     **fields)
                 if created:
-                    new_workflow += 1
+                    new_action_sequence += 1
                 experiment_description = [x.strip() for x in y.split(',')] if not string_is_null(
                     y := clean_string(row[column_names_to_index['experiment_description']])) else []
-                experiment_workflow_seq_num = [x.strip() for x in y.split(',')] if not string_is_null(
+                experiment_action_sequence_seq_num = [x.strip() for x in y.split(',')] if not string_is_null(
                     y := clean_string(row[column_names_to_index['experiment_workflow_seq_num']])) else []
 
-                for exp_desc, exp_wf_seq_num in zip(experiment_description, experiment_workflow_seq_num):
+                for exp_desc, exp_wf_seq_num in zip(experiment_description, experiment_action_sequence_seq_num):
                     fields = {
                         'experiment_template': ExperimentTemplate.objects.get(description=exp_desc) if not string_is_null(exp_desc) else None,
-                        'workflow': workflow_instance,
-                        'experiment_workflow_seq': int(exp_wf_seq_num) if not string_is_null(exp_wf_seq_num) else -1
+                        'action_sequence': action_sequence_instance,
+                        'experiment_action_sequence_seq': int(exp_wf_seq_num) if not string_is_null(exp_wf_seq_num) else -1
                     }
-                    ExperimentWorkflow.objects.get_or_create(**fields)
+                    ExperimentActionSequence.objects.get_or_create(**fields)
 
             # jump to top of csv
             f.seek(0)
@@ -1095,19 +1095,19 @@ class Command(BaseCommand):
                 parent_description = clean_string(
                     row[column_names_to_index['parent_description']])
 
-                row_workflow_instance = Workflow.objects.get(
+                row_action_sequence_instance = ActionSequence.objects.get(
                     description=description)
-                parent = Workflow.objects.get(description=parent_description) if not string_is_null(
+                parent = ActionSequence.objects.get(description=parent_description) if not string_is_null(
                     parent_description) else None
 
-                row_workflow_instance.parent = parent
+                row_action_sequence_instance.parent = parent
 
-                row_workflow_instance.save(update_fields=['parent'])
+                row_action_sequence_instance.save(update_fields=['parent'])
             self.stdout.write(self.style.SUCCESS(
-                f'Added {new_workflow} new workflows'))
+                f'Added {new_action_sequence} new action_sequences'))
 
         self.stdout.write(self.style.NOTICE(
-            'Finished loading experiment and workflow'))
+            'Finished loading experiment and action_sequence'))
 
     def _load_mixture(self):
         self.stdout.write(self.style.NOTICE('Beginning loading mixture'))
@@ -1311,7 +1311,7 @@ class Command(BaseCommand):
                     row[column_names_to_index['description']])
                 action_def_description = clean_string(
                     row[column_names_to_index['action_def_description']])
-                workflow_description = clean_string(
+                action_sequence_description = clean_string(
                     row[column_names_to_index['workflow_description']])
                 start_date = clean_string(
                     row[column_names_to_index['start_date']])
@@ -1325,7 +1325,7 @@ class Command(BaseCommand):
                 fields = {
                     'description': description,
                     'action_def': ActionDef.objects.get(description=y) if not string_is_null(y := action_def_description) else None,
-                    'workflow': Workflow.objects.get(description=y) if not string_is_null(y := workflow_description) else None,
+                    'action_sequence': ActionSequence.objects.get(description=y) if not string_is_null(y := action_sequence_description) else None,
                     'start_date': start_date if not string_is_null(start_date) else None,
                     'end_date': end_date if not string_is_null(end_date) else None,
                     'duration': int(duration) if not string_is_null(duration) else None,
@@ -1366,7 +1366,7 @@ class Command(BaseCommand):
             for row in reader:
                 action_description = clean_string(
                     row[column_names_to_index['action_description']])
-                action_workflow_description = clean_string(
+                action_action_sequence_description = clean_string(
                     row[column_names_to_index['action_workflow_description']])
 
                 source_material_description = clean_string(
@@ -1387,7 +1387,7 @@ class Command(BaseCommand):
 
                 fields = {
                     'action': Action.objects.get(description=action_description,
-                                                 workflow__description=action_workflow_description
+                                                 action_sequence__description=action_action_sequence_description
                                                  ) if not string_is_null(action_description) else None,
                     'source_material': BaseBomMaterial.objects.get(description=source_material_description,
                                                                    bom=source_material_bom

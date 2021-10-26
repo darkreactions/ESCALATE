@@ -11,9 +11,9 @@ from ..model_tests_utils import (
 )
 from core.models import (
     ActionDef,
-    Workflow,
+    ActionSequence,
     ParameterDef,
-    CalculationDef,
+    # CalculationDef,
     Action
 )
 
@@ -25,7 +25,7 @@ action_tests = [
 #creates an actiondef
 #creates a parameterdef
 #creates a second parameterdef
-#creates a workflow
+#creates a action_sequence
 #creates a calculationdef
 #creates an action with all of the previous entries as foreign keys (one of the two parameterdefs is put in the manytomanyfield)
 #gets the action
@@ -50,10 +50,10 @@ action_tests = [
             }
         },
         {
-            'name': 'workflow0',
+            'name': 'actionsequence0',
             'method': POST,
-            'endpoint': 'workflow-list',
-            'body': random_model_dict(Workflow),
+            'endpoint': 'actionsequence-list',
+            'body': random_model_dict(ActionSequence),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -80,27 +80,12 @@ action_tests = [
             }
         },
         {
-            'name': 'calculationdef0',
-            'method': POST,
-            'endpoint': 'calculationdef-list',
-            'body': random_model_dict(CalculationDef, parameter_def=['parameterdef0__url']),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
-            }
-        },
-        {
             'name': 'action0',
             'method': POST,
             'endpoint': 'action-list',
             'body': (request_body := random_model_dict(Action, action_def='actiondef0__url',
-                                                workflow='workflow0__url',
-                                                calculation_def='calculationdef0__url'
+                                                action_sequence='actionsequence0__url',
+                                                #calculation_def='calculationdef0__url'
                                                 )), 
             'args': [],
             'query_params': [],
@@ -202,3 +187,21 @@ action_tests = [
         },
     ],
 ]
+
+"""
+{
+            'name': 'calculationdef0',
+            'method': POST,
+            'endpoint': 'calculationdef-list',
+            'body': random_model_dict(CalculationDef, parameter_def=['parameterdef0__url']),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        },
+"""

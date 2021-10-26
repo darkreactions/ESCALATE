@@ -165,12 +165,15 @@ methods = {
     },
     'Vessel': {
         'model': core.models.view_tables.Vessel,
-        'table_columns': ['Plate Name', 'Well Number', ],
+        #'table_columns': ['Plate Name', 'Well Number', ],
+        'table_columns': ['Description', 'Parent'],
         'column_necessary_fields': {
-            'Plate Name': ['plate_name'],
-            'Well Number': ['well_number'],
+            #'Plate Name': ['plate_name'],
+            #'Well Number': ['well_number'],
+            'Description': ['description'],
+            'Parent': ['parent']
         },
-        'ordering': ['plate_name'],
+        'ordering': ['description'],
         'field_contains': ''
     },
     'ExperimentInstance': {
