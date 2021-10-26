@@ -327,7 +327,7 @@ class OutcomeInstance(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='outcome_uuid')
     outcome_template = models.ForeignKey('OutcomeTemplate', on_delete=models.CASCADE,
-                                   blank=True, null=True, related_name='outcome_instance_outcome_template')
+                                   blank=True, null=True, related_name='outcome_instance_ot')
     experiment_instance = models.ForeignKey('ExperimentInstance', on_delete=models.CASCADE,
                                    blank=True, null=True, related_name='outcome_instance_experiment_instance')
     internal_slug = SlugField(populate_from=[
@@ -342,8 +342,10 @@ class OutcomeInstance(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
 
     def save(self, *args, **kwargs):
         if self.outcome_template.default_value is not None:
-            self.nominal_value = self.outcome_template.default_value.nominal_value
-            self.actual_value = self.outcome_template.default_value.actual_value
+            if self.nominal_value.null:
+                self.nominal_value = self.outcome_template.default_value.nominal_value
+            if self.actual_value.null:
+                self.actual_value = self.outcome_template.default_value.actual_value
         super().save(*args, **kwargs)
 
 

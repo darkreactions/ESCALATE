@@ -201,7 +201,7 @@ class Note(DateColumns, ActorColumn):
                                 verbose_name='Note Text')
     ref_note_uuid = RetUUIDField(blank=True, null=True)
     internal_slug = SlugField(populate_from=[
-                                    'description'
+                                    'notetext'
                                     ],
                               overwrite=True, 
                               max_length=255)
