@@ -9,9 +9,11 @@ from django import forms
 from core.forms.forms import UploadEdocForm
 from core.models.view_tables import WorkflowActionSet, ExperimentInstance, ExperimentTemplate, BomMaterial, Edocument #ActionParameter
 from core.forms.custom_types import InventoryMaterialForm, NominalActualForm, QueueStatusForm
+from core.utilities.experiment_utils import get_material_querysets
 
 import json
 from core.models.view_tables.organization import Actor
+from core.views.experiment import save_forms_q_material
 
 
 class ExperimentDetailEditView(TemplateView):
@@ -99,12 +101,16 @@ class ExperimentDetailEditView(TemplateView):
                 exp.completion_status = qs.cleaned_data['select_queue_status']
                 exp.save()
 
-        print('hi')
-
         # for materials: re-use code from experiment.
         # then directly update edocs, status, priority
         # redirect back to list view
         # return render(request, self.template_name, context)
+        material_qs = get_material_querysets(exp, template=False)
+        material_fs = self.MaterialFormSet(request.POST,
+                                           prefix='q1_material',
+                                           form_kwargs={'org_uuid':
+                                                        self.request.session['current_org_id']})
+        save_forms_q_material(material_qs, material_fs, {'inventory_material': 'value'})
 
 class FileFieldForm(forms.Form):
     file_field = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}))
