@@ -101,7 +101,7 @@
                     <h6 class="pt-3 pl-3">Reaction Parameters for {{ selected_exp_template.description }}</h6>
                     <hr>
                     <ul class="treeview-animated-list">
-                    	{% for reaction_parameter_label in reaction_parameter_labels %}
+                    	{% for reaction_parameter_label, reaction_parameter_form in reaction_parameter_labels %}
                         <li class="treeview-animated-items">
                           <a class="closed">
                             <i class="fas fa-angle-right"></i>

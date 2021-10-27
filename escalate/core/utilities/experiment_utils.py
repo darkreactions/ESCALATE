@@ -12,7 +12,7 @@ from django.db.models import F, Value
 from core.models.view_tables import (WorkflowActionSet, BomMaterial, Action, Parameter,
                                             ActionUnit, ExperimentTemplate, 
                                             ExperimentInstance, ReagentMaterial,
-                                            Reagent, Property, Vessel, ExperimentWorkflow)
+                                            Reagent, Property, Vessel, ExperimentWorkflow, ReactionParameter)
 from core.custom_types import Val
 from core.models.core_tables import RetUUIDField
 from core.utilities.randomSampling import generateExperiments
@@ -171,6 +171,21 @@ def get_reaction_parameter_querysets(exp_template):
     rp = ExperimentWorkflow.objects.filter(experiment_template=exp_template)
     return rp
 
+def save_reaction_parameters(exp_template, rp_form):
+    #for reaction_parameter_label, reaction_parameter_form in reaction_parameter_labels
+    rp_value = rp_form.value
+    rp_unit = rp_form.unit
+    rp_type  = rp_form.type
+    rp = ReactionParameter.objects.create(
+        experiment_template = exp_template,
+        #organization = organization,
+        value = rp_value,
+        unit = rp_unit,
+        type = rp_type#,
+        #description = 
+        )
+    return rp
+
 def get_reagent_querysets(exp_uuid):
     """[summary]
 
@@ -222,7 +237,6 @@ def prepare_reagents(reagent_formset, exp_concentrations):
         exp_concentrations["Reagent 2"] = [concentration2,concentration3,0,concentration1]
 
     return exp_concentrations
-
 
 def generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, num_of_experiments, dead_volume):
     """

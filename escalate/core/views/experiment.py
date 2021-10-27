@@ -27,7 +27,7 @@ from core.utilities.experiment_utils import (update_dispense_action_set,
                                              get_action_parameter_querysets, 
                                              get_material_querysets, 
                                              supported_wfs, get_reagent_querysets,
-                                             prepare_reagents, generate_experiments_and_save, get_reaction_parameter_querysets)
+                                             prepare_reagents, generate_experiments_and_save, get_reaction_parameter_querysets,save_reaction_parameters)
 
 import core.models
 from core.models.view_tables import Note, TagAssign, Tag
@@ -187,12 +187,14 @@ class CreateExperimentView(TemplateView):
         rp_wfs = get_reaction_parameter_querysets(exp_template.uuid)
         rp_labels = []
         for rp in rp_wfs:
+            #if there is no value stored in db default to this
+            initial= {'value':Val.from_dict({'value':0, 'unit': '', 'type':'num'})}
+            rp_form = ReactionParameterForm(prefix='reaction_parameter',initial=initial)
             rp_label = str(rp.workflow.description)
-            rp_labels.append(rp_label)
+            rp_labels.append((rp_label,rp_form))
         rp_labels.sort()
         
-        initial= {'value':Val.from_dict({'value':0, 'unit': '', 'type':'num'})}
-        rp_form = ReactionParameterForm(initial=initial)
+        
         context['reaction_parameter_form'] = rp_form
         context['reaction_parameter_labels'] = rp_labels
         
@@ -416,14 +418,6 @@ class CreateExperimentView(TemplateView):
                 if reagent_formset.is_valid():
                     vector = self.save_forms_reagent(reagent_formset, experiment_copy_uuid, exp_concentrations)
                     exp_concentrations = prepare_reagents(reagent_formset, exp_concentrations)
-                    '''
-                    this process of creating the data structure to pass into the 
-                    random sampler needs to be less ad-hoc and more generalized moving forward
-                    need to remove static cleaned_data element calls. however, 
-                    forms will always be process in the same order
-                    if elif statements for current_mat_list are not needed but 
-                    add some clarity to the code
-                    '''
             
             # Save dead volumes should probably be in a separate function
             dead_volume_form = SingleValForm(request.POST, prefix='dead_volume')
@@ -431,8 +425,14 @@ class CreateExperimentView(TemplateView):
                 dead_volume = dead_volume_form.value
             else:
                 dead_volume = None
-                    
-                           
+            
+            #post reaction parameter form
+            rp_form = ReactionParameterForm(request.POST, prefix='reaction_parameter') 
+            if rp_form.is_valid:
+                #for rp_label in rp_labels:
+                #how am I suppose to get the labels? Do I need to save them in the form? Do I need a formset?
+                save_reaction_parameters(exp_template,rp_form)
+
             #retrieve # of experiments to be generated (# of vial locations)
             exp_number = int(request.POST['automated'])
             #generate desired volume for current reagent

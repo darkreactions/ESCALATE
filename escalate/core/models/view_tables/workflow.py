@@ -346,21 +346,24 @@ class OutcomeInstance(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
             self.actual_value = self.outcome_template.default_value.actual_value
         super().save(*args, **kwargs)
 
-class ReactionParameterProfile(StatusColumn, ActorColumn, DateColumns):
+class ReactionParameter(StatusColumn, DescriptionColumn, DateColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
                         db_column='reaction_parameter_profile_uuid')
-    workflow = models.ForeignKey('Workflow', models.CASCADE,
+    experiment_template = models.ForeignKey('ExperimentTemplate', models.CASCADE,
                                blank=True, null=True,
                                related_name='reaction_parameter_profile_workflow')
     organization = models.ForeignKey('Organization', models.CASCADE,
                                blank=True, null=True,
                                related_name='reaction_parameter_profile_organization')
-    # directly call experiment template
-    #experiment = models.ManyToManyField(
-    #    'ExperimentTemplate', through='ExperimentWorkflow', related_name='reaction_parameter_profile_experiment')
-    parameter_value = models.CharField(max_length=255,
+    value = models.CharField(max_length=255,
                                    blank=True, null=True,
                                    db_column='reaction_parameter_profile_parameter_value')
+    unit = models.CharField(max_length=255,
+                                   blank=True, null=True,
+                                   db_column='reaction_parameter_profile_parameter_unit')
+    type = models.CharField(max_length=255,
+                                   blank=True, null=True,
+                                   db_column='reaction_parameter_profile_parameter_type')
     
 
 class Workflow(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
