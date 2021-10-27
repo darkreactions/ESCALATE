@@ -14,5 +14,6 @@ python manage.py load_organization
 python manage.py load_person
 python manage.py load_systemtool
 python manage.py load_inventory
-python manage.py load_loadtables
 python manage.py setup_users
+python manage.py load_loadtables
+

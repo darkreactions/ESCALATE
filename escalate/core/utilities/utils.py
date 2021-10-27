@@ -2,8 +2,7 @@ from django.db import connection as con
 from django.db.models import F
 from core.models.view_tables import (Parameter, BomMaterial, Action, ActionUnit, 
                                      ExperimentTemplate, ExperimentInstance, 
-                                     BillOfMaterials, ExperimentWorkflow, 
-                                     WorkflowObject, WorkflowStep,
+                                     BillOfMaterials, ExperimentActionSequence, 
                                      ReagentMaterial, OutcomeInstance,
                                      ReagentMaterialValue, Reagent
                                      )
@@ -62,17 +61,15 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
             instance_bom_mat.save()
 
     # Get all Experiment Workflow objects based on experiment template uuid
-    experiment_workflow_filter = ExperimentWorkflow.objects.all().filter(
+    experiment_action_sequence_filter = ExperimentActionSequence.objects.all().filter(
         experiment_template=exp_template)
-    # create empty workflow_step parent
-    workflow_step_parent = None
-
+    
     # itterate over them all and update workflow, experiment workflow, and workflowactionset(action, actionunit, parameter)
-    for template_exp_wf in experiment_workflow_filter.iterator():
+    for template_exp_wf in experiment_action_sequence_filter.iterator():
         # create new workflow for current object
         # this needs to be double checked to verify it works correctly
         #this_workflow = Workflow.objects.get(uuid=current_object.workflow.uuid)
-        instance_workflow = template_exp_wf.workflow
+        instance_workflow = template_exp_wf.action_sequence
         template_workflow = deepcopy(instance_workflow)
         # update uuid so it generates it's own uuid
         instance_workflow.uuid = None
@@ -82,9 +79,9 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
 
         # create copy of current experiment workflow object from experiment_workflow_filter
         #this_experiment_workflow = current_object
-        instance_exp_wf = ExperimentWorkflow(workflow=instance_workflow,
+        instance_exp_wf = ExperimentActionSequence(action_sequence=instance_workflow,
                                                       experiment_instance=exp_instance,
-                                                      experiment_workflow_seq=template_exp_wf.experiment_workflow_seq)
+                                                      experiment_action_sequence_seq=template_exp_wf.experiment_action_sequence_seq)
         # update experiment workflow uuid, workflow uuid, and experiment uuid for experiment workflow
         #this_experiment_workflow.uuid = None
         #this_experiment_workflow.workflow = this_workflow
@@ -94,12 +91,12 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
 
         # create action query and loop through the actions and update
         # need to add loop
-        template_actions = Action.objects.filter(workflow=template_workflow)
+        template_actions = Action.objects.filter(action_sequence=template_workflow)
         for temp_action in template_actions.iterator():
             instance_action = deepcopy(temp_action)
             # create new uuid, workflow should already be correct, if it is not set workflow uuid to current workflow uuid
             instance_action.uuid = None
-            instance_action.workflow = instance_workflow
+            instance_action.action_sequence = instance_workflow
             # post
             instance_action.save()
 
@@ -121,7 +118,7 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
             ''' 
             This might not be needed because it only stores the action, condition, or workflow which is 
             already done in WorkflowStep
-            '''
+            
             # create workflow object
             q_workflow_object = WorkflowObject(workflow=instance_workflow,
                                                action=instance_action)
@@ -135,6 +132,7 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
                                            status=instance_action.status)
             q_workflow_step.save()
             workflow_step_parent = q_workflow_step.uuid
+            '''
 
         # Do I need to update condition?
         # If so create condition, figure out conditional requirements, and loop through conditions like action

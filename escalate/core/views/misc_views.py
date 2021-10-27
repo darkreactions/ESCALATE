@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.views.generic import TemplateView
 from django.forms import formset_factory, ModelChoiceField
 
-from core.models.view_tables import WorkflowActionSet, ExperimentInstance, ExperimentTemplate, BomMaterial #ActionParameter
+from core.models.view_tables import ExperimentInstance, ExperimentTemplate, BomMaterial #ActionParameter
 from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import InventoryMaterialForm, NominalActualForm
 

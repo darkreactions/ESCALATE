@@ -10,8 +10,8 @@ from ..model_tests_utils import (
     compare_data
 )
 from core.models import (
-    Outcome,
-    Experiment,
+    OutcomeTemplate,
+    ExperimentTemplate,
 )
 
 outcome_test_data = {}
@@ -30,8 +30,8 @@ outcome_tests = [
         *[{
             'name': name,
             'method': POST,
-            'endpoint': 'experiment-list',
-            'body': random_model_dict(Experiment),
+            'endpoint': 'experimenttemplate-list',
+            'body': random_model_dict(ExperimentTemplate),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -45,8 +45,8 @@ outcome_tests = [
         {
             'name': 'outcome0',
             'method': POST,
-            'endpoint': 'outcome-list',
-            'body': (request_body := random_model_dict(Outcome, experiment='experiment0__url')), 
+            'endpoint': 'outcometemplate-list',
+            'body': (request_body := random_model_dict(OutcomeTemplate, experiment='experiment0__url')), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -61,7 +61,7 @@ outcome_tests = [
         {
             'name': 'outcome0_get_0',
             'method': GET,
-            'endpoint': 'outcome-detail',
+            'endpoint': 'outcometemplate-detail',
             'body': {},
             'args': [
                 'outcome0__uuid'
@@ -79,8 +79,8 @@ outcome_tests = [
         {
             'name': 'outcome0_update_0',
             'method': PUT,
-            'endpoint': 'outcome-detail',
-            'body': (request_body := random_model_dict(Outcome, experiment='experiment0__url')),
+            'endpoint': 'outcometemplate-detail',
+            'body': (request_body := random_model_dict(OutcomeTemplate, experiment='experiment0__url')),
             'args': [
                 'outcome0__uuid'
             ],
@@ -97,7 +97,7 @@ outcome_tests = [
         {
             'name': 'outcome0_get_1',
             'method': GET,
-            'endpoint': 'outcome-detail',
+            'endpoint': 'outcometemplate-detail',
             'body': {},
             'args': [
                 'outcome0__uuid'
@@ -114,7 +114,7 @@ outcome_tests = [
         {
             'name': 'outcome0_delete_0',
             'method': DELETE,
-            'endpoint': 'outcome-detail',
+            'endpoint': 'outcometemplate-detail',
             'body': {},
             'args': [
                 'outcome0__uuid'
@@ -131,7 +131,7 @@ outcome_tests = [
         {
             'name': 'outcome0_get_2',
             'method': GET,
-            'endpoint': 'outcome-detail',
+            'endpoint': 'outcometemplate-detail',
             'body': {},
             'args': [
                 'outcome0__uuid'
