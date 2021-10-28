@@ -75,10 +75,10 @@ class CreateExperimentView(TemplateView):
         return context
         
 
-    def get_action_parameter_forms(self, exp_uuid, context):
+    def get_action_parameter_forms(self, exp_uuid, context, template=True):
         # workflow__experiment_workflow_workflow__experiment=exp_uuid
         #q1, q2, q3 = get_action_parameter_querysets(exp_uuid)
-        q1 = get_action_parameter_querysets(exp_uuid)
+        q1 = get_action_parameter_querysets(exp_uuid, template)
         """
         This happens before copy, in the template. The only way to identify a parameter is 
         through a combination of object_description and parameter_def_description.
@@ -114,7 +114,7 @@ class CreateExperimentView(TemplateView):
         
         q1_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q1]
         context['q1_param_formset'] = self.NominalActualFormSet(initial=initial_q1, 
-                                                            prefix='q1_param',)
+                                                                prefix='q1_param',)
         context['q1_param_details'] = q1_details
         
         return context
@@ -209,29 +209,6 @@ class CreateExperimentView(TemplateView):
         return render(request, self.template_name, context)
     # end: self.post()
 
-    def save_forms_q1(self, queries, formset, fields):
-        """Saves custom formset into queries
-
-        Args:
-            queries ([Queryset]): List of queries into which the forms values are saved
-            formset ([Formset]): Formset
-            fields (dict): Dictionary to map the column in queryset with field in formset
-        """
-        for form in formset:
-            if form.has_changed():
-                data = form.cleaned_data
-                desc = json.loads(data['uuid'])
-                if len(desc) == 2:
-                    object_desc, param_def_desc = desc
-                    query = queries.get(object_description=object_desc, parameter_def_description=param_def_desc)
-                else:
-                    query = queries.get(object_description=desc[0])
-                parameter = Parameter.objects.get(uuid=query.parameter_uuid)
-                for db_field, form_field in fields.items():
-                    setattr(parameter, db_field, data[form_field])
-                parameter.save(update_fields=list(fields.keys()))
-        #queries.save()
-
     def save_forms_reagent(self, formset, exp_uuid, exp_concentrations):
         
         '''
@@ -295,7 +272,7 @@ class CreateExperimentView(TemplateView):
             q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
             q1_material = get_material_querysets(experiment_copy_uuid, template=False)
             
-            self.save_forms_q1(q1, q1_formset, {'parameter_val_nominal': 'value', 'parameter_val_actual': 'actual_value'})
+            save_forms_q1(q1, q1_formset, {'parameter_val_nominal': 'value', 'parameter_val_actual': 'actual_value'})
             save_forms_q_material(q1_material, q1_material_formset, {'inventory_material': 'value'})
             
             # begin: template-specific logic
@@ -578,7 +555,7 @@ def save_forms_q_material(queries, formset, fields):
         fields (dict): Dictionary to map the column in queryset with field in formset
     """
     for form in formset:
-        if form.has_changed():
+        if form.has_changed() and form.is_valid():
             data = form.cleaned_data
             desc = json.loads(data['uuid'])
             if len(desc) == 2:
@@ -591,3 +568,26 @@ def save_forms_q_material(queries, formset, fields):
                 setattr(query, db_field, data[form_field])
 
             query.save(update_fields=list(fields.keys()))
+
+def save_forms_q1(queries, formset, fields):
+    """Saves custom formset into queries
+
+    Args:
+        queries ([Queryset]): List of queries into which the forms values are saved
+        formset ([Formset]): Formset
+        fields (dict): Dictionary to map the column in queryset with field in formset
+    """
+    for form in formset:
+        if form.has_changed() and form.is_valid():
+            data = form.cleaned_data
+            desc = json.loads(data['uuid'])
+            if len(desc) == 2:
+                object_desc, param_def_desc = desc
+                query = queries.get(object_description=object_desc,
+                                    parameter_def_description=param_def_desc)
+            else:
+                query = queries.get(object_description=desc[0])
+            parameter = Parameter.objects.get(uuid=query.parameter_uuid)
+            for db_field, form_field in fields.items():
+                setattr(parameter, db_field, data[form_field])
+            parameter.save(update_fields=list(fields.keys()))
