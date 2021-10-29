@@ -1,15 +1,12 @@
 from django.db.models import F, Value
 from django.views.generic import TemplateView
 from django.forms import formset_factory, ModelChoiceField
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.forms import modelformset_factory
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django import forms
 
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit, Row, Column, Hidden, Field
-
-from core.forms.forms import UploadEdocForm
+from core.forms.forms import UploadEdocForm, UploadFileForm
 from core.models.view_tables import WorkflowActionSet, ExperimentInstance, ExperimentTemplate, BomMaterial, Edocument #ActionParameter
 from core.forms.custom_types import InventoryMaterialForm, NominalActualForm, QueueStatusForm
 from core.utilities.experiment_utils import get_material_querysets, get_action_parameter_querysets
@@ -28,10 +25,10 @@ class ExperimentDetailEditView(TemplateView):
     list_template = "core/experiment/list.html"
     NominalActualFormSet = formset_factory(NominalActualForm, extra=0)
     MaterialFormSet = formset_factory(InventoryMaterialForm, extra=0)
-    # this is inheritance, right?
+    EdocFormSet = formset_factory(form=UploadFileForm)
     get_action_parameter_forms = CreateExperimentView().get_action_parameter_forms
-    def get_context_data(self, **kwargs):
 
+    def get_context_data(self, **kwargs):
         # Setup
         context = super().get_context_data(**kwargs)
         related_exp_material = 'bom__experiment'
@@ -93,16 +90,19 @@ class ExperimentDetailEditView(TemplateView):
     def post(self, request, *args, **kwargs):
         context = self.get_context_data(*args, **kwargs)
         exp = context['experiment']
-
-        # save queue status and priority
-        qs = QueueStatusForm(exp, request.POST)
-
-        f = request.FILES.get('file')
-        if f is not None:
+        if request.POST.get('add_edoc'):
+            f = request.FILES.get('file')
             e = Edocument.objects.create(description=f.name,
                                          ref_edocument_uuid=exp.uuid,
                                          edocument=f.file.read(),
-                                         filename=f.name)
+                                         filename=f.name,
+                                         title=f.name,
+                                         internal_slug=f.name)
+            e.save()
+            return redirect(reverse('experiment_instance_update', args=[exp.uuid]))
+
+        # save queue status and priority
+        qs = QueueStatusForm(exp, request.POST)
         if qs.has_changed():
             if qs.is_valid():
                 exp.priorty = qs.cleaned_data['select_queue_priority']
@@ -119,19 +119,3 @@ class ExperimentDetailEditView(TemplateView):
         q1_formset = self.NominalActualFormSet(request.POST, prefix='q1_param')
         save_forms_q1(q1, q1_formset, {'parameter_val_nominal': 'value', 'parameter_val_actual': 'actual_value'})
         return render(request, self.template_name, context)
-
-
-class UploadFileForm(forms.Form):
-    file = forms.FileField(label='Upload completed outcome file',
-                           required=False)
-    @staticmethod
-    def get_helper():
-        helper = FormHelper()
-        helper.form_class = 'form-horizontal'
-        helper.label_class = 'col-lg-2'
-        helper.field_class = 'col-lg-8'
-        helper.layout = Layout(
-            Row(Column(Field('file'))),
-            #Row(Column(Submit('outcome_upload', 'Submit'))),
-        )
-        return helper

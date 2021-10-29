@@ -2,6 +2,7 @@
 {% load static %}
 {% load crispy_forms_tags %}
 {% load index %}
+{% load get_range %}
 
 {% block content %}
 
@@ -36,7 +37,8 @@
     {% endfor %}
     </tbody></table>
     <p>Upload New Files: </p>
-        {{ edoc_upload_form }}
+        {% crispy edoc_upload_form edoc_helper %}
+        <button type="submit" name="add_edoc" value="add_edoc" class="btn btn-raised btn-primary">Add File</button>
     </div>
     <br>
     </div>
