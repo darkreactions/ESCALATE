@@ -12,7 +12,7 @@ from django.db.models import F, Value
 from core.models.view_tables import (BomMaterial, Action, Parameter,
                                             ActionUnit, ExperimentTemplate, 
                                             ExperimentInstance, ReagentMaterial,
-                                            Reagent, Property, Vessel)
+                                            Reagent, Property, Vessel, ExperimentActionSequence, ReactionParameter)
 from core.custom_types import Val
 from core.models.core_tables import RetUUIDField
 from core.utilities.randomSampling import generateExperiments
@@ -177,6 +177,30 @@ def get_vessel_querysets():
     vessel_q = Vessel.objects.filter(well_number__isnull=True)
     return vessel_q
 
+def save_reaction_parameters(exp_template,rp_value,rp_unit,rp_type,rp_label):
+    #for reaction_parameter_label, reaction_parameter_form in reaction_parameter_labels
+    #rp_label might be a list so need to itterate over and pass to this
+    rp = ReactionParameter.objects.create(
+        experiment_template = exp_template,
+        #organization = organization,
+        value = rp_value,
+        unit = rp_unit,
+        type = rp_type,
+        description = rp_label
+    )
+    return rp
+
+def save_parameter(rp_uuid,rp_value,rp_unit):
+    '''
+    get specific parameter via uuid that was saved as a hidden field. 
+    update the value and unit for the nominal field
+    '''
+    param_q = Parameter.objects.get(uuid=rp_uuid)
+    param_q.nominal_value.value = rp_value
+    param_q.nominal_value.unit = rp_unit
+    param_q.save()
+    return param_q
+    
 def get_reagent_querysets(exp_uuid):
     """[summary]
 
@@ -186,26 +210,7 @@ def get_reagent_querysets(exp_uuid):
     Returns:
         [Queryset]: Queryset that contains the reagent data
     """ 
-    '''
-    reagent_q = ReagentInstance.objects.filter(experiment__uuid=exp_uuid).annotate(
-                object_uuid=F('uuid')).annotate(
-                object_description=F('description')).annotate(
-                instance_uuid=F('reagent_instance_value_reagent_instance__uuid')).annotate(
-                instance_value=F('reagent_instance_value_reagent_instance__nominal_value')).annotate(
-                instance_value_actual=F('reagent_instance_value_reagent_instance__actual_value')).annotate(
-                instance_material_type_id=F('reagent_instance_value_reagent_instance__material_type')).annotate(
-                instance_description=F('reagent_instance_value_reagent_instance__description')).annotate(
-                experiment_uuid=F('experiment__uuid')).annotate(
-                experiment_description=F('experiment__description'))#.annotate(
-    '''
     reagent_q = ReagentMaterial.objects.filter(experiment__uuid=exp_uuid)
-    """
-    .annotate(
-    mat_type=F('material_type')).annotate(
-    value_nominal=F('nominal_value')).annotate(
-    value_actual=F('actual_value')).annotate(
-    parent_uuid=F('reagent_instance__uuid'))
-    """
     
     return reagent_q
 
@@ -247,7 +252,6 @@ def prepare_reagents(reagent_formset, exp_concentrations):
         exp_concentrations["Reagent 2"] = [concentration2,concentration3,0,concentration1]
 
     return exp_concentrations
-
 
 def generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, num_of_experiments, dead_volume):
     """

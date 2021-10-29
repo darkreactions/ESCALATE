@@ -18,19 +18,19 @@ from django.http import HttpResponseRedirect
 from core.models.view_tables import (ExperimentTemplate, 
                                      ExperimentInstance, Edocument, 
                                      ReagentMaterialValue, ReagentMaterial,
-                                     InventoryMaterial, OutcomeInstance, OutcomeTemplate)
+                                     InventoryMaterial, OutcomeInstance, OutcomeTemplate, ReactionParameter)
 # from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm, NominalActualForm, ReagentValueForm
 from core.forms.custom_types import (ExperimentNameForm, ExperimentTemplateForm, 
                                      ReagentForm, BaseReagentFormSet, 
-                                     PropertyForm, OutcomeInstanceForm, VesselForm,
-                                     UploadFileForm)
+                                     PropertyForm, OutcomeInstanceForm, VesselForm, ReactionParameterForm, UploadFileForm)
+
 from core.utilities.utils import experiment_copy
 from core.utilities.experiment_utils import (update_dispense_action_set, 
                                              get_action_parameter_querysets, 
                                              get_material_querysets, 
                                              supported_wfs, get_reagent_querysets,
-                                             prepare_reagents, generate_experiments_and_save, get_vessel_querysets)
+                                             prepare_reagents, generate_experiments_and_save, save_reaction_parameters)
 
 import core.models
 from core.models.view_tables import Note, TagAssign, Tag
@@ -68,6 +68,7 @@ class CreateExperimentView(TemplateView):
     MaterialFormSet = formset_factory(InventoryMaterialForm, extra=0)
     NominalActualFormSet = formset_factory(NominalActualForm, extra=0)
     ReagentFormSet = formset_factory(ReagentForm, extra=0, formset=BaseReagentFormSet)
+    ReactionParameterFormset = formset_factory(ReactionParameterForm, extra=0)
 
     def get_context_data(self, **kwargs):    
         # Select templates that belong to the current lab
@@ -178,14 +179,36 @@ class CreateExperimentView(TemplateView):
         context['reagent_template_names'] = reagent_template_names
 
         #get vessel data for selection
-        initial_vessel = VesselForm()
+        v_query = core.models.view_tables.Vessel.objects.all()
+        initial_vessel = VesselForm(initial={'value': v_query[0]})
         context['vessel_form'] = initial_vessel
 
         # Dead volume form
         initial = {'value':Val.from_dict({'value':4000, 'unit': 'uL', 'type':'num'})}
         dead_volume_form = SingleValForm(prefix='dead_volume', initial=initial)
         context['dead_volume_form'] = dead_volume_form
+        
+        #reaction parameter form
+        rp_wfs = get_action_parameter_querysets(exp_template.uuid)
+        rp_labels = []
+        index = 0
+        for rp in rp_wfs:
+            rp_label = str(rp.object_description)
+            if "Dispense" in rp_label:
+                continue
+            else:
+                #this might need to be filte rinstead of get. needs testing
+                try:
+                    rp_object = ReactionParameter.objects.filter(description=rp_label).order_by('add_date').first()
+                    initial= {'value':Val.from_dict({'value':rp_object.value, 'unit': rp_object.unit, 'type':'num'}), 'uuid':rp.parameter_uuid}
+                except:
+                    initial= {'value':Val.from_dict({'value':0, 'unit': '', 'type':'num'}), 'uuid':rp.parameter_uuid}
 
+                rp_form = ReactionParameterForm(prefix=f'reaction_parameter_{index}',initial=initial)
+                rp_labels.append((rp_label,rp_form))
+                index += 1
+        context['reaction_parameter_labels'] = rp_labels
+        
         context['colors'] = self.get_colors(len(formsets))
 
         return context
@@ -409,14 +432,6 @@ class CreateExperimentView(TemplateView):
                 if reagent_formset.is_valid():
                     vector = self.save_forms_reagent(reagent_formset, experiment_copy_uuid, exp_concentrations)
                     exp_concentrations = prepare_reagents(reagent_formset, exp_concentrations)
-                    '''
-                    this process of creating the data structure to pass into the 
-                    random sampler needs to be less ad-hoc and more generalized moving forward
-                    need to remove static cleaned_data element calls. however, 
-                    forms will always be process in the same order
-                    if elif statements for current_mat_list are not needed but 
-                    add some clarity to the code
-                    '''
             
             # Save dead volumes should probably be in a separate function
             dead_volume_form = SingleValForm(request.POST, prefix='dead_volume')
@@ -424,8 +439,29 @@ class CreateExperimentView(TemplateView):
                 dead_volume = dead_volume_form.value
             else:
                 dead_volume = None
-                    
-                           
+            
+            #post reaction parameter form
+            #get label here and get form out of label, use label for description
+            rp_wfs = get_action_parameter_querysets(exp_template.uuid)
+            index = 0
+            for rp in rp_wfs:
+                rp_label = str(rp.object_description)
+                if "Dispense" in rp_label:
+                    continue
+                else:
+                    rp_form = ReactionParameterForm(request.POST, prefix=f'reaction_parameter_{index}')
+                    if rp_form.is_valid:
+                        #this needs to be updated to use parameter or need to save to ReactionParameter table
+                        #need to save to parameter regardless
+                        rp_value = rp_form.data[f'reaction_parameter_{index}-value_0']
+                        rp_unit = rp_form.data[f'reaction_parameter_{index}-value_1']
+                        rp_type = rp_form.data[f'reaction_parameter_{index}-value_2']
+                        rp_uuid = rp_form.data[f'reaction_parameter_{index}-uuid']
+                        save_reaction_parameters(exp_template,rp_value,rp_unit,rp_type,rp_label)
+                        #save_parameter(rp_uuid,rp_value,rp_unit)
+                    index += 1
+            
+            
             #retrieve # of experiments to be generated (# of vial locations)
             exp_number = int(request.POST['automated'])
             #generate desired volume for current reagent
