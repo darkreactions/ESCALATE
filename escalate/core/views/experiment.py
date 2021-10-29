@@ -18,7 +18,7 @@ from django.http import HttpResponseRedirect
 from core.models.view_tables import (ExperimentTemplate, 
                                      ExperimentInstance, Edocument, 
                                      ReagentMaterialValue, ReagentMaterial,
-                                     InventoryMaterial, OutcomeInstance, OutcomeTemplate)
+                                     InventoryMaterial, OutcomeInstance, OutcomeTemplate, ReactionParameter)
 # from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm, NominalActualForm, ReagentValueForm
 from core.forms.custom_types import (ExperimentNameForm, ExperimentTemplateForm, 
@@ -30,7 +30,7 @@ from core.utilities.experiment_utils import (update_dispense_action_set,
                                              get_action_parameter_querysets, 
                                              get_material_querysets, 
                                              supported_wfs, get_reagent_querysets,
-                                             prepare_reagents, generate_experiments_and_save, get_reaction_parameter_querysets,save_reaction_parameters)
+                                             prepare_reagents, generate_experiments_and_save, save_reaction_parameters)
 
 import core.models
 from core.models.view_tables import Note, TagAssign, Tag
@@ -179,7 +179,8 @@ class CreateExperimentView(TemplateView):
         context['reagent_template_names'] = reagent_template_names
 
         #get vessel data for selection
-        initial_vessel = VesselForm()
+        v_query = core.models.view_tables.Vessel.objects.all()
+        initial_vessel = VesselForm(initial={'value': v_query[0]})
         context['vessel_form'] = initial_vessel
 
         # Dead volume form
@@ -188,18 +189,24 @@ class CreateExperimentView(TemplateView):
         context['dead_volume_form'] = dead_volume_form
         
         #reaction parameter form
-        rp_wfs = get_reaction_parameter_querysets(exp_template.uuid)
+        rp_wfs = get_action_parameter_querysets(exp_template.uuid)
         rp_labels = []
+        index = 0
         for rp in rp_wfs:
-            #if there is no value stored in db default to this
-            initial= {'value':Val.from_dict({'value':0, 'unit': '', 'type':'num'})}
-            rp_form = ReactionParameterForm(prefix='reaction_parameter',initial=initial)
-            rp_label = str(rp.workflow.description)
-            rp_labels.append((rp_label,rp_form))
-        rp_labels.sort()
-        
-        
-        context['reaction_parameter_form'] = rp_form
+            rp_label = str(rp.object_description)
+            if "Dispense" in rp_label:
+                continue
+            else:
+                #this might need to be filte rinstead of get. needs testing
+                try:
+                    rp_object = ReactionParameter.objects.filter(description=rp_label).order_by('add_date').first()
+                    initial= {'value':Val.from_dict({'value':rp_object.value, 'unit': rp_object.unit, 'type':'num'}), 'uuid':rp.parameter_uuid}
+                except:
+                    initial= {'value':Val.from_dict({'value':0, 'unit': '', 'type':'num'}), 'uuid':rp.parameter_uuid}
+
+                rp_form = ReactionParameterForm(prefix=f'reaction_parameter_{index}',initial=initial)
+                rp_labels.append((rp_label,rp_form))
+                index += 1
         context['reaction_parameter_labels'] = rp_labels
         
         context['colors'] = self.get_colors(len(formsets))
@@ -434,12 +441,27 @@ class CreateExperimentView(TemplateView):
                 dead_volume = None
             
             #post reaction parameter form
-            rp_form = ReactionParameterForm(request.POST, prefix='reaction_parameter') 
-            if rp_form.is_valid:
-                #for rp_label in rp_labels:
-                #how am I suppose to get the labels? Do I need to save them in the form? Do I need a formset?
-                save_reaction_parameters(exp_template,rp_form)
-
+            #get label here and get form out of label, use label for description
+            rp_wfs = get_action_parameter_querysets(exp_template.uuid)
+            index = 0
+            for rp in rp_wfs:
+                rp_label = str(rp.object_description)
+                if "Dispense" in rp_label:
+                    continue
+                else:
+                    rp_form = ReactionParameterForm(request.POST, prefix=f'reaction_parameter_{index}')
+                    if rp_form.is_valid:
+                        #this needs to be updated to use parameter or need to save to ReactionParameter table
+                        #need to save to parameter regardless
+                        rp_value = rp_form.data[f'reaction_parameter_{index}-value_0']
+                        rp_unit = rp_form.data[f'reaction_parameter_{index}-value_1']
+                        rp_type = rp_form.data[f'reaction_parameter_{index}-value_2']
+                        rp_uuid = rp_form.data[f'reaction_parameter_{index}-uuid']
+                        save_reaction_parameters(exp_template,rp_value,rp_unit,rp_type,rp_label)
+                        #save_parameter(rp_uuid,rp_value,rp_unit)
+                    index += 1
+            
+            
             #retrieve # of experiments to be generated (# of vial locations)
             exp_number = int(request.POST['automated'])
             #generate desired volume for current reagent

@@ -342,11 +342,12 @@ class OutcomeInstance(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
 
     def save(self, *args, **kwargs):
         if self.outcome_template.default_value is not None:
-            if self.nominal_value.null:
+            if not self.nominal_value:
                 self.nominal_value = self.outcome_template.default_value.nominal_value
-            if self.actual_value.null:
+            if not self.actual_value:
                 self.actual_value = self.outcome_template.default_value.actual_value
         super().save(*args, **kwargs)
+
 
 class ReactionParameter(StatusColumn, DescriptionColumn, DateColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
@@ -366,7 +367,7 @@ class ReactionParameter(StatusColumn, DescriptionColumn, DateColumns):
     type = models.CharField(max_length=255,
                                    blank=True, null=True,
                                    db_column='reaction_parameter_profile_parameter_type')
-    
+   
 
 class ActionSequence(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)

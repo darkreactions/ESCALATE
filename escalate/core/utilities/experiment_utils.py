@@ -12,7 +12,7 @@ from django.db.models import F, Value
 from core.models.view_tables import (BomMaterial, Action, Parameter,
                                             ActionUnit, ExperimentTemplate, 
                                             ExperimentInstance, ReagentMaterial,
-                                            Reagent, Property, Vessel, ExperimentWorkflow, ReactionParameter)
+                                            Reagent, Property, Vessel, ExperimentActionSequence, ReactionParameter)
 from core.custom_types import Val
 from core.models.core_tables import RetUUIDField
 from core.utilities.randomSampling import generateExperiments
@@ -177,25 +177,30 @@ def get_vessel_querysets():
     vessel_q = Vessel.objects.filter(well_number__isnull=True)
     return vessel_q
 
-def get_reaction_parameter_querysets(exp_template):
-    rp = ExperimentWorkflow.objects.filter(experiment_template=exp_template)
-    return rp
-
-def save_reaction_parameters(exp_template, rp_form):
+def save_reaction_parameters(exp_template,rp_value,rp_unit,rp_type,rp_label):
     #for reaction_parameter_label, reaction_parameter_form in reaction_parameter_labels
-    rp_value = rp_form.value
-    rp_unit = rp_form.unit
-    rp_type  = rp_form.type
+    #rp_label might be a list so need to itterate over and pass to this
     rp = ReactionParameter.objects.create(
         experiment_template = exp_template,
         #organization = organization,
         value = rp_value,
         unit = rp_unit,
-        type = rp_type#,
-        #description = 
-        )
+        type = rp_type,
+        description = rp_label
+    )
     return rp
 
+def save_parameter(rp_uuid,rp_value,rp_unit):
+    '''
+    get specific parameter via uuid that was saved as a hidden field. 
+    update the value and unit for the nominal field
+    '''
+    param_q = Parameter.objects.get(uuid=rp_uuid)
+    param_q.nominal_value.value = rp_value
+    param_q.nominal_value.unit = rp_unit
+    param_q.save()
+    return param_q
+    
 def get_reagent_querysets(exp_uuid):
     """[summary]
 

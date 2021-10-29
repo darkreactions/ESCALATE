@@ -74,7 +74,7 @@ class ExperimentTemplateForm(Form):
 
 class ReactionParameterForm(Form):
     value = ValFormField(required=False, label='')
-    description = CharField(widget=HiddenInput)
+    uuid=CharField(widget=HiddenInput())
    
 class ReagentForm(Form):
     widget = Select(attrs={'class': 'selectpicker', 
