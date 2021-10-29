@@ -26,9 +26,9 @@ core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   'MaterialType', 
                   'Person', 'Tag', 'TagType', 'PropertyTemplate', 'UnitType',
                   'TypeDef', 'ParameterDef', 
-                  'WorkflowType', 'WorkflowStep', 
-                  'WorkflowObject', 'UdfDef', 'ExperimentTemplate', 
-                  'ExperimentWorkflow', 'ExperimentType', 
+                  'ActionSequenceType', #'WorkflowStep', 'WorkflowObject', 
+                  'UdfDef', 'ExperimentTemplate', 'ActionSequence',
+                  'ExperimentActionSequence', 'ExperimentType', 
                   'BillOfMaterials',  'Measure', 'MeasureType', 
                   'MeasureDef', 'OutcomeTemplate', 'OutcomeInstance',
                   'Action', 'ActionUnit', 'ActionDef', 'ExperimentInstance',
@@ -49,7 +49,7 @@ GET_only_views = set(['TypeDef'])
 
 unexposed_views = set(['TagAssign', 'Note', 'Edocument', 'Property', 'Parameter'])
 
-custom_serializer_views = set(['Workflow', 'WorkflowActionSet', 'BomMaterial', 'BomCompositeMaterial',])
+custom_serializer_views = set(['BomMaterial', 'BomCompositeMaterial',])
 
 # Viewsets that are not associated with a model exclusively
 #non_model_views = set(['Experiment', 'ExperimentTemplate'])
@@ -101,7 +101,86 @@ expandable_fields = {
                             })
         }
     },
-    'WorkflowObject': {
+    
+
+   
+    'ExperimentTemplate': {
+        'options': {
+            'many_to_many': ['action_sequence']
+        },
+        'fields': {
+            'action_sequence': ('rest_api.ActionSequenceSerializer',
+                     {
+                         'many': True,
+                     }),
+            'bill_of_materials': ('rest_api.BillOfMaterialsSerializer',
+                                {
+                                    'source': 'bom_experiment',
+                                    'many': True,
+                                    'read_only': True,
+                                    'view_name': 'billofmaterials-detail'
+                                }),
+            'outcome_template': ('rest_api.OutcomeTemplateSerializer',
+                        {
+                            'source': 'outcome_experiment',
+                            'many': True,
+                            'read_only': True,
+                            'view_name': 'outcometemplate-detail'
+                        })
+        }
+        
+    },
+
+    'ExperimentInstance': {
+        'options': {
+            'many_to_many': ['action_sequence']
+        },
+        'fields': {
+            'action_sequence': ('rest_api.ActionSequenceSerializer',
+                     {
+                         'many': True,
+                     }),
+            'bill_of_materials': ('rest_api.BillOfMaterialsSerializer',
+                                {
+                                    'source': 'bom_experiment_instance',
+                                    'many': True,
+                                    'read_only': True,
+                                    'view_name': 'billofmaterials-detail'
+                                }),
+            'reagents': ('rest_api.ReagentSerializer', 
+                        {'source': 'reagent_ei',
+                                    'many': True,
+                                    'read_only': True,
+                                    'view_name': 'reagentmaterial-detail'}),
+            'outcome_instance': ('rest_api.OutcomeInstanceSerializer',
+                        {
+                            'source': 'outcome_instance_experiment_instance',
+                            'many': True,
+                            'read_only': True,
+                            'view_name': 'outcomeinstance-detail'
+                        })
+        }
+        
+    }
+
+}
+
+"""
+    'ActionSequence': {
+        'options': {
+            'many_to_many': []
+        },
+        'fields': {
+        'step': ('rest_api.WorkflowStepSerializer',
+                  {
+                      'source': 'workflow_step_workflow',
+                      'many': True,
+                      'read_only': True,
+                      'view_name': 'workflowstep-detail'
+                  })
+        }
+    },
+'WorkflowObject': {
         'options': {
             'many_to_many': []
         },
@@ -125,83 +204,6 @@ expandable_fields = {
                             })
         }
     },
-    'Workflow': {
-        'options': {
-            'many_to_many': []
-        },
-        'fields': {
-        'step': ('rest_api.WorkflowStepSerializer',
-                  {
-                      'source': 'workflow_step_workflow',
-                      'many': True,
-                      'read_only': True,
-                      'view_name': 'workflowstep-detail'
-                  })
-        }
-    },
-   
-    'ExperimentTemplate': {
-        'options': {
-            'many_to_many': ['workflow']
-        },
-        'fields': {
-            'workflow': ('rest_api.WorkflowSerializer',
-                     {
-                         'many': True,
-                     }),
-            'bill_of_materials': ('rest_api.BillOfMaterialsSerializer',
-                                {
-                                    'source': 'bom_experiment',
-                                    'many': True,
-                                    'read_only': True,
-                                    'view_name': 'billofmaterials-detail'
-                                }),
-            'outcome_template': ('rest_api.OutcomeTemplateSerializer',
-                        {
-                            'source': 'outcome_experiment',
-                            'many': True,
-                            'read_only': True,
-                            'view_name': 'outcome-detail'
-                        })
-        }
-        
-    },
-
-    'ExperimentInstance': {
-        'options': {
-            'many_to_many': ['workflow']
-        },
-        'fields': {
-            'workflow': ('rest_api.WorkflowSerializer',
-                     {
-                         'many': True,
-                     }),
-            'bill_of_materials': ('rest_api.BillOfMaterialsSerializer',
-                                {
-                                    'source': 'bom_experiment_instance',
-                                    'many': True,
-                                    'read_only': True,
-                                    'view_name': 'billofmaterials-detail'
-                                }),
-            'reagents': ('rest_api.ReagentSerializer', 
-                        {'source': 'reagent_ei',
-                                    'many': True,
-                                    'read_only': True,
-                                    'view_name': 'reagentmaterial-detail'}),
-            'outcome_instance': ('rest_api.OutcomeInstanceSerializer',
-                        {
-                            'source': 'outcome_instance_experiment_instance',
-                            'many': True,
-                            'read_only': True,
-                            'view_name': 'outcome-detail'
-                        })
-        }
-        
-    }
-
-}
-
-"""
  'ReagentInstance':{
         'options': {
         },

@@ -523,10 +523,10 @@ def generateHitAndRunExperiments(reagents, descriptions, nExpt=96, maxMolarity=9
     """
     
     # convert input volume to microliters, if it isn't already
-    # v=finalVolume.split()
-    # v1=Q_(float(v[0]), v[1]).to(units.ul)
-    # finalVolume=v1.magnitude
-    finalVolume = Q_(finalVolume).to(units.ul)
+    #v=finalVolume.split()
+    v1=Q_(finalVolume).to(units.ul)
+    finalVolume=v1.magnitude
+    # finalVolume = Q_(finalVolume).to(units.ul)
     
     #reagentDefs = generate_vectors(descriptions, reagents) #convert reagent input into proper vector format
     reagentDefs = reagents

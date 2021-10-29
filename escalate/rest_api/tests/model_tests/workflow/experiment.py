@@ -13,8 +13,8 @@ from core.models import (
     ExperimentType,
     TypeDef,
     Actor,
-    Workflow,
-    Experiment
+    ActionSequence,
+    ExperimentTemplate
 )
 
 experiment_test_data = {}
@@ -50,8 +50,8 @@ experiment_tests = [
         {
             'name': 'experiment0',
             'method': POST,
-            'endpoint': 'experiment-list',
-            'body': random_model_dict(Experiment), 
+            'endpoint': 'experimenttemplate-list',
+            'body': random_model_dict(ExperimentTemplate), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -80,9 +80,10 @@ experiment_tests = [
         {
             'name': 'experiment1',
             'method': POST,
-            'endpoint': 'experiment-list',
-            'body': (request_body := random_model_dict(Experiment, experiment_type='experimenttype0__url',
-                                                parent='experiment0__url',
+            'endpoint': 'experimenttemplate-list',
+            'body': (request_body := random_model_dict(ExperimentTemplate, 
+                                                experiment_type='experimenttype0__url',
+                                                #parent='experiment0__url',
                                                 owner='actor0__url',
                                                 operator='actor1__url',
                                                 lab='actor2__url'
@@ -101,7 +102,7 @@ experiment_tests = [
         {
             'name': 'experiment1_get_0',
             'method': GET,
-            'endpoint': 'experiment-detail',
+            'endpoint': 'experimenttemplate-detail',
             'body': {},
             'args': [
                 'experiment1__uuid'
@@ -118,8 +119,8 @@ experiment_tests = [
         {
             'name': 'experiment1_update_0',
             'method': PUT,
-            'endpoint': 'experiment-detail',
-            'body': (request_body := random_model_dict(Experiment)), 
+            'endpoint': 'experimenttemplate-detail',
+            'body': (request_body := random_model_dict(ExperimentTemplate)), 
             'args': [
                 'experiment1__uuid'
             ],
@@ -136,7 +137,7 @@ experiment_tests = [
         {
             'name': 'experiment1_get_1',
             'method': GET,
-            'endpoint': 'experiment-detail',
+            'endpoint': 'experimenttemplate-detail',
             'body': {},
             'args': [
                 'experiment1__uuid'
@@ -153,7 +154,7 @@ experiment_tests = [
         {
             'name': 'experiment1_delete_0',
             'method': DELETE,
-            'endpoint': 'experiment-detail',
+            'endpoint': 'experimenttemplate-detail',
             'body': {},
             'args': [
                 'experiment1__uuid'
@@ -170,7 +171,7 @@ experiment_tests = [
         {
             'name': 'experiment1_get_2',
             'method': GET,
-            'endpoint': 'experiment-detail',
+            'endpoint': 'experimenttemplate-detail',
             'body': {},
             'args': [
                 'experiment1__uuid'

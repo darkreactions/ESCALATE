@@ -13,6 +13,7 @@ from core.models import (
     ActionUnit,
     Action,
     BaseBomMaterial,
+    ActionDef
 )
 
 actionunit_test_data = {}
@@ -30,8 +31,23 @@ actionunit_tests = [
 #deletes the updated systemtooltype
 #gets the systemtooltype (should return error)
     [      
-        *[{
-            'name': name,
+        # *[{
+        #     'name': name,
+        #     'method': POST,
+        #     'endpoint': 'basebommaterial-list',
+        #     'body': random_model_dict(BaseBomMaterial),
+        #     'args': [],
+        #     'query_params': [],
+        #     'is_valid_response': {
+        #         'function': check_status_code,
+        #         'args': [],
+        #         'kwargs': {
+        #             'status_code': POST
+        #         }
+        #     }
+        # } for name in ['basebommaterial0', 'basebommaterial1']],
+        {
+            'name': 'basebommaterial0',
             'method': POST,
             'endpoint': 'basebommaterial-list',
             'body': random_model_dict(BaseBomMaterial),
@@ -44,12 +60,42 @@ actionunit_tests = [
                     'status_code': POST
                 }
             }
-        } for name in ['basebommaterial0', 'basebommaterial1']],
+        },
+        {
+            'name': 'basebommaterial1',
+            'method': POST,
+            'endpoint': 'basebommaterial-list',
+            'body': random_model_dict(BaseBomMaterial),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        },
+        {
+            'name': 'actiondef0',
+            'method': POST,
+            'endpoint': 'actiondef-list',
+            'body': random_model_dict(ActionDef),
+            'args': [],
+            'query_params': [],
+            'is_valid_response': {
+                'function': check_status_code,
+                'args': [],
+                'kwargs': {
+                    'status_code': POST
+                }
+            }
+        },
         *[{
             'name': name,
             'method': POST,
             'endpoint': 'action-list',
-            'body': random_model_dict(Action),
+            'body': random_model_dict(Action, action_def='actiondef0__url'),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -66,7 +112,8 @@ actionunit_tests = [
             'endpoint': 'actionunit-list',
             'body': (request_body := random_model_dict(ActionUnit, action='action0__url',
                                                 source_material='basebommaterial0__url',
-                                                destination_material='basebommaterial1__url')), 
+                                                destination_material='basebommaterial1__url'
+                                                )), 
             'args': [],
             'query_params': [],
             'is_valid_response': {

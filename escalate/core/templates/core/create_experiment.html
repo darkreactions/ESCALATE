@@ -13,9 +13,11 @@
             <form action="{{ reagent_prep_link }}">
               <button class="btn btn-outline-primary" type="submit">Prepare Reagent</button>
             </form>
-            
+            <form action="{{ outcome_link }}">
+              <button class="btn btn-outline-primary" type="submit">Submit Outcomes</button>
+            </form>
             {% if xls_download_link is not None %}
-              <p> <a href={{ xls_download_link }}> Download Excel file </a></p>
+              <p> <a href={{ xls_download_link }}> Download Robot file </a></p>
             {% endif %}
             {% if lsr_download_link is not None %}
               <p> <a href={{ lsr_download_link }}> Download LibraryStudio file </a></p>
@@ -55,16 +57,63 @@
                 {% if automated > 0 %}
                 {{ reagent_formset.management_form }}
                   {% for reagent_form in reagent_formset %}
-                  <div class="card text-white" style="background-color: {% if forloop.counter|divisibleby:2 %}rebeccapurple{% else %}purple{% endif %};" >
+                  <div class="card text-white" style="background-color: {{ colors|index:forloop.counter0 }}" >
                     <div class="card-header ">Reagent {{ forloop.counter }} : {{ reagent_template_names|index:forloop.counter0 }}</div>
                     <div class="card-body ">
                       <!--h5 class="card-title"></h5-->
                       {% crispy reagent_form reagent_formset_helper %}
                     </div>
                   </div>
-                    <br>
-                    
+                    <br>             
                   {% endfor %}
+                 <div class="treeview-animated border mx-3 my-4">
+                      <h6 class="pt-3 pl-3">Vessel Selection for {{ selected_exp_template.description }}</h6>
+                      <hr>
+                      <ul class="treeview-animated-list">
+                          <li class="treeview-animated-items">
+                            <a class="closed">
+                              <i class="fas fa-angle-right"></i>
+                              <span><i class="fas fa-table ic-w mx-1"></i>Vessel</span>
+                            </a>
+                            <ul class="nested">
+                                  {{ vessel_form|crispy }}
+                            </ul>
+                          </li>
+                      </ul>
+                  </div>
+                  <div class="treeview-animated border mx-3 my-4">
+                    <h6 class="pt-3 pl-3">Dead Volume for {{ selected_exp_template.description }}</h6>
+                    <hr>
+                    <ul class="treeview-animated-list">
+                        <li class="treeview-animated-items">
+                          <a class="closed">
+                            <i class="fas fa-angle-right"></i>
+                            <span><i class="fas fa-table ic-w mx-1"></i>Dead Volume</span>
+                          </a>
+                          <ul class="nested">
+                                {{ dead_volume_form|crispy }}
+                          </ul>
+                        </li>
+                    </ul>
+                </div>
+                {{ reaction_parameter_formset.management_form }}
+                <div class="treeview-animated border mx-3 my-4">
+                    <h6 class="pt-3 pl-3">Reaction Parameters for {{ selected_exp_template.description }}</h6>
+                    <hr>
+                    <ul class="treeview-animated-list">
+                    	{% for reaction_parameter_label, reaction_parameter_form in reaction_parameter_labels %}
+                        <li class="treeview-animated-items">
+                          <a class="closed">
+                            <i class="fas fa-angle-right"></i>
+                            <span><i class="fas fa-table ic-w mx-1"></i>{{ reaction_parameter_label }}</span>
+                          </a>
+                          <ul class="nested">
+                                {{ reaction_parameter_form }}
+                          </ul>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
                   <input type="hidden" id="automated" name="automated" value="{{ automated }}">
                 {% endif %}
 
