@@ -36,12 +36,14 @@
         </tr>
     {% endfor %}
     </tbody></table>
+    {{ edoc_upload_form.management_form }}
     <p>Upload New Files: </p>
         {% crispy edoc_upload_form edoc_helper %}
         <button type="submit" name="add_edoc" value="add_edoc" class="btn btn-raised btn-primary">Add File</button>
     </div>
     <br>
     </div>
+    {{ q1_material_details.management_form }}
     <div class="treeview-animated border mx-4 my-4">
         <h6 class="pt-3 pl-3">Material Parameters for {{ experiment.description }}</h6>
         <hr>

@@ -62,6 +62,7 @@ class ExperimentDetailEditView(TemplateView):
         uf = UploadFileForm()
         context['edoc_upload_form'] = uf
         context['edoc_helper'] = uf.get_helper()
+        context['edoc_helper'].form_tag = False
 
         # Materials
         q1_material = BomMaterial.objects.filter(**{experiment_field: experiment}).only(
@@ -79,7 +80,7 @@ class ExperimentDetailEditView(TemplateView):
         context['q1_material_details'] = q1_material_details
 
         # Parameters (Nominal/Actual form)
-        self.get_action_parameter_forms(experiment.uuid, context, template=False)
+        context = self.get_action_parameter_forms(experiment.uuid, context, template=False)
 
         return context
 
@@ -91,15 +92,17 @@ class ExperimentDetailEditView(TemplateView):
         context = self.get_context_data(*args, **kwargs)
         exp = context['experiment']
         if request.POST.get('add_edoc'):
-            f = request.FILES.get('file')
-            e = Edocument.objects.create(description=f.name,
-                                         ref_edocument_uuid=exp.uuid,
-                                         edocument=f.file.read(),
-                                         filename=f.name,
-                                         title=f.name,
-                                         internal_slug=f.name)
-            e.save()
-            return redirect(reverse('experiment_instance_update', args=[exp.uuid]))
+            hasfile = 'file' in request.FILES.keys()
+            if hasfile:
+                f = request.FILES.get('file')
+                e = Edocument.objects.create(description=f.name,
+                                             ref_edocument_uuid=exp.uuid,
+                                             edocument=f.file.read(),
+                                             filename=f.name,
+                                             title=f.name,
+                                             internal_slug=f.name)
+                e.save()
+            #return redirect(reverse('experiment_instance_update', args=[exp.uuid]))
 
         # save queue status and priority
         qs = QueueStatusForm(exp, request.POST)
