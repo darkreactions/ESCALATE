@@ -7,7 +7,7 @@ from django.shortcuts import render, redirect
 from django import forms
 
 from core.forms.forms import UploadEdocForm, UploadFileForm
-from core.models.view_tables import WorkflowActionSet, ExperimentInstance, ExperimentTemplate, BomMaterial, Edocument #ActionParameter
+from core.models.view_tables import ExperimentInstance, ExperimentTemplate, BomMaterial, Edocument #ActionParameter
 from core.forms.custom_types import InventoryMaterialForm, NominalActualForm, QueueStatusForm
 from core.utilities.experiment_utils import get_material_querysets, get_action_parameter_querysets
 from core.models.core_tables import RetUUIDField
