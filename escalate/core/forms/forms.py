@@ -614,14 +614,17 @@ class InventoryMaterialForm(forms.ModelForm):
 class VesselForm(forms.ModelForm):
     class Meta:
         model = Vessel
-        fields = ['plate_name', 'well_number']
+        #fields = ['plate_name', 'well_number']
+        fields = ['description', 'parent']
         field_classes = {
-            'plate_name': forms.CharField,
-            'well_number': forms.CharField,
+            #'plate_name': forms.CharField,
+            #'well_number': forms.CharField,
+            'description': forms.CharField,
         }
         labels = {
-            'plate_name': 'Plate Name',
-            'well_number': 'Well Number',
+            #'plate_name': 'Plate Name',
+            #'well_number': 'Well Number',
+            'description': 'Description'
         }
         widgets = {
             'plate_name': forms.Textarea(attrs={

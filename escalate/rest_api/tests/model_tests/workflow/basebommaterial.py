@@ -134,7 +134,7 @@ basebommaterial_tests = [
             'endpoint': 'basebommaterial-list',
             'body': (request_body := random_model_dict(BaseBomMaterial, bom='billofmaterials0__url',
                                                 inventory_material='inventorymaterial0__url',
-                                                bom_material='bommaterial0__url',
+                                                #bom_material='bommaterial0__url',
                                                 mixture='mixture0__url')), 
             'args': [],
             'query_params': [],
@@ -171,7 +171,7 @@ basebommaterial_tests = [
             'endpoint': 'basebommaterial-detail',
             'body': (request_body := random_model_dict(BaseBomMaterial, bom='billofmaterials1__url',
                                                 inventory_material='inventorymaterial1__url',
-                                                bom_material='bommaterial1__url',
+                                                #bom_material='bommaterial1__url',
                                                 mixture='mixture1__url')), 
             'args': [
                 'basebommaterial0__uuid'

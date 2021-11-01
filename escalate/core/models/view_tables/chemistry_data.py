@@ -42,20 +42,25 @@ class Mixture(DateColumns, StatusColumn, ActorColumn):
 
 class Vessel(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='vessel_uuid')
-    plate_name = models.CharField(max_length = 64, blank=True, null=True)
+    # plate_name = models.CharField(max_length = 64, blank=True, null=True)
     total_volume = models.CharField(max_length=255,blank=True, null=True)
-    dead_volume = models.CharField(max_length=255,blank=True, null=True)
-    #whole plate can leave well_number blank
-    well_number = models.CharField(max_length = 16, blank=True, null=True)
+    # dead_volume = models.CharField(max_length=255,blank=True, null=True)
+    # whole plate can leave well_number blank
+    # well_number = models.CharField(max_length = 16, blank=True, null=True)
+    parent = models.ForeignKey('Vessel', on_delete=models.DO_NOTHING,
+                              blank=True, null=True,
+                              related_name='parent_vessel')
     internal_slug = SlugField(populate_from=[
-                                    'plate_name',
-                                    'well_number'
+                                    #'plate_name',
+                                    #'well_number'
+                                    'description'
                                     ],
                               overwrite=True, 
                               max_length=255)
 
     def __str__(self):
-        return "{}  {}".format(self.plate_name, self.well_number)
+        #return "{}  {}".format(self.plate_name, self.well_number)
+        return self.description
 
 class VesselInstance(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column='vessel_instance_uuid')
