@@ -61,6 +61,7 @@ class Command(BaseCommand):
         self._load_action_unit()
         self._load_reagents_and_outcomes()
         self._create_wf1()
+        self._create_wf3()
         self.stdout.write(self.style.NOTICE('Finished loading load tables'))
         return
 
@@ -140,17 +141,12 @@ class Command(BaseCommand):
         # Create ActionSequence -> Actions -> ActionUnits
         # TODO: Rename ActionSequence to action sequence
         action_sequences = {
-            'Preheat Plate': ActionSequence.objects.create(description='Preheat Plate'),
-            'Prepare stock A': ActionSequence.objects.create(description='Prepare stock A'),
-            'Prepare stock B': ActionSequence.objects.create(description='Prepare stock B'),
-            'Dispense Solvent': ActionSequence.objects.create(description='Dispense Solvent'),
-            'Dispense Stock A': ActionSequence.objects.create(description='Dispense Stock A'),
-            'Dispense Stock B': ActionSequence.objects.create(description='Dispense Stock B'),
-            'Dispense Acid Volume 1': ActionSequence.objects.create(description='Dispense Acid Volume 1'),
-            'Heat stir 1': ActionSequence.objects.create(description='Heat stir 1'),
-            'Dispense Acid Volume 2': ActionSequence.objects.create(description='Dispense Acid Volume 2'),
-            'Heat stir 2': ActionSequence.objects.create(description='Heat stir 2'),
-            'Heat': ActionSequence.objects.create(description='Heat'),
+            'Preheat Temperature (C)': ActionSequence.objects.create(description='Preheat Temperature (C)'),
+            'Mixing time1 (s)': ActionSequence.objects.create(description='Mixing time1 (s)'),
+            'Mixing time2 (s)': ActionSequence.objects.create(description='Mixing time2 (s)'),
+            'Temperature (C)': ActionSequence.objects.create(description='Temperature (C)'),
+            'Stir Rate (rpm)': ActionSequence.objects.create(description='Stir Rate (rpm)'),
+            'Reaction time (s)': ActionSequence.objects.create(description='Reaction time (s)'),
         }
 
         for i, action_seq in enumerate(action_sequences.values()):
@@ -181,40 +177,241 @@ class Command(BaseCommand):
         action_parameter_def = {
             'dispense': ('volume',),
             'bring_to_temperature': ('temperature',),
-            'heat_stir': ('temperature', 'duration', 'speed'),
+            'stir': ('temperature', 'duration', 'speed'),
             'heat': ('temperature', 'duration')
 
         }
         # Action defs it is assumed that action defs are already inserted 
         actions = [ # List of tuples (Description, Action def description, source_bommaterial, destination_bommaterial)
-            ('Preheat Plate', 'bring_to_temperature', (None, None), ('vessel', '96 Well Plate well'), 'Preheat Plate'),
+            #('Preheat Plate', 'bring_to_temperature', (None, None), ('vessel', '96 Well Plate well'), 'Preheat Plate'),
+            ('Preheat Temperature (C)', 'bring_to_temperature', (None, None), ('vessel', '96 Well Plate well'), 'Preheat Temperature (C)'),
             # Prepare stock A
-            ('Add Solvent to Stock A', 'dispense', (None, 'Solvent'), (None, 'Stock A Vial'), 'Prepare stock A'),
-            ('Add Organic to Stock A', 'dispense', (None, 'Organic'), (None, 'Stock A Vial'), 'Prepare stock A'),
-            ('Add Inorganic to Stock A', 'dispense', (None, 'Inorganic'), (None, 'Stock A Vial'), 'Prepare stock A'),
+            #('Add Solvent to Stock A', 'dispense', (None, 'Solvent'), (None, 'Stock A Vial'), 'Prepare stock A'),
+            #('Add Organic to Stock A', 'dispense', (None, 'Organic'), (None, 'Stock A Vial'), 'Prepare stock A'),
+            #('Add Inorganic to Stock A', 'dispense', (None, 'Inorganic'), (None, 'Stock A Vial'), 'Prepare stock A'),
             # Prepare stock B
-            ('Add Solvent to Stock B', 'dispense', (None, 'Solvent'), (None, 'Stock B Vial'), 'Prepare stock B'),
-            ('Add Organic to Stock B', 'dispense', (None, 'Organic'), (None, 'Stock B Vial'), 'Prepare stock B'),
+            #('Add Solvent to Stock B', 'dispense', (None, 'Solvent'), (None, 'Stock B Vial'), 'Prepare stock B'),
+            #('Add Organic to Stock B', 'dispense', (None, 'Organic'), (None, 'Stock B Vial'), 'Prepare stock B'),
             # Dispense Solvent to vials
-            ('Dispense Solvent', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Solvent'),
+            #('Dispense Solvent', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Solvent'),
             # Dispense Stock A to vials
-            ('Dispense Stock A', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Stock A'),
+            #('Dispense Stock A', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Stock A'),
             # Dispense Stock B to vials
-            ('Dispense Stock B', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Stock B'),
+            #('Dispense Stock B', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Stock B'),
             # Dispense Acid Vol 1
-            ('Dispense Acid Vol 1', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Acid Volume 1'),
+            #('Dispense Acid Vol 1', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Acid Volume 1'),
             # Heat stir 1
-            ('Heat stir 1', 'heat_stir', (None, None), ('vessel', '96 Well Plate well'), 'Heat stir 1'),
+            #('Heat stir 1', 'heat_stir', (None, None), ('vessel', '96 Well Plate well'), 'Heat stir 1'),
+            ('Mixing time1 (s)', 'stir', (None, None), ('vessel', '96 Well Plate well'), 'Mixing time1 (s)'),
             # Dispense Acid Vol 2
-            ('Dispense Acid Vol 2', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Acid Volume 2'),
+            #('Dispense Acid Vol 2', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Acid Volume 2'),
             # Heat stir 2
-            ('Heat stir 2', 'heat_stir', (None, None), ('vessel', '96 Well Plate well'), 'Heat stir 2'),
+            #('Heat stir 2', 'heat_stir', (None, None), ('vessel', '96 Well Plate well'), 'Heat stir 2'),
+            ('Mixing time2 (s)', 'stir', (None, None), ('vessel', '96 Well Plate well'), 'Mixing time2 (s)'),
             # Heat
-            ('Heat', 'heat', (None, None), ('vessel', '96 Well Plate well'), 'Heat'),
+            #('Heat', 'heat', (None, None), ('vessel', '96 Well Plate well'), 'Heat'),
+            ('Temperature (C)', 'heat', (None, None), ('vessel', '96 Well Plate well'), 'Temperature (C)'),
+            ('Stir Rate (rpm)', 'stir', (None, None), ('vessel', '96 Well Plate well'), 'Stir Rate (rpm)'),
+            ('Reaction time (s)', 'stir', (None, None), ('vessel', '96 Well Plate well'), 'Reaction time (s)'),
         ]
         
+        for action_tuple in actions:
+            action_desc, action_def_desc, (source_col, source_desc), (dest_col, dest_desc), action_seq = action_tuple
+            action_def, created = ActionDef.objects.get_or_create(description=action_def_desc)
+            action = Action(description=action_desc, action_def=action_def, action_sequence=action_sequences[action_seq])
+            action.save()
+            for param_def_desc in action_parameter_def[action_def_desc]:
+                param, created = ParameterDef.objects.get_or_create(description=param_def_desc, default_val=Val.from_dict({'value': 0, 'unit':'uL', 'type':'num'}))
+                action.parameter_def.add(param)
+            
+            if source_desc is not None:
+                source_bbm = BaseBomMaterial.objects.create(description=source_desc, )
+            else:
+                source_bbm = None
+            
+            if dest_col=='vessel':
+                if isinstance(dest_desc, dict):
+                    for well in dest_desc.values():
+                        dest_bbm = BaseBomMaterial.objects.create(description=f'{plate.description} : {well.description}', vessel=well)
+                        if source_bbm:
+                            description = f'{action.description} : {source_bbm.description} -> {dest_bbm.description}'
+                        else:
+                            description = f'{action.description} : {dest_bbm.description}'
+                        ActionUnit.objects.create(action=action, 
+                                                  source_material=source_bbm,
+                                                  destination_material=dest_bbm,
+                                                  description=description)
+                else:
+                    dest_bbm = BaseBomMaterial.objects.create(description=plate.description, vessel=plate)
+                    if source_bbm:
+                        description = f'{action.description} : {source_bbm.description} -> {dest_bbm.description}'
+                    else:
+                        description = f'{action.description} : {dest_bbm.description}'
+                    ActionUnit.objects.create(action=action, source_material=source_bbm,
+                                    description=description,
+                                    destination_material=dest_bbm)
+                    
+            elif dest_col is None:
+                dest_bbm = BaseBomMaterial.objects.create(description=dest_desc)
+                if source_bbm:
+                    description = f'{action.description} : {source_bbm.description} -> {dest_bbm.description}'
+                else:
+                    description = f'{action.description} : {dest_bbm.description}'
+                au = ActionUnit(action=action, source_material=source_bbm,
+                                description=description,
+                                        destination_material=dest_bbm)
+                au.save()
 
+    def _create_wf3(self):
+        # Get the lab related to this template
+        lab = Actor.objects.get(description='Haverford College', 
+                                person__isnull=True, systemtool__isnull=True)
 
+        # Create the experiment
+        exp_template = ExperimentTemplate(description='Workflow 3', 
+                                          ref_uid='workflow_3',
+                                          lab=lab,)
+        exp_template.save()
+
+        reagents = {'organic, solvent':['organic', 'solvent'], 
+                    'Pure acid':['acid'], 
+                    'inorganic, organic, solvent':['inorganic', 'organic', 'solvent'], 
+                    'Pure Solvent':['solvent']}
+        
+        # Vals for each default value
+        volume_val = {'value': 0, 'unit':'ml', 'type':'num'}
+        dead_vol_val = {'value': 4000, 'unit':'uL', 'type':'num'}
+        amount_val = {'value': 0, 'unit':'gm', 'type':'num'}
+        conc_val = {'value': 0, 'unit':'M', 'type':'num'}
+        crystal_score_val = {'value': 0, 'unit':'', 'type':'int'}
+
+        #Create default values
+        default_volume, created = DefaultValues.objects.get_or_create(**{'description':'Zero ml', 
+                                                              'nominal_value': volume_val,
+                                                              'actual_value': volume_val
+                                                              })
+        default_dead_volume, created = DefaultValues.objects.get_or_create(**{'description':'WF3 dead volume', 
+                                                              'nominal_value': dead_vol_val,
+                                                              'actual_value': dead_vol_val
+                                                              })
+        default_amount, created = DefaultValues.objects.get_or_create(**{'description':'Zero gm', 
+                                                              'nominal_value': amount_val,
+                                                              'actual_value': amount_val})
+        default_conc, created = DefaultValues.objects.get_or_create(**{'description':'Zero M', 
+                                                              'nominal_value': conc_val,
+                                                              'actual_value': conc_val})
+        default_crystal_score, created = DefaultValues.objects.get_or_create(**{'description':'Zero Crystal score', 
+                                                              'nominal_value': crystal_score_val,
+                                                              'actual_value': crystal_score_val})
+
+        # Concentration and amount data to be stored for each reagent material
+        reagent_values = {'concentration': default_conc, 'amount': default_amount}
+        
+        # Create total volume and dead volume property templates for each reagent
+        total_volume_prop, created = PropertyTemplate.objects.get_or_create(**{"description": "total volume",
+                                                                    "property_def_class": "extrinsic",
+                                                                    "short_description": "volume",
+                                                                    "default_value":default_volume})
+        dead_volume_prop, created = PropertyTemplate.objects.get_or_create(**{"description": "dead volume",
+                                                                    "property_def_class": "extrinsic",
+                                                                    "short_description": "dead volume",
+                                                                    "default_value":default_dead_volume})
+        
+        # Loop through each reagent in reagents dict and create ReagentTemplates, 
+        # corresponding ReagentMaterialTemplates and their Value Templates (ReagentMaterialValueTemplate)
+        for r, rms in reagents.items():
+            reagent_template, created = ReagentTemplate.objects.get_or_create(description=r,)
+            reagent_template.properties.add(total_volume_prop)
+            reagent_template.properties.add(dead_volume_prop)
+            exp_template.reagent_templates.add(reagent_template)
+            for rm in rms:
+                self.stdout.write(self.style.NOTICE(f'{rm}'))
+                material_type = MaterialType.objects.get(description=rm)
+                reagent_material_template, created = ReagentMaterialTemplate.objects.get_or_create(**{'description':f'{r}: {rm}', 
+                                                                                                    'reagent_template':reagent_template,
+                                                                                                    'material_type':material_type})
+                
+                for rv, default in reagent_values.items():
+                    rmv_template, created = ReagentMaterialValueTemplate.objects.get_or_create(**{'description':rv,
+                                                                                       'reagent_material_template':reagent_material_template,
+                                                                                  'default_value':default})
+        # Create ActionSequence -> Actions -> ActionUnits
+        # TODO: Change for WF3
+        action_sequences = {
+            'Preheat Temperature (C)': ActionSequence.objects.create(description='Preheat Temperature (C)'),
+            'Mixing time1 (s)': ActionSequence.objects.create(description='Mixing time1 (s)'),
+            'Mixing time2 (s)': ActionSequence.objects.create(description='Mixing time2 (s)'),
+            'Temperature (C)': ActionSequence.objects.create(description='Temperature (C)'),
+            'Stir Rate (rpm)': ActionSequence.objects.create(description='Stir Rate (rpm)'),
+            'Reaction time (s)': ActionSequence.objects.create(description='Reaction time (s)'),
+        }
+
+        for i, action_seq in enumerate(action_sequences.values()):
+            ac_sq = ExperimentActionSequence(experiment_template=exp_template, 
+                                       experiment_action_sequence_seq=i,
+                                       action_sequence=action_seq)
+            ac_sq.save()
+
+        column_order='ACEGBDFH'
+        rows = 12
+        well_list = [f'{col}{row}' for row in range(1, rows+1) for col in column_order]
+        plate = Vessel.objects.get(description='96 Well Plate well')
+        # Dictionary of plate wells so that we don't keep accessing the database
+        # multiple times
+        plate_wells = {}
+        for well in well_list:
+            plate_wells[well] = Vessel.objects.get(parent=plate, description=well)
+
+        # Create outcome templates, Currently hard coded to capture 96 values
+        
+        ot, created = OutcomeTemplate.objects.get_or_create(description = 'Crystal score', 
+                                              experiment = exp_template,
+                                              instance_labels = well_list,
+                                              default_value = default_crystal_score)
+        ot.save()
+        exp_template.outcome_templates.add(ot)
+
+        action_parameter_def = {
+            'dispense': ('volume',),
+            'bring_to_temperature': ('temperature',),
+            'stir': ('temperature', 'duration', 'speed'),
+            'heat': ('temperature', 'duration')
+
+        }
+        # Action defs it is assumed that action defs are already inserted 
+        actions = [ # List of tuples (Description, Action def description, source_bommaterial, destination_bommaterial)
+            #('Preheat Plate', 'bring_to_temperature', (None, None), ('vessel', '96 Well Plate well'), 'Preheat Plate'),
+            ('Preheat Temperature (C)', 'bring_to_temperature', (None, None), ('vessel', '96 Well Plate well'), 'Preheat Temperature (C)'),
+            # Prepare stock A
+            #('Add Solvent to Stock A', 'dispense', (None, 'Solvent'), (None, 'Stock A Vial'), 'Prepare stock A'),
+            #('Add Organic to Stock A', 'dispense', (None, 'Organic'), (None, 'Stock A Vial'), 'Prepare stock A'),
+            #('Add Inorganic to Stock A', 'dispense', (None, 'Inorganic'), (None, 'Stock A Vial'), 'Prepare stock A'),
+            # Prepare stock B
+            #('Add Solvent to Stock B', 'dispense', (None, 'Solvent'), (None, 'Stock B Vial'), 'Prepare stock B'),
+            #('Add Organic to Stock B', 'dispense', (None, 'Organic'), (None, 'Stock B Vial'), 'Prepare stock B'),
+            # Dispense Solvent to vials
+            #('Dispense Solvent', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Solvent'),
+            # Dispense Stock A to vials
+            #('Dispense Stock A', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Stock A'),
+            # Dispense Stock B to vials
+            #('Dispense Stock B', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Stock B'),
+            # Dispense Acid Vol 1
+            #('Dispense Acid Vol 1', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Acid Volume 1'),
+            # Heat stir 1
+            #('Heat stir 1', 'heat_stir', (None, None), ('vessel', '96 Well Plate well'), 'Heat stir 1'),
+            ('Mixing time1 (s)', 'stir', (None, None), ('vessel', '96 Well Plate well'), 'Mixing time1 (s)'),
+            # Dispense Acid Vol 2
+            #('Dispense Acid Vol 2', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Acid Volume 2'),
+            # Heat stir 2
+            #('Heat stir 2', 'heat_stir', (None, None), ('vessel', '96 Well Plate well'), 'Heat stir 2'),
+            ('Mixing time2 (s)', 'stir', (None, None), ('vessel', '96 Well Plate well'), 'Mixing time2 (s)'),
+            # Heat
+            #('Heat', 'heat', (None, None), ('vessel', '96 Well Plate well'), 'Heat'),
+            ('Temperature (C)', 'heat', (None, None), ('vessel', '96 Well Plate well'), 'Temperature (C)'),
+            ('Stir Rate (rpm)', 'stir', (None, None), ('vessel', '96 Well Plate well'), 'Stir Rate (rpm)'),
+            ('Reaction time (s)', 'stir', (None, None), ('vessel', '96 Well Plate well'), 'Reaction time (s)'),
+        ]
+        
         for action_tuple in actions:
             action_desc, action_def_desc, (source_col, source_desc), (dest_col, dest_desc), action_seq = action_tuple
             action_def, created = ActionDef.objects.get_or_create(description=action_def_desc)
@@ -542,7 +739,6 @@ class Command(BaseCommand):
                 f'Updated molecular weight and density for materials'))
    
             self.stdout.write(self.style.NOTICE('Finished loading chem'))
-            
 
     def _load_material_identifier(self):
         self.stdout.write(self.style.NOTICE(
