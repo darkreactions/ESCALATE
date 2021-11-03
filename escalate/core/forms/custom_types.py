@@ -1,13 +1,29 @@
 from core.widgets import ValWidget
 from django.forms import (Select, Form, ModelChoiceField, HiddenInput, 
                           CharField, ChoiceField, IntegerField, BaseFormSet, BaseModelFormSet,
-                          ModelForm)
+                          ModelForm, FileField)
 from core.models.core_tables import TypeDef
 import core.models.view_tables as vt
 from core.widgets import ValFormField
 from .forms import dropdown_attrs
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column, Hidden, Field
+
+class UploadFileForm(Form):
+    # title = CharField(max_length=50)
+    file = FileField(label='Upload completed robot file')
+
+    @staticmethod
+    def get_helper():
+        helper = FormHelper()
+        helper.form_class = 'form-horizontal'
+        helper.label_class = 'col-lg-2'
+        helper.field_class = 'col-lg-8'
+        helper.layout = Layout(
+            Row(Column(Field('file'))),
+            Row(Column(Submit('robot_upload', 'Submit'))),
+        )
+        return helper
 
 class SingleValForm(Form):
     value = ValFormField(required=False)
