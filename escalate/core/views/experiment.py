@@ -14,6 +14,8 @@ from django.urls import reverse, reverse_lazy
 
 from django.views.generic.detail import DetailView
 from django.http import HttpResponseRedirect
+import pandas as pd
+#from core.models.view_tables.generic_data import File
 
 from core.models.view_tables import (ExperimentTemplate, 
                                      ExperimentInstance, Edocument, 
@@ -30,7 +32,8 @@ from core.utilities.experiment_utils import (update_dispense_action_set,
                                              get_action_parameter_querysets, 
                                              get_material_querysets, 
                                              supported_wfs, get_reagent_querysets,
-                                             prepare_reagents, generate_experiments_and_save, get_vessel_querysets)
+                                             prepare_reagents, generate_experiments_and_save, get_vessel_querysets,
+                                             save_manual_volumes)
 
 import core.models
 from core.models.view_tables import Note, TagAssign, Tag
@@ -38,6 +41,8 @@ from core.custom_types import Val
 import core.experiment_templates
 from core.models.view_tables import Parameter
 from core.widgets import ValWidget
+from core.utilities.wf1_utils import generate_robot_file
+from core.utilities.experiment_utils import get_action_parameter_querysets
 
 
 #from escalate.core.widgets import ValFormField
@@ -198,7 +203,8 @@ class CreateExperimentView(TemplateView):
         else:
             org_id = None
         context['experiment_template_select_form'] = ExperimentTemplateForm(org_id=org_id)
-
+        #context['robot_file_upload_form'] = UploadFileForm()
+        #context['robot_file_upload_form_helper'] = UploadFileForm.get_helper()
         return render(request, self.template_name, context)
 
 
@@ -216,7 +222,8 @@ class CreateExperimentView(TemplateView):
 
                 if context['manual']:
                     context = self.get_material_forms(exp_uuid, context)
-                
+                    context['robot_file_upload_form'] = UploadFileForm()
+                    context['robot_file_upload_form_helper'] = UploadFileForm.get_helper()
                 if context['automated']:
                     context = self.get_reagent_forms(context['selected_exp_template'], context)
             else:
@@ -225,12 +232,50 @@ class CreateExperimentView(TemplateView):
         elif 'create_exp' in request.POST:
             if "automated" in request.POST:
                 context = self.process_automated_formsets(request, context)
-            else:
-                context = self.process_formsets(request, context)
-            # end: create experiment
+            #elif "manual" in request.POST:
+                #context=self.process_robot_formsets(request.session['experiment_template_uuid'], request, context)
+        elif "robot_download" in request.POST:
+            return self.download_robot_file(request.session['experiment_template_uuid'])
+        elif "robot_upload" in request.POST:
+            #return self.process_robot_formsets(request.session['experiment_template_uuid'], request, context)
+            context=self.process_robot_formsets(request.session['experiment_template_uuid'], request, context)
         return render(request, self.template_name, context)
-    # end: self.post()
+    
+    #def process_robot_file(self, df):
+        #data= df.to_html()
+        #data.save()
+        #return HttpResponse(data)
 
+    def download_robot_file(self, exp_uuid):
+        q1=get_action_parameter_querysets(exp_uuid) #volumes
+        f=generate_robot_file(q1, {}, 'Symyx_96_well_0003', 96)
+        response = FileResponse(f, as_attachment=True,
+                        filename=f'robot_{exp_uuid}.xls')
+        return response
+        
+    def process_robot_formsets(self, exp_uuid, request, context):
+        context['robot_file_upload_form'] = UploadFileForm()
+        context['robot_file_upload_form_helper'] = UploadFileForm.get_helper()
+
+        exp_name_form = ExperimentNameForm(request.POST)
+        if exp_name_form.is_valid():
+            #experiment name
+            exp_name = exp_name_form.cleaned_data['exp_name']
+            
+            # make the experiment copy: this will be our new experiment
+            experiment_copy_uuid = experiment_copy(str(exp_uuid), exp_name)
+        
+        df = pd.read_excel(request.FILES['file'])
+        #self.process_robot_file(df)
+        save_manual_volumes(df, experiment_copy_uuid)
+        
+        context['experiment_link'] = reverse('experiment_instance_view', args=[experiment_copy_uuid])
+        #context['reagent_prep_link'] = reverse('reagent_prep', args=[experiment_copy_uuid])
+        context['outcome_link'] = reverse('outcome', args=[experiment_copy_uuid])
+        context['new_exp_name'] = exp_name
+        
+        return context
+    
     def save_forms_q1(self, queries, formset, fields):
         """Saves custom formset into queries
 
