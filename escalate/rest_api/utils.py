@@ -26,9 +26,9 @@ core_views = set(['Actor', 'Organization', 'Status', 'Systemtool',
                   'MaterialType', 
                   'Person', 'Tag', 'TagType', 'PropertyTemplate', 'UnitType',
                   'TypeDef', 'ParameterDef', 
-                  'WorkflowType', 'WorkflowStep', 
-                  'WorkflowObject', 'UdfDef', 'ExperimentTemplate', 
-                  'ExperimentWorkflow', 'ExperimentType', 
+                  'ActionSequenceType', #'WorkflowStep', 'WorkflowObject', 
+                  'UdfDef', 'ExperimentTemplate', 'ActionSequence',
+                  'ExperimentActionSequence', 'ExperimentType', 
                   'BillOfMaterials',  'Measure', 'MeasureType', 
                   'MeasureDef', 'OutcomeTemplate', 'OutcomeInstance',
                   'Action', 'ActionUnit', 'ActionDef', 'ExperimentInstance',
@@ -49,7 +49,7 @@ GET_only_views = set(['TypeDef'])
 
 unexposed_views = set(['TagAssign', 'Note', 'Edocument', 'Property', 'Parameter'])
 
-custom_serializer_views = set(['Workflow', 'WorkflowActionSet', 'BomMaterial', 'BomCompositeMaterial',])
+custom_serializer_views = set(['BomMaterial', 'BomCompositeMaterial',])
 
 # Viewsets that are not associated with a model exclusively
 #non_model_views = set(['Experiment', 'ExperimentTemplate'])
@@ -101,51 +101,15 @@ expandable_fields = {
                             })
         }
     },
-    'WorkflowObject': {
-        'options': {
-            'many_to_many': []
-        },
-        'fields': {
-        'action': ('rest_api.ActionSerializer',
-                    {
-                        'read_only': True,
-                        'view_name': 'action-detail'
-                    })
-        }
-    },
-    'WorkflowStep': {
-        'options': {
-            'many_to_many': ['workflow']
-        },
-        'fields': {
-        'workflow_object': ('rest_api.WorkflowObjectSerializer',
-                            {
-                                'read_only': True,
-                                'view_name': 'workflowobject-detail'
-                            })
-        }
-    },
-    'Workflow': {
-        'options': {
-            'many_to_many': []
-        },
-        'fields': {
-        'step': ('rest_api.WorkflowStepSerializer',
-                  {
-                      'source': 'workflow_step_workflow',
-                      'many': True,
-                      'read_only': True,
-                      'view_name': 'workflowstep-detail'
-                  })
-        }
-    },
+    
+
    
     'ExperimentTemplate': {
         'options': {
-            'many_to_many': ['workflow']
+            'many_to_many': ['action_sequence']
         },
         'fields': {
-            'workflow': ('rest_api.WorkflowSerializer',
+            'action_sequence': ('rest_api.ActionSequenceSerializer',
                      {
                          'many': True,
                      }),
@@ -169,10 +133,10 @@ expandable_fields = {
 
     'ExperimentInstance': {
         'options': {
-            'many_to_many': ['workflow']
+            'many_to_many': ['action_sequence']
         },
         'fields': {
-            'workflow': ('rest_api.WorkflowSerializer',
+            'action_sequence': ('rest_api.ActionSequenceSerializer',
                      {
                          'many': True,
                      }),
@@ -202,6 +166,44 @@ expandable_fields = {
 }
 
 """
+    'ActionSequence': {
+        'options': {
+            'many_to_many': []
+        },
+        'fields': {
+        'step': ('rest_api.WorkflowStepSerializer',
+                  {
+                      'source': 'workflow_step_workflow',
+                      'many': True,
+                      'read_only': True,
+                      'view_name': 'workflowstep-detail'
+                  })
+        }
+    },
+'WorkflowObject': {
+        'options': {
+            'many_to_many': []
+        },
+        'fields': {
+        'action': ('rest_api.ActionSerializer',
+                    {
+                        'read_only': True,
+                        'view_name': 'action-detail'
+                    })
+        }
+    },
+    'WorkflowStep': {
+        'options': {
+            'many_to_many': ['workflow']
+        },
+        'fields': {
+        'workflow_object': ('rest_api.WorkflowObjectSerializer',
+                            {
+                                'read_only': True,
+                                'view_name': 'workflowobject-detail'
+                            })
+        }
+    },
  'ReagentInstance':{
         'options': {
         },

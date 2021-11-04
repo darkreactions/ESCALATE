@@ -11,7 +11,7 @@ from ..model_tests_utils import (
 )
 from core.models import (
     BillOfMaterials,
-    Experiment
+    ExperimentTemplate
 )
 
 billofmaterials_test_data = {}
@@ -30,8 +30,8 @@ billofmaterials_tests = [
         {
             'name': 'experiment0',
             'method': POST,
-            'endpoint': 'experiment-list',
-            'body': random_model_dict(Experiment),
+            'endpoint': 'experimenttemplate-list',
+            'body': random_model_dict(ExperimentTemplate),
             'args': [],
             'query_params': [],
             'is_valid_response': {

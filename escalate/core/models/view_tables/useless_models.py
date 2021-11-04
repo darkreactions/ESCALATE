@@ -554,3 +554,95 @@ class MaterialEditView(TemplateView):
 
             context['experiment'] = experiment
         return context
+
+class WorkflowActionSet(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
+                        db_column='workflow_action_set_uuid')
+    action_sequence = models.ForeignKey('ActionSequence', models.CASCADE,
+                                 blank=True, null=True,
+                                 db_column='workflow_uuid',
+                                 related_name='workflow_action_set_workflow')
+    action_def = models.ForeignKey('ActionDef', models.CASCADE,
+                                   blank=True, null=True,
+                                   db_column='action_def_uuid',
+                                   related_name='workflow_action_set_action_def')
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    duration = models.FloatField()
+    repeating = models.BigIntegerField()
+    parameter_def = models.ForeignKey('ParameterDef', models.CASCADE,
+                                      blank=True, null=True,
+                                      db_column='parameter_def_uuid',
+                                      related_name='workflow_action_set_parameter_def')
+    parameter_val_nominal = CustomArrayField(ValField(),
+                                             blank=True, null=True,
+                                             db_column='parameter_val')
+    parameter_val_actual = CustomArrayField(ValField(),
+                                            blank=True, null=True,
+                                            db_column='parameter_val_actual')
+    #calculation = models.ForeignKey('Calculation', models.CASCADE,
+    #                                blank=True, null=True,
+    #                                db_column='calculation_uuid',
+    #                                related_name='workflow_action_set_calculation')
+    source_material = ArrayField(RetUUIDField(
+        blank=True, null=True), db_column='source_uuid')
+    destination_material = ArrayField(RetUUIDField(
+        blank=True, null=True), db_column='destination_uuid')
+
+
+class WorkflowStep(DateColumns, StatusColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
+                        db_column='workflow_step_uuid')
+    action_sequence = models.ForeignKey('ActionSequence', models.CASCADE,
+                                 db_column='workflow_uuid',
+                                 related_name='workflow_step_workflow')
+    '''
+    workflow_action_set = models.ForeignKey('WorkflowActionSet', models.CASCADE,
+                                 db_column='workflow_action_set_uuid',
+                                 related_name='workflow_step_workflow_action_set', 
+                                 null=True, blank=True)
+    '''
+    action = models.ForeignKey('Action', models.CASCADE,
+                           blank=True, null=True, 
+                           db_column='action_uuid', related_name='workflow_step_action') 
+    parent = models.ForeignKey('ActionSequence', models.CASCADE,
+                               blank=True, null=True,
+                               db_column='parent_uuid', related_name='workflow_step_parent')
+
+    parent_path = models.CharField(max_length=255,
+                                   blank=True,
+                                   null=True,
+                                   editable=False)
+    workflow_object = models.ForeignKey('WorkflowObject', models.CASCADE,
+                                        db_column='workflow_object_uuid', related_name='workflow_step_workflow_object')
+    internal_slug = SlugField(populate_from=[
+                                    'workflow__internal_slug',
+                                    'action__internal_slug'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)
+
+
+class WorkflowObject(DateColumns, StatusColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
+                        db_column='workflow_object_uuid')
+    action_sequence = models.ForeignKey('ActionSequence', models.CASCADE,
+                                 blank=True, null=True,
+                                 db_column='workflow_uuid', related_name='workflow_object_workflow')
+    action = models.ForeignKey('Action', models.CASCADE,
+                               blank=True, null=True,
+                               db_column='action_uuid', related_name='workflow_object_action')
+    #condition = models.ForeignKey('Condition', models.CASCADE,
+    #                              blank=True, null=True,
+    #                              db_column='condition_uuid', related_name='workflow_object_condition')
+    workflow_action_set = models.ForeignKey('WorkflowActionSet', models.CASCADE,
+                                            blank=True, null=True,
+                                            db_column='workflow_action_set_uuid',
+                                            related_name='workflow_object_workflow_action_set')
+    internal_slug = SlugField(populate_from=[
+                                    'workflow__internal_slug',
+                                    'action__internal_slug',
+                                    'condition__internal_slug'
+                                    ],
+                              overwrite=True, 
+                              max_length=255)

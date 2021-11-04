@@ -4,7 +4,7 @@ Created on Mar 30, 2021
 @author: jpannizzo
 '''
 from core.utilities.experiment_utils import update_lsr_edoc
-from core.models.view_tables import WorkflowActionSet, Edocument
+from core.models.view_tables import Edocument
 
 def resin_weighing(data, q1, experiment_copy_uuid, exp_name, exp_template):
     '''

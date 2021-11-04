@@ -10,11 +10,11 @@ from ..model_tests_utils import (
     compare_data,
 )
 from core.models import (
-    Workflow,
-    WorkflowObject,
+    ActionSequence,
+    ActionSequenceObject,
 )
 
-workflowobject_test_data = {}
+actionsequenceobject_test_data = {}
 
 workflowobject_tests = [
 
@@ -33,7 +33,7 @@ workflowobject_tests = [
             'name': name,
             'method': POST,
             'endpoint': 'workflow-list',
-            'body': random_model_dict(Workflow),
+            'body': random_model_dict(ActionSequence),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -48,7 +48,7 @@ workflowobject_tests = [
             'name': 'workflowobject0',
             'method': POST,
             'endpoint': 'workflowobject-list',
-            'body': (request_body := random_model_dict(WorkflowObject, workflow='workflow0__url')), 
+            'body': (request_body := random_model_dict(ActionSequenceObject, workflow='workflow0__url')), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -82,7 +82,7 @@ workflowobject_tests = [
             'name': 'workflowobject0_update_0',
             'method': PUT,
             'endpoint': 'workflowobject-detail',
-           'body': (request_body := random_model_dict(WorkflowObject, workflow='workflow1__url' )), 
+           'body': (request_body := random_model_dict(ActionSequenceObject, workflow='workflow1__url' )), 
             'args': [
                 'workflowobject0__uuid'
             ],
