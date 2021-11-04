@@ -53,7 +53,9 @@ class Vessel(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     internal_slug = SlugField(populate_from=[
                                     #'plate_name',
                                     #'well_number'
-                                    'description'
+                                    'description',
+                                    "total_volume",
+                                    "parent__description"
                                     ],
                               overwrite=True, 
                               max_length=255)

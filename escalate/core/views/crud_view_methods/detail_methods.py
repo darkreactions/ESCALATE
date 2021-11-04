@@ -195,10 +195,11 @@ methods = {
     # },
     'Vessel': {
         'model': core.models.view_tables.Vessel,
-        'detail_fields': ['Plate Name', 'Well Number', 'Status', 'Date Added','Last Modified'],
+        'detail_fields': ['Description', 'Parent', "Total Volume", 'Status', 'Date Added','Last Modified'],
         'detail_fields_need_fields': {
-            'Plate Name': ['plate_name'],
-            'Well Number': ['well_number'],
+            'Description': ['description'],
+            'Parent': ['parent.description'],
+            "Total Volume": ["total_volume"],
             'Status': ['status.description'],
             'Date Added': ['add_date'],
             'Last Modified': ['mod_date'],
