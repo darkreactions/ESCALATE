@@ -461,11 +461,12 @@ class Command(BaseCommand):
 
     def _load_reagents_and_outcomes(self):
         exp_template = ExperimentTemplate.objects.get(description='perovskite_demo')
-        # Dictionary of reagent name keys and chemical types values
-        reagents = {'organic, solvent':['organic', 'solvent'], 
-                    'Pure acid':['acid'], 
-                    'inorganic, organic, solvent':['inorganic', 'organic', 'solvent'], 
-                    'Pure Solvent':['solvent']}
+
+        reagents = {'Reagent 3 - Stock B':['organic', 'solvent'], 
+                    'Reagent 7 - Acid':['acid'], 
+                    'Reagent 2 - Stock A':['inorganic', 'organic', 'solvent'], 
+                    'Reagent 1 - Solvent':['solvent']}
+
         
         # Vals for each default value
         volume_val = {'value': 0, 'unit':'ml', 'type':'num'}

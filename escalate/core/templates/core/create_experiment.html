@@ -58,7 +58,7 @@
                 {{ reagent_formset.management_form }}
                   {% for reagent_form in reagent_formset %}
                   <div class="card text-white" style="background-color: {{ colors|index:forloop.counter0 }}" >
-                    <div class="card-header ">Reagent {{ forloop.counter }} : {{ reagent_template_names|index:forloop.counter0 }}</div>
+                    <div class="card-header ">{{ reagent_template_names|index:forloop.counter0 }}</div>
                     <div class="card-body ">
                       <!--h5 class="card-title"></h5-->
                       {% crispy reagent_form reagent_formset_helper %}

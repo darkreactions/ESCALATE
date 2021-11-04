@@ -535,6 +535,7 @@ class ExperimentReagentPrepView(TemplateView):
     def get_reagent_forms(self, experiment, context):
         formsets = []
         reagent_names = []
+        reagent_template_names = []
         reagent_total_volume_forms = []
         form_kwargs = {
                 'disabled_fields': ['material', 'material_type', 'nominal_value'],
@@ -549,6 +550,7 @@ class ExperimentReagentPrepView(TemplateView):
         
         #for index, reagent_template in enumerate(reagent_templates):
         for index, reagent in enumerate(experiment.reagent_ei.all()):
+            reagent_template_names.append(reagent.template.description)
             reagent_materials = reagent.reagent_material_r.filter(reagent_material_value_rmi__description='amount')
                                                                   #  template__reagent_template=)
             property = reagent.property_r.get(property_template__description__iexact='total volume')
@@ -571,6 +573,7 @@ class ExperimentReagentPrepView(TemplateView):
             formsets.append(fset)
 
         context['reagent_formsets'] = zip(formsets, reagent_total_volume_forms)
+        context['reagent_template_names']=reagent_template_names
         context['colors'] = self.get_colors(len(formsets))
         
         return context
