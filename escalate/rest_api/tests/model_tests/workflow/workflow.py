@@ -10,31 +10,31 @@ from ..model_tests_utils import (
     compare_data
 )
 from core.models import (
-    WorkflowType,
-    Experiment,
-    Workflow
+    ActionSequenceType,
+    ExperimentTemplate,
+    ActionSequence
 )
 
-workflow_test_data = {}
+actionsequence_test_data = {}
 
-workflow_tests = [
+actionsequence_tests = [
 
 ##----TEST 0----##
 #creates an experiment
-#creates a workflowtype
-#creates a workflow
-#creates an workflow with the previous three entries as foreign keys/manytomanyfields
-#gets the workflow
-#puts the workflow adding the other parameterdef to the manytomany field
-#gets the updated workflow
-#deletes the updated workflow
-#gets the workflow (should return error)
+#creates a actionsequencetype
+#creates a actionsequence
+#creates an actionsequence with the previous three entries as foreign keys/manytomanyfields
+#gets the actionsequence
+#puts the actionsequence adding the other parameterdef to the manytomany field
+#gets the updated actionsequence
+#deletes the updated actionsequence
+#gets the actionsequence (should return error)
     [      
         *[{
             'name': name,
             'method': POST,
-            'endpoint': 'workflow-list',
-            'body': random_model_dict(Workflow),
+            'endpoint': 'actionsequence-list',
+            'body': random_model_dict(ActionSequence),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -44,12 +44,12 @@ workflow_tests = [
                     'status_code': POST
                 }
             }
-        } for name in ['workflow0', 'workflow1']],
+        } for name in ['actionsequence0', 'actionsequence1']],
         *[{
             'name': name,
             'method': POST,
-            'endpoint': 'workflowtype-list',
-            'body': random_model_dict(WorkflowType),
+            'endpoint': 'actionsequencetype-list',
+            'body': random_model_dict(ActionSequenceType),
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -59,12 +59,12 @@ workflow_tests = [
                     'status_code': POST
                 }
             }
-        } for name in ['workflowtype0', 'workflowtype1']],
+        } for name in ['actionsequencetype0', 'actionsequencetype1']],
         {
-            'name': 'workflow0',
+            'name': 'actionsequence0',
             'method': POST,
-            'endpoint': 'workflow-list',
-            'body': (request_body := random_model_dict(Workflow, parent='workflow0__url', workflow_type='workflowtype0__url')), 
+            'endpoint': 'actionsequence-list',
+            'body': (request_body := random_model_dict(ActionSequence, parent='actionsequence0__url', action_sequence_type='actionsequencetype0__url')), 
             'args': [],
             'query_params': [],
             'is_valid_response': {
@@ -77,12 +77,12 @@ workflow_tests = [
             }
         },
         {
-            'name': 'workflow0_get_0',
+            'name': 'actionsequence0_get_0',
             'method': GET,
-            'endpoint': 'workflow-detail',
+            'endpoint': 'actionsequence-detail',
             'body': {},
             'args': [
-                'workflow0__uuid'
+                'actionsequence0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -95,12 +95,12 @@ workflow_tests = [
         },
     
         {
-            'name': 'workflow0_update_0',
+            'name': 'actionsequence0_update_0',
             'method': PUT,
-            'endpoint': 'workflow-detail',
-            'body': (request_body := random_model_dict(Workflow, parent='workflow1__url', workflow_type='workflowtype1__url')),
+            'endpoint': 'actionsequence-detail',
+            'body': (request_body := random_model_dict(ActionSequence, parent='actionsequence1__url', action_sequence_type='actionsequencetype1__url')),
             'args': [
-                'workflow0__uuid'
+                'actionsequence0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -113,12 +113,12 @@ workflow_tests = [
             }
         },
         {
-            'name': 'workflow0_get_1',
+            'name': 'actionsequence0_get_1',
             'method': GET,
-            'endpoint': 'workflow-detail',
+            'endpoint': 'actionsequence-detail',
             'body': {},
             'args': [
-                'workflow0__uuid'
+                'actionsequence0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -130,12 +130,12 @@ workflow_tests = [
             }
         },
         {
-            'name': 'workflow0_delete_0',
+            'name': 'actionsequence0_delete_0',
             'method': DELETE,
-            'endpoint': 'workflow-detail',
+            'endpoint': 'actionsequence-detail',
             'body': {},
             'args': [
-                'workflow0__uuid'
+                'actionsequence0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {
@@ -147,12 +147,12 @@ workflow_tests = [
             }
         },
         {
-            'name': 'workflow0_get_2',
+            'name': 'actionsequence0_get_2',
             'method': GET,
-            'endpoint': 'workflow-detail',
+            'endpoint': 'actionsequence-detail',
             'body': {},
             'args': [
-                'workflow0__uuid'
+                'actionsequence0__uuid'
             ],
             'query_params': [],
             'is_valid_response': {

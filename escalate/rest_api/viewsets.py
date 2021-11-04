@@ -24,7 +24,7 @@ from core.utilities.utils import experiment_copy
 from core.utilities.experiment_utils import update_dispense_action_set, get_action_parameter_querysets, get_material_querysets
 from .serializers import *
 import core.models
-from core.models.view_tables import (WorkflowActionSet, #ActionParameter
+from core.models.view_tables import (#WorkflowActionSet, #ActionParameter
                                      BomMaterial, InventoryMaterial,
                                      ParameterDef, Edocument, ExperimentTemplate, ExperimentInstance)
 import rest_api

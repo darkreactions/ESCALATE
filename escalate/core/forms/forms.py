@@ -17,6 +17,9 @@ if version.parse(django.__version__) < version.parse('3.1'):
 else:
     from django.forms import JSONField
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Submit, Row, Column, Hidden, Field
+
 dropdown_attrs = {'class': 'selectpicker',
                   'data-style': 'btn-outline-primary', 'data-live-search': 'true'}
 
@@ -594,14 +597,17 @@ class InventoryMaterialForm(forms.ModelForm):
 class VesselForm(forms.ModelForm):
     class Meta:
         model = Vessel
-        fields = ['plate_name', 'well_number']
+        #fields = ['plate_name', 'well_number']
+        fields = ['description', 'parent']
         field_classes = {
-            'plate_name': forms.CharField,
-            'well_number': forms.CharField,
+            #'plate_name': forms.CharField,
+            #'well_number': forms.CharField,
+            'description': forms.CharField,
         }
         labels = {
-            'plate_name': 'Plate Name',
-            'well_number': 'Well Number',
+            #'plate_name': 'Plate Name',
+            #'well_number': 'Well Number',
+            'description': 'Description'
         }
         widgets = {
             'plate_name': forms.Textarea(attrs={
@@ -615,3 +621,19 @@ class VesselForm(forms.ModelForm):
                 'placeholder': 'Well number'
             }),
         }
+
+
+class UploadFileForm(forms.Form):
+    file = forms.FileField(label='Upload file', required=False)
+    #upload_edoc = forms.Select(label='Submit')
+    @staticmethod
+    def get_helper():
+        helper = FormHelper()
+        helper.form_class = 'form-horizontal'
+        helper.label_class = 'col-lg-2'
+        helper.field_class = 'col-lg-8'
+        helper.layout = Layout(
+            Row(Column(Field('file'))),
+            #Row(Column(Submit('upload_edoc', 'Submit'))),
+        )
+        return helper

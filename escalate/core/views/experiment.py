@@ -1,33 +1,36 @@
-
-
-from scipy.sparse import data
-from core.models.view_tables.organization import Actor
+from collections import defaultdict
 import json
-from django.db.models import F, Value
+from django.http.response import HttpResponse, FileResponse
+
+import pandas as pd
+import tempfile
+import mimetypes
+
 from django.views.generic import TemplateView
 from django.forms import formset_factory, BaseFormSet, modelformset_factory, inlineformset_factory
 from django.shortcuts import render
 from django.contrib import messages
 from django.urls import reverse, reverse_lazy
-from django.views.generic.list import ListView
+
 from django.views.generic.detail import DetailView
 from django.http import HttpResponseRedirect
 
 from core.models.view_tables import (ExperimentTemplate, 
                                      ExperimentInstance, Edocument, 
                                      ReagentMaterialValue, ReagentMaterial,
-                                     InventoryMaterial, OutcomeInstance)
+                                     InventoryMaterial, OutcomeInstance, OutcomeTemplate, ReactionParameter)
 # from core.models.core_tables import RetUUIDField
 from core.forms.custom_types import SingleValForm, InventoryMaterialForm, NominalActualForm, ReagentValueForm
 from core.forms.custom_types import (ExperimentNameForm, ExperimentTemplateForm, 
                                      ReagentForm, BaseReagentFormSet, 
-                                     PropertyForm, OutcomeInstanceForm, VesselForm)
+                                     PropertyForm, OutcomeInstanceForm, VesselForm, ReactionParameterForm, UploadFileForm)
+
 from core.utilities.utils import experiment_copy
 from core.utilities.experiment_utils import (update_dispense_action_set, 
                                              get_action_parameter_querysets, 
                                              get_material_querysets, 
                                              supported_wfs, get_reagent_querysets,
-                                             prepare_reagents, generate_experiments_and_save, get_vessel_querysets)
+                                             prepare_reagents, generate_experiments_and_save, save_reaction_parameters)
 
 import core.models
 from core.models.view_tables import Note, TagAssign, Tag
@@ -35,6 +38,7 @@ from core.custom_types import Val
 import core.experiment_templates
 from core.models.view_tables import Parameter
 from core.widgets import ValWidget
+
 
 #from escalate.core.widgets import ValFormField
 
@@ -64,6 +68,7 @@ class CreateExperimentView(TemplateView):
     MaterialFormSet = formset_factory(InventoryMaterialForm, extra=0)
     NominalActualFormSet = formset_factory(NominalActualForm, extra=0)
     ReagentFormSet = formset_factory(ReagentForm, extra=0, formset=BaseReagentFormSet)
+    ReactionParameterFormset = formset_factory(ReactionParameterForm, extra=0)
 
     def get_context_data(self, **kwargs):    
         # Select templates that belong to the current lab
@@ -75,10 +80,10 @@ class CreateExperimentView(TemplateView):
         return context
         
 
-    def get_action_parameter_forms(self, exp_uuid, context):
+    def get_action_parameter_forms(self, exp_uuid, context, template=True):
         # workflow__experiment_workflow_workflow__experiment=exp_uuid
         #q1, q2, q3 = get_action_parameter_querysets(exp_uuid)
-        q1 = get_action_parameter_querysets(exp_uuid)
+        q1 = get_action_parameter_querysets(exp_uuid, template)
         """
         This happens before copy, in the template. The only way to identify a parameter is 
         through a combination of object_description and parameter_def_description.
@@ -114,7 +119,7 @@ class CreateExperimentView(TemplateView):
         
         q1_details = [f'{row.object_description} : {row.parameter_def_description}' for row in q1]
         context['q1_param_formset'] = self.NominalActualFormSet(initial=initial_q1, 
-                                                            prefix='q1_param',)
+                                                                prefix='q1_param',)
         context['q1_param_details'] = q1_details
         
         return context
@@ -174,8 +179,36 @@ class CreateExperimentView(TemplateView):
         context['reagent_template_names'] = reagent_template_names
 
         #get vessel data for selection
-        initial_vessel = VesselForm()
-        context['reagent_material_formset'] = initial_vessel
+        v_query = core.models.view_tables.Vessel.objects.all()
+        initial_vessel = VesselForm(initial={'value': v_query[0]})
+        context['vessel_form'] = initial_vessel
+
+        # Dead volume form
+        initial = {'value':Val.from_dict({'value':4000, 'unit': 'uL', 'type':'num'})}
+        dead_volume_form = SingleValForm(prefix='dead_volume', initial=initial)
+        context['dead_volume_form'] = dead_volume_form
+        
+        #reaction parameter form
+        rp_wfs = get_action_parameter_querysets(exp_template.uuid)
+        rp_labels = []
+        index = 0
+        for rp in rp_wfs:
+            rp_label = str(rp.object_description)
+            if "Dispense" in rp_label:
+                continue
+            else:
+                #this might need to be filte rinstead of get. needs testing
+                try:
+                    rp_object = ReactionParameter.objects.filter(description=rp_label).order_by('add_date').first()
+                    initial= {'value':Val.from_dict({'value':rp_object.value, 'unit': rp_object.unit, 'type':'num'}), 'uuid':rp.parameter_uuid}
+                except:
+                    initial= {'value':Val.from_dict({'value':0, 'unit': '', 'type':'num'}), 'uuid':rp.parameter_uuid}
+
+                rp_form = ReactionParameterForm(prefix=f'reaction_parameter_{index}',initial=initial)
+                rp_labels.append((rp_label,rp_form))
+                index += 1
+        context['reaction_parameter_labels'] = rp_labels
+        
         context['colors'] = self.get_colors(len(formsets))
 
         return context
@@ -213,60 +246,13 @@ class CreateExperimentView(TemplateView):
                 request.session['experiment_template_uuid'] = None
         # begin: create experiment
         elif 'create_exp' in request.POST:
-            # TODO: Remove check for formset, instead create boolean in get function
-            if "reagent_0-TOTAL_FORMS" in request.POST:
+            if "automated" in request.POST:
                 context = self.process_automated_formsets(request, context)
             else:
                 context = self.process_formsets(request, context)
             # end: create experiment
         return render(request, self.template_name, context)
     # end: self.post()
-
-    def save_forms_q1(self, queries, formset, fields):
-        """Saves custom formset into queries
-
-        Args:
-            queries ([Queryset]): List of queries into which the forms values are saved
-            formset ([Formset]): Formset
-            fields (dict): Dictionary to map the column in queryset with field in formset
-        """
-        for form in formset:
-            if form.has_changed():
-                data = form.cleaned_data
-                desc = json.loads(data['uuid'])
-                if len(desc) == 2:
-                    object_desc, param_def_desc = desc
-                    query = queries.get(object_description=object_desc, parameter_def_description=param_def_desc)
-                else:
-                    query = queries.get(object_description=desc[0])
-                parameter = Parameter.objects.get(uuid=query.parameter_uuid)
-                for db_field, form_field in fields.items():
-                    setattr(parameter, db_field, data[form_field])
-                parameter.save(update_fields=list(fields.keys()))
-        #queries.save()
-
-    def save_forms_q_material(self, queries, formset, fields):
-        """
-        Saves custom formset into queries
-        Args:
-            queries ([Queryset]): List of queries into which the forms values are saved
-            formset ([Formset]): Formset
-            fields (dict): Dictionary to map the column in queryset with field in formset
-        """
-        for form in formset:
-            if form.has_changed():
-                data = form.cleaned_data
-                desc = json.loads(data['uuid'])
-                if len(desc) == 2:
-                    object_desc, param_def_desc = desc
-                    query = queries.get(object_description=object_desc, parameter_def_description=param_def_desc)
-                else:
-                    query = queries.get(object_description=desc[0])
-
-                for db_field, form_field in fields.items():
-                    setattr(query, db_field, data[form_field])
-
-                query.save(update_fields=list(fields.keys()))
 
     def save_forms_reagent(self, formset, exp_uuid, exp_concentrations):
         
@@ -314,6 +300,9 @@ class CreateExperimentView(TemplateView):
         # get the experiment template uuid and name
         exp_template = ExperimentTemplate.objects.get(pk=request.session['experiment_template_uuid'])
         template_name = exp_template.description
+        # ref_uid will be used to identify python functions specifically for this 
+        # ref_uid should follow function naming rules for Python
+        template_ref_uid = exp_template.ref_uid
         # construct all formsets
         exp_name_form = ExperimentNameForm(request.POST)
         q1_formset = self.NominalActualFormSet(request.POST, prefix='q1_param')
@@ -331,11 +320,11 @@ class CreateExperimentView(TemplateView):
             q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
             q1_material = get_material_querysets(experiment_copy_uuid, template=False)
             
-            self.save_forms_q1(q1, q1_formset, {'parameter_val_nominal': 'value', 'parameter_val_actual': 'actual_value'})
-            self.save_forms_q_material(q1_material, q1_material_formset, {'inventory_material': 'value'})
+            save_forms_q1(q1, q1_formset, {'parameter_val_nominal': 'value', 'parameter_val_actual': 'actual_value'})
+            save_forms_q_material(q1_material, q1_material_formset, {'inventory_material': 'value'})
             
             # begin: template-specific logic
-            if template_name in SUPPORTED_CREATE_WFS:
+            if template_ref_uid in SUPPORTED_CREATE_WFS:
                 data = {}  # Stick form data into this dict
                 for i, form in enumerate(q1_formset):
                     if form.is_valid():
@@ -343,7 +332,7 @@ class CreateExperimentView(TemplateView):
                         data[query.parameter_def_description] = form.cleaned_data['value'].value
                 
                 # Scans experiment_templates and picks up functions that have the same name as template_name
-                template_function = getattr(core.experiment_templates, template_name)
+                template_function = getattr(core.experiment_templates, template_ref_uid)
                 new_lsr_pk, lsr_msg = template_function(data, q1, experiment_copy_uuid, exp_name, exp_template)
                
                 if new_lsr_pk is not None:
@@ -392,32 +381,50 @@ class CreateExperimentView(TemplateView):
             
             # make the experiment copy: this will be our new experiment
             experiment_copy_uuid = experiment_copy(str(exp_template.uuid), exp_name)
-            # q_reagent = get_reagent_querysets(experiment_copy_uuid)
             exp_concentrations = {}
             for reagent_formset in formsets:            
                 if reagent_formset.is_valid():
                     vector = self.save_forms_reagent(reagent_formset, experiment_copy_uuid, exp_concentrations)
                     exp_concentrations = prepare_reagents(reagent_formset, exp_concentrations)
-                    '''
-                    this process of creating the data structure to pass into the 
-                    random sampler needs to be less ad-hoc and more generalized moving forward
-                    need to remove static cleaned_data element calls. however, 
-                    forms will always be process in the same order
-                    if elif statements for current_mat_list are not needed but 
-                    add some clarity to the code
-                    '''
-                    #create exp_concentrations data structure to pass into random sampler
-                    
-                           
+            
+            # Save dead volumes should probably be in a separate function
+            dead_volume_form = SingleValForm(request.POST, prefix='dead_volume')
+            if dead_volume_form.is_valid():
+                dead_volume = dead_volume_form.value
+            else:
+                dead_volume = None
+            
+            #post reaction parameter form
+            #get label here and get form out of label, use label for description
+            rp_wfs = get_action_parameter_querysets(exp_template.uuid)
+            index = 0
+            for rp in rp_wfs:
+                rp_label = str(rp.object_description)
+                if "Dispense" in rp_label:
+                    continue
+                else:
+                    rp_form = ReactionParameterForm(request.POST, prefix=f'reaction_parameter_{index}')
+                    if rp_form.is_valid:
+                        #this needs to be updated to use parameter or need to save to ReactionParameter table
+                        #need to save to parameter regardless
+                        rp_value = rp_form.data[f'reaction_parameter_{index}-value_0']
+                        rp_unit = rp_form.data[f'reaction_parameter_{index}-value_1']
+                        rp_type = rp_form.data[f'reaction_parameter_{index}-value_2']
+                        rp_uuid = rp_form.data[f'reaction_parameter_{index}-uuid']
+                        save_reaction_parameters(exp_template,rp_value,rp_unit,rp_type,rp_label)
+                        #save_parameter(rp_uuid,rp_value,rp_unit)
+                    index += 1
+            
+            
             #retrieve # of experiments to be generated (# of vial locations)
             exp_number = int(request.POST['automated'])
             #generate desired volume for current reagent
-            generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, exp_number)
+            generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, exp_number, dead_volume)
             q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
             
             #robotfile generation
-            if exp_template.description in SUPPORTED_CREATE_WFS:
-                template_function = getattr(core.experiment_templates, exp_template.description)
+            if exp_template.ref_uid in SUPPORTED_CREATE_WFS:
+                template_function = getattr(core.experiment_templates, exp_template.ref_uid)
                 new_lsr_pk, lsr_msg = template_function(None, q1, experiment_copy_uuid, exp_name, exp_template)
                 
                 if new_lsr_pk is not None:
@@ -452,7 +459,6 @@ Below is what gets autogenerated for reference
 #     default_filter_kwarg= {
 #         'parent__isnull': False
 #     }
-
 
 
 class ExperimentDetailView(DetailView):
@@ -529,6 +535,7 @@ class ExperimentReagentPrepView(TemplateView):
     def get_reagent_forms(self, experiment, context):
         formsets = []
         reagent_names = []
+        reagent_template_names = []
         reagent_total_volume_forms = []
         form_kwargs = {
                 'disabled_fields': ['material', 'material_type', 'nominal_value'],
@@ -543,6 +550,7 @@ class ExperimentReagentPrepView(TemplateView):
         
         #for index, reagent_template in enumerate(reagent_templates):
         for index, reagent in enumerate(experiment.reagent_ei.all()):
+            reagent_template_names.append(reagent.template.description)
             reagent_materials = reagent.reagent_material_r.filter(reagent_material_value_rmi__description='amount')
                                                                   #  template__reagent_template=)
             property = reagent.property_r.get(property_template__description__iexact='total volume')
@@ -565,10 +573,11 @@ class ExperimentReagentPrepView(TemplateView):
             formsets.append(fset)
 
         context['reagent_formsets'] = zip(formsets, reagent_total_volume_forms)
+        context['reagent_template_names']=reagent_template_names
         context['colors'] = self.get_colors(len(formsets))
         
         return context
-    
+      
     def post(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
         experiment_instance_uuid = request.resolver_match.kwargs['pk']
@@ -598,7 +607,7 @@ class ExperimentReagentPrepView(TemplateView):
         else:
             return render(request, self.template_name, context)
           
-         
+          
 class ExperimentOutcomeView(TemplateView):
     template_name = "core/experiment_outcome.html"
     OutcomeFormSet = modelformset_factory(OutcomeInstance, 
@@ -609,8 +618,11 @@ class ExperimentOutcomeView(TemplateView):
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
         pk = kwargs['pk']
-        experiment = ExperimentInstance.objects.get(pk=pk)
-        context = self.get_outcome_forms(experiment, context)
+        # experiment = ExperimentInstance.objects.get(pk=pk)
+        # context = self.get_outcome_forms(experiment, context)
+        # context['outcome_file_url'] = reverse('outcome_file', kwargs={'pk':pk})
+        context['outcome_file_upload_form'] = UploadFileForm()
+        context['outcome_file_upload_form_helper'] = UploadFileForm.get_helper()
         return render(request, self.template_name, context)
     
     def get_outcome_forms(self, experiment, context):
@@ -623,8 +635,115 @@ class ExperimentOutcomeView(TemplateView):
         return context
 
     def post(self, request, *args, **kwargs):
-        context = self.get_context_data(**kwargs)
+        #context = self.get_context_data(**kwargs)
         #experiment_instance_uuid = request.resolver_match.kwargs['pk']
         outcome_formset = self.OutcomeFormSet(request.POST)
         if outcome_formset.is_valid():
             outcome_formset.save()
+        if 'outcome_download' in request.POST:
+            return self.download_outcome_file(kwargs['pk'])
+        if 'outcome_upload' in request.POST:
+            df = pd.read_csv(request.FILES['file'])
+            self.process_outcome_csv(df, kwargs['pk'])
+        
+        if 'outcome_formset' in request.POST:
+            outcome_formset = self.OutcomeFormSet(request.POST)
+            if outcome_formset.is_valid():
+                outcome_formset.save()
+        return HttpResponseRedirect(reverse('experiment_instance_list'))
+
+    def process_outcome_csv(self, df, exp_uuid):
+        outcomes = OutcomeInstance.objects.filter(experiment_instance__uuid=exp_uuid)
+        # outcome_templates = OutcomeTemplate.objects.filter(outcome_instance_ot__experiment_instance__uuid=exp_uuid).distinct()
+        outcome_templates = ExperimentInstance.objects.get(uuid=exp_uuid).parent.outcome_templates.all()
+        df.fillna('', inplace=True)
+        for ot in outcome_templates:
+            # Check if the outcome column exists in dataframe
+            if ot.description in df.columns:
+                # Loop through each location
+                for i, row in df.iterrows():
+                    o = outcomes.get(description=row[ot.description + ' location'])
+                    o.actual_value.value = row[ot.description]
+                    # o.actual_value.unit = 'test'
+                    o.actual_value.unit = row[ot.description + ' unit']
+                    # Placeholder for when all files are uploaded
+                    # o.file = file in post data
+                    Note.objects.create(notetext=row[ot.description + ' notes'], ref_note_uuid=o.uuid)
+                    o.save()
+
+    def download_outcome_file(self, exp_uuid):
+        # Getting outcomes and its templates
+        outcomes = OutcomeInstance.objects.filter(experiment_instance__uuid=exp_uuid)
+        outcome_templates = OutcomeTemplate.objects.filter(outcome_instance_ot__experiment_instance__uuid=exp_uuid).distinct()
+
+        # Constructing a dictionary for pandas table
+        data = defaultdict(list)
+        # Loop through each outcome type (for eg. Crystal scores, temperatures, etc)
+        for ot in outcome_templates:
+            # Loop through each outcome for that type (eg. Crystal score for A1, A2, ...)
+            for o in outcomes.filter(outcome_template=ot):
+                # Outcome description
+                data[ot.description + ' location'].append(o.description)
+                # Add value of outcome
+                data[ot.description].append(o.actual_value.value)
+                # Add unit of outcome
+                data[ot.description + ' unit'].append(o.actual_value.unit)
+                # Add filename of outcome (This can be used to associate any file uploaded with the well)
+                data[ot.description + ' filename'].append('')
+                # Extra notes the user may wish to add
+                data[ot.description + ' notes'].append('')
+        df = pd.DataFrame.from_dict(data)
+        temp = tempfile.NamedTemporaryFile()
+        df.to_csv(temp, index=False)
+        temp.seek(0)
+        response = FileResponse(temp, as_attachment=True,
+                                filename=f'outcomes_{exp_uuid}.csv')
+        return response
+
+
+def save_forms_q_material(queries, formset, fields):
+    """
+    Saves custom formset into queries
+    Args:
+        queries ([Queryset]): List of queries into which the forms values are saved
+        formset ([Formset]): Formset
+        fields (dict): Dictionary to map the column in queryset with field in formset
+    """
+    for form in formset:
+        if form.has_changed() and form.is_valid():
+            data = form.cleaned_data
+            desc = json.loads(data['uuid'])
+            if len(desc) == 2:
+                object_desc, param_def_desc = desc
+                query = queries.get(object_description=object_desc, parameter_def_description=param_def_desc)
+            else:
+                query = queries.get(object_description=desc[0])
+
+            for db_field, form_field in fields.items():
+                setattr(query, db_field, data[form_field])
+
+            query.save(update_fields=list(fields.keys()))
+
+
+def save_forms_q1(queries, formset, fields):
+    """Saves custom formset into queries
+
+    Args:
+        queries ([Queryset]): List of queries into which the forms values are saved
+        formset ([Formset]): Formset
+        fields (dict): Dictionary to map the column in queryset with field in formset
+    """
+    for form in formset:
+        if form.has_changed() and form.is_valid():
+            data = form.cleaned_data
+            desc = json.loads(data['uuid'])
+            if len(desc) == 2:
+                object_desc, param_def_desc = desc
+                query = queries.get(object_description=object_desc,
+                                    parameter_def_description=param_def_desc)
+            else:
+                query = queries.get(object_description=desc[0])
+            parameter = Parameter.objects.get(uuid=query.parameter_uuid)
+            for db_field, form_field in fields.items():
+                setattr(parameter, db_field, data[form_field])
+            parameter.save(update_fields=list(fields.keys()))
