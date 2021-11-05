@@ -335,8 +335,8 @@ def save_manual_volumes(df, experiment_copy_uuid):
     experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
     
     reagent_action_map = {'Reagent1 (ul)': 'dispense solvent',
-                          'Reagent7 (ul)': 'dispense acid vol 1',
-                          'Reagent8 (ul)': 'dispense acid vol 2',
+                          'Reagent7 (ul)': 'dispense acid volume 1',
+                          'Reagent8 (ul)': 'dispense acid volume 2',
                           'Reagent2 (ul)': 'dispense stock a',
                           'Reagent3 (ul)': 'dispense stock b'}
     
@@ -347,17 +347,17 @@ def save_manual_volumes(df, experiment_copy_uuid):
 
         for i, vial in enumerate(well_list):
             # get actions from q1 based on keys in action_reagent_map
-            if experiment.parent.ref_uid == 'workflow_1':
-                action = q1.get(action_unit_description__icontains=action_description, action_unit_description__endswith=vial)
-            elif experiment.parent.ref_uid == 'perovskite_demo':
-                action = q1.get(object_description__icontains=action_description, object_description__endswith=vial)
-            
-            # If number of experiments requested is < actions only choose the first n actions
-            # Otherwise choose all
-            #actions = actions[:num_of_experiments] if num_of_experiments < len(actions) else actions
-            #for i, action in enumerate(actions):
-            parameter = Parameter.objects.get(uuid=action.parameter_uuid)
-            #action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
-            parameter.parameter_val_nominal.value = df[reagent_name][i]
-            #parameter.parameter_val_nominal.value = desired_volume[reagent_name][i] 
-            parameter.save()
+                if experiment.parent.ref_uid == 'workflow_1':
+                    action = q1.get(action_unit_description__icontains=action_description, action_unit_description__endswith=vial)
+                elif experiment.parent.ref_uid == 'perovskite_demo':
+                    action = q1.get(object_description__icontains=action_description, object_description__endswith=vial)
+                
+                # If number of experiments requested is < actions only choose the first n actions
+                # Otherwise choose all
+                #actions = actions[:num_of_experiments] if num_of_experiments < len(actions) else actions
+                #for i, action in enumerate(actions):
+                parameter = Parameter.objects.get(uuid=action.parameter_uuid)
+                #action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
+                parameter.parameter_val_nominal.value = df[reagent_name][i]
+                #parameter.parameter_val_nominal.value = desired_volume[reagent_name][i] 
+                parameter.save()
