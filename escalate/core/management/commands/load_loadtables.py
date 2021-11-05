@@ -279,11 +279,10 @@ class Command(BaseCommand):
                                           lab=lab,)
         exp_template.save()
 
-        reagents = {'Reagent 2 - Stock B':['organic', 'solvent'], 
-                    'Reagent 7 - Acid':['acid'], 
-                    'Reagent 3 - Stock A':['inorganic', 'organic', 'solvent'], 
-                    'Reagent 1 - Solvent':['solvent'], 
-                    'Reagent 9 - Antisolvent': ['solvent']}
+        reagents = {'organic, solvent':['organic', 'solvent'], 
+                    'Pure acid':['acid'], 
+                    'inorganic, organic, solvent':['inorganic', 'organic', 'solvent'], 
+                    'Pure Solvent':['solvent']}
         
         # Vals for each default value
         volume_val = {'value': 0, 'unit':'ml', 'type':'num'}
@@ -345,15 +344,12 @@ class Command(BaseCommand):
         # Create ActionSequence -> Actions -> ActionUnits
         # TODO: Change for WF3
         action_sequences = {
-            'Dispense Solvent': ActionSequence.objects.create(description='Dispense Solvent'),
-            'Dispense Stock A': ActionSequence.objects.create(description='Dispense Stock A'),
-            'Dispense Stock B': ActionSequence.objects.create(description='Dispense Stock B'),
-            'Dispense Acid Vol 1': ActionSequence.objects.create(description='Dispense Acid Vol 1'),
-            'Dispense Acid Vol 2': ActionSequence.objects.create(description='Dispense Acid Vol 2'),
-            'Dispense Antisolvent': ActionSequence.objects.create(description='Dispense Antisolvent'),
-            'Mixing time (s)': ActionSequence.objects.create(description='Mixing time (s)'),
+            'Preheat Temperature (C)': ActionSequence.objects.create(description='Preheat Temperature (C)'),
+            'Mixing time1 (s)': ActionSequence.objects.create(description='Mixing time1 (s)'),
+            'Mixing time2 (s)': ActionSequence.objects.create(description='Mixing time2 (s)'),
             'Temperature (C)': ActionSequence.objects.create(description='Temperature (C)'),
             'Stir Rate (rpm)': ActionSequence.objects.create(description='Stir Rate (rpm)'),
+            'Reaction time (s)': ActionSequence.objects.create(description='Reaction time (s)'),
         }
 
         for i, action_seq in enumerate(action_sequences.values()):
@@ -390,24 +386,36 @@ class Command(BaseCommand):
         }
         # Action defs it is assumed that action defs are already inserted 
         actions = [ # List of tuples (Description, Action def description, source_bommaterial, destination_bommaterial)
+            #('Preheat Plate', 'bring_to_temperature', (None, None), ('vessel', '96 Well Plate well'), 'Preheat Plate'),
+            ('Preheat Temperature (C)', 'bring_to_temperature', (None, None), ('vessel', '96 Well Plate well'), 'Preheat Temperature (C)'),
+            # Prepare stock A
+            #('Add Solvent to Stock A', 'dispense', (None, 'Solvent'), (None, 'Stock A Vial'), 'Prepare stock A'),
+            #('Add Organic to Stock A', 'dispense', (None, 'Organic'), (None, 'Stock A Vial'), 'Prepare stock A'),
+            #('Add Inorganic to Stock A', 'dispense', (None, 'Inorganic'), (None, 'Stock A Vial'), 'Prepare stock A'),
+            # Prepare stock B
+            #('Add Solvent to Stock B', 'dispense', (None, 'Solvent'), (None, 'Stock B Vial'), 'Prepare stock B'),
+            #('Add Organic to Stock B', 'dispense', (None, 'Organic'), (None, 'Stock B Vial'), 'Prepare stock B'),
             # Dispense Solvent to vials
-            ('Dispense Solvent', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Solvent'),
+            #('Dispense Solvent', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Solvent'),
             # Dispense Stock A to vials
-            ('Dispense Stock A', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Stock A'),
+            #('Dispense Stock A', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Stock A'),
             # Dispense Stock B to vials
-            ('Dispense Stock B', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Stock B'),
+            #('Dispense Stock B', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Stock B'),
             # Dispense Acid Vol 1
-            ('Dispense Acid Vol 1', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Acid Volume 1'),
+            #('Dispense Acid Vol 1', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Acid Volume 1'),
+            # Heat stir 1
+            #('Heat stir 1', 'heat_stir', (None, None), ('vessel', '96 Well Plate well'), 'Heat stir 1'),
+            ('Mixing time1 (s)', 'stir', (None, None), ('vessel', '96 Well Plate well'), 'Mixing time1 (s)'),
             # Dispense Acid Vol 2
-            ('Dispense Acid Vol 2', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Acid Volume 2'),
-            # Dispense antisolvent
-            ('Dispense Antisolvent', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Antisolvent'),
-            # Mix
-            ('Mixing time (s)', 'stir', (None, None), ('vessel', '96 Well Plate well'), 'Mixing time (s)'),
-            # Cool to 26 C
-            ('Temperature (C)', 'bring_to_temperature', (None, None), ('vessel', '96 Well Plate well'), 'Temperature (C)'),
-            # Stir
+            #('Dispense Acid Vol 2', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Acid Volume 2'),
+            # Heat stir 2
+            #('Heat stir 2', 'heat_stir', (None, None), ('vessel', '96 Well Plate well'), 'Heat stir 2'),
+            ('Mixing time2 (s)', 'stir', (None, None), ('vessel', '96 Well Plate well'), 'Mixing time2 (s)'),
+            # Heat
+            #('Heat', 'heat', (None, None), ('vessel', '96 Well Plate well'), 'Heat'),
+            ('Temperature (C)', 'heat', (None, None), ('vessel', '96 Well Plate well'), 'Temperature (C)'),
             ('Stir Rate (rpm)', 'stir', (None, None), ('vessel', '96 Well Plate well'), 'Stir Rate (rpm)'),
+            ('Reaction time (s)', 'stir', (None, None), ('vessel', '96 Well Plate well'), 'Reaction time (s)'),
         ]
         
         for action_tuple in actions:
