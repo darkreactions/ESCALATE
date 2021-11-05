@@ -708,6 +708,7 @@ class Migration(migrations.Migration):
                 ('value', models.CharField(blank=True, db_column='reaction_parameter_profile_parameter_value', max_length=255, null=True)),
                 ('unit', models.CharField(blank=True, db_column='reaction_parameter_profile_parameter_unit', max_length=255, null=True)),
                 ('type', models.CharField(blank=True, db_column='reaction_parameter_profile_parameter_type', max_length=255, null=True)),
+                ('experiment_uuid', models.CharField(blank=True, db_column='reaction_parameter_profile_experiment_uuid', max_length=255, null=True)),
                 ('experiment_template', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='reaction_parameter_profile_workflow', to='core.ExperimentTemplate')),
                 ('organization', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='reaction_parameter_profile_organization', to='core.Organization')),
                 ('status', models.ForeignKey(blank=True, db_column='status_uuid', null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='reactionparameter_status', to='core.Status')),

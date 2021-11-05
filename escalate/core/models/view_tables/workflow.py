@@ -367,6 +367,9 @@ class ReactionParameter(StatusColumn, DescriptionColumn, DateColumns):
     type = models.CharField(max_length=255,
                                    blank=True, null=True,
                                    db_column='reaction_parameter_profile_parameter_type')
+    experiment_uuid = models.CharField(max_length=255,
+                                   blank=True, null=True,
+                                   db_column='reaction_parameter_profile_experiment_uuid')
    
 
 class ActionSequence(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
