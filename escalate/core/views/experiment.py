@@ -2,6 +2,10 @@ from collections import defaultdict
 import json
 from django.http.response import HttpResponse, FileResponse
 
+import pandas as pd
+import tempfile
+import mimetypes
+
 from django.views.generic import TemplateView
 from django.forms import formset_factory, BaseFormSet, modelformset_factory, inlineformset_factory
 from django.shortcuts import render
@@ -22,14 +26,14 @@ from core.forms.custom_types import SingleValForm, InventoryMaterialForm, Nomina
 from core.forms.custom_types import (ExperimentNameForm, ExperimentTemplateForm, 
                                      ReagentForm, BaseReagentFormSet, 
                                      PropertyForm, OutcomeInstanceForm, VesselForm,
-                                     UploadFileForm)
+                                     UploadFileForm, ReactionParameterForm)
 from core.utilities.utils import experiment_copy
 from core.utilities.experiment_utils import (update_dispense_action_set, 
                                              get_action_parameter_querysets, 
                                              get_material_querysets, 
                                              supported_wfs, get_reagent_querysets,
                                              prepare_reagents, generate_experiments_and_save, get_vessel_querysets,
-                                             save_manual_volumes)
+                                             save_manual_volumes, save_reaction_parameters)
 
 import core.models
 from core.models.view_tables import Note, TagAssign, Tag
