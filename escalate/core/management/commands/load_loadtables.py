@@ -278,11 +278,10 @@ class Command(BaseCommand):
                                           lab=lab,)
         exp_template.save()
 
-        reagents = {'Reagent 2 - Stock B':['organic', 'solvent'], 
-                    'Reagent 7 - Acid':['acid'], 
-                    'Reagent 3 - Stock A':['inorganic', 'organic', 'solvent'], 
-                    'Reagent 1 - Solvent':['solvent'], 
-                    'Reagent 9 - Antisolvent': ['solvent']}
+        reagents = {'organic, solvent':['organic', 'solvent'], 
+                    'Pure acid':['acid'], 
+                    'inorganic, organic, solvent':['inorganic', 'organic', 'solvent'], 
+                    'Pure Solvent':['solvent']}
         
         # Vals for each default value
         volume_val = {'value': 0, 'unit':'ml', 'type':'num'}
