@@ -177,7 +177,7 @@ def get_vessel_querysets():
     vessel_q = Vessel.objects.filter(well_number__isnull=True)
     return vessel_q
 
-def save_reaction_parameters(exp_template,rp_value,rp_unit,rp_type,rp_label):
+def save_reaction_parameters(exp_template,rp_value,rp_unit,rp_type,rp_label,experiment_copy_uuid):
     #for reaction_parameter_label, reaction_parameter_form in reaction_parameter_labels
     #rp_label might be a list so need to itterate over and pass to this
     rp = ReactionParameter.objects.create(
@@ -186,7 +186,8 @@ def save_reaction_parameters(exp_template,rp_value,rp_unit,rp_type,rp_label):
         value = rp_value,
         unit = rp_unit,
         type = rp_type,
-        description = rp_label
+        description = rp_label,
+        experiment_uuid = experiment_copy_uuid
     )
     return rp
 
@@ -196,8 +197,8 @@ def save_parameter(rp_uuid,rp_value,rp_unit):
     update the value and unit for the nominal field
     '''
     param_q = Parameter.objects.get(uuid=rp_uuid)
-    param_q.nominal_value.value = rp_value
-    param_q.nominal_value.unit = rp_unit
+    param_q.parameter_val_nominal.value = rp_value
+    param_q.parameter_val_nominal.unit = rp_unit
     param_q.save()
     return param_q
     
@@ -269,12 +270,14 @@ def generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, num_
     experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
     
     #create counters for acid, solvent, stock a, stock b to keep track of current element in those lists
+    #TODO: this needs to be added to wf1 specific mapping
     action_reagent_map = {'dispense solvent': ('Reagent 1', 1.0),
-                          'dispense acid vol 1': ('Reagent 7', 0.5),
-                          'dispense acid vol 2': ('Reagent 7', 0.5),
+                          'dispense acid volume 1': ('Reagent 7', 0.5),
+                          'dispense acid volume 2': ('Reagent 7', 0.5),
                           'dispense stock a': ('Reagent 2', 1.0),
                           'dispense stock b': ('Reagent 3', 1.0),}
 
+    #TODO: this needs to be added to wf1 specific mapping
     reagent_template_reagent_map = {
         'Reagent 1 - Solvent': 'Reagent 1',
         'Reagent 7 - Acid': 'Reagent 7',

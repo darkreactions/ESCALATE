@@ -76,10 +76,10 @@ class Command(BaseCommand):
                                           lab=lab,)
         exp_template.save()
 
-        reagents = {'organic, solvent':['organic', 'solvent'], 
-                    'Pure acid':['acid'], 
-                    'inorganic, organic, solvent':['inorganic', 'organic', 'solvent'], 
-                    'Pure Solvent':['solvent']}
+        reagents = {'Reagent 3 - Stock B':['organic', 'solvent'], 
+                    'Reagent 7 - Acid':['acid'], 
+                    'Reagent 2 - Stock A':['inorganic', 'organic', 'solvent'], 
+                    'Reagent 1 - Solvent':['solvent']}
         
         # Vals for each default value
         volume_val = {'value': 0, 'unit':'ml', 'type':'num'}
@@ -147,6 +147,11 @@ class Command(BaseCommand):
             'Temperature (C)': ActionSequence.objects.create(description='Temperature (C)'),
             'Stir Rate (rpm)': ActionSequence.objects.create(description='Stir Rate (rpm)'),
             'Reaction time (s)': ActionSequence.objects.create(description='Reaction time (s)'),
+            'Dispense Solvent': ActionSequence.objects.create(description='Dispense Solvent'),
+            'Dispense Stock A': ActionSequence.objects.create(description='Dispense Stock A'),
+            'Dispense Stock B': ActionSequence.objects.create(description='Dispense Stock B'),
+            'Dispense Acid Volume 1': ActionSequence.objects.create(description='Dispense Acid Volume 1'),
+            'Dispense Acid Volume 2': ActionSequence.objects.create(description='Dispense Acid Volume 2'),
         }
 
         for i, action_seq in enumerate(action_sequences.values()):
@@ -174,12 +179,13 @@ class Command(BaseCommand):
         ot.save()
         exp_template.outcome_templates.add(ot)
 
+        #heat_stir and heat causes duplicates, not sure why
         action_parameter_def = {
             'dispense': ('volume',),
             'bring_to_temperature': ('temperature',),
             'stir': ('temperature', 'duration', 'speed'),
-            'heat': ('temperature', 'duration')
-
+            'heat': ('temperature', 'duration'),
+            'temperature': ('temperature'),
         }
         # Action defs it is assumed that action defs are already inserted 
         actions = [ # List of tuples (Description, Action def description, source_bommaterial, destination_bommaterial)
@@ -193,24 +199,24 @@ class Command(BaseCommand):
             #('Add Solvent to Stock B', 'dispense', (None, 'Solvent'), (None, 'Stock B Vial'), 'Prepare stock B'),
             #('Add Organic to Stock B', 'dispense', (None, 'Organic'), (None, 'Stock B Vial'), 'Prepare stock B'),
             # Dispense Solvent to vials
-            #('Dispense Solvent', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Solvent'),
+            ('Dispense Solvent', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Solvent'),
             # Dispense Stock A to vials
-            #('Dispense Stock A', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Stock A'),
+            ('Dispense Stock A', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Stock A'),
             # Dispense Stock B to vials
-            #('Dispense Stock B', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Stock B'),
+            ('Dispense Stock B', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Stock B'),
             # Dispense Acid Vol 1
-            #('Dispense Acid Vol 1', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Acid Volume 1'),
+            ('Dispense Acid Volume 1', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Acid Volume 1'),
             # Heat stir 1
             #('Heat stir 1', 'heat_stir', (None, None), ('vessel', '96 Well Plate well'), 'Heat stir 1'),
             ('Mixing time1 (s)', 'stir', (None, None), ('vessel', '96 Well Plate well'), 'Mixing time1 (s)'),
             # Dispense Acid Vol 2
-            #('Dispense Acid Vol 2', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Acid Volume 2'),
+            ('Dispense Acid Volume 2', 'dispense', (None, 'Solvent'), ('vessel', plate_wells), 'Dispense Acid Volume 2'),
             # Heat stir 2
             #('Heat stir 2', 'heat_stir', (None, None), ('vessel', '96 Well Plate well'), 'Heat stir 2'),
             ('Mixing time2 (s)', 'stir', (None, None), ('vessel', '96 Well Plate well'), 'Mixing time2 (s)'),
             # Heat
             #('Heat', 'heat', (None, None), ('vessel', '96 Well Plate well'), 'Heat'),
-            ('Temperature (C)', 'heat', (None, None), ('vessel', '96 Well Plate well'), 'Temperature (C)'),
+            ('Temperature (C)', 'temperature', (None, None), ('vessel', '96 Well Plate well'), 'Temperature (C)'),
             ('Stir Rate (rpm)', 'stir', (None, None), ('vessel', '96 Well Plate well'), 'Stir Rate (rpm)'),
             ('Reaction time (s)', 'stir', (None, None), ('vessel', '96 Well Plate well'), 'Reaction time (s)'),
         ]
