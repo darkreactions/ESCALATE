@@ -26,7 +26,7 @@ from core.forms.custom_types import SingleValForm, InventoryMaterialForm, Nomina
 from core.forms.custom_types import (ExperimentNameForm, ExperimentTemplateForm, 
                                      ReagentForm, BaseReagentFormSet, 
                                      PropertyForm, OutcomeInstanceForm, VesselForm,
-                                     UploadFileForm, ReactionParameterForm)
+                                     UploadFileForm, RobotForm, ReactionParameterForm)
 from core.utilities.utils import experiment_copy
 from core.utilities.experiment_utils import (update_dispense_action_set, 
                                              get_action_parameter_querysets, 
@@ -245,8 +245,8 @@ class CreateExperimentView(TemplateView):
 
                 if context['manual']:
                     context = self.get_material_forms(exp_uuid, context)
-                    context['robot_file_upload_form'] = UploadFileForm()
-                    context['robot_file_upload_form_helper'] = UploadFileForm.get_helper()
+                    context['robot_file_upload_form'] = RobotForm()
+                    context['robot_file_upload_form_helper'] = RobotForm.get_helper()
                 if context['automated']:
                     context = self.get_reagent_forms(context['selected_exp_template'], context)
             else:
