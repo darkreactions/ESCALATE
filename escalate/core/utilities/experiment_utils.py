@@ -269,12 +269,14 @@ def generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, num_
     experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
     
     #create counters for acid, solvent, stock a, stock b to keep track of current element in those lists
+    #TODO: this needs to be added to wf1 specific mapping
     action_reagent_map = {'dispense solvent': ('Reagent 1', 1.0),
-                          'dispense acid vol 1': ('Reagent 7', 0.5),
-                          'dispense acid vol 2': ('Reagent 7', 0.5),
+                          'dispense acid volume 1': ('Reagent 7', 0.5),
+                          'dispense acid volume 2': ('Reagent 7', 0.5),
                           'dispense stock a': ('Reagent 2', 1.0),
                           'dispense stock b': ('Reagent 3', 1.0),}
 
+    #TODO: this needs to be added to wf1 specific mapping
     reagent_template_reagent_map = {
         'Reagent 1 - Solvent': 'Reagent 1',
         'Reagent 7 - Acid': 'Reagent 7',
