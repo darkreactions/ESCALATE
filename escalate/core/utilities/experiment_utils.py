@@ -177,7 +177,7 @@ def get_vessel_querysets():
     vessel_q = Vessel.objects.filter(well_number__isnull=True)
     return vessel_q
 
-def save_reaction_parameters(exp_template,rp_value,rp_unit,rp_type,rp_label):
+def save_reaction_parameters(exp_template,rp_value,rp_unit,rp_type,rp_label,experiment_copy_uuid):
     #for reaction_parameter_label, reaction_parameter_form in reaction_parameter_labels
     #rp_label might be a list so need to itterate over and pass to this
     rp = ReactionParameter.objects.create(
@@ -186,7 +186,8 @@ def save_reaction_parameters(exp_template,rp_value,rp_unit,rp_type,rp_label):
         value = rp_value,
         unit = rp_unit,
         type = rp_type,
-        description = rp_label
+        description = rp_label,
+        experiment_uuid = experiment_copy_uuid
     )
     return rp
 
@@ -196,8 +197,8 @@ def save_parameter(rp_uuid,rp_value,rp_unit):
     update the value and unit for the nominal field
     '''
     param_q = Parameter.objects.get(uuid=rp_uuid)
-    param_q.nominal_value.value = rp_value
-    param_q.nominal_value.unit = rp_unit
+    param_q.parameter_val_nominal.value = rp_value
+    param_q.parameter_val_nominal.unit = rp_unit
     param_q.save()
     return param_q
     

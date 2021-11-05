@@ -179,12 +179,13 @@ class Command(BaseCommand):
         ot.save()
         exp_template.outcome_templates.add(ot)
 
+        #heat_stir and heat causes duplicates, not sure why
         action_parameter_def = {
             'dispense': ('volume',),
             'bring_to_temperature': ('temperature',),
             'stir': ('temperature', 'duration', 'speed'),
-            'heat': ('temperature', 'duration')
-
+            'heat': ('temperature', 'duration'),
+            'temperature': ('temperature'),
         }
         # Action defs it is assumed that action defs are already inserted 
         actions = [ # List of tuples (Description, Action def description, source_bommaterial, destination_bommaterial)
@@ -215,7 +216,7 @@ class Command(BaseCommand):
             ('Mixing time2 (s)', 'stir', (None, None), ('vessel', '96 Well Plate well'), 'Mixing time2 (s)'),
             # Heat
             #('Heat', 'heat', (None, None), ('vessel', '96 Well Plate well'), 'Heat'),
-            ('Temperature (C)', 'heat', (None, None), ('vessel', '96 Well Plate well'), 'Temperature (C)'),
+            ('Temperature (C)', 'temperature', (None, None), ('vessel', '96 Well Plate well'), 'Temperature (C)'),
             ('Stir Rate (rpm)', 'stir', (None, None), ('vessel', '96 Well Plate well'), 'Stir Rate (rpm)'),
             ('Reaction time (s)', 'stir', (None, None), ('vessel', '96 Well Plate well'), 'Reaction time (s)'),
         ]
