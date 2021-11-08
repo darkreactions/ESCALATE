@@ -30,7 +30,7 @@ from core.utilities.experiment_utils import (update_dispense_action_set,
                                              get_action_parameter_querysets, 
                                              get_material_querysets, 
                                              supported_wfs, get_reagent_querysets,
-                                             prepare_reagents, generate_experiments_and_save, save_reaction_parameters)
+                                             prepare_reagents, generate_experiments_and_save, save_reaction_parameters, save_parameter)
 
 import core.models
 from core.models.view_tables import Note, TagAssign, Tag
@@ -197,7 +197,6 @@ class CreateExperimentView(TemplateView):
             if "Dispense" in rp_label:
                 continue
             else:
-                #this might need to be filte rinstead of get. needs testing
                 try:
                     rp_object = ReactionParameter.objects.filter(description=rp_label).order_by('add_date').first()
                     initial= {'value':Val.from_dict({'value':rp_object.value, 'unit': rp_object.unit, 'type':'num'}), 'uuid':rp.parameter_uuid}
@@ -405,14 +404,15 @@ class CreateExperimentView(TemplateView):
                 else:
                     rp_form = ReactionParameterForm(request.POST, prefix=f'reaction_parameter_{index}')
                     if rp_form.is_valid:
-                        #this needs to be updated to use parameter or need to save to ReactionParameter table
-                        #need to save to parameter regardless
                         rp_value = rp_form.data[f'reaction_parameter_{index}-value_0']
                         rp_unit = rp_form.data[f'reaction_parameter_{index}-value_1']
                         rp_type = rp_form.data[f'reaction_parameter_{index}-value_2']
                         rp_uuid = rp_form.data[f'reaction_parameter_{index}-uuid']
-                        save_reaction_parameters(exp_template,rp_value,rp_unit,rp_type,rp_label)
-                        #save_parameter(rp_uuid,rp_value,rp_unit)
+                        save_reaction_parameters(exp_template,rp_value,rp_unit,rp_type,rp_label,experiment_copy_uuid)
+                        #The rp_uuid is not being generated from the loadscript for some parameters
+                        #This issue stems from the data being loaded in. This function will work once we fix loading issues
+                        #if rp_uuid != "" or rp_uuid is not None:
+                        #    save_parameter(rp_uuid,rp_value,rp_unit)
                     index += 1
             
             

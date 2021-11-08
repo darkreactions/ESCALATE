@@ -2,6 +2,7 @@ import pandas as pd
 import tempfile
 import re
 import math
+from core.models.view_tables import (ReactionParameter)
 
 def make_well_list(container_name, 
               well_count, 
@@ -120,7 +121,8 @@ def generate_robot_file_wf1(reaction_volumes, reaction_parameters,
     #'Stir Rate (rpm):'->vw_action_parameter.parameter_value_nominal (text)
 
     #Will use default WF1 parameters until we clean up our parameter UI
-    reaction_parameters = None
+    #reaction_parameters = None
+    reaction_parameters = ReactionParameter.objects.filter(experiment_uuid=reaction_volumes[0].experiment_uuid)
     if reaction_parameters is None:
         rxn_parameters = pd.DataFrame({
                 'Reaction Parameters': ['Temperature (C):', 
@@ -133,10 +135,21 @@ def generate_robot_file_wf1(reaction_volumes, reaction_parameters,
                 'Parameter Values': [105, 750, 900, 1200, 21600, 85],
         })
     else:
-                
+        #to check for duplicate reaction parameters while trying to fix loadscript issue
+        last_param = None
+        # enumerate to map
+        rp_keys = []
+        rp_values = []
+        for i, reaction_parameter in enumerate(reaction_parameters): 
+            if last_param == reaction_parameter.description:
+                continue
+            rp_keys.append(reaction_parameter.description)
+            rp_values.append(reaction_parameter.value)
+            last_param = reaction_parameter.description
+
         rxn_parameters = pd.DataFrame({
-            'Reaction Parameters': reaction_parameters.keys(),
-            'Parameter Values':  reaction_parameters.values()
+            'Reaction Parameters': rp_keys,
+            'Parameter Values':  rp_values
         })
 
 
