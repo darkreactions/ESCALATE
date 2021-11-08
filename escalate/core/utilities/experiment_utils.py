@@ -330,7 +330,7 @@ def generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, num_
         
     return q1
 
-def save_manual_volumes(df, experiment_copy_uuid):
+def save_manual_volumes(df, reagent_action_map, experiment_copy_uuid):
     q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
     experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
     
@@ -341,17 +341,18 @@ def save_manual_volumes(df, experiment_copy_uuid):
                           'Reagent3 (ul)': 'dispense stock b'}
     
     for reagent_name, action_description in reagent_action_map.items():
-        well_list=[]
-        for well in df['Vial Site']:
-            well_list.append(well)
+        vial_list=[]
+        for vial in df['Site']:
+            vial_list.append(vial)
 
-        for i, vial in enumerate(well_list):
+        for i, vial in enumerate(vial_list):
             # get actions from q1 based on keys in action_reagent_map
                 if experiment.parent.ref_uid == 'workflow_1':
                     action = q1.get(action_unit_description__icontains=action_description, action_unit_description__endswith=vial)
                 elif experiment.parent.ref_uid == 'perovskite_demo':
                     action = q1.get(object_description__icontains=action_description, object_description__endswith=vial)
-                
+                else:
+                    action = q1.get(action_unit_description__icontains=action_description, action_unit_description__endswith=vial)
                 # If number of experiments requested is < actions only choose the first n actions
                 # Otherwise choose all
                 #actions = actions[:num_of_experiments] if num_of_experiments < len(actions) else actions
