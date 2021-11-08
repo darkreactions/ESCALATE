@@ -12,7 +12,7 @@ from django.db.models import F, Value
 from core.models.view_tables import (BomMaterial, Action, Parameter,
                                             ActionUnit, ExperimentTemplate, 
                                             ExperimentInstance, ReagentMaterial,
-                                            Reagent, Property, Vessel)
+                                            Reagent, Property, Vessel, ExperimentActionSequence, ReactionParameter)
 from core.custom_types import Val
 from core.models.core_tables import RetUUIDField
 from core.utilities.randomSampling import generateExperiments
@@ -177,6 +177,31 @@ def get_vessel_querysets():
     vessel_q = Vessel.objects.filter(well_number__isnull=True)
     return vessel_q
 
+def save_reaction_parameters(exp_template,rp_value,rp_unit,rp_type,rp_label,experiment_copy_uuid):
+    #for reaction_parameter_label, reaction_parameter_form in reaction_parameter_labels
+    #rp_label might be a list so need to itterate over and pass to this
+    rp = ReactionParameter.objects.create(
+        experiment_template = exp_template,
+        #organization = organization,
+        value = rp_value,
+        unit = rp_unit,
+        type = rp_type,
+        description = rp_label,
+        experiment_uuid = experiment_copy_uuid
+    )
+    return rp
+
+def save_parameter(rp_uuid,rp_value,rp_unit):
+    '''
+    get specific parameter via uuid that was saved as a hidden field. 
+    update the value and unit for the nominal field
+    '''
+    param_q = Parameter.objects.get(uuid=rp_uuid)
+    param_q.parameter_val_nominal.value = rp_value
+    param_q.parameter_val_nominal.unit = rp_unit
+    param_q.save()
+    return param_q
+    
 def get_reagent_querysets(exp_uuid):
     """[summary]
 
@@ -186,26 +211,7 @@ def get_reagent_querysets(exp_uuid):
     Returns:
         [Queryset]: Queryset that contains the reagent data
     """ 
-    '''
-    reagent_q = ReagentInstance.objects.filter(experiment__uuid=exp_uuid).annotate(
-                object_uuid=F('uuid')).annotate(
-                object_description=F('description')).annotate(
-                instance_uuid=F('reagent_instance_value_reagent_instance__uuid')).annotate(
-                instance_value=F('reagent_instance_value_reagent_instance__nominal_value')).annotate(
-                instance_value_actual=F('reagent_instance_value_reagent_instance__actual_value')).annotate(
-                instance_material_type_id=F('reagent_instance_value_reagent_instance__material_type')).annotate(
-                instance_description=F('reagent_instance_value_reagent_instance__description')).annotate(
-                experiment_uuid=F('experiment__uuid')).annotate(
-                experiment_description=F('experiment__description'))#.annotate(
-    '''
     reagent_q = ReagentMaterial.objects.filter(experiment__uuid=exp_uuid)
-    """
-    .annotate(
-    mat_type=F('material_type')).annotate(
-    value_nominal=F('nominal_value')).annotate(
-    value_actual=F('actual_value')).annotate(
-    parent_uuid=F('reagent_instance__uuid'))
-    """
     
     return reagent_q
 
@@ -248,7 +254,6 @@ def prepare_reagents(reagent_formset, exp_concentrations):
 
     return exp_concentrations
 
-
 def generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, num_of_experiments, dead_volume):
     """
     Generates random experiments using sampler and saves it to 
@@ -265,17 +270,19 @@ def generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, num_
     experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
     
     #create counters for acid, solvent, stock a, stock b to keep track of current element in those lists
+    #TODO: this needs to be added to wf1 specific mapping
     action_reagent_map = {'dispense solvent': ('Reagent 1', 1.0),
-                          'dispense acid vol 1': ('Reagent 7', 0.5),
-                          'dispense acid vol 2': ('Reagent 7', 0.5),
+                          'dispense acid volume 1': ('Reagent 7', 0.5),
+                          'dispense acid volume 2': ('Reagent 7', 0.5),
                           'dispense stock a': ('Reagent 2', 1.0),
                           'dispense stock b': ('Reagent 3', 1.0),}
 
+    #TODO: this needs to be added to wf1 specific mapping
     reagent_template_reagent_map = {
-        'Pure Solvent': 'Reagent 1',
-        'Pure acid': 'Reagent 7',
-        'inorganic, organic, solvent': 'Reagent 2',
-        'organic, solvent': 'Reagent 3',
+        'Reagent 1 - Solvent': 'Reagent 1',
+        'Reagent 7 - Acid': 'Reagent 7',
+        'Reagent 2 - Stock A': 'Reagent 2',
+        'Reagent 3 - Stock B': 'Reagent 3',
     }
 
     # This loop sums the volume of all generated experiment for each reagent and saves to database
@@ -322,35 +329,3 @@ def generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, num_
     conc_to_amount(experiment_copy_uuid)
         
     return q1
-
-def save_manual_volumes(df, experiment_copy_uuid):
-    q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
-    experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
-    
-    reagent_action_map = {'Reagent1 (ul)': 'dispense solvent',
-                          'Reagent7 (ul)': 'dispense acid vol 1',
-                          'Reagent8 (ul)': 'dispense acid vol 2',
-                          'Reagent2 (ul)': 'dispense stock a',
-                          'Reagent3 (ul)': 'dispense stock b'}
-    
-    for reagent_name, action_description in reagent_action_map.items():
-        well_list=[]
-        for well in df['Vial Site']:
-            well_list.append(well)
-
-        for i, vial in enumerate(well_list):
-            # get actions from q1 based on keys in action_reagent_map
-            if experiment.parent.ref_uid == 'workflow_1':
-                action = q1.get(action_unit_description__icontains=action_description, action_unit_description__endswith=vial)
-            elif experiment.parent.ref_uid == 'perovskite_demo':
-                action = q1.get(object_description__icontains=action_description, object_description__endswith=vial)
-            
-            # If number of experiments requested is < actions only choose the first n actions
-            # Otherwise choose all
-            #actions = actions[:num_of_experiments] if num_of_experiments < len(actions) else actions
-            #for i, action in enumerate(actions):
-            parameter = Parameter.objects.get(uuid=action.parameter_uuid)
-            #action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
-            parameter.parameter_val_nominal.value = df[reagent_name][i]
-            #parameter.parameter_val_nominal.value = desired_volume[reagent_name][i] 
-            parameter.save()

@@ -342,12 +342,35 @@ class OutcomeInstance(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
 
     def save(self, *args, **kwargs):
         if self.outcome_template.default_value is not None:
-            if self.nominal_value.null:
+            if not self.nominal_value:
                 self.nominal_value = self.outcome_template.default_value.nominal_value
-            if self.actual_value.null:
+            if not self.actual_value:
                 self.actual_value = self.outcome_template.default_value.actual_value
         super().save(*args, **kwargs)
 
+
+class ReactionParameter(StatusColumn, DescriptionColumn, DateColumns):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,
+                        db_column='reaction_parameter_profile_uuid')
+    experiment_template = models.ForeignKey('ExperimentTemplate', models.CASCADE,
+                               blank=True, null=True,
+                               related_name='reaction_parameter_profile_workflow')
+    organization = models.ForeignKey('Organization', models.CASCADE,
+                               blank=True, null=True,
+                               related_name='reaction_parameter_profile_organization')
+    value = models.CharField(max_length=255,
+                                   blank=True, null=True,
+                                   db_column='reaction_parameter_profile_parameter_value')
+    unit = models.CharField(max_length=255,
+                                   blank=True, null=True,
+                                   db_column='reaction_parameter_profile_parameter_unit')
+    type = models.CharField(max_length=255,
+                                   blank=True, null=True,
+                                   db_column='reaction_parameter_profile_parameter_type')
+    experiment_uuid = models.CharField(max_length=255,
+                                   blank=True, null=True,
+                                   db_column='reaction_parameter_profile_experiment_uuid')
+   
 
 class ActionSequence(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
