@@ -41,7 +41,7 @@ class UploadFileForm(Form):
         helper.field_class = 'col-lg-8'
         helper.layout = Layout(
             Row(Column(Field('file'))),
-            Row(Column(Submit('outcome_upload', 'Submit'))),
+            #Row(Column(Submit('outcome_upload', 'Submit'))),
         )
         return helper
 
