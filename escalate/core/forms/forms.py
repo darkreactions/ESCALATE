@@ -563,7 +563,7 @@ class InventoryMaterialForm(forms.ModelForm):
             'description': forms.CharField,
             'part_no': forms.CharField,
             #'onhand_amt': ValFormField,
-            #'onhand_amt': forms.CharField,
+            'onhand_amt': forms.CharField,
             'expiration_date': forms.SplitDateTimeField,
             'location': forms.CharField,
         }
