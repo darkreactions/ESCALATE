@@ -128,6 +128,7 @@
                     </div>
                       <br>             
                     {% endfor %}
+
                 {{ robot_file_upload_form|crispy }}
                 <button class="btn btn-outline-primary" type="submit" name="robot_upload" value="create_exp">Create Experiment</button> 
                 {% endif %}
@@ -137,7 +138,9 @@
             </form>
           
             <form method="post" enctype="multipart/form-data">{% csrf_token %}
+
                 {% if manual > 0 %}          
+
                 <button class="btn btn-outline-primary" type="submit" name="robot_download"
                   value="Submit">Download Robot file</button>
                 {% endif %}
