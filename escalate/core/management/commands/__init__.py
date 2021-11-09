@@ -1,0 +1,1 @@
+from .general_template import lab_id, reagents, action_seq, action_parameter_def, column_order, rows, plate_name
