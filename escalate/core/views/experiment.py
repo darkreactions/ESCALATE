@@ -714,6 +714,7 @@ class ExperimentOutcomeView(TemplateView):
         # context['outcome_file_url'] = reverse('outcome_file', kwargs={'pk':pk})
         context['outcome_file_upload_form'] = UploadFileForm()
         context['outcome_file_upload_form_helper'] = UploadFileForm.get_helper()
+        context['outcome_file_upload_form_helper'].form_tag = False
         return render(request, self.template_name, context)
     
     def get_outcome_forms(self, experiment, context):
@@ -728,9 +729,9 @@ class ExperimentOutcomeView(TemplateView):
     def post(self, request, *args, **kwargs):
         #context = self.get_context_data(**kwargs)
         #experiment_instance_uuid = request.resolver_match.kwargs['pk']
-        outcome_formset = self.OutcomeFormSet(request.POST)
-        if outcome_formset.is_valid():
-            outcome_formset.save()
+        # outcome_formset = self.OutcomeFormSet(request.POST)
+        # if outcome_formset.is_valid():
+        #   outcome_formset.save()
         if 'outcome_download' in request.POST:
             return self.download_outcome_file(kwargs['pk'])
         if 'outcome_upload' in request.POST:
