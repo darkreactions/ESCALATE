@@ -8,6 +8,7 @@ from copy import deepcopy
 import os
 from tkinter.constants import CURRENT
 from django.db.models import F, Value
+from django.db.models.query import QuerySet
 
 from core.models.view_tables import (BomMaterial, Action, Parameter,
                                             ActionUnit, ExperimentTemplate, 
@@ -110,7 +111,7 @@ def supported_wfs():
     
     return template_list
 
-def get_action_parameter_querysets(exp_uuid, template=True):
+def get_action_parameter_querysets(exp_uuid: str, template=True) -> QuerySet:
     related_exp = 'workflow__experiment_workflow_workflow__experiment'
     # related_exp_wf = 'workflow__experiment_workflow_workflow'
     # factored out until new workflow changes are implemented
@@ -127,7 +128,7 @@ def get_action_parameter_querysets(exp_uuid, template=True):
     else:
         model = ExperimentInstance
 
-    q1 = model.objects.filter(uuid=exp_uuid).prefetch_related(related_au).annotate(
+    q1: QuerySet = model.objects.filter(uuid=exp_uuid).prefetch_related(related_au).annotate(
                 object_description=F(f'{related_a}__description')).annotate(
                 object_def_description=F(f'{related_a}__action_def__description')).annotate(
                 object_uuid=F(f'{related_a}__uuid')).annotate(

@@ -3,10 +3,9 @@ import core.views
 from .views import (LoginView, CreateUserView, MainMenuView, WorkflowView,
                     ModelTagCreate, ModelTagUpdate, logout_view, UserProfileView,
                     change_password, UserProfileEdit)
-# ParameterEditView, MaterialEditView,
-from .views.misc_views import ExperimentDetailEditView
 from .views.experiment import (CreateExperimentView, ExperimentDetailView,
-                              ExperimentReagentPrepView, ExperimentOutcomeView)
+                              ExperimentReagentPrepView, ExperimentOutcomeView,
+                              ExperimentDetailEditView)
 from core.utilities.utils import view_names, camel_to_snake
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.views.generic.base import RedirectView
