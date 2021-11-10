@@ -14,6 +14,8 @@ from django.urls import reverse, reverse_lazy
 
 from django.views.generic.detail import DetailView
 from django.http import HttpResponseRedirect
+import pandas as pd
+#from core.models.view_tables.generic_data import File
 
 from core.models.view_tables import (ExperimentTemplate, 
                                      ExperimentInstance, Edocument, 
@@ -38,6 +40,8 @@ from core.custom_types import Val
 import core.experiment_templates
 from core.models.view_tables import Parameter
 from core.widgets import ValWidget
+from core.utilities.wf1_utils import generate_robot_file
+from core.utilities.experiment_utils import get_action_parameter_querysets
 
 
 #from escalate.core.widgets import ValFormField
@@ -220,7 +224,8 @@ class CreateExperimentView(TemplateView):
         else:
             org_id = None
         context['experiment_template_select_form'] = ExperimentTemplateForm(org_id=org_id)
-
+        #context['robot_file_upload_form'] = UploadFileForm()
+        #context['robot_file_upload_form_helper'] = UploadFileForm.get_helper()
         return render(request, self.template_name, context)
 
 
@@ -238,7 +243,8 @@ class CreateExperimentView(TemplateView):
 
                 if context['manual']:
                     context = self.get_material_forms(exp_uuid, context)
-                
+                    context['robot_file_upload_form'] = UploadFileForm()
+                    context['robot_file_upload_form_helper'] = UploadFileForm.get_helper()
                 if context['automated']:
                     context = self.get_reagent_forms(context['selected_exp_template'], context)
             else:
@@ -247,11 +253,30 @@ class CreateExperimentView(TemplateView):
         elif 'create_exp' in request.POST:
             if "automated" in request.POST:
                 context = self.process_automated_formsets(request, context)
-            else:
-                context = self.process_formsets(request, context)
-            # end: create experiment
+            #elif "manual" in request.POST:
+                #context=self.process_robot_formsets(request.session['experiment_template_uuid'], request, context)
+        elif "robot_download" in request.POST:
+            return self.download_robot_file(request.session['experiment_template_uuid'])
+        elif "robot_upload" in request.POST:
+            #return self.process_robot_formsets(request.session['experiment_template_uuid'], request, context)
+            context=self.process_robot_formsets(request.session['experiment_template_uuid'], request, context)
         return render(request, self.template_name, context)
-    # end: self.post()
+    
+    #def process_robot_file(self, df):
+        #data= df.to_html()
+        #data.save()
+        #return HttpResponse(data)
+
+    def download_robot_file(self, exp_uuid):
+        q1=get_action_parameter_querysets(exp_uuid) #volumes
+        f=generate_robot_file(q1, {}, 'Symyx_96_well_0003', 96)
+        response = FileResponse(f, as_attachment=True,
+                        filename=f'robot_{exp_uuid}.xls')
+        return response
+        
+    def process_robot_formsets(self, exp_uuid, request, context):
+        context['robot_file_upload_form'] = UploadFileForm()
+        context['robot_file_upload_form_helper'] = UploadFileForm.get_helper()
 
     def save_forms_reagent(self, formset, exp_uuid, exp_concentrations):
         
@@ -623,6 +648,7 @@ class ExperimentOutcomeView(TemplateView):
         # context['outcome_file_url'] = reverse('outcome_file', kwargs={'pk':pk})
         context['outcome_file_upload_form'] = UploadFileForm()
         context['outcome_file_upload_form_helper'] = UploadFileForm.get_helper()
+        context['outcome_file_upload_form_helper'].form_tag = False
         return render(request, self.template_name, context)
     
     def get_outcome_forms(self, experiment, context):
@@ -637,9 +663,9 @@ class ExperimentOutcomeView(TemplateView):
     def post(self, request, *args, **kwargs):
         #context = self.get_context_data(**kwargs)
         #experiment_instance_uuid = request.resolver_match.kwargs['pk']
-        outcome_formset = self.OutcomeFormSet(request.POST)
-        if outcome_formset.is_valid():
-            outcome_formset.save()
+        # outcome_formset = self.OutcomeFormSet(request.POST)
+        # if outcome_formset.is_valid():
+        #   outcome_formset.save()
         if 'outcome_download' in request.POST:
             return self.download_outcome_file(kwargs['pk'])
         if 'outcome_upload' in request.POST:

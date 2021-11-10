@@ -278,19 +278,11 @@ class Command(BaseCommand):
                                           lab=lab,)
         exp_template.save()
 
-<<<<<<< Updated upstream
-        reagents = {'Reagent 2 - Stock B':['organic', 'solvent'], 
-                    'Reagent 7 - Acid':['acid'], 
-                    'Reagent 3 - Stock A':['inorganic', 'organic', 'solvent'], 
-                    'Reagent 1 - Solvent':['solvent'], 
-                    'Reagent 9 - Antisolvent': ['solvent']}
-=======
         reagents = {'Reagent 2 - Stock A':['organic', 'solvent'], 
                     'Reagent 7 - Acid':['acid'], 
                     'Reagent 3 - Stock B':['inorganic', 'organic', 'solvent'], 
                     'Reagent 1 - Solvent':['solvent'],
                     'Reagent 9 - Antisolvent':['solvent']}
->>>>>>> Stashed changes
         
         # Vals for each default value
         volume_val = {'value': 0, 'unit':'ml', 'type':'num'}
