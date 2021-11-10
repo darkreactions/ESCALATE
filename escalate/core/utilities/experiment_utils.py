@@ -327,6 +327,9 @@ def generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, num_
             parameter.parameter_val_nominal.value = desired_volume[reagent_name][i] * mult_factor
             parameter.save()
 
-    conc_to_amount(experiment_copy_uuid)
-        
+    try:
+        conc_to_amount(experiment_copy_uuid)
+    except ValueError:
+        print('Missing phase data') ##TODO: display error message on website
+ 
     return q1
