@@ -278,11 +278,19 @@ class Command(BaseCommand):
                                           lab=lab,)
         exp_template.save()
 
+<<<<<<< Updated upstream
         reagents = {'Reagent 2 - Stock B':['organic', 'solvent'], 
                     'Reagent 7 - Acid':['acid'], 
                     'Reagent 3 - Stock A':['inorganic', 'organic', 'solvent'], 
                     'Reagent 1 - Solvent':['solvent'], 
                     'Reagent 9 - Antisolvent': ['solvent']}
+=======
+        reagents = {'Reagent 2 - Stock A':['organic', 'solvent'], 
+                    'Reagent 7 - Acid':['acid'], 
+                    'Reagent 3 - Stock B':['inorganic', 'organic', 'solvent'], 
+                    'Reagent 1 - Solvent':['solvent'],
+                    'Reagent 9 - Antisolvent':['solvent']}
+>>>>>>> Stashed changes
         
         # Vals for each default value
         volume_val = {'value': 0, 'unit':'ml', 'type':'num'}
@@ -342,7 +350,6 @@ class Command(BaseCommand):
                                                                                        'reagent_material_template':reagent_material_template,
                                                                                   'default_value':default})
         # Create ActionSequence -> Actions -> ActionUnits
-        # TODO: Change for WF3
         action_sequences = {
             'Dispense Solvent': ActionSequence.objects.create(description='Dispense Solvent'),
             'Dispense Stock A': ActionSequence.objects.create(description='Dispense Stock A'),

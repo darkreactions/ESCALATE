@@ -108,7 +108,7 @@
                             <span><i class="fas fa-table ic-w mx-1"></i>{{ reaction_parameter_label }}</span>
                           </a>
                           <ul class="nested">
-                                {{ reaction_parameter_form }}
+                                {{ reaction_parameter_form|crispy }}
                           </ul>
                         </li>
                         {% endfor %}

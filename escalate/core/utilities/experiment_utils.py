@@ -270,21 +270,34 @@ def generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, num_
     experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
     
     #create counters for acid, solvent, stock a, stock b to keep track of current element in those lists
-    #TODO: this needs to be added to wf1 specific mapping
-    action_reagent_map = {'dispense solvent': ('Reagent 1', 1.0),
+    if "workflow 1" in experiment.parent.description.lower():
+        action_reagent_map = {'dispense solvent': ('Reagent 1', 1.0),
                           'dispense acid volume 1': ('Reagent 7', 0.5),
                           'dispense acid volume 2': ('Reagent 7', 0.5),
                           'dispense stock a': ('Reagent 2', 1.0),
                           'dispense stock b': ('Reagent 3', 1.0),}
 
-    #TODO: this needs to be added to wf1 specific mapping
-    reagent_template_reagent_map = {
-        'Reagent 1 - Solvent': 'Reagent 1',
-        'Reagent 7 - Acid': 'Reagent 7',
-        'Reagent 2 - Stock A': 'Reagent 2',
-        'Reagent 3 - Stock B': 'Reagent 3',
-    }
+        reagent_template_reagent_map = {
+            'Reagent 1 - Solvent': 'Reagent 1',
+            'Reagent 7 - Acid': 'Reagent 7',
+            'Reagent 2 - Stock A': 'Reagent 2',
+            'Reagent 3 - Stock B': 'Reagent 3',
+        }
+    elif "workflow 3" in experiment.parent.description.lower():
+        action_reagent_map = {'dispense solvent': ('Reagent 1', 1.0),
+                          'dispense acid volume 1': ('Reagent 7', 0.5),
+                          'dispense acid volume 2': ('Reagent 7', 0.5),
+                          'dispense stock a': ('Reagent 2', 1.0),
+                          'dispense stock b': ('Reagent 3', 1.0),
+                          'dispense antisolvent': ('Reagent 9', 1.0)}
 
+        reagent_template_reagent_map = {
+            'Reagent 1 - Solvent': 'Reagent 1',
+            'Reagent 7 - Acid': 'Reagent 7',
+            'Reagent 2 - Stock A': 'Reagent 2',
+            'Reagent 3 - Stock B': 'Reagent 3',
+            'Reagent 9 - Antisolvent' : 'Reagent 9'
+        }
     # This loop sums the volume of all generated experiment for each reagent and saves to database
     # Also saves dead volume if passed to function
     reagents = Reagent.objects.filter(experiment=experiment_copy_uuid)
