@@ -6,9 +6,9 @@ from core.models.view_tables import (ReactionParameter)
 
 def make_well_list(container_name, 
               well_count, 
-              #column_order=['A', 'C', 'E', 'G', 'B', 'D', 'F', 'H'], # order is set by how the robot draws from the solvent wells
-              column_order=['A', 'C', 'B', 'D'], # 24 well plate
-              total_columns=6):
+              column_order=['A', 'C', 'E', 'G', 'B', 'D', 'F', 'H'], # order is set by how the robot draws from the solvent wells
+              #column_order=['A', 'C', 'B', 'D'], # 24 well plate
+              total_columns=12):
     row_limit = math.ceil(well_count / total_columns) # 8 columns in a 96 plate
     well_names = [f'{col}{row}' for row in range(1, row_limit+1) for col in column_order][:well_count]
     vial_df = pd.DataFrame({'Vial Site': well_names, 'Labware ID:': container_name})

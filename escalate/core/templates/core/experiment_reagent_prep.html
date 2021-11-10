@@ -28,17 +28,4 @@
     
 </form>
 
-<form method="post"  action="">{% csrf_token %}
-    <div class="card">
-        <div class="card-body">
-            {{ robot_file_upload_form.management_form }}
-        </div>
-    </div>
-    <br>
-<input type="hidden" id="manual" name="manual" value="{{ manual }}">
-<div class="text-left">
-    <button class="btn btn-outline-primary" type="submit">Submit Robot File</button>
-</div>
-
-</form>
 {% endblock %}
