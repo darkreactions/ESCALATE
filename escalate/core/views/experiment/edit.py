@@ -1,21 +1,18 @@
-from django.db.models import F, Value
-from django.views.generic import TemplateView
-from django.forms import formset_factory, ModelChoiceField
-from django.urls import reverse, reverse_lazy
-from django.forms import modelformset_factory
-from django.shortcuts import render, redirect
-from django import forms
+import json
 
-from core.forms.forms import UploadEdocForm, UploadFileForm
-from core.models.view_tables import ExperimentInstance, ExperimentTemplate, BomMaterial, Edocument #ActionParameter
+from django.db.models import F
+from django.views.generic import TemplateView
+from django.forms import formset_factory
+from django.urls import reverse
+from django.shortcuts import render
+
+from core.forms.forms import UploadFileForm
+from core.models.view_tables import ExperimentInstance, ExperimentTemplate, BomMaterial, Edocument 
 from core.forms.custom_types import InventoryMaterialForm, NominalActualForm, QueueStatusForm
 from core.utilities.experiment_utils import get_material_querysets, get_action_parameter_querysets
-from core.models.core_tables import RetUUIDField
-
-import json
 from core.models.view_tables.organization import Actor
-from core.views.experiment import save_forms_q_material, save_forms_q1, CreateExperimentView
-
+from core.views.experiment import save_forms_q_material, save_forms_q1, get_action_parameter_form_data
+from core.custom_types import Val
 
 class ExperimentDetailEditView(TemplateView):
     '''
@@ -27,7 +24,13 @@ class ExperimentDetailEditView(TemplateView):
     NominalActualFormSet = formset_factory(NominalActualForm, extra=0)
     MaterialFormSet = formset_factory(InventoryMaterialForm, extra=0)
     EdocFormSet = formset_factory(form=UploadFileForm)
-    get_action_parameter_forms = CreateExperimentView().get_action_parameter_forms
+    
+    def get_action_parameter_forms(self, exp_uuid, context, template=True):
+        initial_q1, q1_details = get_action_parameter_form_data(exp_uuid=exp_uuid, template=template)
+        context['q1_param_formset'] = self.NominalActualFormSet(initial=initial_q1, 
+                                                                prefix='q1_param',)
+        context['q1_param_details'] = q1_details
+        return context
 
     def get_context_data(self, **kwargs):
         # Setup
