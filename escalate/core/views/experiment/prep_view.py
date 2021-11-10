@@ -23,7 +23,7 @@ class ExperimentReagentPrepView(TemplateView):
         context = self.get_reagent_forms(experiment, context)
         return render(request, self.template_name, context)
     
-    def get_colors(self, number_of_colors, colors=['deeppink', 'blueviolet', 'blue', 'coral', 'lightseagreen', 'orange', 'crimson']):
+    def get_colors(self, number_of_colors, colors=['lightblue', 'teal', 'powderblue', 'skyblue', 'pastelblue', 'verdigris', 'steelblue', 'cornflowerblue']):
       factor = int(number_of_colors/len(colors))    
       remainder = number_of_colors % len(colors)
       total_colors = colors*factor + colors[:remainder]         
