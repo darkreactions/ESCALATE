@@ -183,8 +183,7 @@ class Command(BaseCommand):
         action_parameter_def = {
             'dispense': ('volume',),
             'bring_to_temperature': ('temperature',),
-            'stir': ('temperature', 'duration', 'speed'),
-            'heat': ('temperature', 'duration'),
+            'stir': ('temperature', 'duration', 'speed')
         }
         # Action defs it is assumed that action defs are already inserted 
         actions = [ # List of tuples (Description, Action def description, source_bommaterial, destination_bommaterial)
