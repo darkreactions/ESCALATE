@@ -1,3 +1,4 @@
+from logging import raiseExceptions
 import requests
 from pint import UnitRegistry
 
@@ -29,6 +30,8 @@ def conc_to_amount(exp_uuid):
             conc_unit = conc.nominal_value.unit
             conc=Q_(conc_val, conc_unit)
             phase = reagent_material.material.phase
+            if not phase:
+                raise ValueError('Invalid phase for {}'.format(reagent_material.material.description))
 
             mw_prop = reagent_material.material.material.property_m.get(property_template__description__icontains='molecularweight')
             mw = Q_(mw_prop.value.value, mw_prop.value.unit).to(units.g/units.mol)
