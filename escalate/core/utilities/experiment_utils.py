@@ -8,6 +8,7 @@ from copy import deepcopy
 import os
 from tkinter.constants import CURRENT
 from django.db.models import F, Value
+from django.db.models.query import QuerySet
 
 from core.models.view_tables import (BomMaterial, Action, Parameter,
                                             ActionUnit, ExperimentTemplate, 
@@ -110,7 +111,7 @@ def supported_wfs():
     
     return template_list
 
-def get_action_parameter_querysets(exp_uuid, template=True):
+def get_action_parameter_querysets(exp_uuid: str, template=True) -> QuerySet:
     related_exp = 'workflow__experiment_workflow_workflow__experiment'
     # related_exp_wf = 'workflow__experiment_workflow_workflow'
     # factored out until new workflow changes are implemented
@@ -127,7 +128,7 @@ def get_action_parameter_querysets(exp_uuid, template=True):
     else:
         model = ExperimentInstance
 
-    q1 = model.objects.filter(uuid=exp_uuid).prefetch_related(related_au).annotate(
+    q1: QuerySet = model.objects.filter(uuid=exp_uuid).prefetch_related(related_au).annotate(
                 object_description=F(f'{related_a}__description')).annotate(
                 object_def_description=F(f'{related_a}__action_def__description')).annotate(
                 object_uuid=F(f'{related_a}__uuid')).annotate(
@@ -339,6 +340,41 @@ def generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, num_
             parameter.parameter_val_nominal.value = desired_volume[reagent_name][i] * mult_factor
             parameter.save()
 
-    conc_to_amount(experiment_copy_uuid)
-        
+    try:
+        conc_to_amount(experiment_copy_uuid)
+    except ValueError:
+        print('Missing phase data') ##TODO: display error message on website
+ 
     return q1
+
+def save_manual_volumes(df, experiment_copy_uuid):
+    q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
+    experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
+    
+    reagent_action_map = {'Reagent1 (ul)': 'dispense solvent',
+                          'Reagent7 (ul)': 'dispense acid volume 1',
+                          'Reagent8 (ul)': 'dispense acid volume 2',
+                          'Reagent2 (ul)': 'dispense stock a',
+                          'Reagent3 (ul)': 'dispense stock b'}
+    
+    for reagent_name, action_description in reagent_action_map.items():
+        well_list=[]
+        for well in df['Vial Site']:
+            well_list.append(well)
+
+        for i, vial in enumerate(well_list):
+            # get actions from q1 based on keys in action_reagent_map
+                if experiment.parent.ref_uid == 'workflow_1':
+                    action = q1.get(action_unit_description__icontains=action_description, action_unit_description__endswith=vial)
+                elif experiment.parent.ref_uid == 'perovskite_demo':
+                    action = q1.get(object_description__icontains=action_description, object_description__endswith=vial)
+                
+                # If number of experiments requested is < actions only choose the first n actions
+                # Otherwise choose all
+                #actions = actions[:num_of_experiments] if num_of_experiments < len(actions) else actions
+                #for i, action in enumerate(actions):
+                parameter = Parameter.objects.get(uuid=action.parameter_uuid)
+                #action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
+                parameter.parameter_val_nominal.value = df[reagent_name][i]
+                #parameter.parameter_val_nominal.value = desired_volume[reagent_name][i] 
+                parameter.save()

@@ -29,6 +29,22 @@ class SingleValForm(Form):
     value = ValFormField(required=False)
     uuid = CharField(widget=HiddenInput)
 
+class RobotForm(Form):
+    # title = CharField(max_length=50)
+    file = FileField(label='Upload completed robot file')
+
+    @staticmethod
+    def get_helper():
+        helper = FormHelper()
+        helper.form_class = 'form-horizontal'
+        helper.label_class = 'col-lg-2'
+        helper.field_class = 'col-lg-8'
+        helper.layout = Layout(
+            Row(Column(Field('file'))),
+            Row(Column(Submit('robot_upload', 'Submit'))),
+        )
+        return helper
+
 class UploadFileForm(Form):
     # title = CharField(max_length=50)
     file = FileField(label='Upload completed outcome file')

@@ -84,7 +84,7 @@ class Command(BaseCommand):
         # Vals for each default value
         volume_val = {'value': 0, 'unit':'ml', 'type':'num'}
         dead_vol_val = {'value': 4000, 'unit':'uL', 'type':'num'}
-        amount_val = {'value': 0, 'unit':'gm', 'type':'num'}
+        amount_val = {'value': 0, 'unit':'g', 'type':'num'}
         conc_val = {'value': 0, 'unit':'M', 'type':'num'}
         crystal_score_val = {'value': 0, 'unit':'', 'type':'int'}
 
@@ -97,7 +97,7 @@ class Command(BaseCommand):
                                                               'nominal_value': dead_vol_val,
                                                               'actual_value': dead_vol_val
                                                               })
-        default_amount, created = DefaultValues.objects.get_or_create(**{'description':'Zero gm', 
+        default_amount, created = DefaultValues.objects.get_or_create(**{'description':'Zero g', 
                                                               'nominal_value': amount_val,
                                                               'actual_value': amount_val})
         default_conc, created = DefaultValues.objects.get_or_create(**{'description':'Zero M', 
@@ -926,6 +926,8 @@ class Command(BaseCommand):
                         if material.material_type.filter(Q(description='acid') | Q(description='solvent') | Q(description='antisolvent')).exists():
                             phase = 'liquid'
                         elif material.material_type.filter(Q(description='organic')).exists():
+                            phase = 'solid'
+                        elif material.material_type.filter(Q(description='inorganic')).exists():
                             phase = 'solid'
                     fields = {
                         'description': description,
