@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Any, Type
 import json
+import pandas as pd
 from django.forms.forms import Form
 from django.http.response import FileResponse
 from django.http.request import HttpRequest
