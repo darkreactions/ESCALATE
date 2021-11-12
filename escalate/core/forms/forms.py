@@ -30,7 +30,7 @@ class LoginForm(forms.Form):
 
 
 class CustomUserCreationForm(UserCreationForm):
-    class Meta:
+    class Meta: 
         model = CustomUser
         fields = ['username', 'password1', 'password2']
 
