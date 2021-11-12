@@ -766,7 +766,7 @@ class Command(BaseCommand):
         filename = 'load_material_identifier.csv'
         MATERIAL_IDENTIFIERS = path_to_file(filename)
  
-        df = pd.read_csv(MATERIAL_IDENTIFIERS, sep='\t', index_col=False, header=0)
+        df = pd.read_csv(MATERIAL_IDENTIFIERS, sep='\t', index_col=False, header=0, na_filter=False)
 
         active_status = Status.objects.get(description="active")
         material_identifier_defs = {
@@ -774,7 +774,7 @@ class Command(BaseCommand):
         }
         new_material_identifier = 0
 
-        for _, row in df.iterrows():
+        for _idx, row in df.iterrows():
             description = clean_string(row['description'])
             material_identifier_def__description = clean_string(row['material_identifier_def__description'])
             material_identifier_def = material_identifier_defs[y] if not string_is_null(y := material_identifier_def__description) else None
@@ -795,80 +795,58 @@ class Command(BaseCommand):
     def _load_material(self):
         self.stdout.write(self.style.NOTICE('Beginning loading material'))
 
-        filenames = ['load_material.txt']
-        for filename in filenames:
-            MATERIAL = path_to_file(filename)
-            with open(MATERIAL, newline='') as f:
-                reader = csv.reader(f, delimiter="\t")
-                
-                # first row should be header
-                column_names = next(reader)
+        filename = 'load_material.txt'
+        MATERIAL = path_to_file(filename)
+        df = pd.read_csv(MATERIAL, sep='\t', index_col=False, header=0, na_filter=False)
 
-                # {'col_0': 0, 'col_1': 1, ...}
-                column_names_to_index = list_data_to_index(column_names)
+        material_identifier_defs = {
+            x.description: x for x in MaterialIdentifierDef.objects.all()
+        }
+        active_status = Status.objects.get(description="active")
+        new_material = 0
 
-                active_status = Status.objects.get(description="active")
+        for _idx, row in df.iterrows():
+            description = clean_string(row['description'])
+            material_class = clean_string(row['material_class'])
+            consumable = row['consumable']
+            #update phase, model update to include phase into materials and foreign key material from inventory material
+            '''
+            phase = None
+            if "acid" in mat_type_desc:
+                phase = "liquid"
+            elif "solvent" in mat_type_desc:
+                phase = "liquid"
+            elif "organic" in mat_type_desc:
+                phase = "solid"
+            '''
 
-                material_identifier_def = {
-                    x.description: x for x in MaterialIdentifierDef.objects.all()}
+            material_identifier_descs_joined = clean_string(row['material_identifier__description'])
+            material_identifier_def_descs_joined = clean_string(row['material_identifier_def__description'])
+            material_type_descs_joined = clean_string(row['material_type__description'])
 
-                new_material = 0
-                for row in reader:
-                    description = clean_string(
-                        row[column_names_to_index['description']])
-                    material_class = clean_string(
-                        row[column_names_to_index['material_class']])
-                    consumable = to_bool(clean_string(
-                        row[column_names_to_index['consumable']]))
-                    mat_type_desc = clean_string(
-                        row[column_names_to_index['material_type__description']])
-                    #update phase, model update to include phase into materials and foreign key material from inventory material
-                    '''
-                    phase = None
-                    if "acid" in mat_type_desc:
-                        phase = "liquid"
-                    elif "solvent" in mat_type_desc:
-                        phase = "liquid"
-                    elif "organic" in mat_type_desc:
-                        phase = "solid"
-                    '''
+            material_identifier_descs = [clean_string(s) for s in material_identifier_descs_joined.split("|")] if (not string_is_null(material_identifier_descs_joined)) else []
+            material_identifier_def_descs = [clean_string(s) for s in material_identifier_def_descs_joined.split("|")] if (not string_is_null(material_identifier_def_descs_joined)) else []
+            material_type_descs = [clean_string(s) for s in material_type_descs_joined.split("|")] if (not string_is_null(material_type_descs_joined)) else []
 
-                    # fields = {
-                    #     'description': description,
-                    #     'material_class': material_class,
-                    #     'consumable': to_bool(consumable),
-                    #     'status': active_status
-                    # }
-                    material_instance, created = Material.objects.get_or_create(
-                        **{'description':description, 'status':active_status})
-                    material_instance.material_class = material_class
-                    material_instance.consumable = consumable
-                    material_instance.status = active_status
-                    #material_instance.phase = phase
 
-                    material_identifier__description = [x.strip() for x in y.split('|')] if not string_is_null(
-                        y := row[column_names_to_index['material_identifier__description']]) else []
-                    material_identifier_def__description = [x.strip() for x in y.split('|')] if not string_is_null(
-                        y := row[column_names_to_index['material_identifier_def__description']]) else []
-                    
-                    material_type__description = [x.strip() for x in z.split('|')] if not string_is_null(
-                        z := row[column_names_to_index['material_type__description']]) else []
+            fields = {
+                'description': description,
+                'material_class': material_class,
+                'consumable': consumable,
+                'status': active_status
+            }
+            material_instance, created = Material.objects.get_or_create(**fields)
+            if created:
+                new_material += 1
+            
+            material_instance.identifier.add(*[MaterialIdentifier.objects.get(description=descr,
+                                                            material_identifier_def=material_identifier_defs[def_descr])
+                                            for descr, def_descr in zip(material_identifier_descs, material_identifier_def_descs)])
+            material_instance.material_type.add(
+                *[MaterialType.objects.get(description=d) for d in material_type_descs])
 
-                    material_instance.identifier.add(*[MaterialIdentifier.objects.get(description=descr,
-                                                                                    material_identifier_def=material_identifier_def[def_descr])
-                                                    for descr, def_descr in zip(material_identifier__description, material_identifier_def__description)])
-                    material_instance.material_type.add(
-                        *[MaterialType.objects.get(description=d) for d in material_type__description])
-                    material_instance.save(update_fields=['material_class','consumable' ])
-                    if created:
-                        new_material += 1
-                # #jump to top of csv
-                # f.seek(0)
-                # #skip initial header row
-                # next(reader)
-
-                self.stdout.write(self.style.SUCCESS(
-                    f'Added {new_material} new materials'))
+        self.stdout.write(self.style.SUCCESS(
+            f'Added {new_material} new materials'))
         self.stdout.write(self.style.NOTICE('Finished loading material'))
 
     def _load_inventory_material(self):
@@ -1050,7 +1028,7 @@ class Command(BaseCommand):
                 value_from_csv = clean_string(
                     row[column_names_to_index['value']])
                 unit = clean_string(row[column_names_to_index['unit']])
-                required = to_bool(row[column_names_to_index['required']])
+                required = str_to_bool(row[column_names_to_index['required']])
                 unit_type = clean_string(
                     row[column_names_to_index['unit_type']])
                 fields = {
@@ -1341,7 +1319,7 @@ class Command(BaseCommand):
                 fields = {
                     'composite': Material.objects.get(description=y) if not string_is_null(y := material_composite_description) else None,
                     'component': Material.objects.get(description=y) if not string_is_null(y := material_component_description) else None,
-                    'addressable': to_bool(addressable),
+                    'addressable': str_to_bool(addressable),
                     'status': active_status
                 }
                 mixture_instance, created = Mixture.objects.get_or_create(
@@ -1631,7 +1609,7 @@ def clean_string(s):
     return None
 
 
-def to_bool(s):
+def str_to_bool(s):
     if s == 't' or s.lower() == 'true' or s:
         return True
     else:
@@ -1656,10 +1634,10 @@ def get_val_field_dict(type_, unit, value_from_csv):
         value = [float(x.strip()) for x in value_from_csv.split(
             ',')] if not string_is_null(value_from_csv) else []
     elif type_ == 'bool':
-        value = to_bool(value_from_csv) if not string_is_null(
+        value = str_to_bool(value_from_csv) if not string_is_null(
             value_from_csv) else False
     elif type_ == 'array_bool':
-        value = [to_bool(x.strip()) for x in value_from_csv.split(
+        value = [str_to_bool(x.strip()) for x in value_from_csv.split(
             ',')] if not string_is_null(value_from_csv) else []
     elif type_ == 'array_text':
         value = [x.strip() for x in value_from_csv.split(
