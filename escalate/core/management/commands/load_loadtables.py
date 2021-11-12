@@ -41,7 +41,7 @@ import os
 import json
 import math
 
-
+import pandas as pd
 
 class Command(BaseCommand):
     help = 'Loads initial data from load tables after a datebase refresh'
@@ -765,42 +765,30 @@ class Command(BaseCommand):
             'Beginning loading material identifier'))
         filename = 'load_material_identifier.csv'
         MATERIAL_IDENTIFIERS = path_to_file(filename)
-        with open(MATERIAL_IDENTIFIERS, newline='') as f:
-            reader = csv.reader(f, delimiter="\t")
+ 
+        df = pd.read_csv(MATERIAL_IDENTIFIERS, sep='\t', index_col=False, header=0)
 
-            # first row should be header
-            column_names = next(reader)
+        active_status = Status.objects.get(description="active")
+        material_identifier_defs = {
+                x.description: x for x in MaterialIdentifierDef.objects.all()
+        }
+        new_material_identifier = 0
 
-            # {'col_0': 0, 'col_1': 1, ...}
-            column_names_to_index = list_data_to_index(column_names)
+        for _, row in df.iterrows():
+            description = clean_string(row['description'])
+            material_identifier_def__description = clean_string(row['material_identifier_def__description'])
+            material_identifier_def = material_identifier_defs[y] if not string_is_null(y := material_identifier_def__description) else None
 
-            active_status = Status.objects.get(description="active")
-
-            material_identifier_def = {
-                x.description: x for x in MaterialIdentifierDef.objects.all()}
-
-            new_material_identifier = 0
-            for row in reader:
-                description = clean_string(
-                    row[column_names_to_index['description']])
-                material_identifier_def__description = clean_string(
-                    row[column_names_to_index['material_identifier_def__description']])
-                fields = {
-                    'description': description,
-                    'material_identifier_def': material_identifier_def[y] if not string_is_null(y := material_identifier_def__description) else None,
-                    'status': active_status
-                }
-                material_identifier_instance, created = MaterialIdentifier.objects.get_or_create(
-                    **fields)
-                if created:
-                    new_material_identifier += 1
-            # #jump to top of csv
-            # f.seek(0)
-            # #skip initial header row
-            # next(reader)
-
-            self.stdout.write(self.style.SUCCESS(
-                f'Added {new_material_identifier} new material identifiers'))
+            fields = {
+                'description': description,
+                'material_identifier_def': material_identifier_def,
+                'status': active_status
+            }
+            material_identifier_instance, created = MaterialIdentifier.objects.get_or_create(**fields)
+            if created:
+                new_material_identifier += 1
+        self.stdout.write(self.style.SUCCESS(
+            f'Added {new_material_identifier} new material identifiers'))
         self.stdout.write(self.style.NOTICE(
             'Finished loading material identifier'))
 
