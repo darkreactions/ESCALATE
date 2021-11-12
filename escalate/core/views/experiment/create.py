@@ -30,6 +30,7 @@ from core.utilities.experiment_utils import (get_action_parameter_querysets,
                                              generate_experiments_and_save, 
                                              save_reaction_parameters,
                                              save_manual_volumes,)
+from core.utilities.wf1_utils import generate_robot_file_wf1
 
 from .misc import get_action_parameter_form_data, save_forms_q1, save_forms_q_material
 
@@ -217,7 +218,7 @@ class CreateExperimentView(TemplateView):
 
     def download_robot_file(self, exp_uuid: str):
         q1=get_action_parameter_querysets(exp_uuid) #volumes
-        f=generate_robot_file(q1, {}, 'Symyx_96_well_0003', 96)
+        f=generate_robot_file_wf1(q1, {}, 'Symyx_96_well_0003', 96)
         response = FileResponse(f, as_attachment=True,
                         filename=f'robot_{exp_uuid}.xls')
         return response
