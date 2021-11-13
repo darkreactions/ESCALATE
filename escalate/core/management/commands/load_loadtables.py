@@ -854,81 +854,62 @@ class Command(BaseCommand):
             'Beginning loading inventory material'))
         filename = 'load_inventory_material.txt'
         INVENTORY_MATERIALS = path_to_file(filename)
-        with open(INVENTORY_MATERIALS, newline='') as f:
-            reader = csv.reader(f, delimiter="\t")
+        df = pd.read_csv(INVENTORY_MATERIALS, sep='\t', index_col=False, header=0, na_filter=False)
 
-            # first row should be header
-            column_names = next(reader)
+        active_status = Status.objects.get(description="active")
 
-            # {'col_0': 0, 'col_1': 1, ...}
-            column_names_to_index = list_data_to_index(column_names)
+        new_inventory_material = 0
+        for _idx, row in df.iterrows():
+            description = clean_string(row['description'])
+            inventory_description = clean_string(row['inventory_description'])
+            material_description = clean_string(row['material_description'])
+            part_no = clean_string(row['part_no'])
 
-            active_status = Status.objects.get(description="active")
+            onhand_amt_type = clean_string(row['onhand_amt_type'])
+            onhand_amt_unit = clean_string(row['onhand_amt_unit'])
+            onhand_amt_value = clean_string(row['onhand_amt_value'])
 
-            new_inventory_material = 0
-            for row in reader:
-                description = clean_string(
-                    row[column_names_to_index['description']])
-                inventory_description = clean_string(
-                    row[column_names_to_index['inventory_description']])
-                material_description = clean_string(
-                    row[column_names_to_index['material_description']])
-                part_no = clean_string(row[column_names_to_index['part_no']])
+            expiration_date = clean_string(row['expiration_date'])
+            location = clean_string(row['location'])
 
-                onhand_amt_type = clean_string(
-                    row[column_names_to_index['onhand_amt_type']])
-                onhand_amt_unit = clean_string(
-                    row[column_names_to_index['onhand_amt_unit']])
-                onhand_amt_value = clean_string(
-                    row[column_names_to_index['onhand_amt_value']])
-
-                expiration_date = clean_string(
-                    row[column_names_to_index['expiration_date']])
-                location = clean_string(row[column_names_to_index['location']])
-
-                try:
-                    material = Material.objects.get(description=material_description) if not string_is_null(material_description) else None
-                    phase = None
-                    if material is not None:
-                        if material.material_type.filter(Q(description='acid') | Q(description='solvent') | Q(description='antisolvent')).exists():
-                            phase = 'liquid'
-                        elif material.material_type.filter(Q(description='organic')).exists():
-                            phase = 'solid'
-                        elif material.material_type.filter(Q(description='inorganic')).exists():
-                            phase = 'solid'
-                    fields = {
-                        'description': description,
-                        'inventory': Inventory.objects.get(description=inventory_description) if not string_is_null(inventory_description) else None,
-                        'material': material,
-                        'part_no': part_no,
-                        'onhand_amt': get_val_field_dict(onhand_amt_type, onhand_amt_unit, onhand_amt_value),
-                        #'expiration_date': expiration_date if not string_is_null(expiration_date) else None,
-                        'phase': phase,
-                        'location': location,
-                        'status': active_status
-                    }
-                    inventory_material_instance, created = InventoryMaterial.objects.get_or_create(
-                        **fields)
-                except Exception as e:
-                    print(e)
-                    print(material_description)
+            try:
+                material = Material.objects.get(description=material_description) if not string_is_null(material_description) else None
+                phase = None
+                if material is not None:
+                    if material.material_type.filter(Q(description='acid') | Q(description='solvent') | Q(description='antisolvent')).exists():
+                        phase = 'liquid'
+                    elif material.material_type.filter(Q(description='organic')).exists():
+                        phase = 'solid'
+                    elif material.material_type.filter(Q(description='inorganic')).exists():
+                        phase = 'solid'
+                fields = {
+                    'description': description,
+                    'inventory': Inventory.objects.get(description=inventory_description) if not string_is_null(inventory_description) else None,
+                    'material': material,
+                    'part_no': part_no,
+                    'onhand_amt': get_val_field_dict(onhand_amt_type, onhand_amt_unit, onhand_amt_value),
+                    #'expiration_date': expiration_date if not string_is_null(expiration_date) else None,
+                    'phase': phase,
+                    'location': location,
+                    'status': active_status
+                }
+                inventory_material_instance, created = InventoryMaterial.objects.get_or_create(
+                    **fields)
+            except Exception as e:
+                print(e)
+                print(material_description)
                 
-                
+            try:
+                material_object = Material.objects.get(description=material_description)
+                inventory_material_instance.material = material_object
+            except Material.DoesNotExist:
+                inventory_material_instance.material = None
 
-                try:
-                    material_object = Material.objects.get(description=material_description)
-                    inventory_material_instance.material = material_object
-                except Material.DoesNotExist:
-                    inventory_material_instance.material = None
+            if created:
+                new_inventory_material += 1
 
-                if created:
-                    new_inventory_material += 1
-            self.stdout.write(self.style.SUCCESS(
-                f'Added {new_inventory_material} new inventory materials'))
-            # #jump to top of csv
-            # f.seek(0)
-            # #skip initial header row
-            # next(reader)
+        self.stdout.write(self.style.SUCCESS(
+            f'Added {new_inventory_material} new inventory materials'))
         self.stdout.write(self.style.NOTICE(
             'Finished loading inventory material'))
 
