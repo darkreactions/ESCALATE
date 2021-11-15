@@ -32,6 +32,7 @@ from core.utilities.experiment_utils import (get_action_parameter_querysets,
                                              save_reaction_parameters,
                                              save_manual_volumes,)
 from core.utilities.wf1_utils import generate_robot_file_wf1
+from core.models.view_tables.generic_data import Parameter
 
 from .misc import get_action_parameter_form_data, save_forms_q1, save_forms_q_material
 
