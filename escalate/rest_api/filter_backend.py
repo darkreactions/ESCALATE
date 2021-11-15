@@ -1,6 +1,7 @@
 import coreapi
 import coreschema
-#from url_filter.integrations.drf import DjangoFilterBackend
+
+# from url_filter.integrations.drf import DjangoFilterBackend
 from url_filter.integrations.drf_coreapi import CoreAPIURLFilterBackend
 
 
@@ -25,8 +26,9 @@ class CustomDjangoFilterBackend(CoreAPIURLFilterBackend):
         return [
             coreapi.Field(
                 name=field,
-                location='query',
+                location="query",
                 required=False,
-                type='string',
-            ) for field in fields
+                type="string",
+            )
+            for field in fields
         ]

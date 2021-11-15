@@ -15,7 +15,8 @@ view_names = [name for name in view_names if name not in exceptions]
 
 api_view_names = []
 for method_name in view_names:
-    api_view_names.append(method_name.lower()+'-list')
+    api_view_names.append(method_name.lower() + "-list")
+
 
 @pytest.mark.api_get
 @pytest.mark.parametrize("name", api_view_names)
