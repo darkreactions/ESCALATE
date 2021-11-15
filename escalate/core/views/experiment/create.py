@@ -29,7 +29,8 @@ from core.utilities.experiment_utils import (get_action_parameter_querysets,
                                              prepare_reagents, 
                                              generate_experiments_and_save, 
                                              save_reaction_parameters,
-                                             save_manual_volumes,)
+                                             save_manual_volumes,
+                                             save_parameter)
 
 from .misc import get_action_parameter_form_data, save_forms_q1, save_forms_q_material
 
@@ -479,8 +480,8 @@ class CreateExperimentView(TemplateView):
                         save_reaction_parameters(exp_template,rp_value,rp_unit,rp_type,rp_label,experiment_copy_uuid)
                         #The rp_uuid is not being generated from the loadscript for some parameters
                         #This issue stems from the data being loaded in. This function will work once we fix loading issues
-                        #if rp_uuid != "" or rp_uuid is not None:
-                        #    save_parameter(rp_uuid,rp_value,rp_unit)
+                        if rp_uuid != "":
+                            save_parameter(rp_uuid,rp_value,rp_unit)
                     index += 1
             
             
