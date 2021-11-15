@@ -330,6 +330,7 @@ def generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, num_
     try:
         conc_to_amount(experiment_copy_uuid)
     except ValueError:
+        q1=ValueError
         print('Missing phase data') ##TODO: display error message on website
  
     return q1

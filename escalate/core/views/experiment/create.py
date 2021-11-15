@@ -489,7 +489,10 @@ class CreateExperimentView(TemplateView):
             
             #generate desired volume for current reagent
             generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, exp_number, dead_volume)
-            q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
+            if ValueError:
+                messages.error(request, 'Missing phase data')
+            else:
+                q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
             
             #robotfile generation
             if exp_template.ref_uid in SUPPORTED_CREATE_WFS:
