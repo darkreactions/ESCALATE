@@ -133,8 +133,18 @@
     {% endblock %}
     <section>
         <div class="container">
+            
             <div class="card">
                 <div class="card-body" id="page-content">
+                    {% if messages %}
+                    <ul class="messages">
+                        {% for message in messages %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
                     {% block content %}
                     {% endblock %}
                     <nav>

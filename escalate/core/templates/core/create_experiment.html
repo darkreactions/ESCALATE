@@ -6,6 +6,7 @@
 {% block content %}
 <div class="container" >
 
+
     {% if new_exp_name %}
         <p> Created Experiment! </p>
             <p>Experiment name: {{ new_exp_name }}</p>
@@ -47,10 +48,18 @@
     <p>Selected experiment {{ selected_exp_template.description }}</p>
     <div class="row">
         <div class="col-md-12">
-            
-            <form method="post" enctype="multipart/form-data">{% csrf_token %}
 
-                {% if manual > 0 %}          
+          {% if messages %}
+          <ul class="messages">
+              {% for message in messages %}
+              <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+              {% endfor %}
+          </ul>
+          {% endif %}
+
+            <form method="post" enctype="multipart/form-data">{% csrf_token %}
+              
+              {% if manual > 0 %}          
 
                 <button class="btn btn-outline-primary" type="submit" name="robot_download"
                   value="Submit">Download Robot file</button>

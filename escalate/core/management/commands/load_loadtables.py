@@ -928,8 +928,8 @@ class Command(BaseCommand):
                             phase = 'liquid'
                         elif material.material_type.filter(Q(description='organic')).exists():
                             phase = 'solid'
-                        #elif material.material_type.filter(Q(description='inorganic')).exists():
-                            #phase = 'solid'
+                        elif material.material_type.filter(Q(description='inorganic')).exists():
+                            phase = 'solid'
                     fields = {
                         'description': description,
                         'inventory': Inventory.objects.get(description=inventory_description) if not string_is_null(inventory_description) else None,
