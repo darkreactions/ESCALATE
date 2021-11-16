@@ -179,11 +179,11 @@ class CreateExperimentView(TemplateView):
             context = self.get_context_data(**kwargs)
         except ValueError as ve:
             messages.error(request, str(ve))
-        #if 'current_org_id' in self.request.session:
-            #org_id = self.request.session['current_org_id']
+        if 'current_org_id' in self.request.session:
+            org_id = self.request.session['current_org_id']
         #else:
             #org_id = None
-        context['experiment_template_select_form'] = ExperimentTemplateForm(org_id=org_id)
+            context['experiment_template_select_form'] = ExperimentTemplateForm(org_id=org_id)
         #context['robot_file_upload_form'] = UploadFileForm()
         #context['robot_file_upload_form_helper'] = UploadFileForm.get_helper()
         return render(request, self.template_name, context)

@@ -99,6 +99,8 @@ class ExperimentTemplateForm(Form):
 
     def __init__(self, *args, **kwargs):
         org_id = kwargs.pop('org_id')
+        if not org_id:
+            raise ValueError('Please select a lab to continue')
         lab = vt.Actor.objects.get(organization=org_id, person__isnull=True)
         super().__init__(*args, **kwargs)
         #self.fields['organization'].queryset = OrganizationPassword.objects.all()
