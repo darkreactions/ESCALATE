@@ -56,11 +56,16 @@ class CreateExperimentView(TemplateView):
 
     def get_context_data(self, **kwargs):    
         # Select templates that belong to the current lab
-        context = super().get_context_data(**kwargs)
+        #context = super().get_context_data(**kwargs)
         org_id = self.request.session['current_org_id']
-        lab = Actor.objects.get(organization=org_id, person__isnull=True)
-        self.all_experiments = ExperimentTemplate.objects.filter(lab=lab)
-        context['all_experiments'] = self.all_experiments
+        if not org_id:
+            raise ValueError(
+                'Error: Must select a lab.')
+        else:
+            context = super().get_context_data(**kwargs)
+            lab = Actor.objects.get(organization=org_id, person__isnull=True)
+            self.all_experiments = ExperimentTemplate.objects.filter(lab=lab)
+            context['all_experiments'] = self.all_experiments
         return context
     
     def get_material_forms(self, exp_uuid: str, context: dict[str, Any]) -> dict[str, Any]:
@@ -89,7 +94,9 @@ class CreateExperimentView(TemplateView):
         if 'current_org_id' in self.request.session:
             org_id = self.request.session['current_org_id']
         else:
-            org_id = None
+            #org_id = None
+            raise ValueError(
+                'Error: Must select a lab.')
         formsets: list[Any] = []
         reagent_template_names = []
 
@@ -168,11 +175,14 @@ class CreateExperimentView(TemplateView):
 
 
     def get(self, request: HttpRequest, *args, **kwargs):
-        context = self.get_context_data(**kwargs)
-        if 'current_org_id' in self.request.session:
-            org_id = self.request.session['current_org_id']
-        else:
-            org_id = None
+        try:
+            context = self.get_context_data(**kwargs)
+        except ValueError as ve:
+            messages.error(request, str(ve))
+        #if 'current_org_id' in self.request.session:
+            #org_id = self.request.session['current_org_id']
+        #else:
+            #org_id = None
         context['experiment_template_select_form'] = ExperimentTemplateForm(org_id=org_id)
         #context['robot_file_upload_form'] = UploadFileForm()
         #context['robot_file_upload_form_helper'] = UploadFileForm.get_helper()
@@ -180,7 +190,10 @@ class CreateExperimentView(TemplateView):
 
 
     def post(self, request: HttpRequest, *args, **kwargs):
-        context = self.get_context_data(**kwargs)
+        try:
+            context = self.get_context_data(**kwargs)
+        except ValueError as ve:
+            messages.error(request, str(ve))
         if 'select_experiment_template' in request.POST:
             exp_uuid: str = request.POST['select_experiment_template']
             if exp_uuid:
@@ -233,7 +246,9 @@ class CreateExperimentView(TemplateView):
         if 'current_org_id' in self.request.session:
             org_id = self.request.session['current_org_id']
         else:
-            org_id = None
+            raise ValueError(
+                'Error: Must select a lab.')
+            #org_id = None
         
         formsets = []
         reagent_template_names = []
@@ -429,7 +444,9 @@ class CreateExperimentView(TemplateView):
         if 'current_org_id' in self.request.session:
             org_id = self.request.session['current_org_id']
         else:
-            org_id = None
+            raise ValueError(
+                'Error: Must select a lab.')
+            #org_id = None
         formsets = []
         reagent_template_names = []
         for index, form in enumerate(exp_template.reagent_templates.all().order_by('description')):
