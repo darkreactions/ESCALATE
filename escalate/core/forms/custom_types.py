@@ -1,6 +1,7 @@
+from django.forms.widgets import CheckboxSelectMultiple
 from core.widgets import ValWidget
 from django.forms import (Select, Form, ModelChoiceField, HiddenInput, 
-                          CharField, ChoiceField, IntegerField, BaseFormSet, BaseModelFormSet,
+                          CharField, ChoiceField, MultipleChoiceField, IntegerField, BaseFormSet, BaseModelFormSet,
                           ModelForm, FileField)
 from core.models.core_tables import TypeDef
 import core.models.view_tables as vt
@@ -88,6 +89,37 @@ class NominalActualForm(Form):
 
 class ExperimentNameForm(Form):
     exp_name = CharField(label='Experiment Name', max_length=100)
+
+
+class ExperimentTemplateCreateForm(Form):
+    
+    widget = Select(attrs={'class': 'selectpicker', 
+                                 'data-style':"btn-dark",
+                                 'data-live-search':'true'})
+    
+    widget_mc = CheckboxSelectMultiple(attrs={'class': 'selectpicker', 
+                            'data-style':"btn-dark",
+                            'data-live-search':'true'})
+    
+    template_name= CharField(label='Experiment Template Name', required=True)
+    #reagent_num = IntegerField(label='Number of Reagents', required=True, initial=0)
+    select_rt = MultipleChoiceField(label='Select Reagent Templates', widget=widget_mc)
+    
+    column_order= CharField(label='Column Order', required=False, initial='ACEGBDFH')
+    rows = IntegerField(label='Number of Rows', required=False, initial=12)
+    select_vessel = ChoiceField(label='Select Vessel', widget=widget)
+    
+    def __init__(self, *args, **kwargs):
+        org_id = kwargs.pop('org_id')
+        lab = vt.Actor.objects.get(organization=org_id, person__isnull=True)
+        super().__init__(*args, **kwargs)
+        self.fields['select_rt'].choices = [(r.uuid, r.description) for r in vt.ReagentTemplate.objects.all()]
+        
+        #v_query = vt.Vessel.objects.all()
+        #vessel = VesselForm(initial={'value': v_query[0]})
+        #self.fields['select_vessel'].choices = [v for v in vessel]
+        self.fields['select_vessel'].choices = [(r.uuid, r.description) for r in vt.Vessel.objects.all()]
+        #self.fields['select_materials'].choices = [(r.uuid, r.description) for r in vt.InventoryMaterial.objects.all()]
 
 class ExperimentTemplateForm(Form):
     widget = Select(attrs={'class': 'selectpicker', 

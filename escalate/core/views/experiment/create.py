@@ -12,10 +12,12 @@ from django.shortcuts import render
 from django.contrib import messages
 from django.urls import reverse
 
+from core.models import DefaultValues, ReagentTemplate, Parameter
+
 
 from core.models.view_tables import (ExperimentTemplate, Actor,
                                      ReagentMaterial, ReagentTemplate,
-                                     InventoryMaterial, ReactionParameter,
+                                     InventoryMaterial, Inventory, ReactionParameter,
                                      ReagentMaterialTemplate, ReagentMaterialValueTemplate,
                                      MaterialType)
 from core.forms.custom_types import (SingleValForm, InventoryMaterialForm, NominalActualForm, 
@@ -32,6 +34,7 @@ from core.utilities.experiment_utils import (get_action_parameter_querysets,
                                              save_reaction_parameters,
                                              save_manual_volumes,)
 from core.utilities.wf1_utils import generate_robot_file_wf1
+from core.forms.custom_types import ExperimentTemplateCreateForm
 
 from .misc import get_action_parameter_form_data, save_forms_q1, save_forms_q_material
 
@@ -44,6 +47,118 @@ from core.utilities.wf1_utils import generate_robot_file
 
 SUPPORTED_CREATE_WFS = [mod for mod in dir(core.experiment_templates) if '__' not in mod]
 
+class CreateExperimentTemplate(TemplateView):
+    template_name="core/create_exp_template.html"
+    form_class= ExperimentTemplateCreateForm
+    #MaterialFormSet: Type[BaseFormSet] = formset_factory(InventoryMaterialForm, extra=0)
+    #ReagentFormSet: Type[BaseFormSet] = formset_factory(ReagentForm, extra=0, formset=BaseReagentFormSet)
+   
+    def get_context_data(self, **kwargs):    
+        # Select materials that belong to the current lab
+        context = super().get_context_data(**kwargs)
+        org_id = self.request.session['current_org_id']
+        lab = Actor.objects.get(organization=org_id, person__isnull=True)
+        #self.all_materials = InventoryMaterial.inventory.objects.filter(lab=lab)
+        context['lab']=lab
+        #self.all_materials = InventoryMaterial.objects.all()
+        #context['all_materials'] = self.all_materials
+        return context
+
+    def create_template(self, context):
+        exp_template = ExperimentTemplate(description=context['name'], 
+                                          ref_uid=context['name'],
+                                          lab=context['lab'])
+        exp_template.save()
+        #exp_uuid = ExperimentTemplate.objects.get(description=context['name'])
+        context['exp_uuid']=exp_template.uuid
+        return context
+    
+    def add_reagents(self, context):
+        exp_template=ExperimentTemplate.objects.get(uuid=context['exp_uuid'])
+        #for r in context['reagents']:    ##TODO: loop over the list
+            #rt= ReagentTemplate.objects.get(uuid=r)
+        rt= ReagentTemplate.objects.get(uuid=context['reagents'])
+        exp_template.reagent_templates.add(rt)  
+
+    def create_reagents(self, context): ##TODO: make this work
+        exp_template=ExperimentTemplate.objects.get(uuid=context['exp_uuid'])
+        
+        # Vals for each default value
+        volume_val = {'value': 0, 'unit':'ml', 'type':'num'}
+        dead_vol_val = {'value': 4000, 'unit':'uL', 'type':'num'}
+        amount_val = {'value': 0, 'unit':'g', 'type':'num'}
+        conc_val = {'value': 0, 'unit':'M', 'type':'num'}
+        crystal_score_val = {'value': 0, 'unit':'', 'type':'int'}
+
+        #Create default values
+        default_volume, created = DefaultValues.objects.get_or_create(**{'description':'Zero ml', 
+                                                              'nominal_value': volume_val,
+                                                              'actual_value': volume_val
+                                                              })
+        default_dead_volume, created = DefaultValues.objects.get_or_create(**{'description':'WF1 dead volume', 
+                                                              'nominal_value': dead_vol_val,
+                                                              'actual_value': dead_vol_val
+                                                              })
+        default_amount, created = DefaultValues.objects.get_or_create(**{'description':'Zero g', 
+                                                              'nominal_value': amount_val,
+                                                              'actual_value': amount_val})
+        default_conc, created = DefaultValues.objects.get_or_create(**{'description':'Zero M', 
+                                                              'nominal_value': conc_val,
+                                                              'actual_value': conc_val})
+        default_crystal_score, created = DefaultValues.objects.get_or_create(**{'description':'Zero Crystal score', 
+                                                              'nominal_value': crystal_score_val,
+                                                              'actual_value': crystal_score_val})
+
+        # Concentration and amount data to be stored for each reagent material
+        reagent_values = {'concentration': default_conc, 'amount': default_amount}
+
+        # Create total volume and dead volume property templates for each reagent
+        total_volume_prop, created = PropertyTemplate.objects.get_or_create(**{"description": "total volume",
+                                                                    "property_def_class": "extrinsic",
+                                                                    "short_description": "volume",
+                                                                    "default_value":default_volume})
+        dead_volume_prop, created = PropertyTemplate.objects.get_or_create(**{"description": "dead volume",
+                                                                    "property_def_class": "extrinsic",
+                                                                    "short_description": "dead volume",
+                                                                    "default_value":default_dead_volume})
+
+        #for r in context['reagents']:
+            #rt= ReagentTemplate.objects.get(uuid=r)
+        rt= ReagentTemplate.objects.get(uuid=context['reagents'])  
+        rt.properties.add(total_volume_prop)
+        rt.properties.add(dead_volume_prop)
+        exp_template.reagent_templates.add(rt)
+        for rm in rms:
+            self.stdout.write(self.style.NOTICE(f'{rm}'))
+            material_type = MaterialType.objects.get(description=rm)
+            reagent_material_template, created = ReagentMaterialTemplate.objects.get_or_create(**{'description':f'{r}: {rm}', 
+                                                                                                'reagent_template':reagent_template,
+                                                                                                'material_type':material_type})
+            
+            for rv, default in reagent_values.items():
+                rmv_template, created = ReagentMaterialValueTemplate.objects.get_or_create(**{'description':rv,
+                                                                                    'reagent_material_template':reagent_material_template,
+                                                                                'default_value':default}) 
+
+    def get(self, request: HttpRequest, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        if 'current_org_id' in self.request.session:
+            org_id = self.request.session['current_org_id']
+        else:
+            org_id = None
+        context['experiment_template_create_form'] = ExperimentTemplateCreateForm(org_id=org_id)
+        return render(request, self.template_name, context)
+
+    def post(self, request: HttpRequest, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        if 'create_template' in request.POST:
+            context['name'] = request.POST['template_name']
+            context['reagents'] = request.POST['select_rt']
+            #context['reagent_number'] = int(request.POST['reagent_num'])
+            self.create_template(context)
+            self.add_reagents(context)
+
+        return render(request, self.template_name, context)
 
 class CreateExperimentView(TemplateView):
     template_name = "core/create_experiment.html"
