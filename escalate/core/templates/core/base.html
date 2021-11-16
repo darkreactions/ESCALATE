@@ -97,7 +97,10 @@
                                     <a class="dropdown-item {% if url_name == 'create_experiment' %}active{% endif %}" href="{% url 'experiment_instance_add' %}">Create Experiment</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item {% if url_name == 'workflow' %}active{% endif %}" href="{% url 'workflow' %}">Workflow</a>
+                                    <a class="dropdown-item {% if url_name == 'workflow' %}active{% endif %}" href="{% url 'workflow' %}">Create Workflow</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item {% if url_name == 'template' %}active{% endif %}" href="{% url 'experiment_template_add' %}">Create Template</a>
                                 </li>
                             </ul>
                         </div>

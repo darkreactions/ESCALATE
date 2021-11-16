@@ -21,7 +21,8 @@ from core.models.view_tables import (ExperimentTemplate, Actor,
                                      ReagentMaterialTemplate, ReagentMaterialValueTemplate,
                                      MaterialType, Vessel, OutcomeTemplate)
 from core.forms.custom_types import (SingleValForm, InventoryMaterialForm, NominalActualForm, 
-                                     ExperimentNameForm, ExperimentTemplateForm, 
+                                     ExperimentNameForm, ExperimentTemplateForm,
+                                     ReagentSelectionForm, 
                                      ReagentForm, BaseReagentFormSet, 
                                      VesselForm, ReactionParameterForm, UploadFileForm,
                                      RobotForm)
@@ -75,10 +76,11 @@ class CreateExperimentTemplate(TemplateView):
     
     def add_reagents(self, context):
         exp_template=ExperimentTemplate.objects.get(uuid=context['exp_uuid'])
-        #for r in context['reagents']:    ##TODO: loop over the list
-            #rt= ReagentTemplate.objects.get(uuid=r)
-        rt= ReagentTemplate.objects.get(uuid=context['reagents'])
-        exp_template.reagent_templates.add(rt)  
+        for r in context['reagents']:   
+            rt= ReagentTemplate.objects.get(uuid=r)
+            exp_template.reagent_templates.add(rt)  
+        #rt= ReagentTemplate.objects.get(uuid=context['reagents'])
+        #exp_template.reagent_templates.add(rt)  
 
     def add_vessel(self, context): #do we need this?
         plate=context['vessel']
@@ -182,14 +184,19 @@ class CreateExperimentTemplate(TemplateView):
     def post(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
         if 'create_template' in request.POST:
+            form=ReagentSelectionForm(request.POST)
+            if form.is_valid():
+                temp = form.cleaned_data.get('select_rt')
+                context['reagents'] = temp
             context['name'] = request.POST['template_name']
-            context['reagents'] = request.POST['select_rt']
+            #context['reagents'] = request.POST['select_rt']
             #context['plate'] = request.POST['select_vessel']
             context['cols'] = request.POST['column_order']
             context['rows'] = int(request.POST['rows'])
             #context['reagent_number'] = int(request.POST['reagent_num'])
             self.create_template(context)
             self.add_reagents(context)
+            self.add_outcomes(context)
 
         return render(request, self.template_name, context)
 

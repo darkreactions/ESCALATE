@@ -1,4 +1,4 @@
-from django.forms.widgets import CheckboxSelectMultiple
+from django.forms.widgets import CheckboxSelectMultiple, SelectMultiple
 from core.widgets import ValWidget
 from django.forms import (Select, Form, ModelChoiceField, HiddenInput, 
                           CharField, ChoiceField, MultipleChoiceField, IntegerField, BaseFormSet, BaseModelFormSet,
@@ -90,9 +90,19 @@ class NominalActualForm(Form):
 class ExperimentNameForm(Form):
     exp_name = CharField(label='Experiment Name', max_length=100)
 
+class ReagentSelectionForm(Form):
+    reagent_choices = [(r.uuid, r.description) for r in vt.ReagentTemplate.objects.all()]
+
+    select_rt = MultipleChoiceField(
+            choices=reagent_choices,
+            #initial='0',
+            widget=SelectMultiple(),
+            required=True,
+            label='Select Reagent Templates',
+        )
 
 class ExperimentTemplateCreateForm(Form):
-    
+
     widget = Select(attrs={'class': 'selectpicker', 
                                  'data-style':"btn-dark",
                                  'data-live-search':'true'})
@@ -103,7 +113,22 @@ class ExperimentTemplateCreateForm(Form):
     
     template_name= CharField(label='Experiment Template Name', required=True)
     #reagent_num = IntegerField(label='Number of Reagents', required=True, initial=0)
-    select_rt = MultipleChoiceField(label='Select Reagent Templates', widget=widget_mc)
+    
+    reagent_choices = [(r.uuid, r.description) for r in vt.ReagentTemplate.objects.all()]
+
+    select_rt = MultipleChoiceField(
+            choices=reagent_choices,
+            #initial='0',
+            widget=SelectMultiple(),
+            required=True,
+            label='Select Reagent Templates',
+        )
+    
+    #select_rt = SelectMultiple([(r.uuid, r.description) for r in vt.ReagentTemplate.objects.all()])
+        #label='Select Reagent Templates')
+    #, widget=widget_mc)
+
+    # MultipleChoiceField(label='Select Reagent Templates', widget=widget_mc)
     
     column_order= CharField(label='Column Order', required=False, initial='ACEGBDFH')
     rows = IntegerField(label='Number of Rows', required=False, initial=12)
@@ -113,7 +138,7 @@ class ExperimentTemplateCreateForm(Form):
         org_id = kwargs.pop('org_id')
         lab = vt.Actor.objects.get(organization=org_id, person__isnull=True)
         super().__init__(*args, **kwargs)
-        self.fields['select_rt'].choices = [(r.uuid, r.description) for r in vt.ReagentTemplate.objects.all()]
+        #self.fields['select_rt'].choices = [(r.uuid, r.description) for r in vt.ReagentTemplate.objects.all()]
         
         #v_query = vt.Vessel.objects.all()
         #vessel = VesselForm(initial={'value': v_query[0]})
