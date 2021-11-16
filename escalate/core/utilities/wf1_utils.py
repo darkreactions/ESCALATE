@@ -6,9 +6,9 @@ from core.models.view_tables import (ReactionParameter)
 
 def make_well_list(container_name, 
               well_count, 
-              #column_order=['A', 'C', 'E', 'G', 'B', 'D', 'F', 'H'], # order is set by how the robot draws from the solvent wells
-              column_order=['A', 'C', 'B', 'D'], # 24 well plate
-              total_columns=6):
+              column_order=['A', 'C', 'E', 'G', 'B', 'D', 'F', 'H'], # order is set by how the robot draws from the solvent wells
+              #column_order=['A', 'C', 'B', 'D'], # 24 well plate
+              total_columns=8):
     row_limit = math.ceil(well_count / total_columns) # 8 columns in a 96 plate
     well_names = [f'{col}{row}' for row in range(1, row_limit+1) for col in column_order][:well_count]
     vial_df = pd.DataFrame({'Vial Site': well_names, 'Labware ID:': container_name})
@@ -49,7 +49,6 @@ def generate_robot_file(reaction_volumes, reaction_parameters,
     reaction_volumes_output = pd.DataFrame({
             reagent_col: [0]*len(df_tray) for reagent_col in reagent_colnames
         })
-
     if reaction_volumes is not None:
         reaction_volumes_output = pd.concat([df_tray['Vial Site'], reaction_volumes_output], axis=1)
         REAG_MAPPING = {
@@ -152,7 +151,6 @@ def generate_robot_file_wf1(reaction_volumes, reaction_parameters,
             'Parameter Values':  rp_values
         })
 
-
     df_tray = make_well_list(plate_name, well_count, column_order=['A', 'C', 'E', 'G', 'B', 'D', 'F', 'H'], total_columns=8)
     reagent_colnames = ['Reagent1 (ul)', 'Reagent2 (ul)', 'Reagent3 (ul)', 
                             'Reagent4 (ul)', 'Reagent5 (ul)', 'Reagent6 (ul)',
@@ -160,7 +158,7 @@ def generate_robot_file_wf1(reaction_volumes, reaction_parameters,
     reaction_volumes_output = pd.DataFrame({
             reagent_col: [0]*len(df_tray) for reagent_col in reagent_colnames
         })
-
+    
     if reaction_volumes is not None:
         reaction_volumes_output = pd.concat([df_tray['Vial Site'], reaction_volumes_output], axis=1)
         REAG_MAPPING = {
