@@ -19,7 +19,7 @@ from core.models.view_tables import (ExperimentTemplate, Actor,
                                      ReagentMaterial, ReagentTemplate,
                                      InventoryMaterial, Inventory, ReactionParameter,
                                      ReagentMaterialTemplate, ReagentMaterialValueTemplate,
-                                     MaterialType)
+                                     MaterialType, Vessel, OutcomeTemplate)
 from core.forms.custom_types import (SingleValForm, InventoryMaterialForm, NominalActualForm, 
                                      ExperimentNameForm, ExperimentTemplateForm, 
                                      ReagentForm, BaseReagentFormSet, 
@@ -80,6 +80,39 @@ class CreateExperimentTemplate(TemplateView):
         rt= ReagentTemplate.objects.get(uuid=context['reagents'])
         exp_template.reagent_templates.add(rt)  
 
+    def add_vessel(self, context): #do we need this?
+        plate=context['vessel']
+        column_order=context['column_order']
+        rows=context['rows']
+        well_list = [f'{col}{row}' for row in range(1, rows+1) for col in column_order]
+        #plate = Vessel.objects.get_or_create(description='96 Well Plate well')
+        # Dictionary of plate wells so that we don't keep accessing the database
+        # multiple times
+        plate_wells = {}
+        for well in well_list:
+            plate_wells[well] = Vessel.objects.get(parent=plate, description=well)
+
+    def add_actions(): ##TODO
+        pass
+
+    def add_outcomes(self, context):
+        exp_template=ExperimentTemplate.objects.get(uuid=context['exp_uuid'])
+        crystal_score_val = {'value': 0, 'unit':'', 'type':'int'}
+        default_crystal_score, created = DefaultValues.objects.get_or_create(**{'description':'Zero Crystal score', 
+                                                              'nominal_value': crystal_score_val,
+                                                              'actual_value': crystal_score_val})
+        #column_order=context['column_order']
+        #rows=context['rows']
+        column_order='ACEGBDFH'
+        rows=12
+        well_list = [f'{col}{row}' for row in range(1, rows+1) for col in column_order]
+        ot, created = OutcomeTemplate.objects.get_or_create(description = 'Crystal score', 
+                                              experiment = exp_template,
+                                              instance_labels = well_list,
+                                              default_value = default_crystal_score)
+        ot.save()
+        exp_template.outcome_templates.add(ot)
+
     def create_reagents(self, context): ##TODO: make this work
         exp_template=ExperimentTemplate.objects.get(uuid=context['exp_uuid'])
         
@@ -88,7 +121,6 @@ class CreateExperimentTemplate(TemplateView):
         dead_vol_val = {'value': 4000, 'unit':'uL', 'type':'num'}
         amount_val = {'value': 0, 'unit':'g', 'type':'num'}
         conc_val = {'value': 0, 'unit':'M', 'type':'num'}
-        crystal_score_val = {'value': 0, 'unit':'', 'type':'int'}
 
         #Create default values
         default_volume, created = DefaultValues.objects.get_or_create(**{'description':'Zero ml', 
@@ -105,9 +137,7 @@ class CreateExperimentTemplate(TemplateView):
         default_conc, created = DefaultValues.objects.get_or_create(**{'description':'Zero M', 
                                                               'nominal_value': conc_val,
                                                               'actual_value': conc_val})
-        default_crystal_score, created = DefaultValues.objects.get_or_create(**{'description':'Zero Crystal score', 
-                                                              'nominal_value': crystal_score_val,
-                                                              'actual_value': crystal_score_val})
+
 
         # Concentration and amount data to be stored for each reagent material
         reagent_values = {'concentration': default_conc, 'amount': default_amount}
@@ -154,6 +184,9 @@ class CreateExperimentTemplate(TemplateView):
         if 'create_template' in request.POST:
             context['name'] = request.POST['template_name']
             context['reagents'] = request.POST['select_rt']
+            #context['plate'] = request.POST['select_vessel']
+            context['cols'] = request.POST['column_order']
+            context['rows'] = int(request.POST['rows'])
             #context['reagent_number'] = int(request.POST['reagent_num'])
             self.create_template(context)
             self.add_reagents(context)
