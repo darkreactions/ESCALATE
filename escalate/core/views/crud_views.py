@@ -5,38 +5,57 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 
 import core.models
 import core.forms
-from core.views.crud_view_methods.model_view_generic import GenericModelEdit, GenericModelList, GenericModelView
-from core.views.crud_view_methods import create_methods, detail_methods, update_methods, delete_methods, list_methods
+from core.views.crud_view_methods.model_view_generic import (
+    GenericModelEdit,
+    GenericModelList,
+    GenericModelView,
+)
+from core.views.crud_view_methods import (
+    create_methods,
+    detail_methods,
+    update_methods,
+    delete_methods,
+    list_methods,
+)
 
 
 class LoginRequired(LoginRequiredMixin):
-    login_url = '/'
-    redirect_field_name = 'redirect_to'
+    login_url = "/"
+    redirect_field_name = "redirect_to"
 
 
 def create_list_view(model_name, methods):
-    globals()[model_name+'List'] = type(model_name + 'List',
-                                        tuple([LoginRequired, GenericModelList]), methods)
+    globals()[model_name + "List"] = type(
+        model_name + "List", tuple([LoginRequired, GenericModelList]), methods
+    )
 
 
 def create_create_view(model_name, methods):
-    globals()[model_name+'Create'] = type(model_name + 'Create',
-                                          tuple([LoginRequired, GenericModelEdit, CreateView]), methods)
+    globals()[model_name + "Create"] = type(
+        model_name + "Create",
+        tuple([LoginRequired, GenericModelEdit, CreateView]),
+        methods,
+    )
 
 
 def create_update_view(model_name, methods):
-    globals()[model_name+'Update'] = type(model_name + 'Update',
-                                          tuple([LoginRequired, GenericModelEdit, UpdateView]), methods)
+    globals()[model_name + "Update"] = type(
+        model_name + "Update",
+        tuple([LoginRequired, GenericModelEdit, UpdateView]),
+        methods,
+    )
 
 
 def create_delete_view(model_name, methods):
-    globals()[model_name+'Delete'] = type(model_name + 'Delete',
-                                          tuple([LoginRequired, DeleteView]), methods)
+    globals()[model_name + "Delete"] = type(
+        model_name + "Delete", tuple([LoginRequired, DeleteView]), methods
+    )
 
 
 def create_detail_view(model_name, methods):
-    globals()[model_name+'View'] = type(model_name + 'View',
-                                        tuple([LoginRequired, GenericModelView]), methods)
+    globals()[model_name + "View"] = type(
+        model_name + "View", tuple([LoginRequired, GenericModelView]), methods
+    )
 
 
 for model_name, methods_list in list_methods.methods.items():
