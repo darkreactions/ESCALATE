@@ -145,7 +145,7 @@ class CreateExperimentView(TemplateView):
                 try:
                     rp_object = ReactionParameter.objects.filter(description=rp_label).order_by('add_date').first()
                     initial= {'value':Val.from_dict({'value':rp_object.value, 'unit': rp_object.unit, 'type':'num'}), 'uuid':rp.parameter_uuid}
-                except:
+                except AttributeError:
                     initial= {'value':Val.from_dict({'value':0, 'unit': '', 'type':'num'}), 'uuid':rp.parameter_uuid}
 
                 rp_form = ReactionParameterForm(prefix=f'reaction_parameter_{index}',initial=initial)

@@ -222,15 +222,15 @@ def prepare_reagents(reagent_formset, exp_concentrations):
     current_mat_list = reagent_formset.form_kwargs['mat_types_list']
     if len(current_mat_list) == 1:
         if "acid" in (current_mat_list[0].description).lower():
-            #reagent 2, Acid
+            #reagent 7, Acid
             concentration1 = reagent_formset.cleaned_data[0]['desired_concentration'].value
             exp_concentrations["Reagent 7"] = [0,0,concentration1,0]
         elif "solvent" in (current_mat_list[0].description).lower():
-            #reagent 4, Solvent
+            #reagent 1, Solvent
             concentration1 = reagent_formset.cleaned_data[0]['desired_concentration'].value
             exp_concentrations["Reagent 1"] = [0,concentration1,0,0]
     elif len(current_mat_list) == 2:
-        #reagent 1, Stock A
+        #reagent 2, Stock A
         for element in current_mat_list:
             if "organic" in (element.description).lower():
                 #organic
@@ -238,7 +238,7 @@ def prepare_reagents(reagent_formset, exp_concentrations):
             elif "solvent" in (element.description).lower():
                 #solvent
                 concentration2 = reagent_formset.cleaned_data[1]['desired_concentration'].value
-        exp_concentrations["Reagent 3"] = [concentration1,concentration2,0,0]
+        exp_concentrations["Reagent 2"] = [concentration1,concentration2,0,0]
     elif len(current_mat_list) == 3:
         #reagent 3, Stock B
         for element in current_mat_list:
@@ -251,7 +251,7 @@ def prepare_reagents(reagent_formset, exp_concentrations):
             elif "solvent" in (element.description).lower():
                 #solvent
                 concentration3 = reagent_formset.cleaned_data[2]['desired_concentration'].value
-        exp_concentrations["Reagent 2"] = [concentration2,concentration3,0,concentration1]
+        exp_concentrations["Reagent 3"] = [concentration2,concentration3,0,concentration1]
 
     return exp_concentrations
 

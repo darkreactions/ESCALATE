@@ -256,7 +256,7 @@ class Reagent(DateColumns, DescriptionColumn, StatusColumn):
     experiment = models.ForeignKey('ExperimentInstance', on_delete=models.DO_NOTHING,
                           related_name='reagent_ei')
     template = models.ForeignKey('ReagentTemplate', 
-                            on_delete=models.DO_NOTHING, null=True, blank=True,
+                            on_delete=models.DO_NOTHING, null=True, blank=True, editable=False,
                           related_name='reagent_rt')
 
     def save(self, *args, **kwargs):

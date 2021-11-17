@@ -55,8 +55,8 @@ def generate_robot_file(reaction_volumes, reaction_parameters,
             "Stock A": 2, 
             "Stock B": 3, 
             "Solvent": 1, 
-            "Acid Vol 1": 6, 
-            "Acid Vol 2": 7
+            "Acid Volume 1": 6, 
+            "Acid Volume 2": 7
         }
 
         for current_reaction_volume in reaction_volumes:
@@ -165,8 +165,8 @@ def generate_robot_file_wf1(reaction_volumes, reaction_parameters,
             "Dispense Stock A": 2, 
             "Dispense Stock B": 3, 
             "Dispense Solvent": 1, 
-            "Dispense Acid Vol 1": 6, 
-            "Dispense Acid Vol 2": 7
+            "Dispense Acid Volume 1": 6, 
+            "Dispense Acid Volume 2": 7
         }
 
         #source material -> Reagent number, vial_site -> row name

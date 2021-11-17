@@ -294,7 +294,7 @@ class Property(DateColumns, StatusColumn, ActorColumn):
                                  blank=True,
                                  null=True, related_name='property_m')
     reagent = models.ForeignKey('Reagent', blank=True,
-                                 null=True, on_delete=models.DO_NOTHING,
+                                 null=True, on_delete=models.DO_NOTHING, editable=False,
                                  related_name='property_r')
     
 
