@@ -76,6 +76,7 @@ def generate_robot_file(reaction_volumes, reaction_parameters, plate_name, well_
         reaction_volumes_output = pd.concat(
             [df_tray["Vial Site"], reaction_volumes_output], axis=1
         )
+        #Keep this Acid Volume 1/Acid Volume 2, do not change to acid vol
         REAG_MAPPING = {
             "Stock A": 2,
             "Stock B": 3,
@@ -228,6 +229,7 @@ def generate_robot_file_wf1(
         reaction_volumes_output = pd.concat(
             [df_tray["Vial Site"], reaction_volumes_output], axis=1
         )
+        #Keep this Acid Volume 1/Acid Volume 2, do not change to acid vol
         REAG_MAPPING = {
             "Dispense Stock A": 2,
             "Dispense Stock B": 3,

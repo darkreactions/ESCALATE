@@ -239,8 +239,7 @@ class CreateExperimentView(TemplateView):
             exp_uuid=exp_uuid, template=template
         )
         context["q1_param_formset"] = self.NominalActualFormSet(
-            initial=initial_q1,
-            prefix="q1_param",
+            initial=initial_q1, prefix="q1_param",
         )
         context["q1_param_details"] = q1_details
         return context
@@ -450,8 +449,7 @@ class CreateExperimentView(TemplateView):
                 data = form.cleaned_data
                 reagent_template_uuid = data["reagent_template_uuid"]
                 reagent_instance = ReagentMaterial.objects.get(
-                    template=reagent_template_uuid,
-                    reagent__experiment=exp_uuid,
+                    template=reagent_template_uuid, reagent__experiment=exp_uuid,
                 )
                 reagent_instance.material = (
                     InventoryMaterial.objects.get(uuid=data["chemical"])
@@ -459,10 +457,8 @@ class CreateExperimentView(TemplateView):
                     else None
                 )
                 reagent_instance.save()
-                reagent_material_value = (
-                    reagent_instance.reagent_material_value_rmi.get(
-                        template__description="concentration"
-                    )
+                reagent_material_value = reagent_instance.reagent_material_value_rmi.get(
+                    template__description="concentration"
                 )
                 reagent_material_value.nominal_value = data["desired_concentration"]
                 reagent_material_value.save()

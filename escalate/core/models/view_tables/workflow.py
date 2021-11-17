@@ -285,11 +285,7 @@ class ExperimentTemplate(DateColumns, StatusColumn, DescriptionColumn):
         related_name="experiment_template_action_sequence",
     )
     internal_slug = SlugField(
-        populate_from=[
-            "description",
-        ],
-        overwrite=True,
-        max_length=255,
+        populate_from=["description",], overwrite=True, max_length=255,
     )
     reagent_templates = models.ManyToManyField(
         "ReagentTemplate",
@@ -361,11 +357,7 @@ class ExperimentInstance(DateColumns, StatusColumn, DescriptionColumn):
     # owner_description = models.CharField(max_length=255, db_column='owner_description')
     # operator_description = models.CharField(max_length=255, db_column='operator_description')
     internal_slug = SlugField(
-        populate_from=[
-            "description",
-        ],
-        overwrite=True,
-        max_length=255,
+        populate_from=["description",], overwrite=True, max_length=255,
     )
     completion_status = models.CharField(
         db_column="completion_status", max_length=255, default="Pending"
@@ -564,11 +556,7 @@ class ActionSequence(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         related_name="action_sequence_experiment",
     )
     internal_slug = SlugField(
-        populate_from=[
-            "description",
-        ],
-        overwrite=True,
-        max_length=255,
+        populate_from=["description",], overwrite=True, max_length=255,
     )
 
     def __str__(self):

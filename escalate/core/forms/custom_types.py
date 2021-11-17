@@ -31,8 +31,7 @@ class UploadFileForm(Form):
         helper.label_class = "col-lg-2"
         helper.field_class = "col-lg-8"
         helper.layout = Layout(
-            Row(Column(Field("file"))),
-            Row(Column(Submit("robot_upload", "Submit"))),
+            Row(Column(Field("file"))), Row(Column(Submit("robot_upload", "Submit"))),
         )
         return helper
 
@@ -53,8 +52,7 @@ class RobotForm(Form):
         helper.label_class = "col-lg-2"
         helper.field_class = "col-lg-8"
         helper.layout = Layout(
-            Row(Column(Field("file"))),
-            Row(Column(Submit("robot_upload", "Submit"))),
+            Row(Column(Field("file"))), Row(Column(Submit("robot_upload", "Submit"))),
         )
         return helper
 
@@ -223,10 +221,7 @@ class ReagentForm(Form):
         helper.label_class = "col-lg-3"
         helper.field_class = "col-lg-8"
         helper.layout = Layout(
-            Row(
-                Column(Field("chemical")),
-                Column(Field("desired_concentration")),
-            ),
+            Row(Column(Field("chemical")), Column(Field("desired_concentration")),),
             Field("reagent_template_uuid"),
             Field("material_type"),
         )
@@ -317,12 +312,7 @@ class OutcomeInstanceForm(ModelForm):
         helper.form_class = "form-horizontal"
         helper.label_class = "col-lg-3"
         helper.field_class = "col-lg-8"
-        helper.layout = Layout(
-            Row(
-                Column(Field("actual_value")),
-                Row(Field("file")),
-            ),
-        )
+        helper.layout = Layout(Row(Column(Field("actual_value")), Row(Field("file")),),)
         return helper
 
     class Meta:
@@ -355,10 +345,7 @@ class PropertyForm(ModelForm):
         helper.label_class = "col-lg-3"
         helper.field_class = "col-lg-8"
         helper.layout = Layout(
-            Row(
-                Column(Field("nominal_value", readonly=True)),
-                Column(Field("value")),
-            ),
+            Row(Column(Field("nominal_value", readonly=True)), Column(Field("value")),),
         )
         return helper
 

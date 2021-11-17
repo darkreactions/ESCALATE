@@ -57,9 +57,7 @@ actor_tests = [
             "is_valid_response": {
                 "function": check_actor,
                 "args": [],
-                "kwargs": {
-                    "actor_fields": {"organization": "org0__url"},
-                },
+                "kwargs": {"actor_fields": {"organization": "org0__url"},},
             },
         },
         {
@@ -85,9 +83,7 @@ actor_tests = [
             "is_valid_response": {
                 "function": check_actor,
                 "args": [],
-                "kwargs": {
-                    "actor_fields": {"person": "person0__url"},
-                },
+                "kwargs": {"actor_fields": {"person": "person0__url"},},
             },
         },
         {
@@ -130,9 +126,7 @@ actor_tests = [
             "is_valid_response": {
                 "function": check_actor,
                 "args": [],
-                "kwargs": {
-                    "actor_fields": {"systemtool": "systemtool0__url"},
-                },
+                "kwargs": {"actor_fields": {"systemtool": "systemtool0__url"},},
             },
         },
     ]

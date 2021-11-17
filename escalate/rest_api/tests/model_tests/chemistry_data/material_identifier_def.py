@@ -10,9 +10,7 @@ from ..model_tests_utils import (
     check_status_code,
     compare_data,
 )
-from core.models import (
-    MaterialIdentifierDef,
-)
+from core.models import MaterialIdentifierDef
 
 material_identifier_def_data = {}
 

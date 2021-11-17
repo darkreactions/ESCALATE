@@ -91,12 +91,7 @@ class TypeDef(models.Model):
     add_date = models.DateTimeField(auto_now_add=True)
     mod_date = models.DateTimeField(auto_now=True)
     internal_slug = SlugField(
-        populate_from=[
-            "category",
-            "description",
-        ],
-        overwrite=True,
-        max_length=255,
+        populate_from=["category", "description",], overwrite=True, max_length=255,
     )
 
     def __str__(self):

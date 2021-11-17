@@ -9,9 +9,7 @@ from ..model_tests_utils import (
     check_status_code,
     compare_data,
 )
-from core.models import (
-    MeasureType,
-)
+from core.models import MeasureType
 
 measuretype_test_data = {}
 

@@ -9,9 +9,7 @@ from ..model_tests_utils import (
     check_status_code,
     compare_data,
 )
-from core.models import (
-    TagType,
-)
+from core.models import TagType
 
 tagtype_test_data = {}
 

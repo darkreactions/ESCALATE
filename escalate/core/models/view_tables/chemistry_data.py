@@ -294,9 +294,7 @@ class ReagentTemplate(DateColumns, DescriptionColumn, StatusColumn):
         populate_from=["description"], overwrite=True, max_length=255
     )
     properties = models.ManyToManyField(
-        "PropertyTemplate",
-        blank=True,
-        related_name="reagent_template_p",
+        "PropertyTemplate", blank=True, related_name="reagent_template_p",
     )
 
     def __str__(self):

@@ -89,11 +89,7 @@ r_plate96 = post_data("material", data=data, headers=token_header)
 
 # %%
 plate_96 = get_data(
-    "material",
-    data={
-        "description": "Plate: 96 well",
-    },
-    headers=token_header,
+    "material", data={"description": "Plate: 96 well",}, headers=token_header,
 )
 print(plate_96)
 # %%

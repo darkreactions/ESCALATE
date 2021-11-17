@@ -48,8 +48,7 @@ class ExperimentDetailEditView(TemplateView):
             exp_uuid=exp_uuid, template=template
         )
         context["q1_param_formset"] = self.NominalActualFormSet(
-            initial=initial_q1,
-            prefix="q1_param",
+            initial=initial_q1, prefix="q1_param",
         )
         context["q1_param_details"] = q1_details
         return context

@@ -73,9 +73,7 @@ class Command(BaseCommand):
 
         # Create the experiment
         exp_template = ExperimentTemplate(
-            description="Workflow 1",
-            ref_uid="workflow_1",
-            lab=lab,
+            description="Workflow 1", ref_uid="workflow_1", lab=lab,
         )
         exp_template.save()
 
@@ -387,9 +385,7 @@ class Command(BaseCommand):
                 action.parameter_def.add(param)
 
             if source_desc is not None:
-                source_bbm = BaseBomMaterial.objects.create(
-                    description=source_desc,
-                )
+                source_bbm = BaseBomMaterial.objects.create(description=source_desc,)
             else:
                 source_bbm = None
 
@@ -451,9 +447,7 @@ class Command(BaseCommand):
 
         # Create the experiment
         exp_template = ExperimentTemplate(
-            description="Workflow 3",
-            ref_uid="workflow_3",
-            lab=lab,
+            description="Workflow 3", ref_uid="workflow_3", lab=lab,
         )
         exp_template.save()
 
@@ -756,9 +750,7 @@ class Command(BaseCommand):
                 action.parameter_def.add(param)
 
             if source_desc is not None:
-                source_bbm = BaseBomMaterial.objects.create(
-                    description=source_desc,
-                )
+                source_bbm = BaseBomMaterial.objects.create(description=source_desc,)
             else:
                 source_bbm = None
 
@@ -942,21 +934,13 @@ class Command(BaseCommand):
         # create default values
         DefaultValues.objects.get_or_create(
             description="g/ml",
-            actual_value={
-                "value": "0.0",
-                "unit": "g/ml",
-                "type": "num",
-            },
+            actual_value={"value": "0.0", "unit": "g/ml", "type": "num",},
         )
         gml_dv = DefaultValues.objects.get(description="g/ml")
 
         DefaultValues.objects.get_or_create(
             description="g/mol",
-            actual_value={
-                "value": "0.0",
-                "unit": "g/mol",
-                "type": "num",
-            },
+            actual_value={"value": "0.0", "unit": "g/mol", "type": "num",},
         )
         gmol_dv = DefaultValues.objects.get(description="g/mol")
 
@@ -2130,10 +2114,8 @@ class Command(BaseCommand):
                     row_base_bom_material_instance.inventory_material = None
 
                 try:
-                    row_base_bom_material_instance.bom_material = (
-                        BomMaterial.objects.get(
-                            description=bom_material_description, bom=bom_material_bom
-                        )
+                    row_base_bom_material_instance.bom_material = BomMaterial.objects.get(
+                        description=bom_material_description, bom=bom_material_bom
                     )
                 except BomMaterial.DoesNotExist:
                     row_base_bom_material_instance.bom_material = None

@@ -1184,7 +1184,7 @@ class Outcome(models.Model):
 
 
 class UdfDef(models.Model):
-    """ """
+    """"""
 
     uuid = RetUUIDField(primary_key=True, db_column="udf_def_uuid")
     description = models.CharField(max_length=255, null=True)

@@ -59,9 +59,7 @@ workflowstep_tests = [
                 "is_valid_response": {
                     "function": check_status_code,
                     "args": [],
-                    "kwargs": {
-                        "status_code": POST,
-                    },
+                    "kwargs": {"status_code": POST,},
                 },
             }
             for name in ["action0", "action1"]
@@ -77,9 +75,7 @@ workflowstep_tests = [
                 "is_valid_response": {
                     "function": check_status_code,
                     "args": [],
-                    "kwargs": {
-                        "status_code": POST,
-                    },
+                    "kwargs": {"status_code": POST,},
                 },
             }
             for name in ["workflowobject0", "workflowobject1"]

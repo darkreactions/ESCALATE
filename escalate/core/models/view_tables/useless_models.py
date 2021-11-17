@@ -469,11 +469,7 @@ class Condition(DateColumns, StatusColumn, ActorColumn):
     in_val = ValField(blank=True, null=True)
     out_val = ValField(blank=True, null=True)
     internal_slug = SlugField(
-        populate_from=[
-            "condition_description",
-        ],
-        overwrite=True,
-        max_length=255,
+        populate_from=["condition_description",], overwrite=True, max_length=255,
     )
 
 

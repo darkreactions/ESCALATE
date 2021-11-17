@@ -40,10 +40,8 @@ class ExperimentOutcomeView(TemplateView):
         return render(request, self.template_name, context)
 
     def get_outcome_forms(self, experiment, context):
-        outcome_instances = (
-            experiment.outcome_instance_experiment_instance.all().order_by(
-                "description"
-            )
+        outcome_instances = experiment.outcome_instance_experiment_instance.all().order_by(
+            "description"
         )
 
         outcome_formset = self.OutcomeFormSet(queryset=outcome_instances)

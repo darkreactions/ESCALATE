@@ -115,11 +115,7 @@ class ValFormField(MultiValueField):
         except Exception as e:
             data_type_choices = [("num", "num"), ("text", "text"), ("bool", "bool")]
         fields = (
-            CharField(
-                error_messages={
-                    "incomplete": "Must enter a value",
-                }
-            ),
+            CharField(error_messages={"incomplete": "Must enter a value",}),
             CharField(required=False),
             ChoiceField(choices=data_type_choices, initial="num"),
         )

@@ -49,13 +49,7 @@ model_field_data = {
         ["template"],
         ["actual"],
     ],
-    "status": [
-        ["inactive"],
-        ["prototype"],
-        ["active"],
-        ["do_not_use"],
-        ["test"],
-    ],
+    "status": [["inactive"], ["prototype"], ["active"], ["do_not_use"], ["test"],],
     "material_identifier_def": [
         ["SMIRKS"],
         ["Chemical_Name"],
@@ -89,10 +83,7 @@ model_field_data = {
         ["inorganic"],
         ["polymer"],
     ],
-    "measure_type": [
-        ["robot"],
-        ["manual"],
-    ],
+    "measure_type": [["robot"], ["manual"],],
     "tag_type": [
         ["material", "tags used to assist in identifying material types"],
         ["actor", "tags used to assist in charactizing actors"],
