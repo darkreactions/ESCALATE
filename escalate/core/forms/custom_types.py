@@ -86,6 +86,39 @@ class NominalActualForm(Form):
     actual_value = ValFormField(required=False)
     uuid = CharField(widget=HiddenInput)
 
+class ReagentTemplateCreateForm(Form):
+    widget = Select(attrs={'class': 'selectpicker', 
+                                 'data-style':"btn-dark",
+                                 'data-live-search':'true'})
+    
+    widget_mc = CheckboxSelectMultiple(attrs={'class': 'selectpicker', 
+                            'data-style':"btn-dark",
+                            'data-live-search':'true'})
+    
+    template_name= CharField(label='Reagent Template Name', required=True)
+
+    mt_choices = [(r.uuid, r.description) for r in vt.MaterialType.objects.all()]
+
+    select_mt = MultipleChoiceField(
+            choices=mt_choices,
+            #initial='0',
+            widget=SelectMultiple(),
+            required=True,
+            label='Select Material Types',
+        )
+    
+    def __init__(self, *args, **kwargs):
+        org_id = kwargs.pop('org_id')
+        lab = vt.Actor.objects.get(organization=org_id, person__isnull=True)
+        super().__init__(*args, **kwargs)
+        #self.fields['select_rt'].choices = [(r.uuid, r.description) for r in vt.ReagentTemplate.objects.all()]
+        
+        #v_query = vt.Vessel.objects.all()
+        #vessel = VesselForm(initial={'value': v_query[0]})
+        #self.fields['select_vessel'].choices = [v for v in vessel]
+        #self.fields['select_vessel'].choices = [(r.uuid, r.description) for r in vt.Vessel.objects.all()]
+        #self.fields['select_materials'].choices = [(r.uuid, r.description) for r in vt.InventoryMaterial.objects.all()]
+
 
 class ExperimentNameForm(Form):
     exp_name = CharField(label='Experiment Name', max_length=100)
@@ -99,6 +132,17 @@ class ReagentSelectionForm(Form):
             widget=SelectMultiple(),
             required=True,
             label='Select Reagent Templates',
+        )
+
+class MaterialTypeSelectionForm(Form):
+    mt_choices = [(r.uuid, r.description) for r in vt.MaterialType.objects.all()]
+
+    select_mt = MultipleChoiceField(
+            choices=mt_choices,
+            #initial='0',
+            widget=SelectMultiple(),
+            required=True,
+            label='Select Material Types',
         )
 
 class ExperimentTemplateCreateForm(Form):

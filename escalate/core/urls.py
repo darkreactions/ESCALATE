@@ -4,7 +4,7 @@ from .views import (LoginView, CreateUserView, MainMenuView, WorkflowView,
                     ModelTagCreate, ModelTagUpdate, logout_view, UserProfileView,
                     change_password, UserProfileEdit)
 from .views.experiment import (CreateExperimentView, CreateExperimentTemplate,
-                              ExperimentDetailView,
+                              CreateReagentTemplate, ExperimentDetailView,
                               ExperimentReagentPrepView, ExperimentOutcomeView,
                               ExperimentDetailEditView)
 from core.utilities.utils import view_names, camel_to_snake
@@ -30,8 +30,10 @@ urlpatterns = [
     path('user_profile_edit/', UserProfileEdit.as_view(), name='user_profile_edit'),
     #path('param_edit/<uuid:pk>', ParameterEditView.as_view(), name='parameter_edit'),
     #path('mat_edit/<uuid:pk>', MaterialEditView.as_view(), name='material_edit'),
-    path('template/', CreateExperimentTemplate.as_view(),
+    path('exp_template/', CreateExperimentTemplate.as_view(),
           name='experiment_template_add'),
+    path('reagent_template/', CreateReagentTemplate.as_view(),
+          name='reagent_template_add'),
     path('experiment/', CreateExperimentView.as_view(),
          name='experiment_instance_add'),
 #     path('experiment_list/', ExperimentListView.as_view(), name='experiment_list'),
