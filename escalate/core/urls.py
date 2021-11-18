@@ -1,34 +1,22 @@
 from django.urls import path, include
 import core.views
-<<<<<<< HEAD
-from .views import (LoginView, CreateUserView, MainMenuView, WorkflowView,
-                    ModelTagCreate, ModelTagUpdate, logout_view, UserProfileView,
-                    change_password, UserProfileEdit)
-from .views.experiment import (CreateExperimentView, CreateExperimentTemplate,
-                              CreateReagentTemplate, ExperimentDetailView,
-                              ExperimentReagentPrepView, ExperimentOutcomeView,
-                              ExperimentDetailEditView)
-=======
-from .views import (
-    LoginView,
-    CreateUserView,
-    MainMenuView,
-    WorkflowView,
-    ModelTagCreate,
-    ModelTagUpdate,
-    logout_view,
-    UserProfileView,
-    change_password,
-    UserProfileEdit,
-)
-from .views.experiment import (
-    CreateExperimentView,
-    ExperimentDetailView,
-    ExperimentReagentPrepView,
-    ExperimentOutcomeView,
-    ExperimentDetailEditView,
-)
->>>>>>> 9f48efb8f9286e8db61c6c744689ec9211accba3
+from .views import (LoginView, 
+                    CreateUserView, 
+                    MainMenuView, 
+                    WorkflowView,
+                    ModelTagCreate, 
+                    ModelTagUpdate, 
+                    logout_view, 
+                    UserProfileView,
+                    change_password, 
+                    UserProfileEdit)
+from .views.experiment import ( CreateExperimentView, 
+                                CreateExperimentTemplate,
+                                CreateReagentTemplate, 
+                                ExperimentDetailView,
+                                ExperimentReagentPrepView, 
+                                ExperimentOutcomeView,
+                                ExperimentDetailEditView)
 from core.utilities.utils import view_names, camel_to_snake
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.views.generic.base import RedirectView
@@ -44,7 +32,6 @@ urlpatterns = [
 
 
 urlpatterns = [
-<<<<<<< HEAD
     path('', LoginView.as_view(), name='login'),
     path('create_user/', CreateUserView.as_view(), name='create_user'),
     path('main_menu/', MainMenuView.as_view(), name='main_menu'),
@@ -72,42 +59,6 @@ urlpatterns = [
          ExperimentOutcomeView.as_view(), name='outcome'),
     path('favicon.ico', RedirectView.as_view(
         url=staticfiles_storage.url('static/favicon.ico'))),
-=======
-    path("", LoginView.as_view(), name="login"),
-    path("create_user/", CreateUserView.as_view(), name="create_user"),
-    path("main_menu/", MainMenuView.as_view(), name="main_menu"),
-    path("workflow/", WorkflowView.as_view(), name="workflow"),
-    path("logout/", logout_view, name="logout"),
-    path("user_profile/", UserProfileView.as_view(), name="user_profile"),
-    path("change_password/", change_password, name="change_password"),
-    path("user_profile_edit/", UserProfileEdit.as_view(), name="user_profile_edit"),
-    # path('param_edit/<uuid:pk>', ParameterEditView.as_view(), name='parameter_edit'),
-    # path('mat_edit/<uuid:pk>', MaterialEditView.as_view(), name='material_edit'),
-    path("experiment/", CreateExperimentView.as_view(), name="experiment_instance_add"),
-    #     path('experiment_list/', ExperimentListView.as_view(), name='experiment_list'),
-    path(
-        "experiment/<uuid:pk>/view",
-        ExperimentDetailView.as_view(),
-        name="experiment_instance_view",
-    ),
-    path(
-        "experiment/<uuid:pk>",
-        ExperimentDetailEditView.as_view(),
-        name="experiment_instance_update",
-    ),
-    path(
-        "experiment/<uuid:pk>/reagent_prep",
-        ExperimentReagentPrepView.as_view(),
-        name="reagent_prep",
-    ),
-    path(
-        "experiment/<uuid:pk>/outcome", ExperimentOutcomeView.as_view(), name="outcome"
-    ),
-    path(
-        "favicon.ico",
-        RedirectView.as_view(url=staticfiles_storage.url("static/favicon.ico")),
-    ),
->>>>>>> 9f48efb8f9286e8db61c6c744689ec9211accba3
 ]
 
 
