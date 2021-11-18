@@ -33,6 +33,9 @@ def conc_to_amount(exp_uuid):
                 template__description="concentration"
             )
             conc_val = conc.nominal_value.value
+            #if conc_val<=0:
+                #raise ValueError(
+                #"Error: Invalid concentration for {}. Should be non-negative".format(reagent_material.material.description))
             conc_unit = conc.nominal_value.unit
             conc = Q_(conc_val, conc_unit)
             phase = reagent_material.material.phase

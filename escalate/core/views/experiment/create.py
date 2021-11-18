@@ -6,6 +6,7 @@ import pandas as pd
 from django.forms.forms import Form
 from django.http.response import FileResponse
 from django.http.request import HttpRequest
+from django.http import HttpResponseRedirect
 
 from django.views.generic import TemplateView
 from django.forms import formset_factory, BaseFormSet
@@ -135,9 +136,7 @@ class CreateExperimentView(TemplateView):
         if "current_org_id" in self.request.session:
             org_id = self.request.session["current_org_id"]
         else:
-            #org_id = None
-            raise ValueError(
-                'Error: Must select a lab.')
+            org_id = None
         formsets: list[Any] = []
         reagent_template_names = []
 
@@ -261,9 +260,10 @@ class CreateExperimentView(TemplateView):
             context['experiment_template_select_form'] = ExperimentTemplateForm(org_id=org_id)
         else:
             context = self.get_context_data(**kwargs)
-            self.template_name = "core/main_menu.html"
+            #self.template_name = "core/main_menu.html"
             org_id=None
-            messages.error(request, 'Please select a lab')
+            messages.error(request, 'Please select a lab to continue')
+            return HttpResponseRedirect(reverse("main_menu"))
             #try:
                 #context['experiment_template_select_form'] = ExperimentTemplateForm(org_id=org_id)
             #except ValueError as ve:
@@ -278,7 +278,7 @@ class CreateExperimentView(TemplateView):
         context = self.get_context_data(**kwargs)
         #except ValueError as ve:
             #messages.error(request, str(ve))
-        if 'select_experiment_template' not in request.POST:
+        if 'select_experiment_template' in request.POST:
             #if 'current_org_id' in self.request.session:
                # org_id= self.request.session['current_org_id']
            # else:
@@ -289,8 +289,16 @@ class CreateExperimentView(TemplateView):
                 context["selected_exp_template"] = ExperimentTemplate.objects.get(
                     uuid=exp_uuid
                 )
-                context["manual"] = int(request.POST["manual"])
-                context["automated"] = int(request.POST["automated"])
+                if int(request.POST["manual"])>=0:
+                    context["manual"] = int(request.POST["manual"])
+                else:
+                    messages.error(request, "Number of experiments cannot be negative")
+                    return render(request, self.template_name, context)
+                if int(request.POST["automated"])>=0:
+                    context["automated"] = int(request.POST["automated"])
+                else:
+                    messages.error(request, "Number of experiments cannot be negative")
+                    return render(request, self.template_name, context)
                 context["experiment_name_form"] = ExperimentNameForm()
                 context = self.get_action_parameter_forms(exp_uuid, context)
 
@@ -303,8 +311,8 @@ class CreateExperimentView(TemplateView):
                     )
                 if context["automated"]:
                     context = self.get_reagent_forms(
-                        context["selected_exp_template"], context
-                    )
+                            context["selected_exp_template"], context
+                        )
             else:
                 request.session["experiment_template_uuid"] = None
         # begin: create experiment
@@ -341,9 +349,7 @@ class CreateExperimentView(TemplateView):
         if "current_org_id" in self.request.session:
             org_id = self.request.session["current_org_id"]
         else:
-            raise ValueError(
-                'Error: Must select a lab.')
-            #org_id = None
+            org_id = None
         
         formsets = []
         reagent_template_names = []
@@ -385,9 +391,12 @@ class CreateExperimentView(TemplateView):
             for reagent_formset in formsets:
                 if reagent_formset.is_valid():
                     # vector = self.save_forms_reagent(reagent_formset, experiment_copy_uuid, exp_concentrations)
+                    #try:
                     exp_concentrations = prepare_reagents(
-                        reagent_formset, exp_concentrations
-                    )
+                            reagent_formset, exp_concentrations
+                        )
+                    #except TypeError as te:
+                       # messages.error(request, str(te))
 
         df = pd.read_excel(request.FILES["file"])
         # self.process_robot_file(df)
@@ -607,9 +616,7 @@ class CreateExperimentView(TemplateView):
         if "current_org_id" in self.request.session:
             org_id = self.request.session["current_org_id"]
         else:
-            raise ValueError(
-                'Error: Must select a lab.')
-            #org_id = None
+            org_id = None
         formsets = []
         reagent_template_names = []
         for index, form in enumerate(
@@ -654,9 +661,14 @@ class CreateExperimentView(TemplateView):
                     vector = self.save_forms_reagent(
                         reagent_formset, experiment_copy_uuid, exp_concentrations
                     )
-                    exp_concentrations = prepare_reagents(
-                        reagent_formset, exp_concentrations
-                    )
+                    try:
+                        exp_concentrations = prepare_reagents(
+                            reagent_formset, exp_concentrations
+                        )
+                    except TypeError as te:
+                        messages.error(request, str(te))
+                        return context
+                        #return HttpResponseRedirect(reverse("experiment_instance_add"))
 
             # Save dead volumes should probably be in a separate function
             dead_volume_form = SingleValForm(request.POST, prefix="dead_volume")
@@ -704,6 +716,7 @@ class CreateExperimentView(TemplateView):
             except ValueError as ve:
                 messages.error(request, str(ve))
                 return context
+                #return HttpResponseRedirect(reverse("experiment"))
             
             q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
 

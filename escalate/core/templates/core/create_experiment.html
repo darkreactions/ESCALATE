@@ -6,7 +6,6 @@
 {% block content %}
 <div class="container" >
 
-
     {% if new_exp_name %}
         <p> Created Experiment! </p>
             <p>Experiment name: {{ new_exp_name }}</p>
@@ -31,13 +30,6 @@
     {% else %}
 
     {% if not selected_exp_template %}
-    {% if messages %}
-    <ul class="messages">
-        {% for message in messages %}
-        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-        {% endfor %}
-      </ul>
-      {% endif %}
     <p> Experiment Template </p>
     <div class="row">
       <div class="col-md-12 text-secondary">
@@ -55,14 +47,6 @@
     <p>Selected experiment {{ selected_exp_template.description }}</p>
     <div class="row">
         <div class="col-md-12">
-
-          {% if messages %}
-          <ul class="messages">
-              {% for message in messages %}
-              <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-              {% endfor %}
-          </ul>
-          {% endif %}
 
             <form method="post" enctype="multipart/form-data">{% csrf_token %}
               
