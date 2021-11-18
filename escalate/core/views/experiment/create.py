@@ -261,22 +261,23 @@ class CreateExperimentView(TemplateView):
             context['experiment_template_select_form'] = ExperimentTemplateForm(org_id=org_id)
         else:
             context = self.get_context_data(**kwargs)
+            self.template_name = "core/main_menu.html"
             org_id=None
             messages.error(request, 'Please select a lab')
-            try:
-                context['experiment_template_select_form'] = ExperimentTemplateForm(org_id=org_id)
-            except ValueError as ve:
-                messages.error(request, str(ve))
+            #try:
+                #context['experiment_template_select_form'] = ExperimentTemplateForm(org_id=org_id)
+            #except ValueError as ve:
+               # messages.error(request, str(ve))
         #context['experiment_template_select_form'] = ExperimentTemplateForm(org_id=org_id)
         #context['robot_file_upload_form'] = UploadFileForm()
         #context['robot_file_upload_form_helper'] = UploadFileForm.get_helper()
         return render(request, self.template_name, context)
 
     def post(self, request: HttpRequest, *args, **kwargs):
-        try:
-            context = self.get_context_data(**kwargs)
-        except ValueError as ve:
-            messages.error(request, str(ve))
+        #try:
+        context = self.get_context_data(**kwargs)
+        #except ValueError as ve:
+            #messages.error(request, str(ve))
         if 'select_experiment_template' not in request.POST:
             #if 'current_org_id' in self.request.session:
                # org_id= self.request.session['current_org_id']
