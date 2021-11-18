@@ -1,9 +1,11 @@
 import functools
 import collections.abc
 
+
 def rsetattr(obj, attr, val):
-    pre, _, post = attr.rpartition('.')
+    pre, _, post = attr.rpartition(".")
     return setattr(rgetattr(obj, pre) if pre else obj, post, val)
+
 
 def rgetattr(obj, attr, *args):
     def _getattr(obj, attr):
@@ -11,14 +13,17 @@ def rgetattr(obj, attr, *args):
             return None
         else:
             return getattr(obj, attr, *args)
-    return functools.reduce(_getattr, [obj] + attr.split('.'))
+
+    return functools.reduce(_getattr, [obj] + attr.split("."))
+
 
 class FrozenDict(collections.abc.Mapping):
-    '''
+    """
     Frozen dictionary class to use if needed
     item assignment is disabled
     new attribute assignment is disabled since it doesn't extend dict directly
-    '''
+    """
+
     __is_frozen = False
 
     def __init__(self, *args, **kwargs):
@@ -51,6 +56,5 @@ class FrozenDict(collections.abc.Mapping):
 
     def __setattr__(self, key, value):
         if self.__is_frozen and not hasattr(self, key):
-            raise Exception(
-                f'{self} is a frozen class. Cannot set new attribute {key}')
+            raise Exception(f"{self} is a frozen class. Cannot set new attribute {key}")
         object.__setattr__(self, key, value)
