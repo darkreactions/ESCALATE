@@ -1,3 +1,1 @@
-file_types = [
-    'csv'
-    ]
+file_types = ["csv"]

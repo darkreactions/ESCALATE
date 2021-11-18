@@ -15,7 +15,7 @@ from .workflowtype import *
 # from .workflowstep import *
 # from .workflowobject import *
 # from .conditiondef import *
-#basebommaterial has a bug
-#condition has a bug
-#condition def needs calculationdef added to it
-#action need calculationdef added to it
+# basebommaterial has a bug
+# condition has a bug
+# condition def needs calculationdef added to it
+# action need calculationdef added to it

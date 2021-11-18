@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+
 # from django.utils.translation import gettext_lazy as _
 import json
 
@@ -7,8 +8,9 @@ class ValValidator:
     """
     Class to handle validation of val custom type
     """
-    message = 'Invalid data'
-    code = 'invalid'
+
+    message = "Invalid data"
+    code = "invalid"
 
     def __init__(self, message=None, code=None, whitelist=None):
         if message is not None:
@@ -23,5 +25,3 @@ class ValValidator:
 
         # if value.val_type.description not in detected_types:
         #    raise ValidationError(f'Data type is {value.val_type.description} but value provided is {" or ".join(detected_types)}')
-
-    
