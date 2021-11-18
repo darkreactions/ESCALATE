@@ -113,14 +113,15 @@ class CreateExperimentView(TemplateView):
         self,
         number_of_colors: int,
         colors: list[str] = [
-            "lightblue",
+            "darkgreen",
             "teal",
-            "powderblue",
-            "skyblue",
-            "pastelblue",
-            "verdigris",
-            "steelblue",
-            "cornflowerblue",
+            "darkblue",
+            "darkslateblue",
+            "purple",
+            "saddlebrown",
+            "maroon",
+            "dimgray",
+            "darkgoldenrod",
         ],
     ) -> list[str]:
         factor = int(number_of_colors / len(colors))
