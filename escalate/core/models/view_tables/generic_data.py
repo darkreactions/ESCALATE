@@ -387,6 +387,7 @@ class Property(DateColumns, StatusColumn, ActorColumn):
         blank=True,
         null=True,
         on_delete=models.DO_NOTHING,
+        editable=False,
         related_name="property_r",
     )
 
@@ -558,7 +559,10 @@ class UdfDef(DescriptionColumn):
 
 
 class DefaultValues(DateColumns, ActorColumn, DescriptionColumn):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,)
+    uuid = RetUUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+    )
     nominal_value = ValField(blank=True, null=True)
     actual_value = ValField(blank=True, null=True)
 

@@ -29,9 +29,9 @@ def conc_to_amount(exp_uuid):
         input_data = {}
         reagent_materials = reagent.reagent_material_r.all()
         for reagent_material in reagent_materials:
-            conc = reagent_material.reagent_material_value_rmi.get(
+            conc = reagent_material.reagent_material_value_rmi.filter(
                 template__description="concentration"
-            )
+            ).first()
             conc_val = conc.nominal_value.value
             conc_unit = conc.nominal_value.unit
             conc = Q_(conc_val, conc_unit)
@@ -41,13 +41,13 @@ def conc_to_amount(exp_uuid):
                     "Invalid phase for {}".format(reagent_material.material.description)
                 )
 
-            mw_prop = reagent_material.material.material.property_m.get(
+            mw_prop = reagent_material.material.material.property_m.filter(
                 property_template__description__icontains="molecularweight"
-            )
+            ).first()
             mw = Q_(mw_prop.value.value, mw_prop.value.unit).to(units.g / units.mol)
-            density_prop = reagent_material.material.material.property_m.get(
+            density_prop = reagent_material.material.material.property_m.filter(
                 property_template__description__icontains="density"
-            )
+            ).first()
             d = d = Q_(density_prop.value.value, density_prop.value.unit).to(
                 units.g / units.ml
             )
@@ -58,14 +58,14 @@ def conc_to_amount(exp_uuid):
                 "molecular weight": mw,
                 "density": d,
             }
-        prop = reagent.property_r.get(
+        prop = reagent.property_r.filter(
             property_template__description__icontains="total volume"
-        )
+        ).first()
         total_vol = Q_(f"{prop.nominal_value.value} {prop.nominal_value.unit}")
 
-        dead_vol_prop = reagent.property_r.get(
+        dead_vol_prop = reagent.property_r.filter(
             property_template__description__icontains="dead volume"
-        )
+        ).first()
         dead_vol = Q_(
             f"{dead_vol_prop.nominal_value.value} {dead_vol_prop.nominal_value.unit}"
         )
@@ -80,9 +80,9 @@ def conc_to_amount(exp_uuid):
 
         # Amounts should be a dictionary with key as ReagentMaterials and values as amounts
         for reagent_material, amount in amounts.items():
-            db_amount = reagent_material.reagent_material_value_rmi.get(
+            db_amount = reagent_material.reagent_material_value_rmi.filter(
                 template__description="amount"
-            )
+            ).first()
             db_amount.nominal_value.value = amount.magnitude
             db_amount.nominal_value.unit = str(amount.units)
             db_amount.save()

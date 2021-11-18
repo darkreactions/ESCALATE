@@ -46,6 +46,7 @@ from core.utilities.experiment_utils import (
     generate_experiments_and_save,
     save_reaction_parameters,
     save_manual_volumes,
+    save_parameter,
 )
 from core.utilities.wf1_utils import generate_robot_file_wf1
 
@@ -212,7 +213,7 @@ class CreateExperimentView(TemplateView):
                         ),
                         "uuid": rp.parameter_uuid,
                     }
-                except:
+                except AttributeError:
                     initial = {
                         "value": Val.from_dict({"value": 0, "unit": "", "type": "num"}),
                         "uuid": rp.parameter_uuid,
@@ -664,8 +665,8 @@ class CreateExperimentView(TemplateView):
                         )
                         # The rp_uuid is not being generated from the loadscript for some parameters
                         # This issue stems from the data being loaded in. This function will work once we fix loading issues
-                        # if rp_uuid != "" or rp_uuid is not None:
-                        #    save_parameter(rp_uuid,rp_value,rp_unit)
+                        if rp_uuid != "":
+                            save_parameter(rp_uuid, rp_value, rp_unit)
                     index += 1
 
             # generate desired volume for current reagent
