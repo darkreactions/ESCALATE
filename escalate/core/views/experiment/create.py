@@ -49,6 +49,7 @@ from core.utilities.experiment_utils import (
     save_parameter,
 )
 from core.utilities.wf1_utils import generate_robot_file_wf1
+from core import experiment_templates
 
 from .misc import get_action_parameter_form_data, save_forms_q1, save_forms_q_material
 
@@ -200,7 +201,7 @@ class CreateExperimentView(TemplateView):
             else:
                 try:
                     rp_object = (
-                        ReactionParameter.objects.filter(description=rp_label)
+                        ReactionParameter.objects.filter(description=rp_label,experiment_template=exp_template.uuid)
                         .order_by("add_date")
                         .first()
                     )
