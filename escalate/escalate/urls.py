@@ -20,7 +20,7 @@ from rest_framework.schemas import get_schema_view
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('core.urls')),
-    path('', include('rest_api.urls')),
+    path("admin/", admin.site.urls),
+    path("", include("core.urls")),
+    path("", include("rest_api.urls")),
 ]

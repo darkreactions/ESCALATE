@@ -1,11 +1,19 @@
 from django.db import connection as con
 from django.db.models import F
-from core.models.view_tables import (Parameter, BomMaterial, Action, ActionUnit, 
-                                     ExperimentTemplate, ExperimentInstance, 
-                                     BillOfMaterials, ExperimentActionSequence, 
-                                     ReagentMaterial, OutcomeInstance,
-                                     ReagentMaterialValue, Reagent
-                                     )
+from core.models.view_tables import (
+    Parameter,
+    BomMaterial,
+    Action,
+    ActionUnit,
+    ExperimentTemplate,
+    ExperimentInstance,
+    BillOfMaterials,
+    ExperimentActionSequence,
+    ReagentMaterial,
+    OutcomeInstance,
+    ReagentMaterialValue,
+    Reagent,
+)
 from copy import deepcopy
 import uuid
 
@@ -24,10 +32,13 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
     exp_template = ExperimentTemplate.objects.get(uuid=template_experiment_uuid)
     # experiment row creation, overwrites original experiment template object with new experiment object.
     # Makes an experiment template object parent
-    exp_instance = ExperimentInstance(ref_uid=exp_template.ref_uid, parent = exp_template,
-                                 owner = exp_template.owner, operator = exp_template.operator,
-                                 lab = exp_template.lab,)
-    
+    exp_instance = ExperimentInstance(
+        ref_uid=exp_template.ref_uid,
+        parent=exp_template,
+        owner=exp_template.owner,
+        operator=exp_template.operator,
+        lab=exp_template.lab,
+    )
 
     # If copy_experiment_description null replace with "Copy of " + description from exp_get
     if copy_experiment_description is None:
@@ -62,30 +73,33 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
 
     # Get all Experiment Workflow objects based on experiment template uuid
     experiment_action_sequence_filter = ExperimentActionSequence.objects.all().filter(
-        experiment_template=exp_template)
-    
+        experiment_template=exp_template
+    )
+
     # itterate over them all and update workflow, experiment workflow, and workflowactionset(action, actionunit, parameter)
     for template_exp_wf in experiment_action_sequence_filter.iterator():
         # create new workflow for current object
         # this needs to be double checked to verify it works correctly
-        #this_workflow = Workflow.objects.get(uuid=current_object.workflow.uuid)
+        # this_workflow = Workflow.objects.get(uuid=current_object.workflow.uuid)
         instance_workflow = template_exp_wf.action_sequence
         template_workflow = deepcopy(instance_workflow)
         # update uuid so it generates it's own uuid
         instance_workflow.uuid = None
-        #this_workflow.experiment = exp_get
+        # this_workflow.experiment = exp_get
         # post
         instance_workflow.save()
 
         # create copy of current experiment workflow object from experiment_workflow_filter
-        #this_experiment_workflow = current_object
-        instance_exp_wf = ExperimentActionSequence(action_sequence=instance_workflow,
-                                                      experiment_instance=exp_instance,
-                                                      experiment_action_sequence_seq=template_exp_wf.experiment_action_sequence_seq)
+        # this_experiment_workflow = current_object
+        instance_exp_wf = ExperimentActionSequence(
+            action_sequence=instance_workflow,
+            experiment_instance=exp_instance,
+            experiment_action_sequence_seq=template_exp_wf.experiment_action_sequence_seq,
+        )
         # update experiment workflow uuid, workflow uuid, and experiment uuid for experiment workflow
-        #this_experiment_workflow.uuid = None
-        #this_experiment_workflow.workflow = this_workflow
-        #this_experiment_workflow.experiment = exp_get
+        # this_experiment_workflow.uuid = None
+        # this_experiment_workflow.workflow = this_workflow
+        # this_experiment_workflow.experiment = exp_get
         # post
         instance_exp_wf.save()
 
@@ -108,14 +122,14 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
                 current_action_unit.save()
 
             # get all parameters and create uuids for them and assign action uuid to each parameter
-            '''
+            """
             get_parameter = Parameter.objects.filter(action=action_template)
             for current_parameter in get_parameter.iterator():
                 current_parameter.uuid = None
                 current_parameter.action = current_action
                 current_parameter.save()
-            '''
-            ''' 
+            """
+            """ 
             This might not be needed because it only stores the action, condition, or workflow which is 
             already done in WorkflowStep
             
@@ -132,55 +146,77 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
                                            status=instance_action.status)
             q_workflow_step.save()
             workflow_step_parent = q_workflow_step.uuid
-            '''
+            """
 
         # Do I need to update condition?
         # If so create condition, figure out conditional requirements, and loop through conditions like action
         # and update workflow_step
         # need to find out more about how this would work
-    
+
     # Iterate over all reagent-templates and create reagentintances and reagentinstancevalues
     for reagent_template in exp_template.reagent_templates.all():
-        #Iterate over value_descriptions so that there are different ReagentInstanceValues based on
+        # Iterate over value_descriptions so that there are different ReagentInstanceValues based on
         # different requirements. For e.g. "concentration" and "amount" for the same
         # reagent need different ReagentInstanceValues
-        #for val_description in reagent_template.value_descriptions:
+        # for val_description in reagent_template.value_descriptions:
         reagent = Reagent(experiment=exp_instance, template=reagent_template)
         reagent.save()
-        for reagent_material_template in reagent_template.reagent_material_template_rt.all():
-            reagent_material = ReagentMaterial(template=reagent_material_template,
-                                        reagent=reagent,
-                                        description=f'{exp_instance.description} : {reagent_template.description} : {reagent_material_template.description}',
-                                        )
+        for (
+            reagent_material_template
+        ) in reagent_template.reagent_material_template_rt.all():
+            reagent_material = ReagentMaterial(
+                template=reagent_material_template,
+                reagent=reagent,
+                description=f"{exp_instance.description} : {reagent_template.description} : {reagent_material_template.description}",
+            )
             reagent_material.save()
-            for reagent_material_value_template in reagent_material_template.reagent_material_value_template_rmt.all():
-                reagent_material_value = ReagentMaterialValue(reagent_material=reagent_material,
-                                                              template=reagent_material_value_template,
-                                                              description=reagent_material_value_template.description)
+            for (
+                reagent_material_value_template
+            ) in reagent_material_template.reagent_material_value_template_rmt.all():
+                reagent_material_value = ReagentMaterialValue(
+                    reagent_material=reagent_material,
+                    template=reagent_material_value_template,
+                    description=reagent_material_value_template.description,
+                )
                 reagent_material_value.save()
-
 
     for outcome_template in exp_template.outcome_template_experiment_template.all():
         for label in outcome_template.instance_labels:
-            outcome_instance = OutcomeInstance(outcome_template=outcome_template,
-                                               experiment_instance=exp_instance,
-                                               description=label)
+            outcome_instance = OutcomeInstance(
+                outcome_template=outcome_template,
+                experiment_instance=exp_instance,
+                description=label,
+            )
             outcome_instance.save()
 
     return exp_instance.uuid
 
+
 # list of model class names that have at least one view auto generated
-view_names = ['Material', 'Inventory', 'Actor', 'Organization', 'Person',
-              'Systemtool', 'InventoryMaterial', 'Vessel',
-              'SystemtoolType', 'UdfDef', 'Status', 'Tag',
-              'TagType', 'MaterialType', 'ExperimentInstance', 'Edocument'
-              ]
+view_names = [
+    "Material",
+    "Inventory",
+    "Actor",
+    "Organization",
+    "Person",
+    "Systemtool",
+    "InventoryMaterial",
+    "Vessel",
+    "SystemtoolType",
+    "UdfDef",
+    "Status",
+    "Tag",
+    "TagType",
+    "MaterialType",
+    "ExperimentInstance",
+    "Edocument",
+]
 
 
 def camel_to_snake(name):
-    name = ''.join(['_'+i.lower() if i.isupper()
-                    else i for i in name]).lstrip('_')
+    name = "".join(["_" + i.lower() if i.isupper() else i for i in name]).lstrip("_")
     return name
+
 
 class Node:
     def __init__(self, data):
@@ -196,22 +232,22 @@ class Node:
                     self.left = Node(data)
                 else:
                     self.left.insert(data)
-            else:# data > self.data:
+            else:  # data > self.data:
                 if self.right is None:
                     self.right = Node(data)
                 else:
                     self.right.insert(data)
         else:
             self.data = data
-    
+
     # Print the Tree
     def PrintTree(self):
         if self.left:
             self.left.PrintTree()
-        print( self.data),
+        print(self.data),
         if self.right:
             self.right.PrintTree()
-    
+
     # Inorder traversal
     # Left -> Root -> Right
     def inorderTraversal(self, root):
