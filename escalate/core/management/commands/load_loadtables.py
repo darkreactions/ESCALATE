@@ -1168,51 +1168,29 @@ class Command(BaseCommand):
         self.stdout.write(self.style.NOTICE("Beginning loading material identifier"))
         filename = "load_material_identifier.csv"
         MATERIAL_IDENTIFIERS = path_to_file(filename)
-        with open(MATERIAL_IDENTIFIERS, newline="") as f:
-            reader = csv.reader(f, delimiter="\t")
 
-            # first row should be header
-            column_names = next(reader)
+        df = pd.read_csv(MATERIAL_IDENTIFIERS, sep='\t', index_col=False, header=0)
 
         active_status = Status.objects.get(description="active")
         material_identifier_defs = {
                 x.description: x for x in MaterialIdentifierDef.objects.all()
         }
-        new_material_identifier = 0
-
-        material_identifier_def = {
-            x.description: x for x in MaterialIdentifierDef.objects.all()
-        }
 
         new_material_identifier = 0
-        for row in reader:
-            description = clean_string(row[column_names_to_index["description"]])
-            material_identifier_def__description = clean_string(
-                row[column_names_to_index["material_identifier_def__description"]]
-            )
+        for _, row in df.iterrows():
+            description = clean_string(row['description'])
+            material_identifier_def__description = clean_string(row['material_identifier_def__description'])
+            material_identifier_def = material_identifier_defs[y] if not string_is_null(y := material_identifier_def__description) else None
             fields = {
-                "description": description,
-                "material_identifier_def": material_identifier_def[y]
-                if not string_is_null(y := material_identifier_def__description)
-                else None,
-                "status": active_status,
+                'description': description,
+                'material_identifier_def': material_identifier_def,
+                'status': active_status
             }
-            (
-                material_identifier_instance,
-                created,
-            ) = MaterialIdentifier.objects.get_or_create(**fields)
+            material_identifier_instance, created = MaterialIdentifier.objects.get_or_create(**fields)
             if created:
                 new_material_identifier += 1
-        # #jump to top of csv
-        # f.seek(0)
-        # #skip initial header row
-        # next(reader)
-
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Added {new_material_identifier} new material identifiers"
-            )
-        )
+        self.stdout.write(self.style.SUCCESS(
+            f'Added {new_material_identifier} new material identifiers'))
         self.stdout.write(self.style.NOTICE("Finished loading material identifier"))
 
     def _load_material(self):
@@ -1221,98 +1199,68 @@ class Command(BaseCommand):
         filenames = ["load_material.txt"]
         for filename in filenames:
             MATERIAL = path_to_file(filename)
-            with open(MATERIAL, newline="") as f:
-                reader = csv.reader(f, delimiter="\t")
 
-                # first row should be header
-                column_names = next(reader)
+            df = pd.read_csv(MATERIAL, sep='\t', index_col=False, header=0, na_filter=False)
 
-                # {'col_0': 0, 'col_1': 1, ...}
-                column_names_to_index = list_data_to_index(column_names)
+            material_identifier_defs = {
+                x.description: x for x in MaterialIdentifierDef.objects.all()
+            }
 
-                active_status = Status.objects.get(description="active")
+            active_status = Status.objects.get(description="active")
+            new_material = 0
 
-                material_identifier_def = {
-                    x.description: x for x in MaterialIdentifierDef.objects.all()
+            for _idx, row in df.iterrows():
+                description = clean_string(row['description'])
+                material_class = clean_string(row['material_class'])
+                consumable = row['consumable']
+
+                material_identifier_descs_joined = clean_string(row['material_identifier__description'])
+                material_identifier_def_descs_joined = clean_string(row['material_identifier_def__description'])
+                material_type_descs_joined = clean_string(row['material_type__description'])
+
+                # update phase, model update to include phase into materials and foreign key material from inventory material
+                """
+                phase = None
+                if "acid" in mat_type_desc:
+                    phase = "liquid"
+                elif "solvent" in mat_type_desc:
+                    phase = "liquid"
+                elif "organic" in mat_type_desc:
+                    phase = "solid"
+                """
+
+                material_identifier__description = (
+                    [x.strip() for x in y.split("|")]
+                    if not string_is_null(y := material_identifier_descs_joined)
+                    else []
+                )
+                material_identifier_def__description = (
+                    [x.strip() for x in y.split("|")]
+                    if not string_is_null(y := material_identifier_def_descs_joined)
+                    else []
+                )
+                material_type__description = (
+                    [x.strip() for x in z.split("|")]
+                    if not string_is_null(z := material_type_descs_joined)
+                    else []
+                )
+
+
+                fields = {
+                    'description': description,
+                    'material_class': material_class,
+                    'consumable': consumable,
+                    'status': active_status
                 }
+                material_instance, created = Material.objects.get_or_create(**fields)
+                if created:
+                    new_material += 1
 
-                new_material = 0
-                for row in reader:
-                    description = clean_string(
-                        row[column_names_to_index["description"]]
-                    )
-                    material_class = clean_string(
-                        row[column_names_to_index["material_class"]]
-                    )
-                    consumable = to_bool(
-                        clean_string(row[column_names_to_index["consumable"]])
-                    )
-                    mat_type_desc = clean_string(
-                        row[column_names_to_index["material_type__description"]]
-                    )
-                    # update phase, model update to include phase into materials and foreign key material from inventory material
-                    """
-                    phase = None
-                    if "acid" in mat_type_desc:
-                        phase = "liquid"
-                    elif "solvent" in mat_type_desc:
-                        phase = "liquid"
-                    elif "organic" in mat_type_desc:
-                        phase = "solid"
-                    """
-
-                    # fields = {
-                    #     'description': description,
-                    #     'material_class': material_class,
-                    #     'consumable': to_bool(consumable),
-                    #     'status': active_status
-                    # }
-                    material_instance, created = Material.objects.get_or_create(
-                        **{"description": description, "status": active_status}
-                    )
-                    material_instance.material_class = material_class
-                    material_instance.consumable = consumable
-                    material_instance.status = active_status
-                    # material_instance.phase = phase
-
-                    material_identifier__description = (
-                        [x.strip() for x in y.split("|")]
-                        if not string_is_null(
-                            y := row[
-                                column_names_to_index[
-                                    "material_identifier__description"
-                                ]
-                            ]
-                        )
-                        else []
-                    )
-                    material_identifier_def__description = (
-                        [x.strip() for x in y.split("|")]
-                        if not string_is_null(
-                            y := row[
-                                column_names_to_index[
-                                    "material_identifier_def__description"
-                                ]
-                            ]
-                        )
-                        else []
-                    )
-
-                    material_type__description = (
-                        [x.strip() for x in z.split("|")]
-                        if not string_is_null(
-                            z := row[
-                                column_names_to_index["material_type__description"]
-                            ]
-                        )
-                        else []
-                    )
-
-                    material_instance.identifier.add(
+                material_instance.identifier.add(
                         *[
                             MaterialIdentifier.objects.get(
                                 description=descr,
-                                material_identifier_def=material_identifier_def[
+                                material_identifier_def=material_identifier_defs[
                                     def_descr
                                 ],
                             )
@@ -1322,194 +1270,135 @@ class Command(BaseCommand):
                             )
                         ]
                     )
-                    material_instance.material_type.add(
-                        *[
-                            MaterialType.objects.get(description=d)
-                            for d in material_type__description
-                        ]
-                    )
-                    material_instance.save(
-                        update_fields=["material_class", "consumable"]
-                    )
-                    if created:
-                        new_material += 1
-                # #jump to top of csv
-                # f.seek(0)
-                # #skip initial header row
-                # next(reader)
-
-                self.stdout.write(
-                    self.style.SUCCESS(f"Added {new_material} new materials")
+                material_instance.material_type.add(
+                    *[
+                        MaterialType.objects.get(description=d)
+                        for d in material_type__description
+                    ]
                 )
+
+            self.stdout.write(self.style.SUCCESS(
+                f'Added {new_material} new materials'))
         self.stdout.write(self.style.NOTICE("Finished loading material"))
 
     def _load_inventory_material(self):
         self.stdout.write(self.style.NOTICE("Beginning loading inventory material"))
         filename = "load_inventory_material.txt"
         INVENTORY_MATERIALS = path_to_file(filename)
-        with open(INVENTORY_MATERIALS, newline="") as f:
-            reader = csv.reader(f, delimiter="\t")
 
-            # first row should be header
-            column_names = next(reader)
+        df = pd.read_csv(INVENTORY_MATERIALS, sep='\t', index_col=False, header=0, na_filter=False)
 
-            # {'col_0': 0, 'col_1': 1, ...}
-            column_names_to_index = list_data_to_index(column_names)
+        active_status = Status.objects.get(description="active")
 
-            active_status = Status.objects.get(description="active")
 
-            new_inventory_material = 0
-            for row in reader:
-                description = clean_string(row[column_names_to_index["description"]])
-                inventory_description = clean_string(
-                    row[column_names_to_index["inventory_description"]]
+        new_inventory_material = 0
+        for _idx, row in df.iterrows():
+            description = clean_string(row['description'])
+            inventory_description = clean_string(row['inventory_description'])
+            material_description = clean_string(row['material_description'])
+            part_no = clean_string(row['part_no'])
+
+            onhand_amt_type = clean_string(row['onhand_amt_type'])
+            onhand_amt_unit = clean_string(row['onhand_amt_unit'])
+            onhand_amt_value = clean_string(row['onhand_amt_value'])
+
+            expiration_date = clean_string(row['expiration_date'])
+            location = clean_string(row['location'])
+
+            try:
+                material = (
+                    Material.objects.get(description=material_description)
+                    if not string_is_null(material_description)
+                    else None
                 )
-                material_description = clean_string(
-                    row[column_names_to_index["material_description"]]
-                )
-                part_no = clean_string(row[column_names_to_index["part_no"]])
-
-                onhand_amt_type = clean_string(
-                    row[column_names_to_index["onhand_amt_type"]]
-                )
-                onhand_amt_unit = clean_string(
-                    row[column_names_to_index["onhand_amt_unit"]]
-                )
-                onhand_amt_value = clean_string(
-                    row[column_names_to_index["onhand_amt_value"]]
-                )
-
-                expiration_date = clean_string(
-                    row[column_names_to_index["expiration_date"]]
-                )
-                location = clean_string(row[column_names_to_index["location"]])
-
-                try:
-                    material = (
-                        Material.objects.get(description=material_description)
-                        if not string_is_null(material_description)
-                        else None
+                phase = None
+                if material is not None:
+                    if material.material_type.filter(
+                        Q(description="acid")
+                        | Q(description="solvent")
+                        | Q(description="antisolvent")
+                    ).exists():
+                        phase = "liquid"
+                    elif material.material_type.filter(
+                        Q(description="organic")
+                    ).exists():
+                        phase = "solid"
+                    elif material.material_type.filter(
+                        Q(description="inorganic")
+                    ).exists():
+                        phase = "solid"
+                fields = {
+                    "description": description,
+                    "inventory": Inventory.objects.get(
+                        description=inventory_description
                     )
-                    phase = None
-                    if material is not None:
-                        if material.material_type.filter(
-                            Q(description="acid")
-                            | Q(description="solvent")
-                            | Q(description="antisolvent")
-                        ).exists():
-                            phase = "liquid"
-                        elif material.material_type.filter(
-                            Q(description="organic")
-                        ).exists():
-                            phase = "solid"
-                        elif material.material_type.filter(
-                            Q(description="inorganic")
-                        ).exists():
-                            phase = "solid"
-                    fields = {
-                        "description": description,
-                        "inventory": Inventory.objects.get(
-                            description=inventory_description
-                        )
-                        if not string_is_null(inventory_description)
-                        else None,
-                        "material": material,
-                        "part_no": part_no,
-                        "onhand_amt": get_val_field_dict(
-                            onhand_amt_type, onhand_amt_unit, onhand_amt_value
-                        ),
-                        #'expiration_date': expiration_date if not string_is_null(expiration_date) else None,
-                        "phase": phase,
-                        "location": location,
-                        "status": active_status,
-                    }
-                    (
-                        inventory_material_instance,
-                        created,
-                    ) = InventoryMaterial.objects.get_or_create(**fields)
-                except Exception as e:
-                    print(e)
-                    print(material_description)
+                    if not string_is_null(inventory_description)
+                    else None,
+                    "material": material,
+                    "part_no": part_no,
+                    "onhand_amt": get_val_field_dict(
+                        onhand_amt_type, onhand_amt_unit, onhand_amt_value
+                    ),
+                    #'expiration_date': expiration_date if not string_is_null(expiration_date) else None,
+                    "phase": phase,
+                    "location": location,
+                    "status": active_status,
+                }
+                (
+                    inventory_material_instance,
+                    created,
+                ) = InventoryMaterial.objects.get_or_create(**fields)
+            except Exception as e:
+                print(e)
+                print(material_description)
 
-                try:
-                    material_object = Material.objects.get(
-                        description=material_description
-                    )
-                    inventory_material_instance.material = material_object
-                except Material.DoesNotExist:
-                    inventory_material_instance.material = None
-
-                if created:
-                    new_inventory_material += 1
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"Added {new_inventory_material} new inventory materials"
+            try:
+                material_object = Material.objects.get(
+                    description=material_description
                 )
-            )
-            # #jump to top of csv
-            # f.seek(0)
-            # #skip initial header row
-            # next(reader)
-        self.stdout.write(self.style.NOTICE("Finished loading inventory material"))
+                inventory_material_instance.material = material_object
+            except Material.DoesNotExist:
+                inventory_material_instance.material = None
+
+            if created:
+                new_inventory_material += 1
+
+        self.stdout.write(self.style.SUCCESS(
+            f'Added {new_inventory_material} new inventory materials'))
+        self.stdout.write(self.style.NOTICE(
+            'Finished loading inventory material'))
 
     def _load_vessels(self):
         self.stdout.write(self.style.NOTICE("Beginning loading vessels"))
         # filename = 'old_dev_schema_materials.csv'
         filename = "load_vessel.csv"
         OLD_DEV_SCHEMA_MATERIALS = path_to_file(filename)
-        with open(OLD_DEV_SCHEMA_MATERIALS, newline="") as f:
-            reader = csv.reader(f, delimiter="\t")
 
-            # first row should be header
-            column_names = next(reader)
+        df = pd.read_csv(OLD_DEV_SCHEMA_MATERIALS, sep='\t', index_col=False, header=0, na_filter=False)
 
-            # {'col_0': 0, 'col_1': 1, ...}
-            column_names_to_index = list_data_to_index(column_names)
+        active_status = Status.objects.get(description="active")
 
-            new_vessels = 0
-            new_plates = 0
-            active_status = Status.objects.get(description="active")
-            for row in reader:
-                row_desc = clean_string(row[column_names_to_index["description"]])
-                # if "Plate" in row_desc:
-                parts = row_desc.split("#:")
-                assert 1 <= len(parts) <= 2
-                plate_name = parts[0].strip() if len(parts) >= 1 else None
-                well_number = parts[1].strip() if len(parts) > 1 else None
-                plate_instance, created = Vessel.objects.get_or_create(
-                    description=plate_name
+        new_vessels = 0
+        new_plates = 0
+        for _, row in df.iterrows():
+            description = clean_string(row['description'])
+            parts = description.split("#:")
+            assert 1 <= len(parts) <= 2
+            plate_name = parts[0].strip() if len(parts) >= 1 else None
+            well_number = parts[1].strip() if len(parts) > 1 else None
+            plate_instance, created = Vessel.objects.get_or_create(
+                description=plate_name,
+                status=active_status
+            )
+            if well_number is not None:
+                well_instance, created = Vessel.objects.get_or_create(
+                    description=well_number, parent=plate_instance, status=active_status
                 )
-                if well_number is not None:
-                    well_instance, created = Vessel.objects.get_or_create(
-                        description=well_number, parent=plate_instance
-                    )
-                    if created:
-                        new_plates += 1
-                """
-                fields = {
-                    'plate_name': plate_name,
-                    'well_number': well_number,
-                    'status': active_status
-                }
-                # whole plate or single vessel
-                if "#" in row_desc and ':' in row_desc:
-                    # single vessel
-                    row_vessel_instance, created = Vessel.objects.get_or_create(
-                        **fields)
-                    if created:
-                        new_vessels += 1
-                else:
-                    # whole plate
-                    row_plate_instance, created = Vessel.objects.get_or_create(
-                        **fields)
-                """
-
-            self.stdout.write(self.style.SUCCESS(f"Added {new_vessels} new vessels"))
-            self.stdout.write(self.style.SUCCESS(f"Added {new_plates} new plates"))
-            # #jump to top of csv
-            # f.seek(0)
-            # #skip initial header row
-            # next(reader)
+                if created:
+                    new_plates += 1
+        self.stdout.write(self.style.SUCCESS(f"Added {new_vessels} new vessels"))
+        self.stdout.write(self.style.SUCCESS(f"Added {new_plates} new plates"))
+        
         self.stdout.write(self.style.NOTICE("Finished loading vessels"))
 
     # ---------------EXPERIMENT--------------
@@ -1526,192 +1415,153 @@ class Command(BaseCommand):
         filename = "load_parameter_def.csv"
         PARAMETER_DEF = path_to_file(filename)
 
-        with open(PARAMETER_DEF, newline="") as f:
-            reader = csv.reader(f, delimiter="\t")
+        df = pd.read_csv(PARAMETER_DEF, sep='\t', index_col=False, header=0, na_filter=False)
 
-            # first row should be header
-            column_names = next(reader)
+        active_status = Status.objects.get(description="active")
 
-            # {'col_0': 0, 'col_1': 1, ...}
-            column_names_to_index = list_data_to_index(column_names)
-
-            active_status = Status.objects.get(description="active")
-
-            new_parameter_def = 0
-            for row in reader:
-                description = clean_string(row[column_names_to_index["description"]])
-                type_ = clean_string(row[column_names_to_index["type"]])
-                value_from_csv = clean_string(row[column_names_to_index["value"]])
-                unit = clean_string(row[column_names_to_index["unit"]])
-                required = to_bool(row[column_names_to_index["required"]])
-                unit_type = clean_string(row[column_names_to_index["unit_type"]])
-                fields = {
-                    "description": description,
-                    "default_val": get_val_field_dict(type_, unit, value_from_csv),
-                    "unit_type": unit_type,
-                    "required": required,
-                    "status": active_status,
-                }
-                (
-                    row_parameter_def_instance,
-                    created,
-                ) = ParameterDef.objects.get_or_create(**fields)
-                if created:
-                    new_parameter_def += 1
-            self.stdout.write(
-                self.style.SUCCESS(f"Added {new_parameter_def} new parameter def")
-            )
+        new_parameter_def = 0
+        for _, row in df.iterrows():
+            description = clean_string(row["description"])
+            type_ = clean_string(row["type"])
+            value_from_csv = clean_string(row["value"])
+            unit = clean_string(row["unit"])
+            required = to_bool(row["required"])
+            unit_type = clean_string(row["unit_type"])
+            fields = {
+                "description": description,
+                "default_val": get_val_field_dict(type_, unit, value_from_csv),
+                "unit_type": unit_type,
+                "required": required,
+                "status": active_status,
+            }
+            row_parameter_def_instance, created = ParameterDef.objects.get_or_create(**fields)
+            if created:
+                new_parameter_def += 1
+        self.stdout.write(
+            self.style.SUCCESS(f"Added {new_parameter_def} new parameter def")
+        )
         self.stdout.write(self.style.NOTICE("Finished loading parameter def"))
 
     def _load_action_def(self):
         self.stdout.write(self.style.NOTICE("Beginning loading action def"))
         filename = "load_action_def.csv"
         ACTION_DEF = path_to_file(filename)
-        with open(ACTION_DEF, newline="") as f:
-            reader = csv.reader(f, delimiter="\t")
 
-            # first row should be header
-            column_names = next(reader)
+        df = pd.read_csv(ACTION_DEF, sep='\t', index_col=False, header=0, na_filter=False)
 
-            # {'col_0': 0, 'col_1': 1, ...}
-            column_names_to_index = list_data_to_index(column_names)
+        active_status = Status.objects.get(description="active")
 
-            active_status = Status.objects.get(description="active")
-
-            new_action_def = 0
-            for row in reader:
-                description = clean_string(row[column_names_to_index["description"]])
-                parameter_def_descriptions = (
-                    [x.strip() for x in y.split(",")]
-                    if not string_is_null(
-                        y := row[column_names_to_index["parameter_def_descriptions"]]
-                    )
-                    else []
+        new_action_def = 0
+        for _, row in df.iterrows():
+            description = clean_string(row["description"])
+            parameter_def_descriptions = (
+                [x.strip() for x in y.split(",")]
+                if not string_is_null(
+                    y := row["parameter_def_descriptions"]
                 )
-                action_def_instance, created = ActionDef.objects.get_or_create(
-                    description=description, status=active_status
-                )
-                if created:
-                    new_action_def += 1
-                action_def_instance.parameter_def.add(
-                    *[
-                        ParameterDef.objects.get(description=x)
-                        for x in parameter_def_descriptions
-                    ]
-                )
-            self.stdout.write(
-                self.style.SUCCESS(f"Added {new_action_def} new action def")
+                else []
             )
+            action_def_instance, created = ActionDef.objects.get_or_create(
+                description=description, status=active_status
+            )
+            if created:
+                new_action_def += 1
+            action_def_instance.parameter_def.add(
+                *[
+                    ParameterDef.objects.get(description=x)
+                    for x in parameter_def_descriptions
+                ]
+            )
+        self.stdout.write(
+            self.style.SUCCESS(f"Added {new_action_def} new action def")
+        )
         self.stdout.write(self.style.NOTICE("Finished loading action def"))
 
     def _load_calculation_def(self):
         self.stdout.write(self.style.NOTICE("Beginning loading calculation def"))
         filename = "load_calculation_def.csv"
         CALCULATION_DEF = path_to_file(filename)
-        with open(CALCULATION_DEF, newline="") as f:
-            reader = csv.reader(f, delimiter="\t")
 
-            # first row should be header
-            column_names = next(reader)
+        df = pd.read_csv(CALCULATION_DEF, sep='\t', index_col=False, header=0, na_filter=False)
+        active_status = Status.objects.get(description="active")
+        new_calculation_def = 0
 
-            # {'col_0': 0, 'col_1': 1, ...}
-            column_names_to_index = list_data_to_index(column_names)
+        # create calculation def
+        for _, row in df.iterrows():
+            description = clean_string(row["description"])
+            short_name = clean_string(row["short_name"])
+            calc_definition = clean_string(row["calc_definition"])
+            in_type__description = clean_string(row["in_type__description"])
+            in_opt_type__description = clean_string(row["in_opt_type__description"])
+            out_type__description = clean_string(row["out_type__description"])
+            systemtool_name = clean_string(row["systemtool_name"])
+            fields = {
+                "description": description,
+                "short_name": short_name,
+                "calc_definition": calc_definition,
+                "in_type": TypeDef.objects.get(
+                    description=in_type__description, category="data"
+                )
+                if not string_is_null(in_type__description)
+                else None,
+                "in_opt_type": TypeDef.objects.get(
+                    description=in_opt_type__description, category="data"
+                )
+                if not string_is_null(in_opt_type__description)
+                else None,
+                "out_type": TypeDef.objects.get(
+                    description=out_type__description, category="data"
+                )
+                if not string_is_null(out_type__description)
+                else None,
+                "systemtool": Systemtool.objects.get(
+                    systemtool_name=systemtool_name
+                )
+                if not string_is_null(systemtool_name)
+                else None,
+                "status": active_status
+            }
+            """
+            calculation_def_instance, created = CalculationDef.objects.get_or_create(
+                **fields)
+            if created:
+                new_calculation_def += 1
+            parameter_def_descriptions = [x.strip() for x in y.split(',')] if not string_is_null(
+                y := row[column_names_to_index['parameter_def_descriptions']]) else []
+            calculation_def_instance.parameter_def.add(
+                *[ParameterDef.objects.get(description=d) for d in parameter_def_descriptions])
+            """
 
-            new_calculation_def = 0
-
-            # create calculation def
-            for row in reader:
-                description = clean_string(row[column_names_to_index["description"]])
-                short_name = clean_string(row[column_names_to_index["short_name"]])
-                calc_definition = clean_string(
-                    row[column_names_to_index["calc_definition"]]
-                )
-                in_type__description = clean_string(
-                    row[column_names_to_index["in_type__description"]]
-                )
-                in_opt_type__description = clean_string(
-                    row[column_names_to_index["in_opt_type__description"]]
-                )
-                out_type__description = clean_string(
-                    row[column_names_to_index["out_type__description"]]
-                )
-                systemtool_name = clean_string(
-                    row[column_names_to_index["systemtool_name"]]
-                )
-                fields = {
-                    "description": description,
-                    "short_name": short_name,
-                    "calc_definition": calc_definition,
-                    "in_type": TypeDef.objects.get(
-                        description=in_type__description, category="data"
-                    )
-                    if not string_is_null(in_type__description)
-                    else None,
-                    "in_opt_type": TypeDef.objects.get(
-                        description=in_opt_type__description, category="data"
-                    )
-                    if not string_is_null(in_opt_type__description)
-                    else None,
-                    "out_type": TypeDef.objects.get(
-                        description=out_type__description, category="data"
-                    )
-                    if not string_is_null(out_type__description)
-                    else None,
-                    "systemtool": Systemtool.objects.get(
-                        systemtool_name=systemtool_name
-                    )
-                    if not string_is_null(systemtool_name)
-                    else None,
-                }
-                """
-                calculation_def_instance, created = CalculationDef.objects.get_or_create(
-                    **fields)
-                if created:
-                    new_calculation_def += 1
-                parameter_def_descriptions = [x.strip() for x in y.split(',')] if not string_is_null(
-                    y := row[column_names_to_index['parameter_def_descriptions']]) else []
-                calculation_def_instance.parameter_def.add(
-                    *[ParameterDef.objects.get(description=d) for d in parameter_def_descriptions])
-                """
-
-            # jump to top of csv
-            f.seek(0)
-            # skip initial header row
-            next(reader)
-
-            # go back and save self foreign keys
-            for row in reader:
-                short_name = row[column_names_to_index["short_name"]]
-                row_calculation_def_instance = CalculationDef.objects.get(
-                    short_name=short_name
-                )
-
-                in_source__short_name = row[
-                    column_names_to_index["in_source__short_name"]
-                ]
-                in_opt_source__short_name = row[
-                    column_names_to_index["in_opt_source__short_name"]
-                ]
-                fields = {
-                    "in_source": CalculationDef.objects.get(
-                        short_name=in_source__short_name
-                    )
-                    if not string_is_null(in_source__short_name)
-                    else None,
-                    "in_opt_source": CalculationDef.objects.get(
-                        short_name=in_opt_source__short_name
-                    )
-                    if not string_is_null(in_opt_source__short_name)
-                    else None,
-                }
-                for field, value in fields.items():
-                    setattr(row_calculation_def_instance, field, value)
-                row_calculation_def_instance.save(
-                    update_fields=["in_source", "in_opt_source"]
-                )
-            self.stdout.write(
-                self.style.SUCCESS(f"Added {new_calculation_def} new calculation def")
+        # go back and save self foreign keys
+        for _,row in df.iterrows():
+            short_name = row["short_name"]
+            row_calculation_def_instance = CalculationDef.objects.get(
+                short_name=short_name
             )
+
+            in_source__short_name = clean_string(row["in_source__short_name"])
+            in_opt_source__short_name = clean_string(row["in_opt_source__short_name"])
+            
+            fields = {
+                "in_source": CalculationDef.objects.get(
+                    short_name=in_source__short_name
+                )
+                if not string_is_null(in_source__short_name)
+                else None,
+                "in_opt_source": CalculationDef.objects.get(
+                    short_name=in_opt_source__short_name
+                )
+                if not string_is_null(in_opt_source__short_name)
+                else None,
+            }
+            for field, value in fields.items():
+                setattr(row_calculation_def_instance, field, value)
+            row_calculation_def_instance.save(
+                update_fields=["in_source", "in_opt_source"]
+            )
+        self.stdout.write(
+            self.style.SUCCESS(f"Added {new_calculation_def} new calculation def")
+        )
         self.stdout.write(self.style.NOTICE("Finished loading calculation def"))
 
     def _load_experiment_and_action_sequence(self):
@@ -1720,187 +1570,143 @@ class Command(BaseCommand):
         )
 
         EXPERIMENT = path_to_file("load_experiment.csv")
-        with open(EXPERIMENT, newline="") as f:
-            reader = csv.reader(f, delimiter="\t")
 
-            # first row should be header
-            column_names = next(reader)
+        experiment_df = pd.read_csv(EXPERIMENT, sep='\t', index_col=False, header=0, na_filter=False)
+        active_status = Status.objects.get(description="active")
+        
+        experiment_type = {x.description: x for x in ExperimentType.objects.all()}
 
-            # {'col_0': 0, 'col_1': 1, ...}
-            column_names_to_index = list_data_to_index(column_names)
+        new_experiment = 0
+        for _, row in experiment_df.iterrows():
+            description = clean_string(row["description"])
+            ref_uid = clean_string(row["ref_uid"])
+            experiment_type_description = clean_string(row["experiment_type_description"])
+            owner_description = clean_string(row["owner_description"])
+            operator_description = clean_string(row["operator_description"])
+            lab_description = clean_string(row["lab_description"])
 
-            active_status = Status.objects.get(description="active")
-
-            experiment_type = {x.description: x for x in ExperimentType.objects.all()}
-
-            new_experiment = 0
-            for row in reader:
-                description = clean_string(row[column_names_to_index["description"]])
-                ref_uid = clean_string(row[column_names_to_index["ref_uid"]])
-                experiment_type_description = clean_string(
-                    row[column_names_to_index["experiment_type_description"]]
-                )
-                owner_description = clean_string(
-                    row[column_names_to_index["owner_description"]]
-                )
-                operator_description = clean_string(
-                    row[column_names_to_index["operator_description"]]
-                )
-                lab_description = clean_string(
-                    row[column_names_to_index["lab_description"]]
-                )
-
-                fields = {
-                    "description": description,
-                    "ref_uid": ref_uid,
-                    "experiment_type": experiment_type[descr]
-                    if not string_is_null(descr := experiment_type_description)
-                    else None,
-                    "owner": Actor.objects.get(description=owner_description)
-                    if not string_is_null(owner_description)
-                    else None,
-                    "operator": Actor.objects.get(description=operator_description)
-                    if not string_is_null(operator_description)
-                    else None,
-                    "lab": Actor.objects.get(description=lab_description)
-                    if not string_is_null(lab_description)
-                    else None,
-                    "status": active_status,
-                }
-                experiment_instance, created = ExperimentTemplate.objects.get_or_create(
-                    **fields
-                )
-                if created:
-                    new_experiment += 1
-
-                bom_description = clean_string(
-                    row[column_names_to_index["bom_description"]]
-                )
-                BillOfMaterials.objects.get_or_create(
-                    description=bom_description,
-                    experiment=experiment_instance,
-                    status=active_status,
-                )
-
-            # jump to top of csv
-            f.seek(0)
-            # skip initial header row
-            next(reader)
-
-            # go back and save parent
-            for row in reader:
-                description = clean_string(row[column_names_to_index["description"]])
-                parent_description = clean_string(
-                    row[column_names_to_index["parent_description"]]
-                )
-                row_experiment_instance = ExperimentTemplate.objects.get(
-                    description=description
-                )
-                row_experiment_instance.parent = (
-                    ExperimentTemplate.objects.get(description=parent_description)
-                    if not string_is_null(parent_description)
-                    else None
-                )
-                # row_experiment_instance.save(update_fields=['parent'])
-            self.stdout.write(
-                self.style.SUCCESS(f"Added {new_experiment} new experiments")
+            fields = {
+                "description": description,
+                "ref_uid": ref_uid,
+                "experiment_type": experiment_type[descr]
+                if not string_is_null(descr := experiment_type_description)
+                else None,
+                "owner": Actor.objects.get(description=owner_description)
+                if not string_is_null(owner_description)
+                else None,
+                "operator": Actor.objects.get(description=operator_description)
+                if not string_is_null(operator_description)
+                else None,
+                "lab": Actor.objects.get(description=lab_description)
+                if not string_is_null(lab_description)
+                else None,
+                "status": active_status,
+            }
+            experiment_instance, created = ExperimentTemplate.objects.get_or_create(
+                **fields
             )
+            if created:
+                new_experiment += 1
+
+            bom_description = clean_string(row["bom_description"])
+            BillOfMaterials.objects.get_or_create(
+                description=bom_description,
+                experiment=experiment_instance,
+                status=active_status,
+            )
+
+        for _, row in experiment_df.iterrows():
+            description = clean_string(row["description"])
+            parent_description = clean_string(row["parent_description"])
+            row_experiment_instance = ExperimentTemplate.objects.get(
+                description=description
+            )
+            row_experiment_instance.parent = (
+                ExperimentTemplate.objects.get(description=parent_description)
+                if not string_is_null(parent_description)
+                else None
+            )
+            # row_experiment_instance.save(update_fields=['parent'])
+        self.stdout.write(
+            self.style.SUCCESS(f"Added {new_experiment} new experiments")
+        )
 
         WORKFLOW = path_to_file("load_workflow.csv")
-        with open(WORKFLOW, newline="") as f:
-            reader = csv.reader(f, delimiter="\t")
+        workflow_df = pd.read_csv(WORKFLOW, sep='\t', index_col=False, header=0, na_filter=False)
+        active_status = Status.objects.get(description="active")
 
-            # first row should be header
-            column_names = next(reader)
+        action_sequence_type = {
+            x.description: x for x in ActionSequenceType.objects.all()
+        }
 
-            # {'col_0': 0, 'col_1': 1, ...}
-            column_names_to_index = list_data_to_index(column_names)
+        new_action_sequence = 0
+        for _, row in workflow_df.iterrows():
+            description = clean_string(row["description"])
+            action_sequence_type_description = clean_string(row["workflow_type_description"])
 
-            action_sequence_type = {
-                x.description: x for x in ActionSequenceType.objects.all()
+            fields = {
+                "description": description,
+                "action_sequence_type": action_sequence_type[y]
+                if not string_is_null(y := action_sequence_type_description)
+                else None,
+                "status": active_status,
             }
-
-            new_action_sequence = 0
-            for row in reader:
-                description = clean_string(row[column_names_to_index["description"]])
-                action_sequence_type_description = clean_string(
-                    row[column_names_to_index["workflow_type_description"]]
+            (
+                action_sequence_instance,
+                created,
+            ) = ActionSequence.objects.get_or_create(**fields)
+            if created:
+                new_action_sequence += 1
+            experiment_description = (
+                [x.strip() for x in y.split(",")]
+                if not string_is_null(
+                    y := clean_string(row["experiment_description"])
                 )
-
-                fields = {
-                    "description": description,
-                    "action_sequence_type": action_sequence_type[y]
-                    if not string_is_null(y := action_sequence_type_description)
-                    else None,
-                    "status": active_status,
-                }
-                (
-                    action_sequence_instance,
-                    created,
-                ) = ActionSequence.objects.get_or_create(**fields)
-                if created:
-                    new_action_sequence += 1
-                experiment_description = (
-                    [x.strip() for x in y.split(",")]
-                    if not string_is_null(
-                        y := clean_string(
-                            row[column_names_to_index["experiment_description"]]
-                        )
-                    )
-                    else []
-                )
-                experiment_action_sequence_seq_num = (
-                    [x.strip() for x in y.split(",")]
-                    if not string_is_null(
-                        y := clean_string(
-                            row[column_names_to_index["experiment_workflow_seq_num"]]
-                        )
-                    )
-                    else []
-                )
-
-                for exp_desc, exp_wf_seq_num in zip(
-                    experiment_description, experiment_action_sequence_seq_num
-                ):
-                    fields = {
-                        "experiment_template": ExperimentTemplate.objects.get(
-                            description=exp_desc
-                        )
-                        if not string_is_null(exp_desc)
-                        else None,
-                        "action_sequence": action_sequence_instance,
-                        "experiment_action_sequence_seq": int(exp_wf_seq_num)
-                        if not string_is_null(exp_wf_seq_num)
-                        else -1,
-                    }
-                    ExperimentActionSequence.objects.get_or_create(**fields)
-
-            # jump to top of csv
-            f.seek(0)
-            # skip initial header row
-            next(reader)
-
-            for row in reader:
-                description = clean_string(row[column_names_to_index["description"]])
-                parent_description = clean_string(
-                    row[column_names_to_index["parent_description"]]
-                )
-
-                row_action_sequence_instance = ActionSequence.objects.get(
-                    description=description
-                )
-                parent = (
-                    ActionSequence.objects.get(description=parent_description)
-                    if not string_is_null(parent_description)
-                    else None
-                )
-
-                row_action_sequence_instance.parent = parent
-
-                row_action_sequence_instance.save(update_fields=["parent"])
-            self.stdout.write(
-                self.style.SUCCESS(f"Added {new_action_sequence} new action_sequences")
+                else []
             )
+            experiment_action_sequence_seq_num = (
+                [x.strip() for x in y.split(",")]
+                if not string_is_null(
+                    y := clean_string(row["experiment_workflow_seq_num"])
+                )
+                else []
+            )
+
+            for exp_desc, exp_wf_seq_num in zip(
+                experiment_description, experiment_action_sequence_seq_num
+            ):
+                fields = {
+                    "experiment_template": ExperimentTemplate.objects.get(
+                        description=exp_desc
+                    )
+                    if not string_is_null(exp_desc)
+                    else None,
+                    "action_sequence": action_sequence_instance,
+                    "experiment_action_sequence_seq": int(exp_wf_seq_num)
+                    if not string_is_null(exp_wf_seq_num)
+                    else -1,
+                }
+                ExperimentActionSequence.objects.get_or_create(**fields)
+
+        for _, row in workflow_df.iterrows():
+            description = clean_string(row["description"])
+            parent_description = clean_string(row["parent_description"])
+
+            row_action_sequence_instance = ActionSequence.objects.get(
+                description=description
+            )
+            parent = (
+                ActionSequence.objects.get(description=parent_description)
+                if not string_is_null(parent_description)
+                else None
+            )
+
+            row_action_sequence_instance.parent = parent
+
+            row_action_sequence_instance.save(update_fields=["parent"])
+        self.stdout.write(
+            self.style.SUCCESS(f"Added {new_action_sequence} new action_sequences")
+        )
 
         self.stdout.write(
             self.style.NOTICE("Finished loading experiment and action_sequence")
@@ -1910,40 +1716,29 @@ class Command(BaseCommand):
         self.stdout.write(self.style.NOTICE("Beginning loading mixture"))
         filename = "load_mixture.csv"
         MIXTURE = path_to_file(filename)
-        with open(MIXTURE, newline="") as f:
-            reader = csv.reader(f, delimiter="\t")
 
-            # first row should be header
-            column_names = next(reader)
+        df = pd.read_csv(MIXTURE, sep='\t', index_col=False, header=0, na_filter=False)
+        active_status = Status.objects.get(description="active")
 
-            # {'col_0': 0, 'col_1': 1, ...}
-            column_names_to_index = list_data_to_index(column_names)
-
-            active_status = Status.objects.get(description="active")
-
-            new_mixture = 0
-            for row in reader:
-                material_composite_description = clean_string(
-                    row[column_names_to_index["material_composite_description"]]
-                )
-                material_component_description = clean_string(
-                    row[column_names_to_index["material_component_description"]]
-                )
-                addressable = clean_string(row[column_names_to_index["addressable"]])
-                fields = {
-                    "composite": Material.objects.get(description=y)
-                    if not string_is_null(y := material_composite_description)
-                    else None,
-                    "component": Material.objects.get(description=y)
-                    if not string_is_null(y := material_component_description)
-                    else None,
-                    "addressable": to_bool(addressable),
-                    "status": active_status,
-                }
-                mixture_instance, created = Mixture.objects.get_or_create(**fields)
-                if created:
-                    new_mixture += 1
-            self.stdout.write(self.style.SUCCESS(f"Added {new_mixture} new mixture"))
+        new_mixture = 0
+        for _, row in df.iterrows():
+            material_composite_description = clean_string(row["material_composite_description"])
+            material_component_description = clean_string(row["material_component_description"])
+            addressable = clean_string(row["addressable"])
+            fields = {
+                "composite": Material.objects.get(description=y)
+                if not string_is_null(y := material_composite_description)
+                else None,
+                "component": Material.objects.get(description=y)
+                if not string_is_null(y := material_component_description)
+                else None,
+                "addressable": to_bool(addressable),
+                "status": active_status,
+            }
+            mixture_instance, created = Mixture.objects.get_or_create(**fields)
+            if created:
+                new_mixture += 1
+        self.stdout.write(self.style.SUCCESS(f"Added {new_mixture} new mixture"))
         self.stdout.write(self.style.NOTICE("Finished loading mixture"))
 
     def _load_base_bom_material(self):
@@ -1951,341 +1746,259 @@ class Command(BaseCommand):
 
         filename = "load_base_bom_material.csv"
         BASE_BOM_MATERIAL = path_to_file(filename)
-        with open(BASE_BOM_MATERIAL, newline="") as f:
-            reader = csv.reader(f, delimiter="\t")
+        
+        df = pd.read_csv(BASE_BOM_MATERIAL, sep='\t', index_col=False, header=0, na_filter=False)
+        active_status = Status.objects.get(description="active")
 
-            # first row should be header
-            column_names = next(reader)
+        new_base_bom_material = 0
+        new_bom_material = 0
+        new_bom_composite_material = 0
+        for _, row in df.iterrows():
+            description = clean_string(row["description"])
+            bom_description = clean_string(row["bom_description"])
+            inventory_material_description = clean_string(row["inventory_material_description"])
+            alloc_amt_val_type = clean_string(row["alloc_amt_val_type"])
+            alloc_amt_val_unit = clean_string(row["alloc_amt_val_unit"])
+            alloc_amt_val_value = clean_string(row["alloc_amt_val_value"])
+            used_amt_val_type = clean_string(row["used_amt_val_type"])
+            used_amt_val_unit = clean_string(row["used_amt_val_unit"])
+            used_amt_val_value = clean_string(row["used_amt_val_value"])
+            putback_amt_val_type = clean_string(row["putback_amt_val_type"])
+            putback_amt_val_unit = clean_string(row["putback_amt_val_unit"])
+            putback_amt_val_value = clean_string(row["putback_amt_val_value"])
+            mixture_composite_description = clean_string(row["mixture_composite_description"])
+            mixture_component_description = clean_string(row["mixture_component_description"])
 
-            # {'col_0': 0, 'col_1': 1, ...}
-            column_names_to_index = list_data_to_index(column_names)
+            # mixture_composite = Material.objects.get(description=mixture_composite_description) \
+            #    if not string_is_null(mixture_composite_description) else None
+            # mixture_component = Material.objects.get(description=mixture_component_description) \
+            #    if not string_is_null(mixture_component_description) else None
 
-            active_status = Status.objects.get(description="active")
+            fields = {
+                "description": description,
+                "bom": BillOfMaterials.objects.get(description=bom_description)
+                if not string_is_null(bom_description)
+                else None,
+                #'inventory_material': InventoryMaterial.objects.get(description=y) if not string_is_null(y := inventory_material_description) else None,
+                "alloc_amt_val": get_val_field_dict(
+                    alloc_amt_val_type, alloc_amt_val_unit, alloc_amt_val_value
+                ),
+                "used_amt_val": get_val_field_dict(
+                    used_amt_val_type, used_amt_val_unit, used_amt_val_value
+                ),
+                "putback_amt_val": get_val_field_dict(
+                    putback_amt_val_type,
+                    putback_amt_val_unit,
+                    putback_amt_val_value,
+                ),
+                #'mixture': Mixture.objects.get(composite=mixture_composite,
+                #                               component=mixture_component
+                #                               ) if mixture_composite != None or mixture_component != None else None,
+                "status": active_status,
+            }
 
-            new_base_bom_material = 0
-            new_bom_material = 0
-            new_bom_composite_material = 0
-            for row in reader:
-                description = clean_string(row[column_names_to_index["description"]])
-                bom_description = clean_string(
-                    row[column_names_to_index["bom_description"]]
-                )
-                inventory_material_description = clean_string(
-                    row[column_names_to_index["inventory_material_description"]]
-                )
-                alloc_amt_val_type = clean_string(
-                    row[column_names_to_index["alloc_amt_val_type"]]
-                )
-                alloc_amt_val_unit = clean_string(
-                    row[column_names_to_index["alloc_amt_val_unit"]]
-                )
-                alloc_amt_val_value = clean_string(
-                    row[column_names_to_index["alloc_amt_val_value"]]
-                )
-                used_amt_val_type = clean_string(
-                    row[column_names_to_index["used_amt_val_type"]]
-                )
-                used_amt_val_unit = clean_string(
-                    row[column_names_to_index["used_amt_val_unit"]]
-                )
-                used_amt_val_value = clean_string(
-                    row[column_names_to_index["used_amt_val_value"]]
-                )
-                putback_amt_val_type = clean_string(
-                    row[column_names_to_index["putback_amt_val_type"]]
-                )
-                putback_amt_val_unit = clean_string(
-                    row[column_names_to_index["putback_amt_val_unit"]]
-                )
-                putback_amt_val_value = clean_string(
-                    row[column_names_to_index["putback_amt_val_value"]]
-                )
-                mixture_composite_description = clean_string(
-                    row[column_names_to_index["mixture_composite_description"]]
-                )
-                mixture_component_description = clean_string(
-                    row[column_names_to_index["mixture_component_description"]]
-                )
+            (
+                base_bom_material_instance,
+                created,
+            ) = BaseBomMaterial.objects.get_or_create(**fields)
 
-                # mixture_composite = Material.objects.get(description=mixture_composite_description) \
-                #    if not string_is_null(mixture_composite_description) else None
-                # mixture_component = Material.objects.get(description=mixture_component_description) \
-                #    if not string_is_null(mixture_component_description) else None
-
-                fields = {
-                    "description": description,
-                    "bom": BillOfMaterials.objects.get(description=bom_description)
-                    if not string_is_null(bom_description)
-                    else None,
-                    #'inventory_material': InventoryMaterial.objects.get(description=y) if not string_is_null(y := inventory_material_description) else None,
-                    "alloc_amt_val": get_val_field_dict(
-                        alloc_amt_val_type, alloc_amt_val_unit, alloc_amt_val_value
-                    ),
-                    "used_amt_val": get_val_field_dict(
-                        used_amt_val_type, used_amt_val_unit, used_amt_val_value
-                    ),
-                    "putback_amt_val": get_val_field_dict(
-                        putback_amt_val_type,
-                        putback_amt_val_unit,
-                        putback_amt_val_value,
-                    ),
-                    #'mixture': Mixture.objects.get(composite=mixture_composite,
-                    #                               component=mixture_component
-                    #                               ) if mixture_composite != None or mixture_component != None else None,
-                    "status": active_status,
-                }
-
-                (
-                    base_bom_material_instance,
-                    created,
-                ) = BaseBomMaterial.objects.get_or_create(**fields)
-
-                try:
-                    inventory_material_object = InventoryMaterial.objects.get(
-                        description=inventory_material_description
-                    )
-                    base_bom_material_instance.inventory_material = (
-                        inventory_material_object
-                    )
-                    new_bom_material += 1
-                except InventoryMaterial.DoesNotExist:
-                    base_bom_material_instance.inventory_material = None
-
-                if created:
-                    new_base_bom_material += 1
-
-            # jump to top of csv
-            f.seek(0)
-            # skip initial header row
-            next(reader)
-
-            # go back and save self bom_material fk
-            for row in reader:
-                description = clean_string(row[column_names_to_index["description"]])
-                bom_description = clean_string(
-                    row[column_names_to_index["bom_description"]]
+            try:
+                inventory_material_object = InventoryMaterial.objects.get(
+                    description=inventory_material_description
                 )
-                inventory_material_description = clean_string(
-                    row[column_names_to_index["inventory_material_description"]]
+                base_bom_material_instance.inventory_material = (
+                    inventory_material_object
                 )
-                mixture_composite_description = clean_string(
-                    row[column_names_to_index["mixture_composite_description"]]
-                )
-                mixture_component_description = clean_string(
-                    row[column_names_to_index["mixture_component_description"]]
-                )
+                new_bom_material += 1
+            except InventoryMaterial.DoesNotExist:
+                base_bom_material_instance.inventory_material = None
 
-                # mixture_composite = Material.objects.get(description=mixture_composite_description) \
-                #    if not string_is_null(mixture_composite_description) else None
-                # mixture_component = Material.objects.get(description=mixture_component_description) \
-                #    if not string_is_null(mixture_component_description) else None
+            if created:
+                new_base_bom_material += 1
 
-                fields = {
-                    "description": description,
-                    "bom": BillOfMaterials.objects.get(description=bom_description)
-                    if not string_is_null(bom_description)
-                    else None,
-                    #'inventory_material': InventoryMaterial.objects.get(description=y) if not string_is_null(y := inventory_material_description) else None
-                    #'mixture': Mixture.objects.get(composite=mixture_composite,
-                    #                               component=mixture_component
-                    #                               ) if mixture_composite != None or mixture_component != None else None
-                }
+        # go back and save self bom_material fk
+        for _, row in df.iterrows():
+            description = clean_string(row["description"])
+            bom_description = clean_string(row["bom_description"])
+            inventory_material_description = clean_string(row["inventory_material_description"])
+            mixture_composite_description = clean_string(row["mixture_composite_description"])
+            mixture_component_description = clean_string(row["mixture_component_description"])
 
-                bom_material_description = clean_string(
-                    row[column_names_to_index["bom_material_description"]]
-                )
-                bom_material_bom_description = clean_string(
-                    row[column_names_to_index["bom_material_bom_description"]]
-                )
-                bom_material_bom = (
-                    BillOfMaterials.objects.get(description=y)
-                    if not string_is_null(y := bom_material_bom_description)
-                    else None
-                )
+            # mixture_composite = Material.objects.get(description=mixture_composite_description) \
+            #    if not string_is_null(mixture_composite_description) else None
+            # mixture_component = Material.objects.get(description=mixture_component_description) \
+            #    if not string_is_null(mixture_component_description) else None
 
-                row_base_bom_material_instance = BaseBomMaterial.objects.get(**fields)
+            fields = {
+                "description": description,
+                "bom": BillOfMaterials.objects.get(description=bom_description)
+                if not string_is_null(bom_description)
+                else None,
+                #'inventory_material': InventoryMaterial.objects.get(description=y) if not string_is_null(y := inventory_material_description) else None
+                #'mixture': Mixture.objects.get(composite=mixture_composite,
+                #                               component=mixture_component
+                #                               ) if mixture_composite != None or mixture_component != None else None
+            }
 
-                try:
-                    inventory_material_object = InventoryMaterial.objects.get(
-                        description=inventory_material_description
-                    )
-                    row_base_bom_material_instance.inventory_material = (
-                        inventory_material_object
-                    )
-                except InventoryMaterial.DoesNotExist:
-                    row_base_bom_material_instance.inventory_material = None
-
-                try:
-                    row_base_bom_material_instance.bom_material = BomMaterial.objects.get(
-                        description=bom_material_description, bom=bom_material_bom
-                    )
-                except BomMaterial.DoesNotExist:
-                    row_base_bom_material_instance.bom_material = None
-
-                row_base_bom_material_instance.save(update_fields=["bom_material"])
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"Added {new_base_bom_material} new base bom materials"
-                )
+            bom_material_description = clean_string(row["bom_material_description"])
+            bom_material_bom_description = clean_string(row["bom_material_bom_description"])
+            bom_material_bom = (
+                BillOfMaterials.objects.get(description=y)
+                if not string_is_null(y := bom_material_bom_description)
+                else None
             )
-            self.stdout.write(
-                self.style.SUCCESS(f"Added {new_bom_material} new bom materials")
+
+            row_base_bom_material_instance = BaseBomMaterial.objects.get(**fields)
+
+            try:
+                inventory_material_object = InventoryMaterial.objects.get(
+                    description=inventory_material_description
+                )
+                row_base_bom_material_instance.inventory_material = (
+                    inventory_material_object
+                )
+            except InventoryMaterial.DoesNotExist:
+                row_base_bom_material_instance.inventory_material = None
+
+            try:
+                row_base_bom_material_instance.bom_material = BomMaterial.objects.get(
+                    description=bom_material_description, bom=bom_material_bom
+                )
+            except BomMaterial.DoesNotExist:
+                row_base_bom_material_instance.bom_material = None
+
+            row_base_bom_material_instance.save(update_fields=["bom_material"])
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Added {new_base_bom_material} new base bom materials"
             )
-            # self.stdout.write(self.style.SUCCESS(
-            #    f'Added {new_bom_composite_material} new bom composite materials'))
+        )
+        self.stdout.write(
+            self.style.SUCCESS(f"Added {new_bom_material} new bom materials")
+        )
 
     def _load_action(self):
         self.stdout.write(self.style.NOTICE("Beginning loading action"))
         filename = "load_action.csv"
         ACTION = path_to_file(filename)
-        with open(ACTION, newline="") as f:
-            reader = csv.reader(f, delimiter="\t")
 
-            # first row should be header
-            column_names = next(reader)
+        df = pd.read_csv(ACTION, sep='\t', index_col=False, header=0, na_filter=False)
+        active_status = Status.objects.get(description="active")
 
-            # {'col_0': 0, 'col_1': 1, ...}
-            column_names_to_index = list_data_to_index(column_names)
+        new_action = 0
+        for _, row in df.iterrows():
+            description = clean_string(row["description"])
+            action_def_description = clean_string(row["action_def_description"])
+            action_sequence_description = clean_string(row["workflow_description"])
+            start_date = clean_string(row["start_date"])
+            end_date = clean_string(row["end_date"])
+            duration = clean_string(row["duration"])
+            repeating = clean_string(row["repeating"])
+            calculation_def_short_name = clean_string(row["calculation_def_short_name"])
 
-            active_status = Status.objects.get(description="active")
+            fields = {
+                "description": description,
+                "action_def": ActionDef.objects.get(description=y)
+                if not string_is_null(y := action_def_description)
+                else None,
+                "action_sequence": ActionSequence.objects.get(description=y)
+                if not string_is_null(y := action_sequence_description)
+                else None,
+                "start_date": start_date
+                if not string_is_null(start_date)
+                else None,
+                "end_date": end_date if not string_is_null(end_date) else None,
+                "duration": int(duration) if not string_is_null(duration) else None,
+                "repeating": int(repeating)
+                if not string_is_null(repeating)
+                else None,
+                #'calculation_def': CalculationDef.objects.get(short_name=y) if not string_is_null(y := calculation_def_short_name) else None,
+                "status": active_status,
+            }
 
-            new_action = 0
-            for row in reader:
-                description = clean_string(row[column_names_to_index["description"]])
-                action_def_description = clean_string(
-                    row[column_names_to_index["action_def_description"]]
+            action_instance, created = Action.objects.get_or_create(**fields)
+
+            if created:
+                new_action += 1
+
+            parameter_def_description = (
+                [x.strip() for x in y.split(",")]
+                if not string_is_null(
+                    y := row["parameter_def_description"]
                 )
-                action_sequence_description = clean_string(
-                    row[column_names_to_index["workflow_description"]]
-                )
-                start_date = clean_string(row[column_names_to_index["start_date"]])
-                end_date = clean_string(row[column_names_to_index["end_date"]])
-                duration = clean_string(row[column_names_to_index["duration"]])
-                repeating = clean_string(row[column_names_to_index["repeating"]])
-                calculation_def_short_name = clean_string(
-                    row[column_names_to_index["calculation_def_short_name"]]
-                )
+                else []
+            )
+            action_instance.parameter_def.add(
+                *[
+                    ParameterDef.objects.get(description=d)
+                    for d in parameter_def_description
+                ]
+            )
 
-                fields = {
-                    "description": description,
-                    "action_def": ActionDef.objects.get(description=y)
-                    if not string_is_null(y := action_def_description)
-                    else None,
-                    "action_sequence": ActionSequence.objects.get(description=y)
-                    if not string_is_null(y := action_sequence_description)
-                    else None,
-                    "start_date": start_date
-                    if not string_is_null(start_date)
-                    else None,
-                    "end_date": end_date if not string_is_null(end_date) else None,
-                    "duration": int(duration) if not string_is_null(duration) else None,
-                    "repeating": int(repeating)
-                    if not string_is_null(repeating)
-                    else None,
-                    #'calculation_def': CalculationDef.objects.get(short_name=y) if not string_is_null(y := calculation_def_short_name) else None,
-                    "status": active_status,
-                }
-
-                action_instance, created = Action.objects.get_or_create(**fields)
-
-                if created:
-                    new_action += 1
-
-                parameter_def_description = (
-                    [x.strip() for x in y.split(",")]
-                    if not string_is_null(
-                        y := row[column_names_to_index["parameter_def_description"]]
-                    )
-                    else []
-                )
-                action_instance.parameter_def.add(
-                    *[
-                        ParameterDef.objects.get(description=d)
-                        for d in parameter_def_description
-                    ]
-                )
-
-            self.stdout.write(self.style.SUCCESS(f"Added {new_action} new action"))
+        self.stdout.write(self.style.SUCCESS(f"Added {new_action} new action"))
         self.stdout.write(self.style.NOTICE("Finished loading action"))
 
     def _load_action_unit(self):
         self.stdout.write(self.style.NOTICE("Beginning loading action unit"))
         filename = "load_action_unit.csv"
         ACTION_UNIT = path_to_file(filename)
-        with open(ACTION_UNIT, newline="") as f:
-            reader = csv.reader(f, delimiter="\t")
 
-            # first row should be header
-            column_names = next(reader)
+        df = pd.read_csv(ACTION_UNIT, sep='\t', index_col=False, header=0, na_filter=False)
+        active_status = Status.objects.get(description="active")
 
-            # {'col_0': 0, 'col_1': 1, ...}
-            column_names_to_index = list_data_to_index(column_names)
+        new_action_unit = 0
+        for _, row in df.iterrows():
+            action_description = clean_string(row["action_description"])
+            action_action_sequence_description = clean_string(row["action_workflow_description"])
 
-            new_action_unit = 0
-            for row in reader:
-                action_description = clean_string(
-                    row[column_names_to_index["action_description"]]
+            source_material_description = clean_string(row["source_material_description"])
+            source_material_bom_description = clean_string(row["source_material_bom_description"])
+
+            destination_material_description = clean_string(row["destination_material_description"])
+            destination_material_bom_description = clean_string(row["destination_material_bom_description"])
+
+            source_material_bom = (
+                BillOfMaterials.objects.get(
+                    description=source_material_bom_description
                 )
-                action_action_sequence_description = clean_string(
-                    row[column_names_to_index["action_workflow_description"]]
-                )
-
-                source_material_description = clean_string(
-                    row[column_names_to_index["source_material_description"]]
-                )
-                source_material_bom_description = clean_string(
-                    row[column_names_to_index["source_material_bom_description"]]
-                )
-
-                destination_material_description = clean_string(
-                    row[column_names_to_index["destination_material_description"]]
-                )
-                destination_material_bom_description = clean_string(
-                    row[column_names_to_index["destination_material_bom_description"]]
-                )
-
-                source_material_bom = (
-                    BillOfMaterials.objects.get(
-                        description=source_material_bom_description
-                    )
-                    if not string_is_null(source_material_bom_description)
-                    else None
-                )
-
-                destination_material_bom = (
-                    BillOfMaterials.objects.get(
-                        description=destination_material_bom_description
-                    )
-                    if not string_is_null(destination_material_bom_description)
-                    else None
-                )
-
-                fields = {
-                    "action": Action.objects.get(
-                        description=action_description,
-                        action_sequence__description=action_action_sequence_description,
-                    )
-                    if not string_is_null(action_description)
-                    else None,
-                    "source_material": BaseBomMaterial.objects.get(
-                        description=source_material_description, bom=source_material_bom
-                    )
-                    if not string_is_null(source_material_description)
-                    else None,
-                    "destination_material": BaseBomMaterial.objects.get(
-                        description=destination_material_description,
-                        bom=destination_material_bom,
-                    )
-                    if not string_is_null(destination_material_description)
-                    else None,
-                }
-
-                action_unit_instance = ActionUnit.objects.create(**fields)
-
-                new_action_unit += 1
-            self.stdout.write(
-                self.style.SUCCESS(f"Added {new_action_unit} new action units")
+                if not string_is_null(source_material_bom_description)
+                else None
             )
+
+            destination_material_bom = (
+                BillOfMaterials.objects.get(
+                    description=destination_material_bom_description
+                )
+                if not string_is_null(destination_material_bom_description)
+                else None
+            )
+
+            fields = {
+                "action": Action.objects.get(
+                    description=action_description,
+                    action_sequence__description=action_action_sequence_description,
+                )
+                if not string_is_null(action_description)
+                else None,
+                "source_material": BaseBomMaterial.objects.get(
+                    description=source_material_description, bom=source_material_bom
+                )
+                if not string_is_null(source_material_description)
+                else None,
+                "destination_material": BaseBomMaterial.objects.get(
+                    description=destination_material_description,
+                    bom=destination_material_bom,
+                )
+                if not string_is_null(destination_material_description)
+                else None,
+            }
+
+            action_unit_instance = ActionUnit.objects.create(**fields)
+
+            new_action_unit += 1
+        self.stdout.write(
+            self.style.SUCCESS(f"Added {new_action_unit} new action units")
+        )
         self.stdout.write(self.style.NOTICE("Finished loading action unit"))
 
 
