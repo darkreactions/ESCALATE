@@ -38,9 +38,8 @@ def conc_to_amount(exp_uuid):
             phase = reagent_material.material.phase
             if not phase:
                 raise ValueError(
-                    "Invalid phase for {}".format(reagent_material.material.description)
-                )
-
+                    "Error: Invalid phase {} for {}. Should be solid, liquid or gas. Please check the inventory table".format(phase, reagent_material.material.description))
+           
             mw_prop = reagent_material.material.material.property_m.filter(
                 property_template__description__icontains="molecularweight"
             ).first()

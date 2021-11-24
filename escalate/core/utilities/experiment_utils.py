@@ -285,6 +285,9 @@ def prepare_reagents(reagent_formset, exp_concentrations):
             concentration1 = reagent_formset.cleaned_data[0][
                 "desired_concentration"
             ].value
+            #if concentration1 <0:
+                #raise TypeError(
+                #"Error: {} is an invalid concentration for {}. Should be a non-negative number".format(concentration1, current_mat_list[0].description))
             exp_concentrations["Reagent 7"] = [0, 0, concentration1, 0]
         elif "solvent" in (current_mat_list[0].description).lower():
             # reagent 1, Solvent
@@ -444,10 +447,11 @@ def generate_experiments_and_save(
             )
             parameter.save()
 
-    try:
-        conc_to_amount(experiment_copy_uuid)
-    except ValueError:
-        print("Missing phase data")  ##TODO: display error message on website
+    #try:
+    conc_to_amount(experiment_copy_uuid)
+    #except ValueError:
+        #raise ValueError('Invalid phase data')
+        #print(ValueError)
 
     return q1
 

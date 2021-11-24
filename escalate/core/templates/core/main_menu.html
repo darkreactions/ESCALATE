@@ -9,6 +9,7 @@
 
 
 <div class="container">
+  {% if not selected_org %}
   <p> Choose your lab </p>
   <div class="row">
     <div class="col-md-12 text-secondary">
@@ -24,6 +25,11 @@
         <button class="btn btn-outline-primary" type="submit" name="select_org" value="select_org">Select Lab</button>
       </form>
     </div>
+    {% endif %}
+    {% if selected_org %}
+    <p> Selected Lab {{ org.description }} </p>
+    
+    {% endif %}
   </div>
 
 
