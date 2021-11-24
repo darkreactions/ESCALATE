@@ -285,18 +285,15 @@ def prepare_reagents(reagent_formset, exp_concentrations):
             concentration1 = reagent_formset.cleaned_data[0][
                 "desired_concentration"
             ].value
-            if concentration1 <0:
-                raise TypeError(
-                "Error: {} is an invalid concentration for {}. Should be a non-negative number".format(concentration1, current_mat_list[0].description))
+            #if concentration1 <0:
+                #raise TypeError(
+                #"Error: {} is an invalid concentration for {}. Should be a non-negative number".format(concentration1, current_mat_list[0].description))
             exp_concentrations["Reagent 7"] = [0, 0, concentration1, 0]
         elif "solvent" in (current_mat_list[0].description).lower():
             # reagent 4, Solvent
             concentration1 = reagent_formset.cleaned_data[0][
                 "desired_concentration"
             ].value
-            if concentration1 <0:
-                raise TypeError(
-                "Error: {} is an invalid concentration for {}. Should be a non-negative number".format(concentration1, current_mat_list[0].description))
             exp_concentrations["Reagent 1"] = [0, concentration1, 0, 0]
     elif len(current_mat_list) == 2:
         # reagent 1, Stock A
@@ -306,17 +303,11 @@ def prepare_reagents(reagent_formset, exp_concentrations):
                 concentration1 = reagent_formset.cleaned_data[0][
                     "desired_concentration"
                 ].value
-                if concentration1 <0:
-                    raise TypeError(
-                    "Error: {} is an invalid concentration for {}. Should be a non-negative number".format(concentration1, element.description))
             elif "solvent" in (element.description).lower():
                 # solvent
                 concentration2 = reagent_formset.cleaned_data[1][
                     "desired_concentration"
                 ].value
-                if concentration2 <0:
-                    raise TypeError(
-                    "Error: {} is an invalid concentration for {}. Should be a non-negative number".format(concentration2, element.description))
         exp_concentrations["Reagent 3"] = [concentration1, concentration2, 0, 0]
     elif len(current_mat_list) == 3:
         # reagent 3, Stock B
@@ -326,25 +317,16 @@ def prepare_reagents(reagent_formset, exp_concentrations):
                 concentration1 = reagent_formset.cleaned_data[0][
                     "desired_concentration"
                 ].value
-                if concentration1 <0:
-                    raise TypeError(
-                    "Error: {} is an invalid concentration for {}. Should be a non-negative number".format(concentration1, element.description))
             elif "organic" in (element.description).lower():
                 # organic
                 concentration2 = reagent_formset.cleaned_data[1][
                     "desired_concentration"
                 ].value
-                if concentration2 <0:
-                    raise TypeError(
-                    "Error: {} is an invalid concentration for {}. Should be a non-negative number".format(concentration2, element.description))
             elif "solvent" in (element.description).lower():
                 # solvent
                 concentration3 = reagent_formset.cleaned_data[2][
                     "desired_concentration"
                 ].value
-                if concentration3 <0:
-                    raise TypeError(
-                    "Error: {} is an invalid concentration for {}. Should be a non-negative number".format(concentration3, element.description))
         exp_concentrations["Reagent 2"] = [
             concentration2,
             concentration3,

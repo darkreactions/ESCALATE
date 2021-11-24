@@ -661,13 +661,13 @@ class CreateExperimentView(TemplateView):
                     vector = self.save_forms_reagent(
                         reagent_formset, experiment_copy_uuid, exp_concentrations
                     )
-                    try:
-                        exp_concentrations = prepare_reagents(
-                            reagent_formset, exp_concentrations
+                    #try:
+                    exp_concentrations = prepare_reagents(
+                        reagent_formset, exp_concentrations
                         )
-                    except TypeError as te:
-                        messages.error(request, str(te))
-                        return context
+                    #except TypeError as te:
+                       # messages.error(request, str(te))
+                       # return context
                         #return HttpResponseRedirect(reverse("experiment_instance_add"))
 
             # Save dead volumes should probably be in a separate function
