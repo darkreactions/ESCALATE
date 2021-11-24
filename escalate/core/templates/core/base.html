@@ -115,7 +115,9 @@
                 </ul>
                 <ul class="navbar-nav flex-row mt-4">
                     <li class="nav-item text-light">
-                        {{ request.session.current_org_name }}
+                        {% if request.session.current_org_name %}
+                        Selected Lab {{ request.session.current_org_name }}
+                        {% endif %}
                     </li>
                 </ul>
                 
