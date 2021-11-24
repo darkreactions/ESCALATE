@@ -57,7 +57,7 @@ class Command(BaseCommand):
         self._load_base_bom_material()
         self._load_action()
         self._load_action_unit()
-        self._load_reagents_and_outcomes()
+        # self._load_reagents_and_outcomes()
         self._create_wf1()
         self._create_wf3()
         self.stdout.write(self.style.NOTICE("Finished loading load tables"))
@@ -78,9 +78,9 @@ class Command(BaseCommand):
         exp_template.save()
 
         reagents = {
-            "Reagent 3 - Stock B": ["organic", "solvent"],
+            "Reagent 2 - Stock A": ["organic", "solvent"],
             "Reagent 7 - Acid": ["acid"],
-            "Reagent 2 - Stock A": ["inorganic", "organic", "solvent"],
+            "Reagent 3 - Stock B": ["inorganic", "organic", "solvent"],
             "Reagent 1 - Solvent": ["solvent"],
         }
 
@@ -256,8 +256,7 @@ class Command(BaseCommand):
         action_parameter_def = {
             "dispense": ("volume",),
             "bring_to_temperature": ("temperature",),
-            "stir": ("temperature", "duration", "speed"),
-            "heat": ("temperature", "duration"),
+            "stir": ("duration", "speed"),
         }
         # Action defs it is assumed that action defs are already inserted
         actions = [  # List of tuples (Description, Action def description, source_bommaterial, destination_bommaterial)
@@ -453,10 +452,11 @@ class Command(BaseCommand):
         exp_template.save()
 
         reagents = {
-            "organic, solvent": ["organic", "solvent"],
-            "Pure acid": ["acid"],
-            "inorganic, organic, solvent": ["inorganic", "organic", "solvent"],
-            "Pure Solvent": ["solvent"],
+            "Reagent 2 - Stock A": ["organic", "solvent"],
+            "Reagent 7 - Acid": ["acid"],
+            "Reagent 3 - Stock B": ["inorganic", "organic", "solvent"],
+            "Reagent 1 - Solvent": ["solvent"],
+            "Reagent 9 - Antisolvent": ["solvent"],
         }
 
         # Vals for each default value
@@ -559,7 +559,6 @@ class Command(BaseCommand):
                         }
                     )
         # Create ActionSequence -> Actions -> ActionUnits
-        # TODO: Change for WF3
         action_sequences = {
             "Dispense Solvent": ActionSequence.objects.create(
                 description="Dispense Solvent"

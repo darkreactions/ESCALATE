@@ -49,7 +49,8 @@ for model_name in view_names:
 
 
 def get_organization(
-    organization, login=False,
+    organization,
+    login=False,
 ):
     """
     Gets the value of Testco based on the dropdown menu in a specific page

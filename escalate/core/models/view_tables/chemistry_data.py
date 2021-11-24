@@ -346,6 +346,7 @@ class Reagent(DateColumns, DescriptionColumn, StatusColumn):
         on_delete=models.DO_NOTHING,
         null=True,
         blank=True,
+        editable=False,
         related_name="reagent_rt",
     )
 
