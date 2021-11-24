@@ -11,6 +11,7 @@ from django.forms import (
     BaseModelFormSet,
     ModelForm,
     FileField,
+    ClearableFileInput,
 )
 from core.models.core_tables import TypeDef
 import core.models.view_tables as vt
@@ -60,6 +61,10 @@ class RobotForm(Form):
 class UploadFileForm(Form):
     # title = CharField(max_length=50)
     file = FileField(label="Upload completed outcome file")
+    outcome_files = FileField(
+        label="Upload related files (images,xrd etc.)",
+        widget=ClearableFileInput(attrs={"multiple": True}),
+    )
 
     @staticmethod
     def get_helper():
@@ -69,6 +74,7 @@ class UploadFileForm(Form):
         helper.field_class = "col-lg-8"
         helper.layout = Layout(
             Row(Column(Field("file"))),
+            Row(Column(Field("outcome_files"))),
             # Row(Column(Submit('outcome_upload', 'Submit'))),
         )
         return helper
