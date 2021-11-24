@@ -345,15 +345,25 @@ def generate_experiments_and_save(
     In action it is called stock a
     In the mapper it is called 'Reagent 2'
     """
+    q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
+    experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
+    
+    reagent_labels=[]
+    reagents = Reagent.objects.filter(experiment=experiment_copy_uuid)
+    for reagent in reagents:
+        #label = reagent_template_reagent_map[reagent.template.description]
+        label=reagent.template.description
+        reagent_labels.append(label)
     desired_volume = generateExperiments(
         exp_concentrations,
-        ["Reagent1", "Reagent2", "Reagent3", "Reagent7"],
+        reagent_labels,
+        #["Reagent1", "Reagent2", "Reagent3", "Reagent7"],
         num_of_experiments,
     )
     # desired_volume = generateExperiments(reagents, descriptions, num_of_experiments)
     # retrieve q1 information to update
-    q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
-    experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
+    #q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
+    #experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
 
     # create counters for acid, solvent, stock a, stock b to keep track of current element in those lists
     if "workflow 1" in experiment.parent.description.lower():
@@ -392,7 +402,8 @@ def generate_experiments_and_save(
     # Also saves dead volume if passed to function
     reagents = Reagent.objects.filter(experiment=experiment_copy_uuid)
     for reagent in reagents:
-        label = reagent_template_reagent_map[reagent.template.description]
+        #label = reagent_template_reagent_map[reagent.template.description]
+        label=reagent.template.description
         prop = reagent.property_r.get(
             property_template__description__icontains="total volume"
         )
