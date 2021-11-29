@@ -26,7 +26,10 @@ from core.models.view_tables import (
     MaterialType,
     Vessel,
     OutcomeTemplate,
+    ExperimentInstance,
+    Reagent,
 )
+
 from core.forms.custom_types import (
     SingleValForm,
     InventoryMaterialForm,
@@ -882,6 +885,15 @@ class CreateExperimentView(TemplateView):
             experiment_copy_uuid: str = experiment_copy(
                 str(exp_template.uuid), exp_name
             )
+            
+            reagent_labels=[]
+            reagents = Reagent.objects.filter(experiment=experiment_copy_uuid).order_by("description")
+            for reagent in reagents:
+                label=reagent.template.description
+                reagent_labels.append(label)
+            
+            
+            reagentDefs=[]
             exp_concentrations = {}
             reagent_formset: BaseFormSet
             for reagent_formset in formsets:
@@ -889,10 +901,15 @@ class CreateExperimentView(TemplateView):
                     vector = self.save_forms_reagent(
                         reagent_formset, experiment_copy_uuid, exp_concentrations
                     )
-                    exp_concentrations = prepare_reagents(
-                        reagent_formset, exp_concentrations
-                    )
-
+                    #exp_concentrations = prepare_reagents(
+                        #reagent_formset, exp_concentrations
+                    #)
+                    rd = prepare_reagents(
+                       reagent_formset, exp_concentrations)
+                    if rd not in reagentDefs:
+                        reagentDefs.append(rd)
+                    #reagentDefs.append(prepare_reagents(
+                       # reagent_formset, exp_concentrations))
             # Save dead volumes should probably be in a separate function
             dead_volume_form = SingleValForm(request.POST, prefix="dead_volume")
             if dead_volume_form.is_valid():
@@ -932,8 +949,11 @@ class CreateExperimentView(TemplateView):
                     index += 1
 
             # generate desired volume for current reagent
+            #generate_experiments_and_save(
+            #    experiment_copy_uuid, exp_concentrations, exp_number, dead_volume
+            #)
             generate_experiments_and_save(
-                experiment_copy_uuid, exp_concentrations, exp_number, dead_volume
+                experiment_copy_uuid, reagent_template_names, reagentDefs, exp_number, dead_volume
             )
             q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
 

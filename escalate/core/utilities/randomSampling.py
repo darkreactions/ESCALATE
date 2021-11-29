@@ -439,15 +439,15 @@ def generate_vectors(descriptions, reagents):
     Input can be queried directly from database.
     """
 
-    # error handling: concentrations must be in molarity. otherwise code breaks
-    for entry in reagents:
-        for key, val in entry.items():
-            conc_unit = val.split()[1]
-            if units(conc_unit) != units("molar"):
-                print(
-                    "TypeError: Concentration must be a molarity. Please convert and re-enter."
-                )
-                sys.exit()
+    # TODO: revisit error handling for concentration units
+   #for entry in reagents:
+     #   for key, val in entry.items():
+         #   conc_unit = val.split()[1]
+            #if units(conc_unit) != units("molar"):
+                #print(
+               #     "TypeError: Concentration must be a molarity. Please convert and re-enter."
+               # )
+               # sys.exit()
 
     names = []
     for entry in reagents:
@@ -466,8 +466,9 @@ def generate_vectors(descriptions, reagents):
     ) in names:  # loop through and append concentrations to appropriate values list
         for entry in reagents:
             if name in entry.keys():
-                val = entry[name].split()
-                raw_vectors[name].append(float(val[0]))
+                #val = entry[name].split()
+                val=entry[name]
+                raw_vectors[name].append(val)
             else:
                 raw_vectors[name].append(
                     0.0
@@ -494,8 +495,9 @@ def generate_vectors(descriptions, reagents):
 
 # %%
 def generateExperiments(
-    reagents,
-    descriptions,
+    reagent_template_names,
+    reagentDefs,
+    #descriptions,
     nExpt,
     excludedReagents=None,
     maxMolarity=9.0,
@@ -538,12 +540,14 @@ def generateExperiments(
             volumes : {reagents : volumes}
             }
         """
-        speciesDimensionality = len(list(dropZeroColumns(reagents).values())[0])
+        r=generate_vectors(reagent_template_names, reagentDefs)
+        speciesDimensionality = len(list(dropZeroColumns(r).values())[0])
         if speciesDimensionality <= 3:
 
             return generate3DExperiments(
-                reagents,
-                descriptions,
+                reagent_template_names,
+                reagentDefs,
+                #descriptions,
                 nExpt,
                 maxMolarity=9.0,
                 finalVolume="500. uL",
@@ -552,8 +556,9 @@ def generateExperiments(
             )
         else:
             return generateHitAndRunExperiments(
-                reagents,
-                descriptions,
+                reagent_template_names,
+                reagentDefs,
+                #descriptions,
                 nExpt,
                 maxMolarity=9.0,
                 finalVolume="500. uL",
@@ -562,7 +567,9 @@ def generateExperiments(
             )
 
     else:
-        nonzeroReagentsDef = dropZeroColumns(reagents)
+        reagentDefs = generate_vectors(reagent_template_names, reagentDefs) #convert reagent input into proper vector format
+        #nonzeroReagentsDef = dropZeroColumns(reagentDefs)
+        nonzeroReagentsDef = dropZeroColumns(reagentDefs)
         nonzeroExcludedReagentsDef = dropZeroColumns(excludedReagents)
         if len(list(nonzeroReagentsDef.values())[0]) > 3:
             return print("Difference sampling only implemented for <= 3 species")
@@ -602,8 +609,9 @@ def generateExperiments(
 
 # %%
 def generateHitAndRunExperiments(
-    reagents,
-    descriptions,
+    reagent_template_names,
+    reagentDefs,
+    #descriptions,
     nExpt=96,
     maxMolarity=9.0,
     finalVolume="500 uL",
@@ -630,8 +638,8 @@ def generateHitAndRunExperiments(
     finalVolume = v1.magnitude
     # finalVolume = Q_(finalVolume).to(units.ul)
 
-    # reagentDefs = generate_vectors(descriptions, reagents) #convert reagent input into proper vector format
-    reagentDefs = reagents
+    reagentDefs = generate_vectors(reagent_template_names, reagentDefs) #convert reagent input into proper vector format
+    #reagentDefs = reagents
     nonzeroReagentDefs = dropZeroColumns(reagentDefs)
     dimensionality = len(np.array(list(nonzeroReagentDefs.values()))[0])
     hullCorners = np.array(list(nonzeroReagentDefs.values()))
@@ -663,8 +671,9 @@ def generateHitAndRunExperiments(
 
 # %%
 def generate3DExperiments(
-    reagents,
-    descriptions,
+    reagent_template_names,
+    reagentDefs,
+    #descriptions,
     nExpt=96,
     maxMolarity=9.0,
     finalVolume="500 uL",
@@ -691,9 +700,9 @@ def generate3DExperiments(
     v1 = Q_(float(v[0]), v[1]).to(units.ul)
     finalVolume = v1.magnitude
 
-    # reagentDefs = generate_vectors(descriptions, reagents) #convert reagent input into proper vector format
-
-    nonzeroReagentDefs = dropZeroColumns(reagents)
+    reagentDefs = generate_vectors(reagent_template_names, reagentDefs) #convert reagent input into proper vector format
+    #reagentDefs=reagents
+    nonzeroReagentDefs = dropZeroColumns(reagentDefs)
     hull = allowedExperiments(nonzeroReagentDefs, maxMolarity)
     sample_cs = sampleConcentrations(hull, nExpt)
     dic = convertConcentrationsToVolumes(nonzeroReagentDefs, sample_cs)
@@ -709,4 +718,4 @@ def generate3DExperiments(
 
 
 if __name__ == "__main__":
-    generateExperiments(reagents, descriptions, 5)
+    generateExperiments(descriptions, reagents, 5)
