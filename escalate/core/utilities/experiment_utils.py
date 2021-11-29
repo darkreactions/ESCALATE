@@ -284,59 +284,6 @@ def prepare_reagents(reagent_formset, exp_concentrations):
         reagents[element.description]=reagent_formset.cleaned_data[num][
                 "desired_concentration"
             ].value
-    
-    if len(current_mat_list) == 1:
-        if "acid" in (current_mat_list[0].description).lower():
-            # reagent 7, Acid
-            concentration1 = reagent_formset.cleaned_data[0][
-                "desired_concentration"
-            ].value
-            exp_concentrations["Reagent 7"] = [0, 0, concentration1, 0]
-        elif "solvent" in (current_mat_list[0].description).lower():
-            # reagent 1, Solvent
-            concentration1 = reagent_formset.cleaned_data[0][
-                "desired_concentration"
-            ].value
-            exp_concentrations["Reagent 1"] = [0, concentration1, 0, 0]
-    elif len(current_mat_list) == 2:
-        # reagent 2, Stock A
-        for element in current_mat_list:
-            if "organic" in (element.description).lower():
-                # organic
-                concentration1 = reagent_formset.cleaned_data[0][
-                    "desired_concentration"
-                ].value
-            elif "solvent" in (element.description).lower():
-                # solvent
-                concentration2 = reagent_formset.cleaned_data[1][
-                    "desired_concentration"
-                ].value
-        exp_concentrations["Reagent 2"] = [concentration1, concentration2, 0, 0]
-    elif len(current_mat_list) == 3:
-        # reagent 3, Stock B
-        for element in current_mat_list:
-            if "inorganic" in (element.description).lower():
-                # inorganic
-                concentration1 = reagent_formset.cleaned_data[0][
-                    "desired_concentration"
-                ].value
-            elif "organic" in (element.description).lower():
-                # organic
-                concentration2 = reagent_formset.cleaned_data[1][
-                    "desired_concentration"
-                ].value
-            elif "solvent" in (element.description).lower():
-                # solvent
-                concentration3 = reagent_formset.cleaned_data[2][
-                    "desired_concentration"
-                ].value
-        exp_concentrations["Reagent 3"] = [
-            concentration2,
-            concentration3,
-            0,
-            concentration1,
-        ]
-
     return reagents
 
 
@@ -390,12 +337,12 @@ def generate_experiments_and_save(
         }
     elif "workflow 3" in experiment.parent.description.lower():
         action_reagent_map = {
-            "dispense solvent": ("Reagent 1", 1.0),
-            "dispense acid volume 1": ("Reagent 7", 0.5),
-            "dispense acid volume 2": ("Reagent 7", 0.5),
-            "dispense stock a": ("Reagent 2", 1.0),
-            "dispense stock b": ("Reagent 3", 1.0),
-            "dispense antisolvent": ("Reagent 9", 1.0),
+            "dispense solvent": ("Reagent 1 - Solvent", 1.0),
+            "dispense acid volume 1": ("Reagent 7 - Acid", 0.5),
+            "dispense acid volume 2": ("Reagent 7 - Acid", 0.5),
+            "dispense stock a": ("Reagent 2 - Stock A", 1.0),
+            "dispense stock b": ("Reagent 3 - Stock B", 1.0),
+            "dispense antisolvent": ("Reagent 9 - Antisolvent", 1.0),
         }
 
         reagent_template_reagent_map = {

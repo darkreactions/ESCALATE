@@ -885,14 +885,7 @@ class CreateExperimentView(TemplateView):
             experiment_copy_uuid: str = experiment_copy(
                 str(exp_template.uuid), exp_name
             )
-            
-            reagent_labels=[]
-            reagents = Reagent.objects.filter(experiment=experiment_copy_uuid).order_by("description")
-            for reagent in reagents:
-                label=reagent.template.description
-                reagent_labels.append(label)
-            
-            
+                  
             reagentDefs=[]
             exp_concentrations = {}
             reagent_formset: BaseFormSet
