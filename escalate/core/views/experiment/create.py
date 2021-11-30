@@ -441,7 +441,7 @@ class CreateExperimentView(TemplateView):
         
         df = pd.read_excel(request.FILES["file"])
         # self.process_robot_file(df)
-        save_manual_volumes(df, experiment_copy_uuid)
+        save_manual_volumes(df, experiment_copy_uuid, dead_volume)
 
         conc_to_amount(experiment_copy_uuid)
 

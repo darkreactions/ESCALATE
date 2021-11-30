@@ -456,9 +456,10 @@ def generate_experiments_and_save(
     return q1
 
 
-def save_manual_volumes(df, experiment_copy_uuid):
+def save_manual_volumes(df, experiment_copy_uuid, dead_volume):
     q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
     experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
+    reagents = Reagent.objects.filter(experiment=experiment_copy_uuid)
 
     reagent_action_map = {
         "Reagent1 (ul)": "dispense solvent",
@@ -468,10 +469,20 @@ def save_manual_volumes(df, experiment_copy_uuid):
         "Reagent3 (ul)": "dispense stock b",
     }
 
+    robot_api_map = {
+            "Reagent1 (ul)": "Reagent 1 - Solvent",
+            "Reagent8 (ul)": "Reagent 7 - Acid",
+            "Reagent7 (ul)": "Reagent 7 - Acid",
+            "Reagent2 (ul)": "Reagent 2 - Stock A",
+            "Reagent3 (ul)": "Reagent 3 - Stock B",
+        }
+
     for reagent_name, action_description in reagent_action_map.items():
         well_list = []
         for well in df["Vial Site"]:
             well_list.append(well)
+        
+        total_volume=0
 
         for i, vial in enumerate(well_list):
             # get actions from q1 based on keys in action_reagent_map
@@ -495,3 +506,20 @@ def save_manual_volumes(df, experiment_copy_uuid):
             parameter.parameter_val_nominal.value = df[reagent_name][i]
             # parameter.parameter_val_nominal.value = desired_volume[reagent_name][i]
             parameter.save()
+            total_volume+=df[reagent_name][i]
+        
+        for reagent in reagents:
+            if robot_api_map[reagent_name]== reagent.description:
+        
+                prop = robot_api_map[reagent_name].property_r.get(
+                        property_template__description__icontains="total volume"
+                    )
+                prop.nominal_value.value = total_volume
+                prop.nominal_value.unit = "uL"
+                prop.save()
+                if dead_volume is not None:
+                    dv_prop = reagent.property_r.get(
+                        property_template__description__icontains="dead volume"
+                    )
+                    dv_prop.nominal_value = dead_volume
+                    dv_prop.save()
