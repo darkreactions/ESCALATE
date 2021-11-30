@@ -2,7 +2,7 @@ from logging import raiseExceptions
 import requests
 from pint import UnitRegistry
 
-from core.models.view_tables.chemistry_data import ReagentMaterial
+from core.models.view_tables.chemistry_data import ReagentMaterial, Reagent
 from core.models.view_tables import ExperimentInstance
 
 # from core.utilities.experiment_utils import get_action_parameter_querysets
