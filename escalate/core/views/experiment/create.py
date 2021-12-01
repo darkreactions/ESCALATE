@@ -50,6 +50,7 @@ from core.utilities.experiment_utils import (
     save_manual_volumes,
     save_parameter,
 )
+from core.utilities.calculations import conc_to_amount
 from core.utilities.wf1_utils import generate_robot_file_wf1
 from core.models.view_tables.generic_data import Parameter
 
@@ -391,17 +392,58 @@ class CreateExperimentView(TemplateView):
             exp_concentrations = {}
             for reagent_formset in formsets:
                 if reagent_formset.is_valid():
-                    # vector = self.save_forms_reagent(reagent_formset, experiment_copy_uuid, exp_concentrations)
+                    vector = self.save_forms_reagent(reagent_formset, experiment_copy_uuid, exp_concentrations)
                     #try:
                     exp_concentrations = prepare_reagents(
                             reagent_formset, exp_concentrations
                         )
                     #except TypeError as te:
                        # messages.error(request, str(te))
+            
+            dead_volume_form = SingleValForm(request.POST, prefix="dead_volume")
+            if dead_volume_form.is_valid():
+                dead_volume = dead_volume_form.value
+            else:
+                dead_volume = None
 
+            # post reaction parameter form
+            # get label here and get form out of label, use label for description
+            rp_wfs = get_action_parameter_querysets(exp_template.uuid)
+            index = 0
+            for rp in rp_wfs:
+                rp_label = str(rp.object_description)
+                if "Dispense" in rp_label:
+                    continue
+                else:
+                    rp_form = ReactionParameterForm(
+                        request.POST, prefix=f"reaction_parameter_{index}"
+                    )
+                    if rp_form.is_valid:
+                        rp_value = rp_form.data[f"reaction_parameter_{index}-value_0"]
+                        rp_unit = rp_form.data[f"reaction_parameter_{index}-value_1"]
+                        rp_type = rp_form.data[f"reaction_parameter_{index}-value_2"]
+                        rp_uuid = rp_form.data[f"reaction_parameter_{index}-uuid"]
+                        save_reaction_parameters(
+                            exp_template,
+                            rp_value,
+                            rp_unit,
+                            rp_type,
+                            rp_label,
+                            experiment_copy_uuid,
+                        )
+                        # The rp_uuid is not being generated from the loadscript for some parameters
+                        # This issue stems from the data being loaded in. This function will work once we fix loading issues
+                        if rp_uuid != "":
+                            save_parameter(rp_uuid, rp_value, rp_unit)
+                    index += 1
+        
+        
+        
         df = pd.read_excel(request.FILES["file"])
         # self.process_robot_file(df)
-        save_manual_volumes(df, experiment_copy_uuid)
+        save_manual_volumes(df, experiment_copy_uuid, dead_volume)
+
+        conc_to_amount(experiment_copy_uuid)
 
         context["experiment_link"] = reverse(
             "experiment_instance_view", args=[experiment_copy_uuid]
