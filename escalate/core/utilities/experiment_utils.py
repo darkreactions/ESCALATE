@@ -277,18 +277,68 @@ def get_reagent_querysets(exp_uuid):
 
 
 def prepare_reagents(reagent_formset, exp_concentrations):
-    
-    reagents={}
+
     current_mat_list = reagent_formset.form_kwargs["mat_types_list"]
-    for num, element in enumerate(current_mat_list):
-        reagents[element.description]=reagent_formset.cleaned_data[num][
+    if len(current_mat_list) == 1:
+        if "acid" in (current_mat_list[0].description).lower():
+            # reagent 7, Acid
+            concentration1 = reagent_formset.cleaned_data[0][
                 "desired_concentration"
             ].value
-    return reagents
+            #if concentration1 <0:
+                #raise TypeError(
+                #"Error: {} is an invalid concentration for {}. Should be a non-negative number".format(concentration1, current_mat_list[0].description))
+            exp_concentrations["Reagent 7"] = [0, 0, concentration1, 0]
+        elif "solvent" in (current_mat_list[0].description).lower():
+            # reagent 1, Solvent
+            concentration1 = reagent_formset.cleaned_data[0][
+                "desired_concentration"
+            ].value
+            exp_concentrations["Reagent 1"] = [0, concentration1, 0, 0]
+    elif len(current_mat_list) == 2:
+        # reagent 2, Stock A
+        for element in current_mat_list:
+            if "organic" in (element.description).lower():
+                # organic
+                concentration1 = reagent_formset.cleaned_data[0][
+                    "desired_concentration"
+                ].value
+            elif "solvent" in (element.description).lower():
+                # solvent
+                concentration2 = reagent_formset.cleaned_data[1][
+                    "desired_concentration"
+                ].value
+        exp_concentrations["Reagent 2"] = [concentration1, concentration2, 0, 0]
+    elif len(current_mat_list) == 3:
+        # reagent 3, Stock B
+        for element in current_mat_list:
+            if "inorganic" in (element.description).lower():
+                # inorganic
+                concentration1 = reagent_formset.cleaned_data[0][
+                    "desired_concentration"
+                ].value
+            elif "organic" in (element.description).lower():
+                # organic
+                concentration2 = reagent_formset.cleaned_data[1][
+                    "desired_concentration"
+                ].value
+            elif "solvent" in (element.description).lower():
+                # solvent
+                concentration3 = reagent_formset.cleaned_data[2][
+                    "desired_concentration"
+                ].value
+        exp_concentrations["Reagent 3"] = [
+            concentration2,
+            concentration3,
+            0,
+            concentration1,
+        ]
+
+    return exp_concentrations
 
 
 def generate_experiments_and_save(
-    experiment_copy_uuid, reagent_template_names, reagentDefs, num_of_experiments, dead_volume
+    experiment_copy_uuid, exp_concentrations, num_of_experiments, dead_volume
 ):
     """
     Generates random experiments using sampler and saves it to
@@ -298,35 +348,25 @@ def generate_experiments_and_save(
     In action it is called stock a
     In the mapper it is called 'Reagent 2'
     """
-    q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
-    experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
-    
-    #reagent_labels=[]
-    #reagents = Reagent.objects.filter(experiment=experiment_copy_uuid)
-    #for reagent in reagents:
-        #label = reagent_template_reagent_map[reagent.template.description]
-        #label=reagent.template.description
-        #reagent_labels.append(label)
     desired_volume = generateExperiments(
-        reagent_template_names,
-        reagentDefs,
-        #reagent_labels,
+        #reagent_template_names,
+        exp_concentrations,
         #["Reagent1", "Reagent2", "Reagent3", "Reagent7"],
         num_of_experiments,
     )
     # desired_volume = generateExperiments(reagents, descriptions, num_of_experiments)
     # retrieve q1 information to update
-    #q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
-    #experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
+    q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
+    experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
 
     # create counters for acid, solvent, stock a, stock b to keep track of current element in those lists
     if "workflow 1" in experiment.parent.description.lower():
         action_reagent_map = {
-            "dispense solvent": ("Reagent 1 - Solvent", 1.0),
-            "dispense acid volume 1": ("Reagent 7 - Acid", 0.5),
-            "dispense acid volume 2": ("Reagent 7 - Acid", 0.5),
-            "dispense stock a": ("Reagent 2 - Stock A", 1.0),
-            "dispense stock b": ("Reagent 3 - Stock B", 1.0),
+            "dispense solvent": ("Reagent 1", 1.0),
+            "dispense acid volume 1": ("Reagent 7", 0.5),
+            "dispense acid volume 2": ("Reagent 7", 0.5),
+            "dispense stock a": ("Reagent 2", 1.0),
+            "dispense stock b": ("Reagent 3", 1.0),
         }
 
         reagent_template_reagent_map = {
@@ -337,12 +377,12 @@ def generate_experiments_and_save(
         }
     elif "workflow 3" in experiment.parent.description.lower():
         action_reagent_map = {
-            "dispense solvent": ("Reagent 1 - Solvent", 1.0),
-            "dispense acid volume 1": ("Reagent 7 - Acid", 0.5),
-            "dispense acid volume 2": ("Reagent 7 - Acid", 0.5),
-            "dispense stock a": ("Reagent 2 - Stock A", 1.0),
-            "dispense stock b": ("Reagent 3 - Stock B", 1.0),
-            "dispense antisolvent": ("Reagent 9 - Antisolvent", 1.0),
+            "dispense solvent": ("Reagent 1", 1.0),
+            "dispense acid volume 1": ("Reagent 7", 0.5),
+            "dispense acid volume 2": ("Reagent 7", 0.5),
+            "dispense stock a": ("Reagent 2", 1.0),
+            "dispense stock b": ("Reagent 3", 1.0),
+            "dispense antisolvent": ("Reagent 9", 1.0),
         }
 
         reagent_template_reagent_map = {
@@ -356,8 +396,7 @@ def generate_experiments_and_save(
     # Also saves dead volume if passed to function
     reagents = Reagent.objects.filter(experiment=experiment_copy_uuid)
     for reagent in reagents:
-        #label = reagent_template_reagent_map[reagent.template.description]
-        label=reagent.template.description
+        label = reagent_template_reagent_map[reagent.template.description]
         prop = reagent.property_r.get(
             property_template__description__icontains="total volume"
         )
@@ -409,34 +448,65 @@ def generate_experiments_and_save(
             )
             parameter.save()
 
-    try:
-        conc_to_amount(experiment_copy_uuid)
-    except ValueError:
-        print("Missing phase data")  ##TODO: display error message on website
+    #try:
+    conc_to_amount(experiment_copy_uuid)
+    #except ValueError:
+        #raise ValueError('Invalid phase data')
+        #print(ValueError)
 
     return q1
 
 
-def save_manual_volumes(df, experiment_copy_uuid):
+def save_manual_volumes(df, experiment_copy_uuid, dead_volume):
     q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
     experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
+    reagents = Reagent.objects.filter(experiment=experiment_copy_uuid)
 
-    reagent_action_map = {
-        "Reagent1 (ul)": "dispense solvent",
-        "Reagent7 (ul)": "dispense acid volume 1",
-        "Reagent8 (ul)": "dispense acid volume 2",
-        "Reagent2 (ul)": "dispense stock a",
-        "Reagent3 (ul)": "dispense stock b",
-    }
+    if "workflow 1" in experiment.parent.description.lower():
+    
+        reagent_action_map = {
+            "Reagent1 (ul)": "dispense solvent",
+            "Reagent7 (ul)": "dispense acid volume 1",
+            "Reagent8 (ul)": "dispense acid volume 2",
+            "Reagent2 (ul)": "dispense stock a",
+            "Reagent3 (ul)": "dispense stock b",
+        }
+
+        reagent_template_robot_map = {
+                "Reagent 1 - Solvent": "Reagent1 (ul)",
+                "Reagent 7 - Acid": "Reagent7 (ul)",
+                "Reagent 2 - Stock A": "Reagent2 (ul)",
+                "Reagent 3 - Stock B": "Reagent3 (ul)",
+            }
+    
+    elif "workflow 3" in experiment.parent.description.lower():
+        reagent_action_map = {
+            "Reagent1 (ul)": "dispense solvent",
+            "Reagent7 (ul)": "dispense acid volume 1",
+            "Reagent8 (ul)": "dispense acid volume 2",
+            "Reagent2 (ul)": "dispense stock a",
+            "Reagent3 (ul)": "dispense stock b",
+            "Reagent9 (ul)": "dispense antisolvent",
+        }
+
+        reagent_template_robot_map = {
+                "Reagent 1 - Solvent": "Reagent1 (ul)",
+                "Reagent 7 - Acid": "Reagent7 (ul)",
+                "Reagent 2 - Stock A": "Reagent2 (ul)",
+                "Reagent 3 - Stock B": "Reagent3 (ul)",
+                "Reagent 9 - Antisolvent": "Reagent9 (ul)",
+            }
 
     for reagent_name, action_description in reagent_action_map.items():
         well_list = []
         for well in df["Vial Site"]:
             well_list.append(well)
+        
+        total_volume=0
 
         for i, vial in enumerate(well_list):
             # get actions from q1 based on keys in action_reagent_map
-            if experiment.parent.ref_uid == "workflow_1":
+            if experiment.parent.ref_uid == "workflow_1" or experiment.parent.ref_uid == "workflow_3":
                 action = q1.get(
                     action_unit_description__icontains=action_description,
                     action_unit_description__endswith=vial,
@@ -456,3 +526,21 @@ def save_manual_volumes(df, experiment_copy_uuid):
             parameter.parameter_val_nominal.value = df[reagent_name][i]
             # parameter.parameter_val_nominal.value = desired_volume[reagent_name][i]
             parameter.save()
+            total_volume+=df[reagent_name][i]
+        
+        for reagent in reagents:
+            if reagent_name == reagent_template_robot_map[reagent.template.description]:
+            #if robot_api_map[reagent_name]== reagent.description:
+        
+                prop = reagent.property_r.get(
+                        property_template__description__icontains="total volume"
+                    )
+                prop.nominal_value.value = total_volume
+                prop.nominal_value.unit = "uL"
+                prop.save()
+                if dead_volume is not None:
+                    dv_prop = reagent.property_r.get(
+                        property_template__description__icontains="dead volume"
+                    )
+                    dv_prop.nominal_value = dead_volume
+                    dv_prop.save()

@@ -540,12 +540,13 @@ def generateExperiments(
             volumes : {reagents : volumes}
             }
         """
-        r=generate_vectors(reagent_template_names, reagentDefs)
-        speciesDimensionality = len(list(dropZeroColumns(r).values())[0])
+        #r=generate_vectors(reagent_template_names, reagentDefs)
+        #speciesDimensionality = len(list(dropZeroColumns(r).values())[0])
+        speciesDimensionality = len(list(dropZeroColumns(reagentDefs).values())[0])
         if speciesDimensionality <= 3:
 
             return generate3DExperiments(
-                reagent_template_names,
+                #reagent_template_names,
                 reagentDefs,
                 #descriptions,
                 nExpt,
@@ -556,7 +557,7 @@ def generateExperiments(
             )
         else:
             return generateHitAndRunExperiments(
-                reagent_template_names,
+                #reagent_template_names,
                 reagentDefs,
                 #descriptions,
                 nExpt,
@@ -567,7 +568,7 @@ def generateExperiments(
             )
 
     else:
-        reagentDefs = generate_vectors(reagent_template_names, reagentDefs) #convert reagent input into proper vector format
+        #reagentDefs = generate_vectors(reagent_template_names, reagentDefs) #convert reagent input into proper vector format
         #nonzeroReagentsDef = dropZeroColumns(reagentDefs)
         nonzeroReagentsDef = dropZeroColumns(reagentDefs)
         nonzeroExcludedReagentsDef = dropZeroColumns(excludedReagents)
@@ -609,7 +610,7 @@ def generateExperiments(
 
 # %%
 def generateHitAndRunExperiments(
-    reagent_template_names,
+    #reagent_template_names,
     reagentDefs,
     #descriptions,
     nExpt=96,
@@ -638,7 +639,7 @@ def generateHitAndRunExperiments(
     finalVolume = v1.magnitude
     # finalVolume = Q_(finalVolume).to(units.ul)
 
-    reagentDefs = generate_vectors(reagent_template_names, reagentDefs) #convert reagent input into proper vector format
+    #reagentDefs = generate_vectors(reagent_template_names, reagentDefs) #convert reagent input into proper vector format
     #reagentDefs = reagents
     nonzeroReagentDefs = dropZeroColumns(reagentDefs)
     dimensionality = len(np.array(list(nonzeroReagentDefs.values()))[0])
@@ -671,7 +672,7 @@ def generateHitAndRunExperiments(
 
 # %%
 def generate3DExperiments(
-    reagent_template_names,
+    #reagent_template_names,
     reagentDefs,
     #descriptions,
     nExpt=96,
@@ -700,7 +701,7 @@ def generate3DExperiments(
     v1 = Q_(float(v[0]), v[1]).to(units.ul)
     finalVolume = v1.magnitude
 
-    reagentDefs = generate_vectors(reagent_template_names, reagentDefs) #convert reagent input into proper vector format
+    #reagentDefs = generate_vectors(reagent_template_names, reagentDefs) #convert reagent input into proper vector format
     #reagentDefs=reagents
     nonzeroReagentDefs = dropZeroColumns(reagentDefs)
     hull = allowedExperiments(nonzeroReagentDefs, maxMolarity)
@@ -718,4 +719,4 @@ def generate3DExperiments(
 
 
 if __name__ == "__main__":
-    generateExperiments(descriptions, reagents, 5)
+    generateExperiments(reagents, 5)

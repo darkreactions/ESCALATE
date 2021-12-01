@@ -624,10 +624,10 @@ class CreateExperimentView(TemplateView):
             exp_concentrations = {}
             for reagent_formset in formsets:
                 if reagent_formset.is_valid():
-                    # vector = self.save_forms_reagent(reagent_formset, experiment_copy_uuid, exp_concentrations)
-                    exp_concentrations = prepare_reagents(
-                        reagent_formset, exp_concentrations
-                    )
+                    vector = self.save_forms_reagent(reagent_formset, experiment_copy_uuid, exp_concentrations)
+                    #exp_concentrations = prepare_reagents(
+                        #reagent_formset, exp_concentrations
+                    #)
 
         df = pd.read_excel(request.FILES["file"])
         # self.process_robot_file(df)
