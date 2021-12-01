@@ -461,21 +461,40 @@ def save_manual_volumes(df, experiment_copy_uuid, dead_volume):
     experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
     reagents = Reagent.objects.filter(experiment=experiment_copy_uuid)
 
-    reagent_action_map = {
-        "Reagent1 (ul)": "dispense solvent",
-        "Reagent7 (ul)": "dispense acid volume 1",
-        "Reagent8 (ul)": "dispense acid volume 2",
-        "Reagent2 (ul)": "dispense stock a",
-        "Reagent3 (ul)": "dispense stock b",
-    }
-
-    robot_api_map = {
-            "Reagent1 (ul)": "Reagent 1 - Solvent",
-            "Reagent8 (ul)": "Reagent 7 - Acid",
-            "Reagent7 (ul)": "Reagent 7 - Acid",
-            "Reagent2 (ul)": "Reagent 2 - Stock A",
-            "Reagent3 (ul)": "Reagent 3 - Stock B",
+    if "workflow 1" in experiment.parent.description.lower():
+    
+        reagent_action_map = {
+            "Reagent1 (ul)": "dispense solvent",
+            "Reagent7 (ul)": "dispense acid volume 1",
+            "Reagent8 (ul)": "dispense acid volume 2",
+            "Reagent2 (ul)": "dispense stock a",
+            "Reagent3 (ul)": "dispense stock b",
         }
+
+        reagent_template_robot_map = {
+                "Reagent 1 - Solvent": "Reagent1 (ul)",
+                "Reagent 7 - Acid": "Reagent7 (ul)",
+                "Reagent 2 - Stock A": "Reagent2 (ul)",
+                "Reagent 3 - Stock B": "Reagent3 (ul)",
+            }
+    
+    elif "workflow 3" in experiment.parent.description.lower():
+        reagent_action_map = {
+            "Reagent1 (ul)": "dispense solvent",
+            "Reagent7 (ul)": "dispense acid volume 1",
+            "Reagent8 (ul)": "dispense acid volume 2",
+            "Reagent2 (ul)": "dispense stock a",
+            "Reagent3 (ul)": "dispense stock b",
+            "Reagent9 (ul)": "dispense antisolvent",
+        }
+
+        reagent_template_robot_map = {
+                "Reagent 1 - Solvent": "Reagent1 (ul)",
+                "Reagent 7 - Acid": "Reagent7 (ul)",
+                "Reagent 2 - Stock A": "Reagent2 (ul)",
+                "Reagent 3 - Stock B": "Reagent3 (ul)",
+                "Reagent 9 - Antisolvent": "Reagent9 (ul)",
+            }
 
     for reagent_name, action_description in reagent_action_map.items():
         well_list = []
@@ -486,7 +505,7 @@ def save_manual_volumes(df, experiment_copy_uuid, dead_volume):
 
         for i, vial in enumerate(well_list):
             # get actions from q1 based on keys in action_reagent_map
-            if experiment.parent.ref_uid == "workflow_1":
+            if experiment.parent.ref_uid == "workflow_1" or experiment.parent.ref_uid == "workflow_3":
                 action = q1.get(
                     action_unit_description__icontains=action_description,
                     action_unit_description__endswith=vial,
@@ -509,9 +528,10 @@ def save_manual_volumes(df, experiment_copy_uuid, dead_volume):
             total_volume+=df[reagent_name][i]
         
         for reagent in reagents:
-            if robot_api_map[reagent_name]== reagent.description:
+            if reagent_name == reagent_template_robot_map[reagent.template.description]:
+            #if robot_api_map[reagent_name]== reagent.description:
         
-                prop = robot_api_map[reagent_name].property_r.get(
+                prop = reagent.property_r.get(
                         property_template__description__icontains="total volume"
                     )
                 prop.nominal_value.value = total_volume
