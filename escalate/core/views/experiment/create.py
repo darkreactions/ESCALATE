@@ -26,8 +26,7 @@ from core.models.view_tables import (
     MaterialType,
     Vessel,
     OutcomeTemplate,
-    ExperimentInstance,
-    Reagent,
+    ExperimentActionSequence,
 )
 
 from core.forms.custom_types import (
@@ -42,7 +41,8 @@ from core.forms.custom_types import (
     ReactionParameterForm,
     UploadFileForm,
     RobotForm,
-    ReagentSelectionForm, 
+    ReagentSelectionForm,
+    ActionSequenceSelectionForm, 
     MaterialTypeSelectionForm,
 )
 
@@ -221,8 +221,20 @@ class CreateExperimentTemplate(TemplateView):
         for well in well_list:
             plate_wells[well] = Vessel.objects.get(parent=plate, description=well)
 
-    def add_actions(): ##TODO
-        pass
+    def add_actions(self, context): 
+        exp_template=ExperimentTemplate.objects.get(uuid=context['exp_uuid'])
+        for a in context['action_sequences']:   
+            ac_sq= ExperimentActionSequence.objects.get(uuid=a)
+            exp_template.action_sequence.add(ac_sq) 
+        
+        #action_sequences=context['actions']
+        #for i, action_seq in enumerate(action_sequences.values()):
+           # ac_sq = ExperimentActionSequence(
+            #    experiment_template=exp_template,
+             #   experiment_action_sequence_seq=i,
+              #  action_sequence=action_seq,
+           # )
+          #  ac_sq.save()
 
     def add_outcomes(self, context):
         exp_template=ExperimentTemplate.objects.get(uuid=context['exp_uuid'])
@@ -242,63 +254,6 @@ class CreateExperimentTemplate(TemplateView):
         ot.save()
         exp_template.outcome_templates.add(ot)
 
-    def create_reagents(self, context): ##TODO: make this work
-        exp_template=ExperimentTemplate.objects.get(uuid=context['exp_uuid'])
-        
-        # Vals for each default value
-        volume_val = {'value': 0, 'unit':'ml', 'type':'num'}
-        dead_vol_val = {'value': 4000, 'unit':'uL', 'type':'num'}
-        amount_val = {'value': 0, 'unit':'g', 'type':'num'}
-        conc_val = {'value': 0, 'unit':'M', 'type':'num'}
-
-        #Create default values
-        default_volume, created = DefaultValues.objects.get_or_create(**{'description':'Zero ml', 
-                                                              'nominal_value': volume_val,
-                                                              'actual_value': volume_val
-                                                              })
-        default_dead_volume, created = DefaultValues.objects.get_or_create(**{'description':'WF1 dead volume', 
-                                                              'nominal_value': dead_vol_val,
-                                                              'actual_value': dead_vol_val
-                                                              })
-        default_amount, created = DefaultValues.objects.get_or_create(**{'description':'Zero g', 
-                                                              'nominal_value': amount_val,
-                                                              'actual_value': amount_val})
-        default_conc, created = DefaultValues.objects.get_or_create(**{'description':'Zero M', 
-                                                              'nominal_value': conc_val,
-                                                              'actual_value': conc_val})
-
-
-        # Concentration and amount data to be stored for each reagent material
-        reagent_values = {'concentration': default_conc, 'amount': default_amount}
-
-        # Create total volume and dead volume property templates for each reagent
-        total_volume_prop, created = PropertyTemplate.objects.get_or_create(**{"description": "total volume",
-                                                                    "property_def_class": "extrinsic",
-                                                                    "short_description": "volume",
-                                                                    "default_value":default_volume})
-        dead_volume_prop, created = PropertyTemplate.objects.get_or_create(**{"description": "dead volume",
-                                                                    "property_def_class": "extrinsic",
-                                                                    "short_description": "dead volume",
-                                                                    "default_value":default_dead_volume})
-
-        #for r in context['reagents']:
-            #rt= ReagentTemplate.objects.get(uuid=r)
-        rt= ReagentTemplate.objects.get(uuid=context['reagents'])  
-        rt.properties.add(total_volume_prop)
-        rt.properties.add(dead_volume_prop)
-        exp_template.reagent_templates.add(rt)
-        for rm in rms:
-            self.stdout.write(self.style.NOTICE(f'{rm}'))
-            material_type = MaterialType.objects.get(description=rm)
-            reagent_material_template, created = ReagentMaterialTemplate.objects.get_or_create(**{'description':f'{r}: {rm}', 
-                                                                                                'reagent_template':reagent_template,
-                                                                                                'material_type':material_type})
-            
-            for rv, default in reagent_values.items():
-                rmv_template, created = ReagentMaterialValueTemplate.objects.get_or_create(**{'description':rv,
-                                                                                    'reagent_material_template':reagent_material_template,
-                                                                                'default_value':default}) 
-
     def get(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
         if 'current_org_id' in self.request.session:
@@ -315,6 +270,10 @@ class CreateExperimentTemplate(TemplateView):
             if form.is_valid():
                 temp = form.cleaned_data.get('select_rt')
                 context['reagents'] = temp
+            form2=ActionSequenceSelectionForm(request.POST)
+            if form2.is_valid():
+                temp = form2.cleaned_data.get('select_as')
+                context['action_sequences'] = temp
             context['name'] = request.POST['template_name']
             #context['reagents'] = request.POST['select_rt']
             #context['plate'] = request.POST['select_vessel']

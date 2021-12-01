@@ -142,6 +142,17 @@ class ExperimentNameForm(Form):
     exp_name = CharField(label="Experiment Name", max_length=100)
 
 
+class ActionSequenceSelectionForm(Form):
+    action_choices = [(a.uuid, a.description) for a in vt.ActionSequence.objects.all()]
+
+    select_as = MultipleChoiceField(
+            choices=action_choices,
+            #initial='0',
+            widget=SelectMultiple(),
+            required=True,
+            label='Select Action Sequences',
+        )
+
 class ReagentSelectionForm(Form):
     reagent_choices = [(r.uuid, r.description) for r in vt.ReagentTemplate.objects.all()]
 
@@ -196,6 +207,16 @@ class ExperimentTemplateCreateForm(Form):
     column_order= CharField(label='Column Order', required=False, initial='ACEGBDFH')
     rows = IntegerField(label='Number of Rows', required=False, initial=12)
     select_vessel = ChoiceField(label='Select Vessel', widget=widget)
+    
+    action_choices = [(a.uuid, a.description) for a in vt.ActionSequence.objects.all()]
+    
+    select_actions = MultipleChoiceField(
+            choices=action_choices,
+            #initial='0',
+            widget=SelectMultiple(),
+            required=True,
+            label='Select Action Sequences',
+        )
     
     def __init__(self, *args, **kwargs):
         org_id = kwargs.pop('org_id')

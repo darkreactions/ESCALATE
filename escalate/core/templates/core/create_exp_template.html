@@ -29,11 +29,22 @@
 
                 <button class="btn btn-outline-primary" type="submit" name="select_reagents"
                   value="select_reagents">Select Reagents</button>
-    {% endif %}
-
                 </div>
-                
+              </div>
             </form>
+    <div class="row">
+      <div class="col-md-12">
+          {{ action_sequence_selection_form|crispy }}
+            <form method="post" enctype="multipart/form-data">{% csrf_token %}
+
+                <button class="btn btn-outline-primary" type="submit" name="select_action_sequences"
+                  value="select_action_sequences">Select Action Sequences</button>
+                </div>
+              </div>
+              
+          </form>
+    {% endif %}
+        
 
 
 
