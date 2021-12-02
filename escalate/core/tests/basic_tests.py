@@ -132,6 +132,7 @@ def test_create_exp_template():
         "select_actions":  ['476ceea0-6154-4da3-b073-dd5ad68ea4d6', 
             '849fb9fa-2f8d-4e97-85e3-9cdbd5c70e0b', 
             '7f716a7a-cace-4ee8-9eae-0ebc18550454'] ,
+        "define_outcomes": "Crystal score"
     },
     {},
 ]
