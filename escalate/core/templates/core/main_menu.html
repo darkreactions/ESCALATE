@@ -5,28 +5,7 @@
 
 
 {% block content %}
-
-
-
-<div class="container">
-  <p> Choose your lab </p>
-  <div class="row">
-    <div class="col-md-12 text-secondary">
-      <form method="post">{% csrf_token %}
-        <select id='org_select' name='org_select' class='form-control selectpicker' data-style='btn-dark'
-          data-live-search='true'>
-          <option disabled>────────────</option>
-          {% for org in user_person.added_organization.all %}
-          <option value={{ org.uuid }} {% if request.session.current_org_name == org.full_name %} selected {% endif %}>
-            {{ org.full_name }}</option>
-          {% endfor %}
-        </select>
-        <button class="btn btn-outline-primary" type="submit" name="select_org" value="select_org">Select Lab</button>
-      </form>
-    </div>
-  </div>
-
-
+  <h3>Please select a lab organization before performing any experiment creation task</h3>  
 
   <h3>Links to tables in the nav bar above will change based on logical groupings</h3>
   <h3>Plots and Dashboard on this page</h3>
@@ -34,10 +13,6 @@
   {% autoescape off %}
   {{ plot_div }}
   {% endautoescape %}
-</div>
-
-
-
 
 {% endblock %}
 

@@ -2,7 +2,7 @@ from logging import raiseExceptions
 import requests
 from pint import UnitRegistry
 
-from core.models.view_tables.chemistry_data import ReagentMaterial
+from core.models.view_tables.chemistry_data import ReagentMaterial, Reagent
 from core.models.view_tables import ExperimentInstance
 
 # from core.utilities.experiment_utils import get_action_parameter_querysets
@@ -38,9 +38,8 @@ def conc_to_amount(exp_uuid):
             phase = reagent_material.material.phase
             if not phase:
                 raise ValueError(
-                    "Invalid phase for {}".format(reagent_material.material.description)
-                )
-
+                    "Error: Invalid phase {} for {}. Should be solid, liquid or gas. Please check the inventory table".format(phase, reagent_material.material.description))
+           
             mw_prop = reagent_material.material.material.property_m.filter(
                 property_template__description__icontains="molecularweight"
             ).first()

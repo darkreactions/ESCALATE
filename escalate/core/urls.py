@@ -1,22 +1,28 @@
 from django.urls import path, include
 import core.views
-from .views import (LoginView, 
-                    CreateUserView, 
-                    MainMenuView, 
-                    ActionSequenceView,
-                    ModelTagCreate, 
-                    ModelTagUpdate, 
-                    logout_view, 
-                    UserProfileView,
-                    change_password, 
-                    UserProfileEdit)
-from .views.experiment import ( CreateExperimentView, 
-                                CreateExperimentTemplate,
-                                CreateReagentTemplate, 
-                                ExperimentDetailView,
-                                ExperimentReagentPrepView, 
-                                ExperimentOutcomeView,
-                                ExperimentDetailEditView)
+
+from .views import (
+    LoginView,
+    CreateUserView,
+    MainMenuView,
+    SelectLabView,
+    ActionSequenceView,
+    ModelTagCreate,
+    ModelTagUpdate,
+    logout_view,
+    UserProfileView,
+    change_password,
+    UserProfileEdit,
+)
+from .views.experiment import (
+    CreateExperimentView,
+    CreateExperimentTemplate,
+    CreateReagentTemplate,
+    ExperimentDetailView,
+    ExperimentReagentPrepView,
+    ExperimentOutcomeView,
+    ExperimentDetailEditView,
+)
 from core.utilities.utils import view_names, camel_to_snake
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.views.generic.base import RedirectView
