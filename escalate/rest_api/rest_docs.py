@@ -1,5 +1,5 @@
 rest_docs = {
-    'api_root': """
+    "api_root": """
                 ## Instructions to use API
                 The links at the bottom of the page, return table data. For example http://escalate.sd2e.org/api/inventory/ returns data in the following format
 
@@ -120,7 +120,7 @@ rest_docs = {
                 will display person table rows where the `firstname` column **does not** start with `Man`
 
                 """,
-    'systemtool': "This is a test doc",
-    'actor': "Documentation for actor",
-    'actor_detail': "Documentation for actor detail"
+    "systemtool": "This is a test doc",
+    "actor": "Documentation for actor",
+    "actor_detail": "Documentation for actor detail",
 }

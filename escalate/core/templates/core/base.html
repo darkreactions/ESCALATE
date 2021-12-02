@@ -60,9 +60,15 @@
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item {% if url_name == 'main_menu' %}active{% endif %}">
                         <a class="nav-link" href="{% url 'main_menu' %}">Main Menu</a>
+                        
                     </li>
+                    
+                    <li class="nav-item {% if url_name == 'select_lab' %}active{% endif %}">
+                        <a class="nav-link" href="{% url 'select_lab' %}">Select Lab</a>
+                    </li>
+
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if not request.session.current_org_id %}disabled{% endif %}" href="#" id="dropdown" data-toggle="dropdown">Models</a>
+                        <a class="nav-link dropdown-toggle " href="#" id="dropdown" data-toggle="dropdown">Models</a>
                         <div class="dropdown-menu">
                             <ul class="list-unstyled">
                                 <li><a class="dropdown-item" href="{% url 'material_list' %}">Material</a></li>
@@ -87,7 +93,7 @@
                         </div>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if not request.session.current_org_id %}disabled{% endif %}" href="#" id="dropdown" data-toggle="dropdown">Experiment</a>
+                        <a class="nav-link dropdown-toggle " href="#" id="dropdown" data-toggle="dropdown">Experiment</a>
                         <div class="dropdown-menu">
                             <ul class="list-unstyled">
                                 <li>
@@ -109,11 +115,14 @@
                 </ul>
                 <ul class="navbar-nav flex-row mt-4">
                     <li class="nav-item text-light">
-                        {{ request.session.current_org_name }}
+                        {% if request.session.current_org_name %}
+                        Selected Lab {{ request.session.current_org_name }}
+                        {% endif %}
                     </li>
                 </ul>
                 
             </div>
+            
             <div class="dropdown">
                 <a class="btn btn-info dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     {{ request.user.person.first_name }} {{ request.user.person.last_name }}
@@ -133,8 +142,18 @@
     {% endblock %}
     <section>
         <div class="container">
+            
             <div class="card">
                 <div class="card-body" id="page-content">
+                    {% if messages %}
+                    <ul class="messages">
+                        {% for message in messages %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
                     {% block content %}
                     {% endblock %}
                     <nav>
