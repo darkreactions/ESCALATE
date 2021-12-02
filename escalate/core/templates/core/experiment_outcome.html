@@ -5,24 +5,22 @@
 
 {% block content %}
 
-<form method="post"  action="">{% csrf_token %}
+<form method="post" action="">{% csrf_token %}
     <div class="text-left">
         <button class="btn btn-outline-primary" type="submit" name="outcome_download">Download outcome file</button>
     </div>
 </form>
 
-<form method="post"  action="" enctype="multipart/form-data">{% csrf_token %}
-        <div class="card">
-            <div class="card-body">
-                {% crispy outcome_file_upload_form outcome_file_upload_form_helper %}
-                <div class="text-left">
-                    <button class="btn btn-outline-primary" type="submit" name="outcome_upload">Submit Outcomes</button>
-                </div>
+<form method="post" action="" enctype="multipart/form-data">{% csrf_token %}
+    <div class="card">
+        <div class="card-body">
+            {% crispy outcome_file_upload_form outcome_file_upload_form_helper %}
+            <div class="text-left">
+                <button class="btn btn-outline-primary" type="submit" name="outcome_upload">Submit Outcomes</button>
             </div>
         </div>
-        <br>
+    </div>
+    <br>
     <input type="hidden" id="automated" name="automated" value="{{ automated }}">
-    
-    
 </form>
 {% endblock %}
