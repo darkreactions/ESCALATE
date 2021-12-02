@@ -145,7 +145,7 @@ class ExperimentNameForm(Form):
 class ActionSequenceSelectionForm(Form):
     action_choices = [(a.uuid, a.description) for a in vt.ActionSequence.objects.all()]
 
-    select_as = MultipleChoiceField(
+    select_actions = MultipleChoiceField(
             choices=action_choices,
             #initial='0',
             widget=SelectMultiple(),
@@ -217,6 +217,8 @@ class ExperimentTemplateCreateForm(Form):
             required=True,
             label='Select Action Sequences',
         )
+    
+    define_outcomes = CharField(label='Outcome to Measure', required=True, initial='Crystal score')
     
     def __init__(self, *args, **kwargs):
         org_id = kwargs.pop('org_id')

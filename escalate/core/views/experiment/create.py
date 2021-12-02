@@ -8,7 +8,7 @@ from django.http.request import HttpRequest
 
 from django.views.generic import TemplateView
 from django.forms import formset_factory, BaseFormSet
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.urls import reverse
 
@@ -27,6 +27,7 @@ from core.models.view_tables import (
     Vessel,
     OutcomeTemplate,
     ExperimentActionSequence,
+    ActionSequence,
 )
 
 from core.forms.custom_types import (
@@ -201,9 +202,9 @@ class CreateExperimentTemplate(TemplateView):
         context['exp_uuid']=exp_template.uuid
         return context
     
-    def add_reagents(self, context):
+    def add_reagents(self, context, reagents):
         exp_template=ExperimentTemplate.objects.get(uuid=context['exp_uuid'])
-        for r in context['reagents']:   
+        for r in reagents:   
             rt= ReagentTemplate.objects.get(uuid=r)
             exp_template.reagent_templates.add(rt)  
         #rt= ReagentTemplate.objects.get(uuid=context['reagents'])
@@ -221,20 +222,17 @@ class CreateExperimentTemplate(TemplateView):
         for well in well_list:
             plate_wells[well] = Vessel.objects.get(parent=plate, description=well)
 
-    def add_actions(self, context): 
+    def add_actions(self, context, actions): 
         exp_template=ExperimentTemplate.objects.get(uuid=context['exp_uuid'])
-        for a in context['action_sequences']:   
-            ac_sq= ExperimentActionSequence.objects.get(uuid=a)
-            exp_template.action_sequence.add(ac_sq) 
-        
-        #action_sequences=context['actions']
-        #for i, action_seq in enumerate(action_sequences.values()):
-           # ac_sq = ExperimentActionSequence(
-            #    experiment_template=exp_template,
-             #   experiment_action_sequence_seq=i,
-              #  action_sequence=action_seq,
-           # )
-          #  ac_sq.save()
+        for i, a in enumerate(actions):
+            #ac_sq= ExperimentActionSequence.objects.get(uuid=a)
+            ac_sq= ActionSequence.objects.get(uuid=a)
+            eas = ExperimentActionSequence(
+               experiment_template=exp_template,
+               experiment_action_sequence_seq=i,
+               action_sequence=ac_sq,
+            )
+            eas.save()
 
     def add_outcomes(self, context):
         exp_template=ExperimentTemplate.objects.get(uuid=context['exp_uuid'])
@@ -247,7 +245,7 @@ class CreateExperimentTemplate(TemplateView):
         column_order='ACEGBDFH'
         rows=12
         well_list = [f'{col}{row}' for row in range(1, rows+1) for col in column_order]
-        ot, created = OutcomeTemplate.objects.get_or_create(description = 'Crystal score', 
+        ot, created = OutcomeTemplate.objects.get_or_create(description = context["outcome_type"], 
                                               experiment = exp_template,
                                               instance_labels = well_list,
                                               default_value = default_crystal_score)
@@ -266,22 +264,28 @@ class CreateExperimentTemplate(TemplateView):
     def post(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
         if 'create_template' in request.POST:
+            context['name'] = request.POST['template_name']
+            context['outcome_type'] =request.POST['define_outcomes']
+            self.create_template(context)
             form=ReagentSelectionForm(request.POST)
             if form.is_valid():
-                temp = form.cleaned_data.get('select_rt')
-                context['reagents'] = temp
+                #temp = form.cleaned_data.get('select_rt')
+                self.add_reagents(context, form.cleaned_data.get('select_rt'))
+                #context['reagents'] = temp
             form2=ActionSequenceSelectionForm(request.POST)
             if form2.is_valid():
-                temp = form2.cleaned_data.get('select_as')
-                context['action_sequences'] = temp
-            context['name'] = request.POST['template_name']
+                #temp = form2.cleaned_data.get('select_actions')
+                self.add_actions(context, form2.cleaned_data.get('select_actions'))
+                #context['action_sequences'] = temp
+            #context['name'] = request.POST['template_name']
             #context['reagents'] = request.POST['select_rt']
             #context['plate'] = request.POST['select_vessel']
-            context['cols'] = request.POST['column_order']
-            context['rows'] = int(request.POST['rows'])
+            #context['cols'] = request.POST['column_order']
+            #context['rows'] = int(request.POST['rows'])
             #context['reagent_number'] = int(request.POST['reagent_num'])
-            self.create_template(context)
-            self.add_reagents(context)
+            #self.create_template(context)
+            #self.add_reagents(context)
+            #self.add_actions(context)
             self.add_outcomes(context)
 
         return render(request, self.template_name, context)
