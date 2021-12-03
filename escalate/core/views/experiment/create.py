@@ -402,7 +402,7 @@ class CreateExperimentView(TemplateView):
             
             dead_volume_form = SingleValForm(request.POST, prefix="dead_volume")
             if dead_volume_form.is_valid():
-                dead_volume = dead_volume_form.value
+                dead_volume = dead_volume_form.cleaned_data['value']
             else:
                 dead_volume = None
 
@@ -716,7 +716,8 @@ class CreateExperimentView(TemplateView):
             # Save dead volumes should probably be in a separate function
             dead_volume_form = SingleValForm(request.POST, prefix="dead_volume")
             if dead_volume_form.is_valid():
-                dead_volume = dead_volume_form.value
+                dead_volume=dead_volume_form.cleaned_data['value']
+                #dead_volume = dead_volume_form.value
             else:
                 dead_volume = None
 

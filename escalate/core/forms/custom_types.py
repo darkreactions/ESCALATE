@@ -39,7 +39,7 @@ class UploadFileForm(Form):
 
 class SingleValForm(Form):
     value = ValFormField(required=False)
-    uuid = CharField(widget=HiddenInput)
+    uuid = CharField(widget=HiddenInput, required=False)
 
 
 class RobotForm(Form):
