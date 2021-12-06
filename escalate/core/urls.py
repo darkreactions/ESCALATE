@@ -41,6 +41,7 @@ urlpatterns = [
     path('', LoginView.as_view(), name='login'),
     path('create_user/', CreateUserView.as_view(), name='create_user'),
     path('main_menu/', MainMenuView.as_view(), name='main_menu'),
+    path("select_lab/", SelectLabView.as_view(), name="select_lab"),
     path('action_sequence/', ActionSequenceView.as_view(), name='action_sequence'),
     path('logout/', logout_view, name='logout'),
     path('user_profile/', UserProfileView.as_view(), name='user_profile'),

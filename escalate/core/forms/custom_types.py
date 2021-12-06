@@ -210,10 +210,10 @@ class ExperimentTemplateCreateForm(Form):
 
     # MultipleChoiceField(label='Select Reagent Templates', widget=widget_mc)
     
-    column_order= CharField(label='Column Order', required=False, initial='ACEGBDFH')
-    rows = IntegerField(label='Number of Rows', required=False, initial=12)
-    select_vessel = ChoiceField(label='Select Vessel', widget=widget)
-    
+    #column_order= CharField(label='Column Order', required=False, initial='ACEGBDFH')
+    #rows = IntegerField(label='Number of Rows', required=False, initial=12)
+    #select_vessel = ChoiceField(label='Select Vessel', widget=widget)
+
     action_choices = [(a.uuid, a.description) for a in vt.ActionSequence.objects.all()]
     
     select_actions = MultipleChoiceField(
@@ -223,6 +223,7 @@ class ExperimentTemplateCreateForm(Form):
             required=True,
             label='Select Action Sequences',
         )
+    well_num = IntegerField(label='Number of Wells', required=True, initial=96)
     
     define_outcomes = CharField(label='Outcome to Measure', required=True, initial='Crystal score')
     
@@ -235,7 +236,7 @@ class ExperimentTemplateCreateForm(Form):
         #v_query = vt.Vessel.objects.all()
         #vessel = VesselForm(initial={'value': v_query[0]})
         #self.fields['select_vessel'].choices = [v for v in vessel]
-        self.fields['select_vessel'].choices = [(r.uuid, r.description) for r in vt.Vessel.objects.all()]
+        #self.fields['select_vessel'].choices = [(r.uuid, r.description) for r in vt.Vessel.objects.all()]
         #self.fields['select_materials'].choices = [(r.uuid, r.description) for r in vt.InventoryMaterial.objects.all()]
 
 class ExperimentTemplateForm(Form):

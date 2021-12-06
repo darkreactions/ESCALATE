@@ -60,7 +60,7 @@ from core.utilities.experiment_utils import (
     save_parameter,
 )
 from core.utilities.calculations import conc_to_amount
-from core.utilities.wf1_utils import generate_robot_file_wf1
+from core.utilities.wf1_utils import generate_robot_file_wf1, make_well_labels_list
 from core.forms.custom_types import ExperimentTemplateCreateForm, ReagentTemplateCreateForm
 from core.models.view_tables.generic_data import PropertyTemplate
 
@@ -131,30 +131,48 @@ class CreateReagentTemplate(TemplateView):
         reagent_template=ReagentTemplate.objects.get(uuid=context['rt_uuid'])
 
         amount_val = {'value': 0, 'unit':'g', 'type':'num'}
+        amount_val_liquid = {'value': 0, 'unit':'mL', 'type':'num'}
         conc_val = {'value': 0, 'unit':'M', 'type':'num'}
         
         default_amount, created = DefaultValues.objects.get_or_create(**{'description':'Zero g', 
                                                               'nominal_value': amount_val,
                                                               'actual_value': amount_val})
+
+        default_amount_liquid, created = DefaultValues.objects.get_or_create(**{'description':'Zero mL', 
+                                                              'nominal_value': amount_val_liquid,
+                                                              'actual_value': amount_val_liquid})
+
         default_conc, created = DefaultValues.objects.get_or_create(**{'description':'Zero M', 
                                                               'nominal_value': conc_val,
                                                               'actual_value': conc_val})
        
         # Concentration and amount data to be stored for each reagent material
         reagent_values = {'concentration': default_conc, 'amount': default_amount}
+        reagent_values_liquid = {'concentration': default_conc, 'amount': default_amount_liquid}
 
         for r in context['material_types']:   
             mt= MaterialType.objects.get(uuid=r)
+            if mt == 'solvent', mt == 'antisolvent', or mt == 'acid':
            # reagent_template.material_type.add(mt)  
             
-            rmt = ReagentMaterialTemplate.objects.get_or_create(**{'description':f'{reagent_template.description}: {mt.description}', 
-                'reagent_template':reagent_template,
-                'material_type': mt})
-            
-            #for rv, default in reagent_values.items():
-               # ReagentMaterialValueTemplate.objects.get_or_create(**{'description':rv,
-                   # 'reagent_material_template': rmt,
-                   # 'default_value':default}) 
+                rmt = ReagentMaterialTemplate.objects.get_or_create(**{'description':f'{reagent_template.description}: {mt.description}', 
+                    'reagent_template':reagent_template,
+                    'material_type': mt})
+                
+                for rv, default in reagent_values_liquid.items():
+                    ReagentMaterialValueTemplate.objects.get_or_create(**{'description':rv,
+                        'reagent_material_template': rmt,
+                        'default_value':default}) 
+            else:
+                
+                rmt = ReagentMaterialTemplate.objects.get_or_create(**{'description':f'{reagent_template.description}: {mt.description}', 
+                    'reagent_template':reagent_template,
+                    'material_type': mt})
+                
+                for rv, default in reagent_values.items():
+                    ReagentMaterialValueTemplate.objects.get_or_create(**{'description':rv,
+                        'reagent_material_template': rmt,
+                        'default_value':default}) 
     
     def get(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
@@ -213,22 +231,9 @@ class CreateExperimentTemplate(TemplateView):
         #rt= ReagentTemplate.objects.get(uuid=context['reagents'])
         #exp_template.reagent_templates.add(rt)  
 
-    def add_vessel(self, context): #do we need this?
-        plate=context['vessel']
-        column_order=context['column_order']
-        rows=context['rows']
-        well_list = [f'{col}{row}' for row in range(1, rows+1) for col in column_order]
-        #plate = Vessel.objects.get_or_create(description='96 Well Plate well')
-        # Dictionary of plate wells so that we don't keep accessing the database
-        # multiple times
-        plate_wells = {}
-        for well in well_list:
-            plate_wells[well] = Vessel.objects.get(parent=plate, description=well)
-
-    def add_actions(self, context, actions): 
+    def add_actions(self, context, action_sequences): 
         exp_template=ExperimentTemplate.objects.get(uuid=context['exp_uuid'])
-        for i, a in enumerate(actions):
-            #ac_sq= ExperimentActionSequence.objects.get(uuid=a)
+        for i, a in enumerate(action_sequences):
             ac_sq= ActionSequence.objects.get(uuid=a)
             eas = ExperimentActionSequence(
                experiment_template=exp_template,
@@ -237,21 +242,18 @@ class CreateExperimentTemplate(TemplateView):
             )
             eas.save()
 
-    def add_outcomes(self, context):
+    def add_outcomes(self, context, outcome_type, well_num):
         exp_template=ExperimentTemplate.objects.get(uuid=context['exp_uuid'])
-        crystal_score_val = {'value': 0, 'unit':'', 'type':'int'}
-        default_crystal_score, created = DefaultValues.objects.get_or_create(**{'description':'Zero Crystal score', 
-                                                              'nominal_value': crystal_score_val,
-                                                              'actual_value': crystal_score_val})
-        #column_order=context['column_order']
-        #rows=context['rows']
-        column_order='ACEGBDFH'
-        rows=12
-        well_list = [f'{col}{row}' for row in range(1, rows+1) for col in column_order]
-        ot, created = OutcomeTemplate.objects.get_or_create(description = context["outcome_type"], 
+        outcome_val = {'value': 0, 'unit':'', 'type':'text'}
+        default_score, created = DefaultValues.objects.get_or_create(**{'description':'Zero outcome val', 
+                                                              'nominal_value': outcome_val,
+                                                              'actual_value': outcome_val})
+        well_list=make_well_labels_list(well_num, robot='False')
+
+        ot, created = OutcomeTemplate.objects.get_or_create(description = outcome_type, 
                                               experiment = exp_template,
                                               instance_labels = well_list,
-                                              default_value = default_crystal_score)
+                                              default_value = default_score)
         ot.save()
         exp_template.outcome_templates.add(ot)
 
@@ -268,7 +270,7 @@ class CreateExperimentTemplate(TemplateView):
         context = self.get_context_data(**kwargs)
         if 'create_template' in request.POST:
             context['name'] = request.POST['template_name']
-            context['outcome_type'] =request.POST['define_outcomes']
+            #context['outcome_type'] =request.POST['define_outcomes']
             self.create_template(context)
             form=ReagentSelectionForm(request.POST)
             if form.is_valid():
@@ -289,7 +291,7 @@ class CreateExperimentTemplate(TemplateView):
             #self.create_template(context)
             #self.add_reagents(context)
             #self.add_actions(context)
-            self.add_outcomes(context)
+            self.add_outcomes(context, request.POST['define_outcomes'], int(request.POST['well_num']))
 
         return render(request, self.template_name, context)
 
