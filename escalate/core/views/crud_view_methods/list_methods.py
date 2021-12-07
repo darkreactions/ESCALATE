@@ -132,36 +132,6 @@ methods = {
         "ordering": ["display_text"],
         "field_contains": "",
     },
-    "TagType": {
-        "model": core.models.view_tables.TagType,
-        "table_columns": ["Type", "Description",],
-        "column_necessary_fields": {"Type": ["type"], "Description": ["description"]},
-        "ordering": ["type"],
-        "field_contains": "",
-    },
-    "UdfDef": {
-        "model": core.models.view_tables.UdfDef,
-        "table_columns": ["Description", "Value Type",],
-        "column_necessary_fields": {
-            "Description": ["description"],
-            "Value Type": ["val_type.category", "val_type.description"],
-        },
-        "ordering": ["description"],
-        "field_contains": "",
-    },
-    "Edocument": {
-        "model": core.models.Edocument,
-        "context_object_name": "edocuments",
-        "table_columns": ["Title", "Description", "File Type", "Version"],
-        "column_necessary_fields": {
-            "Title": ["title"],
-            "Description": ["description"],
-            "File Type": ["edoc_type_uuid.description"],
-            "Version": ["edoc_ver"],
-        },
-        "ordering": ["description"],
-        "field_contains": "",
-    },
     "InventoryMaterial": {
         "model": core.models.view_tables.InventoryMaterial,
         "table_columns": [
@@ -184,15 +154,43 @@ methods = {
         "field_contains": "",
         "org_related_path": "inventory__lab__organization",
     },
-    "Vessel": {
-        "model": core.models.view_tables.Vessel,
-        #'table_columns': ['Plate Name', 'Well Number', ],
-        "table_columns": ["Description", "Parent"],
+    "TagType": {
+        "model": core.models.view_tables.TagType,
+        "table_columns": ["Type", "Description",],
+        "column_necessary_fields": {"Type": ["type"], "Description": ["description"]},
+        "ordering": ["type"],
+        "field_contains": "",
+    },
+     "UdfDef": {
+        "model": core.models.view_tables.UdfDef,
+        "table_columns": ["Description", "Value Type",],
         "column_necessary_fields": {
-            #'Plate Name': ['plate_name'],
-            #'Well Number': ['well_number'],
             "Description": ["description"],
-            "Parent": ["parent"],
+            "Value Type": ["val_type.category", "val_type.description"],
+        },
+        "ordering": ["description"],
+        "field_contains": "",
+    },
+    "Edocument": {
+        "model": core.models.Edocument,
+        "context_object_name": "edocuments",
+        "table_columns": ["Title", "Description", "File Type", "Version"],
+        "column_necessary_fields": {
+            "Title": ["title"],
+            "Description": ["description"],
+            "File Type": ["edoc_type_uuid.description"],
+            "Version": ["edoc_ver"],
+        },
+        "ordering": ["description"],
+        "field_contains": "",
+    },
+    'Vessel': {
+        'model': core.models.view_tables.Vessel,
+        'table_columns': ['Description', 'Parent', "Total Volume"],
+        'column_necessary_fields': {
+            'Description': ['description'],
+            'Parent': ['parent.description'],
+            "Total Volume": ["total_volume"]
         },
         "ordering": ["description"],
         "field_contains": "",
