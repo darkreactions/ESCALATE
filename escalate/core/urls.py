@@ -47,6 +47,7 @@ urlpatterns = [
     # path('param_edit/<uuid:pk>', ParameterEditView.as_view(), name='parameter_edit'),
     # path('mat_edit/<uuid:pk>', MaterialEditView.as_view(), name='material_edit'),
     path("experiment/", CreateExperimentView.as_view(), name="experiment_instance_add"),
+    path("http://escalation.sd2e.org/", CreateExperimentView.as_view(), name="escalation"),
     #     path('experiment_list/', ExperimentListView.as_view(), name='experiment_list'),
     path(
         "experiment/<uuid:pk>/view",
