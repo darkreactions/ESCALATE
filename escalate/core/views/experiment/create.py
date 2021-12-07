@@ -203,7 +203,7 @@ class CreateExperimentView(TemplateView):
             else:
                 try:
                     rp_object = (
-                        ReactionParameter.objects.filter(description=rp_label)
+                        ReactionParameter.objects.filter(description=rp_label,experiment_template=exp_template.uuid)
                         .order_by("add_date")
                         .first()
                     )
