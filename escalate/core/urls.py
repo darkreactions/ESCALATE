@@ -39,7 +39,6 @@ urlpatterns = [
     path("create_user/", CreateUserView.as_view(), name="create_user"),
     path("main_menu/", MainMenuView.as_view(), name="main_menu"),
     path("select_lab/", SelectLabView.as_view(), name="select_lab"),
-    path("http://escalation.sd2e.org/", CreateExperimentView.as_view(), name="escalation"),
     path("workflow/", WorkflowView.as_view(), name="workflow"),
     path("logout/", logout_view, name="logout"),
     path("user_profile/", UserProfileView.as_view(), name="user_profile"),
