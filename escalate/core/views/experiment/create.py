@@ -152,27 +152,15 @@ class CreateReagentTemplate(TemplateView):
 
         for r in context['material_types']:   
             mt= MaterialType.objects.get(uuid=r)
-            if mt == 'solvent', mt == 'antisolvent', or mt == 'acid':
-           # reagent_template.material_type.add(mt)  
+
+            rmt = ReagentMaterialTemplate.objects.get_or_create(**{'description':f'{reagent_template.description}: {mt.description}', 
+                'reagent_template':reagent_template,
+                'material_type': mt})
             
-                rmt = ReagentMaterialTemplate.objects.get_or_create(**{'description':f'{reagent_template.description}: {mt.description}', 
-                    'reagent_template':reagent_template,
-                    'material_type': mt})
-                
-                for rv, default in reagent_values_liquid.items():
-                    ReagentMaterialValueTemplate.objects.get_or_create(**{'description':rv,
-                        'reagent_material_template': rmt,
-                        'default_value':default}) 
-            else:
-                
-                rmt = ReagentMaterialTemplate.objects.get_or_create(**{'description':f'{reagent_template.description}: {mt.description}', 
-                    'reagent_template':reagent_template,
-                    'material_type': mt})
-                
-                for rv, default in reagent_values.items():
-                    ReagentMaterialValueTemplate.objects.get_or_create(**{'description':rv,
-                        'reagent_material_template': rmt,
-                        'default_value':default}) 
+            for rv, default in reagent_values.items():
+                ReagentMaterialValueTemplate.objects.get_or_create(**{'description':rv,
+                    'reagent_material_template': rmt,
+                    'default_value':default}) 
     
     def get(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
