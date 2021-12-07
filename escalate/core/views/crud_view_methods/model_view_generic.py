@@ -149,17 +149,9 @@ class GenericModelListBase:
                 ).__class__.__name__
                 if final_field_class_name == "ManyToManyField":
                     filter_kwargs.pop(related_field_query)
-                    filter_kwargs[
-                        f"{related_field}__internal_slug__icontains"
-                    ] = custom_slugify(filter_val)
-            filter_query = (
-                functools.reduce(
-                    lambda q1, q2: q1 | q2,
-                    [Q(**{k: v}) for k, v in filter_kwargs.items()],
-                )
-                if len(filter_kwargs) > 0
-                else Q()
-            )
+                    filter_kwargs[f'{related_field}__internal_slug__icontains'] = custom_slugify(filter_val)
+            filter_query = functools.reduce(lambda q1, q2: q1 | q2, [
+                Q(**{k: v}) for k, v in filter_kwargs.items()]) if len(filter_kwargs) > 0 else Q()      
             new_queryset = new_queryset.filter(filter_query).distinct()
         else:
             new_queryset = base_query

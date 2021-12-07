@@ -2,29 +2,11 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth.hashers import make_password
 from django.contrib.admin import widgets
-from core.models import (
-    CustomUser,
-    OrganizationPassword,
-)
-from core.models.view_tables import (
-    Person,
-    Material,
-    Inventory,
-    Actor,
-    Note,
-    Organization,
-    Systemtool,
-    SystemtoolType,
-    UdfDef,
-    Status,
-    Tag,
-    TagAssign,
-    TagType,
-    MaterialType,
-    Edocument,
-    InventoryMaterial,
-    Vessel,
-)
+from core.models import (CustomUser, OrganizationPassword, )
+from core.models.view_tables import (Person, Material, Inventory, Actor, Note,
+                         Organization, Systemtool, SystemtoolType,
+                         UdfDef, Status, Tag, TagAssign, TagType, MaterialType,
+                         Edocument, InventoryMaterial, Vessel, MaterialIdentifier)
 from core.models.core_tables import TypeDef
 
 from packaging import version
@@ -51,7 +33,7 @@ class LoginForm(forms.Form):
 
 
 class CustomUserCreationForm(UserCreationForm):
-    class Meta:
+    class Meta: 
         model = CustomUser
         fields = ["username", "password1", "password2"]
 
@@ -154,48 +136,40 @@ class PersonTableForm(PersonFormData, forms.ModelForm):
 
 
 class MaterialForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        # pk of model that is passed in to filter for tags belonging to the model
+        material_instance = kwargs.get("instance", None)
+
+        current_material_identifiers = material_instance.identifier.all() if material_instance else MaterialIdentifier.objects.none()
+        current_material_types = material_instance.material_type.all() if material_instance else MaterialType.objects.none()
+        
+        super(MaterialForm, self).__init__(*args, **kwargs)
+
+        self.fields['identifier'] = forms.ModelMultipleChoiceField(
+            initial=current_material_identifiers,
+            required=False,
+            queryset=MaterialIdentifier.objects.all())
+        self.fields['identifier'].widget.attrs.update(dropdown_attrs)
+        
+        self.fields['material_type'] = forms.ModelMultipleChoiceField(
+            initial=current_material_types,
+            required=False,
+            queryset=MaterialType.objects.all())
+        self.fields['material_type'].widget.attrs.update(dropdown_attrs)
     class Meta:
         model = Material
-        fields = ["status"]
-        """
-            'abbreviation': forms.CharField,
-            'chemical_name': forms.CharField,
-            'inchi': forms.CharField,
-            'inchikey': forms.CharField,
-            'molecular_formula': forms.CharField,
-            'smiles': forms.CharField
-        """
+        fields = ['consumable', 'material_class', 'identifier', 'material_type', 'status']
         field_classes = {
-            "create_date": forms.SplitDateTimeField,
+            # 'create_date': forms.SplitDateTimeField,
         }
-        """
-                    'abbreviation': 'Abbreviation',
-            'chemical_name': 'Chemical name',
-            'inchi': 'International Chemical Identifier (InChI)',
-            'inchikey': 'International Chemical Identifier key (InChI key)',
-            'molecular_formula': 'Molecular formula',
-            'smiles': 'Smiles',
-        """
-        labels = {"create_date": "Create date", "material_status": "Status"}
-        """
-        'abbreviation': forms.TextInput(attrs={'placeholder': 'Ex: Water'}),
-            'chemical_name': forms.TextInput(attrs={
-                'placeholder': 'Ex: Dihydrogen Monoxide'}),
-            'inchi': forms.TextInput(attrs={'placeholder': 'Ex: 1S/H2O/h1H2'}),
-            'inchikey': forms.TextInput(attrs={
-                'placeholder': 'Ex: XLYOFNOQVPJJNP-UHFFFAOYSA-N'}),
-            'molecular_formula': forms.TextInput(attrs={
-                'placeholder': 'Ex: H2O'}),
-            'smiles': forms.TextInput(attrs={'placeholder': 'Ex: O'}),
-        """
+        labels = {
+            'create_date': 'Create date',
+            'material_status': 'Status'
+        }
         widgets = {
-            "create_date": forms.SplitDateTimeWidget(
-                date_format="%d-%m-%Y",
-                date_attrs={"placeholder": "DD-MM-YYYY"},
-                time_format="%H:%M",
-                time_attrs={"placeholder": "HH-MM"},
-            ),
-            "material_status": forms.Select(attrs=dropdown_attrs),
+            'consumable': forms.CheckboxInput(),
+            'material_class': forms.RadioSelect(choices=model._meta.get_field('material_class').choices),
+            'status': forms.Select(attrs=dropdown_attrs),
         }
 
 
@@ -631,9 +605,9 @@ class InventoryMaterialForm(forms.ModelForm):
             "description": forms.CharField,
             "part_no": forms.CharField,
             #'onhand_amt': ValFormField,
-            #'onhand_amt': forms.CharField,
-            "expiration_date": forms.SplitDateTimeField,
-            "location": forms.CharField,
+            'onhand_amt': forms.CharField,
+            'expiration_date': forms.SplitDateTimeField,
+            'location': forms.CharField,
         }
         labels = {
             "description": "Description",
@@ -663,25 +637,19 @@ class InventoryMaterialForm(forms.ModelForm):
 class VesselForm(forms.ModelForm):
     class Meta:
         model = Vessel
-        # fields = ['plate_name', 'well_number']
-        fields = ["description", "parent"]
+        fields = ['description', 'parent', 'total_volume']
         field_classes = {
-            #'plate_name': forms.CharField,
-            #'well_number': forms.CharField,
-            "description": forms.CharField,
+            'description': forms.CharField,
+            'total_volumne': forms.CharField,
         }
         labels = {
-            #'plate_name': 'Plate Name',
-            #'well_number': 'Well Number',
-            "description": "Description"
+            'description': 'Description',
+            'parent': 'Parent',
+            'total_volume': 'Total Volume'
         }
         widgets = {
-            "plate_name": forms.Textarea(
-                attrs={"cols": "10", "rows": "3", "placeholder": "Plate name"}
-            ),
-            "well_number": forms.Textarea(
-                attrs={"cols": "10", "rows": "1", "placeholder": "Well number"}
-            ),
+            'description': forms.TextInput(attrs={'placeholder': 'Vessel Information...'}),
+            'total_volumne': forms.TextInput(attrs={'placeholder': 'total Volume...'}),
         }
 
 
