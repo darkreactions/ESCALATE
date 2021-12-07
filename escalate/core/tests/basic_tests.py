@@ -2,7 +2,6 @@ import pytest
 from django.test import RequestFactory as rf
 from django.test import Client
 from django.urls import reverse
-from typing import Any
 
 from core.utilities.utils import view_names, camel_to_snake
 from core.views.crud_view_methods.create_methods import methods as create_methods
@@ -115,28 +114,6 @@ def test_create_experiment(login):
     """
     set_client_org_to_org("Haverford College")
     response = client.get(reverse("experiment_add"))
-    assert response.status_code == 200
-
-
-def test_create_exp_template():
-    et_data: list[dict[str, Any]] = [
-    {
-        "template_name": "test_template",
-        "select_rt": ['69ba96cc-d30e-41ca-a543-83a8b5b92b9c', 
-            'd9a6a7aa-b5ac-4039-af8a-353b6b1b1aae', 
-            '390e814f-6339-46f1-9e96-f01720ea90fa', 
-            '074b4b61-7a4b-4d71-8910-2033110e53ce'],
-        "column_order": 'ACBDEGFH',
-        "rows": 12,
-        "select_vessel": ['6f8051a7-19f3-4000-aa21-a3e5ac193f28'] ,
-        "select_actions":  ['476ceea0-6154-4da3-b073-dd5ad68ea4d6', 
-            '849fb9fa-2f8d-4e97-85e3-9cdbd5c70e0b', 
-            '7f716a7a-cace-4ee8-9eae-0ebc18550454'] ,
-        "define_outcomes": "Crystal score"
-    },
-    {},
-]
-    response = client.post(reverse('exp_template'), et_data[0], follow=True)
     assert response.status_code == 200
 
 

@@ -1,7 +1,9 @@
-from django.forms.widgets import CheckboxSelectMultiple, SelectMultiple
+
 from core.widgets import ValWidget
 from django.forms import (
     Select,
+    SelectMultiple,
+    CheckboxSelectMultiple,
     Form,
     ModelChoiceField,
     HiddenInput,
@@ -41,7 +43,7 @@ class UploadFileForm(Form):
 
 class SingleValForm(Form):
     value = ValFormField(required=False)
-    uuid = CharField(widget=HiddenInput, required=False)
+    uuid = CharField(widget=HiddenInput)
 
 
 class RobotForm(Form):
