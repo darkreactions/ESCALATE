@@ -621,18 +621,9 @@ class CreateExperimentView(TemplateView):
             for reagent_formset in formsets:
                 if reagent_formset.is_valid():
                     vector = self.save_forms_reagent(reagent_formset, experiment_copy_uuid, exp_concentrations)
-                    #try:
-                    exp_concentrations = prepare_reagents(
-                            reagent_formset, exp_concentrations
-                        )
-                    #except TypeError as te:
-                       # messages.error(request, str(te))
-            
-            dead_volume_form = SingleValForm(request.POST, prefix="dead_volume")
-            if dead_volume_form.is_valid():
-                dead_volume = dead_volume_form.cleaned_data['value']
-            else:
-                dead_volume = None
+                    #exp_concentrations = prepare_reagents(
+                        #reagent_formset, exp_concentrations
+                    #)
 
             # post reaction parameter form
             # get label here and get form out of label, use label for description
@@ -946,8 +937,7 @@ class CreateExperimentView(TemplateView):
             # Save dead volumes should probably be in a separate function
             dead_volume_form = SingleValForm(request.POST, prefix="dead_volume")
             if dead_volume_form.is_valid():
-                dead_volume=dead_volume_form.cleaned_data['value']
-                #dead_volume = dead_volume_form.value
+                dead_volume = dead_volume_form.value
             else:
                 dead_volume = None
 
