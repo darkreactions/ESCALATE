@@ -278,7 +278,13 @@ def get_reagent_querysets(exp_uuid):
 
 def prepare_reagents(reagent_formset, exp_concentrations):
 
+    reagents={}
     current_mat_list = reagent_formset.form_kwargs["mat_types_list"]
+    for num, element in enumerate(current_mat_list):
+        reagents[element.description]=reagent_formset.cleaned_data[num][
+                "desired_concentration"
+            ].value
+    
     if len(current_mat_list) == 1:
         if "acid" in (current_mat_list[0].description).lower():
             # reagent 7, Acid
@@ -333,12 +339,12 @@ def prepare_reagents(reagent_formset, exp_concentrations):
             0,
             concentration1,
         ]
-
-    return exp_concentrations
+    return reagents
+    #return exp_concentrations
 
 
 def generate_experiments_and_save(
-    experiment_copy_uuid, exp_concentrations, num_of_experiments, dead_volume
+    experiment_copy_uuid, reagent_template_names, reagentDefs, num_of_experiments, dead_volume
 ):
     """
     Generates random experiments using sampler and saves it to
@@ -349,8 +355,9 @@ def generate_experiments_and_save(
     In the mapper it is called 'Reagent 2'
     """
     desired_volume = generateExperiments(
-        exp_concentrations,
-        ["Reagent1", "Reagent2", "Reagent3", "Reagent7"],
+        reagent_template_names,
+        reagentDefs,
+        #["Reagent1", "Reagent2", "Reagent3", "Reagent7"],
         num_of_experiments,
     )
     # desired_volume = generateExperiments(reagents, descriptions, num_of_experiments)
@@ -361,11 +368,11 @@ def generate_experiments_and_save(
     # create counters for acid, solvent, stock a, stock b to keep track of current element in those lists
     if "workflow 1" in experiment.parent.description.lower():
         action_reagent_map = {
-            "dispense solvent": ("Reagent 1", 1.0),
-            "dispense acid volume 1": ("Reagent 7", 0.5),
-            "dispense acid volume 2": ("Reagent 7", 0.5),
-            "dispense stock a": ("Reagent 2", 1.0),
-            "dispense stock b": ("Reagent 3", 1.0),
+            "dispense solvent": ("Reagent 1 - Solvent", 1.0),
+            "dispense acid volume 1": ("Reagent 7 - Acid", 0.5),
+            "dispense acid volume 2": ("Reagent 7 - Acid", 0.5),
+            "dispense stock a": ("Reagent 2 - Stock A", 1.0),
+            "dispense stock b": ("Reagent 3 - Stock B", 1.0),
         }
 
         reagent_template_reagent_map = {
@@ -376,12 +383,12 @@ def generate_experiments_and_save(
         }
     elif "workflow 3" in experiment.parent.description.lower():
         action_reagent_map = {
-            "dispense solvent": ("Reagent 1", 1.0),
-            "dispense acid volume 1": ("Reagent 7", 0.5),
-            "dispense acid volume 2": ("Reagent 7", 0.5),
-            "dispense stock a": ("Reagent 2", 1.0),
-            "dispense stock b": ("Reagent 3", 1.0),
-            "dispense antisolvent": ("Reagent 9", 1.0),
+            "dispense solvent": ("Reagent 1 - Solvent", 1.0),
+            "dispense acid volume 1": ("Reagent 7 - Acid", 0.5),
+            "dispense acid volume 2": ("Reagent 7 - Acid", 0.5),
+            "dispense stock a": ("Reagent 2 - Stock A", 1.0),
+            "dispense stock b": ("Reagent 3 - Stock B", 1.0),
+            "dispense antisolvent": ("Reagent 9 - Antisolvent", 1.0),
         }
 
         reagent_template_reagent_map = {
@@ -395,11 +402,11 @@ def generate_experiments_and_save(
     # Also saves dead volume if passed to function
     reagents = Reagent.objects.filter(experiment=experiment_copy_uuid)
     for reagent in reagents:
-        label = reagent_template_reagent_map[reagent.template.description]
+        #label = reagent_template_reagent_map[reagent.template.description]
         prop = reagent.property_r.get(
             property_template__description__icontains="total volume"
         )
-        prop.nominal_value.value = sum(desired_volume[label])
+        prop.nominal_value.value = sum(desired_volume[reagent.template.description])
         prop.nominal_value.unit = "uL"
         prop.save()
         if dead_volume is not None:
