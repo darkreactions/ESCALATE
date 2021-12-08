@@ -20,6 +20,7 @@ from .views.experiment import (
     ExperimentOutcomeView,
     ExperimentDetailEditView,
 )
+
 from core.utilities.utils import view_names, camel_to_snake
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.views.generic.base import RedirectView
@@ -47,6 +48,7 @@ urlpatterns = [
     # path('param_edit/<uuid:pk>', ParameterEditView.as_view(), name='parameter_edit'),
     # path('mat_edit/<uuid:pk>', MaterialEditView.as_view(), name='material_edit'),
     path("experiment/", CreateExperimentView.as_view(), name="experiment_instance_add"),
+    #path("experiment_completed_instance_list/", core.views.ExperimentCompletedInstanceList.as_view(), name="experiment_completed_instance_list"),
     #     path('experiment_list/', ExperimentListView.as_view(), name='experiment_list'),
     path(
         "experiment/<uuid:pk>/view",

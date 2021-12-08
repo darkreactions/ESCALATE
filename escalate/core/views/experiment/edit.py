@@ -92,7 +92,7 @@ class ExperimentDetailEditView(TemplateView):
         context["edoc_upload_form"] = uf
         context["edoc_helper"] = uf.get_helper()
         context["edoc_helper"].form_tag = False
-
+        ''''''
         # Materials
         q1_material = (
             BomMaterial.objects.filter(**{experiment_field: experiment})
@@ -118,12 +118,12 @@ class ExperimentDetailEditView(TemplateView):
         )
         context["q1_material"] = q1_material
         context["q1_material_details"] = q1_material_details
-
+        '''
         # Parameters (Nominal/Actual form)
         context = self.get_action_parameter_forms(
             experiment.uuid, context, template=False
         )
-
+        '''
         return context
 
     def get(self, request, *args, **kwargs):
@@ -163,6 +163,7 @@ class ExperimentDetailEditView(TemplateView):
         )
         save_forms_q_material(material_qs, material_fs, {"inventory_material": "value"})
 
+        '''
         q1 = get_action_parameter_querysets(context["experiment"].uuid, template=False)
         q1_formset = self.NominalActualFormSet(request.POST, prefix="q1_param")
         save_forms_q1(
@@ -170,4 +171,5 @@ class ExperimentDetailEditView(TemplateView):
             q1_formset,
             {"parameter_val_nominal": "value", "parameter_val_actual": "actual_value"},
         )
+        '''
         return render(request, self.template_name, context)

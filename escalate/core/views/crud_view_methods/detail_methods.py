@@ -269,14 +269,14 @@ methods = {
             "Status": ["status.description"],
         },
     },
-    # 'Experiment': {
-    #     'model': core.models.view_tables.Experiment,
-    #     'detail_fields': ['Description', 'Status',],
-    #     'detail_fields_need_fields': {
-    #         'Description': ['description'],
-    #         'Status': ['status.description']
-    #     },
-    # },
+    'ExperimentCompletedInstance': {
+        'model': core.models.view_tables.ExperimentCompletedInstance,
+        'detail_fields': ['Description', 'Status',],
+        'detail_fields_need_fields': {
+            'Description': ['description'],
+            'Status': ['status.description']
+        },
+    },
     'Vessel': {
         'model': core.models.view_tables.Vessel,
         'detail_fields': ['Description', 'Parent', "Total Volume", 'Status', 'Date Added','Last Modified'],

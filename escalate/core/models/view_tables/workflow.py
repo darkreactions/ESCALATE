@@ -16,6 +16,7 @@ from core.managers import (
     BomMaterialManager,
     BomCompositeMaterialManager,
     BomVesselManager,
+    ExperimentCompletedInstanceManager
 )
 
 
@@ -375,6 +376,10 @@ class ExperimentInstance(DateColumns, StatusColumn, DescriptionColumn):
     # class Meta:
     #    proxy = True
 
+class ExperimentCompletedInstance(ExperimentInstance):
+    objects = ExperimentCompletedInstanceManager()
+    class Meta:
+        proxy = True
 
 class ExperimentType(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(

@@ -64,6 +64,10 @@ methods = {
         "model": core.models.view_tables.ExperimentInstance,
         "success_url": reverse_lazy("experiment_list"),
     },
+    "ExperimentCompletedInstance": {
+        "model": core.models.view_tables.ExperimentCompletedInstance,
+        "success_url": reverse_lazy("experiment_completed_list"),
+    },
     "Vessel": {
         "model": core.models.view_tables.Vessel,
         "success_url": reverse_lazy("vessel_list"),

@@ -59,6 +59,16 @@ class ExperimentInstanceManager(models.Manager):
     def create(self, **kwargs):
         return super(ExperimentInstanceManager, self).create(**kwargs)
 
+class ExperimentCompletedInstanceManager(models.Manager):
+    def get_queryset(self):
+        return (
+            super(ExperimentCompletedInstanceManager, self)
+            .get_queryset()
+            .filter(completion_status="Completed")
+        )
+    
+    def create(self, **kwargs):
+        return super(ExperimentCompletedInstanceManager, self).create(**kwargs)
 
 class BomMaterialManager(models.Manager):
     def get_queryset(self):
