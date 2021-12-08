@@ -131,16 +131,12 @@ class CreateReagentTemplate(TemplateView):
         reagent_template=ReagentTemplate.objects.get(uuid=context['rt_uuid'])
 
         amount_val = {'value': 0, 'unit':'g', 'type':'num'}
-        amount_val_liquid = {'value': 0, 'unit':'mL', 'type':'num'}
+        
         conc_val = {'value': 0, 'unit':'M', 'type':'num'}
         
         default_amount, created = DefaultValues.objects.get_or_create(**{'description':'Zero g', 
                                                               'nominal_value': amount_val,
                                                               'actual_value': amount_val})
-
-        default_amount_liquid, created = DefaultValues.objects.get_or_create(**{'description':'Zero mL', 
-                                                              'nominal_value': amount_val_liquid,
-                                                              'actual_value': amount_val_liquid})
 
         default_conc, created = DefaultValues.objects.get_or_create(**{'description':'Zero M', 
                                                               'nominal_value': conc_val,
@@ -148,31 +144,14 @@ class CreateReagentTemplate(TemplateView):
        
         # Concentration and amount data to be stored for each reagent material
         reagent_values = {'concentration': default_conc, 'amount': default_amount}
-        reagent_values_liquid = {'concentration': default_conc, 'amount': default_amount_liquid}
 
         for r in context['material_types']:   
             mt= MaterialType.objects.get(uuid=r)
-            if mt == 'solvent', mt == 'antisolvent', or mt == 'acid':
            # reagent_template.material_type.add(mt)  
             
-                rmt = ReagentMaterialTemplate.objects.get_or_create(**{'description':f'{reagent_template.description}: {mt.description}', 
-                    'reagent_template':reagent_template,
-                    'material_type': mt})
-                
-                for rv, default in reagent_values_liquid.items():
-                    ReagentMaterialValueTemplate.objects.get_or_create(**{'description':rv,
-                        'reagent_material_template': rmt,
-                        'default_value':default}) 
-            else:
-                
-                rmt = ReagentMaterialTemplate.objects.get_or_create(**{'description':f'{reagent_template.description}: {mt.description}', 
-                    'reagent_template':reagent_template,
-                    'material_type': mt})
-                
-                for rv, default in reagent_values.items():
-                    ReagentMaterialValueTemplate.objects.get_or_create(**{'description':rv,
-                        'reagent_material_template': rmt,
-                        'default_value':default}) 
+            rmt = ReagentMaterialTemplate.objects.get_or_create(**{'description':f'{reagent_template.description}: {mt.description}', 
+                'reagent_template':reagent_template,
+                'material_type': mt})
     
     def get(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
