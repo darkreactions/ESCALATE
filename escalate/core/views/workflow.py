@@ -20,10 +20,19 @@ class WorkflowView(LoginRequired, View):
 
         with open("./core/static/json/mojito_workflow.json", "r") as f:
             mojito_workflow = f.read()
-        components = mojito_components
+
+        with open("./core/static/json/action_def_components.json", "r") as f:
+            action_def_components = f.read()
+
+        with open("./core/static/json/action_def_workflow.json", "r") as f:
+            action_def_workflow = f.read()
+
+        #components = mojito_components
+        components = action_def_components
 
         # workflow = http_workflow
-        workflow = mojito_workflow
+        #workflow = mojito_workflow
+        workflow = action_def_workflow
 
         context = {"components": components, "workflow": workflow}
 

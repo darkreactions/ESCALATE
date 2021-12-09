@@ -3,6 +3,7 @@ from django.forms import (
     Select,
     SelectMultiple,
     CheckboxSelectMultiple,
+    MultipleChoiceField,
     Form,
     ModelChoiceField,
     HiddenInput,
