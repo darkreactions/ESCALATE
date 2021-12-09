@@ -102,7 +102,7 @@ class Command(BaseCommand):
         )
         default_dead_volume, created = DefaultValues.objects.get_or_create(
             **{
-                "description": "WF1 dead volume",
+                "description": "4000 uL",
                 "nominal_value": dead_vol_val,
                 "actual_value": dead_vol_val,
             }
@@ -477,7 +477,7 @@ class Command(BaseCommand):
         )
         default_dead_volume, created = DefaultValues.objects.get_or_create(
             **{
-                "description": "WF3 dead volume",
+                "description": "4000 uL",
                 "nominal_value": dead_vol_val,
                 "actual_value": dead_vol_val,
             }
