@@ -60,7 +60,7 @@ urlpatterns = [
          ExperimentDetailView.as_view(), name='experiment_instance_view'),
     path('experiment/<uuid:pk>',
          ExperimentDetailEditView.as_view(), name='experiment_instance_update'),
-     path('experiment/<uuid:pk>/reagent_prep',
+    path('experiment/<uuid:pk>/reagent_prep',
          ExperimentReagentPrepView.as_view(), name='reagent_prep'),
      path('experiment/<uuid:pk>/outcome',
          ExperimentOutcomeView.as_view(), name='outcome'),

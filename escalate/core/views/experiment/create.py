@@ -83,10 +83,11 @@ class CreateReagentTemplate(TemplateView):
     def get_context_data(self, **kwargs):    
             # Select materials that belong to the current lab
             context = super().get_context_data(**kwargs)
-            org_id = self.request.session['current_org_id']
-            lab = Actor.objects.get(organization=org_id, person__isnull=True)
+            if 'current_org_id' in self.request.session:
+                org_id = self.request.session['current_org_id']
+                lab = Actor.objects.get(organization=org_id, person__isnull=True)
             #self.all_materials = InventoryMaterial.inventory.objects.filter(lab=lab)
-            context['lab']=lab
+                context['lab']=lab
             #self.all_materials = InventoryMaterial.objects.all()
             #context['all_materials'] = self.all_materials
             return context
@@ -155,12 +156,27 @@ class CreateReagentTemplate(TemplateView):
     
     def get(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
+        
         if 'current_org_id' in self.request.session:
             org_id = self.request.session['current_org_id']
+            context['reagent_template_create_form'] = ReagentTemplateCreateForm(org_id=org_id)
+            return render(request, self.template_name, context)
+
         else:
-            org_id = None
-        context['reagent_template_create_form'] = ReagentTemplateCreateForm(org_id=org_id)
-        return render(request, self.template_name, context)
+            #context = self.get_context_data(**kwargs)
+            #self.template_name = "core/main_menu.html"
+            org_id=None
+            messages.error(request, 'Please select a lab to continue')
+            return HttpResponseRedirect(reverse("main_menu"))
+        
+        
+       # if 'current_org_id' in self.request.session:
+         #   org_id = self.request.session['current_org_id']
+       # else:
+          #  org_id = None
+
+        #context['reagent_template_create_form'] = ReagentTemplateCreateForm(org_id=org_id)
+        #return render(request, self.template_name, context)
 
     def post(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
@@ -185,10 +201,11 @@ class CreateExperimentTemplate(TemplateView):
     def get_context_data(self, **kwargs):    
         # Select materials that belong to the current lab
         context = super().get_context_data(**kwargs)
-        org_id = self.request.session['current_org_id']
-        lab = Actor.objects.get(organization=org_id, person__isnull=True)
+        if 'current_org_id' in self.request.session:
+            org_id = self.request.session['current_org_id']
+            lab = Actor.objects.get(organization=org_id, person__isnull=True)
         #self.all_materials = InventoryMaterial.inventory.objects.filter(lab=lab)
-        context['lab']=lab
+            context['lab']=lab
         #self.all_materials = InventoryMaterial.objects.all()
         #context['all_materials'] = self.all_materials
         return context
@@ -238,12 +255,18 @@ class CreateExperimentTemplate(TemplateView):
 
     def get(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
+        
         if 'current_org_id' in self.request.session:
             org_id = self.request.session['current_org_id']
+            context['experiment_template_create_form'] = ExperimentTemplateCreateForm(org_id=org_id)
+            return render(request, self.template_name, context)
+
         else:
-            org_id = None
-        context['experiment_template_create_form'] = ExperimentTemplateCreateForm(org_id=org_id)
-        return render(request, self.template_name, context)
+            #context = self.get_context_data(**kwargs)
+            #self.template_name = "core/main_menu.html"
+            org_id=None
+            messages.error(request, 'Please select a lab to continue')
+            return HttpResponseRedirect(reverse("main_menu"))
 
     def post(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
