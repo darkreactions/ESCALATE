@@ -88,12 +88,6 @@ methods = {
         "form_class": forms.InventoryMaterialForm,
         "success_url": reverse_lazy("inventory_material_list"),
     },
-    'ExperimentCompletedInstance': {
-        'model': core.models.view_tables.ExperimentCompletedInstance,
-        'context_object_name': 'experiment_completed_instance',
-        'form_class': forms.InventoryMaterialForm,
-        'success_url': reverse_lazy('experiment_completed_list'),
-     },
     "Vessel": {
         "model": core.models.view_tables.Vessel,
         "context_object_name": "vessel",
