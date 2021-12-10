@@ -990,8 +990,8 @@ class CreateExperimentView(TemplateView):
             try:
                 generate_experiments_and_save(experiment_copy_uuid, reagent_template_names, reagentDefs, exp_number, dead_volume)
             except ValueError as ve:
-                messages.error(request, str(ve))
-                return context
+               messages.error(request, str(ve))
+               return context
                 #return HttpResponseRedirect(reverse("experiment"))
             
             q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)

@@ -543,7 +543,15 @@ def generateExperiments(
         r=generate_vectors(reagent_template_names, reagentDefs)
         speciesDimensionality = len(list(dropZeroColumns(r).values())[0])
         #speciesDimensionality = len(list(dropZeroColumns(reagentDefs).values())[0])
-        if speciesDimensionality <= 3:
+        if speciesDimensionality < 2:
+            mat_types=[]
+            for dic in reagentDefs:
+                for key in dic.keys():
+                    if key not in mat_types:
+                        mat_types.append(key)
+            raise ValueError("Error: Must enter nonzero concentrations for at least two of the following: {}". format(mat_types))
+
+        elif speciesDimensionality <= 3:
 
             return generate3DExperiments(
                 reagent_template_names,
