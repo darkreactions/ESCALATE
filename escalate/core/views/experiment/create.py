@@ -10,10 +10,11 @@ from django.http import HttpResponseRedirect
 
 from django.views.generic import TemplateView
 from django.forms import formset_factory, BaseFormSet
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.urls import reverse
 
+from core.models import DefaultValues, ReagentTemplate, Parameter
 
 from core.models.view_tables import (
     ExperimentTemplate,
@@ -25,7 +26,12 @@ from core.models.view_tables import (
     ReagentMaterialTemplate,
     ReagentMaterialValueTemplate,
     MaterialType,
+    Vessel,
+    OutcomeTemplate,
+    ExperimentActionSequence,
+    ActionSequence,
 )
+
 from core.forms.custom_types import (
     SingleValForm,
     InventoryMaterialForm,
@@ -38,6 +44,9 @@ from core.forms.custom_types import (
     ReactionParameterForm,
     UploadFileForm,
     RobotForm,
+    ReagentSelectionForm,
+    ActionSequenceSelectionForm, 
+    MaterialTypeSelectionForm,
 )
 
 from core.utilities.utils import experiment_copy
@@ -51,8 +60,9 @@ from core.utilities.experiment_utils import (
     save_parameter,
 )
 from core.utilities.calculations import conc_to_amount
-from core.utilities.wf1_utils import generate_robot_file_wf1
-from core.models.view_tables.generic_data import Parameter
+from core.utilities.wf1_utils import generate_robot_file_wf1, make_well_labels_list
+from core.forms.custom_types import ExperimentTemplateCreateForm, ReagentTemplateCreateForm
+from core.models.view_tables.generic_data import PropertyTemplate
 
 from .misc import get_action_parameter_form_data, save_forms_q1, save_forms_q_material
 
@@ -66,7 +76,6 @@ SUPPORTED_CREATE_WFS = [
     mod for mod in dir(core.experiment_templates) if "__" not in mod
 ]
 
-
 class CreateReagentTemplate(TemplateView):
     template_name="core/create_reagent_template.html"
     form_class= ReagentTemplateCreateForm
@@ -74,10 +83,11 @@ class CreateReagentTemplate(TemplateView):
     def get_context_data(self, **kwargs):    
             # Select materials that belong to the current lab
             context = super().get_context_data(**kwargs)
-            org_id = self.request.session['current_org_id']
-            lab = Actor.objects.get(organization=org_id, person__isnull=True)
+            if 'current_org_id' in self.request.session:
+                org_id = self.request.session['current_org_id']
+                lab = Actor.objects.get(organization=org_id, person__isnull=True)
             #self.all_materials = InventoryMaterial.inventory.objects.filter(lab=lab)
-            context['lab']=lab
+                context['lab']=lab
             #self.all_materials = InventoryMaterial.objects.all()
             #context['all_materials'] = self.all_materials
             return context
@@ -146,12 +156,27 @@ class CreateReagentTemplate(TemplateView):
     
     def get(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
+        
         if 'current_org_id' in self.request.session:
             org_id = self.request.session['current_org_id']
+            context['reagent_template_create_form'] = ReagentTemplateCreateForm(org_id=org_id)
+            return render(request, self.template_name, context)
+
         else:
-            org_id = None
-        context['reagent_template_create_form'] = ReagentTemplateCreateForm(org_id=org_id)
-        return render(request, self.template_name, context)
+            #context = self.get_context_data(**kwargs)
+            #self.template_name = "core/main_menu.html"
+            org_id=None
+            messages.error(request, 'Please select a lab to continue')
+            return HttpResponseRedirect(reverse("main_menu"))
+        
+        
+       # if 'current_org_id' in self.request.session:
+         #   org_id = self.request.session['current_org_id']
+       # else:
+          #  org_id = None
+
+        #context['reagent_template_create_form'] = ReagentTemplateCreateForm(org_id=org_id)
+        #return render(request, self.template_name, context)
 
     def post(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
@@ -176,10 +201,11 @@ class CreateExperimentTemplate(TemplateView):
     def get_context_data(self, **kwargs):    
         # Select materials that belong to the current lab
         context = super().get_context_data(**kwargs)
-        org_id = self.request.session['current_org_id']
-        lab = Actor.objects.get(organization=org_id, person__isnull=True)
+        if 'current_org_id' in self.request.session:
+            org_id = self.request.session['current_org_id']
+            lab = Actor.objects.get(organization=org_id, person__isnull=True)
         #self.all_materials = InventoryMaterial.inventory.objects.filter(lab=lab)
-        context['lab']=lab
+            context['lab']=lab
         #self.all_materials = InventoryMaterial.objects.all()
         #context['all_materials'] = self.all_materials
         return context
@@ -229,12 +255,18 @@ class CreateExperimentTemplate(TemplateView):
 
     def get(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
+        
         if 'current_org_id' in self.request.session:
             org_id = self.request.session['current_org_id']
+            context['experiment_template_create_form'] = ExperimentTemplateCreateForm(org_id=org_id)
+            return render(request, self.template_name, context)
+
         else:
-            org_id = None
-        context['experiment_template_create_form'] = ExperimentTemplateCreateForm(org_id=org_id)
-        return render(request, self.template_name, context)
+            #context = self.get_context_data(**kwargs)
+            #self.template_name = "core/main_menu.html"
+            org_id=None
+            messages.error(request, 'Please select a lab to continue')
+            return HttpResponseRedirect(reverse("main_menu"))
 
     def post(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
@@ -264,7 +296,6 @@ class CreateExperimentTemplate(TemplateView):
             self.add_outcomes(context, request.POST['define_outcomes'], int(request.POST['well_num']))
 
         return render(request, self.template_name, context)
-
 
 class CreateExperimentView(TemplateView):
     template_name = "core/create_experiment.html"
@@ -402,7 +433,7 @@ class CreateExperimentView(TemplateView):
             else:
                 try:
                     rp_object = (
-                        ReactionParameter.objects.filter(description=rp_label,experiment_template=exp_template.uuid)
+                        ReactionParameter.objects.filter(description=rp_label)
                         .order_by("add_date")
                         .first()
                     )
@@ -601,7 +632,7 @@ class CreateExperimentView(TemplateView):
             
             dead_volume_form = SingleValForm(request.POST, prefix="dead_volume")
             if dead_volume_form.is_valid():
-                dead_volume = dead_volume_form.value
+                dead_volume = dead_volume_form.cleaned_data['value']
             else:
                 dead_volume = None
 
@@ -896,6 +927,8 @@ class CreateExperimentView(TemplateView):
             experiment_copy_uuid: str = experiment_copy(
                 str(exp_template.uuid), exp_name
             )
+                  
+            reagentDefs=[]
             exp_concentrations = {}
             reagent_formset: BaseFormSet
             for reagent_formset in formsets:
@@ -903,19 +936,20 @@ class CreateExperimentView(TemplateView):
                     vector = self.save_forms_reagent(
                         reagent_formset, experiment_copy_uuid, exp_concentrations
                     )
-                    #try:
-                    exp_concentrations = prepare_reagents(
-                        reagent_formset, exp_concentrations
-                        )
-                    #except TypeError as te:
-                       # messages.error(request, str(te))
-                       # return context
-                        #return HttpResponseRedirect(reverse("experiment_instance_add"))
-
+                    #exp_concentrations = prepare_reagents(
+                        #reagent_formset, exp_concentrations
+                    #)
+                    rd = prepare_reagents(
+                       reagent_formset, exp_concentrations)
+                    if rd not in reagentDefs:
+                        reagentDefs.append(rd)
+                    #reagentDefs.append(prepare_reagents(
+                       # reagent_formset, exp_concentrations))
             # Save dead volumes should probably be in a separate function
             dead_volume_form = SingleValForm(request.POST, prefix="dead_volume")
             if dead_volume_form.is_valid():
-                dead_volume = dead_volume_form.value
+                dead_volume=dead_volume_form.cleaned_data['value']
+                #dead_volume = dead_volume_form.value
             else:
                 dead_volume = None
 
@@ -954,7 +988,7 @@ class CreateExperimentView(TemplateView):
             
             #generate desired volume for current reagent
             try:
-                generate_experiments_and_save(experiment_copy_uuid, exp_concentrations, exp_number, dead_volume)
+                generate_experiments_and_save(experiment_copy_uuid, reagent_template_names, reagentDefs, exp_number, dead_volume)
             except ValueError as ve:
                 messages.error(request, str(ve))
                 return context
