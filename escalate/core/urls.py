@@ -1,11 +1,12 @@
 from django.urls import path, include
 import core.views
+
 from .views import (
     LoginView,
     CreateUserView,
     MainMenuView,
     SelectLabView,
-    WorkflowView,
+    ActionSequenceView,
     ModelTagCreate,
     ModelTagUpdate,
     logout_view,
@@ -15,6 +16,8 @@ from .views import (
 )
 from .views.experiment import (
     CreateExperimentView,
+    CreateExperimentTemplate,
+    CreateReagentTemplate,
     ExperimentDetailView,
     ExperimentReagentPrepView,
     ExperimentOutcomeView,
@@ -35,41 +38,34 @@ urlpatterns = [
 
 
 urlpatterns = [
-    path("", LoginView.as_view(), name="login"),
-    path("create_user/", CreateUserView.as_view(), name="create_user"),
-    path("main_menu/", MainMenuView.as_view(), name="main_menu"),
+    path('', LoginView.as_view(), name='login'),
+    path('create_user/', CreateUserView.as_view(), name='create_user'),
+    path('main_menu/', MainMenuView.as_view(), name='main_menu'),
     path("select_lab/", SelectLabView.as_view(), name="select_lab"),
-    path("workflow/", WorkflowView.as_view(), name="workflow"),
-    path("logout/", logout_view, name="logout"),
-    path("user_profile/", UserProfileView.as_view(), name="user_profile"),
-    path("change_password/", change_password, name="change_password"),
-    path("user_profile_edit/", UserProfileEdit.as_view(), name="user_profile_edit"),
-    # path('param_edit/<uuid:pk>', ParameterEditView.as_view(), name='parameter_edit'),
-    # path('mat_edit/<uuid:pk>', MaterialEditView.as_view(), name='material_edit'),
-    path("experiment/", CreateExperimentView.as_view(), name="experiment_instance_add"),
-    #     path('experiment_list/', ExperimentListView.as_view(), name='experiment_list'),
-    path(
-        "experiment/<uuid:pk>/view",
-        ExperimentDetailView.as_view(),
-        name="experiment_instance_view",
-    ),
-    path(
-        "experiment/<uuid:pk>",
-        ExperimentDetailEditView.as_view(),
-        name="experiment_instance_update",
-    ),
-    path(
-        "experiment/<uuid:pk>/reagent_prep",
-        ExperimentReagentPrepView.as_view(),
-        name="reagent_prep",
-    ),
-    path(
-        "experiment/<uuid:pk>/outcome", ExperimentOutcomeView.as_view(), name="outcome"
-    ),
-    path(
-        "favicon.ico",
-        RedirectView.as_view(url=staticfiles_storage.url("static/favicon.ico")),
-    ),
+    path('action_sequence/', ActionSequenceView.as_view(), name='action_sequence'),
+    path('logout/', logout_view, name='logout'),
+    path('user_profile/', UserProfileView.as_view(), name='user_profile'),
+    path('change_password/', change_password, name='change_password'),
+    path('user_profile_edit/', UserProfileEdit.as_view(), name='user_profile_edit'),
+    #path('param_edit/<uuid:pk>', ParameterEditView.as_view(), name='parameter_edit'),
+    #path('mat_edit/<uuid:pk>', MaterialEditView.as_view(), name='material_edit'),
+    path('exp_template/', CreateExperimentTemplate.as_view(),
+          name='experiment_template_add'),
+    path('reagent_template/', CreateReagentTemplate.as_view(),
+          name='reagent_template_add'),
+    path('experiment/', CreateExperimentView.as_view(),
+         name='experiment_instance_add'),
+#     path('experiment_list/', ExperimentListView.as_view(), name='experiment_list'),
+    path('experiment/<uuid:pk>/view',
+         ExperimentDetailView.as_view(), name='experiment_instance_view'),
+    path('experiment/<uuid:pk>',
+         ExperimentDetailEditView.as_view(), name='experiment_instance_update'),
+    path('experiment/<uuid:pk>/reagent_prep',
+         ExperimentReagentPrepView.as_view(), name='reagent_prep'),
+     path('experiment/<uuid:pk>/outcome',
+         ExperimentOutcomeView.as_view(), name='outcome'),
+    path('favicon.ico', RedirectView.as_view(
+        url=staticfiles_storage.url('static/favicon.ico'))),
 ]
 
 
