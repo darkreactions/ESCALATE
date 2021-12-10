@@ -211,7 +211,7 @@ view_names = [
     "ExperimentInstance",
     "Edocument",
     "ExperimentCompletedInstance",
-    "ExperimentPendingInstance"
+    "ExperimentPendingInstance",
 ]
 
 

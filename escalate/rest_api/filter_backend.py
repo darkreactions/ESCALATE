@@ -24,6 +24,11 @@ class CustomDjangoFilterBackend(CoreAPIURLFilterBackend):
             fields += view.filter_fields
 
         return [
-            coreapi.Field(name=field, location="query", required=False, type="string",)
+            coreapi.Field(
+                name=field,
+                location="query",
+                required=False,
+                type="string",
+            )
             for field in fields
         ]

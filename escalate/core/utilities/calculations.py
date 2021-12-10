@@ -35,11 +35,15 @@ def conc_to_amount(exp_uuid):
             conc_val = conc.nominal_value.value
             conc_unit = conc.nominal_value.unit
             conc = Q_(conc_val, conc_unit)
+            mat_type = reagent_material.template.material_type.description
             phase = reagent_material.material.phase
             if not phase:
                 raise ValueError(
-                    "Error: Invalid phase {} for {}. Should be solid, liquid or gas. Please check the inventory table".format(phase, reagent_material.material.description))
-           
+                    "Error: Invalid phase {} for {}. Should be solid, liquid or gas. Please check the inventory table".format(
+                        phase, reagent_material.material.description
+                    )
+                )
+
             mw_prop = reagent_material.material.material.property_m.filter(
                 property_template__description__icontains="molecularweight"
             ).first()
@@ -53,6 +57,7 @@ def conc_to_amount(exp_uuid):
 
             input_data[reagent_material] = {
                 "concentration": conc,
+                "material_type": mat_type,
                 "phase": phase,
                 "molecular weight": mw,
                 "density": d,
@@ -180,28 +185,20 @@ def generate_input_f(reagent, MW, density):
     return input_data
 
 
-def calculate_amounts(input_data, target_vol, dead_vol="3000 uL"):
+def calculate_amounts(input_data, target_vol, dead_vol="4000 uL"):
 
     """
-    Given input data from helper function and target/dead volumes (strings with units),
+    Given input data dictionary for reagents and target/dead volumes,
     returns amounts of each reagent component needed to achieve desired concentrations.
     For solids/solutes, amounts will be reported in grams.
-    For liquid/solvent, amount will be reported in mL.
+    For liquid/solvent/acid, amount will be reported in mL.
 
     """
 
-    # input_data comes from helper function above
-    # target_vol and dead_vol must be input as strings with units
-
     amounts = {}
+    exact_amounts = {}  # use this to store exact values for more precise calculations
 
     # convert volumes to mL and store in proper Pint format
-    # mag_t=float(total_vol.split()[0])
-    # unit_t= str(total_vol.split()[1])
-
-    # mag_d=float(dead_vol.split()[0])
-    # unit_d=str(dead_vol.split()[1])
-
     vol = Q_(target_vol).to(units.ml)
     dead = Q_(dead_vol).to(units.ml)
     total_vol = vol + dead
@@ -214,22 +211,43 @@ def calculate_amounts(input_data, target_vol, dead_vol="3000 uL"):
                 * val["molecular weight"]
             )
             # convert concentration to moles to mass
+            exact_amounts[key] = grams
             amounts[key] = round(grams, 2)
 
-    for substance, amount in amounts.items():  # for all solids
-        total_vol -= amount / input_data[substance]["density"]  # find the volume
-        # find the volume. subtract from total volume - this is how much liquid will be needed
+    for key, val in input_data.items():
+        if val["phase"] == "liquid":
+            if val["material_type"] == "acid":  # for the acids
+                neat = ((100 / val["molecular weight"]) / (100 / val["density"])).to(
+                    units.mol / units.ml
+                )  # concentration of neat (pure) acid
+                vol = (
+                    total_vol * val["concentration"].to(units.mol / units.ml) / neat
+                )  # dilution
+                exact_amounts[key] = vol
+                amounts[key] = round(vol, 2)
+
+    for substance, amount in exact_amounts.items():
+        # for solids
+        if input_data[substance]["phase"] == "solid":
+            total_vol -= (
+                amount / input_data[substance]["density"]
+            )  # find the volume and subtract from total
+
+        # for acids
+        elif input_data[substance]["phase"] == "liquid":
+            total_vol -= vol  # find the volume and subtract from total
 
     for key, val in input_data.items():
-        if val["phase"] == "liquid":  # for the solvent(s)
-            if "volume fraction" in val.keys():  # if there is more than one solvent
-                amounts[key] = round(
-                    total_vol * val["volume fraction"], 2
-                )  # amount is a fraction of the remaining available volume
-            else:  # if there's just one solvent
-                amounts[key] = round(
-                    total_vol, 2
-                )  # amount is the remaining available volume
+        if val["phase"] == "liquid":
+            if val["material_type"] != "acid":  # for the solvent(s)
+                if "volume fraction" in val.keys():  # if there is more than one solvent
+                    amounts[key] = round(
+                        total_vol * val["volume fraction"], 2
+                    )  # amount is a fraction of the remaining available volume
+                else:  # if there is just one solvent
+                    amounts[key] = round(
+                        total_vol, 2
+                    )  # amount is the remaining available volume
 
     """
     for key, val in amounts.items(): #convert amounts from Pint format to strings with val and unit

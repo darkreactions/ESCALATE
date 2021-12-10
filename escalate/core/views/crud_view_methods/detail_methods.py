@@ -269,16 +269,23 @@ methods = {
             "Status": ["status.description"],
         },
     },
-    'Vessel': {
-        'model': core.models.view_tables.Vessel,
-        'detail_fields': ['Description', 'Parent', "Total Volume", 'Status', 'Date Added','Last Modified'],
-        'detail_fields_need_fields': {
-            'Description': ['description'],
-            'Parent': ['parent.description'],
+    "Vessel": {
+        "model": core.models.view_tables.Vessel,
+        "detail_fields": [
+            "Description",
+            "Parent",
+            "Total Volume",
+            "Status",
+            "Date Added",
+            "Last Modified",
+        ],
+        "detail_fields_need_fields": {
+            "Description": ["description"],
+            "Parent": ["parent.description"],
             "Total Volume": ["total_volume"],
-            'Status': ['status.description'],
-            'Date Added': ['add_date'],
-            'Last Modified': ['mod_date'],
+            "Status": ["status.description"],
+            "Date Added": ["add_date"],
+            "Last Modified": ["mod_date"],
         },
     },
 }

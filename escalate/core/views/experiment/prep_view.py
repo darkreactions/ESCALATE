@@ -17,7 +17,9 @@ class ExperimentReagentPrepView(TemplateView):
     # form_class = ExperimentTemplateForm
     # ReagentFormSet = formset_factory(ReagentForm, extra=0, formset=BaseReagentFormSet)
     ReagentFormSet = formset_factory(
-        ReagentValueForm, extra=0, formset=BaseReagentFormSet,
+        ReagentValueForm,
+        extra=0,
+        formset=BaseReagentFormSet,
     )
 
     def get(self, request, *args, **kwargs):

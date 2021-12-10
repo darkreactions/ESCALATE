@@ -4,7 +4,12 @@ import core.models
 methods = {
     "Actor": {
         "model": core.models.view_tables.Actor,
-        "table_columns": ["Person", "Organization", "Systemtool", "Status",],
+        "table_columns": [
+            "Person",
+            "Organization",
+            "Systemtool",
+            "Status",
+        ],
         "column_necessary_fields": {
             "Person": ["person.first_name", "person.middle_name", "person.last_name"],
             "Organization": ["organization.full_name"],
@@ -58,14 +63,20 @@ methods = {
     },
     "MaterialType": {
         "model": core.models.view_tables.MaterialType,
-        "table_columns": ["Description",],
+        "table_columns": [
+            "Description",
+        ],
         "column_necessary_fields": {"Description": ["description"]},
         "ordering": ["description"],
         "field_contains": "",
     },
     "Organization": {
         "model": core.models.view_tables.Organization,
-        "table_columns": ["Full Name", "Address", "Website",],
+        "table_columns": [
+            "Full Name",
+            "Address",
+            "Website",
+        ],
         "column_necessary_fields": {
             "Full Name": ["full_name"],
             "Address": [
@@ -109,21 +120,29 @@ methods = {
     },
     "Status": {
         "model": core.models.view_tables.Status,
-        "table_columns": ["Description",],
+        "table_columns": [
+            "Description",
+        ],
         "column_necessary_fields": {"Description": ["description"]},
         "ordering": ["description"],
         "field_contains": "",
     },
     "SystemtoolType": {
         "model": core.models.view_tables.SystemtoolType,
-        "table_columns": ["Description",],
+        "table_columns": [
+            "Description",
+        ],
         "column_necessary_fields": {"Description": ["description"]},
         "ordering": ["description"],
         "field_contains": "",
     },
     "Tag": {
         "model": core.models.view_tables.Tag,
-        "table_columns": ["Name", "Description", "Tag Type",],
+        "table_columns": [
+            "Name",
+            "Description",
+            "Tag Type",
+        ],
         "column_necessary_fields": {
             "Name": ["display_text"],
             "Description": ["description"],
@@ -156,14 +175,20 @@ methods = {
     },
     "TagType": {
         "model": core.models.view_tables.TagType,
-        "table_columns": ["Type", "Description",],
+        "table_columns": [
+            "Type",
+            "Description",
+        ],
         "column_necessary_fields": {"Type": ["type"], "Description": ["description"]},
         "ordering": ["type"],
         "field_contains": "",
     },
-     "UdfDef": {
+    "UdfDef": {
         "model": core.models.view_tables.UdfDef,
-        "table_columns": ["Description", "Value Type",],
+        "table_columns": [
+            "Description",
+            "Value Type",
+        ],
         "column_necessary_fields": {
             "Description": ["description"],
             "Value Type": ["val_type.category", "val_type.description"],
@@ -184,13 +209,13 @@ methods = {
         "ordering": ["description"],
         "field_contains": "",
     },
-    'Vessel': {
-        'model': core.models.view_tables.Vessel,
-        'table_columns': ['Description', 'Parent', "Total Volume"],
-        'column_necessary_fields': {
-            'Description': ['description'],
-            'Parent': ['parent.description'],
-            "Total Volume": ["total_volume"]
+    "Vessel": {
+        "model": core.models.view_tables.Vessel,
+        "table_columns": ["Description", "Parent", "Total Volume"],
+        "column_necessary_fields": {
+            "Description": ["description"],
+            "Parent": ["parent.description"],
+            "Total Volume": ["total_volume"],
         },
         "ordering": ["description"],
         "field_contains": "",
