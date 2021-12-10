@@ -103,10 +103,13 @@
                                     <a class="dropdown-item {% if url_name == 'create_experiment' %}active{% endif %}" href="{% url 'experiment_instance_add' %}">Create Experiment</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item {% if url_name == 'workflow' %}active{% endif %}" href="{% url 'workflow' %}">Workflow</a>
+                                    <a class="dropdown-item {% if url_name == 'action_sequence' %}active{% endif %}" href="{% url 'action_sequence' %}">Create Action Sequence</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item active" href="http://escalation.sd2e.org/">Escalation</a>
+                                    <a class="dropdown-item {% if url_name == 'exp_template' %}active{% endif %}" href="{% url 'experiment_template_add' %}">Create Experiment Template</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item {% if url_name == 'reagent_template' %}active{% endif %}" href="{% url 'reagent_template_add' %}">Create Reagent Template</a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item active" href="http://escalation.sd2e.org/">Escalation</a>
