@@ -8,7 +8,6 @@ from django.forms import (
     HiddenInput,
     CharField,
     ChoiceField,
-    MultipleChoiceField,
     IntegerField,
     BaseFormSet,
     BaseModelFormSet,
@@ -42,7 +41,7 @@ class UploadFileForm(Form):
 
 class SingleValForm(Form):
     value = ValFormField(required=False)
-    uuid = CharField(widget=HiddenInput, required=False)
+    uuid = CharField(widget=HiddenInput)
 
 
 class RobotForm(Form):
@@ -140,7 +139,7 @@ class ReagentTemplateCreateForm(Form):
         #self.fields['select_vessel'].choices = [v for v in vessel]
         #self.fields['select_vessel'].choices = [(r.uuid, r.description) for r in vt.Vessel.objects.all()]
         #self.fields['select_materials'].choices = [(r.uuid, r.description) for r in vt.InventoryMaterial.objects.all()]
-
+        
 
 class ExperimentNameForm(Form):
     exp_name = CharField(label="Experiment Name", max_length=100)
