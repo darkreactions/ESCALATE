@@ -77,6 +77,25 @@ urlpatterns = [
     path(
         "experiment/<uuid:pk>/outcome", ExperimentOutcomeView.as_view(), name="outcome"
     ),
+    path("experiment_pending_instance/", CreateExperimentView.as_view(), name="experiment_pending_instance_add"),
+    path(
+        "experiment_pending_instance/<uuid:pk>/view",
+        ExperimentDetailView.as_view(),
+        name="experiment_pending_instance_view",
+    ),
+    path(
+        "experiment_pending_instance/<uuid:pk>",
+        ExperimentDetailEditView.as_view(),
+        name="experiment_pending_instance_update",
+    ),
+    path(
+        "experiment_pending_instance/<uuid:pk>/reagent_prep",
+        ExperimentReagentPrepView.as_view(),
+        name="experiment_pending_instance_reagent_prep",
+    ),
+    path(
+        "experiment_pending_instance/<uuid:pk>/outcome", ExperimentOutcomeView.as_view(), name="experiment_pending_instance_outcome"
+    ),
     path(
         "favicon.ico",
         RedirectView.as_view(url=staticfiles_storage.url("static/favicon.ico")),

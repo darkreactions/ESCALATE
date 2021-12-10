@@ -1,6 +1,7 @@
 from django.contrib.auth.base_user import BaseUserManager
 from django.utils.translation import ugettext_lazy as _
 from django.db import models
+from django.db.models import Q
 
 
 class CustomUserManager(BaseUserManager):
@@ -69,6 +70,17 @@ class ExperimentCompletedInstanceManager(models.Manager):
     
     def create(self, **kwargs):
         return super(ExperimentCompletedInstanceManager, self).create(**kwargs)
+
+class ExperimentPendingInstanceManager(models.Manager):
+    def get_queryset(self):
+        return (
+            super(ExperimentPendingInstanceManager, self)
+            .get_queryset()
+            .filter(~Q(completion_status="Completed"))
+        )
+    
+    def create(self, **kwargs):
+        return super(ExperimentPendingInstanceManager, self).create(**kwargs)
 
 class BomMaterialManager(models.Manager):
     def get_queryset(self):

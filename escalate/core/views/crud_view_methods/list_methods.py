@@ -217,6 +217,28 @@ methods = {
         "org_related_path": "lab__organization",
         "default_filter_kwargs": {"parent__isnull": False},
     },
+    "ExperimentPendingInstance": {
+        "model": core.models.view_tables.ExperimentPendingInstance,
+        "table_columns": [
+            "Experiment Name",
+            "Date Queued",
+            "Submitted By",
+            "Status",
+            "Priority",
+        ],
+        "column_necessary_fields": {
+            "Experiment Name": ["description"],
+            #'Experiment Template': ['workflow'],
+            "Date Queued": ["add_date"],
+            "Submitted By": ["operator.description"],
+            "Status": ["completion_status"],
+            "Priority": ["priority"],
+        },
+        "ordering": ["description"],
+        "field_contains": "",
+        "org_related_path": "lab__organization",
+        "default_filter_kwargs": {"parent__isnull": False},
+    },
     "ExperimentCompletedInstance": {
         "model": core.models.view_tables.ExperimentCompletedInstance,
         "table_columns": [

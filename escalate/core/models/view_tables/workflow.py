@@ -16,7 +16,8 @@ from core.managers import (
     BomMaterialManager,
     BomCompositeMaterialManager,
     BomVesselManager,
-    ExperimentCompletedInstanceManager
+    ExperimentCompletedInstanceManager,
+    ExperimentPendingInstanceManager
 )
 
 
@@ -378,6 +379,11 @@ class ExperimentInstance(DateColumns, StatusColumn, DescriptionColumn):
 
 class ExperimentCompletedInstance(ExperimentInstance):
     objects = ExperimentCompletedInstanceManager()
+    class Meta:
+        proxy = True
+
+class ExperimentPendingInstance(ExperimentInstance):
+    objects = ExperimentPendingInstanceManager()
     class Meta:
         proxy = True
 
