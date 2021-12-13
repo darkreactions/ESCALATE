@@ -74,11 +74,6 @@ methods = {
         "form_class": forms.InventoryMaterialForm,
         "success_url": reverse_lazy("inventory_material_list"),
     },
-    # 'Experiment': {
-    #     'model': core.models.view_tables.Experiment,
-    #     'form_class': forms.InventoryMaterialForm,
-    #     'success_url': reverse_lazy('experiment_list'),
-    # },
     "Vessel": {
         "model": core.models.view_tables.Vessel,
         "form_class": forms.VesselForm,
