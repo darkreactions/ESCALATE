@@ -1049,9 +1049,9 @@ class CreateExperimentView(TemplateView):
                     dead_volume,
                 )
             except ValueError as ve:
-                messages.error(request, str(ve))
-                return context
-                # return HttpResponseRedirect(reverse("experiment"))
+               messages.error(request, str(ve))
+               return context
+                #return HttpResponseRedirect(reverse("experiment"))
 
             q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
 
