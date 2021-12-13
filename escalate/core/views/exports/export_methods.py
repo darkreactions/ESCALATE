@@ -67,7 +67,9 @@ methods = {
     },
     "MaterialType": {
         "model": core.models.view_tables.MaterialType,
-        "column_names": ["Description",],
+        "column_names": [
+            "Description",
+        ],
         "column_necessary_fields": {"Description": ["description"]},
         "ordering": ["description"],
         "field_contains": "",
@@ -140,21 +142,29 @@ methods = {
     },
     "Status": {
         "model": core.models.view_tables.Status,
-        "column_names": ["Description",],
+        "column_names": [
+            "Description",
+        ],
         "column_necessary_fields": {"Description": ["description"]},
         "ordering": ["description"],
         "field_contains": "",
     },
     "SystemtoolType": {
         "model": core.models.view_tables.SystemtoolType,
-        "column_names": ["Description",],
+        "column_names": [
+            "Description",
+        ],
         "column_necessary_fields": {"Description": ["description"]},
         "ordering": ["description"],
         "field_contains": "",
     },
     "Tag": {
         "model": core.models.view_tables.Tag,
-        "column_names": ["Name", "Description", "Tag Type",],
+        "column_names": [
+            "Name",
+            "Description",
+            "Tag Type",
+        ],
         "column_necessary_fields": {
             "Name": ["display_text"],
             "Description": ["description"],
@@ -165,14 +175,20 @@ methods = {
     },
     "TagType": {
         "model": core.models.view_tables.TagType,
-        "column_names": ["Type", "Description",],
+        "column_names": [
+            "Type",
+            "Description",
+        ],
         "column_necessary_fields": {"Type": ["type"], "Description": ["description"]},
         "ordering": ["type"],
         "field_contains": "",
     },
     "UdfDef": {
         "model": core.models.view_tables.UdfDef,
-        "column_names": ["Description", "Value Type",],
+        "column_names": [
+            "Description",
+            "Value Type",
+        ],
         "column_necessary_fields": {
             "Description": ["description"],
             "Value Type": ["val_type.category", "val_type.description"],
@@ -217,7 +233,10 @@ methods = {
     },
     "Vessel": {
         "model": core.models.view_tables.Vessel,
-        "column_names": ["Plate Name", "Well Number",],
+        "column_names": [
+            "Plate Name",
+            "Well Number",
+        ],
         "column_necessary_fields": {
             "Plate Name": ["plate_name"],
             "Well Number": ["well_number"],

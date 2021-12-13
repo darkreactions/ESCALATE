@@ -35,7 +35,9 @@ inventory_tests = [
                 "is_valid_response": {
                     "function": check_status_code,
                     "args": [],
-                    "kwargs": {"status_code": POST,},
+                    "kwargs": {
+                        "status_code": POST,
+                    },
                 },
             }
             for name in ["owner0", "operator0", "lab0", "owner1", "operator1", "lab1"]
@@ -51,7 +53,9 @@ inventory_tests = [
                 "is_valid_response": {
                     "function": check_status_code,
                     "args": [],
-                    "kwargs": {"status_code": POST,},
+                    "kwargs": {
+                        "status_code": POST,
+                    },
                 },
             }
             for name in ["status0", "status1"]
@@ -74,7 +78,10 @@ inventory_tests = [
             "is_valid_response": {
                 "function": compare_data,
                 "args": [],
-                "kwargs": {"status_code": POST, "request_body": request_body,},
+                "kwargs": {
+                    "status_code": POST,
+                    "request_body": request_body,
+                },
             },
         },
         {
@@ -87,7 +94,9 @@ inventory_tests = [
             "is_valid_response": {
                 "function": check_status_code,
                 "args": [],
-                "kwargs": {"status_code": GET,},
+                "kwargs": {
+                    "status_code": GET,
+                },
             },
         },
         {
@@ -121,7 +130,9 @@ inventory_tests = [
             "is_valid_response": {
                 "function": check_status_code,
                 "args": [],
-                "kwargs": {"status_code": GET,},
+                "kwargs": {
+                    "status_code": GET,
+                },
             },
         },
         {
@@ -134,7 +145,9 @@ inventory_tests = [
             "is_valid_response": {
                 "function": check_status_code,
                 "args": [],
-                "kwargs": {"status_code": DELETE,},
+                "kwargs": {
+                    "status_code": DELETE,
+                },
             },
         },
         {
@@ -147,7 +160,9 @@ inventory_tests = [
             "is_valid_response": {
                 "function": check_status_code,
                 "args": [],
-                "kwargs": {"status_code": ERROR,},
+                "kwargs": {
+                    "status_code": ERROR,
+                },
             },
         },
     ],

@@ -571,7 +571,10 @@ class DefaultValues(DateColumns, ActorColumn, DescriptionColumn):
 
 
 class ValueInstance(DateColumns, ActorColumn, DescriptionColumn):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4,)
+    uuid = RetUUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+    )
     value_template = models.ForeignKey(
         "DefaultValues",
         on_delete=models.DO_NOTHING,
