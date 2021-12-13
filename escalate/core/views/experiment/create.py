@@ -47,6 +47,7 @@ from core.forms.custom_types import (
     ReagentSelectionForm,
     ActionSequenceSelectionForm, 
     MaterialTypeSelectionForm,
+    OutcomeDefinitionForm,
 )
 
 from core.utilities.utils import experiment_copy
@@ -93,7 +94,7 @@ class CreateReagentTemplate(TemplateView):
             return context
     
     def create_template(self, context):
-        reagent_template = ReagentTemplate(description=context['name'],) 
+        reagent_template = ReagentTemplate(description=context['new_template_name'],) 
                                           #ref_uid=context['name'],)
                                           #lab=context['lab'])
         reagent_template.save()
@@ -185,10 +186,16 @@ class CreateReagentTemplate(TemplateView):
             if form.is_valid():
                 temp = form.cleaned_data.get('select_mt')
                 context['material_types'] = temp
-            context['name'] = request.POST['template_name']
+            context['new_template_name'] = request.POST['template_name']
             self.create_template(context)
             self.add_materials(context)
+        #context["template_link"] = "exp-template"
 
+        #return render(request, self.template_name, context)
+        if ReagentTemplate(uuid=context['rt_uuid']) is not None:
+            messages.success(request, 'Created reagent template!')
+        #return redirect("exp_template/")
+            return HttpResponseRedirect(reverse("experiment_template_add"))
         return render(request, self.template_name, context)
 
 
@@ -196,7 +203,7 @@ class CreateExperimentTemplate(TemplateView):
     template_name="core/create_exp_template.html"
     form_class= ExperimentTemplateCreateForm
     #MaterialFormSet: Type[BaseFormSet] = formset_factory(InventoryMaterialForm, extra=0)
-    #ReagentFormSet: Type[BaseFormSet] = formset_factory(ReagentForm, extra=0, formset=BaseReagentFormSet)
+    #ReagentFormSet: Type[BaseFormSet] = formset_factory(ReagentSelectionForm, extra=0, formset=BaseReagentFormSet)
    
     def get_context_data(self, **kwargs):    
         # Select materials that belong to the current lab
@@ -211,8 +218,8 @@ class CreateExperimentTemplate(TemplateView):
         return context
 
     def create_template(self, context):
-        exp_template = ExperimentTemplate(description=context['name'], 
-                                          ref_uid=context['name'],
+        exp_template = ExperimentTemplate(description=context['new_template_name'], 
+                                          ref_uid=context['new_template_name'],
                                           lab=context['lab'])
         exp_template.save()
         #exp_uuid = ExperimentTemplate.objects.get(description=context['name'])
@@ -252,13 +259,17 @@ class CreateExperimentTemplate(TemplateView):
                                               default_value = default_score)
         ot.save()
         exp_template.outcome_templates.add(ot)
-
+    
     def get(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
         
         if 'current_org_id' in self.request.session:
             org_id = self.request.session['current_org_id']
             context['experiment_template_create_form'] = ExperimentTemplateCreateForm(org_id=org_id)
+            context["reagent_selection_form"] = ReagentSelectionForm()
+            context["action_sequence_selection_form"] = ActionSequenceSelectionForm()
+            context["outcome_definition_form"] = OutcomeDefinitionForm()
+            context["reagent_template_link"] = "reagent-template"
             return render(request, self.template_name, context)
 
         else:
@@ -271,7 +282,7 @@ class CreateExperimentTemplate(TemplateView):
     def post(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
         if 'create_template' in request.POST:
-            context['name'] = request.POST['template_name']
+            context['new_template_name'] = request.POST['template_name']
             #context['outcome_type'] =request.POST['define_outcomes']
             self.create_template(context)
             form=ReagentSelectionForm(request.POST)
@@ -294,6 +305,7 @@ class CreateExperimentTemplate(TemplateView):
             #self.add_reagents(context)
             #self.add_actions(context)
             self.add_outcomes(context, request.POST['define_outcomes'], int(request.POST['well_num']))
+            context["experiment_link"] = "experiment"
 
         return render(request, self.template_name, context)
 
