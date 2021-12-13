@@ -210,6 +210,8 @@ view_names = [
     "MaterialType",
     "ExperimentInstance",
     "Edocument",
+    "ExperimentCompletedInstance",
+    "ExperimentPendingInstance",
 ]
 
 

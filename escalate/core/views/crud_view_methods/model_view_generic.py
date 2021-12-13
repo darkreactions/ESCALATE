@@ -261,7 +261,11 @@ class GenericModelList(GenericModelListBase, ListView):
                     "edoc_download", args=(model_instance.pk,)
                 )
             # Following links show up to the right of experiment list
-            if model_name == "experiment_instance":
+            if model_name in (
+                "experiment_instance",
+                "experiment_pending_instance",
+                "experiment_completed_instance",
+            ):
                 table_row_info["outcome_url"] = reverse(
                     "outcome", args=(model_instance.pk,)
                 )

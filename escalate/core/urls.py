@@ -1,11 +1,12 @@
 from django.urls import path, include
 import core.views
+
 from .views import (
     LoginView,
     CreateUserView,
     MainMenuView,
     SelectLabView,
-    WorkflowView,
+    ActionSequenceView,
     ModelTagCreate,
     ModelTagUpdate,
     logout_view,
@@ -36,7 +37,7 @@ urlpatterns = [
     path("create_user/", CreateUserView.as_view(), name="create_user"),
     path("main_menu/", MainMenuView.as_view(), name="main_menu"),
     path("select_lab/", SelectLabView.as_view(), name="select_lab"),
-    path("workflow/", WorkflowView.as_view(), name="workflow"),
+    path("action_sequence/", ActionSequenceView.as_view(), name="action_sequence"),
     path("logout/", logout_view, name="logout"),
     path("user_profile/", UserProfileView.as_view(), name="user_profile"),
     path("change_password/", change_password, name="change_password"),
@@ -77,6 +78,35 @@ urlpatterns = [
     ),
     path(
         "experiment/<uuid:pk>/outcome", ExperimentOutcomeView.as_view(), name="outcome"
+    ),
+    path(
+        "experiment_pending_instance/",
+        CreateExperimentView.as_view(),
+        name="experiment_pending_instance_add",
+    ),
+    path(
+        "experiment_pending_instance/<uuid:pk>/view",
+        ExperimentDetailView.as_view(),
+        name="experiment_pending_instance_view",
+    ),
+    path(
+        "experiment_pending_instance/<uuid:pk>",
+        ExperimentDetailEditView.as_view(),
+        name="experiment_pending_instance_update",
+    ),
+    path(
+        "experiment_pending_instance/<uuid:pk>/reagent_prep",
+        ExperimentReagentPrepView.as_view(),
+        name="experiment_pending_instance_reagent_prep",
+    ),
+    path(
+        "experiment_pending_instance/<uuid:pk>/outcome",
+        ExperimentOutcomeView.as_view(),
+        name="experiment_pending_instance_outcome",
+    ),
+    path(
+        "favicon.ico",
+        RedirectView.as_view(url=staticfiles_storage.url("static/favicon.ico")),
     ),
 ]
 

@@ -4,8 +4,8 @@ from django.views import View
 import json
 
 
-class WorkflowView(LoginRequired, View):
-    template_name = "core/workflow.html"
+class ActionSequenceView(LoginRequired, View):
+    template_name = "core/action_sequence.html"
 
     # @method_decorator(login_required)
     def get(self, request, *args, **kwargs):

@@ -10,10 +10,11 @@ from django.http import HttpResponseRedirect
 
 from django.views.generic import TemplateView
 from django.forms import formset_factory, BaseFormSet
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.urls import reverse
 
+from core.models import DefaultValues, ReagentTemplate, Parameter
 
 from core.models.view_tables import (
     ExperimentTemplate,
@@ -25,7 +26,12 @@ from core.models.view_tables import (
     ReagentMaterialTemplate,
     ReagentMaterialValueTemplate,
     MaterialType,
+    Vessel,
+    OutcomeTemplate,
+    ExperimentActionSequence,
+    ActionSequence,
 )
+
 from core.forms.custom_types import (
     SingleValForm,
     InventoryMaterialForm,
@@ -38,6 +44,9 @@ from core.forms.custom_types import (
     ReactionParameterForm,
     UploadFileForm,
     RobotForm,
+    ReagentSelectionForm,
+    ActionSequenceSelectionForm,
+    MaterialTypeSelectionForm,
 )
 
 from core.utilities.utils import experiment_copy
@@ -215,7 +224,7 @@ class CreateExperimentView(TemplateView):
 
             dead_volume_form = SingleValForm(request.POST, prefix="dead_volume")
             if dead_volume_form.is_valid():
-                dead_volume = dead_volume_form.value
+                dead_volume = dead_volume_form.cleaned_data["value"]
             else:
                 dead_volume = None
 
@@ -507,6 +516,8 @@ class CreateExperimentView(TemplateView):
             experiment_copy_uuid: str = experiment_copy(
                 str(exp_template.uuid), exp_name
             )
+
+            reagentDefs = []
             exp_concentrations = {}
             reagent_formset: BaseFormSet
             for reagent_formset in formsets:
@@ -526,7 +537,8 @@ class CreateExperimentView(TemplateView):
             # Save dead volumes should probably be in a separate function
             dead_volume_form = SingleValForm(request.POST, prefix="dead_volume")
             if dead_volume_form.is_valid():
-                dead_volume = dead_volume_form.value
+                dead_volume = dead_volume_form.cleaned_data["value"]
+                # dead_volume = dead_volume_form.value
             else:
                 dead_volume = None
 
