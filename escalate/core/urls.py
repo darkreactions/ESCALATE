@@ -12,27 +12,24 @@ from .views import (
     UserProfileView,
     change_password,
     UserProfileEdit,
+    get_messages,
 )
 from .views.experiment import (
     CreateExperimentView,
+    SetupExperimentView,
     ExperimentDetailView,
     ExperimentReagentPrepView,
     ExperimentOutcomeView,
     ExperimentDetailEditView,
 )
+
+from .views.experiment.create_select_template import SelectReagentsView
+
 from core.utilities.utils import view_names, camel_to_snake
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from core.views.exports.file_types import file_types as export_file_types
-
-urlpatterns = [
-    path(
-        "favicon.ico",
-        RedirectView.as_view(url=staticfiles_storage.url("static/favicon.ico")),
-    )
-]
-
 
 urlpatterns = [
     path("", LoginView.as_view(), name="login"),
@@ -44,10 +41,25 @@ urlpatterns = [
     path("user_profile/", UserProfileView.as_view(), name="user_profile"),
     path("change_password/", change_password, name="change_password"),
     path("user_profile_edit/", UserProfileEdit.as_view(), name="user_profile_edit"),
-    # path('param_edit/<uuid:pk>', ParameterEditView.as_view(), name='parameter_edit'),
-    # path('mat_edit/<uuid:pk>', MaterialEditView.as_view(), name='material_edit'),
-    path("experiment/", CreateExperimentView.as_view(), name="experiment_instance_add"),
-    #     path('experiment_list/', ExperimentListView.as_view(), name='experiment_list'),
+    path(
+        "favicon.ico",
+        RedirectView.as_view(url=staticfiles_storage.url("static/favicon.ico")),
+    ),
+    path(
+        "experiment/setup",
+        SetupExperimentView.as_view(),
+        name="experiment_instance_add",
+    ),
+    path(
+        "experiment/setup/select_reagents",
+        SelectReagentsView.as_view(),
+        name="select_reagents",
+    ),
+    path(
+        "experiment/setup/create",
+        CreateExperimentView.as_view(),
+        name="create_experiment",
+    ),
     path(
         "experiment/<uuid:pk>/view",
         ExperimentDetailView.as_view(),
@@ -66,11 +78,10 @@ urlpatterns = [
     path(
         "experiment/<uuid:pk>/outcome", ExperimentOutcomeView.as_view(), name="outcome"
     ),
-    path(
-        "favicon.ico",
-        RedirectView.as_view(url=staticfiles_storage.url("static/favicon.ico")),
-    ),
 ]
+
+# Experiment related urls
+# urlpatterns += []
 
 
 def add_urls(model_name, pattern_list):
@@ -117,22 +128,6 @@ def add_urls(model_name, pattern_list):
                 name=f"{lower_case_model_name}_view",
             )
         )
-    # new_urls = [path(f'{lower_case_model_name}_list/',
-    #                     getattr(core.views, f'{model_name}List').as_view(),
-    #                     name=f'{lower_case_model_name}_list'),
-    #                path(f'{lower_case_model_name}/',
-    #                     getattr(core.views, f'{model_name}Create').as_view(),
-    #                     name=f'{lower_case_model_name}_add'),
-    #                path(f'{lower_case_model_name}/<uuid:pk>',
-    #                     getattr(core.views, f'{model_name}Update').as_view(),
-    #                     name=f'{lower_case_model_name}_update'),
-    #                path(f'{lower_case_model_name}/<uuid:pk>/delete',
-    #                     getattr(core.views, f'{model_name}Delete').as_view(),
-    #                     name=f'{lower_case_model_name}_delete'),
-    #                path(f'{lower_case_model_name}/<uuid:pk>/view',
-    #                     getattr(core.views, f'{model_name}View').as_view(),
-    #                     name=f'{lower_case_model_name}_view'),
-    #                ]
 
     export_urls = [
         path(

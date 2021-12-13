@@ -47,7 +47,7 @@ class ValWidget(MultiWidget):
             data_type_choices = [("num", "num"), ("text", "text"), ("bool", "bool")]
         select_attrs = {
             "class": "selectpicker",
-            "data-style": "btn-outline-primary",
+            "data-style": "btn-primary",
             "data-live-search": "true",
             "placeholder": "DataType",
         }

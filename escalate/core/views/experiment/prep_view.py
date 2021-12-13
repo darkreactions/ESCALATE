@@ -28,18 +28,7 @@ class ExperimentReagentPrepView(TemplateView):
         return render(request, self.template_name, context)
 
     def get_colors(
-        self,
-        number_of_colors,
-        colors=[
-            "lightblue",
-            "teal",
-            "powderblue",
-            "skyblue",
-            "pastelblue",
-            "verdigris",
-            "steelblue",
-            "cornflowerblue",
-        ],
+        self, number_of_colors, colors=["teal", "purple", "navy", "green",],
     ):
         factor = int(number_of_colors / len(colors))
         remainder = number_of_colors % len(colors)
