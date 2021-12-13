@@ -97,7 +97,10 @@
                         <div class="dropdown-menu">
                             <ul class="list-unstyled">
                                 <li>
-                                    <a class="dropdown-item {% if url_name == 'experiment_list' %}active{% endif %}" href="{% url 'experiment_instance_list' %}">Experiment Queue</a>
+                                    <a class="dropdown-item {% if url_name == 'experiment_pending_list' %}active{% endif %}" href="{% url 'experiment_pending_instance_list' %}">Experiment Queue</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item {% if url_name == 'experiment_completed_list' %}active{% endif %}" href="{% url 'experiment_completed_instance_list' %}">Completed Experiments</a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item {% if url_name == 'create_experiment' %}active{% endif %}" href="{% url 'experiment_instance_add' %}">Create Experiment</a>

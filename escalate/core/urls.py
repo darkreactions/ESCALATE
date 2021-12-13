@@ -23,6 +23,7 @@ from .views.experiment import (
     ExperimentOutcomeView,
     ExperimentDetailEditView,
 )
+
 from core.utilities.utils import view_names, camel_to_snake
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.views.generic.base import RedirectView
@@ -38,9 +39,9 @@ urlpatterns = [
 
 
 urlpatterns = [
-    path('', LoginView.as_view(), name='login'),
-    path('create_user/', CreateUserView.as_view(), name='create_user'),
-    path('main_menu/', MainMenuView.as_view(), name='main_menu'),
+    path("", LoginView.as_view(), name="login"),
+    path("create_user/", CreateUserView.as_view(), name="create_user"),
+    path("main_menu/", MainMenuView.as_view(), name="main_menu"),
     path("select_lab/", SelectLabView.as_view(), name="select_lab"),
     path('action_sequence/', ActionSequenceView.as_view(), name='action_sequence'),
     path('logout/', logout_view, name='logout'),

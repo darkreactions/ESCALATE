@@ -21,18 +21,19 @@ class SelectLabView(LoginRequired, View):
 
     def get(self, request):
         vw_person = Person.objects.get(pk=request.user.person.pk)
-        #context = {"plot_div": plot_div, "user_person": vw_person}
-        #return render(request, self.template_name, context=context)
+        # context = {"plot_div": plot_div, "user_person": vw_person}
+        # return render(request, self.template_name, context=context)
         context = {"user_person": vw_person}
         return render(request, self.template_name, context=context)
-    
+
     def post(self, request, *args, **kwargs):
-            if "select_org" in request.POST:
-                current_org = Organization.objects.get(pk=request.POST["org_select"])
-                request.session["current_org_id"] = request.POST["org_select"]
-                request.session["current_org_name"] = current_org.full_name
-            #return render(request, self.template_name)
-            return HttpResponseRedirect(reverse("main_menu"))
+        if "select_org" in request.POST:
+            current_org = Organization.objects.get(pk=request.POST["org_select"])
+            request.session["current_org_id"] = request.POST["org_select"]
+            request.session["current_org_name"] = current_org.full_name
+        # return render(request, self.template_name)
+        return HttpResponseRedirect(reverse("main_menu"))
+
 
 class MainMenuView(LoginRequired, View):
     template_name = "core/main_menu.html"
@@ -55,7 +56,6 @@ class MainMenuView(LoginRequired, View):
             output_type="div",
             include_plotlyjs=False,
         )
-        #vw_person = Person.objects.get(pk=request.user.person.pk)
-        context = {"plot_div": plot_div} #, "user_person": vw_person}
+        # vw_person = Person.objects.get(pk=request.user.person.pk)
+        context = {"plot_div": plot_div}  # , "user_person": vw_person}
         return render(request, self.template_name, context=context)
-
