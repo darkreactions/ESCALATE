@@ -549,7 +549,7 @@ def generateExperiments(
                 for key in dic.keys():
                     if key not in mat_types:
                         mat_types.append(key)
-            raise ValueError("Error: Must enter nonzero concentrations for at least two of the following: {}". format(mat_types))
+            raise ValueError("Error - Must enter nonzero concentrations for at least two of the following: " + ", ". join(mat_types))
 
         elif speciesDimensionality <= 3:
 
