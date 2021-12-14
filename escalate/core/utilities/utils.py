@@ -16,6 +16,7 @@ from core.models.view_tables import (
 )
 from copy import deepcopy
 import uuid
+import core.models.view_tables as vt
 
 '''
 def experiment_copy(template_experiment_uuid, copy_experiment_description):
@@ -25,6 +26,60 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
     copy_experiment_uuid = cur.fetchone()[0]  # there will always be only one element in the tuple from this PG fn
     return copy_experiment_uuid
 '''
+
+
+def generate_action_sequence_json():
+    action_defs = [a for a in vt.ActionDef.objects.all()]
+
+    json_data = []
+
+    for i in range(len(action_defs)):
+
+        json_data.append(
+            {
+                "type": action_defs[i].description,
+                "displayName": action_defs[i].description,
+                "runtimeDescription": "x => ` ",
+                "description": action_defs[i].description,
+                "category": "template",
+                "outcomes": ["Done"],
+                "properties": [
+                    {
+                        "name": "source",
+                        "type": "text",
+                        "label": "From:",
+                        "hint": "source material/vessel",
+                        "options": {},
+                    },
+                    {
+                        "name": "destination",
+                        "type": "text",
+                        "label": "To:",
+                        "hint": "destination material/vessel",
+                        "options": {},
+                    },
+                ],
+            }
+        )
+        for param in action_defs[i].parameter_def.all():
+
+            json_data[i]["properties"].append(
+                {
+                    "name": param.description,
+                    "type": "text",
+                    "label": param.description,
+                    "hint": "",
+                    "options": {},
+                }
+            )
+            json_data[i]["runtimeDescription"] += (
+                " {}: ".format(param.description)
+                + "${ "
+                + "x.state.{} ".format(param.description)
+                + "} \n"
+            )
+
+        json_data[i]["runtimeDescription"] += " ` "
 
 
 def experiment_copy(template_experiment_uuid, copy_experiment_description):
