@@ -2,11 +2,30 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth.hashers import make_password
 from django.contrib.admin import widgets
-from core.models import (CustomUser, OrganizationPassword, )
-from core.models.view_tables import (Person, Material, Inventory, Actor, Note,
-                         Organization, Systemtool, SystemtoolType,
-                         UdfDef, Status, Tag, TagAssign, TagType, MaterialType,
-                         Edocument, InventoryMaterial, Vessel, MaterialIdentifier)
+from core.models import (
+    CustomUser,
+    OrganizationPassword,
+)
+from core.models.view_tables import (
+    Person,
+    Material,
+    Inventory,
+    Actor,
+    Note,
+    Organization,
+    Systemtool,
+    SystemtoolType,
+    UdfDef,
+    Status,
+    Tag,
+    TagAssign,
+    TagType,
+    MaterialType,
+    Edocument,
+    InventoryMaterial,
+    Vessel,
+    MaterialIdentifier,
+)
 from core.models.core_tables import TypeDef
 
 from packaging import version
@@ -33,7 +52,7 @@ class LoginForm(forms.Form):
 
 
 class CustomUserCreationForm(UserCreationForm):
-    class Meta: 
+    class Meta:
         model = CustomUser
         fields = ["username", "password1", "password2"]
 
@@ -140,36 +159,52 @@ class MaterialForm(forms.ModelForm):
         # pk of model that is passed in to filter for tags belonging to the model
         material_instance = kwargs.get("instance", None)
 
-        current_material_identifiers = material_instance.identifier.all() if material_instance else MaterialIdentifier.objects.none()
-        current_material_types = material_instance.material_type.all() if material_instance else MaterialType.objects.none()
-        
+        current_material_identifiers = (
+            material_instance.identifier.all()
+            if material_instance
+            else MaterialIdentifier.objects.none()
+        )
+        current_material_types = (
+            material_instance.material_type.all()
+            if material_instance
+            else MaterialType.objects.none()
+        )
+
         super(MaterialForm, self).__init__(*args, **kwargs)
 
-        self.fields['identifier'] = forms.ModelMultipleChoiceField(
+        self.fields["identifier"] = forms.ModelMultipleChoiceField(
             initial=current_material_identifiers,
             required=False,
-            queryset=MaterialIdentifier.objects.all())
-        self.fields['identifier'].widget.attrs.update(dropdown_attrs)
-        
-        self.fields['material_type'] = forms.ModelMultipleChoiceField(
+            queryset=MaterialIdentifier.objects.all(),
+        )
+        self.fields["identifier"].widget.attrs.update(dropdown_attrs)
+
+        self.fields["material_type"] = forms.ModelMultipleChoiceField(
             initial=current_material_types,
             required=False,
-            queryset=MaterialType.objects.all())
-        self.fields['material_type'].widget.attrs.update(dropdown_attrs)
+            queryset=MaterialType.objects.all(),
+        )
+        self.fields["material_type"].widget.attrs.update(dropdown_attrs)
+
     class Meta:
         model = Material
-        fields = ['consumable', 'material_class', 'identifier', 'material_type', 'status']
+        fields = [
+            "consumable",
+            "material_class",
+            "identifier",
+            "material_type",
+            "status",
+        ]
         field_classes = {
             # 'create_date': forms.SplitDateTimeField,
         }
-        labels = {
-            'create_date': 'Create date',
-            'material_status': 'Status'
-        }
+        labels = {"create_date": "Create date", "material_status": "Status"}
         widgets = {
-            'consumable': forms.CheckboxInput(),
-            'material_class': forms.RadioSelect(choices=model._meta.get_field('material_class').choices),
-            'status': forms.Select(attrs=dropdown_attrs),
+            "consumable": forms.CheckboxInput(),
+            "material_class": forms.RadioSelect(
+                choices=model._meta.get_field("material_class").choices
+            ),
+            "status": forms.Select(attrs=dropdown_attrs),
         }
 
 
@@ -605,9 +640,9 @@ class InventoryMaterialForm(forms.ModelForm):
             "description": forms.CharField,
             "part_no": forms.CharField,
             #'onhand_amt': ValFormField,
-            'onhand_amt': forms.CharField,
-            'expiration_date': forms.SplitDateTimeField,
-            'location': forms.CharField,
+            "onhand_amt": forms.CharField,
+            "expiration_date": forms.SplitDateTimeField,
+            "location": forms.CharField,
         }
         labels = {
             "description": "Description",
@@ -637,19 +672,21 @@ class InventoryMaterialForm(forms.ModelForm):
 class VesselForm(forms.ModelForm):
     class Meta:
         model = Vessel
-        fields = ['description', 'parent', 'total_volume']
+        fields = ["description", "parent", "total_volume"]
         field_classes = {
-            'description': forms.CharField,
-            'total_volumne': forms.CharField,
+            "description": forms.CharField,
+            "total_volumne": forms.CharField,
         }
         labels = {
-            'description': 'Description',
-            'parent': 'Parent',
-            'total_volume': 'Total Volume'
+            "description": "Description",
+            "parent": "Parent",
+            "total_volume": "Total Volume",
         }
         widgets = {
-            'description': forms.TextInput(attrs={'placeholder': 'Vessel Information...'}),
-            'total_volumne': forms.TextInput(attrs={'placeholder': 'total Volume...'}),
+            "description": forms.TextInput(
+                attrs={"placeholder": "Vessel Information..."}
+            ),
+            "total_volumne": forms.TextInput(attrs={"placeholder": "total Volume..."}),
         }
 
 

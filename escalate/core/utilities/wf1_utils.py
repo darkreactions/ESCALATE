@@ -5,6 +5,35 @@ import math
 from core.models.view_tables import ReactionParameter
 
 
+def make_well_labels_list(well_count=96, robot="True"):
+    if well_count not in [24, 96]:
+        well_labels = [i for i in range(1, well_count + 1)]
+
+    else:
+        num_rows = math.ceil((well_count * 3 / 2) ** (1 / 2))
+        # num_cols = math.ceil(well_count/num_rows)
+
+        if robot == "True":
+            if well_count == 96:
+                column_order = ["A", "C", "E", "G", "B", "D", "F", "H"]
+            if well_count == 24:
+                column_order = ["A", "C", "B", "D"]
+            well_labels = [
+                f"{col}{row}" for row in range(1, num_rows + 1) for col in column_order
+            ][:well_count]
+
+        else:  # chronological order for outcomes
+            if well_count == 96:
+                column_order = ["A", "B", "C", "D", "E", "F", "G", "H"]
+            if well_count == 24:
+                column_order = ["A", "B", "C", "D"]
+            well_labels = [
+                f"{col}{row}" for col in column_order for row in range(1, num_rows + 1)
+            ][:well_count]
+
+    return well_labels
+
+
 def make_well_list(
     container_name,
     well_count,
@@ -76,7 +105,7 @@ def generate_robot_file(reaction_volumes, reaction_parameters, plate_name, well_
         reaction_volumes_output = pd.concat(
             [df_tray["Vial Site"], reaction_volumes_output], axis=1
         )
-        #Keep this Acid Volume 1/Acid Volume 2, do not change to acid vol
+        # Keep this Acid Volume 1/Acid Volume 2, do not change to acid vol
         REAG_MAPPING = {
             "Stock A": 2,
             "Stock B": 3,
@@ -229,7 +258,7 @@ def generate_robot_file_wf1(
         reaction_volumes_output = pd.concat(
             [df_tray["Vial Site"], reaction_volumes_output], axis=1
         )
-        #Keep this Acid Volume 1/Acid Volume 2, do not change to acid vol
+        # Keep this Acid Volume 1/Acid Volume 2, do not change to acid vol
         REAG_MAPPING = {
             "Dispense Stock A": 2,
             "Dispense Stock B": 3,
