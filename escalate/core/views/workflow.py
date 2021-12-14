@@ -6,7 +6,6 @@ import json
 
 class WorkflowView(LoginRequired, View):
     template_name = "core/workflow.html"
-
     # @method_decorator(login_required)
     def get(self, request, *args, **kwargs):
         with open("./core/static/json/http_components.json", "r") as f:
@@ -27,11 +26,11 @@ class WorkflowView(LoginRequired, View):
         with open("./core/static/json/action_def_workflow.json", "r") as f:
             action_def_workflow = f.read()
 
-        #components = mojito_components
+        # components = mojito_components
         components = action_def_components
 
         # workflow = http_workflow
-        #workflow = mojito_workflow
+        # workflow = mojito_workflow
         workflow = action_def_workflow
 
         context = {"components": components, "workflow": workflow}
