@@ -171,7 +171,7 @@
             <div class="card">
                 <div class="card-body" id="page-content">
                     <div class="alert alert-danger alert-dismissable" id="messages">
-                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                        <button type="button" class="close" aria-hidden="true">&times;</button>
                         <span>Success! message sent successfully.</span>
                     </div>
                     {% block content %}
@@ -302,6 +302,9 @@
             $('#messages span').text(evt.detail.message);
             $('.alert').show();
         })
+        $(".alert").on("close", function () {
+            $('.alert').hide();
+        });
     </script>
 
 </body>

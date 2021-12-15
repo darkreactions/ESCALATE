@@ -1,5 +1,6 @@
 from django.urls import path, include
 import core.views
+from core.views.function_views import download_robot_file
 
 from .views import (
     LoginView,
@@ -13,11 +14,12 @@ from .views import (
     UserProfileView,
     change_password,
     UserProfileEdit,
-    get_messages,
 )
 from .views.experiment import (
     CreateExperimentView,
     SetupExperimentView,
+    CreateExperimentTemplate,
+    CreateReagentTemplate,
     ExperimentDetailView,
     ExperimentReagentPrepView,
     ExperimentOutcomeView,
@@ -46,6 +48,10 @@ urlpatterns = [
         "favicon.ico",
         RedirectView.as_view(url=staticfiles_storage.url("static/favicon.ico")),
     ),
+]
+
+# Experiment Instance creation patterns
+urlpatterns += [
     path(
         "experiment/setup",
         SetupExperimentView.as_view(),
@@ -61,6 +67,27 @@ urlpatterns = [
         CreateExperimentView.as_view(),
         name="create_experiment",
     ),
+    path(
+        "experiment/setup/robot_file", download_robot_file, name="download_robot_file"
+    ),
+]
+
+# Experiment template creation patterns
+urlpatterns += [
+    path(
+        "exp_template/",
+        CreateExperimentTemplate.as_view(),
+        name="experiment_template_add",
+    ),
+    path(
+        "reagent_template/",
+        CreateReagentTemplate.as_view(),
+        name="reagent_template_add",
+    ),
+]
+
+# Experiment instance edit/view patterns
+urlpatterns += [
     path(
         "experiment/<uuid:pk>/view",
         ExperimentDetailView.as_view(),
@@ -79,6 +106,29 @@ urlpatterns = [
     path(
         "experiment/<uuid:pk>/outcome", ExperimentOutcomeView.as_view(), name="outcome"
     ),
+]
+
+# Completed experiment patterns
+urlpatterns += [
+    path(
+        "experiment_completed_instance/",
+        CreateExperimentView.as_view(),
+        name="experiment_completed_instance_add",
+    ),
+    path(
+        "experiment_completed_instance/<uuid:pk>/view",
+        ExperimentDetailView.as_view(),
+        name="experiment_completed_instance_view",
+    ),
+    path(
+        "experiment_completed_instance/<uuid:pk>",
+        ExperimentDetailEditView.as_view(),
+        name="experiment_completed_instance_update",
+    ),
+]
+
+# Pending experiment patterns
+urlpatterns += [
     path(
         "experiment_pending_instance/",
         CreateExperimentView.as_view(),
@@ -104,14 +154,7 @@ urlpatterns = [
         ExperimentOutcomeView.as_view(),
         name="experiment_pending_instance_outcome",
     ),
-    path(
-        "favicon.ico",
-        RedirectView.as_view(url=staticfiles_storage.url("static/favicon.ico")),
-    ),
 ]
-
-# Experiment related urls
-# urlpatterns += []
 
 
 def add_urls(model_name, pattern_list):
@@ -174,11 +217,12 @@ def add_urls(model_name, pattern_list):
         != None
     ]
 
-    return pattern_list + new_urls + export_urls
+    # return pattern_list + new_urls + export_urls
+    return new_urls + export_urls
 
 
 for model_name in view_names:
-    urlpatterns = add_urls(model_name, urlpatterns)
+    urlpatterns += add_urls(model_name, urlpatterns)
 
 
 urlpatterns += [

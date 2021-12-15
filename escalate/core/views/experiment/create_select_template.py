@@ -23,12 +23,13 @@ from core.forms.custom_types import (
     VesselForm,
     SingleValForm,
     ExperimentNameForm,
+    RobotForm,
 )
 from core.custom_types import Val
 
 
 class SelectReagentsView(TemplateView):
-    template_name = "core/experiment/create/automated_experiments.html"
+    template_name = "core/experiment/create/base_create.html"
 
     ReagentFormSet: BaseFormSet = formset_factory(
         ReagentForm, extra=0, formset=BaseReagentFormSet
@@ -44,10 +45,15 @@ class SelectReagentsView(TemplateView):
         exp_uuid = request.session["experiment_template_uuid"]
         context["selected_exp_template"] = ExperimentTemplate.objects.get(uuid=exp_uuid)
         context["experiment_name_form"] = ExperimentNameForm()
+        context = self.get_forms(context["selected_exp_template"], context)
 
-        if int(request.POST["automated"]) >= 0:
-            context["automated"] = int(request.POST["automated"])
-            context = self.get_forms(context["selected_exp_template"], context)
+        if (num_automated_exp := int(request.POST["automated"])) >= 0:
+            context["automated"] = num_automated_exp
+
+        if (num_manual_exp := int(request.POST["manual"])) >= 0:
+            context["manual"] = num_manual_exp
+            context["robot_file_upload_form"] = RobotForm()
+            context["robot_file_upload_form_helper"] = RobotForm.get_helper()
 
         return render(request, self.template_name, context)
 
@@ -56,13 +62,10 @@ class SelectReagentsView(TemplateView):
         context = self.get_dead_volume_form(context)
         context = self.get_vessel_form(context)
         context = self.get_reaction_parameter_forms(context)
-
         context["colors"] = self.get_colors(len(context["reagent_formset"]))
-
         return context
 
     def get_reagent_forms(self, context: dict[str, Any]) -> dict[str, Any]:
-
         exp_template = ExperimentTemplate.objects.get(
             pk=self.request.session["experiment_template_uuid"]
         )
