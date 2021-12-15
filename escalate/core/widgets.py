@@ -47,7 +47,7 @@ class ValWidget(MultiWidget):
             data_type_choices = [("num", "num"), ("text", "text"), ("bool", "bool")]
         select_attrs = {
             "class": "selectpicker",
-            "data-style": "btn-outline-primary",
+            "data-style": "btn-primary",
             "data-live-search": "true",
             "placeholder": "DataType",
         }
@@ -115,11 +115,7 @@ class ValFormField(MultiValueField):
         except Exception as e:
             data_type_choices = [("num", "num"), ("text", "text"), ("bool", "bool")]
         fields = (
-            CharField(
-                error_messages={
-                    "incomplete": "Must enter a value",
-                }
-            ),
+            CharField(error_messages={"incomplete": "Must enter a value",}),
             CharField(required=False),
             ChoiceField(choices=data_type_choices, initial="num"),
         )
