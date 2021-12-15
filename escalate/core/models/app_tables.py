@@ -44,3 +44,28 @@ class UnitType(models.Model):
     # class Meta:
     #     managed = True
     #     db_table = 'unit_type'
+
+
+class ActionSequenceDesign(models.Model):
+    # used to save workflow designer's json output into the database
+    id = models.CharField(primary_key=True, max_length=255, db_column="id")
+    connections = models.CharField(
+        max_length=255, blank=True, null=True, db_column="connections"
+    )
+    description = models.CharField(
+        max_length=255, blank=True, null=True, db_column="description"
+    )  # type
+    properties = models.CharField(
+        max_length=255, blank=True, null=True, db_column="properties"
+    )  # state
+    top_position = models.CharField(
+        max_length=255, blank=True, null=True, db_column="top"
+    )
+    left_position = models.CharField(
+        max_length=255, blank=True, null=True, db_column="left"
+    )
+
+    connections = models.CharField(
+        max_length=255, blank=True, null=True, db_column="connections"
+    )
+

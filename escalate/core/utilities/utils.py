@@ -16,7 +16,8 @@ from core.models.view_tables import (
 )
 from copy import deepcopy
 import uuid
-import core.models.view_tables as vt
+
+# import core.models.view_tables as vt
 
 '''
 def experiment_copy(template_experiment_uuid, copy_experiment_description):
@@ -28,8 +29,8 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
 '''
 
 
-def generate_action_sequence_json():
-    action_defs = [a for a in vt.ActionDef.objects.all()]
+def generate_action_sequence_json(action_defs):
+    # action_defs = [a for a in vt.ActionDef.objects.all()]
 
     json_data = []
 
@@ -80,6 +81,8 @@ def generate_action_sequence_json():
             )
 
         json_data[i]["runtimeDescription"] += " ` "
+
+    return json_data
 
 
 def experiment_copy(template_experiment_uuid, copy_experiment_description):

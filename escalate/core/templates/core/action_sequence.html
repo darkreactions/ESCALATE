@@ -53,6 +53,24 @@
   async function getWorkflow() {
     let result = await designer.getWorkflow();
     console.log(result);
+    var token = '{{csrf_token}}';
+    jQuery.ajax({
+      url: {% url 'save_action_sequence' %},
+      headers: { "X-CSRFToken": token },
+      type: "POST",
+      //data: JSON.stringify(result),
+      data: result,
+      dataType: "json",
+      beforeSend: function (x) {
+        if (x && x.overrideMimeType) {
+          x.overrideMimeType("application/j-son;charset=UTF-8");
+        }
+      },
+      success: function (result) {
+        console.log(result);
+        alert("Action sequence saved successfully!")
+      }
+    });
   }
 
 </script>

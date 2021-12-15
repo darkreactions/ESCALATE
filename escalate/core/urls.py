@@ -1,6 +1,6 @@
 from django.urls import path, include
 import core.views
-from core.views.function_views import download_robot_file
+from core.views.function_views import download_robot_file, save_action_sequence
 
 from .views import (
     LoginView,
@@ -84,6 +84,7 @@ urlpatterns += [
         CreateReagentTemplate.as_view(),
         name="reagent_template_add",
     ),
+    path("save_action_sequence/", save_action_sequence, name="save_action_sequence",),
 ]
 
 # Experiment instance edit/view patterns

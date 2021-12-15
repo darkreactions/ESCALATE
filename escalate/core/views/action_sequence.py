@@ -2,6 +2,8 @@ from core.views.crud_views import LoginRequired
 from django.shortcuts import render
 from django.views import View
 import json
+import core.models.view_tables as vt
+from core.utilities import generate_action_sequence_json
 
 
 class ActionSequenceView(LoginRequired, View):
@@ -28,11 +30,15 @@ class ActionSequenceView(LoginRequired, View):
             action_def_workflow = f.read()
 
         # components = mojito_components
-        components = action_def_components
+        # components = action_def_components
 
         # workflow = http_workflow
         # workflow = mojito_workflow
         workflow = action_def_workflow
+
+        action_defs = [a for a in vt.ActionDef.objects.all()]
+        temp = generate_action_sequence_json(action_defs)
+        components = json.dumps(temp)
 
         context = {"components": components, "workflow": workflow}
 

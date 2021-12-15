@@ -462,7 +462,7 @@ class CreateExperimentView(TemplateView):
                 )
             else:
                 messages.error(
-                    request, f'LSRGenerator failed with message: "{lsr_msg}"'
+                    self.request, f'LSRGenerator failed with message: "{lsr_msg}"'
                 )
             context["experiment_link"] = reverse(
                 "experiment_instance_view", args=[experiment_copy_uuid]
