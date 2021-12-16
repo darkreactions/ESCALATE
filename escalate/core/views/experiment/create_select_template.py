@@ -42,7 +42,8 @@ class SelectReagentsView(TemplateView):
     def post(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
         self.request = request
-        exp_uuid = request.session["experiment_template_uuid"]
+        exp_uuid = request.POST["select_experiment_template"]
+        request.session["experiment_template_uuid"] = exp_uuid
         context["selected_exp_template"] = ExperimentTemplate.objects.get(uuid=exp_uuid)
         context["experiment_name_form"] = ExperimentNameForm()
         context = self.get_forms(context["selected_exp_template"], context)
