@@ -7,6 +7,8 @@ from django.shortcuts import render
 from django.contrib import messages
 from django.urls import reverse
 
+from core.utilities.wf1_utils import make_well_labels_list
+
 from core.models import DefaultValues, ReagentTemplate
 
 from core.models.view_tables import (
@@ -269,11 +271,11 @@ class CreateExperimentTemplate(TemplateView):
                 # temp = form.cleaned_data.get('select_rt')
                 self.add_reagents(context, form.cleaned_data.get("select_rt"))
                 # context['reagents'] = temp
-            form2 = ActionSequenceSelectionForm(request.POST)
-            if form2.is_valid():
-                # temp = form2.cleaned_data.get('select_actions')
-                self.add_actions(context, form2.cleaned_data.get("select_actions"))
-                # context['action_sequences'] = temp
+            # form2 = ActionSequenceSelectionForm(request.POST)
+            # if form2.is_valid():
+            # temp = form2.cleaned_data.get('select_actions')
+            # self.add_actions(context, form2.cleaned_data.get("select_actions"))
+            # context['action_sequences'] = temp
             # context['name'] = request.POST['template_name']
             # context['reagents'] = request.POST['select_rt']
             # context['plate'] = request.POST['select_vessel']

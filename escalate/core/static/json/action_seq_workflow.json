@@ -1,0 +1,37 @@
+{
+    "activities": [
+        {
+            "id": "d3005c08-94ed-49cf-92a4-962f848ae2a1",
+            "top": 148,
+            "left": 8,
+            "type": "Dispense Solvent",
+            "state": {}
+        },
+        {
+            "id": "c07eeefc-f5a4-42e1-a801-4862c111c296",
+            "top": 147,
+            "left": 340,
+            "type": "Dispense Stock A",
+            "state": {}
+        },
+        {
+            "id": "c1708fb3-2a4e-4c68-bad1-038b2d9ce7fb",
+            "top": 145,
+            "left": 620,
+            "type": "Dispense Stock B",
+            "state": {}
+        }
+    ],
+    "connections": [
+        {
+            "sourceActivityId": "d3005c08-94ed-49cf-92a4-962f848ae2a1",
+            "destinationActivityId": "c07eeefc-f5a4-42e1-a801-4862c111c296",
+            "outcome": "Done"
+        },
+        {
+            "sourceActivityId": "c07eeefc-f5a4-42e1-a801-4862c111c296",
+            "destinationActivityId": "c1708fb3-2a4e-4c68-bad1-038b2d9ce7fb",
+            "outcome": "Done"
+        }
+    ]
+}

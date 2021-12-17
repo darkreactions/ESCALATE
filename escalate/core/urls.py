@@ -1,6 +1,10 @@
 from django.urls import path, include
 import core.views
-from core.views.function_views import download_robot_file, save_action_sequence
+from core.views.function_views import (
+    download_robot_file,
+    save_action_sequence,
+    save_experiment_action_sequence,
+)
 
 from .views import (
     LoginView,
@@ -8,6 +12,7 @@ from .views import (
     MainMenuView,
     SelectLabView,
     ActionSequenceView,
+    ExperimentActionSequenceView,
     ModelTagCreate,
     ModelTagUpdate,
     logout_view,
@@ -40,6 +45,11 @@ urlpatterns = [
     path("main_menu/", MainMenuView.as_view(), name="main_menu"),
     path("select_lab/", SelectLabView.as_view(), name="select_lab"),
     path("action_sequence/", ActionSequenceView.as_view(), name="action_sequence"),
+    path(
+        "experiment_action_sequence/",
+        ExperimentActionSequenceView.as_view(),
+        name="experiment_action_sequence",
+    ),
     path("logout/", logout_view, name="logout"),
     path("user_profile/", UserProfileView.as_view(), name="user_profile"),
     path("change_password/", change_password, name="change_password"),
@@ -85,6 +95,11 @@ urlpatterns += [
         name="reagent_template_add",
     ),
     path("save_action_sequence/", save_action_sequence, name="save_action_sequence",),
+    path(
+        "save_experiment_action_sequence/",
+        save_experiment_action_sequence,
+        name="save_experiment_action_sequence",
+    ),
 ]
 
 # Experiment instance edit/view patterns

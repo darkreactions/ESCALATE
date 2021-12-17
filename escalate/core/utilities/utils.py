@@ -29,7 +29,7 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
 '''
 
 
-def generate_action_sequence_json(action_defs):
+def generate_action_def_json(action_defs):
     # action_defs = [a for a in vt.ActionDef.objects.all()]
 
     json_data = []
@@ -82,6 +82,26 @@ def generate_action_sequence_json(action_defs):
 
         json_data[i]["runtimeDescription"] += " ` "
 
+    return json_data
+
+
+def generate_action_sequence_json(action_sequences):
+
+    json_data = []
+
+    for i in range(len(action_sequences)):
+
+        json_data.append(
+            {
+                "type": action_sequences[i].description,
+                "displayName": action_sequences[i].description,
+                "runtimeDescription": " ",
+                "properties": [],
+                "description": action_sequences[i].description,
+                "category": "template",
+                "outcomes": ["Done"],
+            }
+        )
     return json_data
 
 

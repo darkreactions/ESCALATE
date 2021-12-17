@@ -206,6 +206,30 @@ class MaterialTypeSelectionForm(Form):
         ]
 
 
+class ExperimentTemplateSelectForm(Form):
+
+    widget = Select(
+        attrs={
+            "class": "selectpicker",
+            "data-style": "btn-dark",
+            "data-live-search": "true",
+        }
+    )
+    select_experiment_template = ChoiceField(widget=widget)
+
+    def __init__(self, *args, **kwargs):
+        org_id = kwargs.pop("org_id")
+        if not org_id:
+            raise ValueError("Please select a lab to continue")
+        lab = vt.Actor.objects.get(organization=org_id, person__isnull=True)
+        super().__init__(*args, **kwargs)
+        # self.fields['organization'].queryset = OrganizationPassword.objects.all()
+        self.fields["select_experiment_template"].choices = [
+            (exp.uuid, exp.description)
+            for exp in vt.ExperimentTemplate.objects.filter(lab=lab)
+        ]
+
+
 class ExperimentTemplateCreateForm(Form):
 
     widget = Select(
@@ -248,12 +272,15 @@ class ExperimentTemplateCreateForm(Form):
 
     # action_choices = [(a.uuid, a.description) for a in vt.ActionSequence.objects.all()]
 
-    select_actions = MultipleChoiceField(
-        # initial='0',
-        widget=SelectMultiple(),
-        required=True,
-        label="Select Action Sequences",
-    )
+    # select_actions = MultipleChoiceField(
+    # initial='0',
+    # widget=SelectMultiple(),
+    # required=True,
+    # label="Select Action Sequences",
+    # )
+
+    # select_action_sequences = ChoiceField(required=True, label="Select Workflow")
+
     well_num = IntegerField(label="Number of Wells", required=True, initial=96)
 
     define_outcomes = CharField(
@@ -267,9 +294,12 @@ class ExperimentTemplateCreateForm(Form):
         self.fields["select_rt"].choices = [
             (r.uuid, r.description) for r in vt.ReagentTemplate.objects.all()
         ]
-        self.fields["select_actions"].choices = [
-            (a.uuid, a.description) for a in vt.ActionSequence.objects.all()
-        ]
+        # self.fields["select_actions"].choices = [
+        # (a.uuid, a.description) for a in vt.ActionSequence.objects.all()
+        # ]
+        # self.fields["select_action_sequences"].choices = [
+        #    (a.uuid, a.description) for a in vt.Workflow.objects.all()
+        # ]
 
         # v_query = vt.Vessel.objects.all()
         # vessel = VesselForm(initial={'value': v_query[0]})
