@@ -93,7 +93,7 @@ def generate_action_sequence_json(action_sequences):
 
         json_data.append(
             {
-                "type": action_sequences[i].description,
+                "type": str(action_sequences[i].uuid),
                 "displayName": action_sequences[i].description,
                 "runtimeDescription": " ",
                 "properties": [],

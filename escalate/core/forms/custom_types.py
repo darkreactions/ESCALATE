@@ -1,3 +1,4 @@
+from django.forms.widgets import TextInput
 from core.widgets import ValWidget
 from django.forms import (
     Select,
@@ -155,6 +156,12 @@ class ExperimentNameForm(Form):
     exp_name = CharField(label="Experiment Name", max_length=100)
 
 
+class ActionSequenceNameForm(Form):
+    widget = TextInput(attrs={"id": "name"})
+
+    name = CharField(label="Action Sequence Name", max_length=100, widget=widget)
+
+
 class ActionSequenceSelectionForm(Form):
     # action_choices = [(a.uuid, a.description) for a in vt.ActionSequence.objects.all()]
 
@@ -213,6 +220,7 @@ class ExperimentTemplateSelectForm(Form):
             "class": "selectpicker",
             "data-style": "btn-dark",
             "data-live-search": "true",
+            "id": "template",
         }
     )
     select_experiment_template = ChoiceField(widget=widget)

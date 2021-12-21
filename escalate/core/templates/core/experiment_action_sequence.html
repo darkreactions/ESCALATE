@@ -26,7 +26,7 @@
             <button class="btn btn-secondary" onclick="createNewWorkflow()">New Workflow</button>
         </li>
         <li class="nav-item">
-            <button class="btn btn-secondary" onclick="getWorkflow()">Save Workflow</button>
+            <button class="btn btn-secondary" name="get_workflow" onclick="getWorkflow()">Save Workflow</button>
         </li>
     </ul>
 </div>
@@ -61,6 +61,7 @@
 
     async function getWorkflow() {
         let result = await designer.getWorkflow();
+        result["exp_template"] = $("#template").val();
         console.log(result);
         var token = '{{csrf_token}}';
         jQuery.ajax({

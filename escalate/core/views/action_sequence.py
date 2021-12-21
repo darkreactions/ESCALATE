@@ -4,15 +4,33 @@ from django.views import View
 import json
 import core.models.view_tables as vt
 from core.utilities import generate_action_def_json, generate_action_sequence_json
-from core.forms.custom_types import ExperimentTemplateSelectForm
+from core.forms.custom_types import ExperimentTemplateSelectForm, ActionSequenceNameForm
 from django.http.request import HttpRequest
+from core.views.function_views import save_experiment_action_sequence
 
 
 class ActionSequenceView(LoginRequired, View):
     template_name = "core/action_sequence.html"
+    form_class = ActionSequenceNameForm
+
+    def get_context_data(self, **kwargs):
+        context = {}
+        if "current_org_id" in self.request.session:
+            org_id = self.request.session["current_org_id"]
+            lab = vt.Actor.objects.get(organization=org_id, person__isnull=True)
+            context["lab"] = lab
+        return context
 
     # @method_decorator(login_required)
     def get(self, request, *args, **kwargs):
+
+        context = self.get_context_data(**kwargs)
+
+        if "current_org_id" in self.request.session:
+            org_id = self.request.session["current_org_id"]
+            context["action_sequence_name_form"] = ActionSequenceNameForm
+            # return render(request, self.template_name, context)
+
         with open("./core/static/json/http_components.json", "r") as f:
             http_components = f.read()
 
@@ -40,13 +58,10 @@ class ActionSequenceView(LoginRequired, View):
 
         action_defs = [a for a in vt.ActionDef.objects.all()]
         temp = generate_action_def_json(action_defs)
-        # components = json.dumps(temp)
+        components = json.dumps(temp)
 
-        action_seqs = [a for a in vt.ActionSequence.objects.all()]
-        temp2 = generate_action_sequence_json(action_seqs)
-        components = json.dumps(temp2)
-
-        context = {"components": components, "workflow": workflow}
+        context["components"] = components
+        context["workflow"] = workflow
 
         return render(request, self.template_name, context=context)
 
@@ -93,8 +108,3 @@ class ExperimentActionSequenceView(LoginRequired, View):
         context["workflow"] = workflow
 
         return render(request, self.template_name, context=context)
-
-    def post(self, request: HttpRequest, *args, **kwargs):
-        context = self.get_context_data(**kwargs)
-        if "get_workflow" in request.POST:
-            context["name"] = request.POST["template_name"]

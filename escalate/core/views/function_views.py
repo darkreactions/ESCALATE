@@ -15,6 +15,8 @@ from core.models import (
     ExperimentTemplate,
 )
 
+# import json
+
 # from escalate.core.models.view_tables.workflow import Workflow
 
 
@@ -40,12 +42,13 @@ def save_action_sequence(request: HttpRequest) -> HttpResponse:
         print(request.POST)
 
         action_sequence_instance = ActionSequence.objects.create(
-            description="generalization_test"
-        )  # TODO: add option in UI to enter name upon saving
+            description=request.POST["action_sequence_name"]
+        )
 
         action_tuples = []
 
         ids = []
+        # json.loads(request.POST["data"])
         for key, val in request.POST.items():
             if "connections" in key:
                 index = key.split("[")[1].split("]")[0]
@@ -135,7 +138,7 @@ def save_experiment_action_sequence(request: HttpRequest) -> HttpResponse:
         #   description="generalization_test"
         # )  # TODO: add option in UI to enter name upon saving
 
-        exp_template = ExperimentTemplate.objects.filter(description="test")[0]
+        exp_template = ExperimentTemplate.objects.get(uuid=request.POST["exp_template"])
 
         action_sequences = []
 
@@ -158,21 +161,19 @@ def save_experiment_action_sequence(request: HttpRequest) -> HttpResponse:
                     if val == entry:
                         id = entry
                         index = key.split("[")[1].split("]")[0]
-                        description = request.POST["activities[{}][type]".format(index)]
+                        uuid = request.POST["activities[{}][type]".format(index)]
                         top = request.POST["activities[{}][top]".format(index)]
                         left = request.POST["activities[{}][left]".format(index)]
 
                         a, created = ActionSequenceDesign.objects.get_or_create(
                             id=id,
-                            description=description,
+                            description=uuid,
                             top_position=top,
                             left_position=left,
                         )
                         a.save()
 
-                        action_sequence = ActionSequence.objects.filter(
-                            description=description
-                        )[0]
+                        action_sequence = ActionSequence.objects.get(uuid=uuid)
                         action_sequences.append(action_sequence)
 
         for i, a in enumerate(action_sequences):
