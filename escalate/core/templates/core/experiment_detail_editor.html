@@ -21,6 +21,7 @@
         <div class="container">
             {% crispy queue_status_form helper %}
         </div>
+        <center><button type="submit" name="param_update" value="param_update" class="btn btn-raised btn-primary">View/Update Parameters</button></center>
     </div>
     <div class="treeview-animated border mx-4 my-4">
     <h6 class="pt-3 pl-3">Files associated with {{ experiment.description }}</h6>
@@ -39,7 +40,7 @@
     {{ edoc_upload_form.management_form }}
     <p>Upload New Files: </p>
         {% crispy edoc_upload_form edoc_helper %}
-        <button type="submit" name="add_edoc" value="add_edoc" class="btn btn-raised btn-primary">Add File</button>
+        <center><button type="submit" name="add_edoc" value="add_edoc" class="btn btn-raised btn-primary">Add File</button></center>
     </div>
     <br>
     </div>
