@@ -1,0 +1,24 @@
+{% load static %}
+{% load crispy_forms_tags %}
+{% load index %}
+{% block content %}
+
+{% if manual > 0 %}
+<hr>
+<h4>Manual Experiment Specification {{ manual }}</h4>
+<!--form method="post" enctype="multipart/form-data">{% csrf_token %}
+    <button class="btn btn-outline-primary" type="submit" name="robot_download" value="Submit">Download Robot
+        file</button>
+    </div>
+</form-->
+<span>To manually specify experiment, <a href="{% url 'download_robot_file' %}">click here</a> to download a manual
+    specification excel file, fill the appropriate columns and reupload using the form below</span>
+
+
+{% crispy robot_file_upload_form robot_file_upload_form_helper %}
+<!--button class="btn btn-outline-primary" type="submit" name="robot_upload" value="create_exp">Create
+    Experiment</button-->
+<hr>
+{% endif %}
+
+{% endblock %}

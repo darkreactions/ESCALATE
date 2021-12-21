@@ -5,27 +5,27 @@
 
 {% block content %}
 
-<form method="post"  action="">{% csrf_token %}
+<form method="post" action="">{% csrf_token %}
     {% for reagent_formset, reagent_total_volume_form in reagent_formsets %}
-        {{ reagent_formset.management_form }}
-        <div class="card">
-            <div class="card text-white" style="background-color: {{ colors|index:forloop.counter0 }}" >
+    {{ reagent_formset.management_form }}
+    <div class="card">
+        <div class="card text-white" style="background-color: {{ colors|index:forloop.counter0 }}">
             <div class="card-body">
                 <h5>{{ reagent_template_names|index:forloop.counter0 }}</h5>
                 {% for reagent_form in reagent_formset %}
-                    {% crispy reagent_form helper %}
-                    <hr>
+                {% crispy reagent_form helper %}
+                <hr>
                 {% endfor %}
                 {% crispy reagent_total_volume_form volume_form_helper %}
             </div>
         </div>
         <br>
-    {% endfor %}
-    <input type="hidden" id="automated" name="automated" value="{{ automated }}">
-    <div class="text-left">
-        <button class="btn btn-outline-primary" type="submit">Prepare Reagent</button>
-    </div>
-    
+        {% endfor %}
+        <input type="hidden" id="automated" name="automated" value="{{ automated }}">
+        <div class="text-left">
+            <button class="btn btn-outline-primary" type="submit">Prepare Reagent</button>
+        </div>
+
 </form>
 
 {% endblock %}
