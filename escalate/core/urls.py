@@ -89,8 +89,8 @@ urlpatterns += [
 # Experiment instance edit/view patterns
 urlpatterns += [
     path(
-        "experiment/<uuid:pk>/view",
-        ExperimentDetailView.as_view(),
+        "experiment/<uuid:pk>",
+        ExperimentDetailEditView.as_view(),
         name="experiment_instance_view",
     ),
     path(
@@ -116,8 +116,8 @@ urlpatterns += [
         name="experiment_completed_instance_add",
     ),
     path(
-        "experiment_completed_instance/<uuid:pk>/view",
-        ExperimentDetailView.as_view(),
+        "experiment_completed_instance/<uuid:pk>",
+        ExperimentDetailEditView.as_view(),
         name="experiment_completed_instance_view",
     ),
     path(
@@ -135,8 +135,8 @@ urlpatterns += [
         name="experiment_pending_instance_add",
     ),
     path(
-        "experiment_pending_instance/<uuid:pk>/view",
-        ExperimentDetailView.as_view(),
+        "experiment_pending_instance/<uuid:pk>",
+        ExperimentDetailEditView.as_view(),
         name="experiment_pending_instance_view",
     ),
     path(
