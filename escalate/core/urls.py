@@ -156,7 +156,6 @@ urlpatterns += [
     ),
 ]
 
-
 def add_urls(model_name, pattern_list):
     lower_case_model_name = camel_to_snake(model_name)
 

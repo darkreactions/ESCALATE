@@ -6,7 +6,14 @@
 {% block content %}
 
 <div class="container" >
-    {% if not created_template %}
+    {% if new_template_name %}
+    <p>Created Reagent Template! </p>
+    <p>Template name: {{ new_template_name }}</p>
+    <p> <a href={{ template_link }}> Create experiment template</a></p>
+
+    
+    {% else %}
+
     <p> Create Reagent Template </p>
     <div class="row">
       <div class="col-md-12 text-secondary">
@@ -21,14 +28,7 @@
     {% endif %}
 
     {% if created_template %}
-    <p>Created reagent {{ selected_material_types.template_name }}</p>
-    <div class="row">
-        <div class="col-md-12">
-          {{ material_type_selection_form|crispy }}
-            <form method="post" enctype="multipart/form-data">{% csrf_token %}
-
-                <button class="btn btn-outline-primary" type="submit" name="select_material_types"
-                  value="select_reagents">Select Material Types</button>
+    
     {% endif %}
 
 {% endblock %}
