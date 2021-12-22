@@ -2,7 +2,7 @@ from django.http import HttpResponse, HttpRequest
 from django.shortcuts import render
 from django.contrib.messages import get_messages
 from core.utilities.experiment_utils import get_action_parameter_querysets
-from core.utilities.wf1_utils import generate_robot_file_wf1
+from core.utilities.wf1_utils import generate_robot_file_wf1, make_well_labels_list
 from django.http.response import FileResponse, JsonResponse
 from core.models.app_tables import ActionSequenceDesign
 from core.models import (
@@ -13,6 +13,7 @@ from core.models import (
     BaseBomMaterial,
     ExperimentActionSequence,
     ExperimentTemplate,
+    Vessel,
 )
 
 # import json
@@ -50,7 +51,9 @@ def save_action_sequence(request: HttpRequest) -> HttpResponse:
         ids = []
         # json.loads(request.POST["data"])
         for key, val in request.POST.items():
-            if "connections" in key:
+            if (
+                "connections" in key
+            ):  # more than one action - order sequentially based on connections
                 index = key.split("[")[1].split("]")[0]
                 id1 = request.POST["connections[{}][sourceActivityId]".format(index)]
                 if id1 not in ids:
@@ -60,6 +63,10 @@ def save_action_sequence(request: HttpRequest) -> HttpResponse:
                 ]
                 if id2 not in ids:
                     ids.append(id2)
+            else:  # single action
+                id1 = request.POST["activities[0][id]"]
+                if id1 not in ids:
+                    ids.append(id1)
 
         for entry in ids:
             for key, val in request.POST.items():
@@ -100,7 +107,7 @@ def save_action_sequence(request: HttpRequest) -> HttpResponse:
                 description=description
             )
             action = Action.objects.create(
-                description="generalization_test",
+                description=description,
                 action_def=action_def,
                 action_sequence=action_sequence_instance,
             )
@@ -111,21 +118,82 @@ def save_action_sequence(request: HttpRequest) -> HttpResponse:
             else:
                 source_bbm = None
 
-            if destination is not None:
-                destination_bbm = BaseBomMaterial.objects.create(
-                    description=destination
+            if "wells" in destination:  # individual well-level actions
+                plate, created = Vessel.objects.get_or_create(
+                    description=destination.split("wells")[0]
                 )
+                well_count = int(destination.split(" ")[0])
+                well_list = make_well_labels_list(well_count=well_count, robot="True")
+                plate_wells = {}
+                for well in well_list:
+                    plate_wells[well], created = Vessel.objects.get_or_create(
+                        parent=plate, description=well
+                    )
+                for well_desc, well_vessel in plate_wells.items():
+                    dest_bbm = BaseBomMaterial.objects.create(
+                        description=f"{plate.description} : {well_desc}",
+                        vessel=well_vessel,
+                    )
+                    if source_bbm:
+                        description = f"{action.description} : {source_bbm.description} -> {dest_bbm.description}"
+                    else:
+                        description = f"{action.description} : {dest_bbm.description}"
+                    au = ActionUnit.objects.create(
+                        action=action,
+                        source_material=source_bbm,
+                        destination_material=dest_bbm,
+                        description=description,
+                    )
+                    au.save()
             else:
-                destination_bbm = None
+                if "plate" in destination:  # plate-level actions
+                    plate = Vessel.objects.get_or_create(description=destination)
+                    dest_bbm = BaseBomMaterial.objects.create(
+                        description=plate.description, vessel=plate
+                    )
+                    if source_bbm:
+                        description = f"{action.description} : {source_bbm.description} -> {dest_bbm.description}"
+                    else:
+                        description = f"{action.description} : {dest_bbm.description}"
 
-            au = ActionUnit.objects.create(
-                action=action,
-                source_material=source_bbm,
-                description=description,
-                destination_material=destination_bbm,
-            )
+                    au = ActionUnit.objects.create(
+                        action=action,
+                        source_material=source_bbm,
+                        description=description,
+                        destination_material=dest_bbm,
+                    )
+                    au.save()
 
-            au.save()
+                else:
+                    destination_bbm = BaseBomMaterial.objects.create(
+                        description=destination
+                    )
+                    if source_bbm:
+                        description = f"{action.description} : {source_bbm.description} -> {dest_bbm.description}"
+                    else:
+                        description = f"{action.description} : {dest_bbm.description}"
+                    au = ActionUnit(
+                        action=action,
+                        source_material=source_bbm,
+                        description=description,
+                        destination_material=destination_bbm,
+                    )
+
+                    au.save()
+
+            # if destination is not None:
+            # destination_bbm = BaseBomMaterial.objects.create(
+            # description=destination
+            # )
+            # else:
+            # destination_bbm = None
+
+            # au = ActionUnit.objects.create(
+            # action=action,
+            # source_material=source_bbm,
+            # description=description,
+            # destination_material=destination_bbm,
+            # )
 
     return JsonResponse(data={"message": "success"})
 

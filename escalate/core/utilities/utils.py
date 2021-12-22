@@ -40,7 +40,7 @@ def generate_action_def_json(action_defs):
             {
                 "type": action_defs[i].description,
                 "displayName": action_defs[i].description,
-                "runtimeDescription": "x => ` ",
+                "runtimeDescription": " ",
                 "description": action_defs[i].description,
                 "category": "template",
                 "outcomes": ["Done"],
@@ -62,25 +62,25 @@ def generate_action_def_json(action_defs):
                 ],
             }
         )
-        for param in action_defs[i].parameter_def.all():
+        # for param in action_defs[i].parameter_def.all():
 
-            json_data[i]["properties"].append(
-                {
-                    "name": param.description,
-                    "type": "text",
-                    "label": param.description,
-                    "hint": "",
-                    "options": {},
-                }
-            )
-            json_data[i]["runtimeDescription"] += (
-                " {}: ".format(param.description)
-                + "${ "
-                + "x.state.{} ".format(param.description)
-                + "} \n"
-            )
+        # json_data[i]["properties"].append(
+        # {
+        # "name": param.description,
+        # "type": "text",
+        # "label": param.description,
+        # "hint": "",
+        # "options": {},
+        # }
+        # )
+        # json_data[i]["runtimeDescription"] += (
+        # " {}: ".format(param.description)
+        # + "${ "
+        # + "x.state.{} ".format(param.description)
+        # + "} \n"
+        # )
 
-        json_data[i]["runtimeDescription"] += " ` "
+        # json_data[i]["runtimeDescription"] += " ` "
 
     return json_data
 
