@@ -272,7 +272,11 @@ class ExperimentTemplateCreateForm(Form):
     # label='Select Reagent Templates')
     # , widget=widget_mc)
 
-    # MultipleChoiceField(label='Select Reagent Templates', widget=widget_mc)
+    well_num = IntegerField(label="Number of Experiments", required=True, initial=96)
+    define_outcomes = CharField(
+        label="Outcome to Measure", required=True, initial="Crystal score"
+    )
+    # define_outcome = CharField(label='Outcome to Measure', required=False, initial='Crystal score')
 
     # column_order= CharField(label='Column Order', required=False, initial='ACEGBDFH')
     # rows = IntegerField(label='Number of Rows', required=False, initial=12)
@@ -291,9 +295,47 @@ class ExperimentTemplateCreateForm(Form):
 
     well_num = IntegerField(label="Number of Wells", required=True, initial=96)
 
-    define_outcomes = CharField(
-        label="Outcome to Measure", required=True, initial="Crystal score"
+
+class ExperimentTemplateCreateForm(Form):
+
+    widget = Select(
+        attrs={
+            "class": "selectpicker",
+            "data-style": "btn-dark",
+            "data-live-search": "true",
+        }
     )
+
+    widget_mc = CheckboxSelectMultiple(
+        attrs={
+            "class": "selectpicker",
+            "data-style": "btn-dark",
+            "data-live-search": "true",
+        }
+    )
+
+    template_name = CharField(label="Experiment Template Name", required=True)
+
+    # select_rt = MultipleChoiceField(
+    # initial='0',
+    # widget=SelectMultiple(),
+    # required=True,
+    # label='Select Reagent Templates',
+    # )
+
+    # select_rt = SelectMultiple([(r.uuid, r.description) for r in vt.ReagentTemplate.objects.all()])
+    # label='Select Reagent Templates')
+    # , widget=widget_mc)
+
+    # select_actions = MultipleChoiceField(
+    # initial='0',
+    # widget=SelectMultiple(),
+    # required=True,
+    # label='Select Action Sequences',
+    # )
+    # well_num = IntegerField(label='Number of Wells', required=True, initial=96)
+
+    # define_outcomes = CharField(label='Outcome to Measure', required=True, initial='Crystal score')
 
     def __init__(self, *args, **kwargs):
         org_id = kwargs.pop("org_id")

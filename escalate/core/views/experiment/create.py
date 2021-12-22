@@ -51,6 +51,7 @@ from core.forms.custom_types import (
     ReagentSelectionForm,
     ActionSequenceSelectionForm,
     MaterialTypeSelectionForm,
+    OutcomeDefinitionForm,
 )
 
 from core.utilities.utils import experiment_copy
@@ -93,8 +94,8 @@ class SetupExperimentView(TemplateView):
         else:
             messages.error(request, "Please select a lab to continue")
             return HttpResponseRedirect(reverse("main_menu"))
-        return render(request, self.template_name, context)
 
+        return render(request, self.template_name, context)
 
 class CreateExperimentView(TemplateView):
     template_name = "core/experiment/create/base_create.html"
