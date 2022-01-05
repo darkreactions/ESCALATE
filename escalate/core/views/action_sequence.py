@@ -6,6 +6,9 @@ import core.models.view_tables as vt
 from core.utilities import generate_action_def_json, generate_action_sequence_json
 from core.forms.custom_types import ExperimentTemplateSelectForm, ActionSequenceNameForm
 from django.http.request import HttpRequest
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from django.contrib import messages
 from core.views.function_views import save_experiment_action_sequence
 
 
@@ -28,8 +31,9 @@ class ActionSequenceView(LoginRequired, View):
 
         if "current_org_id" in self.request.session:
             org_id = self.request.session["current_org_id"]
-            context["action_sequence_name_form"] = ActionSequenceNameForm
-            # return render(request, self.template_name, context)
+
+        context["action_sequence_name_form"] = ActionSequenceNameForm
+        # return render(request, self.template_name, context)
 
         with open("./core/static/json/http_components.json", "r") as f:
             http_components = f.read()
@@ -92,6 +96,9 @@ class ExperimentActionSequenceView(LoginRequired, View):
             context["experiment_template_select_form"] = ExperimentTemplateSelectForm(
                 org_id=org_id
             )
+        else:
+            messages.error(request, "Please select a lab to continue")
+            return HttpResponseRedirect(reverse("main_menu"))
             # return render(request, self.template_name, context)
 
         with open("./core/static/json/action_seq_workflow.json", "r") as f:

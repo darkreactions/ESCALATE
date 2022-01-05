@@ -63,15 +63,17 @@ def save_action_sequence(request: HttpRequest) -> HttpResponse:
                 ]
                 if id2 not in ids:
                     ids.append(id2)
-            else:  # single action
-                id1 = request.POST["activities[0][id]"]
-                if id1 not in ids:
-                    ids.append(id1)
 
-        for entry in ids:
+        if len(ids) == 0:  # single action
+            id1 = request.POST["activities[0][id]"]
+            if id1 not in ids:
+                ids.append(id1)
+
+        for num, entry in enumerate(ids):
             for key, val in request.POST.items():
                 if "activities" in key:
                     if val == entry:
+                        # action_sequence = action_sequence_instance.uuid
                         id = entry
                         index = key.split("[")[1].split("]")[0]
                         description = request.POST["activities[{}][type]".format(index)]
@@ -83,6 +85,7 @@ def save_action_sequence(request: HttpRequest) -> HttpResponse:
                                 property_type = str(key).split("[")[3].split("]")[0]
                                 properties[property_type] = val
 
+                        order = num
                         action_tuples.append(
                             (
                                 id,
@@ -93,11 +96,13 @@ def save_action_sequence(request: HttpRequest) -> HttpResponse:
                         )
 
                         a, created = ActionSequenceDesign.objects.get_or_create(
+                            action_sequence=action_sequence_instance,
                             id=id,
                             description=description,
                             properties=properties,
                             top_position=top,
                             left_position=left,
+                            order=order,
                         )
                         a.save()
 
@@ -130,37 +135,43 @@ def save_action_sequence(request: HttpRequest) -> HttpResponse:
                         parent=plate, description=well
                     )
                 for well_desc, well_vessel in plate_wells.items():
-                    dest_bbm = BaseBomMaterial.objects.create(
+                    destination_bbm = BaseBomMaterial.objects.create(
                         description=f"{plate.description} : {well_desc}",
                         vessel=well_vessel,
                     )
                     if source_bbm:
-                        description = f"{action.description} : {source_bbm.description} -> {dest_bbm.description}"
+                        description = f"{action.description} : {source_bbm.description} -> {destination_bbm.description}"
                     else:
-                        description = f"{action.description} : {dest_bbm.description}"
+                        description = (
+                            f"{action.description} : {destination_bbm.description}"
+                        )
                     au = ActionUnit.objects.create(
                         action=action,
                         source_material=source_bbm,
-                        destination_material=dest_bbm,
+                        destination_material=destination_bbm,
                         description=description,
                     )
                     au.save()
             else:
                 if "plate" in destination:  # plate-level actions
-                    plate = Vessel.objects.get_or_create(description=destination)
-                    dest_bbm = BaseBomMaterial.objects.create(
+                    plate, created = Vessel.objects.get_or_create(
+                        description=destination
+                    )
+                    destination_bbm = BaseBomMaterial.objects.create(
                         description=plate.description, vessel=plate
                     )
                     if source_bbm:
-                        description = f"{action.description} : {source_bbm.description} -> {dest_bbm.description}"
+                        description = f"{action.description} : {source_bbm.description} -> {destination_bbm.description}"
                     else:
-                        description = f"{action.description} : {dest_bbm.description}"
+                        description = (
+                            f"{action.description} : {destination_bbm.description}"
+                        )
 
                     au = ActionUnit.objects.create(
                         action=action,
                         source_material=source_bbm,
                         description=description,
-                        destination_material=dest_bbm,
+                        destination_material=destination_bbm,
                     )
                     au.save()
 
@@ -169,9 +180,11 @@ def save_action_sequence(request: HttpRequest) -> HttpResponse:
                         description=destination
                     )
                     if source_bbm:
-                        description = f"{action.description} : {source_bbm.description} -> {dest_bbm.description}"
+                        description = f"{action.description} : {source_bbm.description} -> {destination_bbm.description}"
                     else:
-                        description = f"{action.description} : {dest_bbm.description}"
+                        description = (
+                            f"{action.description} : {destination_bbm.description}"
+                        )
                     au = ActionUnit(
                         action=action,
                         source_material=source_bbm,
@@ -212,7 +225,9 @@ def save_experiment_action_sequence(request: HttpRequest) -> HttpResponse:
 
         ids = []
         for key, val in request.POST.items():
-            if "connections" in key:
+            if (
+                "connections" in key
+            ):  # more than one action - order sequentially based on connections
                 index = key.split("[")[1].split("]")[0]
                 id1 = request.POST["connections[{}][sourceActivityId]".format(index)]
                 if id1 not in ids:
@@ -223,10 +238,15 @@ def save_experiment_action_sequence(request: HttpRequest) -> HttpResponse:
                 if id2 not in ids:
                     ids.append(id2)
 
+        if len(ids) == 0:  # single action
+            id1 = request.POST["activities[0][id]"]
+            if id1 not in ids:
+                ids.append(id1)
+
         for entry in ids:
             for key, val in request.POST.items():
-                if "activities" in key:
-                    if val == entry:
+                if entry == val:
+                    if "activities" in key:
                         id = entry
                         index = key.split("[")[1].split("]")[0]
                         uuid = request.POST["activities[{}][type]".format(index)]

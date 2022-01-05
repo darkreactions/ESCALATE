@@ -245,7 +245,7 @@ class BomVessel(BaseBomMaterial):
         proxy = True
 
 
-class ExperimentTemplate(DateColumns, StatusColumn, DescriptionColumn):
+class ExperimentTemplate(DateColumns, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
     experiment_type = models.ForeignKey(
         "ExperimentType",
@@ -257,6 +257,8 @@ class ExperimentTemplate(DateColumns, StatusColumn, DescriptionColumn):
     ref_uid = models.CharField(
         max_length=255, db_column="ref_uid", blank=True, null=True
     )
+    description = models.CharField(max_length=255, unique=True)
+
     owner = models.ForeignKey(
         "Actor",
         db_column="owner_uuid",
@@ -452,9 +454,9 @@ class OutcomeTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
         null=True,
         related_name="outcome_template_experiment_template",
     )
-    instance_labels = ArrayField(
-        models.CharField(null=True, blank=True, max_length=255), null=True, blank=True
-    )
+    # instance_labels = ArrayField(
+    # models.CharField(null=True, blank=True, max_length=255), null=True, blank=True
+    # )
     default_value = models.ForeignKey(
         "DefaultValues",
         on_delete=models.DO_NOTHING,
@@ -485,6 +487,9 @@ class OutcomeInstance(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
         null=True,
         related_name="outcome_instance_experiment_instance",
     )
+    # instance_labels = ArrayField(
+    # models.CharField(null=True, blank=True, max_length=255), null=True, blank=True
+    # )
     internal_slug = SlugField(
         populate_from=["experiment_instance__internal_slug", "description"],
         overwrite=True,

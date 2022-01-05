@@ -17,6 +17,8 @@ from core.models.view_tables import (
 from copy import deepcopy
 import uuid
 
+from .wf1_utils import make_well_labels_list
+
 # import core.models.view_tables as vt
 
 '''
@@ -105,7 +107,8 @@ def generate_action_sequence_json(action_sequences):
     return json_data
 
 
-def experiment_copy(template_experiment_uuid, copy_experiment_description):
+# def experiment_copy(template_experiment_uuid, copy_experiment_description):
+def experiment_copy(template_experiment_uuid, copy_experiment_description, vessel):
     # Get parent Experiment from template_experiment_uuid
     exp_template = ExperimentTemplate.objects.get(uuid=template_experiment_uuid)
     # experiment row creation, overwrites original experiment template object with new experiment object.
@@ -258,8 +261,12 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
                 )
                 reagent_material_value.save()
 
+    well_num = vessel.well_number
+    col_order = vessel.column_order
+    well_list = make_well_labels_list(well_num, col_order, robot="False")
+
     for outcome_template in exp_template.outcome_template_experiment_template.all():
-        for label in outcome_template.instance_labels:
+        for label in well_list:
             outcome_instance = OutcomeInstance(
                 outcome_template=outcome_template,
                 experiment_instance=exp_instance,

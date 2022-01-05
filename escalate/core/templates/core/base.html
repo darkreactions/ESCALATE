@@ -177,6 +177,16 @@
                     {% block content %}
                     {% endblock %}
                     <nav>
+                        {% if messages %}
+                        <ul class="messages">
+                            {% for message in messages %}
+                            <div class="alert alert-danger" role="alert">
+                                {{ message }}
+                            </div>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+
                         {% if is_paginated %}
                         <ul class="pagination justify-content-center">
                             {% if page_obj.has_previous %}

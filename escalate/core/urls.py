@@ -131,6 +131,12 @@ urlpatterns += [
         CreateExperimentView.as_view(),
         name="experiment_completed_instance_add",
     ),
+    path("exp_template/experiment", CreateExperimentView.as_view(), name="experiment"),
+    path(
+        "exp_template/reagent-template",
+        CreateReagentTemplate.as_view(),
+        name="reagent-template-add",
+    ),
     path(
         "experiment_completed_instance/<uuid:pk>/view",
         ExperimentDetailView.as_view(),
@@ -171,6 +177,7 @@ urlpatterns += [
         name="experiment_pending_instance_outcome",
     ),
 ]
+
 
 def add_urls(model_name, pattern_list):
     lower_case_model_name = camel_to_snake(model_name)

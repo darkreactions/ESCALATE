@@ -5,16 +5,25 @@
 
 
 {% block content %}
-  <h3>Please select a lab organization before performing any experiment creation task</h3>  
 
-  <h3>Links to tables in the nav bar above will change based on logical groupings</h3>
-  <h3>Plots and Dashboard on this page</h3>
+{% if messages %}
+<ul class="messages">
+  {% for message in messages %}
+  <div class="alert alert-danger" role="alert"></div>
+  <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+    {% endfor %}
+    {% endif %}
 
-  {% autoescape off %}
-  {{ plot_div }}
-  {% endautoescape %}
+    <h3>Please select a lab organization before performing any experiment creation task</h3>
 
-{% endblock %}
+    <h3>Links to tables in the nav bar above will change based on logical groupings</h3>
+    <h3>Plots and Dashboard on this page</h3>
 
-{% block delete_block %}
-{% endblock %}
+    {% autoescape off %}
+    {{ plot_div }}
+    {% endautoescape %}
+
+    {% endblock %}
+
+    {% block delete_block %}
+    {% endblock %}

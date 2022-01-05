@@ -349,6 +349,7 @@ def generate_experiments_and_save(
     reagentDefs,
     num_of_experiments,
     dead_volume,
+    vessel,
 ):
     """
     Generates random experiments using sampler and saves it to
@@ -368,7 +369,9 @@ def generate_experiments_and_save(
     # retrieve q1 information to update
     q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
     experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
-
+    action_sequences = ExperimentInstance.objects.get(
+        uuid=experiment_copy_uuid
+    ).action_sequence.all()
     # create counters for acid, solvent, stock a, stock b to keep track of current element in those lists
     if "workflow 1" in experiment.parent.description.lower():
         action_reagent_map = {
@@ -432,6 +435,13 @@ def generate_experiments_and_save(
         elif experiment.parent.ref_uid == "perovskite_demo":
             well_list = make_well_list(
                 container_name="Symyx_96_well_0003", well_count=num_of_experiments
+            )["Vial Site"]
+        else:
+            well_list = make_well_list(
+                container_name="Symyx_96_well_0003",
+                well_count=num_of_experiments,
+                column_order=["A", "C", "E", "G", "B", "D", "F", "H"],
+                total_columns=8,
             )["Vial Site"]
 
         for i, vial in enumerate(well_list):

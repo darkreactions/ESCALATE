@@ -14,19 +14,19 @@
 
     <ul class="nav">
         <li class="nav-item">
-            <button class="btn btn-primary" onclick="addActivity()">Add Activity</button>
-        </li>
-        <li class="nav-item">
-            <wf-export-button workflow-designer-host="designerHost"></wf-export-button>
+            <button class="btn btn-primary" onclick="addAction()">Add Action Sequence</button>
         </li>
         <li class="nav-item">
             <button class="btn btn-secondary" onclick="importWorkflow()">Import</button>
         </li>
         <li class="nav-item">
-            <button class="btn btn-secondary" onclick="createNewWorkflow()">New Workflow</button>
+            <wf-export-button workflow-designer-host="designerHost"></wf-export-button>
         </li>
         <li class="nav-item">
-            <button class="btn btn-secondary" name="get_workflow" onclick="getWorkflow()">Save Workflow</button>
+            <button class="btn btn-secondary" name="get_workflow" onclick="getWorkflow()">Save</button>
+        </li>
+        <li class="nav-item">
+            <button class="btn btn-secondary" onclick="createNewWorkflow()">New Workflow</button>
         </li>
     </ul>
 </div>
@@ -46,7 +46,7 @@
 <script type="text/javascript">
     const designer = document.querySelector("#designerHost");
 
-    function addActivity() {
+    function addAction() {
         designer.showActivityPicker();
     }
 
