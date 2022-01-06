@@ -253,13 +253,13 @@ def save_experiment_action_sequence(request: HttpRequest) -> HttpResponse:
                         top = request.POST["activities[{}][top]".format(index)]
                         left = request.POST["activities[{}][left]".format(index)]
 
-                        a, created = ActionSequenceDesign.objects.get_or_create(
-                            id=id,
-                            description=uuid,
-                            top_position=top,
-                            left_position=left,
-                        )
-                        a.save()
+                        # a, created = ActionSequenceDesign.objects.get_or_create(
+                        #    id=id,
+                        #   description=uuid,
+                        #  top_position=top,
+                        # left_position=left,
+                        # )
+                        # a.save()
 
                         action_sequence = ActionSequence.objects.get(uuid=uuid)
                         action_sequences.append(action_sequence)
