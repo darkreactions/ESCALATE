@@ -18,6 +18,7 @@ from core.models.view_tables import (
     Actor,
     ReagentTemplate,
     ReagentMaterialTemplate,
+    ReagentMaterialValueTemplate,
     MaterialType,
     OutcomeTemplate,
     ExperimentActionSequence,
@@ -286,13 +287,25 @@ class CreateExperimentTemplate(TemplateView):
             mt = MaterialType.objects.get(uuid=r)
             # reagent_template.material_type.add(mt)
 
-            rmt = ReagentMaterialTemplate.objects.get_or_create(
+            (rmt, created) = ReagentMaterialTemplate.objects.get_or_create(
                 **{
                     "description": f"{reagent_template.description}: {mt.description}",
                     "reagent_template": reagent_template,
                     "material_type": mt,
                 }
             )
+
+            for rv, default in reagent_values.items():
+                (
+                    rmv_template,
+                    created,
+                ) = ReagentMaterialValueTemplate.objects.get_or_create(
+                    **{
+                        "description": rv,
+                        "reagent_material_template": rmt,
+                        "default_value": default,
+                    }
+                )
 
     def add_reagent(self, context, reagent):
         exp_template = ExperimentTemplate.objects.get(uuid=context["exp_uuid"])
