@@ -245,7 +245,7 @@ class BomVessel(BaseBomMaterial):
         proxy = True
 
 
-class ExperimentTemplate(DateColumns, StatusColumn, DescriptionColumn):
+class ExperimentTemplate(DateColumns, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
     experiment_type = models.ForeignKey(
         "ExperimentType",
@@ -257,6 +257,8 @@ class ExperimentTemplate(DateColumns, StatusColumn, DescriptionColumn):
     ref_uid = models.CharField(
         max_length=255, db_column="ref_uid", blank=True, null=True
     )
+    description = models.CharField(max_length=255, unique=True)
+
     owner = models.ForeignKey(
         "Actor",
         db_column="owner_uuid",
@@ -287,11 +289,7 @@ class ExperimentTemplate(DateColumns, StatusColumn, DescriptionColumn):
         related_name="experiment_template_action_sequence",
     )
     internal_slug = SlugField(
-        populate_from=[
-            "description",
-        ],
-        overwrite=True,
-        max_length=255,
+        populate_from=["description",], overwrite=True, max_length=255,
     )
     reagent_templates = models.ManyToManyField(
         "ReagentTemplate",
@@ -363,11 +361,7 @@ class ExperimentInstance(DateColumns, StatusColumn, DescriptionColumn):
     # owner_description = models.CharField(max_length=255, db_column='owner_description')
     # operator_description = models.CharField(max_length=255, db_column='operator_description')
     internal_slug = SlugField(
-        populate_from=[
-            "description",
-        ],
-        overwrite=True,
-        max_length=255,
+        populate_from=["description",], overwrite=True, max_length=255,
     )
     completion_status = models.CharField(
         db_column="completion_status", max_length=255, default="Pending"
@@ -460,9 +454,9 @@ class OutcomeTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
         null=True,
         related_name="outcome_template_experiment_template",
     )
-    instance_labels = ArrayField(
-        models.CharField(null=True, blank=True, max_length=255), null=True, blank=True
-    )
+    # instance_labels = ArrayField(
+    # models.CharField(null=True, blank=True, max_length=255), null=True, blank=True
+    # )
     default_value = models.ForeignKey(
         "DefaultValues",
         on_delete=models.DO_NOTHING,
@@ -493,6 +487,9 @@ class OutcomeInstance(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
         null=True,
         related_name="outcome_instance_experiment_instance",
     )
+    # instance_labels = ArrayField(
+    # models.CharField(null=True, blank=True, max_length=255), null=True, blank=True
+    # )
     internal_slug = SlugField(
         populate_from=["experiment_instance__internal_slug", "description"],
         overwrite=True,
@@ -557,6 +554,17 @@ class ReactionParameter(StatusColumn, DescriptionColumn, DateColumns):
     )
 
 
+class Workflow(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
+
+    internal_slug = SlugField(
+        populate_from=["description",], overwrite=True, max_length=255,
+    )
+
+    def __str__(self):
+        return f"{self.description}"
+
+
 class ActionSequence(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
     parent = models.ForeignKey(
@@ -580,11 +588,7 @@ class ActionSequence(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         related_name="action_sequence_experiment",
     )
     internal_slug = SlugField(
-        populate_from=[
-            "description",
-        ],
-        overwrite=True,
-        max_length=255,
+        populate_from=["description",], overwrite=True, max_length=255,
     )
 
     def __str__(self):

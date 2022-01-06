@@ -40,8 +40,10 @@ from core.forms.custom_types import (
     NominalActualForm,
     ExperimentNameForm,
     ExperimentTemplateForm,
+    ExperimentTemplateCreateForm,
     ReagentForm,
     BaseReagentFormSet,
+    ReagentTemplateCreateForm,
     VesselForm,
     ReactionParameterForm,
     UploadFileForm,
@@ -63,7 +65,7 @@ from core.utilities.experiment_utils import (
     save_parameter,
 )
 from core.utilities.calculations import conc_to_amount
-from core.utilities.wf1_utils import generate_robot_file_wf1
+from core.utilities.wf1_utils import generate_robot_file_wf1, make_well_labels_list
 from core.models.view_tables.generic_data import Parameter
 from core.views.experiment.create_select_template import SelectReagentsView
 from .misc import get_action_parameter_form_data, save_forms_q1, save_forms_q_material
@@ -94,6 +96,7 @@ class SetupExperimentView(TemplateView):
             return HttpResponseRedirect(reverse("main_menu"))
 
         return render(request, self.template_name, context)
+
 
 class CreateExperimentView(TemplateView):
     template_name = "core/experiment/create/base_create.html"
@@ -189,8 +192,16 @@ class CreateExperimentView(TemplateView):
 
         if exp_name_form.is_valid():
             exp_name = exp_name_form.cleaned_data["exp_name"]
+
+            vessel_form = VesselForm(request.POST)
+            if vessel_form.is_valid():
+                vessel = vessel_form.cleaned_data.get("value")
+                #well_num = vessel.well_number
+                #col_order = vessel.column_order
+                #well_list = make_well_labels_list(well_num, col_order, robot="False")
+
             # make the experiment copy: this will be our new experiment
-            experiment_copy_uuid = experiment_copy(str(exp_template.uuid), exp_name)
+            experiment_copy_uuid = experiment_copy(str(exp_template.uuid), exp_name, vessel)
             exp_concentrations = {}
             reagentDefs = []
             for reagent_formset in formsets:
@@ -216,6 +227,7 @@ class CreateExperimentView(TemplateView):
             dead_volume,
             reagent_template_names,
             reagentDefs,
+            vessel,
         )
 
     def save_reaction_parameters(
@@ -269,6 +281,7 @@ class CreateExperimentView(TemplateView):
             dead_volume,
             reagent_template_names,
             reagentDefs,
+            vessel,
         ) = self.save_reagents(exp_template, request, org_id)
         self.save_reaction_parameters(
             request, experiment_copy_uuid, exp_name_form, exp_template
@@ -408,6 +421,7 @@ class CreateExperimentView(TemplateView):
             dead_volume,
             reagent_template_names,
             reagentDefs,
+            vessel,
         ) = self.save_reagents(exp_template, request, org_id)
 
         if not exp_name_form.is_valid():
@@ -426,6 +440,7 @@ class CreateExperimentView(TemplateView):
                 reagentDefs,
                 exp_number,
                 dead_volume,
+                vessel,
             )
         except ValueError as ve:
             messages.error(request, str(ve))
@@ -461,7 +476,7 @@ class CreateExperimentView(TemplateView):
                 )
             else:
                 messages.error(
-                    request, f'LSRGenerator failed with message: "{lsr_msg}"'
+                    self.request, f'LSRGenerator failed with message: "{lsr_msg}"'
                 )
             context["experiment_link"] = reverse(
                 "experiment_instance_view", args=[experiment_copy_uuid]

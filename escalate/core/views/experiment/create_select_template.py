@@ -187,10 +187,10 @@ class SelectReagentsView(TemplateView):
         self,
         number_of_colors: int,
         colors: list[str] = [
+            "lightblue",
             "teal",
-            "purple",
-            "navy",
-            "green",
+            "powderblue",
+            "skyblue",
             "pastelblue",
             "verdigris",
             "steelblue",

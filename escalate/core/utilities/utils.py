@@ -17,6 +17,10 @@ from core.models.view_tables import (
 from copy import deepcopy
 import uuid
 
+from .wf1_utils import make_well_labels_list
+
+# import core.models.view_tables as vt
+
 '''
 def experiment_copy(template_experiment_uuid, copy_experiment_description):
     """Wrapper of the ESCALATE postgres function experiment_copy"""
@@ -27,7 +31,84 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
 '''
 
 
-def experiment_copy(template_experiment_uuid, copy_experiment_description):
+def generate_action_def_json(action_defs):
+    # action_defs = [a for a in vt.ActionDef.objects.all()]
+
+    json_data = []
+
+    for i in range(len(action_defs)):
+
+        json_data.append(
+            {
+                "type": action_defs[i].description,
+                "displayName": action_defs[i].description,
+                "runtimeDescription": " ",
+                "description": action_defs[i].description,
+                "category": "template",
+                "outcomes": ["Done"],
+                "properties": [
+                    {
+                        "name": "source",
+                        "type": "text",
+                        "label": "From:",
+                        "hint": "source material/vessel",
+                        "options": {},
+                    },
+                    {
+                        "name": "destination",
+                        "type": "text",
+                        "label": "To:",
+                        "hint": "destination material/vessel",
+                        "options": {},
+                    },
+                ],
+            }
+        )
+        # for param in action_defs[i].parameter_def.all():
+
+        # json_data[i]["properties"].append(
+        # {
+        # "name": param.description,
+        # "type": "text",
+        # "label": param.description,
+        # "hint": "",
+        # "options": {},
+        # }
+        # )
+        # json_data[i]["runtimeDescription"] += (
+        # " {}: ".format(param.description)
+        # + "${ "
+        # + "x.state.{} ".format(param.description)
+        # + "} \n"
+        # )
+
+        # json_data[i]["runtimeDescription"] += " ` "
+
+    return json_data
+
+
+def generate_action_sequence_json(action_sequences):
+
+    json_data = []
+
+    for i in range(len(action_sequences)):
+
+        json_data.append(
+            {
+                "type": str(action_sequences[i].uuid),
+                "displayName": action_sequences[i].description,
+                "runtimeDescription": " ",
+                "properties": [],
+                "description": action_sequences[i].description,
+                "category": "template",
+                "outcomes": ["Done"],
+            }
+        )
+    return json_data
+
+
+# def experiment_copy(template_experiment_uuid, copy_experiment_description):
+def experiment_copy(template_experiment_uuid, copy_experiment_description, vessel):
     # Get parent Experiment from template_experiment_uuid
     exp_template = ExperimentTemplate.objects.get(uuid=template_experiment_uuid)
     # experiment row creation, overwrites original experiment template object with new experiment object.
@@ -180,8 +261,12 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
                 )
                 reagent_material_value.save()
 
+    well_num = vessel.well_number
+    col_order = vessel.column_order
+    well_list = make_well_labels_list(well_num, col_order, robot="False")
+
     for outcome_template in exp_template.outcome_template_experiment_template.all():
-        for label in outcome_template.instance_labels:
+        for label in well_list:
             outcome_instance = OutcomeInstance(
                 outcome_template=outcome_template,
                 experiment_instance=exp_instance,

@@ -5,51 +5,91 @@
 
 {% block content %}
 
-<div class="container" >
+{% if messages %}
+<ul class="messages">
+  {% for message in messages %}
+  <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+
+<div class="container">
   {% if new_template_name %}
   <p> Created Experiment Template! </p>
-    <p>Template name: {{ new_template_name }}</p>
-    <p> <a href={{ experiment_link }}> Create experiment</a></p>
-  
-  {% else %}
-    <p> Create Experiment Template </p>
-    <div class="row">
-      <div class="col-md-12 text-secondary">
-        <form method="post">{% csrf_token %}
-        {{ experiment_template_create_form|crispy }}  
-      <div class="col-md-12 text-secondary">
-        <form method="post">{% csrf_token %}
-        {{ reagent_selection_form|crispy }}
-      <div>
-        <p> <a href={{ reagent_template_link }}> Add a reagent</a></p>
-        <form method="post">{% csrf_token %}
-        {{ action_sequence_selection_form|crispy }}  
-      <div class="treeview-animated border mx-3 my-4">
-        <h6 title="Select the vessel used in this experiment." class="pt-3 pl-3"></h6>
-        <h6 style="color:black;">Define Outcomes</h6>
-        <hr>
-        <ul class="treeview-animated-list">
+  <p>Template name: {{ new_template_name }}</p>
+  <p> <a href={{ experiment_link }}> Create experiment</a></p>
+
+  {% elif not reagent_forms %}
+  <p> Create Experiment Template </p>
+  <div class="row">
+    <div class="col-md-12 text-secondary">
+      <form method="post">{% csrf_token %}
+        {{ experiment_template_create_form|crispy }}
+        <div>
+          <button class="btn btn-outline-primary" type="submit" name="create_template" value="create_template">Create
+            Experiment Template</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {% elif reagent_forms %}
+  <div class="row">
+    <div class="col-md-12 text-secondary">
+      <form method="post">{% csrf_token %}
+        {{ name_form|crispy }}
+
+        <p> Specify Reagents and Outcomes </p>
+
+        <div class="treeview-animated border mx-3 my-4">
+          <h6 class="pt-3 pl-3">Reagents </h6>
+          <hr>
+          {{ reagent_forms.management_form }}
+          <ul class="treeview-animated-list">
+            {% for form in reagent_forms %}
             <li class="treeview-animated-items">
               <ul class="nested">
-                    {{ outcome_definition_form|crispy }}
+                {{ form|crispy }}
               </ul>
             </li>
-        </ul>
-    </div>
-       
-          <div>
-          <button class="btn btn-outline-primary" type="submit" name="create_template" value="create_template">Create Experiment Template</button>
-      </div>
-      </form>
-    </form>
-      </div>
-    </form>
-      </div>
-      </form>
-    </div>
-    </div>
-    {% endif %}
+            {% endfor %}
+          </ul>
+        </div>
 
+        <div class="treeview-animated border mx-3 my-4">
+          <h6 title="Select the vessel used in this experiment." class="pt-3 pl-3"></h6>
+          <h6 style="color:black;">Define Outcomes</h6>
+          <hr>
+          <ul class="treeview-animated-list">
+            <li class="treeview-animated-items">
+              <ul class="nested">
+                {{ outcome_definition_forms.management_form }}
+                {% for form in outcome_definition_forms %}
+                <li class="treeview-animated-items">
+                  <ul class="nested">
+                    {{ form|crispy }}
+                  </ul>
+                </li>
+                {% endfor %}
+              </ul>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <button class="btn btn-outline-primary" type="submit" name="submit_template"
+            value="submit_template">Submit</button>
+        </div>
+      </form>
+      </form>
+    </div>
+    </form>
+  </div>
+  </form>
+</div>
+</div>
+{% endif %}
 
 </div>
 

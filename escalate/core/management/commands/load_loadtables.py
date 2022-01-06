@@ -75,9 +75,7 @@ class Command(BaseCommand):
 
         # Create the experiment
         exp_template = ExperimentTemplate(
-            description="Workflow 1",
-            ref_uid="workflow_1",
-            lab=lab,
+            description="Workflow 1", ref_uid="workflow_1", lab=lab,
         )
         exp_template.save()
 
@@ -250,7 +248,7 @@ class Command(BaseCommand):
         ot, created = OutcomeTemplate.objects.get_or_create(
             description="Crystal score",
             experiment=exp_template,
-            instance_labels=well_list,
+            # instance_labels=well_list,
             default_value=default_crystal_score,
         )
         ot.save()
@@ -389,9 +387,7 @@ class Command(BaseCommand):
                 action.parameter_def.add(param)
 
             if source_desc is not None:
-                source_bbm = BaseBomMaterial.objects.create(
-                    description=source_desc,
-                )
+                source_bbm = BaseBomMaterial.objects.create(description=source_desc,)
             else:
                 source_bbm = None
 
@@ -453,9 +449,7 @@ class Command(BaseCommand):
 
         # Create the experiment
         exp_template = ExperimentTemplate(
-            description="Workflow 3",
-            ref_uid="workflow_3",
-            lab=lab,
+            description="Workflow 3", ref_uid="workflow_3", lab=lab,
         )
         exp_template.save()
 
@@ -643,7 +637,7 @@ class Command(BaseCommand):
         ot, created = OutcomeTemplate.objects.get_or_create(
             description="Crystal score",
             experiment=exp_template,
-            instance_labels=well_list,
+            # instance_labels=well_list,
             default_value=default_crystal_score,
         )
         ot.save()
@@ -758,9 +752,7 @@ class Command(BaseCommand):
                 action.parameter_def.add(param)
 
             if source_desc is not None:
-                source_bbm = BaseBomMaterial.objects.create(
-                    description=source_desc,
-                )
+                source_bbm = BaseBomMaterial.objects.create(description=source_desc,)
             else:
                 source_bbm = None
 
@@ -932,7 +924,7 @@ class Command(BaseCommand):
         OutcomeTemplate.objects.get_or_create(
             description="Crystal score",
             experiment=exp_template,
-            instance_labels=well_names,
+            # instance_labels=well_names,
             default_value=default_crystal_score,
         )
 
@@ -944,21 +936,13 @@ class Command(BaseCommand):
         # create default values
         DefaultValues.objects.get_or_create(
             description="g/ml",
-            actual_value={
-                "value": "0.0",
-                "unit": "g/ml",
-                "type": "num",
-            },
+            actual_value={"value": "0.0", "unit": "g/ml", "type": "num",},
         )
         gml_dv = DefaultValues.objects.get(description="g/ml")
 
         DefaultValues.objects.get_or_create(
             description="g/mol",
-            actual_value={
-                "value": "0.0",
-                "unit": "g/mol",
-                "type": "num",
-            },
+            actual_value={"value": "0.0", "unit": "g/mol", "type": "num",},
         )
         gmol_dv = DefaultValues.objects.get(description="g/mol")
 
@@ -1698,10 +1682,9 @@ class Command(BaseCommand):
                 else None,
                 "status": active_status,
             }
-            (
-                action_sequence_instance,
-                created,
-            ) = ActionSequence.objects.get_or_create(**fields)
+            (action_sequence_instance, created,) = ActionSequence.objects.get_or_create(
+                **fields
+            )
             if created:
                 new_action_sequence += 1
             experiment_description = (
@@ -1844,9 +1827,7 @@ class Command(BaseCommand):
                     used_amt_val_type, used_amt_val_unit, used_amt_val_value
                 ),
                 "putback_amt_val": get_val_field_dict(
-                    putback_amt_val_type,
-                    putback_amt_val_unit,
-                    putback_amt_val_value,
+                    putback_amt_val_type, putback_amt_val_unit, putback_amt_val_value,
                 ),
                 #'mixture': Mixture.objects.get(composite=mixture_composite,
                 #                               component=mixture_component

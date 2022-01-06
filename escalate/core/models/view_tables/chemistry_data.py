@@ -72,7 +72,8 @@ class Vessel(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     total_volume = models.CharField(max_length=255, blank=True, null=True)
     # dead_volume = models.CharField(max_length=255,blank=True, null=True)
     # whole plate can leave well_number blank
-    # well_number = models.CharField(max_length = 16, blank=True, null=True)
+    well_number = models.IntegerField(blank=True, null=True,)
+    column_order = models.CharField(max_length=100, blank=True, null=True,)
     parent = models.ForeignKey(
         "Vessel",
         on_delete=models.DO_NOTHING,
@@ -296,9 +297,7 @@ class ReagentTemplate(DateColumns, DescriptionColumn, StatusColumn):
         populate_from=["description"], overwrite=True, max_length=255
     )
     properties = models.ManyToManyField(
-        "PropertyTemplate",
-        blank=True,
-        related_name="reagent_template_p",
+        "PropertyTemplate", blank=True, related_name="reagent_template_p",
     )
 
     def __str__(self):

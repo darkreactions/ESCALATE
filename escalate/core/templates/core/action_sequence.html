@@ -1,5 +1,6 @@
 {% extends 'core/base.html' %}
 {% load static %}
+{% load crispy_forms_tags %}
 
 
 
@@ -13,21 +14,29 @@
 
   <ul class="nav">
     <li class="nav-item">
-      <button class="btn btn-primary" onclick="addActivity()">Add Activity</button>
-    </li>
-    <li class="nav-item">
-      <wf-export-button workflow-designer-host="designerHost"></wf-export-button>
+      <button class="btn btn-primary" onclick="addAction()">Add Action</button>
     </li>
     <li class="nav-item">
       <button class="btn btn-secondary" onclick="importWorkflow()">Import</button>
     </li>
     <li class="nav-item">
-      <button class="btn btn-secondary" onclick="createNewWorkflow()">New Workflow</button>
+      <wf-export-button workflow-designer-host="designerHost"></wf-export-button>
     </li>
     <li class="nav-item">
-      <button class="btn btn-secondary" onclick="getWorkflow()">Save Action Sequence</button>
+      <button class="btn btn-secondary" onclick="getWorkflow()">Save</button>
+    </li>
+    <li class="nav-item">
+      <button class="btn btn-secondary" onclick="createNewWorkflow()">New Action Sequence</button>
     </li>
   </ul>
+</div>
+
+<div class="row">
+  <div class="col-md-12 text-secondary">
+    <form method="post">{% csrf_token %}
+      {{ action_sequence_name_form|crispy }}
+    </form>
+  </div>
 </div>
 
 <wf-designer-host id="designerHost" canvas-height="75vh" data-activity-definitions='{{ components | safe }}'
@@ -37,7 +46,7 @@
 <script type="text/javascript">
   const designer = document.querySelector("#designerHost");
 
-  function addActivity() {
+  function addAction() {
     designer.showActivityPicker();
   }
 
@@ -52,7 +61,26 @@
 
   async function getWorkflow() {
     let result = await designer.getWorkflow();
+    result["action_sequence_name"] = $("#name").val();
     console.log(result);
+    var token = '{{csrf_token}}';
+    jQuery.ajax({
+      url: {% url 'save_action_sequence' %},
+      headers: { "X-CSRFToken": token },
+      type: "POST",
+      // data: { "data": JSON.stringify(result) },
+      data: result,
+      dataType: "json",
+      beforeSend: function (x) {
+        if (x && x.overrideMimeType) {
+          x.overrideMimeType("application/j-son;charset=UTF-8");
+        }
+      },
+      success: function (result) {
+        console.log(result);
+        alert("Action sequence saved successfully!")
+      }
+    });
   }
 
 </script>

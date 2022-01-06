@@ -1,0 +1,37 @@
+{
+    "activities": [
+        {
+            "id": "0cfe76a9-8914-41a4-83e2-123c0b50fa83",
+            "top": 150,
+            "left": 150,
+            "type": "de3aef27-9c99-4f39-97ee-16444afdf79b",
+            "state": {}
+        },
+        {
+            "id": "7e9c182e-87a1-49cf-a6cb-64bcd5a12836",
+            "top": 275,
+            "left": 421,
+            "type": "61e7f62a-8611-4d9b-a0a3-089fef9cf921",
+            "state": {}
+        },
+        {
+            "id": "ad636ddb-c38a-49fe-9ba7-d1f735f7f5a8",
+            "top": 115,
+            "left": 637,
+            "type": "c666b06e-97a8-40b4-a15d-ef397e0308f6",
+            "state": {}
+        }
+    ],
+    "connections": [
+        {
+            "sourceActivityId": "0cfe76a9-8914-41a4-83e2-123c0b50fa83",
+            "destinationActivityId": "7e9c182e-87a1-49cf-a6cb-64bcd5a12836",
+            "outcome": "Done"
+        },
+        {
+            "sourceActivityId": "7e9c182e-87a1-49cf-a6cb-64bcd5a12836",
+            "destinationActivityId": "ad636ddb-c38a-49fe-9ba7-d1f735f7f5a8",
+            "outcome": "Done"
+        }
+    ]
+}
