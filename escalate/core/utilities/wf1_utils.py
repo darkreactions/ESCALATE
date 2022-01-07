@@ -24,7 +24,7 @@ def make_well_labels_list(well_count=96, column_order=None, robot="True"):
                 if column_order is None:
                     column_order = ["A", "C", "B", "D"]
             well_labels = [
-                f"{col}{row}" for row in range(1, num_rows + 1) for col in column_order
+                f"{col}{row}" for col in column_order for row in range(1, num_rows + 1)
             ][:well_count]
 
         else:  # chronological order for outcomes

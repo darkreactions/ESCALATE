@@ -27,7 +27,8 @@ from core.models.view_tables import (
 from core.custom_types import Val
 from core.models.core_tables import RetUUIDField
 from core.utilities.randomSampling import generateExperiments
-from core.utilities.wf1_utils import make_well_list
+from core.utilities.wf1_utils import make_well_list, make_well_labels_list
+
 from .calculations import conc_to_amount
 
 
@@ -372,39 +373,46 @@ def generate_experiments_and_save(
     action_sequences = ExperimentInstance.objects.get(
         uuid=experiment_copy_uuid
     ).action_sequence.all()
+
+    action_reagent_map = {}
+    for i in action_sequences:
+        for j in reagent_template_names:
+            if j.lower() in i.description.lower():
+                action_reagent_map[i.description.lower()] = j
+
     # create counters for acid, solvent, stock a, stock b to keep track of current element in those lists
-    if "workflow 1" in experiment.parent.description.lower():
-        action_reagent_map = {
-            "dispense solvent": ("Reagent 1 - Solvent", 1.0),
-            "dispense acid volume 1": ("Reagent 7 - Acid", 0.5),
-            "dispense acid volume 2": ("Reagent 7 - Acid", 0.5),
-            "dispense stock a": ("Reagent 2 - Stock A", 1.0),
-            "dispense stock b": ("Reagent 3 - Stock B", 1.0),
-        }
+    # if "workflow 1" in experiment.parent.description.lower():
+    # action_reagent_map = {
+    # "dispense solvent": ("Reagent 1 - Solvent", 1.0),
+    # "dispense acid volume 1": ("Reagent 7 - Acid", 0.5),
+    # "dispense acid volume 2": ("Reagent 7 - Acid", 0.5),
+    # "dispense stock a": ("Reagent 2 - Stock A", 1.0),
+    # "dispense stock b": ("Reagent 3 - Stock B", 1.0),
+    # }
 
-        reagent_template_reagent_map = {
-            "Reagent 1 - Solvent": "Reagent 1",
-            "Reagent 7 - Acid": "Reagent 7",
-            "Reagent 2 - Stock A": "Reagent 2",
-            "Reagent 3 - Stock B": "Reagent 3",
-        }
-    elif "workflow 3" in experiment.parent.description.lower():
-        action_reagent_map = {
-            "dispense solvent": ("Reagent 1 - Solvent", 1.0),
-            "dispense acid volume 1": ("Reagent 7 - Acid", 0.5),
-            "dispense acid volume 2": ("Reagent 7 - Acid", 0.5),
-            "dispense stock a": ("Reagent 2 - Stock A", 1.0),
-            "dispense stock b": ("Reagent 3 - Stock B", 1.0),
-            "dispense antisolvent": ("Reagent 9 - Antisolvent", 1.0),
-        }
+    # reagent_template_reagent_map = {
+    # "Reagent 1 - Solvent": "Reagent 1",
+    # "Reagent 7 - Acid": "Reagent 7",
+    # "Reagent 2 - Stock A": "Reagent 2",
+    # "Reagent 3 - Stock B": "Reagent 3",
+    # }
+    # elif "workflow 3" in experiment.parent.description.lower():
+    # action_reagent_map = {
+    # "dispense solvent": ("Reagent 1 - Solvent", 1.0),
+    # "dispense acid volume 1": ("Reagent 7 - Acid", 0.5),
+    # "dispense acid volume 2": ("Reagent 7 - Acid", 0.5),
+    # "dispense stock a": ("Reagent 2 - Stock A", 1.0),
+    # "dispense stock b": ("Reagent 3 - Stock B", 1.0),
+    # "dispense antisolvent": ("Reagent 9 - Antisolvent", 1.0),
+    # }
 
-        reagent_template_reagent_map = {
-            "Reagent 1 - Solvent": "Reagent 1",
-            "Reagent 7 - Acid": "Reagent 7",
-            "Reagent 2 - Stock A": "Reagent 2",
-            "Reagent 3 - Stock B": "Reagent 3",
-            "Reagent 9 - Antisolvent": "Reagent 9",
-        }
+    # reagent_template_reagent_map = {
+    # "Reagent 1 - Solvent": "Reagent 1",
+    # "Reagent 7 - Acid": "Reagent 7",
+    # "Reagent 2 - Stock A": "Reagent 2",
+    # "Reagent 3 - Stock B": "Reagent 3",
+    # "Reagent 9 - Antisolvent": "Reagent 9",
+    # }
     # This loop sums the volume of all generated experiment for each reagent and saves to database
     # Also saves dead volume if passed to function
     reagents = Reagent.objects.filter(experiment=experiment_copy_uuid)
@@ -424,38 +432,47 @@ def generate_experiments_and_save(
             dv_prop.save()
 
     # This loop adds individual well volmes to each action in the database
-    for action_description, (reagent_name, mult_factor) in action_reagent_map.items():
-        if experiment.parent.ref_uid == "workflow_1":
-            well_list = make_well_list(
-                container_name="Symyx_96_well_0003",
-                well_count=num_of_experiments,
-                column_order=["A", "C", "E", "G", "B", "D", "F", "H"],
-                total_columns=8,
-            )["Vial Site"]
-        elif experiment.parent.ref_uid == "perovskite_demo":
-            well_list = make_well_list(
-                container_name="Symyx_96_well_0003", well_count=num_of_experiments
-            )["Vial Site"]
-        else:
-            well_list = make_well_list(
-                container_name="Symyx_96_well_0003",
-                well_count=num_of_experiments,
-                column_order=["A", "C", "E", "G", "B", "D", "F", "H"],
-                total_columns=8,
-            )["Vial Site"]
+    # for action_description, (reagent_name, mult_factor) in action_reagent_map.items():
+    for action_description, reagent_name in action_reagent_map.items():
+        well_list = make_well_labels_list(
+            well_count=vessel.well_number, column_order=None, robot="True",
+        )[0:num_of_experiments]
+        # if experiment.parent.ref_uid == "workflow_1":
+        # well_list = make_well_list(
+        # container_name="Symyx_96_well_0003",
+        # well_count=num_of_experiments,
+        # column_order=["A", "C", "E", "G", "B", "D", "F", "H"],
+        # total_columns=8,
+        # )["Vial Site"]
+        # elif experiment.parent.ref_uid == "perovskite_demo":
+        # well_list = make_well_list(
+        # container_name="Symyx_96_well_0003", well_count=num_of_experiments
+        # )["Vial Site"]
+        # else:
+        # well_list = make_well_list(
+        # container_name="Symyx_96_well_0003",
+        # well_count=num_of_experiments,
+        # column_order=["A", "C", "E", "G", "B", "D", "F", "H"],
+        # total_columns=8,
+        # )["Vial Site"]
 
         for i, vial in enumerate(well_list):
+            action = q1.get(
+                action_unit_description__icontains=reagent_name,
+                action_unit_description__contains="dispense",
+                action_unit_description__endswith=vial,
+            )
             # get actions from q1 based on keys in action_reagent_map
-            if experiment.parent.ref_uid == "workflow_1":
-                action = q1.get(
-                    action_unit_description__icontains=action_description,
-                    action_unit_description__endswith=vial,
-                )
-            elif experiment.parent.ref_uid == "perovskite_demo":
-                action = q1.get(
-                    object_description__icontains=action_description,
-                    object_description__contains=vial,
-                )
+            # if experiment.parent.ref_uid == "workflow_1":
+            # action = q1.get(
+            #   action_unit_description__icontains=action_description,
+            # action_unit_description__endswith=vial,
+            # )
+            # elif experiment.parent.ref_uid == "perovskite_demo":
+            # action = q1.get(
+            # object_description__icontains=action_description,
+            # object_description__contains=vial,
+            # )
 
             # If number of experiments requested is < actions only choose the first n actions
             # Otherwise choose all
@@ -463,9 +480,9 @@ def generate_experiments_and_save(
             # for i, action in enumerate(actions):
             parameter = Parameter.objects.get(uuid=action.parameter_uuid)
             # action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
-            parameter.parameter_val_nominal.value = (
-                desired_volume[reagent_name][i] * mult_factor
-            )
+            parameter.parameter_val_nominal.value = desired_volume[reagent_name][
+                i
+            ]  # * mult_factor
             parameter.save()
 
     # try:
