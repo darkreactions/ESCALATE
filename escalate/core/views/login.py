@@ -34,8 +34,13 @@ class LoginView(View):
             if user:
                 login(request, user)
             if request.user.is_authenticated:
-
-                return redirect("main_menu")
+                #Actor returns the user-user object as well as every org-user object. 
+                #This means every user always will have 1 actor object by default and subsequent actor object for each organization they join.
+                #Any login with more than 1 actor will go to the main menu while individuals who have not joined an org will be redirected to the organization selection page.
+                if(len(Actor.objects.filter(person=request.user.person.uuid)) > 1):
+                    return redirect("main_menu")
+                else:
+                    return redirect("select_lab")
             else:
                 messages.error(request, "Error logging in")
                 return render(request, self.template_name, {"login_form": login_form})
