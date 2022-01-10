@@ -160,13 +160,17 @@ class ExperimentNameForm(Form):
 
 
 class ExperimentTemplateNameForm(Form):
-    exp_template_name = CharField(label="Experiment Template Name", max_length=100)
+    exp_template_name = CharField(
+        label="Experiment Template Name", max_length=100, required=True
+    )
 
 
 class ActionSequenceNameForm(Form):
     widget = TextInput(attrs={"id": "name"})
 
-    name = CharField(label="Action Sequence Name", max_length=100, widget=widget)
+    name = CharField(
+        label="Action Sequence Name", max_length=100, widget=widget, required=True
+    )
 
 
 class ActionSequenceSelectionForm(Form):

@@ -123,12 +123,17 @@ def save_action_sequence(request: HttpRequest) -> HttpResponse:
             else:
                 source_bbm = None
 
-            if "wells" in destination:  # individual well-level actions
-                plate, created = Vessel.objects.get_or_create(
-                    description=destination.split("wells")[0]
+            if "- wells" in destination:  # individual well-level actions
+                plate = Vessel.objects.get(description=destination.split(" -")[0])
+                # plate, created = Vessel.objects.get_or_create(
+                # description=destination.split("wells")[0]
+                # )
+                # well_count = int(destination.split(" ")[0])
+                well_list = make_well_labels_list(
+                    well_count=plate.well_number,
+                    column_order=plate.column_order,
+                    robot="True",
                 )
-                well_count = int(destination.split(" ")[0])
-                well_list = make_well_labels_list(well_count=well_count, robot="True")
                 plate_wells = {}
                 for well in well_list:
                     plate_wells[well], created = Vessel.objects.get_or_create(
@@ -154,11 +159,15 @@ def save_action_sequence(request: HttpRequest) -> HttpResponse:
                     au.save()
             else:
                 if "plate" in destination:  # plate-level actions
-                    plate, created = Vessel.objects.get_or_create(
-                        description=destination
-                    )
+
+                    vessel = Vessel.objects.get(description=destination)
+
+                    # if "plate" in destination:  # plate-level actions
+                    # plate, created = Vessel.objects.get_or_create(
+                    # description=destination
+                    # )
                     destination_bbm = BaseBomMaterial.objects.create(
-                        description=plate.description, vessel=plate
+                        description=plate.description, vessel=vessel
                     )
                     if source_bbm:
                         description = f"{action.description} : {source_bbm.description} -> {destination_bbm.description}"
@@ -176,6 +185,7 @@ def save_action_sequence(request: HttpRequest) -> HttpResponse:
                     au.save()
 
                 else:
+                    # if destination is not a vessel
                     destination_bbm = BaseBomMaterial.objects.create(
                         description=destination
                     )

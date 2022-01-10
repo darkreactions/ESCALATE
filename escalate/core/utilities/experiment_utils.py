@@ -369,16 +369,16 @@ def generate_experiments_and_save(
     # desired_volume = generateExperiments(reagents, descriptions, num_of_experiments)
     # retrieve q1 information to update
     q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
-    experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
+    # experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
     action_sequences = ExperimentInstance.objects.get(
         uuid=experiment_copy_uuid
     ).action_sequence.all()
 
-    action_reagent_map = {}
-    for i in action_sequences:
-        for j in reagent_template_names:
-            if j.lower() in i.description.lower():
-                action_reagent_map[i.description.lower()] = j
+    # action_reagent_map = {}
+    # for i in action_sequences:
+    # for j in reagent_template_names:
+    # if j.lower() in i.description.lower():
+    # action_reagent_map[i.description.lower()] = j
 
     # create counters for acid, solvent, stock a, stock b to keep track of current element in those lists
     # if "workflow 1" in experiment.parent.description.lower():
@@ -433,10 +433,13 @@ def generate_experiments_and_save(
 
     # This loop adds individual well volmes to each action in the database
     # for action_description, (reagent_name, mult_factor) in action_reagent_map.items():
-    for action_description, reagent_name in action_reagent_map.items():
-        well_list = make_well_labels_list(
-            well_count=vessel.well_number, column_order=None, robot="True",
-        )[0:num_of_experiments]
+    well_list = make_well_labels_list(
+        well_count=vessel.well_number, column_order=vessel.column_order, robot="True",
+    )[0:num_of_experiments]
+
+    for reagent_name in reagent_template_names:
+        # for action_description, reagent_name in action_reagent_map.items():
+
         # if experiment.parent.ref_uid == "workflow_1":
         # well_list = make_well_list(
         # container_name="Symyx_96_well_0003",

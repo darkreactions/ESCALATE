@@ -14,6 +14,7 @@ from core.models.view_tables import (
     ReagentMaterialValue,
     Reagent,
     ReagentTemplate,
+    Vessel,
 )
 from copy import deepcopy
 import uuid
@@ -34,9 +35,16 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
 
 def generate_action_def_json(action_defs):
     # action_defs = [a for a in vt.ActionDef.objects.all()]
-    reagent_choices = []
+    source_dest_choices = []
     for reagent in ReagentTemplate.objects.all():
-        reagent_choices.append(reagent.description)
+        source_dest_choices.append(reagent.description)
+    for vessel in Vessel.objects.all():
+        if vessel.parent is None:
+            if "plate" in vessel.description:
+                source_dest_choices.append("{} - plate".format(vessel.description))
+                source_dest_choices.append("{} - wells".format(vessel.description))
+            else:
+                source_dest_choices.append(vessel.description)
 
     json_data = []
 
@@ -56,14 +64,14 @@ def generate_action_def_json(action_defs):
                         "type": "select",
                         "label": "From:",
                         "hint": "source material/vessel",
-                        "options": {"items": [r for r in reagent_choices]},
+                        "options": {"items": [i for i in source_dest_choices]},
                     },
                     {
                         "name": "destination",
                         "type": "select",
                         "label": "To:",
                         "hint": "destination material/vessel",
-                        "options": {"items": [r for r in reagent_choices]},
+                        "options": {"items": [i for i in source_dest_choices]},
                     },
                 ],
             }
