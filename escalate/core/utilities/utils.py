@@ -13,6 +13,7 @@ from core.models.view_tables import (
     OutcomeInstance,
     ReagentMaterialValue,
     Reagent,
+    ReagentTemplate,
 )
 from copy import deepcopy
 import uuid
@@ -33,6 +34,9 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
 
 def generate_action_def_json(action_defs):
     # action_defs = [a for a in vt.ActionDef.objects.all()]
+    reagent_choices = []
+    for reagent in ReagentTemplate.objects.all():
+        reagent_choices.append(reagent.description)
 
     json_data = []
 
@@ -49,17 +53,17 @@ def generate_action_def_json(action_defs):
                 "properties": [
                     {
                         "name": "source",
-                        "type": "text",
+                        "type": "select",
                         "label": "From:",
                         "hint": "source material/vessel",
-                        "options": {},
+                        "options": {"items": [r for r in reagent_choices]},
                     },
                     {
                         "name": "destination",
-                        "type": "text",
+                        "type": "select",
                         "label": "To:",
                         "hint": "destination material/vessel",
-                        "options": {},
+                        "options": {"items": [r for r in reagent_choices]},
                     },
                 ],
             }
