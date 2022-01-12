@@ -62,7 +62,7 @@ class SelectReagentsView(TemplateView):
         context = self.get_reagent_forms(context)
         context = self.get_dead_volume_form(context)
         context = self.get_vessel_form(context)
-        context = self.get_reaction_parameter_forms(context)
+        # context = self.get_reaction_parameter_forms(context)
         context["colors"] = self.get_colors(len(context["reagent_formset"]))
         return context
 
