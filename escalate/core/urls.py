@@ -20,10 +20,11 @@ from .views.experiment import (
     SetupExperimentView,
     CreateExperimentTemplate,
     CreateReagentTemplate,
-    ExperimentDetailView,
+    #ExperimentDetailView,
     ExperimentReagentPrepView,
     ExperimentOutcomeView,
     ExperimentDetailEditView,
+    ParameterEditView
 )
 
 from .views.experiment.create_select_template import SelectReagentsView
@@ -125,6 +126,11 @@ urlpatterns += [
         ExperimentDetailEditView.as_view(),
         name="experiment_completed_instance_update",
     ),
+    path(
+        "experiment_completed_instance/<uuid:pk>/parameter",
+        ParameterEditView.as_view(),
+        name="experiment_completed_instance_parameter",
+    ),
 ]
 
 # Pending experiment patterns
@@ -153,6 +159,11 @@ urlpatterns += [
         "experiment_pending_instance/<uuid:pk>/outcome",
         ExperimentOutcomeView.as_view(),
         name="experiment_pending_instance_outcome",
+    ),
+    path(
+        "experiment_pending_instance/<uuid:pk>/parameter",
+        ParameterEditView.as_view(),
+        name="experiment_pending_instance_parameter",
     ),
 ]
 

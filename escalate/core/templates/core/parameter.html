@@ -1,6 +1,7 @@
 {% extends 'core/base.html' %}
 {% load static %}
 {% load crispy_forms_tags %}
+{% load index %}
 
 {% block content %}
 
@@ -30,17 +31,6 @@
         <button class="btn btn-outline-primary" type="submit" name="update_param" value="update_param">
             Update Parameters
         </button>
-    </div>
-    <div class="text-right">
-        {% if '/experiment_completed_instance/' in request.path %}
-        <button class="btn btn-outline-primary" type="submit" name="exp_list" value="exp_list" formaction="{% url 'experiment_completed_instance' %}">
-            Return to Completed Experiment
-        </button>
-        {% else %}
-        <button class="btn btn-outline-primary" type="submit" name="exp_list" value="exp_list" formaction="{% url 'experiment_pending_instance' %}">
-            Return to Experiment
-        </button>
-        {% endif %}
     </div>
 </form>
 {% endblock %}
