@@ -227,11 +227,35 @@ class MaterialTypeSelectionForm(Form):
 class OutcomeDefinitionForm(Form):
 
     # well_num = IntegerField(label="Number of Experiments", required=True, initial=96)
-    define_outcomes = CharField(label="Outcome", required=True, initial=None)
-    # define_outcome = CharField(label='Outcome to Measure', required=False, initial='Crystal score')
+    # define_outcomes=ValFormField(label="Outcome", required=False)
+
+    widget = Select(
+        attrs={
+            "class": "selectpicker",
+            "data-style": "btn-dark",
+            "data-live-search": "true",
+            "id": "template",
+        }
+    )
+
+    define_outcomes = CharField(label="Outcome", required=False, initial=None)
+    outcome_type = ChoiceField(widget=widget)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        try:
+            data_types = TypeDef.objects.filter(category="data")
+            data_type_choices = [
+                (data_type.description, data_type.description)
+                for data_type in data_types
+            ]
+            self.fields["outcome_type"].choices = data_type_choices
+        except Exception as e:
+            self.fields["outcome_type"].choices = [
+                ("num", "num"),
+                ("text", "text"),
+                ("bool", "bool"),
+            ]
 
 
 class ExperimentTemplateCreateForm(Form):
