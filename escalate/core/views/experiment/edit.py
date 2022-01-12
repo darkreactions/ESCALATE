@@ -58,7 +58,7 @@ class ExperimentDetailEditView(TemplateView):
             initial=initial_q1,
             prefix="q1_param",
         )
-        context["q1_param_details"] = q1_details
+        context["q1_param_details"] = q1_details.sort()
         return context
 
     def get_context_data(self, **kwargs):

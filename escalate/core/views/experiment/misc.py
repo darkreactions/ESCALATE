@@ -54,7 +54,7 @@ def get_action_parameter_form_data(
 
         initial_q1.append(data)
     q1_details = [
-        f"{row.object_description} : {row.parameter_def_description}" for row in q1
+        f"{row.action_unit_description}" for row in q1
     ]
 
     return initial_q1, q1_details
