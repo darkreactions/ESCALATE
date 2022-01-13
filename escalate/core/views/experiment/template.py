@@ -326,19 +326,19 @@ class CreateExperimentTemplate(TemplateView):
             )
             eas.save()
 
-    def add_outcomes(self, context, outcome_type):
+    def add_outcomes(self, context, outcome_description, outcome_type):
         exp_template = ExperimentTemplate.objects.get(uuid=context["exp_uuid"])
-        outcome_val = {"value": 0, "unit": "", "type": "text"}
+        outcome_val = {"value": 0.0, "unit": " ", "type": outcome_type}
         default_score, created = DefaultValues.objects.get_or_create(
             **{
-                "description": "Zero outcome val",
+                "description": outcome_type,
                 "nominal_value": outcome_val,
                 "actual_value": outcome_val,
             }
         )
 
         ot, created = OutcomeTemplate.objects.get_or_create(
-            description=outcome_type,
+            description=outcome_description,
             experiment=exp_template,
             # instance_labels=well_list,
             default_value=default_score,
@@ -397,7 +397,9 @@ class CreateExperimentTemplate(TemplateView):
                 OutcomeDefinitionForm, extra=context["num_outcomes"]
             )
 
-            context["outcome_definition_forms"] = OutcomeDefinitionFormset
+            context["outcome_definition_forms"] = OutcomeDefinitionFormset(
+                prefix="outcome_forms"
+            )
 
             # context["reagent_template_link"] = "reagent-template"
 
@@ -405,6 +407,7 @@ class CreateExperimentTemplate(TemplateView):
             context = self.get_context_data(**kwargs)
             # context['outcome_type'] =request.POST['define_outcomes']
             context["new_template_name"] = request.POST["exp_template_name"]
+            context["workflow_link"] = reverse("experiment_action_sequence")
             try:
                 self.create_template(context)
             except IntegrityError:
@@ -429,9 +432,11 @@ class CreateExperimentTemplate(TemplateView):
                 for key in request.POST:
                     if "define_outcomes" in key:
                         num_outcomes += 1
+                # num_outcomes = num_outcomes / 3
+                # divide by 3 because there are 3 form entries per outcome
                 OutcomeDefinitionFormset = formset_factory(
                     OutcomeDefinitionForm, extra=num_outcomes
-                )(request.POST)
+                )(request.POST, prefix="outcome_forms")
                 context["outcome_definition_forms"] = OutcomeDefinitionFormset
 
                 # context["num_reagents"] = int(request.POST.get("num_reagents"))
@@ -481,13 +486,16 @@ class CreateExperimentTemplate(TemplateView):
             for key in request.POST:
                 if "define_outcomes" in key:
                     num_outcomes += 1
+            # num_outcomes = num_outcomes / 3
+            # divide by 3 because there are 3 form entries per outcome
             temp_formset = formset_factory(OutcomeDefinitionForm, extra=num_outcomes)(
-                request.POST
+                request.POST, prefix="outcome_forms"
             )
             if temp_formset.is_valid():
                 for i in temp_formset.cleaned_data:
-                    outcome_type = i["define_outcomes"]
-                    self.add_outcomes(context, outcome_type)
+                    outcome_description = i["define_outcomes"]
+                    outcome_type = i["outcome_type"]
+                    self.add_outcomes(context, outcome_description, outcome_type)
 
         # self.add_outcomes(context, request.POST["define_outcomes"], well_list)
 

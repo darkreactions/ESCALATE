@@ -196,12 +196,14 @@ class CreateExperimentView(TemplateView):
             vessel_form = VesselForm(request.POST)
             if vessel_form.is_valid():
                 vessel = vessel_form.cleaned_data.get("value")
-                #well_num = vessel.well_number
-                #col_order = vessel.column_order
-                #well_list = make_well_labels_list(well_num, col_order, robot="False")
+                # well_num = vessel.well_number
+                # col_order = vessel.column_order
+                # well_list = make_well_labels_list(well_num, col_order, robot="False")
 
             # make the experiment copy: this will be our new experiment
-            experiment_copy_uuid = experiment_copy(str(exp_template.uuid), exp_name, vessel)
+            experiment_copy_uuid = experiment_copy(
+                str(exp_template.uuid), exp_name, vessel
+            )
             exp_concentrations = {}
             reagentDefs = []
             for reagent_formset in formsets:
@@ -428,9 +430,9 @@ class CreateExperimentView(TemplateView):
             return context
 
         exp_name = exp_name_form.cleaned_data["exp_name"]
-        self.save_reaction_parameters(
-            request, experiment_copy_uuid, exp_name_form, exp_template
-        )
+        # self.save_reaction_parameters(
+        # request, experiment_copy_uuid, exp_name_form, exp_template
+        # )
         # generate desired volume for current reagent
         try:
             exp_number = int(request.POST["automated"])
