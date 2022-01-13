@@ -5,6 +5,7 @@ from django.forms import BaseFormSet
 from django.db.models.query import QuerySet
 from core.utilities.experiment_utils import get_action_parameter_querysets
 from core.custom_types import Val
+from core.models.view_tables import Parameter
 
 
 def get_action_parameter_form_data(
@@ -54,7 +55,7 @@ def get_action_parameter_form_data(
 
         initial_q1.append(data)
     q1_details = [
-        f"{row.object_description} : {row.parameter_def_description}" for row in q1
+        f"{row.action_unit_description}" for row in q1
     ]
 
     return initial_q1, q1_details
@@ -101,6 +102,7 @@ def save_forms_q1(queries, formset, fields):
             desc = json.loads(data["uuid"])
             if len(desc) == 2:
                 object_desc, param_def_desc = desc
+                #param_def_desc = 'None'. What is param_def_desc? Is it a nominal/actual value?
                 query = queries.get(
                     object_description=object_desc,
                     parameter_def_description=param_def_desc,

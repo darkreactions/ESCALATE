@@ -496,7 +496,6 @@ class CreateExperimentView(TemplateView):
 
 """
 
-
     def get_material_forms(
         self, exp_uuid: str, context: dict[str, Any]
     ) -> dict[str, Any]:

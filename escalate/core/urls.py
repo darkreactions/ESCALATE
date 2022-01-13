@@ -25,10 +25,11 @@ from .views.experiment import (
     SetupExperimentView,
     CreateExperimentTemplate,
     CreateReagentTemplate,
-    ExperimentDetailView,
+    #ExperimentDetailView,
     ExperimentReagentPrepView,
     ExperimentOutcomeView,
     ExperimentDetailEditView,
+    ParameterEditView
 )
 
 from .views.experiment.create_select_template import SelectReagentsView
@@ -105,8 +106,8 @@ urlpatterns += [
 # Experiment instance edit/view patterns
 urlpatterns += [
     path(
-        "experiment/<uuid:pk>/view",
-        ExperimentDetailView.as_view(),
+        "experiment/<uuid:pk>",
+        ExperimentDetailEditView.as_view(),
         name="experiment_instance_view",
     ),
     path(
@@ -138,14 +139,19 @@ urlpatterns += [
         name="reagent-template-add",
     ),
     path(
-        "experiment_completed_instance/<uuid:pk>/view",
-        ExperimentDetailView.as_view(),
+        "experiment_completed_instance/<uuid:pk>",
+        ExperimentDetailEditView.as_view(),
         name="experiment_completed_instance_view",
     ),
     path(
         "experiment_completed_instance/<uuid:pk>",
         ExperimentDetailEditView.as_view(),
         name="experiment_completed_instance_update",
+    ),
+    path(
+        "experiment_completed_instance/<uuid:pk>/parameter",
+        ParameterEditView.as_view(),
+        name="experiment_completed_instance_parameter",
     ),
 ]
 
@@ -157,8 +163,8 @@ urlpatterns += [
         name="experiment_pending_instance_add",
     ),
     path(
-        "experiment_pending_instance/<uuid:pk>/view",
-        ExperimentDetailView.as_view(),
+        "experiment_pending_instance/<uuid:pk>",
+        ExperimentDetailEditView.as_view(),
         name="experiment_pending_instance_view",
     ),
     path(
@@ -175,6 +181,11 @@ urlpatterns += [
         "experiment_pending_instance/<uuid:pk>/outcome",
         ExperimentOutcomeView.as_view(),
         name="experiment_pending_instance_outcome",
+    ),
+    path(
+        "experiment_pending_instance/<uuid:pk>/parameter",
+        ParameterEditView.as_view(),
+        name="experiment_pending_instance_parameter",
     ),
 ]
 
