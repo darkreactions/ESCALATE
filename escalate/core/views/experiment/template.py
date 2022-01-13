@@ -328,10 +328,10 @@ class CreateExperimentTemplate(TemplateView):
 
     def add_outcomes(self, context, outcome_description, outcome_type):
         exp_template = ExperimentTemplate.objects.get(uuid=context["exp_uuid"])
-        outcome_val = {"value": 0, "unit": "", "type": outcome_type}
+        outcome_val = {"value": 0.0, "unit": " ", "type": outcome_type}
         default_score, created = DefaultValues.objects.get_or_create(
             **{
-                "description": "Zero outcome val",
+                "description": outcome_type,
                 "nominal_value": outcome_val,
                 "actual_value": outcome_val,
             }
@@ -407,6 +407,7 @@ class CreateExperimentTemplate(TemplateView):
             context = self.get_context_data(**kwargs)
             # context['outcome_type'] =request.POST['define_outcomes']
             context["new_template_name"] = request.POST["exp_template_name"]
+            context["workflow_link"] = reverse("experiment_action_sequence")
             try:
                 self.create_template(context)
             except IntegrityError:

@@ -136,16 +136,28 @@ class ExperimentOutcomeView(TemplateView):
         for ot in outcome_templates:
             # Loop through each outcome for that type (eg. Crystal score for A1, A2, ...)
             for o in outcomes.filter(outcome_template=ot):
-                # Outcome description
-                data[ot.description + " location"].append(o.description)
-                # Add value of outcome
-                data[ot.description].append(o.actual_value.value)
-                # Add unit of outcome
-                data[ot.description + " unit"].append(o.actual_value.unit)
-                # Add filename of outcome (This can be used to associate any file uploaded with the well)
-                data[ot.description + " filename"].append("")
-                # Extra notes the user may wish to add
-                data[ot.description + " notes"].append("")
+                if (
+                    "text" in ot.default_value.description
+                ):  # omit unit column for text-based outcomes
+                    # Outcome description
+                    data[ot.description + " location"].append(o.description)
+                    # Add value of outcome
+                    data[ot.description].append(o.actual_value.value)
+                    # Add filename of outcome (This can be used to associate any file uploaded with the well)
+                    data[ot.description + " filename"].append("")
+                    # Extra notes the user may wish to add
+                    data[ot.description + " notes"].append("")
+                else:
+                    # Outcome description
+                    data[ot.description + " location"].append(o.description)
+                    # Add value of outcome
+                    data[ot.description].append(o.actual_value.value)
+                    # Add unit of outcome
+                    data[ot.description + " unit"].append(o.actual_value.unit)
+                    # Add filename of outcome (This can be used to associate any file uploaded with the well)
+                    data[ot.description + " filename"].append("")
+                    # Extra notes the user may wish to add
+                    data[ot.description + " notes"].append("")
         df = pd.DataFrame.from_dict(data)
         temp = tempfile.NamedTemporaryFile()
         df.to_csv(temp, index=False)
