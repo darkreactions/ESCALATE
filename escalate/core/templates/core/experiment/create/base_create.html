@@ -1,6 +1,7 @@
 {% load static %}
 {% load crispy_forms_tags %}
 {% load index %}
+
 {% if new_exp_name %}
 <p> Created Experiment! </p>
 <p>Experiment name: {{ new_exp_name }}</p>
@@ -16,9 +17,10 @@
 <p> <a href={{ lsr_download_link }}> Download LibraryStudio file </a></p>
 {% endif %}
 
+
 {% if not new_exp_name %}
 {% if selected_exp_template %}
-<p>Selected experiment {{ selected_exp_template.description }}</p>
+<p>Selected experiment template: {{ selected_exp_template.description }}</p>
 
 {% endif %}
 

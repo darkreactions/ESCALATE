@@ -1,0 +1,115 @@
+[
+    {
+        "type": "dispense",
+        "displayName": "Dispense",
+        "runtimeDescription": "x => ` Volume: ${ x.state.volume }`  ",
+        "description": "dispense",
+        "category": "template",
+        "outcomes": [
+            "Done"
+        ],
+        "properties": [
+            {
+                "name": "volume",
+                "type": "text",
+                "label": "Volume",
+                "hint": "",
+                "options": {}
+            },
+            {
+                "name": "source",
+                "type": "text",
+                "label": "From:",
+                "hint": "source material/vessel",
+                "options": {}
+            },
+            {
+                "name": "destination",
+                "type": "text",
+                "label": "To:",
+                "hint": "destination material/vessel",
+                "options": {}
+            }
+        ]
+    },
+    {
+        "type": "bring_to_temperature",
+        "displayName": "Heat/Cool",
+        "description": "bring_to_temperature",
+        "runtimeDescription": "x => ` Temperature: ${ x.state.temp }` ",
+        "category": "template",
+        "outcomes": [
+            "Done"
+        ],
+        "properties": [
+            {
+                "name": "temp",
+                "type": "text",
+                "label": "Temperature",
+                "hint": "",
+                "options": {}
+            },
+            {
+                "name": "source",
+                "type": "text",
+                "label": "From:",
+                "hint": "source material/vessel",
+                "options": {}
+            },
+            {
+                "name": "destination",
+                "type": "text",
+                "label": "To:",
+                "hint": "destination material/vessel",
+                "options": {}
+            }
+        ]
+    },
+    {
+        "type": "stir",
+        "displayName": "Stir",
+        "description": "stir",
+        "runtimeDescription": "x =>  ` Temperature: ${ x.state.temp } \n Duration: ${ x.state.duration } \n Speed: ${ x.state.speed} `",
+        "category": "template",
+        "outcomes": [
+            "Done"
+        ],
+        "properties": [
+            {
+                "name": "temp",
+                "type": "text",
+                "label": "Temperature",
+                "hint": "",
+                "options": {}
+            },
+            {
+                "name": "duration",
+                "type": "text",
+                "label": "Duration",
+                "hint": "",
+                "options": {}
+            },
+            {
+                "name": "speed",
+                "type": "text",
+                "label": "Speed (rpm)",
+                "hint": "",
+                "options": {}
+            },
+            {
+                "name": "source",
+                "type": "text",
+                "label": "From:",
+                "hint": "source material/vessel",
+                "options": {}
+            },
+            {
+                "name": "destination",
+                "type": "text",
+                "label": "To:",
+                "hint": "destination material/vessel",
+                "options": {}
+            }
+        ]
+    }
+]

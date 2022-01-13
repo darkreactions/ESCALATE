@@ -5,9 +5,12 @@ import math
 from core.models.view_tables import ReactionParameter
 
 
-def make_well_labels_list(well_count=96, robot="True"):
+def make_well_labels_list(well_count=96, column_order=None, robot="True"):
     if well_count not in [24, 96]:
-        well_labels = [i for i in range(1, well_count + 1)]
+        if well_count is None:
+            well_labels = [1]
+        else:
+            well_labels = [i for i in range(1, well_count + 1)]
 
     else:
         num_rows = math.ceil((well_count * 3 / 2) ** (1 / 2))
@@ -15,11 +18,13 @@ def make_well_labels_list(well_count=96, robot="True"):
 
         if robot == "True":
             if well_count == 96:
-                column_order = ["A", "C", "E", "G", "B", "D", "F", "H"]
+                if column_order is None:
+                    column_order = ["A", "C", "E", "G", "B", "D", "F", "H"]
             if well_count == 24:
-                column_order = ["A", "C", "B", "D"]
+                if column_order is None:
+                    column_order = ["A", "C", "B", "D"]
             well_labels = [
-                f"{col}{row}" for row in range(1, num_rows + 1) for col in column_order
+                f"{col}{row}" for col in column_order for row in range(1, num_rows + 1)
             ][:well_count]
 
         else:  # chronological order for outcomes

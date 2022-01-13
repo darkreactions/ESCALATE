@@ -1,4 +1,4 @@
-from core.widgets import ValWidget
+from core.widgets import ValWidget, TextInput
 from django.forms import (
     Select,
     SelectMultiple,
@@ -22,6 +22,8 @@ from core.widgets import ValFormField
 from .forms import dropdown_attrs
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column, Hidden, Field
+
+# from django.forms import formset_factory
 
 
 class UploadFileForm(Form):
@@ -84,7 +86,7 @@ class UploadFileForm(Form):
 
 class VesselForm(Form):
     v_query = vt.Vessel.objects.all()
-    value = ModelChoiceField(queryset=v_query)
+    value = ModelChoiceField(queryset=v_query, label="Select Vessel")
     value.widget = Select(attrs=dropdown_attrs)
     # uuid = CharField(widget=HiddenInput)
 
@@ -128,15 +130,15 @@ class ReagentTemplateCreateForm(Form):
         }
     )
 
-    template_name = CharField(label="Reagent Template Name", required=True)
+    reagent_template_name = CharField(label="Reagent Name", required=True)
 
     select_mt = MultipleChoiceField(
         widget=SelectMultiple(), required=True, label="Select Material Types",
     )
 
     def __init__(self, *args, **kwargs):
-        org_id = kwargs.pop("org_id")
-        lab = vt.Actor.objects.get(organization=org_id, person__isnull=True)
+        # org_id = kwargs.pop("org_id")
+        # lab = vt.Actor.objects.get(organization=org_id, person__isnull=True)
         super().__init__(*args, **kwargs)
         self.fields["select_mt"].choices = [
             (r.uuid, r.description) for r in vt.MaterialType.objects.all()
@@ -150,8 +152,25 @@ class ReagentTemplateCreateForm(Form):
         # self.fields['select_materials'].choices = [(r.uuid, r.description) for r in vt.InventoryMaterial.objects.all()]
 
 
+# ReagentCreateFormSet = formset_factory(ReagentTemplateCreateForm)
+
+
 class ExperimentNameForm(Form):
     exp_name = CharField(label="Experiment Name", max_length=100)
+
+
+class ExperimentTemplateNameForm(Form):
+    exp_template_name = CharField(
+        label="Experiment Template Name", max_length=100, required=True
+    )
+
+
+class ActionSequenceNameForm(Form):
+    widget = TextInput(attrs={"id": "name"})
+
+    name = CharField(
+        label="Action Sequence Name", max_length=100, widget=widget, required=True
+    )
 
 
 class ActionSequenceSelectionForm(Form):
@@ -205,6 +224,40 @@ class MaterialTypeSelectionForm(Form):
         ]
 
 
+class OutcomeDefinitionForm(Form):
+
+    # well_num = IntegerField(label="Number of Experiments", required=True, initial=96)
+    # define_outcomes=ValFormField(label="Outcome", required=False)
+
+    widget = Select(
+        attrs={
+            "class": "selectpicker",
+            "data-style": "btn-dark",
+            "data-live-search": "true",
+            "id": "template",
+        }
+    )
+
+    define_outcomes = CharField(label="Outcome", required=False, initial=None)
+    outcome_type = ChoiceField(widget=widget)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        try:
+            data_types = TypeDef.objects.filter(category="data")
+            data_type_choices = [
+                (data_type.description, data_type.description)
+                for data_type in data_types
+            ]
+            self.fields["outcome_type"].choices = data_type_choices
+        except Exception as e:
+            self.fields["outcome_type"].choices = [
+                ("num", "num"),
+                ("text", "text"),
+                ("bool", "bool"),
+            ]
+
+
 class ExperimentTemplateCreateForm(Form):
 
     widget = Select(
@@ -223,58 +276,70 @@ class ExperimentTemplateCreateForm(Form):
         }
     )
 
-    template_name = CharField(label="Experiment Template Name", required=True)
-    # reagent_num = IntegerField(label='Number of Reagents', required=True, initial=0)
+    # template_name = CharField(label="Experiment Template Name", required=True)
 
-    # reagent_choices = [(r.uuid, r.description) for r in vt.ReagentTemplate.objects.all()]
+    num_reagents = IntegerField(label="Number of Reagents", required=True, initial=1)
 
-    select_rt = MultipleChoiceField(
-        # initial='0',
-        widget=SelectMultiple(),
-        required=True,
-        label="Select Reagent Templates",
+    num_outcomes = IntegerField(
+        label="Number of outcomes to measure", required="True", initial=1
     )
+
+    # select_rt = MultipleChoiceField(
+    #  initial="0",
+    # widget=SelectMultiple(),
+    #  required=True,
+    # label="Select Reagent Templates",
+    # )
 
     # select_rt = SelectMultiple([(r.uuid, r.description) for r in vt.ReagentTemplate.objects.all()])
     # label='Select Reagent Templates')
     # , widget=widget_mc)
 
-    # MultipleChoiceField(label='Select Reagent Templates', widget=widget_mc)
+    # select_actions = MultipleChoiceField(
+    # initial='0',
+    # widget=SelectMultiple(),
+    # required=True,
+    # label='Select Action Sequences',
+    # )
+    # well_num = IntegerField(label="Number of Wells", required=True, initial=96)
 
-    # column_order= CharField(label='Column Order', required=False, initial='ACEGBDFH')
-    # rows = IntegerField(label='Number of Rows', required=False, initial=12)
-    # select_vessel = ChoiceField(label='Select Vessel', widget=widget)
-
-    # action_choices = [(a.uuid, a.description) for a in vt.ActionSequence.objects.all()]
-
-    select_actions = MultipleChoiceField(
-        # initial='0',
-        widget=SelectMultiple(),
-        required=True,
-        label="Select Action Sequences",
-    )
-    well_num = IntegerField(label="Number of Wells", required=True, initial=96)
-
-    define_outcomes = CharField(
-        label="Outcome to Measure", required=True, initial="Crystal score"
-    )
+    # define_outcomes = CharField(
+    # label="Outcome to Measure", required=True, initial="Crystal score"
+    # )
 
     def __init__(self, *args, **kwargs):
         org_id = kwargs.pop("org_id")
         lab = vt.Actor.objects.get(organization=org_id, person__isnull=True)
         super().__init__(*args, **kwargs)
-        self.fields["select_rt"].choices = [
-            (r.uuid, r.description) for r in vt.ReagentTemplate.objects.all()
-        ]
-        self.fields["select_actions"].choices = [
-            (a.uuid, a.description) for a in vt.ActionSequence.objects.all()
-        ]
+        # self.fields["select_rt"].choices = [
+        #  (r.uuid, r.description) for r in vt.ReagentTemplate.objects.all()
+        # ]
+        # self.fields['select_actions'].choices = [(a.uuid, a.description) for a in vt.ActionSequence.objects.all()]
 
-        # v_query = vt.Vessel.objects.all()
-        # vessel = VesselForm(initial={'value': v_query[0]})
-        # self.fields['select_vessel'].choices = [v for v in vessel]
-        # self.fields['select_vessel'].choices = [(r.uuid, r.description) for r in vt.Vessel.objects.all()]
-        # self.fields['select_materials'].choices = [(r.uuid, r.description) for r in vt.InventoryMaterial.objects.all()]
+
+class ExperimentTemplateSelectForm(Form):
+
+    widget = Select(
+        attrs={
+            "class": "selectpicker",
+            "data-style": "btn-dark",
+            "data-live-search": "true",
+            "id": "template",
+        }
+    )
+    select_experiment_template = ChoiceField(widget=widget)
+
+    def __init__(self, *args, **kwargs):
+        org_id = kwargs.pop("org_id")
+        if not org_id:
+            raise ValueError("Please select a lab to continue")
+        lab = vt.Actor.objects.get(organization=org_id, person__isnull=True)
+        super().__init__(*args, **kwargs)
+        # self.fields['organization'].queryset = OrganizationPassword.objects.all()
+        self.fields["select_experiment_template"].choices = [
+            (exp.uuid, exp.description)
+            for exp in vt.ExperimentTemplate.objects.filter(lab=lab)
+        ]
 
 
 class ExperimentTemplateForm(Form):

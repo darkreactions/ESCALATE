@@ -1,0 +1,87 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+
+
+{% block content %}
+<script type="module" src={% static "js/elsa/elsa-workflow-designer.esm.js" %}></script>
+<script nomodule="" src={% static "js/elsa/elsa-workflow-designer.js" %}></script>
+
+<div id="header"
+    class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-dark border-bottom shadow-sm">
+    <h5 class="my-0 mr-md-auto font-weight-normal">Workflow Designer</h5>
+
+    <ul class="nav">
+        <li class="nav-item">
+            <button class="btn btn-primary" onclick="addAction()">Add Action Sequence</button>
+        </li>
+        <li class="nav-item">
+            <button class="btn btn-secondary" onclick="importWorkflow()">Import</button>
+        </li>
+        <li class="nav-item">
+            <wf-export-button workflow-designer-host="designerHost"></wf-export-button>
+        </li>
+        <li class="nav-item">
+            <button class="btn btn-secondary" name="get_workflow" onclick="getWorkflow()">Save</button>
+        </li>
+        <li class="nav-item">
+            <button class="btn btn-secondary" onclick="createNewWorkflow()">New Workflow</button>
+        </li>
+    </ul>
+</div>
+
+<div class="row">
+    <div class="col-md-12 text-secondary">
+        <form method="post">{% csrf_token %}
+            {{ experiment_template_select_form|crispy }}
+        </form>
+    </div>
+</div>
+
+<wf-designer-host id="designerHost" canvas-height="75vh" data-activity-definitions='{{ components | safe }}'
+    data-workflow='{{ workflow | safe }}' readonly="false" plugins="PrimitiveActivities"></wf-designer-host>
+
+
+<script type="text/javascript">
+    const designer = document.querySelector("#designerHost");
+
+    function addAction() {
+        designer.showActivityPicker();
+    }
+
+    function createNewWorkflow() {
+        if (confirm('Are you sure you want to discard current changes?'))
+            designer.newWorkflow();
+    }
+
+    function importWorkflow() {
+        designer.import();
+    }
+
+    async function getWorkflow() {
+        let result = await designer.getWorkflow();
+        result["exp_template"] = $("#template").val();
+        console.log(result);
+        var token = '{{csrf_token}}';
+        jQuery.ajax({
+            url: {% url 'save_experiment_action_sequence' %},
+            headers: { "X-CSRFToken": token },
+            type: "POST",
+            //data: JSON.stringify(result),
+            data: result,
+            dataType: "json",
+            beforeSend: function (x) {
+                if (x && x.overrideMimeType) {
+                    x.overrideMimeType("application/j-son;charset=UTF-8");
+                }
+            },
+            success: function (result) {
+                console.log(result);
+                alert("Workflow saved successfully!")
+            }
+    });
+  }
+
+</script>
+{% endblock %}
