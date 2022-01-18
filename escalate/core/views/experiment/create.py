@@ -68,7 +68,7 @@ from core.utilities.calculations import conc_to_amount
 from core.utilities.wf1_utils import (
     generate_robot_file_wf1,
     generate_robot_file,
-    generate_general_robot_file,
+    # generate_general_robot_file,
     make_well_labels_list,
 )
 from core.models.view_tables.generic_data import Parameter
@@ -163,8 +163,8 @@ class CreateExperimentView(TemplateView):
 
     def download_robot_file(self, exp_uuid: str):
         q1 = get_action_parameter_querysets(exp_uuid)  # volumes
-        f = generate_general_robot_file(q1, {}, "Symyx_96_well_0003", 96)
-        # f = generate_robot_file_wf1(q1, {}, "Symyx_96_well_0003", 96)
+        # f = generate_general_robot_file(q1, {}, "Symyx_96_well_0003", 96)
+        f = generate_robot_file_wf1(q1, {}, "Symyx_96_well_0003", 96)
         response = FileResponse(f, as_attachment=True, filename=f"robot_{exp_uuid}.xls")
         return response
 
