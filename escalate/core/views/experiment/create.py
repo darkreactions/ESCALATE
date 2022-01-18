@@ -65,7 +65,12 @@ from core.utilities.experiment_utils import (
     save_parameter,
 )
 from core.utilities.calculations import conc_to_amount
-from core.utilities.wf1_utils import generate_robot_file_wf1, make_well_labels_list
+from core.utilities.wf1_utils import (
+    generate_robot_file_wf1,
+    generate_robot_file,
+    # generate_general_robot_file,
+    make_well_labels_list,
+)
 from core.models.view_tables.generic_data import Parameter
 from core.views.experiment.create_select_template import SelectReagentsView
 from .misc import get_action_parameter_form_data, save_forms_q1, save_forms_q_material
@@ -73,7 +78,6 @@ from .misc import get_action_parameter_form_data, save_forms_q1, save_forms_q_ma
 import core.models
 from core.custom_types import Val
 import core.experiment_templates
-from core.utilities.wf1_utils import generate_robot_file
 
 
 SUPPORTED_CREATE_WFS = [
@@ -129,6 +133,11 @@ class CreateExperimentView(TemplateView):
 
     def post(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
+
+        exp_name_form = ExperimentNameForm(request.POST)
+
+        if exp_name_form.is_valid():
+            context["new_exp_name"] = exp_name_form.cleaned_data["exp_name"]
         # begin: create experiment
         try:
             # if "create_exp" in request.POST:
@@ -154,6 +163,7 @@ class CreateExperimentView(TemplateView):
 
     def download_robot_file(self, exp_uuid: str):
         q1 = get_action_parameter_querysets(exp_uuid)  # volumes
+        # f = generate_general_robot_file(q1, {}, "Symyx_96_well_0003", 96)
         f = generate_robot_file_wf1(q1, {}, "Symyx_96_well_0003", 96)
         response = FileResponse(f, as_attachment=True, filename=f"robot_{exp_uuid}.xls")
         return response
@@ -208,9 +218,9 @@ class CreateExperimentView(TemplateView):
             reagentDefs = []
             for reagent_formset in formsets:
                 if reagent_formset.is_valid():
-                    vector = self.save_forms_reagent(
-                        reagent_formset, experiment_copy_uuid, exp_concentrations
-                    )
+                    # vector = self.save_forms_reagent(
+                    # reagent_formset, experiment_copy_uuid, exp_concentrations
+                    # )
                     # try:
                     rd = prepare_reagents(reagent_formset, exp_concentrations)
                     if rd not in reagentDefs:
@@ -268,8 +278,11 @@ class CreateExperimentView(TemplateView):
                     index += 1
 
     def process_robot_formsets(self, exp_uuid, request, context):
-        context["robot_file_upload_form"] = UploadFileForm()
-        context["robot_file_upload_form_helper"] = UploadFileForm.get_helper()
+        # context["robot_file_upload_form"] = UploadFileForm()
+        # context["robot_file_upload_form_helper"] = UploadFileForm.get_helper()
+
+        context["robot_file_upload_form"] = RobotForm()
+        context["robot_file_upload_form_helper"] = RobotForm.get_helper()
 
         exp_template = ExperimentTemplate.objects.get(uuid=exp_uuid)
         if "current_org_id" in self.request.session:
@@ -285,11 +298,13 @@ class CreateExperimentView(TemplateView):
             reagentDefs,
             vessel,
         ) = self.save_reagents(exp_template, request, org_id)
-        self.save_reaction_parameters(
-            request, experiment_copy_uuid, exp_name_form, exp_template
-        )
-
-        df = pd.read_excel(request.FILES["file"])
+        # self.save_reaction_parameters(
+        # request, experiment_copy_uuid, exp_name_form, exp_template
+        # )
+        file = RobotForm(request.POST, request.FILES)
+        if file.is_valid():
+            df = pd.read_excel(file)
+            # df = pd.read_excel(request.FILES["file"])
         # self.process_robot_file(df)
         save_manual_volumes(df, experiment_copy_uuid, dead_volume)
 

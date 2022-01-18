@@ -286,7 +286,7 @@ def prepare_reagents(reagent_formset, exp_concentrations):
             "desired_concentration"
         ].value
 
-    if len(current_mat_list) == 1:
+    """if len(current_mat_list) == 1:
         if "acid" in (current_mat_list[0].description).lower():
             # reagent 7, Acid
             concentration1 = reagent_formset.cleaned_data[0][
@@ -315,7 +315,7 @@ def prepare_reagents(reagent_formset, exp_concentrations):
                 concentration2 = reagent_formset.cleaned_data[1][
                     "desired_concentration"
                 ].value
-        exp_concentrations["Reagent 2"] = [concentration1, concentration2, 0, 0]
+        exp_concentrations["Reagent 2"] = [concentration1, concentration2, 0, 0] 
     elif len(current_mat_list) == 3:
         # reagent 3, Stock B
         for element in current_mat_list:
@@ -339,7 +339,8 @@ def prepare_reagents(reagent_formset, exp_concentrations):
             concentration3,
             0,
             concentration1,
-        ]
+        ] """
+
     return reagents
     # return exp_concentrations
 
@@ -502,42 +503,7 @@ def save_manual_volumes(df, experiment_copy_uuid, dead_volume):
     experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
     reagents = Reagent.objects.filter(experiment=experiment_copy_uuid)
 
-    if "workflow 1" in experiment.parent.description.lower():
-
-        reagent_action_map = {
-            "Reagent1 (ul)": "dispense solvent",
-            "Reagent7 (ul)": "dispense acid volume 1",
-            "Reagent8 (ul)": "dispense acid volume 2",
-            "Reagent2 (ul)": "dispense stock a",
-            "Reagent3 (ul)": "dispense stock b",
-        }
-
-        reagent_template_robot_map = {
-            "Reagent 1 - Solvent": "Reagent1 (ul)",
-            "Reagent 7 - Acid": "Reagent7 (ul)",
-            "Reagent 2 - Stock A": "Reagent2 (ul)",
-            "Reagent 3 - Stock B": "Reagent3 (ul)",
-        }
-
-    elif "workflow 3" in experiment.parent.description.lower():
-        reagent_action_map = {
-            "Reagent1 (ul)": "dispense solvent",
-            "Reagent7 (ul)": "dispense acid volume 1",
-            "Reagent8 (ul)": "dispense acid volume 2",
-            "Reagent2 (ul)": "dispense stock a",
-            "Reagent3 (ul)": "dispense stock b",
-            "Reagent9 (ul)": "dispense antisolvent",
-        }
-
-        reagent_template_robot_map = {
-            "Reagent 1 - Solvent": "Reagent1 (ul)",
-            "Reagent 7 - Acid": "Reagent7 (ul)",
-            "Reagent 2 - Stock A": "Reagent2 (ul)",
-            "Reagent 3 - Stock B": "Reagent3 (ul)",
-            "Reagent 9 - Antisolvent": "Reagent9 (ul)",
-        }
-
-    for reagent_name, action_description in reagent_action_map.items():
+    for reagent in reagents:
         well_list = []
         for well in df["Vial Site"]:
             well_list.append(well)
@@ -545,45 +511,30 @@ def save_manual_volumes(df, experiment_copy_uuid, dead_volume):
         total_volume = 0
 
         for i, vial in enumerate(well_list):
-            # get actions from q1 based on keys in action_reagent_map
-            if (
-                experiment.parent.ref_uid == "workflow_1"
-                or experiment.parent.ref_uid == "workflow_3"
-            ):
+            for i, vial in enumerate(well_list):
                 action = q1.get(
-                    action_unit_description__icontains=action_description,
+                    action_unit_description__icontains=reagent.description,
+                    action_unit_description__contains="dispense",
                     action_unit_description__endswith=vial,
                 )
-            elif experiment.parent.ref_uid == "perovskite_demo":
-                action = q1.get(
-                    object_description__icontains=action_description,
-                    object_description__endswith=vial,
-                )
-
-            # If number of experiments requested is < actions only choose the first n actions
-            # Otherwise choose all
-            # actions = actions[:num_of_experiments] if num_of_experiments < len(actions) else actions
-            # for i, action in enumerate(actions):
-            parameter = Parameter.objects.get(uuid=action.parameter_uuid)
-            # action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
-            parameter.parameter_val_nominal.value = df[reagent_name][i]
-            # parameter.parameter_val_nominal.value = desired_volume[reagent_name][i]
-            parameter.save()
-            total_volume += df[reagent_name][i]
+                parameter = Parameter.objects.get(uuid=action.parameter_uuid)
+                # action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
+                parameter.parameter_val_nominal.value = df[reagent.description][i]
+                # parameter.parameter_val_nominal.value = desired_volume[reagent_name][i]
+                parameter.save()
+                total_volume += df[reagent.description][i]
 
         for reagent in reagents:
-            if reagent_name == reagent_template_robot_map[reagent.template.description]:
-                # if robot_api_map[reagent_name]== reagent.description:
 
-                prop = reagent.property_r.get(
-                    property_template__description__icontains="total volume"
+            prop = reagent.property_r.get(
+                property_template__description__icontains="total volume"
+            )
+            prop.nominal_value.value = total_volume
+            prop.nominal_value.unit = "uL"
+            prop.save()
+            if dead_volume is not None:
+                dv_prop = reagent.property_r.get(
+                    property_template__description__icontains="dead volume"
                 )
-                prop.nominal_value.value = total_volume
-                prop.nominal_value.unit = "uL"
-                prop.save()
-                if dead_volume is not None:
-                    dv_prop = reagent.property_r.get(
-                        property_template__description__icontains="dead volume"
-                    )
-                    dv_prop.nominal_value = dead_volume
-                    dv_prop.save()
+                dv_prop.nominal_value = dead_volume
+                dv_prop.save()
