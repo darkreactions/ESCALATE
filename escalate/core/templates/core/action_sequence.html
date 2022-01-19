@@ -31,13 +31,6 @@
   </ul>
 </div>
 
-<div class="row">
-  <div class="col-md-12 text-secondary">
-    <form method="post">{% csrf_token %}
-      {{ action_sequence_name_form|crispy }}
-    </form>
-  </div>
-</div>
 
 <wf-designer-host id="designerHost" canvas-height="75vh" data-activity-definitions='{{ components | safe }}'
   data-workflow='{{ workflow | safe }}' readonly="false" plugins="PrimitiveActivities"></wf-designer-host>
@@ -61,14 +54,14 @@
 
   async function getWorkflow() {
     let result = await designer.getWorkflow();
-    result["action_sequence_name"] = $("#name").val();
+    result["exp_template"] = $("#template").val();
     console.log(result);
     var token = '{{csrf_token}}';
     jQuery.ajax({
-      url: {% url 'save_action_sequence' %},
+      url: {% url 'save_experiment_action_sequence' %},
       headers: { "X-CSRFToken": token },
       type: "POST",
-      // data: { "data": JSON.stringify(result) },
+      //data: JSON.stringify(result),
       data: result,
       dataType: "json",
       beforeSend: function (x) {

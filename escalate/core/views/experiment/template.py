@@ -407,7 +407,6 @@ class CreateExperimentTemplate(TemplateView):
             context = self.get_context_data(**kwargs)
             # context['outcome_type'] =request.POST['define_outcomes']
             context["new_template_name"] = request.POST["exp_template_name"]
-            context["workflow_link"] = reverse("experiment_action_sequence")
             try:
                 self.create_template(context)
             except IntegrityError:
@@ -497,6 +496,9 @@ class CreateExperimentTemplate(TemplateView):
                     outcome_type = i["outcome_type"]
                     self.add_outcomes(context, outcome_description, outcome_type)
 
+            context["workflow_link"] = reverse(
+                "action_sequence", args=[str(context["exp_uuid"])]
+            )
         # self.add_outcomes(context, request.POST["define_outcomes"], well_list)
 
         # return HttpResponseRedirect("reagents_and_outcomes")
