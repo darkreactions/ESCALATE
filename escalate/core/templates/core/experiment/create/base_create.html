@@ -25,7 +25,8 @@
 {% endif %}
 
 
-<form hx-post="{% url 'create_experiment' %}" hx-target="#page-div" enctype="multipart/form-data">
+<form hx-post="{% url 'create_experiment' %}" hx-target="#page-div" enctype="multipart/form-data"
+    hx-encoding="multipart/form-data">
     {% csrf_token %}
     {{ experiment_name_form|crispy }}
     {% include 'core/experiment/create/manual_experiments.html' %}
