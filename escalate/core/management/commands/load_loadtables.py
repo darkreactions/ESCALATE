@@ -239,6 +239,7 @@ class Command(BaseCommand):
         plate = Vessel.objects.get(description="96 Well Plate well")
         plate.column_order = column_order
         plate.well_number = 96
+        plate.save()
         # Dictionary of plate wells so that we don't keep accessing the database
         # multiple times
         plate_wells = {}
