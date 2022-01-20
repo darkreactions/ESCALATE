@@ -106,7 +106,8 @@ class CreateExperimentView(TemplateView):
     template_name = "core/experiment/create/base_create.html"
     # template_name = "core/experiment/create/select_template.html"
     form_class = ExperimentTemplateForm
-    MaterialFormSet: Type[BaseFormSet] = formset_factory(InventoryMaterialForm, extra=0)
+    MaterialFormSet: Type[BaseFormSet] = formset_factory(
+        InventoryMaterialForm, extra=0)
     NominalActualFormSet: Type[BaseFormSet] = formset_factory(
         NominalActualForm, extra=0
     )
@@ -158,7 +159,8 @@ class CreateExperimentView(TemplateView):
             traceback.print_exc()
             srv = SelectReagentsView()
             response = srv.post(request)
-            response["HX-Trigger"] = json.dumps({"showMessage": {"message": str(e)}})
+            response["HX-Trigger"] = json.dumps(
+                {"showMessage": {"message": str(e)}})
             return response
         return render(request, self.template_name, context)
 
@@ -166,7 +168,8 @@ class CreateExperimentView(TemplateView):
         q1 = get_action_parameter_querysets(exp_uuid)  # volumes
         # f = generate_general_robot_file(q1, {}, "Symyx_96_well_0003", 96)
         f = generate_robot_file_wf1(q1, {}, "Symyx_96_well_0003", 96)
-        response = FileResponse(f, as_attachment=True, filename=f"robot_{exp_uuid}.xls")
+        response = FileResponse(f, as_attachment=True,
+                                filename=f"robot_{exp_uuid}.xls")
         return response
 
     def save_reagents(
@@ -187,7 +190,8 @@ class CreateExperimentView(TemplateView):
                 ) in reagent_material_template.reagent_material_value_template_rmt.filter(
                     description="concentration"
                 ):
-                    mat_types_list.append(reagent_material_template.material_type)
+                    mat_types_list.append(
+                        reagent_material_template.material_type)
                     formsets.append(
                         self.ReagentFormSet(
                             request.POST,
@@ -219,9 +223,9 @@ class CreateExperimentView(TemplateView):
             reagentDefs = []
             for reagent_formset in formsets:
                 if reagent_formset.is_valid():
-                    # vector = self.save_forms_reagent(
-                    # reagent_formset, experiment_copy_uuid, exp_concentrations
-                    # )
+                    vector = self.save_forms_reagent(
+                        reagent_formset, experiment_copy_uuid, exp_concentrations
+                    )
                     # try:
                     rd = prepare_reagents(reagent_formset, exp_concentrations)
                     if rd not in reagentDefs:
@@ -229,7 +233,8 @@ class CreateExperimentView(TemplateView):
                     # except TypeError as te:
                     # messages.error(request, str(te))
 
-            dead_volume_form = SingleValForm(request.POST, prefix="dead_volume")
+            dead_volume_form = SingleValForm(
+                request.POST, prefix="dead_volume")
             if dead_volume_form.is_valid():
                 dead_volume = dead_volume_form.cleaned_data["value"]
             else:
@@ -318,7 +323,8 @@ class CreateExperimentView(TemplateView):
         context["reagent_prep_link"] = reverse(
             "reagent_prep", args=[experiment_copy_uuid]
         )
-        context["outcome_link"] = reverse("outcome", args=[experiment_copy_uuid])
+        context["outcome_link"] = reverse(
+            "outcome", args=[experiment_copy_uuid])
         context["new_exp_name"] = exp_name_form.cleaned_data["exp_name"]
 
         return context
@@ -354,7 +360,8 @@ class CreateExperimentView(TemplateView):
                 reagent_material_value.nominal_value = data["desired_concentration"]
                 reagent_material_value.save()
                 mat_type = reagent_instance.template.material_type
-                vector[positions[mat_type.description]] = data["desired_concentration"]
+                vector[positions[mat_type.description]
+                       ] = data["desired_concentration"]
         return vector
 
     def process_formsets(
@@ -399,8 +406,10 @@ class CreateExperimentView(TemplateView):
                 str(exp_template.uuid), exp_name
             )
             # get the elements of the new experiment that we need to update with the form values
-            q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
-            q1_material = get_material_querysets(experiment_copy_uuid, template=False)
+            q1 = get_action_parameter_querysets(
+                experiment_copy_uuid, template=False)
+            q1_material = get_material_querysets(
+                experiment_copy_uuid, template=False)
 
             save_forms_q1(
                 q1,
@@ -411,7 +420,8 @@ class CreateExperimentView(TemplateView):
                 },
             )
             save_forms_q_material(
-                q1_material, q1_material_formset, {"inventory_material": "value"}
+                q1_material, q1_material_formset, {
+                    "inventory_material": "value"}
             )
 
             self.populate_links(
@@ -472,7 +482,8 @@ class CreateExperimentView(TemplateView):
             raise
             # return HttpResponseRedirect(reverse("experiment"))
 
-        q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
+        q1 = get_action_parameter_querysets(
+            experiment_copy_uuid, template=False)
 
         context = self.populate_links(
             context, exp_template, q1, experiment_copy_uuid, exp_name
@@ -483,7 +494,8 @@ class CreateExperimentView(TemplateView):
     def populate_links(self, context, exp_template, q1, experiment_copy_uuid, exp_name):
         # robotfile generation
         if exp_template.ref_uid in SUPPORTED_CREATE_WFS:
-            template_function = getattr(core.experiment_templates, exp_template.ref_uid)
+            template_function = getattr(
+                core.experiment_templates, exp_template.ref_uid)
             new_lsr_pk, lsr_msg = template_function(
                 None, q1, experiment_copy_uuid, exp_name, exp_template
             )
@@ -508,7 +520,8 @@ class CreateExperimentView(TemplateView):
             context["reagent_prep_link"] = reverse(
                 "reagent_prep", args=[experiment_copy_uuid]
             )
-            context["outcome_link"] = reverse("outcome", args=[experiment_copy_uuid])
+            context["outcome_link"] = reverse(
+                "outcome", args=[experiment_copy_uuid])
             context["new_exp_name"] = exp_name
         return context
 
