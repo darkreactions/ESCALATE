@@ -461,11 +461,17 @@ def generate_experiments_and_save(
         # )["Vial Site"]
 
         for i, vial in enumerate(well_list):
-            action = q1.get(
-                action_unit_description__icontains=reagent_name,
-                action_unit_description__contains="dispense",
-                action_unit_description__endswith=vial,
-            )
+            # action = q1.get(
+            # action_unit_description__icontains=reagent_name,
+            # action_unit_description__contains="dispense",
+            # action_unit_description__endswith=vial,
+            # )
+
+            action = (
+                q1.filter(action_unit_description__icontains="stock a")
+                .filter(action_unit_description__icontains="dispense")
+                .filter(action_unit_description__endswith=vial)
+            ).first()
             # get actions from q1 based on keys in action_reagent_map
             # if experiment.parent.ref_uid == "workflow_1":
             # action = q1.get(
