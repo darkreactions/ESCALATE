@@ -486,12 +486,13 @@ def generate_experiments_and_save(
             # Otherwise choose all
             # actions = actions[:num_of_experiments] if num_of_experiments < len(actions) else actions
             # for i, action in enumerate(actions):
-            parameter = Parameter.objects.get(uuid=action.parameter_uuid)
-            # action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
-            parameter.parameter_val_nominal.value = desired_volume[reagent_name][
-                i
-            ]  # * mult_factor
-            parameter.save()
+            if action is not None:
+                parameter = Parameter.objects.get(uuid=action.parameter_uuid)
+                # action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
+                parameter.parameter_val_nominal.value = desired_volume[reagent_name][
+                    i
+                ]  # * mult_factor
+                parameter.save()
 
     # try:
     conc_to_amount(experiment_copy_uuid)
@@ -522,11 +523,13 @@ def save_manual_volumes(df, experiment_copy_uuid, reagent_template_names, dead_v
                 .filter(action_unit_description__endswith=vial)
                 .first()
             )
-            parameter = Parameter.objects.get(uuid=action.parameter_uuid)
-            # action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
-            parameter.parameter_val_nominal.value = df[reagent_name][i]
-            # parameter.parameter_val_nominal.value = desired_volume[reagent_name][i]
-            parameter.save()
+            if action is not None:
+                parameter = Parameter.objects.get(uuid=action.parameter_uuid)
+                # action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
+                parameter.parameter_val_nominal.value = df[reagent_name][i]
+                # parameter.parameter_val_nominal.value = desired_volume[reagent_name][i]
+                parameter.save()
+
             total_volume += df[reagent_name][i]
 
             for reagent in reagents:
