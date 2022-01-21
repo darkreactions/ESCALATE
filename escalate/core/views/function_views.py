@@ -38,434 +38,54 @@ def download_robot_file(request: HttpRequest) -> HttpResponse:
     return response
 
 
-def save_experiment_action_sequence(request: HttpRequest) -> HttpResponse:
+def save_action_sequence(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
+        # print(request.POST.keys())
         print(request.POST)
 
-        exp_template = ExperimentTemplate.objects.get(uuid=request.POST["exp_template"])
-
-        action_sequence_instance = ActionSequence.objects.create(
-            description="{}_action_sequence".format(exp_template.description)
-        )
-
+        new_action_sequence = ActionSequence.objects.create(
+            description="test"
+        )  # TODO: add name/description upon saving a workflow in UI
         action_tuples = []
 
-        ids = []
-        # json.loads(request.POST["data"])
-        for key, val in request.POST.items():
-            if (
-                "connections" in key
-            ):  # more than one action - order sequentially based on connections
-                index = key.split("[")[1].split("]")[0]
-                id1 = request.POST["connections[{}][sourceActivityId]".format(index)]
-                if id1 not in ids:
-                    ids.append(id1)
-                id2 = request.POST[
-                    "connections[{}][destinationActivityId]".format(index)
+        # actions = [ # List of tuples (Description, Action def description, source_bommaterial, destination_bommaterial)``
+        #    ('Preheat Plate', 'bring_to_temperature', (None, None), ('vessel', '96 Well Plate well'), 'Preheat Plate'),
+        #    # Prepare stock A
+        #   ('Add Solvent to Stock A', 'dispense', (None, 'Solvent'), (None, 'Stock A Vial'), 'Prepare stock A'),
+        #     ('Add Organic to Stock A', 'dispense', (None, 'Organic'), (None, 'Stock A Vial'), 'Prepare stock A'),
+        #    ('Add Inorganic to Stock A', 'dispense', (None, 'Inorganic'), (None, 'Stock A Vial'), 'Prepare stock A'),
+
+        for i in range(len(request.POST)):
+            if "activities[{}][id]".format(i) in request.POST.keys():
+                prop = {}
+                for key, val in request.POST.items():
+                    if "activities[{}][state]".format(i) in key:
+                        prop_type = str(key).split("[")[3].split("]")[0]
+                        prop[prop_type] = val
+                conn = {}
+                conn["before"] = request.POST[
+                    "connections[{}][sourceActivityId]".format(i)
                 ]
-                if id2 not in ids:
-                    ids.append(id2)
+                conn["after"] = request.POST[
+                    "connections[{}][destinationActivityId]".format(i)
+                ]
 
-        if len(ids) == 0:  # single action
-            id1 = request.POST["activities[0][id]"]
-            if id1 not in ids:
-                ids.append(id1)
+                id=request.POST["activities[{}][id]".format(i)],
+                    description=request.POST["activities[{}][type]".format(i)],
+                    properties=prop,
+                    top_position=request.POST["activities[{}][top]".format(i)],
+                    left_position=request.POST["activities[{}][left]".format(i)],
+                    connections=conn,
 
-        for num, entry in enumerate(ids):
-            for key, val in request.POST.items():
-                if "activities" in key:
-                    if val == entry:
-                        # action_sequence = action_sequence_instance.uuid
-                        id = entry
-                        index = key.split("[")[1].split("]")[0]
-                        description = request.POST["activities[{}][type]".format(index)]
-                        top = request.POST["activities[{}][top]".format(index)]
-                        left = request.POST["activities[{}][left]".format(index)]
-                        properties = {}
-                        for key, val in request.POST.items():
-                            if "activities[{}][state]".format(index) in key:
-                                property_type = str(key).split("[")[3].split("]")[0]
-                                properties[property_type] = val
-
-                        order = num
-                        action_tuples.append(
-                            (
-                                id,
-                                description,
-                                properties["source"],
-                                properties["destination"],
-                            )
-                        )
-
-                        if properties["source"] == "":
-                            properties["source"] = None
-
-                        a, created = ActionSequenceDesign.objects.get_or_create(
-                            action_sequence=action_sequence_instance,
-                            id=id,
-                            description=description,
-                            properties=properties,
-                            top_position=top,
-                            left_position=left,
-                            order=order,
-                        )
-                        a.save()
-
-        for action_tuple in action_tuples:
-            id, description, source, destination = action_tuple
-            action_def, created = ActionDef.objects.get_or_create(
-                description=description
-            )
-            action = Action.objects.create(
-                description=description,
-                action_def=action_def,
-                action_sequence=action_sequence_instance,
-            )
-            action.save()
-
-            if source is not None:
-                source_bbm = BaseBomMaterial.objects.create(description=source)
-            else:
-                source_bbm = None
-
-            if "- wells" in destination:  # individual well-level actions
-                plate = Vessel.objects.get(description=destination.split(" -")[0])
-                # plate, created = Vessel.objects.get_or_create(
-                # description=destination.split("wells")[0]
-                # )
-                # well_count = int(destination.split(" ")[0])
-                well_list = make_well_labels_list(
-                    well_count=plate.well_number,
-                    column_order=plate.column_order,
-                    robot="True",
+                a, created = ActionSequenceDesign.objects.create(
+                    id=request.POST["activities[{}][id]".format(i)],
+                    description=request.POST["activities[{}][type]".format(i)],
+                    properties=prop,
+                    top_position=request.POST["activities[{}][top]".format(i)],
+                    left_position=request.POST["activities[{}][left]".format(i)],
+                    connections=conn,
                 )
-                plate_wells = {}
-                for well in well_list:
-                    plate_wells[well], created = Vessel.objects.get_or_create(
-                        parent=plate, description=well
-                    )
-                for well_desc, well_vessel in plate_wells.items():
-                    destination_bbm = BaseBomMaterial.objects.create(
-                        description=f"{plate.description} : {well_desc}",
-                        vessel=well_vessel,
-                    )
-                    if source_bbm:
-                        description = f"{action.description} : {source_bbm.description} -> {destination_bbm.description}"
-                    else:
-                        description = (
-                            f"{action.description} : {destination_bbm.description}"
-                        )
-                    au = ActionUnit.objects.create(
-                        action=action,
-                        source_material=source_bbm,
-                        destination_material=destination_bbm,
-                        description=description,
-                    )
-                    au.save()
-            else:
-                if "plate" in destination:  # plate-level actions
-
-                    vessel = Vessel.objects.get(description=destination.split(" -")[0])
-
-                    # if "plate" in destination:  # plate-level actions
-                    # plate, created = Vessel.objects.get_or_create(
-                    # description=destination
-                    # )
-                    destination_bbm = BaseBomMaterial.objects.create(
-                        description=plate.description, vessel=vessel
-                    )
-                    if source_bbm:
-                        description = f"{action.description} : {source_bbm.description} -> {destination_bbm.description}"
-                    else:
-                        description = (
-                            f"{action.description} : {destination_bbm.description}"
-                        )
-
-                    au = ActionUnit.objects.create(
-                        action=action,
-                        source_material=source_bbm,
-                        description=description,
-                        destination_material=destination_bbm,
-                    )
-                    au.save()
-
-                else:
-                    # if destination is not a vessel
-                    destination_bbm = BaseBomMaterial.objects.create(
-                        description=destination
-                    )
-                    if source_bbm:
-                        description = f"{action.description} : {source_bbm.description} -> {destination_bbm.description}"
-                    else:
-                        description = (
-                            f"{action.description} : {destination_bbm.description}"
-                        )
-                    au = ActionUnit(
-                        action=action,
-                        source_material=source_bbm,
-                        description=description,
-                        destination_material=destination_bbm,
-                    )
-
-                    au.save()
-
-        # for i, a in enumerate(action_sequences):
-        # ac_sq = ActionSequence.objects.filter(description=a)[0]
-
-        eas = ExperimentActionSequence(
-            experiment_template=exp_template,
-            experiment_action_sequence_seq=0,
-            action_sequence=action_sequence_instance,
-        )
-        eas.save()
-
+                a.save()
+                action_tuples.append()
     return JsonResponse(data={"message": "success"})
-
-
-"""def save_action_sequence(request: HttpRequest) -> HttpResponse:
-    if request.method == "POST":
-        print(request.POST)
-
-        action_sequence_instance = ActionSequence.objects.create(
-            description=request.POST["action_sequence_name"]
-        )
-
-        action_tuples = []
-
-        ids = []
-        # json.loads(request.POST["data"])
-        for key, val in request.POST.items():
-            if (
-                "connections" in key
-            ):  # more than one action - order sequentially based on connections
-                index = key.split("[")[1].split("]")[0]
-                id1 = request.POST["connections[{}][sourceActivityId]".format(index)]
-                if id1 not in ids:
-                    ids.append(id1)
-                id2 = request.POST[
-                    "connections[{}][destinationActivityId]".format(index)
-                ]
-                if id2 not in ids:
-                    ids.append(id2)
-
-        if len(ids) == 0:  # single action
-            id1 = request.POST["activities[0][id]"]
-            if id1 not in ids:
-                ids.append(id1)
-
-        for num, entry in enumerate(ids):
-            for key, val in request.POST.items():
-                if "activities" in key:
-                    if val == entry:
-                        # action_sequence = action_sequence_instance.uuid
-                        id = entry
-                        index = key.split("[")[1].split("]")[0]
-                        description = request.POST["activities[{}][type]".format(index)]
-                        top = request.POST["activities[{}][top]".format(index)]
-                        left = request.POST["activities[{}][left]".format(index)]
-                        properties = {}
-                        for key, val in request.POST.items():
-                            if "activities[{}][state]".format(index) in key:
-                                property_type = str(key).split("[")[3].split("]")[0]
-                                properties[property_type] = val
-
-                        order = num
-                        action_tuples.append(
-                            (
-                                id,
-                                description,
-                                properties["source"],
-                                properties["destination"],
-                            )
-                        )
-
-                        a, created = ActionSequenceDesign.objects.get_or_create(
-                            action_sequence=action_sequence_instance,
-                            id=id,
-                            description=description,
-                            properties=properties,
-                            top_position=top,
-                            left_position=left,
-                            order=order,
-                        )
-                        a.save()
-
-        for action_tuple in action_tuples:
-            id, description, source, destination = action_tuple
-            action_def, created = ActionDef.objects.get_or_create(
-                description=description
-            )
-            action = Action.objects.create(
-                description=description,
-                action_def=action_def,
-                action_sequence=action_sequence_instance,
-            )
-            action.save()
-
-            if source is not None:
-                source_bbm = BaseBomMaterial.objects.create(description=source)
-            else:
-                source_bbm = None
-
-            if "- wells" in destination:  # individual well-level actions
-                plate = Vessel.objects.get(description=destination.split(" -")[0])
-                # plate, created = Vessel.objects.get_or_create(
-                # description=destination.split("wells")[0]
-                # )
-                # well_count = int(destination.split(" ")[0])
-                well_list = make_well_labels_list(
-                    well_count=plate.well_number,
-                    column_order=plate.column_order,
-                    robot="True",
-                )
-                plate_wells = {}
-                for well in well_list:
-                    plate_wells[well], created = Vessel.objects.get_or_create(
-                        parent=plate, description=well
-                    )
-                for well_desc, well_vessel in plate_wells.items():
-                    destination_bbm = BaseBomMaterial.objects.create(
-                        description=f"{plate.description} : {well_desc}",
-                        vessel=well_vessel,
-                    )
-                    if source_bbm:
-                        description = f"{action.description} : {source_bbm.description} -> {destination_bbm.description}"
-                    else:
-                        description = (
-                            f"{action.description} : {destination_bbm.description}"
-                        )
-                    au = ActionUnit.objects.create(
-                        action=action,
-                        source_material=source_bbm,
-                        destination_material=destination_bbm,
-                        description=description,
-                    )
-                    au.save()
-            else:
-                if "plate" in destination:  # plate-level actions
-
-                    vessel = Vessel.objects.get(description=destination)
-
-                    # if "plate" in destination:  # plate-level actions
-                    # plate, created = Vessel.objects.get_or_create(
-                    # description=destination
-                    # )
-                    destination_bbm = BaseBomMaterial.objects.create(
-                        description=plate.description, vessel=vessel
-                    )
-                    if source_bbm:
-                        description = f"{action.description} : {source_bbm.description} -> {destination_bbm.description}"
-                    else:
-                        description = (
-                            f"{action.description} : {destination_bbm.description}"
-                        )
-
-                    au = ActionUnit.objects.create(
-                        action=action,
-                        source_material=source_bbm,
-                        description=description,
-                        destination_material=destination_bbm,
-                    )
-                    au.save()
-
-                else:
-                    # if destination is not a vessel
-                    destination_bbm = BaseBomMaterial.objects.create(
-                        description=destination
-                    )
-                    if source_bbm:
-                        description = f"{action.description} : {source_bbm.description} -> {destination_bbm.description}"
-                    else:
-                        description = (
-                            f"{action.description} : {destination_bbm.description}"
-                        )
-                    au = ActionUnit(
-                        action=action,
-                        source_material=source_bbm,
-                        description=description,
-                        destination_material=destination_bbm,
-                    )
-
-                    au.save()
-
-            # if destination is not None:
-            # destination_bbm = BaseBomMaterial.objects.create(
-            # description=destination
-            # )
-            # else:
-            # destination_bbm = None
-
-            # au = ActionUnit.objects.create(
-            # action=action,
-            # source_material=source_bbm,
-            # description=description,
-            # destination_material=destination_bbm,
-            # )
-
-    return JsonResponse(data={"message": "success"})
-
-
-def save_experiment_action_sequence(request: HttpRequest) -> HttpResponse:
-    if request.method == "POST":
-        print(request.POST)
-
-        # experiment_action_sequence_instance = Workflow.objects.create(
-        #   description="generalization_test"
-        # )  # TODO: add option in UI to enter name upon saving
-
-        exp_template = ExperimentTemplate.objects.get(uuid=request.POST["exp_template"])
-
-        action_sequences = []
-
-        ids = []
-        for key, val in request.POST.items():
-            if (
-                "connections" in key
-            ):  # more than one action - order sequentially based on connections
-                index = key.split("[")[1].split("]")[0]
-                id1 = request.POST["connections[{}][sourceActivityId]".format(index)]
-                if id1 not in ids:
-                    ids.append(id1)
-                id2 = request.POST[
-                    "connections[{}][destinationActivityId]".format(index)
-                ]
-                if id2 not in ids:
-                    ids.append(id2)
-
-        if len(ids) == 0:  # single action
-            id1 = request.POST["activities[0][id]"]
-            if id1 not in ids:
-                ids.append(id1)
-
-        for entry in ids:
-            for key, val in request.POST.items():
-                if entry == val:
-                    if "activities" in key:
-                        id = entry
-                        index = key.split("[")[1].split("]")[0]
-                        uuid = request.POST["activities[{}][type]".format(index)]
-                        top = request.POST["activities[{}][top]".format(index)]
-                        left = request.POST["activities[{}][left]".format(index)]
-
-                        # a, created = ActionSequenceDesign.objects.get_or_create(
-                        #    id=id,
-                        #   description=uuid,
-                        #  top_position=top,
-                        # left_position=left,
-                        # )
-                        # a.save()
-
-                        action_sequence = ActionSequence.objects.get(uuid=uuid)
-                        action_sequences.append(action_sequence)
-
-        for i, a in enumerate(action_sequences):
-            ac_sq = ActionSequence.objects.filter(description=a)[0]
-            eas = ExperimentActionSequence(
-                experiment_template=exp_template,
-                experiment_action_sequence_seq=i,
-                action_sequence=ac_sq,
-            )
-            eas.save()
-
-    return JsonResponse(data={"message": "success"})"""
 
