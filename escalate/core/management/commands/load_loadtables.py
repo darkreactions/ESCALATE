@@ -565,23 +565,23 @@ class Command(BaseCommand):
                     )
         # Create ActionSequence -> Actions -> ActionUnits
         action_sequences = {
-            "Dispense Solvent": ActionSequence.objects.create(
-                description="Dispense Solvent"
+            "Dispense Reagent 1 - Solvent": ActionSequence.objects.create(
+                description="Dispense Reagent 1 - Solvent"
             ),
-            "Dispense Stock A": ActionSequence.objects.create(
-                description="Dispense Stock A"
+            "Dispense Reagent 2 - Stock A": ActionSequence.objects.create(
+                description="Dispense Reagent 2 - Stock A"
             ),
-            "Dispense Stock B": ActionSequence.objects.create(
-                description="Dispense Stock B"
+            "Dispense Reagent 3 - Stock B": ActionSequence.objects.create(
+                description="Dispense Reagent 3 - Stock B"
             ),
-            "Dispense Acid Volume 1": ActionSequence.objects.create(
-                description="Dispense Acid Volume 1"
+            "Dispense Reagent 7 - Acid Volume 1": ActionSequence.objects.create(
+                description="Dispense Reagent 7 - Acid Volume 1"
             ),
-            "Dispense Acid Volume 2": ActionSequence.objects.create(
-                description="Dispense Acid Volume 2"
+            "Dispense Reagent 7 - Acid Volume 2": ActionSequence.objects.create(
+                description="Dispense Reagent 7 - Acid Volume 2"
             ),
-            "Dispense Antisolvent": ActionSequence.objects.create(
-                description="Dispense Antisolvent"
+            "Dispense Reagent 9 - Antisolvent": ActionSequence.objects.create(
+                description="Dispense Reagent 9 - Antisolvent"
             ),
             "Mixing time (s)": ActionSequence.objects.create(
                 description="Mixing time (s)"
@@ -656,51 +656,51 @@ class Command(BaseCommand):
         actions = [  # List of tuples (Description, Action def description, source_bommaterial, destination_bommaterial)
             # Dispense Solvent to vials
             (
-                "Dispense Solvent",
+                "Dispense Reagent 1 - Solvent",
                 "dispense",
                 (None, "Solvent"),
                 ("vessel", a_wells),
-                "Dispense Solvent",
+                "Dispense Reagent 1 - Solvent",
             ),
             # Dispense Stock A to vials
             (
-                "Dispense Stock A",
+                "Dispense Reagent 2 - Stock A",
                 "dispense",
                 (None, "Solvent"),
                 ("vessel", a_wells),
-                "Dispense Stock A",
+                "Dispense Reagent 2 - Stock A",
             ),
             # Dispense Stock B to vials
             (
-                "Dispense Stock B",
+                "Dispense Reagent 3 - Stock B",
                 "dispense",
                 (None, "Solvent"),
                 ("vessel", a_wells),
-                "Dispense Stock B",
+                "Dispense Reagent 3 - Stock B",
             ),
             # Dispense Acid Vol 1
             (
-                "Dispense Acid Volume 1",
+                "Dispense Reagent 7 - Acid Volume 1",
                 "dispense",
                 (None, "Solvent"),
                 ("vessel", a_wells),
-                "Dispense Acid Volume 1",
+                "Dispense Reagent 7 - Acid Volume 1",
             ),
             # Dispense Acid Vol 2
             (
-                "Dispense Acid Volume 2",
+                "Dispense Reagent 7 - Acid Volume 2",
                 "dispense",
                 (None, "Solvent"),
                 ("vessel", a_wells),
-                "Dispense Acid Volume 2",
+                "Dispense Reagent 7 - Acid Volume 2",
             ),
             # Dispense antisolvent
             (
-                "Dispense Antisolvent",
+                "Dispense Reagent 9 - Antisolvent",
                 "dispense",
                 (None, "Solvent"),
                 ("vessel", b_wells),
-                "Dispense Antisolvent",
+                "Dispense Reagent 9 - Antisolvent",
             ),
             # Mix
             (

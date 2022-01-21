@@ -332,7 +332,7 @@ def generate_robot_file_wf1(
         plate_name,
         well_count,
         column_order=["A", "C", "E", "G", "B", "D", "F", "H"],
-        total_columns=8,
+        # total_columns=8,
     )
     reagent_colnames = [
         "Reagent1 (ul)",
