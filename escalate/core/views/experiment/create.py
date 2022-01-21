@@ -1,4 +1,5 @@
 from __future__ import annotations
+from ast import expr_context
 import re
 import traceback
 from math import e, exp
@@ -219,9 +220,13 @@ class CreateExperimentView(TemplateView):
             reagentDefs = []
             for reagent_formset in formsets:
                 if reagent_formset.is_valid():
-                    vector = self.save_forms_reagent(
-                        reagent_formset, experiment_copy_uuid, exp_concentrations
-                    )
+                    if (
+                        exp_template.description == "Workflow 1"
+                        or exp_template.description == "Workflow 3"
+                    ):
+                        vector = self.save_forms_reagent(
+                            reagent_formset, experiment_copy_uuid, exp_concentrations
+                        )
                     # try:
                     rd = prepare_reagents(reagent_formset, exp_concentrations)
                     if rd not in reagentDefs:
