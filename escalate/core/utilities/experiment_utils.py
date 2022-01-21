@@ -167,7 +167,8 @@ def get_action_parameter_querysets(exp_uuid: str, template=True) -> QuerySet:
         .annotate(object_uuid=F(f"{related_a}__uuid"))
         .annotate(action_unit_description=F(f"{related_au}__description"))
         .annotate(
-            action_unit_source=F(f"{related_au}__source_material__vessel__description")
+            action_unit_source=F(
+                f"{related_au}__source_material__vessel__description")
         )
         .annotate(
             action_unit_destination=F(
@@ -315,7 +316,8 @@ def prepare_reagents(reagent_formset, exp_concentrations):
                 concentration2 = reagent_formset.cleaned_data[1][
                     "desired_concentration"
                 ].value
-        exp_concentrations["Reagent 2"] = [concentration1, concentration2, 0, 0] 
+        exp_concentrations["Reagent 2"] = [
+            concentration1, concentration2, 0, 0]
     elif len(current_mat_list) == 3:
         # reagent 3, Stock B
         for element in current_mat_list:
@@ -422,7 +424,8 @@ def generate_experiments_and_save(
         prop = reagent.property_r.get(
             property_template__description__icontains="total volume"
         )
-        prop.nominal_value.value = sum(desired_volume[reagent.template.description])
+        prop.nominal_value.value = sum(
+            desired_volume[reagent.template.description])
         prop.nominal_value.unit = "uL"
         prop.save()
         if dead_volume is not None:
@@ -461,11 +464,10 @@ def generate_experiments_and_save(
         # )["Vial Site"]
 
         for i, vial in enumerate(well_list):
-            action = q1.get(
-                action_unit_description__icontains=reagent_name,
-                action_unit_description__contains="dispense",
-                action_unit_description__endswith=vial,
-            )
+            # action = q1.get(
+            action = q1.filter(action_unit_description__icontains=reagent_name).filter(
+                action_unit_description__icontains="dispense").filter(action_unit_description__endswith=vial).first()
+
             # get actions from q1 based on keys in action_reagent_map
             # if experiment.parent.ref_uid == "workflow_1":
             # action = q1.get(
