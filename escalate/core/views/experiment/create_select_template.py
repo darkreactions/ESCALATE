@@ -30,6 +30,7 @@ from core.custom_types import Val
 
 class SelectReagentsView(TemplateView):
     template_name = "core/experiment/create/base_create.html"
+    #template_name = "core/experiment/create/select_template.html"
 
     ReagentFormSet: BaseFormSet = formset_factory(
         ReagentForm, extra=0, formset=BaseReagentFormSet
@@ -42,9 +43,14 @@ class SelectReagentsView(TemplateView):
     def post(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
         self.request = request
-        exp_uuid = request.POST["select_experiment_template"]
-        request.session["experiment_template_uuid"] = exp_uuid
-        context["selected_exp_template"] = ExperimentTemplate.objects.get(uuid=exp_uuid)
+        if 'select_experiment_template' in request.POST:
+            exp_uuid = request.POST["select_experiment_template"]
+            request.session["experiment_template_uuid"] = exp_uuid
+        else:
+            exp_uuid = request.session["experiment_template_uuid"]
+        #exp_uuid = request.session["experiment_template_uuid"]
+        context["selected_exp_template"] = ExperimentTemplate.objects.get(
+            uuid=exp_uuid)
         context["experiment_name_form"] = ExperimentNameForm()
         context = self.get_forms(context["selected_exp_template"], context)
 
@@ -53,7 +59,8 @@ class SelectReagentsView(TemplateView):
 
         if (num_manual_exp := int(request.POST["manual"])) >= 0:
             context["manual"] = num_manual_exp
-            context["robot_file_upload_form"] = RobotForm()
+            context["robot_file_upload_form"] = RobotForm(
+                request.POST, request.FILES)
             context["robot_file_upload_form_helper"] = RobotForm.get_helper()
 
         return render(request, self.template_name, context)

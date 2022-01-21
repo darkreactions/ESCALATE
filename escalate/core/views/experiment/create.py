@@ -1,4 +1,5 @@
 from __future__ import annotations
+from ast import expr_context
 import re
 import traceback
 from math import e, exp
@@ -104,6 +105,7 @@ class SetupExperimentView(TemplateView):
 
 class CreateExperimentView(TemplateView):
     template_name = "core/experiment/create/base_create.html"
+    # template_name = "core/experiment/create/select_template.html"
     form_class = ExperimentTemplateForm
     MaterialFormSet: Type[BaseFormSet] = formset_factory(InventoryMaterialForm, extra=0)
     NominalActualFormSet: Type[BaseFormSet] = formset_factory(
@@ -218,9 +220,13 @@ class CreateExperimentView(TemplateView):
             reagentDefs = []
             for reagent_formset in formsets:
                 if reagent_formset.is_valid():
-                    # vector = self.save_forms_reagent(
-                    # reagent_formset, experiment_copy_uuid, exp_concentrations
-                    # )
+                    if (
+                        exp_template.description == "Workflow 1"
+                        or exp_template.description == "Workflow 3"
+                    ):
+                        vector = self.save_forms_reagent(
+                            reagent_formset, experiment_copy_uuid, exp_concentrations
+                        )
                     # try:
                     rd = prepare_reagents(reagent_formset, exp_concentrations)
                     if rd not in reagentDefs:
@@ -281,8 +287,9 @@ class CreateExperimentView(TemplateView):
         # context["robot_file_upload_form"] = UploadFileForm()
         # context["robot_file_upload_form_helper"] = UploadFileForm.get_helper()
 
-        context["robot_file_upload_form"] = RobotForm()
-        context["robot_file_upload_form_helper"] = RobotForm.get_helper()
+        # context["robot_file_upload_form"] = RobotForm(
+        #    request.POST, request.FILES)
+        # context["robot_file_upload_form_helper"] = RobotForm.get_helper()
 
         exp_template = ExperimentTemplate.objects.get(uuid=exp_uuid)
         if "current_org_id" in self.request.session:
@@ -301,12 +308,14 @@ class CreateExperimentView(TemplateView):
         # self.save_reaction_parameters(
         # request, experiment_copy_uuid, exp_name_form, exp_template
         # )
-        file = RobotForm(request.POST, request.FILES)
-        if file.is_valid():
-            df = pd.read_excel(file)
+        file_form = RobotForm(request.POST, request.FILES)
+        if file_form.is_valid():
+            df = pd.read_excel(file_form.cleaned_data["file"])
             # df = pd.read_excel(request.FILES["file"])
         # self.process_robot_file(df)
-        save_manual_volumes(df, experiment_copy_uuid, dead_volume)
+        save_manual_volumes(
+            df, experiment_copy_uuid, reagent_template_names, dead_volume
+        )
 
         conc_to_amount(experiment_copy_uuid)
 
@@ -423,9 +432,14 @@ class CreateExperimentView(TemplateView):
 
     def process_automated_formsets(self, request: HttpRequest, context: dict[str, Any]):
         # get the experiment template uuid and name
-        exp_template = ExperimentTemplate.objects.get(
-            pk=request.session["experiment_template_uuid"]
-        )
+        try:
+            exp_template = ExperimentTemplate.objects.get(
+                pk=context["selected_exp_template"].uuid
+            )
+        except KeyError:
+            exp_template = ExperimentTemplate.objects.get(
+                pk=request.session["experiment_template_uuid"]
+            )
 
         if "current_org_id" in self.request.session:
             org_id = self.request.session["current_org_id"]

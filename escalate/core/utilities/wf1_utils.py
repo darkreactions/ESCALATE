@@ -2,7 +2,8 @@ import pandas as pd
 import tempfile
 import re
 import math
-from core.models.view_tables import ReactionParameter
+from core.models.view_tables import ReactionParameter, Reagent
+from core.models import ExperimentTemplate
 
 
 def make_well_labels_list(well_count=96, column_order=None, robot="True"):
@@ -23,8 +24,11 @@ def make_well_labels_list(well_count=96, column_order=None, robot="True"):
             if well_count == 24:
                 if column_order is None:
                     column_order = ["A", "C", "B", "D"]
+
+            total_columns = len(column_order)
+            row_limit = math.ceil(well_count / total_columns)
             well_labels = [
-                f"{col}{row}" for col in column_order for row in range(1, num_rows + 1)
+                f"{col}{row}" for row in range(1, row_limit + 1) for col in column_order
             ][:well_count]
 
         else:  # chronological order for outcomes
@@ -53,12 +57,13 @@ def make_well_list(
         "H",
     ],  # order is set by how the robot draws from the solvent wells
     # column_order=['A', 'C', 'B', 'D'], # 24 well plate
-    total_columns=8,
+    # total_columns=8,
 ):
-    row_limit = math.ceil(well_count / total_columns)  # 8 columns in a 96 plate
-    well_names = [
-        f"{col}{row}" for row in range(1, row_limit + 1) for col in column_order
-    ][:well_count]
+    # row_limit = math.ceil(well_count / total_columns)  # 8 columns in a 96 plate
+    # well_names = [
+    # f"{col}{row}" for row in range(1, row_limit + 1) for col in column_order
+    # ][:well_count]
+    well_names = make_well_labels_list(well_count, column_order, robot="True")
     vial_df = pd.DataFrame({"Vial Site": well_names, "Labware ID:": container_name})
     return vial_df
 
@@ -196,6 +201,91 @@ def get_vial_site(dispense_string):
     return re.search("Plate well#: ([A-Z][0-9])", dispense_string).group(1)
 
 
+def generate_general_robot_file(
+    reaction_volumes, reaction_parameters, plate_name, well_count
+):
+    reaction_parameters = ReactionParameter.objects.filter(
+        experiment_uuid=reaction_volumes[0].experiment_uuid
+    )
+    if reaction_parameters is None:
+        rxn_parameters = pd.DataFrame(
+            {
+                "Reaction Parameters": [
+                    "Temperature (C):",
+                    "Stir Rate (rpm):",
+                    "Mixing time1 (s):",
+                    "Mixing time2 (s):",
+                    "Reaction time (s):",
+                    "Preheat Temperature (C):",
+                ],
+                "Parameter Values": [105, 750, 900, 1200, 21600, 85],
+            }
+        )
+    else:
+        # to check for duplicate reaction parameters while trying to fix loadscript issue
+        last_param = None
+        # enumerate to map
+        rp_keys = []
+        rp_values = []
+        for i, reaction_parameter in enumerate(reaction_parameters):
+            if last_param == reaction_parameter.description:
+                continue
+            rp_keys.append(reaction_parameter.description)
+            rp_values.append(reaction_parameter.value)
+            last_param = reaction_parameter.description
+
+        rxn_parameters = pd.DataFrame(
+            {"Reaction Parameters": rp_keys, "Parameter Values": rp_values}
+        )
+    df_tray = make_well_list(
+        plate_name, well_count, column_order=["A", "C", "E", "G", "B", "D", "F", "H"],
+    )
+    reagent_colnames = []
+    reagents = ExperimentTemplate.objects.get(
+        uuid=reaction_volumes[0].experiment_uuid
+    ).reagent_templates.all()
+    for r in reagents:
+        reagent_colnames.append(r.description)
+
+    reaction_volumes_output = pd.DataFrame(
+        {reagent_col: [0] * len(df_tray) for reagent_col in reagent_colnames}
+    )
+
+    if reaction_volumes is not None:
+        reaction_volumes_output = pd.concat(
+            [df_tray["Vial Site"], reaction_volumes_output], axis=1
+        )
+
+    rxn_conditions = pd.DataFrame(
+        {
+            "Reagents": [i for i in reagent_colnames],
+            "Reagent identity": [str(i + 1) for i in range(len(reagent_colnames))],
+            "Liquid class": [
+                "StandardVolume_Water_DispenseJet_Empty"
+                for i in range(len(reagent_colnames))
+            ],
+            "Temperature": ["45" for i in range(len(reagent_colnames))],
+        }
+    )
+
+    outframe = pd.concat(
+        [  # df_tray['Vial Site'],
+            reaction_volumes_output,
+            df_tray["Labware ID:"],
+            rxn_parameters,
+            rxn_conditions,
+        ],
+        sort=False,
+        axis=1,
+    )
+    temp = tempfile.TemporaryFile()
+    # xlwt is no longer maintained and will be removed from pandas in future versions
+    # use io.excel.xls.writer as the engine once xlwt is removed
+    outframe.to_excel(temp, sheet_name="NIMBUS_reaction", index=False, engine="xlwt")
+    temp.seek(0)
+    return temp
+
+
 def generate_robot_file_wf1(
     reaction_volumes, reaction_parameters, plate_name, well_count
 ):
@@ -242,7 +332,7 @@ def generate_robot_file_wf1(
         plate_name,
         well_count,
         column_order=["A", "C", "E", "G", "B", "D", "F", "H"],
-        total_columns=8,
+        # total_columns=8,
     )
     reagent_colnames = [
         "Reagent1 (ul)",
