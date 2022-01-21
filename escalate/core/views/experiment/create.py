@@ -219,9 +219,9 @@ class CreateExperimentView(TemplateView):
             reagentDefs = []
             for reagent_formset in formsets:
                 if reagent_formset.is_valid():
-                    # vector = self.save_forms_reagent(
-                    # reagent_formset, experiment_copy_uuid, exp_concentrations
-                    # )
+                    vector = self.save_forms_reagent(
+                        reagent_formset, experiment_copy_uuid, exp_concentrations
+                    )
                     # try:
                     rd = prepare_reagents(reagent_formset, exp_concentrations)
                     if rd not in reagentDefs:
@@ -427,9 +427,14 @@ class CreateExperimentView(TemplateView):
 
     def process_automated_formsets(self, request: HttpRequest, context: dict[str, Any]):
         # get the experiment template uuid and name
-        exp_template = ExperimentTemplate.objects.get(
-            pk=request.session["experiment_template_uuid"]
-        )
+        try:
+            exp_template = ExperimentTemplate.objects.get(
+                pk=context["selected_exp_template"].uuid
+            )
+        except KeyError:
+            exp_template = ExperimentTemplate.objects.get(
+                pk=request.session["experiment_template_uuid"]
+            )
 
         if "current_org_id" in self.request.session:
             org_id = self.request.session["current_org_id"]

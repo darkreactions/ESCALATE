@@ -206,19 +206,19 @@ class Command(BaseCommand):
             "Reaction time (s)": ActionSequence.objects.create(
                 description="Reaction time (s)"
             ),
-            "Dispense Solvent": ActionSequence.objects.create(
-                description="Dispense Solvent"
+            "Dispense Reagent 1 - Solvent": ActionSequence.objects.create(
+                description="Dispense Reagent 1 - Solvent"
             ),
-            "Dispense Stock A": ActionSequence.objects.create(
-                description="Dispense Stock A"
+            "Dispense Reagent 2 - Stock A": ActionSequence.objects.create(
+                description="Dispense Reagent 2 - Stock A"
             ),
-            "Dispense Stock B": ActionSequence.objects.create(
-                description="Dispense Stock B"
+            "Dispense Reagent 3 - Stock B": ActionSequence.objects.create(
+                description="Dispense Reagent 3 - Stock B"
             ),
-            "Dispense Acid Volume 1": ActionSequence.objects.create(
+            "Dispense Reagent 7 - Acid Volume 1": ActionSequence.objects.create(
                 description="Dispense Acid Volume 1"
             ),
-            "Dispense Acid Volume 2": ActionSequence.objects.create(
+            "Dispense Reagent 7 - Acid Volume 2": ActionSequence.objects.create(
                 description="Dispense Acid Volume 2"
             ),
         }
@@ -237,6 +237,9 @@ class Command(BaseCommand):
             f"{col}{row}" for row in range(1, rows + 1) for col in column_order
         ]
         plate = Vessel.objects.get(description="96 Well Plate well")
+        plate.column_order = column_order
+        plate.well_number = 96
+        plate.save()
         # Dictionary of plate wells so that we don't keep accessing the database
         # multiple times
         plate_wells = {}
@@ -279,35 +282,35 @@ class Command(BaseCommand):
             # ('Add Organic to Stock B', 'dispense', (None, 'Organic'), (None, 'Stock B Vial'), 'Prepare stock B'),
             # Dispense Solvent to vials
             (
-                "Dispense Solvent",
+                "Dispense Reagent 1 - Solvent",
                 "dispense",
                 (None, "Solvent"),
                 ("vessel", plate_wells),
-                "Dispense Solvent",
+                "Dispense Reagent 1 - Solvent",
             ),
             # Dispense Stock A to vials
             (
-                "Dispense Stock A",
+                "Dispense Reagent 2 - Stock A",
                 "dispense",
                 (None, "Solvent"),
                 ("vessel", plate_wells),
-                "Dispense Stock A",
+                "Dispense Reagent 2 - Stock A",
             ),
             # Dispense Stock B to vials
             (
-                "Dispense Stock B",
+                "Dispense Reagent 3 - Stock B",
                 "dispense",
                 (None, "Solvent"),
                 ("vessel", plate_wells),
-                "Dispense Stock B",
+                "Dispense Reagent 3 - Stock B",
             ),
             # Dispense Acid Vol 1
             (
-                "Dispense Acid Volume 1",
+                "Dispense Reagent 7 - Acid Volume 1",
                 "dispense",
                 (None, "Solvent"),
                 ("vessel", plate_wells),
-                "Dispense Acid Volume 1",
+                "Dispense Reagent 7 - Acid Volume 1",
             ),
             # Heat stir 1
             # ('Heat stir 1', 'heat_stir', (None, None), ('vessel', '96 Well Plate well'), 'Heat stir 1'),
@@ -320,11 +323,11 @@ class Command(BaseCommand):
             ),
             # Dispense Acid Vol 2
             (
-                "Dispense Acid Volume 2",
+                "Dispense Reagent 7 - Acid Volume 2",
                 "dispense",
                 (None, "Solvent"),
                 ("vessel", plate_wells),
-                "Dispense Acid Volume 2",
+                "Dispense Reagent 7 - Acid Volume 2",
             ),
             # Heat stir 2
             # ('Heat stir 2', 'heat_stir', (None, None), ('vessel', '96 Well Plate well'), 'Heat stir 2'),
