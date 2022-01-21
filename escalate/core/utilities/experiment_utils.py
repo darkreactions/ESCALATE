@@ -167,8 +167,7 @@ def get_action_parameter_querysets(exp_uuid: str, template=True) -> QuerySet:
         .annotate(object_uuid=F(f"{related_a}__uuid"))
         .annotate(action_unit_description=F(f"{related_au}__description"))
         .annotate(
-            action_unit_source=F(
-                f"{related_au}__source_material__vessel__description")
+            action_unit_source=F(f"{related_au}__source_material__vessel__description")
         )
         .annotate(
             action_unit_destination=F(
@@ -424,8 +423,7 @@ def generate_experiments_and_save(
         prop = reagent.property_r.get(
             property_template__description__icontains="total volume"
         )
-        prop.nominal_value.value = sum(
-            desired_volume[reagent.template.description])
+        prop.nominal_value.value = sum(desired_volume[reagent.template.description])
         prop.nominal_value.unit = "uL"
         prop.save()
         if dead_volume is not None:
@@ -465,8 +463,12 @@ def generate_experiments_and_save(
 
         for i, vial in enumerate(well_list):
             # action = q1.get(
-            action = q1.filter(action_unit_description__icontains=reagent_name).filter(
-                action_unit_description__icontains="dispense").filter(action_unit_description__endswith=vial).first()
+            action = (
+                q1.filter(action_unit_description__icontains=reagent_name)
+                .filter(action_unit_description__icontains="dispense")
+                .filter(action_unit_description__endswith=vial)
+                .first()
+            )
 
             # get actions from q1 based on keys in action_reagent_map
             # if experiment.parent.ref_uid == "workflow_1":
@@ -500,43 +502,44 @@ def generate_experiments_and_save(
     return q1
 
 
-def save_manual_volumes(df, experiment_copy_uuid, dead_volume):
+def save_manual_volumes(df, experiment_copy_uuid, reagent_template_names, dead_volume):
     q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
     experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
     reagents = Reagent.objects.filter(experiment=experiment_copy_uuid)
 
-    for reagent in reagents:
-        well_list = []
-        for well in df["Vial Site"]:
-            well_list.append(well)
+    well_list = []
+    for well in df["Vial Site"]:
+        well_list.append(well)
 
+    # for reagent in reagents:
+    for reagent_name in reagent_template_names:
         total_volume = 0
 
         for i, vial in enumerate(well_list):
-            for i, vial in enumerate(well_list):
-                action = q1.get(
-                    action_unit_description__icontains=reagent.description,
-                    action_unit_description__contains="dispense",
-                    action_unit_description__endswith=vial,
-                )
-                parameter = Parameter.objects.get(uuid=action.parameter_uuid)
-                # action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
-                parameter.parameter_val_nominal.value = df[reagent.description][i]
-                # parameter.parameter_val_nominal.value = desired_volume[reagent_name][i]
-                parameter.save()
-                total_volume += df[reagent.description][i]
-
-        for reagent in reagents:
-
-            prop = reagent.property_r.get(
-                property_template__description__icontains="total volume"
+            action = (
+                q1.filter(action_unit_description__icontains=reagent_name)
+                .filter(action_unit_description__icontains="dispense")
+                .filter(action_unit_description__endswith=vial)
+                .first()
             )
-            prop.nominal_value.value = total_volume
-            prop.nominal_value.unit = "uL"
-            prop.save()
-            if dead_volume is not None:
-                dv_prop = reagent.property_r.get(
-                    property_template__description__icontains="dead volume"
-                )
-                dv_prop.nominal_value = dead_volume
-                dv_prop.save()
+            parameter = Parameter.objects.get(uuid=action.parameter_uuid)
+            # action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
+            parameter.parameter_val_nominal.value = df[reagent_name][i]
+            # parameter.parameter_val_nominal.value = desired_volume[reagent_name][i]
+            parameter.save()
+            total_volume += df[reagent_name][i]
+
+            for reagent in reagents:
+                if reagent.template.description == reagent_name:
+                    prop = reagent.property_r.get(
+                        property_template__description__icontains="total volume"
+                    )
+                    prop.nominal_value.value = total_volume
+                    prop.nominal_value.unit = "uL"
+                    prop.save()
+                    if dead_volume is not None:
+                        dv_prop = reagent.property_r.get(
+                            property_template__description__icontains="dead volume"
+                        )
+                        dv_prop.nominal_value = dead_volume
+                        dv_prop.save()
