@@ -120,7 +120,31 @@ class UserProfileView(LoginRequiredMixin, View):
                     request,
                     f"Incorrect password for {org_pwd.organization}. Please contact admin for correct password",
                 )
-            return redirect("user_profile")
+        elif request.POST.get("leave_org"):
+            org_pwd = OrganizationPassword.objects.get(pk=request.POST["organization"])
+            if check_password(request.POST["password"], org_pwd.password):
+                person = Person.objects.get(pk=request.user.person.pk)
+                organization = Organization.objects.get(pk=org_pwd.organization.pk)
+                actor = Actor.objects.get(
+                    person=person, organization=organization
+                )
+                actor.delete()
+                #if created:
+                #    messages.success(
+                #        request, f"Removed from {org_pwd.organization} successfully"
+                #    )
+                #else:
+                #    messages.info(
+                #        request,
+                #        f"Not a member of {org_pwd.organization} no changes made",
+                #    )
+            else:
+                messages.error(
+                    request,
+                    f"Incorrect password for {org_pwd.organization}. Please contact admin for correct password",
+                )
+        
+        return redirect("user_profile")
 
 
 class UserProfileEdit(LoginRequiredMixin, View):

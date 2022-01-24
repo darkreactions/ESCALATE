@@ -106,6 +106,8 @@
               <a href="{% url 'user_profile_edit' %}" class="btn btn-outline-primary edit-account-profile">Edit Profile</a>
               <button type="button" class="btn btn-outline-primary" data-toggle="modal"
                         data-target="#deleteModal" >Join Lab</button>
+              <button type="button" class="btn btn-outline-primary" data-toggle="modal" 
+                        data-target="#leaveModal" >Leave Lab</button>
             </div>
         </div>
       </div>
@@ -122,7 +124,7 @@
                 <div class="modal-content">
                   <div class="container">
                     <div class="modal-header">
-                      <h5 class="modal-title" id="deleteModalLabel">Delete</h5>
+                      <h5 class="modal-title" id="deleteModalLabel">Join Organization</h5>
                       <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                           <span aria-hidden="true">&times;</span>
                       </button>
@@ -130,6 +132,28 @@
                     <form method="post">{% csrf_token %}
                       {{ org_form|crispy }}
                       <button class="btn btn-outline-primary" type="submit" name="add_org" value="add_org">Save changes</button>
+                    </form>
+                  </div>
+                </div>
+            </div>
+        </div>
+{% endblock %}
+
+{% block leave_block %}
+<div class="modal fade" id="leaveModal" tabindex="-1" role="dialog" aria-labelledby="leaveModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="container">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="leaveModalLabel">Leave Organization</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <form method="post">{% csrf_token %}
+                      {{ org_form|crispy }}
+                      <button class="btn btn-outline-primary" type="submit" name="leave_org" value="leave_org">Save changes</button>
                     </form>
                   </div>
                 </div>

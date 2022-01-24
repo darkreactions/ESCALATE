@@ -606,6 +606,16 @@ class JoinOrganizationForm(forms.ModelForm):
         fields = ["organization", "password"]
         widgets = {"password": forms.PasswordInput()}
 
+class LeaveOrganizationForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(LeaveOrganizationForm, self).__init__(*args, **kwargs)
+        self.fields["organization"].queryset = OrganizationPassword.objects.all()
+
+    class Meta:
+        model = OrganizationPassword
+        fields = ["organization", "password"]
+        widgets = {"password": forms.PasswordInput()}
+
 
 class CreateOrganizationPasswordForm(forms.ModelForm):
     def save(self, commit=True):
