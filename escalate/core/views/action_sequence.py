@@ -9,7 +9,8 @@ from django.http.request import HttpRequest
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.contrib import messages
-from core.views.function_views import save_experiment_action_sequence
+
+# from core.views.function_views import save_experiment_action_sequence
 
 
 class ActionSequenceView(LoginRequired, View):
@@ -76,6 +77,7 @@ class ActionSequenceView(LoginRequired, View):
 
         context["components"] = components
         context["workflow"] = workflow
+        context["exp_template"] = exp_template_uuid
 
         return render(request, self.template_name, context=context)
 

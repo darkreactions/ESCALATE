@@ -37,19 +37,16 @@ def generate_action_def_json(action_defs, exp_template_uuid):
     # action_defs = [a for a in vt.ActionDef.objects.all()]
     source_choices = [" "]
     dest_choices = []
-    for reagent in [
-        ReagentTemplate.objects.get(
-            experiment_template_reagent_template=ExperimentTemplate(
-                uuid=exp_template_uuid
-            )
-        )
-    ]:
+
+    for reagent in ReagentTemplate.objects.filter(
+        experiment_template_reagent_template=ExperimentTemplate(uuid=exp_template_uuid)
+    ):
         # for reagent in ReagentTemplate.objects.all():
         source_choices.append(reagent.description)
         dest_choices.append(reagent.description)
     for vessel in Vessel.objects.all():
         if vessel.parent is None:
-            if "plate" in vessel.description:
+            if "Plate" in vessel.description:
                 dest_choices.append("{} - plate".format(vessel.description))
                 dest_choices.append("{} - wells".format(vessel.description))
             else:
