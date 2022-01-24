@@ -129,15 +129,20 @@ class UserProfileView(LoginRequiredMixin, View):
                     person=person, organization=organization
                 )
                 actor.delete()
-                #if created:
-                #    messages.success(
-                #        request, f"Removed from {org_pwd.organization} successfully"
-                #    )
-                #else:
-                #    messages.info(
-                #        request,
-                #        f"Not a member of {org_pwd.organization} no changes made",
-                #    )
+
+                #call actor again to verify delete
+                #returns false if deleted successfully
+                deleted = Actor.objects.filter(person=person, organization=organization).exists()
+
+                if not deleted:
+                    messages.success(
+                        request, f"Removed from {org_pwd.organization} successfully"
+                    )
+                else:
+                    messages.info(
+                        request,
+                        f"Not a member of {org_pwd.organization} no changes made",
+                    )
             else:
                 messages.error(
                     request,
