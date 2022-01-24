@@ -250,8 +250,37 @@
                 </div>
             </div>
         </div>
+        {% endblock %}
+        {% block leave_block %}
+        <div class="modal fade" id="leaveModal" tabindex="-1" role="dialog" aria-labelledby="leaveModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+
+                        <h5 class="modal-title" id="leaveModalLabel">Delete</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form id="leave_form" action="" method="post">{% csrf_token %}
+                        <div class="modal-body">
+
+                            <p id="message"></p>
 
 
+                        </div>
+                        <div class="modal-footer">
+                            <div class="btn-toolbar">
+                                <input class="btn btn-raised btn-danger mt-3 mx-3" type="submit" value="Confirm">
+                                <button type="button" class="btn btn-raised btn-secondary mt-3"
+                                    data-dismiss="modal">Cancel</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
         {% endblock %}
     </section>
 
