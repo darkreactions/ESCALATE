@@ -12,6 +12,8 @@
   class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-dark border-bottom shadow-sm">
   <h5 class="my-0 mr-md-auto font-weight-normal">Workflow Designer</h5>
 
+  <input type="hidden" id="exp_template" name="exp_template" value="{{ exp_template }}">
+
   <ul class="nav">
     <li class="nav-item">
       <button class="btn btn-primary" onclick="addAction()">Add Action</button>
@@ -54,7 +56,8 @@
 
   async function getWorkflow() {
     let result = await designer.getWorkflow();
-    result["exp_template"] = $("#template").val();
+    //result["exp_template"] = $("#template").val();
+    result["exp_template"] = $("#exp_template").val();
     console.log(result);
     var token = '{{csrf_token}}';
     jQuery.ajax({

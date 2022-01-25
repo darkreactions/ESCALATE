@@ -93,10 +93,10 @@ def save_experiment_action_sequence(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         print(request.POST)
 
-        # exp_template = ExperimentTemplate.objects.get(uuid=request.POST["exp_template"])
-        exp_template = ExperimentTemplate.objects.get(
-            uuid=request.session["experiment_template_uuid"]
-        )
+        exp_template = ExperimentTemplate.objects.get(uuid=request.POST["exp_template"])
+        # exp_template = ExperimentTemplate.objects.get(
+        # uuid=request.session["experiment_template_uuid"]
+        # )
 
         action_sequence_instance = ActionSequence.objects.create(
             description="{}_action_sequence".format(exp_template.description)
