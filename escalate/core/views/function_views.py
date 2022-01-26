@@ -43,12 +43,63 @@ def download_robot_file(request: HttpRequest) -> HttpResponse:
     return response
 
 
-def save_action_sequence(request: HttpRequest) -> HttpResponse:
+"""def save_action_sequence(request: HttpRequest) -> HttpResponse:
+    if request.method == "POST":
+        # print(request.POST.keys())
+        print(request.POST)
+
+        new_action_sequence = ActionSequence.objects.create(
+            description="test"
+        )  # TODO: add name/description upon saving a workflow in UI
+        action_tuples = []
+
+        # actions = [ # List of tuples (Description, Action def description, source_bommaterial, destination_bommaterial)``
+        #    ('Preheat Plate', 'bring_to_temperature', (None, None), ('vessel', '96 Well Plate well'), 'Preheat Plate'),
+        #    # Prepare stock A
+        #   ('Add Solvent to Stock A', 'dispense', (None, 'Solvent'), (None, 'Stock A Vial'), 'Prepare stock A'),
+        #     ('Add Organic to Stock A', 'dispense', (None, 'Organic'), (None, 'Stock A Vial'), 'Prepare stock A'),
+        #    ('Add Inorganic to Stock A', 'dispense', (None, 'Inorganic'), (None, 'Stock A Vial'), 'Prepare stock A'),
+
+        for i in range(len(request.POST)):
+            if "activities[{}][id]".format(i) in request.POST.keys():
+                prop = {}
+                for key, val in request.POST.items():
+                    if "activities[{}][state]".format(i) in key:
+                        prop_type = str(key).split("[")[3].split("]")[0]
+                        prop[prop_type] = val
+                conn = {}
+                conn["before"] = request.POST[
+                    "connections[{}][sourceActivityId]".format(i)
+                ]
+                conn["after"] = request.POST[
+                    "connections[{}][destinationActivityId]".format(i)
+                ]
+
+                a, created = ActionSequenceDesign.objects.create(
+                    id=request.POST["activities[{}][id]".format(i)],
+                    description=request.POST["activities[{}][type]".format(i)],
+                    properties=prop,
+                    top_position=request.POST["activities[{}][top]".format(i)],
+                    left_position=request.POST["activities[{}][left]".format(i)],
+                    connections=conn,
+                )
+                a.save()
+                action_tuples.append()
+
+    return JsonResponse(data={"message": "success"})"""
+
+
+def save_experiment_action_sequence(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         print(request.POST)
 
+        exp_template = ExperimentTemplate.objects.get(uuid=request.POST["exp_template"])
+        # exp_template = ExperimentTemplate.objects.get(
+        # uuid=request.session["experiment_template_uuid"]
+        # )
+
         action_sequence_instance = ActionSequence.objects.create(
-            description=request.POST["action_sequence_name"]
+            description="{}_action_sequence".format(exp_template.description)
         )
 
         action_tuples = []
@@ -99,6 +150,9 @@ def save_action_sequence(request: HttpRequest) -> HttpResponse:
                                 properties["destination"],
                             )
                         )
+
+                        if properties["source"] == "":
+                            properties["source"] = None
 
                         a, created = ActionSequenceDesign.objects.get_or_create(
                             action_sequence=action_sequence_instance,
@@ -165,7 +219,7 @@ def save_action_sequence(request: HttpRequest) -> HttpResponse:
             else:
                 if "plate" in destination:  # plate-level actions
 
-                    vessel = Vessel.objects.get(description=destination)
+                    vessel = Vessel.objects.get(description=destination.split(" -")[0])
 
                     # if "plate" in destination:  # plate-level actions
                     # plate, created = Vessel.objects.get_or_create(
@@ -209,83 +263,15 @@ def save_action_sequence(request: HttpRequest) -> HttpResponse:
 
                     au.save()
 
-            # if destination is not None:
-            # destination_bbm = BaseBomMaterial.objects.create(
-            # description=destination
-            # )
-            # else:
-            # destination_bbm = None
+        # for i, a in enumerate(action_sequences):
+        # ac_sq = ActionSequence.objects.filter(description=a)[0]
 
-            # au = ActionUnit.objects.create(
-            # action=action,
-            # source_material=source_bbm,
-            # description=description,
-            # destination_material=destination_bbm,
-            # )
+        eas = ExperimentActionSequence(
+            experiment_template=exp_template,
+            experiment_action_sequence_seq=0,
+            action_sequence=action_sequence_instance,
+        )
+        eas.save()
 
     return JsonResponse(data={"message": "success"})
 
-
-def save_experiment_action_sequence(request: HttpRequest) -> HttpResponse:
-    if request.method == "POST":
-        print(request.POST)
-
-        # experiment_action_sequence_instance = Workflow.objects.create(
-        #   description="generalization_test"
-        # )  # TODO: add option in UI to enter name upon saving
-
-        exp_template = ExperimentTemplate.objects.get(uuid=request.POST["exp_template"])
-
-        action_sequences = []
-
-        ids = []
-        for key, val in request.POST.items():
-            if (
-                "connections" in key
-            ):  # more than one action - order sequentially based on connections
-                index = key.split("[")[1].split("]")[0]
-                id1 = request.POST["connections[{}][sourceActivityId]".format(index)]
-                if id1 not in ids:
-                    ids.append(id1)
-                id2 = request.POST[
-                    "connections[{}][destinationActivityId]".format(index)
-                ]
-                if id2 not in ids:
-                    ids.append(id2)
-
-        if len(ids) == 0:  # single action
-            id1 = request.POST["activities[0][id]"]
-            if id1 not in ids:
-                ids.append(id1)
-
-        for entry in ids:
-            for key, val in request.POST.items():
-                if entry == val:
-                    if "activities" in key:
-                        id = entry
-                        index = key.split("[")[1].split("]")[0]
-                        uuid = request.POST["activities[{}][type]".format(index)]
-                        top = request.POST["activities[{}][top]".format(index)]
-                        left = request.POST["activities[{}][left]".format(index)]
-
-                        # a, created = ActionSequenceDesign.objects.get_or_create(
-                        #    id=id,
-                        #   description=uuid,
-                        #  top_position=top,
-                        # left_position=left,
-                        # )
-                        # a.save()
-
-                        action_sequence = ActionSequence.objects.get(uuid=uuid)
-                        action_sequences.append(action_sequence)
-
-        for i, a in enumerate(action_sequences):
-            ac_sq = ActionSequence.objects.filter(description=a)[0]
-            eas = ExperimentActionSequence(
-                experiment_template=exp_template,
-                experiment_action_sequence_seq=i,
-                action_sequence=ac_sq,
-            )
-            eas.save()
-
-    return JsonResponse(data={"message": "success"})

@@ -2,7 +2,7 @@ from django.urls import path, include
 import core.views
 from core.views.function_views import (
     download_robot_file,
-    save_action_sequence,
+    # save_action_sequence,
     save_experiment_action_sequence,
 )
 
@@ -12,7 +12,7 @@ from .views import (
     MainMenuView,
     SelectLabView,
     ActionSequenceView,
-    ExperimentActionSequenceView,
+    # ExperimentActionSequenceView,
     ModelTagCreate,
     ModelTagUpdate,
     logout_view,
@@ -25,11 +25,11 @@ from .views.experiment import (
     SetupExperimentView,
     CreateExperimentTemplate,
     CreateReagentTemplate,
-    #ExperimentDetailView,
+    # ExperimentDetailView,
     ExperimentReagentPrepView,
     ExperimentOutcomeView,
     ExperimentDetailEditView,
-    ParameterEditView
+    ParameterEditView,
 )
 
 from .views.experiment.create_select_template import SelectReagentsView
@@ -45,11 +45,11 @@ urlpatterns = [
     path("create_user/", CreateUserView.as_view(), name="create_user"),
     path("main_menu/", MainMenuView.as_view(), name="main_menu"),
     path("select_lab/", SelectLabView.as_view(), name="select_lab"),
-    path("action_sequence/", ActionSequenceView.as_view(), name="action_sequence"),
+    # path("action_sequence/", ActionSequenceView.as_view(), name="action_sequence"),
     path(
-        "experiment_action_sequence/",
-        ExperimentActionSequenceView.as_view(),
-        name="experiment_action_sequence",
+        "action_sequence/<uuid:pk>",
+        ActionSequenceView.as_view(),
+        name="action_sequence",
     ),
     path("logout/", logout_view, name="logout"),
     path("user_profile/", UserProfileView.as_view(), name="user_profile"),
@@ -95,7 +95,7 @@ urlpatterns += [
         CreateReagentTemplate.as_view(),
         name="reagent_template_add",
     ),
-    path("save_action_sequence/", save_action_sequence, name="save_action_sequence",),
+    # path("save_action_sequence/", save_action_sequence, name="save_action_sequence",),
     path(
         "save_experiment_action_sequence/",
         save_experiment_action_sequence,

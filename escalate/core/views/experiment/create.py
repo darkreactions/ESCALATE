@@ -227,6 +227,10 @@ class CreateExperimentView(TemplateView):
                         vector = self.save_forms_reagent(
                             reagent_formset, experiment_copy_uuid, exp_concentrations
                         )
+                    else:
+                        self.save_forms_reagent_general(
+                            reagent_formset, experiment_copy_uuid
+                        )
                     # try:
                     rd = prepare_reagents(reagent_formset, exp_concentrations)
                     if rd not in reagentDefs:
@@ -363,6 +367,27 @@ class CreateExperimentView(TemplateView):
                 mat_type = reagent_instance.template.material_type
                 vector[positions[mat_type.description]] = data["desired_concentration"]
         return vector
+
+    def save_forms_reagent_general(self, formset, exp_uuid):
+        form: Form
+        for form in formset:
+            if form.has_changed():
+                data = form.cleaned_data
+                reagent_template_uuid = data["reagent_template_uuid"]
+                reagent_instance = ReagentMaterial.objects.get(
+                    template=reagent_template_uuid, reagent__experiment=exp_uuid,
+                )
+                reagent_instance.material = (
+                    InventoryMaterial.objects.get(uuid=data["chemical"])
+                    if data["chemical"]
+                    else None
+                )
+                reagent_instance.save()
+                reagent_material_value = reagent_instance.reagent_material_value_rmi.get(
+                    template__description="concentration"
+                )
+                reagent_material_value.nominal_value = data["desired_concentration"]
+                reagent_material_value.save()
 
     def process_formsets(
         self, request: HttpRequest, context: dict[str, Any]
