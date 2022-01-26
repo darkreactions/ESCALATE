@@ -71,6 +71,9 @@ core_views = set(
         "ReagentMaterialTemplate",
         "ReagentMaterialValueTemplate",
         "DefaultValues",
+        "DescriptorTemplate",
+        "MolecularDescriptor",
+        "ExperimentDescriptor",
     ]
 )
 

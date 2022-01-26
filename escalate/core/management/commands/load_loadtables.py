@@ -1,3 +1,4 @@
+from distutils import command
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
 from core.models import (
@@ -33,6 +34,7 @@ from core.models import (
     ReagentMaterialValueTemplate,
     OutcomeTemplate,
     Parameter,
+    DescriptorTemplate,
 )
 from core.custom_types import Val
 import csv
@@ -62,8 +64,31 @@ class Command(BaseCommand):
         # self._load_reagents_and_outcomes()
         self._create_wf1()
         self._create_wf3()
+        self._load_descriptors()
         self.stdout.write(self.style.NOTICE("Finished loading load tables"))
         return
+
+    def _load_descriptors(self):
+        filename = "type_command.csv"
+        DESCRIPTORS = path_to_file(filename)
+        type_commands = pd.read_csv(DESCRIPTORS)
+        for i, row in type_commands.iterrows():
+            command = row["calc_definition"]
+            description = row["short_name"]
+            human_description = row["human readable description"]
+            material_type, created = MaterialType.objects.get_or_create(
+                description=row["input"]
+            )
+            systemtool, created = Systemtool.objects.get_or_create(
+                description=row["actor_systemtool_name"]
+            )
+            template = DescriptorTemplate.objects.create(
+                description=description,
+                command=command,
+                human_description=human_description,
+                material_type=material_type,
+                systemtool=systemtool,
+            )
 
     def _create_wf1(self):
         # Get the lab related to this template
@@ -75,7 +100,9 @@ class Command(BaseCommand):
 
         # Create the experiment
         exp_template = ExperimentTemplate(
-            description="Workflow 1", ref_uid="workflow_1", lab=lab,
+            description="Workflow 1",
+            ref_uid="workflow_1",
+            lab=lab,
         )
         exp_template.save()
 
@@ -390,7 +417,9 @@ class Command(BaseCommand):
                 action.parameter_def.add(param)
 
             if source_desc is not None:
-                source_bbm = BaseBomMaterial.objects.create(description=source_desc,)
+                source_bbm = BaseBomMaterial.objects.create(
+                    description=source_desc,
+                )
             else:
                 source_bbm = None
 
@@ -452,7 +481,9 @@ class Command(BaseCommand):
 
         # Create the experiment
         exp_template = ExperimentTemplate(
-            description="Workflow 3", ref_uid="workflow_3", lab=lab,
+            description="Workflow 3",
+            ref_uid="workflow_3",
+            lab=lab,
         )
         exp_template.save()
 
@@ -755,7 +786,9 @@ class Command(BaseCommand):
                 action.parameter_def.add(param)
 
             if source_desc is not None:
-                source_bbm = BaseBomMaterial.objects.create(description=source_desc,)
+                source_bbm = BaseBomMaterial.objects.create(
+                    description=source_desc,
+                )
             else:
                 source_bbm = None
 
@@ -939,13 +972,21 @@ class Command(BaseCommand):
         # create default values
         DefaultValues.objects.get_or_create(
             description="g/ml",
-            actual_value={"value": "0.0", "unit": "g/ml", "type": "num",},
+            actual_value={
+                "value": "0.0",
+                "unit": "g/ml",
+                "type": "num",
+            },
         )
         gml_dv = DefaultValues.objects.get(description="g/ml")
 
         DefaultValues.objects.get_or_create(
             description="g/mol",
-            actual_value={"value": "0.0", "unit": "g/mol", "type": "num",},
+            actual_value={
+                "value": "0.0",
+                "unit": "g/mol",
+                "type": "num",
+            },
         )
         gmol_dv = DefaultValues.objects.get(description="g/mol")
 
@@ -1685,9 +1726,10 @@ class Command(BaseCommand):
                 else None,
                 "status": active_status,
             }
-            (action_sequence_instance, created,) = ActionSequence.objects.get_or_create(
-                **fields
-            )
+            (
+                action_sequence_instance,
+                created,
+            ) = ActionSequence.objects.get_or_create(**fields)
             if created:
                 new_action_sequence += 1
             experiment_description = (
@@ -1830,7 +1872,9 @@ class Command(BaseCommand):
                     used_amt_val_type, used_amt_val_unit, used_amt_val_value
                 ),
                 "putback_amt_val": get_val_field_dict(
-                    putback_amt_val_type, putback_amt_val_unit, putback_amt_val_value,
+                    putback_amt_val_type,
+                    putback_amt_val_unit,
+                    putback_amt_val_value,
                 ),
                 #'mixture': Mixture.objects.get(composite=mixture_composite,
                 #                               component=mixture_component
