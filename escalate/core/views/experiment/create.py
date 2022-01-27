@@ -30,10 +30,16 @@ from core.models.view_tables import (
     ReagentMaterialValueTemplate,
     MaterialType,
     Vessel,
+    VesselType,
     OutcomeTemplate,
     ExperimentActionSequence,
     ActionSequence,
+    Action,
+    ActionUnit,
+    BaseBomMaterial,
 )
+
+from core.models.app_tables import ActionSequenceDesign
 
 from core.forms.custom_types import (
     SingleValForm,
@@ -213,6 +219,114 @@ class CreateExperimentView(TemplateView):
                 # well_list = make_well_labels_list(well_num, col_order, robot="False")
 
             # make the experiment copy: this will be our new experiment
+
+            action_sequences = []
+            eas = ExperimentActionSequence.objects.filter(
+                experiment_template=exp_template
+            )
+            for i in eas:
+                action_sequences.append(i.action_sequence)
+
+            for i in action_sequences:
+                actions = ActionSequenceDesign.objects.filter(action_sequence=i)
+            for a in actions:
+                action = Action.objects.get(
+                    description=a.description, action_sequence=i
+                )
+
+                # source = a.properties.split(":")[1].split(",")[0]
+                # destination = a.properties.split(":")[2].split("}")[0]
+                if a.source is not None:
+                    source_bbm = BaseBomMaterial.objects.create(description=a.source)
+                else:
+                    source_bbm = None
+
+                if "wells" in a.destination:  # individual well-level actions
+                    plate = Vessel.objects.get(uuid=vessel.uuid)
+                    # plate = Vessel.objects.get(description=destination.split(" -")[0])
+                    # plate, created = Vessel.objects.get_or_create(
+                    # description=destination.split("wells")[0]
+                    # )
+                    # well_count = int(destination.split(" ")[0])
+                    well_list = make_well_labels_list(
+                        well_count=plate.well_number,
+                        column_order=plate.column_order,
+                        robot="True",
+                    )
+                    plate_wells = {}
+                    for well in well_list:
+                        plate_wells[well], created = Vessel.objects.get_or_create(
+                            parent=plate, description=well
+                        )
+                    for well_desc, well_vessel in plate_wells.items():
+                        destination_bbm = BaseBomMaterial.objects.create(
+                            description=f"{plate.description} : {well_desc}",
+                            vessel=well_vessel,
+                        )
+                        if source_bbm:
+                            description = f"{action.description} : {source_bbm.description} -> {destination_bbm.description}"
+                        else:
+                            description = (
+                                f"{action.description} : {destination_bbm.description}"
+                            )
+                        au = ActionUnit.objects.create(
+                            action=action,
+                            source_material=source_bbm,
+                            destination_material=destination_bbm,
+                            description=action.description,
+                        )
+                        au.save()
+                else:
+                    vessel_types = []
+                    for vt in VesselType.objects.all():
+                        vessel_types.append(vt.description)
+                    # if "plate" in destination:  # plate-level actions
+                    if a.destination in vessel_types:
+
+                        vessel = Vessel.objects.get(uuid=vessel.uuid)
+
+                        # if "plate" in destination:  # plate-level actions
+                        # plate, created = Vessel.objects.get_or_create(
+                        # description=destination
+                        # )
+                        destination_bbm = BaseBomMaterial.objects.create(
+                            description=vessel.description, vessel=vessel
+                        )
+                        if source_bbm:
+                            description = f"{action.description} : {source_bbm.description} -> {destination_bbm.description}"
+                        else:
+                            description = (
+                                f"{action.description} : {destination_bbm.description}"
+                            )
+
+                        au = ActionUnit.objects.create(
+                            action=action,
+                            source_material=source_bbm,
+                            description=description,
+                            destination_material=destination_bbm,
+                        )
+                        au.save()
+
+                    else:
+                        # if destination is not a vessel
+                        destination_bbm = BaseBomMaterial.objects.create(
+                            description=a.destination
+                        )
+                        if source_bbm:
+                            description = f"{action.description} : {source_bbm.description} -> {destination_bbm.description}"
+                        else:
+                            description = (
+                                f"{action.description} : {destination_bbm.description}"
+                            )
+                        au = ActionUnit(
+                            action=action,
+                            source_material=source_bbm,
+                            description=description,
+                            destination_material=destination_bbm,
+                        )
+
+                        au.save()
+
             experiment_copy_uuid = experiment_copy(
                 str(exp_template.uuid), exp_name, vessel
             )

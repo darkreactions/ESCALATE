@@ -158,7 +158,9 @@ def save_experiment_action_sequence(request: HttpRequest) -> HttpResponse:
                             action_sequence=action_sequence_instance,
                             id=id,
                             description=description,
-                            properties=properties,
+                            # properties=properties,
+                            source=properties["source"],
+                            destination=properties["destination"],
                             top_position=top,
                             left_position=left,
                             order=order,
@@ -177,7 +179,7 @@ def save_experiment_action_sequence(request: HttpRequest) -> HttpResponse:
             )
             action.save()
 
-            if source is not None:
+        """ if source is not None:
                 source_bbm = BaseBomMaterial.objects.create(description=source)
             else:
                 source_bbm = None
@@ -217,7 +219,7 @@ def save_experiment_action_sequence(request: HttpRequest) -> HttpResponse:
                     )
                     au.save()
             else:
-                if "plate" in destination:  # plate-level actions
+                if "Plate" in destination:  # plate-level actions
 
                     vessel = Vessel.objects.get(description=destination.split(" -")[0])
 
@@ -261,7 +263,7 @@ def save_experiment_action_sequence(request: HttpRequest) -> HttpResponse:
                         destination_material=destination_bbm,
                     )
 
-                    au.save()
+                    au.save()"""
 
         # for i, a in enumerate(action_sequences):
         # ac_sq = ActionSequence.objects.filter(description=a)[0]

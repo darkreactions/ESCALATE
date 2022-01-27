@@ -15,6 +15,7 @@ from core.models.view_tables import (
     Reagent,
     ReagentTemplate,
     Vessel,
+    VesselType,
 )
 from copy import deepcopy
 import uuid
@@ -44,13 +45,16 @@ def generate_action_def_json(action_defs, exp_template_uuid):
         # for reagent in ReagentTemplate.objects.all():
         source_choices.append(reagent.description)
         dest_choices.append(reagent.description)
-    for vessel in Vessel.objects.all():
+    for vt in VesselType.objects.all():
+        dest_choices.append(vt.description)
+
+    """for vessel in Vessel.objects.all():
         if vessel.parent is None:
             if "Plate" in vessel.description:
-                dest_choices.append("{} - plate".format(vessel.description))
-                dest_choices.append("{} - wells".format(vessel.description))
+                dest_choices.append("{} - plate".format(vessel.vessel_type.description))
+                dest_choices.append("{} - wells".format(vessel.vessel_type.description))
             else:
-                dest_choices.append(vessel.description)
+                dest_choices.append(vessel.vessel_type.description)"""
 
     json_data = []
 
