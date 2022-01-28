@@ -220,19 +220,60 @@ class CreateExperimentView(TemplateView):
 
             # make the experiment copy: this will be our new experiment
 
-            action_sequences = []
-            eas = ExperimentActionSequence.objects.filter(
-                experiment_template=exp_template
-            )
-            for i in eas:
-                action_sequences.append(i.action_sequence)
+            self.generate_action_units(exp_template, vessel)
 
-            for i in action_sequences:
-                actions = ActionSequenceDesign.objects.filter(action_sequence=i)
+            experiment_copy_uuid = experiment_copy(
+                str(exp_template.uuid), exp_name, vessel
+            )
+            exp_concentrations = {}
+            reagentDefs = []
+            for reagent_formset in formsets:
+                if reagent_formset.is_valid():
+                    if (
+                        exp_template.description == "Workflow 1"
+                        or exp_template.description == "Workflow 3"
+                    ):
+                        vector = self.save_forms_reagent(
+                            reagent_formset, experiment_copy_uuid, exp_concentrations
+                        )
+                    else:
+                        self.save_forms_reagent_general(
+                            reagent_formset, experiment_copy_uuid
+                        )
+                    # try:
+                    rd = prepare_reagents(reagent_formset, exp_concentrations)
+                    if rd not in reagentDefs:
+                        reagentDefs.append(rd)
+                    # except TypeError as te:
+                    # messages.error(request, str(te))
+
+            dead_volume_form = SingleValForm(request.POST, prefix="dead_volume")
+            if dead_volume_form.is_valid():
+                dead_volume = dead_volume_form.cleaned_data["value"]
+            else:
+                dead_volume = None
+        return (
+            experiment_copy_uuid,
+            exp_name_form,
+            dead_volume,
+            reagent_template_names,
+            reagentDefs,
+            vessel,
+        )
+
+    def generate_action_units(self, exp_template, vessel):
+        action_sequences = []
+        eas = ExperimentActionSequence.objects.filter(experiment_template=exp_template)
+        for i in eas:
+            action_sequences.append(i.action_sequence)
+
+        for i in action_sequences:
+            actions = ActionSequenceDesign.objects.filter(action_sequence=i)
+        if actions.exists():
             for a in actions:
-                action = Action.objects.get(
+                action = Action.objects.filter(
                     description=a.description, action_sequence=i
-                )
+                )[0]
 
                 # source = a.properties.split(":")[1].split(",")[0]
                 # destination = a.properties.split(":")[2].split("}")[0]
@@ -326,45 +367,6 @@ class CreateExperimentView(TemplateView):
                         )
 
                         au.save()
-
-            experiment_copy_uuid = experiment_copy(
-                str(exp_template.uuid), exp_name, vessel
-            )
-            exp_concentrations = {}
-            reagentDefs = []
-            for reagent_formset in formsets:
-                if reagent_formset.is_valid():
-                    if (
-                        exp_template.description == "Workflow 1"
-                        or exp_template.description == "Workflow 3"
-                    ):
-                        vector = self.save_forms_reagent(
-                            reagent_formset, experiment_copy_uuid, exp_concentrations
-                        )
-                    else:
-                        self.save_forms_reagent_general(
-                            reagent_formset, experiment_copy_uuid
-                        )
-                    # try:
-                    rd = prepare_reagents(reagent_formset, exp_concentrations)
-                    if rd not in reagentDefs:
-                        reagentDefs.append(rd)
-                    # except TypeError as te:
-                    # messages.error(request, str(te))
-
-            dead_volume_form = SingleValForm(request.POST, prefix="dead_volume")
-            if dead_volume_form.is_valid():
-                dead_volume = dead_volume_form.cleaned_data["value"]
-            else:
-                dead_volume = None
-        return (
-            experiment_copy_uuid,
-            exp_name_form,
-            dead_volume,
-            reagent_template_names,
-            reagentDefs,
-            vessel,
-        )
 
     def save_reaction_parameters(
         self, request, experiment_copy_uuid, exp_name_form, exp_template

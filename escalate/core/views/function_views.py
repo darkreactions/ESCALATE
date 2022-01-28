@@ -172,7 +172,7 @@ def save_experiment_action_sequence(request: HttpRequest) -> HttpResponse:
             action_def, created = ActionDef.objects.get_or_create(
                 description=description
             )
-            action = Action.objects.create(
+            action = Action.objects.get_or_create(
                 description=description,
                 action_def=action_def,
                 action_sequence=action_sequence_instance,
