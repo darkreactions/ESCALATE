@@ -6,3 +6,4 @@ dispense	volume
 start_node	
 bring_to_temperature	temperature
 dispense_solid	mass
+dwell	duration

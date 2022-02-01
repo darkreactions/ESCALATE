@@ -35,6 +35,7 @@ from core.models import (
     OutcomeTemplate,
     Parameter,
     DescriptorTemplate,
+    VesselType,
 )
 from core.custom_types import Val
 import csv
@@ -258,20 +259,30 @@ class Command(BaseCommand):
             )
             ac_sq.save()
 
+        # VESSEL data
+
+        vessel_types = ["plate", "well", "beaker", "tube"]
+        for vt in vessel_types:
+            VesselType.objects.create(description=vt)
+
         column_order = "ACEGBDFH"
         rows = 12
         well_list = [
             f"{col}{row}" for row in range(1, rows + 1) for col in column_order
         ]
         plate = Vessel.objects.get(description="96 Well Plate well")
+        plate.vessel_type.add(VesselType.objects.get(description="plate"))
         plate.column_order = column_order
         plate.well_number = 96
         plate.save()
         # Dictionary of plate wells so that we don't keep accessing the database
         # multiple times
         plate_wells = {}
+        vial_type = VesselType.objects.get(description="well")
         for well in well_list:
             plate_wells[well] = Vessel.objects.get(parent=plate, description=well)
+            plate_wells[well].vessel_type.add(vial_type)
+            plate_wells[well].save()
 
         # Create outcome templates, Currently hard coded to capture 96 values
 
