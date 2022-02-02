@@ -177,7 +177,7 @@ def save_experiment_action_sequence(request: HttpRequest) -> HttpResponse:
                 action_def=action_def,
                 action_sequence=action_sequence_instance,
             )
-            action.save()
+            # action.save()
 
         """ if source is not None:
                 source_bbm = BaseBomMaterial.objects.create(description=source)
