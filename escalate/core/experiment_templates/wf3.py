@@ -9,8 +9,7 @@ from core.utilities.wf1_utils import make_well_list
 
 
 def workflow_3(data, q1, experiment_copy_uuid, exp_name, exp_template):
-    robotfile_blob = generate_robot_file_wf3(
-        q1, data, "Symyx_96_well_0003", 96)
+    robotfile_blob = generate_robot_file_wf3(q1, data, "Symyx_96_well_0003", 96)
     doc_type = TypeDef.objects.get(category="file", description="text")
     robotfile_edoc = Edocument(
         title=f"{experiment_copy_uuid}_{exp_name}_RobotInput.xls",
@@ -25,18 +24,19 @@ def workflow_3(data, q1, experiment_copy_uuid, exp_name, exp_template):
     return robotfile_uuid, ""
 
 
-def generate_robot_file_wf3(reaction_volumes, reaction_parameters, plate_name, well_count):
+def generate_robot_file_wf3(
+    reaction_volumes, reaction_parameters, plate_name, well_count
+):
     reaction_parameters = ReactionParameter.objects.filter(
         experiment_uuid=reaction_volumes[0].experiment_uuid
     )
-    if reaction_parameters is None:
+    if len(reaction_parameters) == 0:
         rxn_parameters = pd.DataFrame(
             {
                 "Reaction Parameters": [
                     "Temperature (C):",
                     "Stir Rate (rpm):",
                     "Mixing time1 (s):",
-
                 ],
                 "Parameter Values": [70, 750, 900],
             }
@@ -95,8 +95,7 @@ def generate_robot_file_wf3(reaction_volumes, reaction_parameters, plate_name, w
         # source material -> Reagent number, vial_site -> row name
 
         for action_name, reagent_num in REAG_MAPPING.items():
-            action_units = reaction_volumes.filter(
-                object_description=action_name)
+            action_units = reaction_volumes.filter(object_description=action_name)
             for au in action_units:
                 reaction_volumes_output.loc[
                     reaction_volumes_output["Vial Site"] == au.action_unit_destination,
@@ -145,7 +144,6 @@ def generate_robot_file_wf3(reaction_volumes, reaction_parameters, plate_name, w
     temp = tempfile.TemporaryFile()
     # xlwt is no longer maintained and will be removed from pandas in future versions
     # use io.excel.xls.writer as the engine once xlwt is removed
-    outframe.to_excel(temp, sheet_name="NIMBUS_reaction",
-                      index=False, engine="xlwt")
+    outframe.to_excel(temp, sheet_name="NIMBUS_reaction", index=False, engine="xlwt")
     temp.seek(0)
     return temp
