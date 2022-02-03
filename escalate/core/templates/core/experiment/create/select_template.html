@@ -6,6 +6,10 @@
 <form hx-post="{% url 'select_reagents' %}" hx-target="#page-div" hx-swap="innerHTML">
     {% csrf_token %}
     {{ experiment_template_select_form|crispy }}
+
+    {{ vessel_form|crispy }}
+
+
     <div>
         <button class="btn btn-primary" type="submit">
             Select Template
@@ -13,7 +17,5 @@
         </button>
     </div>
 </form>
-
-
 
 {% endblock %}
