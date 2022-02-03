@@ -1,0 +1,171 @@
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Roboto', sans-serif;
+  background: #efefef;
+  overflow: hidden;
+}
+
+.panel {
+  width: 750px;
+  height: 400px;
+  background: #3976a3;
+  box-shadow: 1px 2px 3px 0px rgba(0,0,0,0.10);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 30px;
+  height: 60px;
+  background: #fff;
+}
+
+.title {
+  color: #5E6977;
+  font-weight: 500;
+}
+
+.calendar-views span {
+  font-size: 14px;
+  font-weight: 300;
+  color: #BDC6CF;
+  padding: 6px 14px;
+  border: 2px solid transparent;
+}
+.calendar-views span:hover {
+  border: 2px solid #BDC6CF;
+  cursor: pointer;
+  border-radius: 15px;
+}
+
+.panel-body {
+  display: flex;
+  height: 340px;
+}
+
+.categories {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-basis: 25%;
+  padding: 39px 0px 41px 26px;
+}
+.category {
+  display: flex;
+  flex-direction: column;
+}
+.category span:first-child {
+  font-weight: 300;
+  font-size: 14px;
+  opacity: 0.6;
+  color: #fff;
+  margin-bottom: 6px;
+}
+.category span:last-child {
+  font-size: 32px;
+  font-weight: 300;
+  color: #fff;
+}
+
+.chart {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 2;
+  position: relative;
+}
+
+.experiments {
+  display: flex;
+  justify-content: space-between;
+  width: 215px;
+  margin-top: 30px;
+  margin-bottom: 50px;
+}
+span[class*="exp-"] {
+  font-size: 14px;
+  font-weight: 300;
+  font-size: 14px;
+  color: #c3c6e4;
+}
+span[class*="exp-"] span {
+  width: 9px;
+  height: 9px;
+  display: inline-block;
+  border-radius: 50%;
+  margin-right: 9px;
+}
+.exp-created span {
+  background: #7DC855;
+}
+
+div[class*="-stats"] {
+  position: absolute;
+  color: #fff;
+  font-size: 12px;
+  display: flex;
+  opacity: 0;
+  animation: showstats 0.6s linear 1.8s;
+  animation-fill-mode: forwards;
+}
+
+div[class*="-stats"] span {
+  height: 12px;
+  width: 12px;
+  margin: 0 7px;
+  background-color: #fff;
+  border: 2px solid transparent;
+  border-radius: 50%;
+}
+
+div[class*="-stats"] span:hover {
+  transform: scale(1.4) rotate(0.02deg);
+  border: 2px solid #fff;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+}
+
+.created-stats {
+  bottom: 135px;
+  left: 540px;
+}
+.created-stats span:hover {
+  background: #7DC855;
+}
+
+.dataset-1 {
+  animation: raise .8s linear 1;
+  transform-origin: bottom;
+}
+
+.lines {
+  opacity: 0;
+  animation: showlines 0.6s linear 1.6s;
+  animation-fill-mode: forwards;
+}
+
+@keyframes showlines {
+  to { opacity: 0.2; }
+}
+
+@keyframes showstats {
+  to { opacity: 1; }
+}
+
+@keyframes raise {
+  0% { transform: scaleY(0.01); }
+  75% { transform: scaleY(1.1); }
+  100% { transform: scaleY(1); }
+}

@@ -13,7 +13,7 @@ from plotly.offline import plot
 from plotly.graph_objs import Scatter
 
 from core.views.crud_views import LoginRequired
-from core.models.view_tables import Actor, Person, Organization
+from core.models.view_tables import Actor, Person, Organization, ExperimentInstance
 
 
 class SelectLabView(LoginRequired, View):
@@ -40,22 +40,10 @@ class MainMenuView(LoginRequired, View):
 
     # @method_decorator(login_required)
     def get(self, request, *args, **kwargs):
-        x_data = [0, 1, 2, 3]
-        y_data = [x ** 2 for x in x_data]
-        plot_div = plot(
-            [
-                Scatter(
-                    x=x_data,
-                    y=y_data,
-                    mode="lines",
-                    name="test",
-                    opacity=0.8,
-                    marker_color="green",
-                )
-            ],
-            output_type="div",
-            include_plotlyjs=False,
-        )
-        # vw_person = Person.objects.get(pk=request.user.person.pk)
-        context = {"plot_div": plot_div}  # , "user_person": vw_person}
+        users = Person.objects.count()
+        experiments_created = ExperimentInstance.objects.count()
+        experiments_completed = ExperimentInstance.objects.filter(completion_status="Completed").count()
+        context = {"total_users": users, 
+                   "total_experiments_created": experiments_created,
+                   "total_experiments_completed": experiments_completed}
         return render(request, self.template_name, context=context)
