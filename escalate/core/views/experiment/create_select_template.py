@@ -64,6 +64,8 @@ class SelectReagentsView(TemplateView):
 
         if "value" in request.POST.keys():
             context["vessel"] = Vessel.objects.get(uuid=request.POST["value"])
+            vessel_uuid = str(context["vessel"].uuid)
+            request.session["vessel"] = vessel_uuid
 
         return render(request, self.template_name, context)
 
