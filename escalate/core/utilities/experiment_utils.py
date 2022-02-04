@@ -508,18 +508,18 @@ def save_manual_parameters(df, exp_template, experiment_copy_uuid):
     # rp_label might be a list so need to itterate over and pass to this
 
     for i, param in enumerate(df["Reaction Parameters"]):
-
-        rp = ReactionParameter.objects.create(
-            experiment_template=exp_template,
-            # organization = organization,
-            value=df["Parameter Values"][i],
-            unit=df["Units"][i],
-            # type=rp_type,
-            description=param.split("-")[1],
-            experiment_uuid=experiment_copy_uuid,
-        )
-        rp.save()
-        # return rp
+        if type(param) == str:
+            rp = ReactionParameter.objects.create(
+                experiment_template=exp_template,
+                # organization = organization,
+                value=df["Parameter Values"][i],
+                unit=df["Units"][i],
+                # type=rp_type,
+                description=param.split("-")[1],
+                experiment_uuid=experiment_copy_uuid,
+            )
+            rp.save()
+            # return rp
 
 
 def save_manual_volumes(df, experiment_copy_uuid, reagent_template_names, dead_volume):
