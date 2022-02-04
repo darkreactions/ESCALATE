@@ -10,10 +10,11 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
 from plotly.offline import plot
-from plotly.graph_objs import Scatter
+from plotly.graph_objs import Bar
+import plotly.graph_objs as go
 
 from core.views.crud_views import LoginRequired
-from core.models.view_tables import Actor, Person, Organization
+from core.models.view_tables import Actor, Person, Organization, ExperimentInstance
 
 
 class SelectLabView(LoginRequired, View):
@@ -37,25 +38,38 @@ class SelectLabView(LoginRequired, View):
 
 class MainMenuView(LoginRequired, View):
     template_name = "core/main_menu.html"
-
     # @method_decorator(login_required)
     def get(self, request, *args, **kwargs):
-        x_data = [0, 1, 2, 3]
-        y_data = [x ** 2 for x in x_data]
+        try:
+            users = Person.objects.count()
+            experiments_created = ExperimentInstance.objects.count()
+            experiments_completed = ExperimentInstance.objects.filter(completion_status="Completed").count()    
+        except:
+            users = 0
+            experiments_created = 0
+            experiments_completed = 0    
+
+        x_data = ["Users", "Experiments Created", "Experiments Completed"]
+        y_data = [users,experiments_created,experiments_completed]
+        meta = ["ESCALATE v3 Data", "Data"]
+
+        trace = go.Bar(
+                            x=x_data,
+                            y=y_data,
+                            name='ESCALATE v3 Data',
+                            marker_color=['orange','red','green'],
+                            opacity=0.8,
+                        )
+        data = [trace]   
+        layout = {'title': 'ESCALATE v3 Data'}
+        fig = go.Figure(data=data, layout=layout)
+        fig.update_layout(title_x=0.5)
+
         plot_div = plot(
-            [
-                Scatter(
-                    x=x_data,
-                    y=y_data,
-                    mode="lines",
-                    name="test",
-                    opacity=0.8,
-                    marker_color="green",
-                )
-            ],
-            output_type="div",
-            include_plotlyjs=False,
+                    fig,
+                    output_type='div',
+                    include_plotlyjs=False,
         )
-        # vw_person = Person.objects.get(pk=request.user.person.pk)
+
         context = {"plot_div": plot_div}  # , "user_person": vw_person}
         return render(request, self.template_name, context=context)

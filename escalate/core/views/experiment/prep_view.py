@@ -39,6 +39,7 @@ class ExperimentReagentPrepView(TemplateView):
             "verdigris",
             "steelblue",
             "cornflowerblue",
+            "navy"
         ],
     ):
         factor = int(number_of_colors / len(colors))

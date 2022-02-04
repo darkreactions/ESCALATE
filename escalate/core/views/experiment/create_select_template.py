@@ -202,6 +202,7 @@ class SelectReagentsView(TemplateView):
             "verdigris",
             "steelblue",
             "cornflowerblue",
+            "navy"
         ],
     ) -> list[str]:
         factor = int(number_of_colors / len(colors))
