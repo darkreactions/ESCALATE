@@ -159,7 +159,8 @@ class Command(BaseCommand):
         )
 
         # Concentration and amount data to be stored for each reagent material
-        reagent_values = {"concentration": default_conc, "amount": default_amount}
+        reagent_values = {"concentration": default_conc,
+                          "amount": default_amount}
 
         # Create total volume and dead volume property templates for each reagent
         total_volume_prop, created = PropertyTemplate.objects.get_or_create(
@@ -280,7 +281,8 @@ class Command(BaseCommand):
         plate_wells = {}
         vial_type = VesselType.objects.get(description="well")
         for well in well_list:
-            plate_wells[well] = Vessel.objects.get(parent=plate, description=well)
+            plate_wells[well] = Vessel.objects.get(
+                parent=plate, description=well)
             plate_wells[well].vessel_type.add(vial_type)
             plate_wells[well].save()
 
@@ -469,7 +471,8 @@ class Command(BaseCommand):
                     )
 
             elif dest_col is None:
-                dest_bbm = BaseBomMaterial.objects.create(description=dest_desc)
+                dest_bbm = BaseBomMaterial.objects.create(
+                    description=dest_desc)
                 if source_bbm:
                     description = f"{action.description} : {source_bbm.description} -> {dest_bbm.description}"
                 else:
@@ -499,7 +502,7 @@ class Command(BaseCommand):
         exp_template.save()
 
         reagents = {
-            "Reagent 2 - Stock A": ["organic", "solvent"],
+            "Reagent 2 - Stock A": ["inorganic", "organic", "solvent"],
             "Reagent 7 - Acid": ["acid"],
             "Reagent 3 - Stock B": ["inorganic", "organic", "solvent"],
             "Reagent 1 - Solvent": ["solvent"],
@@ -551,7 +554,8 @@ class Command(BaseCommand):
         )
 
         # Concentration and amount data to be stored for each reagent material
-        reagent_values = {"concentration": default_conc, "amount": default_amount}
+        reagent_values = {"concentration": default_conc,
+                          "amount": default_amount}
 
         # Create total volume and dead volume property templates for each reagent
         total_volume_prop, created = PropertyTemplate.objects.get_or_create(
@@ -838,7 +842,8 @@ class Command(BaseCommand):
                     )
 
             elif dest_col is None:
-                dest_bbm = BaseBomMaterial.objects.create(description=dest_desc)
+                dest_bbm = BaseBomMaterial.objects.create(
+                    description=dest_desc)
                 if source_bbm:
                     description = f"{action.description} : {source_bbm.description} -> {dest_bbm.description}"
                 else:
@@ -852,7 +857,8 @@ class Command(BaseCommand):
                 au.save()
 
     def _load_reagents_and_outcomes(self):
-        exp_template = ExperimentTemplate.objects.get(description="perovskite_demo")
+        exp_template = ExperimentTemplate.objects.get(
+            description="perovskite_demo")
 
         reagents = {
             "Reagent 3 - Stock B": ["organic", "solvent"],
@@ -906,7 +912,8 @@ class Command(BaseCommand):
         )
 
         # Concentration and amount data to be stored for each reagent material
-        reagent_values = {"concentration": default_conc, "amount": default_amount}
+        reagent_values = {"concentration": default_conc,
+                          "amount": default_amount}
 
         # Create total volume and dead volume property templates for each reagent
         total_volume_prop, created = PropertyTemplate.objects.get_or_create(
@@ -1048,7 +1055,8 @@ class Command(BaseCommand):
                 if created:
                     new_mat_types_counter += 1
             self.stdout.write(
-                self.style.SUCCESS(f"Added {new_mat_types_counter} new material types")
+                self.style.SUCCESS(
+                    f"Added {new_mat_types_counter} new material types")
             )
 
             # jump to top of csv
@@ -1175,7 +1183,8 @@ class Command(BaseCommand):
                     if material_identifier != None:
                         some_material.identifier.add(material_identifier)
             self.stdout.write(
-                self.style.SUCCESS(f"Updated material identifier for materials")
+                self.style.SUCCESS(
+                    f"Updated material identifier for materials")
             )
 
             # jump to top of csv
@@ -1221,11 +1230,13 @@ class Command(BaseCommand):
             self.stdout.write(self.style.NOTICE("Finished loading chem"))
 
     def _load_material_identifier(self):
-        self.stdout.write(self.style.NOTICE("Beginning loading material identifier"))
+        self.stdout.write(self.style.NOTICE(
+            "Beginning loading material identifier"))
         filename = "load_material_identifier.csv"
         MATERIAL_IDENTIFIERS = path_to_file(filename)
 
-        df = pd.read_csv(MATERIAL_IDENTIFIERS, sep="\t", index_col=False, header=0)
+        df = pd.read_csv(MATERIAL_IDENTIFIERS, sep="\t",
+                         index_col=False, header=0)
 
         active_status = Status.objects.get(description="active")
         material_identifier_defs = {
@@ -1259,7 +1270,8 @@ class Command(BaseCommand):
                 f"Added {new_material_identifier} new material identifiers"
             )
         )
-        self.stdout.write(self.style.NOTICE("Finished loading material identifier"))
+        self.stdout.write(self.style.NOTICE(
+            "Finished loading material identifier"))
 
     def _load_material(self):
         self.stdout.write(self.style.NOTICE("Beginning loading material"))
@@ -1327,7 +1339,8 @@ class Command(BaseCommand):
                     "consumable": consumable,
                     "status": active_status,
                 }
-                material_instance, created = Material.objects.get_or_create(**fields)
+                material_instance, created = Material.objects.get_or_create(
+                    **fields)
                 if created:
                     new_material += 1
 
@@ -1350,11 +1363,13 @@ class Command(BaseCommand):
                     ]
                 )
 
-            self.stdout.write(self.style.SUCCESS(f"Added {new_material} new materials"))
+            self.stdout.write(self.style.SUCCESS(
+                f"Added {new_material} new materials"))
         self.stdout.write(self.style.NOTICE("Finished loading material"))
 
     def _load_inventory_material(self):
-        self.stdout.write(self.style.NOTICE("Beginning loading inventory material"))
+        self.stdout.write(self.style.NOTICE(
+            "Beginning loading inventory material"))
         filename = "load_inventory_material.txt"
         INVENTORY_MATERIALS = path_to_file(filename)
 
@@ -1412,7 +1427,7 @@ class Command(BaseCommand):
                     "onhand_amt": get_val_field_dict(
                         onhand_amt_type, onhand_amt_unit, onhand_amt_value
                     ),
-                    #'expiration_date': expiration_date if not string_is_null(expiration_date) else None,
+                    # 'expiration_date': expiration_date if not string_is_null(expiration_date) else None,
                     "phase": phase,
                     "location": location,
                     "status": active_status,
@@ -1426,7 +1441,8 @@ class Command(BaseCommand):
                 print(material_description)
 
             try:
-                material_object = Material.objects.get(description=material_description)
+                material_object = Material.objects.get(
+                    description=material_description)
                 inventory_material_instance.material = material_object
             except Material.DoesNotExist:
                 inventory_material_instance.material = None
@@ -1439,7 +1455,8 @@ class Command(BaseCommand):
                 f"Added {new_inventory_material} new inventory materials"
             )
         )
-        self.stdout.write(self.style.NOTICE("Finished loading inventory material"))
+        self.stdout.write(self.style.NOTICE(
+            "Finished loading inventory material"))
 
     def _load_vessels(self):
         self.stdout.write(self.style.NOTICE("Beginning loading vessels"))
@@ -1474,7 +1491,8 @@ class Command(BaseCommand):
                 )
                 if created:
                     new_plates += 1
-        self.stdout.write(self.style.SUCCESS(f"Added {new_vessels} new vessels"))
+        self.stdout.write(self.style.SUCCESS(
+            f"Added {new_vessels} new vessels"))
         self.stdout.write(self.style.SUCCESS(f"Added {new_plates} new plates"))
 
         self.stdout.write(self.style.NOTICE("Finished loading vessels"))
@@ -1482,11 +1500,13 @@ class Command(BaseCommand):
     # ---------------EXPERIMENT--------------
 
     def _load_experiment_related_def(self):
-        self.stdout.write(self.style.NOTICE("Beginning experiment related def"))
+        self.stdout.write(self.style.NOTICE(
+            "Beginning experiment related def"))
         self._load_parameter_def()
         self._load_action_def()
         # self._load_calculation_def()
-        self.stdout.write(self.style.NOTICE("Finished loading experiment related def"))
+        self.stdout.write(self.style.NOTICE(
+            "Finished loading experiment related def"))
 
     def _load_parameter_def(self):
         self.stdout.write(self.style.NOTICE("Beginning loading parameter def"))
@@ -1554,11 +1574,13 @@ class Command(BaseCommand):
                     for x in parameter_def_descriptions
                 ]
             )
-        self.stdout.write(self.style.SUCCESS(f"Added {new_action_def} new action def"))
+        self.stdout.write(self.style.SUCCESS(
+            f"Added {new_action_def} new action def"))
         self.stdout.write(self.style.NOTICE("Finished loading action def"))
 
     def _load_calculation_def(self):
-        self.stdout.write(self.style.NOTICE("Beginning loading calculation def"))
+        self.stdout.write(self.style.NOTICE(
+            "Beginning loading calculation def"))
         filename = "load_calculation_def.csv"
         CALCULATION_DEF = path_to_file(filename)
 
@@ -1574,7 +1596,8 @@ class Command(BaseCommand):
             short_name = clean_string(row["short_name"])
             calc_definition = clean_string(row["calc_definition"])
             in_type__description = clean_string(row["in_type__description"])
-            in_opt_type__description = clean_string(row["in_opt_type__description"])
+            in_opt_type__description = clean_string(
+                row["in_opt_type__description"])
             out_type__description = clean_string(row["out_type__description"])
             systemtool_name = clean_string(row["systemtool_name"])
             fields = {
@@ -1620,7 +1643,8 @@ class Command(BaseCommand):
             )
 
             in_source__short_name = clean_string(row["in_source__short_name"])
-            in_opt_source__short_name = clean_string(row["in_opt_source__short_name"])
+            in_opt_source__short_name = clean_string(
+                row["in_opt_source__short_name"])
 
             fields = {
                 "in_source": CalculationDef.objects.get(
@@ -1640,13 +1664,16 @@ class Command(BaseCommand):
                 update_fields=["in_source", "in_opt_source"]
             )
         self.stdout.write(
-            self.style.SUCCESS(f"Added {new_calculation_def} new calculation def")
+            self.style.SUCCESS(
+                f"Added {new_calculation_def} new calculation def")
         )
-        self.stdout.write(self.style.NOTICE("Finished loading calculation def"))
+        self.stdout.write(self.style.NOTICE(
+            "Finished loading calculation def"))
 
     def _load_experiment_and_action_sequence(self):
         self.stdout.write(
-            self.style.NOTICE("Beginning loading experiment and action_sequence")
+            self.style.NOTICE(
+                "Beginning loading experiment and action_sequence")
         )
 
         EXPERIMENT = path_to_file("load_experiment.csv")
@@ -1656,7 +1683,8 @@ class Command(BaseCommand):
         )
         active_status = Status.objects.get(description="active")
 
-        experiment_type = {x.description: x for x in ExperimentType.objects.all()}
+        experiment_type = {
+            x.description: x for x in ExperimentType.objects.all()}
 
         new_experiment = 0
         for _, row in experiment_df.iterrows():
@@ -1711,7 +1739,8 @@ class Command(BaseCommand):
                 else None
             )
             # row_experiment_instance.save(update_fields=['parent'])
-        self.stdout.write(self.style.SUCCESS(f"Added {new_experiment} new experiments"))
+        self.stdout.write(self.style.SUCCESS(
+            f"Added {new_experiment} new experiments"))
 
         WORKFLOW = path_to_file("load_workflow.csv")
         workflow_df = pd.read_csv(
@@ -1789,11 +1818,13 @@ class Command(BaseCommand):
 
             row_action_sequence_instance.save(update_fields=["parent"])
         self.stdout.write(
-            self.style.SUCCESS(f"Added {new_action_sequence} new action_sequences")
+            self.style.SUCCESS(
+                f"Added {new_action_sequence} new action_sequences")
         )
 
         self.stdout.write(
-            self.style.NOTICE("Finished loading experiment and action_sequence")
+            self.style.NOTICE(
+                "Finished loading experiment and action_sequence")
         )
 
     def _load_mixture(self):
@@ -1801,7 +1832,8 @@ class Command(BaseCommand):
         filename = "load_mixture.csv"
         MIXTURE = path_to_file(filename)
 
-        df = pd.read_csv(MIXTURE, sep="\t", index_col=False, header=0, na_filter=False)
+        df = pd.read_csv(MIXTURE, sep="\t", index_col=False,
+                         header=0, na_filter=False)
         active_status = Status.objects.get(description="active")
 
         new_mixture = 0
@@ -1826,11 +1858,13 @@ class Command(BaseCommand):
             mixture_instance, created = Mixture.objects.get_or_create(**fields)
             if created:
                 new_mixture += 1
-        self.stdout.write(self.style.SUCCESS(f"Added {new_mixture} new mixture"))
+        self.stdout.write(self.style.SUCCESS(
+            f"Added {new_mixture} new mixture"))
         self.stdout.write(self.style.NOTICE("Finished loading mixture"))
 
     def _load_base_bom_material(self):
-        self.stdout.write(self.style.NOTICE("Beginning loading base bom material"))
+        self.stdout.write(self.style.NOTICE(
+            "Beginning loading base bom material"))
 
         filename = "load_base_bom_material.csv"
         BASE_BOM_MATERIAL = path_to_file(filename)
@@ -1875,7 +1909,7 @@ class Command(BaseCommand):
                 "bom": BillOfMaterials.objects.get(description=bom_description)
                 if not string_is_null(bom_description)
                 else None,
-                #'inventory_material': InventoryMaterial.objects.get(description=y) if not string_is_null(y := inventory_material_description) else None,
+                # 'inventory_material': InventoryMaterial.objects.get(description=y) if not string_is_null(y := inventory_material_description) else None,
                 "alloc_amt_val": get_val_field_dict(
                     alloc_amt_val_type, alloc_amt_val_unit, alloc_amt_val_value
                 ),
@@ -1887,7 +1921,7 @@ class Command(BaseCommand):
                     putback_amt_val_unit,
                     putback_amt_val_value,
                 ),
-                #'mixture': Mixture.objects.get(composite=mixture_composite,
+                # 'mixture': Mixture.objects.get(composite=mixture_composite,
                 #                               component=mixture_component
                 #                               ) if mixture_composite != None or mixture_component != None else None,
                 "status": active_status,
@@ -1936,13 +1970,14 @@ class Command(BaseCommand):
                 "bom": BillOfMaterials.objects.get(description=bom_description)
                 if not string_is_null(bom_description)
                 else None,
-                #'inventory_material': InventoryMaterial.objects.get(description=y) if not string_is_null(y := inventory_material_description) else None
-                #'mixture': Mixture.objects.get(composite=mixture_composite,
+                # 'inventory_material': InventoryMaterial.objects.get(description=y) if not string_is_null(y := inventory_material_description) else None
+                # 'mixture': Mixture.objects.get(composite=mixture_composite,
                 #                               component=mixture_component
                 #                               ) if mixture_composite != None or mixture_component != None else None
             }
 
-            bom_material_description = clean_string(row["bom_material_description"])
+            bom_material_description = clean_string(
+                row["bom_material_description"])
             bom_material_bom_description = clean_string(
                 row["bom_material_bom_description"]
             )
@@ -1952,7 +1987,8 @@ class Command(BaseCommand):
                 else None
             )
 
-            row_base_bom_material_instance = BaseBomMaterial.objects.get(**fields)
+            row_base_bom_material_instance = BaseBomMaterial.objects.get(
+                **fields)
 
             try:
                 inventory_material_object = InventoryMaterial.objects.get(
@@ -1973,7 +2009,8 @@ class Command(BaseCommand):
 
             row_base_bom_material_instance.save(update_fields=["bom_material"])
         self.stdout.write(
-            self.style.SUCCESS(f"Added {new_base_bom_material} new base bom materials")
+            self.style.SUCCESS(
+                f"Added {new_base_bom_material} new base bom materials")
         )
         self.stdout.write(
             self.style.SUCCESS(f"Added {new_bom_material} new bom materials")
@@ -1984,19 +2021,23 @@ class Command(BaseCommand):
         filename = "load_action.csv"
         ACTION = path_to_file(filename)
 
-        df = pd.read_csv(ACTION, sep="\t", index_col=False, header=0, na_filter=False)
+        df = pd.read_csv(ACTION, sep="\t", index_col=False,
+                         header=0, na_filter=False)
         active_status = Status.objects.get(description="active")
 
         new_action = 0
         for _, row in df.iterrows():
             description = clean_string(row["description"])
-            action_def_description = clean_string(row["action_def_description"])
-            action_sequence_description = clean_string(row["workflow_description"])
+            action_def_description = clean_string(
+                row["action_def_description"])
+            action_sequence_description = clean_string(
+                row["workflow_description"])
             start_date = clean_string(row["start_date"])
             end_date = clean_string(row["end_date"])
             duration = clean_string(row["duration"])
             repeating = clean_string(row["repeating"])
-            calculation_def_short_name = clean_string(row["calculation_def_short_name"])
+            calculation_def_short_name = clean_string(
+                row["calculation_def_short_name"])
 
             fields = {
                 "description": description,
@@ -2010,7 +2051,7 @@ class Command(BaseCommand):
                 "end_date": end_date if not string_is_null(end_date) else None,
                 "duration": int(duration) if not string_is_null(duration) else None,
                 "repeating": int(repeating) if not string_is_null(repeating) else None,
-                #'calculation_def': CalculationDef.objects.get(short_name=y) if not string_is_null(y := calculation_def_short_name) else None,
+                # 'calculation_def': CalculationDef.objects.get(short_name=y) if not string_is_null(y := calculation_def_short_name) else None,
                 "status": active_status,
             }
 
@@ -2066,7 +2107,8 @@ class Command(BaseCommand):
             )
 
             source_material_bom = (
-                BillOfMaterials.objects.get(description=source_material_bom_description)
+                BillOfMaterials.objects.get(
+                    description=source_material_bom_description)
                 if not string_is_null(source_material_bom_description)
                 else None
             )
@@ -2142,9 +2184,11 @@ def get_val_field_dict(type_, unit, value_from_csv):
     if type_ == "text":
         value = value_from_csv
     elif type_ == "num":
-        value = float(value_from_csv) if not string_is_null(value_from_csv) else 0.0
+        value = float(value_from_csv) if not string_is_null(
+            value_from_csv) else 0.0
     elif type_ == "int":
-        value = int(value_from_csv) if not string_is_null(value_from_csv) else 0
+        value = int(value_from_csv) if not string_is_null(
+            value_from_csv) else 0
     elif type_ == "array_int":
         value = (
             [int(x.strip()) for x in value_from_csv.split(",")]
@@ -2158,7 +2202,8 @@ def get_val_field_dict(type_, unit, value_from_csv):
             else []
         )
     elif type_ == "bool":
-        value = to_bool(value_from_csv) if not string_is_null(value_from_csv) else False
+        value = to_bool(value_from_csv) if not string_is_null(
+            value_from_csv) else False
     elif type_ == "array_bool":
         value = (
             [to_bool(x.strip()) for x in value_from_csv.split(",")]

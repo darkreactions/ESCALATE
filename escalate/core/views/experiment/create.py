@@ -148,23 +148,20 @@ class CreateExperimentView(TemplateView):
 
         if exp_name_form.is_valid():
             context["new_exp_name"] = exp_name_form.cleaned_data["exp_name"]
-        # begin: create experiment
         try:
-            # if "create_exp" in request.POST:
             num_automated = int(request.POST.get("automated", 0))
             num_manual = int(request.POST.get("manual", 0))
             context["vessel"] = Vessel.objects.get(
                 description=request.POST.get("vessel")
             )
 
-            # if "automated" in request.POST:
             if num_automated:
                 context = self.process_automated_formsets(request, context)
-            # if "manual" in request.POST:
             if num_manual:
                 context = self.process_robot_formsets(
                     request.session["experiment_template_uuid"], request, context
                 )
+
         except Exception as e:
             # If there is an issue with the form above, redirect back to previous step
             traceback.print_exc()
@@ -462,6 +459,9 @@ class CreateExperimentView(TemplateView):
         )
         context["outcome_link"] = reverse("outcome", args=[experiment_copy_uuid])
         context["new_exp_name"] = exp_name_form.cleaned_data["exp_name"]
+        context = self.populate_links(
+            context, exp_template, experiment_copy_uuid, context["new_exp_name"]
+        )
 
         return context
 
@@ -577,9 +577,7 @@ class CreateExperimentView(TemplateView):
                 q1_material, q1_material_formset, {"inventory_material": "value"}
             )
 
-            self.populate_links(
-                context, exp_template, q1, experiment_copy_uuid, exp_name
-            )
+            self.populate_links(context, exp_template, experiment_copy_uuid, exp_name)
         return context
 
     """
@@ -637,26 +635,21 @@ class CreateExperimentView(TemplateView):
             raise
             # return HttpResponseRedirect(reverse("experiment"))
 
-        q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
-
         context = self.populate_links(
-            context, exp_template, q1, experiment_copy_uuid, exp_name
+            context, exp_template, experiment_copy_uuid, exp_name
         )
 
         return context
 
-    def populate_links(self, context, exp_template, q1, experiment_copy_uuid, exp_name):
+    def populate_links(self, context, exp_template, experiment_copy_uuid, exp_name):
         # robotfile generation
+        q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
         if exp_template.ref_uid in SUPPORTED_CREATE_WFS:
             template_function = getattr(core.experiment_templates, exp_template.ref_uid)
             new_lsr_pk, lsr_msg = template_function(
                 None, q1, experiment_copy_uuid, exp_name, exp_template
             )
 
-            if new_lsr_pk is not None:
-                context["xls_download_link"] = reverse(
-                    "edoc_download", args=[new_lsr_pk]
-                )
             if str(self.request.session["current_org_name"]) != "TestCo":
                 context["lsr_download_link"] = None
             elif new_lsr_pk is not None:
