@@ -81,6 +81,9 @@ class Vessel(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         null=True,
         related_name="parent_vessel",
     )
+    vessel_type = models.ManyToManyField(
+        "VesselType", blank=True, related_name="vessel_vessel_type"
+    )
     internal_slug = SlugField(
         populate_from=[
             #'plate_name',
@@ -112,6 +115,18 @@ class VesselInstance(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
 
     def __str__(self):
         return f"{self.description}"
+
+
+class VesselType(DateColumns, DescriptionColumn):
+    uuid = RetUUIDField(
+        primary_key=True, default=uuid.uuid4, db_column="vessel_type_uuid"
+    )
+    internal_slug = SlugField(
+        populate_from=["description"], overwrite=True, max_length=255
+    )
+
+    def __str__(self):
+        return "{}".format(self.description)
 
 
 class Contents(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):

@@ -63,6 +63,7 @@ core_views = set(
         "BaseBomMaterial",
         "Vessel",
         "VesselInstance",
+        "VesselType",
         "Contents",
         "Reagent",
         "ReagentMaterial",
@@ -71,6 +72,9 @@ core_views = set(
         "ReagentMaterialTemplate",
         "ReagentMaterialValueTemplate",
         "DefaultValues",
+        "DescriptorTemplate",
+        "MolecularDescriptor",
+        "ExperimentDescriptor",
     ]
 )
 
@@ -93,22 +97,13 @@ GET_only_views = set(["TypeDef"])
 
 unexposed_views = set(["TagAssign", "Note", "Edocument", "Property", "Parameter"])
 
-custom_serializer_views = set(
-    [
-        "BomMaterial",
-        "BomCompositeMaterial",
-    ]
-)
+custom_serializer_views = set(["BomMaterial", "BomCompositeMaterial",])
 
 # Viewsets that are not associated with a model exclusively
 # non_model_views = set(['Experiment', 'ExperimentTemplate'])
 non_model_views = set()
 
-perform_create_views = set(
-    [
-        "PropertyTemplate",
-    ]
-)
+perform_create_views = set(["PropertyTemplate",])
 
 # Set of models for rest_api/serializers.py
 rest_serializer_views = core_views | misc_views | perform_create_views
@@ -172,12 +167,7 @@ expandable_fields = {
     "ExperimentTemplate": {
         "options": {"many_to_many": ["action_sequence"]},
         "fields": {
-            "action_sequence": (
-                "rest_api.ActionSequenceSerializer",
-                {
-                    "many": True,
-                },
-            ),
+            "action_sequence": ("rest_api.ActionSequenceSerializer", {"many": True,},),
             "bill_of_materials": (
                 "rest_api.BillOfMaterialsSerializer",
                 {
@@ -201,12 +191,7 @@ expandable_fields = {
     "ExperimentInstance": {
         "options": {"many_to_many": ["action_sequence"]},
         "fields": {
-            "action_sequence": (
-                "rest_api.ActionSequenceSerializer",
-                {
-                    "many": True,
-                },
-            ),
+            "action_sequence": ("rest_api.ActionSequenceSerializer", {"many": True,},),
             "bill_of_materials": (
                 "rest_api.BillOfMaterialsSerializer",
                 {

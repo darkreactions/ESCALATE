@@ -56,9 +56,10 @@ class ActionSequenceDesign(models.Model):
     description = models.CharField(
         max_length=255, blank=True, null=True, db_column="description"
     )  # type
-    properties = models.CharField(
-        max_length=255, blank=True, null=True, db_column="properties"
-    )  # state
+    source = models.CharField(max_length=255, blank=True, null=True, db_column="source")
+    destination = models.CharField(
+        max_length=255, blank=True, null=True, db_column="destination"
+    )
     top_position = models.CharField(
         max_length=255, blank=True, null=True, db_column="top"
     )

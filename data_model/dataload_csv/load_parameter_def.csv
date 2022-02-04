@@ -2,7 +2,7 @@ description	type	value	unit	required	unit_type
 volume	num	0	mL	t	volume
 duration	num	0	mins	t	time
 speed	num	0	rpm	t	rate
-temperature	num	0	deqC	t	temperature
+temperature	num	0	degC	t	temperature
 mass	num	0	mg	t	mass
 hcl_concentrations	array_num	12.0,6.0,4.0,2.0,1.0,0.1,0.01,0.001	M	t	
 total_vol	num	5	mL	t	

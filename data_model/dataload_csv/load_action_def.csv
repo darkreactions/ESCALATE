@@ -1,8 +1,10 @@
 description	parameter_def_descriptions
 heat	temperature,duration
 heat_stir	speed,duration,temperature
+stir	speed,duration
 end_node	
 dispense	volume
 start_node	
 bring_to_temperature	temperature
 dispense_solid	mass
+dwell	duration

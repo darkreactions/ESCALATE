@@ -15,6 +15,7 @@ from core.models.view_tables import (
     Reagent,
     ReagentTemplate,
     Vessel,
+    VesselType,
 )
 from copy import deepcopy
 import uuid
@@ -33,18 +34,27 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description):
 '''
 
 
-def generate_action_def_json(action_defs):
+def generate_action_def_json(action_defs, exp_template_uuid):
     # action_defs = [a for a in vt.ActionDef.objects.all()]
-    source_dest_choices = []
-    for reagent in ReagentTemplate.objects.all():
-        source_dest_choices.append(reagent.description)
-    for vessel in Vessel.objects.all():
+    source_choices = [" "]
+    dest_choices = []
+
+    for reagent in ReagentTemplate.objects.filter(
+        experiment_template_reagent_template=ExperimentTemplate(uuid=exp_template_uuid)
+    ):
+        # for reagent in ReagentTemplate.objects.all():
+        source_choices.append(reagent.description)
+        dest_choices.append(reagent.description)
+    for vt in VesselType.objects.all():
+        dest_choices.append(vt.description)
+
+    """for vessel in Vessel.objects.all():
         if vessel.parent is None:
-            if "plate" in vessel.description:
-                source_dest_choices.append("{} - plate".format(vessel.description))
-                source_dest_choices.append("{} - wells".format(vessel.description))
+            if "Plate" in vessel.description:
+                dest_choices.append("{} - plate".format(vessel.vessel_type.description))
+                dest_choices.append("{} - wells".format(vessel.vessel_type.description))
             else:
-                source_dest_choices.append(vessel.description)
+                dest_choices.append(vessel.vessel_type.description)"""
 
     json_data = []
 
@@ -64,14 +74,14 @@ def generate_action_def_json(action_defs):
                         "type": "select",
                         "label": "From:",
                         "hint": "source material/vessel",
-                        "options": {"items": [i for i in source_dest_choices]},
+                        "options": {"items": [i for i in source_choices]},
                     },
                     {
                         "name": "destination",
                         "type": "select",
                         "label": "To:",
                         "hint": "destination material/vessel",
-                        "options": {"items": [i for i in source_dest_choices]},
+                        "options": {"items": [i for i in dest_choices]},
                     },
                 ],
             }
@@ -99,7 +109,7 @@ def generate_action_def_json(action_defs):
     return json_data
 
 
-def generate_action_sequence_json(action_sequences):
+"""def generate_action_sequence_json(action_sequences):
 
     json_data = []
 
@@ -116,7 +126,7 @@ def generate_action_sequence_json(action_sequences):
                 "outcomes": ["Done"],
             }
         )
-    return json_data
+    return json_data"""
 
 
 # def experiment_copy(template_experiment_uuid, copy_experiment_description):
