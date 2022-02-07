@@ -65,7 +65,7 @@ def conc_to_amount(exp_uuid):
                     "Error: Missing density data for {}. Please check the inventory table".format(
                         reagent_material.material.description
                     )
-
+                )
             input_data[reagent_material] = {
                 "concentration": conc,
                 "material_type": mat_type,
