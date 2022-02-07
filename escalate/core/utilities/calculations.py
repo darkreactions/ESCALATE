@@ -47,6 +47,12 @@ def conc_to_amount(exp_uuid):
             mw_prop = reagent_material.material.material.property_m.filter(
                 property_template__description__icontains="molecularweight"
             ).first()
+            if mw_prop is None:
+                raise ValueError(
+                    "Error: Missing molecular weight data for {}. Please check the inventory table".format(
+                        reagent_material.material.description
+                    )
+                )
             mw = Q_(mw_prop.value.value, mw_prop.value.unit).to(units.g / units.mol)
             density_prop = reagent_material.material.material.property_m.filter(
                 property_template__description__icontains="density"
@@ -54,6 +60,11 @@ def conc_to_amount(exp_uuid):
             d = d = Q_(density_prop.value.value, density_prop.value.unit).to(
                 units.g / units.ml
             )
+            if density_prop is None:
+                raise ValueError(
+                    "Error: Missing density data for {}. Please check the inventory table".format(
+                        reagent_material.material.description
+                    )
 
             input_data[reagent_material] = {
                 "concentration": conc,
