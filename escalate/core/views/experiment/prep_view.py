@@ -35,9 +35,9 @@ class ExperimentReagentPrepView(TemplateView):
             "teal",
             "powderblue",
             "skyblue",
+            "steelblue",
             "pastelblue",
             "verdigris",
-            "steelblue",
             "cornflowerblue",
         ],
     ):

@@ -69,13 +69,14 @@ from core.utilities.experiment_utils import (
     generate_experiments_and_save,
     save_reaction_parameters,
     save_manual_volumes,
+    save_manual_parameters,
     save_parameter,
 )
 from core.utilities.calculations import conc_to_amount
 from core.utilities.wf1_utils import (
     generate_robot_file_wf1,
     generate_robot_file,
-    # generate_general_robot_file,
+    generate_general_robot_file,
     make_well_labels_list,
 )
 from core.models.view_tables.generic_data import Parameter
@@ -102,6 +103,7 @@ class SetupExperimentView(TemplateView):
             context["experiment_template_select_form"] = ExperimentTemplateForm(
                 org_id=org_id
             )
+            context["vessel_form"] = VesselForm()
         else:
             messages.error(request, "Please select a lab to continue")
             return HttpResponseRedirect(reverse("main_menu"))
@@ -113,8 +115,7 @@ class CreateExperimentView(TemplateView):
     template_name = "core/experiment/create/base_create.html"
     # template_name = "core/experiment/create/select_template.html"
     form_class = ExperimentTemplateForm
-    MaterialFormSet: Type[BaseFormSet] = formset_factory(
-        InventoryMaterialForm, extra=0)
+    MaterialFormSet: Type[BaseFormSet] = formset_factory(InventoryMaterialForm, extra=0)
     NominalActualFormSet: Type[BaseFormSet] = formset_factory(
         NominalActualForm, extra=0
     )
@@ -150,6 +151,9 @@ class CreateExperimentView(TemplateView):
         try:
             num_automated = int(request.POST.get("automated", 0))
             num_manual = int(request.POST.get("manual", 0))
+            context["vessel"] = Vessel.objects.get(
+                description=request.POST.get("vessel")
+            )
 
             if num_automated:
                 context = self.process_automated_formsets(request, context)
@@ -163,21 +167,23 @@ class CreateExperimentView(TemplateView):
             traceback.print_exc()
             srv = SelectReagentsView()
             response = srv.post(request)
-            response["HX-Trigger"] = json.dumps(
-                {"showMessage": {"message": str(e)}})
+            response["HX-Trigger"] = json.dumps({"showMessage": {"message": str(e)}})
             return response
         return render(request, self.template_name, context)
 
-    def download_robot_file(self, exp_uuid: str):
+    def download_robot_file(self, exp_uuid: str, context, num_manual):
         q1 = get_action_parameter_querysets(exp_uuid)  # volumes
-        # f = generate_general_robot_file(q1, {}, "Symyx_96_well_0003", 96)
-        f = generate_robot_file_wf1(q1, {}, "Symyx_96_well_0003", 96)
-        response = FileResponse(f, as_attachment=True,
-                                filename=f"robot_{exp_uuid}.xls")
+        f = generate_general_robot_file(q1, {}, context["vessel"], num_manual)
+        # f = generate_robot_file_wf1(q1, {}, "Symyx_96_well_0003", 96)
+        response = FileResponse(f, as_attachment=True, filename=f"robot_{exp_uuid}.xls")
         return response
 
     def save_reagents(
-        self, exp_template: ExperimentTemplate, request: HttpRequest, org_id: str
+        self,
+        exp_template: ExperimentTemplate,
+        vessel,
+        request: HttpRequest,
+        org_id: str,
     ) -> tuple[Any]:
         formsets = []
         reagent_template_names = []
@@ -194,8 +200,7 @@ class CreateExperimentView(TemplateView):
                 ) in reagent_material_template.reagent_material_value_template_rmt.filter(
                     description="concentration"
                 ):
-                    mat_types_list.append(
-                        reagent_material_template.material_type)
+                    mat_types_list.append(reagent_material_template.material_type)
                     formsets.append(
                         self.ReagentFormSet(
                             request.POST,
@@ -212,12 +217,12 @@ class CreateExperimentView(TemplateView):
         if exp_name_form.is_valid():
             exp_name = exp_name_form.cleaned_data["exp_name"]
 
-            vessel_form = VesselForm(request.POST)
+            """vessel_form = VesselForm(request.POST)
             if vessel_form.is_valid():
                 vessel = vessel_form.cleaned_data.get("value")
                 # well_num = vessel.well_number
                 # col_order = vessel.column_order
-                # well_list = make_well_labels_list(well_num, col_order, robot="False")
+                # well_list = make_well_labels_list(well_num, col_order, robot="False")"""
 
             # make the experiment copy: this will be our new experiment
 
@@ -248,8 +253,7 @@ class CreateExperimentView(TemplateView):
                     # except TypeError as te:
                     # messages.error(request, str(te))
 
-            dead_volume_form = SingleValForm(
-                request.POST, prefix="dead_volume")
+            dead_volume_form = SingleValForm(request.POST, prefix="dead_volume")
             if dead_volume_form.is_valid():
                 dead_volume = dead_volume_form.cleaned_data["value"]
             else:
@@ -260,13 +264,12 @@ class CreateExperimentView(TemplateView):
             dead_volume,
             reagent_template_names,
             reagentDefs,
-            vessel,
+            # vessel,
         )
 
     def generate_action_units(self, exp_template, vessel):
         action_sequences = []
-        eas = ExperimentActionSequence.objects.filter(
-            experiment_template=exp_template)
+        eas = ExperimentActionSequence.objects.filter(experiment_template=exp_template)
         for i in eas:
             action_sequences.append(i.action_sequence)
 
@@ -281,8 +284,7 @@ class CreateExperimentView(TemplateView):
                 # source = a.properties.split(":")[1].split(",")[0]
                 # destination = a.properties.split(":")[2].split("}")[0]
                 if a.source is not None:
-                    source_bbm = BaseBomMaterial.objects.create(
-                        description=a.source)
+                    source_bbm = BaseBomMaterial.objects.create(description=a.source)
                 else:
                     source_bbm = None
 
@@ -300,7 +302,7 @@ class CreateExperimentView(TemplateView):
                     )
                     plate_wells = {}
                     for well in well_list:
-                        plate_wells[well], created = Vessel.objects.get_or_create(
+                        plate_wells[well] = Vessel.objects.create(
                             parent=plate, description=well
                         )
                     for well_desc, well_vessel in plate_wells.items():
@@ -314,13 +316,13 @@ class CreateExperimentView(TemplateView):
                             description = (
                                 f"{action.description} : {destination_bbm.description}"
                             )
-                        au = ActionUnit.objects.create(
+                        au = ActionUnit.objects.get_or_create(
                             action=action,
                             source_material=source_bbm,
                             destination_material=destination_bbm,
                             description=action.description,
                         )
-                        au.save()
+                        # au.save()
                 else:
                     vessel_types = []
                     for vt in VesselType.objects.all():
@@ -344,13 +346,13 @@ class CreateExperimentView(TemplateView):
                                 f"{action.description} : {destination_bbm.description}"
                             )
 
-                        au = ActionUnit.objects.create(
+                        au = ActionUnit.objects.get_or_create(
                             action=action,
                             source_material=source_bbm,
                             description=description,
                             destination_material=destination_bbm,
                         )
-                        au.save()
+                        # au.save()
 
                     else:
                         # if destination is not a vessel
@@ -363,14 +365,14 @@ class CreateExperimentView(TemplateView):
                             description = (
                                 f"{action.description} : {destination_bbm.description}"
                             )
-                        au = ActionUnit(
+                        au = ActionUnit.objects.get_or_create(
                             action=action,
                             source_material=source_bbm,
                             description=description,
                             destination_material=destination_bbm,
                         )
 
-                        au.save()
+                        # au.save()
 
     def save_reaction_parameters(
         self, request, experiment_copy_uuid, exp_name_form, exp_template
@@ -421,25 +423,31 @@ class CreateExperimentView(TemplateView):
         else:
             org_id = None
 
+        vessel = context["vessel"]
         (
             experiment_copy_uuid,
             exp_name_form,
             dead_volume,
             reagent_template_names,
             reagentDefs,
-            vessel,
-        ) = self.save_reagents(exp_template, request, org_id)
+            # vessel,
+        ) = self.save_reagents(exp_template, vessel, request, org_id)
+
         # self.save_reaction_parameters(
         # request, experiment_copy_uuid, exp_name_form, exp_template
         # )
+
         file_form = RobotForm(request.POST, request.FILES)
         if file_form.is_valid():
             df = pd.read_excel(file_form.cleaned_data["file"])
             # df = pd.read_excel(request.FILES["file"])
         # self.process_robot_file(df)
+
         save_manual_volumes(
             df, experiment_copy_uuid, reagent_template_names, dead_volume
         )
+
+        save_manual_parameters(df, exp_template, experiment_copy_uuid)
 
         conc_to_amount(experiment_copy_uuid)
 
@@ -449,8 +457,7 @@ class CreateExperimentView(TemplateView):
         context["reagent_prep_link"] = reverse(
             "reagent_prep", args=[experiment_copy_uuid]
         )
-        context["outcome_link"] = reverse(
-            "outcome", args=[experiment_copy_uuid])
+        context["outcome_link"] = reverse("outcome", args=[experiment_copy_uuid])
         context["new_exp_name"] = exp_name_form.cleaned_data["exp_name"]
         context = self.populate_links(
             context, exp_template, experiment_copy_uuid, context["new_exp_name"]
@@ -489,8 +496,7 @@ class CreateExperimentView(TemplateView):
                 reagent_material_value.nominal_value = data["desired_concentration"]
                 reagent_material_value.save()
                 mat_type = reagent_instance.template.material_type
-                vector[positions[mat_type.description]
-                       ] = data["desired_concentration"]
+                vector[positions[mat_type.description]] = data["desired_concentration"]
         return vector
 
     def save_forms_reagent_general(self, formset, exp_uuid):
@@ -556,10 +562,8 @@ class CreateExperimentView(TemplateView):
                 str(exp_template.uuid), exp_name
             )
             # get the elements of the new experiment that we need to update with the form values
-            q1 = get_action_parameter_querysets(
-                experiment_copy_uuid, template=False)
-            q1_material = get_material_querysets(
-                experiment_copy_uuid, template=False)
+            q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
+            q1_material = get_material_querysets(experiment_copy_uuid, template=False)
 
             save_forms_q1(
                 q1,
@@ -570,13 +574,10 @@ class CreateExperimentView(TemplateView):
                 },
             )
             save_forms_q_material(
-                q1_material, q1_material_formset, {
-                    "inventory_material": "value"}
+                q1_material, q1_material_formset, {"inventory_material": "value"}
             )
 
-            self.populate_links(
-                context, exp_template, experiment_copy_uuid, exp_name
-            )
+            self.populate_links(context, exp_template, experiment_copy_uuid, exp_name)
         return context
 
     """
@@ -599,14 +600,16 @@ class CreateExperimentView(TemplateView):
         else:
             org_id = None
 
+        vessel = context["vessel"]
+
         (
             experiment_copy_uuid,
             exp_name_form,
             dead_volume,
             reagent_template_names,
             reagentDefs,
-            vessel,
-        ) = self.save_reagents(exp_template, request, org_id)
+            # vessel,
+        ) = self.save_reagents(exp_template, vessel, request, org_id)
 
         if not exp_name_form.is_valid():
             return context
@@ -640,11 +643,9 @@ class CreateExperimentView(TemplateView):
 
     def populate_links(self, context, exp_template, experiment_copy_uuid, exp_name):
         # robotfile generation
-        q1 = get_action_parameter_querysets(
-            experiment_copy_uuid, template=False)
+        q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
         if exp_template.ref_uid in SUPPORTED_CREATE_WFS:
-            template_function = getattr(
-                core.experiment_templates, exp_template.ref_uid)
+            template_function = getattr(core.experiment_templates, exp_template.ref_uid)
             new_lsr_pk, lsr_msg = template_function(
                 None, q1, experiment_copy_uuid, exp_name, exp_template
             )
@@ -659,15 +660,14 @@ class CreateExperimentView(TemplateView):
                 messages.error(
                     self.request, f'LSRGenerator failed with message: "{lsr_msg}"'
                 )
-            context["experiment_link"] = reverse(
-                "experiment_instance_view", args=[experiment_copy_uuid]
-            )
-            context["reagent_prep_link"] = reverse(
-                "reagent_prep", args=[experiment_copy_uuid]
-            )
-            context["outcome_link"] = reverse(
-                "outcome", args=[experiment_copy_uuid])
-            context["new_exp_name"] = exp_name
+        context["experiment_link"] = reverse(
+            "experiment_instance_view", args=[experiment_copy_uuid]
+        )
+        context["reagent_prep_link"] = reverse(
+            "reagent_prep", args=[experiment_copy_uuid]
+        )
+        context["outcome_link"] = reverse("outcome", args=[experiment_copy_uuid])
+        context["new_exp_name"] = exp_name
         return context
 
 
