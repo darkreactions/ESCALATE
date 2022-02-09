@@ -355,11 +355,11 @@ def generate_robot_file_wf1(
         )
         # Keep this Acid Volume 1/Acid Volume 2, do not change to acid vol
         REAG_MAPPING = {
-            "Dispense Stock A": 2,
-            "Dispense Stock B": 3,
-            "Dispense Solvent": 1,
-            "Dispense Acid Volume 1": 6,
-            "Dispense Acid Volume 2": 7,
+            "Dispense Reagent 2 - Stock A": 2,
+            "Dispense Reagent 3 - Stock B": 3,
+            "Dispense Reagent 1 - Solvent": 1,
+            "Dispense Reagent 7 - Acid Volume 1": 7,
+            "Dispense Reagent 7 - Acid Volume 2": 8,
         }
 
         # source material -> Reagent number, vial_site -> row name
