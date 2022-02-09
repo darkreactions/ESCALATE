@@ -503,6 +503,25 @@ def generate_experiments_and_save(
     return q1
 
 
+def save_manual_parameters(df, exp_template, experiment_copy_uuid):
+    # for reaction_parameter_label, reaction_parameter_form in reaction_parameter_labels
+    # rp_label might be a list so need to itterate over and pass to this
+
+    for i, param in enumerate(df["Reaction Parameters"]):
+        if type(param) == str:
+            rp = ReactionParameter.objects.create(
+                experiment_template=exp_template,
+                # organization = organization,
+                value=df["Parameter Values"][i],
+                unit=df["Units"][i],
+                # type=rp_type,
+                description=param.split("-")[1],
+                experiment_uuid=experiment_copy_uuid,
+            )
+            rp.save()
+            # return rp
+
+
 def save_manual_volumes(df, experiment_copy_uuid, reagent_template_names, dead_volume):
     q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
     experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
@@ -527,6 +546,7 @@ def save_manual_volumes(df, experiment_copy_uuid, reagent_template_names, dead_v
                 parameter = Parameter.objects.get(uuid=action.parameter_uuid)
                 # action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
                 parameter.parameter_val_nominal.value = df[reagent_name][i]
+                parameter.parameter_val_nominal.unit = df["Units"][0]
                 # parameter.parameter_val_nominal.value = desired_volume[reagent_name][i]
                 parameter.save()
 
@@ -538,7 +558,7 @@ def save_manual_volumes(df, experiment_copy_uuid, reagent_template_names, dead_v
                         property_template__description__icontains="total volume"
                     )
                     prop.nominal_value.value = total_volume
-                    prop.nominal_value.unit = "uL"
+                    prop.nominal_value.unit = df["Units"][0]
                     prop.save()
                     if dead_volume is not None:
                         dv_prop = reagent.property_r.get(
