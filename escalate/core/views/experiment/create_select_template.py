@@ -71,7 +71,8 @@ class SelectReagentsView(TemplateView):
 
     def get_forms(self, exp_template: ExperimentTemplate, context: dict[str, Any]):
         context = self.get_reagent_forms(context)
-        context = self.get_dead_volume_form(context)
+        # context = self.get_dead_volume_form(context)
+        context = self.get_volume_forms(context)
         # context = self.get_vessel_form(context)
         # context = self.get_reaction_parameter_forms(context)
         context["colors"] = self.get_colors(len(context["reagent_formset"]))
@@ -135,13 +136,21 @@ class SelectReagentsView(TemplateView):
 
         return context
 
-    def get_dead_volume_form(self, context: dict[str, Any]) -> dict[str, Any]:
+    def get_volume_forms(self, context: dict[str, Any]) -> dict[str, Any]:
         # Dead volume form
         initial: dict[str, Val] = {
             "value": Val.from_dict({"value": 4000, "unit": "uL", "type": "num"})
         }
         dead_volume_form = SingleValForm(prefix="dead_volume", initial=initial)
         context["dead_volume_form"] = dead_volume_form
+
+        # Total volume form
+        initial: dict[str, Val] = {
+            "value": Val.from_dict({"value": 500, "unit": "uL", "type": "num"})
+        }
+        total_volume_form = SingleValForm(prefix="total_volume", initial=initial)
+        context["total_volume_form"] = total_volume_form
+
         return context
 
     def get_vessel_form(self, context: dict[str, Any]) -> dict[str, Any]:

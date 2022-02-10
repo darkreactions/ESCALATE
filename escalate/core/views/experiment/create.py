@@ -258,10 +258,17 @@ class CreateExperimentView(TemplateView):
                 dead_volume = dead_volume_form.cleaned_data["value"]
             else:
                 dead_volume = None
+
+            total_volume_form = SingleValForm(request.POST, prefix="total_volume")
+            if total_volume_form.is_valid():
+                total_volume = total_volume_form.cleaned_data["value"]
+            else:
+                total_volume = None
         return (
             experiment_copy_uuid,
             exp_name_form,
             dead_volume,
+            total_volume,
             reagent_template_names,
             reagentDefs,
             # vessel,
@@ -428,6 +435,7 @@ class CreateExperimentView(TemplateView):
             experiment_copy_uuid,
             exp_name_form,
             dead_volume,
+            total_volume,
             reagent_template_names,
             reagentDefs,
             # vessel,
@@ -606,6 +614,7 @@ class CreateExperimentView(TemplateView):
             experiment_copy_uuid,
             exp_name_form,
             dead_volume,
+            total_volume,
             reagent_template_names,
             reagentDefs,
             # vessel,
@@ -629,6 +638,7 @@ class CreateExperimentView(TemplateView):
                 reagentDefs,
                 exp_number,
                 dead_volume,
+                total_volume,
                 vessel,
             )
         except ValueError as ve:

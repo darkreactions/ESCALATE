@@ -499,9 +499,9 @@ def generateExperiments(
     reagentDefs,
     # descriptions,
     nExpt,
+    finalVolume="500. uL",
     excludedReagents=None,
     maxMolarity=9.0,
-    finalVolume="500. uL",
     desiredUnit="uL",
 ):
     # def generateExperiments(reagentDefs, nExpt, excludedReagentDefs=None, maxMolarity=9., finalVolume='500. uL', desiredUnit='uL'):
@@ -516,8 +516,9 @@ def generateExperiments(
     # convert input volume to microliters, if it isn't already
     # v=finalVolume.split()
     # v1=Q_(float(v[0]), v[1]).to(units.ul)
-    v1 = Q_(finalVolume).to(units.ul)
-    finalVolume = v1.magnitude
+
+    # v1 = Q_(finalVolume).to(units.ul)
+    # finalVolume = v1.magnitude
 
     # if excludedReagentDefs is None:
     if excludedReagents is None:
@@ -562,7 +563,7 @@ def generateExperiments(
                 # descriptions,
                 nExpt,
                 maxMolarity=9.0,
-                finalVolume="500. uL",
+                finalVolume=finalVolume,
                 desiredUnit="uL",
                 processValues="round",
             )
@@ -573,7 +574,7 @@ def generateExperiments(
                 # descriptions,
                 nExpt,
                 maxMolarity=9.0,
-                finalVolume="500. uL",
+                finalVolume=finalVolume,
                 desiredUnit="uL",
                 processValues="round",
             )

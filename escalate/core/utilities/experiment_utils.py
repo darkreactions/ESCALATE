@@ -353,6 +353,7 @@ def generate_experiments_and_save(
     reagentDefs,
     num_of_experiments,
     dead_volume,
+    total_volume,
     vessel,
 ):
     """
@@ -369,6 +370,7 @@ def generate_experiments_and_save(
             reagentDefs[0:-1],
             # ["Reagent1", "Reagent2", "Reagent3", "Reagent7"],
             num_of_experiments,
+            finalVolume=str(total_volume.value) + " " + total_volume.unit,
         )
         desired_volume[reagent_template_names[-1]] = [
             800.0 for i in range(num_of_experiments)
@@ -380,6 +382,7 @@ def generate_experiments_and_save(
             reagentDefs,
             # ["Reagent1", "Reagent2", "Reagent3", "Reagent7"],
             num_of_experiments,
+            finalVolume=str(total_volume.value) + " " + total_volume.unit,
         )
         # desired_volume = generateExperiments(reagents, descriptions, num_of_experiments)
     # retrieve q1 information to update
