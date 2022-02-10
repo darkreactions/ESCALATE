@@ -506,19 +506,17 @@ def generate_experiments_and_save(
             if action is not None:
                 saved_actions.append(action)
 
-            for i, action in enumerate(saved_actions):
+        for i, action in enumerate(saved_actions):
 
-                parameter = Parameter.objects.get(uuid=action.parameter_uuid)
-                # action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
-                try:
-                    parameter.parameter_val_nominal.value = desired_volume[
-                        reagent_name
-                    ][
-                        i
-                    ]  # * mult_factor
-                except IndexError:
-                    parameter.parameter_val_nominal.value = 0.0
-                parameter.save()
+            parameter = Parameter.objects.get(uuid=action.parameter_uuid)
+            # action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
+            try:
+                parameter.parameter_val_nominal.value = desired_volume[reagent_name][
+                    i
+                ]  # * mult_factor
+            except IndexError:
+                parameter.parameter_val_nominal.value = 0.0
+            parameter.save()
 
     # try:
     conc_to_amount(experiment_copy_uuid)
