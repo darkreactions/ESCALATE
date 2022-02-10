@@ -96,11 +96,20 @@ def generate_robot_file_wf3(
 
         for action_name, reagent_num in REAG_MAPPING.items():
             action_units = reaction_volumes.filter(object_description=action_name)
-            for au in action_units:
-                reaction_volumes_output.loc[
-                    reaction_volumes_output["Vial Site"] == au.action_unit_destination,
-                    f"Reagent{reagent_num} (ul)",
-                ] = au.parameter_value.value
+            if reagent_num == 9:
+                for au in action_units:
+                    reaction_volumes_output.loc[
+                        reaction_volumes_output["Vial Site"]
+                        == au.action_unit_destination,
+                        f"Reagent{reagent_num} (ul)",
+                    ] = 500.0
+            else:
+                for au in action_units:
+                    reaction_volumes_output.loc[
+                        reaction_volumes_output["Vial Site"]
+                        == au.action_unit_destination,
+                        f"Reagent{reagent_num} (ul)",
+                    ] = au.parameter_value.value
 
     rxn_conditions = pd.DataFrame(
         {
