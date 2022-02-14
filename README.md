@@ -18,6 +18,8 @@
     <br />
     <a href="https://github.com/darkreactions/ESCALATE/blob/master/escalate/README.md"><strong>ESCALATE Django App</strong></a>
     <br />
+	<a href="https://github.com/darkreactions/ESCALATE/blob/master/escalate/TECHNICAL.md"><strong>Technical Readme</strong></a>
+    <br />
   </p>
   
 </p>
