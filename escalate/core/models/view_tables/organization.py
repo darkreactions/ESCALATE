@@ -70,21 +70,6 @@ class Actor(DateColumns, StatusColumn, DescriptionColumn):
         return "-".join(rep)
         # return "{}".format()
 
-
-class ActorPref(DateColumns, ActorColumn):
-    uuid = RetUUIDField(
-        primary_key=True, default=uuid.uuid4, db_column="actor_pref_uuid"
-    )
-    pkey = models.CharField(max_length=255, blank=True, null=True)
-    pvalue = models.CharField(max_length=255, blank=True, null=True)
-    internal_slug = SlugField(
-        populate_from=["pkey", "pvalue"], overwrite=True, max_length=255
-    )
-
-    def __str__(self):
-        return f"{self.pkey} : {self.pvalue}"
-
-
 class Organization(DateColumns, AddressColumns, DescriptionColumn):
     uuid = RetUUIDField(
         primary_key=True, default=uuid.uuid4, db_column="organization_uuid"
