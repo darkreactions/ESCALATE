@@ -210,21 +210,40 @@ def prepare_reagents(reagent_formset):
 
 
 def generate_experiments_and_save(
+    exp_template,
     experiment_copy_uuid,
     reagent_template_names,
     reagentDefs,
     num_of_experiments,
     dead_volume,
+    total_volume,
     vessel,
 ):
     """
     Generates random experiments using sampler and saves volumes 
     associated with dispense actions in an experiment template
     """
-    desired_volume = generateExperiments(
-        reagent_template_names, reagentDefs, num_of_experiments,
-    )
+    if exp_template.description == "Workflow 3":
+        desired_volume = generateExperiments(
+            reagent_template_names[0:-1],
+            reagentDefs[0:-1],
+            # ["Reagent1", "Reagent2", "Reagent3", "Reagent7"],
+            num_of_experiments,
+            finalVolume=str(total_volume.value) + " " + total_volume.unit,
+        )
+        desired_volume[reagent_template_names[-1]] = [
+            800.0 for i in range(num_of_experiments)
+        ]
+    else:
 
+        desired_volume = generateExperiments(
+            reagent_template_names,
+            reagentDefs,
+            # ["Reagent1", "Reagent2", "Reagent3", "Reagent7"],
+            num_of_experiments,
+            finalVolume=str(total_volume.value) + " " + total_volume.unit,
+        )
+        # desired_volume = generateExperiments(reagents, descriptions, num_of_experiments)
     # retrieve q1 information to update
     q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
     # experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
@@ -254,10 +273,11 @@ def generate_experiments_and_save(
     # for action_description, (reagent_name, mult_factor) in action_reagent_map.items():
     well_list = make_well_labels_list(
         well_count=vessel.well_number, column_order=vessel.column_order, robot="True",
-    )[0:num_of_experiments]
+    )
+    # [0:num_of_experiments]
 
     for reagent_name in reagent_template_names:
-
+        saved_actions = []
         for i, vial in enumerate(well_list):
             action = (
                 q1.filter(action_unit_description__icontains=reagent_name)
@@ -273,12 +293,19 @@ def generate_experiments_and_save(
             # actions = actions[:num_of_experiments] if num_of_experiments < len(actions) else actions
             # for i, action in enumerate(actions):
             if action is not None:
-                parameter = Parameter.objects.get(uuid=action.parameter_uuid)
-                # action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
+                saved_actions.append(action)
+
+        for i, action in enumerate(saved_actions):
+
+            parameter = Parameter.objects.get(uuid=action.parameter_uuid)
+            # action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
+            try:
                 parameter.parameter_val_nominal.value = desired_volume[reagent_name][
                     i
                 ]  # * mult_factor
-                parameter.save()
+            except IndexError:
+                parameter.parameter_val_nominal.value = 0.0
+            parameter.save()
 
     conc_to_amount(experiment_copy_uuid)
 
