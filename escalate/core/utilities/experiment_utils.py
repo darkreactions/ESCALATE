@@ -1,7 +1,6 @@
 """
 Created on Mar 29, 2021
 
-@author: jpannizzo
 """
 import numpy as np
 from copy import deepcopy
@@ -12,117 +11,27 @@ from django.db.models.query import QuerySet
 
 from core.models.view_tables import (
     BomMaterial,
-    Action,
     Parameter,
-    ActionUnit,
     ExperimentTemplate,
     ExperimentInstance,
     ReagentMaterial,
     Reagent,
-    Property,
     Vessel,
-    ExperimentActionSequence,
     ReactionParameter,
 )
 from core.custom_types import Val
-from core.models.core_tables import RetUUIDField
 from core.utilities.randomSampling import generateExperiments
-from core.utilities.wf1_utils import make_well_list, make_well_labels_list
+from core.utilities.utils import make_well_labels_list
 
 from .calculations import conc_to_amount
 
 
-def hcl_mix(stock_concentration, solution_volume, target_concentrations):
-    """
-    # define the hcl vols and h2o vols
-    """
-    hcl_vols = (target_concentrations * solution_volume) / stock_concentration
-    h2o_vols = solution_volume - hcl_vols
-    return hcl_vols, h2o_vols
-
-
-def update_dispense_action_set(dispense_action_set, volumes, unit="mL"):
-    dispense_action_set_params = deepcopy(dispense_action_set.__dict__)
-    """
-    # deletes old action set and updates the action set
-    """
-    # delete keys from dispense action set that are not needed for creating a new action set
-    delete_keys = [
-        "uuid",
-        "_state",
-        "_prefetched_objects_cache",
-        # the below keys are the annotations from q1..q3
-        "object_description",
-        "object_uuid",
-        "parameter_def_description",
-        "parameter_uuid",
-        "parameter_value",
-        "experiment_uuid",
-        "experiment_description",
-        "workflow_seq",
-    ]
-    [dispense_action_set_params.pop(k, None) for k in delete_keys]
-
-    # delete the old action set
-    dispense_action_set.delete()
-
-    if isinstance(volumes, np.ndarray):
-        # recall: needs to be a list of Val
-        v = [
-            Val.from_dict({"type": "num", "value": vol, "unit": unit})
-            for vol in volumes
-        ]
-    elif isinstance(volumes, Val):
-        v = [volumes]
-    dispense_action_set_params["calculation_id"] = None
-    dispense_action_set_params["parameter_val_nominal"] = v
-    instance = WorkflowActionSet(**dispense_action_set_params)
-    instance.save()
-
-
-def update_lsr_edoc(
-    template_edoc, experiment_copy_uuid, experiment_copy_name, **kwargs
-):
-    """Copy LSR file from the experiment template, update tagged maps with kwargs, save to experiment copy
-    Returns the uuid if completed successfully, else none
-    """
-    from LSRGenerator.generate import generate_lsr_design
-    import xml.etree.ElementTree as ET
-
-    # copy the template edoc
-    template_edoc.pk = None  # this effectively creates a copy of the original edoc
-
-    # convert to format LSRGenerator understands
-    lsr_template = template_edoc.edocument.tobytes().decode("utf-16")
-    lsr_template = ET.ElementTree(ET.fromstring(lsr_template))
-
-    # populate LSR design with kwargs, handling failure
-    new_lsr_uuid = None
-    message = None
-    try:
-        lsr_design = generate_lsr_design(lsr_template, **kwargs)
-    except Exception as e:
-        message = str(e)
-    else:
-        lsr_design = ET.tostring(lsr_design.getroot(), encoding="utf-16")
-        # associate with the experiment copy and save
-        template_edoc.ref_edocument_uuid = experiment_copy_uuid
-        template_edoc.edocument = lsr_design
-        template_edoc.filename = experiment_copy_name + ".lsr"
-        template_edoc.save()
-        new_lsr_uuid = template_edoc.pk
-
-    return new_lsr_uuid, message
-
-
-"""
-# find template file names from experiment_templates dir, strips .py and .cpython from the files
-# and populates SUPPORTED_CREATE_WFS in experiment.py. Ignores __init___.py.
-# This prevents needing to hardcode template names
-"""
-
-
 def supported_wfs():
+    """
+    # find template file names from experiment_templates dir, strips .py and .cpython from the files
+    # and populates SUPPORTED_CREATE_WFS in experiment.py. Ignores __init___.py.
+    # This prevents needing to hardcode template names
+    """
     # current_path = .../.../ESCALTE/escalate
     current_path = os.getcwd()
     # core_path = .../.../ESCLATE/escalate/core
@@ -143,6 +52,8 @@ def supported_wfs():
 
 
 def get_action_parameter_querysets(exp_uuid: str, template=True) -> QuerySet:
+    # TODO: header/documentation
+
     related_exp = "workflow__experiment_workflow_workflow__experiment"
     # related_exp_wf = 'workflow__experiment_workflow_workflow'
     # factored out until new workflow changes are implemented
@@ -228,7 +139,7 @@ def get_material_querysets(exp_uuid, template=True):
 
 def get_vessel_querysets():
     """
-    Return vessels with no well numbers. This will return all the parent vessels.
+    Return vessels with no well numbers. This will return all the parent vessels (i.e. plates, not wells).
     """
     vessel_q = Vessel.objects.filter(well_number__isnull=True)
     return vessel_q
@@ -237,6 +148,8 @@ def get_vessel_querysets():
 def save_reaction_parameters(
     exp_template, rp_value, rp_unit, rp_type, rp_label, experiment_copy_uuid
 ):
+    # TODO: header/documentation
+
     # for reaction_parameter_label, reaction_parameter_form in reaction_parameter_labels
     # rp_label might be a list so need to itterate over and pass to this
     rp = ReactionParameter.objects.create(
@@ -277,71 +190,21 @@ def get_reagent_querysets(exp_uuid):
     return reagent_q
 
 
-def prepare_reagents(reagent_formset, exp_concentrations):
+def prepare_reagents(reagent_formset):
+    """[summary]
 
+    Args:
+        reagent_formset([Formset]_: contains forms with reagent/concentration data
+
+    Returns:
+       [dictionary]: keys are reagent descriptions and values are desired concentrations
+    """
     reagents = {}
     current_mat_list = reagent_formset.form_kwargs["mat_types_list"]
     for num, element in enumerate(current_mat_list):
         reagents[element.description] = reagent_formset.cleaned_data[num][
             "desired_concentration"
         ].value
-
-    """if len(current_mat_list) == 1:
-        if "acid" in (current_mat_list[0].description).lower():
-            # reagent 7, Acid
-            concentration1 = reagent_formset.cleaned_data[0][
-                "desired_concentration"
-            ].value
-            # if concentration1 <0:
-            # raise TypeError(
-            # "Error: {} is an invalid concentration for {}. Should be a non-negative number".format(concentration1, current_mat_list[0].description))
-            exp_concentrations["Reagent 7"] = [0, 0, concentration1, 0]
-        elif "solvent" in (current_mat_list[0].description).lower():
-            # reagent 1, Solvent
-            concentration1 = reagent_formset.cleaned_data[0][
-                "desired_concentration"
-            ].value
-            exp_concentrations["Reagent 1"] = [0, concentration1, 0, 0]
-    elif len(current_mat_list) == 2:
-        # reagent 2, Stock A
-        for element in current_mat_list:
-            if "organic" in (element.description).lower():
-                # organic
-                concentration1 = reagent_formset.cleaned_data[0][
-                    "desired_concentration"
-                ].value
-            elif "solvent" in (element.description).lower():
-                # solvent
-                concentration2 = reagent_formset.cleaned_data[1][
-                    "desired_concentration"
-                ].value
-        exp_concentrations["Reagent 2"] = [
-            concentration1, concentration2, 0, 0]
-    elif len(current_mat_list) == 3:
-        # reagent 3, Stock B
-        for element in current_mat_list:
-            if "inorganic" in (element.description).lower():
-                # inorganic
-                concentration1 = reagent_formset.cleaned_data[0][
-                    "desired_concentration"
-                ].value
-            elif "organic" in (element.description).lower():
-                # organic
-                concentration2 = reagent_formset.cleaned_data[1][
-                    "desired_concentration"
-                ].value
-            elif "solvent" in (element.description).lower():
-                # solvent
-                concentration3 = reagent_formset.cleaned_data[2][
-                    "desired_concentration"
-                ].value
-        exp_concentrations["Reagent 3"] = [
-            concentration2,
-            concentration3,
-            0,
-            concentration1,
-        ] """
-
     return reagents
     # return exp_concentrations
 
@@ -355,20 +218,13 @@ def generate_experiments_and_save(
     vessel,
 ):
     """
-    Generates random experiments using sampler and saves it to
-    different actions hard coded in action_reagent_map
-    TODO: Change ReagentTemplate descriptions or change here to standard names
-    In ReagentTemplate a reagent is called organic, inorganic, solvent
-    In action it is called stock a
-    In the mapper it is called 'Reagent 2'
+    Generates random experiments using sampler and saves volumes 
+    associated with dispense actions in an experiment template
     """
     desired_volume = generateExperiments(
-        reagent_template_names,
-        reagentDefs,
-        # ["Reagent1", "Reagent2", "Reagent3", "Reagent7"],
-        num_of_experiments,
+        reagent_template_names, reagentDefs, num_of_experiments,
     )
-    # desired_volume = generateExperiments(reagents, descriptions, num_of_experiments)
+
     # retrieve q1 information to update
     q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
     # experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
@@ -376,45 +232,6 @@ def generate_experiments_and_save(
         uuid=experiment_copy_uuid
     ).action_sequence.all()
 
-    # action_reagent_map = {}
-    # for i in action_sequences:
-    # for j in reagent_template_names:
-    # if j.lower() in i.description.lower():
-    # action_reagent_map[i.description.lower()] = j
-
-    # create counters for acid, solvent, stock a, stock b to keep track of current element in those lists
-    # if "workflow 1" in experiment.parent.description.lower():
-    # action_reagent_map = {
-    # "dispense solvent": ("Reagent 1 - Solvent", 1.0),
-    # "dispense acid volume 1": ("Reagent 7 - Acid", 0.5),
-    # "dispense acid volume 2": ("Reagent 7 - Acid", 0.5),
-    # "dispense stock a": ("Reagent 2 - Stock A", 1.0),
-    # "dispense stock b": ("Reagent 3 - Stock B", 1.0),
-    # }
-
-    # reagent_template_reagent_map = {
-    # "Reagent 1 - Solvent": "Reagent 1",
-    # "Reagent 7 - Acid": "Reagent 7",
-    # "Reagent 2 - Stock A": "Reagent 2",
-    # "Reagent 3 - Stock B": "Reagent 3",
-    # }
-    # elif "workflow 3" in experiment.parent.description.lower():
-    # action_reagent_map = {
-    # "dispense solvent": ("Reagent 1 - Solvent", 1.0),
-    # "dispense acid volume 1": ("Reagent 7 - Acid", 0.5),
-    # "dispense acid volume 2": ("Reagent 7 - Acid", 0.5),
-    # "dispense stock a": ("Reagent 2 - Stock A", 1.0),
-    # "dispense stock b": ("Reagent 3 - Stock B", 1.0),
-    # "dispense antisolvent": ("Reagent 9 - Antisolvent", 1.0),
-    # }
-
-    # reagent_template_reagent_map = {
-    # "Reagent 1 - Solvent": "Reagent 1",
-    # "Reagent 7 - Acid": "Reagent 7",
-    # "Reagent 2 - Stock A": "Reagent 2",
-    # "Reagent 3 - Stock B": "Reagent 3",
-    # "Reagent 9 - Antisolvent": "Reagent 9",
-    # }
     # This loop sums the volume of all generated experiment for each reagent and saves to database
     # Also saves dead volume if passed to function
     reagents = Reagent.objects.filter(experiment=experiment_copy_uuid)
@@ -440,29 +257,8 @@ def generate_experiments_and_save(
     )[0:num_of_experiments]
 
     for reagent_name in reagent_template_names:
-        # for action_description, reagent_name in action_reagent_map.items():
-
-        # if experiment.parent.ref_uid == "workflow_1":
-        # well_list = make_well_list(
-        # container_name="Symyx_96_well_0003",
-        # well_count=num_of_experiments,
-        # column_order=["A", "C", "E", "G", "B", "D", "F", "H"],
-        # total_columns=8,
-        # )["Vial Site"]
-        # elif experiment.parent.ref_uid == "perovskite_demo":
-        # well_list = make_well_list(
-        # container_name="Symyx_96_well_0003", well_count=num_of_experiments
-        # )["Vial Site"]
-        # else:
-        # well_list = make_well_list(
-        # container_name="Symyx_96_well_0003",
-        # well_count=num_of_experiments,
-        # column_order=["A", "C", "E", "G", "B", "D", "F", "H"],
-        # total_columns=8,
-        # )["Vial Site"]
 
         for i, vial in enumerate(well_list):
-            # action = q1.get(
             action = (
                 q1.filter(action_unit_description__icontains=reagent_name)
                 .filter(action_unit_description__icontains="dispense")
@@ -471,16 +267,6 @@ def generate_experiments_and_save(
             )
 
             # get actions from q1 based on keys in action_reagent_map
-            # if experiment.parent.ref_uid == "workflow_1":
-            # action = q1.get(
-            #   action_unit_description__icontains=action_description,
-            # action_unit_description__endswith=vial,
-            # )
-            # elif experiment.parent.ref_uid == "perovskite_demo":
-            # action = q1.get(
-            # object_description__icontains=action_description,
-            # object_description__contains=vial,
-            # )
 
             # If number of experiments requested is < actions only choose the first n actions
             # Otherwise choose all
@@ -494,18 +280,23 @@ def generate_experiments_and_save(
                 ]  # * mult_factor
                 parameter.save()
 
-    # try:
     conc_to_amount(experiment_copy_uuid)
-    # except ValueError:
-    # raise ValueError('Invalid phase data')
-    # print(ValueError)
 
     return q1
 
 
 def save_manual_parameters(df, exp_template, experiment_copy_uuid):
-    # for reaction_parameter_label, reaction_parameter_form in reaction_parameter_labels
-    # rp_label might be a list so need to itterate over and pass to this
+    """[summary]
+
+    Args:
+        df: Pandas dataframe from uploaded excel spreadsheet with volume/parameter data
+        exp_template: ExperimentTemplate object of the experiment template to retrieve
+        experiment_copy_uuid ([str]): UUID of the experiment to retrieve
+
+    Returns:
+        N/A
+        saves parameters from df into database
+    """
 
     for i, param in enumerate(df["Reaction Parameters"]):
         if type(param) == str:
@@ -523,8 +314,21 @@ def save_manual_parameters(df, exp_template, experiment_copy_uuid):
 
 
 def save_manual_volumes(df, experiment_copy_uuid, reagent_template_names, dead_volume):
+    """[summary]
+
+    Args:
+        df: Pandas dataframe from uploaded excel spreadsheet with volume/parameter data
+        experiment_copy_uuid ([str]): UUID of the experiment to retrieve
+        reagent_template_names ([list]):
+        dead_volume: ValField entry for dead volume for the experiment
+
+    Returns:
+        N/A
+        saves volumes from df into database
+    """
+
     q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
-    experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
+    # experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
     reagents = Reagent.objects.filter(experiment=experiment_copy_uuid)
 
     well_list = []

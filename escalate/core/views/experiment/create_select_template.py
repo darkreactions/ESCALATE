@@ -7,13 +7,11 @@ from django.views.generic import TemplateView
 from django.shortcuts import render
 from core.utilities.experiment_utils import get_action_parameter_querysets
 from core.models import (
-    Actor,
     ExperimentTemplate,
     ReagentTemplate,
     ReagentMaterialTemplate,
     ReagentMaterialValueTemplate,
     MaterialType,
-    ReactionParameter,
     Vessel,
 )
 from core.forms.custom_types import (
@@ -30,7 +28,6 @@ from core.custom_types import Val
 
 class SelectReagentsView(TemplateView):
     template_name = "core/experiment/create/base_create.html"
-    # template_name = "core/experiment/create/select_template.html"
 
     ReagentFormSet: BaseFormSet = formset_factory(
         ReagentForm, extra=0, formset=BaseReagentFormSet
@@ -165,17 +162,10 @@ class SelectReagentsView(TemplateView):
                 + ": "
                 + str(rp.parameter_def_description)
             )
-            # rp_label = str(rp.action_unit_description)
-            # rp_label = str(rp.object_description)  # type: ignore
             if "dispense" in rp_label.lower():
                 continue
             else:
                 try:
-                    # rp_object = (
-                    #  ReactionParameter.objects.filter(description=rp_label)
-                    #  .order_by("add_date")
-                    #  .first()
-                    # )
                     initial = {
                         "value": Val.from_dict(
                             {
