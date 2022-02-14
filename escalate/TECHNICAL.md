@@ -42,7 +42,6 @@ Terms used throughout this document may refer to different concepts in other sys
 
 1. Views
     - `view` in Django refers to the Python code that renders a page
-    - `view` also refers to a PostgreSQL database function that queries the database in different ways, more details [here](https://www.postgresqltutorial.com/postgresql-views/). These views will be referred to as `postgres view`
 
 2. Models
     - `model` in Django refers to the database model
@@ -181,6 +180,7 @@ API endpoints are available for most models. Below are the API endpoint URLs for
 ## Authors
 
 * **Venkateswaran Shekar** [ESCALATE](https://github.com/vshekar)
+* **Joseph Pannizzo** [ESCALATE](https://github.com/jpannizzo)
 
 See also the list of [contributors](https://github.com/darkreactions/ESCALATE/graphs/contributors) who participated in this project.
 
