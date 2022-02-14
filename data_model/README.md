@@ -151,7 +151,7 @@ docker exec escalate psql -d escalate -U escalate -f escalate_dev_create_backup.
 ## Authors
 
 * **Gary Cattabriga** - *Initial work* - [ESCALATE](https://github.com/gcatabr1)
-* **Joseph Pannizzo**(https://github.com/jpannizzo)
+* **Joseph Pannizzo** [ESCALATE](https://github.com/jpannizzo)
 
 See also the list of [contributors](https://github.com/darkreactions/ESCALATE/graphs/contributors) who participated in this project.
 
