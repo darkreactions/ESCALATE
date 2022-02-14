@@ -201,17 +201,17 @@ class CreateExperimentView(TemplateView):
                     description="concentration"
                 ):
                     mat_types_list.append(reagent_material_template.material_type)
-                    formsets.append(
-                        self.ReagentFormSet(
-                            request.POST,
-                            prefix=f"reagent_{index}",
-                            form_kwargs={
-                                "lab_uuid": org_id,
-                                "mat_types_list": mat_types_list,
-                                "reagent_index": index,
-                            },
-                        )
-                    )
+            formsets.append(
+                self.ReagentFormSet(
+                    request.POST,
+                    prefix=f"reagent_{index}",
+                    form_kwargs={
+                        "lab_uuid": org_id,
+                        "mat_types_list": mat_types_list,
+                        "reagent_index": index,
+                    },
+                )
+            )
         exp_name_form = ExperimentNameForm(request.POST)
 
         if exp_name_form.is_valid():
@@ -240,7 +240,7 @@ class CreateExperimentView(TemplateView):
                         or exp_template.description == "Workflow 3"
                     ):
                         vector = self.save_forms_reagent(
-                            reagent_formset, experiment_copy_uuid, exp_concentrations
+                            reagent_formset, experiment_copy_uuid, exp_concentrations,
                         )
                     else:
                         self.save_forms_reagent_general(
@@ -248,8 +248,8 @@ class CreateExperimentView(TemplateView):
                         )
                     # try:
                     rd = prepare_reagents(reagent_formset, exp_concentrations)
-                    if rd not in reagentDefs:
-                        reagentDefs.append(rd)
+                    # if rd not in reagentDefs:
+                    reagentDefs.append(rd)
                     # except TypeError as te:
                     # messages.error(request, str(te))
 
@@ -258,10 +258,17 @@ class CreateExperimentView(TemplateView):
                 dead_volume = dead_volume_form.cleaned_data["value"]
             else:
                 dead_volume = None
+
+            total_volume_form = SingleValForm(request.POST, prefix="total_volume")
+            if total_volume_form.is_valid():
+                total_volume = total_volume_form.cleaned_data["value"]
+            else:
+                total_volume = None
         return (
             experiment_copy_uuid,
             exp_name_form,
             dead_volume,
+            total_volume,
             reagent_template_names,
             reagentDefs,
             # vessel,
@@ -428,6 +435,7 @@ class CreateExperimentView(TemplateView):
             experiment_copy_uuid,
             exp_name_form,
             dead_volume,
+            total_volume,
             reagent_template_names,
             reagentDefs,
             # vessel,
@@ -606,6 +614,7 @@ class CreateExperimentView(TemplateView):
             experiment_copy_uuid,
             exp_name_form,
             dead_volume,
+            total_volume,
             reagent_template_names,
             reagentDefs,
             # vessel,
@@ -621,12 +630,15 @@ class CreateExperimentView(TemplateView):
         # generate desired volume for current reagent
         try:
             exp_number = int(request.POST["automated"])
+
             generate_experiments_and_save(
+                exp_template,
                 experiment_copy_uuid,
                 reagent_template_names,
                 reagentDefs,
                 exp_number,
                 dead_volume,
+                total_volume,
                 vessel,
             )
         except ValueError as ve:

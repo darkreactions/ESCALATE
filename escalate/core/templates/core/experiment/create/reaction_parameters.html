@@ -16,4 +16,15 @@
             </ul>
         </li>
     </ul>
+    <ul class="treeview-animated-list">
+        <li class="treeview-animated-items">
+            <a class="closed">
+                <i class="fas fa-angle-right"></i>
+                <span><i class="fas fa-table ic-w mx-1"></i>Total Volume</span>
+            </a>
+            <ul class="nested">
+                {{ total_volume_form|crispy }}
+            </ul>
+        </li>
+    </ul>
 </div>

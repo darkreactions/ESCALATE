@@ -499,9 +499,9 @@ def generateExperiments(
     reagentDefs,
     # descriptions,
     nExpt,
+    finalVolume="500. uL",
     excludedReagents=None,
     maxMolarity=9.0,
-    finalVolume="500. uL",
     desiredUnit="uL",
 ):
     # def generateExperiments(reagentDefs, nExpt, excludedReagentDefs=None, maxMolarity=9., finalVolume='500. uL', desiredUnit='uL'):
@@ -516,8 +516,9 @@ def generateExperiments(
     # convert input volume to microliters, if it isn't already
     # v=finalVolume.split()
     # v1=Q_(float(v[0]), v[1]).to(units.ul)
-    v1 = Q_(finalVolume).to(units.ul)
-    finalVolume = v1.magnitude
+
+    # v1 = Q_(finalVolume).to(units.ul)
+    # finalVolume = v1.magnitude
 
     # if excludedReagentDefs is None:
     if excludedReagents is None:
@@ -542,14 +543,17 @@ def generateExperiments(
         """
         r = generate_vectors(reagent_template_names, reagentDefs)
         speciesDimensionality = len(list(dropZeroColumns(r).values())[0])
-        
+
         if speciesDimensionality < 2:
-            mat_types=[]
+            mat_types = []
             for dic in reagentDefs:
                 for key in dic.keys():
                     if key not in mat_types:
                         mat_types.append(key)
-            raise ValueError("Error - Must enter nonzero concentrations for at least two of the following: " + ", ". join(mat_types))
+            raise ValueError(
+                "Error - Must enter nonzero concentrations for at least two of the following: "
+                + ", ".join(mat_types)
+            )
 
         elif speciesDimensionality <= 3:
 
@@ -559,7 +563,7 @@ def generateExperiments(
                 # descriptions,
                 nExpt,
                 maxMolarity=9.0,
-                finalVolume="500. uL",
+                finalVolume=finalVolume,
                 desiredUnit="uL",
                 processValues="round",
             )
@@ -570,7 +574,7 @@ def generateExperiments(
                 # descriptions,
                 nExpt,
                 maxMolarity=9.0,
-                finalVolume="500. uL",
+                finalVolume=finalVolume,
                 desiredUnit="uL",
                 processValues="round",
             )
