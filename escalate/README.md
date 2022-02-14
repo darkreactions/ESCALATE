@@ -25,10 +25,7 @@
 - Python 3.8+
 - Django 3.0.12
 
-
-## Getting started
-
-### Database setup
+### Database Setup
 
 If you have docker and docker-compose installed and ready to use, you can quickly spin up a populated database using `docker-compose up` in the data_model folder. 
 
@@ -42,10 +39,12 @@ There are 4 Django settings files available in the ./escalate/settings folder.
 - [dev.py](escalate/settings/dev.py) : Config for a development server
 - [local.py](escalate/settings/loca.py) : Config for local/live developement and debugging
 
-#### Docker development server
-To spin up a dev docker container simply run `docker-compose up` within the current folder. This will automatically connect to the running Escalate v3 Postgres database and apply the required migrations for user and admin tables
+#### Docker Development Server
+To spin up a dev docker container simply run `docker-compose up` within the current folder. This will automatically connect to the running Escalate v3 Postgres database and apply the required migrations for user and admin tables. 
+This will not populate users, materials, experiments, organizations, etc. We recommend utilizing our API to create a script to prepopulate the database models prior to running the application.
+Reference [here](../data_model/README.md) for more information on those models.
 
-#### Local debugging server
+#### Local Debugging Server
 1. Set the evironment variable `DJANGO_SETTINGS_MODULE=escalate.settings.local` 
 2. Migrate Django related tables to database `python manage.py migrate`
 3. Start the Django server `python manage.py runserver`

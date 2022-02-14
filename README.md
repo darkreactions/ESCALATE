@@ -31,6 +31,7 @@ ESCALATE (Experiment Specification, Capture and Laboratory Automation Technology
 
 * [**Gary Cattabriga**](https://github.com/gcatabr1)
 * [**Venkateswaran Shekar**](https://github.com/vshekar)
+* [**Joseph Pannizzo**](https://github.com/jpannizzo)
 
 See also the list of [contributors](https://github.com/darkreactions/ESCALATE/graphs/contributors) who participated in this project.
 
@@ -51,6 +52,8 @@ This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.t
 * [DARPA SD2 program](https://www.darpa.mil/program/synergistic-discovery-and-design)
 * [Haverford College](https://www.haverford.edu)
 * [Lawrence Berkely National Lab](https://www.lbl.gov)
+* [Los Alamos National Lab] (https://www.lanl.gov)
+
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
