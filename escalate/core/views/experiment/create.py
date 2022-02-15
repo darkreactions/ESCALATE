@@ -56,10 +56,7 @@ from core.utilities.experiment_utils import (
     save_parameter,
 )
 from core.utilities.calculations import conc_to_amount
-from core.utilities.utils import (
-    generate_vp_spec_file,
-    make_well_labels_list,
-)
+from core.utilities.utils import make_well_labels_list
 from core.models.view_tables.generic_data import Parameter
 from core.views.experiment.create_select_template import SelectReagentsView
 from .misc import save_forms_q1, save_forms_q_material
@@ -93,7 +90,6 @@ class SetupExperimentView(TemplateView):
 
 class CreateExperimentView(TemplateView):
     template_name = "core/experiment/create/base_create.html"
-    # template_name = "core/experiment/create/select_template.html"
     form_class = ExperimentTemplateForm
     MaterialFormSet: Type[BaseFormSet] = formset_factory(InventoryMaterialForm, extra=0)
     NominalActualFormSet: Type[BaseFormSet] = formset_factory(
@@ -123,7 +119,9 @@ class CreateExperimentView(TemplateView):
 
     def post(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
-
+        exp_template = ExperimentTemplate.objects.get(
+            uuid=request.session["experiment_template_uuid"]
+        )
         exp_name_form = ExperimentNameForm(request.POST)
 
         if exp_name_form.is_valid():
@@ -138,9 +136,11 @@ class CreateExperimentView(TemplateView):
             if num_automated:
                 context = self.process_automated_formsets(request, context)
             if num_manual:
-                context = self.process_robot_formsets(
-                    request.session["experiment_template_uuid"], request, context
-                )
+                context = self.process_manual_formsets(exp_template, request, context)
+
+            context = self.populate_links(
+                context, exp_template, context["exp_uuid"], context["new_exp_name"]
+            )
 
         except Exception as e:
             # If there is an issue with the form above, redirect back to previous step
@@ -371,7 +371,7 @@ class CreateExperimentView(TemplateView):
                             save_parameter(rp_uuid, rp_value, rp_unit)
                     index += 1
 
-    def process_robot_formsets(self, exp_uuid, request, context):
+    def process_manual_formsets(self, exp_uuid, request, context):
         # context["robot_file_upload_form"] = UploadFileForm()
         # context["robot_file_upload_form_helper"] = UploadFileForm.get_helper()
 
@@ -399,6 +399,7 @@ class CreateExperimentView(TemplateView):
         # self.save_reaction_parameters(
         # request, experiment_copy_uuid, exp_name_form, exp_template
         # )
+        context["exp_uuid"] = experiment_copy_uuid
 
         file_form = RobotForm(request.POST, request.FILES)
         if file_form.is_valid():
@@ -413,18 +414,6 @@ class CreateExperimentView(TemplateView):
         save_manual_parameters(df, exp_template, experiment_copy_uuid)
 
         conc_to_amount(experiment_copy_uuid)
-
-        context["experiment_link"] = reverse(
-            "experiment_instance_view", args=[experiment_copy_uuid]
-        )
-        context["reagent_prep_link"] = reverse(
-            "reagent_prep", args=[experiment_copy_uuid]
-        )
-        context["outcome_link"] = reverse("outcome", args=[experiment_copy_uuid])
-        context["new_exp_name"] = exp_name_form.cleaned_data["exp_name"]
-        context = self.populate_links(
-            context, exp_template, experiment_copy_uuid, context["new_exp_name"]
-        )
 
         return context
 
@@ -448,70 +437,6 @@ class CreateExperimentView(TemplateView):
                 )
                 reagent_material_value.nominal_value = data["desired_concentration"]
                 reagent_material_value.save()
-
-    def process_formsets(
-        self, request: HttpRequest, context: dict[str, Any]
-    ) -> dict[str, Any]:
-        """Creates formsets and gets data from the post request.
-
-        Args:
-            request ([Django Request]): Should be the POST request
-            context (dict): Context dictionary
-
-        Returns:
-            context [dict]: Context dict, returned to the page
-        """
-        # get the experiment template uuid and name
-        exp_template = ExperimentTemplate.objects.get(
-            pk=request.session["experiment_template_uuid"]
-        )
-        template_name = exp_template.description
-        # ref_uid will be used to identify python functions specifically for this
-        # ref_uid should follow function naming rules for Python
-        template_ref_uid = exp_template.ref_uid
-        # construct all formsets
-        exp_name_form = ExperimentNameForm(request.POST)
-        q1_formset = self.NominalActualFormSet(request.POST, prefix="q1_param")
-        q1_material_formset = self.MaterialFormSet(
-            request.POST,
-            prefix="q1_material",
-            form_kwargs={"org_uuid": self.request.session["current_org_id"]},
-        )
-        if all(
-            [
-                exp_name_form.is_valid(),
-                q1_formset.is_valid(),
-                q1_material_formset.is_valid(),
-            ]
-        ):
-
-            exp_name = exp_name_form.cleaned_data["exp_name"]
-            # make the experiment copy: this will be our new experiment
-            experiment_copy_uuid: str = experiment_copy(
-                str(exp_template.uuid), exp_name
-            )
-            # get the elements of the new experiment that we need to update with the form values
-            q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
-            q1_material = get_material_querysets(experiment_copy_uuid, template=False)
-
-            save_forms_q1(
-                q1,
-                q1_formset,
-                {
-                    "parameter_val_nominal": "value",
-                    "parameter_val_actual": "actual_value",
-                },
-            )
-            save_forms_q_material(
-                q1_material, q1_material_formset, {"inventory_material": "value"}
-            )
-
-            self.populate_links(context, exp_template, experiment_copy_uuid, exp_name)
-        return context
-
-    """
-        this function should only save the data to the db tables. refactor all other logic
-    """
 
     def process_automated_formsets(self, request: HttpRequest, context: dict[str, Any]):
         # get the experiment template uuid and name
@@ -541,6 +466,8 @@ class CreateExperimentView(TemplateView):
             # vessel,
         ) = self.save_reagents(exp_template, vessel, request, org_id)
 
+        context["exp_uuid"] = experiment_copy_uuid
+
         if not exp_name_form.is_valid():
             return context
 
@@ -568,10 +495,6 @@ class CreateExperimentView(TemplateView):
             raise
             # return HttpResponseRedirect(reverse("experiment"))
 
-        context = self.populate_links(
-            context, exp_template, experiment_copy_uuid, exp_name
-        )
-
         return context
 
     def populate_links(self, context, exp_template, experiment_copy_uuid, exp_name):
@@ -593,6 +516,8 @@ class CreateExperimentView(TemplateView):
                 messages.error(
                     self.request, f'LSRGenerator failed with message: "{lsr_msg}"'
                 )
+        # links for info about specific experiment
+
         context["experiment_link"] = reverse(
             "experiment_instance_view", args=[experiment_copy_uuid]
         )
