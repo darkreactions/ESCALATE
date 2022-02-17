@@ -25,6 +25,11 @@ import math
 # import core.models.view_tables as vt
 
 
+def camel_to_snake(name):
+    name = "".join(["_" + i.lower() if i.isupper() else i for i in name]).lstrip("_")
+    return name
+
+
 def make_well_labels_list(well_count=96, column_order=None, robot="True"):
     """Generates a list of well labels for a vessel with number of wells = well_count.
     column_order specifies order of alphabetical characters in labels list (e.g. ACBD versus ABCD)"""
