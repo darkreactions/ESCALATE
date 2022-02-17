@@ -66,11 +66,11 @@ methods = {
     },
     "ExperimentPendingInstance": {
         "model": core.models.view_tables.ExperimentPendingInstance,
-        "success_url": reverse_lazy("experiment_completed_list"),
+        "success_url": reverse_lazy("experiment_pending_instance_list"),
     },
     "ExperimentCompletedInstance": {
         "model": core.models.view_tables.ExperimentCompletedInstance,
-        "success_url": reverse_lazy("experiment_completed_list"),
+        "success_url": reverse_lazy("experiment_completed_instance_list"),
     },
     "Vessel": {
         "model": core.models.view_tables.Vessel,
