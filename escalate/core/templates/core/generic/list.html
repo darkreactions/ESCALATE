@@ -1,6 +1,7 @@
 {% extends 'core/base.html' %}
 {% load static %}
 {% load crispy_forms_tags %}
+{% load toUnderscore %}
 
 {% block add_data %}
 <form class="form-inline my-2 my-lg-0" method="get" action="{% url url_name %}">
@@ -109,4 +110,4 @@
 </div>
 {% endblock %}
 
-{% block delete_url %}"/{{ title|lower }}/" + pk + "/delete" {% endblock %}
+{% block delete_url %}"/{{ title|toUnderscore|lower }}/" + pk + "/delete" {% endblock %}
