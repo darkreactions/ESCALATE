@@ -9,19 +9,21 @@
         <li class="treeview-animated-items">
             <a class="closed">
                 <i class="fas fa-angle-right"></i>
-                <span><i class="fas fa-table ic-w mx-1"></i>Vessel</span>
-            </a>
-            <ul class="nested">
-                {{ vessel_form|crispy }}
-            </ul>
-        </li>
-        <li class="treeview-animated-items">
-            <a class="closed">
-                <i class="fas fa-angle-right"></i>
                 <span><i class="fas fa-table ic-w mx-1"></i>Dead Volume</span>
             </a>
             <ul class="nested">
                 {{ dead_volume_form|crispy }}
+            </ul>
+        </li>
+    </ul>
+    <ul class="treeview-animated-list">
+        <li class="treeview-animated-items">
+            <a class="closed">
+                <i class="fas fa-angle-right"></i>
+                <span><i class="fas fa-table ic-w mx-1"></i>Total Volume</span>
+            </a>
+            <ul class="nested">
+                {{ total_volume_form|crispy }}
             </ul>
         </li>
     </ul>

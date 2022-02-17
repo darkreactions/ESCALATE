@@ -88,7 +88,7 @@ def generate_robot_file_wf3(
             "Dispense Reagent 1 - Solvent": 1,
             "Dispense Reagent 2 - Stock A": 2,
             "Dispense Reagent 3 - Stock B": 3,
-            "Dispense Reagent 7 - Acid Volume 1": 8,
+            "Dispense Reagent 7 - Acid Volume 1": 7,
             "Dispense Reagent 9 - Antisolvent": 9,
         }
 

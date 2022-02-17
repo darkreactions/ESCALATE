@@ -3,7 +3,7 @@ import tempfile
 import re
 import math
 from core.models.view_tables import ReactionParameter, Reagent
-from core.models import ExperimentTemplate
+from core.models import ExperimentTemplate, ActionSequence, Action, ActionDef
 
 
 def make_well_labels_list(well_count=96, column_order=None, robot="True"):
@@ -202,12 +202,44 @@ def get_vial_site(dispense_string):
 
 
 def generate_general_robot_file(
-    reaction_volumes, reaction_parameters, plate_name, well_count
+    reaction_volumes, reaction_parameters, plate, well_count
 ):
-    reaction_parameters = ReactionParameter.objects.filter(
-        experiment_uuid=reaction_volumes[0].experiment_uuid
+    # reaction_parameters = ReactionParameter.objects.filter(
+    # experiment_uuid=reaction_volumes[0].experiment_uuid)
+
+    params = []
+    values = []
+    units = []
+    exp_template = ExperimentTemplate.objects.get(uuid=reaction_volumes[0].uuid)
+    for action_sequence in ActionSequence.objects.filter(experiment=exp_template):
+        actions = Action.objects.filter(action_sequence=action_sequence)
+        for action in actions:
+            for a in action.action_def.parameter_def.all():
+                if "dispense" in action.description.lower():
+                    pass
+                else:
+                    desc = action.description + "-" + a.description
+                    params.append(desc)
+                    val = a.default_val.value
+                    unit = a.default_val.unit
+                    values.append(val)
+                    units.append(unit)
+
+    rxn_parameters = pd.DataFrame(
+        {"Reaction Parameters": params, "Parameter Values": values, "Units": units,}
     )
-    if reaction_parameters is None:
+
+    """if reaction_parameters is None:
+        # ActionSequence.objects.filter(experiment=ExperimentTemplate.objects.get(uuid=reaction_volumes[0].experiment_uuid))
+        # Action.objects.get(action_sequence=ActionSequence.objects.filter(experiment=ExperimentTemplate.objects.get(uuid=reaction_volumes[0].experiment_uuid))[0]).action_def.parameter_def.all()
+
+        # name/description of action:
+        # Action.objects.get(action_sequence=ActionSequence.objects.filter(experiment=ExperimentTemplate.objects.get(uuid=reaction_volumes[0].experiment_uuid))[0]).description
+        # name/description of parameter:
+        # Action.objects.get(action_sequence=ActionSequence.objects.filter(experiment=ExperimentTemplate.objects.get(uuid=reaction_volumes[0].experiment_uuid))[0]).action_def.parameter_def.all()[0].description
+        # default value:
+        # Action.objects.get(action_sequence=ActionSequence.objects.filter(experiment=ExperimentTemplate.objects.get(uuid=reaction_volumes[0].experiment_uuid))[0]).action_def.parameter_def.all()[0].default_val
+
         rxn_parameters = pd.DataFrame(
             {
                 "Reaction Parameters": [
@@ -236,9 +268,9 @@ def generate_general_robot_file(
 
         rxn_parameters = pd.DataFrame(
             {"Reaction Parameters": rp_keys, "Parameter Values": rp_values}
-        )
+        )"""
     df_tray = make_well_list(
-        plate_name, well_count, column_order=["A", "C", "E", "G", "B", "D", "F", "H"],
+        plate, well_count, column_order=["A", "C", "E", "G", "B", "D", "F", "H"],
     )
     reagent_colnames = []
     reagents = ExperimentTemplate.objects.get(
@@ -256,6 +288,11 @@ def generate_general_robot_file(
             [df_tray["Vial Site"], reaction_volumes_output], axis=1
         )
 
+    volume_units = pd.DataFrame({"Units": ["uL"]})
+    volume_units[" "] = None
+    volume_units.reindex(columns=[" ", "Units"])
+
+    """
     rxn_conditions = pd.DataFrame(
         {
             "Reagents": [i for i in reagent_colnames],
@@ -266,14 +303,16 @@ def generate_general_robot_file(
             ],
             "Temperature": ["45" for i in range(len(reagent_colnames))],
         }
-    )
+    )"""
 
     outframe = pd.concat(
         [  # df_tray['Vial Site'],
             reaction_volumes_output,
-            df_tray["Labware ID:"],
+            # volume_units,
+            volume_units.reindex(columns=[" ", "Units"]),
+            # df_tray["Labware ID:"],
             rxn_parameters,
-            rxn_conditions,
+            # rxn_conditions,
         ],
         sort=False,
         axis=1,
@@ -281,7 +320,9 @@ def generate_general_robot_file(
     temp = tempfile.TemporaryFile()
     # xlwt is no longer maintained and will be removed from pandas in future versions
     # use io.excel.xls.writer as the engine once xlwt is removed
-    outframe.to_excel(temp, sheet_name="NIMBUS_reaction", index=False, engine="xlwt")
+    outframe.to_excel(
+        temp, sheet_name=exp_template.description, index=False, engine="xlwt"
+    )
     temp.seek(0)
     return temp
 
@@ -355,11 +396,11 @@ def generate_robot_file_wf1(
         )
         # Keep this Acid Volume 1/Acid Volume 2, do not change to acid vol
         REAG_MAPPING = {
-            "Dispense Stock A": 2,
-            "Dispense Stock B": 3,
-            "Dispense Solvent": 1,
-            "Dispense Acid Volume 1": 6,
-            "Dispense Acid Volume 2": 7,
+            "Dispense Reagent 2 - Stock A": 2,
+            "Dispense Reagent 3 - Stock B": 3,
+            "Dispense Reagent 1 - Solvent": 1,
+            "Dispense Reagent 7 - Acid Volume 1": 7,
+            "Dispense Reagent 7 - Acid Volume 2": 8,
         }
 
         # source material -> Reagent number, vial_site -> row name

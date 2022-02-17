@@ -23,7 +23,7 @@ from core.managers import OutcomeInstanceValueManager
 
 managed_tables = True
 managed_views = False
-# TODO: REMOVE THIS ENTIRE MODEL AND BREAK IT INTO SEPERATE MODELS WITH BASE CLASSES
+
 class Calculation(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(
         primary_key=True, default=uuid.uuid4, db_column="calculation_uuid"
@@ -286,8 +286,6 @@ class Note(DateColumns, ActorColumn):
     def __str__(self):
         return "{}".format(self.notetext)
 
-
-# TODO: Test this removal
 class NoteX(DateColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="note_x_uuid")
     ref_note = RetUUIDField(db_column="ref_note_uuid")

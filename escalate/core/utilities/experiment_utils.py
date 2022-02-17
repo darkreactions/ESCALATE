@@ -347,11 +347,13 @@ def prepare_reagents(reagent_formset, exp_concentrations):
 
 
 def generate_experiments_and_save(
+    exp_template,
     experiment_copy_uuid,
     reagent_template_names,
     reagentDefs,
     num_of_experiments,
     dead_volume,
+    total_volume,
     vessel,
 ):
     """
@@ -362,13 +364,27 @@ def generate_experiments_and_save(
     In action it is called stock a
     In the mapper it is called 'Reagent 2'
     """
-    desired_volume = generateExperiments(
-        reagent_template_names,
-        reagentDefs,
-        # ["Reagent1", "Reagent2", "Reagent3", "Reagent7"],
-        num_of_experiments,
-    )
-    # desired_volume = generateExperiments(reagents, descriptions, num_of_experiments)
+    if exp_template.description == "Workflow 3":
+        desired_volume = generateExperiments(
+            reagent_template_names[0:-1],
+            reagentDefs[0:-1],
+            # ["Reagent1", "Reagent2", "Reagent3", "Reagent7"],
+            num_of_experiments,
+            finalVolume=str(total_volume.value) + " " + total_volume.unit,
+        )
+        desired_volume[reagent_template_names[-1]] = [
+            800.0 for i in range(num_of_experiments)
+        ]
+    else:
+
+        desired_volume = generateExperiments(
+            reagent_template_names,
+            reagentDefs,
+            # ["Reagent1", "Reagent2", "Reagent3", "Reagent7"],
+            num_of_experiments,
+            finalVolume=str(total_volume.value) + " " + total_volume.unit,
+        )
+        # desired_volume = generateExperiments(reagents, descriptions, num_of_experiments)
     # retrieve q1 information to update
     q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
     # experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
@@ -437,7 +453,8 @@ def generate_experiments_and_save(
     # for action_description, (reagent_name, mult_factor) in action_reagent_map.items():
     well_list = make_well_labels_list(
         well_count=vessel.well_number, column_order=vessel.column_order, robot="True",
-    )[0:num_of_experiments]
+    )
+    # [0:num_of_experiments]
 
     for reagent_name in reagent_template_names:
         # for action_description, reagent_name in action_reagent_map.items():
@@ -460,7 +477,7 @@ def generate_experiments_and_save(
         # column_order=["A", "C", "E", "G", "B", "D", "F", "H"],
         # total_columns=8,
         # )["Vial Site"]
-
+        saved_actions = []
         for i, vial in enumerate(well_list):
             # action = q1.get(
             action = (
@@ -487,12 +504,19 @@ def generate_experiments_and_save(
             # actions = actions[:num_of_experiments] if num_of_experiments < len(actions) else actions
             # for i, action in enumerate(actions):
             if action is not None:
-                parameter = Parameter.objects.get(uuid=action.parameter_uuid)
-                # action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
+                saved_actions.append(action)
+
+        for i, action in enumerate(saved_actions):
+
+            parameter = Parameter.objects.get(uuid=action.parameter_uuid)
+            # action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
+            try:
                 parameter.parameter_val_nominal.value = desired_volume[reagent_name][
                     i
                 ]  # * mult_factor
-                parameter.save()
+            except IndexError:
+                parameter.parameter_val_nominal.value = 0.0
+            parameter.save()
 
     # try:
     conc_to_amount(experiment_copy_uuid)
@@ -501,6 +525,25 @@ def generate_experiments_and_save(
     # print(ValueError)
 
     return q1
+
+
+def save_manual_parameters(df, exp_template, experiment_copy_uuid):
+    # for reaction_parameter_label, reaction_parameter_form in reaction_parameter_labels
+    # rp_label might be a list so need to itterate over and pass to this
+
+    for i, param in enumerate(df["Reaction Parameters"]):
+        if type(param) == str:
+            rp = ReactionParameter.objects.create(
+                experiment_template=exp_template,
+                # organization = organization,
+                value=df["Parameter Values"][i],
+                unit=df["Units"][i],
+                # type=rp_type,
+                description=param.split("-")[1],
+                experiment_uuid=experiment_copy_uuid,
+            )
+            rp.save()
+            # return rp
 
 
 def save_manual_volumes(df, experiment_copy_uuid, reagent_template_names, dead_volume):
@@ -527,6 +570,7 @@ def save_manual_volumes(df, experiment_copy_uuid, reagent_template_names, dead_v
                 parameter = Parameter.objects.get(uuid=action.parameter_uuid)
                 # action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
                 parameter.parameter_val_nominal.value = df[reagent_name][i]
+                parameter.parameter_val_nominal.unit = df["Units"][0]
                 # parameter.parameter_val_nominal.value = desired_volume[reagent_name][i]
                 parameter.save()
 
@@ -538,7 +582,7 @@ def save_manual_volumes(df, experiment_copy_uuid, reagent_template_names, dead_v
                         property_template__description__icontains="total volume"
                     )
                     prop.nominal_value.value = total_volume
-                    prop.nominal_value.unit = "uL"
+                    prop.nominal_value.unit = df["Units"][0]
                     prop.save()
                     if dead_volume is not None:
                         dv_prop = reagent.property_r.get(

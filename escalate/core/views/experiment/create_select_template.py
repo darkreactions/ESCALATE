@@ -30,7 +30,7 @@ from core.custom_types import Val
 
 class SelectReagentsView(TemplateView):
     template_name = "core/experiment/create/base_create.html"
-    #template_name = "core/experiment/create/select_template.html"
+    # template_name = "core/experiment/create/select_template.html"
 
     ReagentFormSet: BaseFormSet = formset_factory(
         ReagentForm, extra=0, formset=BaseReagentFormSet
@@ -38,19 +38,19 @@ class SelectReagentsView(TemplateView):
 
     def get(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
+        # context["vessel_form"] = self.get_vessel_form(context)
         return render(request, self.template_name, context)
 
     def post(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
         self.request = request
-        if 'select_experiment_template' in request.POST:
+        if "select_experiment_template" in request.POST:
             exp_uuid = request.POST["select_experiment_template"]
             request.session["experiment_template_uuid"] = exp_uuid
         else:
             exp_uuid = request.session["experiment_template_uuid"]
-        #exp_uuid = request.session["experiment_template_uuid"]
-        context["selected_exp_template"] = ExperimentTemplate.objects.get(
-            uuid=exp_uuid)
+        # exp_uuid = request.session["experiment_template_uuid"]
+        context["selected_exp_template"] = ExperimentTemplate.objects.get(uuid=exp_uuid)
         context["experiment_name_form"] = ExperimentNameForm()
         context = self.get_forms(context["selected_exp_template"], context)
 
@@ -59,16 +59,21 @@ class SelectReagentsView(TemplateView):
 
         if (num_manual_exp := int(request.POST["manual"])) >= 0:
             context["manual"] = num_manual_exp
-            context["robot_file_upload_form"] = RobotForm(
-                request.POST, request.FILES)
+            context["robot_file_upload_form"] = RobotForm(request.POST, request.FILES)
             context["robot_file_upload_form_helper"] = RobotForm.get_helper()
+
+        if "value" in request.POST.keys():
+            context["vessel"] = Vessel.objects.get(uuid=request.POST["value"])
+            vessel_uuid = str(context["vessel"].uuid)
+            request.session["vessel"] = vessel_uuid
 
         return render(request, self.template_name, context)
 
     def get_forms(self, exp_template: ExperimentTemplate, context: dict[str, Any]):
         context = self.get_reagent_forms(context)
-        context = self.get_dead_volume_form(context)
-        context = self.get_vessel_form(context)
+        # context = self.get_dead_volume_form(context)
+        context = self.get_volume_forms(context)
+        # context = self.get_vessel_form(context)
         # context = self.get_reaction_parameter_forms(context)
         context["colors"] = self.get_colors(len(context["reagent_formset"]))
         return context
@@ -131,13 +136,21 @@ class SelectReagentsView(TemplateView):
 
         return context
 
-    def get_dead_volume_form(self, context: dict[str, Any]) -> dict[str, Any]:
+    def get_volume_forms(self, context: dict[str, Any]) -> dict[str, Any]:
         # Dead volume form
         initial: dict[str, Val] = {
             "value": Val.from_dict({"value": 4000, "unit": "uL", "type": "num"})
         }
         dead_volume_form = SingleValForm(prefix="dead_volume", initial=initial)
         context["dead_volume_form"] = dead_volume_form
+
+        # Total volume form
+        initial: dict[str, Val] = {
+            "value": Val.from_dict({"value": 500, "unit": "uL", "type": "num"})
+        }
+        total_volume_form = SingleValForm(prefix="total_volume", initial=initial)
+        context["total_volume_form"] = total_volume_form
+
         return context
 
     def get_vessel_form(self, context: dict[str, Any]) -> dict[str, Any]:
@@ -156,21 +169,27 @@ class SelectReagentsView(TemplateView):
         rp_labels = []
         index = 0
         for rp in rp_wfs:
-            rp_label = str(rp.object_description)  # type: ignore
-            if "Dispense" in rp_label:
+            rp_label = (
+                str(rp.object_def_description)
+                + ": "
+                + str(rp.parameter_def_description)
+            )
+            # rp_label = str(rp.action_unit_description)
+            # rp_label = str(rp.object_description)  # type: ignore
+            if "dispense" in rp_label.lower():
                 continue
             else:
                 try:
-                    rp_object = (
-                        ReactionParameter.objects.filter(description=rp_label)
-                        .order_by("add_date")
-                        .first()
-                    )
+                    # rp_object = (
+                    #  ReactionParameter.objects.filter(description=rp_label)
+                    #  .order_by("add_date")
+                    #  .first()
+                    # )
                     initial = {
                         "value": Val.from_dict(
                             {
-                                "value": rp_object.value,
-                                "unit": rp_object.unit,
+                                "value": rp.parameter_value.value,
+                                "unit": rp.parameter_value.unit,
                                 "type": "num",
                             }
                         ),
@@ -198,9 +217,9 @@ class SelectReagentsView(TemplateView):
             "teal",
             "powderblue",
             "skyblue",
+            "steelblue",
             "pastelblue",
             "verdigris",
-            "steelblue",
             "cornflowerblue",
         ],
     ) -> list[str]:
