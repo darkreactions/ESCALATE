@@ -79,6 +79,7 @@ class ExperimentPendingInstanceManager(models.Manager):
             super(ExperimentPendingInstanceManager, self)
             .get_queryset()
             .filter(~Q(completion_status="Completed"))
+            .filter(~Q(completion_status="Invalid"))
         )
 
     def create(self, **kwargs):

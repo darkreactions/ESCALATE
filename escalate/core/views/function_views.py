@@ -1,5 +1,5 @@
-from django.http import HttpResponse, HttpRequest
-from django.shortcuts import render
+from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
+from django.shortcuts import render, redirect
 from django.contrib.messages import get_messages
 from core.utilities.experiment_utils import get_action_parameter_querysets
 from core.utilities.wf1_utils import (
@@ -17,6 +17,7 @@ from core.models import (
     BaseBomMaterial,
     ExperimentActionSequence,
     ExperimentTemplate,
+    ExperimentInstance,
     Vessel,
 )
 
@@ -87,6 +88,23 @@ def download_robot_file(request: HttpRequest) -> HttpResponse:
                 action_tuples.append()
 
     return JsonResponse(data={"message": "success"})"""
+
+def experiment_invalid(request: HttpRequest, pk):
+    """
+    Experiment Invalid 
+
+    Used instead of default delete view to invalidate experiments in database.
+    """
+    if request.method == "POST":
+        uuid=pk
+        ExperimentInstance.objects.filter(uuid=uuid).update(completion_status='Invalid')
+        
+        if "experiment_pending_instance" in request.path:
+            return redirect("experiment_pending_instance_list")
+        elif "experiment_completed_instance" in request.path:
+            return redirect("experiment_completed_instance_list")
+        else:
+            return JsonResponse(data={"message": "success"})
 
 
 def save_experiment_action_sequence(request: HttpRequest) -> HttpResponse:

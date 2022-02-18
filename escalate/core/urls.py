@@ -4,6 +4,7 @@ from core.views.function_views import (
     download_robot_file,
     # save_action_sequence,
     save_experiment_action_sequence,
+    experiment_invalid,
 )
 
 from .views import (
@@ -153,6 +154,11 @@ urlpatterns += [
         ParameterEditView.as_view(),
         name="experiment_completed_instance_parameter",
     ),
+    path(
+        "experiment_completed_instance/<uuid:pk>/delete",
+        experiment_invalid,
+        name="experiment_completed_instance_delete",
+    ),
 ]
 
 # Pending experiment patterns
@@ -187,6 +193,11 @@ urlpatterns += [
         ParameterEditView.as_view(),
         name="experiment_pending_instance_parameter",
     ),
+    path(
+        "experiment_pending_instance/<uuid:pk>/delete",
+        experiment_invalid,
+        name="experiment_pending_instance_delete",
+    ),
 ]
 
 
@@ -219,13 +230,15 @@ def add_urls(model_name, pattern_list):
             )
         )
     if (delete_view_class := getattr(core.views, f"{model_name}Delete", None)) != None:
-        new_urls.append(
-            path(
-                f"{lower_case_model_name}/<uuid:pk>/delete",
-                delete_view_class.as_view(),
-                name=f"{lower_case_model_name}_delete",
+        #remove ExperimentPendingInstance and ExperimentCompletedInstance
+        if (lower_case_model_name != 'experiment_pending_instance' and lower_case_model_name != 'experiment_completed_instance'):
+            new_urls.append(
+                path(
+                    f"{lower_case_model_name}/<uuid:pk>/delete",
+                    delete_view_class.as_view(),
+                    name=f"{lower_case_model_name}_delete",
+                )
             )
-        )
     if (detail_view_class := getattr(core.views, f"{model_name}View", None)) != None:
         new_urls.append(
             path(
