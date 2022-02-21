@@ -7,16 +7,15 @@
 <hr>
 <h4>Manual Experiment Specification: {{ manual }} Experiments </h4>
 <!--form method="post" enctype="multipart/form-data">{% csrf_token %}
-    <button class="btn btn-outline-primary" type="submit" name="robot_download" value="Submit">Download Robot
-        file</button>
+    <button class="btn btn-outline-primary" type="submit" name="vp_spec_download" value="Submit">Download Spec File</button>
     </div>
 </form-->
-<span>To manually specify experiment, <a href="{% url 'download_robot_file' %}">click here</a> to download a manual
+<span>To manually specify experiment, <a href="{% url 'download_vp_spec_file' %}">click here</a> to download a manual
     specification excel file, fill the appropriate columns and reupload using the form below</span>
 
 
-{% crispy robot_file_upload_form robot_file_upload_form_helper %}
-<!--button class="btn btn-outline-primary" type="submit" name="robot_upload" value="create_exp">Create
+{% crispy spec_file_upload_form spec_file_upload_form_helper %}
+<!--button class="btn btn-outline-primary" type="submit" name="spec_upload" value="create_exp">Create
     Experiment</button-->
 <hr>
 {% endif %}

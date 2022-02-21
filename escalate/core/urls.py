@@ -1,7 +1,7 @@
 from django.urls import path, include
 import core.views
 from core.views.function_views import (
-    download_robot_file,
+    download_vp_spec_file,
     # save_action_sequence,
     save_experiment_action_sequence,
 )
@@ -78,7 +78,9 @@ urlpatterns += [
         name="create_experiment",
     ),
     path(
-        "experiment/setup/robot_file", download_robot_file, name="download_robot_file"
+        "experiment/setup/robot_file",
+        download_vp_spec_file,
+        name="download_vp_spec_file",
     ),
 ]
 

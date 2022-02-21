@@ -41,13 +41,12 @@ from core.forms.custom_types import (
     BaseReagentFormSet,
     VesselForm,
     ReactionParameterForm,
-    RobotForm,
+    ManualSpecificationForm,
 )
 
 from core.utilities.utils import experiment_copy
 from core.utilities.experiment_utils import (
     get_action_parameter_querysets,
-    get_material_querysets,
     prepare_reagents,
     generate_experiments_and_save,
     save_reaction_parameters,
@@ -57,9 +56,7 @@ from core.utilities.experiment_utils import (
 )
 from core.utilities.calculations import conc_to_amount
 from core.utilities.utils import make_well_labels_list
-from core.models.view_tables.generic_data import Parameter
 from core.views.experiment.create_select_template import SelectReagentsView
-from .misc import save_forms_q1, save_forms_q_material
 
 import core.models
 import core.experiment_templates
@@ -112,8 +109,6 @@ class CreateExperimentView(TemplateView):
         else:
             org_id = None
             self.all_experiments = ExperimentTemplate.objects.all()
-        # lab = Actor.objects.get(organization=org_id, person__isnull=True)
-        # self.all_experiments = ExperimentTemplate.objects.filter(lab=lab)
         context["all_experiments"] = self.all_experiments
         return context
 
@@ -122,25 +117,57 @@ class CreateExperimentView(TemplateView):
         exp_template = ExperimentTemplate.objects.get(
             uuid=request.session["experiment_template_uuid"]
         )
-        exp_name_form = ExperimentNameForm(request.POST)
+        context["exp_template"] = exp_template
 
-        if exp_name_form.is_valid():
-            context["new_exp_name"] = exp_name_form.cleaned_data["exp_name"]
+        if "current_org_id" in self.request.session:
+            org_id = self.request.session["current_org_id"]
+        else:
+            org_id = None
+
         try:
+            # Collect form data
+            vessel = Vessel.objects.get(description=request.POST.get("vessel"))
+            context["vessel"] = vessel
+
+            (dead_volume, total_volume) = self.save_volumes(request, vessel)
+
             num_automated = int(request.POST.get("automated", 0))
             num_manual = int(request.POST.get("manual", 0))
-            context["vessel"] = Vessel.objects.get(
-                description=request.POST.get("vessel")
+
+            exp_name_form = ExperimentNameForm(request.POST)
+
+            if exp_name_form.is_valid():
+                context["new_exp_name"] = exp_name_form.cleaned_data["exp_name"]
+
+                self.generate_action_units(exp_template, vessel)
+
+                # Make the experiment copy: this will be our new experiment
+                experiment_copy_uuid = experiment_copy(
+                    str(exp_template.uuid), context["new_exp_name"], vessel
+                )
+
+            # Obtain and save reagent names and concentration data
+            (reagent_template_names, reagentDefs,) = self.save_reagents(
+                exp_template, experiment_copy_uuid, request, org_id
             )
+
+            context["experiment_copy_uuid"] = experiment_copy_uuid
+            context["dead_volume"] = dead_volume
+            context["total_volume"] = total_volume
+            context["reagent_template_names"] = reagent_template_names
+            context["reagentDefs"] = reagentDefs
+
+            if num_manual:
+                context = self.process_manual_formsets(request, context)
 
             if num_automated:
                 context = self.process_automated_formsets(request, context)
-            if num_manual:
-                context = self.process_manual_formsets(exp_template, request, context)
 
-            context = self.populate_links(
-                context, exp_template, context["exp_uuid"], context["new_exp_name"]
-            )
+            conc_to_amount(
+                experiment_copy_uuid
+            )  # Generate and save mass/volume amounts
+
+            context = self.populate_links(context)
 
         except Exception as e:
             # If there is an issue with the form above, redirect back to previous step
@@ -154,7 +181,7 @@ class CreateExperimentView(TemplateView):
     def save_reagents(
         self,
         exp_template: ExperimentTemplate,
-        vessel,
+        experiment_copy_uuid,
         request: HttpRequest,
         org_id: str,
     ) -> tuple[Any]:
@@ -185,49 +212,46 @@ class CreateExperimentView(TemplateView):
                     },
                 )
             )
-        exp_name_form = ExperimentNameForm(request.POST)
 
-        if exp_name_form.is_valid():
-            exp_name = exp_name_form.cleaned_data["exp_name"]
+        reagentDefs = []
+        for reagent_formset in formsets:
+            if reagent_formset.is_valid():
 
-            self.generate_action_units(exp_template, vessel)
+                self.save_forms_reagent(reagent_formset, experiment_copy_uuid)
+                # try:
+                rd = prepare_reagents(reagent_formset)
+                if rd not in reagentDefs:
+                    reagentDefs.append(rd)
+                # except TypeError as te:
+                # messages.error(request, str(te))
 
-            # make the experiment copy: this will be our new experiment
-            experiment_copy_uuid = experiment_copy(
-                str(exp_template.uuid), exp_name, vessel
-            )
-            reagentDefs = []
-            for reagent_formset in formsets:
-                if reagent_formset.is_valid():
-
-                    self.save_forms_reagent(reagent_formset, experiment_copy_uuid)
-                    # try:
-                    rd = prepare_reagents(reagent_formset)
-                    if rd not in reagentDefs:
-                        reagentDefs.append(rd)
-                    # except TypeError as te:
-                    # messages.error(request, str(te))
-
-            dead_volume_form = SingleValForm(request.POST, prefix="dead_volume")
-            if dead_volume_form.is_valid():
-                dead_volume = dead_volume_form.cleaned_data["value"]
-            else:
-                dead_volume = None
-
-            total_volume_form = SingleValForm(request.POST, prefix="total_volume")
-            if total_volume_form.is_valid():
-                total_volume = total_volume_form.cleaned_data["value"]
-            else:
-                total_volume = None
         return (
-            experiment_copy_uuid,
-            exp_name_form,
-            dead_volume,
-            total_volume,
             reagent_template_names,
             reagentDefs,
-            # vessel,
         )
+
+    def save_volumes(self, request, vessel):
+        dead_volume_form = SingleValForm(request.POST, prefix="dead_volume")
+        if dead_volume_form.is_valid():
+            dead_volume = dead_volume_form.cleaned_data["value"]
+        else:
+            dead_volume = None
+
+        total_volume_form = SingleValForm(request.POST, prefix="total_volume")
+        if total_volume_form.is_valid():
+            total_volume = total_volume_form.cleaned_data["value"]
+        else:
+            total_volume = None
+
+        if vessel.total_volume is not None:
+            if total_volume.value > vessel.total_volume:
+                raise ValueError(
+                    "Target volume exceeds capacity of {} for the specified vessel".format(
+                        vessel.total_volume
+                    )
+                )
+
+        return (dead_volume, total_volume)
 
     def generate_action_units(self, exp_template, vessel):
         action_sequences = []
@@ -371,49 +395,28 @@ class CreateExperimentView(TemplateView):
                             save_parameter(rp_uuid, rp_value, rp_unit)
                     index += 1
 
-    def process_manual_formsets(self, exp_uuid, request, context):
-        # context["robot_file_upload_form"] = UploadFileForm()
-        # context["robot_file_upload_form_helper"] = UploadFileForm.get_helper()
+    def process_manual_formsets(self, request, context):
 
-        # context["robot_file_upload_form"] = RobotForm(
-        #    request.POST, request.FILES)
-        # context["robot_file_upload_form_helper"] = RobotForm.get_helper()
-
-        exp_template = ExperimentTemplate.objects.get(uuid=exp_uuid)
-        if "current_org_id" in self.request.session:
-            org_id = self.request.session["current_org_id"]
-        else:
-            org_id = None
-
-        vessel = context["vessel"]
-        (
-            experiment_copy_uuid,
-            exp_name_form,
-            dead_volume,
-            total_volume,
-            reagent_template_names,
-            reagentDefs,
-            # vessel,
-        ) = self.save_reagents(exp_template, vessel, request, org_id)
-
-        # self.save_reaction_parameters(
-        # request, experiment_copy_uuid, exp_name_form, exp_template
-        # )
-        context["exp_uuid"] = experiment_copy_uuid
-
-        file_form = RobotForm(request.POST, request.FILES)
+        # save parameters and
+        file_form = ManualSpecificationForm(request.POST, request.FILES)
         if file_form.is_valid():
             df = pd.read_excel(file_form.cleaned_data["file"])
             # df = pd.read_excel(request.FILES["file"])
         # self.process_robot_file(df)
 
         save_manual_volumes(
-            df, experiment_copy_uuid, reagent_template_names, dead_volume
+            df,
+            context["experiment_copy_uuid"],
+            context["reagent_template_names"],
+            context["dead_volume"],
+            context["vessel"],
         )
 
-        save_manual_parameters(df, exp_template, experiment_copy_uuid)
+        save_manual_parameters(
+            df, context["exp_template"], context["experiment_copy_uuid"]
+        )
 
-        conc_to_amount(experiment_copy_uuid)
+        # conc_to_amount(context["experiment_copy_uuid"])
 
         return context
 
@@ -439,55 +442,20 @@ class CreateExperimentView(TemplateView):
                 reagent_material_value.save()
 
     def process_automated_formsets(self, request: HttpRequest, context: dict[str, Any]):
-        # get the experiment template uuid and name
         try:
-            exp_template = ExperimentTemplate.objects.get(
-                pk=context["selected_exp_template"].uuid
-            )
-        except KeyError:
-            exp_template = ExperimentTemplate.objects.get(
-                pk=request.session["experiment_template_uuid"]
-            )
-
-        if "current_org_id" in self.request.session:
-            org_id = self.request.session["current_org_id"]
-        else:
-            org_id = None
-
-        vessel = context["vessel"]
-
-        (
-            experiment_copy_uuid,
-            exp_name_form,
-            dead_volume,
-            total_volume,
-            reagent_template_names,
-            reagentDefs,
-            # vessel,
-        ) = self.save_reagents(exp_template, vessel, request, org_id)
-
-        context["exp_uuid"] = experiment_copy_uuid
-
-        if not exp_name_form.is_valid():
-            return context
-
-        exp_name = exp_name_form.cleaned_data["exp_name"]
-        # self.save_reaction_parameters(
-        # request, experiment_copy_uuid, exp_name_form, exp_template
-        # )
-        # generate desired volume for current reagent
-        try:
-            exp_number = int(request.POST["automated"])
+            exp_number_auto = int(request.POST["automated"])
+            exp_number_manual = int(request.POST["manual"])
 
             generate_experiments_and_save(
-                exp_template,
-                experiment_copy_uuid,
-                reagent_template_names,
-                reagentDefs,
-                exp_number,
-                dead_volume,
-                total_volume,
-                vessel,
+                context["exp_template"],
+                context["experiment_copy_uuid"],
+                context["reagent_template_names"],
+                context["reagentDefs"],
+                exp_number_auto,
+                exp_number_manual,
+                context["dead_volume"],
+                context["total_volume"],
+                context["vessel"],
             )
         except ValueError as ve:
             messages.error(request, str(ve))
@@ -497,13 +465,21 @@ class CreateExperimentView(TemplateView):
 
         return context
 
-    def populate_links(self, context, exp_template, experiment_copy_uuid, exp_name):
+    def populate_links(self, context):  # exp_template, experiment_copy_uuid, exp_name):
         # robotfile generation
-        q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
-        if exp_template.ref_uid in SUPPORTED_CREATE_WFS:
-            template_function = getattr(core.experiment_templates, exp_template.ref_uid)
+        q1 = get_action_parameter_querysets(
+            context["experiment_copy_uuid"], template=False
+        )
+        if context["exp_template"].ref_uid in SUPPORTED_CREATE_WFS:
+            template_function = getattr(
+                core.experiment_templates, context["exp_template"].ref_uid
+            )
             new_lsr_pk, lsr_msg = template_function(
-                None, q1, experiment_copy_uuid, exp_name, exp_template
+                None,
+                q1,
+                context["experiment_copy_uuid"],
+                context["exp_name"],
+                context["exp_template"],
             )
 
             if str(self.request.session["current_org_name"]) != "TestCo":
@@ -519,13 +495,15 @@ class CreateExperimentView(TemplateView):
         # links for info about specific experiment
 
         context["experiment_link"] = reverse(
-            "experiment_instance_view", args=[experiment_copy_uuid]
+            "experiment_instance_view", args=[context["experiment_copy_uuid"]]
         )
         context["reagent_prep_link"] = reverse(
-            "reagent_prep", args=[experiment_copy_uuid]
+            "reagent_prep", args=[context["experiment_copy_uuid"]]
         )
-        context["outcome_link"] = reverse("outcome", args=[experiment_copy_uuid])
-        context["new_exp_name"] = exp_name
+        context["outcome_link"] = reverse(
+            "outcome", args=[context["experiment_copy_uuid"]]
+        )
+        # context["new_exp_name"]
         return context
 
 

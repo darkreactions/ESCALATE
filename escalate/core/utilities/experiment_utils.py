@@ -25,6 +25,8 @@ from core.utilities.utils import make_well_labels_list
 
 from .calculations import conc_to_amount
 
+from django.contrib import messages
+
 
 def update_dispense_action_set(dispense_action_set, volumes, unit="mL"):
     dispense_action_set_params = deepcopy(dispense_action_set.__dict__)
@@ -288,7 +290,8 @@ def generate_experiments_and_save(
     experiment_copy_uuid,
     reagent_template_names,
     reagentDefs,
-    num_of_experiments,
+    num_of_automated_experiments,
+    num_of_manual_experiments,
     dead_volume,
     total_volume,
     vessel,
@@ -297,16 +300,16 @@ def generate_experiments_and_save(
     Generates random experiments using sampler and saves volumes 
     associated with dispense actions in an experiment template
     """
-    if exp_template.description == "Workflow 3":
+    if exp_template.description == "Workflow 3":  # exclude antisolvent from sampling
         desired_volume = generateExperiments(
             reagent_template_names[0:-1],
             reagentDefs[0:-1],
             # ["Reagent1", "Reagent2", "Reagent3", "Reagent7"],
-            num_of_experiments,
+            num_of_automated_experiments,
             finalVolume=str(total_volume.value) + " " + total_volume.unit,
         )
         desired_volume[reagent_template_names[-1]] = [
-            800.0 for i in range(num_of_experiments)
+            800.0 for i in range(num_of_automated_experiments)
         ]
     else:
 
@@ -314,16 +317,13 @@ def generate_experiments_and_save(
             reagent_template_names,
             reagentDefs,
             # ["Reagent1", "Reagent2", "Reagent3", "Reagent7"],
-            num_of_experiments,
+            num_of_automated_experiments,
             finalVolume=str(total_volume.value) + " " + total_volume.unit,
         )
         # desired_volume = generateExperiments(reagents, descriptions, num_of_experiments)
+
     # retrieve q1 information to update
     q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
-    # experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
-    action_sequences = ExperimentInstance.objects.get(
-        uuid=experiment_copy_uuid
-    ).action_sequence.all()
 
     # This loop sums the volume of all generated experiment for each reagent and saves to database
     # Also saves dead volume if passed to function
@@ -333,7 +333,7 @@ def generate_experiments_and_save(
         prop = reagent.property_r.get(
             property_template__description__icontains="total volume"
         )
-        prop.nominal_value.value = sum(desired_volume[reagent.template.description])
+        prop.nominal_value.value += sum(desired_volume[reagent.template.description])
         prop.nominal_value.unit = "uL"
         prop.save()
         if dead_volume is not None:
@@ -344,11 +344,12 @@ def generate_experiments_and_save(
             dv_prop.save()
 
     # This loop adds individual well volmes to each action in the database
+    # without overwriting manual entries for experiments that have both automated and manual components
+
     # for action_description, (reagent_name, mult_factor) in action_reagent_map.items():
     well_list = make_well_labels_list(
         well_count=vessel.well_number, column_order=vessel.column_order, robot="True",
     )
-    # [0:num_of_experiments]
 
     for reagent_name in reagent_template_names:
         saved_actions = []
@@ -369,7 +370,7 @@ def generate_experiments_and_save(
             if action is not None:
                 saved_actions.append(action)
 
-        for i, action in enumerate(saved_actions):
+        for i, action in enumerate(saved_actions[num_of_manual_experiments:]):
 
             parameter = Parameter.objects.get(uuid=action.parameter_uuid)
             # action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
@@ -381,7 +382,7 @@ def generate_experiments_and_save(
                 parameter.parameter_val_nominal.value = 0.0
             parameter.save()
 
-    conc_to_amount(experiment_copy_uuid)
+    #conc_to_amount(experiment_copy_uuid)
 
     return q1
 
@@ -414,13 +415,15 @@ def save_manual_parameters(df, exp_template, experiment_copy_uuid):
             # return rp
 
 
-def save_manual_volumes(df, experiment_copy_uuid, reagent_template_names, dead_volume):
+def save_manual_volumes(
+    df, experiment_copy_uuid, reagent_template_names, dead_volume, vessel
+):
     """[summary]
 
     Args:
         df: Pandas dataframe from uploaded excel spreadsheet with volume/parameter data
         experiment_copy_uuid ([str]): UUID of the experiment to retrieve
-        reagent_template_names ([list]):
+        reagent_template_names ([dict]): dictionary of reagent template names ([str]) for the experiment
         dead_volume: ValField entry for dead volume for the experiment
 
     Returns:
@@ -436,6 +439,7 @@ def save_manual_volumes(df, experiment_copy_uuid, reagent_template_names, dead_v
     for well in df["Vial Site"]:
         well_list.append(well)
 
+    volume_by_well = {}
     # for reagent in reagents:
     for reagent_name in reagent_template_names:
         total_volume = 0
@@ -450,7 +454,21 @@ def save_manual_volumes(df, experiment_copy_uuid, reagent_template_names, dead_v
             if action is not None:
                 parameter = Parameter.objects.get(uuid=action.parameter_uuid)
                 # action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
-                parameter.parameter_val_nominal.value = df[reagent_name][i]
+
+                if (
+                    type(df[reagent_name][i]) == np.int64
+                ):  # check that volumes are non-negative floats
+                    if df[reagent_name][i] >= 0.0:
+                        parameter.parameter_val_nominal.value = df[reagent_name][i]
+
+                        if vial not in volume_by_well.keys():
+                            volume_by_well[vial] = df[reagent_name][i]
+                        else:
+                            volume_by_well[vial] += df[reagent_name][i]
+                else:
+                    raise TypeError(
+                        "Volumes input in the manual specification file must be numbers greater than or equal to 0"
+                    )
                 parameter.parameter_val_nominal.unit = df["Units"][0]
                 # parameter.parameter_val_nominal.value = desired_volume[reagent_name][i]
                 parameter.save()
@@ -471,3 +489,13 @@ def save_manual_volumes(df, experiment_copy_uuid, reagent_template_names, dead_v
                         )
                         dv_prop.nominal_value = dead_volume
                         dv_prop.save()
+
+    if vessel.total_volume is not None:
+        for vial, vol in volume_by_well.items():
+            if vol > vessel.total_volume:
+                raise ValueError(
+                    "Total volume specified for vial {} exceeds capacity {}".format(
+                        vial, vessel.total_volume
+                    )
+                )
+
