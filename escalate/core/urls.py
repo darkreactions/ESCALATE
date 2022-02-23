@@ -1,7 +1,7 @@
 from django.urls import path, include
 import core.views
 from core.views.function_views import (
-    download_robot_file,
+    download_vp_spec_file,
     # save_action_sequence,
     save_experiment_action_sequence,
     experiment_invalid,
@@ -25,7 +25,6 @@ from .views.experiment import (
     CreateExperimentView,
     SetupExperimentView,
     CreateExperimentTemplate,
-    CreateReagentTemplate,
     # ExperimentDetailView,
     ExperimentReagentPrepView,
     ExperimentOutcomeView,
@@ -80,7 +79,9 @@ urlpatterns += [
         name="create_experiment",
     ),
     path(
-        "experiment/setup/robot_file", download_robot_file, name="download_robot_file"
+        "experiment/setup/robot_file",
+        download_vp_spec_file,
+        name="download_vp_spec_file",
     ),
 ]
 
@@ -90,11 +91,6 @@ urlpatterns += [
         "exp_template/",
         CreateExperimentTemplate.as_view(),
         name="experiment_template_add",
-    ),
-    path(
-        "reagent_template/",
-        CreateReagentTemplate.as_view(),
-        name="reagent_template_add",
     ),
     # path("save_action_sequence/", save_action_sequence, name="save_action_sequence",),
     path(
@@ -134,11 +130,6 @@ urlpatterns += [
         name="experiment_completed_instance_add",
     ),
     path("exp_template/experiment", CreateExperimentView.as_view(), name="experiment"),
-    path(
-        "exp_template/reagent-template",
-        CreateReagentTemplate.as_view(),
-        name="reagent-template-add",
-    ),
     path(
         "experiment_completed_instance/<uuid:pk>",
         ExperimentDetailEditView.as_view(),

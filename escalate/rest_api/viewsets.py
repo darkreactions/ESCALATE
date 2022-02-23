@@ -37,11 +37,12 @@ from core.models.view_tables import (  # WorkflowActionSet, #ActionParameter
 )
 import rest_api
 from core.custom_types import Val
-from core.experiment_templates import (
-    liquid_solid_extraction,
-    resin_weighing,
-    perovskite_demo,
-)
+
+# from core.experiment_templates import (
+#  liquid_solid_extraction,
+#  resin_weighing,
+#  perovskite_demo,
+# )
 from .utils import rest_viewset_views, perform_create_views
 from .rest_docs import rest_docs
 

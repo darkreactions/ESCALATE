@@ -1,7 +1,7 @@
 from django.db import connection as con
 from django.db.models import F
+from core.models import ExperimentTemplate, ActionSequence, Action
 from core.models.view_tables import (
-    Parameter,
     BomMaterial,
     Action,
     ActionUnit,
@@ -14,47 +14,179 @@ from core.models.view_tables import (
     ReagentMaterialValue,
     Reagent,
     ReagentTemplate,
-    Vessel,
     VesselType,
 )
 from copy import deepcopy
-import uuid
 
-from .wf1_utils import make_well_labels_list
+import pandas as pd
+import tempfile
+import math
 
 # import core.models.view_tables as vt
 
-'''
-def experiment_copy(template_experiment_uuid, copy_experiment_description):
-    """Wrapper of the ESCALATE postgres function experiment_copy"""
-    cur = con.cursor()
-    cur.callproc('experiment_copy', [template_experiment_uuid, copy_experiment_description])
-    copy_experiment_uuid = cur.fetchone()[0]  # there will always be only one element in the tuple from this PG fn
-    return copy_experiment_uuid
-'''
+
+def camel_to_snake(name):
+    name = "".join(["_" + i.lower() if i.isupper() else i for i in name]).lstrip("_")
+    return name
+
+
+def make_well_labels_list(well_count=96, column_order=None, robot="True"):
+    """[summary]
+
+    Args:
+        well_count ([int]): number of wells
+        column_order ([list]): letters to use in well labels
+        robot([str]): if "True", well labels will be ordered the way robot dispenses liquid. otherwise, chronological
+
+    Returns:
+        [list]: List of well labels ([str])
+    """
+
+    if well_count not in [
+        6,
+        12,
+        24,
+        48,
+        96,
+    ]:  # for arbitrary vessels, label wells in consecutive numerical order
+        if well_count is None:  # beakers, tubes, etc -> one compartment
+            well_labels = [1]
+        else:
+            well_labels = [i for i in range(1, well_count + 1)]
+
+    else:
+        # get dimensions for standard well plates
+        if well_count in [6, 24, 96]:
+            num_rows = math.ceil((well_count * 3 / 2) ** (1 / 2))
+        else:
+            num_rows = math.ceil((well_count * 4 / 3) ** (1 / 2))
+
+        num_columns = well_count / num_rows
+
+        column_options = ["A", "B", "C", "D", "E", "F", "G", "H"]
+        column_order = []
+
+        if robot == "True":  # order list by how the robot draws from the solvent wells
+
+            for i in range(int(math.ceil(num_columns / 2))):
+                column_order.append(column_options[i * 2])
+            for i in range(int(num_columns / 2)):
+                column_order.append(column_options[i * 2 + 1])
+
+        else:  # chronological order for outcomes
+            for i in range(int(num_columns)):
+                column_order.append(column_options[i])
+
+        row_limit = math.ceil(well_count / num_columns)
+        well_labels = [
+            f"{col}{row}" for row in range(1, row_limit + 1) for col in column_order
+        ][:well_count]
+
+    return well_labels
+
+
+def generate_vp_spec_file(reaction_volumes, reaction_parameters, plate, well_count):
+    """Function generates an excel spredsheet to specify volumes and parameters for manual experiments.
+    The spreadsheet can be downloaded via UI and uploaded once edited. Spreadsheet is then parsed to save 
+    values into the database."""
+
+    params = []
+    values = []
+    units = []
+    exp_template = ExperimentTemplate.objects.get(uuid=reaction_volumes[0].uuid)
+    for action_sequence in ActionSequence.objects.filter(experiment=exp_template):
+        actions = Action.objects.filter(action_sequence=action_sequence)
+        for action in actions:
+            for a in action.action_def.parameter_def.all():
+                if "dispense" in action.description.lower():
+                    pass
+                else:
+                    desc = action.description + "-" + a.description
+                    params.append(desc)
+                    val = a.default_val.value
+                    unit = a.default_val.unit
+                    values.append(val)
+                    units.append(unit)
+
+    rxn_parameters = pd.DataFrame(
+        {"Reaction Parameters": params, "Parameter Values": values, "Units": units,}
+    )
+
+    well_names = make_well_labels_list(
+        well_count, column_order=["A", "C", "E", "G", "B", "D", "F", "H"], robot="True"
+    )
+    df_tray = pd.DataFrame({"Vial Site": well_names, "Labware ID:": plate})
+
+    reagent_colnames = []
+    reagents = ExperimentTemplate.objects.get(
+        uuid=reaction_volumes[0].experiment_uuid
+    ).reagent_templates.all()
+    for r in reagents:
+        reagent_colnames.append(r.description)
+
+    reaction_volumes_output = pd.DataFrame(
+        {reagent_col: [0] * len(df_tray) for reagent_col in reagent_colnames}
+    )
+
+    if reaction_volumes is not None:
+        reaction_volumes_output = pd.concat(
+            [df_tray["Vial Site"], reaction_volumes_output], axis=1
+        )
+
+    volume_units = pd.DataFrame({"Units": ["uL"]})
+    volume_units[" "] = None
+    volume_units.reindex(columns=[" ", "Units"])
+
+    outframe = pd.concat(
+        [  # df_tray['Vial Site'],
+            reaction_volumes_output,
+            # volume_units,
+            volume_units.reindex(columns=[" ", "Units"]),
+            # df_tray["Labware ID:"],
+            rxn_parameters,
+            # rxn_conditions,
+        ],
+        sort=False,
+        axis=1,
+    )
+    temp = tempfile.TemporaryFile()
+    # xlwt is no longer maintained and will be removed from pandas in future versions
+    # use io.excel.xls.writer as the engine once xlwt is removed
+    outframe.to_excel(
+        temp, sheet_name=exp_template.description, index=False, engine="xlwt"
+    )
+    temp.seek(0)
+    return temp
 
 
 def generate_action_def_json(action_defs, exp_template_uuid):
-    # action_defs = [a for a in vt.ActionDef.objects.all()]
-    source_choices = [" "]
+    """[summary]
+
+    Args:
+        action_defs([list]): ActionDef objects
+        exp_template_uuid ([str]): UUID of the experiment template to retrieve
+
+    Returns:
+        [dictionary]: json data to populate action def options in UI
+    """
+
+    # by convention, transfer-type actions(e.g. dispense) involve moving a source into a destination
+    # other actions, e.g. heat, involve only one material/vessel.
+    # this is specified as the destination and source is left blank
+
+    source_choices = [
+        " "
+    ]  # add a "blank" source for actions that do not involve transferring
     dest_choices = []
 
     for reagent in ReagentTemplate.objects.filter(
         experiment_template_reagent_template=ExperimentTemplate(uuid=exp_template_uuid)
     ):
-        # for reagent in ReagentTemplate.objects.all():
+        # include all reagents associated with experiment template as action sources/destinations
         source_choices.append(reagent.description)
         dest_choices.append(reagent.description)
-    for vt in VesselType.objects.all():
+    for vt in VesselType.objects.all():  # include all vessels as destinations
         dest_choices.append(vt.description)
-
-    """for vessel in Vessel.objects.all():
-        if vessel.parent is None:
-            if "Plate" in vessel.description:
-                dest_choices.append("{} - plate".format(vessel.vessel_type.description))
-                dest_choices.append("{} - wells".format(vessel.vessel_type.description))
-            else:
-                dest_choices.append(vessel.vessel_type.description)"""
 
     json_data = []
 
@@ -86,51 +218,12 @@ def generate_action_def_json(action_defs, exp_template_uuid):
                 ],
             }
         )
-        # for param in action_defs[i].parameter_def.all():
-
-        # json_data[i]["properties"].append(
-        # {
-        # "name": param.description,
-        # "type": "text",
-        # "label": param.description,
-        # "hint": "",
-        # "options": {},
-        # }
-        # )
-        # json_data[i]["runtimeDescription"] += (
-        # " {}: ".format(param.description)
-        # + "${ "
-        # + "x.state.{} ".format(param.description)
-        # + "} \n"
-        # )
-
-        # json_data[i]["runtimeDescription"] += " ` "
-
     return json_data
 
 
-"""def generate_action_sequence_json(action_sequences):
-
-    json_data = []
-
-    for i in range(len(action_sequences)):
-
-        json_data.append(
-            {
-                "type": str(action_sequences[i].uuid),
-                "displayName": action_sequences[i].description,
-                "runtimeDescription": " ",
-                "properties": [],
-                "description": action_sequences[i].description,
-                "category": "template",
-                "outcomes": ["Done"],
-            }
-        )
-    return json_data"""
-
-
-# def experiment_copy(template_experiment_uuid, copy_experiment_description):
 def experiment_copy(template_experiment_uuid, copy_experiment_description, vessel):
+    # TODO: header/documentation
+
     # Get parent Experiment from template_experiment_uuid
     exp_template = ExperimentTemplate.objects.get(uuid=template_experiment_uuid)
     # experiment row creation, overwrites original experiment template object with new experiment object.
@@ -225,36 +318,6 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description, vesse
                 current_action_unit.save()
 
             # get all parameters and create uuids for them and assign action uuid to each parameter
-            """
-            get_parameter = Parameter.objects.filter(action=action_template)
-            for current_parameter in get_parameter.iterator():
-                current_parameter.uuid = None
-                current_parameter.action = current_action
-                current_parameter.save()
-            """
-            """ 
-            This might not be needed because it only stores the action, condition, or workflow which is 
-            already done in WorkflowStep
-            
-            # create workflow object
-            q_workflow_object = WorkflowObject(workflow=instance_workflow,
-                                               action=instance_action)
-            q_workflow_object.save()
-
-            # create workflow steps
-            # this is most likely going to need revisions and possible updates to model to change workflow_action_set_uuid -> action_uuid
-            q_workflow_step = WorkflowStep(workflow=instance_workflow,
-                                           workflow_object=q_workflow_object,
-                                           parent=instance_workflow,  # this was workflowstep and needs to be fixed
-                                           status=instance_action.status)
-            q_workflow_step.save()
-            workflow_step_parent = q_workflow_step.uuid
-            """
-
-        # Do I need to update condition?
-        # If so create condition, figure out conditional requirements, and loop through conditions like action
-        # and update workflow_step
-        # need to find out more about how this would work
 
     # Iterate over all reagent-templates and create reagentintances and reagentinstancevalues
     for reagent_template in exp_template.reagent_templates.all():
@@ -321,49 +384,3 @@ view_names = [
     "ExperimentPendingInstance",
     "ExperimentTemplate",
 ]
-
-
-def camel_to_snake(name):
-    name = "".join(["_" + i.lower() if i.isupper() else i for i in name]).lstrip("_")
-    return name
-
-
-class Node:
-    def __init__(self, data):
-        self.left = None
-        self.right = None
-        self.data = data
-
-    # Insert Node
-    def insert(self, data):
-        if self.data:
-            if data < self.data:
-                if self.left is None:
-                    self.left = Node(data)
-                else:
-                    self.left.insert(data)
-            else:  # data > self.data:
-                if self.right is None:
-                    self.right = Node(data)
-                else:
-                    self.right.insert(data)
-        else:
-            self.data = data
-
-    # Print the Tree
-    def PrintTree(self):
-        if self.left:
-            self.left.PrintTree()
-        print(self.data),
-        if self.right:
-            self.right.PrintTree()
-
-    # Inorder traversal
-    # Left -> Root -> Right
-    def inorderTraversal(self, root):
-        res = []
-        if root:
-            res = self.inorderTraversal(root.left)
-            res.append(root.data)
-            res = res + self.inorderTraversal(root.right)
-        return res
