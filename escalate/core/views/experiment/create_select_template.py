@@ -1,19 +1,22 @@
 from __future__ import annotations
-from typing import Any
 
+from typing import Any
+from django import forms
 from django.forms import formset_factory, BaseFormSet
 from django.http.request import HttpRequest
+from django.http import HttpResponseRedirect
 from django.views.generic import TemplateView
 from django.shortcuts import render
+from django.urls import reverse
+
+from django.contrib import messages
 from core.utilities.experiment_utils import get_action_parameter_querysets
 from core.models import (
-    Actor,
     ExperimentTemplate,
     ReagentTemplate,
     ReagentMaterialTemplate,
     ReagentMaterialValueTemplate,
     MaterialType,
-    ReactionParameter,
     Vessel,
 )
 from core.forms.custom_types import (
@@ -23,14 +26,13 @@ from core.forms.custom_types import (
     VesselForm,
     SingleValForm,
     ExperimentNameForm,
-    RobotForm,
+    ManualSpecificationForm,
 )
 from core.custom_types import Val
 
 
 class SelectReagentsView(TemplateView):
     template_name = "core/experiment/create/base_create.html"
-    # template_name = "core/experiment/create/select_template.html"
 
     ReagentFormSet: BaseFormSet = formset_factory(
         ReagentForm, extra=0, formset=BaseReagentFormSet
@@ -38,7 +40,6 @@ class SelectReagentsView(TemplateView):
 
     def get(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
-        # context["vessel_form"] = self.get_vessel_form(context)
         return render(request, self.template_name, context)
 
     def post(self, request: HttpRequest, *args, **kwargs):
@@ -49,7 +50,6 @@ class SelectReagentsView(TemplateView):
             request.session["experiment_template_uuid"] = exp_uuid
         else:
             exp_uuid = request.session["experiment_template_uuid"]
-        # exp_uuid = request.session["experiment_template_uuid"]
         context["selected_exp_template"] = ExperimentTemplate.objects.get(uuid=exp_uuid)
         context["experiment_name_form"] = ExperimentNameForm()
         context = self.get_forms(context["selected_exp_template"], context)
@@ -59,22 +59,30 @@ class SelectReagentsView(TemplateView):
 
         if (num_manual_exp := int(request.POST["manual"])) >= 0:
             context["manual"] = num_manual_exp
-            context["robot_file_upload_form"] = RobotForm(request.POST, request.FILES)
-            context["robot_file_upload_form_helper"] = RobotForm.get_helper()
+            context["spec_file_upload_form"] = ManualSpecificationForm(
+                request.POST, request.FILES
+            )
+            context[
+                "spec_file_upload_form_helper"
+            ] = ManualSpecificationForm.get_helper()
 
+        # get vessel`
         if "value" in request.POST.keys():
             context["vessel"] = Vessel.objects.get(uuid=request.POST["value"])
             vessel_uuid = str(context["vessel"].uuid)
             request.session["vessel"] = vessel_uuid
 
+        if num_automated_exp + num_manual_exp > context["vessel"].well_number:
+            # make sure # of desired experiments does not exceed vessel's well count
+            messages.error(
+                request,
+                "Error: Number of total experiments exceeds well count of selected vessel",
+            )
         return render(request, self.template_name, context)
 
     def get_forms(self, exp_template: ExperimentTemplate, context: dict[str, Any]):
         context = self.get_reagent_forms(context)
-        # context = self.get_dead_volume_form(context)
         context = self.get_volume_forms(context)
-        # context = self.get_vessel_form(context)
-        # context = self.get_reaction_parameter_forms(context)
         context["colors"] = self.get_colors(len(context["reagent_formset"]))
         return context
 
@@ -92,21 +100,20 @@ class SelectReagentsView(TemplateView):
         reagent_template: ReagentTemplate
         for index, reagent_template in enumerate(
             exp_template.reagent_templates.all().order_by("description")
-        ):  # type: ignore
+        ):
             reagent_template_names.append(reagent_template.description)
             mat_types_list = []
             initial_data: list[Any] = []
             reagent_material_template: ReagentMaterialTemplate
             for reagent_material_template in reagent_template.reagent_material_template_rt.all().order_by("description"):  # type: ignore
                 reagent_material_value_template: ReagentMaterialValueTemplate
-                # type: ignore
                 for (
                     reagent_material_value_template
                 ) in reagent_material_template.reagent_material_value_template_rmt.filter(
                     description="concentration"
                 ):
                     material_type: MaterialType
-                    material_type = reagent_material_template.material_type  # type: ignore
+                    material_type = reagent_material_template.material_type
                     mat_types_list.append(material_type)
                     initial_data.append(
                         {
@@ -114,7 +121,7 @@ class SelectReagentsView(TemplateView):
                             "material_type": material_type.uuid,
                             "desired_concentration": reagent_material_value_template.default_value.nominal_value,
                         }
-                    )  # type: ignore
+                    )
 
             if mat_types_list:
                 fset = self.ReagentFormSet(
@@ -125,10 +132,9 @@ class SelectReagentsView(TemplateView):
                         "mat_types_list": mat_types_list,
                         "reagent_index": index,
                     },
-                )  # type: ignore
+                )
                 formsets.append(fset)
-        # for form in formset:
-        #    form.fields[]
+
         context["reagent_formset_helper"] = ReagentForm.get_helper()
         context["reagent_formset_helper"].form_tag = False
         context["reagent_formset"] = formsets
@@ -174,17 +180,10 @@ class SelectReagentsView(TemplateView):
                 + ": "
                 + str(rp.parameter_def_description)
             )
-            # rp_label = str(rp.action_unit_description)
-            # rp_label = str(rp.object_description)  # type: ignore
             if "dispense" in rp_label.lower():
                 continue
             else:
                 try:
-                    # rp_object = (
-                    #  ReactionParameter.objects.filter(description=rp_label)
-                    #  .order_by("add_date")
-                    #  .first()
-                    # )
                     initial = {
                         "value": Val.from_dict(
                             {
@@ -223,6 +222,7 @@ class SelectReagentsView(TemplateView):
             "cornflowerblue",
         ],
     ) -> list[str]:
+        """Colors for forms that display on UI"""
         factor = int(number_of_colors / len(colors))
         remainder = number_of_colors % len(colors)
         total_colors = colors * factor + colors[:remainder]

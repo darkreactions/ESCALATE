@@ -1,9 +1,10 @@
 from django.urls import path, include
 import core.views
 from core.views.function_views import (
-    download_robot_file,
+    download_vp_spec_file,
     # save_action_sequence,
     save_experiment_action_sequence,
+    experiment_invalid,
 )
 
 from .views import (
@@ -24,7 +25,6 @@ from .views.experiment import (
     CreateExperimentView,
     SetupExperimentView,
     CreateExperimentTemplate,
-    CreateReagentTemplate,
     # ExperimentDetailView,
     ExperimentReagentPrepView,
     ExperimentOutcomeView,
@@ -79,7 +79,9 @@ urlpatterns += [
         name="create_experiment",
     ),
     path(
-        "experiment/setup/robot_file", download_robot_file, name="download_robot_file"
+        "experiment/setup/robot_file",
+        download_vp_spec_file,
+        name="download_vp_spec_file",
     ),
 ]
 
@@ -89,11 +91,6 @@ urlpatterns += [
         "exp_template/",
         CreateExperimentTemplate.as_view(),
         name="experiment_template_add",
-    ),
-    path(
-        "reagent_template/",
-        CreateReagentTemplate.as_view(),
-        name="reagent_template_add",
     ),
     # path("save_action_sequence/", save_action_sequence, name="save_action_sequence",),
     path(
@@ -134,11 +131,6 @@ urlpatterns += [
     ),
     path("exp_template/experiment", CreateExperimentView.as_view(), name="experiment"),
     path(
-        "exp_template/reagent-template",
-        CreateReagentTemplate.as_view(),
-        name="reagent-template-add",
-    ),
-    path(
         "experiment_completed_instance/<uuid:pk>",
         ExperimentDetailEditView.as_view(),
         name="experiment_completed_instance_view",
@@ -152,6 +144,11 @@ urlpatterns += [
         "experiment_completed_instance/<uuid:pk>/parameter",
         ParameterEditView.as_view(),
         name="experiment_completed_instance_parameter",
+    ),
+    path(
+        "experiment_completed_instance/<uuid:pk>/delete",
+        experiment_invalid,
+        name="experiment_completed_instance_delete",
     ),
 ]
 
@@ -187,6 +184,11 @@ urlpatterns += [
         ParameterEditView.as_view(),
         name="experiment_pending_instance_parameter",
     ),
+    path(
+        "experiment_pending_instance/<uuid:pk>/delete",
+        experiment_invalid,
+        name="experiment_pending_instance_delete",
+    ),
 ]
 
 
@@ -219,13 +221,15 @@ def add_urls(model_name, pattern_list):
             )
         )
     if (delete_view_class := getattr(core.views, f"{model_name}Delete", None)) != None:
-        new_urls.append(
-            path(
-                f"{lower_case_model_name}/<uuid:pk>/delete",
-                delete_view_class.as_view(),
-                name=f"{lower_case_model_name}_delete",
+        #remove ExperimentPendingInstance and ExperimentCompletedInstance
+        if (lower_case_model_name != 'experiment_pending_instance' and lower_case_model_name != 'experiment_completed_instance'):
+            new_urls.append(
+                path(
+                    f"{lower_case_model_name}/<uuid:pk>/delete",
+                    delete_view_class.as_view(),
+                    name=f"{lower_case_model_name}_delete",
+                )
             )
-        )
     if (detail_view_class := getattr(core.views, f"{model_name}View", None)) != None:
         new_urls.append(
             path(
