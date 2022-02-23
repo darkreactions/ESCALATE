@@ -1,6 +1,7 @@
 from __future__ import annotations
-from typing import Any
 
+from typing import Any
+from django import forms
 from django.forms import formset_factory, BaseFormSet
 from django.http.request import HttpRequest
 from django.http import HttpResponseRedirect
@@ -71,15 +72,12 @@ class SelectReagentsView(TemplateView):
             vessel_uuid = str(context["vessel"].uuid)
             request.session["vessel"] = vessel_uuid
 
-            if num_automated_exp + num_manual_exp > context["vessel"].well_number:
-                # make sure # of desired experiments does not exceed vessel's well count
-                messages.error(
-                    request,
-                    "Error: Number of total experiments exceeds well count of selected vessel",
-                )
-            # return context
-            # return HttpResponseRedirect(reverse("experiment_instance_add"))
-
+        if num_automated_exp + num_manual_exp > context["vessel"].well_number:
+            # make sure # of desired experiments does not exceed vessel's well count
+            messages.error(
+                request,
+                "Error: Number of total experiments exceeds well count of selected vessel",
+            )
         return render(request, self.template_name, context)
 
     def get_forms(self, exp_template: ExperimentTemplate, context: dict[str, Any]):
@@ -102,21 +100,20 @@ class SelectReagentsView(TemplateView):
         reagent_template: ReagentTemplate
         for index, reagent_template in enumerate(
             exp_template.reagent_templates.all().order_by("description")
-        ):  # type: ignore
+        ):
             reagent_template_names.append(reagent_template.description)
             mat_types_list = []
             initial_data: list[Any] = []
             reagent_material_template: ReagentMaterialTemplate
             for reagent_material_template in reagent_template.reagent_material_template_rt.all().order_by("description"):  # type: ignore
                 reagent_material_value_template: ReagentMaterialValueTemplate
-                # type: ignore
                 for (
                     reagent_material_value_template
                 ) in reagent_material_template.reagent_material_value_template_rmt.filter(
                     description="concentration"
                 ):
                     material_type: MaterialType
-                    material_type = reagent_material_template.material_type  # type: ignore
+                    material_type = reagent_material_template.material_type
                     mat_types_list.append(material_type)
                     initial_data.append(
                         {
@@ -124,7 +121,7 @@ class SelectReagentsView(TemplateView):
                             "material_type": material_type.uuid,
                             "desired_concentration": reagent_material_value_template.default_value.nominal_value,
                         }
-                    )  # type: ignore
+                    )
 
             if mat_types_list:
                 fset = self.ReagentFormSet(
@@ -135,10 +132,9 @@ class SelectReagentsView(TemplateView):
                         "mat_types_list": mat_types_list,
                         "reagent_index": index,
                     },
-                )  # type: ignore
+                )
                 formsets.append(fset)
-        # for form in formset:
-        #    form.fields[]
+
         context["reagent_formset_helper"] = ReagentForm.get_helper()
         context["reagent_formset_helper"].form_tag = False
         context["reagent_formset"] = formsets
@@ -226,6 +222,7 @@ class SelectReagentsView(TemplateView):
             "cornflowerblue",
         ],
     ) -> list[str]:
+        """Colors for forms that display on UI"""
         factor = int(number_of_colors / len(colors))
         remainder = number_of_colors % len(colors)
         total_colors = colors * factor + colors[:remainder]

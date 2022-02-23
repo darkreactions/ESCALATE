@@ -6,7 +6,7 @@ import numpy as np
 from copy import deepcopy
 import os
 from tkinter.constants import CURRENT
-from django.db.models import F, Value
+from django.db.models import F
 from django.db.models.query import QuerySet
 
 from core.models.view_tables import (
@@ -23,12 +23,10 @@ from core.custom_types import Val
 from core.utilities.randomSampling import generateExperiments
 from core.utilities.utils import make_well_labels_list
 
-from .calculations import conc_to_amount
-
-from django.contrib import messages
-
 
 def update_dispense_action_set(dispense_action_set, volumes, unit="mL"):
+    # TODO: header/documentation
+
     dispense_action_set_params = deepcopy(dispense_action_set.__dict__)
     """
     # deletes old action set and updates the action set
@@ -282,7 +280,6 @@ def prepare_reagents(reagent_formset):
             "desired_concentration"
         ].value
     return reagents
-    # return exp_concentrations
 
 
 def generate_experiments_and_save(
@@ -300,27 +297,29 @@ def generate_experiments_and_save(
     Generates random experiments using sampler and saves volumes 
     associated with dispense actions in an experiment template
     """
-    if exp_template.description == "Workflow 3":  # exclude antisolvent from sampling
+    if (
+        exp_template.description == "Workflow 3"
+    ):  # exclude antisolvent from sampling for wf3 only
         desired_volume = generateExperiments(
             reagent_template_names[0:-1],
             reagentDefs[0:-1],
-            # ["Reagent1", "Reagent2", "Reagent3", "Reagent7"],
             num_of_automated_experiments,
             finalVolume=str(total_volume.value) + " " + total_volume.unit,
         )
         desired_volume[reagent_template_names[-1]] = [
-            800.0 for i in range(num_of_automated_experiments)
+            800.0
+            for i in range(
+                num_of_automated_experiments
+            )  # default volume for antisolvent is 800 uL
         ]
     else:
 
         desired_volume = generateExperiments(
             reagent_template_names,
             reagentDefs,
-            # ["Reagent1", "Reagent2", "Reagent3", "Reagent7"],
             num_of_automated_experiments,
             finalVolume=str(total_volume.value) + " " + total_volume.unit,
         )
-        # desired_volume = generateExperiments(reagents, descriptions, num_of_experiments)
 
     # retrieve q1 information to update
     q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
@@ -382,7 +381,7 @@ def generate_experiments_and_save(
                 parameter.parameter_val_nominal.value = 0.0
             parameter.save()
 
-    #conc_to_amount(experiment_copy_uuid)
+    # conc_to_amount(experiment_copy_uuid)
 
     return q1
 

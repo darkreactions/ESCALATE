@@ -31,10 +31,22 @@ def camel_to_snake(name):
 
 
 def make_well_labels_list(well_count=96, column_order=None, robot="True"):
-    """Generates a list of well labels for a vessel with number of wells = well_count.
-    column_order specifies order of alphabetical characters in labels list (e.g. ACBD versus ABCD)"""
+    """[summary]
+
+    Args:
+        well_count ([int]): number of wells
+        column_order ([list]): letters to use in well labels
+        robot([str]): if "True", well labels will be ordered the way robot dispenses liquid. otherwise, chronological
+
+    Returns:
+        [list]: List of well labels ([str])
+    """
+
     if well_count not in [
+        6,
+        12,
         24,
+        48,
         96,
     ]:  # for arbitrary vessels, label wells in consecutive numerical order
         if well_count is None:  # beakers, tubes, etc -> one compartment
@@ -43,30 +55,32 @@ def make_well_labels_list(well_count=96, column_order=None, robot="True"):
             well_labels = [i for i in range(1, well_count + 1)]
 
     else:
-        num_rows = math.ceil((well_count * 3 / 2) ** (1 / 2))
+        # get dimensions for standard well plates
+        if well_count in [6, 24, 96]:
+            num_rows = math.ceil((well_count * 3 / 2) ** (1 / 2))
+        else:
+            num_rows = math.ceil((well_count * 4 / 3) ** (1 / 2))
+
+        num_columns = well_count / num_rows
+
+        column_options = ["A", "B", "C", "D", "E", "F", "G", "H"]
+        column_order = []
 
         if robot == "True":  # order list by how the robot draws from the solvent wells
-            if well_count == 96:
-                if column_order is None:
-                    column_order = ["A", "C", "E", "G", "B", "D", "F", "H"]
-            if well_count == 24:
-                if column_order is None:
-                    column_order = ["A", "C", "B", "D"]
 
-            total_columns = len(column_order)
-            row_limit = math.ceil(well_count / total_columns)
-            well_labels = [
-                f"{col}{row}" for row in range(1, row_limit + 1) for col in column_order
-            ][:well_count]
+            for i in range(int(math.ceil(num_columns / 2))):
+                column_order.append(column_options[i * 2])
+            for i in range(int(num_columns / 2)):
+                column_order.append(column_options[i * 2 + 1])
 
         else:  # chronological order for outcomes
-            if well_count == 96:
-                column_order = ["A", "B", "C", "D", "E", "F", "G", "H"]
-            if well_count == 24:
-                column_order = ["A", "B", "C", "D"]
-            well_labels = [
-                f"{col}{row}" for col in column_order for row in range(1, num_rows + 1)
-            ][:well_count]
+            for i in range(int(num_columns)):
+                column_order.append(column_options[i])
+
+        row_limit = math.ceil(well_count / num_columns)
+        well_labels = [
+            f"{col}{row}" for row in range(1, row_limit + 1) for col in column_order
+        ][:well_count]
 
     return well_labels
 
