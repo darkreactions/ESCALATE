@@ -18,6 +18,7 @@ from core.models.view_tables import (
     Reagent,
     Vessel,
     ReactionParameter,
+    ActionSequence,
 )
 from core.custom_types import Val
 from core.utilities.randomSampling import generateExperiments
@@ -25,12 +26,15 @@ from core.utilities.utils import make_well_labels_list
 
 
 def update_dispense_action_set(dispense_action_set, volumes, unit="mL"):
-    # TODO: header/documentation
+    """Create a new action set based on the action set passed
+
+    Args:
+        dispense_action_set (Queryset): Queryset that contains the dispense actions
+        volumes (list): List of volumes used to update the queryset
+        unit (str, optional): Unit of volumes. Defaults to "mL".
+    """
 
     dispense_action_set_params = deepcopy(dispense_action_set.__dict__)
-    """
-    # deletes old action set and updates the action set
-    """
     # delete keys from dispense action set that are not needed for creating a new action set
     delete_keys = [
         "uuid",
@@ -61,7 +65,7 @@ def update_dispense_action_set(dispense_action_set, volumes, unit="mL"):
         v = [volumes]
     dispense_action_set_params["calculation_id"] = None
     dispense_action_set_params["parameter_val_nominal"] = v
-    instance = WorkflowActionSet(**dispense_action_set_params)
+    instance = ActionSequence(**dispense_action_set_params)
     instance.save()
 
 
@@ -126,7 +130,15 @@ def supported_wfs():
 
 
 def get_action_parameter_querysets(exp_uuid: str, template=True) -> QuerySet:
-    # TODO: header/documentation
+    """Get a queryset that has data related to the given experiment
+
+    Args:
+        exp_uuid (str): UUID of the experiment
+        template (bool, optional): Whether the experiment is a template or not. Defaults to True.
+
+    Returns:
+        QuerySet: Returns action parameters related to the experiment
+    """
 
     related_exp = "workflow__experiment_workflow_workflow__experiment"
     # related_exp_wf = 'workflow__experiment_workflow_workflow'
@@ -222,7 +234,19 @@ def get_vessel_querysets():
 def save_reaction_parameters(
     exp_template, rp_value, rp_unit, rp_type, rp_label, experiment_copy_uuid
 ):
-    # TODO: header/documentation
+    """Saves reaction parameters to database table
+
+    Args:
+        exp_template (str): Experiment template UUID
+        rp_value (Any): Value of reaction parameter
+        rp_unit (str): Unit of reaction parameter
+        rp_type (str): Type of reaction parameter
+        rp_label (str): Label of parameter
+        experiment_copy_uuid (str): UUID of the experiment copt
+
+    Returns:
+        _type_: _description_
+    """
 
     # for reaction_parameter_label, reaction_parameter_form in reaction_parameter_labels
     # rp_label might be a list so need to itterate over and pass to this
@@ -294,7 +318,7 @@ def generate_experiments_and_save(
     vessel,
 ):
     """
-    Generates random experiments using sampler and saves volumes 
+    Generates random experiments using sampler and saves volumes
     associated with dispense actions in an experiment template
     """
     if (
@@ -347,7 +371,9 @@ def generate_experiments_and_save(
 
     # for action_description, (reagent_name, mult_factor) in action_reagent_map.items():
     well_list = make_well_labels_list(
-        well_count=vessel.well_number, column_order=vessel.column_order, robot="True",
+        well_count=vessel.well_number,
+        column_order=vessel.column_order,
+        robot="True",
     )
 
     for reagent_name in reagent_template_names:
@@ -497,4 +523,3 @@ def save_manual_volumes(
                         vial, vessel.total_volume
                     )
                 )
-

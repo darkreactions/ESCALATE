@@ -87,7 +87,7 @@ def make_well_labels_list(well_count=96, column_order=None, robot="True"):
 
 def generate_vp_spec_file(reaction_volumes, reaction_parameters, plate, well_count):
     """Function generates an excel spredsheet to specify volumes and parameters for manual experiments.
-    The spreadsheet can be downloaded via UI and uploaded once edited. Spreadsheet is then parsed to save 
+    The spreadsheet can be downloaded via UI and uploaded once edited. Spreadsheet is then parsed to save
     values into the database."""
 
     params = []
@@ -109,7 +109,11 @@ def generate_vp_spec_file(reaction_volumes, reaction_parameters, plate, well_cou
                     units.append(unit)
 
     rxn_parameters = pd.DataFrame(
-        {"Reaction Parameters": params, "Parameter Values": values, "Units": units,}
+        {
+            "Reaction Parameters": params,
+            "Parameter Values": values,
+            "Units": units,
+        }
     )
 
     well_names = make_well_labels_list(
@@ -222,8 +226,16 @@ def generate_action_def_json(action_defs, exp_template_uuid):
 
 
 def experiment_copy(template_experiment_uuid, copy_experiment_description, vessel):
-    # TODO: header/documentation
+    """Creates an experiment instance based on the template uuid
 
+    Args:
+        template_experiment_uuid (str): UUID of the experiment template
+        copy_experiment_description (str): Description of experiment instance
+        vessel (model): Vessel used for this experiment
+
+    Returns:
+        str: UUID of the newly created experiment
+    """
     # Get parent Experiment from template_experiment_uuid
     exp_template = ExperimentTemplate.objects.get(uuid=template_experiment_uuid)
     # experiment row creation, overwrites original experiment template object with new experiment object.
