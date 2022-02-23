@@ -1,5 +1,3 @@
-from django.db import connection as con
-
 import inflection
 
 
@@ -23,6 +21,8 @@ def camel_case_uuid(text):
 
 misc_views = set(["NoteX"])
 
+excluded_fields = ["internal_slug"]
+
 core_views = set(
     [
         "Actor",
@@ -44,7 +44,7 @@ core_views = set(
         "UnitType",
         "TypeDef",
         "ParameterDef",
-        "ActionSequenceType",  #'WorkflowStep', 'WorkflowObject',
+        "ActionSequenceType",
         "UdfDef",
         "ExperimentTemplate",
         "ActionSequence",
@@ -97,13 +97,22 @@ GET_only_views = set(["TypeDef"])
 
 unexposed_views = set(["TagAssign", "Note", "Edocument", "Property", "Parameter"])
 
-custom_serializer_views = set(["BomMaterial", "BomCompositeMaterial",])
+custom_serializer_views = set(
+    [
+        "BomMaterial",
+        "BomCompositeMaterial",
+    ]
+)
 
 # Viewsets that are not associated with a model exclusively
 # non_model_views = set(['Experiment', 'ExperimentTemplate'])
 non_model_views = set()
 
-perform_create_views = set(["PropertyTemplate",])
+perform_create_views = set(
+    [
+        "PropertyTemplate",
+    ]
+)
 
 # Set of models for rest_api/serializers.py
 rest_serializer_views = core_views | misc_views | perform_create_views
@@ -167,7 +176,12 @@ expandable_fields = {
     "ExperimentTemplate": {
         "options": {"many_to_many": ["action_sequence"]},
         "fields": {
-            "action_sequence": ("rest_api.ActionSequenceSerializer", {"many": True,},),
+            "action_sequence": (
+                "rest_api.ActionSequenceSerializer",
+                {
+                    "many": True,
+                },
+            ),
             "bill_of_materials": (
                 "rest_api.BillOfMaterialsSerializer",
                 {
@@ -191,7 +205,12 @@ expandable_fields = {
     "ExperimentInstance": {
         "options": {"many_to_many": ["action_sequence"]},
         "fields": {
-            "action_sequence": ("rest_api.ActionSequenceSerializer", {"many": True,},),
+            "action_sequence": (
+                "rest_api.ActionSequenceSerializer",
+                {
+                    "many": True,
+                },
+            ),
             "bill_of_materials": (
                 "rest_api.BillOfMaterialsSerializer",
                 {
@@ -223,127 +242,11 @@ expandable_fields = {
     },
 }
 
-"""
-    'ActionSequence': {
-        'options': {
-            'many_to_many': []
-        },
-        'fields': {
-        'step': ('rest_api.WorkflowStepSerializer',
-                  {
-                      'source': 'workflow_step_workflow',
-                      'many': True,
-                      'read_only': True,
-                      'view_name': 'workflowstep-detail'
-                  })
-        }
-    },
-'WorkflowObject': {
-        'options': {
-            'many_to_many': []
-        },
-        'fields': {
-        'action': ('rest_api.ActionSerializer',
-                    {
-                        'read_only': True,
-                        'view_name': 'action-detail'
-                    })
-        }
-    },
-    'WorkflowStep': {
-        'options': {
-            'many_to_many': ['workflow']
-        },
-        'fields': {
-        'workflow_object': ('rest_api.WorkflowObjectSerializer',
-                            {
-                                'read_only': True,
-                                'view_name': 'workflowobject-detail'
-                            })
-        }
-    },
- 'ReagentInstance':{
-        'options': {
-        },
-        'fields': {
-            'reagent_values': ('rest_api.ReagentInstanceSerializer',
-                     {
-                         'source': 'reagent_instance_value_reagent_instance',
-                         'many': True,
-                         'read_only': True,
-                         'view_name': 'reagentinstancevalue-detail',
-                     }),
-        }
-    },
-'BomCompositeMaterial': {
-        'options': {
-            'many_to_many': []
-        },
-        'fields': {
-            'mixture': ('rest_api.CompositeMaterialSerializer', 
-                                {
-                                    'read_only': True,
-                                    'view_name': 'mixture-detail'
+# Endpoints should be filtered based on lab selected and permissions of the user
+# Remove delete for selected models
 
-                                })
-        }
-    },
-    'BomMaterial': {
-        'options': {
-            'many_to_many': []
-        },
-        'fields': {
-            'bom_composite_material': ('rest_api.BomCompositeMaterialSerializer',
-                                    {
-                                        'source': 'bom_composite_material_bom_material',
-                                        'many': True,
-                                        'read_only': True,
-                                        'view_name': 'bomcompositematerial-detail'
-                                    }
-        )
-        }
-    },
-'Action': {
-        'options': {
-             'many_to_many': []
-        },
-        'fields': {
-            'action_unit': ('rest_api.ActionUnitSerializer', 
-                                {
-                                    'read_only': True,
-                                    'many': True, 
-                                    'source': 'action_unit_action',
-                                    'view_name': 'actionunit-detail'
-                                }),
-                                
+# Write a check_permission() function to see if a row can be modified
 
-        }
-    },
-'ExperimentWorkflow': {
-        'options': {
-            'many_to_many': []
-        },
-        'fields': {
-            'workflow': ('rest_api.WorkflowSerializer',
-                        {
-                            #'read_only': True,
-                            'view_name': 'workflow-detail'
-                        })
-        }
-    },
 
-    'ActionDef': {
-        'options': {
-             'many_to_many': []
-        },
-        'fields': {
-            'parameter_def': ('rest_api.ParameterDefSerializer', 
-                                {
-                                    'read_only': True,
-                                    'many': True, 
-                                    #'source': 'parameter_action',
-                                    'view_name': 'parameterdef-detail'
-                                })
-        }
-    },
-"""
+def check_permission(user, row):
+    pass

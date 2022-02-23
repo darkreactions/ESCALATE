@@ -16,7 +16,6 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from django_filters import rest_framework as filters
-from url_filter.integrations.drf import DjangoFilterBackend
 
 from core.models.core_tables import RetUUIDField
 from core.utilities.utils import experiment_copy
@@ -35,7 +34,7 @@ from core.models.view_tables import (  # WorkflowActionSet, #ActionParameter
     ExperimentTemplate,
     ExperimentInstance,
 )
-import rest_api
+
 from core.custom_types import Val
 from core.experiment_templates import (
     liquid_solid_extraction,
@@ -43,7 +42,16 @@ from core.experiment_templates import (
     perovskite_demo,
 )
 from .utils import rest_viewset_views, perform_create_views
+import core.models
+
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from url_filter.integrations.drf import DjangoFilterBackend
+
 from .rest_docs import rest_docs
+from rest_framework_extensions.mixins import NestedViewSetMixin
+from rest_framework import viewsets
+import rest_api
+
 
 SUPPORTED_CREATE_WFS = [
     mod for mod in dir(core.experiment_templates) if "__" not in mod
@@ -61,20 +69,12 @@ def save_actor_on_post(self, serializer):
     serializer.save(actor=actor)
 
 
-# Download file view
+class CustomViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
-
-def download_blob(request, uuid):
-    edoc = core.models.Edocument.objects.get(uuid=uuid)
-    contents = edoc.edocument
-    filename = edoc.filename
-    testfile = tempfile.TemporaryFile()
-    testfile.write(contents)
-    testfile.seek(0)
-    response = FileResponse(testfile, as_attachment=True, filename=filename)
-
-    # response['Content-Disposition'] = 'attachment; filename=blob.pdf'
-    return response
+    def perform_create(self, serializer):
+        print(serializer)
+        serializer.save()
 
 
 def create_viewset(model_name):
@@ -89,7 +89,7 @@ def create_viewset(model_name):
         "filter_fields": "__all__",
         "__doc__": rest_docs.get(model_name.lower(), ""),
     }
-    viewset_classes = [NestedViewSetMixin, viewsets.ModelViewSet]
+    viewset_classes = [NestedViewSetMixin, CustomViewSet]
     globals()[model_name + "ViewSet"] = type(
         model_name + "ViewSet", tuple(viewset_classes), methods_list
     )
@@ -102,6 +102,19 @@ for view_name in rest_viewset_views:
     create_viewset(view_name)
 
 create_viewset("Edocument")
+
+# Download file view
+def download_blob(request, uuid):
+    edoc = core.models.Edocument.objects.get(uuid=uuid)
+    contents = edoc.edocument
+    filename = edoc.filename
+    testfile = tempfile.TemporaryFile()
+    testfile.write(contents)
+    testfile.seek(0)
+    response = FileResponse(testfile, as_attachment=True, filename=filename)
+
+    # response['Content-Disposition'] = 'attachment; filename=blob.pdf'
+    return response
 
 
 class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
@@ -227,31 +240,6 @@ class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
                 ),
             }
         )
-
-
-"""
-class ExperimentTemplateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
-    #queryset = Experiment.objects.filter(parent__isnull=True)
-    queryset = ExperimentTemplate.objects.all()
-    serializer_class = ExperimentTemplateSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
-    filter_backends = [DjangoFilterBackend]
-    filter_fields =  '__all__'
-class ExperimentInstanceViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
-    #queryset = Experiment.objects.filter(parent__isnull=True)
-    queryset = ExperimentInstance.objects.all()
-    serializer_class = ExperimentInstanceSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
-    filter_backends = [DjangoFilterBackend]
-    filter_fields =  '__all__'
-class ExperimentViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
-    #queryset = Experiment.objects.filter(parent__isnull=False)
-    queryset = Experiment.objects.all()
-    serializer_class = ExperimentSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
-    filter_backends = [DjangoFilterBackend]
-    filter_fields =  '__all__'
-"""
 
 
 class SaveViewSet(NestedViewSetMixin, viewsets.ModelViewSet):

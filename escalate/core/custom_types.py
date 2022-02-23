@@ -93,9 +93,10 @@ class Val:
                 result = default_primitives[description]
         except Exception as e:
             print(e)
-            raise ValidationError(
-                f'Data type mismatch, type provided is "{description}" but value is of type "{reverse_primitives[type(value)]}"'
-            )
+            # raise ValidationError(
+            #    f'Data type mismatch, type provided is "{description}" but value is of type "{reverse_primitives[type(value)]}"'
+            # )
+            result = default_primitives[description]
         return result
 
     def convert_list_value(self, description, value):

@@ -49,6 +49,7 @@ rest_urlpatterns = [
     path("api/", api_root, name="api_root"),
     path("api/login", token_views.obtain_auth_token, name="api_login"),
     path("api/download/<uuid:uuid>/", viewsets.download_blob, name="edoc_download"),
+    # path("")
 ]
 
 registered = router.register(
@@ -114,7 +115,8 @@ for view in rest_nested_url_views:
     dasherized_name = dasherize(view)
     # Add to related names if a field is a foriegn key
     related_names = [
-        f"{name}_{f.name}"
+        # f"{name}_{f.name}"
+        f.related_query_name()
         for f in model._meta.get_fields()
         if isinstance(f, (models.ForeignKey, models.ManyToManyField))
     ]
@@ -152,15 +154,19 @@ for view in rest_nested_url_views:
 
     for i, related_name in enumerate(many_to_one_names):
         model_name = many_to_one_rel_model[i]
-        url = model_name.lower()
+        many_to_one_model = getattr(core.models, model_name)
+        url = dasherize(model_name)
         try:
             viewset = getattr(viewsets, model_name + "ViewSet")
-            registered.register(
-                rf"{url}",
-                viewset,
-                basename=f"{name}-{url}",
-                parents_query_lookups=[name],
-            )
+            # Go through each field and get the model stored in the variable model
+            for field in many_to_one_model._meta.get_fields():
+                if field.related_model == model:
+                    registered.register(
+                        rf"{url}",
+                        viewset,
+                        basename=f"{name}-{url}",
+                        parents_query_lookups=[field.name],
+                    )
         except:
             pass
 
