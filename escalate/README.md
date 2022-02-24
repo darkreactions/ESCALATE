@@ -26,7 +26,7 @@
 - Django 3.0.12
 - Docker
                                                                                              
-                                                                                             ```
+
 [![dockerlogo][docker-logo]][dockerinstall-url]
 &ensp;[![pgadminlogo][pgadmin-logo]][pgadmininstall-url]
 
@@ -108,3 +108,10 @@ Reference [here](../data_model/README.md) for more information on those models.
 [license-url]: https://github.com/darkreactions/ESCALATE/blob/master/LICENSE
 [commits-shield]: https://img.shields.io/github/commit-activity/m/darkreactions/ESCALATE
 [commits-url]: https://github.com/darkreactions/ESCALATE/graphs/commit-activity
+[postgresqlinstall-url]: https://www.postgresql.org/download/
+[postgresql-logo]: images/postgresql_logo.png
+[dockerinstall-url]: https://docs.docker.com/install/
+[docker-logo]: images/docker_logo.png
+[pgadmininstall-url]: https://www.pgadmin.org/download/
+[pgadmin-logo]: images/pgadmin_logo.png
+											     
