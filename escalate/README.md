@@ -30,7 +30,6 @@
 [![dockerlogo][docker-logo]][dockerinstall-url]
 &ensp;[![pgadminlogo][pgadmin-logo]][pgadmininstall-url]
 
-<br/>
                                                                                              
 ## Getting Started
 
