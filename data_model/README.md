@@ -123,17 +123,17 @@ Docker
 
 ## Instantiating the Model (w/ experimental data)
 
-This model can be instantiated into a local PostgreSQL server or into a docker container. As there is extensive documentation and instructions to install PostgreSQL and docker, it will not be covered in this README.
+This model can be instantiated into a local PostgreSQL server or into a Docker container. 
 
-In addition to the environments in which this model can reside (e.g. local or docker), it can be created (restored) from a pg_dump backup.
+In addition to the environments in which this model can reside (e.g. local server or Docker), it can be created (restored) from a pg_dump backup.
 
 ### Initial Instantiation of ESCALATE
 
-The following instructions will assist in starting docker and instantiating ESCALATE locally for the first time.
+The following instructions will assist in setting up a Docker container and instantiating ESCALATE locally for the first time.
 
-1. Download a copy of ESCALATE code from GitHub to your local machine
-2. Install Docker https://docs.docker.com/get-docker/ and open the application
-3. Open terminal/command/powershell and navigate to .../ESCALATE/data_model   
+1. Download a copy of ESCALATE code from GitHub to your local machine or git clone the repo
+2. Install [Docker](https://docs.docker.com/get-docker/) and open the application
+3. Open terminal and navigate to .../ESCALATE/data_model   
 4. Run the following bash commands:
 	```
 		docker-compose down --rmi all -v
@@ -151,9 +151,9 @@ If you do not wish to preload data then skip running the build_django_db shell s
 
 ### Quickest method to fully create database (from backup)
 
-Assumption: you have a database named 'escalate' already created (in either local environment or docker container).
+Assumption: you have a database named 'escalate' already created (in either local environment or Docker container).
 
-**restore into a docker container**
+**restore into a Docker container**
 using the latest 'bak' file in the repo's backup folder. This assumes the following: 1) the docker container is named: escalate and 2) the backup sql file has been moved to a folder in the container
 
 ```
