@@ -26,11 +26,7 @@
 - Django 3.0.12
 - Docker
                                                                                              
-
-[![dockerlogo][docker-logo]][dockerinstall-url]
-&ensp;[![pgadminlogo][pgadmin-logo]][pgadmininstall-url]
-
-                                                                                             
+                                                                                
 ## Getting Started
 
 
@@ -74,11 +70,8 @@ docker exec escalate psql -d escalate -U escalate -f escalate_dev_create_backup.
 <br/>
                                                                                              
                                                                                              
-### Database Setup
-
-If you have Docker and docker-compose installed and ready to use, you can quickly spin up a populated database using `docker-compose up` in the data_model folder. 
-
-
+## Database Setup
+ 
 ### Django Server
 There are 4 Django settings files available in the ./escalate/settings folder.
 - [base.py](escalate/settings/base.py) : Common settings used in the app
@@ -87,7 +80,7 @@ There are 4 Django settings files available in the ./escalate/settings folder.
 - [local.py](escalate/settings/loca.py) : Config for local/live developement and debugging
 
 #### Docker Development Server
-To spin up a dev docker container simply run `docker-compose up` within the current folder. This will automatically connect to the running Escalate v3 Postgres database and apply the required migrations for user and admin tables. 
+If you have Docker installed and ready to use, you can quickly spin up a populated database. Simply run `docker-compose up` in the data_model folder. This will automatically connect to the running Escalate v3 Postgres database and apply the required migrations for user and admin tables. 
 This will not populate users, materials, experiments, organizations, etc. We recommend utilizing our API to create a script to prepopulate the database models prior to running the application.
 Reference [here](../data_model/README.md) for more information on those models.
 
@@ -111,7 +104,4 @@ Reference [here](../data_model/README.md) for more information on those models.
 [postgresqlinstall-url]: https://www.postgresql.org/download/
 [postgresql-logo]: images/postgresql_logo.png
 [dockerinstall-url]: https://docs.docker.com/install/
-[docker-logo]: images/docker_logo.png
-[pgadmininstall-url]: https://www.pgadmin.org/download/
-[pgadmin-logo]: images/pgadmin_logo.png
-											     
+[docker-logo]: images/docker_logo.png						     
