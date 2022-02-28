@@ -42,6 +42,7 @@ import math
 
 import pandas as pd
 
+
 class Command(BaseCommand):
     help = "Loads initial data from load tables after a datebase refresh"
 
@@ -187,26 +188,21 @@ class Command(BaseCommand):
         # Create ActionSequence -> Actions -> ActionUnits
         # TODO: Rename ActionSequence to action sequence
         action_sequences = {
-            "Preheat Temperature (C)": ActionSequence.objects.create(
-                description="Preheat Temperature (C)"
-            ),
-            "Mixing time1 (s)": ActionSequence.objects.create(
-                description="Mixing time1 (s)"
-            ),
-            "Mixing time2 (s)": ActionSequence.objects.create(
-                description="Mixing time2 (s)"
-            ),
-            "Temperature (C)": ActionSequence.objects.create(
-                description="Temperature (C)"
-            ),
-            "Stir Rate (rpm)": ActionSequence.objects.create(
-                description="Stir Rate (rpm)"
-            ),
-            "Reaction time (s)": ActionSequence.objects.create(
-                description="Reaction time (s)"
-            ),
-            "Dispense Solvent": ActionSequence.objects.create(
-                description="Dispense Solvent"
+            "Preheat Plate": ActionSequence.objects.create(description="Preheat Plate"),
+            # "Mixing time2 (s)": ActionSequence.objects.create(
+            # description="Mixing time2 (s)"
+            # ),
+            # "Temperature (C)": ActionSequence.objects.create(
+            #  description="Temperature (C)"
+            # ),
+            # "Stir Rate (rpm)": ActionSequence.objects.create(
+            # description="Stir Rate (rpm)"
+            # ),
+            # "Reaction time (s)": ActionSequence.objects.create(
+            # description="Reaction time (s)"
+            # ),
+            "Dispense Reagent 1 - Solvent": ActionSequence.objects.create(
+                description="Dispense Reagent 1 - Solvent"
             ),
             "Dispense Stock A": ActionSequence.objects.create(
                 description="Dispense Stock A"
@@ -217,9 +213,12 @@ class Command(BaseCommand):
             "Dispense Acid Volume 1": ActionSequence.objects.create(
                 description="Dispense Acid Volume 1"
             ),
-            "Dispense Acid Volume 2": ActionSequence.objects.create(
+            # "Stir Plate": ActionSequence.objects.create(
+            # description="Stir Plate"),
+            "Dispense Reagent 7 - Acid Volume 2": ActionSequence.objects.create(
                 description="Dispense Acid Volume 2"
             ),
+            "Store": ActionSequence.objects.create(description="Store"),
         }
 
         for i, action_seq in enumerate(action_sequences.values()):
@@ -229,6 +228,12 @@ class Command(BaseCommand):
                 action_sequence=action_seq,
             )
             ac_sq.save()
+
+        # VESSEL data
+
+        vessel_types = ["plate", "well", "beaker", "tube", "wells"]
+        for vt in vessel_types:
+            VesselType.objects.create(description=vt)
 
         column_order = "ACEGBDFH"
         rows = 12
@@ -241,6 +246,8 @@ class Command(BaseCommand):
         plate_wells = {}
         for well in well_list:
             plate_wells[well] = Vessel.objects.get(parent=plate, description=well)
+            plate_wells[well].vessel_type.add(vial_type)
+            plate_wells[well].save()
 
         # Create outcome templates, Currently hard coded to capture 96 values
 
@@ -258,16 +265,17 @@ class Command(BaseCommand):
             "dispense": ("volume",),
             "bring_to_temperature": ("temperature",),
             "stir": ("duration", "speed"),
+            "dwell": ("duration", "seal"),
         }
         # Action defs it is assumed that action defs are already inserted
         actions = [  # List of tuples (Description, Action def description, source_bommaterial, destination_bommaterial)
             # ('Preheat Plate', 'bring_to_temperature', (None, None), ('vessel', '96 Well Plate well'), 'Preheat Plate'),
             (
-                "Preheat Temperature (C)",
+                "Preheat Plate",
                 "bring_to_temperature",
                 (None, None),
                 ("vessel", "96 Well Plate well"),
-                "Preheat Temperature (C)",
+                "Preheat Plate",
             ),
             # Prepare stock A
             # ('Add Solvent to Stock A', 'dispense', (None, 'Solvent'), (None, 'Stock A Vial'), 'Prepare stock A'),
@@ -288,7 +296,7 @@ class Command(BaseCommand):
             (
                 "Dispense Stock A",
                 "dispense",
-                (None, "Solvent"),
+                (None, "Stock A"),
                 ("vessel", plate_wells),
                 "Dispense Stock A",
             ),
@@ -296,7 +304,7 @@ class Command(BaseCommand):
             (
                 "Dispense Stock B",
                 "dispense",
-                (None, "Solvent"),
+                (None, "Stock B"),
                 ("vessel", plate_wells),
                 "Dispense Stock B",
             ),
@@ -304,58 +312,58 @@ class Command(BaseCommand):
             (
                 "Dispense Acid Volume 1",
                 "dispense",
-                (None, "Solvent"),
+                (None, "Acid"),
                 ("vessel", plate_wells),
                 "Dispense Acid Volume 1",
             ),
             # Heat stir 1
             # ('Heat stir 1', 'heat_stir', (None, None), ('vessel', '96 Well Plate well'), 'Heat stir 1'),
             (
-                "Mixing time1 (s)",
+                "Stir Plate",
                 "stir",
                 (None, None),
                 ("vessel", "96 Well Plate well"),
-                "Mixing time1 (s)",
+                "Dispense Reagent 7 - Acid Volume 1",
             ),
             # Dispense Acid Vol 2
             (
                 "Dispense Acid Volume 2",
                 "dispense",
-                (None, "Solvent"),
+                (None, "Acid"),
                 ("vessel", plate_wells),
                 "Dispense Acid Volume 2",
             ),
             # Heat stir 2
             # ('Heat stir 2', 'heat_stir', (None, None), ('vessel', '96 Well Plate well'), 'Heat stir 2'),
             (
-                "Mixing time2 (s)",
+                "Stir Plate",
                 "stir",
                 (None, None),
                 ("vessel", "96 Well Plate well"),
-                "Mixing time2 (s)",
+                "Dispense Reagent 7 - Acid Volume 2",
             ),
             # Heat
             # ('Heat', 'heat', (None, None), ('vessel', '96 Well Plate well'), 'Heat'),
+            # (
+            #   "Temperature (C)",
+            #  "bring_to_temperature",
+            # (None, None),
+            # ("vessel", "96 Well Plate well"),
+            # "Temperature (C)",
+            # ),
+            # (
+            #  "Stir Rate (rpm)",
+            #  "stir",
+            #  (None, None),
+            #  ("vessel", "96 Well Plate well"),
+            #  "Stir Rate (rpm)",
+            # ),
             (
-                "Temperature (C)",
-                "bring_to_temperature",
+                "Store",
+                "dwell",
                 (None, None),
                 ("vessel", "96 Well Plate well"),
-                "Temperature (C)",
-            ),
-            (
-                "Stir Rate (rpm)",
-                "stir",
-                (None, None),
-                ("vessel", "96 Well Plate well"),
-                "Stir Rate (rpm)",
-            ),
-            (
-                "Reaction time (s)",
-                "stir",
-                (None, None),
-                ("vessel", "96 Well Plate well"),
-                "Reaction time (s)",
+                "Store",
             ),
         ]
 
@@ -1169,28 +1177,40 @@ class Command(BaseCommand):
         filename = "load_material_identifier.csv"
         MATERIAL_IDENTIFIERS = path_to_file(filename)
 
-        df = pd.read_csv(MATERIAL_IDENTIFIERS, sep='\t', index_col=False, header=0)
+        df = pd.read_csv(MATERIAL_IDENTIFIERS, sep="\t", index_col=False, header=0)
 
         active_status = Status.objects.get(description="active")
         material_identifier_defs = {
-                x.description: x for x in MaterialIdentifierDef.objects.all()
+            x.description: x for x in MaterialIdentifierDef.objects.all()
         }
 
         new_material_identifier = 0
         for _, row in df.iterrows():
-            description = clean_string(row['description'])
-            material_identifier_def__description = clean_string(row['material_identifier_def__description'])
-            material_identifier_def = material_identifier_defs[y] if not string_is_null(y := material_identifier_def__description) else None
+            description = clean_string(row["description"])
+            material_identifier_def__description = clean_string(
+                row["material_identifier_def__description"]
+            )
+            material_identifier_def = (
+                material_identifier_defs[y]
+                if not string_is_null(y := material_identifier_def__description)
+                else None
+            )
             fields = {
-                'description': description,
-                'material_identifier_def': material_identifier_def,
-                'status': active_status
+                "description": description,
+                "material_identifier_def": material_identifier_def,
+                "status": active_status,
             }
-            material_identifier_instance, created = MaterialIdentifier.objects.get_or_create(**fields)
+            (
+                material_identifier_instance,
+                created,
+            ) = MaterialIdentifier.objects.get_or_create(**fields)
             if created:
                 new_material_identifier += 1
-        self.stdout.write(self.style.SUCCESS(
-            f'Added {new_material_identifier} new material identifiers'))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Added {new_material_identifier} new material identifiers"
+            )
+        )
         self.stdout.write(self.style.NOTICE("Finished loading material identifier"))
 
     def _load_material(self):
@@ -1200,7 +1220,9 @@ class Command(BaseCommand):
         for filename in filenames:
             MATERIAL = path_to_file(filename)
 
-            df = pd.read_csv(MATERIAL, sep='\t', index_col=False, header=0, na_filter=False)
+            df = pd.read_csv(
+                MATERIAL, sep="\t", index_col=False, header=0, na_filter=False
+            )
 
             material_identifier_defs = {
                 x.description: x for x in MaterialIdentifierDef.objects.all()
@@ -1210,13 +1232,19 @@ class Command(BaseCommand):
             new_material = 0
 
             for _idx, row in df.iterrows():
-                description = clean_string(row['description'])
-                material_class = clean_string(row['material_class'])
-                consumable = row['consumable']
+                description = clean_string(row["description"])
+                material_class = clean_string(row["material_class"])
+                consumable = row["consumable"]
 
-                material_identifier_descs_joined = clean_string(row['material_identifier__description'])
-                material_identifier_def_descs_joined = clean_string(row['material_identifier_def__description'])
-                material_type_descs_joined = clean_string(row['material_type__description'])
+                material_identifier_descs_joined = clean_string(
+                    row["material_identifier__description"]
+                )
+                material_identifier_def_descs_joined = clean_string(
+                    row["material_identifier_def__description"]
+                )
+                material_type_descs_joined = clean_string(
+                    row["material_type__description"]
+                )
 
                 # update phase, model update to include phase into materials and foreign key material from inventory material
                 """
@@ -1245,31 +1273,28 @@ class Command(BaseCommand):
                     else []
                 )
 
-
                 fields = {
-                    'description': description,
-                    'material_class': material_class,
-                    'consumable': consumable,
-                    'status': active_status
+                    "description": description,
+                    "material_class": material_class,
+                    "consumable": consumable,
+                    "status": active_status,
                 }
                 material_instance, created = Material.objects.get_or_create(**fields)
                 if created:
                     new_material += 1
 
                 material_instance.identifier.add(
-                        *[
-                            MaterialIdentifier.objects.get(
-                                description=descr,
-                                material_identifier_def=material_identifier_defs[
-                                    def_descr
-                                ],
-                            )
-                            for descr, def_descr in zip(
-                                material_identifier__description,
-                                material_identifier_def__description,
-                            )
-                        ]
-                    )
+                    *[
+                        MaterialIdentifier.objects.get(
+                            description=descr,
+                            material_identifier_def=material_identifier_defs[def_descr],
+                        )
+                        for descr, def_descr in zip(
+                            material_identifier__description,
+                            material_identifier_def__description,
+                        )
+                    ]
+                )
                 material_instance.material_type.add(
                     *[
                         MaterialType.objects.get(description=d)
@@ -1277,8 +1302,7 @@ class Command(BaseCommand):
                     ]
                 )
 
-            self.stdout.write(self.style.SUCCESS(
-                f'Added {new_material} new materials'))
+            self.stdout.write(self.style.SUCCESS(f"Added {new_material} new materials"))
         self.stdout.write(self.style.NOTICE("Finished loading material"))
 
     def _load_inventory_material(self):
@@ -1286,24 +1310,25 @@ class Command(BaseCommand):
         filename = "load_inventory_material.txt"
         INVENTORY_MATERIALS = path_to_file(filename)
 
-        df = pd.read_csv(INVENTORY_MATERIALS, sep='\t', index_col=False, header=0, na_filter=False)
+        df = pd.read_csv(
+            INVENTORY_MATERIALS, sep="\t", index_col=False, header=0, na_filter=False
+        )
 
         active_status = Status.objects.get(description="active")
 
-
         new_inventory_material = 0
         for _idx, row in df.iterrows():
-            description = clean_string(row['description'])
-            inventory_description = clean_string(row['inventory_description'])
-            material_description = clean_string(row['material_description'])
-            part_no = clean_string(row['part_no'])
+            description = clean_string(row["description"])
+            inventory_description = clean_string(row["inventory_description"])
+            material_description = clean_string(row["material_description"])
+            part_no = clean_string(row["part_no"])
 
-            onhand_amt_type = clean_string(row['onhand_amt_type'])
-            onhand_amt_unit = clean_string(row['onhand_amt_unit'])
-            onhand_amt_value = clean_string(row['onhand_amt_value'])
+            onhand_amt_type = clean_string(row["onhand_amt_type"])
+            onhand_amt_unit = clean_string(row["onhand_amt_unit"])
+            onhand_amt_value = clean_string(row["onhand_amt_value"])
 
-            expiration_date = clean_string(row['expiration_date'])
-            location = clean_string(row['location'])
+            expiration_date = clean_string(row["expiration_date"])
+            location = clean_string(row["location"])
 
             try:
                 material = (
@@ -1353,9 +1378,7 @@ class Command(BaseCommand):
                 print(material_description)
 
             try:
-                material_object = Material.objects.get(
-                    description=material_description
-                )
+                material_object = Material.objects.get(description=material_description)
                 inventory_material_instance.material = material_object
             except Material.DoesNotExist:
                 inventory_material_instance.material = None
@@ -1363,10 +1386,12 @@ class Command(BaseCommand):
             if created:
                 new_inventory_material += 1
 
-        self.stdout.write(self.style.SUCCESS(
-            f'Added {new_inventory_material} new inventory materials'))
-        self.stdout.write(self.style.NOTICE(
-            'Finished loading inventory material'))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Added {new_inventory_material} new inventory materials"
+            )
+        )
+        self.stdout.write(self.style.NOTICE("Finished loading inventory material"))
 
     def _load_vessels(self):
         self.stdout.write(self.style.NOTICE("Beginning loading vessels"))
@@ -1374,21 +1399,26 @@ class Command(BaseCommand):
         filename = "load_vessel.csv"
         OLD_DEV_SCHEMA_MATERIALS = path_to_file(filename)
 
-        df = pd.read_csv(OLD_DEV_SCHEMA_MATERIALS, sep='\t', index_col=False, header=0, na_filter=False)
+        df = pd.read_csv(
+            OLD_DEV_SCHEMA_MATERIALS,
+            sep="\t",
+            index_col=False,
+            header=0,
+            na_filter=False,
+        )
 
         active_status = Status.objects.get(description="active")
 
         new_vessels = 0
         new_plates = 0
         for _, row in df.iterrows():
-            description = clean_string(row['description'])
+            description = clean_string(row["description"])
             parts = description.split("#:")
             assert 1 <= len(parts) <= 2
             plate_name = parts[0].strip() if len(parts) >= 1 else None
             well_number = parts[1].strip() if len(parts) > 1 else None
             plate_instance, created = Vessel.objects.get_or_create(
-                description=plate_name,
-                status=active_status
+                description=plate_name, status=active_status
             )
             if well_number is not None:
                 well_instance, created = Vessel.objects.get_or_create(
@@ -1398,7 +1428,7 @@ class Command(BaseCommand):
                     new_plates += 1
         self.stdout.write(self.style.SUCCESS(f"Added {new_vessels} new vessels"))
         self.stdout.write(self.style.SUCCESS(f"Added {new_plates} new plates"))
-        
+
         self.stdout.write(self.style.NOTICE("Finished loading vessels"))
 
     # ---------------EXPERIMENT--------------
@@ -1415,7 +1445,9 @@ class Command(BaseCommand):
         filename = "load_parameter_def.csv"
         PARAMETER_DEF = path_to_file(filename)
 
-        df = pd.read_csv(PARAMETER_DEF, sep='\t', index_col=False, header=0, na_filter=False)
+        df = pd.read_csv(
+            PARAMETER_DEF, sep="\t", index_col=False, header=0, na_filter=False
+        )
 
         active_status = Status.objects.get(description="active")
 
@@ -1434,7 +1466,9 @@ class Command(BaseCommand):
                 "required": required,
                 "status": active_status,
             }
-            row_parameter_def_instance, created = ParameterDef.objects.get_or_create(**fields)
+            row_parameter_def_instance, created = ParameterDef.objects.get_or_create(
+                **fields
+            )
             if created:
                 new_parameter_def += 1
         self.stdout.write(
@@ -1447,7 +1481,9 @@ class Command(BaseCommand):
         filename = "load_action_def.csv"
         ACTION_DEF = path_to_file(filename)
 
-        df = pd.read_csv(ACTION_DEF, sep='\t', index_col=False, header=0, na_filter=False)
+        df = pd.read_csv(
+            ACTION_DEF, sep="\t", index_col=False, header=0, na_filter=False
+        )
 
         active_status = Status.objects.get(description="active")
 
@@ -1456,9 +1492,7 @@ class Command(BaseCommand):
             description = clean_string(row["description"])
             parameter_def_descriptions = (
                 [x.strip() for x in y.split(",")]
-                if not string_is_null(
-                    y := row["parameter_def_descriptions"]
-                )
+                if not string_is_null(y := row["parameter_def_descriptions"])
                 else []
             )
             action_def_instance, created = ActionDef.objects.get_or_create(
@@ -1472,9 +1506,7 @@ class Command(BaseCommand):
                     for x in parameter_def_descriptions
                 ]
             )
-        self.stdout.write(
-            self.style.SUCCESS(f"Added {new_action_def} new action def")
-        )
+        self.stdout.write(self.style.SUCCESS(f"Added {new_action_def} new action def"))
         self.stdout.write(self.style.NOTICE("Finished loading action def"))
 
     def _load_calculation_def(self):
@@ -1482,7 +1514,9 @@ class Command(BaseCommand):
         filename = "load_calculation_def.csv"
         CALCULATION_DEF = path_to_file(filename)
 
-        df = pd.read_csv(CALCULATION_DEF, sep='\t', index_col=False, header=0, na_filter=False)
+        df = pd.read_csv(
+            CALCULATION_DEF, sep="\t", index_col=False, header=0, na_filter=False
+        )
         active_status = Status.objects.get(description="active")
         new_calculation_def = 0
 
@@ -1514,12 +1548,10 @@ class Command(BaseCommand):
                 )
                 if not string_is_null(out_type__description)
                 else None,
-                "systemtool": Systemtool.objects.get(
-                    systemtool_name=systemtool_name
-                )
+                "systemtool": Systemtool.objects.get(systemtool_name=systemtool_name)
                 if not string_is_null(systemtool_name)
                 else None,
-                "status": active_status
+                "status": active_status,
             }
             """
             calculation_def_instance, created = CalculationDef.objects.get_or_create(
@@ -1533,7 +1565,7 @@ class Command(BaseCommand):
             """
 
         # go back and save self foreign keys
-        for _,row in df.iterrows():
+        for _, row in df.iterrows():
             short_name = row["short_name"]
             row_calculation_def_instance = CalculationDef.objects.get(
                 short_name=short_name
@@ -1541,7 +1573,7 @@ class Command(BaseCommand):
 
             in_source__short_name = clean_string(row["in_source__short_name"])
             in_opt_source__short_name = clean_string(row["in_opt_source__short_name"])
-            
+
             fields = {
                 "in_source": CalculationDef.objects.get(
                     short_name=in_source__short_name
@@ -1571,16 +1603,20 @@ class Command(BaseCommand):
 
         EXPERIMENT = path_to_file("load_experiment.csv")
 
-        experiment_df = pd.read_csv(EXPERIMENT, sep='\t', index_col=False, header=0, na_filter=False)
+        experiment_df = pd.read_csv(
+            EXPERIMENT, sep="\t", index_col=False, header=0, na_filter=False
+        )
         active_status = Status.objects.get(description="active")
-        
+
         experiment_type = {x.description: x for x in ExperimentType.objects.all()}
 
         new_experiment = 0
         for _, row in experiment_df.iterrows():
             description = clean_string(row["description"])
             ref_uid = clean_string(row["ref_uid"])
-            experiment_type_description = clean_string(row["experiment_type_description"])
+            experiment_type_description = clean_string(
+                row["experiment_type_description"]
+            )
             owner_description = clean_string(row["owner_description"])
             operator_description = clean_string(row["operator_description"])
             lab_description = clean_string(row["lab_description"])
@@ -1627,12 +1663,12 @@ class Command(BaseCommand):
                 else None
             )
             # row_experiment_instance.save(update_fields=['parent'])
-        self.stdout.write(
-            self.style.SUCCESS(f"Added {new_experiment} new experiments")
-        )
+        self.stdout.write(self.style.SUCCESS(f"Added {new_experiment} new experiments"))
 
         WORKFLOW = path_to_file("load_workflow.csv")
-        workflow_df = pd.read_csv(WORKFLOW, sep='\t', index_col=False, header=0, na_filter=False)
+        workflow_df = pd.read_csv(
+            WORKFLOW, sep="\t", index_col=False, header=0, na_filter=False
+        )
         active_status = Status.objects.get(description="active")
 
         action_sequence_type = {
@@ -1642,7 +1678,9 @@ class Command(BaseCommand):
         new_action_sequence = 0
         for _, row in workflow_df.iterrows():
             description = clean_string(row["description"])
-            action_sequence_type_description = clean_string(row["workflow_type_description"])
+            action_sequence_type_description = clean_string(
+                row["workflow_type_description"]
+            )
 
             fields = {
                 "description": description,
@@ -1651,17 +1689,14 @@ class Command(BaseCommand):
                 else None,
                 "status": active_status,
             }
-            (
-                action_sequence_instance,
-                created,
-            ) = ActionSequence.objects.get_or_create(**fields)
+            (action_sequence_instance, created,) = ActionSequence.objects.get_or_create(
+                **fields
+            )
             if created:
                 new_action_sequence += 1
             experiment_description = (
                 [x.strip() for x in y.split(",")]
-                if not string_is_null(
-                    y := clean_string(row["experiment_description"])
-                )
+                if not string_is_null(y := clean_string(row["experiment_description"]))
                 else []
             )
             experiment_action_sequence_seq_num = (
@@ -1717,13 +1752,17 @@ class Command(BaseCommand):
         filename = "load_mixture.csv"
         MIXTURE = path_to_file(filename)
 
-        df = pd.read_csv(MIXTURE, sep='\t', index_col=False, header=0, na_filter=False)
+        df = pd.read_csv(MIXTURE, sep="\t", index_col=False, header=0, na_filter=False)
         active_status = Status.objects.get(description="active")
 
         new_mixture = 0
         for _, row in df.iterrows():
-            material_composite_description = clean_string(row["material_composite_description"])
-            material_component_description = clean_string(row["material_component_description"])
+            material_composite_description = clean_string(
+                row["material_composite_description"]
+            )
+            material_component_description = clean_string(
+                row["material_component_description"]
+            )
             addressable = clean_string(row["addressable"])
             fields = {
                 "composite": Material.objects.get(description=y)
@@ -1746,8 +1785,10 @@ class Command(BaseCommand):
 
         filename = "load_base_bom_material.csv"
         BASE_BOM_MATERIAL = path_to_file(filename)
-        
-        df = pd.read_csv(BASE_BOM_MATERIAL, sep='\t', index_col=False, header=0, na_filter=False)
+
+        df = pd.read_csv(
+            BASE_BOM_MATERIAL, sep="\t", index_col=False, header=0, na_filter=False
+        )
         active_status = Status.objects.get(description="active")
 
         new_base_bom_material = 0
@@ -1756,7 +1797,9 @@ class Command(BaseCommand):
         for _, row in df.iterrows():
             description = clean_string(row["description"])
             bom_description = clean_string(row["bom_description"])
-            inventory_material_description = clean_string(row["inventory_material_description"])
+            inventory_material_description = clean_string(
+                row["inventory_material_description"]
+            )
             alloc_amt_val_type = clean_string(row["alloc_amt_val_type"])
             alloc_amt_val_unit = clean_string(row["alloc_amt_val_unit"])
             alloc_amt_val_value = clean_string(row["alloc_amt_val_value"])
@@ -1766,8 +1809,12 @@ class Command(BaseCommand):
             putback_amt_val_type = clean_string(row["putback_amt_val_type"])
             putback_amt_val_unit = clean_string(row["putback_amt_val_unit"])
             putback_amt_val_value = clean_string(row["putback_amt_val_value"])
-            mixture_composite_description = clean_string(row["mixture_composite_description"])
-            mixture_component_description = clean_string(row["mixture_component_description"])
+            mixture_composite_description = clean_string(
+                row["mixture_composite_description"]
+            )
+            mixture_component_description = clean_string(
+                row["mixture_component_description"]
+            )
 
             # mixture_composite = Material.objects.get(description=mixture_composite_description) \
             #    if not string_is_null(mixture_composite_description) else None
@@ -1787,9 +1834,7 @@ class Command(BaseCommand):
                     used_amt_val_type, used_amt_val_unit, used_amt_val_value
                 ),
                 "putback_amt_val": get_val_field_dict(
-                    putback_amt_val_type,
-                    putback_amt_val_unit,
-                    putback_amt_val_value,
+                    putback_amt_val_type, putback_amt_val_unit, putback_amt_val_value,
                 ),
                 #'mixture': Mixture.objects.get(composite=mixture_composite,
                 #                               component=mixture_component
@@ -1820,9 +1865,15 @@ class Command(BaseCommand):
         for _, row in df.iterrows():
             description = clean_string(row["description"])
             bom_description = clean_string(row["bom_description"])
-            inventory_material_description = clean_string(row["inventory_material_description"])
-            mixture_composite_description = clean_string(row["mixture_composite_description"])
-            mixture_component_description = clean_string(row["mixture_component_description"])
+            inventory_material_description = clean_string(
+                row["inventory_material_description"]
+            )
+            mixture_composite_description = clean_string(
+                row["mixture_composite_description"]
+            )
+            mixture_component_description = clean_string(
+                row["mixture_component_description"]
+            )
 
             # mixture_composite = Material.objects.get(description=mixture_composite_description) \
             #    if not string_is_null(mixture_composite_description) else None
@@ -1841,7 +1892,9 @@ class Command(BaseCommand):
             }
 
             bom_material_description = clean_string(row["bom_material_description"])
-            bom_material_bom_description = clean_string(row["bom_material_bom_description"])
+            bom_material_bom_description = clean_string(
+                row["bom_material_bom_description"]
+            )
             bom_material_bom = (
                 BillOfMaterials.objects.get(description=y)
                 if not string_is_null(y := bom_material_bom_description)
@@ -1869,9 +1922,7 @@ class Command(BaseCommand):
 
             row_base_bom_material_instance.save(update_fields=["bom_material"])
         self.stdout.write(
-            self.style.SUCCESS(
-                f"Added {new_base_bom_material} new base bom materials"
-            )
+            self.style.SUCCESS(f"Added {new_base_bom_material} new base bom materials")
         )
         self.stdout.write(
             self.style.SUCCESS(f"Added {new_bom_material} new bom materials")
@@ -1882,7 +1933,7 @@ class Command(BaseCommand):
         filename = "load_action.csv"
         ACTION = path_to_file(filename)
 
-        df = pd.read_csv(ACTION, sep='\t', index_col=False, header=0, na_filter=False)
+        df = pd.read_csv(ACTION, sep="\t", index_col=False, header=0, na_filter=False)
         active_status = Status.objects.get(description="active")
 
         new_action = 0
@@ -1904,14 +1955,10 @@ class Command(BaseCommand):
                 "action_sequence": ActionSequence.objects.get(description=y)
                 if not string_is_null(y := action_sequence_description)
                 else None,
-                "start_date": start_date
-                if not string_is_null(start_date)
-                else None,
+                "start_date": start_date if not string_is_null(start_date) else None,
                 "end_date": end_date if not string_is_null(end_date) else None,
                 "duration": int(duration) if not string_is_null(duration) else None,
-                "repeating": int(repeating)
-                if not string_is_null(repeating)
-                else None,
+                "repeating": int(repeating) if not string_is_null(repeating) else None,
                 #'calculation_def': CalculationDef.objects.get(short_name=y) if not string_is_null(y := calculation_def_short_name) else None,
                 "status": active_status,
             }
@@ -1923,9 +1970,7 @@ class Command(BaseCommand):
 
             parameter_def_description = (
                 [x.strip() for x in y.split(",")]
-                if not string_is_null(
-                    y := row["parameter_def_description"]
-                )
+                if not string_is_null(y := row["parameter_def_description"])
                 else []
             )
             action_instance.parameter_def.add(
@@ -1943,24 +1988,34 @@ class Command(BaseCommand):
         filename = "load_action_unit.csv"
         ACTION_UNIT = path_to_file(filename)
 
-        df = pd.read_csv(ACTION_UNIT, sep='\t', index_col=False, header=0, na_filter=False)
+        df = pd.read_csv(
+            ACTION_UNIT, sep="\t", index_col=False, header=0, na_filter=False
+        )
         active_status = Status.objects.get(description="active")
 
         new_action_unit = 0
         for _, row in df.iterrows():
             action_description = clean_string(row["action_description"])
-            action_action_sequence_description = clean_string(row["action_workflow_description"])
+            action_action_sequence_description = clean_string(
+                row["action_workflow_description"]
+            )
 
-            source_material_description = clean_string(row["source_material_description"])
-            source_material_bom_description = clean_string(row["source_material_bom_description"])
+            source_material_description = clean_string(
+                row["source_material_description"]
+            )
+            source_material_bom_description = clean_string(
+                row["source_material_bom_description"]
+            )
 
-            destination_material_description = clean_string(row["destination_material_description"])
-            destination_material_bom_description = clean_string(row["destination_material_bom_description"])
+            destination_material_description = clean_string(
+                row["destination_material_description"]
+            )
+            destination_material_bom_description = clean_string(
+                row["destination_material_bom_description"]
+            )
 
             source_material_bom = (
-                BillOfMaterials.objects.get(
-                    description=source_material_bom_description
-                )
+                BillOfMaterials.objects.get(description=source_material_bom_description)
                 if not string_is_null(source_material_bom_description)
                 else None
             )

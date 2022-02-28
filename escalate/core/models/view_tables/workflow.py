@@ -121,6 +121,9 @@ class ActionDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     internal_slug = SlugField(
         populate_from=["description"], overwrite=True, max_length=255
     )
+    synonym = models.CharField(
+        max_length=255, db_column="synonym", blank=True, null=True
+    )  # alternate name for same ActionDef, for compatibility with Autoprotocol and other systems
 
     def __str__(self):
         return f"{self.description}"
