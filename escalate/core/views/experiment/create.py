@@ -478,7 +478,7 @@ class CreateExperimentView(TemplateView):
                 None,
                 q1,
                 context["experiment_copy_uuid"],
-                context["exp_name"],
+                context["new_exp_name"],
                 context["exp_template"],
             )
 

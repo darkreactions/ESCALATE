@@ -72,12 +72,12 @@ class SelectReagentsView(TemplateView):
             vessel_uuid = str(context["vessel"].uuid)
             request.session["vessel"] = vessel_uuid
 
-        if num_automated_exp + num_manual_exp > context["vessel"].well_number:
-            # make sure # of desired experiments does not exceed vessel's well count
-            messages.error(
-                request,
-                "Error: Number of total experiments exceeds well count of selected vessel",
-            )
+            if num_automated_exp + num_manual_exp > context["vessel"].well_number:
+                # make sure # of desired experiments does not exceed vessel's well count
+                messages.error(
+                    request,
+                    "Error: Number of total experiments exceeds well count of selected vessel",
+                )
         return render(request, self.template_name, context)
 
     def get_forms(self, exp_template: ExperimentTemplate, context: dict[str, Any]):
