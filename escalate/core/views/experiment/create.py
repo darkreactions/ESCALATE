@@ -220,8 +220,8 @@ class CreateExperimentView(TemplateView):
                 self.save_forms_reagent(reagent_formset, experiment_copy_uuid)
                 # try:
                 rd = prepare_reagents(reagent_formset)
-                if rd not in reagentDefs:
-                    reagentDefs.append(rd)
+                # if rd not in reagentDefs:
+                reagentDefs.append(rd)
                 # except TypeError as te:
                 # messages.error(request, str(te))
 
