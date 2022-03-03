@@ -158,11 +158,14 @@ class CreateExperimentView(TemplateView):
             context["reagentDefs"] = reagentDefs
 
             # Generate and save mass/volume amounts
-            if num_manual:
+            if num_manual > 0:
                 context = self.process_manual_formsets(request, context)
-
-            if num_automated:
+            
+            if num_automated > 0:
                 context = self.process_automated_formsets(request, context)
+
+            if num_automated & num_manual <= 0:
+                raise NoExperimentException()
 
             conc_to_amount(experiment_copy_uuid)
 
@@ -363,6 +366,7 @@ class CreateExperimentView(TemplateView):
     def save_reaction_parameters(
         self, request, experiment_copy_uuid, exp_name_form, exp_template
     ):
+        """ This function saves specific reaction data in a seperate table for faster access. Does not need to call the model table to prepopulate reaction parameters. POST saves to both the model table and reaction parameter table"""
         if exp_name_form.is_valid():
             # post reaction parameter form
             # get label here and get form out of label, use label for description
@@ -507,3 +511,9 @@ class CreateExperimentView(TemplateView):
 
 
 # end: class CreateExperimentView()
+
+class NoExperimentException(Exception):
+    """ Exception raised when manual and automated experiment is 0"""
+    def __init__(self,message="Please insert a positive number for either automated or manual experiment. Both fields can't be left at 0."):
+        self.message=message
+        super().__init__(self.message)
