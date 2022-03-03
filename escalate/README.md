@@ -40,14 +40,15 @@ The following instructions will assist in setting up a Docker container and inst
 
 1. Download a copy of ESCALATE code from GitHub to your local machine or git clone the repo
 2. Install [Docker](https://docs.docker.com/get-docker/) and open the application
-3. Open terminal and navigate to .../ESCALATE/data_model   
-4. Run the following bash commands:
+3. Open terminal and run ```pip install -r requirements.txt```
+4. Navigate to .../ESCALATE/data_model   
+5. Run the following bash commands:
 	```
 		docker-compose down --rmi all -v
 		docker-compose up
 	```
-5. Open a new terminal and navigate to ../ESCALATE/escalate/
-6. Run the following:
+6. Open a new terminal and navigate to ../ESCALATE/escalate/
+7. Run the following:
 	```
 	export DJANGO_SETTINGS_MODULE=escalate.settings.local
 	bash ./build_django_db.sh reset 
