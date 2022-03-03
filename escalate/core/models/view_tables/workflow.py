@@ -120,6 +120,11 @@ class ActionDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     )
     # , through='ActionParameterDefAssign')
     parameter_def = models.ManyToManyField("ParameterDef", blank=True)
+
+    synonym = models.CharField(
+        max_length=255, db_column="synonym", blank=True, null=True
+    )  # alternate name for same ActionDef, for compatibility with Autoprotocol and other systems
+
     internal_slug = SlugField(
         populate_from=["description"], overwrite=True, max_length=255
     )
@@ -552,6 +557,7 @@ class ReactionParameter(StatusColumn, DescriptionColumn, DateColumns):
         null=True,
         db_column="reaction_parameter_profile_experiment_uuid",
     )
+
 
 class ActionSequence(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)

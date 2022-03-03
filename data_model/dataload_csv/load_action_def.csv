@@ -1,11 +1,8 @@
-description	parameter_def_descriptions
+description	parameter_def_descriptions	synonym
 heat	temperature,duration
 heat_stir	speed,duration,temperature
-stir	speed,duration
-end_node	
-dispense	volume
-start_node	
+stir	speed,duration	spin
+dispense	volume	liquid_handle
 bring_to_temperature	temperature
 dispense_solid	mass
-dwell	duration    
-stir    speed,duration
+dwell	duration	store

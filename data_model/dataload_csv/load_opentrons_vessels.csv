@@ -1,0 +1,15 @@
+﻿description,total_volume,well_number,column_order
+biorad_96_wellplate_200ul_pcr,200 uL,96,
+corning_12_wellplate_6.9ml_flat,6.9 mL,12,
+corning_24_wellplate_3.4ml_flat,3.4 mL,24,
+corning_48_wellplate_1.6ml_flat,1.6 mL,48,
+corning_6_wellplate_16.8ml_flat,16.8 mL,6,
+corning_6_wellplate_16.8ml_flat,360 uL,96,
+nest_96_wellplate_100ul_pcr_full_skirt,100 uL,96,
+nest_96_wellplate_200ul_flat,200 uL,96,
+nest_96_wellplate_2ml_deep,2000 uL,96,
+usascientific_96_wellplate_2.4ml_deep,2.4 mL,96,
+Symyx_96_well_0003,,96,ACEGBDFH
+96 Well Plate well,,96,ACEGBDFH
+Plate: 24 Well,,24
+Plate: 48 Well,,48
