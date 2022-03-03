@@ -12,6 +12,7 @@ person_data = [
     ["Wesley", "Wang"],
     ["Isaac", "Chang"],
     ["Shekar", "V"],
+    ["Nicole", "Smina"],
     ["Philip", "Nega"],
     ["Mansoor", "Nellikkal"],
     ["Ian", "Pendleton"],

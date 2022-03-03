@@ -69,7 +69,7 @@ class Mixture(DateColumns, StatusColumn, ActorColumn):
 class Vessel(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="vessel_uuid")
     # plate_name = models.CharField(max_length = 64, blank=True, null=True)
-    total_volume = models.CharField(max_length=255, blank=True, null=True)
+    total_volume = ValField(blank=True, null=True)
     # dead_volume = models.CharField(max_length=255,blank=True, null=True)
     # whole plate can leave well_number blank
     well_number = models.IntegerField(blank=True, null=True,)

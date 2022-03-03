@@ -48,7 +48,7 @@ class Command(BaseCommand):
             person, created = Person.objects.get_or_create(**data["person_data"])
             if created:
                 self.stdout.write(
-                    self.style.NOTICE(f"Created {person}, previosuly did not exist")
+                    self.style.NOTICE(f"Created {person}, previously did not exist")
                 )
             p = Person.objects.get(pk=person.pk)
             user, created = CustomUser.objects.get_or_create(

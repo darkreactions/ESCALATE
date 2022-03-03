@@ -71,13 +71,13 @@ class SelectReagentsView(TemplateView):
             context["vessel"] = Vessel.objects.get(uuid=request.POST["value"])
             vessel_uuid = str(context["vessel"].uuid)
             request.session["vessel"] = vessel_uuid
-
-            if num_automated_exp + num_manual_exp > context["vessel"].well_number:
-                # make sure # of desired experiments does not exceed vessel's well count
-                messages.error(
-                    request,
-                    "Error: Number of total experiments exceeds well count of selected vessel",
-                )
+            if context["vessel"].well_number is not None:
+                if num_automated_exp + num_manual_exp > context["vessel"].well_number:
+                    # make sure # of desired experiments does not exceed vessel's well count
+                    messages.error(
+                        request,
+                        "Error: Number of total experiments exceeds well count of selected vessel",
+                    )
         return render(request, self.template_name, context)
 
     def get_forms(self, exp_template: ExperimentTemplate, context: dict[str, Any]):
@@ -152,7 +152,7 @@ class SelectReagentsView(TemplateView):
 
         # Total volume form
         initial: dict[str, Val] = {
-            "value": Val.from_dict({"value": 500, "unit": "uL", "type": "num"})
+            "value": Val.from_dict({"value": 800, "unit": "uL", "type": "num"})
         }
         total_volume_form = SingleValForm(prefix="total_volume", initial=initial)
         context["total_volume_form"] = total_volume_form

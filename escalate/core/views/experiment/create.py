@@ -246,9 +246,9 @@ class CreateExperimentView(TemplateView):
             total_volume = None
 
         if (
-            vessel.total_volume is not None
+            vessel.total_volume.value is not None
         ):  # check that target volume does not exceed vessel capacity
-            if total_volume.value > vessel.total_volume:
+            if total_volume.value > vessel.total_volume.value:
                 raise ValueError(
                     "Target volume exceeds capacity of {} for the specified vessel".format(
                         vessel.total_volume
