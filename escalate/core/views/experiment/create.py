@@ -1,5 +1,6 @@
 from __future__ import annotations
-import re
+import logging
+from multiprocessing.sharedctypes import Value
 import traceback
 from math import e, exp
 from typing import Any, Type
@@ -147,9 +148,10 @@ class CreateExperimentView(TemplateView):
                 )
 
             # Obtain and save reagent names and concentration data
-            (reagent_template_names, reagentDefs,) = self.save_reagents(
-                exp_template, experiment_copy_uuid, request, org_id
-            )
+            (
+                reagent_template_names,
+                reagentDefs,
+            ) = self.save_reagents(exp_template, experiment_copy_uuid, request, org_id)
 
             context["experiment_copy_uuid"] = experiment_copy_uuid
             context["dead_volume"] = dead_volume
@@ -174,7 +176,10 @@ class CreateExperimentView(TemplateView):
             traceback.print_exc()
             srv = SelectReagentsView()
             response = srv.post(request)
-            response["HX-Trigger"] = json.dumps({"showMessage": {"message": str(e)}})
+            logging.error(str(e))
+            response["HX-Trigger"] = json.dumps(
+                {"showMessage": {"message": "Error occured please, check error logs"}}
+            )
             return response
         return render(request, self.template_name, context)
 
@@ -426,7 +431,8 @@ class CreateExperimentView(TemplateView):
                 data = form.cleaned_data
                 reagent_template_uuid = data["reagent_template_uuid"]
                 reagent_instance = ReagentMaterial.objects.get(
-                    template=reagent_template_uuid, reagent__experiment=exp_uuid,
+                    template=reagent_template_uuid,
+                    reagent__experiment=exp_uuid,
                 )
                 reagent_instance.material = (
                     InventoryMaterial.objects.get(uuid=data["chemical"])
@@ -434,8 +440,10 @@ class CreateExperimentView(TemplateView):
                     else None
                 )
                 reagent_instance.save()
-                reagent_material_value = reagent_instance.reagent_material_value_rmi.get(
-                    template__description="concentration"
+                reagent_material_value = (
+                    reagent_instance.reagent_material_value_rmi.get(
+                        template__description="concentration"
+                    )
                 )
                 reagent_material_value.nominal_value = data["desired_concentration"]
                 reagent_material_value.save()
@@ -458,8 +466,16 @@ class CreateExperimentView(TemplateView):
                 context["total_volume"],
                 context["vessel"],
             )
+        except TypeError as te:
+            messages.error(request, te)
+            logging.error(str(te))
         except ValueError as ve:
-            messages.error(request, str(ve))
+            messages.error(request, ve)
+            logging.error(str(ve))
+        except Exception as e:
+            # messages.error(request, str(ve))
+            messages.error(request, "Error creating experiment. Please check log file")
+            logging.error(str(e))
             # return context
             # return HttpResponseRedirect(reverse("experiment"))
 
