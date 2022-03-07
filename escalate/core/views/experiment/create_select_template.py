@@ -1,5 +1,6 @@
 from __future__ import annotations
-
+import traceback
+import json
 from typing import Any
 from django import forms
 from django.forms import formset_factory, BaseFormSet
@@ -43,6 +44,7 @@ class SelectReagentsView(TemplateView):
         return render(request, self.template_name, context)
 
     def post(self, request: HttpRequest, *args, **kwargs):
+
         context = self.get_context_data(**kwargs)
         self.request = request
         if "select_experiment_template" in request.POST:
@@ -54,10 +56,23 @@ class SelectReagentsView(TemplateView):
         context["experiment_name_form"] = ExperimentNameForm()
         context = self.get_forms(context["selected_exp_template"], context)
 
-        if (num_automated_exp := int(request.POST["automated"])) >= 0:
+        num_automated_exp = int(request.POST["automated"])
+        num_manual_exp = int(request.POST["manual"])
+        num_total_exp = num_automated_exp + num_manual_exp
+
+        if num_automated_exp < 0 or num_manual_exp < 0 or num_total_exp == 0:
+            # raise Exception(
+            # "Error: Please insert a positive number for either automated or manual experiments",
+            # )
+            messages.error(
+                request,
+                "Error: Please insert a positive number for either automated or manual experiments",
+            )
+            return render(request, self.template_name, context)
+        if num_automated_exp >= 0:
             context["automated"] = num_automated_exp
 
-        if (num_manual_exp := int(request.POST["manual"])) >= 0:
+        if num_manual_exp >= 0:
             context["manual"] = num_manual_exp
             context["spec_file_upload_form"] = ManualSpecificationForm(
                 request.POST, request.FILES
