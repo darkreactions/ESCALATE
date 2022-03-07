@@ -214,26 +214,8 @@ class Command(BaseCommand):
                         }
                     )
         # Create ActionSequence -> Actions -> ActionUnits
-        # TODO: Rename ActionSequence to action sequence
         action_sequences = {
-            "Preheat Temperature (C)": ActionSequence.objects.create(
-                description="Preheat Temperature (C)"
-            ),
-            "Mixing time1 (s)": ActionSequence.objects.create(
-                description="Mixing time1 (s)"
-            ),
-            "Mixing time2 (s)": ActionSequence.objects.create(
-                description="Mixing time2 (s)"
-            ),
-            "Temperature (C)": ActionSequence.objects.create(
-                description="Temperature (C)"
-            ),
-            "Stir Rate (rpm)": ActionSequence.objects.create(
-                description="Stir Rate (rpm)"
-            ),
-            "Reaction time (s)": ActionSequence.objects.create(
-                description="Reaction time (s)"
-            ),
+            "Preheat Plate": ActionSequence.objects.create(description="Preheat Plate"),
             "Dispense Reagent 1 - Solvent": ActionSequence.objects.create(
                 description="Dispense Reagent 1 - Solvent"
             ),
@@ -243,12 +225,14 @@ class Command(BaseCommand):
             "Dispense Reagent 3 - Stock B": ActionSequence.objects.create(
                 description="Dispense Reagent 3 - Stock B"
             ),
+            "Stir 1": ActionSequence.objects.create(description="Stir 1 "),
             "Dispense Reagent 7 - Acid Volume 1": ActionSequence.objects.create(
                 description="Dispense Acid Volume 1"
             ),
             "Dispense Reagent 7 - Acid Volume 2": ActionSequence.objects.create(
                 description="Dispense Acid Volume 2"
             ),
+            "Stir 2": ActionSequence.objects.create(description="Stir 2"),
         }
 
         for i, action_seq in enumerate(action_sequences.values()):
@@ -305,11 +289,11 @@ class Command(BaseCommand):
         actions = [  # List of tuples (Description, Action def description, source_bommaterial, destination_bommaterial)
             # ('Preheat Plate', 'bring_to_temperature', (None, None), ('vessel', '96 Well Plate well'), 'Preheat Plate'),
             (
-                "Preheat Temperature (C)",
+                "Preheat Plate",
                 "bring_to_temperature",
                 (None, None),
                 ("vessel", "96 Well Plate well"),
-                "Preheat Temperature (C)",
+                "Preheat Plate",
             ),
             # Prepare stock A
             # ('Add Solvent to Stock A', 'dispense', (None, 'Solvent'), (None, 'Stock A Vial'), 'Prepare stock A'),
@@ -322,7 +306,7 @@ class Command(BaseCommand):
             (
                 "Dispense Reagent 1 - Solvent",
                 "dispense",
-                (None, "Solvent"),
+                (None, "Reagent 1 - Solvent"),
                 ("vessel", plate_wells),
                 "Dispense Reagent 1 - Solvent",
             ),
@@ -330,7 +314,7 @@ class Command(BaseCommand):
             (
                 "Dispense Reagent 2 - Stock A",
                 "dispense",
-                (None, "Solvent"),
+                (None, "Reagent 2 - Stock A"),
                 ("vessel", plate_wells),
                 "Dispense Reagent 2 - Stock A",
             ),
@@ -338,7 +322,7 @@ class Command(BaseCommand):
             (
                 "Dispense Reagent 3 - Stock B",
                 "dispense",
-                (None, "Solvent"),
+                (None, "Reagent 3 - Stock B"),
                 ("vessel", plate_wells),
                 "Dispense Reagent 3 - Stock B",
             ),
@@ -346,59 +330,38 @@ class Command(BaseCommand):
             (
                 "Dispense Reagent 7 - Acid Volume 1",
                 "dispense",
-                (None, "Solvent"),
+                (None, "Reagent 7 - Acid"),
                 ("vessel", plate_wells),
                 "Dispense Reagent 7 - Acid Volume 1",
             ),
             # Heat stir 1
             # ('Heat stir 1', 'heat_stir', (None, None), ('vessel', '96 Well Plate well'), 'Heat stir 1'),
             (
-                "Mixing time1 (s)",
+                "Stir 1",
                 "stir",
                 (None, None),
                 ("vessel", "96 Well Plate well"),
-                "Mixing time1 (s)",
+                "Stir 1",
             ),
             # Dispense Acid Vol 2
             (
                 "Dispense Reagent 7 - Acid Volume 2",
                 "dispense",
-                (None, "Solvent"),
+                (None, "Reagent 7 - Acid"),
                 ("vessel", plate_wells),
                 "Dispense Reagent 7 - Acid Volume 2",
             ),
             # Heat stir 2
             # ('Heat stir 2', 'heat_stir', (None, None), ('vessel', '96 Well Plate well'), 'Heat stir 2'),
             (
-                "Mixing time2 (s)",
+                "Stir 2",
                 "stir",
                 (None, None),
                 ("vessel", "96 Well Plate well"),
-                "Mixing time2 (s)",
+                "Stir 2",
             ),
             # Heat
             # ('Heat', 'heat', (None, None), ('vessel', '96 Well Plate well'), 'Heat'),
-            (
-                "Temperature (C)",
-                "bring_to_temperature",
-                (None, None),
-                ("vessel", "96 Well Plate well"),
-                "Temperature (C)",
-            ),
-            (
-                "Stir Rate (rpm)",
-                "stir",
-                (None, None),
-                ("vessel", "96 Well Plate well"),
-                "Stir Rate (rpm)",
-            ),
-            (
-                "Reaction time (s)",
-                "stir",
-                (None, None),
-                ("vessel", "96 Well Plate well"),
-                "Reaction time (s)",
-            ),
         ]
 
         for action_tuple in actions:
@@ -428,7 +391,10 @@ class Command(BaseCommand):
                 action.parameter_def.add(param)
 
             if source_desc is not None:
-                source_bbm = BaseBomMaterial.objects.create(description=source_desc,)
+                rt = ReagentTemplate.objects.get(description=source_desc)
+                source_bbm = BaseBomMaterial.objects.create(
+                    description=source_desc, reagent=rt
+                )
             else:
                 source_bbm = None
 
@@ -603,6 +569,7 @@ class Command(BaseCommand):
                     )
         # Create ActionSequence -> Actions -> ActionUnits
         action_sequences = {
+            "Preheat Plate": ActionSequence.objects.create(description="Preheat Plate"),
             "Dispense Reagent 1 - Solvent": ActionSequence.objects.create(
                 description="Dispense Reagent 1 - Solvent"
             ),
@@ -615,21 +582,15 @@ class Command(BaseCommand):
             "Dispense Reagent 7 - Acid Volume 1": ActionSequence.objects.create(
                 description="Dispense Reagent 7 - Acid Volume 1"
             ),
+            "Stir 1": ActionSequence.objects.create(description="Stir 1"),
             "Dispense Reagent 7 - Acid Volume 2": ActionSequence.objects.create(
                 description="Dispense Reagent 7 - Acid Volume 2"
             ),
+            "Stir 2": ActionSequence.objects.create(description="Stir 2"),
             "Dispense Reagent 9 - Antisolvent": ActionSequence.objects.create(
                 description="Dispense Reagent 9 - Antisolvent"
             ),
-            "Mixing time (s)": ActionSequence.objects.create(
-                description="Mixing time (s)"
-            ),
-            "Temperature (C)": ActionSequence.objects.create(
-                description="Temperature (C)"
-            ),
-            "Stir Rate (rpm)": ActionSequence.objects.create(
-                description="Stir Rate (rpm)"
-            ),
+            "Store": ActionSequence.objects.create(description="Store"),
         }
 
         for i, action_seq in enumerate(action_sequences.values()):
@@ -689,6 +650,7 @@ class Command(BaseCommand):
             "bring_to_temperature": ("temperature",),
             "stir": ("temperature", "duration", "speed"),
             "heat": ("temperature", "duration"),
+            "dwell": ("duration"),
         }
         # Action defs it is assumed that action defs are already inserted
         actions = [  # List of tuples (Description, Action def description, source_bommaterial, destination_bommaterial)
@@ -696,7 +658,7 @@ class Command(BaseCommand):
             (
                 "Dispense Reagent 1 - Solvent",
                 "dispense",
-                (None, "Solvent"),
+                (None, "Reagent 1 - Solvent"),
                 ("vessel", a_wells),
                 "Dispense Reagent 1 - Solvent",
             ),
@@ -704,7 +666,7 @@ class Command(BaseCommand):
             (
                 "Dispense Reagent 2 - Stock A",
                 "dispense",
-                (None, "Solvent"),
+                (None, "Reagent 2 - Stock A"),
                 ("vessel", a_wells),
                 "Dispense Reagent 2 - Stock A",
             ),
@@ -712,7 +674,7 @@ class Command(BaseCommand):
             (
                 "Dispense Reagent 3 - Stock B",
                 "dispense",
-                (None, "Solvent"),
+                (None, "Reagent 3 - Stock B"),
                 ("vessel", a_wells),
                 "Dispense Reagent 3 - Stock B",
             ),
@@ -720,49 +682,49 @@ class Command(BaseCommand):
             (
                 "Dispense Reagent 7 - Acid Volume 1",
                 "dispense",
-                (None, "Solvent"),
+                (None, "Reagent 7 - Acid"),
                 ("vessel", a_wells),
                 "Dispense Reagent 7 - Acid Volume 1",
+            ),
+            # Mix
+            (
+                "Stir 1",
+                "stir",
+                (None, None),
+                ("vessel", "96 Well Plate well"),
+                "Stir 1",
             ),
             # Dispense Acid Vol 2
             (
                 "Dispense Reagent 7 - Acid Volume 2",
                 "dispense",
-                (None, "Solvent"),
+                (None, "Reagent 7 - Acid"),
                 ("vessel", a_wells),
                 "Dispense Reagent 7 - Acid Volume 2",
+            ),
+            # Mix
+            (
+                "Stir 2",
+                "stir",
+                (None, None),
+                ("vessel", "96 Well Plate well"),
+                "Stir 2",
             ),
             # Dispense antisolvent
             (
                 "Dispense Reagent 9 - Antisolvent",
                 "dispense",
-                (None, "Solvent"),
+                (None, "Reagent 9 - Antisolvent"),
                 ("vessel", b_wells),
                 "Dispense Reagent 9 - Antisolvent",
             ),
-            # Mix
+            # Store to wait for crystal growth
             (
-                "Mixing time (s)",
-                "stir",
+                "Store",
+                "dwell",
                 (None, None),
                 ("vessel", "96 Well Plate well"),
-                "Mixing time (s)",
-            ),
-            # Cool to 26 C
-            (
-                "Temperature (C)",
-                "bring_to_temperature",
-                (None, None),
-                ("vessel", "96 Well Plate well"),
-                "Temperature (C)",
-            ),
-            # Stir
-            (
-                "Stir Rate (rpm)",
-                "stir",
-                (None, None),
-                ("vessel", "96 Well Plate well"),
-                "Stir Rate (rpm)",
+                "Store",
             ),
         ]
 
@@ -793,7 +755,10 @@ class Command(BaseCommand):
                 action.parameter_def.add(param)
 
             if source_desc is not None:
-                source_bbm = BaseBomMaterial.objects.create(description=source_desc,)
+                rt = ReagentTemplate.objects.get(description=source_desc)
+                source_bbm = BaseBomMaterial.objects.create(
+                    description=source_desc, reagent=rt
+                )
             else:
                 source_bbm = None
 

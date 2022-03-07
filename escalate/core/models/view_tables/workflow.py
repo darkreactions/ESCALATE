@@ -193,6 +193,14 @@ class BaseBomMaterial(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
         db_column="vessel_uuid",
         related_name="bom_material_vessel",
     )
+    reagent = models.ForeignKey(
+        "ReagentTemplate",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        db_column="reagent_template_uuid",
+        related_name="bom_material_reagent_template",
+    )
     # material = models.ForeignKey('Material', on_delete=models.CASCADE,
     #                             blank=True, null=True, db_column='material_uuid',
     #                             related_name='bom_material_material')
