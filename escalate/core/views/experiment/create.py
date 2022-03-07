@@ -160,11 +160,14 @@ class CreateExperimentView(TemplateView):
             context["reagentDefs"] = reagentDefs
 
             # Generate and save mass/volume amounts
-            if num_manual:
+            if num_manual > 0:
                 context = self.process_manual_formsets(request, context)
-
-            if num_automated:
+            
+            if num_automated > 0:
                 context = self.process_automated_formsets(request, context)
+
+            if num_automated & num_manual <= 0:
+                raise NoExperimentException()
 
             conc_to_amount(experiment_copy_uuid)
 
@@ -225,8 +228,8 @@ class CreateExperimentView(TemplateView):
                 self.save_forms_reagent(reagent_formset, experiment_copy_uuid)
                 # try:
                 rd = prepare_reagents(reagent_formset)
-                if rd not in reagentDefs:
-                    reagentDefs.append(rd)
+                # if rd not in reagentDefs:
+                reagentDefs.append(rd)
                 # except TypeError as te:
                 # messages.error(request, str(te))
 
@@ -251,9 +254,9 @@ class CreateExperimentView(TemplateView):
             total_volume = None
 
         if (
-            vessel.total_volume is not None
+            vessel.total_volume.value is not None
         ):  # check that target volume does not exceed vessel capacity
-            if total_volume.value > vessel.total_volume:
+            if total_volume.value > vessel.total_volume.value:
                 raise ValueError(
                     "Target volume exceeds capacity of {} for the specified vessel".format(
                         vessel.total_volume
@@ -368,6 +371,7 @@ class CreateExperimentView(TemplateView):
     def save_reaction_parameters(
         self, request, experiment_copy_uuid, exp_name_form, exp_template
     ):
+        """ This function saves specific reaction data in a seperate table for faster access. Does not need to call the model table to prepopulate reaction parameters. POST saves to both the model table and reaction parameter table"""
         if exp_name_form.is_valid():
             # post reaction parameter form
             # get label here and get form out of label, use label for description
@@ -494,7 +498,7 @@ class CreateExperimentView(TemplateView):
                 None,
                 q1,
                 context["experiment_copy_uuid"],
-                context["exp_name"],
+                context["new_exp_name"],
                 context["exp_template"],
             )
 
@@ -523,3 +527,9 @@ class CreateExperimentView(TemplateView):
 
 
 # end: class CreateExperimentView()
+
+class NoExperimentException(Exception):
+    """ Exception raised when manual and automated experiment is 0"""
+    def __init__(self,message="Please insert a positive number for either automated or manual experiment. Both fields can't be left at 0."):
+        self.message=message
+        super().__init__(self.message)

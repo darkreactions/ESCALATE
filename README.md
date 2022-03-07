@@ -33,6 +33,7 @@ ESCALATE (Experiment Specification, Capture and Laboratory Automation Technology
 
 * [**Gary Cattabriga**](https://github.com/gcatabr1)
 * [**Venkateswaran Shekar**](https://github.com/vshekar)
+* [**Nicole Smina**](https://github.com/nsmina914)
 * [**Joseph Pannizzo**](https://github.com/jpannizzo)
 
 See also the list of [contributors](https://github.com/darkreactions/ESCALATE/graphs/contributors) who participated in this project.

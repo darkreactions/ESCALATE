@@ -158,10 +158,13 @@ class ExperimentDetailEditView(TemplateView):
                     internal_slug=f.name,
                 )
                 e.save()
-            # return redirect(reverse('experiment_instance_update', args=[exp.uuid]))
+                return redirect(request.path)
 
         if request.POST.get("param_update"):
-            return redirect(reverse('experiment_pending_instance_parameter', args=[exp.uuid]))
+            if '/experiment_completed_instance/' in request.path:
+                return redirect(reverse('experiment_completed_instance_parameter', args=[exp.uuid]))
+            else:
+                return redirect(reverse('experiment_pending_instance_parameter', args=[exp.uuid]))
 
         # save queue status and priority
         qs = QueueStatusForm(exp, request.POST)
@@ -170,6 +173,7 @@ class ExperimentDetailEditView(TemplateView):
                 exp.priorty = qs.cleaned_data["select_queue_priority"]
                 exp.completion_status = qs.cleaned_data["select_queue_status"]
                 exp.save()
+                return redirect(request.path)
         ''' material changes
         material_qs = get_material_querysets(exp, template=False)
         material_fs = self.MaterialFormSet(

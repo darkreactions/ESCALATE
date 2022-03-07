@@ -650,7 +650,7 @@ class InventoryMaterialForm(forms.ModelForm):
             "description": forms.CharField,
             "part_no": forms.CharField,
             #'onhand_amt': ValFormField,
-            "onhand_amt": forms.CharField,
+            "onhand_amt": JSONField,
             "expiration_date": forms.SplitDateTimeField,
             "location": forms.CharField,
         }
@@ -672,6 +672,7 @@ class InventoryMaterialForm(forms.ModelForm):
             "description": forms.Textarea(
                 attrs={"rows": "3", "cols": "10", "placeholder": "Description"}
             ),
+            "onhand_amt": forms.TextInput(attrs={"placeholder": "On hand amount"}),
             "part_no": forms.TextInput(attrs={"placeholder": "Part number"}),
             "expiration_date": widgets.AdminSplitDateTime(),
             "location": forms.TextInput(attrs={"placeholder": "Location"}),
