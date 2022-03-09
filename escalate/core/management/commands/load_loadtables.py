@@ -11,7 +11,7 @@ from core.models import (
     BillOfMaterials,
     DefaultValues,
     ExperimentTemplate,
-    ExperimentType,
+    Type,
     ExperimentActionSequence,
     Inventory,
     InventoryMaterial,
@@ -28,7 +28,7 @@ from core.models import (
     TypeDef,
     Vessel,
     ActionSequence,
-    ActionSequenceType,
+    # ActionSequenceType,
     ReagentTemplate,
     ReagentMaterialTemplate,
     ReagentMaterialValueTemplate,
@@ -103,7 +103,9 @@ class Command(BaseCommand):
 
         # Create the experiment
         exp_template = ExperimentTemplate(
-            description="Workflow 1", ref_uid="workflow_1", lab=lab,
+            description="Workflow 1",
+            ref_uid="workflow_1",
+            lab=lab,
         )
         exp_template.save()
 
@@ -456,7 +458,9 @@ class Command(BaseCommand):
 
         # Create the experiment
         exp_template = ExperimentTemplate(
-            description="Workflow 3", ref_uid="workflow_3", lab=lab,
+            description="Workflow 3",
+            ref_uid="workflow_3",
+            lab=lab,
         )
         exp_template.save()
 
@@ -942,13 +946,21 @@ class Command(BaseCommand):
         # create default values
         DefaultValues.objects.get_or_create(
             description="g/ml",
-            actual_value={"value": "0.0", "unit": "g/ml", "type": "num",},
+            actual_value={
+                "value": "0.0",
+                "unit": "g/ml",
+                "type": "num",
+            },
         )
         gml_dv = DefaultValues.objects.get(description="g/ml")
 
         DefaultValues.objects.get_or_create(
             description="g/mol",
-            actual_value={"value": "0.0", "unit": "g/mol", "type": "num",},
+            actual_value={
+                "value": "0.0",
+                "unit": "g/mol",
+                "type": "num",
+            },
         )
         gmol_dv = DefaultValues.objects.get(description="g/mol")
 
@@ -1645,7 +1657,7 @@ class Command(BaseCommand):
         )
         active_status = Status.objects.get(description="active")
 
-        experiment_type = {x.description: x for x in ExperimentType.objects.all()}
+        experiment_type = {x.description: x for x in Type.objects.all()}
 
         new_experiment = 0
         for _, row in experiment_df.iterrows():
@@ -1708,9 +1720,7 @@ class Command(BaseCommand):
         )
         active_status = Status.objects.get(description="active")
 
-        action_sequence_type = {
-            x.description: x for x in ActionSequenceType.objects.all()
-        }
+        action_sequence_type = {x.description: x for x in Type.objects.all()}
 
         new_action_sequence = 0
         for _, row in workflow_df.iterrows():
@@ -1726,9 +1736,10 @@ class Command(BaseCommand):
                 else None,
                 "status": active_status,
             }
-            (action_sequence_instance, created,) = ActionSequence.objects.get_or_create(
-                **fields
-            )
+            (
+                action_sequence_instance,
+                created,
+            ) = ActionSequence.objects.get_or_create(**fields)
             if created:
                 new_action_sequence += 1
             experiment_description = (
@@ -1775,7 +1786,7 @@ class Command(BaseCommand):
 
             row_action_sequence_instance.parent = parent
 
-            row_action_sequence_instance.save(update_fields=["parent"])
+            # row_action_sequence_instance.save(update_fields=["parent"])
         self.stdout.write(
             self.style.SUCCESS(f"Added {new_action_sequence} new action_sequences")
         )
@@ -1871,7 +1882,9 @@ class Command(BaseCommand):
                     used_amt_val_type, used_amt_val_unit, used_amt_val_value
                 ),
                 "putback_amt_val": get_val_field_dict(
-                    putback_amt_val_type, putback_amt_val_unit, putback_amt_val_value,
+                    putback_amt_val_type,
+                    putback_amt_val_unit,
+                    putback_amt_val_value,
                 ),
                 # 'mixture': Mixture.objects.get(composite=mixture_composite,
                 #                               component=mixture_component

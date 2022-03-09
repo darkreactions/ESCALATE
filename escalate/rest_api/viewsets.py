@@ -74,7 +74,7 @@ class CustomViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
-        print(serializer)
+        print(self.request.user.groups.all())
         serializer.save()
 
 

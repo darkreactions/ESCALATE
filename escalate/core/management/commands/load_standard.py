@@ -1,7 +1,8 @@
 from django.core.management.base import BaseCommand, CommandError
 from core.models import (
     TypeDef,
-    ActionSequenceType,
+    # ActionSequenceType,
+    Type,
     Status,
     MaterialIdentifierDef,
     MaterialType,
@@ -13,7 +14,7 @@ import core.models
 
 model_field_names = {
     "type_def": ["category", "description"],
-    "action_sequence_type": ["description"],
+    "type": ["description"],
     "status": ["description"],
     "material_identifier_def": ["description"],
     "material_type": ["description"],
@@ -43,7 +44,7 @@ model_field_data = {
         ["file", "png"],
         ["file", "jpg"],
     ],
-    "action_sequence_type": [
+    "type": [
         ["action_sequence_action_set"],
         ["model"],
         ["template"],

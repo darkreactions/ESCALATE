@@ -31,6 +31,7 @@ from core.forms.custom_types import (
 
 from core.models.view_tables.generic_data import PropertyTemplate
 from django.forms import formset_factory
+from django.core.exceptions import MultipleObjectsReturned
 
 
 class CreateExperimentTemplate(TemplateView):
@@ -72,20 +73,31 @@ class CreateExperimentTemplate(TemplateView):
         dead_vol_val = {"value": 4000, "unit": "uL", "type": "num"}
 
         # Create default values
-        default_volume, created = DefaultValues.objects.get_or_create(
-            **{
-                "description": "Zero ml",
-                "nominal_value": volume_val,
-                "actual_value": volume_val,
-            }
-        )
-        default_dead_volume, created = DefaultValues.objects.get_or_create(
-            **{
-                "description": "WF1 dead volume",
-                "nominal_value": dead_vol_val,
-                "actual_value": dead_vol_val,
-            }
-        )
+        default_volume_data = {
+            "description": "Zero ml",
+            "nominal_value": volume_val,
+            "actual_value": volume_val,
+        }
+        try:
+            default_volume, created = DefaultValues.objects.get_or_create(
+                **default_volume_data
+            )
+        except MultipleObjectsReturned:
+            default_volume = DefaultValues.objects.filter(**default_volume_data).first()
+
+        default_dead_volume_data = {
+            "description": "WF1 dead volume",
+            "nominal_value": dead_vol_val,
+            "actual_value": dead_vol_val,
+        }
+        try:
+            default_dead_volume, created = DefaultValues.objects.get_or_create(
+                **default_dead_volume_data
+            )
+        except MultipleObjectsReturned:
+            default_dead_volume = DefaultValues.objects.filter(
+                **default_dead_volume
+            ).first()
 
         # Create total volume and dead volume property templates for each reagent
         total_volume_prop, created = PropertyTemplate.objects.get_or_create(
@@ -306,4 +318,3 @@ class CreateExperimentTemplate(TemplateView):
             )
 
         return render(request, self.template_name, context)
-

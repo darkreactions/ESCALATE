@@ -10,6 +10,8 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.contrib import messages
 
+from pathlib import Path
+
 # from core.views.function_views import save_experiment_action_sequence
 
 
@@ -43,7 +45,10 @@ class ActionSequenceView(LoginRequired, View):
         # context["action_sequence_name_form"] = ActionSequenceNameForm
         # return render(request, self.template_name, context)
 
-        with open("./core/static/json/http_components.json", "r") as f:
+        base_path = Path("./core/static/json/")
+        base_path2 = Path("./escalate/core/static/json/")
+        """
+        with base_path / Path("http_components.json").open("r") as f:
             http_components = f.read()
 
         with open("./core/static/json/http_workflow.json", "r") as f:
@@ -57,8 +62,13 @@ class ActionSequenceView(LoginRequired, View):
 
         with open("./core/static/json/action_def_components.json", "r") as f:
             action_def_components = f.read()
+        """
 
-        with open("./core/static/json/action_def_workflow.json", "r") as f:
+        path = base_path / Path("action_def_workflow.json")
+        if not path.exists():
+            path = base_path2 / Path("action_def_workflow.json")
+
+        with path.open("r") as f:
             action_def_workflow = f.read()
 
         workflow = action_def_workflow
