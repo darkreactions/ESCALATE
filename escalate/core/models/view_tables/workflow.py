@@ -27,6 +27,14 @@ managed_views = False
 
 class Action(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="action_uuid")
+    parent = models.ForeignKey(
+        "Action",
+        on_delete=models.DO_NOTHING,
+        db_column="action",
+        blank=True,
+        null=True,
+        related_name="parent_action",
+    )
     action_def = models.ForeignKey(
         "ActionDef",
         on_delete=models.CASCADE,
@@ -248,11 +256,11 @@ class BomVessel(BaseBomMaterial):
 class ExperimentTemplate(DateColumns, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
     experiment_type = models.ForeignKey(
-        "ExperimentType",
+        "Type",
         on_delete=models.CASCADE,
         blank=True,
         null=True,
-        related_name="experiment_template_experiment_type",
+        related_name="experiment_template_type",
     )
     ref_uid = models.CharField(
         max_length=255, db_column="ref_uid", blank=True, null=True
@@ -289,7 +297,11 @@ class ExperimentTemplate(DateColumns, StatusColumn):
         related_name="experiment_template_action_sequence",
     )
     internal_slug = SlugField(
-        populate_from=["description",], overwrite=True, max_length=255,
+        populate_from=[
+            "description",
+        ],
+        overwrite=True,
+        max_length=255,
     )
     reagent_templates = models.ManyToManyField(
         "ReagentTemplate",
@@ -315,8 +327,6 @@ class ExperimentInstance(DateColumns, StatusColumn, DescriptionColumn):
     uuid = RetUUIDField(
         primary_key=True, default=uuid.uuid4, db_column="experiment_uuid"
     )
-    # experiment_type = models.ForeignKey('ExperimentType', db_column='experiment_type_uuid',
-    #                                    on_delete=models.CASCADE, blank=True, null=True, related_name='experiment_experiment_type')
     ref_uid = models.CharField(
         max_length=255, db_column="ref_uid", blank=True, null=True
     )
@@ -361,7 +371,11 @@ class ExperimentInstance(DateColumns, StatusColumn, DescriptionColumn):
     # owner_description = models.CharField(max_length=255, db_column='owner_description')
     # operator_description = models.CharField(max_length=255, db_column='operator_description')
     internal_slug = SlugField(
-        populate_from=["description",], overwrite=True, max_length=255,
+        populate_from=[
+            "description",
+        ],
+        overwrite=True,
+        max_length=255,
     )
     completion_status = models.CharField(
         db_column="completion_status", max_length=255, default="Pending"
@@ -394,18 +408,7 @@ class ExperimentPendingInstance(ExperimentInstance):
         proxy = True
 
 
-class ExperimentType(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
-    uuid = RetUUIDField(
-        primary_key=True, default=uuid.uuid4, db_column="experiment_type_uuid"
-    )
-    internal_slug = SlugField(
-        populate_from=["description"], overwrite=True, max_length=255
-    )
-
-
 class ExperimentActionSequence(DateColumns):
-    # note: omitted much detail here because should be nested under
-    # experiment, no need for redundancy.
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
     experiment_template = models.ForeignKey(
         "ExperimentTemplate",
@@ -421,8 +424,6 @@ class ExperimentActionSequence(DateColumns):
         null=True,
         related_name="experiment_instance_eas",
     )
-    # experiment_ref_uid = models.CharField(max_length=255)
-    # experiment_description = models.CharField(max_length=255)
     experiment_action_sequence_seq = models.IntegerField()
     action_sequence = models.ForeignKey(
         "ActionSequence",
@@ -431,8 +432,6 @@ class ExperimentActionSequence(DateColumns):
         null=True,
         related_name="experiment_action_sequence_as",
     )
-    # workflow_type_uuid = models.ForeignKey('WorkflowType', db_column='workflow_type_uuid',
-    #                                       on_delete=models.CASCADE, blank=True, null=True)
     internal_slug = SlugField(
         populate_from=[
             "experiment__internal_slug",
@@ -553,22 +552,23 @@ class ReactionParameter(StatusColumn, DescriptionColumn, DateColumns):
         db_column="reaction_parameter_profile_experiment_uuid",
     )
 
+
 class ActionSequence(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
-    parent = models.ForeignKey(
-        "ActionSequence",
-        models.CASCADE,
-        blank=True,
-        null=True,
-        db_column="parent_uuid",
-        related_name="action_sequence_parent",
-    )
+    # parent = models.ForeignKey(
+    #    "ActionSequence",
+    #    models.CASCADE,
+    #    blank=True,
+    #    null=True,
+    #    db_column="parent_uuid",
+    #    related_name="action_sequence_parent",
+    # )
     action_sequence_type = models.ForeignKey(
-        "ActionSequenceType",
+        "Type",
         models.CASCADE,
         blank=True,
         null=True,
-        related_name="action_sequence_action_sequence_type",
+        related_name="action_sequence_type",
     )
     experiment = models.ManyToManyField(
         "ExperimentTemplate",
@@ -576,13 +576,18 @@ class ActionSequence(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         related_name="action_sequence_experiment",
     )
     internal_slug = SlugField(
-        populate_from=["description",], overwrite=True, max_length=255,
+        populate_from=[
+            "description",
+        ],
+        overwrite=True,
+        max_length=255,
     )
 
     def __str__(self):
         return f"{self.description}"
 
 
+"""
 class ActionSequenceType(DateColumns, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
     internal_slug = SlugField(
@@ -591,3 +596,23 @@ class ActionSequenceType(DateColumns, DescriptionColumn):
 
     def __str__(self):
         return f"{self.description}"
+"""
+
+
+class Type(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
+    """Specifies the type of object, Currently used to define the type of an
+    actionsequence and experimenttemplate
+
+    Args:
+        DateColumns (Model): Contains Datecolumns
+        StatusColumn (Model): Contains Status column
+        ActorColumn (Model): Contains Actor column
+        DescriptionColumn (Model): Contains description column
+    """
+
+    uuid = RetUUIDField(
+        primary_key=True, default=uuid.uuid4, db_column="experiment_type_uuid"
+    )
+    internal_slug = SlugField(
+        populate_from=["description"], overwrite=True, max_length=255
+    )
