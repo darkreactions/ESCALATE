@@ -64,4 +64,4 @@
 </div>
 {% endblock %}
 
-{% block delete_url %}"/{{ title }}/" + pk + "/delete" {% endblock %}
+{% block delete_url %}"/{{ title|toUnderscore|lower }}/" + pk + "/delete" {% endblock %}

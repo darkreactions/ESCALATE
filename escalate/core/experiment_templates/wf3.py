@@ -3,7 +3,7 @@ from core.models.core_tables import TypeDef
 import tempfile
 import pandas as pd
 from core.models.view_tables import ReactionParameter
-from core.utilities.wf1_utils import make_well_list
+from core.utilities.utils import make_well_labels_list
 
 #
 
@@ -58,12 +58,11 @@ def generate_robot_file_wf3(
             {"Reaction Parameters": rp_keys, "Parameter Values": rp_values}
         )
 
-    df_tray = make_well_list(
-        plate_name,
-        well_count,
-        column_order=["A", "C", "E", "G", "B", "D", "F", "H"],
-        # total_columns=8,
+    well_names = make_well_labels_list(
+        well_count, column_order=["A", "C", "E", "G", "B", "D", "F", "H"], robot="True"
     )
+    df_tray = pd.DataFrame({"Vial Site": well_names, "Labware ID:": plate_name})
+
     reagent_colnames = [
         "Reagent1 (ul)",
         "Reagent2 (ul)",

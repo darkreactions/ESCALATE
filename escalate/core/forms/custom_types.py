@@ -47,9 +47,9 @@ class SingleValForm(Form):
     uuid = CharField(widget=HiddenInput, required=False)
 
 
-class RobotForm(Form):
+class ManualSpecificationForm(Form):
     # title = CharField(max_length=50)
-    file = FileField(label="Upload completed robot file")
+    file = FileField(label="Upload completed file")
 
     @staticmethod
     def get_helper():

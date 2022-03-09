@@ -13,6 +13,12 @@ class CustomUser(AbstractUser):
     REQUIRED_FIELDS = []
     objects = CustomUserManager()
     person = models.ForeignKey("Person", on_delete=models.DO_NOTHING, null=True)
+    selected_lab = models.ForeignKey(
+        "Organization",
+        on_delete=models.DO_NOTHING,
+        null=True,
+        related_name="custom_user_o",
+    )
 
     def __str__(self):
         return self.username
@@ -23,7 +29,6 @@ class OrganizationPassword(models.Model):
     organization = models.OneToOneField(
         Organization,
         on_delete=models.CASCADE,
-        db_column="parent_uuid",
         related_name="organization_password_organization",
     )
     password = models.CharField(max_length=255)
@@ -41,10 +46,6 @@ class UnitType(models.Model):
         max_length=255, blank=True, null=True, db_column="standard_unit"
     )
     allowed_units = ArrayField(models.CharField(max_length=255))
-    #
-    # class Meta:
-    #     managed = True
-    #     db_table = 'unit_type'
 
 
 class ActionSequenceDesign(models.Model):

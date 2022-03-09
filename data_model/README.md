@@ -104,64 +104,6 @@ The database model consists of the following entities:
 <br/>
 
 
-## Getting Started
-
-These instructions will get you a copy of the database up and running on your local machine (or container) for development and testing purposes. 
-
-### Prerequisites
-
-Minimal software you need in place to instantiate the model
-
-```
-PostgreSQL v11 / v12
-Docker
-```
-[![dockerlogo][docker-logo]][dockerinstall-url]
-&ensp;[![pgadminlogo][pgadmin-logo]][pgadmininstall-url]
-
-<br/>
-
-## Instantiating the Model (w/ experimental data)
-
-This model can be instantiated into a local PostgreSQL server or into a docker container. As there is extensive documentation and instructions to install PostgreSQL and docker, it will not be covered in this README.
-
-In addition to the environments in which this model can reside (e.g. local or docker), it can be created (restored) from a pg_dump backup.
-
-### Initial Instantiation of ESCALATE
-
-The following instructions will assist in starting docker and instantiating ESCALATE locally for the first time.
-
-1. Download a copy of ESCALATE code from GitHub to your local machine
-2. Install Docker https://docs.docker.com/get-docker/ and open the application
-3. Open terminal/command/powershell and navigate to .../ESCALATE/data_model   
-4. Run the following bash commands:
-	```
-		docker-compose down --rmi all -v
-		docker-compose up
-	```
-5. Open a new terminal and navigate to ../ESCALATE/escalate/
-6. Run the following:
-	```
-	export DJANGO_SETTINGS_MODULE=escalate.settings.local
-	bash ./build_django_db.sh reset 
-	python manage.py runserver
-	```
-This should create an instance of ESCALATE under your local server's 8000: port with preloaded mock data. You can then navigate to the local server website at localhost:8000/ and create a new username/password to log in, or use localhost:8000/api to access the restAPI.
-If you do not wish to preload data then skip running the build_django_db shell script in step 6 and instead load your own data via a script or through the API.
-
-### Quickest method to fully create database (from backup)
-
-Assumption: you have a database named 'escalate' already created (in either local environment or docker container).
-
-**restore into a docker container**
-using the latest 'bak' file in the repo's backup folder. This assumes the following: 1) the docker container is named: escalate and 2) the backup sql file has been moved to a folder in the container
-
-```
-docker exec escalate psql -d escalate -U escalate -f escalate_dev_create_backup.sql
-```
-
-<br/>
-
 ## Built With
 
 * [PostgreSQL 12](https://www.postgresql.org) - Database
@@ -172,9 +114,10 @@ docker exec escalate psql -d escalate -U escalate -f escalate_dev_create_backup.
 
 ## Authors
 
-* **Gary Cattabriga** - *Initial work* - [ESCALATE](https://github.com/gcatabr1)
-* **Joseph Pannizzo** - *Final Revision* - [ESCALATE](https://github.com/jpannizzo)
-* **Nicole Smina** - *Docker Instantiation* - [ESCALATE](https://github.com/nsmina914)
+* [**Gary Cattabriga**](https://github.com/gcatabr1) - *Initial work* 
+* [**Joseph Pannizzo**](https://github.com/jpannizzo)
+* [**Venkateswaran Shekar**](https://github.com/vshekar)											   
+* [**Nicole Smina**](https://github.com/nsmina914)
 
 See also the list of [contributors](https://github.com/darkreactions/ESCALATE/graphs/contributors) who participated in this project.
 
