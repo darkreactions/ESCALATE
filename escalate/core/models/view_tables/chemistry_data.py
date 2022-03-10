@@ -72,8 +72,15 @@ class Vessel(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     total_volume = ValField(blank=True, null=True)
     # dead_volume = models.CharField(max_length=255,blank=True, null=True)
     # whole plate can leave well_number blank
-    well_number = models.IntegerField(blank=True, null=True,)
-    column_order = models.CharField(max_length=100, blank=True, null=True,)
+    well_number = models.IntegerField(
+        blank=True,
+        null=True,
+    )
+    column_order = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+    )
     parent = models.ForeignKey(
         "Vessel",
         on_delete=models.DO_NOTHING,
@@ -312,7 +319,9 @@ class ReagentTemplate(DateColumns, DescriptionColumn, StatusColumn):
         populate_from=["description"], overwrite=True, max_length=255
     )
     properties = models.ManyToManyField(
-        "PropertyTemplate", blank=True, related_name="reagent_template_p",
+        "PropertyTemplate",
+        blank=True,
+        related_name="reagent_template_p",
     )
 
     def __str__(self):
@@ -333,11 +342,17 @@ class ReagentMaterialTemplate(DateColumns, DescriptionColumn, StatusColumn):
         on_delete=models.DO_NOTHING,
         related_name="reagent_material_template_mt",
     )
+    properties = models.ManyToManyField(
+        "PropertyTemplate",
+        blank=True,
+        related_name="reagent_material_template_p",
+    )
 
     def __str__(self):
         return self.description
 
 
+"""
 class ReagentMaterialValueTemplate(DateColumns, DescriptionColumn, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
     reagent_material_template = models.ForeignKey(
@@ -352,6 +367,7 @@ class ReagentMaterialValueTemplate(DateColumns, DescriptionColumn, StatusColumn)
         null=True,
         related_name="reagent_material_value_template_dv",
     )
+"""
 
 
 class Reagent(DateColumns, DescriptionColumn, StatusColumn):
@@ -382,7 +398,7 @@ class Reagent(DateColumns, DescriptionColumn, StatusColumn):
         if not self.property_r.exists():
             for prop_temp in self.template.properties.all():
                 prop = Property(
-                    property_template=prop_temp,
+                    template=prop_temp,
                     nominal_value=prop_temp.default_value.nominal_value,
                     value=prop_temp.default_value.actual_value,
                     reagent=self,
@@ -412,7 +428,29 @@ class ReagentMaterial(DateColumns, DescriptionColumn, StatusColumn):
         related_name="reagent_material_rmt",
     )
 
+    def save(self, *args, **kwargs):
+        """
+        When initializing a reagentmaterial, if no properties are
+        associated with the reagentmaterial, look up the reagent
+        template and add properties with defaul values
+        based on the property template associated with the
+        reagent template
+        This also covers the case when we are updating a
+        reagent so the if block does not execute
+        """
+        super().save(*args, **kwargs)
+        if not self.property_rm.exists():
+            for prop_temp in self.template.properties.all():
+                prop = Property(
+                    template=prop_temp,
+                    nominal_value=prop_temp.default_value.nominal_value,
+                    value=prop_temp.default_value.actual_value,
+                    reagent_material=self,
+                )
+                prop.save()
 
+
+"""
 class ReagentMaterialValue(DateColumns, DescriptionColumn, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
     nominal_value = ValField(blank=True, null=True)
@@ -442,3 +480,4 @@ class ReagentMaterialValue(DateColumns, DescriptionColumn, StatusColumn):
 
     def __str__(self):
         return self.description
+"""

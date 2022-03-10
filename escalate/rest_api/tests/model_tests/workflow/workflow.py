@@ -9,7 +9,7 @@ from ..model_tests_utils import (
     check_status_code,
     compare_data,
 )
-from core.models import ActionSequenceType, ExperimentTemplate, ActionSequence
+from core.models import Type, ExperimentTemplate, ActionSequence
 
 actionsequence_test_data = {}
 
@@ -46,7 +46,7 @@ actionsequence_tests = [
                 "name": name,
                 "method": POST,
                 "endpoint": "actionsequencetype-list",
-                "body": random_model_dict(ActionSequenceType),
+                "body": random_model_dict(Type),
                 "args": [],
                 "query_params": [],
                 "is_valid_response": {
@@ -64,7 +64,7 @@ actionsequence_tests = [
             "body": (
                 request_body := random_model_dict(
                     ActionSequence,
-                    parent="actionsequence0__url",
+                    # parent="actionsequence0__url",
                     action_sequence_type="actionsequencetype0__url",
                 )
             ),
@@ -96,7 +96,7 @@ actionsequence_tests = [
             "body": (
                 request_body := random_model_dict(
                     ActionSequence,
-                    parent="actionsequence1__url",
+                    # parent="actionsequence1__url",
                     action_sequence_type="actionsequencetype1__url",
                 )
             ),

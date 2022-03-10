@@ -353,15 +353,13 @@ def generate_experiments_and_save(
     reagents = Reagent.objects.filter(experiment=experiment_copy_uuid)
     for reagent in reagents:
         # label = reagent_template_reagent_map[reagent.template.description]
-        prop = reagent.property_r.get(
-            property_template__description__icontains="total volume"
-        )
+        prop = reagent.property_r.get(template__description__icontains="total volume")
         prop.nominal_value.value += sum(desired_volume[reagent.template.description])
         prop.nominal_value.unit = "uL"
         prop.save()
         if dead_volume is not None:
             dv_prop = reagent.property_r.get(
-                property_template__description__icontains="dead volume"
+                template__description__icontains="dead volume"
             )
             dv_prop.nominal_value = dead_volume
             dv_prop.save()
@@ -503,14 +501,14 @@ def save_manual_volumes(
             for reagent in reagents:
                 if reagent.template.description == reagent_name:
                     prop = reagent.property_r.get(
-                        property_template__description__icontains="total volume"
+                        template__description__icontains="total volume"
                     )
                     prop.nominal_value.value = total_volume
                     prop.nominal_value.unit = df["Units"][0]
                     prop.save()
                     if dead_volume is not None:
                         dv_prop = reagent.property_r.get(
-                            property_template__description__icontains="dead volume"
+                            template__description__icontains="dead volume"
                         )
                         dv_prop.nominal_value = dead_volume
                         dv_prop.save()

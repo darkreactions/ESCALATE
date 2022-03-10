@@ -10,13 +10,13 @@ Q_ = units.Quantity
 
 def conc_to_amount(exp_uuid):
     """[summary]
-    For each reagent in an experiment, this function obtains reagent material properties 
+    For each reagent in an experiment, this function obtains reagent material properties
     needed to calculate amounts (mass/volumes) of each material that will achieve the desired reagent concentration
 
     Args:
         exp_uuid([str]): UUID of experiment instance
 
-    Returns: 
+    Returns:
         N/A
         saves calculated amounts to database
 
@@ -32,7 +32,7 @@ def conc_to_amount(exp_uuid):
         input_data = {}
         reagent_materials = reagent.reagent_material_r.all()
         for reagent_material in reagent_materials:
-            conc = reagent_material.reagent_material_value_rmi.filter(
+            conc = reagent_material.property_rm.filter(
                 template__description="concentration"
             ).first()
             conc_val = conc.nominal_value.value
@@ -48,7 +48,7 @@ def conc_to_amount(exp_uuid):
                 )
 
             mw_prop = reagent_material.material.material.property_m.filter(
-                property_template__description__icontains="molecularweight"
+                template__description__icontains="molecularweight"
             ).first()
             if mw_prop is None:
                 raise ValueError(
@@ -58,7 +58,7 @@ def conc_to_amount(exp_uuid):
                 )
             mw = Q_(mw_prop.value.value, mw_prop.value.unit).to(units.g / units.mol)
             density_prop = reagent_material.material.material.property_m.filter(
-                property_template__description__icontains="density"
+                template__description__icontains="density"
             ).first()
             d = d = Q_(density_prop.value.value, density_prop.value.unit).to(
                 units.g / units.ml
@@ -79,12 +79,12 @@ def conc_to_amount(exp_uuid):
 
         # get total volume and dead volume for the reagent
         prop = reagent.property_r.filter(
-            property_template__description__icontains="total volume"
+            template__description__icontains="total volume"
         ).first()
         total_vol = Q_(f"{prop.nominal_value.value} {prop.nominal_value.unit}")
 
         dead_vol_prop = reagent.property_r.filter(
-            property_template__description__icontains="dead volume"
+            template__description__icontains="dead volume"
         ).first()
         dead_vol = Q_(
             f"{dead_vol_prop.nominal_value.value} {dead_vol_prop.nominal_value.unit}"
@@ -100,7 +100,7 @@ def conc_to_amount(exp_uuid):
 
         # save amounts to database
         for reagent_material, amount in amounts.items():
-            db_amount = reagent_material.reagent_material_value_rmi.filter(
+            db_amount = reagent_material.property_rm.filter(
                 template__description="amount"
             ).first()
             db_amount.nominal_value.value = amount.magnitude
@@ -118,7 +118,7 @@ def calculate_amounts(input_data, target_vol, dead_vol="4000 uL"):
         target_vol: target volume for reagent, in Pint registry format
         dead_vol: dead volume for reagent, in Pint registry format
 
-    Returns: 
+    Returns:
         [dic]: amount (mass/volume) of each material
             For solids/solutes, amounts will be reported in grams.
             For liquid/solvent/acid, amount will be reported in mL.

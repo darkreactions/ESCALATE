@@ -10,7 +10,8 @@ from core.models import (
     BillOfMaterials,
     DefaultValues,
     ExperimentTemplate,
-    ExperimentType,
+    # ExperimentType,
+    Type,
     ExperimentActionSequence,
     Inventory,
     InventoryMaterial,
@@ -27,10 +28,10 @@ from core.models import (
     TypeDef,
     Vessel,
     ActionSequence,
-    ActionSequenceType,
+    # ActionSequenceType,
     ReagentTemplate,
     ReagentMaterialTemplate,
-    ReagentMaterialValueTemplate,
+    # ReagentMaterialValueTemplate,
     OutcomeTemplate,
     Parameter,
     DescriptorTemplate,
@@ -72,8 +73,7 @@ class Command(BaseCommand):
             fields = {
                 "description": row["Product expected"],
             }
-            material_instance, created = Material.objects.get_or_create(
-                **fields)
+            material_instance, created = Material.objects.get_or_create(**fields)
             for col_name in col_names:
                 val = row[col_name]
                 print(val)
@@ -81,8 +81,7 @@ class Command(BaseCommand):
                 md, created = MolecularDescriptor.objects.get_or_create(
                     material=material_instance,
                     template=dt,
-                    value=Val.from_dict(
-                        {"value": val, "unit": "", "type": "num"}),
+                    value=Val.from_dict({"value": val, "unit": "", "type": "num"}),
                 )
 
     def _load_inventory(self):

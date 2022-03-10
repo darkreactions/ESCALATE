@@ -9,7 +9,7 @@ from ..model_tests_utils import (
     check_status_code,
     compare_data,
 )
-from core.models import ExperimentType
+from core.models import Type
 
 experimenttype_test_data = {}
 
@@ -26,7 +26,7 @@ experimenttype_tests = [
             "name": "experimenttype0",
             "method": POST,
             "endpoint": "experimenttype-list",
-            "body": (request_body := random_model_dict(ExperimentType)),
+            "body": (request_body := random_model_dict(Type)),
             "args": [],
             "query_params": [],
             "is_valid_response": {
@@ -52,7 +52,7 @@ experimenttype_tests = [
             "name": "experimenttype0_update_0",
             "method": PUT,
             "endpoint": "experimenttype-detail",
-            "body": (request_body := random_model_dict(ExperimentType)),
+            "body": (request_body := random_model_dict(Type)),
             "args": ["experimenttype0__uuid"],
             "query_params": [],
             "is_valid_response": {

@@ -24,6 +24,7 @@ from core.managers import OutcomeInstanceValueManager
 managed_tables = True
 managed_views = False
 
+
 class Calculation(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(
         primary_key=True, default=uuid.uuid4, db_column="calculation_uuid"
@@ -286,6 +287,7 @@ class Note(DateColumns, ActorColumn):
     def __str__(self):
         return "{}".format(self.notetext)
 
+
 class NoteX(DateColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="note_x_uuid")
     ref_note = RetUUIDField(db_column="ref_note_uuid")
@@ -361,12 +363,13 @@ class ParameterDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
 class Property(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="property_uuid")
 
-    property_template = models.ForeignKey(
+    # property_template = models.ForeignKey(
+    template = models.ForeignKey(
         "PropertyTemplate",
         db_column="property_def_uuid",
         on_delete=models.DO_NOTHING,
         blank=True,
-        null=True,
+        # null=True,
         related_name="property_pt",
     )
     nominal_value = ValField(blank=True, null=True)
@@ -388,9 +391,28 @@ class Property(DateColumns, StatusColumn, ActorColumn):
         editable=False,
         related_name="property_r",
     )
+    reagent_material = models.ForeignKey(
+        "ReagentMaterial",
+        blank=True,
+        null=True,
+        on_delete=models.DO_NOTHING,
+        # editable=False,
+        related_name="property_rm",
+    )
 
     def __str__(self):
         return "{} : {}".format(self.property_def, self.property_val)
+
+
+"""
+    def save(self, *args, **kwargs):
+        if self.template.default_value is not None:
+            if self.nominal_value is None:
+                self.nominal_value = self.template.default_value.nominal_value
+            if self.value is None:
+                self.value = self.template.default_value.actual_value
+        super().save(*args, **kwargs)
+"""
 
 
 class PropertyTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
@@ -410,22 +432,6 @@ class PropertyTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn
         null=True,
         related_name="property_template_dv",
     )
-
-    """
-    val_type = models.ForeignKey('TypeDef',
-                                 db_column='val_type_uuid',
-                                 on_delete=models.DO_NOTHING,
-                                 blank=True,
-                                 null=True, related_name='property_def_val_type')
-    val_unit = models.CharField(max_length=255,
-                                blank=True,
-                                null=True,
-                                db_column='valunit')
-    unit_type = models.CharField(max_length=255,
-                                blank=True,
-                                null=True,
-                                db_column='property_def_unit_type')
-    """
 
     def __str__(self):
         return "{}".format(self.description)

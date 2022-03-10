@@ -15,7 +15,7 @@ from core.models import (
     ExperimentTemplate,
     ReagentTemplate,
     ReagentMaterialTemplate,
-    ReagentMaterialValueTemplate,
+    # ReagentMaterialValueTemplate,
     MaterialType,
     Vessel,
 )
@@ -47,7 +47,9 @@ class SelectReagentsView(TemplateView):
         self.request = request
         if "select_experiment_template" in request.POST:
             exp_uuid = request.POST["select_experiment_template"]
+            vessel = request.POST.get("value")
             request.session["experiment_template_uuid"] = exp_uuid
+            request.session["selected_vessel"] = vessel
         else:
             exp_uuid = request.session["experiment_template_uuid"]
         context["selected_exp_template"] = ExperimentTemplate.objects.get(uuid=exp_uuid)
@@ -106,10 +108,10 @@ class SelectReagentsView(TemplateView):
             initial_data: list[Any] = []
             reagent_material_template: ReagentMaterialTemplate
             for reagent_material_template in reagent_template.reagent_material_template_rt.all().order_by("description"):  # type: ignore
-                reagent_material_value_template: ReagentMaterialValueTemplate
+                # reagent_material_value_template:
                 for (
                     reagent_material_value_template
-                ) in reagent_material_template.reagent_material_value_template_rmt.filter(
+                ) in reagent_material_template.properties.filter(
                     description="concentration"
                 ):
                     material_type: MaterialType

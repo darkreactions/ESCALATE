@@ -31,7 +31,7 @@ from core.models import (
     # ActionSequenceType,
     ReagentTemplate,
     ReagentMaterialTemplate,
-    ReagentMaterialValueTemplate,
+    # ReagentMaterialValueTemplate,
     OutcomeTemplate,
     Parameter,
     DescriptorTemplate,
@@ -205,16 +205,15 @@ class Command(BaseCommand):
                 )
 
                 for rv, default in reagent_values.items():
-                    (
-                        rmv_template,
-                        created,
-                    ) = ReagentMaterialValueTemplate.objects.get_or_create(
+                    (rmv_template, created,) = PropertyTemplate.objects.get_or_create(
+                        # ReagentMaterialValueTemplate.objects.get_or_create(
                         **{
                             "description": rv,
-                            "reagent_material_template": reagent_material_template,
+                            # "reagent_material_template": reagent_material_template,
                             "default_value": default,
                         }
                     )
+                    reagent_material_template.properties.add(rmv_template)
         # Create ActionSequence -> Actions -> ActionUnits
         action_sequences = {
             "Preheat Plate": ActionSequence.objects.create(description="Preheat Plate"),
@@ -538,7 +537,7 @@ class Command(BaseCommand):
         )
 
         # Loop through each reagent in reagents dict and create ReagentTemplates,
-        # corresponding ReagentMaterialTemplates and their Value Templates (ReagentMaterialValueTemplate)
+        # corresponding ReagentMaterialTemplates and their Property Templates
         for r, rms in reagents.items():
             reagent_template, created = ReagentTemplate.objects.get_or_create(
                 description=r,
@@ -561,16 +560,15 @@ class Command(BaseCommand):
                 )
 
                 for rv, default in reagent_values.items():
-                    (
-                        rmv_template,
-                        created,
-                    ) = ReagentMaterialValueTemplate.objects.get_or_create(
+                    (rmv_template, created,) = PropertyTemplate.objects.get_or_create(
+                        # ReagentMaterialValueTemplate.objects.get_or_create(
                         **{
                             "description": rv,
-                            "reagent_material_template": reagent_material_template,
+                            # "reagent_material_template": reagent_material_template,
                             "default_value": default,
                         }
                     )
+                    reagent_material_template.properties.add(rmv_template)
         # Create ActionSequence -> Actions -> ActionUnits
         action_sequences = {
             "Preheat Plate": ActionSequence.objects.create(description="Preheat Plate"),
@@ -890,7 +888,7 @@ class Command(BaseCommand):
         )
 
         # Loop through each reagent in reagents dict and create ReagentTemplates,
-        # corresponding ReagentMaterialTemplates and their Value Templates (ReagentMaterialValueTemplate)
+        # corresponding ReagentMaterialTemplates and their PropertyTemplates
         for r, rms in reagents.items():
             reagent_template, created = ReagentTemplate.objects.get_or_create(
                 description=r,
@@ -913,16 +911,15 @@ class Command(BaseCommand):
                 )
 
                 for rv, default in reagent_values.items():
-                    (
-                        rmv_template,
-                        created,
-                    ) = ReagentMaterialValueTemplate.objects.get_or_create(
+                    (rmv_template, created,) = PropertyTemplate(
+                        # ReagentMaterialValueTemplate.objects.get_or_create(
                         **{
                             "description": rv,
-                            "reagent_material_template": reagent_material_template,
+                            # "reagent_material_template": reagent_material_template,
                             "default_value": default,
                         }
                     )
+                    reagent_material_template.properties.add(rmv_template)
         # Create outcome templates, Currently hard coded to capture 96 values
         column_order = ["A", "C", "E", "G", "B", "D", "F", "H"]
         total_columns = 8
@@ -1167,11 +1164,11 @@ class Command(BaseCommand):
                     "type": "num",
                 }
                 Property.objects.create(
-                    material=some_material, property_template=mw, value=mw_value
+                    material=some_material, template=mw, value=mw_value
                 )
                 Property.objects.create(
                     material=some_material,
-                    property_template=density,
+                    template=density,
                     value=density_value,
                 )
 

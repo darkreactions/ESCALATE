@@ -9,7 +9,7 @@ from ..model_tests_utils import (
     check_status_code,
     compare_data,
 )
-from core.models import ActionSequenceType
+from core.models import Type
 
 actionsequencetype_test_data = {}
 
@@ -26,7 +26,7 @@ actionsequencetype_tests = [
             "name": "actionsequencetype0",
             "method": POST,
             "endpoint": "actionsequencetype-list",
-            "body": (request_body := random_model_dict(ActionSequenceType)),
+            "body": (request_body := random_model_dict(Type)),
             "args": [],
             "query_params": [],
             "is_valid_response": {
@@ -52,7 +52,7 @@ actionsequencetype_tests = [
             "name": "actionsequencetype0_update_0",
             "method": PUT,
             "endpoint": "actionsequencetype-detail",
-            "body": (request_body := random_model_dict(ActionSequenceType)),
+            "body": (request_body := random_model_dict(Type)),
             "args": ["actionsequencetype0__uuid"],
             "query_params": [],
             "is_valid_response": {

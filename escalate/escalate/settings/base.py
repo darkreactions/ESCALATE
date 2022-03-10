@@ -182,15 +182,17 @@ LOGGING = {
     },
     "handlers": {
         "file": {
-            "level": "ERROR",
+            "level": "INFO",
             "class": "logging.FileHandler",
             "filename": "debug.log",
+            "formatter": "verbose",
         },
     },
     "loggers": {
-        "django": {
+        "escalate": {
             "handlers": ["file"],
             "level": "ERROR",
+            "formatters": ["verbose"],
             "propagate": True,
         },
     },

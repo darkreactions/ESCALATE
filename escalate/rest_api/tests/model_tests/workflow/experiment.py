@@ -10,7 +10,7 @@ from ..model_tests_utils import (
     compare_data,
 )
 from core.models import (
-    ExperimentType,
+    Type,
     TypeDef,
     Actor,
     ActionSequence,
@@ -35,7 +35,7 @@ experiment_tests = [
             "name": "experimenttype0",
             "method": POST,
             "endpoint": "experimenttype-list",
-            "body": random_model_dict(ExperimentType),
+            "body": random_model_dict(Type),
             "args": [],
             "query_params": [],
             "is_valid_response": {

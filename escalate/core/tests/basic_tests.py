@@ -58,7 +58,7 @@ def get_organization(
     """
     if not login:
         select_id = "org_select"
-        page = "main_menu"
+        page = "select_lab"
     else:
         select_id = "id_organization"
         page = "user_profile"
@@ -71,7 +71,7 @@ def get_organization(
 
 def set_client_org_to_org(organization):
     uuid = get_organization(organization)
-    client.post(reverse("main_menu"), {"select_org": "select_org", "org_select": uuid})
+    client.post(reverse("select_lab"), {"select_org": "select_org", "org_select": uuid})
 
 
 @pytest.fixture
@@ -114,7 +114,7 @@ def test_create_experiment(login):
     Creates experiment
     """
     set_client_org_to_org("Haverford College")
-    response = client.get(reverse("experiment_add"))
+    response = client.get(reverse("experiment_instance_add"))
     assert response.status_code == 200
 
 
@@ -140,7 +140,7 @@ def test_create_exp_template():
         },
         {},
     ]
-    response = client.post(reverse("exp_template"), et_data[0], follow=True)
+    response = client.post(reverse("experiment_template_add"), et_data[0], follow=True)
     assert response.status_code == 200
 
 

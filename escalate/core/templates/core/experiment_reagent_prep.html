@@ -19,12 +19,13 @@
                 {% crispy reagent_total_volume_form volume_form_helper %}
             </div>
         </div>
-        <br>
-        {% endfor %}
-        <input type="hidden" id="automated" name="automated" value="{{ automated }}">
-        <div class="text-left">
-            <button class="btn btn-outline-primary" type="submit">Prepare Reagent</button>
-        </div>
+    </div>
+    <br>
+    {% endfor %}
+    <input type="hidden" id="automated" name="automated" value="{{ automated }}">
+    <div class="text-left">
+        <button class="btn btn-outline-primary" type="submit">Prepare Reagent</button>
+    </div>
 
 </form>
 

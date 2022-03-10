@@ -127,7 +127,7 @@ class CreateExperimentView(TemplateView):
 
         try:
             # Collect form data
-            vessel = Vessel.objects.get(description=request.POST.get("vessel"))
+            vessel = Vessel.objects.get(uuid=request.session["selected_vessel"])
             context["vessel"] = vessel
 
             (dead_volume, total_volume) = self.save_volumes(request, vessel)
@@ -162,11 +162,11 @@ class CreateExperimentView(TemplateView):
             # Generate and save mass/volume amounts
             if num_manual > 0:
                 context = self.process_manual_formsets(request, context)
-            
+
             if num_automated > 0:
                 context = self.process_automated_formsets(request, context)
 
-            if num_automated & num_manual <= 0:
+            if num_automated <= 0 and num_manual <= 0:
                 raise NoExperimentException()
 
             conc_to_amount(experiment_copy_uuid)
@@ -176,10 +176,11 @@ class CreateExperimentView(TemplateView):
 
         except Exception as e:
             # If there is an issue with the form above, redirect back to previous step
-            traceback.print_exc()
             srv = SelectReagentsView()
             response = srv.post(request)
-            logging.error(str(e))
+            # logging.error(str(e))
+            log = logging.getLogger("escalate")
+            log.exception("Create error")
             response["HX-Trigger"] = json.dumps(
                 {"showMessage": {"message": "Error occured please, check error logs"}}
             )
@@ -205,7 +206,7 @@ class CreateExperimentView(TemplateView):
             ) in form.reagent_material_template_rt.all().order_by("description"):
                 for (
                     reagent_material_value_template
-                ) in reagent_material_template.reagent_material_value_template_rmt.filter(
+                ) in reagent_material_template.properties.filter(
                     description="concentration"
                 ):
                     mat_types_list.append(reagent_material_template.material_type)
@@ -444,10 +445,8 @@ class CreateExperimentView(TemplateView):
                     else None
                 )
                 reagent_instance.save()
-                reagent_material_value = (
-                    reagent_instance.reagent_material_value_rmi.get(
-                        template__description="concentration"
-                    )
+                reagent_material_value = reagent_instance.property_rm.get(
+                    template__description="concentration"
                 )
                 reagent_material_value.nominal_value = data["desired_concentration"]
                 reagent_material_value.save()
@@ -528,8 +527,13 @@ class CreateExperimentView(TemplateView):
 
 # end: class CreateExperimentView()
 
+
 class NoExperimentException(Exception):
     """ Exception raised when manual and automated experiment is 0"""
-    def __init__(self,message="Please insert a positive number for either automated or manual experiment. Both fields can't be left at 0."):
-        self.message=message
+
+    def __init__(
+        self,
+        message="Please insert a positive number for either automated or manual experiment. Both fields can't be left at 0.",
+    ):
+        self.message = message
         super().__init__(self.message)

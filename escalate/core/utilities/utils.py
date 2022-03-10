@@ -11,7 +11,7 @@ from core.models.view_tables import (
     ExperimentActionSequence,
     ReagentMaterial,
     OutcomeInstance,
-    ReagentMaterialValue,
+    # ReagentMaterialValue,
     Reagent,
     ReagentTemplate,
     VesselType,
@@ -348,6 +348,7 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description, vesse
                 description=f"{exp_instance.description} : {reagent_template.description} : {reagent_material_template.description}",
             )
             reagent_material.save()
+            """
             for (
                 reagent_material_value_template
             ) in reagent_material_template.reagent_material_value_template_rmt.all():
@@ -357,6 +358,7 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description, vesse
                     description=reagent_material_value_template.description,
                 )
                 reagent_material_value.save()
+            """
 
     well_num = vessel.well_number
     col_order = vessel.column_order
