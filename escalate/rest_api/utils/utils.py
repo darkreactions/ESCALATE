@@ -76,6 +76,8 @@ core_views = set(
         "DescriptorTemplate",
         "MolecularDescriptor",
         "ExperimentDescriptor",
+        "ActionTemplate",
+        "VesselTemplate",
     ]
 )
 

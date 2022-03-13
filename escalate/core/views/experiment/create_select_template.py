@@ -37,6 +37,7 @@ class SelectReagentsView(TemplateView):
     ReagentFormSet: BaseFormSet = formset_factory(
         ReagentForm, extra=0, formset=BaseReagentFormSet
     )
+    VesselFormSet = formset_factory(VesselForm, extra=0)
 
     def get(self, request: HttpRequest, *args, **kwargs):
         context = self.get_context_data(**kwargs)
@@ -85,7 +86,31 @@ class SelectReagentsView(TemplateView):
     def get_forms(self, exp_template: ExperimentTemplate, context: dict[str, Any]):
         context = self.get_reagent_forms(context)
         context = self.get_volume_forms(context)
+        context = self.get_vessel_forms(context)
         context["colors"] = self.get_colors(len(context["reagent_formset"]))
+        return context
+
+    def get_vessel_forms(self, context: dict[str, Any]) -> dict[str, Any]:
+        exp_template = ExperimentTemplate.objects.get(
+            pk=self.request.session["experiment_template_uuid"]
+        )
+        vessel_templates = set()
+
+        for asq in exp_template.action_sequence.all():
+            for at in asq.action_template_as.all():
+                if at.source_vessel_template:
+                    vessel_templates.add(at.source_vessel_template)
+                if at.dest_vessel_template:
+                    vessel_templates.add(at.dest_vessel_template)
+
+        vt_names = []
+        forms = []
+        for index, vt in enumerate(list(vessel_templates)):
+            vt_names.append(vt.description)
+            forms.append(VesselForm(prefix=f"vessel_{index}"))
+
+        context["vessel_template_names"] = vt_names
+        context["vessel_forms"] = forms
         return context
 
     def get_reagent_forms(self, context: dict[str, Any]) -> dict[str, Any]:

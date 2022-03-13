@@ -30,7 +30,6 @@ from core.models.view_tables import (
     BaseBomMaterial,
 )
 
-from core.models.app_tables import ActionSequenceDesign
 
 from core.forms.custom_types import (
     SingleValForm,
@@ -140,7 +139,7 @@ class CreateExperimentView(TemplateView):
             if exp_name_form.is_valid():
                 context["new_exp_name"] = exp_name_form.cleaned_data["exp_name"]
 
-                self.generate_action_units(exp_template, vessel)
+                # generate_action_units(exp_template, vessel)
 
                 # Make the experiment copy: this will be our new experiment
                 experiment_copy_uuid = experiment_copy(
@@ -266,113 +265,12 @@ class CreateExperimentView(TemplateView):
 
         return (dead_volume, total_volume)
 
-    def generate_action_units(self, exp_template, vessel):
-        """For a chosen ExperimentTemplate, this function obtains the action sequences and generates appropriate action units
-        corresponding to the chosen vessel. Used for experiment templates created through the UI"""
-
-        # get the action sequences
-        action_sequences = []
-        eas = ExperimentActionSequence.objects.filter(
-            experiment_template=exp_template
-        )  # get ExperimentActionSequence
-        for i in eas:
-            action_sequences.append(i.action_sequence)
-
-        # look up stored ActionSequenceDesign objects from UI workflow generator
-        # for templates generated through API/scripts, these objects will not exist (the script already creates action units)
-        for i in action_sequences:
-            actions = ActionSequenceDesign.objects.filter(action_sequence=i)
-        if actions.exists():
-            for a in actions:
-                action = Action.objects.filter(
-                    description=a.description, action_sequence=i
-                )[
-                    0
-                ]  # action
-
-                if a.source is not None:  # create source BOM
-                    source_bbm = BaseBomMaterial.objects.create(description=a.source)
-                else:
-                    source_bbm = None
-
-                # creaate destination BOM
-                if "wells" in a.destination:  # individual well-level actions
-                    plate = Vessel.objects.get(uuid=vessel.uuid)
-
-                    well_list = make_well_labels_list(
-                        well_count=plate.well_number,
-                        column_order=plate.column_order,
-                        robot="True",
-                    )
-                    plate_wells = {}
-                    for well in well_list:
-                        plate_wells[well] = Vessel.objects.create(
-                            parent=plate, description=well
-                        )
-                    for well_desc, well_vessel in plate_wells.items():
-                        destination_bbm = BaseBomMaterial.objects.create(
-                            description=f"{plate.description} : {well_desc}",
-                            vessel=well_vessel,
-                        )
-                        if source_bbm:
-                            description = f"{action.description} : {source_bbm.description} -> {destination_bbm.description}"
-                        else:
-                            description = (
-                                f"{action.description} : {destination_bbm.description}"
-                            )
-                        au = ActionUnit.objects.get_or_create(
-                            action=action,
-                            source_material=source_bbm,
-                            destination_material=destination_bbm,
-                            description=action.description,
-                        )
-                else:
-                    vessel_types = []
-                    for vt in VesselType.objects.all():
-                        vessel_types.append(vt.description)
-
-                    if a.destination in vessel_types:  # plate-level actions
-
-                        vessel = Vessel.objects.get(uuid=vessel.uuid)
-                        destination_bbm = BaseBomMaterial.objects.create(
-                            description=vessel.description, vessel=vessel
-                        )
-                        if source_bbm:
-                            description = f"{action.description} : {source_bbm.description} -> {destination_bbm.description}"
-                        else:
-                            description = (
-                                f"{action.description} : {destination_bbm.description}"
-                            )
-
-                        au = ActionUnit.objects.get_or_create(
-                            action=action,
-                            source_material=source_bbm,
-                            description=description,
-                            destination_material=destination_bbm,
-                        )
-
-                    else:
-                        # if destination is not a vessel
-                        destination_bbm = BaseBomMaterial.objects.create(
-                            description=a.destination
-                        )
-                        if source_bbm:
-                            description = f"{action.description} : {source_bbm.description} -> {destination_bbm.description}"
-                        else:
-                            description = (
-                                f"{action.description} : {destination_bbm.description}"
-                            )
-                        au = ActionUnit.objects.get_or_create(
-                            action=action,
-                            source_material=source_bbm,
-                            description=description,
-                            destination_material=destination_bbm,
-                        )
-
     def save_reaction_parameters(
         self, request, experiment_copy_uuid, exp_name_form, exp_template
     ):
-        """ This function saves specific reaction data in a seperate table for faster access. Does not need to call the model table to prepopulate reaction parameters. POST saves to both the model table and reaction parameter table"""
+        """This function saves specific reaction data in a seperate table for faster access.
+        Does not need to call the model table to prepopulate reaction parameters.
+        POST saves to both the model table and reaction parameter table"""
         if exp_name_form.is_valid():
             # post reaction parameter form
             # get label here and get form out of label, use label for description

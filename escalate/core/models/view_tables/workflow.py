@@ -25,122 +25,6 @@ managed_tables = True
 managed_views = False
 
 
-class Action(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="action_uuid")
-    parent = models.ForeignKey(
-        "Action",
-        on_delete=models.DO_NOTHING,
-        db_column="action",
-        blank=True,
-        null=True,
-        related_name="parent_action",
-    )
-    action_def = models.ForeignKey(
-        "ActionDef",
-        on_delete=models.CASCADE,
-        db_column="action_def_uuid",
-        blank=True,
-        null=True,
-        related_name="action_action_def",
-    )
-    parameter_def = models.ManyToManyField("ParameterDef", blank=True, editable=False)
-    action_sequence = models.ForeignKey(
-        "ActionSequence",
-        on_delete=models.CASCADE,
-        blank=True,
-        null=True,
-        related_name="action_action_sequence",
-    )
-    start_date = models.DateField(db_column="start_date", blank=True, null=True)
-    end_date = models.DateField(db_column="end_date", blank=True, null=True)
-    duration = models.FloatField(db_column="duration", blank=True, null=True)
-    repeating = models.IntegerField(db_column="repeating", blank=True, null=True)
-    # calculation_def = models.ForeignKey('CalculationDef', on_delete=models.CASCADE,
-    #                                    db_column='calculation_def_uuid',
-    #                                    blank=True,
-    #                                    null=True,
-    #                                    related_name='action_calculation_def')
-    internal_slug = SlugField(
-        populate_from=["description", "action_sequence", "action_def__internal_slug"],
-        overwrite=True,
-        max_length=255,
-    )
-
-    def __str__(self):
-        return "{}".format(self.description)
-
-
-# Potential table to eliminate WorkflowActionSet. An action can operate on one or many
-# source-destination material pairs. Both can be represented by Action
-
-
-class ActionUnit(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
-    uuid = RetUUIDField(
-        primary_key=True, default=uuid.uuid4, db_column="action_material_uuid"
-    )
-    action = models.ForeignKey(
-        "Action",
-        on_delete=models.CASCADE,
-        blank=True,
-        null=True,
-        related_name="action_unit_action",
-    )
-    source_material = models.ForeignKey(
-        "BaseBomMaterial",
-        on_delete=models.CASCADE,
-        db_column="source_uuid",
-        blank=True,
-        null=True,
-        related_name="action_unit_source_material",
-    )
-    destination_material = models.ForeignKey(
-        "BaseBomMaterial",
-        on_delete=models.CASCADE,
-        db_column="destination_uuid",
-        blank=True,
-        null=True,
-        related_name="action_unit_destination_material",
-    )
-    # parameter = models.OneToOneField('Parameter', on_delete=models.CASCADE, blank=True,
-    #                           null=True,
-    #                           related_name='action_unit_parameter')
-    internal_slug = SlugField(
-        populate_from=[
-            "uuid",
-            "action__description",
-            "source_material__internal_slug",
-            #'action__internal_slug',
-            "destination_material__internal_slug",
-        ],
-        overwrite=True,
-        max_length=255,
-    )
-    # internal_slug = CharField(max_length=255)
-
-    def __str__(self):
-        return f"{self.description}"
-
-
-class ActionDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
-
-    uuid = RetUUIDField(
-        primary_key=True, default=uuid.uuid4, db_column="action_def_uuid"
-    )
-    # , through='ActionParameterDefAssign')
-    parameter_def = models.ManyToManyField("ParameterDef", blank=True)
-
-    synonym = models.CharField(
-        max_length=255, db_column="synonym", blank=True, null=True
-    )  # alternate name for same ActionDef, for compatibility with Autoprotocol and other systems
-
-    internal_slug = SlugField(
-        populate_from=["description"], overwrite=True, max_length=255
-    )
-
-    def __str__(self):
-        return f"{self.description}"
-
-
 class BillOfMaterials(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="bom_uuid")
     experiment = models.ForeignKey(
@@ -307,7 +191,7 @@ class ExperimentTemplate(DateColumns, StatusColumn):
     action_sequence = models.ManyToManyField(
         "ActionSequence",
         through="ExperimentActionSequence",
-        related_name="experiment_template_action_sequence",
+        related_name="experiment_template_as",
     )
     internal_slug = SlugField(
         populate_from=[
@@ -319,12 +203,15 @@ class ExperimentTemplate(DateColumns, StatusColumn):
     reagent_templates = models.ManyToManyField(
         "ReagentTemplate",
         blank=True,
-        related_name="experiment_template_reagent_template",
+        related_name="experiment_template_rt",
     )
     outcome_templates = models.ManyToManyField(
         "OutcomeTemplate",
         blank=True,
-        related_name="experiment_template_outcome_template",
+        related_name="experiment_template_ot",
+    )
+    vessel_templates = models.ManyToManyField(
+        "VesselTemplate", blank=True, related_name="experiment_template_vt"
     )
 
     def __str__(self):
@@ -344,13 +231,13 @@ class ExperimentInstance(DateColumns, StatusColumn, DescriptionColumn):
         max_length=255, db_column="ref_uid", blank=True, null=True
     )
     # update to point to an experiment parent.
-    parent = models.ForeignKey(
+    template = models.ForeignKey(
         "ExperimentTemplate",
         db_column="parent_uuid",
         on_delete=models.CASCADE,
         blank=True,
         null=True,
-        related_name="experiment_instance_parent",
+        related_name="experiment_instance_template",
     )
     owner = models.ForeignKey(
         "Actor",
@@ -376,11 +263,14 @@ class ExperimentInstance(DateColumns, StatusColumn, DescriptionColumn):
         null=True,
         related_name="experiment_instance_lab",
     )
+    """
     action_sequence = models.ManyToManyField(
         "ActionSequence",
         through="ExperimentActionSequence",
         related_name="experiment_instance_as",
     )
+    """
+
     # owner_description = models.CharField(max_length=255, db_column='owner_description')
     # operator_description = models.CharField(max_length=255, db_column='operator_description')
     internal_slug = SlugField(
@@ -430,6 +320,7 @@ class ExperimentActionSequence(DateColumns):
         null=True,
         related_name="experiment_action_sequence_et",
     )
+    """
     experiment_instance = models.ForeignKey(
         "ExperimentInstance",
         on_delete=models.CASCADE,
@@ -437,7 +328,15 @@ class ExperimentActionSequence(DateColumns):
         null=True,
         related_name="experiment_instance_eas",
     )
+    """
     experiment_action_sequence_seq = models.IntegerField()
+    parent = models.ForeignKey(
+        "ExperimentActionSequence",
+        on_delete=models.DO_NOTHING,
+        blank=True,
+        null=True,
+        related_name="experiment_action_sequence_child",
+    )
     action_sequence = models.ForeignKey(
         "ActionSequence",
         on_delete=models.CASCADE,
@@ -564,40 +463,6 @@ class ReactionParameter(StatusColumn, DescriptionColumn, DateColumns):
         null=True,
         db_column="reaction_parameter_profile_experiment_uuid",
     )
-
-
-class ActionSequence(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
-    # parent = models.ForeignKey(
-    #    "ActionSequence",
-    #    models.CASCADE,
-    #    blank=True,
-    #    null=True,
-    #    db_column="parent_uuid",
-    #    related_name="action_sequence_parent",
-    # )
-    action_sequence_type = models.ForeignKey(
-        "Type",
-        models.CASCADE,
-        blank=True,
-        null=True,
-        related_name="action_sequence_type",
-    )
-    experiment = models.ManyToManyField(
-        "ExperimentTemplate",
-        through="ExperimentActionSequence",
-        related_name="action_sequence_experiment",
-    )
-    internal_slug = SlugField(
-        populate_from=[
-            "description",
-        ],
-        overwrite=True,
-        max_length=255,
-    )
-
-    def __str__(self):
-        return f"{self.description}"
 
 
 """

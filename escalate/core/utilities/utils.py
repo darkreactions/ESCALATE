@@ -2,6 +2,8 @@ from django.db import connection as con
 from django.db.models import F
 from core.models import ExperimentTemplate, ActionSequence, Action
 from core.models.view_tables import (
+    BaseBomMaterial,
+    Vessel,
     BomMaterial,
     Action,
     ActionUnit,
@@ -21,6 +23,9 @@ from copy import deepcopy
 import pandas as pd
 import tempfile
 import math
+from itertools import product
+
+from core.models.app_tables import ActionSequenceDesign
 
 # import core.models.view_tables as vt
 
@@ -190,6 +195,7 @@ def generate_action_def_json(action_defs, exp_template_uuid):
         source_choices.append(reagent.description)
         dest_choices.append(reagent.description)
     for vt in VesselType.objects.all():  # include all vessels as destinations
+        source_choices.append(vt.description)
         dest_choices.append(vt.description)
 
     json_data = []
@@ -225,7 +231,110 @@ def generate_action_def_json(action_defs, exp_template_uuid):
     return json_data
 
 
-def experiment_copy(template_experiment_uuid, copy_experiment_description, vessel):
+def custom_pairing(source_vessels, dest_vessels):
+    raise NotImplementedError
+
+
+def generate_action_units(self, exp_template, vessel):
+    """For a chosen ExperimentTemplate, this function obtains the action sequences and generates appropriate action units
+    corresponding to the chosen vessel. Used for experiment templates created through the UI"""
+
+    # get the action sequences
+    action_sequences = []
+    eas = ExperimentActionSequence.objects.filter(
+        experiment_template=exp_template
+    )  # get ExperimentActionSequence
+    for i in eas:
+        action_sequences.append(i.action_sequence)
+        # look up stored ActionSequenceDesign objects from UI workflow generator
+        # for templates generated through API/scripts, these objects will not exist (the script already creates action units)
+        for i in action_sequences:
+            actions = ActionSequenceDesign.objects.filter(action_sequence=i)
+            if actions.exists():
+                for a in actions:
+                    action = Action.objects.filter(
+                        description=a.description, action_sequence=i
+                    )[
+                        0
+                    ]  # action
+
+                    if a.source is not None:  # create source BOM
+                        source_bbm = BaseBomMaterial.objects.create(
+                            description=a.source
+                        )
+                    else:
+                        source_bbm = None
+
+                    # creaate destination BOM
+                    if "wells" in a.destination:  # individual well-level actions
+                        plate = Vessel.objects.get(uuid=vessel.uuid)
+
+                        well_list = make_well_labels_list(
+                            well_count=plate.well_number,
+                            column_order=plate.column_order,
+                            robot="True",
+                        )
+                        plate_wells = {}
+                        for well in well_list:
+                            plate_wells[well] = Vessel.objects.create(
+                                parent=plate, description=well
+                            )
+                        for well_desc, well_vessel in plate_wells.items():
+                            destination_bbm = BaseBomMaterial.objects.create(
+                                description=f"{plate.description} : {well_desc}",
+                                vessel=well_vessel,
+                            )
+                            if source_bbm:
+                                description = f"{action.description} : {source_bbm.description} -> {destination_bbm.description}"
+                            else:
+                                description = f"{action.description} : {destination_bbm.description}"
+                            au = ActionUnit.objects.get_or_create(
+                                action=action,
+                                source_material=source_bbm,
+                                destination_material=destination_bbm,
+                                description=action.description,
+                            )
+                    else:
+                        vessel_types = []
+                        for vt in VesselType.objects.all():
+                            vessel_types.append(vt.description)
+
+                        if a.destination in vessel_types:  # plate-level actions
+
+                            vessel = Vessel.objects.get(uuid=vessel.uuid)
+                            destination_bbm = BaseBomMaterial.objects.create(
+                                description=vessel.description, vessel=vessel
+                            )
+                            if source_bbm:
+                                description = f"{action.description} : {source_bbm.description} -> {destination_bbm.description}"
+                            else:
+                                description = f"{action.description} : {destination_bbm.description}"
+
+                            au = ActionUnit.objects.get_or_create(
+                                action=action,
+                                source_material=source_bbm,
+                                description=description,
+                                destination_material=destination_bbm,
+                            )
+
+                        else:
+                            # if destination is not a vessel
+                            destination_bbm = BaseBomMaterial.objects.create(
+                                description=a.destination
+                            )
+                            if source_bbm:
+                                description = f"{action.description} : {source_bbm.description} -> {destination_bbm.description}"
+                            else:
+                                description = f"{action.description} : {destination_bbm.description}"
+                            au = ActionUnit.objects.get_or_create(
+                                action=action,
+                                source_material=source_bbm,
+                                description=description,
+                                destination_material=destination_bbm,
+                            )
+
+
+def experiment_copy(template_experiment_uuid, copy_experiment_description, vessels):
     """Creates an experiment instance based on the template uuid
 
     Args:
@@ -240,98 +349,63 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description, vesse
     exp_template = ExperimentTemplate.objects.get(uuid=template_experiment_uuid)
     # experiment row creation, overwrites original experiment template object with new experiment object.
     # Makes an experiment template object parent
-    exp_instance = ExperimentInstance(
+    exp_instance = ExperimentInstance.objects.create(
         ref_uid=exp_template.ref_uid,
-        parent=exp_template,
+        template=exp_template,
         owner=exp_template.owner,
         operator=exp_template.operator,
         lab=exp_template.lab,
+        description=copy_experiment_description
+        if copy_experiment_description
+        else f"Copy of {exp_template.description}",
     )
 
-    # If copy_experiment_description null replace with "Copy of " + description from exp_get
-    if copy_experiment_description is None:
-        copy_experiment_description = "Copy of " + exp_instance.description
+    bom = BillOfMaterials.objects.create(experiment_instance=exp_instance)
 
-    exp_instance.description = copy_experiment_description
-    # post
-    exp_instance.save()
+    # Get all action sequences related to this experiment template
+    for asq in exp_template.action_sequence.all():
+        for at in asq.action_template_as.all():
+            action = Action.objects.create(
+                # parent=
+                experiment=exp_instance,
+                template=at,
+            )
 
-    # create old bom object based on experiment uuid
-    template_boms = BillOfMaterials.objects.filter(experiment=template_experiment_uuid)
-    for temp_bom in template_boms.iterator():
-        # create copy for new bom
-        instance_bom = deepcopy(temp_bom)
-        # update new bom and update fields
-        instance_bom.uuid = None
-        instance_bom.experiment = None
-        instance_bom.experiment_instance = exp_instance
-        # post
-        instance_bom.save()
+            # Create a list of all source vessels
+            source_vessels = []
+            if svt := at.source_vessel_template:
+                base_vessel = vessels[svt.description]
+                if at.source_vessel_decomposable:
+                    source_vessels = list(base_vessel.children.all())
+                else:
+                    source_vessels = [base_vessel]
 
-        # Create old bom material object
-        template_bom_mats = BomMaterial.objects.filter(bom=temp_bom.uuid)
-        for temp_bom_mat in template_bom_mats:
-            # copy for new bom material
-            instance_bom_mat = deepcopy(temp_bom_mat)
-            # update new bom material
-            instance_bom_mat.uuid = None
-            instance_bom_mat.bom = instance_bom
-            # post
-            instance_bom_mat.save()
+            # Create a list of all destination vessels
+            dest_vessels = []
+            if dvt := at.dest_vessel_template:
+                base_vessel = vessels[dvt.description]
+                if at.dest_vessel_decomposable:
+                    dest_vessels = list(base_vessel.children.all())
+                else:
+                    dest_vessels = [base_vessel]
 
-    # Get all Experiment Workflow objects based on experiment template uuid
-    experiment_action_sequence_filter = ExperimentActionSequence.objects.all().filter(
-        experiment_template=exp_template
-    )
+            if not source_vessels:
+                vessel_pairs = product([None], dest_vessels)
+            elif len(source_vessels) == 1:
+                vessel_pairs = product(source_vessels, dest_vessels)
+            elif len(source_vessels) == len(dest_vessels):
+                vessel_pairs = zip(source_vessels, dest_vessels)
+            else:
+                vessel_pairs = custom_pairing(source_vessels, dest_vessels)
 
-    # itterate over them all and update workflow, experiment workflow, and workflowactionset(action, actionunit, parameter)
-    for template_exp_wf in experiment_action_sequence_filter.iterator():
-        # create new workflow for current object
-        # this needs to be double checked to verify it works correctly
-        # this_workflow = Workflow.objects.get(uuid=current_object.workflow.uuid)
-        instance_workflow = template_exp_wf.action_sequence
-        template_workflow = deepcopy(instance_workflow)
-        # update uuid so it generates it's own uuid
-        instance_workflow.uuid = None
-        # this_workflow.experiment = exp_get
-        # post
-        instance_workflow.save()
+            for sv, dv in vessel_pairs:
+                ActionUnit.objects.create(
+                    action=action,
+                    destination_material=BaseBomMaterial.objects.create(vessel=dv),
+                    source_material=BaseBomMaterial.objects.create(vessel=sv),
+                )
 
-        # create copy of current experiment workflow object from experiment_workflow_filter
-        # this_experiment_workflow = current_object
-        instance_exp_wf = ExperimentActionSequence(
-            action_sequence=instance_workflow,
-            experiment_instance=exp_instance,
-            experiment_action_sequence_seq=template_exp_wf.experiment_action_sequence_seq,
-        )
-        # update experiment workflow uuid, workflow uuid, and experiment uuid for experiment workflow
-        # this_experiment_workflow.uuid = None
-        # this_experiment_workflow.workflow = this_workflow
-        # this_experiment_workflow.experiment = exp_get
-        # post
-        instance_exp_wf.save()
-
-        # create action query and loop through the actions and update
-        # need to add loop
-        template_actions = Action.objects.filter(action_sequence=template_workflow)
-        for temp_action in template_actions.iterator():
-            instance_action = deepcopy(temp_action)
-            # create new uuid, workflow should already be correct, if it is not set workflow uuid to current workflow uuid
-            instance_action.uuid = None
-            instance_action.action_sequence = instance_workflow
-            # post
-            instance_action.save()
-
-            # get all action units and create uuids for them and assign action uuid to action unit
-            template_action_units = ActionUnit.objects.filter(action=temp_action)
-            for current_action_unit in template_action_units.iterator():
-                current_action_unit.uuid = None
-                current_action_unit.action = instance_action
-                current_action_unit.save()
-
-            # get all parameters and create uuids for them and assign action uuid to each parameter
-
-    # Iterate over all reagent-templates and create reagentintances and reagentinstancevalues
+    # Iterate over all reagent-templates and create reagentintances and properties
     for reagent_template in exp_template.reagent_templates.all():
         # Iterate over value_descriptions so that there are different ReagentInstanceValues based on
         # different requirements. For e.g. "concentration" and "amount" for the same
@@ -348,17 +422,6 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description, vesse
                 description=f"{exp_instance.description} : {reagent_template.description} : {reagent_material_template.description}",
             )
             reagent_material.save()
-            """
-            for (
-                reagent_material_value_template
-            ) in reagent_material_template.reagent_material_value_template_rmt.all():
-                reagent_material_value = ReagentMaterialValue(
-                    reagent_material=reagent_material,
-                    template=reagent_material_value_template,
-                    description=reagent_material_value_template.description,
-                )
-                reagent_material_value.save()
-            """
 
     well_num = vessel.well_number
     col_order = vessel.column_order

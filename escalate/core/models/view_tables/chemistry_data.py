@@ -86,7 +86,7 @@ class Vessel(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         on_delete=models.DO_NOTHING,
         blank=True,
         null=True,
-        related_name="parent_vessel",
+        related_name="children",
     )
     vessel_type = models.ManyToManyField(
         "VesselType", blank=True, related_name="vessel_vessel_type"
