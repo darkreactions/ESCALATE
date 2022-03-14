@@ -131,6 +131,8 @@ class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
                 "nominal_value": row.parameter_value,
                 "actual_value": row.parameter_value,
                 "object_description": f"{row.object_description}",
+                "source": f"{row.action_unit_source}",
+                "destination": f"{row.action_unit_destination}",
                 "parameter_def_description": f"{row.parameter_def_description}",
             }
             for row in q1

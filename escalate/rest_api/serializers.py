@@ -4,6 +4,7 @@
 # from escalate.core.models.view_tables.workflow import Workflow, WorkflowStep, BillOfMaterials
 from django.db.models.fields import related
 from django.core.exceptions import ObjectDoesNotExist
+from numpy import source
 from rest_framework import serializers
 from core.models.view_tables import Edocument, Note
 from core.models.core_tables import TypeDef
@@ -71,8 +72,6 @@ class DynamicFieldsModelSerializer(
 
     def get_queryset(self):
         return super().get_queryset()
-    
-    
 
 
 class TagAssignSerializer(DynamicFieldsModelSerializer):
@@ -89,8 +88,7 @@ class TagListSerializer(DynamicFieldsModelSerializer):
 
     def get_tags(self, obj):
         tags = TagAssign.objects.filter(ref_tag=obj.uuid)
-        result_serializer = TagAssignSerializer(
-            tags, many=True, context=self.context)
+        result_serializer = TagAssignSerializer(tags, many=True, context=self.context)
         return result_serializer.data
 
 
@@ -107,8 +105,7 @@ class NoteListSerializer(DynamicFieldsModelSerializer):
     def get_notes(self, obj):
         # notes = Note.objects.filter(note_x_note__ref_note=obj.uuid)
         notes = Note.objects.filter(ref_note_uuid=obj.uuid)
-        result_serializer = NoteSerializer(
-            notes, many=True, context=self.context)
+        result_serializer = NoteSerializer(notes, many=True, context=self.context)
         return result_serializer.data
 
 
@@ -160,10 +157,8 @@ class MeasureListSerializer(DynamicFieldsModelSerializer):
     measures = SerializerMethodField()
 
     def get_measures(self, obj):
-        measures = Measure.objects.filter(
-            measure_x_measure__ref_measure=obj.uuid)
-        result_serializer = MeasureSerializer(
-            measures, many=True, context=self.context)
+        measures = Measure.objects.filter(measure_x_measure__ref_measure=obj.uuid)
+        result_serializer = MeasureSerializer(measures, many=True, context=self.context)
         return result_serializer.data
 
 
@@ -175,8 +170,7 @@ class EdocumentSerializer(
 
     def get_download_link(self, obj):
         result = "{}".format(
-            reverse("edoc_download", args=[
-                    obj.uuid], request=self.context["request"])
+            reverse("edoc_download", args=[obj.uuid], request=self.context["request"])
         )
         return result
 
@@ -227,8 +221,7 @@ class EdocListSerializer(DynamicFieldsModelSerializer):
 
     def get_edocs(self, obj):
         edocs = Edocument.objects.filter(ref_edocument_uuid=obj.uuid)
-        result_serializer = EdocumentSerializer(
-            edocs, many=True, context=self.context)
+        result_serializer = EdocumentSerializer(edocs, many=True, context=self.context)
         return result_serializer.data
 
 
@@ -248,11 +241,7 @@ for model_name in rest_serializer_views:
     else:
         meta_class_params["fields"] = "__all__"
 
-    meta_class = type(
-        "Meta",
-        (),
-        meta_class_params,
-    )
+    meta_class = type("Meta", (), meta_class_params,)
     base_serializers = [
         EdocListSerializer,
         TagListSerializer,
@@ -264,8 +253,7 @@ for model_name in rest_serializer_views:
     if model_name == "ActionUnit":
         base_serializers.insert(3, ParameterListSerializer)
     globals()[model_name + "Serializer"] = type(
-        model_name +
-        "Serializer", tuple(base_serializers), {"Meta": meta_class}
+        model_name + "Serializer", tuple(base_serializers), {"Meta": meta_class}
     )
 
 # Create serializers with expandable fields
@@ -287,11 +275,7 @@ for model_name, data in expandable_fields.items():
         meta_class_params["exclude"] = list(current_excluded_fields)
     else:
         meta_class_params["fields"] = "__all__"
-    meta_class = type(
-        "Meta",
-        (),
-        meta_class_params,
-    )
+    meta_class = type("Meta", (), meta_class_params,)
 
     extra_fields = {}
 
@@ -341,8 +325,7 @@ class BomSerializer(DynamicFieldsModelSerializer):
 
 
 class BomMaterialSerializer(DynamicFieldsModelSerializer):
-    url = serializers.HyperlinkedIdentityField(
-        view_name="basebommaterial-detail")
+    url = serializers.HyperlinkedIdentityField(view_name="basebommaterial-detail")
 
     class Meta:
         model = BomMaterial
@@ -362,8 +345,7 @@ class BomMaterialSerializer(DynamicFieldsModelSerializer):
 
 
 class BomCompositeMaterialSerializer(DynamicFieldsModelSerializer):
-    url = serializers.HyperlinkedIdentityField(
-        view_name="basebommaterial-detail")
+    url = serializers.HyperlinkedIdentityField(view_name="basebommaterial-detail")
 
     class Meta:
         model = BomCompositeMaterial
@@ -397,6 +379,12 @@ class ExperimentTemplateSerializer(
 
 class ExperimentQuerySerializer(Serializer):
     object_description = CharField(
+        max_length=255, min_length=None, allow_blank=False, trim_whitespace=True
+    )
+    source = CharField(
+        max_length=255, min_length=None, allow_blank=False, trim_whitespace=True
+    )
+    destination = CharField(
         max_length=255, min_length=None, allow_blank=False, trim_whitespace=True
     )
     parameter_def_description = CharField(

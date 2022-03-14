@@ -164,7 +164,7 @@ def get_action_parameter_querysets(exp_uuid: str, template=True) -> QuerySet:
         .annotate(object_uuid=F(f"{related_a}__uuid"))
         .annotate(action_unit_description=F(f"{related_au}__description"))
         .annotate(
-            action_unit_source=F(f"{related_au}__source_material__vessel__description")
+            action_unit_source=F(f"{related_au}__source_material__reagent__description")
         )
         .annotate(
             action_unit_destination=F(
@@ -371,9 +371,7 @@ def generate_experiments_and_save(
 
     # for action_description, (reagent_name, mult_factor) in action_reagent_map.items():
     well_list = make_well_labels_list(
-        well_count=vessel.well_number,
-        column_order=vessel.column_order,
-        robot="True",
+        well_count=vessel.well_number, column_order=vessel.column_order, robot="True",
     )
 
     for reagent_name in reagent_template_names:
