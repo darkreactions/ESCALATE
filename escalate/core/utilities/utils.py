@@ -423,18 +423,21 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description, vesse
             )
             reagent_material.save()
 
-    well_num = vessel.well_number
-    col_order = vessel.column_order
-    well_list = make_well_labels_list(well_num, col_order, robot="False")
+    # well_num = vessel.well_number
+    # col_order = vessel.column_order
+    # well_list = make_well_labels_list(well_num, col_order, robot="False")
 
-    for outcome_template in exp_template.outcome_template_experiment_template.all():
-        for label in well_list:
-            outcome_instance = OutcomeInstance(
-                outcome_template=outcome_template,
-                experiment_instance=exp_instance,
-                description=label,
-            )
-            outcome_instance.save()
+    for outcome_template in exp_template.outcome_templates.all():
+        for vt in exp_template.vessel_templates.all():
+            if vt.outcome_vessel:
+                selected_vessel = vessels[vt.description]
+                for child in selected_vessel.children.all():
+                    outcome_instance = OutcomeInstance(
+                        outcome_template=outcome_template,
+                        experiment_instance=exp_instance,
+                        description=child.description,
+                    )
+                    outcome_instance.save()
 
     return exp_instance.uuid
 

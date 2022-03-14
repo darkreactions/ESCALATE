@@ -1,11 +1,23 @@
 import os
 from .base import *
+from better_exceptions.integrations.django import skip_errors_filter
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEBUG = 1
 SECRET_KEY = "1qhmd^+6(k3t4$*^ws5px-f+loyi_%6@p)h33qha2z9wy6=*!4"
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "escalate.sd2e.org", "[::1]"]
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
+
+MIDDLEWARE += [
+    "better_exceptions.integrations.django.BetterExceptionsMiddleware",
+]
+
+LOGGING["filters"] = {
+    "skip_errors": {
+        "()": "django.utils.log.CallbackFilter",
+        "callback": skip_errors_filter,
+    }
+}
 
 SQLITE = False
 

@@ -240,7 +240,7 @@ methods = {
         "ordering": ["description"],
         "field_contains": "",
         "org_related_path": "lab__organization",
-        "default_filter_kwargs": {"parent__isnull": False},
+        "default_filter_kwargs": {"template__isnull": False},
     },
     "ExperimentPendingInstance": {
         "model": core.models.view_tables.ExperimentPendingInstance,
@@ -262,7 +262,7 @@ methods = {
         "ordering": ["description"],
         "field_contains": "",
         "org_related_path": "lab__organization",
-        "default_filter_kwargs": {"parent__isnull": False},
+        "default_filter_kwargs": {"template__isnull": False},
     },
     "ExperimentCompletedInstance": {
         "model": core.models.view_tables.ExperimentCompletedInstance,
@@ -284,6 +284,6 @@ methods = {
         "ordering": ["description"],
         "field_contains": "",
         "org_related_path": "lab__organization",
-        "default_filter_kwargs": {"parent__isnull": False},
+        "default_filter_kwargs": {"template__isnull": False},
     },
 }

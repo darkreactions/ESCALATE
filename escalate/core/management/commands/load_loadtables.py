@@ -216,6 +216,7 @@ class Command(BaseCommand):
                     )
                     reagent_material_template.properties.add(rmv_template)
         # Create ActionSequence -> Actions -> ActionUnits
+        """
         action_sequences = {
             "Preheat Plate": ActionSequence.objects.create(description="Preheat Plate"),
             "Dispense Reagent 1 - Solvent": ActionSequence.objects.create(
@@ -245,7 +246,9 @@ class Command(BaseCommand):
                 )
                 td["parent"] = parent_eas
             action_seq.experiment.add(exp_template, through_defaults=td)
-            """
+        """
+
+        """
             ac_sq = ExperimentActionSequence(
                 experiment_template=exp_template,
                 experiment_action_sequence_seq=i,
@@ -392,33 +395,31 @@ class Command(BaseCommand):
                     default_vessel=default_vessel,
                 )
 
+                if created:
+                    exp_template.vessel_templates.add(source_vessel_template)
+
             dest_vessel_template = None
             dest_vessel_decomposable = False
             if dest_desc:
                 default_vessel = Vessel.objects.get(description="96 Well Plate well")
+
                 if isinstance(dest_desc, str):
-                    (
-                        dest_vessel_template,
-                        created,
-                    ) = VesselTemplate.objects.get_or_create(
-                        description="Outcome vessel",
-                        outcome_vessel=True,
-                        default_vessel=default_vessel,
-                    )
                     dest_vessel_decomposable = False
                 elif isinstance(dest_desc, list):
-                    (
-                        dest_vessel_template,
-                        created,
-                    ) = VesselTemplate.objects.get_or_create(
-                        description="Outcome vessel",
-                        outcome_vessel=True,
-                        default_vessel=default_vessel,
-                    )
                     dest_vessel_decomposable = True
 
+                (dest_vessel_template, created,) = VesselTemplate.objects.get_or_create(
+                    description="Outcome vessel",
+                    outcome_vessel=True,
+                    default_vessel=default_vessel,
+                )
+
+                if created:
+                    exp_template.vessel_templates.add(dest_vessel_template)
+
             ActionTemplate.objects.get_or_create(
-                action_sequence=action_sequences[action_seq],
+                # action_sequence=action_sequences[action_seq],
+                experiment_template=exp_template,
                 action_def=action_def,
                 source_vessel_template=source_vessel_template,
                 source_vessel_decomposable=source_vessel_decomposable,
@@ -557,6 +558,7 @@ class Command(BaseCommand):
                         }
                     )
                     reagent_material_template.properties.add(rmv_template)
+        """
         # Create ActionSequence -> Actions -> ActionUnits
         action_sequences = {
             "Preheat Plate": ActionSequence.objects.create(description="Preheat Plate"),
@@ -591,7 +593,9 @@ class Command(BaseCommand):
                 )
                 td["parent"] = parent
             action_seq.experiment.add(exp_template, through_defaults=td)
-            """
+        """
+
+        """
             ac_sq = ExperimentActionSequence(
                 experiment_template=exp_template,
                 experiment_action_sequence_seq=i,
@@ -760,6 +764,7 @@ class Command(BaseCommand):
                     # decomposable=False,
                     default_vessel=default_vessel,
                 )
+                exp_template.vessel_templates.add(source_vessel_template)
 
             dest_vessel_template = None
             dest_vessel_decomposable = False
@@ -785,9 +790,13 @@ class Command(BaseCommand):
                         default_vessel=default_vessel,
                     )
                     dest_vessel_decomposable = True
+                # print(dest_vessel_template, type(dest_desc))
+                if dest_vessel_template:
+                    exp_template.vessel_templates.add(dest_vessel_template)
 
             ActionTemplate.objects.get_or_create(
-                action_sequence=action_sequences[action_seq],
+                # action_sequence=action_sequences[action_seq],
+                experiment_template=exp_template,
                 action_def=action_def,
                 source_vessel_template=source_vessel_template,
                 source_vessel_decomposable=source_vessel_decomposable,

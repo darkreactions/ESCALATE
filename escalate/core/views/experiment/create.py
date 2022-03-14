@@ -136,6 +136,14 @@ class CreateExperimentView(TemplateView):
 
             exp_name_form = ExperimentNameForm(request.POST)
 
+            vessels = {}
+            for index, vt in enumerate(
+                exp_template.vessel_templates.all().order_by("description")
+            ):
+                vf = VesselForm(request.POST, prefix=f"vessel_{index}")
+                if vf.is_valid():
+                    vessels[vt.description] = vf.cleaned_data["value"]
+
             if exp_name_form.is_valid():
                 context["new_exp_name"] = exp_name_form.cleaned_data["exp_name"]
 
@@ -143,7 +151,7 @@ class CreateExperimentView(TemplateView):
 
                 # Make the experiment copy: this will be our new experiment
                 experiment_copy_uuid = experiment_copy(
-                    str(exp_template.uuid), context["new_exp_name"], vessel
+                    str(exp_template.uuid), context["new_exp_name"], vessels
                 )
 
             # Obtain and save reagent names and concentration data

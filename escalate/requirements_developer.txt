@@ -3,3 +3,4 @@ beautifulsoup4
 werkzeug==1.0.1
 black
 pre-commit
+better_exceptions

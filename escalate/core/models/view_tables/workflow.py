@@ -188,11 +188,13 @@ class ExperimentTemplate(DateColumns, StatusColumn):
         null=True,
         related_name="experiment_template_lab",
     )
+    """
     action_sequence = models.ManyToManyField(
         "ActionSequence",
         through="ExperimentActionSequence",
         related_name="experiment_template_as",
     )
+    """
     internal_slug = SlugField(
         populate_from=[
             "description",

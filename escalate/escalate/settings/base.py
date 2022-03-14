@@ -187,6 +187,15 @@ LOGGING = {
             "filename": "debug.log",
             "formatter": "verbose",
         },
+        "console": {
+            "level": "INFO",
+            # without the 'filters' key, Django will log errors twice:
+            # one time from better-exceptions and one time from Django.
+            # with the 'skip_errors' filter, we remove the repeat log
+            # from Django, which is unformatted.
+            "filters": ["skip_errors"],
+            "class": "logging.StreamHandler",
+        },
     },
     "loggers": {
         "escalate": {
@@ -194,6 +203,11 @@ LOGGING = {
             "level": "ERROR",
             "formatters": ["verbose"],
             "propagate": True,
+        },
+        "django": {
+            "handlers": [
+                "console",
+            ],
         },
     },
 }

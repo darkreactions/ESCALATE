@@ -140,15 +140,8 @@ def get_action_parameter_querysets(exp_uuid: str, template=True) -> QuerySet:
         QuerySet: Returns action parameters related to the experiment
     """
 
-    related_exp = "workflow__experiment_workflow_workflow__experiment"
-    # related_exp_wf = 'workflow__experiment_workflow_workflow'
-    # factored out until new workflow changes are implemented
-
-    # Related action unit
-    # related_au = 'workflow__action_workflow__action_unit_action'
-    # related_a = 'workflow__action_workflow'
-    related_au = "action_sequence__action_action_sequence__action_unit_action"
-    related_a = "action_sequence__action_action_sequence"
+    related_au = "action_ei__action_unit_a"
+    related_a = "action_ei"
     related_exp_wf = "action_sequence__experiment_action_sequence_as"
 
     if template:
@@ -160,7 +153,9 @@ def get_action_parameter_querysets(exp_uuid: str, template=True) -> QuerySet:
         model.objects.filter(uuid=exp_uuid)
         .prefetch_related(related_au)
         .annotate(object_description=F(f"{related_a}__description"))
-        .annotate(object_def_description=F(f"{related_a}__action_def__description"))
+        .annotate(
+            object_def_description=F(f"{related_a}__template__action_def__description")
+        )
         .annotate(object_uuid=F(f"{related_a}__uuid"))
         .annotate(action_unit_description=F(f"{related_au}__description"))
         .annotate(
@@ -189,8 +184,7 @@ def get_action_parameter_querysets(exp_uuid: str, template=True) -> QuerySet:
         )
         .annotate(experiment_uuid=F("uuid"))
         .annotate(experiment_description=F("description"))
-        .annotate(workflow_seq=F(f"{related_exp_wf}__experiment_action_sequence_seq"))
-    )  # .filter(workflow_action_set__isnull=True).prefetch_related(f'{related_exp}')
+    )
 
     return q1
 

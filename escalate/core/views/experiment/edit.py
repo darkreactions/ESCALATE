@@ -48,11 +48,11 @@ class ExperimentDetailEditView(TemplateView):
         initial_q1, q1_details = get_action_parameter_form_data(
             exp_uuid=exp_uuid, template=template
         )
-        #filter out dispense for rp in edit for q1_details and initial_q1
-        #need to do both because form uses the length of initial to output details
-        #should just update the filter to filter out everything instead
+        # filter out dispense for rp in edit for q1_details and initial_q1
+        # need to do both because form uses the length of initial to output details
+        # should just update the filter to filter out everything instead
         q1_details[:] = [x for x in q1_details if "Dispense " not in x]
-        initial_q1[:] = [x for x in initial_q1 if "Dispense " not in x['uuid']]
+        initial_q1[:] = [x for x in initial_q1 if "Dispense " not in x["uuid"]]
 
         context["q1_param_formset"] = self.NominalActualFormSet(
             initial=initial_q1,
@@ -74,7 +74,7 @@ class ExperimentDetailEditView(TemplateView):
         experiment_field = f'bom__{"experiment_instance" if isinstance(experiment, ExperimentInstance) else "experiment"}'
         context["experiment"] = experiment
 
-        #parameter redirect
+        # parameter redirect
         context["parameter_link"] = reverse(
             "experiment_pending_instance_parameter", args=[experiment.uuid]
         )
@@ -83,7 +83,7 @@ class ExperimentDetailEditView(TemplateView):
         overview_info = [
             ("Queued by", experiment.operator),
             ("Queued on", experiment.add_date),
-            ("Template", experiment.parent.description),
+            ("Template", experiment.template.description),
         ]
         context["overview_info"] = overview_info
         qs = QueueStatusForm(experiment)
@@ -105,7 +105,7 @@ class ExperimentDetailEditView(TemplateView):
         context["edoc_upload_form"] = uf
         context["edoc_helper"] = uf.get_helper()
         context["edoc_helper"].form_tag = False
-        
+
         # Materials
         q1_material = (
             BomMaterial.objects.filter(**{experiment_field: experiment})
@@ -161,10 +161,14 @@ class ExperimentDetailEditView(TemplateView):
                 return redirect(request.path)
 
         if request.POST.get("param_update"):
-            if '/experiment_completed_instance/' in request.path:
-                return redirect(reverse('experiment_completed_instance_parameter', args=[exp.uuid]))
+            if "/experiment_completed_instance/" in request.path:
+                return redirect(
+                    reverse("experiment_completed_instance_parameter", args=[exp.uuid])
+                )
             else:
-                return redirect(reverse('experiment_pending_instance_parameter', args=[exp.uuid]))
+                return redirect(
+                    reverse("experiment_pending_instance_parameter", args=[exp.uuid])
+                )
 
         # save queue status and priority
         qs = QueueStatusForm(exp, request.POST)
@@ -174,7 +178,7 @@ class ExperimentDetailEditView(TemplateView):
                 exp.completion_status = qs.cleaned_data["select_queue_status"]
                 exp.save()
                 return redirect(request.path)
-        ''' material changes
+        """ material changes
         material_qs = get_material_querysets(exp, template=False)
         material_fs = self.MaterialFormSet(
             request.POST,
@@ -182,9 +186,9 @@ class ExperimentDetailEditView(TemplateView):
             form_kwargs={"org_uuid": self.request.session["current_org_id"]},
         )
         save_forms_q_material(material_qs, material_fs, {"inventory_material": "value"})
-        '''
+        """
 
-        ''' reimplement for reaction parameters
+        """ reimplement for reaction parameters
         q1 = get_action_parameter_querysets(context["experiment"].uuid, template=False)
         q1_formset = self.NominalActualFormSet(request.POST, prefix="q1_param")
         save_forms_q1(
@@ -192,28 +196,30 @@ class ExperimentDetailEditView(TemplateView):
             q1_formset,
             {"parameter_val_nominal": "value", "parameter_val_actual": "actual_value"},
         )
-        '''
+        """
         return render(request, self.template_name, context)
+
 
 class ParameterEditView(TemplateView):
     """
     Parameter Edit View
     """
+
     template_name = "core/parameter.html"
-    #list_template = "core/experiment/list.html"
+    # list_template = "core/experiment/list.html"
     NominalActualFormSet = formset_factory(NominalActualForm, extra=0)
-    #MaterialFormSet = formset_factory(InventoryMaterialForm, extra=0)
-    #EdocFormSet = formset_factory(form=UploadFileForm)
+    # MaterialFormSet = formset_factory(InventoryMaterialForm, extra=0)
+    # EdocFormSet = formset_factory(form=UploadFileForm)
 
     def get_action_parameter_forms(self, exp_uuid, context, template=True):
         initial_q1, q1_details = get_action_parameter_form_data(
             exp_uuid=exp_uuid, template=template
         )
-        #filter out dispense for rp in edit for q1_details and initial_q1
-        #need to do both because form uses the length of initial to output details
-        #should just update the filter to filter out everything instead
-        #q1_details[:] = [x for x in q1_details if "Dispense " not in x]
-        #initial_q1[:] = [x for x in initial_q1 if "Dispense " not in x['uuid']]
+        # filter out dispense for rp in edit for q1_details and initial_q1
+        # need to do both because form uses the length of initial to output details
+        # should just update the filter to filter out everything instead
+        # q1_details[:] = [x for x in q1_details if "Dispense " not in x]
+        # initial_q1[:] = [x for x in initial_q1 if "Dispense " not in x['uuid']]
 
         context["q1_param_formset"] = self.NominalActualFormSet(
             initial=initial_q1,
@@ -269,7 +275,7 @@ class ParameterEditView(TemplateView):
                 exp.completion_status = qs.cleaned_data["select_queue_status"]
                 exp.save()
 
-        #parameters
+        # parameters
         q1 = get_action_parameter_querysets(context["experiment"].uuid, template=False)
         q1_formset = self.NominalActualFormSet(request.POST, prefix="q1_param")
         save_forms_q1(

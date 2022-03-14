@@ -23,7 +23,7 @@ class ActionUnit(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         on_delete=models.CASCADE,
         blank=True,
         null=True,
-        related_name="action_unit_action",
+        related_name="action_unit_a",
     )
     source_material = models.ForeignKey(
         "BaseBomMaterial",
@@ -159,11 +159,10 @@ class ActionSequence(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
 
 
 class ActionTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
-    """Cross table between Action Sequence and ActionDef. Allows Action defs in a
-    template to be connected as a directed graph with a foreignkey to its parent
-    """
+    """"""
 
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
+    """
     action_sequence = models.ForeignKey(
         "ActionSequence",
         on_delete=models.DO_NOTHING,
@@ -171,6 +170,15 @@ class ActionTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         null=True,
         related_name="action_template_as",
     )
+    """
+    experiment_template = models.ForeignKey(
+        "ExperimentTemplate",
+        on_delete=models.DO_NOTHING,
+        blank=True,
+        null=True,
+        related_name="action_template_et",
+    )
+
     action_def = models.ForeignKey(
         "ActionDef",
         on_delete=models.DO_NOTHING,
@@ -178,6 +186,7 @@ class ActionTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         null=True,
         related_name="action_template_ad",
     )
+    """
     parent = models.ForeignKey(
         "ActionTemplate",
         on_delete=models.DO_NOTHING,
@@ -185,6 +194,8 @@ class ActionTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         null=True,
         related_name="action_template_child",
     )
+    """
+    parent = models.ManyToManyField("ActionTemplate", related_name="children")
     source_vessel_template = models.ForeignKey(
         "VesselTemplate",
         on_delete=models.DO_NOTHING,
