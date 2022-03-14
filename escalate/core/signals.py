@@ -84,7 +84,7 @@ def create_parameters(sender, **kwargs):
     except ActionUnit.DoesNotExist:
     """
     try:
-        param_defs = action_unit.action.action_def.parameter_def.all()
+        param_defs = action_unit.action.template.action_def.parameter_def.all()
         active_status = Status.objects.get(description="active")
         for p_def in param_defs:
             p = Parameter(
