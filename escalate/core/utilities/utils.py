@@ -363,47 +363,47 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description, vesse
     bom = BillOfMaterials.objects.create(experiment_instance=exp_instance)
 
     # Get all action sequences related to this experiment template
-    for asq in exp_template.action_sequence.all():
-        for at in asq.action_template_as.all():
-            action = Action.objects.create(
-                # parent=
-                experiment=exp_instance,
-                template=at,
-            )
+    # for asq in exp_template.action_sequence.all():
+    for at in exp_template.action_template_et.all():
+        action = Action.objects.create(
+            # parent=
+            experiment=exp_instance,
+            template=at,
+        )
 
-            # Create a list of all source vessels
-            source_vessels = []
-            if svt := at.source_vessel_template:
-                base_vessel = vessels[svt.description]
-                if at.source_vessel_decomposable:
-                    source_vessels = list(base_vessel.children.all())
-                else:
-                    source_vessels = [base_vessel]
-
-            # Create a list of all destination vessels
-            dest_vessels = []
-            if dvt := at.dest_vessel_template:
-                base_vessel = vessels[dvt.description]
-                if at.dest_vessel_decomposable:
-                    dest_vessels = list(base_vessel.children.all())
-                else:
-                    dest_vessels = [base_vessel]
-
-            if not source_vessels:
-                vessel_pairs = product([None], dest_vessels)
-            elif len(source_vessels) == 1:
-                vessel_pairs = product(source_vessels, dest_vessels)
-            elif len(source_vessels) == len(dest_vessels):
-                vessel_pairs = zip(source_vessels, dest_vessels)
+        # Create a list of all source vessels
+        source_vessels = []
+        if svt := at.source_vessel_template:
+            base_vessel = vessels[svt.description]
+            if at.source_vessel_decomposable:
+                source_vessels = list(base_vessel.children.all())
             else:
-                vessel_pairs = custom_pairing(source_vessels, dest_vessels)
+                source_vessels = [base_vessel]
 
-            for sv, dv in vessel_pairs:
-                ActionUnit.objects.create(
-                    action=action,
-                    destination_material=BaseBomMaterial.objects.create(vessel=dv),
-                    source_material=BaseBomMaterial.objects.create(vessel=sv),
-                )
+        # Create a list of all destination vessels
+        dest_vessels = []
+        if dvt := at.dest_vessel_template:
+            base_vessel = vessels[dvt.description]
+            if at.dest_vessel_decomposable:
+                dest_vessels = list(base_vessel.children.all())
+            else:
+                dest_vessels = [base_vessel]
+
+        if not source_vessels:
+            vessel_pairs = product([None], dest_vessels)
+        elif len(source_vessels) == 1:
+            vessel_pairs = product(source_vessels, dest_vessels)
+        elif len(source_vessels) == len(dest_vessels):
+            vessel_pairs = zip(source_vessels, dest_vessels)
+        else:
+            vessel_pairs = custom_pairing(source_vessels, dest_vessels)
+
+        for sv, dv in vessel_pairs:
+            ActionUnit.objects.create(
+                action=action,
+                destination_material=BaseBomMaterial.objects.create(vessel=dv),
+                source_material=BaseBomMaterial.objects.create(vessel=sv),
+            )
 
     # Iterate over all reagent-templates and create reagentintances and properties
     for reagent_template in exp_template.reagent_templates.all():
