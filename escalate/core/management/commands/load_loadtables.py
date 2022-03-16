@@ -405,7 +405,7 @@ class Command(BaseCommand):
 
                 if isinstance(dest_desc, str):
                     dest_vessel_decomposable = False
-                elif isinstance(dest_desc, list):
+                elif isinstance(dest_desc, dict):
                     dest_vessel_decomposable = True
 
                 (dest_vessel_template, created,) = VesselTemplate.objects.get_or_create(
@@ -419,6 +419,7 @@ class Command(BaseCommand):
 
             ActionTemplate.objects.get_or_create(
                 # action_sequence=action_sequences[action_seq],
+                description=action_desc,
                 experiment_template=exp_template,
                 action_def=action_def,
                 source_vessel_template=source_vessel_template,
@@ -780,7 +781,7 @@ class Command(BaseCommand):
                         default_vessel=default_vessel,
                     )
                     dest_vessel_decomposable = False
-                elif isinstance(dest_desc, list):
+                elif isinstance(dest_desc, dict):
                     (
                         dest_vessel_template,
                         created,

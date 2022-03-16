@@ -571,7 +571,7 @@ class DefaultValues(DateColumns, ActorColumn, DescriptionColumn):
     actual_value = ValField(blank=True, null=True)
 
     def __str__(self):
-        return self.description
+        return f"{self.description}"
 
 
 class ValueInstance(DateColumns, ActorColumn, DescriptionColumn):

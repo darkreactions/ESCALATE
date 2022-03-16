@@ -366,6 +366,7 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description, vesse
     # for asq in exp_template.action_sequence.all():
     for at in exp_template.action_template_et.all():
         action = Action.objects.create(
+            description=f"{at.description}",
             # parent=
             experiment=exp_instance,
             template=at,
@@ -398,12 +399,37 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description, vesse
         else:
             vessel_pairs = custom_pairing(source_vessels, dest_vessels)
 
+        bom_vessels = {}
+        aunits = []
         for sv, dv in vessel_pairs:
-            ActionUnit.objects.create(
+            if dv is not None:
+                if dv.description not in bom_vessels:
+                    bom_vessels[dv.description] = BaseBomMaterial.objects.create(
+                        bom=bom, vessel=dv, description=f"{dv}"
+                    )
+                    dest_bbm = bom_vessels[dv.description]
+            else:
+                dest_bbm = dv
+
+            if sv is not None:
+                if sv.description not in bom_vessels:
+                    bom_vessels[sv.description] = BaseBomMaterial.objects.create(
+                        bom=bom, vessel=sv, description=f"{sv}"
+                    )
+                    source_bbm = bom_vessels[sv.description]
+            else:
+                source_bbm = sv
+
+            au = ActionUnit(
+                description=f"{action.description} : {source_bbm} -> {dest_bbm}",
                 action=action,
-                destination_material=BaseBomMaterial.objects.create(vessel=dv),
-                source_material=BaseBomMaterial.objects.create(vessel=sv),
+                destination_material=dest_bbm,
+                source_material=source_bbm,
             )
+            # au.save()
+            aunits.append(au)
+
+        ActionUnit.objects.bulk_create(aunits)
 
     # Iterate over all reagent-templates and create reagentintances and properties
     for reagent_template in exp_template.reagent_templates.all():

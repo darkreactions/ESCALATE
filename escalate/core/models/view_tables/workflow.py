@@ -120,13 +120,15 @@ class BaseBomMaterial(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
             "description",
             "bom__internal_slug",
             "inventory_material__internal_slug",
+            "vessel__internal_slug",
+            "reagent__internal_slug",
         ],
         overwrite=True,
         max_length=255,
     )
 
     def __str__(self):
-        return self.description
+        return f"{self.description}"
 
 
 class BomMaterial(BaseBomMaterial):

@@ -70,6 +70,7 @@ class Actor(DateColumns, StatusColumn, DescriptionColumn):
         return "-".join(rep)
         # return "{}".format()
 
+
 class Organization(DateColumns, AddressColumns, DescriptionColumn):
     uuid = RetUUIDField(
         primary_key=True, default=uuid.uuid4, db_column="organization_uuid"
@@ -217,4 +218,4 @@ class SystemtoolType(DateColumns, DescriptionColumn):
     )
 
     def __str__(self):
-        return self.description
+        return f"{self.description}"

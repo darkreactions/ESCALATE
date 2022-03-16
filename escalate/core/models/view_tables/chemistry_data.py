@@ -105,7 +105,7 @@ class Vessel(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
 
     def __str__(self):
         # return "{}  {}".format(self.plate_name, self.well_number)
-        return self.description
+        return f"{self.description}"
 
 
 class VesselInstance(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
@@ -282,7 +282,7 @@ class MaterialIdentifier(DateColumns, StatusColumn, DescriptionColumn):
 
     def __str__(self):
         # return "{}: {}".format(self.material_identifier_def, self.description)
-        return self.full_description
+        return f"{self.full_description}"
 
     def save(self, *args, **kwargs):
         self.full_description = f"{self.material_identifier_def}: {self.description}"

@@ -385,6 +385,8 @@ class CreateExperimentView(TemplateView):
             # messages.error(request, str(ve))
             messages.error(request, "Error creating experiment. Please check log file")
             logging.error(str(e))
+            log = logging.getLogger("escalate")
+            log.exception("Exception in process automated formset")
             # return context
             # return HttpResponseRedirect(reverse("experiment"))
 
