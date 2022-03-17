@@ -77,7 +77,7 @@ class SetupExperimentView(TemplateView):
             context["experiment_template_select_form"] = ExperimentTemplateForm(
                 org_id=org_id
             )
-            context["vessel_form"] = VesselForm()
+            # context["vessel_form"] = VesselForm()
         else:
             messages.error(request, "Please select a lab to continue")
             return HttpResponseRedirect(reverse("main_menu"))
@@ -126,10 +126,10 @@ class CreateExperimentView(TemplateView):
 
         try:
             # Collect form data
-            vessel = Vessel.objects.get(uuid=request.session["selected_vessel"])
-            context["vessel"] = vessel
+            # vessel = Vessel.objects.get(uuid=request.session["selected_vessel"])
+            # context["vessel"] = vessel
 
-            (dead_volume, total_volume) = self.save_volumes(request, vessel)
+            (dead_volume, total_volume) = self.save_volumes(request)  # vessel)
 
             num_automated = int(request.POST.get("automated", 0))
             num_manual = int(request.POST.get("manual", 0))
@@ -144,6 +144,8 @@ class CreateExperimentView(TemplateView):
                 if vf.is_valid():
                     vessels[vt.description] = vf.cleaned_data["value"]
 
+            context["vessel"] = vessels["Outcome vessel"]
+
             if exp_name_form.is_valid():
                 context["new_exp_name"] = exp_name_form.cleaned_data["exp_name"]
 
@@ -155,10 +157,9 @@ class CreateExperimentView(TemplateView):
                 )
 
             # Obtain and save reagent names and concentration data
-            (
-                reagent_template_names,
-                reagentDefs,
-            ) = self.save_reagents(exp_template, experiment_copy_uuid, request, org_id)
+            (reagent_template_names, reagentDefs,) = self.save_reagents(
+                exp_template, experiment_copy_uuid, request, org_id
+            )
 
             context["experiment_copy_uuid"] = experiment_copy_uuid
             context["dead_volume"] = dead_volume
@@ -246,7 +247,7 @@ class CreateExperimentView(TemplateView):
             reagentDefs,
         )
 
-    def save_volumes(self, request, vessel):
+    def save_volumes(self, request):  # vessel):
         # get dead volume value
         dead_volume_form = SingleValForm(request.POST, prefix="dead_volume")
         if dead_volume_form.is_valid():
@@ -261,7 +262,7 @@ class CreateExperimentView(TemplateView):
         else:
             total_volume = None
 
-        if (
+        """if (
             vessel.total_volume.value is not None
         ):  # check that target volume does not exceed vessel capacity
             if total_volume.value > vessel.total_volume.value:
@@ -269,7 +270,7 @@ class CreateExperimentView(TemplateView):
                     "Target volume exceeds capacity of {} for the specified vessel".format(
                         vessel.total_volume
                     )
-                )
+                )"""
 
         return (dead_volume, total_volume)
 
@@ -342,8 +343,7 @@ class CreateExperimentView(TemplateView):
                 data = form.cleaned_data
                 reagent_template_uuid = data["reagent_template_uuid"]
                 reagent_instance = ReagentMaterial.objects.get(
-                    template=reagent_template_uuid,
-                    reagent__experiment=exp_uuid,
+                    template=reagent_template_uuid, reagent__experiment=exp_uuid,
                 )
                 reagent_instance.material = (
                     InventoryMaterial.objects.get(uuid=data["chemical"])

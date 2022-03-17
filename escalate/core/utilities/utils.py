@@ -123,11 +123,7 @@ def generate_vp_spec_file(exp_template_uuid, reaction_parameters, plate, well_co
     """
 
     rxn_parameters = pd.DataFrame(
-        {
-            "Reaction Parameters": params,
-            "Parameter Values": values,
-            "Units": units,
-        }
+        {"Reaction Parameters": params, "Parameter Values": values, "Units": units,}
     )
 
     well_names = make_well_labels_list(
@@ -375,7 +371,7 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description, vesse
     # for asq in exp_template.action_sequence.all():
     for at in exp_template.action_template_et.all():
         action = Action.objects.create(
-            description=f"{at.description}",
+            description=at.action_def.description,
             # parent=
             experiment=exp_instance,
             template=at,
@@ -384,6 +380,7 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description, vesse
         # Create a list of all source vessels
         source_vessels = []
         if svt := at.source_vessel_template:
+            contents = svt.description
             base_vessel = vessels[svt.description]
             if at.source_vessel_decomposable:
                 source_vessels = list(base_vessel.children.all())
@@ -414,7 +411,7 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description, vesse
             if dv is not None:
                 if dv.description not in bom_vessels:
                     bom_vessels[dv.description] = BaseBomMaterial.objects.create(
-                        bom=bom, vessel=dv, description=f"{dv}"
+                        bom=bom, vessel=dv, description=dv.description
                     )
                     dest_bbm = bom_vessels[dv.description]
             else:
@@ -423,7 +420,7 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description, vesse
             if sv is not None:
                 if sv.description not in bom_vessels:
                     bom_vessels[sv.description] = BaseBomMaterial.objects.create(
-                        bom=bom, vessel=sv, description=f"{sv}"
+                        bom=bom, vessel=sv, description=contents
                     )
                     source_bbm = bom_vessels[sv.description]
             else:
