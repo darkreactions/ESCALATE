@@ -295,9 +295,9 @@ class Command(BaseCommand):
 
         # heat_stir and heat causes duplicates, not sure why
         action_parameter_def = {
-            "dispense": ("volume",),
-            "bring_to_temperature": ("temperature",),
-            "stir": ("duration", "speed"),
+            "dispense": (("volume", "uL"),),
+            "bring_to_temperature": (("temperature", "degC"),),
+            "stir": (("duration", "s"), ("speed", "rpm")),
         }
         # Action defs it is assumed that action defs are already inserted
         actions = [  # List of tuples (Description, Action def description, source_bommaterial, destination_bommaterial)
@@ -428,13 +428,14 @@ class Command(BaseCommand):
                 dest_vessel_decomposable=dest_vessel_decomposable,
             )
 
-            for param_def_desc in action_parameter_def[action_def_desc]:
+            for param_def_desc, unit in action_parameter_def[action_def_desc]:
                 param, created = ParameterDef.objects.get_or_create(
                     description=param_def_desc,
-                    default_val=Val.from_dict(
-                        {"value": 0, "unit": "uL", "type": "num"}
-                    ),
                 )
+                param.default_val = Val.from_dict(
+                    {"value": 0, "unit": unit, "type": "num"}
+                )
+                param.save()
                 action_def.parameter_def.add(param)
 
     def _create_wf3(self):
@@ -650,11 +651,11 @@ class Command(BaseCommand):
         exp_template.outcome_templates.add(ot)
 
         action_parameter_def = {
-            "dispense": ("volume",),
-            "bring_to_temperature": ("temperature",),
-            "stir": ("temperature", "duration", "speed"),
-            "heat": ("temperature", "duration"),
-            "dwell": ("duration"),
+            "dispense": (("volume", "uL"),),
+            "bring_to_temperature": (("temperature", "degC"),),
+            "stir": (("duration", "s"), ("speed", "rpm")),
+            "heat": (("temperature", "degC"), ("duration", "s")),
+            "dwell": (("duration", "s"),),
         }
         # Action defs it is assumed that action defs are already inserted
         actions = [  # List of tuples (Description, Action def description, source_bommaterial, destination_bommaterial)
@@ -805,13 +806,14 @@ class Command(BaseCommand):
                 dest_vessel_decomposable=dest_vessel_decomposable,
             )
 
-            for param_def_desc in action_parameter_def[action_def_desc]:
+            for param_def_desc, unit in action_parameter_def[action_def_desc]:
                 param, created = ParameterDef.objects.get_or_create(
                     description=param_def_desc,
-                    default_val=Val.from_dict(
-                        {"value": 0, "unit": "uL", "type": "num"}
-                    ),
                 )
+                param.default_val = Val.from_dict(
+                    {"value": 0, "unit": unit, "type": "num"}
+                )
+                param.save()
                 # action.parameter_def.add(param)
                 action_def.parameter_def.add(param)
 
