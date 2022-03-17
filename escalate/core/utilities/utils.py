@@ -90,7 +90,7 @@ def make_well_labels_list(well_count=96, column_order=None, robot="True"):
     return well_labels
 
 
-def generate_vp_spec_file(reaction_volumes, reaction_parameters, plate, well_count):
+def generate_vp_spec_file(exp_template_uuid, reaction_parameters, plate, well_count):
     """Function generates an excel spredsheet to specify volumes and parameters for manual experiments.
     The spreadsheet can be downloaded via UI and uploaded once edited. Spreadsheet is then parsed to save
     values into the database."""
@@ -98,7 +98,21 @@ def generate_vp_spec_file(reaction_volumes, reaction_parameters, plate, well_cou
     params = []
     values = []
     units = []
-    exp_template = ExperimentTemplate.objects.get(uuid=reaction_volumes[0].uuid)
+    exp_template = ExperimentTemplate.objects.get(uuid=exp_template_uuid)
+
+    for action_template in exp_template.action_template_et.select_related(
+        "action_def"
+    ).all():
+        for param in action_template.action_def.parameter_def.all():
+            if "dispense" not in action_template.description.lower():
+                desc = action_template.description + "-" + param.description
+                params.append(desc)
+                val = param.default_val.value
+                unit = param.default_val.unit
+                values.append(val)
+                units.append(unit)
+
+    """
     for action_sequence in ActionSequence.objects.filter(experiment=exp_template):
         actions = Action.objects.filter(action_sequence=action_sequence)
         for action in actions:
@@ -106,12 +120,7 @@ def generate_vp_spec_file(reaction_volumes, reaction_parameters, plate, well_cou
                 if "dispense" in action.description.lower():
                     pass
                 else:
-                    desc = action.description + "-" + a.description
-                    params.append(desc)
-                    val = a.default_val.value
-                    unit = a.default_val.unit
-                    values.append(val)
-                    units.append(unit)
+    """
 
     rxn_parameters = pd.DataFrame(
         {
@@ -128,7 +137,7 @@ def generate_vp_spec_file(reaction_volumes, reaction_parameters, plate, well_cou
 
     reagent_colnames = []
     reagents = ExperimentTemplate.objects.get(
-        uuid=reaction_volumes[0].experiment_uuid
+        uuid=exp_template_uuid
     ).reagent_templates.all()
     for r in reagents:
         reagent_colnames.append(r.description)
@@ -137,10 +146,10 @@ def generate_vp_spec_file(reaction_volumes, reaction_parameters, plate, well_cou
         {reagent_col: [0] * len(df_tray) for reagent_col in reagent_colnames}
     )
 
-    if reaction_volumes is not None:
-        reaction_volumes_output = pd.concat(
-            [df_tray["Vial Site"], reaction_volumes_output], axis=1
-        )
+    # if reaction_volumes is not None:
+    reaction_volumes_output = pd.concat(
+        [df_tray["Vial Site"], reaction_volumes_output], axis=1
+    )
 
     volume_units = pd.DataFrame({"Units": ["uL"]})
     volume_units[" "] = None
