@@ -14,13 +14,14 @@ from core.models import DefaultValues, ReagentTemplate
 from core.models.view_tables import (
     ExperimentTemplate,
     Actor,
+    ActionTemplate,
     ReagentTemplate,
     ReagentMaterialTemplate,
     # ReagentMaterialValueTemplate,
     MaterialType,
     OutcomeTemplate,
-    ExperimentActionSequence,
-    ActionSequence,
+    VesselTemplate,
+    Vessel,
 )
 from core.forms.custom_types import (
     OutcomeDefinitionForm,
@@ -175,17 +176,6 @@ class CreateExperimentTemplate(TemplateView):
         exp_template.reagent_templates.add(rt)
         # rt= ReagentTemplate.objects.get(uuid=context['reagents'])
         # exp_template.reagent_templates.add(rt)
-
-    def add_actions(self, context, action_sequences):
-        exp_template = ExperimentTemplate.objects.get(uuid=context["exp_uuid"])
-        for i, a in enumerate(action_sequences):
-            ac_sq = ActionSequence.objects.get(uuid=a)
-            eas = ExperimentActionSequence(
-                experiment_template=exp_template,
-                experiment_action_sequence_seq=i,
-                action_sequence=ac_sq,
-            )
-            eas.save()
 
     def add_outcomes(self, context, outcome_description, outcome_type):
         exp_template = ExperimentTemplate.objects.get(uuid=context["exp_uuid"])

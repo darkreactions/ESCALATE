@@ -1,6 +1,6 @@
 from django.db import connection as con
 from django.db.models import F
-from core.models import ExperimentTemplate, ActionSequence, Action
+from core.models import ExperimentTemplate, Action
 from core.models.view_tables import (
     BaseBomMaterial,
     Vessel,
@@ -17,6 +17,7 @@ from core.models.view_tables import (
     Reagent,
     ReagentTemplate,
     VesselType,
+    VesselTemplate,
 )
 from copy import deepcopy
 
@@ -193,15 +194,17 @@ def generate_action_def_json(action_defs, exp_template_uuid):
     ]  # add a "blank" source for actions that do not involve transferring
     dest_choices = []
 
-    for reagent in ReagentTemplate.objects.filter(
+    """for reagent in ReagentTemplate.objects.filter(
         experiment_template_reagent_template=ExperimentTemplate(uuid=exp_template_uuid)
     ):
         # include all reagents associated with experiment template as action sources/destinations
         source_choices.append(reagent.description)
-        dest_choices.append(reagent.description)
-    for vt in VesselType.objects.all():  # include all vessels as destinations
+        dest_choices.append(reagent.description)"""
+    for vt in VesselTemplate.objects.all():  # include all vessels as destinations
         source_choices.append(vt.description)
-        dest_choices.append(vt.description)
+        dest_choices.append(
+            vt.description
+        )  ##TODO: add wells for decomposable vessels (needed for str lookup to save action template)
 
     json_data = []
 
@@ -220,14 +223,14 @@ def generate_action_def_json(action_defs, exp_template_uuid):
                         "name": "source",
                         "type": "select",
                         "label": "From:",
-                        "hint": "source material/vessel",
+                        "hint": "source vessel",
                         "options": {"items": [i for i in source_choices]},
                     },
                     {
                         "name": "destination",
                         "type": "select",
                         "label": "To:",
-                        "hint": "destination material/vessel",
+                        "hint": "destination vessel",
                         "options": {"items": [i for i in dest_choices]},
                     },
                 ],
@@ -240,7 +243,7 @@ def custom_pairing(source_vessels, dest_vessels):
     raise NotImplementedError
 
 
-def generate_action_units(self, exp_template, vessel):
+'''def generate_action_units(self, exp_template, vessel):
     """For a chosen ExperimentTemplate, this function obtains the action sequences and generates appropriate action units
     corresponding to the chosen vessel. Used for experiment templates created through the UI"""
 
@@ -336,7 +339,7 @@ def generate_action_units(self, exp_template, vessel):
                                 source_material=source_bbm,
                                 description=description,
                                 destination_material=destination_bbm,
-                            )
+                            )'''
 
 
 def experiment_copy(template_experiment_uuid, copy_experiment_description, vessels):
