@@ -90,7 +90,7 @@ def make_well_labels_list(well_count=96, column_order=None, robot="True"):
     return well_labels
 
 
-def generate_vp_spec_file(exp_template_uuid, reaction_parameters, plate, well_count):
+def generate_vp_spec_file(exp_template_uuid, reaction_parameters, well_count):
     """Function generates an excel spredsheet to specify volumes and parameters for manual experiments.
     The spreadsheet can be downloaded via UI and uploaded once edited. Spreadsheet is then parsed to save
     values into the database."""
@@ -129,7 +129,7 @@ def generate_vp_spec_file(exp_template_uuid, reaction_parameters, plate, well_co
     well_names = make_well_labels_list(
         well_count, column_order=["A", "C", "E", "G", "B", "D", "F", "H"], robot="True"
     )
-    df_tray = pd.DataFrame({"Vial Site": well_names, "Labware ID:": plate})
+    df_tray = pd.DataFrame({"Vial Site": well_names,})  # "Labware ID:": plate})
 
     reagent_colnames = []
     reagents = ExperimentTemplate.objects.get(

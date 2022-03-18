@@ -62,6 +62,7 @@ class SelectReagentsView(TemplateView):
 
         if (num_manual_exp := int(request.POST["manual"])) >= 0:
             context["manual"] = num_manual_exp
+            request.session["manual"] = num_manual_exp
             context["spec_file_upload_form"] = ManualSpecificationForm(
                 request.POST, request.FILES
             )

@@ -27,11 +27,10 @@ def get_messages(request: HttpRequest) -> HttpResponse:
 
 def download_vp_spec_file(request: HttpRequest) -> HttpResponse:
     exp_uuid: str = request.session["experiment_template_uuid"]
-    vessel = Vessel.objects.get(uuid=request.session["vessel"])
+    # vessel = Vessel.objects.get(uuid=request.session["vessel"])
     # q1 = get_action_parameter_querysets(exp_uuid)  # volumes
-    # f = generate_vp_spec_file(q1, {}, vessel.description, vessel.well_number)
     # f = generate_robot_file_wf1(q1, {}, "Symyx_96_well_0003", 96)
-    f = generate_vp_spec_file(exp_uuid, {}, vessel.description, vessel.well_number)
+    f = generate_vp_spec_file(exp_uuid, {}, request.session["manual"])
     response = FileResponse(f, as_attachment=True, filename=f"manual_{exp_uuid}.xls")
     return response
 

@@ -169,7 +169,7 @@ class CreateExperimentView(TemplateView):
 
             # Generate and save mass/volume amounts
             if num_manual > 0:
-                context = self.process_manual_formsets(request, context)
+                context = self.process_manual_formsets(request, context, num_manual)
 
             if num_automated > 0:
                 context = self.process_automated_formsets(request, context)
@@ -312,7 +312,9 @@ class CreateExperimentView(TemplateView):
                             save_parameter(rp_uuid, rp_value, rp_unit)
                     index += 1
 
-    def process_manual_formsets(self, request: HttpRequest, context: dict[str, Any]):
+    def process_manual_formsets(
+        self, request: HttpRequest, context: dict[str, Any], num_manual
+    ):
         """This function parses the manual specification form for the experiment and saves volume/parameter volumes."""
 
         # parse manual spec form and convert to pandas dataframe
@@ -327,6 +329,7 @@ class CreateExperimentView(TemplateView):
             context["reagent_template_names"],
             context["dead_volume"],
             context["vessel"],
+            num_manual,
         )
 
         # save parameters
