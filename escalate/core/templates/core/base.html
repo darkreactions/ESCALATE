@@ -10,7 +10,7 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
+    <meta name="htmx-config" content='{"historyCacheSize": 15}'>
     <!-- Plotly javascript import -->
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
@@ -28,16 +28,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css"
         integrity="sha256-+N4/V/SbAFiW1MPBCXnfnP9QSN3+Keu+NlB+0ev/YKQ=" crossorigin="anonymous">
 
-    
+
 
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css">
 
-    <link rel="stylesheet" href={% static "main.css" %}>
 
     {% block headcontent %}
     {% endblock %}
+
+    <link rel="stylesheet" href={% static "main.css" %}>
+
+
 
 </head>
 
@@ -56,19 +59,27 @@
             </button>
 
             {% with url_name=request.resolver_match.url_name %}
-            <div class="collapse navbar-collapse flex-column align-items-start ml-lg-2 ml-0" id="navbarSupportedContent">
+            <div class="collapse navbar-collapse flex-column align-items-start ml-lg-2 ml-0"
+                id="navbarSupportedContent">
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item {% if url_name == 'main_menu' %}active{% endif %}">
                         <a class="nav-link" href="{% url 'main_menu' %}">Main Menu</a>
+
                     </li>
+
+                    <li class="nav-item {% if url_name == 'select_lab' %}active{% endif %}">
+                        <a class="nav-link" href="{% url 'select_lab' %}">Select Lab</a>
+                    </li>
+
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if not request.session.current_org_id %}disabled{% endif %}" href="#" id="dropdown" data-toggle="dropdown">Models</a>
+                        <a class="nav-link dropdown-toggle " href="#" id="dropdown" data-toggle="dropdown">Models</a>
                         <div class="dropdown-menu">
                             <ul class="list-unstyled">
                                 <li><a class="dropdown-item" href="{% url 'material_list' %}">Material</a></li>
                                 <li><a class="dropdown-item" href="{% url 'vessel_list' %}">Vessels</a></li>
                                 <li><a class="dropdown-item" href="{% url 'inventory_list' %}">Inventory</a></li>
-                                <li><a class="dropdown-item" href="{% url 'inventory_material_list' %}">Inventory Material</a></li>
+                                <li><a class="dropdown-item" href="{% url 'inventory_material_list' %}">Inventory
+                                        Material</a></li>
                                 <li><a class="dropdown-item" href="{% url 'actor_list' %}">Actor</a></li>
                                 <li><a class="dropdown-item" href="{% url 'organization_list' %}">Organization</a></li>
                                 <li><a class="dropdown-item" href="{% url 'person_list' %}">Person</a></li>
@@ -87,17 +98,28 @@
                         </div>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if not request.session.current_org_id %}disabled{% endif %}" href="#" id="dropdown" data-toggle="dropdown">Experiment</a>
+                        <a class="nav-link dropdown-toggle " href="#" id="dropdown"
+                            data-toggle="dropdown">Experiment</a>
                         <div class="dropdown-menu">
                             <ul class="list-unstyled">
                                 <li>
-                                    <a class="dropdown-item {% if url_name == 'experiment_list' %}active{% endif %}" href="{% url 'experiment_list' %}">Experiment List</a>
+                                    <a class="dropdown-item {% if url_name == 'exp_template' %}active{% endif %}"
+                                        href="{% url 'experiment_template_add' %}">Create New Experiment Template</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item {% if url_name == 'create_experiment' %}active{% endif %}" href="{% url 'experiment_add' %}">Create Experiment</a>
+                                    <a class="dropdown-item {% if url_name == 'create_experiment' %}active{% endif %}"
+                                        href="{% url 'experiment_instance_add' %}">Create Experiment</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item {% if url_name == 'workflow' %}active{% endif %}" href="{% url 'workflow' %}">Workflow</a>
+                                    <a class="dropdown-item {% if url_name == 'experiment_pending_list' %}active{% endif %}"
+                                        href="{% url 'experiment_pending_instance_list' %}">Experiment Queue</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item {% if url_name == 'experiment_completed_list' %}active{% endif %}"
+                                        href="{% url 'experiment_completed_instance_list' %}">Completed Experiments</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item active" href="http://escalation.sd2e.org/">Escalation</a>
                                 </li>
                             </ul>
                         </div>
@@ -105,17 +127,21 @@
 
                     {% block add_data %}
                     {% endblock %}
-                    
+
                 </ul>
                 <ul class="navbar-nav flex-row mt-4">
                     <li class="nav-item text-light">
-                        {{ request.session.current_org_name }}
+                        {% if request.session.current_org_name %}
+                        Selected Lab {{ request.session.current_org_name }}
+                        {% endif %}
                     </li>
                 </ul>
-                
+
             </div>
+
             <div class="dropdown">
-                <a class="btn btn-info dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <a class="btn btn-info dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     {{ request.user.person.first_name }} {{ request.user.person.last_name }}
                 </a>
                 <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
@@ -123,21 +149,36 @@
                     <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
                 </div>
             </div>
-            
+
             {% endwith %}
         </nav>
-        
-        
-        
+
+
+
     </div>
     {% endblock %}
     <section>
         <div class="container">
+
             <div class="card">
                 <div class="card-body" id="page-content">
+                    <div class="alert alert-danger alert-dismissable" id="messages">
+                        <button type="button" class="close" aria-hidden="true">&times;</button>
+                        <span>Success! message sent successfully.</span>
+                    </div>
                     {% block content %}
                     {% endblock %}
                     <nav>
+                        {% if messages %}
+                        <ul class="messages">
+                            {% for message in messages %}
+                            <div class="alert alert-danger" role="alert">
+                                {{ message }}
+                            </div>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+
                         {% if is_paginated %}
                         <ul class="pagination justify-content-center">
                             {% if page_obj.has_previous %}
@@ -201,8 +242,37 @@
                 </div>
             </div>
         </div>
+        {% endblock %}
+        {% block leave_block %}
+        <div class="modal fade" id="leaveModal" tabindex="-1" role="dialog" aria-labelledby="leaveModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+
+                        <h5 class="modal-title" id="leaveModalLabel">Delete</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form id="leave_form" action="" method="post">{% csrf_token %}
+                        <div class="modal-body">
+
+                            <p id="message"></p>
 
 
+                        </div>
+                        <div class="modal-footer">
+                            <div class="btn-toolbar">
+                                <input class="btn btn-raised btn-danger mt-3 mx-3" type="submit" value="Confirm">
+                                <button type="button" class="btn btn-raised btn-secondary mt-3"
+                                    data-dismiss="modal">Cancel</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
         {% endblock %}
     </section>
 
@@ -220,7 +290,7 @@
     <!-- JQuery -->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
-    
+
     <!-- Bootstrap core JavaScript -->
     <script type="text/javascript"
         src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.min.js"></script>
@@ -242,11 +312,31 @@
         $('#message').text('Are you sure you want to delete ' + description + '?');
 
             })
+
+
     </script>
 
     {% block tailcontent %}
     {% endblock %}
 
+    <!-- HTMX CDN -->
+    <script src="https://unpkg.com/htmx.org@1.1.0"></script>
+
+    <!-- CSRF request in the headers -->
+    <script>
+        document.body.addEventListener('htmx:configRequest', (e) => {
+            e.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        })
+        document.body.addEventListener("showMessage", function (evt) {
+            console.log("Show message triggered");
+            //alert(evt.detail.message);
+            $('#messages span').text(evt.detail.message);
+            $('.alert').show();
+        })
+        $(".alert").on("close", function () {
+            $('.alert').hide();
+        });
+    </script>
 
 </body>
 

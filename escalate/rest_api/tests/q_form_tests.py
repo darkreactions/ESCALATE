@@ -1,8 +1,8 @@
-'''
+"""
 Created on May 10, 2021
 
 @author: jpannizzo
-'''
+"""
 
 import pytest
 from django.test import RequestFactory as rf
@@ -25,18 +25,23 @@ view_names = [name for name in view_names if name not in exceptions]
 
 api_view_names = []
 for method_name in view_names:
-    api_view_names.append(method_name.lower()+'-list')
+    api_view_names.append(method_name.lower() + "-list")
+
 
 @pytest.fixture
 def api_client():
     client = APIClient()
-    resp = client.post('/api/login', data={'username': 'jpannizzo', 'password':'password1'}, format='json')
+    resp = client.post(
+        "/api/login",
+        data={"username": "jpannizzo", "password": "password1"},
+        format="json",
+    )
     client.credentials(HTTP_AUTHORIZATION=f'Token {resp.json()["token"]}')
     return client
+
 
 @pytest.mark.api_experiment_details
 @pytest.mark.parametrize("name", api_view_names)
 def test_all_form_parameters_get(name):
     response = client.get(reverse(name))
     assert response.status_code == 200
-    

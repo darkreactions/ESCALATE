@@ -4,150 +4,30 @@
 {% load index %}
 
 {% block content %}
-<div class="container" >
 
-    {% if new_exp_name %}
-        <p> Created Experiment! </p>
-            <p>Experiment name: {{ new_exp_name }}</p>
-            <p> <a href={{ experiment_link }}> View experiment details</a></p>
-            {% if xls_download_link is not None %}
-              <p> <a href={{ xls_download_link }}> Download Excel file </a></p>
-            {% endif %}
-            {% if lsr_download_link is not None %}
-              <p> <a href={{ lsr_download_link }}> Download LibraryStudio file </a></p>
-            {% else %}
-               {% if messages %}
-                <ul class="messages">
-                    {% for message in messages %}
-                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
-            {% endif %}
-    {% else %}
+{% if messages %}
+<ul class="messages">
+  {% for message in messages %}
+  <div class="alert alert-danger" role="alert">
+    {{ message }}
+  </div>
+  {% endfor %}
+</ul>
+{% endif %}
 
-    {% if not selected_exp_template %}
-    <p> Experiment Template </p>
-    <div class="row">
-      <div class="col-md-12 text-secondary">
-        <form method="post">{% csrf_token %}
-          <select id="org_select" name="select_exp_template" class="form-control selectpicker" data-style="btn-dark"
-            data-live-search='true'>
-            <option value="" {% if not request.session.experiment_template_uuid %} selected {% endif %}></option>
-            {% for exp in all_experiments %}
-            <option value={{ exp.uuid }} {% ifequal request.session.experiment_template_uuid|stringformat:"s" exp.uuid|stringformat:"s" %} selected {% endifequal %}>
-                {{ exp.description }}
-            </option>
-            {% endfor %}
-          </select>
-          <div>
-            <button class="btn btn-outline-primary" type="submit">Select Template</button>
-        </div>
-        </form>
-      </div>
-    </div>
-    {% endif %}
+<div class="container" id="page-div">
 
-    {% if selected_exp_template %}
-    <p>Selected experiment {{ selected_exp_template.description }}</p>
-    <div class="row">
-        <div class="col-md-12">
-            <form method="post">{% csrf_token %}
-                {{ q1_material_formset.management_form }}
-                {{ q1_param_formset.management_form }}
-                {{ q2_param_formset.management_form }}
-                {{ q3_param_formset.management_form }}
-                {{ experiment_name_form|crispy }}
-                <div class="treeview-animated border mx-4 my-4">
-                    <h6 class="pt-3 pl-3">Experiment Materials for {{ selected_exp_template.description }}</h6>
-                    <hr>
-                    <ul class="treeview-animated-list">
-                        {% for f in q1_material_formset %}
-                        <li class="treeview-animated-items">
-                          <a class="closed">
-                            <i class="fas fa-angle-right"></i>
-                            <span><i class="fas fa-table ic-w mx-1"></i>{{ q1_material_details|index:forloop.counter0 }}</span>
-                          </a>
-                          <ul class="nested">
-                            <li>
-                                {{ f|crispy }}
-                            </li>
-                          </ul>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                <div class="treeview-animated border mx-4 my-4">
-                    <h6 class="pt-3 pl-3">Experiment Parameters for {{ selected_exp_template.description }}</h6>
-                    <hr>
-                    <ul class="treeview-animated-list">
-                        {% for f in q1_param_formset %}
-                        <li class="treeview-animated-items">
-                          <a class="closed">
-                            <i class="fas fa-angle-right"></i>
-                            <span><i class="fas fa-table ic-w mx-1"></i>{{ q1_param_details|index:forloop.counter0 }}</span>
-                          </a>
-                          <ul class="nested">
-                            <li>
-                                {{ f|crispy }}
-                            </li>
-                          </ul>
-                        </li>
-                        {% endfor %}
-
-                        {% for f in q2_param_formset %}
-                        <li class="treeview-animated-items">
-                          <a class="closed">
-                            <i class="fas fa-angle-right"></i>
-                            <span><i class="fas fa-table ic-w mx-1"></i>{{ q2_param_details|index:forloop.counter0 }}</span>
-                          </a>
-                          <ul class="nested">
-                            <li>
-                                {{ f|crispy }}
-                            </li>
-                          </ul>
-                        </li>
-                        {% endfor %}
-
-                        {% for f in q3_param_formset %}
-                        <li class="treeview-animated-items">
-                          <a class="closed">
-                            <i class="fas fa-angle-right"></i>
-                            <span><i class="fas fa-table ic-w mx-1"></i>{{ q3_param_details|index:forloop.counter0 }}</span>
-                          </a>
-                          <ul class="nested">
-                            <li>
-                                {{ f|crispy }}
-                            </li>
-                          </ul>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                <div class="text-right">
-                    <button class="btn btn-outline-primary" type="submit" name="create_exp" value="create_exp">Create Experiment</button>
-                </div>
-
-            </form>
-        </div>
-
-    </div>
-
-
-    {% endif %}
-    {% endif %}
-    
+  {% include 'core/experiment/create/select_template.html' %}
 </div>
-
 {% endblock %}
-
 
 {% block tailcontent %}
 <script>
-    // Treeview Initialization
-    $(document).ready(function() {
-      $('.treeview-animated').mdbTreeview();
-    });
+  // Treeview Initialization
+
+  $(document).ready(function () {
+    $('.treeview-animated').mdbTreeview();
+  });
 </script>
 
 {% endblock %}

@@ -1,6 +1,7 @@
 {% extends 'core/base.html' %}
 {% load static %}
 {% load crispy_forms_tags %}
+{% load toUnderscore %}
 
 {% block add_data %}
 <form class="form-inline my-2 my-lg-0" method="get" action="{% url url_name %}">
@@ -16,8 +17,8 @@
   {% if export_urls %}
   <div class="export-buttons-container">
     {% for export_type, export_url in export_urls.items%}
-      <button>
-        <a href="{{export_url}}" style="color:black;">{{export_type}}</a>
+      <button class="export-button export-{{export_type}}-button">
+        <a href="{{export_url}}" style="color:black;" class="export-{{export_type}}">Export to {{export_type}}</a>
       </button>
     {% endfor %}
   </div>
@@ -74,17 +75,27 @@
             {% endfor %}
             <td>
               {% if row_info.download_url %}
-                    <a href="{{ row_info.download_url }}" title="Download" class="btn btn-raised text-secondary px-1 view-detail">
+                    <a title="Download" href="{{ row_info.download_url }}" class="btn btn-raised text-secondary px-1 view-detail">
                         <i class="fa fa-download"></i>
                     </a>
               {% endif %}
-              <a href="{{ row_info.view_url }}" class="btn btn-raised text-secondary px-1 view-detail">
-                <i class="fa fa-eye"></i>
-              </a>
-              <a href="{{ row_info.update_url }}" class="btn btn-raised text-secondary px-1 view-update">
+              <a title="Edit Experiment" href="{{ row_info.update_url }}" class="btn btn-raised text-secondary px-1 view-update">
                 <i class="fa fa-edit"></i>
               </a>
-              <button type="button" class="btn btn-raised text-secondary px-2" data-toggle="modal"
+              {% if row_info.outcome_url %}
+              <a title="Outcome" href="{% url 'outcome' row_info.obj_pk %}" class="btn btn-raised text-secondary px-1 view-detail">
+                <i class="fas fa-poll"></i>
+              </a>
+              {% endif %}
+              {% if row_info.reagent_prep_url %}
+              <a title="Reagent preparation" href="{% url 'reagent_prep' row_info.obj_pk %}" class="btn btn-raised text-secondary px-1 view-detail">
+                <i class="fas fa-vial"></i>
+              </a>
+              {% endif %}
+              <!--<a title="" href="{{ row_info.view_url }}" class="btn btn-raised text-secondary px-1 view-detail">
+                <i class="fa fa-eye"></i>
+              </a> -->
+              <button title="Delete Experiment" type="button" class="btn btn-raised text-secondary px-2" data-toggle="modal"
                 data-target="#deleteModal" data-description="{{ row_info.obj_name }}" data-pk="{{ row_info.obj_pk }}">
                 <i class="fa fa-trash"></i>
               </button>
@@ -99,4 +110,4 @@
 </div>
 {% endblock %}
 
-{% block delete_url %}"/{{ title|lower }}/" + pk + "/delete" {% endblock %}
+{% block delete_url %}"/{{ title|toUnderscore|lower }}/" + pk + "/delete" {% endblock %}

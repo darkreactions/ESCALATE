@@ -7,161 +7,145 @@ from ..model_tests_utils import (
     ERROR,
     random_model_dict,
     check_status_code,
-    compare_data
+    compare_data,
 )
-from core.models import (
-    WorkflowType,
-    Experiment,
-    Workflow
-)
+from core.models import Type, ExperimentTemplate, ActionSequence
 
-workflow_test_data = {}
+actionsequence_test_data = {}
 
-workflow_tests = [
-
-##----TEST 0----##
-#creates an experiment
-#creates a workflowtype
-#creates a workflow
-#creates an workflow with the previous three entries as foreign keys/manytomanyfields
-#gets the workflow
-#puts the workflow adding the other parameterdef to the manytomany field
-#gets the updated workflow
-#deletes the updated workflow
-#gets the workflow (should return error)
-    [      
-        *[{
-            'name': name,
-            'method': POST,
-            'endpoint': 'workflow-list',
-            'body': random_model_dict(Workflow),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
+actionsequence_tests = [
+    ##----TEST 0----##
+    # creates an experiment
+    # creates a actionsequencetype
+    # creates a actionsequence
+    # creates an actionsequence with the previous three entries as foreign keys/manytomanyfields
+    # gets the actionsequence
+    # puts the actionsequence adding the other parameterdef to the manytomany field
+    # gets the updated actionsequence
+    # deletes the updated actionsequence
+    # gets the actionsequence (should return error)
+    [
+        *[
+            {
+                "name": name,
+                "method": POST,
+                "endpoint": "actionsequence-list",
+                "body": random_model_dict(ActionSequence),
+                "args": [],
+                "query_params": [],
+                "is_valid_response": {
+                    "function": check_status_code,
+                    "args": [],
+                    "kwargs": {"status_code": POST},
+                },
             }
-        } for name in ['workflow0', 'workflow1']],
-        *[{
-            'name': name,
-            'method': POST,
-            'endpoint': 'workflowtype-list',
-            'body': random_model_dict(WorkflowType),
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST
-                }
+            for name in ["actionsequence0", "actionsequence1"]
+        ],
+        *[
+            {
+                "name": name,
+                "method": POST,
+                "endpoint": "actionsequencetype-list",
+                "body": random_model_dict(Type),
+                "args": [],
+                "query_params": [],
+                "is_valid_response": {
+                    "function": check_status_code,
+                    "args": [],
+                    "kwargs": {"status_code": POST},
+                },
             }
-        } for name in ['workflowtype0', 'workflowtype1']],
+            for name in ["actionsequencetype0", "actionsequencetype1"]
+        ],
         {
-            'name': 'workflow0',
-            'method': POST,
-            'endpoint': 'workflow-list',
-            'body': (request_body := random_model_dict(Workflow, parent='workflow0__url', workflow_type='workflowtype0__url')), 
-            'args': [],
-            'query_params': [],
-            'is_valid_response': {
-                'function': compare_data,
-                'args': [],
-                'kwargs': {
-                    'status_code': POST,
-                    'request_body': request_body
-                }
-            }
+            "name": "actionsequence0",
+            "method": POST,
+            "endpoint": "actionsequence-list",
+            "body": (
+                request_body := random_model_dict(
+                    ActionSequence,
+                    # parent="actionsequence0__url",
+                    action_sequence_type="actionsequencetype0__url",
+                )
+            ),
+            "args": [],
+            "query_params": [],
+            "is_valid_response": {
+                "function": compare_data,
+                "args": [],
+                "kwargs": {"status_code": POST, "request_body": request_body},
+            },
         },
         {
-            'name': 'workflow0_get_0',
-            'method': GET,
-            'endpoint': 'workflow-detail',
-            'body': {},
-            'args': [
-                'workflow0__uuid'
-            ],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': GET
-                }
-            }
-        },
-    
-        {
-            'name': 'workflow0_update_0',
-            'method': PUT,
-            'endpoint': 'workflow-detail',
-            'body': (request_body := random_model_dict(Workflow, parent='workflow1__url', workflow_type='workflowtype1__url')),
-            'args': [
-                'workflow0__uuid'
-            ],
-            'query_params': [],
-            'is_valid_response': {
-                'function': compare_data,
-                'args': [],
-                'kwargs': {
-                    'status_code': PUT,
-                    'request_body': request_body
-                }
-            }
+            "name": "actionsequence0_get_0",
+            "method": GET,
+            "endpoint": "actionsequence-detail",
+            "body": {},
+            "args": ["actionsequence0__uuid"],
+            "query_params": [],
+            "is_valid_response": {
+                "function": check_status_code,
+                "args": [],
+                "kwargs": {"status_code": GET},
+            },
         },
         {
-            'name': 'workflow0_get_1',
-            'method': GET,
-            'endpoint': 'workflow-detail',
-            'body': {},
-            'args': [
-                'workflow0__uuid'
-            ],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': GET
-                }
-            }
+            "name": "actionsequence0_update_0",
+            "method": PUT,
+            "endpoint": "actionsequence-detail",
+            "body": (
+                request_body := random_model_dict(
+                    ActionSequence,
+                    # parent="actionsequence1__url",
+                    action_sequence_type="actionsequencetype1__url",
+                )
+            ),
+            "args": ["actionsequence0__uuid"],
+            "query_params": [],
+            "is_valid_response": {
+                "function": compare_data,
+                "args": [],
+                "kwargs": {"status_code": PUT, "request_body": request_body},
+            },
         },
         {
-            'name': 'workflow0_delete_0',
-            'method': DELETE,
-            'endpoint': 'workflow-detail',
-            'body': {},
-            'args': [
-                'workflow0__uuid'
-            ],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': DELETE
-                }
-            }
+            "name": "actionsequence0_get_1",
+            "method": GET,
+            "endpoint": "actionsequence-detail",
+            "body": {},
+            "args": ["actionsequence0__uuid"],
+            "query_params": [],
+            "is_valid_response": {
+                "function": check_status_code,
+                "args": [],
+                "kwargs": {"status_code": GET},
+            },
         },
         {
-            'name': 'workflow0_get_2',
-            'method': GET,
-            'endpoint': 'workflow-detail',
-            'body': {},
-            'args': [
-                'workflow0__uuid'
-            ],
-            'query_params': [],
-            'is_valid_response': {
-                'function': check_status_code,
-                'args': [],
-                'kwargs': {
-                    'status_code': ERROR
-                }
-            }
+            "name": "actionsequence0_delete_0",
+            "method": DELETE,
+            "endpoint": "actionsequence-detail",
+            "body": {},
+            "args": ["actionsequence0__uuid"],
+            "query_params": [],
+            "is_valid_response": {
+                "function": check_status_code,
+                "args": [],
+                "kwargs": {"status_code": DELETE},
+            },
+        },
+        {
+            "name": "actionsequence0_get_2",
+            "method": GET,
+            "endpoint": "actionsequence-detail",
+            "body": {},
+            "args": ["actionsequence0__uuid"],
+            "query_params": [],
+            "is_valid_response": {
+                "function": check_status_code,
+                "args": [],
+                "kwargs": {"status_code": ERROR},
+            },
         },
     ],
 ]

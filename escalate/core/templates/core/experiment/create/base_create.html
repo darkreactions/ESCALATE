@@ -1,0 +1,56 @@
+{% load static %}
+{% load crispy_forms_tags %}
+{% load index %}
+
+{% if new_exp_name %}
+<p> Created Experiment! </p>
+<p>Experiment name: {{ new_exp_name }}</p>
+<p> <a href={{ experiment_link }}> View experiment details</a></p>
+<form action="{{ reagent_prep_link }}">
+    <button class="btn btn-outline-primary" type="submit">Prepare Reagent</button>
+</form>
+<form action="{{ outcome_link }}">
+    <button class="btn btn-outline-primary" type="submit">Submit Outcomes</button>
+</form>
+{% endif %}
+{% if lsr_download_link %}
+<p> <a href={{ lsr_download_link }}> Download LibraryStudio file </a></p>
+{% endif %}
+
+
+{% if not new_exp_name %}
+{% if selected_exp_template %}
+<p>Selected experiment template: {{ selected_exp_template.description }}</p>
+
+{% endif %}
+
+
+<form hx-post="{% url 'create_experiment' %}" hx-target="#page-div" enctype="multipart/form-data"
+    hx-encoding="multipart/form-data">
+    {% csrf_token %}
+    {{ experiment_name_form|crispy }}
+    {% include 'core/experiment/create/manual_experiments.html' %}
+    {% include 'core/experiment/create/reagent_formsets.html' %}
+    {% include 'core/experiment/create/reaction_parameters.html' %}
+
+    <input type="hidden" id="automated" name="automated" value="{{ automated }}">
+    <input type="hidden" id="manual" name="manual" value="{{ manual }}">
+    <input type="hidden" id="vessel" name="vessel" value="{{ vessel }}">
+    <div class="text-right">
+        <button class="btn btn-primary" type="submit" name="create_exp" value="create_exp">Create
+            Experiment
+            <img id="spinner" class="htmx-indicator" src="{% static 'three-dots.svg' %}" />
+        </button>
+
+    </div>
+</form>
+{% endif %}
+{% block footer %}
+<script>
+    $(document).ready(function () {
+        $(".selectpicker").selectpicker("refresh");
+        $('.treeview-animated').mdbTreeview();
+    });
+
+</script>
+{% endblock %}

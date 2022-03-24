@@ -25,3 +25,8 @@ pandas
 inflection
 openpyxl
 xlwt
+matplotlib
+scipy
+pint
+ipython
+chemdescriptor

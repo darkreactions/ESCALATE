@@ -1,0 +1,58 @@
+[
+{
+    "model": "core.reagenttemplate",
+    "pk": "2744fbb5-708b-4a50-a7ae-67e6c27e7ade",
+    "fields": {
+        "add_date": "2021-09-24T16:10:17.852",
+        "mod_date": "2021-10-08T14:13:33.705",
+        "status": "6378ad3a-a963-4100-8675-0540043bedfd",
+        "description": "organic, solvent",
+        "internal_slug": "organic,-solvent",
+        "properties": [
+            "b4a5b0f7-e306-4f1f-9b34-4b213a595c53"
+        ]
+    }
+},
+{
+    "model": "core.reagenttemplate",
+    "pk": "6d813e49-1eef-413c-8199-7c3f86e6a2da",
+    "fields": {
+        "add_date": "2021-09-24T16:10:56.377",
+        "mod_date": "2021-10-08T14:14:03.017",
+        "status": "6378ad3a-a963-4100-8675-0540043bedfd",
+        "description": "Pure acid",
+        "internal_slug": "pure-acid",
+        "properties": [
+            "b4a5b0f7-e306-4f1f-9b34-4b213a595c53"
+        ]
+    }
+},
+{
+    "model": "core.reagenttemplate",
+    "pk": "95819f17-ec95-4e4e-b69c-fcb2051c13b6",
+    "fields": {
+        "add_date": "2021-09-24T16:09:52.345",
+        "mod_date": "2021-10-08T14:13:49.587",
+        "status": "6378ad3a-a963-4100-8675-0540043bedfd",
+        "description": "inorganic, organic, solvent",
+        "internal_slug": "inorganic,-organic,-solvent",
+        "properties": [
+            "b4a5b0f7-e306-4f1f-9b34-4b213a595c53"
+        ]
+    }
+},
+{
+    "model": "core.reagenttemplate",
+    "pk": "e181c987-9e5c-4532-97e8-fe8e02bc25b8",
+    "fields": {
+        "add_date": "2021-09-24T15:53:24.923",
+        "mod_date": "2021-10-08T14:14:13.174",
+        "status": "6378ad3a-a963-4100-8675-0540043bedfd",
+        "description": "Pure Solvent",
+        "internal_slug": "pure-solvent",
+        "properties": [
+            "b4a5b0f7-e306-4f1f-9b34-4b213a595c53"
+        ]
+    }
+}
+]

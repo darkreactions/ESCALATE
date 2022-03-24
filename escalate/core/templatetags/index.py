@@ -2,6 +2,7 @@ from django import template
 
 register = template.Library()
 
-@register.filter(name='index')
+
+@register.filter(name="index")
 def index(indexible, args):
-    return indexible[args] 
+    return indexible[args]

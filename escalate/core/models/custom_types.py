@@ -5,7 +5,14 @@ import json
 from django.core.exceptions import ValidationError
 import csv
 from django.contrib.postgres.fields import ArrayField
-from django.forms import MultiWidget, TextInput, Select, MultiValueField, CharField, ChoiceField
+from django.forms import (
+    MultiWidget,
+    TextInput,
+    Select,
+    MultiValueField,
+    CharField,
+    ChoiceField,
+)
 from core.custom_types import Val
 from core.validators import ValValidator
 from core.widgets import ValFormField
@@ -26,36 +33,41 @@ v_bool boolean, 10
 v_bool_array boolean[] 11
 """
 
+
 class CustomArrayField(ArrayField):
     def _from_db_value(self, value, expression, connection):
-        
+
         if value is None:
             return value
-        value = list(csv.reader([value[1:-1]], delimiter=',', quotechar='"', escapechar='\\'))[0]        
+        value = list(
+            csv.reader([value[1:-1]], delimiter=",", quotechar='"', escapechar="\\")
+        )[0]
         return [
             self.base_field.from_db_value(item, expression, connection)
             for item in value
         ]
 
+
 class ValField(models.TextField):
-    description = 'Data representation'
+    description = "Data representation"
     formfield = ValFormField()
+
     def __init__(self, *args, **kwargs):
-        self.list = kwargs.pop('list', False)
+        self.list = kwargs.pop("list", False)
         super().__init__(*args, **kwargs)
 
     def deconstruct(self):
         name, path, args, kwargs = super().deconstruct()
 
         return name, path, args, kwargs
-    
-    #def db_type(self, connection):
+
+    # def db_type(self, connection):
     #    return 'val'
-    
+
     def from_db_value(self, value, expression, connection):
         if value is None:
-            return Val(None, None, None, null=True) 
-        
+            return Val(None, None, None, null=True)
+
         return Val.from_db(value)
 
     def to_python(self, value):
@@ -63,19 +75,19 @@ class ValField(models.TextField):
             return value
         elif isinstance(value, (list, tuple)):
             return Val(*value)
-        
-        if value is None:
+
+        if value is None or value == "":
             return value
-        
+
         return Val.from_db(value)
 
     def get_prep_value(self, value):
         if isinstance(value, dict):
             value = Val.from_dict(value)
-        elif value == None:
+        elif value == None or value == "":
             value = Val(None, None, None, null=True)
         return value.to_db()
-    
+
     def get_db_prep_value(self, value, connection, prepared=False):
         value = super().get_db_prep_value(value, connection, prepared)
         return value
@@ -87,11 +99,11 @@ class ValField(models.TextField):
     def value_from_object(self, obj):
         obj = super().value_from_object(obj)
         return obj
-    
+
     def formfield(self, **kwargs):
         # This is a fairly standard way to set up some defaults
         # while letting the caller override them.
-        defaults = {'form_class': ValFormField}
+        defaults = {"form_class": ValFormField}
         defaults.update(kwargs)
         return super().formfield(**defaults)
 
@@ -99,16 +111,10 @@ class ValField(models.TextField):
 # enum choices for {property(_def), material} class choices
 # these are enum types in postgres, so will be shortened to ints there.
 # they are defined in prod_tables.sql
-PROPERTY_CLASS_CHOICES = (
-    ('nominal', 'nominal'),
-    ('actual', 'actual')
-)
-PROPERTY_DEF_CLASS_CHOICES = (
-    ('intrinsic', 'intrinsic'),
-    ('extrinsic', 'extrinsic')
-)
+PROPERTY_CLASS_CHOICES = (("nominal", "nominal"), ("actual", "actual"))
+PROPERTY_DEF_CLASS_CHOICES = (("intrinsic", "intrinsic"), ("extrinsic", "extrinsic"))
 MATERIAL_CLASS_CHOICES = (
-    ('template', 'template'),
-    ('model', 'model'),
-    ('object', 'object')
+    ("template", "template"),
+    ("model", "model"),
+    ("object", "object"),
 )

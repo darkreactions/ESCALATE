@@ -37,232 +37,72 @@ Date: 01.29.2020
 
 The database model consists of the following entities:
 
-1. **actor**: person, organization and/or tool (e.g. software) that act on, or with any of the entities
-2. **note**: text that can be associated with any entity
-3. **tag**: short descriptive text that can be associated with any entity
-4. **status**: text describing the state or status of an entity
-5. **material**:  'ideal' singleton, composite material that can have unlimited reference names, properties and calculations (descriptors) assigned
-6. **property**: characterization of a material; of which a material can have zero to many
-6. **inventory**: collection of 'actual' materials assignable to an organization (lab)
-7. **experiment**: container **specifying** one or more workflow (of actions) operating on or with one or more materials and **capturing** one or more measures and/or observables at any level of experiment detail
-8**. bom (bill of materials)**: container of all materials (from inventory) that can or will be addressed in the experiment
-8. **workflow**: container of specified actions and associated action paths
-9. **action**: specification (def) and actual activity to be performed (by actor); associated with parameters and/or calculations
-10. **parameter**: specification (def) and actual characterization of an activity or calculation; of which action or calculation can have zero to many
-11. **condition**: type of workflow object that determines (by way of assoc. calculation) the path taken for subsequent action
-12. **calculation**: specification (def) and actual function performing a transformation or calculation with one or more parameters
-13. **measure**: observable and/or measure associated with a specific entity 
-14. **outcome**: container of measures that address purpose or aim of experiment
+1. **Action**: actual activity to be performed (by actor/person/systemtool/organization); associated with actionunits, parameters and/or calculations
+2. **ActionDef**: specification of an action
+3. **ActionSequence**: container of specified actions and associated action paths
+4. **ActionSequenceType**: desctiption of ActionSequence
+5. **ActionUnit**: measurement of action performed; contains a source and optionally a destination that the action is performed on
+6. **Actor**: object that act on, or with any of the entities
+7. **BaseBomMaterial**: instance of BillOfMaterials that associate inventories, vessels, and materials
+8. **BillOfMaterials**: container of all materials (from inventory) that can or will be addressed in the experiment
+9. **BomCompositeMaterials**: bill of materials specific to composite materials and mixtures
+10. **BomMaterial**: bill of materials specific to materials
+11. **BomVessel**: bill of materials specific to vessels
+12. **Calculation**: actual function performing a transformation or calculation with one or more parameters
+13. **CalculationDef**: specification of calculations
+14. **Condition**: type of action sequence object that determines (by way of assoc. calculation) the path taken for subsequent action
+15. **Contents**: defines materials contained within a vessel instance
+16. **DefaultValues**: template for nominal and actual values
+17. **DescriptorTemplate**: template for multiple model instance descriptors
+18. **ExperimentActionSequence**: sequential order of an experiment; instance of ActionSequence
+19. **ExperimentCompletedInstance**: proxy model of ExpermentInstance that contains finished experiments
+20. **ExperimentInstance**: container **specifying** one or more action sequences (of actions) operating on or with one or more materials and **capturing** one or more measures and/or observables at any level of experiment detail
+21. **ExperimentPendingInstance**: proxy model of ExpermentInstance that contains pending experiments
+22. **ExperimentTemplate**: template that specifies experiments that can be created
+23. **Edocument**: electronic document that can be defined and a file can be associated; files can be uploaded via various forms within the UI or directly through the API
+24. **Inventory**: inventory template; defines owner/operator/lab associated with inventory
+25. **InventoryMaterial**: instance of inventory model; collection of 'actual' materials assignable to an organization (lab)
+26. **Material**:  'ideal' singleton, material can have unlimited reference names, properties and calculations (descriptors) assigned
+27. **MaterialIdentifier**: descriptors for materials; can be composed of multiple definitions
+28. **MaterialIdentifierDef**: individual descriptor for MaterialIdentifier
+29. **MaterialType**: defines the type of material within multiple template models
+30. **Measure**: observable and/or measure associated with a specific entity
+31. **MeasureDef**: defines the specifcations of a Measure model
+32. **MeasureType**: unit of measurement associated with Measure
+33. **Mixture**: composite materials and components associated with the creation of the mixture; material types can be defined and accessed
+34. **MolecularDescriptor**: descriptor for molecular materials
+35. **Note**: text that can be associated with any entity
+36. **Organization**: organization that act on, or with any of the entities
+37. **OutcomeInstance**: container of measures that address purpose or aim of experiment
+38. **OutcomeInstanceValue**: stores the nominal and actual values related to an outcome instance
+39. **OutcomeTemplate**: template for outcomes; contains associated experiment and default values
+40. **Parameter**: actual characterization of an activity or calculation; of which action or calculation can have zero to many
+41. **ParameterDef**: specification of Parameter model
+42. **Person**: personal details of an individual including association with organizations
+43. **Property**: characterization of a material; of which a material can have zero to many
+44. **PropertyTemplate**: template for Property instance; contains default values for property instances
+45. **ReactionParameters**: quick access to specific parameters associated within an experiment
+46. **Reagent**: instance of ReagentTemplate; associates a ReagentTemplate with an ExperimentInstance
+47. **ReagentTemplate**: template for reagent instance
+48. **ReagentMaterialTemplate**: template for reagent material instance; material type defined in MaterialType model
+49. **ReagentMaterial**: instance of ReagentMaterialTemplate; associates Reagent and InventoryMaterial with ReagentMaterialTemplate
+50. **ReagentMaterialValue**: nominal and actual values for a reagent material within an experiment
+51. **ReagentMaterialValueTemplate**: template for reagent material value instance; material type defined in MaterialType model
+52. **Status**: text describing the state or status of an entity
+53. **Systemtool**: software that act on, or with any of the entities
+54. **SystemtoolType**: defines type of software
+55. **Tag**: short descriptive text that can be associated with any entity
+56. **TagAssign**: associates a tag with a model instance
+57. **TagType**: defines the type of tag
+58. **Udf**: User Defined Field; For example, if we want to start tracking ‘challenge problem #’ within an experiment. Instead of creating a new column in experiment, we could define a udf(udf_def) and it’s associated value(val) type, in this case: text. Then we could allow the user (API) to create a specific instance of that udf_def, and associate it with a specific experiment, where the experiment_uuid is the ref_udf_uuid.
+59. **UdfDef**: description of UDF
+60. **ValueInstance**: instance of DefaultValues model; contains specific nominal and actual values and associates with the Outcome model
+61. **Vessel**: template for vessel instance
+62. **VesselInstance**: experiment container; child of Vessel model and defines a specific instance of that template
+63. **VesselType**: describes the type of vessel for a Vessel template
 
 <br/>
 
-
-## Getting Started
-
-These instructions will get you a copy of the database up and running on your local machine (or container) for development and testing purposes. 
-
-### Prerequisites
-
-Minimal software you need in place to instantiate the model
-
-```
-PostgreSQL v11 / v12
-```
-
-### Optional
-
-Optional software for implementing this model:
-
-[![dockerlogo][docker-logo]][dockerinstall-url]
-&ensp;[![pgadminlogo][pgadmin-logo]][pgadmininstall-url]
-
-<br/>
-
-## Instantiating the Model (w/ experimental data)
-
-This model can be instantiated into a local PostgreSQL server or into a docker container. As there is extensive documentation and instructions to install PostgreSQL and docker, it will not be covered in this README.
-
-In addition to the environments in which this model can reside (e.g. local or docker), it can be created (restored) from a pg_dump backup or a manual process (running discrete sql to create and load tables). What follows are the steps to instantiate the ESCALATE v3 data model populated with experimental perovskite data from a backup and manual SQL.
-
-But before the ESCALATE data model can be instantiated, the first step is to configure your PostgreSQL environment.
-
-### Quickest method to fully create database (from backup)
-
-Assumption: you have a database named 'escalate' already created (in either local environment or docker container).
-
-**Option 1** -  restore into a local PostgreSQL environment
-using the latest 'create' sql file in the repo's backup folder. This assumes a local directory named backup
-
-```
-psql -d escalate -U escalate -f escalate_dev_create_backup.sql
-```
-**Option 2** -  restore into a docker container
-using the latest 'bak' file in the repo's backup folder. This assumes the following: 1) the docker container is named: escalate-postgres and 2) the backup sql file has been moved to a folder in the container
-
-```
-docker exec escalate-postgres psql -d escalate -U escalate -f escalate_dev_create_backup.sql
-```
-
-<br/>
-
-
-### PostgreSQL configuration
-**Step 1** -  Create a database named 'escalate' with owner named 'escalate'. Use pgAdmin to create the database or execute the following SQL:
-
-```
-CREATE DATABASE escalate OWNER escalate;
-```
-**Step 2** -  Create schema 'dev' using pgAdmin or executing the following SQL:
-
-```
-CREATE SCHEMA dev;
-```
-**Step 3** -  Add required extensions (collection of functions) to the schema:
-
-```
-CREATE EXTENSION if not exists ltree;
-CREATE EXTENSION if not exists tablefunc;
-CREATE EXTENSION if not exists "uuid-ossp";
-CREATE EXTENSION IF not exists hstore;
-```
-<br/>
-
-
-### Instantiation from SQL (as part of development process) 
-Sometimes it's helpful to dev/test added tables, views, and functions iteratively and [re]build the schema accordingly. Below are two methods to aid in your dev/test cycle; 1) the first is a single bash script that will execute psql to rebuild the db objects in the dev schema automatically, and 2) is a manual method to do the same thing.
-
-**1. Single Script Method**
-
-* Run the following bash script found in the `sql_core` directory
-	
-
-	```
-	./rebuild_schema_dev.sh
-	```
-
-	*note: log file `rebuild_dev.log` is created in the same directory*	
-
-or 
-
-**2. Manual Method (in order)**
-
-* Create database named: 'escalate'
-
-	```
-	CREATE DATABASE escalate OWNER escalate;
-	```
-
-* Create schema in database escalate (at this point, use: 'dev')
-
-	```	
-	CREATE SCHEMA dev;
-	```
-
-* Add required extensions (collection of functions) to the schema:
-
-	```
-	CREATE EXTENSION if not exists ltree with schema dev;
-	CREATE EXTENSION if not exists tablefunc with schema dev;
-	CREATE EXTENSION if not exists "uuid-ossp" with schema dev;
-	CREATE EXTENSION if not exists hstore with schema dev;
-	```
-
-* Populate the load tables with existing perovskite experimental data using SQL code found in the repo 'sql_dataload' subdirectory:
-
-	```
-	prod_dataload_chem_inventory.sql
-	prod_dataload_edocument.sql
-	prod_dataload_hc_inventory.sql
-	prod_dataload_lbl_inventory.sql
-	prod_dataload_perov_desc_def.sql
-	prod_dataload_perov_desc.sql
-	prod_dataload_perov_mol_image.sql
-	prod_dataload_v2_wf3_iodides.sql
-	pro_dataload_v2_wf3_alloying.sql
-	prod_dataload_v2_iodides.sql
-	prod_dataload_v2_bromides.sql
-	```
-
-* Create the core model tables, primary keys, foreign keys and constraints and views using SQL code found in the repo 'sql_core' subdirectory:
-
-	**Option 1** - the easiest way (and that creates a log) is to execute the following shell script:
-	
-	```
-	rebuild_schema_dev.sh
-	```
-which is found in the sql_core subdirectory.
-
-	**Option 2** - or you could run each SQL file individually:
-
-	```
-	prod_tables.sql
-	prod_functions.sql
-	prod_upserts.sql
-	prod_views.sql	
-	prod_initialize_coretables.sql
-	hc_load_1_material.sql
-	hc_load_2_inventory.sql
-	hc_load_3_calculation.sql	
-	``
-
-<br/>
-
-## Validating the Tables & Data
-
-To ensure the database tables have been created and populated properly, run the following SQL scripts and check results.
-
-
-Record count of selected core tables:
-
-```
-select count(*) from actor;
-> 25
-
-select count(*) from material;
-> 112
-> 
-select count(*) from inventory;
-> 131
-> 
-select count(*) from calculation;
-> 8325
-```
-
-Check view vw_actor:
-
-```
-select systemtool_name, systemtool_description, systemtool_version from vw_actor where systemtool_vendor = 'ChemAxon';
- 
-> standardize	Chemical standardizer	19.27.0
-> cxcalc	Chemical descriptor calculator	19.27.0
-> molconvert	Chemical converter	19.27.0
-> generatemd	Chemical fingerprint calculator	19.6.0
-```
-
-Check view vw_m_descriptor_def:
-
-```
-select short_name, calc_definition, description, actor_description, systemtool_name, systemtool_version from vw_calculation_def where short_name = 'atomcount_c_standardize';
- 
-> atomcount_c_standardize	atomcount -z 6 number of carbon atoms in the molecule Gary Cattabriga cxcalc 19.27.0
-```
-
-<br/>
-
-## Maintenance
-Included in the backups directory is a shell script `run_escalate_backups.sh` that will create two sql backups from the current escalate database: 
-
-1. a complete rebuild of the database and data including the dropping of the schema `escalate_dev_create_backup.sql` and 
-2. a refresh of the escalate tables, views, functions, etc but does not drop the schema or Django tables `escalate_dev_refresh_backup.sql`. To run the script, cd into the 'backups' directory and execute:
-
-```
-./run_escalate_backups.sh
-```
-
-There are two post-processing AWK scripts, one for each pg_dump. These scripts add a run timestamp, ensure proper set path, add extension commands and anything else that needs special attention. `postprocess_create_sql.awk`
-`postprocess_refresh_sql.awk`
-
-<br/>
 
 ## Built With
 
@@ -274,7 +114,10 @@ There are two post-processing AWK scripts, one for each pg_dump. These scripts a
 
 ## Authors
 
-* **Gary Cattabriga** - *Initial work* - [ESCALATE](https://github.com/gcatabr1)
+* [**Gary Cattabriga**](https://github.com/gcatabr1) - *Initial work* 
+* [**Joseph Pannizzo**](https://github.com/jpannizzo)
+* [**Venkateswaran Shekar**](https://github.com/vshekar)											   
+* [**Nicole Smina**](https://github.com/nsmina914)
 
 See also the list of [contributors](https://github.com/darkreactions/ESCALATE/graphs/contributors) who participated in this project.
 
@@ -310,4 +153,3 @@ This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.t
 [docker-logo]: images/docker_logo.png
 [pgadmininstall-url]: https://www.pgadmin.org/download/
 [pgadmin-logo]: images/pgadmin_logo.png
-
