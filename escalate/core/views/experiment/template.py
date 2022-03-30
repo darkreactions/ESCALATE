@@ -19,8 +19,8 @@ from core.models.view_tables import (
     # ReagentMaterialValueTemplate,
     MaterialType,
     OutcomeTemplate,
-    ExperimentActionSequence,
-    ActionSequence,
+    Vessel,
+    VesselTemplate,
 )
 from core.forms.custom_types import (
     OutcomeDefinitionForm,
@@ -176,17 +176,6 @@ class CreateExperimentTemplate(TemplateView):
         # rt= ReagentTemplate.objects.get(uuid=context['reagents'])
         # exp_template.reagent_templates.add(rt)
 
-    def add_actions(self, context, action_sequences):
-        exp_template = ExperimentTemplate.objects.get(uuid=context["exp_uuid"])
-        for i, a in enumerate(action_sequences):
-            ac_sq = ActionSequence.objects.get(uuid=a)
-            eas = ExperimentActionSequence(
-                experiment_template=exp_template,
-                experiment_action_sequence_seq=i,
-                action_sequence=ac_sq,
-            )
-            eas.save()
-
     def add_outcomes(self, context, outcome_description, outcome_type):
         exp_template = ExperimentTemplate.objects.get(uuid=context["exp_uuid"])
         outcome_val = {"value": 0.0, "unit": " ", "type": outcome_type}
@@ -312,7 +301,7 @@ class CreateExperimentTemplate(TemplateView):
                     self.add_outcomes(context, outcome_description, outcome_type)
 
             context["workflow_link"] = reverse(
-                "action_sequence", args=[str(context["exp_uuid"])]
+                "action_template", args=[str(context["exp_uuid"])]
             )
 
         return render(request, self.template_name, context)

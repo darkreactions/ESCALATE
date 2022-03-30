@@ -3,7 +3,7 @@ import core.views
 from core.views.function_views import (
     download_vp_spec_file,
     # save_action_sequence,
-    save_experiment_action_sequence,
+    save_experiment_action_template,
     experiment_invalid,
 )
 
@@ -12,8 +12,8 @@ from .views import (
     CreateUserView,
     MainMenuView,
     SelectLabView,
-    ActionSequenceView,
     # ExperimentActionSequenceView,
+    ActionTemplateView,
     ModelTagCreate,
     ModelTagUpdate,
     logout_view,
@@ -47,9 +47,9 @@ urlpatterns = [
     path("select_lab/", SelectLabView.as_view(), name="select_lab"),
     # path("action_sequence/", ActionSequenceView.as_view(), name="action_sequence"),
     path(
-        "action_sequence/<uuid:pk>",
-        ActionSequenceView.as_view(),
-        name="action_sequence",
+        "action_template/<uuid:pk>",
+        ActionTemplateView.as_view(),
+        name="action_template",
     ),
     path("logout/", logout_view, name="logout"),
     path("user_profile/", UserProfileView.as_view(), name="user_profile"),
@@ -94,9 +94,9 @@ urlpatterns += [
     ),
     # path("save_action_sequence/", save_action_sequence, name="save_action_sequence",),
     path(
-        "save_experiment_action_sequence/",
-        save_experiment_action_sequence,
-        name="save_experiment_action_sequence",
+        "save_experiment_action_template/",
+        save_experiment_action_template,
+        name="save_experiment_action_template",
     ),
 ]
 
@@ -221,8 +221,11 @@ def add_urls(model_name, pattern_list):
             )
         )
     if (delete_view_class := getattr(core.views, f"{model_name}Delete", None)) != None:
-        #remove ExperimentPendingInstance and ExperimentCompletedInstance
-        if (lower_case_model_name != 'experiment_pending_instance' and lower_case_model_name != 'experiment_completed_instance'):
+        # remove ExperimentPendingInstance and ExperimentCompletedInstance
+        if (
+            lower_case_model_name != "experiment_pending_instance"
+            and lower_case_model_name != "experiment_completed_instance"
+        ):
             new_urls.append(
                 path(
                     f"{lower_case_model_name}/<uuid:pk>/delete",

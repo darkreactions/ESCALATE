@@ -15,8 +15,8 @@ from pathlib import Path
 # from core.views.function_views import save_experiment_action_sequence
 
 
-class ActionSequenceView(LoginRequired, View):
-    template_name = "core/action_sequence.html"
+class ActionTemplateView(LoginRequired, View):
+    template_name = "core/action_template.html"
     form_class = ExperimentTemplateSelectForm
     # form_class = ActionSequenceNameForm
 

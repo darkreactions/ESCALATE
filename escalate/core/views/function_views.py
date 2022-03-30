@@ -4,15 +4,15 @@ from django.contrib.messages import get_messages
 from core.utilities.experiment_utils import get_action_parameter_querysets
 from core.utilities.utils import generate_vp_spec_file
 from django.http.response import FileResponse, JsonResponse
-from core.models.app_tables import ActionSequenceDesign
+from core.models.app_tables import ActionTemplateDesign
 from core.models import (
     Action,
-    ActionSequence,
     ActionDef,
-    ExperimentActionSequence,
+    ActionTemplate,
     ExperimentTemplate,
     ExperimentInstance,
     Vessel,
+    VesselTemplate,
 )
 
 
@@ -53,18 +53,13 @@ def experiment_invalid(request: HttpRequest, pk):
             return JsonResponse(data={"message": "success"})
 
 
-def save_experiment_action_sequence(request: HttpRequest) -> HttpResponse:
+def save_experiment_action_template(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
-        print(request.POST)
 
         exp_template = ExperimentTemplate.objects.get(uuid=request.POST["exp_template"])
         # exp_template = ExperimentTemplate.objects.get(
         # uuid=request.session["experiment_template_uuid"]
         # )
-
-        action_sequence_instance = ActionSequence.objects.create(
-            description="{}_action_sequence".format(exp_template.description)
-        )
 
         action_tuples = []
 
@@ -115,11 +110,73 @@ def save_experiment_action_sequence(request: HttpRequest) -> HttpResponse:
                             )
                         )
 
-                        if properties["source"] == "":
-                            properties["source"] = None
+                        # if properties["source"] == "":
+                        # properties["source"] = None
 
-                        a, created = ActionSequenceDesign.objects.get_or_create(
-                            action_sequence=action_sequence_instance,
+                        for a in action_tuples:
+
+                            action_def, created = ActionDef.objects.get_or_create(
+                                description=description
+                            )
+
+                        source_vessel_template = None
+                        source_vessel_decomposable = False
+                        if properties["source"]:
+                            default_vessel, created = Vessel.objects.get_or_create(
+                                description="Generic Vessel"
+                            )
+                            (
+                                source_vessel_template,
+                                created,
+                            ) = VesselTemplate.objects.get_or_create(
+                                description=properties["source"],
+                                outcome_vessel=False,
+                                # decomposable=False,
+                                default_vessel=default_vessel,
+                            )
+
+                            if created:
+                                exp_template.vessel_templates.add(
+                                    source_vessel_template
+                                )
+
+                        dest_vessel_template = None
+                        dest_vessel_decomposable = False
+                        if properties["destination"]:
+                            default_vessel, created = Vessel.objects.get_or_create(
+                                description="Generic Vessel"
+                            )
+
+                            if "wells" in properties["destination"]:
+                                dest_vessel_decomposable = True
+                            else:
+                                dest_vessel_decomposable = False
+
+                            (
+                                dest_vessel_template,
+                                created,
+                            ) = VesselTemplate.objects.get_or_create(
+                                description="Outcome vessel",
+                                outcome_vessel=True,
+                                default_vessel=default_vessel,
+                            )
+
+                            if created:
+                                exp_template.vessel_templates.add(dest_vessel_template)
+
+                        action_template, created = ActionTemplate.objects.get_or_create(
+                            # action_sequence=action_sequences[action_seq],
+                            description=description,
+                            experiment_template=exp_template,
+                            action_def=action_def,
+                            source_vessel_template=source_vessel_template,
+                            source_vessel_decomposable=source_vessel_decomposable,
+                            dest_vessel_template=dest_vessel_template,
+                            dest_vessel_decomposable=dest_vessel_decomposable,
+                        )
+
+                        a, created = ActionTemplateDesign.objects.get_or_create(
+                            action_template=action_template,
                             id=id,
                             description=description,
                             # properties=properties,
@@ -131,7 +188,7 @@ def save_experiment_action_sequence(request: HttpRequest) -> HttpResponse:
                         )
                         a.save()
 
-        for action_tuple in action_tuples:
+        """for action_tuple in action_tuples:
             id, description, source, destination = action_tuple
             action_def, created = ActionDef.objects.get_or_create(
                 description=description
@@ -150,6 +207,6 @@ def save_experiment_action_sequence(request: HttpRequest) -> HttpResponse:
             experiment_action_sequence_seq=0,
             action_sequence=action_sequence_instance,
         )
-        eas.save()
+        eas.save()"""
 
     return JsonResponse(data={"message": "success"})
