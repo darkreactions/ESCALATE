@@ -288,18 +288,20 @@ def get_reagent_querysets(exp_uuid):
     return reagent_q
 
 
-def prepare_reagents(reagent_formset):
+def prepare_reagents(reagent_formset, materials):
     """[summary]
 
     Args:
         reagent_formset([Formset]_: contains forms with reagent/concentration data
+        materials([list]): contains chemical names of materials in reagent
 
     Returns:
        [dictionary]: keys are reagent descriptions and values are desired concentrations
     """
     reagents = {}
-    current_mat_list = reagent_formset.form_kwargs["mat_types_list"]
-    for num, element in enumerate(current_mat_list):
+    # current_mat_list = reagent_formset.form_kwargs["mat_types_list"]
+
+    for num, element in enumerate(materials):  # current_mat_list):
         reagents[element.description] = reagent_formset.cleaned_data[num][
             "desired_concentration"
         ].value
@@ -369,9 +371,7 @@ def generate_experiments_and_save(
 
     # for action_description, (reagent_name, mult_factor) in action_reagent_map.items():
     well_list = make_well_labels_list(
-        well_count=vessel.well_number,
-        column_order=vessel.column_order,
-        robot="True",
+        well_count=vessel.well_number, column_order=vessel.column_order, robot="True",
     )
 
     for reagent_name in reagent_template_names:
