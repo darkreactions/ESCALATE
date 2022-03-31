@@ -12,6 +12,7 @@ from core.models.view_tables import (
 )
 from core.forms.custom_types import ReagentValueForm
 from core.forms.custom_types import BaseReagentFormSet, PropertyForm
+from core.utilities.calculations import amount_to_conc
 
 
 class ExperimentReagentPrepView(TemplateView):
@@ -135,6 +136,7 @@ class ExperimentReagentPrepView(TemplateView):
         reagents = experiment.reagent_ei.all()
         formsets = []
         valid_forms = True
+        properties_lookup = []
         for index, reagent in enumerate(reagents):
             prop_uuid = request.POST[f"reagent_total_{index}-uuid"]
             property_instance = Property.objects.get(uuid=prop_uuid)
@@ -157,10 +159,12 @@ class ExperimentReagentPrepView(TemplateView):
                     rmvi = Property.objects.get(uuid=form.cleaned_data["uuid"])
                     rmvi.actual_value = form.cleaned_data["actual_value"]
                     rmvi.save()
+                    properties_lookup.append(rmvi)
             else:
                 valid_forms = False
 
         if valid_forms:
+            amount_to_conc(experiment_instance_uuid, properties_lookup)
             return HttpResponseRedirect(reverse("experiment_instance_list"))
         else:
             return render(request, self.template_name, context)

@@ -181,7 +181,7 @@ def calculate_amounts(input_data, target_vol, dead_vol="4000 uL"):
     return amounts
 
 
-def amount_to_conc(exp_uuid):
+def amount_to_conc(exp_uuid, properties_lookup):
     """[summary]
     For each reagent in an experiment, this function obtains reagent material properties
     needed to calculate actual concentrations of each material based on solution preparation
@@ -205,34 +205,39 @@ def amount_to_conc(exp_uuid):
         input_data = {}
         reagent_materials = reagent.reagent_material_r.all()
         for reagent_material in reagent_materials:
-            amount = reagent_material.property_rm.filter(
-                template__description="amount"
-            ).first()
-            val = amount.actual_value.value
-            unit = amount.actual_value.unit
-            amount = Q_(val, unit)
-            mat_type = reagent_material.template.material_type.description
-            phase = reagent_material.material.phase
+            for num, i in enumerate(properties_lookup):
+                if i.reagent_material == reagent_material:
+                    # amount = reagent_material.property_rm.filter(
+                    #    template__description="amount"
+                    # ).first()
+                    amount = properties_lookup[num].actual_value
+                    val = amount.value
+                    unit = amount.unit
+                    amount = Q_(val, unit)
+                    mat_type = reagent_material.template.material_type.description
+                    phase = reagent_material.material.phase
 
-            mw_prop = reagent_material.material.material.property_m.filter(
-                template__description__icontains="molecularweight"
-            ).first()
-            mw = Q_(mw_prop.value.value, mw_prop.value.unit).to(units.g / units.mol)
+                    mw_prop = reagent_material.material.material.property_m.filter(
+                        template__description__icontains="molecularweight"
+                    ).first()
+                    mw = Q_(mw_prop.value.value, mw_prop.value.unit).to(
+                        units.g / units.mol
+                    )
 
-            density_prop = reagent_material.material.material.property_m.filter(
-                template__description__icontains="density"
-            ).first()
-            d = d = Q_(density_prop.value.value, density_prop.value.unit).to(
-                units.g / units.ml
-            )
+                    density_prop = reagent_material.material.material.property_m.filter(
+                        template__description__icontains="density"
+                    ).first()
+                    d = d = Q_(density_prop.value.value, density_prop.value.unit).to(
+                        units.g / units.ml
+                    )
 
-            input_data[reagent_material] = {
-                "amount": amount,
-                "material_type": mat_type,
-                "phase": phase,
-                "molecular weight": mw,
-                "density": d,
-            }
+                    input_data[reagent_material] = {
+                        "amount": amount,
+                        "material_type": mat_type,
+                        "phase": phase,
+                        "molecular weight": mw,
+                        "density": d,
+                    }
 
         # pass input data into amount calculator
         concentrations = back_calculate(input_data)
