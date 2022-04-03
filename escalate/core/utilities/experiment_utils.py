@@ -363,9 +363,7 @@ def generate_experiments_and_save(
 
     # for action_description, (reagent_name, mult_factor) in action_reagent_map.items():
     well_list = make_well_labels_list(
-        well_count=vessel.well_number,
-        column_order=vessel.column_order,
-        robot="True",
+        well_count=vessel.well_number, column_order=vessel.column_order, robot="True",
     )
 
     for reagent_name in reagent_template_names:
@@ -433,7 +431,7 @@ def save_manual_parameters(df, exp_template, experiment_copy_uuid):
 
 
 def save_manual_volumes(
-    df, experiment_copy_uuid, reagent_template_names, dead_volume, vessel
+    df, experiment_copy_uuid, reagent_template_names, dead_volume, vessel, num_manual
 ):
     """[summary]
 
@@ -452,16 +450,21 @@ def save_manual_volumes(
     # experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
     reagents = Reagent.objects.filter(experiment=experiment_copy_uuid)
 
-    well_list = []
-    for well in df["Vial Site"]:
-        well_list.append(well)
+    well_list = make_well_labels_list(
+        well_count=vessel.well_number, column_order=vessel.column_order, robot="True",
+    )
+
+    well_indices = {}
+    for i in range(num_manual):
+        well_indices[i] = well_list[i]  # df['Vial Site'][i]
 
     volume_by_well = {}
     # for reagent in reagents:
     for reagent_name in reagent_template_names:
         total_volume = 0
 
-        for i, vial in enumerate(well_list):
+        # for i, vial in enumerate(well_list):
+        for i, vial in well_indices.items():
             action = (
                 q1.filter(action_unit_description__icontains=reagent_name)
                 .filter(action_unit_description__icontains="dispense")

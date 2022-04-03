@@ -1,6 +1,6 @@
 from django.db import connection as con
 from django.db.models import F
-from core.models import ExperimentTemplate, ActionSequence, Action
+from core.models import ExperimentTemplate, Action
 from core.models.view_tables import (
     BaseBomMaterial,
     Vessel,
@@ -18,6 +18,7 @@ from core.models.view_tables import (
     ReagentTemplate,
     VesselType,
     Parameter,
+    VesselTemplate,
 )
 from copy import deepcopy
 
@@ -26,7 +27,7 @@ import tempfile
 import math
 from itertools import product
 
-from core.models.app_tables import ActionSequenceDesign
+from core.models.app_tables import ActionTemplateDesign
 
 # import core.models.view_tables as vt
 
@@ -126,7 +127,11 @@ def generate_vp_spec_file(exp_template_uuid, vessel):
     well_names = make_well_labels_list(
         well_count, column_order=["A", "C", "E", "G", "B", "D", "F", "H"], robot="True"
     )
-    df_tray = pd.DataFrame({"Vial Site": well_names, "Labware ID:": plate})
+    df_tray = pd.DataFrame(
+        {
+            "Vial Site": well_names,
+        }
+    )  # "Labware ID:": plate})
 
     reagent_colnames = []
     reagents = ExperimentTemplate.objects.get(
@@ -191,12 +196,19 @@ def generate_action_def_json(action_defs, exp_template_uuid):
     dest_choices = []
 
     for reagent in ReagentTemplate.objects.filter(
-        experiment_template_reagent_template=ExperimentTemplate(uuid=exp_template_uuid)
+        experiment_template_rt=ExperimentTemplate(uuid=exp_template_uuid)
     ):
         # include all reagents associated with experiment template as action sources/destinations
         source_choices.append(reagent.description)
-        dest_choices.append(reagent.description)
-    for vt in VesselType.objects.all():  # include all vessels as destinations
+        # dest_choices.append(reagent.description)
+
+    """for vt in VesselTemplate.objects.all():
+        # for vt in VesselType.objects.all():  # include all vessels as destinations
+        if 'Outcome' not in vt.description:
+            source_choices.append(vt.default_vessel.description+ ': ' + vt.description)
+            dest_choices.append(vt.default_vessel.description+ ': ' + vt.description)"""
+
+    for vt in VesselType.objects.all():
         source_choices.append(vt.description)
         dest_choices.append(vt.description)
 
@@ -224,7 +236,7 @@ def generate_action_def_json(action_defs, exp_template_uuid):
                         "name": "destination",
                         "type": "select",
                         "label": "To:",
-                        "hint": "destination material/vessel",
+                        "hint": "destination vessel",
                         "options": {"items": [i for i in dest_choices]},
                     },
                 ],
@@ -237,7 +249,7 @@ def custom_pairing(source_vessels, dest_vessels):
     raise NotImplementedError
 
 
-def generate_action_units(self, exp_template, vessel):
+'''def generate_action_units(self, exp_template, vessel):
     """For a chosen ExperimentTemplate, this function obtains the action sequences and generates appropriate action units
     corresponding to the chosen vessel. Used for experiment templates created through the UI"""
 
@@ -333,7 +345,7 @@ def generate_action_units(self, exp_template, vessel):
                                 source_material=source_bbm,
                                 description=description,
                                 destination_material=destination_bbm,
-                            )
+                            )'''
 
 
 def experiment_copy(template_experiment_uuid, copy_experiment_description, vessels):

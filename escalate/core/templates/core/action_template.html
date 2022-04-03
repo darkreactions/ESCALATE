@@ -61,7 +61,7 @@
     console.log(result);
     var token = '{{csrf_token}}';
     jQuery.ajax({
-      url: {% url 'save_experiment_action_sequence' %},
+      url: {% url 'save_experiment_action_template' %},
       headers: { "X-CSRFToken": token },
       type: "POST",
       //data: JSON.stringify(result),
@@ -74,7 +74,7 @@
       },
       success: function (result) {
         console.log(result);
-        alert("Action sequence saved successfully!")
+        alert("Action template saved successfully!")
       }
     });
   }

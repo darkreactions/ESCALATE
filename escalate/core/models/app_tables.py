@@ -48,7 +48,7 @@ class UnitType(models.Model):
     allowed_units = ArrayField(models.CharField(max_length=255))
 
 
-class ActionSequenceDesign(models.Model):
+class ActionTemplateDesign(models.Model):
     # used to save workflow designer's json output into the database
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="uuid")
     id = models.CharField(
@@ -67,12 +67,12 @@ class ActionSequenceDesign(models.Model):
     left_position = models.CharField(
         max_length=255, blank=True, null=True, db_column="left"
     )
-    action_sequence = models.ForeignKey(
-        "ActionSequence",
+    action_template = models.ForeignKey(
+        "ActionTemplate",
         on_delete=models.DO_NOTHING,
         blank=True,
         null=True,
-        related_name="action_sequence",
+        related_name="action_template",
     )
 
     order = models.IntegerField(db_column="sequence_order")
