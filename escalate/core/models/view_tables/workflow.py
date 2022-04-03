@@ -40,7 +40,7 @@ class BillOfMaterials(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
         on_delete=models.CASCADE,
         blank=True,
         null=True,
-        related_name="bom_experiment_instance",
+        related_name="bom_ei",
     )
     # experiment_description = models.CharField(
     #    max_length=255, blank=True, null=True)

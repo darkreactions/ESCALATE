@@ -2,6 +2,7 @@ from django.urls import path, include
 import core.views
 from core.views.function_views import (
     download_vp_spec_file,
+    download_manual_spec_file,
     # save_action_sequence,
     save_experiment_action_sequence,
     experiment_invalid,
@@ -30,6 +31,7 @@ from .views.experiment import (
     ExperimentOutcomeView,
     ExperimentDetailEditView,
     ParameterEditView,
+    CreateExperimentWizard,
 )
 
 from .views.experiment.create_select_template import SelectReagentsView
@@ -82,6 +84,19 @@ urlpatterns += [
         "experiment/setup/robot_file",
         download_vp_spec_file,
         name="download_vp_spec_file",
+    ),
+]
+
+urlpatterns += [
+    path(
+        "experiment-instance/",
+        CreateExperimentWizard.as_view(),
+        name="experiment_create",
+    ),
+    path(
+        "experiment-instance/robot_file",
+        download_manual_spec_file,
+        name="download_manual_spec_file",
     ),
 ]
 
@@ -221,8 +236,11 @@ def add_urls(model_name, pattern_list):
             )
         )
     if (delete_view_class := getattr(core.views, f"{model_name}Delete", None)) != None:
-        #remove ExperimentPendingInstance and ExperimentCompletedInstance
-        if (lower_case_model_name != 'experiment_pending_instance' and lower_case_model_name != 'experiment_completed_instance'):
+        # remove ExperimentPendingInstance and ExperimentCompletedInstance
+        if (
+            lower_case_model_name != "experiment_pending_instance"
+            and lower_case_model_name != "experiment_completed_instance"
+        ):
             new_urls.append(
                 path(
                     f"{lower_case_model_name}/<uuid:pk>/delete",

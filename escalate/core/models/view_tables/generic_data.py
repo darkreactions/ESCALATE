@@ -327,7 +327,7 @@ class Parameter(DateColumns, StatusColumn, ActorColumn):
         on_delete=models.DO_NOTHING,
         blank=True,
         null=True,
-        related_name="parameter_action_unit",
+        related_name="parameter_au",
     )
     """
     # Parameter should be related to only 1 action unlike parameter_def to action_def

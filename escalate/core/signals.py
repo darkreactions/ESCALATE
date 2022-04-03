@@ -87,14 +87,14 @@ def create_parameters(sender, **kwargs):
         param_defs = action_unit.action.template.action_def.parameter_def.all()
         active_status = Status.objects.get(description="active")
         for p_def in param_defs:
-            p = Parameter(
+            p = Parameter.objects.create(
                 parameter_def=p_def,
                 parameter_val_nominal=p_def.default_val,
                 parameter_val_actual=p_def.default_val,
                 action_unit=action_unit,
                 status=active_status,
             )
-            p.save()
+            # p.save()
     except Exception as e:
         print(f"Exception {e}")
 

@@ -17,6 +17,7 @@ from core.models.view_tables import (
     Reagent,
     ReagentTemplate,
     VesselType,
+    Parameter,
 )
 from copy import deepcopy
 
@@ -90,10 +91,12 @@ def make_well_labels_list(well_count=96, column_order=None, robot="True"):
     return well_labels
 
 
-def generate_vp_spec_file(exp_template_uuid, reaction_parameters, plate, well_count):
+def generate_vp_spec_file(exp_template_uuid, vessel):
     """Function generates an excel spredsheet to specify volumes and parameters for manual experiments.
     The spreadsheet can be downloaded via UI and uploaded once edited. Spreadsheet is then parsed to save
     values into the database."""
+    plate = vessel.description
+    well_count = vessel.well_number
 
     params = []
     values = []
@@ -112,18 +115,12 @@ def generate_vp_spec_file(exp_template_uuid, reaction_parameters, plate, well_co
                 values.append(val)
                 units.append(unit)
 
-    """
-    for action_sequence in ActionSequence.objects.filter(experiment=exp_template):
-        actions = Action.objects.filter(action_sequence=action_sequence)
-        for action in actions:
-            for a in action.action_def.parameter_def.all():
-                if "dispense" in action.description.lower():
-                    pass
-                else:
-    """
-
     rxn_parameters = pd.DataFrame(
-        {"Reaction Parameters": params, "Parameter Values": values, "Units": units,}
+        {
+            "Reaction Parameters": params,
+            "Parameter Values": values,
+            "Units": units,
+        }
     )
 
     well_names = make_well_labels_list(
@@ -407,6 +404,7 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description, vesse
 
         bom_vessels = {}
         aunits = []
+        parameters = []
         for sv, dv in vessel_pairs:
             if dv is not None:
                 if dv.description not in bom_vessels:
@@ -432,10 +430,19 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description, vesse
                 destination_material=dest_bbm,
                 source_material=source_bbm,
             )
-            # au.save()
+            param_defs = au.action.template.action_def.parameter_def.all()
+            for p_def in param_defs:
+                p = Parameter(
+                    parameter_def=p_def,
+                    parameter_val_nominal=p_def.default_val,
+                    parameter_val_actual=p_def.default_val,
+                    action_unit=au,
+                )
+                parameters.append(p)
             aunits.append(au)
 
         ActionUnit.objects.bulk_create(aunits)
+        Parameter.objects.bulk_create(parameters)
 
     # Iterate over all reagent-templates and create reagentintances and properties
     for reagent_template in exp_template.reagent_templates.all():

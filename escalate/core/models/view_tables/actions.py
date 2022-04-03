@@ -55,8 +55,6 @@ class ActionUnit(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     def __str__(self):
         return f"{self.description}"
 
-    
-
 
 class Action(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="action_uuid")
@@ -164,15 +162,6 @@ class ActionTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     """"""
 
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
-    """
-    action_sequence = models.ForeignKey(
-        "ActionSequence",
-        on_delete=models.DO_NOTHING,
-        blank=True,
-        null=True,
-        related_name="action_template_as",
-    )
-    """
     experiment_template = models.ForeignKey(
         "ExperimentTemplate",
         on_delete=models.DO_NOTHING,
@@ -188,15 +177,6 @@ class ActionTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         null=True,
         related_name="action_template_ad",
     )
-    """
-    parent = models.ForeignKey(
-        "ActionTemplate",
-        on_delete=models.DO_NOTHING,
-        blank=True,
-        null=True,
-        related_name="action_template_child",
-    )
-    """
     parent = models.ManyToManyField("ActionTemplate", related_name="children")
     source_vessel_template = models.ForeignKey(
         "VesselTemplate",

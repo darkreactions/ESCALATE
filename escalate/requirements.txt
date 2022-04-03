@@ -30,3 +30,4 @@ scipy
 pint
 ipython
 chemdescriptor
+django-formtools

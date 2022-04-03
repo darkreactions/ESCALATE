@@ -5,3 +5,4 @@ from .edit import *
 from .outcome import *
 from .prep_view import *
 from .template import *
+from .wizard import *
