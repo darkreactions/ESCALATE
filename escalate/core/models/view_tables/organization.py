@@ -56,6 +56,7 @@ class Actor(DateColumns, StatusColumn, DescriptionColumn):
     )
 
     def __str__(self):
+        """
         rep = list(
             filter(
                 lambda x: x != "None",
@@ -68,6 +69,8 @@ class Actor(DateColumns, StatusColumn, DescriptionColumn):
             )
         )
         return "-".join(rep)
+        """
+        return self.description
         # return "{}".format()
 
 

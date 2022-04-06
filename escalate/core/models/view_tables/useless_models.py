@@ -807,3 +807,15 @@ class WorkflowObject(DateColumns, StatusColumn):
         overwrite=True,
         max_length=255,
     )
+
+
+"""
+class ActionSequenceType(DateColumns, DescriptionColumn):
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
+    internal_slug = SlugField(
+        populate_from=["description"], overwrite=True, max_length=255
+    )
+
+    def __str__(self):
+        return f"{self.description}"
+"""

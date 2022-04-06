@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
-import core.models.view_tables as vt
 
 
-class RobotPlugin(ABC):
-    name = "Default Robot Plugin"
+class SamplerPlugin(ABC):
+    name = "Default Sampler Plugin"
 
     def __init__(self):
         pass
@@ -15,11 +14,11 @@ class RobotPlugin(ABC):
         pass
 
     @abstractmethod
-    def validate(self, experiment_instance: "vt.ExperimentInstance"):
+    def validate(self, *args, **kwargs):
         pass
 
     @abstractmethod
-    def robot_file(self, experiment_instance: "vt.ExperimentInstance"):
+    def sample_experiments(self, *args, **kwargs):
         pass
 
     def __str__(self):

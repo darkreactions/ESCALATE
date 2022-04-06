@@ -48,7 +48,7 @@ core_views = set(
         "UdfDef",
         "ExperimentTemplate",
         "ActionSequence",
-        "ExperimentActionSequence",
+        # "ExperimentActionSequence",
         # "ExperimentType",
         "Type",
         "BillOfMaterials",

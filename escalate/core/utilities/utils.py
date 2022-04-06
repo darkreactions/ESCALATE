@@ -3,22 +3,17 @@ from django.db.models import F
 from core.models import ExperimentTemplate, Action
 from core.models.view_tables import (
     BaseBomMaterial,
-    Vessel,
-    BomMaterial,
     Action,
     ActionUnit,
     ExperimentTemplate,
     ExperimentInstance,
     BillOfMaterials,
-    ExperimentActionSequence,
     ReagentMaterial,
     OutcomeInstance,
-    # ReagentMaterialValue,
     Reagent,
     ReagentTemplate,
     VesselType,
     Parameter,
-    VesselTemplate,
 )
 from copy import deepcopy
 

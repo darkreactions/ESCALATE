@@ -166,20 +166,18 @@ def get_action_parameter_querysets(exp_uuid: str, template=True) -> QuerySet:
                 f"{related_au}__destination_material__vessel__description"
             )
         )
-        .annotate(parameter_uuid=F(f"{related_au}__parameter_action_unit"))
+        .annotate(parameter_uuid=F(f"{related_au}__parameter_au"))
         .annotate(
-            parameter_value=F(
-                f"{related_au}__parameter_action_unit__parameter_val_nominal"
-            )
+            parameter_value=F(f"{related_au}__parameter_au__parameter_val_nominal")
         )
         .annotate(
             parameter_value_actual=F(
-                f"{related_au}__parameter_action_unit__parameter_val_actual"
+                f"{related_au}__parameter_au__parameter_val_actual"
             )
         )
         .annotate(
             parameter_def_description=F(
-                f"{related_au}__parameter_action_unit__parameter_def__description"
+                f"{related_au}__parameter_au__parameter_def__description"
             )
         )
         .annotate(experiment_uuid=F("uuid"))
@@ -363,7 +361,9 @@ def generate_experiments_and_save(
 
     # for action_description, (reagent_name, mult_factor) in action_reagent_map.items():
     well_list = make_well_labels_list(
-        well_count=vessel.well_number, column_order=vessel.column_order, robot="True",
+        well_count=vessel.well_number,
+        column_order=vessel.column_order,
+        robot="True",
     )
 
     for reagent_name in reagent_template_names:
@@ -451,7 +451,9 @@ def save_manual_volumes(
     reagents = Reagent.objects.filter(experiment=experiment_copy_uuid)
 
     well_list = make_well_labels_list(
-        well_count=vessel.well_number, column_order=vessel.column_order, robot="True",
+        well_count=vessel.well_number,
+        column_order=vessel.column_order,
+        robot="True",
     )
 
     well_indices = {}

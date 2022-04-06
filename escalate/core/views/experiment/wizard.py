@@ -1,5 +1,4 @@
-from select import kevent
-from sys import prefix
+from distutils.command.clean import clean
 import os
 from typing import List
 from formtools.wizard.views import SessionWizardView
@@ -11,11 +10,13 @@ from core.forms.wizard import (
     VesselForm,
     ManualExperimentForm,
     ActionParameterForm,
+    AutomatedSpecificationForm,
 )
 from django.shortcuts import render
 from django.forms import BaseFormSet, formset_factory
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
+from django.db.models import Prefetch
 from core.models.view_tables import (
     ExperimentTemplate,
     ReagentTemplate,
@@ -28,6 +29,8 @@ from core.models.view_tables import (
     ParameterDef,
     Parameter,
     ActionUnit,
+    Actor,
+    VesselInstance,
 )
 from core.utilities.utils import experiment_copy
 import pandas as pd
@@ -36,6 +39,7 @@ import pandas as pd
 SELECT_TEMPLATE = "select_template"
 NUM_OF_EXPS = "set_num_of_experiments"
 MANUAL_SPEC = "manual_experiment_specification"
+AUTOMATED_SPEC = "automated_experiment_specification"
 REAGENT_PARAMS = "reagent_parameters"
 SELECT_VESSELS = "select_vessels"
 ACTION_PARAMS = "action_parameters"
@@ -45,7 +49,7 @@ def show_manual_form_condition(wizard):
     # try to get the cleaned data of step 1
     cleaned_data = wizard.get_cleaned_data_for_step(NUM_OF_EXPS) or {}
     # check if the field ``manual`` has a non-zero number.
-    if cleaned_data.get("manual") is not None:
+    if cleaned_data.get("manual", None) is not None:
         if cleaned_data.get("manual") > 0:
             return True
     return False
@@ -57,7 +61,7 @@ class CreateExperimentWizard(SessionWizardView):
     )
     form_list = [
         (SELECT_TEMPLATE, ExperimentTemplateSelectForm),
-        (NUM_OF_EXPS, NumberOfExperimentsForm),
+        # (NUM_OF_EXPS, NumberOfExperimentsForm),
         (
             SELECT_VESSELS,
             formset_factory(
@@ -74,6 +78,8 @@ class CreateExperimentWizard(SessionWizardView):
                 formset=BaseReagentFormSet,
             ),
         ),
+        (AUTOMATED_SPEC, AutomatedSpecificationForm),
+        (MANUAL_SPEC, ManualExperimentForm),
         (
             ACTION_PARAMS,
             formset_factory(
@@ -82,7 +88,6 @@ class CreateExperimentWizard(SessionWizardView):
                 formset=BaseReagentFormSet,
             ),
         ),
-        (MANUAL_SPEC, ManualExperimentForm),
     ]
     condition_dict = {MANUAL_SPEC: show_manual_form_condition}
 
@@ -91,23 +96,30 @@ class CreateExperimentWizard(SessionWizardView):
         super().__init__(*args, **kwargs)
 
     @property
-    def experiment_template(self):
-        exp_template_uuid: str = self.get_cleaned_data_for_step("select_template")[
-            "select_experiment_template"
-        ]
-        self._experiment_template = ExperimentTemplate.objects.get(
-            uuid=exp_template_uuid
-        )
-        return self._experiment_template
+    def experiment_template(self) -> "ExperimentTemplate|None":
+        form_data = self.get_cleaned_data_for_step("select_template")
+        if form_data:
+            exp_template_uuid: str = form_data["select_experiment_template"]
+            self._experiment_template = ExperimentTemplate.objects.get(
+                uuid=exp_template_uuid
+            )
+            return self._experiment_template
+        else:
+            return None
 
     def get_form_initial(self, step):
         if step == REAGENT_PARAMS:
-            reagent_templates: "ReagentTemplate" = (
-                self.experiment_template.reagent_templates.all().prefetch_related()
-            )
+            reagent_props = self.experiment_template.get_reagent_templates()
             initial = []
-            for i, rt in enumerate(reagent_templates):
+            for i, rt in enumerate(reagent_props):
                 reagent_initial = {}
+                for j, prop in enumerate(rt.properties.all()):
+                    reagent_initial.update(
+                        {
+                            f"reagent_template_uuid_{i}_{j}": str(prop.uuid),
+                            f"reagent_prop_{i}_{j}": prop.default_value.nominal_value,
+                        }
+                    )
                 for j, rmt in enumerate(rt.reagent_material_template_rt.all()):
                     initial_data = {
                         f"reagent_material_template_uuid_{i}_{j}": str(rmt.uuid),
@@ -120,7 +132,7 @@ class CreateExperimentWizard(SessionWizardView):
                 initial.append(reagent_initial)
             return initial
         if step == ACTION_PARAMS:
-            action_templates = self.experiment_template.action_template_et.filter(
+            action_templates = self.experiment_template.get_action_templates(
                 source_vessel_decomposable=False, dest_vessel_decomposable=False
             )
             initial = []
@@ -143,6 +155,8 @@ class CreateExperimentWizard(SessionWizardView):
         if step == SELECT_TEMPLATE:
             org_id = self.request.session.get("current_org_id", None)
             return {"org_id": org_id}
+        if step == NUM_OF_EXPS:
+            return self._get_num_exps_form_kwargs()
         if step == REAGENT_PARAMS:
             return self._get_reagent_form_kwargs()
         if step == SELECT_VESSELS:
@@ -150,21 +164,9 @@ class CreateExperimentWizard(SessionWizardView):
         if step == ACTION_PARAMS:
             return self._get_action_parameters_kwargs()
         if step == MANUAL_SPEC:
-            vessel_form_data = self.get_cleaned_data_for_step(SELECT_VESSELS)
-            vessel_dict_data = {}
-            for vessel_data in vessel_form_data:
-                vessel_dict_data[vessel_data["template_uuid"]] = str(
-                    vessel_data["value"].uuid
-                )
-
-            self.request.session["experiment_create_form_data"] = {
-                "vessels": vessel_dict_data,
-                "experiment_template": self.get_cleaned_data_for_step(SELECT_TEMPLATE),
-            }
-            return {
-                "vessels": vessel_form_data,
-                "experiment_template": self.get_cleaned_data_for_step(SELECT_TEMPLATE),
-            }
+            return self._get_manual_spec_kwargs()
+        if step == AUTOMATED_SPEC:
+            return self._get_automated_spec_kwargs()
 
         return {}
 
@@ -181,7 +183,7 @@ class CreateExperimentWizard(SessionWizardView):
         exp_template_uuid: str = self.get_cleaned_data_for_step(SELECT_TEMPLATE)[
             "select_experiment_template"
         ]
-        exp_name = self.get_cleaned_data_for_step(NUM_OF_EXPS)["experiment_name"]
+        exp_name = self.get_cleaned_data_for_step(SELECT_TEMPLATE)["experiment_name"]
 
         vessels = {}
         vessel_form_data = self.get_cleaned_data_for_step(SELECT_VESSELS)
@@ -199,6 +201,32 @@ class CreateExperimentWizard(SessionWizardView):
                 "form_data": [form.cleaned_data for form in form_list],
             },
         )
+
+    def _get_automated_spec_kwargs(self):
+        vessel_form_data = self.get_cleaned_data_for_step(SELECT_VESSELS)
+        kwargs = {"form_kwargs": {"vessel_form_data": vessel_form_data}}
+        return kwargs
+
+    def _get_manual_spec_kwargs(self):
+        vessel_form_data = self.get_cleaned_data_for_step(SELECT_VESSELS)
+        vessel_dict_data = {}
+        for vessel_data in vessel_form_data:
+            vessel_dict_data[vessel_data["template_uuid"]] = str(
+                vessel_data["value"].uuid
+            )
+
+        self.request.session["experiment_create_form_data"] = {
+            "vessels": vessel_dict_data,
+            "experiment_template": self.get_cleaned_data_for_step(SELECT_TEMPLATE),
+        }
+        return {
+            "vessels": vessel_form_data,
+            "experiment_template": self.get_cleaned_data_for_step(SELECT_TEMPLATE),
+        }
+
+    def _get_num_exps_form_kwargs(self):
+        kwargs = {"form_kwargs": {"experiment_template": self.experiment_template}}
+        return kwargs
 
     def _get_vessel_form_kwargs(self):
         kwargs = {"form_kwargs": {"vt_names": []}}
@@ -219,7 +247,7 @@ class CreateExperimentWizard(SessionWizardView):
         """
 
         reagent_templates: "ReagentTemplate" = (
-            self.experiment_template.reagent_templates.all().prefetch_related()
+            self.experiment_template.get_reagent_templates()
         )
         # Creating a form_kwargs key because that's what gets passed into the
         # FormSet. "form_data" key represents data for all reagents and other keys
@@ -243,6 +271,7 @@ class CreateExperimentWizard(SessionWizardView):
             kwargs["form_kwargs"]["form_data"][str(i)][
                 "mat_types_list"
             ] = mat_types_list
+            kwargs["form_kwargs"]["form_data"][str(i)]["reagent_template"] = rt
 
         return kwargs
 
@@ -273,7 +302,7 @@ class CreateExperimentWizard(SessionWizardView):
                 "lab_uuid": self.request.session["current_org_id"],
             }
         }
-        action_templates = self.experiment_template.action_template_et.filter(
+        action_templates = self.experiment_template.get_action_templates(
             source_vessel_decomposable=False, dest_vessel_decomposable=False
         )
 
@@ -295,10 +324,31 @@ class CreateExperimentWizard(SessionWizardView):
         exp_instance = ExperimentInstance.objects.select_related().get(
             uuid=instance_uuid
         )
+        # Get the operator and save
+        operator = Actor.objects.get(
+            person=self.request.user.person,
+            organization__uuid=self.request.session["current_org_id"],
+        )
+        exp_instance.operator = operator
+        exp_instance.save()
         # Save data from reagent_params, action_params and manual_spec
+        self._save_vessels(exp_instance)
         self._save_reagents(exp_instance)
         self._save_action_params(exp_instance)
-        self._save_manual_experiments(exp_instance)
+        if show_manual_form_condition(self):
+            self._save_manual_experiments(exp_instance)
+
+    def _save_vessels(self, exp_instance: ExperimentInstance) -> None:
+        cleaned_data = self.get_cleaned_data_for_step(SELECT_VESSELS)
+        for vessel_data in cleaned_data:
+            vessel = vessel_data["value"]
+            vessel_template_uuid = vessel_data["template_uuid"]
+            vessel_template = VesselTemplate.objects.get(uuid=vessel_template_uuid)
+            VesselInstance.objects.create(
+                vessel=vessel,
+                vessel_template=vessel_template,
+                experiment_instance=exp_instance,
+            )
 
     def _save_manual_experiments(self, exp_instance):
         cleaned_data = self.get_cleaned_data_for_step(MANUAL_SPEC)
@@ -312,12 +362,12 @@ class CreateExperimentWizard(SessionWizardView):
         manual_data = df_data[exp_instance.template.description]
         action_units = ActionUnit.objects.filter(
             action__experiment=exp_instance
-        ).prefetch_related()
+        ).prefetch_related("parameter_au")
 
         # Find the action unit corresponding to the excel cell
         for action in exp_instance.action_ei.filter(
             template__dest_vessel_decomposable=True
-        ):
+        ).prefetch_related("template__action_def__parameter_def"):
             # reconstruct columns name
             action_column_name = reverse_meta_data[str(action.template.uuid)]
             for param_def in action.template.action_def.parameter_def.all():

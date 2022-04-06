@@ -12,50 +12,60 @@
         <h6 class="pt-3 pl-3">Overview of queued experiment {{ experiment.description }}</h6>
         <hr>
         <ul>
-        {% for k, v in overview_info %}
+            {% for k, v in overview_info %}
             <li>
                 {{ k }} : {{ v }}
             </li>
-        {% endfor %}
+            {% endfor %}
         </ul>
         <div class="container">
             {% crispy queue_status_form helper %}
         </div>
-        <center><button type="submit" name="param_update" value="param_update" class="btn btn-raised btn-primary">View/Update Parameters</button></center>
+        <div class="container">
+            {{ robot_file_gen_form|crispy }}
+        </div>
+        <div class="text-right">
+            <button class="btn btn-outline-primary" type="submit" name="update_exp" value="update_exp">
+                Update Experiment
+            </button>
+        </div>
+        <center><button type="submit" name="param_update" value="param_update"
+                class="btn btn-raised btn-primary">View/Update Parameters</button></center>
     </div>
     <div class="treeview-animated border mx-4 my-4">
-    <h6 class="pt-3 pl-3">Files associated with {{ experiment.description }}</h6>
-    <hr>
-    <div class="container">
-    <table class="table table-striped table-bordered"><tbody>
-    {% for filename, link in edocs.items %}
-        <tr>
-            <td>{{ filename }}</td>
-            <td><a href="{{ link }}"><strong>Download</strong>
-                <i class="fa fa-download"></i>
-            </a></td>
-        </tr>
-    {% endfor %}
-    </tbody></table>
-    {{ edoc_upload_form.management_form }}
-    <p>Upload New Files: </p>
-        {% crispy edoc_upload_form edoc_helper %}
-        <center><button type="submit" name="add_edoc" value="add_edoc" class="btn btn-raised btn-primary">Add File</button></center>
-    </div>
-    <br>
-    </div>
-    <div class="text-right">
-        <button class="btn btn-outline-primary" type="submit" name="update_exp" value="update_exp">
-            Update Experiment
-        </button>
+        <h6 class="pt-3 pl-3">Files associated with {{ experiment.description }}</h6>
+        <hr>
+        <div class="container">
+            <table class="table table-striped table-bordered">
+                <tbody>
+                    {% for edoc, link in edocs.items %}
+                    <tr>
+                        <td>{{ edoc.title }}</td>
+                        <td><a href="{{ link }}"><strong>Download</strong>
+                                <i class="fa fa-download"></i>
+                            </a></td>
+                        <td>{{ edoc.add_date }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {{ edoc_upload_form.management_form }}
+            <p>Upload New Files: </p>
+            {% crispy edoc_upload_form edoc_helper %}
+            <center><button type="submit" name="add_edoc" value="add_edoc" class="btn btn-raised btn-primary">Add
+                    File</button></center>
+        </div>
+        <br>
     </div>
     <div class="text-right">
         {% if '/experiment_completed_instance/' in request.path %}
-        <button class="btn btn-outline-primary" type="submit" name="exp_list" value="exp_list" formaction="{% url 'experiment_completed_instance_list' %}">
+        <button class="btn btn-outline-primary" type="submit" name="exp_list" value="exp_list"
+            formaction="{% url 'experiment_completed_instance_list' %}">
             Return to Completed Experiment List
         </button>
         {% else %}
-        <button class="btn btn-outline-primary" type="submit" name="exp_list" value="exp_list" formaction="{% url 'experiment_pending_instance_list' %}">
+        <button class="btn btn-outline-primary" type="submit" name="exp_list" value="exp_list"
+            formaction="{% url 'experiment_pending_instance_list' %}">
             Return to Experiment Queue
         </button>
         {% endif %}
@@ -67,10 +77,10 @@
 
 {% block tailcontent %}
 <script>
-// Treeview Initialization
-$(document).ready(function() {
-  $('.treeview-animated').mdbTreeview();
-});
+    // Treeview Initialization
+    $(document).ready(function () {
+        $('.treeview-animated').mdbTreeview();
+    });
 </script>
 
 {% endblock %}

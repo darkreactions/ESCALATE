@@ -1,8 +1,10 @@
 from django.db import models
+from django.db.models import QuerySet, Prefetch, F
 from django.contrib.postgres.fields import ArrayField
 
 from core.models.core_tables import RetUUIDField, SlugField
 from core.models.custom_types import ValField, CustomArrayField
+
 import uuid
 from core.models.base_classes import (
     DateColumns,
@@ -190,13 +192,6 @@ class ExperimentTemplate(DateColumns, StatusColumn):
         null=True,
         related_name="experiment_template_lab",
     )
-    """
-    action_sequence = models.ManyToManyField(
-        "ActionSequence",
-        through="ExperimentActionSequence",
-        related_name="experiment_template_as",
-    )
-    """
     internal_slug = SlugField(
         populate_from=[
             "description",
@@ -205,14 +200,10 @@ class ExperimentTemplate(DateColumns, StatusColumn):
         max_length=255,
     )
     reagent_templates = models.ManyToManyField(
-        "ReagentTemplate",
-        blank=True,
-        related_name="experiment_template_rt",
+        "ReagentTemplate", blank=True, related_name="experiment_template_rt"
     )
     outcome_templates = models.ManyToManyField(
-        "OutcomeTemplate",
-        blank=True,
-        related_name="experiment_template_ot",
+        "OutcomeTemplate", blank=True, related_name="experiment_template_ot"
     )
     vessel_templates = models.ManyToManyField(
         "VesselTemplate", blank=True, related_name="experiment_template_vt"
@@ -221,10 +212,40 @@ class ExperimentTemplate(DateColumns, StatusColumn):
     def __str__(self):
         return f"{self.description}"
 
-    # objects = ExperimentTemplateManager()
+    def get_action_templates(
+        self,
+        source_vessel_decomposable: "bool|None",
+        dest_vessel_decomposable: "bool|None",
+    ) -> QuerySet:
+        filter = {}
+        if source_vessel_decomposable is not None:
+            filter["source_vessel_decomposable"] = source_vessel_decomposable
+        if dest_vessel_decomposable is not None:
+            filter["dest_vessel_decomposable"] = dest_vessel_decomposable
+        action_templates = (
+            self.action_template_et.filter(**filter)
+            .prefetch_related(Prefetch("action_def__parameter_def"))
+            .order_by("description")
+        )
+        return action_templates
 
-    # class Meta:
-    #    proxy = True
+    def get_reagent_templates(self) -> QuerySet:
+        """Return the properties of reagent templates related to
+           this experiment template
+
+        Returns:
+            list[QuerySet]: Returns a QuerySet of reagent templates with their properties
+        """
+        reagent_templates = (
+            self.reagent_templates.all()
+            .prefetch_related(
+                Prefetch("properties__default_value"),
+                Prefetch("reagent_material_template_rt__properties__default_value"),
+                Prefetch("reagent_material_template_rt__material_type"),
+            )
+            .order_by("description")
+        )
+        return reagent_templates
 
 
 class ExperimentInstance(DateColumns, StatusColumn, DescriptionColumn):
@@ -267,16 +288,6 @@ class ExperimentInstance(DateColumns, StatusColumn, DescriptionColumn):
         null=True,
         related_name="experiment_instance_lab",
     )
-    """
-    action_sequence = models.ManyToManyField(
-        "ActionSequence",
-        through="ExperimentActionSequence",
-        related_name="experiment_instance_as",
-    )
-    """
-
-    # owner_description = models.CharField(max_length=255, db_column='owner_description')
-    # operator_description = models.CharField(max_length=255, db_column='operator_description')
     internal_slug = SlugField(
         populate_from=[
             "description",
@@ -288,17 +299,47 @@ class ExperimentInstance(DateColumns, StatusColumn, DescriptionColumn):
         db_column="completion_status", max_length=255, default="Pending"
     )
     priority = models.CharField(db_column="priority", max_length=255, default="1")
-    # reagents = models.ManyToManyField('ReagentInstance',
-    #                                  blank=True,
-    #                                  related_name='experiment_instance_reagent_instance')
 
     def __str__(self):
         return f"{self.description}"
 
-    # objects = ExperimentInstanceManager()
+    def get_action_parameters(self, decomposable: "bool|None" = None) -> "list[Action]":
+        """
+        ## Gets the action parameters related to the experiment
+        decomposable = True -> Only parameters that have decomposable destination
+        decomposable = False -> Only parameters that DON'T have decomposable destination
+        decomposable = None -> All parameters
+        """
+        if decomposable is None:
+            filter = {}
+        else:
+            filter = {"template__dest_vessel_decomposable": decomposable}
+        actions = (
+            self.action_ei.filter(**filter)
+            .prefetch_related("action_unit_a__parameter_au")
+            .annotate(action_unit_uuid=F("action_unit_a"))
+            .annotate(
+                action_unit_dest=F(
+                    "action_unit_a__destination_material__vessel__description"
+                )
+            )
+            .annotate(
+                action_unit_source=F(
+                    "action_unit_a__source_material__vessel__description"
+                )
+            )
+            .annotate(parameter_uuid=F("action_unit_a__parameter_au"))
+            .annotate(
+                parameter_nominal=F(
+                    "action_unit_a__parameter_au__parameter_val_nominal"
+                )
+            )
+            .annotate(
+                parameter_actual=F("action_unit_a__parameter_au__parameter_val_actual")
+            )
+        )
 
-    # class Meta:
-    #    proxy = True
+        return actions
 
 
 class ExperimentCompletedInstance(ExperimentInstance):
@@ -313,50 +354,6 @@ class ExperimentPendingInstance(ExperimentInstance):
 
     class Meta:
         proxy = True
-
-
-class ExperimentActionSequence(DateColumns):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
-    experiment_template = models.ForeignKey(
-        "ExperimentTemplate",
-        on_delete=models.CASCADE,
-        blank=True,
-        null=True,
-        related_name="experiment_action_sequence_et",
-    )
-    """
-    experiment_instance = models.ForeignKey(
-        "ExperimentInstance",
-        on_delete=models.CASCADE,
-        blank=True,
-        null=True,
-        related_name="experiment_instance_eas",
-    )
-    """
-    experiment_action_sequence_seq = models.IntegerField()
-    parent = models.ForeignKey(
-        "ExperimentActionSequence",
-        on_delete=models.DO_NOTHING,
-        blank=True,
-        null=True,
-        related_name="experiment_action_sequence_child",
-    )
-    action_sequence = models.ForeignKey(
-        "ActionSequence",
-        on_delete=models.CASCADE,
-        blank=True,
-        null=True,
-        related_name="experiment_action_sequence_as",
-    )
-    internal_slug = SlugField(
-        populate_from=[
-            "experiment__internal_slug",
-            "action_sequence__internal_slug",
-            "experiment_action_sequence_seq",
-        ],
-        overwrite=True,
-        max_length=255,
-    )
 
 
 class OutcomeTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
@@ -421,64 +418,6 @@ class OutcomeInstance(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
             if not self.actual_value:
                 self.actual_value = self.outcome_template.default_value.actual_value
         super().save(*args, **kwargs)
-
-
-class ReactionParameter(StatusColumn, DescriptionColumn, DateColumns):
-    uuid = RetUUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        db_column="reaction_parameter_profile_uuid",
-    )
-    experiment_template = models.ForeignKey(
-        "ExperimentTemplate",
-        models.CASCADE,
-        blank=True,
-        null=True,
-        related_name="reaction_parameter_profile_workflow",
-    )
-    organization = models.ForeignKey(
-        "Organization",
-        models.CASCADE,
-        blank=True,
-        null=True,
-        related_name="reaction_parameter_profile_organization",
-    )
-    value = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True,
-        db_column="reaction_parameter_profile_parameter_value",
-    )
-    unit = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True,
-        db_column="reaction_parameter_profile_parameter_unit",
-    )
-    type = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True,
-        db_column="reaction_parameter_profile_parameter_type",
-    )
-    experiment_uuid = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True,
-        db_column="reaction_parameter_profile_experiment_uuid",
-    )
-
-
-"""
-class ActionSequenceType(DateColumns, DescriptionColumn):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
-    internal_slug = SlugField(
-        populate_from=["description"], overwrite=True, max_length=255
-    )
-
-    def __str__(self):
-        return f"{self.description}"
-"""
 
 
 class Type(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):

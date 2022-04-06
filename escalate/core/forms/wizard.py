@@ -1,9 +1,4 @@
-from email.mime import audio
-from turtle import color
-from black import InvalidInput
-from django.urls import reverse_lazy
-from py import code
-from core.widgets import ValWidget, TextInput
+from uuid import UUID
 from django.db.models import QuerySet
 from django.forms import (
     Select,
@@ -23,16 +18,16 @@ from django.forms import (
     ClearableFileInput,
     ValidationError,
 )
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Submit, Row, Column, Hidden, Field
+import pandas as pd
 
 import core.models.view_tables as vt
 from core.widgets import ValFormField
 from core.models.view_tables.workflow import ExperimentTemplate
-
+from core.widgets import ValWidget, TextInput
 from .forms import dropdown_attrs
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit, Row, Column, Hidden, Field
-from uuid import UUID
-import pandas as pd
+from plugins.sampler.base_sampler_plugin import SamplerPlugin
 
 
 class NumberOfExperimentsForm(Form):
@@ -54,10 +49,25 @@ class NumberOfExperimentsForm(Form):
         label="Select Outcome Vessel",
     )
     outcome_vessel.widget = Select(attrs=dropdown_attrs)
+    reagent_parameters = ModelChoiceField(
+        queryset=vt.PropertyTemplate.objects.all(),
+        label="Select reagent property to initialize",
+        widget=Select(attrs=dropdown_attrs),
+    )
 
     def __init__(self, *args, **kwargs):
+        self.form_kwargs = kwargs.pop("form_kwargs")
+        self.exp_template = self.form_kwargs.pop("experiment_template", None)
         super().__init__(*args, **kwargs)
         # self.fields["value"].queryset = vt.Vessel.objects.filter(parent__isnull=True)
+        if self.exp_template:
+            # Path to experiment template from PropertyTemplate:
+            # PropertyTemplate -> ReagentMaterialTemplate -> ReagentTemplate -> ExperimentTemplate
+            self.fields[
+                "reagent_parameters"
+            ].queryset = vt.PropertyTemplate.objects.filter(
+                reagent_material_template_p__reagent_template__experiment_template_rt=self.exp_template
+            ).distinct()
 
     def clean(self):
         cleaned_data = super().clean()
@@ -87,6 +97,7 @@ class ExperimentTemplateSelectForm(Form):
             "id": "template",
         }
     )
+    experiment_name = CharField()
     select_experiment_template = ChoiceField(widget=widget)
 
     def __init__(self, *args, **kwargs):
@@ -122,6 +133,15 @@ class ReagentForm(Form):
         }
     )
 
+    def generate_reagent_fields(self):
+        for i, prop in enumerate(self.reagent_template.properties.all()):
+            self.fields[f"reagent_template_uuid_{self.material_index}_{i}"] = CharField(
+                widget=HiddenInput(), initial=prop.uuid
+            )
+            self.fields[f"reagent_prop_{self.material_index}_{i}"] = ValFormField(
+                required=False, label=prop.description.capitalize()
+            )
+
     def generate_reagent_material_fields(self, index, material_type):
         self.fields[f"material_{self.material_index}_{index}"] = ChoiceField(
             widget=self.widget, required=False
@@ -156,6 +176,9 @@ class ReagentForm(Form):
         self.inventory_materials: "dict[str, QuerySet]" = {}
         super().__init__(*args, **kwargs)
 
+        self.reagent_template = self.data_current["reagent_template"]
+        self.generate_reagent_fields()
+
         for i, material_type in enumerate(self.material_types):
             if material_type in self.inventory_materials:
                 continue
@@ -182,6 +205,14 @@ class ReagentForm(Form):
                     Field(f"reagent_material_template_uuid_{self.material_index}_{i}"),
                     Field(f"material_type_{self.material_index}_{i}"),
                 ),
+            )
+
+        for i, prop in enumerate(self.reagent_template.properties.all()):
+            rows.append(
+                Row(
+                    Column(Field(f"reagent_prop_{self.material_index}_{i}")),
+                    Field(f"reagent_template_uuid_{self.material_index}_{i}"),
+                )
             )
         helper.layout = Layout(*rows)
         helper.form_tag = False
@@ -320,3 +351,57 @@ class ManualExperimentForm(Form):
         )
         helper.form_tag = False
         self.helper = helper
+
+
+class AutomatedSpecificationForm(Form):
+    widget = Select(
+        attrs={
+            "class": "selectpicker",
+            "data-style": "btn-outline",
+            "data-live-search": "true",
+        }
+    )
+    automated = IntegerField(
+        label="Number of Automated Experiments",
+        required=True,
+        initial=0,
+        min_value=0,
+    )
+    select_experiment_sampler = ChoiceField(widget=widget, required=False)
+
+    def __init__(self, *args, **kwargs):
+        form_kwargs = kwargs.pop("form_kwargs")
+        self.vessel_form_data = form_kwargs["vessel_form_data"]
+        self.outcome_vessels = []
+        for vessel_data in self.vessel_form_data:
+            vessel_data["template"] = vt.VesselTemplate.objects.get(
+                uuid=vessel_data["template_uuid"]
+            )
+            if vessel_data["template"].outcome_vessel:
+                self.outcome_vessels.append(vessel_data["value"])
+        super().__init__(*args, **kwargs)
+        self._populate_samplers()
+
+    def _populate_samplers(self):
+        self.fields["select_experiment_sampler"].choices = [
+            (None, "No sampler selected")
+        ] + [
+            (sampler_plugin.__name__, sampler_plugin.name)
+            for sampler_plugin in SamplerPlugin.__subclasses__()
+        ]
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        if self.is_valid():
+            total_experiments = cleaned_data["automated"]
+            for outcome_vessel in self.outcome_vessels:
+                if (capacity := outcome_vessel.children.count()) == 0:
+                    capacity = 1
+                if capacity < total_experiments:
+                    message = f"Number of experiments requested ({total_experiments}) is higher than the outcome vessel's capacity ({capacity}) of Vessel: {outcome_vessel.description}."
+                    self.add_error(
+                        "outcome_vessel", ValidationError(message, code="invalid")
+                    )
+
+        return cleaned_data

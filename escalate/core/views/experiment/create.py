@@ -24,7 +24,7 @@ from core.models.view_tables import (
     InventoryMaterial,
     Vessel,
     VesselType,
-    ExperimentActionSequence,
+    # ExperimentActionSequence,
     Action,
     ActionUnit,
     BaseBomMaterial,
@@ -157,9 +157,10 @@ class CreateExperimentView(TemplateView):
                 )
 
             # Obtain and save reagent names and concentration data
-            (reagent_template_names, reagentDefs,) = self.save_reagents(
-                exp_template, experiment_copy_uuid, request, org_id
-            )
+            (
+                reagent_template_names,
+                reagentDefs,
+            ) = self.save_reagents(exp_template, experiment_copy_uuid, request, org_id)
 
             context["experiment_copy_uuid"] = experiment_copy_uuid
             context["dead_volume"] = dead_volume
@@ -346,7 +347,8 @@ class CreateExperimentView(TemplateView):
                 data = form.cleaned_data
                 reagent_template_uuid = data["reagent_template_uuid"]
                 reagent_instance = ReagentMaterial.objects.get(
-                    template=reagent_template_uuid, reagent__experiment=exp_uuid,
+                    template=reagent_template_uuid,
+                    reagent__experiment=exp_uuid,
                 )
                 reagent_instance.material = (
                     InventoryMaterial.objects.get(uuid=data["chemical"])

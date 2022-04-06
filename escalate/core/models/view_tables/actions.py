@@ -127,37 +127,6 @@ class ActionDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         return f"{self.description}"
 
 
-class ActionSequence(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
-    action_sequence_type = models.ForeignKey(
-        "Type",
-        models.CASCADE,
-        blank=True,
-        null=True,
-        related_name="action_sequence_t",
-    )
-    experiment = models.ManyToManyField(
-        "ExperimentTemplate",
-        through="ExperimentActionSequence",
-        related_name="action_sequence_e",
-    )
-    # action_def = models.ManyToManyField(
-    #    "ActionDef",
-    #    through="ActionSequenceActionDef",
-    #    related_name="action_sequence_ad",
-    # )
-    internal_slug = SlugField(
-        populate_from=[
-            "description",
-        ],
-        overwrite=True,
-        max_length=255,
-    )
-
-    def __str__(self):
-        return f"{self.description}"
-
-
 class ActionTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     """"""
 
