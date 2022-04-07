@@ -21,7 +21,6 @@
 </p>
 
 ## Software requirements
-- Running ESCALATE v3 Postgres database (PostgreSQL v11 / v12)
 - Python 3.8+
 - Django 3.0.12
 - Docker
@@ -32,9 +31,7 @@
 
 ### Initial Instantiation of ESCALATE
 
-This model can be instantiated into a local PostgreSQL server or into a Docker container. 
-
-In addition to the environments in which this model can reside (e.g. local server or Docker), it can be created (restored) from a pg_dump backup.
+This model can be locally instantiated into a Docker container. 
 
 The following instructions will assist in setting up a Docker container and instantiating ESCALATE locally for the first time.
 
@@ -81,7 +78,7 @@ There are 4 Django settings files available in the ./escalate/settings folder.
 - [local.py](escalate/settings/loca.py) : Config for local/live developement and debugging
 
 #### Docker Development Server
-If you have Docker installed and ready to use, you can quickly spin up a populated database. Simply run `docker-compose up` in the data_model folder. This will automatically connect to the running Escalate v3 Postgres database and apply the required migrations for user and admin tables. 
+If you have Docker installed and ready to use, you can quickly spin up a populated database. Simply run `docker-compose up` in the data_model folder. This will automatically connect to the running Escalate v3 database and apply the required migrations for user and admin tables. 
 This will not populate users, materials, experiments, organizations, etc. We recommend utilizing our API to create a script to prepopulate the database models prior to running the application.
 Reference [here](../data_model/README.md) for more information on those models.
 
