@@ -12,8 +12,9 @@
   </a>
   <h1 align="center">ESCALATE v3</h1>
   <p align="center">
-   Readme files 
-    <a href="https://github.com/darkreactions/ESCALATE/blob/master/escalate/README.md"><strong>ESCALATE Django Installation Instructions</strong></a>
+   Readme files
+    <br />
+	<a href="https://github.com/darkreactions/ESCALATE/blob/master/escalate/README.md"><strong>ESCALATE Django Installation Instructions</strong></a>
     <br />
 	<a href="https://github.com/darkreactions/ESCALATE/blob/master/escalate/TECHNICAL.md"><strong>ESCALATE v3 Data Model Overview</strong></a>
     <br />
