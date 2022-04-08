@@ -12,6 +12,7 @@ from core.models.view_tables import (
 )
 from core.forms.custom_types import ReagentValueForm
 from core.forms.custom_types import BaseReagentFormSet, PropertyForm
+from core.utilities.calculations import amount_to_conc
 
 
 class ExperimentReagentPrepView(TemplateView):
@@ -19,9 +20,7 @@ class ExperimentReagentPrepView(TemplateView):
     # form_class = ExperimentTemplateForm
     # ReagentFormSet = formset_factory(ReagentForm, extra=0, formset=BaseReagentFormSet)
     ReagentFormSet = formset_factory(
-        ReagentValueForm,
-        extra=0,
-        formset=BaseReagentFormSet,
+        ReagentValueForm, extra=0, formset=BaseReagentFormSet,
     )
 
     def get(self, request, *args, **kwargs):
@@ -56,11 +55,21 @@ class ExperimentReagentPrepView(TemplateView):
         reagent_template_names = []
         reagent_total_volume_forms = []
         form_kwargs = {
-            "disabled_fields": ["material", "material_type", "nominal_value"],
+            "disabled_fields": [
+                "material",
+                "material_type",
+                "concentration",
+                "nominal_value",
+            ],
         }
 
         context["helper"] = ReagentValueForm.get_helper(
-            readonly_fields=["material", "material_type", "nominal_value"]
+            readonly_fields=[
+                "material",
+                "material_type",
+                "concentration",
+                "nominal_value",
+            ]
         )
         context["helper"].form_tag = False
 
@@ -90,16 +99,20 @@ class ExperimentReagentPrepView(TemplateView):
             for reagent_material in reagent_materials:
 
                 reagent_names.append(reagent_material.description)
-                rmvi = reagent_material.property_rm.all().get(
+                rmvi_amount = reagent_material.property_rm.all().get(
                     template__description="amount"
+                )
+                rmvi_conc = reagent_material.property_rm.all().get(
+                    template__description="concentration"
                 )
                 initial.append(
                     {
                         "material_type": reagent_material.template.material_type.description,
                         "material": reagent_material.material,
-                        "nominal_value": rmvi.nominal_value,
-                        "actual_value": rmvi.value,
-                        "uuid": rmvi.uuid,
+                        "concentration": rmvi_conc.nominal_value,
+                        "nominal_value": rmvi_amount.nominal_value,
+                        "actual_value": rmvi_amount.value,
+                        "uuid": rmvi_amount.uuid,
                     }
                 )
 
@@ -122,6 +135,7 @@ class ExperimentReagentPrepView(TemplateView):
         reagents = experiment.reagent_ei.all()
         formsets = []
         valid_forms = True
+        properties_lookup = []
         for index, reagent in enumerate(reagents):
             prop_uuid = request.POST[f"reagent_total_{index}-uuid"]
             property_instance = Property.objects.get(uuid=prop_uuid)
@@ -144,10 +158,12 @@ class ExperimentReagentPrepView(TemplateView):
                     rmvi = Property.objects.get(uuid=form.cleaned_data["uuid"])
                     rmvi.actual_value = form.cleaned_data["actual_value"]
                     rmvi.save()
+                    properties_lookup.append(rmvi)
             else:
                 valid_forms = False
 
         if valid_forms:
+            amount_to_conc(experiment_instance_uuid, properties_lookup)
             return HttpResponseRedirect(reverse("experiment_instance_list"))
         else:
             return render(request, self.template_name, context)
