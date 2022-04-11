@@ -1,7 +1,7 @@
 from distutils.command.clean import clean
 from keyword import kwlist
 import os
-from typing import List
+from typing import List, Any
 from formtools.wizard.views import SessionWizardView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from core.forms.wizard import (
@@ -36,6 +36,7 @@ from core.models.view_tables import (
     ActionUnit,
     Actor,
     VesselInstance,
+    PropertyTemplate,
 )
 from django.contrib import messages
 from core.utilities.utils import experiment_copy
@@ -52,7 +53,7 @@ ACTION_PARAMS = "action_parameters"
 POSTPROCESS = "select_postprocessors"
 
 
-def show_manual_form_condition(wizard):
+def show_manual_form_condition(wizard: SessionWizardView) -> bool:
     # try to get the cleaned data of step 1
     cleaned_data = wizard.get_cleaned_data_for_step(NUM_OF_EXPS) or {}
     # check if the field ``manual`` has a non-zero number.
@@ -126,7 +127,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
         else:
             return None
 
-    def get_form_initial(self, step):
+    def get_form_initial(self, step: str) -> List[Any]:
         if step == REAGENT_PARAMS:
             reagent_props = self.experiment_template.get_reagent_templates()
             initial = []
@@ -140,13 +141,19 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
                         }
                     )
                 for j, rmt in enumerate(rt.reagent_material_template_rt.all()):
+                    rmt: ReagentMaterialTemplate
                     initial_data = {
                         f"reagent_material_template_uuid_{i}_{j}": str(rmt.uuid),
                         f"material_type_{i}_{j}": str(rmt.material_type.uuid),
-                        f"desired_concentration_{i}_{j}": rmt.properties.get(
-                            description="concentration"
-                        ).default_value.nominal_value,
+                        # f"desired_concentration_{i}_{j}": rmt.properties.get(
+                        #    description="concentration"
+                        # ).default_value.nominal_value,
                     }
+                    for prop in rmt.properties.all():
+                        prop: PropertyTemplate
+                        initial_data[
+                            f"{prop.description}_{i}_{j}"
+                        ] = prop.default_value.nominal_value
                     reagent_initial.update(initial_data)
                 initial.append(reagent_initial)
             return initial
@@ -170,7 +177,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
 
         return super().get_form_initial(step)
 
-    def get_form_kwargs(self, step=None):
+    def get_form_kwargs(self, step=None) -> "dict[str, Any]":
         if step == SELECT_TEMPLATE:
             org_id = self.request.session.get("current_org_id", None)
             return {"org_id": org_id}
@@ -223,17 +230,17 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             },
         )
 
-    def _get_post_processor_kwargs(self):
+    def _get_post_processor_kwargs(self) -> "dict[str, Any]":
         kwargs = {"form_kwargs": {"experiment_template": self.experiment_template}}
         # kwargs = {}
         return kwargs
 
-    def _get_automated_spec_kwargs(self):
+    def _get_automated_spec_kwargs(self) -> "dict[str, Any]":
         vessel_form_data = self.get_cleaned_data_for_step(SELECT_VESSELS)
         kwargs = {"form_kwargs": {"vessel_form_data": vessel_form_data}}
         return kwargs
 
-    def _get_manual_spec_kwargs(self):
+    def _get_manual_spec_kwargs(self) -> "dict[str, Any]":
         vessel_form_data = self.get_cleaned_data_for_step(SELECT_VESSELS)
         vessel_dict_data = {}
         for vessel_data in vessel_form_data:
@@ -250,11 +257,11 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             "experiment_template": self.get_cleaned_data_for_step(SELECT_TEMPLATE),
         }
 
-    def _get_num_exps_form_kwargs(self):
+    def _get_num_exps_form_kwargs(self) -> "dict[str, Any]":
         kwargs = {"form_kwargs": {"experiment_template": self.experiment_template}}
         return kwargs
 
-    def _get_vessel_form_kwargs(self):
+    def _get_vessel_form_kwargs(self) -> "dict[str, Any]":
         kwargs = {"form_kwargs": {"vt_names": []}}
         self.initial_dict[SELECT_VESSELS] = []
 
@@ -267,7 +274,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
         kwargs["form_kwargs"]["colors"] = colors
         return kwargs
 
-    def _get_reagent_form_kwargs(self):
+    def _get_reagent_form_kwargs(self) -> "dict[str, Any]":
         """
         Returns the kwargs related to reagent forms
         """

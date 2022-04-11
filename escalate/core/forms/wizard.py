@@ -144,16 +144,23 @@ class ReagentForm(Form):
                 required=False, label=prop.description.capitalize()
             )
 
-    def generate_reagent_material_fields(self, index, material_type):
+    def generate_reagent_material_fields(
+        self,
+        index: int,
+        material_type: vt.MaterialType,
+        rmt: vt.ReagentMaterialTemplate,
+    ):
         self.fields[f"material_{self.material_index}_{index}"] = ChoiceField(
             widget=self.widget, required=False
         )
-        self.fields[
-            f"desired_concentration_{self.material_index}_{index}"
-        ] = ValFormField(required=False)
+        for prop in rmt.properties.all():
+            prop: vt.Property
+            self.fields[
+                f"{prop.description}_{self.material_index}_{index}"
+            ] = ValFormField(required=False, label=prop.description.capitalize())
         self.fields[
             f"reagent_material_template_uuid_{self.material_index}_{index}"
-        ] = CharField(widget=HiddenInput())
+        ] = CharField(widget=HiddenInput(), initial=rmt)
         self.fields[f"material_type_{self.material_index}_{index}"] = CharField(
             widget=HiddenInput(), initial=material_type
         )
@@ -179,10 +186,16 @@ class ReagentForm(Form):
         self.inventory_materials: "dict[str, QuerySet]" = {}
         super().__init__(*args, **kwargs)
 
-        self.reagent_template = self.data_current["reagent_template"]
+        self.reagent_template: vt.ReagentTemplate = self.data_current[
+            "reagent_template"
+        ]
         self.generate_reagent_fields()
 
-        for i, material_type in enumerate(self.material_types):
+        # for i, material_type in enumerate(self.material_types):
+        for i, rmt in enumerate(
+            self.reagent_template.reagent_material_template_rt.all()
+        ):
+            material_type = rmt.material_type.description
             if material_type in self.inventory_materials:
                 continue
             self.inventory_materials[
@@ -191,7 +204,7 @@ class ReagentForm(Form):
                 material__material_type__description=material_type,
                 inventory__lab__organization=lab_uuid,
             )
-            self.generate_reagent_material_fields(i, material_type)
+            self.generate_reagent_material_fields(i, material_type, rmt)
         self.get_helper()
 
     def get_helper(self):
@@ -201,12 +214,20 @@ class ReagentForm(Form):
         helper.field_class = "col-lg-8"
         rows = []
         tabs = []
-        for i, material_type in enumerate(self.material_types):
+        # for i, material_type in enumerate(self.material_types):
+        for i, rmt in enumerate(
+            self.reagent_template.reagent_material_template_rt.all()
+        ):
+            rmt: vt.ReagentMaterialTemplate
+            material_type: str = rmt.material_type.description
             tabs.append(
                 Tab(
                     f"{material_type.capitalize()} - {i}_{self.material_index}",
                     Column(Field(f"material_{self.material_index}_{i}")),
-                    Column(Field(f"desired_concentration_{self.material_index}_{i}")),
+                    *[
+                        Column(Field(f"{prop.description}_{self.material_index}_{i}"))
+                        for prop in rmt.properties.all()
+                    ],
                     Field(f"reagent_material_template_uuid_{self.material_index}_{i}"),
                     Field(f"material_type_{self.material_index}_{i}"),
                 ),
