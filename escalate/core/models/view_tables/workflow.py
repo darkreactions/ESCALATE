@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models import QuerySet, Prefetch, F
-from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.fields import ArrayField, JSONField
 
 from core.models.core_tables import RetUUIDField, SlugField
 from core.models.custom_types import ValField, CustomArrayField
@@ -208,6 +208,7 @@ class ExperimentTemplate(DateColumns, StatusColumn):
     vessel_templates = models.ManyToManyField(
         "VesselTemplate", blank=True, related_name="experiment_template_vt"
     )
+    metadata = JSONField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.description}"
@@ -299,6 +300,7 @@ class ExperimentInstance(DateColumns, StatusColumn, DescriptionColumn):
         db_column="completion_status", max_length=255, default="Pending"
     )
     priority = models.CharField(db_column="priority", max_length=255, default="1")
+    metadata = JSONField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.description}"

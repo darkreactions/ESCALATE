@@ -16,7 +16,6 @@ from scipy.optimize import nnls
 from scipy.optimize import minimize
 from scipy.optimize import lsq_linear
 from scipy.spatial import HalfspaceIntersection
-from scipy.spatial.qhull import _Qhull
 import numpy as np
 
 import pint

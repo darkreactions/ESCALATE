@@ -1,7 +1,9 @@
 from distutils.command.clean import clean
+from keyword import kwlist
 import os
 from typing import List
 from formtools.wizard.views import SessionWizardView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from core.forms.wizard import (
     ExperimentTemplateSelectForm,
     NumberOfExperimentsForm,
@@ -11,12 +13,15 @@ from core.forms.wizard import (
     ManualExperimentForm,
     ActionParameterForm,
     AutomatedSpecificationForm,
+    PostProcessForm,
 )
 from django.shortcuts import render
 from django.forms import BaseFormSet, formset_factory
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
+from django.http import HttpResponseRedirect
 from django.db.models import Prefetch
+from django.urls import reverse
 from core.models.view_tables import (
     ExperimentTemplate,
     ReagentTemplate,
@@ -32,6 +37,7 @@ from core.models.view_tables import (
     Actor,
     VesselInstance,
 )
+from django.contrib import messages
 from core.utilities.utils import experiment_copy
 import pandas as pd
 
@@ -43,6 +49,7 @@ AUTOMATED_SPEC = "automated_experiment_specification"
 REAGENT_PARAMS = "reagent_parameters"
 SELECT_VESSELS = "select_vessels"
 ACTION_PARAMS = "action_parameters"
+POSTPROCESS = "select_postprocessors"
 
 
 def show_manual_form_condition(wizard):
@@ -55,7 +62,7 @@ def show_manual_form_condition(wizard):
     return False
 
 
-class CreateExperimentWizard(SessionWizardView):
+class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
     file_storage = FileSystemStorage(
         location=os.path.join(settings.MEDIA_ROOT, "uploaded_files")
     )
@@ -78,8 +85,6 @@ class CreateExperimentWizard(SessionWizardView):
                 formset=BaseReagentFormSet,
             ),
         ),
-        (AUTOMATED_SPEC, AutomatedSpecificationForm),
-        (MANUAL_SPEC, ManualExperimentForm),
         (
             ACTION_PARAMS,
             formset_factory(
@@ -88,12 +93,26 @@ class CreateExperimentWizard(SessionWizardView):
                 formset=BaseReagentFormSet,
             ),
         ),
+        (AUTOMATED_SPEC, AutomatedSpecificationForm),
+        (MANUAL_SPEC, ManualExperimentForm),
+        (
+            POSTPROCESS,
+            PostProcessForm,
+        ),
     ]
-    condition_dict = {MANUAL_SPEC: show_manual_form_condition}
+    # condition_dict = {MANUAL_SPEC: show_manual_form_condition}
 
     def __init__(self, *args, **kwargs):
         self._experiment_template = None
         super().__init__(*args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+
+        org_id = self.request.session.get("current_org_id", None)
+        if not org_id:
+            messages.error(request, "Please select a lab to continue")
+            return HttpResponseRedirect(reverse("main_menu"))
+        return super().get(request, *args, **kwargs)
 
     @property
     def experiment_template(self) -> "ExperimentTemplate|None":
@@ -167,6 +186,8 @@ class CreateExperimentWizard(SessionWizardView):
             return self._get_manual_spec_kwargs()
         if step == AUTOMATED_SPEC:
             return self._get_automated_spec_kwargs()
+        if step == POSTPROCESS:
+            return self._get_automated_spec_kwargs()
 
         return {}
 
@@ -201,6 +222,11 @@ class CreateExperimentWizard(SessionWizardView):
                 "form_data": [form.cleaned_data for form in form_list],
             },
         )
+
+    def _get_post_processor_kwargs(self):
+        kwargs = {"form_kwargs": {"experiment_template": self.experiment_template}}
+        # kwargs = {}
+        return kwargs
 
     def _get_automated_spec_kwargs(self):
         vessel_form_data = self.get_cleaned_data_for_step(SELECT_VESSELS)
@@ -258,6 +284,7 @@ class CreateExperimentWizard(SessionWizardView):
                 "lab_uuid": self.request.session["current_org_id"],
             }
         }
+        kwargs["form_kwargs"]["experiment_template"] = self.experiment_template
         colors = self._get_colors(len(reagent_templates))
         for i, rt in enumerate(reagent_templates):
             kwargs["form_kwargs"]["form_data"][str(i)] = {
@@ -335,8 +362,8 @@ class CreateExperimentWizard(SessionWizardView):
         self._save_vessels(exp_instance)
         self._save_reagents(exp_instance)
         self._save_action_params(exp_instance)
-        if show_manual_form_condition(self):
-            self._save_manual_experiments(exp_instance)
+        # if show_manual_form_condition(self):
+        self._save_manual_experiments(exp_instance)
 
     def _save_vessels(self, exp_instance: ExperimentInstance) -> None:
         cleaned_data = self.get_cleaned_data_for_step(SELECT_VESSELS)

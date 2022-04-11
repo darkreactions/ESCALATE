@@ -20,6 +20,7 @@ from django.forms import (
 )
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column, Hidden, Field
+from crispy_forms.bootstrap import Tab, TabHolder
 import pandas as pd
 
 import core.models.view_tables as vt
@@ -28,6 +29,7 @@ from core.models.view_tables.workflow import ExperimentTemplate
 from core.widgets import ValWidget, TextInput
 from .forms import dropdown_attrs
 from plugins.sampler.base_sampler_plugin import SamplerPlugin
+from plugins.postprocessing.base_post_processing_plugin import PostProcessPlugin
 
 
 class NumberOfExperimentsForm(Form):
@@ -165,6 +167,7 @@ class ReagentForm(Form):
 
     def __init__(self, *args, **kwargs):
         self.material_index = kwargs.pop("index")
+        self.experiment_template = kwargs.pop("experiment_template")
         self.data = kwargs.pop("form_data")
         self.material_types: "list[str]" = self.data[str(self.material_index)][
             "mat_types_list"
@@ -197,16 +200,18 @@ class ReagentForm(Form):
         helper.label_class = "col-lg-3"
         helper.field_class = "col-lg-8"
         rows = []
+        tabs = []
         for i, material_type in enumerate(self.material_types):
-            rows.append(
-                Row(
+            tabs.append(
+                Tab(
+                    f"{material_type.capitalize()} - {i}_{self.material_index}",
                     Column(Field(f"material_{self.material_index}_{i}")),
                     Column(Field(f"desired_concentration_{self.material_index}_{i}")),
                     Field(f"reagent_material_template_uuid_{self.material_index}_{i}"),
                     Field(f"material_type_{self.material_index}_{i}"),
                 ),
             )
-
+        rows.append(TabHolder(*tabs))
         for i, prop in enumerate(self.reagent_template.properties.all()):
             rows.append(
                 Row(
@@ -326,9 +331,9 @@ class ManualExperimentForm(Form):
             )
 
             if "meta_data" not in df_dict:
-                raise InvalidInput("Sheet named 'meta_data' not found")
+                raise Exception("Sheet named 'meta_data' not found")
             if experiment_template.description not in df_dict:
-                raise InvalidInput(
+                raise Exception(
                     f"Sheet named {experiment_template.description} not found"
                 )
         except Exception as e:
@@ -405,3 +410,48 @@ class AutomatedSpecificationForm(Form):
                     )
 
         return cleaned_data
+
+
+class PostProcessForm(Form):
+    widget = Select(
+        attrs={
+            "class": "selectpicker",
+            "data-style": "btn-outline",
+            "data-live-search": "true",
+        }
+    )
+    select_post_processor = ChoiceField(widget=widget, required=False)
+
+    def __init__(self, *args, **kwargs):
+        # index = kwargs.pop("index")
+        experiment_template = kwargs.pop("form_kwargs")
+        super().__init__(*args, **kwargs)
+        # self.vessel_form_data = form_kwargs["vessel_form_data"]
+        self._populate_post_processors()
+        # self.get_helper()
+
+    def get_helper(self):
+        helper = FormHelper()
+        helper.form_class = "form-horizontal"
+        helper.label_class = "col-lg-3"
+        helper.field_class = "col-lg-8"
+        rows = []
+        for i, param_uuid in enumerate(self.action_parameter_list):
+            rows.append(
+                Row(
+                    Column(Field(f"value_{self.action_index}_{i}")),
+                    Field(f"parameter_uuid_{self.action_index}_{i}"),
+                ),
+            )
+        helper.layout = Layout(*rows)
+        # return helper
+        helper.form_tag = False
+        self.helper = helper
+
+    def _populate_post_processors(self):
+        self.fields["select_post_processor"].choices = [
+            (None, "No sampler selected")
+        ] + [
+            (post_processor_plugin.__name__, post_processor_plugin.name)
+            for post_processor_plugin in PostProcessPlugin.__subclasses__()
+        ]

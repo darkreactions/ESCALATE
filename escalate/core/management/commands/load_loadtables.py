@@ -797,7 +797,7 @@ class Command(BaseCommand):
                     exp_template.vessel_templates.add(dest_vessel_template)
 
             ActionTemplate.objects.get_or_create(
-                # action_sequence=action_sequences[action_seq],
+                description=action_desc,
                 experiment_template=exp_template,
                 action_def=action_def,
                 source_vessel_template=source_vessel_template,

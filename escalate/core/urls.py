@@ -68,7 +68,7 @@ urlpatterns += [
     path(
         "experiment/setup",
         SetupExperimentView.as_view(),
-        name="experiment_instance_add",
+        name="experiment_create",
     ),
     path(
         "experiment/setup/select_reagents",
@@ -91,7 +91,7 @@ urlpatterns += [
     path(
         "experiment-instance/",
         CreateExperimentWizard.as_view(),
-        name="experiment_create",
+        name="experiment_instance_add",
     ),
     path(
         "experiment-instance/robot_file",
