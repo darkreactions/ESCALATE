@@ -70,7 +70,7 @@ class Actor(DateColumns, StatusColumn, DescriptionColumn):
         )
         return "-".join(rep)
         """
-        return self.description
+        return f"{self.description}"
         # return "{}".format()
 
 

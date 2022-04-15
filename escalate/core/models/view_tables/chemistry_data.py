@@ -199,7 +199,9 @@ class Material(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     # material_types = models.ManyToManyField('MaterialType',
     #                                        through='MaterialTypeAssign',
     #                                        related_name='material_material_types')
-    material_class = models.CharField(max_length=64, choices=MATERIAL_CLASS_CHOICES)
+    material_class = models.CharField(
+        max_length=64, choices=MATERIAL_CLASS_CHOICES, blank=True, null=True
+    )
 
     # need to remove through crosstables when managed by django
     # property = models.ManyToManyField('Property', blank=True,
@@ -282,7 +284,7 @@ class ReagentTemplate(DateColumns, DescriptionColumn, StatusColumn):
     )
 
     def __str__(self):
-        return self.description
+        return f"{self.description}"
 
 
 class ReagentMaterialTemplate(DateColumns, DescriptionColumn, StatusColumn):
@@ -306,7 +308,7 @@ class ReagentMaterialTemplate(DateColumns, DescriptionColumn, StatusColumn):
     )
 
     def __str__(self):
-        return self.description
+        return f"{self.description}"
 
 
 class Reagent(DateColumns, DescriptionColumn, StatusColumn):

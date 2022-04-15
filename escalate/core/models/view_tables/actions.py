@@ -146,7 +146,9 @@ class ActionTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         null=True,
         related_name="action_template_ad",
     )
-    parent = models.ManyToManyField("ActionTemplate", related_name="children")
+    parent = models.ManyToManyField(
+        "ActionTemplate", related_name="children", blank=True
+    )
     source_vessel_template = models.ForeignKey(
         "VesselTemplate",
         on_delete=models.DO_NOTHING,
@@ -176,3 +178,6 @@ class VesselTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         null=True,
         related_name="vessel_template_v",
     )
+
+    def __str__(self):
+        return f"{self.description}"

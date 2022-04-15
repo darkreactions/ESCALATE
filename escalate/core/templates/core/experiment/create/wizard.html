@@ -22,6 +22,7 @@
             {{ wizard.form.management_form }}
             {% for form in wizard.form.forms %}
                 {% if form.helper %}
+                
                 <div class="card text-white" style="background-color: {{ form.data_current.color }}">
                     <div class="card-header ">{{ form.data_current.description }}</div>
                     <div class="card-body ">
@@ -34,10 +35,11 @@
                 {% endif %}
             {% endfor %}
         {% else %}
-            {% if helper %}
-                {% crispy wizard.form helper %}
+            {% if wizard.form.helper %}
+                {% crispy wizard.form wizard.form.helper %}
             {% else %}
-                {{ wizard.form|crispy }}
+            <p>Helper found inside 2nd form</p>
+                {{ wizard.form | crispy }}
             {% endif %}
         {% endif %}
     </table>

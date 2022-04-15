@@ -1,3 +1,4 @@
+from typing import Tuple, Any
 from uuid import UUID
 from django.db.models import QuerySet
 from django.forms import (
@@ -147,14 +148,14 @@ class ReagentForm(Form):
     def generate_reagent_material_fields(
         self,
         index: int,
-        material_type: vt.MaterialType,
+        material_type: str,
         rmt: vt.ReagentMaterialTemplate,
     ):
         self.fields[f"material_{self.material_index}_{index}"] = ChoiceField(
             widget=self.widget, required=False
         )
         for prop in rmt.properties.all():
-            prop: vt.Property
+            prop: vt.PropertyTemplate
             self.fields[
                 f"{prop.description}_{self.material_index}_{index}"
             ] = ValFormField(required=False, label=prop.description.capitalize())
@@ -183,7 +184,7 @@ class ReagentForm(Form):
         lab_uuid = UUID(kwargs.pop("lab_uuid"))
 
         # material_type = material_types_list[material_index]
-        self.inventory_materials: "dict[str, QuerySet]" = {}
+        self.inventory_materials: "dict[str, QuerySet[vt.InventoryMaterial]]" = {}
         super().__init__(*args, **kwargs)
 
         self.reagent_template: vt.ReagentTemplate = self.data_current[
@@ -193,7 +194,7 @@ class ReagentForm(Form):
 
         # for i, material_type in enumerate(self.material_types):
         for i, rmt in enumerate(
-            self.reagent_template.reagent_material_template_rt.all()
+            self.reagent_template.reagent_material_template_rt.all()  # type: ignore
         ):
             material_type = rmt.material_type.description
             if material_type in self.inventory_materials:
@@ -216,7 +217,7 @@ class ReagentForm(Form):
         tabs = []
         # for i, material_type in enumerate(self.material_types):
         for i, rmt in enumerate(
-            self.reagent_template.reagent_material_template_rt.all()
+            self.reagent_template.reagent_material_template_rt.all()  # type: ignore
         ):
             rmt: vt.ReagentMaterialTemplate
             material_type: str = rmt.material_type.description
@@ -331,7 +332,7 @@ class ReadOnlyText(HiddenInput):
 
 
 class ManualExperimentForm(Form):
-    file = FileField(label="Upload completed file")
+    file = FileField(label="Upload completed file", required=False)
 
     def __init__(self, *args, **kwargs):
         self.vessels = kwargs.pop("vessels")
@@ -409,12 +410,12 @@ class AutomatedSpecificationForm(Form):
         self._populate_samplers()
 
     def _populate_samplers(self):
-        self.fields["select_experiment_sampler"].choices = [
-            (None, "No sampler selected")
-        ] + [
+        none_option: "list[Tuple[Any, str]]" = [(None, "No sampler selected")]
+        samplers: "list[Tuple[Any, str]]" = [
             (sampler_plugin.__name__, sampler_plugin.name)
             for sampler_plugin in SamplerPlugin.__subclasses__()
         ]
+        self.fields["select_experiment_sampler"].choices = none_option + samplers
 
     def clean(self):
         cleaned_data = super().clean()
@@ -441,15 +442,13 @@ class PostProcessForm(Form):
             "data-live-search": "true",
         }
     )
-    select_post_processor = ChoiceField(widget=widget, required=False)
 
     def __init__(self, *args, **kwargs):
-        # index = kwargs.pop("index")
-        experiment_template = kwargs.pop("form_kwargs")
+        index = kwargs.pop("index")
+        experiment_template = kwargs.pop("experiment_template")
         super().__init__(*args, **kwargs)
-        # self.vessel_form_data = form_kwargs["vessel_form_data"]
         self._populate_post_processors()
-        # self.get_helper()
+        self.get_helper()
 
     def get_helper(self):
         helper = FormHelper()
@@ -457,22 +456,24 @@ class PostProcessForm(Form):
         helper.label_class = "col-lg-3"
         helper.field_class = "col-lg-8"
         rows = []
-        for i, param_uuid in enumerate(self.action_parameter_list):
-            rows.append(
-                Row(
-                    Column(Field(f"value_{self.action_index}_{i}")),
-                    Field(f"parameter_uuid_{self.action_index}_{i}"),
-                ),
-            )
+        # for i, param_uuid in enumerate(self.action_parameter_list):
+        rows.append(
+            Column(Field(f"select_post_processor")),
+        )
         helper.layout = Layout(*rows)
+        # helper.add_input(
+        #    Submit("add_post_processor", "Add Post Processor", css_class="btn-primary")
+        # )
         # return helper
         helper.form_tag = False
         self.helper = helper
 
     def _populate_post_processors(self):
-        self.fields["select_post_processor"].choices = [
-            (None, "No sampler selected")
-        ] + [
+        self.fields["select_post_processor"] = ChoiceField(
+            widget=self.widget, required=False
+        )
+        none_option: "list[Tuple[Any, str]]" = [(None, "No preprocessor selected")]
+        self.fields["select_post_processor"].choices = none_option + [
             (post_processor_plugin.__name__, post_processor_plugin.name)
             for post_processor_plugin in PostProcessPlugin.__subclasses__()
         ]

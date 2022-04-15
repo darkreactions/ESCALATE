@@ -384,6 +384,9 @@ class OutcomeTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
         max_length=255,
     )
 
+    def __str__(self):
+        return f"{self.description}"
+
 
 class OutcomeInstance(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="outcome_uuid")

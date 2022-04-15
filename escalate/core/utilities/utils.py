@@ -427,7 +427,7 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description, vesse
                     bom_vessels[sv.description] = BaseBomMaterial.objects.create(
                         bom=bom, vessel=sv, description=contents
                     )
-                    source_bbm = bom_vessels[sv.description]
+                source_bbm = bom_vessels[sv.description]
             else:
                 source_bbm = sv
 

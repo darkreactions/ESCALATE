@@ -39,6 +39,7 @@ from core.models.view_tables import (
     PropertyTemplate,
 )
 from django.contrib import messages
+from django.core.exceptions import ObjectDoesNotExist
 from core.utilities.utils import experiment_copy
 import pandas as pd
 
@@ -69,7 +70,6 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
     )
     form_list = [
         (SELECT_TEMPLATE, ExperimentTemplateSelectForm),
-        # (NUM_OF_EXPS, NumberOfExperimentsForm),
         (
             SELECT_VESSELS,
             formset_factory(
@@ -98,7 +98,11 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
         (MANUAL_SPEC, ManualExperimentForm),
         (
             POSTPROCESS,
-            PostProcessForm,
+            formset_factory(
+                PostProcessForm,
+                extra=1,
+                formset=BaseReagentFormSet,
+            ),
         ),
     ]
     # condition_dict = {MANUAL_SPEC: show_manual_form_condition}
@@ -162,17 +166,16 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
                 source_vessel_decomposable=False, dest_vessel_decomposable=False
             )
             initial = []
-            action_count = 0
             for i, at in enumerate(action_templates):
                 action_initial = {}
                 for j, param_def in enumerate(at.action_def.parameter_def.all()):
                     param_initial = {
-                        "action_parameter_{action_count}_{j}": param_def.uuid,
-                        "value_{action_count}_{j}": param_def.default_val,
+                        "action_parameter_{i}_{j}": param_def.uuid,
+                        "value_{i}_{j}": param_def.default_val,
                     }
                     action_initial.update(param_initial)
                 initial.append(action_initial)
-                action_count += 1
+
             return initial
 
         return super().get_form_initial(step)
@@ -194,7 +197,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
         if step == AUTOMATED_SPEC:
             return self._get_automated_spec_kwargs()
         if step == POSTPROCESS:
-            return self._get_automated_spec_kwargs()
+            return self._get_post_processor_kwargs()
 
         return {}
 
@@ -204,7 +207,6 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
     def process_step(self, form):
         if self.steps.current == MANUAL_SPEC:
             form_data = self.get_form_step_data(form)
-            print(form_data)
         return super().process_step(form)
 
     def done(self, form_list, **kwargs):
@@ -318,9 +320,9 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             "powderblue",
             "skyblue",
             "steelblue",
-            "pastelblue",
-            "verdigris",
             "cornflowerblue",
+            "verdegris",
+            "pastelblue",
         ],
     ) -> "list[str]":
         """Colors for forms that display on UI"""
@@ -341,17 +343,17 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
         )
 
         colors = self._get_colors(len(action_templates))
-        action_template_count = 0
+
         for i, at in enumerate(action_templates):
             action_parameter_list = []
             for j, pd in enumerate(at.action_def.parameter_def.all()):
                 action_parameter_list.append(pd.uuid)
-            kwargs["form_kwargs"]["form_data"][str(action_template_count)] = {
+            kwargs["form_kwargs"]["form_data"][str(i)] = {
                 "description": at.description,
                 "color": colors[i],
                 "action_parameter_list": action_parameter_list,
             }
-            action_template_count += 1
+
         return kwargs
 
     def _save_forms(self, instance_uuid: str):
@@ -464,8 +466,15 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
                     )
                     rm.save()
                     # TODO: generalize concentration to any property that a reagentmaterial has
-                    prop = rm.property_rm.get(template__description="concentration")
-                    prop.nominal_value = reagent_data[
-                        f"desired_concentration_{reagent_num}_{reagent_material_num}"
-                    ]
-                    prop.save()
+                    suffix = f"_{reagent_num}_{reagent_material_num}"
+                    for k in reagent_data:
+                        if k.endswith(suffix):
+                            prop_name = k[: -len(suffix)]
+                            try:
+                                prop = rm.property_rm.get(
+                                    template__description=prop_name
+                                )
+                                prop.nominal_value = reagent_data[k]
+                                prop.save()
+                            except ObjectDoesNotExist:
+                                continue
