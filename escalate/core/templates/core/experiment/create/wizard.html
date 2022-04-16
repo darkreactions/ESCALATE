@@ -38,7 +38,6 @@
             {% if wizard.form.helper %}
                 {% crispy wizard.form wizard.form.helper %}
             {% else %}
-            <p>Helper found inside 2nd form</p>
                 {{ wizard.form | crispy }}
             {% endif %}
         {% endif %}

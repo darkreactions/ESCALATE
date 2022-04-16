@@ -26,23 +26,6 @@ from crispy_forms.layout import Layout, Submit, Row, Column, Hidden, Field
 # from django.forms import formset_factory
 
 
-class UploadFileForm(Form):
-    # title = CharField(max_length=50)
-    file = FileField(label="Upload completed robot file")
-
-    @staticmethod
-    def get_helper():
-        helper = FormHelper()
-        helper.form_class = "form-horizontal"
-        helper.label_class = "col-lg-2"
-        helper.field_class = "col-lg-8"
-        helper.layout = Layout(
-            Row(Column(Field("file"))),
-            Row(Column(Submit("robot_upload", "Submit"))),
-        )
-        return helper
-
-
 class SingleValForm(Form):
     value = ValFormField(required=False)
     uuid = CharField(widget=HiddenInput, required=False)
@@ -286,7 +269,7 @@ class ExperimentTemplateCreateForm(Form):
     num_reagents = IntegerField(label="Number of Reagents", required=True, initial=1)
 
     num_outcomes = IntegerField(
-        label="Number of outcomes to measure", required="True", initial=1
+        label="Number of outcomes to measure", required=True, initial=1
     )
 
     # select_rt = MultipleChoiceField(
@@ -374,8 +357,6 @@ class ExperimentTemplateForm(Form):
             (exp.uuid, exp.description)
             for exp in vt.ExperimentTemplate.objects.filter(lab=lab)
         ]
-
-
 
 
 class ReactionParameterForm(Form):

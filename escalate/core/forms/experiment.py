@@ -1,3 +1,4 @@
+from typing import Tuple, Any
 from core.widgets import ValWidget, TextInput
 from django.forms import (
     Select,
@@ -28,9 +29,8 @@ class GenerateRobotFileForm(Form):
         self._populate_robot_generator()
 
     def _populate_robot_generator(self):
-        self.fields["select_robot_file_generator"].choices = [
-            (None, "No robot file generator")
-        ] + [
+        none_option: "list[Tuple[Any, str]]" = [(None, "No preprocessor selected")]
+        self.fields["select_robot_file_generator"].choices = none_option + [
             (robot_plugin.__name__, robot_plugin.name)
             for robot_plugin in RobotPlugin.__subclasses__()
         ]

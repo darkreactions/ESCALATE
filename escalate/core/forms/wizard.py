@@ -20,7 +20,7 @@ from django.forms import (
     ValidationError,
 )
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit, Row, Column, Hidden, Field
+from crispy_forms.layout import Layout, Submit, Row, Column, Hidden, Field, HTML
 from crispy_forms.bootstrap import Tab, TabHolder
 import pandas as pd
 
@@ -171,41 +171,39 @@ class ReagentForm(Form):
         ]
         self.fields[
             f"material_{self.material_index}_{index}"
-        ].label = f"Material {self.material_index+1}: {material_type}"
+        ].label = f"Reagent {int(self.material_index)+1}: {material_type}"
 
     def __init__(self, *args, **kwargs):
-        self.material_index = kwargs.pop("index")
+        self.material_index = str(kwargs.pop("index"))
         self.experiment_template = kwargs.pop("experiment_template")
-        self.data = kwargs.pop("form_data")
-        self.material_types: "list[str]" = self.data[str(self.material_index)][
-            "mat_types_list"
-        ]
-        self.data_current = self.data[str(self.material_index)]
+        self.form_data = kwargs.pop("form_data")
         lab_uuid = UUID(kwargs.pop("lab_uuid"))
-
-        # material_type = material_types_list[material_index]
         self.inventory_materials: "dict[str, QuerySet[vt.InventoryMaterial]]" = {}
         super().__init__(*args, **kwargs)
-
-        self.reagent_template: vt.ReagentTemplate = self.data_current[
-            "reagent_template"
-        ]
-        self.generate_reagent_fields()
-
-        # for i, material_type in enumerate(self.material_types):
-        for i, rmt in enumerate(
-            self.reagent_template.reagent_material_template_rt.all()  # type: ignore
+        if (self.material_index is not None) and (
+            self.material_index in self.form_data
         ):
-            material_type = rmt.material_type.description
-            if material_type in self.inventory_materials:
-                continue
-            self.inventory_materials[
-                material_type
-            ] = vt.InventoryMaterial.objects.filter(
-                material__material_type__description=material_type,
-                inventory__lab__organization=lab_uuid,
-            )
-            self.generate_reagent_material_fields(i, material_type, rmt)
+            self.material_types: "list[str]" = self.form_data[str(self.material_index)][
+                "mat_types_list"
+            ]
+            self.data_current = self.form_data[str(self.material_index)]
+            self.reagent_template: vt.ReagentTemplate = self.data_current[
+                "reagent_template"
+            ]
+            self.generate_reagent_fields()
+
+            for i, rmt in enumerate(
+                self.reagent_template.reagent_material_template_rt.all()  # type: ignore
+            ):
+                material_type = rmt.material_type.description
+                if material_type not in self.inventory_materials:
+                    self.inventory_materials[
+                        material_type
+                    ] = vt.InventoryMaterial.objects.filter(
+                        material__material_type__description=material_type,
+                        inventory__lab__organization=lab_uuid,
+                    )
+                self.generate_reagent_material_fields(i, material_type, rmt)
         self.get_helper()
 
     def get_helper(self):
@@ -215,32 +213,37 @@ class ReagentForm(Form):
         helper.field_class = "col-lg-8"
         rows = []
         tabs = []
-        # for i, material_type in enumerate(self.material_types):
-        for i, rmt in enumerate(
-            self.reagent_template.reagent_material_template_rt.all()  # type: ignore
-        ):
-            rmt: vt.ReagentMaterialTemplate
-            material_type: str = rmt.material_type.description
-            tabs.append(
-                Tab(
-                    f"{material_type.capitalize()} - {i}_{self.material_index}",
-                    Column(Field(f"material_{self.material_index}_{i}")),
-                    *[
-                        Column(Field(f"{prop.description}_{self.material_index}_{i}"))
-                        for prop in rmt.properties.all()
-                    ],
-                    Field(f"reagent_material_template_uuid_{self.material_index}_{i}"),
-                    Field(f"material_type_{self.material_index}_{i}"),
-                ),
-            )
-        rows.append(TabHolder(*tabs))
-        for i, prop in enumerate(self.reagent_template.properties.all()):
-            rows.append(
-                Row(
-                    Column(Field(f"reagent_prop_{self.material_index}_{i}")),
-                    Field(f"reagent_template_uuid_{self.material_index}_{i}"),
+
+        if self.material_index is not None and (self.material_index in self.form_data):
+            for i, rmt in enumerate(
+                self.reagent_template.reagent_material_template_rt.all()  # type: ignore
+            ):
+                rmt: vt.ReagentMaterialTemplate
+                material_type: str = rmt.material_type.description
+                tabs.append(
+                    Tab(
+                        f"{material_type.capitalize()} - {i}_{self.material_index}",
+                        Column(Field(f"material_{self.material_index}_{i}")),
+                        *[
+                            Column(
+                                Field(f"{prop.description}_{self.material_index}_{i}")
+                            )
+                            for prop in rmt.properties.all()
+                        ],
+                        Field(
+                            f"reagent_material_template_uuid_{self.material_index}_{i}"
+                        ),
+                        Field(f"material_type_{self.material_index}_{i}"),
+                    ),
                 )
-            )
+            rows.append(TabHolder(*tabs))
+            for i, prop in enumerate(self.reagent_template.properties.all()):
+                rows.append(
+                    Row(
+                        Column(Field(f"reagent_prop_{self.material_index}_{i}")),
+                        Field(f"reagent_template_uuid_{self.material_index}_{i}"),
+                    )
+                )
         helper.layout = Layout(*rows)
         helper.form_tag = False
         # return helper
@@ -254,24 +257,31 @@ class VesselForm(Form):
     template_uuid = CharField(widget=HiddenInput())
 
     def __init__(self, *args, **kwargs):
-        self.vessel_index = kwargs.pop("index")
-        self.data = kwargs.pop("vt_names")
+
+        data = kwargs.pop("vt_names")
         colors = kwargs.pop("colors")
-        self.data_current = {"color": colors[self.vessel_index]}
-        vt_name = self.data[self.vessel_index]
+        vessel_index = kwargs.pop("index")
         super().__init__(*args, **kwargs)
-        self.fields["value"].queryset = vt.Vessel.objects.filter(parent__isnull=True)
-        self.fields["value"].label = vt_name
+        if vessel_index is not None:
+            self.vessel_index = vessel_index
+            self.data_current = {"color": colors[self.vessel_index]}
+            vt_name = data[self.vessel_index]
+            self.fields["value"].queryset = vt.Vessel.objects.filter(
+                parent__isnull=True
+            )
+            self.fields["value"].label = vt_name
+            self.get_helper()
 
-        self.get_helper()
-
-    def get_helper(self):
+    def get_helper(self, error_message=None):
         helper = FormHelper()
         helper.form_class = "form-horizontal"
         helper.label_class = "col-lg-3"
         helper.field_class = "col-lg-8"
-        helper.layout = Layout(Row(Column(Field(f"value")), Field("template_uuid")))
-        # return helper
+        if error_message is None:
+            helper.layout = Layout(Row(Column(Field(f"value")), Field("template_uuid")))
+        else:
+            helper.layout = Layout(HTML(f"<h2>{error_message}</h2>"))
+
         helper.form_tag = False
         self.helper = helper
 
@@ -290,16 +300,15 @@ class ActionParameterForm(Form):
     def __init__(self, *args, **kwargs):
         self.action_index = kwargs.pop("index")
         self.lab_uuid = kwargs.pop("lab_uuid")
-        self.data = kwargs.pop("form_data")
-        self.action_parameter_list: "list[str]" = self.data[str(self.action_index)][
-            "action_parameter_list"
-        ]
-        self.data_current = self.data[str(self.action_index)]
-
+        self.form_data = kwargs.pop("form_data")
         super().__init__(*args, **kwargs)
-
-        for i, param_uuid in enumerate(self.action_parameter_list):
-            self.generate_action_parameter_fields(i, param_uuid)
+        if self.form_data:
+            self.action_parameter_list: "list[str]" = self.form_data[
+                str(self.action_index)
+            ]["action_parameter_list"]
+            self.data_current = self.form_data[str(self.action_index)]
+            for i, param_uuid in enumerate(self.action_parameter_list):
+                self.generate_action_parameter_fields(i, param_uuid)
 
         self.get_helper()
 
@@ -309,13 +318,14 @@ class ActionParameterForm(Form):
         helper.label_class = "col-lg-3"
         helper.field_class = "col-lg-8"
         rows = []
-        for i, param_uuid in enumerate(self.action_parameter_list):
-            rows.append(
-                Row(
-                    Column(Field(f"value_{self.action_index}_{i}")),
-                    Field(f"parameter_uuid_{self.action_index}_{i}"),
-                ),
-            )
+        if self.form_data:
+            for i, param_uuid in enumerate(self.action_parameter_list):
+                rows.append(
+                    Row(
+                        Column(Field(f"value_{self.action_index}_{i}")),
+                        Field(f"parameter_uuid_{self.action_index}_{i}"),
+                    ),
+                )
         helper.layout = Layout(*rows)
         # return helper
         helper.form_tag = False
@@ -342,25 +352,28 @@ class ManualExperimentForm(Form):
 
     def _validate_uploaded_file(self, cleaned_data):
         uploaded_file = cleaned_data["file"]
-        if not uploaded_file.name.endswith(".xlsx"):
-            message = f"Uploaded file is not an excel file"
-            self.add_error("file", ValidationError(message, code="invalid"))
-        try:
-            df_dict = pd.read_excel(uploaded_file, sheet_name=None)
+        if uploaded_file:
+            if not uploaded_file.name.endswith(".xlsx"):
+                message = f"Uploaded file is not an excel file"
+                self.add_error("file", ValidationError(message, code="invalid"))
+            try:
+                df_dict = pd.read_excel(uploaded_file, sheet_name=None)
 
-            experiment_template = ExperimentTemplate.objects.get(
-                uuid=self.experiment_template_form_data["select_experiment_template"]
-            )
-
-            if "meta_data" not in df_dict:
-                raise Exception("Sheet named 'meta_data' not found")
-            if experiment_template.description not in df_dict:
-                raise Exception(
-                    f"Sheet named {experiment_template.description} not found"
+                experiment_template = ExperimentTemplate.objects.get(
+                    uuid=self.experiment_template_form_data[
+                        "select_experiment_template"
+                    ]
                 )
-        except Exception as e:
-            message = f"Uploaded file is invalid. Reason: {e}"
-            self.add_error("file", ValidationError(message, code="invalid"))
+
+                if "meta_data" not in df_dict:
+                    raise Exception("Sheet named 'meta_data' not found")
+                if experiment_template.description not in df_dict:
+                    raise Exception(
+                        f"Sheet named {experiment_template.description} not found"
+                    )
+            except Exception as e:
+                message = f"Uploaded file is invalid. Reason: {e}"
+                self.add_error("file", ValidationError(message, code="invalid"))
 
     def clean(self):
         cleaned_data = super().clean()

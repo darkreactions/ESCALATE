@@ -14,6 +14,7 @@ from core.models.view_tables import (
     ReagentTemplate,
     VesselType,
     Parameter,
+    Vessel,
 )
 from copy import deepcopy
 
@@ -146,13 +147,13 @@ def generate_vp_spec_file(exp_template_uuid, vessel):
 
     volume_units = pd.DataFrame({"Units": ["uL"]})
     volume_units[" "] = None
-    volume_units.reindex(columns=[" ", "Units"])
+    volume_units.reindex(columns=[" ", "Units"])  # type: ignore
 
     outframe = pd.concat(
         [  # df_tray['Vial Site'],
             reaction_volumes_output,
             # volume_units,
-            volume_units.reindex(columns=[" ", "Units"]),
+            volume_units.reindex(columns=[" ", "Units"]),  # type: ignore
             # df_tray["Labware ID:"],
             rxn_parameters,
             # rxn_conditions,
@@ -390,6 +391,8 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description, vesse
                 source_vessels = list(base_vessel.children.all())
             else:
                 source_vessels = [base_vessel]
+        else:
+            contents = None
 
         # Create a list of all destination vessels
         dest_vessels = []
@@ -412,6 +415,8 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description, vesse
         bom_vessels = {}
         aunits = []
         parameters = []
+        sv: "None|Vessel"
+        dv: "None|Vessel"
         for sv, dv in vessel_pairs:
             if dv is not None:
                 if dv.description not in bom_vessels:
@@ -419,6 +424,8 @@ def experiment_copy(template_experiment_uuid, copy_experiment_description, vesse
                         bom=bom, vessel=dv, description=dv.description
                     )
                     dest_bbm = bom_vessels[dv.description]
+                else:
+                    dest_bbm = dv.description
             else:
                 dest_bbm = dv
 

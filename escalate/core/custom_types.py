@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Any, Callable, Tuple, AnyStr
 import csv
 import json
 from django.core.exceptions import ValidationError
@@ -7,8 +9,8 @@ import uuid
 
 
 class Val:
-
-    positions = {
+    val_type: TypeDef
+    positions: dict[AnyStr, int] = {
         "text": 2,
         "array_text": 3,
         "int": 4,
@@ -21,9 +23,9 @@ class Val:
         "array_bool": 11,
     }
 
-    def __init__(self, val_type, value, unit, null=False, raw_string=""):
+    def __init__(self, val_type: TypeDef, value: Any, unit: str, null: bool=False, raw_string: str=""):
         self.null = null
-        self.unit = None
+        self.unit: str|None = None
         if isinstance(value, str):
             if len(value) == 0:
                 print(raw_string)
@@ -41,23 +43,25 @@ class Val:
             # print(self.val_type.description, self.value, self.unit)
         else:
             self.value = None
-            self.val_type = None
+            # self.val_type = None
 
     def to_db(self):
         if not self.null:
-            string_list = [""] * 12
-            string_list[0] = str(self.val_type.uuid)
+            string_list: list[Any] = [""] * 12
+            val_type_uuid: uuid.UUID = self.val_type.uuid
+            string_list[0] = str(val_type_uuid)
             string_list[1] = self.unit
+            val_type_desc = self.val_type.description
             string_list[
-                self.positions[self.val_type.description]
+                self.positions[val_type_desc]
             ] = f'"{str(self.value)}"'
             return f'({",".join(string_list)})'
         else:
             return None
 
-    def convert_value(self):
+    def convert_value(self) -> Any:
         # Converts self.value from string to its primitive type. Used in validator and initialization
-        converted_value = None
+        converted_value: Any = None
         if not self.null:
             if "array" in self.val_type.description:
                 converted_value = self.convert_list_value(
@@ -69,15 +73,16 @@ class Val:
                 )
         return converted_value
 
-    def convert_single_value(self, description, value):
+    def convert_single_value(self, description: str, value: Any) -> Any:
+        int_convert: Tuple[Callable[[str], int]] = lambda x: int(float(x)),
         primitives = {
             "bool": bool,
-            "int": lambda x: int(float(x)),
+            "int" : int_convert,
             "num": float,
             "text": str,
             "blob": str,
         }
-        reverse_primitives = {bool: "bool", int: "int", float: "num", str: "text"}
+        # reverse_primitives = {bool: "bool", int: "int", float: "num", str: "text"}
         default_primitives = {
             "bool": False,
             "int": 0,
@@ -99,7 +104,7 @@ class Val:
             result = default_primitives[description]
         return result
 
-    def convert_list_value(self, description, value):
+    def convert_list_value(self, description: str, value: Any):
         primitives = {
             "array_bool": bool,
             "array_int": int,
@@ -135,7 +140,7 @@ class Val:
         else:
             return "null"
 
-    def to_dict(self):
+    def to_dict(self) -> Any:
         if not self.null:
             return {
                 "value": self.value,
@@ -202,7 +207,7 @@ class Val:
                 break
         # except TypeDef.DoesNotExist:
         if val_type is None:
-            options = [val.description for val in cls.val_types]
+            options = [val.description for val in val_types]
             raise ValidationError(
                 f'Data type {type_string} does not exist. Options are: {", ".join(options)}',
                 code="invalid",

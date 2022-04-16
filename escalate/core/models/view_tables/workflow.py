@@ -21,6 +21,8 @@ from core.managers import (
     ExperimentCompletedInstanceManager,
     ExperimentPendingInstanceManager,
 )
+from core.models.view_tables.actions import ActionTemplate, Action
+from core.models.view_tables.chemistry_data import ReagentTemplate
 
 
 managed_tables = True
@@ -209,6 +211,7 @@ class ExperimentTemplate(DateColumns, StatusColumn):
         "VesselTemplate", blank=True, related_name="experiment_template_vt"
     )
     metadata = JSONField(blank=True, null=True)
+    action_template_et: "QuerySet[ActionTemplate]"
 
     def __str__(self):
         return f"{self.description}"
@@ -217,7 +220,7 @@ class ExperimentTemplate(DateColumns, StatusColumn):
         self,
         source_vessel_decomposable: "bool|None",
         dest_vessel_decomposable: "bool|None",
-    ) -> QuerySet:
+    ) -> "QuerySet[ActionTemplate]":
         filter = {}
         if source_vessel_decomposable is not None:
             filter["source_vessel_decomposable"] = source_vessel_decomposable
@@ -230,7 +233,7 @@ class ExperimentTemplate(DateColumns, StatusColumn):
         )
         return action_templates
 
-    def get_reagent_templates(self) -> QuerySet:
+    def get_reagent_templates(self) -> "QuerySet[ReagentTemplate]":
         """Return the properties of reagent templates related to
            this experiment template
 
@@ -301,11 +304,14 @@ class ExperimentInstance(DateColumns, StatusColumn, DescriptionColumn):
     )
     priority = models.CharField(db_column="priority", max_length=255, default="1")
     metadata = JSONField(blank=True, null=True)
+    action_ei: "QuerySet[Action]"
 
     def __str__(self):
         return f"{self.description}"
 
-    def get_action_parameters(self, decomposable: "bool|None" = None) -> "list[Action]":
+    def get_action_parameters(
+        self, decomposable: "bool|None" = None
+    ) -> "QuerySet[Action]":
         """
         ## Gets the action parameters related to the experiment
         decomposable = True -> Only parameters that have decomposable destination

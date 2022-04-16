@@ -202,7 +202,7 @@ class MaterialForm(forms.ModelForm):
         widgets = {
             "consumable": forms.CheckboxInput(),
             "material_class": forms.RadioSelect(
-                choices=model._meta.get_field("material_class").choices
+                choices=model._meta.get_field("material_class").choices  # type: ignore
             ),
             "status": forms.Select(attrs=dropdown_attrs),
         }
@@ -605,6 +605,7 @@ class JoinOrganizationForm(forms.ModelForm):
         model = OrganizationPassword
         fields = ["organization", "password"]
         widgets = {"password": forms.PasswordInput()}
+
 
 class LeaveOrganizationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):

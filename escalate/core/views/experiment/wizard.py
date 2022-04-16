@@ -1,3 +1,4 @@
+from __future__ import annotations
 from distutils.command.clean import clean
 from keyword import kwlist
 import os
@@ -20,7 +21,7 @@ from django.forms import BaseFormSet, formset_factory
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.http import HttpResponseRedirect
-from django.db.models import Prefetch
+from django.db.models import Prefetch, QuerySet
 from django.urls import reverse
 from core.models.view_tables import (
     ExperimentTemplate,
@@ -38,6 +39,7 @@ from core.models.view_tables import (
     VesselInstance,
     PropertyTemplate,
 )
+from core.models.app_tables import CustomUser
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from core.utilities.utils import experiment_copy
@@ -52,16 +54,6 @@ REAGENT_PARAMS = "reagent_parameters"
 SELECT_VESSELS = "select_vessels"
 ACTION_PARAMS = "action_parameters"
 POSTPROCESS = "select_postprocessors"
-
-
-def show_manual_form_condition(wizard: SessionWizardView) -> bool:
-    # try to get the cleaned data of step 1
-    cleaned_data = wizard.get_cleaned_data_for_step(NUM_OF_EXPS) or {}
-    # check if the field ``manual`` has a non-zero number.
-    if cleaned_data.get("manual", None) is not None:
-        if cleaned_data.get("manual") > 0:
-            return True
-    return False
 
 
 class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
@@ -105,7 +97,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             ),
         ),
     ]
-    # condition_dict = {MANUAL_SPEC: show_manual_form_condition}
+    initial_dict: "dict[str, Any]"
 
     def __init__(self, *args, **kwargs):
         self._experiment_template = None
@@ -120,16 +112,14 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
         return super().get(request, *args, **kwargs)
 
     @property
-    def experiment_template(self) -> "ExperimentTemplate|None":
+    def experiment_template(self) -> "ExperimentTemplate":
         form_data = self.get_cleaned_data_for_step("select_template")
         if form_data:
             exp_template_uuid: str = form_data["select_experiment_template"]
             self._experiment_template = ExperimentTemplate.objects.get(
                 uuid=exp_template_uuid
             )
-            return self._experiment_template
-        else:
-            return None
+        return self._experiment_template
 
     def get_form_initial(self, step: str) -> List[Any]:
         if step == REAGENT_PARAMS:
@@ -210,13 +200,14 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
         return super().process_step(form)
 
     def done(self, form_list, **kwargs):
-        exp_template_uuid: str = self.get_cleaned_data_for_step(SELECT_TEMPLATE)[
-            "select_experiment_template"
-        ]
-        exp_name = self.get_cleaned_data_for_step(SELECT_TEMPLATE)["experiment_name"]
+        cleaned_data = self.get_cleaned_data_for_step(SELECT_TEMPLATE)
+        assert isinstance(cleaned_data, dict)
+        exp_template_uuid: str = cleaned_data["select_experiment_template"]
+        exp_name = cleaned_data["experiment_name"]
 
         vessels = {}
         vessel_form_data = self.get_cleaned_data_for_step(SELECT_VESSELS)
+        assert isinstance(vessel_form_data, list)
         for vf_data in vessel_form_data:
             vt = VesselTemplate.objects.get(uuid=vf_data["template_uuid"])
             vessels[vt.description] = vf_data["value"]
@@ -244,6 +235,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
 
     def _get_manual_spec_kwargs(self) -> "dict[str, Any]":
         vessel_form_data = self.get_cleaned_data_for_step(SELECT_VESSELS)
+        assert isinstance(vessel_form_data, list)
         vessel_dict_data = {}
         for vessel_data in vessel_form_data:
             vessel_dict_data[vessel_data["template_uuid"]] = str(
@@ -281,7 +273,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
         Returns the kwargs related to reagent forms
         """
 
-        reagent_templates: "ReagentTemplate" = (
+        reagent_templates: "QuerySet[ReagentTemplate]" = (
             self.experiment_template.get_reagent_templates()
         )
         # Creating a form_kwargs key because that's what gets passed into the
@@ -361,8 +353,9 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             uuid=instance_uuid
         )
         # Get the operator and save
+        user: CustomUser = self.request.user  # type: ignore
         operator = Actor.objects.get(
-            person=self.request.user.person,
+            person=user.person,
             organization__uuid=self.request.session["current_org_id"],
         )
         exp_instance.operator = operator
@@ -371,11 +364,11 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
         self._save_vessels(exp_instance)
         self._save_reagents(exp_instance)
         self._save_action_params(exp_instance)
-        # if show_manual_form_condition(self):
         self._save_manual_experiments(exp_instance)
 
     def _save_vessels(self, exp_instance: ExperimentInstance) -> None:
         cleaned_data = self.get_cleaned_data_for_step(SELECT_VESSELS)
+        assert isinstance(cleaned_data, list)
         for vessel_data in cleaned_data:
             vessel = vessel_data["value"]
             vessel_template_uuid = vessel_data["template_uuid"]
@@ -388,52 +381,57 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
 
     def _save_manual_experiments(self, exp_instance):
         cleaned_data = self.get_cleaned_data_for_step(MANUAL_SPEC)
-        df_data = pd.read_excel(cleaned_data["file"], sheet_name=None)
-        reverse_meta_data = dict(
-            zip(df_data["meta_data"]["values"], df_data["meta_data"]["keys"])
-        )
-        meta_data = dict(
-            zip(df_data["meta_data"]["keys"], df_data["meta_data"]["values"])
-        )
-        manual_data = df_data[exp_instance.template.description]
-        action_units = ActionUnit.objects.filter(
-            action__experiment=exp_instance
-        ).prefetch_related("parameter_au")
+        assert isinstance(cleaned_data, dict)
+        if cleaned_data["file"] is not None:
+            df_data = pd.read_excel(cleaned_data["file"], sheet_name=None)
+            reverse_meta_data = dict(
+                zip(df_data["meta_data"]["values"], df_data["meta_data"]["keys"])
+            )
+            meta_data = dict(
+                zip(df_data["meta_data"]["keys"], df_data["meta_data"]["values"])
+            )
+            manual_data = df_data[exp_instance.template.description]
+            action_units = ActionUnit.objects.filter(
+                action__experiment=exp_instance
+            ).prefetch_related("parameter_au")
 
-        # Find the action unit corresponding to the excel cell
-        for action in exp_instance.action_ei.filter(
-            template__dest_vessel_decomposable=True
-        ).prefetch_related("template__action_def__parameter_def"):
-            # reconstruct columns name
-            action_column_name = reverse_meta_data[str(action.template.uuid)]
-            for param_def in action.template.action_def.parameter_def.all():
-                # Get the expected value and unit column names from meta_data
-                param_value_column_name = reverse_meta_data[
-                    f"value:{param_def.uuid}:{action.template.uuid}"
-                ]
-                param_unit_column_name = reverse_meta_data[
-                    f"unit:{param_def.uuid}:{action.template.uuid}"
-                ]
+            # Find the action unit corresponding to the excel cell
+            for action in exp_instance.action_ei.filter(
+                template__dest_vessel_decomposable=True
+            ).prefetch_related("template__action_def__parameter_def"):
+                # reconstruct columns name
+                action_column_name = reverse_meta_data[str(action.template.uuid)]
+                for param_def in action.template.action_def.parameter_def.all():
+                    # Get the expected value and unit column names from meta_data
+                    param_value_column_name = reverse_meta_data[
+                        f"value:{param_def.uuid}:{action.template.uuid}"
+                    ]
+                    param_unit_column_name = reverse_meta_data[
+                        f"unit:{param_def.uuid}:{action.template.uuid}"
+                    ]
 
-                # Loop through every row (destination vessel), get the value and unit from dataframe
-                # and then store it in the appropriate action unit parameter in the database
-                for i, dest_vessel_name in enumerate(manual_data[action_column_name]):
-                    dest_vessel_uuid = meta_data[dest_vessel_name]
-                    au = action_units.get(
-                        destination_material__vessel__uuid=dest_vessel_uuid,
-                        action__template=action.template,
-                    )
-                    param = au.parameter_au.get(parameter_def=param_def)
-                    param.parameter_val_nominal.value = manual_data[
-                        param_value_column_name
-                    ].iloc[i]
-                    param.parameter_val_nominal.unit = manual_data[
-                        param_unit_column_name
-                    ].iloc[i]
-                    param.save()
+                    # Loop through every row (destination vessel), get the value and unit from dataframe
+                    # and then store it in the appropriate action unit parameter in the database
+                    for i, dest_vessel_name in enumerate(
+                        manual_data[action_column_name]
+                    ):
+                        dest_vessel_uuid = meta_data[dest_vessel_name]
+                        au = action_units.get(
+                            destination_material__vessel__uuid=dest_vessel_uuid,
+                            action__template=action.template,
+                        )
+                        param = au.parameter_au.get(parameter_def=param_def)
+                        param.parameter_val_nominal.value = manual_data[
+                            param_value_column_name
+                        ].iloc[i]
+                        param.parameter_val_nominal.unit = manual_data[
+                            param_unit_column_name
+                        ].iloc[i]
+                        param.save()
 
     def _save_action_params(self, exp_instance: ExperimentInstance):
         cleaned_data = self.get_cleaned_data_for_step(REAGENT_PARAMS)
+        assert isinstance(cleaned_data, list)
         for action_param_data in cleaned_data:
             for key, value in action_param_data.items():
                 if key.startswith("parameter_uuid"):
@@ -451,6 +449,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
         exp_instance: ExperimentInstance,
     ):
         cleaned_data = self.get_cleaned_data_for_step(REAGENT_PARAMS)
+        assert isinstance(cleaned_data, list)
         for reagent_data in cleaned_data:
             for key, value in reagent_data.items():
                 if key.startswith("reagent_material_template_uuid"):

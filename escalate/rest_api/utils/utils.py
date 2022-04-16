@@ -214,15 +214,6 @@ expandable_fields = {
                     "many": True,
                 },
             ),
-            "bill_of_materials": (
-                "rest_api.BillOfMaterialsSerializer",
-                {
-                    "source": "bom_experiment_instance",
-                    "many": True,
-                    "read_only": True,
-                    "view_name": "billofmaterials-detail",
-                },
-            ),
             "reagents": (
                 "rest_api.ReagentSerializer",
                 {
@@ -244,6 +235,17 @@ expandable_fields = {
         },
     },
 }
+"""
+            "bill_of_materials": (
+                "rest_api.BillOfMaterialsSerializer",
+                {
+                    "source": "bom_experiment_instance",
+                    "many": True,
+                    "read_only": True,
+                    "view_name": "billofmaterials-detail",
+                },
+            ),
+"""
 
 # Endpoints should be filtered based on lab selected and permissions of the user
 # Remove delete for selected models

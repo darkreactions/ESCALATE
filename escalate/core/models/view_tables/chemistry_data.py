@@ -16,6 +16,7 @@ from core.models.base_classes import (
 from django.contrib.postgres.fields import ArrayField
 
 from core.models.view_tables.generic_data import Property
+from django.db.models import QuerySet
 
 manage_tables = True
 manage_views = False
@@ -282,6 +283,7 @@ class ReagentTemplate(DateColumns, DescriptionColumn, StatusColumn):
         blank=True,
         related_name="reagent_template_p",
     )
+    reagent_material_template_rt: "QuerySet[ReagentMaterialTemplate]"
 
     def __str__(self):
         return f"{self.description}"
@@ -324,6 +326,7 @@ class Reagent(DateColumns, DescriptionColumn, StatusColumn):
         editable=False,
         related_name="reagent_rt",
     )
+    property_r: "QuerySet[Property]"
 
     def save(self, *args, **kwargs):
         """
@@ -368,6 +371,7 @@ class ReagentMaterial(DateColumns, DescriptionColumn, StatusColumn):
         blank=True,
         related_name="reagent_material_rmt",
     )
+    property_rm: "QuerySet[Property]"
 
     def save(self, *args, **kwargs):
         """
