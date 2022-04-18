@@ -90,8 +90,8 @@ These models are defined in `./core/models/view_tables/*`
 34. **MolecularDescriptor**: descriptor for molecular materials
 35. **Note**: text that can be associated with any entity
 36. **Organization**: organization that act on, or with any of the entities
-37. **OutcomeInstance**: container of measures that address purpose or aim of experiment
-38. **OutcomeInstanceValue**: stores the nominal and actual values related to an outcome instance
+37. **Outcome**: container of measures that address purpose or aim of experiment
+38. **OutcomeValue**: stores the nominal and actual values related to an outcome instance
 39. **OutcomeTemplate**: template for outcomes; contains associated experiment and default values
 40. **Parameter**: actual characterization of an activity or calculation; of which action or calculation can have zero to many
 41. **ParameterDef**: specification of Parameter model
@@ -152,7 +152,7 @@ API endpoints are available for most models. Below are the API endpoint URLs for
 28. **mixture**: "http://localhost:8000/api/mixture/",
 29. **moleculardescriptor**: "http://localhost:8000/api/molecular-descriptor/",
 30. **organization**: "http://localhost:8000/api/organization/",
-31. **outcomeinstance**: "http://localhost:8000/api/outcome-instance/",
+31. **Outcome**: "http://localhost:8000/api/outcome-instance/",
 32. **outcometemplate**: "http://localhost:8000/api/outcome-template/",
 33. **parameterdef**: "http://localhost:8000/api/parameter-def/",
 34. **person**: "http://localhost:8000/api/person/",

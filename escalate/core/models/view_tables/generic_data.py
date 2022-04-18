@@ -18,7 +18,7 @@ from core.models.base_classes import (
     ActorColumn,
     DescriptionColumn,
 )
-from core.managers import OutcomeInstanceValueManager
+from core.managers import OutcomeValueManager
 
 
 managed_tables = True
@@ -273,7 +273,7 @@ class ValueInstance(DateColumns, ActorColumn, DescriptionColumn):
     # Foreignkey to specific tables that need values.
     # Avoiding GenericForeignKey due to performance and complexity
     outcome_instance = models.ForeignKey(
-        "OutcomeInstance",
+        "Outcome",
         on_delete=models.DO_NOTHING,
         blank=True,
         null=True,
@@ -289,8 +289,8 @@ class ValueInstance(DateColumns, ActorColumn, DescriptionColumn):
         super().save(*args, **kwargs)
 
 
-class OutcomeInstanceValue(ValueInstance):
-    objects = OutcomeInstanceValueManager()
+class OutcomeValue(ValueInstance):
+    objects = OutcomeValueManager()
 
     class Meta:
         proxy = True

@@ -395,7 +395,7 @@ class OutcomeTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
         return f"{self.description}"
 
 
-class OutcomeInstance(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
+class Outcome(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="outcome_uuid")
     outcome_template = models.ForeignKey(
         "OutcomeTemplate",
@@ -421,7 +421,7 @@ class OutcomeInstance(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
     )
     nominal_value = ValField(blank=True, null=True)
     actual_value = ValField(blank=True, null=True)
-    file = models.FileField()
+    # file = models.FileField()
 
     def save(self, *args, **kwargs):
         if self.outcome_template.default_value is not None:

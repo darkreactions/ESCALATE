@@ -73,8 +73,8 @@ The database model consists of the following entities:
 34. **MolecularDescriptor**: descriptor for molecular materials
 35. **Note**: text that can be associated with any entity
 36. **Organization**: organization that act on, or with any of the entities
-37. **OutcomeInstance**: container of measures that address purpose or aim of experiment
-38. **OutcomeInstanceValue**: stores the nominal and actual values related to an outcome instance
+37. **Outcome**: container of measures that address purpose or aim of experiment
+38. **OutcomeValue**: stores the nominal and actual values related to an outcome instance
 39. **OutcomeTemplate**: template for outcomes; contains associated experiment and default values
 40. **Parameter**: actual characterization of an activity or calculation; of which action or calculation can have zero to many
 41. **ParameterDef**: specification of Parameter model

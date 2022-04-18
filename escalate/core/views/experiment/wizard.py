@@ -214,14 +214,19 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
 
         instance_uuid = experiment_copy(exp_template_uuid, exp_name, vessels)
         self._save_forms(instance_uuid)
+        experiment_instance = ExperimentInstance.objects.get(uuid=instance_uuid)
+        context = {
+            "new_exp_name": experiment_instance.description,
+            "experiment_link": reverse(
+                "experiment_instance_view", args=[experiment_instance.uuid]
+            ),
+            "reagent_prep_link": reverse(
+                "reagent_prep", args=[experiment_instance.uuid]
+            ),
+            "outcome_link": reverse("outcome", args=[experiment_instance.uuid]),
+        }
 
-        return render(
-            self.request,
-            "core/experiment/create/done.html",
-            {
-                "form_data": [form.cleaned_data for form in form_list],
-            },
-        )
+        return render(self.request, "core/experiment/create/done.html", context=context)
 
     def _get_post_processor_kwargs(self) -> "dict[str, Any]":
         kwargs = {"form_kwargs": {"experiment_template": self.experiment_template}}

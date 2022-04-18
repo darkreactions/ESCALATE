@@ -56,7 +56,7 @@ core_views = set(
         "MeasureType",
         "MeasureDef",
         "OutcomeTemplate",
-        "OutcomeInstance",
+        "Outcome",
         "Action",
         "ActionUnit",
         "ActionDef",
@@ -223,13 +223,13 @@ expandable_fields = {
                     "view_name": "reagentmaterial-detail",
                 },
             ),
-            "outcome_instance": (
-                "rest_api.OutcomeInstanceSerializer",
+            "outcome": (
+                "rest_api.OutcomeSerializer",
                 {
                     "source": "outcome_instance_experiment_instance",
                     "many": True,
                     "read_only": True,
-                    "view_name": "outcomeinstance-detail",
+                    "view_name": "outcome-detail",
                 },
             ),
         },

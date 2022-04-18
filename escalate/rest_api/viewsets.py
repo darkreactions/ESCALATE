@@ -245,8 +245,8 @@ class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
 
 class SaveViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     # Override these two variables!
-    parent_lookup = None
-    ref_uuid = None
+    parent_lookup: str = ""
+    ref_uuid: str = ""
 
     def perform_create(self, serializer, **kwargs):
         serializer.save(**kwargs)
@@ -255,8 +255,8 @@ class SaveViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        material = Material.objects.get(uuid=kwargs[self.parent_lookup])
-        create_args = {self.ref_uuid: material}
+        # material = Material.objects.get(uuid=kwargs[self.parent_lookup])
+        create_args = {self.ref_uuid: kwargs[self.parent_lookup]}
         self.perform_create(serializer, **create_args)
         headers = self.get_success_headers(serializer.data)
         return Response(

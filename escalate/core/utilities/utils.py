@@ -10,7 +10,7 @@ from core.models.view_tables import (
     ExperimentInstance,
     BillOfMaterials,
     ReagentMaterial,
-    OutcomeInstance,
+    Outcome,
     Reagent,
     ReagentTemplate,
     VesselType,
@@ -346,7 +346,11 @@ def custom_pairing(source_vessels, dest_vessels):
                             )'''
 
 
-def experiment_copy(template_experiment_uuid: str, copy_experiment_description: str, vessels: "dict[str, Any]") -> uuid.UUID:
+def experiment_copy(
+    template_experiment_uuid: str,
+    copy_experiment_description: str,
+    vessels: "dict[str, Any]",
+) -> uuid.UUID:
     """Creates an experiment instance based on the template uuid
 
     Args:
@@ -487,7 +491,7 @@ def experiment_copy(template_experiment_uuid: str, copy_experiment_description: 
             if vt.outcome_vessel:
                 selected_vessel = vessels[vt.description]
                 for child in selected_vessel.children.all():
-                    outcome_instance = OutcomeInstance(
+                    outcome_instance = Outcome(
                         outcome_template=outcome_template,
                         experiment_instance=exp_instance,
                         description=child.description,

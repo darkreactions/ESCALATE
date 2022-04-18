@@ -16,11 +16,11 @@ from django.http import HttpResponseRedirect, HttpResponse, HttpRequest
 
 from core.models.view_tables import (
     ExperimentInstance,
-    OutcomeInstance,
+    Outcome,
     OutcomeTemplate,
     Note,
 )
-from core.forms.custom_types import OutcomeInstanceForm, UploadFileForm
+from core.forms.custom_types import OutcomeForm, UploadFileForm
 from core.widgets import ValWidget
 from django.contrib import messages
 
@@ -28,8 +28,8 @@ from django.contrib import messages
 class ExperimentOutcomeView(TemplateView):
     template_name = "core/experiment_outcome.html"
     OutcomeFormSet = modelformset_factory(
-        OutcomeInstance,
-        form=OutcomeInstanceForm,
+        Outcome,
+        form=OutcomeForm,
         extra=0,
         widgets={"actual_value": ValWidget()},
     )
@@ -78,9 +78,7 @@ class ExperimentOutcomeView(TemplateView):
         exp_uuid: str,
         request: HttpRequest,
     ) -> bool:
-        outcomes: QuerySet = OutcomeInstance.objects.filter(
-            experiment_instance__uuid=exp_uuid
-        )
+        outcomes: QuerySet = Outcome.objects.filter(experiment_instance__uuid=exp_uuid)
 
         outcome_templates = ExperimentInstance.objects.get(
             uuid=exp_uuid
@@ -125,7 +123,7 @@ class ExperimentOutcomeView(TemplateView):
 
     def download_outcome_file(self, exp_uuid):
         # Getting outcomes and its templates
-        outcomes = OutcomeInstance.objects.filter(experiment_instance__uuid=exp_uuid)
+        outcomes = Outcome.objects.filter(experiment_instance__uuid=exp_uuid)
         outcome_templates = OutcomeTemplate.objects.filter(
             outcome_instance_ot__experiment_instance__uuid=exp_uuid
         ).distinct()

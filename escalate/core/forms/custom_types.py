@@ -486,14 +486,14 @@ class BaseReagentFormSet(BaseFormSet):
         return kwargs
 
 
-class OutcomeInstanceForm(ModelForm):
+class OutcomeForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance:
             self.fields[
                 "actual_value"
             ].label = f"Outcome of: {self.instance.description}"
-        self.fields["file"].required = False
+        # self.fields["file"].required = False
 
     @staticmethod
     def get_helper():
@@ -510,8 +510,8 @@ class OutcomeInstanceForm(ModelForm):
         return helper
 
     class Meta:
-        model = vt.OutcomeInstance
-        fields = ["actual_value", "file"]
+        model = vt.Outcome
+        fields = ["actual_value"]
 
 
 class PropertyForm(ModelForm):

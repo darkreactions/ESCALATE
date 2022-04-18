@@ -137,7 +137,7 @@ class BomVesselManager(models.Manager):
         return super().create(**kwargs)
 
 
-class OutcomeInstanceValueManager(models.Manager):
+class OutcomeValueManager(models.Manager):
     """Stores the nominal and actual values related to an outcome instance
 
     Args:
