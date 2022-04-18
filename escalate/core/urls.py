@@ -32,9 +32,11 @@ from .views.experiment import (
     ExperimentDetailEditView,
     ParameterEditView,
     CreateExperimentWizard,
+    CreateTemplateWizard,
 )
 
 from .views.experiment.create_select_template import SelectReagentsView
+
 
 from core.utilities.utils import view_names, camel_to_snake
 from django.contrib.staticfiles.storage import staticfiles_storage
@@ -104,7 +106,8 @@ urlpatterns += [
 urlpatterns += [
     path(
         "exp_template/",
-        CreateExperimentTemplate.as_view(),
+        CreateTemplateWizard.as_view(),
+        # CreateExperimentTemplate.as_view(),
         name="experiment_template_add",
     ),
     # path("save_action_sequence/", save_action_sequence, name="save_action_sequence",),

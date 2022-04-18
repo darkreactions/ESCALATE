@@ -9,11 +9,11 @@
 {% endblock %}
 
 {% block content %}
-<p>Step {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</p>
+<p>Step {{ wizard.steps.step1 }} of {{ wizard.steps.count }}: {{ wizard.steps.current }} </p>
 <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
     <table>
         {{ wizard.management_form }}
-        
+
         {% if wizard.steps.current == 'manual_experiment_specification' %}
             <span>To manually specify experiment, <a href="{% url 'download_manual_spec_file' %}">click here</a> to download a manual
                 specification excel file, fill the appropriate columns and reupload using the form below</span>
