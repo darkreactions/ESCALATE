@@ -12,13 +12,11 @@
   </a>
   <h1 align="center">ESCALATE v3</h1>
   <p align="center">
-   Readme files 
+   Readme files
     <br />
-    <a href="https://github.com/darkreactions/ESCALATE/blob/master/data_model/README.md"><strong>ESCALATE v3 Data Model</strong></a>
+	<a href="https://github.com/darkreactions/ESCALATE/blob/master/escalate/README.md"><strong>ESCALATE Django Installation Instructions</strong></a>
     <br />
-    <a href="https://github.com/darkreactions/ESCALATE/blob/master/escalate/README.md"><strong>ESCALATE Django App</strong></a>
-    <br />
-	<a href="https://github.com/darkreactions/ESCALATE/blob/master/escalate/TECHNICAL.md"><strong>Technical Readme</strong></a>
+	<a href="https://github.com/darkreactions/ESCALATE/blob/master/escalate/TECHNICAL.md"><strong>ESCALATE v3 Data Model Overview</strong></a>
     <br />
   </p>
   
@@ -55,7 +53,7 @@ This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.t
 * [DARPA SD2 program](https://www.darpa.mil/program/synergistic-discovery-and-design)
 * [Haverford College](https://www.haverford.edu)
 * [Lawrence Berkely National Lab](https://www.lbl.gov)
-* [Los Alamos National Lab] (https://www.lanl.gov)
+* [Los Alamos National Lab](https://www.lanl.gov)
 
 
 

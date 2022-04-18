@@ -19,9 +19,7 @@ class ExperimentReagentPrepView(TemplateView):
     # form_class = ExperimentTemplateForm
     # ReagentFormSet = formset_factory(ReagentForm, extra=0, formset=BaseReagentFormSet)
     ReagentFormSet = formset_factory(
-        ReagentValueForm,
-        extra=0,
-        formset=BaseReagentFormSet,
+        ReagentValueForm, extra=0, formset=BaseReagentFormSet,
     )
 
     def get(self, request, *args, **kwargs):
@@ -56,11 +54,21 @@ class ExperimentReagentPrepView(TemplateView):
         reagent_template_names = []
         reagent_total_volume_forms = []
         form_kwargs = {
-            "disabled_fields": ["material", "material_type", "nominal_value"],
+            "disabled_fields": [
+                "material",
+                "material_type",
+                "concentration",
+                "nominal_value",
+            ],
         }
 
         context["helper"] = ReagentValueForm.get_helper(
-            readonly_fields=["material", "material_type", "nominal_value"]
+            readonly_fields=[
+                "material",
+                "material_type",
+                "concentration",
+                "nominal_value",
+            ]
         )
         context["helper"].form_tag = False
 
@@ -90,16 +98,21 @@ class ExperimentReagentPrepView(TemplateView):
             for reagent_material in reagent_materials:
 
                 reagent_names.append(reagent_material.description)
-                rmvi = reagent_material.property_rm.all().get(
+                rmvi_amount = reagent_material.property_rm.all().get(
                     template__description="amount"
                 )
+                rmvi_conc = reagent_material.property_rm.all().get(
+                    template__description="concentration"
+                )
+
                 initial.append(
                     {
                         "material_type": reagent_material.template.material_type.description,
                         "material": reagent_material.material,
-                        "nominal_value": rmvi.nominal_value,
-                        "actual_value": rmvi.value,
-                        "uuid": rmvi.uuid,
+                        "concentration": rmvi_conc.nominal_value,
+                        "nominal_value": rmvi_amount.nominal_value,
+                        "actual_value": rmvi_amount.value,
+                        "uuid": rmvi_amount.uuid,
                     }
                 )
 

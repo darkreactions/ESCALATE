@@ -4,13 +4,7 @@
   <a href="https://github.com/darkreactions/ESCALATE">
     <img src="../data_model/images/Escalate_B-04.png" alt="Logo" width="250 height="100">
   </a>
-  <h1 align="center">ESCALATE v3</h1>
-  <p align="center">
-   Django Project README
-    <br />
-        <a href="https://github.com/darkreactions/ESCALATE/blob/master/escalate/README.md"><strong>ESCALATE Django Technical Docs</strong></a>
-    <br />
-  </p>
+  <h1 align="center">ESCALATE v3 Data Model Overview</h1>
   
 </p>
 
