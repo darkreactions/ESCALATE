@@ -4,8 +4,8 @@ from core.models.core_tables import TypeDef
 import pandas as pd
 import tempfile
 from logging import raiseExceptions
-from pint import UnitRegistry
-
+from pint import Quantity, UnitRegistry
+from core.models.view_tables import Property
 
 units = UnitRegistry()
 Q_ = units.Quantity
@@ -34,9 +34,10 @@ class ConcentrationToAmountPlugin(PostProcessPlugin):
                 conc = reagent_material.property_rm.filter(
                     template__description="concentration"
                 ).first()
-                conc_val = conc.nominal_value.value
-                conc_unit = conc.nominal_value.unit
-                conc = Q_(conc_val, conc_unit)
+                if conc is not None:
+                    conc_val = conc.nominal_value.value
+                    conc_unit = conc.nominal_value.unit
+                    conc = Q_(conc_val, conc_unit)
                 mat_type = reagent_material.template.material_type.description
                 phase = reagent_material.material.phase
                 if not phase:
@@ -80,11 +81,13 @@ class ConcentrationToAmountPlugin(PostProcessPlugin):
             prop = reagent.property_r.filter(
                 template__description__icontains="total volume"
             ).first()
+            assert isinstance(prop, Property)
             total_vol = Q_(f"{prop.nominal_value.value} {prop.nominal_value.unit}")
 
             dead_vol_prop = reagent.property_r.filter(
                 template__description__icontains="dead volume"
             ).first()
+            assert isinstance(dead_vol_prop, Property)
             dead_vol = Q_(
                 f"{dead_vol_prop.nominal_value.value} {dead_vol_prop.nominal_value.unit}"
             )

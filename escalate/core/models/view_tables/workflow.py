@@ -22,7 +22,7 @@ from core.managers import (
     ExperimentPendingInstanceManager,
 )
 from core.models.view_tables.actions import ActionTemplate, Action
-from core.models.view_tables.chemistry_data import ReagentTemplate
+from core.models.view_tables.chemistry_data import ReagentTemplate, Reagent
 
 
 managed_tables = True
@@ -305,6 +305,7 @@ class ExperimentInstance(DateColumns, StatusColumn, DescriptionColumn):
     priority = models.CharField(db_column="priority", max_length=255, default="1")
     metadata = JSONField(blank=True, null=True)
     action_ei: "QuerySet[Action]"
+    reagent_ei: "QuerySet[Reagent]"
 
     def __str__(self):
         return f"{self.description}"

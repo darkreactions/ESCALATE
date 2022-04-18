@@ -327,6 +327,7 @@ class Reagent(DateColumns, DescriptionColumn, StatusColumn):
         related_name="reagent_rt",
     )
     property_r: "QuerySet[Property]"
+    reagent_material_r: "QuerySet[ReagentMaterial]"
 
     def save(self, *args, **kwargs):
         """

@@ -65,7 +65,7 @@ class SlugField(AutoSlugField):
         lookup_value_path = ".".join(lookup_value.split("__"))
         attr = rgetattr(model_instance, lookup_value_path, None)
 
-        if attr.__class__.__name__ == "ManyRelatedManager":
+        if attr.__class__.__name__ == "ManyRelatedManager" and attr is not None:
             return "-".join(attr.all())
         if callable(attr):
             return "%s" % attr()

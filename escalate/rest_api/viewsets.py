@@ -192,7 +192,7 @@ class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
 
         exp_name = request.data["experiment_name"]
 
-        experiment_copy_uuid = experiment_copy(template_uuid, exp_name)
+        experiment_copy_uuid: uuid.UUID = experiment_copy(template_uuid, exp_name, {})
         # q1, q2, q3 = get_action_parameter_querysets(experiment_copy_uuid)
         q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
 

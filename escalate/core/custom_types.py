@@ -10,7 +10,7 @@ import uuid
 
 class Val:
     val_type: TypeDef
-    positions: dict[AnyStr, int] = {
+    positions: dict[str, int] = {
         "text": 2,
         "array_text": 3,
         "int": 4,
@@ -23,13 +23,13 @@ class Val:
         "array_bool": 11,
     }
 
-    def __init__(self, val_type: TypeDef, value: Any, unit: str, null: bool=False, raw_string: str=""):
+    def __init__(self, val_type: TypeDef|None, value: Any, unit: str, null: bool=False, raw_string: str=""):
         self.null = null
         self.unit: str|None = None
         if isinstance(value, str):
             if len(value) == 0:
                 print(raw_string)
-        if not self.null:
+        if not self.null and val_type is not None:
             self.val_type = val_type
             if not isinstance(val_type, str):
                 self.type_uuid = val_type.uuid
@@ -180,7 +180,7 @@ class Val:
     @classmethod
     def from_dict(cls, json_data):
         if json_data is None:
-            return cls(None, None, None, null=True)
+            return cls(None, None, '', null=True)
         else:
             required_keys = set(["type", "value", "unit"])
             # Check if all keys are present in

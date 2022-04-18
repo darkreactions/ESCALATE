@@ -1,3 +1,4 @@
+from typing import Any
 from django.db import connection as con
 from django.db.models import F
 from core.models import ExperimentTemplate, Action
@@ -22,6 +23,7 @@ import pandas as pd
 import tempfile
 import math
 from itertools import product
+import uuid
 
 from core.models.app_tables import ActionTemplateDesign
 
@@ -344,7 +346,7 @@ def custom_pairing(source_vessels, dest_vessels):
                             )'''
 
 
-def experiment_copy(template_experiment_uuid, copy_experiment_description, vessels):
+def experiment_copy(template_experiment_uuid: str, copy_experiment_description: str, vessels: "dict[str, Any]") -> uuid.UUID:
     """Creates an experiment instance based on the template uuid
 
     Args:

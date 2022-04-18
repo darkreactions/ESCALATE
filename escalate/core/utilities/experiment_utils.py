@@ -2,6 +2,7 @@
 Created on Mar 29, 2021
 
 """
+import uuid
 import numpy as np
 from copy import deepcopy
 import os
@@ -129,7 +130,9 @@ def supported_wfs():
     return template_list
 
 
-def get_action_parameter_querysets(exp_uuid: str, template=True) -> QuerySet:
+def get_action_parameter_querysets(
+    exp_uuid: "str | uuid.UUID", template=True
+) -> "QuerySet[ExperimentTemplate]":
     """Get a queryset that has data related to the given experiment
 
     Args:
@@ -149,7 +152,7 @@ def get_action_parameter_querysets(exp_uuid: str, template=True) -> QuerySet:
     else:
         model = ExperimentInstance
 
-    q1: QuerySet = (
+    q1: QuerySet[ExperimentTemplate] = (
         model.objects.filter(uuid=exp_uuid)
         .prefetch_related(related_au)
         .annotate(object_description=F(f"{related_a}__description"))
