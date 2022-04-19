@@ -3,7 +3,6 @@ import core.views
 from core.views.function_views import (
     download_vp_spec_file,
     download_manual_spec_file,
-    # save_action_sequence,
     save_experiment_action_template,
     experiment_invalid,
 )
@@ -13,7 +12,6 @@ from .views import (
     CreateUserView,
     MainMenuView,
     SelectLabView,
-    # ExperimentActionSequenceView,
     ActionTemplateView,
     ModelTagCreate,
     ModelTagUpdate,
@@ -26,12 +24,12 @@ from .views.experiment import (
     CreateExperimentView,
     SetupExperimentView,
     CreateExperimentTemplate,
-    # ExperimentDetailView,
     ExperimentReagentPrepView,
     ExperimentOutcomeView,
     ExperimentDetailEditView,
     ParameterEditView,
     CreateExperimentWizard,
+    CreateTemplateWizard,
 )
 
 from .views.experiment.create_select_template import SelectReagentsView
@@ -104,7 +102,7 @@ urlpatterns += [
 urlpatterns += [
     path(
         "exp_template/",
-        CreateExperimentTemplate.as_view(),
+        CreateTemplateWizard.as_view(),
         name="experiment_template_add",
     ),
     # path("save_action_sequence/", save_action_sequence, name="save_action_sequence",),

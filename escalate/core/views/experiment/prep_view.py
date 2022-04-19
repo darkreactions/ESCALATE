@@ -12,6 +12,7 @@ from core.models.view_tables import (
 )
 from core.forms.custom_types import ReagentValueForm
 from core.forms.custom_types import BaseReagentFormSet, PropertyForm
+from core.utilities.utils import get_colors
 
 
 class ExperimentReagentPrepView(TemplateView):
@@ -30,25 +31,6 @@ class ExperimentReagentPrepView(TemplateView):
         experiment = ExperimentInstance.objects.get(pk=pk)
         context = self.get_reagent_forms(experiment, context)
         return render(request, self.template_name, context)
-
-    def get_colors(
-        self,
-        number_of_colors,
-        colors=[
-            "lightblue",
-            "teal",
-            "powderblue",
-            "skyblue",
-            "steelblue",
-            "pastelblue",
-            "verdigris",
-            "cornflowerblue",
-        ],
-    ):
-        factor = int(number_of_colors / len(colors))
-        remainder = number_of_colors % len(colors)
-        total_colors = colors * factor + colors[:remainder]
-        return total_colors
 
     def get_reagent_forms(self, experiment, context):
         formsets = []
@@ -110,7 +92,7 @@ class ExperimentReagentPrepView(TemplateView):
 
         context["reagent_formsets"] = zip(formsets, reagent_total_volume_forms)
         context["reagent_template_names"] = reagent_template_names
-        context["colors"] = self.get_colors(len(formsets))
+        context["colors"] = get_colors(len(formsets))
 
         return context
 

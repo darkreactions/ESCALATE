@@ -4,6 +4,14 @@
 {% load index %}
 
 {% block content %}
+
+{% if template_name %}
+<p> Created Experiment Template! </p>
+<p>Template name: {{ template_name }}</p>
+<p> <a href={{ workflow_link }}> Add action sequence</a></p>
+
+
+{% elif exp_name %}
 <p> Created Experiment! </p>
 <p>Experiment name: {{ new_exp_name }}</p>
 <p> <a href={{ experiment_link }}> View experiment details</a></p>
@@ -13,6 +21,7 @@
 <form action="{{ outcome_link }}">
     <button class="btn btn-outline-primary" type="submit">Submit Outcomes</button>
 </form>
+% endif %}
 
 {% if lsr_download_link %}
 <p> <a href={{ lsr_download_link }}> Download LibraryStudio file </a></p>

@@ -42,18 +42,18 @@ from core.models.view_tables import (
 from core.models.app_tables import CustomUser
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
-from core.utilities.utils import experiment_copy
+from core.utilities.utils import experiment_copy, get_colors
 import pandas as pd
 
-
-SELECT_TEMPLATE = "select_template"
-NUM_OF_EXPS = "set_num_of_experiments"
-MANUAL_SPEC = "manual_experiment_specification"
-AUTOMATED_SPEC = "automated_experiment_specification"
-REAGENT_PARAMS = "reagent_parameters"
-SELECT_VESSELS = "select_vessels"
-ACTION_PARAMS = "action_parameters"
-POSTPROCESS = "select_postprocessors"
+#steps with names to display in UI
+SELECT_TEMPLATE = "Select Experiment Template"
+NUM_OF_EXPS = "Set Number of Experiments"
+MANUAL_SPEC = "Specify Manual Experiments"
+AUTOMATED_SPEC = "Specify Automated Experiments"
+REAGENT_PARAMS = "Specify Reagent Parameters"
+SELECT_VESSELS = "Select Vessels"
+ACTION_PARAMS = "Specify Action Parameters"
+POSTPROCESS = "Select Postprocessors"
 
 
 class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
@@ -269,7 +269,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             self.initial_dict[SELECT_VESSELS].append(
                 {"value": vt.default_vessel, "template_uuid": str(vt.uuid)}
             )
-        colors = self._get_colors(self.experiment_template.vessel_templates.count())
+        colors = get_colors(self.experiment_template.vessel_templates.count())
         kwargs["form_kwargs"]["colors"] = colors
         return kwargs
 
@@ -291,7 +291,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             }
         }
         kwargs["form_kwargs"]["experiment_template"] = self.experiment_template
-        colors = self._get_colors(len(reagent_templates))
+        colors = get_colors(len(reagent_templates))
         for i, rt in enumerate(reagent_templates):
             kwargs["form_kwargs"]["form_data"][str(i)] = {
                 "description": rt.description,
@@ -308,26 +308,6 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
 
         return kwargs
 
-    def _get_colors(
-        self,
-        number_of_colors: int,
-        colors: "list[str]" = [
-            "lightblue",
-            "teal",
-            "powderblue",
-            "skyblue",
-            "steelblue",
-            "cornflowerblue",
-            "verdegris",
-            "pastelblue",
-        ],
-    ) -> "list[str]":
-        """Colors for forms that display on UI"""
-        factor = int(number_of_colors / len(colors))
-        remainder = number_of_colors % len(colors)
-        total_colors = colors * factor + colors[:remainder]
-        return total_colors
-
     def _get_action_parameters_kwargs(self):
         kwargs = {
             "form_kwargs": {
@@ -339,7 +319,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             source_vessel_decomposable=False, dest_vessel_decomposable=False
         )
 
-        colors = self._get_colors(len(action_templates))
+        colors = get_colors(len(action_templates))
 
         for i, at in enumerate(action_templates):
             action_parameter_list = []
