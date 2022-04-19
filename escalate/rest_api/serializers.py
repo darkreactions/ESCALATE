@@ -69,9 +69,6 @@ class DynamicFieldsModelSerializer(
             kwargs.pop("view_name")
         super(DynamicFieldsModelSerializer, self).__init__(*args, **kwargs)
 
-    def get_queryset(self):
-        return super().get_queryset()
-
 
 class TagAssignSerializer(DynamicFieldsModelSerializer):
     tag_label = CharField(source="tag.display_text", read_only=True)

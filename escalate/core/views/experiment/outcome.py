@@ -19,6 +19,7 @@ from core.models.view_tables import (
     Outcome,
     OutcomeTemplate,
     Note,
+    Edocument,
 )
 from core.forms.custom_types import OutcomeForm, UploadFileForm
 from core.widgets import ValWidget
@@ -109,11 +110,20 @@ class ExperimentOutcomeView(TemplateView):
                         outcome_filename: str = row[ot.description + " filename"]
                         if outcome_filename:
                             outcome_file = related_files_dict[outcome_filename]
+                            Edocument.objects.create(
+                                title=outcome_filename,
+                                filename=outcome_filename,
+                                source="Outcome form upload",
+                                edocument=outcome_file,
+                            )
                     except KeyError:
                         messages.error(
                             request,
                             f"Error: File {outcome_filename} in outcome csv not found in uploaded files. Please correct and resubmit",
                         )
+                        return False
+                    except Exception as e:
+                        messages.error(request, f"Error: {e}")
                         return False
 
         # Call save on all outcomes if everything goes well

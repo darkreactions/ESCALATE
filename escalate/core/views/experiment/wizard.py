@@ -2,6 +2,7 @@ from __future__ import annotations
 from distutils.command.clean import clean
 from keyword import kwlist
 import os
+import uuid
 from typing import List, Any
 from formtools.wizard.views import SessionWizardView
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -45,7 +46,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from core.utilities.utils import experiment_copy, get_colors
 import pandas as pd
 
-#steps with names to display in UI
+# steps with names to display in UI
 SELECT_TEMPLATE = "Select Experiment Template"
 NUM_OF_EXPS = "Set Number of Experiments"
 MANUAL_SPEC = "Specify Manual Experiments"
@@ -333,7 +334,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
 
         return kwargs
 
-    def _save_forms(self, instance_uuid: str):
+    def _save_forms(self, instance_uuid: "str|uuid.UUID"):
         exp_instance = ExperimentInstance.objects.select_related().get(
             uuid=instance_uuid
         )
