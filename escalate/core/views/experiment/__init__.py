@@ -6,3 +6,5 @@ from .outcome import *
 from .prep_view import *
 from .template import *
 from .wizard import *
+from .template_wizard import *
+

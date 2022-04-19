@@ -10,6 +10,7 @@ from django.shortcuts import render
 from django.urls import reverse
 
 from django.contrib import messages
+from core.utilities.utils import get_colors
 from core.utilities.experiment_utils import get_action_parameter_querysets
 from core.models import (
     ExperimentTemplate,
@@ -88,7 +89,7 @@ class SelectReagentsView(TemplateView):
         context = self.get_reagent_forms(context)
         context = self.get_volume_forms(context)
         context = self.get_vessel_forms(context)
-        context["colors"] = self.get_colors(len(context["reagent_formset"]))
+        context["colors"] = get_colors(len(context["reagent_formset"]))
         return context
 
     def get_vessel_forms(self, context: dict[str, Any]) -> dict[str, Any]:
@@ -247,23 +248,3 @@ class SelectReagentsView(TemplateView):
                 index += 1
         context["reaction_parameter_labels"] = rp_labels
         return context
-
-    def get_colors(
-        self,
-        number_of_colors: int,
-        colors: list[str] = [
-            "lightblue",
-            "teal",
-            "powderblue",
-            "skyblue",
-            "steelblue",
-            "pastelblue",
-            "verdigris",
-            "cornflowerblue",
-        ],
-    ) -> list[str]:
-        """Colors for forms that display on UI"""
-        factor = int(number_of_colors / len(colors))
-        remainder = number_of_colors % len(colors)
-        total_colors = colors * factor + colors[:remainder]
-        return total_colors

@@ -35,6 +35,22 @@ def camel_to_snake(name):
     return name
 
 
+def get_colors(
+        number_of_colors: int,
+        colors: "list[str]" = [
+            '#8FBDD3',
+            '#BE8C63',
+            '#A97155',
+            '#1572A1',
+        ]
+    ) -> "list[str]":
+        """Colors for forms that display on UI"""
+        factor = int(number_of_colors / len(colors))
+        remainder = number_of_colors % len(colors)
+        total_colors = colors * factor + colors[:remainder]
+        return total_colors
+
+
 def make_well_labels_list(well_count=96, column_order=None, robot="True"):
     """[summary]
 

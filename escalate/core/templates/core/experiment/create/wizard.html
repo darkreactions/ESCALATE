@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block content %}
-<p>Step {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</p>
+<p>Step {{ wizard.steps.step1 }} of {{ wizard.steps.count }}: {{ wizard.steps.current }} </p>
 <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
     <table>
         {{ wizard.management_form }}

@@ -4,15 +4,13 @@ from django.views import View
 import json
 import core.models.view_tables as vt
 from core.utilities import generate_action_def_json
-from core.forms.custom_types import ExperimentTemplateSelectForm, ActionSequenceNameForm
+from core.forms.custom_types import ExperimentTemplateSelectForm
 from django.http.request import HttpRequest
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.contrib import messages
 
 from pathlib import Path
-
-# from core.views.function_views import save_experiment_action_sequence
 
 
 class ActionTemplateView(LoginRequired, View):
