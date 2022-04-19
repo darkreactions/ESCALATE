@@ -23,9 +23,16 @@ class Val:
         "array_bool": 11,
     }
 
-    def __init__(self, val_type: TypeDef|None, value: Any, unit: str, null: bool=False, raw_string: str=""):
+    def __init__(
+        self,
+        val_type: TypeDef | None,
+        value: Any,
+        unit: str,
+        null: bool = False,
+        raw_string: str = "",
+    ):
         self.null = null
-        self.unit: str|None = None
+        self.unit: str | None = None
         if isinstance(value, str):
             if len(value) == 0:
                 print(raw_string)
@@ -52,9 +59,7 @@ class Val:
             string_list[0] = str(val_type_uuid)
             string_list[1] = self.unit
             val_type_desc = self.val_type.description
-            string_list[
-                self.positions[val_type_desc]
-            ] = f'"{str(self.value)}"'
+            string_list[self.positions[val_type_desc]] = f'"{str(self.value)}"'
             return f'({",".join(string_list)})'
         else:
             return None
@@ -74,10 +79,10 @@ class Val:
         return converted_value
 
     def convert_single_value(self, description: str, value: Any) -> Any:
-        int_convert: Tuple[Callable[[str], int]] = lambda x: int(float(x)),
+        int_convert: Callable[[str], int] = lambda x: int(float(x))
         primitives = {
             "bool": bool,
-            "int" : int_convert,
+            "int": int_convert,
             "num": float,
             "text": str,
             "blob": str,
@@ -180,7 +185,7 @@ class Val:
     @classmethod
     def from_dict(cls, json_data):
         if json_data is None:
-            return cls(None, None, '', null=True)
+            return cls(None, None, "", null=True)
         else:
             required_keys = set(["type", "value", "unit"])
             # Check if all keys are present in

@@ -206,21 +206,24 @@ expandable_fields = {
         },
     },
     "ExperimentInstance": {
-        "options": {"many_to_many": ["action_sequence"]},
+        "options": {},
         "fields": {
-            "action_sequence": (
-                "rest_api.ActionSequenceSerializer",
+            "action": (
+                "rest_api.ActionSerializer",
                 {
+                    "source": "action_ei",
                     "many": True,
+                    "read_only": True,
+                    "view_name": "action-detail",
                 },
             ),
-            "reagents": (
+            "reagent": (
                 "rest_api.ReagentSerializer",
                 {
                     "source": "reagent_ei",
                     "many": True,
                     "read_only": True,
-                    "view_name": "reagentmaterial-detail",
+                    "view_name": "reagent-detail",
                 },
             ),
             "outcome": (
@@ -234,18 +237,45 @@ expandable_fields = {
             ),
         },
     },
-}
-"""
-            "bill_of_materials": (
-                "rest_api.BillOfMaterialsSerializer",
+    "Reagent": {
+        "options": {},
+        "fields": {
+            "reagent_material": (
+                "rest_api.ReagentMaterialSerializer",
                 {
-                    "source": "bom_experiment_instance",
+                    "source": "reagent_material_r",
                     "many": True,
                     "read_only": True,
-                    "view_name": "billofmaterials-detail",
+                    "view_name": "reagentmaterial-detail",
                 },
             ),
-"""
+            "property": (
+                "rest_api.PropertySerializer",
+                {
+                    "source": "property_r",
+                    "many": True,
+                    "read_only": True,
+                    "view_name": "property-detail",
+                },
+            ),
+        },
+    },
+    "ReagentMaterial": {
+        "options": {},
+        "fields": {
+            "property": (
+                "rest_api.PropertySerializer",
+                {
+                    "source": "property_rm",
+                    "many": True,
+                    "read_only": True,
+                    "view_name": "property-detail",
+                },
+            )
+        },
+    },
+}
+
 
 # Endpoints should be filtered based on lab selected and permissions of the user
 # Remove delete for selected models

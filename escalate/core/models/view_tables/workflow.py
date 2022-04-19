@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import QuerySet, Prefetch, F
 from django.contrib.postgres.fields import ArrayField, JSONField
+from pyparsing import rest_of_line
 
 from core.models.core_tables import RetUUIDField, SlugField
 from core.models.custom_types import ValField, CustomArrayField
@@ -220,18 +221,43 @@ class ExperimentTemplate(DateColumns, StatusColumn):
         self,
         source_vessel_decomposable: "bool|None",
         dest_vessel_decomposable: "bool|None",
-    ) -> "QuerySet[ActionTemplate]":
+    ) -> "list[ActionTemplate]":
         filter = {}
         if source_vessel_decomposable is not None:
             filter["source_vessel_decomposable"] = source_vessel_decomposable
         if dest_vessel_decomposable is not None:
             filter["dest_vessel_decomposable"] = dest_vessel_decomposable
-        action_templates = (
+
+        # Sorting action templates using depth first
+        # Get all action templates without parents
+        filter["parent__isnull"] = True
+
+        def visit_at(
+            at: ActionTemplate, visited_ats: set, result: "list[ActionTemplate]"
+        ):
+            if at.uuid not in visited_ats:
+                visited_ats.add(at.uuid)
+                result.append(at)
+                for child in at.children.all():
+                    result = visit_at(child, visited_ats, result)
+            return result
+
+        visited_ats = set()
+        head_ats = (
             self.action_template_et.filter(**filter)
             .prefetch_related(Prefetch("action_def__parameter_def"))
             .order_by("description")
         )
-        return action_templates
+        result = []
+        for head_at in head_ats:
+            result = visit_at(head_at, visited_ats, result)
+
+        # action_templates = (
+        #     self.action_template_et.filter(**filter)
+        #     .prefetch_related(Prefetch("action_def__parameter_def"))
+        #     .order_by("description")
+        # )
+        return result
 
     def get_reagent_templates(self) -> "QuerySet[ReagentTemplate]":
         """Return the properties of reagent templates related to

@@ -307,12 +307,6 @@ for model_name, data in expandable_fields.items():
     )
 
 
-# class OutcomeSerializer(DynamicFieldsModelSerializer):
-#    class Meta:
-#        model = Outcome
-#        fields = "__all__"
-
-
 class OutcomeTemplateSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = OutcomeTemplate
