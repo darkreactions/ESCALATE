@@ -14,7 +14,7 @@
     <table>
         {{ wizard.management_form }}
         
-        {% if wizard.steps.current == 'manual_experiment_specification' %}
+        {% if wizard.steps.current == 'Specify Manual Experiments' %}
             <span>To manually specify experiment, <a href="{% url 'download_manual_spec_file' %}">click here</a> to download a manual
                 specification excel file, fill the appropriate columns and reupload using the form below</span>
         {% endif %}

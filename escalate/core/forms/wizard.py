@@ -152,7 +152,7 @@ class ReagentForm(Form):
         rmt: vt.ReagentMaterialTemplate,
     ):
         self.fields[f"material_{self.material_index}_{index}"] = ChoiceField(
-            widget=self.widget, required=False
+            widget=self.widget, required=True
         )
         for prop in rmt.properties.all():
             prop: vt.PropertyTemplate
