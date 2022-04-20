@@ -114,7 +114,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
 
     @property
     def experiment_template(self) -> "ExperimentTemplate":
-        form_data = self.get_cleaned_data_for_step("select_template")
+        form_data = self.get_cleaned_data_for_step(SELECT_TEMPLATE)
         if form_data:
             exp_template_uuid: str = form_data["select_experiment_template"]
             self._experiment_template = ExperimentTemplate.objects.get(
