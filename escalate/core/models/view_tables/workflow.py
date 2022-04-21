@@ -1,7 +1,6 @@
 from django.db import models
 from django.db.models import QuerySet, Prefetch, F
 from django.contrib.postgres.fields import ArrayField, JSONField
-from pyparsing import rest_of_line
 
 from core.models.core_tables import RetUUIDField, SlugField
 from core.models.custom_types import ValField, CustomArrayField
