@@ -2,7 +2,9 @@ from __future__ import annotations
 from django.forms import formset_factory
 from django.forms.formsets import formset_factory
 from django.shortcuts import render
+from django.http import HttpResponseRedirect
 from django.core.exceptions import MultipleObjectsReturned
+from django.contrib import messages
 
 from typing import List
 from formtools.wizard.views import SessionWizardView
@@ -65,6 +67,13 @@ class CreateTemplateWizard(SessionWizardView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    def get(self, request, *args, **kwargs):
+        org_id = self.request.session.get("current_org_id", None)
+        if not org_id:
+            messages.error(request, "Please select a lab to continue")
+            return HttpResponseRedirect(reverse("main_menu"))
+        return super().get(request, *args, **kwargs)
+
     def get_form_initial(self, step):
         if step == ADD_REAGENTS:
             initial = []
@@ -119,7 +128,7 @@ class CreateTemplateWizard(SessionWizardView):
         if step == ADD_OUTCOMES:
             data = self.get_cleaned_data_for_step(INITIALIZE)
             if data is not None:
-                colors = self._get_colors(data["num_outcomes"])
+                colors = get_colors(data["num_outcomes"])
 
                 kwargs = {"form_kwargs": {"colors": colors}} #color data for UI forms
 
@@ -133,20 +142,20 @@ class CreateTemplateWizard(SessionWizardView):
 
                 kwargs = {"form_kwargs": {"colors": colors}} #color data for UI forms
 
-            ''' kwargs = {"form_kwargs": {"materials": {}}}
-            num_reagents = self.get_cleaned_data_for_step(INITIALIZE)["num_reagents"]
-            data = self.get_cleaned_data_for_step(ADD_REAGENTS)
-            for i in range(int(num_reagents)):
-                material_initial = {}
-                mat_initial = []
-                name = data[i]["reagent_template_name"]
-                num_materials = data[i]["num_materials"]
-                for i in range(num_materials):
-                    mat_initial.append({})
-                material_initial.update({name: mat_initial})
-                kwargs["form_kwargs"]["materials"].update(material_initial)'''
+                ''' kwargs = {"form_kwargs": {"materials": {}}}
+                num_reagents = self.get_cleaned_data_for_step(INITIALIZE)["num_reagents"]
+                data = self.get_cleaned_data_for_step(ADD_REAGENTS)
+                for i in range(int(num_reagents)):
+                    material_initial = {}
+                    mat_initial = []
+                    name = data[i]["reagent_template_name"]
+                    num_materials = data[i]["num_materials"]
+                    for i in range(num_materials):
+                        mat_initial.append({})
+                    material_initial.update({name: mat_initial})
+                    kwargs["form_kwargs"]["materials"].update(material_initial)'''
 
-            return kwargs
+                return kwargs
 
         return {}
 
@@ -167,14 +176,17 @@ class CreateTemplateWizard(SessionWizardView):
         
         #for each reagent:
         for r in reagents: 
-            reagent = self.create_reagent_template(r["reagent_template_name"]) #create a reagent template
+            reagent = self.create_reagent_template(r["reagent_template_name"], r["properties"]) #create a reagent template
             materials = []
+            properties = []
             for i in self.get_cleaned_data_for_step(ADD_MATERIALS): #get list of materials associated with the reagent
                 if i['name'] == r["reagent_template_name"]:
                     for key, val in i.items():
                         if 'select_mt' in key:
                             materials.append(val)
-            self.add_materials(reagent.uuid, materials) #associate materials with reagent
+                        if 'properties' in key:
+                            properties.append(val)
+            self.add_materials(reagent.uuid, materials, properties[0]) #associate materials with reagent
             self.add_reagent(exp_template_uuid, reagent.uuid) #associate reagent template with experiment template
 
         outcomes = self.get_cleaned_data_for_step(ADD_OUTCOMES) #obtain outcome form data
@@ -215,14 +227,47 @@ class CreateTemplateWizard(SessionWizardView):
 
         return exp_template.uuid
 
-    def create_reagent_template(self, name):
+    def create_property_template(self, property):
+        ''' helper function to generate a property template 
+        that can be associated with a reagent, material, etc
+        '''
+        
+        default_val = {"value": 0, "unit": "mL", "type": "num"}
+
+        default_data = {
+            "description": "Zero",
+            "nominal_value": default_val,
+            "actual_value": default_val,
+        }
+
+        try:
+            default_val, created = DefaultValues.objects.get_or_create(
+                **default_data
+            )
+        except MultipleObjectsReturned:
+            default_val = DefaultValues.objects.filter(**default_data).first()
+
+
+        # Create property template
+        prop_template, created = PropertyTemplate.objects.get_or_create(
+            **{
+                "description": property.description,
+                "property_def_class": "extrinsic",
+                "default_value": default_val,
+            }
+        )
+        
+        return prop_template
+
+    
+    def create_reagent_template(self, name, properties):
         '''[summary]
         Args:
             name([str]): description of reagent template to create
+            properties(list): contains PropertyTemplate objects to associate with a reagent; can be blank if none are specified
 
         Returns:
-            [str]: uuid of new reagent template with specified name
-                ***NOTE default properties of total volume and dead volume are automatically added to template
+            [str]: uuid of new reagent template with specified name and properties
         '''
 
         reagent_template = ReagentTemplate(description=name)
@@ -230,20 +275,26 @@ class CreateTemplateWizard(SessionWizardView):
 
         rt = ReagentTemplate.objects.get(uuid=reagent_template.uuid)
 
-        volume_val = {"value": 0, "unit": "ml", "type": "num"}
-        dead_vol_val = {"value": 4000, "unit": "uL", "type": "num"}
+        '''default_val = {"value": 0, "unit": "mL", "type": "num"}
+        #dead_vol_val = {"value": 4000, "unit": "uL", "type": "num"}
 
         default_volume_data = {
             "description": "Zero ml",
             "nominal_value": volume_val,
             "actual_value": volume_val,
         }
+        default_data = {
+            "description": "Zero",
+            "nominal_value": default_val,
+            "actual_value": default_val,
+        }
+
         try:
-            default_volume, created = DefaultValues.objects.get_or_create(
-                **default_volume_data
+            default_val, created = DefaultValues.objects.get_or_create(
+                **default_data
             )
         except MultipleObjectsReturned:
-            default_volume = DefaultValues.objects.filter(**default_volume_data).first()
+            default_val = DefaultValues.objects.filter(**default_data).first()
 
         default_dead_volume_data = {
             "description": "WF1 dead volume",
@@ -257,10 +308,24 @@ class CreateTemplateWizard(SessionWizardView):
         except MultipleObjectsReturned:
             default_dead_volume = DefaultValues.objects.filter(
                 **default_dead_volume
-            ).first()
+            ).first()'''
 
-        # Create total volume and dead volume property templates for each reagent
-        total_volume_prop, created = PropertyTemplate.objects.get_or_create(
+        # Create property templates for each reagent
+        for p in properties:
+            
+            '''prop_template, created = PropertyTemplate.objects.get_or_create(
+                **{
+                    "description": prop.description,
+                    "property_def_class": "extrinsic",
+                    "default_value": default_data,
+                }
+            )'''
+            prop = PropertyTemplate.objects.filter(description=p).first()
+            prop_template = self.create_property_template(prop)
+            
+            rt.properties.add(prop_template)
+        
+        '''total_volume_prop, created = PropertyTemplate.objects.get_or_create(
             **{
                 "description": "total volume",
                 "property_def_class": "extrinsic",
@@ -277,22 +342,23 @@ class CreateTemplateWizard(SessionWizardView):
             }
         )
         rt.properties.add(total_volume_prop)
-        rt.properties.add(dead_volume_prop)
+        rt.properties.add(dead_volume_prop)'''
         return rt
 
-    def add_materials(self, reagent, material_types):
+    def add_materials(self, reagent, material_types, properties):
         '''[summary]
         Args:
             reagent[(str)]: uuid of reagent template
-            materials([list]): list of uuid's of material types to be added to reagent templae
+            materials([list]): list of uuid's of material types to be added to reagent template
+            properties(list): contains PropertyTemplate objects to associate with each material
         
         Returns:
             N/A
-            associates material types with reagent and adds default properties (amount and concentration)
+            associates material types with reagent and adds desired properties 
         '''
         reagent_template = ReagentTemplate.objects.get(uuid=reagent)
 
-        amount_val = {"value": 0, "unit": "g", "type": "num"}
+        '''amount_val = {"value": 0, "unit": "g", "type": "num"}
 
         conc_val = {"value": 0, "unit": "M", "type": "num"}
 
@@ -313,29 +379,32 @@ class CreateTemplateWizard(SessionWizardView):
         )
 
         # Concentration and amount data to be stored for each reagent material
-        reagent_values = {"concentration": default_conc, "amount": default_amount}
+        reagent_values = {"concentration": default_conc, "amount": default_amount}'''
 
-        for r in material_types:
+        for num, r in enumerate(material_types):
             mt = MaterialType.objects.get(uuid=r)
             # reagent_template.material_type.add(mt)
 
             (rmt, created) = ReagentMaterialTemplate.objects.get_or_create(
                 **{
-                    "description": f"{reagent_template.description}: {mt.description}",
+                    "description": f"{reagent_template.description}: {mt.description} {num}",
                     "reagent_template": reagent_template,
                     "material_type": mt,
                 }
             )
 
-            for rv, default in reagent_values.items():
-                (rmv_template, created,) = PropertyTemplate.objects.get_or_create(
+            #for rv, default in reagent_values.items():
+            for p in properties:
+                prop = PropertyTemplate.objects.filter(description=p).first()
+                prop_template = self.create_property_template(prop)
+                '''(rmv_template, created,) = PropertyTemplate.objects.get_or_create(
                     **{
                         "description": rv,
                         # "reagent_material_template": rmt,
                         "default_value": default,
                     }
-                )
-                rmt.properties.add(rmv_template)
+                )'''
+                rmt.properties.add(prop_template) #rmv_template)
 
     def add_reagent(self, exp_template_uuid, reagent):
         '''[summary]
