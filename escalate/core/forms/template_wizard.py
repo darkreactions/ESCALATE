@@ -17,7 +17,9 @@ class ReagentTemplateCreateForm(Form):
 
     reagent_template_name = CharField(required=True)
 
-    num_materials = IntegerField(label="Number of Materials", required=True, initial=1, min_value=1)
+    num_materials = IntegerField(
+        label="Number of Materials", required=True, initial=1, min_value=1
+    )
 
     def __init__(self, *args, **kwargs):
         try:
@@ -26,9 +28,11 @@ class ReagentTemplateCreateForm(Form):
             colors = kwargs.pop("colors")
             self.data_current = {"color": colors[self.reagent_index]}
         except KeyError:
-            self.reagent_index=0
+            self.reagent_index = 0
         super().__init__(*args, **kwargs)
-        self.fields["reagent_template_name"].label = f"Reagent {str(int(self.reagent_index)+1)} Name"
+        self.fields[
+            "reagent_template_name"
+        ].label = f"Reagent {str(int(self.reagent_index)+1)} Name"
 
         self.get_helper()
 
@@ -39,24 +43,27 @@ class ReagentTemplateCreateForm(Form):
         helper.field_class = "col-lg-8"
 
         helper.layout = Layout(
-            Row((Field(f"reagent_template_name")), Field(f"num_materials")),)
+            Row((Field(f"reagent_template_name")), Field(f"num_materials")),
+        )
 
         helper.form_tag = False
         self.helper = helper
 
+
 class ReagentTemplateMaterialAddForm(Form):
-    
+
     name = CharField(disabled=True, label="Reagent")
 
-    def generate_subforms(self, i): 
-        self.fields[f'select_mt_{i}'] = ChoiceField(
-            widget=Select(), required=True, label="Select Material Type",
+    def generate_subforms(self, i):
+        self.fields[f"select_mt_{i}"] = ChoiceField(
+            widget=Select(),
+            required=True,
+            label="Select Material Type",
         )
 
-        self.fields[f'select_mt_{i}'].choices = [
+        self.fields[f"select_mt_{i}"].choices = [
             (r.uuid, r.description) for r in vt.MaterialType.objects.all()
         ]
-
 
     def __init__(self, *args, **kwargs):
         try:
@@ -64,8 +71,8 @@ class ReagentTemplateMaterialAddForm(Form):
             colors = kwargs.pop("colors")
             self.data_current = {"color": colors[self.index]}
         except KeyError:
-            self.index=0
-        
+            self.index = 0
+
         data = kwargs.pop("initial")
 
         super().__init__(*args, **kwargs)
@@ -82,19 +89,21 @@ class ReagentTemplateMaterialAddForm(Form):
         helper.label_class = "col-lg-8"
         helper.field_class = "col-lg-8"
 
-        '''helper.layout = Layout(
+        """helper.layout = Layout(
             # Row((Field(f"name")),),
             Row(Field(f"name")), 
             Row(Field(f'select_mt_{i}',),))
-        #)'''
+        #)"""
         helper.form_tag = False
         # return helper
         self.helper = helper
+
 
 class ExperimentTemplateNameForm(Form):
     exp_template_name = CharField(
         label="Experiment Template Name", max_length=100, required=True
     )
+
 
 class OutcomeDefinitionForm(Form):
 
@@ -107,11 +116,13 @@ class OutcomeDefinitionForm(Form):
             colors = kwargs.pop("colors")
             self.data_current = {"color": colors[self.outcome_index]}
         except KeyError:
-            self.outcome_index=0
+            self.outcome_index = 0
 
         super().__init__(*args, **kwargs)
-        self.fields["define_outcomes"].label = f"Outcome {str(int(self.outcome_index)+1)}"
-       
+        self.fields[
+            "define_outcomes"
+        ].label = f"Outcome {str(int(self.outcome_index)+1)}"
+
         try:
             data_types = TypeDef.objects.filter(category="data")
             data_type_choices = [
@@ -135,8 +146,9 @@ class OutcomeDefinitionForm(Form):
         helper.field_class = "col-lg-8"
 
         helper.layout = Layout(
-            Row((Field(f"define_outcomes")), Field(f"outcome_type")),)
-        
+            Row((Field(f"define_outcomes")), Field(f"outcome_type")),
+        )
+
         helper.form_tag = False
         # return helper
         self.helper = helper
@@ -167,14 +179,13 @@ class ExperimentTemplateCreateForm(Form):
     )
 
     num_outcomes = IntegerField(
-        label="Number of outcomes to measure", required="True", initial=1, min_value=0
+        label="Number of outcomes to measure", required=True, initial=1, min_value=0
     )
 
     def __init__(self, *args, **kwargs):
         org_id = kwargs.pop("org_id")
         lab = vt.Actor.objects.get(organization=org_id, person__isnull=True)
         super().__init__(*args, **kwargs)
-       
 
     def clean(self):
         cleaned_data = super().clean()

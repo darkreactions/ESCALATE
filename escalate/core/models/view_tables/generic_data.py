@@ -165,7 +165,7 @@ class Property(DateColumns, StatusColumn, ActorColumn):
     )
 
     def __str__(self):
-        return "{} : {}".format(self.property_def, self.property_val)
+        return "{} : {}".format(self.property_def, self.property_val)  # type: ignore
 
 
 class PropertyTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):

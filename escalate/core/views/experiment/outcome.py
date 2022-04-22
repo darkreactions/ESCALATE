@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any
+from typing import Any, Dict
 from collections import defaultdict
 import tempfile
 from django.core.files.uploadedfile import UploadedFile
@@ -48,7 +48,7 @@ class ExperimentOutcomeView(TemplateView):
         return context
 
     def post(
-        self, request: HttpRequest, *args: str, **kwargs: int
+        self, request: HttpRequest, *args: str, **kwargs: Any
     ) -> HttpResponseRedirect | FileResponse | HttpResponse:
         # context = self.get_context_data(**kwargs)
         # experiment_instance_uuid = request.resolver_match.kwargs['pk']
@@ -65,12 +65,9 @@ class ExperimentOutcomeView(TemplateView):
                 outcomes_processed = self.process_outcome_csv(
                     df, related_files, kwargs["pk"], request
                 )
-            else:
-                return self.get(request, *args, **kwargs)
-        if outcomes_processed:
-            return HttpResponseRedirect(reverse("experiment_instance_list"))
-        else:
-            return self.get(request, *args, **kwargs)
+                if outcomes_processed:
+                    return HttpResponseRedirect(reverse("experiment_instance_list"))
+        return self.get(request, *args, **kwargs)
 
     def process_outcome_csv(
         self,
@@ -79,7 +76,9 @@ class ExperimentOutcomeView(TemplateView):
         exp_uuid: str,
         request: HttpRequest,
     ) -> bool:
-        outcomes: QuerySet = Outcome.objects.filter(experiment_instance__uuid=exp_uuid)
+        outcomes: QuerySet[Outcome] = Outcome.objects.filter(
+            experiment_instance__uuid=exp_uuid
+        )
 
         outcome_templates = ExperimentInstance.objects.get(
             uuid=exp_uuid
@@ -106,8 +105,8 @@ class ExperimentOutcomeView(TemplateView):
                     Note.objects.create(
                         notetext=row[ot.description + " notes"], ref_note_uuid=o.uuid
                     )
+                    outcome_filename: str = row[ot.description + " filename"]  # type: ignore
                     try:
-                        outcome_filename: str = row[ot.description + " filename"]
                         if outcome_filename:
                             outcome_file = related_files_dict[outcome_filename]
                             Edocument.objects.create(
@@ -168,7 +167,7 @@ class ExperimentOutcomeView(TemplateView):
                     data[ot.description + " notes"].append("")
         df = pd.DataFrame.from_dict(data)
         temp = tempfile.NamedTemporaryFile()
-        df.to_csv(temp, index=False)
+        df.to_csv(temp, index=False)  # type: ignore
         temp.seek(0)
         response = FileResponse(
             temp, as_attachment=True, filename=f"outcomes_{exp_uuid}.csv"

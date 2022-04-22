@@ -18,6 +18,7 @@ from django.forms import (
 )
 from core.models.core_tables import TypeDef
 import core.models.view_tables as vt
+from core.models.view_tables import ReagentTemplate
 from core.widgets import ValFormField
 from .forms import dropdown_attrs
 from crispy_forms.helper import FormHelper
@@ -191,7 +192,7 @@ class ReagentSelectionForm(Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["select_rt"].choices = [
-            (r.uuid, r.description) for r in vt.ReagentTemplate.objects.all()
+            (r.uuid, r.description) for r in ReagentTemplate.objects.all()
         ]
 
 

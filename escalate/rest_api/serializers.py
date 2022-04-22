@@ -13,6 +13,7 @@ from rest_framework.serializers import (
     HyperlinkedModelSerializer,
     FileField,
     CharField,
+    URLField,
     ListSerializer,
     HyperlinkedRelatedField,
     PrimaryKeyRelatedField,
@@ -28,7 +29,12 @@ from rest_api.endpoint_details import details
 # import core.models
 from core.models import *
 from core.models.view_tables import *
-from .utils import rest_serializer_views, expandable_fields, excluded_fields
+from .utils import (
+    rest_serializer_views,
+    expandable_fields,
+    excluded_fields,
+    get_object_from_url,
+)
 from core.models.custom_types import Val, ValField
 from core.validators import ValValidator
 from django.core.exceptions import ValidationError
@@ -299,7 +305,7 @@ for model_name, data in expandable_fields.items():
                 NoteListSerializer,
                 DynamicFieldsModelSerializer,
             ]
-        ),
+        ),  # type: ignore
         extra_fields,
     )
 
@@ -316,7 +322,7 @@ class BomSerializer(DynamicFieldsModelSerializer):
 
     def get_bill_of_materials(self, obj):
         boms = BillOfMaterials.objects.filter(experiment_id=obj.uuid)
-        result_serializer = BillOfMaterialsSerializer(
+        result_serializer = BillOfMaterialsSerializer(  # type: ignore
             boms, many=True, context=self.context
         )
         return result_serializer.data
@@ -406,3 +412,98 @@ class ExperimentDetailSerializer(Serializer):
 
     class Meta:
         fields = "__all__"
+
+
+class VesselTemplateCreateSerializer(Serializer):
+    vessel_template_description = CharField(
+        max_length=500,
+        allow_blank=True,
+        trim_whitespace=True,
+        read_only=True,
+        allow_null=True,
+    )
+    vessel_template = URLField(
+        max_length=500,
+        allow_blank=True,
+        allow_null=True,
+    )
+    vessel = URLField(max_length=500, min_length=None, allow_blank=False, required=True)
+
+    def validate(self, attrs):
+        if attrs["vessel"]:
+            try:
+                self.vessel_obj = get_object_from_url(attrs["vessel"], Vessel)
+                self.vessel_template_obj = get_object_from_url(
+                    attrs["vessel_template"], VesselTemplate
+                )
+            except Exception as e:
+                raise serializers.ValidationError(f"Exception parsing vessel data: {e}")
+        return super().validate(attrs)
+
+    def create(self, validated_data):
+        assert hasattr(self, "vessel_obj"), "Vessel object not found"
+        assert hasattr(self, "vessel_template_obj"), "Vessel template object not found"
+
+
+class PropertyTemplateCreateSerializer(Serializer):
+    property_template_description = CharField(
+        max_length=500,
+        allow_blank=True,
+        trim_whitespace=True,
+        read_only=True,
+        allow_null=True,
+    )
+    property_template = CharField(
+        max_length=500,
+        allow_blank=True,
+        trim_whitespace=True,
+        read_only=True,
+        allow_null=True,
+    )
+    property_nominal_value = ValSerializerField()
+
+
+class ReagentMaterialTemplateCreateSerializer(Serializer):
+    reagent_material_template_description = CharField(
+        max_length=500,
+        allow_blank=True,
+        trim_whitespace=True,
+        read_only=True,
+        allow_null=True,
+    )
+    reagent_material_template = CharField(
+        max_length=500,
+        allow_blank=True,
+        trim_whitespace=True,
+        read_only=True,
+        allow_null=True,
+    )
+    properties = PropertyTemplateCreateSerializer(many=True)
+
+
+class ReagentTemplateCreateSerializer(Serializer):
+    reagent_template_description = CharField(
+        max_length=500,
+        allow_blank=True,
+        trim_whitespace=True,
+        read_only=True,
+        allow_null=True,
+    )
+    reagent_template = CharField(
+        max_length=500,
+        allow_blank=True,
+        trim_whitespace=True,
+        read_only=True,
+        allow_null=True,
+    )
+    properties = PropertyTemplateCreateSerializer(many=True)
+    reagent_materials = ReagentMaterialTemplateCreateSerializer(many=True)
+
+
+class ExperimentTemplateCreateSerializer(Serializer):
+    experiment_name = CharField(
+        max_length=255, min_length=None, allow_blank=False, trim_whitespace=True
+    )
+    vessel_templates = VesselTemplateCreateSerializer(many=True)
+    # reagent_templates = ReagentTemplateCreateSerializer(many=True)
+    # action_templates = ActionTemplateCreateSerializer(many=True)

@@ -25,6 +25,7 @@ from crispy_forms.bootstrap import Tab, TabHolder
 import pandas as pd
 
 import core.models.view_tables as vt
+from core.models.view_tables import ReagentTemplate, VesselTemplate
 from core.widgets import ValFormField
 from core.models.view_tables.workflow import ExperimentTemplate
 from core.widgets import ValWidget, TextInput
@@ -187,7 +188,7 @@ class ReagentForm(Form):
                 "mat_types_list"
             ]
             self.data_current = self.form_data[str(self.material_index)]
-            self.reagent_template: vt.ReagentTemplate = self.data_current[
+            self.reagent_template: ReagentTemplate = self.data_current[
                 "reagent_template"
             ]
             self.generate_reagent_fields()
@@ -414,7 +415,7 @@ class AutomatedSpecificationForm(Form):
         self.vessel_form_data = form_kwargs["vessel_form_data"]
         self.outcome_vessels = []
         for vessel_data in self.vessel_form_data:
-            vessel_data["template"] = vt.VesselTemplate.objects.get(
+            vessel_data["template"] = VesselTemplate.objects.get(
                 uuid=vessel_data["template_uuid"]
             )
             if vessel_data["template"].outcome_vessel:
