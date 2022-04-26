@@ -189,3 +189,136 @@ class ConcentrationToAmountPlugin(PostProcessPlugin):
 
     def __str__(self):
         return self.name
+
+
+class AmounttoConcentrationPlugin(PostProcessPlugin):
+    name = "Amount to Concentration Post Process Plugin"
+
+    def __init__(self):
+        pass
+
+    @property
+    def validation_errors(self):
+        pass
+
+    def validate(self, experiment_instance):
+        return True
+
+    def post_process(self, experiment_instance): # properties_lookup):
+        """[summary]
+        For each reagent in an experiment, this function obtains reagent material properties
+        needed to calculate actual concentrations of each material based on solution preparation
+        Args:
+            experiment_instance([str]): UUID of experiment instance
+        Returns:
+            N/A
+            saves calculated concentrations to database
+        """
+        # get experiment instance
+        exp_instance = vt.ExperimentInstance.objects.filter(uuid=experiment_instance).prefetch_related()[
+            0
+        ]
+
+        # This loop generates a dictionary for each reagent that contains the desired concentration,
+        # material type, phase, MW, and density - data is then used for calculations
+        for reagent in exp_instance.reagent_ei.all():
+            
+            #TODO: fix properties lookup 
+            #######
+            properties = []
+            property_instance = Property.objects.get(uuid=prop_uuid)
+
+            rmvi = Property.objects.get(uuid=property_instance)
+            #rmvi.actual_value = form.cleaned_data["actual_value"]
+            properties.append(rmvi)
+            #######
+            input_data = {}
+            reagent_materials = reagent.reagent_material_r.all()
+            for reagent_material in reagent_materials:
+                for num, i in enumerate(properties):
+                    if i.reagent_material == reagent_material:
+                        # amount = reagent_material.property_rm.filter(
+                        #    template__description="amount"
+                        # ).first()
+                        amount = properties[num].actual_value
+                        val = amount.value
+                        unit = amount.unit
+                        amount = Q_(val, unit)
+                        mat_type = reagent_material.template.material_type.description
+                        phase = reagent_material.material.phase
+
+                        mw_prop = reagent_material.material.material.property_m.filter(
+                            template__description__icontains="molecularweight"
+                        ).first()
+                        mw = Q_(mw_prop.value.value, mw_prop.value.unit).to(
+                            units.g / units.mol
+                        )
+
+                        density_prop = reagent_material.material.material.property_m.filter(
+                            template__description__icontains="density"
+                        ).first()
+                        d = d = Q_(density_prop.value.value, density_prop.value.unit).to(
+                            units.g / units.ml
+                        )
+
+                        input_data[reagent_material] = {
+                            "amount": amount,
+                            "material_type": mat_type,
+                            "phase": phase,
+                            "molecular weight": mw,
+                            "density": d,
+                        }
+
+            # pass input data into amount calculator
+            concentrations = self._back_calculate(input_data)
+
+            # save amounts to database
+            for reagent_material, conc in concentrations.items():
+                db_conc = reagent_material.property_rm.filter(
+                    template__description="concentration"
+                ).first()
+                db_conc.actual_value.value = conc.magnitude
+                db_conc.actual_value.unit = str(conc.units)
+                db_conc.save()
+
+
+    def _back_calculate(self, input_data):
+
+        """[summary]
+        Calculates actual concentration of each material in a reagent given actual amounts used to prepare the reagents
+        Args:
+            input_data([dic]): 
+        Returns:
+            [dic]: concentration (M) of each material
+                NOTE: solvent concentrations are reported as 0.0 M by convention (a solvent does not have a concentration)
+        """
+
+        concentrations = {}
+
+        total_vol = Q_(0.0, "mL")  # instantiate volume in proper Pint format
+
+        for key, val in input_data.items():
+            if val["phase"] == "solid":  # for all solids
+                moles = (val["amount"] / val["molecular weight"]).to(
+                    units.mol
+                )  # convert mass to moles
+                concentrations[key] = moles  # store the mole values
+                vol = (val["amount"] / val["density"]).to(
+                    units.ml
+                )  # convert mass to volume
+                total_vol += vol  # add this to total volume
+            elif val["phase"] == "liquid":  # for the solvent(s)
+                vol = (val["amount"]).to(units.ml)  # make sure volume is in mL
+                total_vol += vol  # add this to total volume
+                concentrations[key] = Q_(0.0, "M")  # concentration of a solvent is 0 M
+
+        for substance, amount in concentrations.items():
+            if amount.magnitude != 0.0:  # for the solids
+                concentrations[substance] = (amount / total_vol).to(
+                    units.molar
+                )  # divide moles by volume to get concentration
+
+        return concentrations
+    
+    def __str__(self):
+        return self.name
