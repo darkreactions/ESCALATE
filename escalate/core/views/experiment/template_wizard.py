@@ -385,7 +385,7 @@ class CreateTemplateWizard(SessionWizardView):
             mt = MaterialType.objects.get(uuid=r)
             # reagent_template.material_type.add(mt)
 
-            (rmt, created) = ReagentMaterialTemplate.objects.get_or_create(
+            rmt = ReagentMaterialTemplate.objects.create(
                 **{
                     "description": f"{reagent_template.description}: {mt.description} {num}",
                     "reagent_template": reagent_template,
