@@ -1,24 +1,40 @@
 from django.forms import (
+    MultipleChoiceField,
     Select,
     CheckboxSelectMultiple,
     Form,
     CharField,
     ChoiceField,
     IntegerField,
+    SelectMultiple,
     ValidationError,
 )
 from core.models.core_tables import TypeDef
 import core.models.view_tables as vt
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Row, Field
+from crispy_forms.layout import Layout, Row, Column, Field
 
 
 class ReagentTemplateCreateForm(Form):
+
+    widget_mc = CheckboxSelectMultiple(
+        attrs={
+            "class": "selectpicker",
+            "data-style": "btn-dark",
+            "data-live-search": "true",
+        }
+    )
 
     reagent_template_name = CharField(required=True)
 
     num_materials = IntegerField(
         label="Number of Materials", required=True, initial=1, min_value=1
+    )
+
+    properties = MultipleChoiceField(
+        widget=SelectMultiple(),
+        required=False,
+        label="Select Reagent-Level Properties",
     )
 
     def __init__(self, *args, **kwargs):
@@ -33,17 +49,21 @@ class ReagentTemplateCreateForm(Form):
         self.fields[
             "reagent_template_name"
         ].label = f"Reagent {str(int(self.reagent_index)+1)} Name"
+        self.fields["properties"].choices = [
+            (pt.description, pt.description) for pt in vt.PropertyTemplate.objects.all()
+        ]
 
         self.get_helper()
 
     def get_helper(self):
         helper = FormHelper()
         helper.form_class = "form-horizontal"
-        helper.label_class = "col-lg-8"
-        helper.field_class = "col-lg-8"
+        helper.label_class = "col-lg-3"
+        helper.field_class = "col-lg-6"
 
         helper.layout = Layout(
-            Row((Field(f"reagent_template_name")), Field(f"num_materials")),
+            Row(Column(Field(f"reagent_template_name")), Field(f"num_materials")),
+            Row(Column(Field(f"properties"))),
         )
 
         helper.form_tag = False
@@ -54,11 +74,17 @@ class ReagentTemplateMaterialAddForm(Form):
 
     name = CharField(disabled=True, label="Reagent")
 
+    properties = MultipleChoiceField(
+        widget=SelectMultiple(),
+        required=False,
+        label="Select Material-Level Properties (applies to each material)",
+    )
+
     def generate_subforms(self, i):
         self.fields[f"select_mt_{i}"] = ChoiceField(
             widget=Select(),
             required=True,
-            label="Select Material Type",
+            label=f"Select Material Type: Material {i+1}",
         )
 
         self.fields[f"select_mt_{i}"].choices = [
@@ -78,24 +104,35 @@ class ReagentTemplateMaterialAddForm(Form):
         super().__init__(*args, **kwargs)
 
         self.fields["name"].initial = list(data.keys())[0]
+        self.fields["properties"].choices = [
+            (pt.description, pt.description) for pt in vt.PropertyTemplate.objects.all()
+        ]
         for i in range(len(data[self.fields["name"].initial])):
             self.generate_subforms(i)
 
-        self.get_helper()
+        self.get_helper(data)
 
-    def get_helper(self):
+    def get_helper(self, data):
         helper = FormHelper()
         helper.form_class = "form-horizontal"
-        helper.label_class = "col-lg-8"
+        helper.label_class = "col-lg-3"
         helper.field_class = "col-lg-8"
+        rows = []
 
-        """helper.layout = Layout(
-            # Row((Field(f"name")),),
-            Row(Field(f"name")), 
-            Row(Field(f'select_mt_{i}',),))
-        #)"""
+        rows.append(
+            Row(
+                Column(Field(f"name")),
+                Column(Field(f"properties")),
+            )
+        )
+
+        for i in range(self.index + 1):
+
+            rows.append(Row(Column(Field(f"select_mt_{i}"))))
+
+        helper.layout = Layout(*rows)
         helper.form_tag = False
-        # return helper
+
         self.helper = helper
 
 
