@@ -22,6 +22,37 @@ class ConcentrationToAmountPlugin(PostProcessPlugin):
         pass
 
     def validate(self, experiment_instance: "vt.ExperimentInstance"):
+        for reagent in experiment_instance.reagent_ei.all():
+            reagent_materials = reagent.reagent_material_r.all()
+            for reagent_material in reagent_materials:
+                phase = reagent_material.material.phase
+                if not phase:
+                    self.errors.append(
+                        "Error: Invalid phase {} for {}. Should be solid, liquid or gas. Please check the inventory table".format(
+                            phase, reagent_material.material.description
+                        )
+                    )
+
+                mw_prop = reagent_material.material.material.property_m.filter(
+                    template__description__icontains="molecularweight"
+                ).first()
+                if mw_prop is None:
+                    self.errors.append(
+                        "Error: Missing molecular weight data for {}. Please check the inventory table".format(
+                            reagent_material.material.description
+                        )
+                    )
+    
+                density_prop = reagent_material.material.material.property_m.filter(
+                    template__description__icontains="density"
+                ).first()
+                
+                if density_prop is None:
+                    self.errors.append(
+                        "Error: Missing density data for {}. Please check the inventory table".format(
+                            reagent_material.material.description))
+        if self.errors:
+            return False
         return True
 
     def post_process(self, experiment_instance: "vt.ExperimentInstance"):
@@ -40,22 +71,11 @@ class ConcentrationToAmountPlugin(PostProcessPlugin):
                     conc = Q_(conc_val, conc_unit)
                 mat_type = reagent_material.template.material_type.description
                 phase = reagent_material.material.phase
-                if not phase:
-                    raise ValueError(
-                        "Error: Invalid phase {} for {}. Should be solid, liquid or gas. Please check the inventory table".format(
-                            phase, reagent_material.material.description
-                        )
-                    )
 
                 mw_prop = reagent_material.material.material.property_m.filter(
                     template__description__icontains="molecularweight"
                 ).first()
-                if mw_prop is None:
-                    raise ValueError(
-                        "Error: Missing molecular weight data for {}. Please check the inventory table".format(
-                            reagent_material.material.description
-                        )
-                    )
+               
                 mw = Q_(mw_prop.value.value, mw_prop.value.unit).to(units.g / units.mol)
                 density_prop = reagent_material.material.material.property_m.filter(
                     template__description__icontains="density"
@@ -63,12 +83,6 @@ class ConcentrationToAmountPlugin(PostProcessPlugin):
                 d = d = Q_(density_prop.value.value, density_prop.value.unit).to(
                     units.g / units.ml
                 )
-                if density_prop is None:
-                    raise ValueError(
-                        "Error: Missing density data for {}. Please check the inventory table".format(
-                            reagent_material.material.description
-                        )
-                    )
                 input_data[reagent_material] = {
                     "concentration": conc,
                     "material_type": mat_type,
@@ -202,6 +216,37 @@ class AmounttoConcentrationPlugin(PostProcessPlugin):
         pass
 
     def validate(self, experiment_instance):
+        for reagent in experiment_instance.reagent_ei.all():
+            reagent_materials = reagent.reagent_material_r.all()
+            for reagent_material in reagent_materials:
+                phase = reagent_material.material.phase
+                if not phase:
+                    self.errors.append(
+                        "Error: Invalid phase {} for {}. Should be solid, liquid or gas. Please check the inventory table".format(
+                            phase, reagent_material.material.description
+                        )
+                    )
+
+                mw_prop = reagent_material.material.material.property_m.filter(
+                    template__description__icontains="molecularweight"
+                ).first()
+                if mw_prop is None:
+                    self.errors.append(
+                        "Error: Missing molecular weight data for {}. Please check the inventory table".format(
+                            reagent_material.material.description
+                        )
+                    )
+    
+                density_prop = reagent_material.material.material.property_m.filter(
+                    template__description__icontains="density"
+                ).first()
+                
+                if density_prop is None:
+                    self.errors.append(
+                        "Error: Missing density data for {}. Please check the inventory table".format(
+                            reagent_material.material.description))
+        if self.errors:
+            return False
         return True
 
     def post_process(self, experiment_instance): # properties_lookup):

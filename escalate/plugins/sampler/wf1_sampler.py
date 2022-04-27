@@ -24,20 +24,26 @@ class WF1SamplerPlugin(BaseSamplerPlugin):
             self.errors.append(
                 f"Selected template is not Workflow 1. Found: {data.experiment_template.description}"
             )
-        for rt, r_props in data.reagent_properties.items():
+        '''for rt, r_props in data.reagent_properties.items():
             for rmt, rm_props in r_props.reagent_materials.items():
                 # Check if all materials have a phase
                 if rm_props.inventory_material.phase is None:
                     self.errors.append(
-                        f"Phase data not found for {rm_props.inventory_material}. Please add it in the inventory material"
+                        f"Phase data not found for {rm_props.inventory_material}. Please update the inventory material table"
                     )
 
                 if not rm_props.inventory_material.material.property_m.filter(
                     template__description="MolecularWeight"
                 ).exists():
                     self.errors.append(
-                        f'Property name "MolecularWeight" not found for {rm_props.inventory_material.material}. Please add it in the Material'
+                        f'Molecular weight not found for {rm_props.inventory_material.material}. Please update the material table'
                     )
+                if not rm_props.inventory_material.material.property_m.filter(
+                    template__description="Density"
+                ).exists():
+                    self.errors.append(
+                        f'Density not found for {rm_props.inventory_material.material}. Please update the material table'
+                    )'''
         if self.errors:
             return False
         return True
