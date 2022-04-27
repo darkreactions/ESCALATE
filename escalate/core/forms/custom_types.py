@@ -20,11 +20,15 @@ from core.models.core_tables import TypeDef
 import core.models.view_tables as vt
 from core.models.view_tables import ReagentTemplate
 from core.widgets import ValFormField
-from .forms import dropdown_attrs
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column, Hidden, Field
 
 # from django.forms import formset_factory
+dropdown_attrs = {
+    "class": "selectpicker",
+    "data-style": "btn-outline-primary",
+    "data-live-search": "true",
+}
 
 
 class SingleValForm(Form):
