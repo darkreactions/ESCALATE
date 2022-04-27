@@ -23,6 +23,7 @@ manage_views = False
 
 
 class Vessel(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
+    children: "QuerySet[Vessel]"
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="vessel_uuid")
     # plate_name = models.CharField(max_length = 64, blank=True, null=True)
     total_volume = ValField(blank=True, null=True)
@@ -153,6 +154,35 @@ class Inventory(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         return "{}".format(self.description)
 
 
+class Material(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
+    property_m: "QuerySet[Property]"
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="material_uuid")
+    consumable = models.BooleanField(blank=True, null=True)
+    # composite_flg = models.BooleanField(blank=True, null=True)
+    # material_types = models.ManyToManyField('MaterialType',
+    #                                        through='MaterialTypeAssign',
+    #                                        related_name='material_material_types')
+    material_class = models.CharField(
+        max_length=64, choices=MATERIAL_CLASS_CHOICES, blank=True, null=True
+    )
+
+    # need to remove through crosstables when managed by django
+    # property = models.ManyToManyField('Property', blank=True,
+    #                                  related_name='material_property')
+    identifier = models.ManyToManyField(
+        "MaterialIdentifier", blank=True, related_name="material_material_identifier"
+    )
+    material_type = models.ManyToManyField(
+        "MaterialType", blank=True, related_name="material_material_type"
+    )
+    internal_slug = SlugField(
+        populate_from=["description"], overwrite=True, max_length=255
+    )
+
+    def __str__(self):
+        return "{}".format(self.description)
+
+
 class InventoryMaterial(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(
         primary_key=True, default=uuid.uuid4, db_column="inventory_material_uuid"
@@ -191,34 +221,6 @@ class InventoryMaterial(DateColumns, StatusColumn, ActorColumn, DescriptionColum
 
     def __str__(self):
         return "{} : {}".format(self.inventory, self.material)
-
-
-class Material(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="material_uuid")
-    consumable = models.BooleanField(blank=True, null=True)
-    # composite_flg = models.BooleanField(blank=True, null=True)
-    # material_types = models.ManyToManyField('MaterialType',
-    #                                        through='MaterialTypeAssign',
-    #                                        related_name='material_material_types')
-    material_class = models.CharField(
-        max_length=64, choices=MATERIAL_CLASS_CHOICES, blank=True, null=True
-    )
-
-    # need to remove through crosstables when managed by django
-    # property = models.ManyToManyField('Property', blank=True,
-    #                                  related_name='material_property')
-    identifier = models.ManyToManyField(
-        "MaterialIdentifier", blank=True, related_name="material_material_identifier"
-    )
-    material_type = models.ManyToManyField(
-        "MaterialType", blank=True, related_name="material_material_type"
-    )
-    internal_slug = SlugField(
-        populate_from=["description"], overwrite=True, max_length=255
-    )
-
-    def __str__(self):
-        return "{}".format(self.description)
 
 
 class MaterialIdentifier(DateColumns, StatusColumn, DescriptionColumn):

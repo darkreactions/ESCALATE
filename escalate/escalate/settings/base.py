@@ -83,10 +83,6 @@ WSGI_APPLICATION = "escalate.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-"""
-
-"""
-
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -134,6 +130,8 @@ STATICFILES_DIRS = [
 AUTH_USER_MODEL = "core.CustomUser"
 
 CRISPY_TEMPLATE_PACK = "bootstrap4"
+
+SESSION_SERIALIZER = "django.contrib.sessions.serializers.PickleSerializer"
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
@@ -201,7 +199,7 @@ LOGGING = {
     "loggers": {
         "escalate": {
             "handlers": ["file"],
-            "level": "ERROR",
+            "level": "INFO",
             "formatters": ["verbose"],
             "propagate": True,
         },

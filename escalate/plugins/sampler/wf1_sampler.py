@@ -1,98 +1,96 @@
-from plugins.sampler.base_sampler_plugin import SamplerPlugin
+from typing import List, Dict
+from math import ceil, floor
+from core.custom_types import Val
+
+from plugins.sampler.base_sampler_plugin import BaseSamplerPlugin
 from uuid import UUID
-import core.models.view_tables as vt
+from core.models.view_tables import Reagent, VesselTemplate, ActionTemplate
 from core.models.core_tables import TypeDef
 import pandas as pd
 from core.utilities.utils import make_well_labels_list
 from core.utilities.randomSampling import generateExperiments
 from core.utilities.experiment_utils import get_action_parameter_querysets
-import tempfile
+from core.dataclass import ExperimentData, ActionUnitData, ActionData
 
 
-class WF1SamplerPlugin(SamplerPlugin):
+class WF1SamplerPlugin(BaseSamplerPlugin):
     name = "Statespace sampler for WF1"
 
     def __init__(self):
         super().__init__()
 
-    @property
-    def validation_errors(self):
-        pass
+    def validate(self, data: ExperimentData, **kwargs):
+        if data.experiment_template.description not in ["Workflow 1"]:
+            self.errors.append(
+                f"Selected template is not Workflow 1. Found: {data.experiment_template.description}"
+            )
+        for rt, r_props in data.reagent_properties.items():
+            for rmt, rm_props in r_props.reagent_materials.items():
+                # Check if all materials have a phase
+                if rm_props.inventory_material.phase is None:
+                    self.errors.append(
+                        f"Phase data not found for {rm_props.inventory_material}. Please add it in the inventory material"
+                    )
 
-    def validate(self, *args, **kwargs):
+                if not rm_props.inventory_material.material.property_m.filter(
+                    template__description="MolecularWeight"
+                ).exists():
+                    self.errors.append(
+                        f'Property name "MolecularWeight" not found for {rm_props.inventory_material.material}. Please add it in the Material'
+                    )
+        if self.errors:
+            return False
         return True
 
-    def sample_experiments(self, *args, **kwargs):
-        pass
-        """
+    def sample_experiments(self, data: ExperimentData, **kwargs):
+        reagent_template_names: List[str] = [
+            rt.description for rt in data.reagent_properties
+        ]
+        reagentDefs = []
+        for rpd in data.reagent_properties.values():
+            rmt_data: "Dict[str, str| Val | None]" = {}
+            for rmd in rpd.reagent_materials.values():
+                for prop_template, value in rmd.properties.items():
+                    if prop_template.description == "concentration":
+                        rmt_data[rmd.material_type.description] = value.value
+                        break
+            reagentDefs.append(rmt_data)
+        num_of_automated_experiments = data.num_of_sampled_experiments
+
         desired_volume = generateExperiments(
             reagent_template_names,
             reagentDefs,
             num_of_automated_experiments,
-            finalVolume=str(total_volume.value) + " " + total_volume.unit,
         )
 
-        # retrieve q1 information to update
-        q1 = get_action_parameter_querysets(experiment_copy_uuid, template=False)
-
-        # This loop sums the volume of all generated experiment for each reagent and saves to database
-        # Also saves dead volume if passed to function
-        reagents = Reagent.objects.filter(experiment=experiment_copy_uuid)
-        for reagent in reagents:
-            # label = reagent_template_reagent_map[reagent.template.description]
-            prop = reagent.property_r.get(template__description__icontains="total volume")
-            prop.nominal_value.value += sum(desired_volume[reagent.template.description])
-            prop.nominal_value.unit = "uL"
-            prop.save()
-            if dead_volume is not None:
-                dv_prop = reagent.property_r.get(
-                    template__description__icontains="dead volume"
-                )
-                dv_prop.nominal_value = dead_volume
-                dv_prop.save()
-
-        # This loop adds individual well volmes to each action in the database
-        # without overwriting manual entries for experiments that have both automated and manual components
-
-        # for action_description, (reagent_name, mult_factor) in action_reagent_map.items():
-        well_list = make_well_labels_list(
-            well_count=vessel.well_number,
-            column_order=vessel.column_order,
-            robot="True",
+        action_templates = data.experiment_template.get_action_templates(
+            dest_vessel_decomposable=True
         )
+        action_to_reagent_mapping = {
+            "Dispense Reagent 1 - Solvent": "Reagent 1 - Solvent",
+            "Dispense Reagent 2 - Stock A": "Reagent 2 - Stock A",
+            "Dispense Reagent 3 - Stock B": "Reagent 3 - Stock B",
+            "Dispense Reagent 7 - Acid Volume 1": "Reagent 7 - Acid",
+            "Dispense Reagent 7 - Acid Volume 2": "Reagent 7 - Acid",
+        }
 
-        for reagent_name in reagent_template_names:
-            saved_actions = []
-            for i, vial in enumerate(well_list):
-                action = (
-                    q1.filter(action_unit_description__icontains=reagent_name)
-                    .filter(action_unit_description__icontains="dispense")
-                    .filter(action_unit_description__endswith=vial)
-                    .first()
+        for at in action_templates:
+            reagent_desc = action_to_reagent_mapping[at.description]
+            parameter_def = at.action_def.parameter_def.get(description="volume")
+            a_data = ActionData(parameters={})
+            dispense_vols: List[ActionUnitData] = []
+            for vol in desired_volume[reagent_desc]:
+                if at.description == "Dispense Reagent 7 - Acid Volume 1":
+                    vol = ceil(vol / 2.0)
+                elif at.description == "Dispense Reagent 7 - Acid Volume 2":
+                    vol = floor(vol / 2.0)
+                volume = Val.from_dict({"value": vol, "unit": "uL", "type": "num"})
+                aud = ActionUnitData(
+                    source_vessel=None, dest_vessel=None, nominal_value=volume
                 )
+                dispense_vols.append(aud)
+            a_data.parameters[parameter_def] = dispense_vols
+            # a_data.parameters['a'] = dispense_vols
+            data.action_parameters[at] = a_data
 
-                # get actions from q1 based on keys in action_reagent_map
-
-                # If number of experiments requested is < actions only choose the first n actions
-                # Otherwise choose all
-                # actions = actions[:num_of_experiments] if num_of_experiments < len(actions) else actions
-                # for i, action in enumerate(actions):
-                if action is not None:
-                    saved_actions.append(action)
-
-            for i, action in enumerate(saved_actions[num_of_manual_experiments:]):
-
-                parameter = Parameter.objects.get(uuid=action.parameter_uuid)
-                # action.parameter_value.value = desired_volume[reagent_name][i] * mult_factor
-                try:
-                    parameter.parameter_val_nominal.value = desired_volume[reagent_name][
-                        i
-                    ]  # * mult_factor
-                except IndexError:
-                    parameter.parameter_val_nominal.value = 0.0
-                parameter.save()
-
-        # conc_to_amount(experiment_copy_uuid)
-
-        return q1
-        """
+        return data

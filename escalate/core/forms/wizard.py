@@ -25,13 +25,14 @@ from crispy_forms.bootstrap import Tab, TabHolder
 import pandas as pd
 
 import core.models.view_tables as vt
-from core.models.view_tables import ReagentTemplate, VesselTemplate
+from core.models.view_tables import ReagentTemplate, VesselTemplate, PropertyTemplate
 from core.widgets import ValFormField
 from core.models.view_tables.workflow import ExperimentTemplate
 from core.widgets import ValWidget, TextInput
 from .forms import dropdown_attrs
-from plugins.sampler.base_sampler_plugin import SamplerPlugin
+from plugins.sampler.base_sampler_plugin import BaseSamplerPlugin
 from plugins.postprocessing.base_post_processing_plugin import PostProcessPlugin
+from core.dataclass import METADATA
 
 
 class NumberOfExperimentsForm(Form):
@@ -139,10 +140,11 @@ class ReagentForm(Form):
 
     def generate_reagent_fields(self):
         for i, prop in enumerate(self.reagent_template.properties.all()):
-            self.fields[f"reagent_template_uuid_{self.material_index}_{i}"] = CharField(
+            prop: PropertyTemplate
+            self.fields[f"reagent_prop_uuid_{i}"] = CharField(
                 widget=HiddenInput(), initial=prop.uuid
             )
-            self.fields[f"reagent_prop_{self.material_index}_{i}"] = ValFormField(
+            self.fields[f"reagent_prop_{i}"] = ValFormField(
                 required=False, label=prop.description.capitalize()
             )
 
@@ -152,26 +154,34 @@ class ReagentForm(Form):
         material_type: str,
         rmt: vt.ReagentMaterialTemplate,
     ):
-        self.fields[f"material_{self.material_index}_{index}"] = ChoiceField(
+        # Select material
+        self.fields[f"material_{index}"] = ChoiceField(
             widget=self.widget, required=True
         )
-        for prop in rmt.properties.all():
-            prop: vt.PropertyTemplate
-            self.fields[
-                f"{prop.description}_{self.material_index}_{index}"
-            ] = ValFormField(required=False, label=prop.description.capitalize())
-        self.fields[
-            f"reagent_material_template_uuid_{self.material_index}_{index}"
-        ] = CharField(widget=HiddenInput(), initial=rmt)
-        self.fields[f"material_type_{self.material_index}_{index}"] = CharField(
+        # UUID of material template
+        self.fields[f"reagent_material_template_uuid_{index}"] = CharField(
+            widget=HiddenInput(), initial=rmt.uuid
+        )
+        # UUID of material type
+        self.fields[f"material_type_{index}"] = CharField(
             widget=HiddenInput(), initial=material_type
         )
 
-        self.fields[f"material_{self.material_index}_{index}"].choices = [
+        # Loop through properties of the reagent material
+        for prop_index, prop in enumerate(rmt.properties.all()):
+            prop: vt.PropertyTemplate
+            self.fields[f"reagent_material_prop_{index}_{prop_index}"] = ValFormField(
+                required=False, label=prop.description.capitalize()
+            )
+
+            self.fields[f"reagent_material_prop_uuid_{index}_{prop_index}"] = CharField(
+                widget=HiddenInput(), initial=prop.uuid
+            )
+        self.fields[f"material_{index}"].choices = [
             (im.uuid, im.description) for im in self.inventory_materials[material_type]
         ]
         self.fields[
-            f"material_{self.material_index}_{index}"
+            f"material_{index}"
         ].label = f"Reagent {int(self.material_index)+1}: {material_type}"
 
     def __init__(self, *args, **kwargs):
@@ -192,9 +202,13 @@ class ReagentForm(Form):
                 "reagent_template"
             ]
             self.generate_reagent_fields()
-
+            self.fields[f"reagent_template_uuid"] = CharField(
+                widget=HiddenInput(), initial=self.reagent_template.uuid
+            )
             for i, rmt in enumerate(
-                self.reagent_template.reagent_material_template_rt.all()  # type: ignore
+                self.reagent_template.reagent_material_template_rt.all().order_by(
+                    "material_type__description"
+                )
             ):
                 material_type = rmt.material_type.description
                 if material_type not in self.inventory_materials:
@@ -212,39 +226,42 @@ class ReagentForm(Form):
         helper.form_class = "form-horizontal"
         helper.label_class = "col-lg-3"
         helper.field_class = "col-lg-8"
-        rows = []
+        rows = [Row(Field("reagent_template_uuid"))]
         tabs = []
+        for i, prop in enumerate(self.reagent_template.properties.all()):
+            rows.append(
+                Row(
+                    Column(Field(f"reagent_prop_{i}")),
+                    Field(f"reagent_prop_uuid_{i}"),
+                    HTML("</br>"),
+                )
+            )
 
         if self.material_index is not None and (self.material_index in self.form_data):
             for i, rmt in enumerate(
-                self.reagent_template.reagent_material_template_rt.all()  # type: ignore
+                self.reagent_template.reagent_material_template_rt.all().order_by(
+                    "material_type__description"
+                )
             ):
                 rmt: vt.ReagentMaterialTemplate
                 material_type: str = rmt.material_type.description
                 tabs.append(
                     Tab(
                         f"{material_type.capitalize()} - {i}_{self.material_index}",
-                        Column(Field(f"material_{self.material_index}_{i}")),
+                        Column(Field(f"material_{i}")),
                         *[
                             Column(
-                                Field(f"{prop.description}_{self.material_index}_{i}")
+                                Field(f"reagent_material_prop_{i}_{j}"),
+                                Field(f"reagent_material_prop_uuid_{i}_{j}"),
                             )
-                            for prop in rmt.properties.all()
+                            for j, prop in enumerate(rmt.properties.all())
                         ],
-                        Field(
-                            f"reagent_material_template_uuid_{self.material_index}_{i}"
-                        ),
-                        Field(f"material_type_{self.material_index}_{i}"),
+                        Field(f"reagent_material_template_uuid_{i}"),
+                        Field(f"material_type_{i}"),
                     ),
                 )
-            rows.append(TabHolder(*tabs))
-            for i, prop in enumerate(self.reagent_template.properties.all()):
-                rows.append(
-                    Row(
-                        Column(Field(f"reagent_prop_{self.material_index}_{i}")),
-                        Field(f"reagent_template_uuid_{self.material_index}_{i}"),
-                    )
-                )
+            rows.append(TabHolder(*tabs))  # type: ignore
+
         helper.layout = Layout(*rows)
         helper.form_tag = False
         # return helper
@@ -308,6 +325,9 @@ class ActionParameterForm(Form):
                 str(self.action_index)
             ]["action_parameter_list"]
             self.data_current = self.form_data[str(self.action_index)]
+            self.fields["action_template_uuid"] = CharField(
+                widget=HiddenInput(), initial=self.data_current["action_template_uuid"]
+            )
             for i, param_uuid in enumerate(self.action_parameter_list):
                 self.generate_action_parameter_fields(i, param_uuid)
 
@@ -318,7 +338,7 @@ class ActionParameterForm(Form):
         helper.form_class = "form-horizontal"
         helper.label_class = "col-lg-3"
         helper.field_class = "col-lg-8"
-        rows = []
+        rows = [Row(Field("action_template_uuid"))]
         if self.form_data:
             for i, param_uuid in enumerate(self.action_parameter_list):
                 rows.append(
@@ -366,8 +386,8 @@ class ManualExperimentForm(Form):
                     ]
                 )
 
-                if "meta_data" not in df_dict:
-                    raise Exception("Sheet named 'meta_data' not found")
+                if METADATA not in df_dict:
+                    raise Exception(f"Sheet named '{METADATA}' not found")
                 if experiment_template.description not in df_dict:
                     raise Exception(
                         f"Sheet named {experiment_template.description} not found"
@@ -427,7 +447,7 @@ class AutomatedSpecificationForm(Form):
         none_option: "list[Tuple[Any, str]]" = [(None, "No sampler selected")]
         samplers: "list[Tuple[Any, str]]" = [
             (sampler_plugin.__name__, sampler_plugin.name)
-            for sampler_plugin in SamplerPlugin.__subclasses__()
+            for sampler_plugin in BaseSamplerPlugin.__subclasses__()
         ]
         self.fields["select_experiment_sampler"].choices = none_option + samplers
 

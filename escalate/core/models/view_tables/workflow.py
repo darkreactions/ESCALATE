@@ -22,8 +22,14 @@ from core.managers import (
     ExperimentCompletedInstanceManager,
     ExperimentPendingInstanceManager,
 )
-from core.models.view_tables.actions import ActionTemplate, Action
-from core.models.view_tables.chemistry_data import ReagentTemplate, Reagent
+from core.models.view_tables import (
+    ActionTemplate,
+    Action,
+    ReagentTemplate,
+    Reagent,
+    VesselTemplate,
+)
+from core.models.view_tables.actions import ActionUnit
 
 
 managed_tables = True
@@ -219,8 +225,8 @@ class ExperimentTemplate(DateColumns, StatusColumn):
 
     def get_action_templates(
         self,
-        source_vessel_decomposable: "bool|None",
-        dest_vessel_decomposable: "bool|None",
+        source_vessel_decomposable: "bool|None" = None,
+        dest_vessel_decomposable: "bool|None" = None,
     ) -> "list[ActionTemplate]":
         filter = {}
         if source_vessel_decomposable is not None:
@@ -238,7 +244,7 @@ class ExperimentTemplate(DateColumns, StatusColumn):
             if at.uuid not in visited_ats:
                 visited_ats.add(at.uuid)
                 result.append(at)
-                for child in at.children.all():
+                for child in at.children.all():  # type: ignore
                     result = visit_at(child, visited_ats, result)
             return result
 
@@ -276,6 +282,10 @@ class ExperimentTemplate(DateColumns, StatusColumn):
             .order_by("description")
         )
         return reagent_templates
+
+    def get_vessel_templates(self) -> "QuerySet[VesselTemplate]":
+        vessel_templates = self.vessel_templates.all()
+        return vessel_templates
 
 
 class ExperimentInstance(DateColumns, StatusColumn, DescriptionColumn):
@@ -338,7 +348,7 @@ class ExperimentInstance(DateColumns, StatusColumn, DescriptionColumn):
 
     def get_action_parameters(
         self, decomposable: "bool|None" = None
-    ) -> "QuerySet[Action]":
+    ) -> "QuerySet[ActionUnit]":
         """
         ## Gets the action parameters related to the experiment
         decomposable = True -> Only parameters that have decomposable destination
@@ -348,7 +358,8 @@ class ExperimentInstance(DateColumns, StatusColumn, DescriptionColumn):
         if decomposable is None:
             filter = {}
         else:
-            filter = {"template__dest_vessel_decomposable": decomposable}
+            filter = {"action__template__dest_vessel_decomposable": decomposable}
+        """
         actions = (
             self.action_ei.filter(**filter)
             .prefetch_related("action_unit_a__parameter_au")
@@ -373,8 +384,10 @@ class ExperimentInstance(DateColumns, StatusColumn, DescriptionColumn):
                 parameter_actual=F("action_unit_a__parameter_au__parameter_val_actual")
             )
         )
+        """
+        aus = ActionUnit.objects.filter(action__experiment=self)
 
-        return actions
+        return aus.filter(**filter)
 
 
 class ExperimentCompletedInstance(ExperimentInstance):

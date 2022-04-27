@@ -1,4 +1,13 @@
 import inflection
+from urllib.parse import urlparse
+from django.urls import resolve
+
+
+def get_object_from_url(url, model):
+    path = urlparse(url)[2]  # get path of the url
+    match = resolve(path)
+    model_obj = model.objects.get(uuid=match.kwargs["pk"])
+    return model_obj
 
 
 def camel_case(text):

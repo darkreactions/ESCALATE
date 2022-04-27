@@ -17,6 +17,7 @@ from numpy.linalg import lstsq
 
 import pint
 from pint import UnitRegistry
+from typing import Dict, Any, List
 
 units = UnitRegistry()
 Q_ = units.Quantity
@@ -495,15 +496,15 @@ def generate_vectors(descriptions, reagents):
 
 # %%
 def generateExperiments(
-    reagent_template_names,
-    reagentDefs,
+    reagent_template_names: "List[str]",
+    reagentDefs: "List[Dict[str, Any]]",
     # descriptions,
-    nExpt,
-    finalVolume="500. uL",
+    nExpt: int,
+    finalVolume: str = "500. uL",
     excludedReagents=None,
     maxMolarity=9.0,
     desiredUnit="uL",
-):
+) -> "Dict[str, Any]":
     # def generateExperiments(reagentDefs, nExpt, excludedReagentDefs=None, maxMolarity=9., finalVolume='500. uL', desiredUnit='uL'):
 
     # convert reagent input into proper vector format
@@ -631,7 +632,7 @@ def generateHitAndRunExperiments(
     finalVolume="500 uL",
     desiredUnit="uL",
     processValues="round",
-):
+) -> "Dict[str, Any]":
     """This generates hit and run experiments. This block runs if species dimensionality is > 3.
     Args:
         reagents: list of dictionaries, where each list corresponds to a reagent. keys are chemical components and values are concentrations for the components
@@ -695,7 +696,7 @@ def generate3DExperiments(
     finalVolume="500 uL",
     desiredUnit="uL",
     processValues="round",
-):
+) -> "Dict[str, Any]":
     """This generates hit and run experiments. This block runs if species dimensionality is <= 3.
     Args:
         reagents: list of dictionaries, where each list corresponds to a reagent. keys are chemical components and values are concentrations for the components

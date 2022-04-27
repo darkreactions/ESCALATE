@@ -1,3 +1,4 @@
+from typing import Optional
 from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.contrib.messages import get_messages
@@ -13,13 +14,16 @@ from core.models import (
     ExperimentInstance,
     Vessel,
     VesselTemplate,
+    ParameterDef,
 )
-from django.db.models import Q
+from core.dataclass import ExperimentData
+from core.custom_types import Val
+from django.db.models import Q, QuerySet
 import pandas as pd
 import tempfile
 
 
-def get_messages(request: HttpRequest) -> HttpResponse:
+def get_messages(request: HttpRequest) -> Optional[HttpResponse]:
     if request.method == "GET":
         return render(
             request,
@@ -28,11 +32,11 @@ def get_messages(request: HttpRequest) -> HttpResponse:
         )
 
 
-def download_vp_spec_file(request: HttpRequest) -> HttpResponse:
+def download_vp_spec_file(request: HttpRequest) -> "HttpResponse|FileResponse":
     try:
         exp_uuid: str = request.session["experiment_template_uuid"]
         vessel = Vessel.objects.get(uuid=request.session["vessel"])
-        f = generate_vp_spec_file(exp_uuid, {}, vessel.description, vessel.well_number)
+        f = generate_vp_spec_file(exp_uuid, vessel)
         response = FileResponse(
             f, as_attachment=True, filename=f"manual_{exp_uuid}.xls"
         )
@@ -42,88 +46,19 @@ def download_vp_spec_file(request: HttpRequest) -> HttpResponse:
 
 
 def download_manual_spec_file(request: HttpRequest) -> "FileResponse|JsonResponse":
-    form_data = request.session["experiment_create_form_data"]
-    exp_template = ExperimentTemplate.objects.get(
-        uuid=form_data["experiment_template"]["select_experiment_template"]
-    )
-    # Get the form data entered in the wizard
-    vessel_uuids = form_data["vessels"]
-    table_data = {}
-    meta_data = {}
-    # Loop through every action template
-    for i, action_template in enumerate(
-        exp_template.action_template_et.filter(dest_vessel_decomposable=True)
-    ):
-        action_def = action_template.action_def
-        parameter_defs = action_def.parameter_def.all()
-        dest_vessel_uuid = vessel_uuids[str(action_template.dest_vessel_template.uuid)]
-        dest_vessel = Vessel.objects.get(uuid=dest_vessel_uuid)
-        # For every parameter def in the action def,
-        # Save uuids to meta data dictionary
-        # Add default data to table dictionary
-        for pdef in parameter_defs:
-            description_str = f"action: {action_template.description}"
-            value_str = f"value: {pdef.description} {action_template.description}"
-            unit_str = f"unit: {pdef.description} {action_template.description}"
+    # form_data = request.session["experiment_create_form_data"]
+    experiment_data: ExperimentData = request.session["experiment_data"]
+    temp = experiment_data.generate_manual_spec_file()
 
-            meta_data[description_str] = action_template.uuid
-            meta_data[value_str] = f"value:{pdef.uuid}:{action_template.uuid}"
-            meta_data[unit_str] = f"unit:{pdef.uuid}:{action_template.uuid}"
-
-            table_data[description_str] = []
-            table_data[value_str] = []
-            table_data[unit_str] = []
-
-            if dest_vessel.children.count() == 0:
-                # If the destination vessel has no children, just add 1 row
-                dest_description_str = f"vessel: {dest_vessel.description}"
-                table_data[description_str].append(dest_description_str)
-                table_data[value_str].append(f"{pdef.default_val.value}")
-                table_data[unit_str].append(f"{pdef.default_val.unit}")
-                meta_data[dest_description_str] = dest_vessel.uuid
-
-            else:
-                # Add as many rows there are as children
-                for i, child in enumerate(
-                    dest_vessel.children.all().order_by(
-                        "description",
-                    )
-                ):
-                    dest_description_str = (
-                        f"vessel: {dest_vessel.description} : {child.description}"
-                    )
-                    table_data[description_str].append(dest_description_str)
-                    table_data[value_str].append(f"{pdef.default_val.value}")
-                    table_data[unit_str].append(f"{pdef.default_val.unit}")
-                    meta_data[dest_description_str] = child.uuid
-
-    temp = tempfile.TemporaryFile()
-    excel_writer = pd.ExcelWriter(temp)
-    outframe = pd.DataFrame(data=table_data)
-    outframe.to_excel(
-        excel_writer=excel_writer,
-        sheet_name=exp_template.description,
-        index=False,
-    )
-
-    m_data = {"keys": list(meta_data.keys()), "values": list(meta_data.values())}
-    meta_dataframe = pd.DataFrame(data=m_data)
-    meta_dataframe.to_excel(
-        excel_writer,
-        sheet_name="meta_data",
-        index=False,
-    )
-    excel_writer.save()
-    temp.seek(0)
     response = FileResponse(
         temp,
         as_attachment=True,
-        filename=f"manual_{exp_template.description}.xlsx",
+        filename=f"manual_{experiment_data.experiment_template.description}.xlsx",
     )
     return response
 
 
-def experiment_invalid(request: HttpRequest, pk):
+def experiment_invalid(request: HttpRequest, pk) -> Optional[HttpResponse]:
     """
     Experiment Invalid
 
@@ -202,7 +137,6 @@ def save_experiment_action_template(request: HttpRequest) -> HttpResponse:
                         # properties["source"] = None
 
                         for a in action_tuples:
-
                             action_def, created = ActionDef.objects.get_or_create(
                                 description=description
                             )
@@ -256,7 +190,7 @@ def save_experiment_action_template(request: HttpRequest) -> HttpResponse:
                             # action_sequence=action_sequences[action_seq],
                             description=description,
                             experiment_template=exp_template,
-                            action_def=action_def,
+                            action_def=action_def,  # type: ignore
                             source_vessel_template=source_vessel_template,
                             source_vessel_decomposable=source_vessel_decomposable,
                             dest_vessel_template=dest_vessel_template,

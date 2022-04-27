@@ -1,9 +1,8 @@
 from __future__ import annotations
-from distutils.command.clean import clean
-from keyword import kwlist
 import os
 import uuid
-from typing import List, Any
+from typing import List, Any, Type, Dict
+import dataclasses
 from formtools.wizard.views import SessionWizardView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from core.forms.wizard import (
@@ -18,12 +17,14 @@ from core.forms.wizard import (
     PostProcessForm,
 )
 from django.shortcuts import render
-from django.forms import BaseFormSet, formset_factory
+from django.forms import BaseFormSet, Form, formset_factory
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.http import HttpResponseRedirect
 from django.db.models import Prefetch, QuerySet
 from django.urls import reverse
+from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from core.models.view_tables import (
     ExperimentTemplate,
     ReagentTemplate,
@@ -41,20 +42,24 @@ from core.models.view_tables import (
     PropertyTemplate,
 )
 from core.models.app_tables import CustomUser
+from core.dataclass import (
+    ExperimentData,
+    SELECT_TEMPLATE,
+    NUM_OF_EXPS,
+    MANUAL_SPEC,
+    AUTOMATED_SPEC,
+    REAGENT_PARAMS,
+    SELECT_VESSELS,
+    ACTION_PARAMS,
+    POSTPROCESS,
+)
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from core.utilities.utils import experiment_copy, get_colors
 import pandas as pd
-
-# steps with names to display in UI
-SELECT_TEMPLATE = "Select Experiment Template"
-NUM_OF_EXPS = "Set Number of Experiments"
-MANUAL_SPEC = "Specify Manual Experiments"
-AUTOMATED_SPEC = "Specify Automated Experiments"
-REAGENT_PARAMS = "Specify Reagent Parameters"
-SELECT_VESSELS = "Select Vessels"
-ACTION_PARAMS = "Specify Action Parameters"
-POSTPROCESS = "Select Postprocessors"
+from plugins.sampler.base_sampler_plugin import BaseSamplerPlugin
+from plugins.sampler import *
+import logging
 
 
 class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
@@ -122,33 +127,45 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             )
         return self._experiment_template
 
+    @property
+    def all_form_data(self) -> Dict[str, Any]:
+        form_data = {
+            SELECT_TEMPLATE: self.get_cleaned_data_for_step(SELECT_TEMPLATE),
+            SELECT_VESSELS: self.get_cleaned_data_for_step(SELECT_VESSELS),
+            ACTION_PARAMS: self.get_cleaned_data_for_step(ACTION_PARAMS),
+            REAGENT_PARAMS: self.get_cleaned_data_for_step(REAGENT_PARAMS),
+            AUTOMATED_SPEC: self.get_cleaned_data_for_step(AUTOMATED_SPEC),
+        }
+        return form_data
+
     def get_form_initial(self, step: str) -> List[Any]:
         if step == REAGENT_PARAMS:
             reagent_props = self.experiment_template.get_reagent_templates()
             initial = []
             for i, rt in enumerate(reagent_props):
-                reagent_initial = {}
+                reagent_initial = {"reagent_template_uuid": str(rt.uuid)}
                 for j, prop in enumerate(rt.properties.all()):
                     reagent_initial.update(
                         {
-                            f"reagent_template_uuid_{i}_{j}": str(prop.uuid),
-                            f"reagent_prop_{i}_{j}": prop.default_value.nominal_value,
+                            f"reagent_prop_uuid_{j}": prop.uuid,
+                            f"reagent_prop_{j}": prop.default_value.nominal_value,
                         }
                     )
                 for j, rmt in enumerate(rt.reagent_material_template_rt.all()):
                     rmt: ReagentMaterialTemplate
                     initial_data = {
-                        f"reagent_material_template_uuid_{i}_{j}": str(rmt.uuid),
-                        f"material_type_{i}_{j}": str(rmt.material_type.uuid),
-                        # f"desired_concentration_{i}_{j}": rmt.properties.get(
+                        f"reagent_material_template_uuid_{j}": str(rmt.uuid),
+                        f"material_type_{j}": str(rmt.material_type.uuid),
+                        # f"desired_concentration_{j}": rmt.properties.get(
                         #    description="concentration"
                         # ).default_value.nominal_value,
                     }
-                    for prop in rmt.properties.all():
+                    for k, prop in enumerate(rmt.properties.all()):
                         prop: PropertyTemplate
                         initial_data[
-                            f"{prop.description}_{i}_{j}"
+                            f"reagent_material_prop_{j}_{k}"
                         ] = prop.default_value.nominal_value
+                        initial_data[f"reagent_material_prop_uuid_{j}_{k}"] = prop.uuid
                     reagent_initial.update(initial_data)
                 initial.append(reagent_initial)
             return initial
@@ -158,11 +175,11 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             )
             initial = []
             for i, at in enumerate(action_templates):
-                action_initial = {}
+                action_initial = {"action_template_uuid": at.uuid}
                 for j, param_def in enumerate(at.action_def.parameter_def.all()):
                     param_initial = {
-                        "action_parameter_{i}_{j}": param_def.uuid,
-                        "value_{i}_{j}": param_def.default_val,
+                        "action_parameter_{j}": param_def.uuid,
+                        "value_{j}": param_def.default_val,
                     }
                     action_initial.update(param_initial)
                 initial.append(action_initial)
@@ -195,27 +212,75 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
     def get_template_names(self) -> List[str]:
         return ["core/experiment/create/wizard.html"]
 
+    def get_form(self, step=None, data=None, files=None):
+        """Work around for not having a hook in WizardView.post() before form.is_valid() is called.
+        This is done specifically for the sampler. If the sampler code is run on this step,
+        and it fails, the function will add the error to the form and re-render it. This is not
+        possible in the default implementation of WizardView.post()
+
+        Args:
+            step (_type_, optional): _description_. Defaults to None.
+            data (_type_, optional): _description_. Defaults to None.
+            files (_type_, optional): _description_. Defaults to None.
+
+        Returns:
+            _type_: _description_
+        """
+        form = super().get_form(step, data, files)
+        if (
+            self.steps.current == AUTOMATED_SPEC
+            and step == None
+            and self.steps.prev != MANUAL_SPEC
+        ):
+            if form.is_valid():
+                form_data = form.cleaned_data
+                if not form_data["select_experiment_sampler"]:
+                    return form
+
+                SamplerPlugin: Type[BaseSamplerPlugin] = globals()[
+                    form_data["select_experiment_sampler"]
+                ]
+                prev_form_data = self.all_form_data
+                prev_form_data[AUTOMATED_SPEC] = form_data
+                sampler_plugin = SamplerPlugin()
+                exp_data = ExperimentData.parse_form_data(prev_form_data)
+                if sampler_plugin.validate(data=exp_data):
+                    try:
+                        data = sampler_plugin.sample_experiments(data=exp_data)
+                        # data = exp_data
+                        self.request.session["experiment_data"] = data
+                    except Exception as e:
+                        form.add_error(  # type: ignore
+                            "select_experiment_sampler",
+                            error=format_html(
+                                "Exception occured while running {} : {} <br/> Please check logs for more information.",
+                                form_data["select_experiment_sampler"],
+                                repr(e),
+                            ),
+                        )
+                        log = logging.getLogger("escalate")
+                        log.exception("Exception in process automated formset")
+                else:
+                    form.add_error(  # type: ignore
+                        "select_experiment_sampler",
+                        error=sampler_plugin.validation_errors,
+                    )
+                    log = logging.getLogger("escalate")
+                    log.error("Exception in process automated formset")
+
+        return form
+
     def process_step(self, form):
         if self.steps.current == MANUAL_SPEC:
-            form_data = self.get_form_step_data(form)
+            df_dict = pd.read_excel(form.cleaned_data["file"], sheet_name=None)
+            experiment_data: ExperimentData = self.request.session["experiment_data"]
+            experiment_data.parse_manual_file(df_dict)
+            self.request.session["experiment_data"] = experiment_data
         return super().process_step(form)
 
     def done(self, form_list, **kwargs):
-        cleaned_data = self.get_cleaned_data_for_step(SELECT_TEMPLATE)
-        assert isinstance(cleaned_data, dict)
-        exp_template_uuid: str = cleaned_data["select_experiment_template"]
-        exp_name = cleaned_data["experiment_name"]
-
-        vessels = {}
-        vessel_form_data = self.get_cleaned_data_for_step(SELECT_VESSELS)
-        assert isinstance(vessel_form_data, list)
-        for vf_data in vessel_form_data:
-            vt = VesselTemplate.objects.get(uuid=vf_data["template_uuid"])
-            vessels[vt.description] = vf_data["value"]
-
-        instance_uuid = experiment_copy(exp_template_uuid, exp_name, vessels)
-        self._save_forms(instance_uuid)
-        experiment_instance = ExperimentInstance.objects.get(uuid=instance_uuid)
+        experiment_data: ExperimentData = self.request.session["experiment_data"]
+        experiment_instance = experiment_data.experiment_instance
         context = {
             "new_exp_name": experiment_instance.description,
             "experiment_link": reverse(
@@ -299,7 +364,11 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
                 "color": colors[i],
             }
             mat_types_list = []
-            for j, rmt in enumerate(rt.reagent_material_template_rt.all()):
+            for j, rmt in enumerate(
+                rt.reagent_material_template_rt.all().order_by(
+                    "material_type__description"
+                )
+            ):
                 mat_types_list.append(rmt.material_type.description)
 
             kwargs["form_kwargs"]["form_data"][str(i)][
@@ -327,6 +396,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             for j, pd in enumerate(at.action_def.parameter_def.all()):
                 action_parameter_list.append(pd.uuid)
             kwargs["form_kwargs"]["form_data"][str(i)] = {
+                "action_template_uuid": at.uuid,
                 "description": at.description,
                 "color": colors[i],
                 "action_parameter_list": action_parameter_list,

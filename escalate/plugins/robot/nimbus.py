@@ -1,5 +1,6 @@
 from plugins.robot.base_robot_plugin import RobotPlugin
 from uuid import UUID
+from django.db.models import QuerySet
 import core.models.view_tables as vt
 from core.models.core_tables import TypeDef
 import pandas as pd
@@ -42,9 +43,10 @@ class NimbusWF1RobotPlugin(RobotPlugin):
 
         rp_keys = []
         rp_values = []
-        for i, reaction_parameter in enumerate(parameters):
-            rp_keys.append(reaction_parameter.description)
-            rp_values.append(reaction_parameter.parameter_nominal.value)
+        for i, au in enumerate(parameters):
+            for param in au.parameter_au.all():
+                rp_keys.append(param.parameter_def.description)
+                rp_values.append(param.parameter_val_nominal.value)
 
         rxn_parameters = pd.DataFrame(
             {"Reaction Parameters": rp_keys, "Parameter Values": rp_values}
@@ -79,12 +81,17 @@ class NimbusWF1RobotPlugin(RobotPlugin):
             # source material -> Reagent number, vial_site -> row name
             for action_name, reagent_num in REAG_MAPPING.items():
 
-                action_units = volume_parameters.filter(description=action_name)
+                action_units = volume_parameters.filter(
+                    action__template__description=action_name
+                )
                 for au in action_units:
                     reaction_volumes_output.loc[
-                        reaction_volumes_output["Vial Site"] == au.action_unit_dest,
+                        reaction_volumes_output["Vial Site"]
+                        == au.destination_material.vessel.description,
                         f"Reagent{reagent_num} (ul)",
-                    ] = au.parameter_value.value
+                    ] = au.parameter_au.get(
+                        parameter_def__description="volume"
+                    ).parameter_val_nominal.value
 
         rxn_conditions = pd.DataFrame(
             {

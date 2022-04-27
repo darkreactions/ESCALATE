@@ -9,12 +9,18 @@ from core.models.base_classes import (
     ActorColumn,
     DescriptionColumn,
 )
+from core.models.view_tables.generic_data import Parameter
 
 managed_tables = True
 managed_views = False
 
 
 class ActionUnit(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
+    """Create Action unit. NOTE: A signal in core.signals creates
+    corresponding parameters when a new action unit is created
+    """
+
+    parameter_au: "models.QuerySet[Parameter]"
     uuid = RetUUIDField(
         primary_key=True, default=uuid.uuid4, db_column="action_material_uuid"
     )
@@ -128,7 +134,6 @@ class ActionDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
 
 
 class ActionTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
-    """"""
 
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
     experiment_template = models.ForeignKey(
@@ -140,7 +145,7 @@ class ActionTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     )
 
     action_def = models.ForeignKey(
-        "ActionDef",
+        ActionDef,
         on_delete=models.DO_NOTHING,
         blank=True,
         null=True,
@@ -166,6 +171,9 @@ class ActionTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         related_name="action_template_dvt",
     )
     dest_vessel_decomposable = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.description}"
 
 
 class VesselTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
