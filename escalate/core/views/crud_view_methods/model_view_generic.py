@@ -216,6 +216,9 @@ class GenericModelList(GenericModelListBase, ListView):
         context = super().get_context_data(**kwargs)
         context["table_columns"] = self.table_columns
         if self.context_object_name:
+            context["page_obj"].adjusted_elided_pages = context[
+                "paginator"
+            ].get_elided_page_range(context["page_obj"].number)
             models = context[self.context_object_name]
             model_name = self.context_object_name[:-1]  # Ex: tag_types -> tag_type
             table_data = []

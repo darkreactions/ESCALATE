@@ -188,8 +188,12 @@
                             {% else %}
                             <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
                             {% endif %}
-                            {% for i in paginator.page_range %}
-                            {% if page_obj.number == i %}
+                            {% for i in page_obj.adjusted_elided_pages %}
+                            {% if i == paginator.ELLIPSIS %}
+
+                            {{ i }}
+
+                            {% elif page_obj.number == i %}
                             <li class="page-item active"><span class="page-link">{{ i }} <span
                                         class="sr-only">(current)</span></span>
                             </li>
