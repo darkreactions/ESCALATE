@@ -6,37 +6,17 @@ from plugins.sampler.base_sampler_plugin import BaseSamplerPlugin
 from core.utilities.randomSampling import generateExperiments
 from core.dataclass import ExperimentData, ActionUnitData, ActionData
 
-class WF1SamplerPlugin(BaseSamplerPlugin):
-    name = "Statespace sampler for WF1"
+class WF3SamplerPlugin(BaseSamplerPlugin):
+    name = "Statespace sampler for WF3"
 
     def __init__(self):
         super().__init__()
 
     def validate(self, data: ExperimentData, **kwargs):
-        if data.experiment_template.description not in ["Workflow 1"]:
+        if data.experiment_template.description not in ["Workflow 3"]:
             self.errors.append(
-                f"Selected template is not Workflow 1. Found: {data.experiment_template.description}"
+                f"Selected template is not Workflow 3. Found: {data.experiment_template.description}"
             )
-        '''for rt, r_props in data.reagent_properties.items():
-            for rmt, rm_props in r_props.reagent_materials.items():
-                # Check if all materials have a phase
-                if rm_props.inventory_material.phase is None:
-                    self.errors.append(
-                        f"Phase data not found for {rm_props.inventory_material}. Please update the inventory material table"
-                    )
-
-                if not rm_props.inventory_material.material.property_m.filter(
-                    template__description="MolecularWeight"
-                ).exists():
-                    self.errors.append(
-                        f'Molecular weight not found for {rm_props.inventory_material.material}. Please update the material table'
-                    )
-                if not rm_props.inventory_material.material.property_m.filter(
-                    template__description="Density"
-                ).exists():
-                    self.errors.append(
-                        f'Density not found for {rm_props.inventory_material.material}. Please update the material table'
-                    )'''
         if self.errors:
             return False
         return True
@@ -54,13 +34,22 @@ class WF1SamplerPlugin(BaseSamplerPlugin):
                         rmt_data[rmd.material_type.description] = value.value
                         break
             reagentDefs.append(rmt_data)
+
         num_of_automated_experiments = data.num_of_sampled_experiments
 
+        #exclude antisolvent from the sampler 
         desired_volume = generateExperiments(
-            reagent_template_names,
-            reagentDefs,
+            reagent_template_names[0:-1],
+            reagentDefs[0:-1],
             num_of_automated_experiments,
         )
+
+        desired_volume[reagent_template_names[-1]] = [
+            800.0
+            for i in range(
+                num_of_automated_experiments
+            )  # default volume for antisolvent is 800 uL
+        ]
 
         action_templates = data.experiment_template.get_action_templates(
             dest_vessel_decomposable=True
@@ -71,6 +60,7 @@ class WF1SamplerPlugin(BaseSamplerPlugin):
             "Dispense Reagent 3 - Stock B": "Reagent 3 - Stock B",
             "Dispense Reagent 7 - Acid Volume 1": "Reagent 7 - Acid",
             "Dispense Reagent 7 - Acid Volume 2": "Reagent 7 - Acid",
+            "Dispense Reagent 9 - Antisolvent": "Reagent 9 - Antisolvent"
         }
 
         for at in action_templates:
@@ -89,7 +79,6 @@ class WF1SamplerPlugin(BaseSamplerPlugin):
                 )
                 dispense_vols.append(aud)
             a_data.parameters[parameter_def] = dispense_vols
-            # a_data.parameters['a'] = dispense_vols
             data.action_parameters[at] = a_data
 
         return data
