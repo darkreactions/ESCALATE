@@ -53,7 +53,7 @@ class WF1SamplerPlugin(BaseSamplerPlugin):
             for rmd in rpd.reagent_materials.values():
                 for prop_template, value in rmd.properties.items():
                     if prop_template.description == "concentration":
-                        rmt_data[rmd.material_type.description] = value.value
+                        rmt_data[rmd.inventory_material.description] = value.value
                         break
             reagentDefs.append(rmt_data)
         num_of_automated_experiments = data.num_of_sampled_experiments
