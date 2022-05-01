@@ -87,7 +87,7 @@ class NimbusWF1RobotPlugin(RobotPlugin):
                 for au in action_units:
                     reaction_volumes_output.loc[
                         reaction_volumes_output["Vial Site"]
-                        == au.destination_material.vessel.description,
+                        == au.destination_material.vessel.vessel.description,
                         f"Reagent{reagent_num} (ul)",
                     ] = au.parameter_au.get(
                         parameter_def__description="volume"

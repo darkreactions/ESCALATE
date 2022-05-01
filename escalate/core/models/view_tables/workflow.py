@@ -1,6 +1,13 @@
 from django.db import models
 from django.db.models import QuerySet, Prefetch, F
-from django.contrib.postgres.fields import ArrayField, JSONField
+from django.contrib.postgres.fields import ArrayField
+from packaging import version
+import django
+
+if version.parse(django.__version__) < version.parse("3.1"):
+    from django.contrib.postgres.fields import JSONField
+else:
+    from django.db.models import JSONField
 
 from core.models.core_tables import RetUUIDField, SlugField
 from core.models.custom_types import ValField, CustomArrayField
@@ -88,7 +95,7 @@ class BaseBomMaterial(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
         related_name="bom_material_inventory_material",
     )
     vessel = models.ForeignKey(
-        "Vessel",
+        "VesselInstance",
         on_delete=models.CASCADE,
         blank=True,
         null=True,
@@ -472,7 +479,7 @@ class Outcome(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
 
 class Type(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     """Specifies the type of object, Currently used to define the type of an
-    actionsequence and experimenttemplate
+    and experimenttemplate
 
     Args:
         DateColumns (Model): Contains Datecolumns

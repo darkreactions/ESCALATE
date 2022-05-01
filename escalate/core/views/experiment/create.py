@@ -24,7 +24,6 @@ from core.models.view_tables import (
     InventoryMaterial,
     Vessel,
     VesselType,
-    # ExperimentActionSequence,
     Action,
     ActionUnit,
     BaseBomMaterial,

@@ -272,10 +272,13 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
 
     def process_step(self, form):
         if self.steps.current == MANUAL_SPEC:
-            df_dict = pd.read_excel(form.cleaned_data["file"], sheet_name=None)
-            experiment_data: ExperimentData = self.request.session["experiment_data"]
-            experiment_data.parse_manual_file(df_dict)
-            self.request.session["experiment_data"] = experiment_data
+            if form.cleaned_data["file"]:
+                df_dict = pd.read_excel(form.cleaned_data["file"], sheet_name=None)
+                experiment_data: ExperimentData = self.request.session[
+                    "experiment_data"
+                ]
+                experiment_data.parse_manual_file(df_dict)
+                self.request.session["experiment_data"] = experiment_data
         return super().process_step(form)
 
     def done(self, form_list, **kwargs):

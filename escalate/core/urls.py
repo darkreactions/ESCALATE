@@ -45,7 +45,6 @@ urlpatterns = [
     path("create_user/", CreateUserView.as_view(), name="create_user"),
     path("main_menu/", MainMenuView.as_view(), name="main_menu"),
     path("select_lab/", SelectLabView.as_view(), name="select_lab"),
-    # path("action_sequence/", ActionSequenceView.as_view(), name="action_sequence"),
     path(
         "action_template/<uuid:pk>",
         ActionTemplateView.as_view(),

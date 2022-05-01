@@ -19,55 +19,10 @@ from core.models.view_tables import (
     Reagent,
     Vessel,
     ReactionParameter,
-    ActionSequence,
 )
 from core.custom_types import Val
 from core.utilities.randomSampling import generateExperiments
 from core.utilities.utils import make_well_labels_list
-
-
-def update_dispense_action_set(dispense_action_set, volumes, unit="mL"):
-    """Create a new action set based on the action set passed
-
-    Args:
-        dispense_action_set (Queryset): Queryset that contains the dispense actions
-        volumes (list): List of volumes used to update the queryset
-        unit (str, optional): Unit of volumes. Defaults to "mL".
-    """
-
-    dispense_action_set_params = deepcopy(dispense_action_set.__dict__)
-    # delete keys from dispense action set that are not needed for creating a new action set
-    delete_keys = [
-        "uuid",
-        "_state",
-        "_prefetched_objects_cache",
-        # the below keys are the annotations from q1..q3
-        "object_description",
-        "object_uuid",
-        "parameter_def_description",
-        "parameter_uuid",
-        "parameter_value",
-        "experiment_uuid",
-        "experiment_description",
-        "workflow_seq",
-    ]
-    [dispense_action_set_params.pop(k, None) for k in delete_keys]
-
-    # delete the old action set
-    dispense_action_set.delete()
-
-    if isinstance(volumes, np.ndarray):
-        # recall: needs to be a list of Val
-        v = [
-            Val.from_dict({"type": "num", "value": vol, "unit": unit})
-            for vol in volumes
-        ]
-    elif isinstance(volumes, Val):
-        v = [volumes]
-    dispense_action_set_params["calculation_id"] = None
-    dispense_action_set_params["parameter_val_nominal"] = v
-    instance = ActionSequence(**dispense_action_set_params)
-    instance.save()
 
 
 def update_lsr_edoc(

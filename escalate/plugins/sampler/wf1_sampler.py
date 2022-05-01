@@ -2,10 +2,11 @@ from typing import List, Dict
 from math import ceil, floor
 from core.custom_types import Val
 from core.dataclass import VesselData
-
+from core.utilities.utils import make_well_labels_list
 from plugins.sampler.base_sampler_plugin import BaseSamplerPlugin
 from core.utilities.randomSampling import generateExperiments
 from core.dataclass import ExperimentData, ActionUnitData, ActionData
+
 
 class WF1SamplerPlugin(BaseSamplerPlugin):
     name = "Statespace sampler for WF1"
@@ -18,7 +19,7 @@ class WF1SamplerPlugin(BaseSamplerPlugin):
             self.errors.append(
                 f"Selected template is not Workflow 1. Found: {data.experiment_template.description}"
             )
-        '''for rt, r_props in data.reagent_properties.items():
+        """for rt, r_props in data.reagent_properties.items():
             for rmt, rm_props in r_props.reagent_materials.items():
                 # Check if all materials have a phase
                 if rm_props.inventory_material.phase is None:
@@ -37,7 +38,7 @@ class WF1SamplerPlugin(BaseSamplerPlugin):
                 ).exists():
                     self.errors.append(
                         f'Density not found for {rm_props.inventory_material.material}. Please update the material table'
-                    )'''
+                    )"""
         if self.errors:
             return False
         return True
@@ -119,6 +120,6 @@ class WF1SamplerPlugin(BaseSamplerPlugin):
                     dispense_vols.append(aud)
                 a_data.parameters[parameter_def] = dispense_vols
                 # a_data.parameters['a'] = dispense_vols
-                data.action_parameters[at] = a_data
+            data.action_parameters[at] = a_data
 
         return data

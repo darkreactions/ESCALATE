@@ -53,12 +53,8 @@ core_views = set(
         "UnitType",
         "TypeDef",
         "ParameterDef",
-        # "ActionSequenceType",
         "UdfDef",
         "ExperimentTemplate",
-        "ActionSequence",
-        # "ExperimentActionSequence",
-        # "ExperimentType",
         "Type",
         "BillOfMaterials",
         "Measure",
@@ -188,12 +184,6 @@ expandable_fields = {
     "ExperimentTemplate": {
         "options": {"many_to_many": ["action_sequence"]},
         "fields": {
-            "action_sequence": (
-                "rest_api.ActionSequenceSerializer",
-                {
-                    "many": True,
-                },
-            ),
             "bill_of_materials": (
                 "rest_api.BillOfMaterialsSerializer",
                 {

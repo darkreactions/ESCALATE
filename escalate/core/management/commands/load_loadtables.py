@@ -12,7 +12,6 @@ from core.models import (
     DefaultValues,
     ExperimentTemplate,
     Type,
-    ExperimentActionSequence,
     Inventory,
     InventoryMaterial,
     Material,
@@ -27,8 +26,6 @@ from core.models import (
     Systemtool,
     TypeDef,
     Vessel,
-    ActionSequence,
-    # ActionSequenceType,
     ReagentTemplate,
     ReagentMaterialTemplate,
     # ReagentMaterialValueTemplate,
@@ -215,47 +212,6 @@ class Command(BaseCommand):
                         }
                     )
                     reagent_material_template.properties.add(rmv_template)
-        # Create ActionSequence -> Actions -> ActionUnits
-        """
-        action_sequences = {
-            "Preheat Plate": ActionSequence.objects.create(description="Preheat Plate"),
-            "Dispense Reagent 1 - Solvent": ActionSequence.objects.create(
-                description="Dispense Reagent 1 - Solvent"
-            ),
-            "Dispense Reagent 2 - Stock A": ActionSequence.objects.create(
-                description="Dispense Reagent 2 - Stock A"
-            ),
-            "Dispense Reagent 3 - Stock B": ActionSequence.objects.create(
-                description="Dispense Reagent 3 - Stock B"
-            ),
-            "Stir 1": ActionSequence.objects.create(description="Stir 1 "),
-            "Dispense Reagent 7 - Acid Volume 1": ActionSequence.objects.create(
-                description="Dispense Acid Volume 1"
-            ),
-            "Dispense Reagent 7 - Acid Volume 2": ActionSequence.objects.create(
-                description="Dispense Acid Volume 2"
-            ),
-            "Stir 2": ActionSequence.objects.create(description="Stir 2"),
-        }
-
-        for i, action_seq in enumerate(as_values := list(action_sequences.values())):
-            td = {"experiment_action_sequence_seq": i}
-            if i > 0:
-                parent_eas = ExperimentActionSequence.objects.get(
-                    experiment_template=exp_template, action_sequence=as_values[i - 1]
-                )
-                td["parent"] = parent_eas
-            action_seq.experiment.add(exp_template, through_defaults=td)
-        """
-
-        """
-            ac_sq = ExperimentActionSequence(
-                experiment_template=exp_template,
-                experiment_action_sequence_seq=i,
-                action_sequence=action_seq,
-            )
-            ac_sq.save()
-            """
 
         # VESSEL data
 
@@ -560,51 +516,6 @@ class Command(BaseCommand):
                         }
                     )
                     reagent_material_template.properties.add(rmv_template)
-        """
-        # Create ActionSequence -> Actions -> ActionUnits
-        action_sequences = {
-            "Preheat Plate": ActionSequence.objects.create(description="Preheat Plate"),
-            "Dispense Reagent 1 - Solvent": ActionSequence.objects.create(
-                description="Dispense Reagent 1 - Solvent"
-            ),
-            "Dispense Reagent 2 - Stock A": ActionSequence.objects.create(
-                description="Dispense Reagent 2 - Stock A"
-            ),
-            "Dispense Reagent 3 - Stock B": ActionSequence.objects.create(
-                description="Dispense Reagent 3 - Stock B"
-            ),
-            "Dispense Reagent 7 - Acid Volume 1": ActionSequence.objects.create(
-                description="Dispense Reagent 7 - Acid Volume 1"
-            ),
-            "Stir 1": ActionSequence.objects.create(description="Stir 1"),
-            "Dispense Reagent 7 - Acid Volume 2": ActionSequence.objects.create(
-                description="Dispense Reagent 7 - Acid Volume 2"
-            ),
-            "Stir 2": ActionSequence.objects.create(description="Stir 2"),
-            "Dispense Reagent 9 - Antisolvent": ActionSequence.objects.create(
-                description="Dispense Reagent 9 - Antisolvent"
-            ),
-            "Store": ActionSequence.objects.create(description="Store"),
-        }
-
-        for i, action_seq in enumerate(asq := list(action_sequences.values())):
-            td = {"experiment_action_sequence_seq": i}
-            if i > 0:
-                parent = ExperimentActionSequence.objects.get(
-                    experiment_template=exp_template, action_sequence=asq[i - 1]
-                )
-                td["parent"] = parent
-            action_seq.experiment.add(exp_template, through_defaults=td)
-        """
-
-        """
-            ac_sq = ExperimentActionSequence(
-                experiment_template=exp_template,
-                experiment_action_sequence_seq=i,
-                action_sequence=action_seq,
-            )
-            ac_sq.save()
-            """
 
         column_order = "ACEGBDFH"
         rows = 12
@@ -1318,16 +1229,7 @@ class Command(BaseCommand):
                 )
 
                 # update phase, model update to include phase into materials and foreign key material from inventory material
-                """
-                phase = None
-                if "acid" in mat_type_desc:
-                    phase = "liquid"
-                elif "solvent" in mat_type_desc:
-                    phase = "liquid"
-                elif "organic" in mat_type_desc:
-                    phase = "solid"
-                """
-
+                y: str
                 material_identifier__description = (
                     [x.strip() for x in y.split("|")]
                     if not string_is_null(y := material_identifier_descs_joined)
@@ -1444,18 +1346,15 @@ class Command(BaseCommand):
                     inventory_material_instance,
                     created,
                 ) = InventoryMaterial.objects.get_or_create(**fields)
-            except Exception as e:
-                print(e)
-                print(material_description)
-
-            try:
+                if created:
+                    new_inventory_material += 1
                 material_object = Material.objects.get(description=material_description)
                 inventory_material_instance.material = material_object
             except Material.DoesNotExist:
                 inventory_material_instance.material = None
-
-            if created:
-                new_inventory_material += 1
+            except Exception as e:
+                print(e)
+                print(material_description)
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -1705,156 +1604,6 @@ class Command(BaseCommand):
         )
         self.stdout.write(self.style.NOTICE("Finished loading calculation def"))
 
-    def _load_experiment_and_action_sequence(self):
-        self.stdout.write(
-            self.style.NOTICE("Beginning loading experiment and action_sequence")
-        )
-
-        EXPERIMENT = path_to_file("load_experiment.csv")
-
-        experiment_df = pd.read_csv(
-            EXPERIMENT, sep="\t", index_col=False, header=0, na_filter=False
-        )
-        active_status = Status.objects.get(description="active")
-
-        experiment_type = {x.description: x for x in Type.objects.all()}
-
-        new_experiment = 0
-        for _, row in experiment_df.iterrows():
-            description = clean_string(row["description"])
-            ref_uid = clean_string(row["ref_uid"])
-            experiment_type_description = clean_string(
-                row["experiment_type_description"]
-            )
-            owner_description = clean_string(row["owner_description"])
-            operator_description = clean_string(row["operator_description"])
-            lab_description = clean_string(row["lab_description"])
-
-            fields = {
-                "description": description,
-                "ref_uid": ref_uid,
-                "experiment_type": experiment_type[descr]
-                if not string_is_null(descr := experiment_type_description)
-                else None,
-                "owner": Actor.objects.get(description=owner_description)
-                if not string_is_null(owner_description)
-                else None,
-                "operator": Actor.objects.get(description=operator_description)
-                if not string_is_null(operator_description)
-                else None,
-                "lab": Actor.objects.get(description=lab_description)
-                if not string_is_null(lab_description)
-                else None,
-                "status": active_status,
-            }
-            experiment_instance, created = ExperimentTemplate.objects.get_or_create(
-                **fields
-            )
-            if created:
-                new_experiment += 1
-
-            bom_description = clean_string(row["bom_description"])
-            BillOfMaterials.objects.get_or_create(
-                description=bom_description,
-                experiment=experiment_instance,
-                status=active_status,
-            )
-
-        for _, row in experiment_df.iterrows():
-            description = clean_string(row["description"])
-            parent_description = clean_string(row["parent_description"])
-            row_experiment_instance = ExperimentTemplate.objects.get(
-                description=description
-            )
-            row_experiment_instance.parent = (
-                ExperimentTemplate.objects.get(description=parent_description)
-                if not string_is_null(parent_description)
-                else None
-            )
-            # row_experiment_instance.save(update_fields=['parent'])
-        self.stdout.write(self.style.SUCCESS(f"Added {new_experiment} new experiments"))
-
-        WORKFLOW = path_to_file("load_workflow.csv")
-        workflow_df = pd.read_csv(
-            WORKFLOW, sep="\t", index_col=False, header=0, na_filter=False
-        )
-        active_status = Status.objects.get(description="active")
-
-        action_sequence_type = {x.description: x for x in Type.objects.all()}
-
-        new_action_sequence = 0
-        for _, row in workflow_df.iterrows():
-            description = clean_string(row["description"])
-            action_sequence_type_description = clean_string(
-                row["workflow_type_description"]
-            )
-
-            fields = {
-                "description": description,
-                "action_sequence_type": action_sequence_type[y]
-                if not string_is_null(y := action_sequence_type_description)
-                else None,
-                "status": active_status,
-            }
-            (
-                action_sequence_instance,
-                created,
-            ) = ActionSequence.objects.get_or_create(**fields)
-            if created:
-                new_action_sequence += 1
-            experiment_description = (
-                [x.strip() for x in y.split(",")]
-                if not string_is_null(y := clean_string(row["experiment_description"]))
-                else []
-            )
-            experiment_action_sequence_seq_num = (
-                [x.strip() for x in y.split(",")]
-                if not string_is_null(
-                    y := clean_string(row["experiment_workflow_seq_num"])
-                )
-                else []
-            )
-
-            for exp_desc, exp_wf_seq_num in zip(
-                experiment_description, experiment_action_sequence_seq_num
-            ):
-                fields = {
-                    "experiment_template": ExperimentTemplate.objects.get(
-                        description=exp_desc
-                    )
-                    if not string_is_null(exp_desc)
-                    else None,
-                    "action_sequence": action_sequence_instance,
-                    "experiment_action_sequence_seq": int(exp_wf_seq_num)
-                    if not string_is_null(exp_wf_seq_num)
-                    else -1,
-                }
-                ExperimentActionSequence.objects.get_or_create(**fields)
-
-        for _, row in workflow_df.iterrows():
-            description = clean_string(row["description"])
-            parent_description = clean_string(row["parent_description"])
-
-            row_action_sequence_instance = ActionSequence.objects.filter(
-                description=description
-            ).first()
-            parent = (
-                ActionSequence.objects.filter(description=parent_description).first()
-                if not string_is_null(parent_description)
-                else None
-            )
-
-            row_action_sequence_instance.parent = parent
-
-            # row_action_sequence_instance.save(update_fields=["parent"])
-        self.stdout.write(
-            self.style.SUCCESS(f"Added {new_action_sequence} new action_sequences")
-        )
-
-        self.stdout.write(
-            self.style.NOTICE("Finished loading experiment and action_sequence")
-        )
-
     def _load_mixture(self):
         self.stdout.write(self.style.NOTICE("Beginning loading mixture"))
         filename = "load_mixture.csv"
@@ -2061,9 +1810,6 @@ class Command(BaseCommand):
                 "description": description,
                 "action_def": ActionDef.objects.get(description=y)
                 if not string_is_null(y := action_def_description)
-                else None,
-                "action_sequence": ActionSequence.objects.get(description=y)
-                if not string_is_null(y := action_sequence_description)
                 else None,
                 "start_date": start_date if not string_is_null(start_date) else None,
                 "end_date": end_date if not string_is_null(end_date) else None,

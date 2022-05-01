@@ -12,7 +12,6 @@ from core.models.base_classes import (
 )
 
 
-
 class ReactionParameter(StatusColumn, DescriptionColumn, DateColumns):
     uuid = RetUUIDField(
         primary_key=True,
@@ -103,6 +102,7 @@ class Mixture(DateColumns, StatusColumn, ActorColumn):
             self.component.description if self.component else "",
         )
 
+
 class Contents(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="contents_uuid")
     vessel_instance = models.ForeignKey(
@@ -124,55 +124,6 @@ class Contents(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
 
     def __str__(self):
         return f"{self.description}"
-
-"""
-class ReagentMaterialValueTemplate(DateColumns, DescriptionColumn, StatusColumn):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
-    reagent_material_template = models.ForeignKey(
-        "ReagentMaterialTemplate",
-        on_delete=models.DO_NOTHING,
-        related_name="reagent_material_value_template_rmt",
-    )
-    default_value = models.ForeignKey(
-        "DefaultValues",
-        on_delete=models.DO_NOTHING,
-        blank=True,
-        null=True,
-        related_name="reagent_material_value_template_dv",
-    )
-"""
-
-"""
-class ReagentMaterialValue(DateColumns, DescriptionColumn, StatusColumn):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
-    nominal_value = ValField(blank=True, null=True)
-    actual_value = ValField(blank=True, null=True)
-    reagent_material = models.ForeignKey(
-        "ReagentMaterial",
-        on_delete=models.DO_NOTHING,
-        null=True,
-        blank=True,
-        related_name="reagent_material_value_rmi",
-    )
-    template = models.ForeignKey(
-        "ReagentMaterialValueTemplate",
-        on_delete=models.DO_NOTHING,
-        null=True,
-        blank=True,
-        related_name="reagent_material_value_rmvt",
-    )
-
-    def save(self, *args, **kwargs):
-        if self.template.default_value is not None:
-            if self.nominal_value is None:
-                self.nominal_value = self.template.default_value.nominal_value
-            if self.actual_value is None:
-                self.actual_value = self.template.default_value.actual_value
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.description
-"""
 
 
 class Calculation(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
@@ -310,6 +261,7 @@ class EdocumentX(DateColumns):
         related_name="edocument_x_edocument",
     )
 
+
 class Measure(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="measure_uuid")
     measure_type = models.ForeignKey(
@@ -335,8 +287,6 @@ class Measure(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     internal_slug = SlugField(
         populate_from=["description"], overwrite=True, max_length=255
     )
-
-
 
 
 class MeasureType(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
@@ -391,6 +341,7 @@ class MeasureDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
 
     def __str__(self):
         return f"{self.description}"
+
 
 class NoteX(DateColumns):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="note_x_uuid")
@@ -478,77 +429,3 @@ class UdfDef(DescriptionColumn):
 
     def __str__(self):
         return "{}".format(self.description)
-
-class ActionSequence(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
-    action_sequence_type = models.ForeignKey(
-        "Type",
-        models.CASCADE,
-        blank=True,
-        null=True,
-        related_name="action_sequence_t",
-    )
-    experiment = models.ManyToManyField(
-        "ExperimentTemplate",
-        through="ExperimentActionSequence",
-        related_name="action_sequence_e",
-    )
-    # action_def = models.ManyToManyField(
-    #    "ActionDef",
-    #    through="ActionSequenceActionDef",
-    #    related_name="action_sequence_ad",
-    # )
-    internal_slug = SlugField(
-        populate_from=[
-            "description",
-        ],
-        overwrite=True,
-        max_length=255,
-    )
-
-    def __str__(self):
-        return f"{self.description}"
-
-
-class ExperimentActionSequence(DateColumns):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
-    experiment_template = models.ForeignKey(
-        "ExperimentTemplate",
-        on_delete=models.CASCADE,
-        blank=True,
-        null=True,
-        related_name="experiment_action_sequence_et",
-    )
-    """
-    experiment_instance = models.ForeignKey(
-        "ExperimentInstance",
-        on_delete=models.CASCADE,
-        blank=True,
-        null=True,
-        related_name="experiment_instance_eas",
-    )
-    """
-    experiment_action_sequence_seq = models.IntegerField()
-    parent = models.ForeignKey(
-        "ExperimentActionSequence",
-        on_delete=models.DO_NOTHING,
-        blank=True,
-        null=True,
-        related_name="experiment_action_sequence_child",
-    )
-    action_sequence = models.ForeignKey(
-        "ActionSequence",
-        on_delete=models.CASCADE,
-        blank=True,
-        null=True,
-        related_name="experiment_action_sequence_as",
-    )
-    internal_slug = SlugField(
-        populate_from=[
-            "experiment__internal_slug",
-            "action_sequence__internal_slug",
-            "experiment_action_sequence_seq",
-        ],
-        overwrite=True,
-        max_length=255,
-    )

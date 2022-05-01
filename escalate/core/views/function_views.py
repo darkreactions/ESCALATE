@@ -210,25 +210,4 @@ def save_experiment_action_template(request: HttpRequest) -> HttpResponse:
                         )
                         a.save()
 
-        """for action_tuple in action_tuples:
-            id, description, source, destination = action_tuple
-            action_def, created = ActionDef.objects.get_or_create(
-                description=description
-            )
-            action = Action.objects.get_or_create(
-                description=description,
-                action_def=action_def,
-                action_sequence=action_sequence_instance,
-            )
-            # action.save()
-        # for i, a in enumerate(action_sequences):
-        # ac_sq = ActionSequence.objects.filter(description=a)[0]
-
-        eas = ExperimentActionSequence(
-            experiment_template=exp_template,
-            experiment_action_sequence_seq=0,
-            action_sequence=action_sequence_instance,
-        )
-        eas.save()"""
-
     return JsonResponse(data={"message": "success"})

@@ -2,7 +2,14 @@ import uuid
 from django.db import models
 from core.models.core_tables import RetUUIDField
 from django.contrib.auth.models import AbstractUser
-from django.contrib.postgres.fields import ArrayField, JSONField
+from django.contrib.postgres.fields import ArrayField
+from packaging import version
+import django
+
+if version.parse(django.__version__) < version.parse("3.1"):
+    from django.contrib.postgres.fields import JSONField
+else:
+    from django.db.models import JSONField
 from core.models.view_tables import Organization
 
 from ..managers import CustomUserManager
@@ -10,6 +17,7 @@ from ..managers import CustomUserManager
 
 class CustomUser(AbstractUser):
 
+    uuid = models.AutoField(primary_key=True)
     REQUIRED_FIELDS = []
     objects = CustomUserManager()
     person = models.ForeignKey("Person", on_delete=models.DO_NOTHING, null=True)

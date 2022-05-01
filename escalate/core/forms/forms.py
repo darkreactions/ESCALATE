@@ -27,9 +27,10 @@ from core.models.view_tables import (
     MaterialIdentifier,
 )
 from core.models.core_tables import TypeDef
-
+from core.widgets import ValFormField, ValWidget
 from packaging import version
 import django
+
 
 if version.parse(django.__version__) < version.parse("3.1"):
     from django.contrib.postgres.forms import JSONField
@@ -650,8 +651,8 @@ class InventoryMaterialForm(forms.ModelForm):
         field_classes = {
             "description": forms.CharField,
             "part_no": forms.CharField,
-            #'onhand_amt': ValFormField,
-            "onhand_amt": JSONField,
+            "onhand_amt": ValFormField,
+            # "onhand_amt": JSONField,
             "expiration_date": forms.SplitDateTimeField,
             "location": forms.CharField,
         }
@@ -673,7 +674,8 @@ class InventoryMaterialForm(forms.ModelForm):
             "description": forms.Textarea(
                 attrs={"rows": "3", "cols": "10", "placeholder": "Description"}
             ),
-            "onhand_amt": forms.TextInput(attrs={"placeholder": "On hand amount"}),
+            # "onhand_amt": forms.TextInput(attrs={"placeholder": "On hand amount"}),
+            "onhand_amt": ValWidget(),
             "part_no": forms.TextInput(attrs={"placeholder": "Part number"}),
             "expiration_date": widgets.AdminSplitDateTime(),
             "location": forms.TextInput(attrs={"placeholder": "Location"}),

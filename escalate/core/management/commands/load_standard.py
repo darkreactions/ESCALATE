@@ -1,7 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 from core.models import (
     TypeDef,
-    # ActionSequenceType,
     Type,
     Status,
     MaterialIdentifierDef,

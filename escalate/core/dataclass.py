@@ -26,6 +26,7 @@ from core.models.view_tables import (
     Property,
     ActionTemplate,
     ActionDef,
+    VesselInstance,
 )
 from core.custom_types import Val
 
@@ -313,7 +314,7 @@ class ExperimentData:
 
     def _create_bbm(
         self,
-        vessel: "VesselData|None",
+        vessel_data: "VesselData|None",
         bom_vessels: Dict[str, BaseBomMaterial],
         bom: BillOfMaterials,
     ) -> Tuple[Optional[BaseBomMaterial], Dict[str, BaseBomMaterial]]:
@@ -328,12 +329,21 @@ class ExperimentData:
             _type_: _description_
         """
         bbm = None
-        if vessel is not None:
-            if vessel.vessel.description not in bom_vessels:
-                bom_vessels[vessel.vessel.description] = BaseBomMaterial.objects.create(
-                    bom=bom, vessel=vessel.vessel, description=vessel.vessel.description
+        if vessel_data is not None:
+            if vessel_data.vessel.description not in bom_vessels:
+                vessel_instance, created = VesselInstance.objects.get_or_create(
+                    vessel_template=vessel_data.vessel_template,
+                    vessel=vessel_data.vessel,
+                    experiment_instance=bom.experiment_instance,
                 )
-            bbm = bom_vessels[vessel.vessel.description]
+                bom_vessels[
+                    vessel_data.vessel.description
+                ] = BaseBomMaterial.objects.create(
+                    bom=bom,
+                    vessel=vessel_instance,
+                    description=vessel_data.vessel.description,
+                )
+            bbm = bom_vessels[vessel_data.vessel.description]
         return bbm, bom_vessels
 
     def _save_properties(

@@ -158,31 +158,6 @@ class ExperimentTemplateNameForm(Form):
     )
 
 
-class ActionSequenceNameForm(Form):
-    widget = TextInput(attrs={"id": "name"})
-
-    name = CharField(
-        label="Action Sequence Name", max_length=100, widget=widget, required=True
-    )
-
-
-class ActionSequenceSelectionForm(Form):
-    # action_choices = [(a.uuid, a.description) for a in vt.ActionSequence.objects.all()]
-
-    select_actions = MultipleChoiceField(
-        # initial='0',
-        widget=SelectMultiple(),
-        required=True,
-        label="Select Action Sequences",
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["select_actions"].choices = [
-            (a.uuid, a.description) for a in vt.ActionSequence.objects.all()
-        ]
-
-
 class ReagentSelectionForm(Form):
     # reagent_choices = [(r.uuid, r.description) for r in vt.ReagentTemplate.objects.all()]
 
@@ -304,10 +279,6 @@ class ExperimentTemplateCreateForm(Form):
         org_id = kwargs.pop("org_id")
         lab = vt.Actor.objects.get(organization=org_id, person__isnull=True)
         super().__init__(*args, **kwargs)
-        # self.fields["select_rt"].choices = [
-        #  (r.uuid, r.description) for r in vt.ReagentTemplate.objects.all()
-        # ]
-        # self.fields['select_actions'].choices = [(a.uuid, a.description) for a in vt.ActionSequence.objects.all()]
 
 
 class ExperimentTemplateSelectForm(Form):

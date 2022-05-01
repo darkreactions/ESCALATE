@@ -16,7 +16,6 @@ from pathlib import Path
 class ActionTemplateView(LoginRequired, View):
     template_name = "core/action_template.html"
     form_class = ExperimentTemplateSelectForm
-    # form_class = ActionSequenceNameForm
 
     def get_context_data(self, **kwargs):
         context = {}
@@ -40,7 +39,6 @@ class ActionTemplateView(LoginRequired, View):
             messages.error(request, "Please select a lab to continue")
             return HttpResponseRedirect(reverse("main_menu"))
 
-        # context["action_sequence_name_form"] = ActionSequenceNameForm
         # return render(request, self.template_name, context)
 
         base_path = Path("./core/static/json/")
