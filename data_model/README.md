@@ -39,8 +39,6 @@ The database model consists of the following entities:
 
 1. **Action**: actual activity to be performed (by actor/person/systemtool/organization); associated with actionunits, parameters and/or calculations
 2. **ActionDef**: specification of an action
-3. **ActionSequence**: container of specified actions and associated action paths
-4. **ActionSequenceType**: desctiption of ActionSequence
 5. **ActionUnit**: measurement of action performed; contains a source and optionally a destination that the action is performed on
 6. **Actor**: object that act on, or with any of the entities
 7. **BaseBomMaterial**: instance of BillOfMaterials that associate inventories, vessels, and materials
@@ -54,7 +52,6 @@ The database model consists of the following entities:
 15. **Contents**: defines materials contained within a vessel instance
 16. **DefaultValues**: template for nominal and actual values
 17. **DescriptorTemplate**: template for multiple model instance descriptors
-18. **ExperimentActionSequence**: sequential order of an experiment; instance of ActionSequence
 19. **ExperimentCompletedInstance**: proxy model of ExpermentInstance that contains finished experiments
 20. **ExperimentInstance**: container **specifying** one or more action sequences (of actions) operating on or with one or more materials and **capturing** one or more measures and/or observables at any level of experiment detail
 21. **ExperimentPendingInstance**: proxy model of ExpermentInstance that contains pending experiments

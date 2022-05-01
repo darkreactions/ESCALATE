@@ -6,9 +6,6 @@ from core.models import (
     Organization,
     Systemtool,
     Action,
-    Mixture,
-    Measure,
-    MeasureX,
     UdfX,
     Udf,
     BomCompositeMaterial,
@@ -54,18 +51,6 @@ def create_udf_x(sender, **kwargs):
         udf_x.save()
 
 
-@receiver(post_save, sender=Measure)
-def create_measure_x(sender, **kwargs):
-    """
-    Creates measure_x table based on Measure table
-
-    Args:
-        sender (Measure Instance): Instance of the newly created measure_x
-    """
-    if kwargs["created"]:
-        measure_x = MeasureX(measure=kwargs["instance"])
-        measure_x.save()
-
 
 @receiver(post_save, sender=ActionUnit)
 def create_parameters(sender, **kwargs):
@@ -98,23 +83,3 @@ def create_parameters(sender, **kwargs):
     except Exception as e:
         print(f"Exception {e}")
 
-
-@receiver(post_save, sender=BomMaterial)
-def create_bom_composite_material(sender, **kwargs):
-    """
-    Checks if there are component materials associated
-    with Material, if there are then create corresponding
-    BomCompositeMaterials
-    """
-    if kwargs["created"]:
-        bom_material = kwargs["instance"]
-        material = bom_material.inventory_material.material
-        if not material.consumable:
-            c_materials = Mixture.objects.filter(composite=material)
-            for cm in c_materials:
-                bcm = BomCompositeMaterial(
-                    description=f"{bom_material.description}: {cm.description}",
-                    mixture=cm,
-                    bom_material=bom_material,
-                )
-                bcm.save()

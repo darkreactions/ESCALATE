@@ -5,7 +5,6 @@ from core.models import (
     Status,
     MaterialIdentifierDef,
     MaterialType,
-    MeasureType,
     TagType,
     SystemtoolType,
 )

@@ -56,8 +56,6 @@ These models are defined in `./core/models/view_tables/*`
 
 1. **Action**: actual activity to be performed (by actor/person/systemtool/organization); associated with actionunits, parameters and/or calculations
 2. **ActionDef**: specification of an action
-3. **ActionSequence**: container of specified actions and associated action paths
-4. **ActionSequenceType**: desctiption of ActionSequence
 5. **ActionUnit**: measurement of action performed; contains a source and optionally a destination that the action is performed on
 6. **Actor**: object that act on, or with any of the entities
 7. **BaseBomMaterial**: instance of BillOfMaterials that associate inventories, vessels, and materials
@@ -71,7 +69,6 @@ These models are defined in `./core/models/view_tables/*`
 15. **Contents**: defines materials contained within a vessel instance
 16. **DefaultValues**: template for nominal and actual values
 17. **DescriptorTemplate**: template for multiple model instance descriptors
-18. **ExperimentActionSequence**: sequential order of an experiment; instance of ActionSequence
 19. **ExperimentCompletedInstance**: proxy model of ExpermentInstance that contains finished experiments
 20. **ExperimentInstance**: container **specifying** one or more action sequences (of actions) operating on or with one or more materials and **capturing** one or more measures and/or observables at any level of experiment detail
 21. **ExperimentPendingInstance**: proxy model of ExpermentInstance that contains pending experiments
@@ -124,8 +121,6 @@ API endpoints are available for most models. Below are the API endpoint URLs for
 
 1. **action**: "http://localhost:8000/api/action/",
 2. **actiondef**: "http://localhost:8000/api/action-def/",
-3. **actionsequence**: "http://localhost:8000/api/action-sequence/",
-4. **actionsequencetype**: "http://localhost:8000/api/action-sequence-type/",
 5. **actionunit**: "http://localhost:8000/api/action-unit/",
 6. **actor**: "http://localhost:8000/api/actor/",
 7. **basebommaterial**: "http://localhost:8000/api/base-bom-material/",
@@ -135,7 +130,6 @@ API endpoints are available for most models. Below are the API endpoint URLs for
 11. **contents**: "http://localhost:8000/api/contents/",
 12. **defaultvalues**: "http://localhost:8000/api/default-values/",
 13. **descriptortemplate**: "http://localhost:8000/api/descriptor-template/",
-14. **experimentactionsequence**: "http://localhost:8000/api/experiment-action-sequence/",
 15. **experimentdescriptor**: "http://localhost:8000/api/experiment-descriptor/",
 16. **experimentinstance**: "http://localhost:8000/api/experiment-instance/",
 17. **experimenttemplate**: "http://localhost:8000/api/experiment-template/",

@@ -252,29 +252,6 @@ class ExperimentTemplateCreateForm(Form):
         label="Number of outcomes to measure", required=True, initial=1
     )
 
-    # select_rt = MultipleChoiceField(
-    #  initial="0",
-    # widget=SelectMultiple(),
-    #  required=True,
-    # label="Select Reagent Templates",
-    # )
-
-    # select_rt = SelectMultiple([(r.uuid, r.description) for r in vt.ReagentTemplate.objects.all()])
-    # label='Select Reagent Templates')
-    # , widget=widget_mc)
-
-    # select_actions = MultipleChoiceField(
-    # initial='0',
-    # widget=SelectMultiple(),
-    # required=True,
-    # label='Select Action Sequences',
-    # )
-    # well_num = IntegerField(label="Number of Wells", required=True, initial=96)
-
-    # define_outcomes = CharField(
-    # label="Outcome to Measure", required=True, initial="Crystal score"
-    # )
-
     def __init__(self, *args, **kwargs):
         org_id = kwargs.pop("org_id")
         lab = vt.Actor.objects.get(organization=org_id, person__isnull=True)

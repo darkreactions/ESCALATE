@@ -148,22 +148,6 @@ class ParameterListSerializer(DynamicFieldsModelSerializer):
         return result_serializer.data
 
 
-class MeasureSerializer(DynamicFieldsModelSerializer):
-    class Meta:
-        model = Measure
-        fields = "__all__"
-        read_only_fields = ["ref_measure_uuid"]
-
-
-class MeasureListSerializer(DynamicFieldsModelSerializer):
-    measures = SerializerMethodField()
-
-    def get_measures(self, obj):
-        measures = Measure.objects.filter(measure_x_measure__ref_measure=obj.uuid)
-        result_serializer = MeasureSerializer(measures, many=True, context=self.context)
-        return result_serializer.data
-
-
 class EdocumentSerializer(
     TagListSerializer, NoteListSerializer, DynamicFieldsModelSerializer
 ):
