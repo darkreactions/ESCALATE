@@ -58,12 +58,9 @@ from core.utilities.utils import make_well_labels_list
 from core.views.experiment.create_select_template import SelectReagentsView
 
 import core.models
-import core.experiment_templates
 
 
-SUPPORTED_CREATE_WFS = [
-    mod for mod in dir(core.experiment_templates) if "__" not in mod
-]
+SUPPORTED_CREATE_WFS = []
 
 
 class SetupExperimentView(TemplateView):
@@ -402,9 +399,10 @@ class CreateExperimentView(TemplateView):
             context["experiment_copy_uuid"], template=False
         )
         if context["exp_template"].ref_uid in SUPPORTED_CREATE_WFS:
-            template_function = getattr(
-                core.experiment_templates, context["exp_template"].ref_uid
-            )
+            # template_function = getattr(
+            #    core.experiment_templates, context["exp_template"].ref_uid
+            # )
+            template_function = None
             new_lsr_pk, lsr_msg = template_function(
                 None,
                 q1,

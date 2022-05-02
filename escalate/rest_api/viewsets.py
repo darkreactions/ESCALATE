@@ -56,9 +56,7 @@ from rest_framework import viewsets
 import rest_api
 
 
-SUPPORTED_CREATE_WFS = [
-    mod for mod in dir(core.experiment_templates) if "__" not in mod  # type: ignore
-]
+SUPPORTED_CREATE_WFS = []
 
 
 def save_actor_on_post(self, serializer):

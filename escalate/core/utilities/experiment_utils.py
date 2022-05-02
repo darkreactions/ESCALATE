@@ -60,31 +60,6 @@ def update_lsr_edoc(
     return new_lsr_uuid, message
 
 
-def supported_wfs():
-    """
-    # find template file names from experiment_templates dir, strips .py and .cpython from the files
-    # and populates SUPPORTED_CREATE_WFS in experiment.py. Ignores __init___.py.
-    # This prevents needing to hardcode template names
-    """
-    # current_path = .../.../ESCALTE/escalate
-    current_path = os.getcwd()
-    # core_path = .../.../ESCLATE/escalate/core
-    core_path = os.path.join(current_path, "core")
-    # template_path = .../.../ESCALATE/escalate/core/experiment_templates
-    template_path = os.path.join(core_path, "experiment_templates")
-
-    template_list = []
-    for r, d, f in os.walk(template_path):
-        for file in f:
-            if ".py" in file:
-                if not "__init__" in file and not ".cpython" in file:
-                    # remove .py from filename
-                    outfile = os.path.splitext(file)[0]
-                    template_list.append(outfile)
-
-    return template_list
-
-
 def get_action_parameter_querysets(
     exp_uuid: "str | uuid.UUID", template=True
 ) -> "QuerySet[ExperimentTemplate]":

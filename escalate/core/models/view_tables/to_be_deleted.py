@@ -276,7 +276,7 @@ class NoteX(DateColumns):
     )
 
     def __str__(self):
-        return "{}".format(self.note_uuid)
+        return "{}".format(self.ref_note)
 
 
 class Udf(DescriptionColumn):
