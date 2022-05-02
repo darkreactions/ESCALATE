@@ -4,9 +4,6 @@ Created on Mar 29, 2021
 """
 import uuid
 import numpy as np
-from copy import deepcopy
-import os
-from tkinter.constants import CURRENT
 from django.db.models import F
 from django.db.models.query import QuerySet
 
@@ -20,44 +17,8 @@ from core.models.view_tables import (
     Vessel,
     ReactionParameter,
 )
-from core.custom_types import Val
 from core.utilities.randomSampling import generateExperiments
 from core.utilities.utils import make_well_labels_list
-
-
-def update_lsr_edoc(
-    template_edoc, experiment_copy_uuid, experiment_copy_name, **kwargs
-):
-    """Copy LSR file from the experiment template, update tagged maps with kwargs, save to experiment copy
-    Returns the uuid if completed successfully, else none
-    """
-    from LSRGenerator.generate import generate_lsr_design
-    import xml.etree.ElementTree as ET
-
-    # copy the template edoc
-    template_edoc.pk = None  # this effectively creates a copy of the original edoc
-
-    # convert to format LSRGenerator understands
-    lsr_template = template_edoc.edocument.tobytes().decode("utf-16")
-    lsr_template = ET.ElementTree(ET.fromstring(lsr_template))
-
-    # populate LSR design with kwargs, handling failure
-    new_lsr_uuid = None
-    message = None
-    try:
-        lsr_design = generate_lsr_design(lsr_template, **kwargs)
-    except Exception as e:
-        message = str(e)
-    else:
-        lsr_design = ET.tostring(lsr_design.getroot(), encoding="utf-16")
-        # associate with the experiment copy and save
-        template_edoc.ref_edocument_uuid = experiment_copy_uuid
-        template_edoc.edocument = lsr_design
-        template_edoc.filename = experiment_copy_name + ".lsr"
-        template_edoc.save()
-        new_lsr_uuid = template_edoc.pk
-
-    return new_lsr_uuid, message
 
 
 def get_action_parameter_querysets(

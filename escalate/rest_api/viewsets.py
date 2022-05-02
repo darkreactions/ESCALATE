@@ -1,49 +1,24 @@
 import tempfile
-from uuid import UUID
-import uuid
 
 from django.http import Http404, FileResponse
-from django.db.models import F, Value
 
-# from django.urls import reverse_lazy, reverse
 from rest_framework import viewsets
 from rest_framework.request import Request
-from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework.views import APIView
 from rest_framework_extensions.mixins import NestedViewSetMixin
-from rest_framework.exceptions import ParseError
-from rest_framework.parsers import FileUploadParser
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from django_filters import rest_framework as filters
 
-from core.models.core_tables import RetUUIDField
-from core.utilities.utils import experiment_copy
-from core.utilities.experiment_utils import (
-    get_action_parameter_querysets,
-    get_material_querysets,
-)
 from .serializers import *
 import core.models
-from core.models.view_tables import (  # WorkflowActionSet, #ActionParameter
-    BomMaterial,
-    InventoryMaterial,
-    ParameterDef,
-    Edocument,
+from core.models.view_tables import (
     ExperimentTemplate,
-    ExperimentInstance,
 )
 
 from core.custom_types import Val
 
-# from core.experiment_templates import (
-#  liquid_solid_extraction,
-#  resin_weighing,
-#  perovskite_demo,
-# )
 from .utils import rest_viewset_views, perform_create_views
 import core.models
 

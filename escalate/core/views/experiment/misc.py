@@ -11,8 +11,6 @@ from core.models.view_tables import Parameter
 def get_action_parameter_form_data(
     exp_uuid: str, template: bool = True
 ) -> tuple[list[Any], list[Any]]:
-    # workflow__experiment_workflow_workflow__experiment=exp_uuid
-    # q1, q2, q3 = get_action_parameter_querysets(exp_uuid)
     q1 = get_action_parameter_querysets(exp_uuid, template)
     """
         This happens before copy, in the template. The only way to identify a parameter is 
@@ -54,9 +52,7 @@ def get_action_parameter_form_data(
                 )
 
         initial_q1.append(data)
-    q1_details = [
-        f"{row.action_unit_description}" for row in q1
-    ]
+    q1_details = [f"{row.action_unit_description}" for row in q1]
 
     return initial_q1, q1_details
 
@@ -102,7 +98,7 @@ def save_forms_q1(queries, formset, fields):
             desc = json.loads(data["uuid"])
             if len(desc) == 2:
                 object_desc, param_def_desc = desc
-                #param_def_desc = 'None'. What is param_def_desc? Is it a nominal/actual value?
+                # param_def_desc = 'None'. What is param_def_desc? Is it a nominal/actual value?
                 query = queries.get(
                     object_description=object_desc,
                     parameter_def_description=param_def_desc,

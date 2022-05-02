@@ -17,7 +17,7 @@ from core.forms.wizard import (
     PostProcessForm,
 )
 from django.shortcuts import render
-from django.forms import BaseFormSet, Form, formset_factory
+from django.forms import BaseFormSet, Form, ValidationError, formset_factory
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.http import HttpResponseRedirect
@@ -267,10 +267,18 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
                     )
                     log = logging.getLogger("escalate")
                     log.error("Exception in process automated formset")
-
+        if self.steps.current == MANUAL_SPEC and step == None:
+            if form.is_valid():
+                if "experiment_data" not in self.request.session:
+                    form.add_error(  # type: ignore
+                        "file",
+                        error=ValidationError(
+                            "Automated experiments not generated. Please upload a manual file"
+                        ),
+                    )
         return form
 
-    def process_step(self, form):
+    def process_step(self, form: Form):
         if self.steps.current == MANUAL_SPEC:
             if form.cleaned_data["file"]:
                 df_dict = pd.read_excel(form.cleaned_data["file"], sheet_name=None)
@@ -407,6 +415,8 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
 
         return kwargs
 
+
+"""
     def _save_forms(self, instance_uuid: "str|uuid.UUID"):
         exp_instance = ExperimentInstance.objects.select_related().get(
             uuid=instance_uuid
@@ -536,3 +546,5 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
                                 prop.save()
                             except ObjectDoesNotExist:
                                 continue
+
+"""

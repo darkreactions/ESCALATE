@@ -55,13 +55,13 @@ class ValWidget(MultiWidget):
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
-        table_subwidget = context["widget"]["subwidgets"][3]
+        # table_subwidget = context["widget"]["subwidgets"][3]
         value_text_subwidget = context["widget"]["subwidgets"][0]
         select_subwidget = context["widget"]["subwidgets"][2]
 
         # Checking if the selected datatype has the term 'array' in it
         if [datatype for datatype in select_subwidget["value"] if "array" in datatype]:
-            table_subwidget["is_hidden"] = False
+            # table_subwidget["is_hidden"] = False
             value_text_subwidget["attrs"]["hidden"] = True  # Hide text box
 
             list_value = json.loads(value_text_subwidget["value"])
@@ -72,8 +72,8 @@ class ValWidget(MultiWidget):
             list_value.resize(num_rows * num_cols)
             list_value = np.reshape(list_value, (num_rows, num_cols))
 
-            table_subwidget["rows"] = [i + 1 for i in range(num_rows)]
-            table_subwidget["values"] = list_value
+            # table_subwidget["rows"] = [i + 1 for i in range(num_rows)]
+            # table_subwidget["values"] = list_value
 
         return context
 

@@ -132,6 +132,16 @@ urlpatterns += [
 # Pending experiment patterns
 urlpatterns += [
     path(
+        "experiment_completed_instance/",
+        CreateExperimentWizard.as_view(),
+        name="experiment_completed_instance_add",
+    ),
+    path(
+        "experiment_pending_instance/",
+        CreateExperimentWizard.as_view(),
+        name="experiment_pending_instance_add",
+    ),
+    path(
         "experiment_pending_instance/<uuid:pk>",
         ExperimentDetailEditView.as_view(),
         name="experiment_pending_instance_view",
