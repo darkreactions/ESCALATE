@@ -32,19 +32,6 @@ def get_messages(request: HttpRequest) -> Optional[HttpResponse]:
         )
 
 
-def download_vp_spec_file(request: HttpRequest) -> "HttpResponse|FileResponse":
-    try:
-        exp_uuid: str = request.session["experiment_template_uuid"]
-        vessel = Vessel.objects.get(uuid=request.session["vessel"])
-        f = generate_vp_spec_file(exp_uuid, vessel)
-        response = FileResponse(
-            f, as_attachment=True, filename=f"manual_{exp_uuid}.xls"
-        )
-    except Exception as e:
-        return JsonResponse({"Error": f"Unexpected {e=}, {type(e)=}"})
-    return response
-
-
 def download_manual_spec_file(request: HttpRequest) -> "FileResponse|JsonResponse":
     # form_data = request.session["experiment_create_form_data"]
     experiment_data: ExperimentData = request.session["experiment_data"]
