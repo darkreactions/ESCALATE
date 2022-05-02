@@ -14,26 +14,6 @@ from django.forms import (
 )
 
 
-class TableWidget(Widget):
-    input_type = None  # Subclasses must define this.
-    template_name = "core/forms/table_widget.html"
-
-    def __init__(self, attrs=None, *args, **kwargs):
-        if attrs is not None:
-            attrs = attrs.copy()
-            self.rows = attrs.pop("rows", 5)
-        # print(self.rows)
-        attrs["class"] = "table-editable"
-        super().__init__(attrs)
-
-    def get_context(self, name, value, attrs):
-        context = super().get_context(name, value, attrs)
-        # print(f'in get_context: {context}')
-        # context['widget']['rows'] = [i+1 for i in range(self.rows)]
-        context["widget"]["is_hidden"] = True
-        return context
-
-
 class ValWidget(MultiWidget):
     def __init__(self, attrs={}):
         # value, unit and type
@@ -58,7 +38,6 @@ class ValWidget(MultiWidget):
             TextInput(attrs={"placeholder": "Value"}),
             TextInput(attrs={"placeholder": "Unit"}),
             Select(attrs=select_attrs, choices=data_type_choices),
-            TableWidget(attrs={"rows": 5}),
         ]
         super().__init__(widgets, attrs)
 
@@ -115,7 +94,11 @@ class ValFormField(MultiValueField):
         except Exception as e:
             data_type_choices = [("num", "num"), ("text", "text"), ("bool", "bool")]
         fields = (
-            CharField(error_messages={"incomplete": "Must enter a value",}),
+            CharField(
+                error_messages={
+                    "incomplete": "Must enter a value",
+                }
+            ),
             CharField(required=False),
             ChoiceField(choices=data_type_choices, initial="num"),
         )

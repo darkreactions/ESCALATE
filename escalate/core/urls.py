@@ -1,7 +1,6 @@
 from django.urls import path, include
 import core.views
 from core.views.function_views import (
-    download_vp_spec_file,
     download_manual_spec_file,
     save_experiment_action_template,
     experiment_invalid,
@@ -53,15 +52,6 @@ urlpatterns = [
     path(
         "favicon.ico",
         RedirectView.as_view(url=staticfiles_storage.url("static/favicon.ico")),
-    ),
-]
-
-# Experiment Instance creation patterns
-urlpatterns += [
-    path(
-        "experiment/setup/robot_file",
-        download_vp_spec_file,
-        name="download_vp_spec_file",
     ),
 ]
 
