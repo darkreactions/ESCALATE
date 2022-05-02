@@ -23,7 +23,6 @@ Tag
 TagAssign
 TagType
 Edocument
-ExperimentMeasureCalculation
 Experiment
 ExperimentWorkflow
 Outcome
@@ -46,8 +45,6 @@ WorkflowType
 Workflow
 WorkflowStep
 WorkflowObject
-Measure
-MeasureType
 
 # -- Sorted alphabetically
 | Table | Postgres View | Notes |
@@ -76,8 +73,6 @@ MeasureType
 |MaterialProperty|vw_material_property||
 |MaterialRefnameDef|vw_material_refname_def||
 |MaterialType|vw_material_type||
-|Measure|vw_measure||
-|MeasureType|vw_measure_type||
 |Note|vw_note||
 |Note_x|note_x||
 |Organization|vw_organization||
@@ -177,8 +172,6 @@ vw_material_type_assign
 |Calculation|vw_calculation||
 |CalculationDef|vw_calculation_def||
 |Edocument|vw_edocument||
-|Measure|vw_measure||
-|MeasureType|vw_measure_type||
 |Note|vw_note||
 |Note_x|note_x||
 |Parameter|vw_parameter||

@@ -80,9 +80,6 @@ These models are defined in `./core/models/view_tables/*`
 27. **MaterialIdentifier**: descriptors for materials; can be composed of multiple definitions
 28. **MaterialIdentifierDef**: individual descriptor for MaterialIdentifier
 29. **MaterialType**: defines the type of material within multiple template models
-30. **Measure**: observable and/or measure associated with a specific entity
-31. **MeasureDef**: defines the specifcations of a Measure model
-32. **MeasureType**: unit of measurement associated with Measure
 33. **Mixture**: composite materials and components associated with the creation of the mixture; material types can be defined and accessed
 34. **MolecularDescriptor**: descriptor for molecular materials
 35. **Note**: text that can be associated with any entity
