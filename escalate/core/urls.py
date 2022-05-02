@@ -21,9 +21,6 @@ from .views import (
     UserProfileEdit,
 )
 from .views.experiment import (
-    CreateExperimentView,
-    SetupExperimentView,
-    CreateExperimentTemplate,
     ExperimentReagentPrepView,
     ExperimentOutcomeView,
     ExperimentDetailEditView,
@@ -32,7 +29,6 @@ from .views.experiment import (
     CreateTemplateWizard,
 )
 
-from .views.experiment.create_select_template import SelectReagentsView
 
 from core.utilities.utils import view_names, camel_to_snake
 from django.contrib.staticfiles.storage import staticfiles_storage
@@ -62,21 +58,6 @@ urlpatterns = [
 
 # Experiment Instance creation patterns
 urlpatterns += [
-    path(
-        "experiment/setup",
-        SetupExperimentView.as_view(),
-        name="experiment_create",
-    ),
-    path(
-        "experiment/setup/select_reagents",
-        SelectReagentsView.as_view(),
-        name="select_reagents",
-    ),
-    path(
-        "experiment/setup/create",
-        CreateExperimentView.as_view(),
-        name="create_experiment",
-    ),
     path(
         "experiment/setup/robot_file",
         download_vp_spec_file,
@@ -137,12 +118,6 @@ urlpatterns += [
 # Completed experiment patterns
 urlpatterns += [
     path(
-        "experiment_completed_instance/",
-        CreateExperimentView.as_view(),
-        name="experiment_completed_instance_add",
-    ),
-    path("exp_template/experiment", CreateExperimentView.as_view(), name="experiment"),
-    path(
         "experiment_completed_instance/<uuid:pk>",
         ExperimentDetailEditView.as_view(),
         name="experiment_completed_instance_view",
@@ -166,11 +141,6 @@ urlpatterns += [
 
 # Pending experiment patterns
 urlpatterns += [
-    path(
-        "experiment_pending_instance/",
-        CreateExperimentView.as_view(),
-        name="experiment_pending_instance_add",
-    ),
     path(
         "experiment_pending_instance/<uuid:pk>",
         ExperimentDetailEditView.as_view(),
