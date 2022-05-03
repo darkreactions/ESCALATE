@@ -80,14 +80,16 @@ class ReagentTemplateMaterialAddForm(Form):
         label="Select Material-Level Properties (applies to each material)",
     )
 
-    def generate_subforms(self, i):
-        self.fields[f"select_mt_{i}"] = ChoiceField(
+    def generate_subforms(self, mat_index): #reagent_index):
+        #self.fields[f"select_mt_{mat_index}_{reagent_index}"] = ChoiceField(
+        self.fields[f"select_mt_{mat_index}"] = ChoiceField(
             widget=Select(),
             required=True,
-            label=f"Select Material Type: Material {i+1}",
+            label=f"Select Material Type: Material {mat_index+1}",
         )
 
-        self.fields[f"select_mt_{i}"].choices = [
+        #self.fields[f"select_mt_{mat_index}_{reagent_index}"].choices = [
+        self.fields[f"select_mt_{mat_index}"].choices = [
             (r.uuid, r.description) for r in vt.MaterialType.objects.all()
         ]
 
@@ -107,12 +109,13 @@ class ReagentTemplateMaterialAddForm(Form):
         self.fields["properties"].choices = [
             (pt.description, pt.description) for pt in vt.PropertyTemplate.objects.all()
         ]
-        for i in range(len(data[self.fields["name"].initial])):
-            self.generate_subforms(i)
+        num_materials = len(data[self.fields["name"].initial])
+        for i in range(num_materials):
+            self.generate_subforms(i) #self.index)
 
-        self.get_helper(data)
+        self.get_helper(num_materials)
 
-    def get_helper(self, data):
+    def get_helper(self, num_materials):
         helper = FormHelper()
         helper.form_class = "form-horizontal"
         helper.label_class = "col-lg-3"
@@ -126,8 +129,9 @@ class ReagentTemplateMaterialAddForm(Form):
             )
         )
 
-        for i in range(self.index + 1):
+        for i in range(num_materials):
 
+            #rows.append(Row(Column(Field(f"select_mt_{i}_{self.index}"))))
             rows.append(Row(Column(Field(f"select_mt_{i}"))))
 
         helper.layout = Layout(*rows)
