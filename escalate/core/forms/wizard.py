@@ -180,9 +180,9 @@ class ReagentForm(Form):
         self.fields[f"material_{index}"].choices = [
             (im.uuid, im.description) for im in self.inventory_materials[material_type]
         ]
-        #self.fields[
+        # self.fields[
         #    f"material_{index}"
-        #].label = f"Reagent {int(self.material_index)+1}: {material_type}"
+        # ].label = f"Reagent {int(self.material_index)+1}: {material_type}"
 
     def __init__(self, *args, **kwargs):
         self.material_index = str(kwargs.pop("index"))
@@ -247,7 +247,7 @@ class ReagentForm(Form):
                 material_type: str = rmt.material_type.description
                 tabs.append(
                     Tab(
-                        f" Material {i+1}: {material_type.capitalize()}", #- {i}_{self.material_index}",
+                        f"Material {i+1}: {material_type.capitalize()}",  # - {i}_{self.material_index}",
                         Column(Field(f"material_{i}")),
                         *[
                             Column(
@@ -258,6 +258,7 @@ class ReagentForm(Form):
                         ],
                         Field(f"reagent_material_template_uuid_{i}"),
                         Field(f"material_type_{i}"),
+                        css_id=f"reagent-{self.material_index}-material-{i}",
                     ),
                 )
             rows.append(TabHolder(*tabs))  # type: ignore
