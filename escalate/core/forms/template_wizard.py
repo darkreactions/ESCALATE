@@ -1,3 +1,4 @@
+from typing import Tuple, Any
 from django.forms import (
     MultipleChoiceField,
     Select,
@@ -37,6 +38,8 @@ class ReagentTemplateCreateForm(Form):
         label="Select Reagent-Level Properties",
     )
 
+    properties_add = CharField(required = False, label= "If desired properties are not listed, enter names separated by commas")
+
     def __init__(self, *args, **kwargs):
         try:
             self.reagent_index = kwargs.pop("index")
@@ -58,12 +61,13 @@ class ReagentTemplateCreateForm(Form):
     def get_helper(self):
         helper = FormHelper()
         helper.form_class = "form-horizontal"
-        helper.label_class = "col-lg-3"
+        helper.label_class = "col-lg-4"
         helper.field_class = "col-lg-6"
 
         helper.layout = Layout(
             Row(Column(Field(f"reagent_template_name")), Field(f"num_materials")),
             Row(Column(Field(f"properties"))),
+            Row(Column(Field(f"properties_add"))),
         )
 
         helper.form_tag = False
@@ -80,18 +84,28 @@ class ReagentTemplateMaterialAddForm(Form):
         label="Select Material-Level Properties (applies to each material)",
     )
 
+    properties_add = CharField(required = False, label= "If desired properties are not listed, enter names separated by commas")
+
     def generate_subforms(self, mat_index): #reagent_index):
         #self.fields[f"select_mt_{mat_index}_{reagent_index}"] = ChoiceField(
         self.fields[f"select_mt_{mat_index}"] = ChoiceField(
             widget=Select(),
-            required=True,
+            required=False,
             label=f"Select Material Type: Material {mat_index+1}",
         )
+        self.fields[f"add_type_{mat_index}"] = CharField(required = False, label= "If desired material type is not listed, enter name")
 
         #self.fields[f"select_mt_{mat_index}_{reagent_index}"].choices = [
-        self.fields[f"select_mt_{mat_index}"].choices = [
-            (r.uuid, r.description) for r in vt.MaterialType.objects.all()
+        none_option: "list[Tuple[Any, str]]" = [(None, "No material type selected")]
+        
+        mat_type: "list[Tuple[Any, str]]" = [
+           (r.uuid, r.description) for r in vt.MaterialType.objects.all()
         ]
+        #self.fields[f"select_mt_{mat_index}"].choices = [
+           # (r.uuid, r.description) for r in vt.MaterialType.objects.all()
+        #]
+        self.fields[f"select_mt_{mat_index}"].choices = none_option + mat_type
+
 
     def __init__(self, *args, **kwargs):
         try:
@@ -118,22 +132,24 @@ class ReagentTemplateMaterialAddForm(Form):
     def get_helper(self, num_materials):
         helper = FormHelper()
         helper.form_class = "form-horizontal"
-        helper.label_class = "col-lg-3"
-        helper.field_class = "col-lg-8"
+        helper.label_class = "col-lg-5"
+        helper.field_class = "col-lg-6"
         rows = []
 
-        rows.append(
-            Row(
-                Column(Field(f"name")),
-                Column(Field(f"properties")),
-            )
-        )
+        rows.append(Row(Field(f"name")))
+        
+        rows.append(Row(Column(Field(f"properties")), Column(Field(f"properties_add"))))
+
+        #rows.append(Row(
+         #       Column(Field(f"properties_add"))))
+        
 
         for i in range(num_materials):
 
             #rows.append(Row(Column(Field(f"select_mt_{i}_{self.index}"))))
             rows.append(Row(Column(Field(f"select_mt_{i}"))))
-
+            rows.append(Row(Column(Field(f"add_type_{i}"))))
+                
         helper.layout = Layout(*rows)
         helper.form_tag = False
 
