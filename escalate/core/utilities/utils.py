@@ -222,9 +222,11 @@ def generate_action_def_json(action_defs, exp_template_uuid):
             source_choices.append(vt.default_vessel.description+ ': ' + vt.description)
             dest_choices.append(vt.default_vessel.description+ ': ' + vt.description)"""
 
-    for vt in VesselType.objects.all():
-        source_choices.append(vt.description)
-        dest_choices.append(vt.description)
+    '''for vt in Vessel.objects.all():
+        if vt.parent is None:
+            source_choices.append(vt.description)
+            dest_choices.append(vt.description)'''
+    dest_choices = ['Outcome vessel', 'Other']
 
     json_data = []
 
@@ -243,15 +245,21 @@ def generate_action_def_json(action_defs, exp_template_uuid):
                         "name": "source",
                         "type": "select",
                         "label": "From:",
-                        "hint": "source material/vessel",
+                        "hint": "source vessel contents",
                         "options": {"items": [i for i in source_choices]},
                     },
                     {
-                        "name": "destination",
+                        "name": "destination_type",
                         "type": "select",
                         "label": "To:",
-                        "hint": "destination vessel",
+                        "hint": "destination vessel type",
                         "options": {"items": [i for i in dest_choices]},
+                    },
+                    {
+                        "name": "destination_decomposable",
+                        "type": "boolean",
+                        "label": "Destination vessel decomposable?",
+                        "hint": "does the action apply to the entire vessel, or to its components?",
                     },
                 ],
             }

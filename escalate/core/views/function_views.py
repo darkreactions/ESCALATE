@@ -109,7 +109,8 @@ def save_experiment_action_template(request: HttpRequest) -> HttpResponse:
                                 id,
                                 description,
                                 properties["source"],
-                                properties["destination"],
+                                properties["destination_type"],
+                                properties["destination_decomposable"],
                             )
                         )
 
@@ -144,27 +145,40 @@ def save_experiment_action_template(request: HttpRequest) -> HttpResponse:
 
                         dest_vessel_template = None
                         dest_vessel_decomposable = False
-                        if properties["destination"]:
+                        if properties["destination_type"]:
                             default_vessel, created = Vessel.objects.get_or_create(
                                 description="Generic Vessel"
                             )
 
-                            if "wells" in properties["destination"]:
+                            if properties["destination_decomposable"] == True:
                                 dest_vessel_decomposable = True
                             else:
                                 dest_vessel_decomposable = False
 
-                            (
-                                dest_vessel_template,
-                                created,
-                            ) = VesselTemplate.objects.get_or_create(
-                                description="Outcome vessel",
-                                outcome_vessel=True,
-                                default_vessel=default_vessel,
-                            )
+                            if properties["destination_type"] == 'Outcome vessel': #outcome vessel
+                            
+                                (
+                                    dest_vessel_template,
+                                    created,
+                                ) = VesselTemplate.objects.get_or_create(
+                                    outcome_vessel=True,
+                                    default_vessel=default_vessel,
+                                )
 
-                            if created:
-                                exp_template.vessel_templates.add(dest_vessel_template)
+                                if created:
+                                    exp_template.vessel_templates.add(dest_vessel_template)
+                            
+                            elif properties["destination_type"] == 'Other': #not outcome vessel
+                                (
+                                    dest_vessel_template,
+                                    created,
+                                ) = VesselTemplate.objects.get_or_create(
+                                    outcome_vessel=False,
+                                    default_vessel=default_vessel,
+                                )
+
+                                if created:
+                                    exp_template.vessel_templates.add(dest_vessel_template)
 
                         action_template, created = ActionTemplate.objects.get_or_create(
                             # action_sequence=action_sequences[action_seq],
