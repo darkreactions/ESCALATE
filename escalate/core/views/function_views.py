@@ -109,13 +109,10 @@ def save_experiment_action_template(request: HttpRequest) -> HttpResponse:
                                 id,
                                 description,
                                 properties["source"],
-                                properties["destination_type"],
+                                properties["destination"],
                                 properties["destination_decomposable"],
                             )
                         )
-
-                        # if properties["source"] == "":
-                        # properties["source"] = None
 
                         for a in action_tuples:
                             action_def, created = ActionDef.objects.get_or_create(
@@ -125,7 +122,9 @@ def save_experiment_action_template(request: HttpRequest) -> HttpResponse:
                         source_vessel_template = None
                         source_vessel_decomposable = False
                         if properties["source"]:
-                            default_vessel, created = Vessel.objects.get_or_create(
+                            source_vessel_template= VesselTemplate.objects.filter(description=properties["source"])[0]
+                            
+                            '''default_vessel, created = Vessel.objects.get_or_create(
                                 description="Generic Vessel"
                             )
                             (
@@ -141,12 +140,18 @@ def save_experiment_action_template(request: HttpRequest) -> HttpResponse:
                             if created:
                                 exp_template.vessel_templates.add(
                                     source_vessel_template
-                                )
+                                )'''
 
-                        dest_vessel_template = None
-                        dest_vessel_decomposable = False
-                        if properties["destination_type"]:
-                            default_vessel, created = Vessel.objects.get_or_create(
+                        #dest_vessel_template = None
+                        #if properties["destination"]:
+                        dest_vessel_template = VesselTemplate.objects.filter(description=properties["destination"])[0]
+                            
+                        
+                        if properties["destination_decomposable"] == 'true':
+                            dest_vessel_decomposable = True
+                        else:
+                            dest_vessel_decomposable = False
+                            '''default_vessel, created = Vessel.objects.get_or_create(
                                 description="Generic Vessel"
                             )
 
@@ -178,7 +183,7 @@ def save_experiment_action_template(request: HttpRequest) -> HttpResponse:
                                 )
 
                                 if created:
-                                    exp_template.vessel_templates.add(dest_vessel_template)
+                                    exp_template.vessel_templates.add(dest_vessel_template)'''
 
                         action_template, created = ActionTemplate.objects.get_or_create(
                             # action_sequence=action_sequences[action_seq],

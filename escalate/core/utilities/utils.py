@@ -16,6 +16,7 @@ from core.models.view_tables import (
     VesselType,
     Parameter,
     Vessel,
+    VesselTemplate,
 )
 from copy import deepcopy
 
@@ -24,10 +25,6 @@ import tempfile
 import math
 from itertools import product
 import uuid
-
-from core.models.app_tables import ActionTemplateDesign
-
-# import core.models.view_tables as vt
 
 
 def camel_to_snake(name):
@@ -209,12 +206,19 @@ def generate_action_def_json(action_defs, exp_template_uuid):
     ]  # add a "blank" source for actions that do not involve transferring
     dest_choices = []
 
-    for reagent in ReagentTemplate.objects.filter(
+    for vt in VesselTemplate.objects.filter(
+        experiment_template_vt=ExperimentTemplate(uuid=exp_template_uuid)
+    ):
+        source_choices.append(vt.description)
+        dest_choices.append(vt.description)
+    
+    
+    '''for reagent in ReagentTemplate.objects.filter(
         experiment_template_rt=ExperimentTemplate(uuid=exp_template_uuid)
     ):
         # include all reagents associated with experiment template as action sources/destinations
         source_choices.append(reagent.description)
-        # dest_choices.append(reagent.description)
+        # dest_choices.append(reagent.description)'''
 
     """for vt in VesselTemplate.objects.all():
         # for vt in VesselType.objects.all():  # include all vessels as destinations
@@ -226,7 +230,7 @@ def generate_action_def_json(action_defs, exp_template_uuid):
         if vt.parent is None:
             source_choices.append(vt.description)
             dest_choices.append(vt.description)'''
-    dest_choices = ['Outcome vessel', 'Other']
+    #dest_choices = ['Outcome vessel', 'Other']
 
     json_data = []
 
@@ -245,16 +249,17 @@ def generate_action_def_json(action_defs, exp_template_uuid):
                         "name": "source",
                         "type": "select",
                         "label": "From:",
-                        "hint": "source vessel contents",
+                        "hint": "source vessel",
                         "options": {"items": [i for i in source_choices]},
                     },
                     {
-                        "name": "destination_type",
+                        "name": "destination",
                         "type": "select",
                         "label": "To:",
-                        "hint": "destination vessel type",
+                        "hint": "destination vessel",
                         "options": {"items": [i for i in dest_choices]},
                     },
+
                     {
                         "name": "destination_decomposable",
                         "type": "boolean",

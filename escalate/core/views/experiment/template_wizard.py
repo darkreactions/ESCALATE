@@ -19,6 +19,8 @@ from core.models.view_tables import (
     ReagentMaterialTemplate,
     MaterialType,
     OutcomeTemplate,
+    Vessel,
+    VesselTemplate,
 )
 from core.forms.template_wizard import (
     OutcomeDefinitionForm,
@@ -213,6 +215,7 @@ class CreateTemplateWizard(SessionWizardView):
                     )
             self.add_materials(reagent.uuid, materials, properties) #associate materials with reagent
             self.add_reagent(exp_template_uuid, reagent.uuid) #associate reagent template with experiment template
+            self.create_vessel_template(exp_template_uuid, r["reagent_template_name"], outcome=False) #create a vessel template for the reagent
 
         outcomes = self.get_cleaned_data_for_step(ADD_OUTCOMES) #obtain outcome form data
         
@@ -221,6 +224,9 @@ class CreateTemplateWizard(SessionWizardView):
             outcome_description = o["define_outcomes"]
             outcome_type = o["outcome_type"]
             self.add_outcomes(exp_template_uuid, outcome_description, outcome_type) #create outcome template and add to exp template
+        
+        #create outcome vessel template
+        self.create_vessel_template(exp_template_uuid, description="Outcome vessel", outcome=True) 
 
         #unique action template creation link for each exp template uuid
         workflow_link = reverse("action_template", args=[str(exp_template_uuid)])
@@ -369,6 +375,56 @@ class CreateTemplateWizard(SessionWizardView):
         rt.properties.add(total_volume_prop)
         rt.properties.add(dead_volume_prop)'''
         return rt
+
+    def create_vessel_template(self, exp_template_uuid, description, outcome=False):
+        exp_template = ExperimentTemplate.objects.get(uuid=exp_template_uuid)
+        
+        default_vessel, created = Vessel.objects.get_or_create(
+                                description="Generic vessel"
+                            )
+        
+        (vessel_template,
+            created,
+        ) = VesselTemplate.objects.get_or_create(
+            description= description,
+            outcome_vessel=outcome,
+            default_vessel=default_vessel,
+        )
+        
+        exp_template.vessel_templates.add(
+            vessel_template)
+            
+    
+    '''def create_outcome_vessel_template(self, exp_template_uuid, decompose):
+        exp_template = ExperimentTemplate.objects.get(uuid=exp_template_uuid)
+        
+        default_vessel, created = Vessel.objects.get_or_create(
+                                description="Outcome vessel"
+                            )
+        if decompose == True:
+            (vessel_template,
+                created,
+            ) = VesselTemplate.objects.get_or_create(
+                description= "Outcome vessel",
+                outcome_vessel=True,
+                decomposable=True,
+                default_vessel=default_vessel,
+            )
+        else:
+            (vessel_template,
+                created,
+            ) = VesselTemplate.objects.get_or_create(
+                description= "Outcome vessel",
+                outcome_vessel=True,
+                decomposable=False,
+                default_vessel=default_vessel,
+            )
+            
+
+        if created:
+            exp_template.vessel_templates.add(
+                vessel_template
+            )'''
 
     def add_materials(self, reagent, material_types, properties):
         '''[summary]

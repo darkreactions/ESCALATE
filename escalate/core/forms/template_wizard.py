@@ -1,5 +1,6 @@
 from typing import Tuple, Any
 from django.forms import (
+    BooleanField,
     MultipleChoiceField,
     Select,
     CheckboxSelectMultiple,
@@ -201,15 +202,12 @@ class OutcomeDefinitionForm(Form):
         helper.form_class = "form-horizontal"
         helper.label_class = "col-lg-8"
         helper.field_class = "col-lg-8"
-
-        helper.layout = Layout(
-            Row((Field(f"define_outcomes")), Field(f"outcome_type")),
-        )
+ 
+        helper.layout = Layout(Row(Column(Field(f"define_outcomes")), Column(Field(f"outcome_type"))))
 
         helper.form_tag = False
         # return helper
         self.helper = helper
-
 
 class ExperimentTemplateCreateForm(Form):
 
