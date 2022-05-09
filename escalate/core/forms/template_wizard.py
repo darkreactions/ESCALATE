@@ -73,8 +73,6 @@ class ReagentTemplateCreateForm(Form):
 
         helper.form_tag = False
         self.helper = helper
-
-
 class ReagentTemplateMaterialAddForm(Form):
 
     name = CharField(disabled=True, label="Reagent")
@@ -155,6 +153,24 @@ class ReagentTemplateMaterialAddForm(Form):
         helper.form_tag = False
 
         self.helper = helper
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        if self.is_valid():
+            
+            #check that the right number of materials have been selected for each reagent
+            for key, val in cleaned_data.items():
+                if 'select_mt' in key:
+                    index=key.split('_')[2]
+                    pair = 'add_type_{}'.format(index)
+                    for k, v in cleaned_data.items():
+                        if k==pair:
+                            if len(val)== 0 and len(v) ==0:
+                                message = "Number of materials does not match the number specified for this reagent"
+                                self.add_error("select_mt_{}".format(index), ValidationError(message, code="invalid"))
+
+        return cleaned_data
 
 
 class ExperimentTemplateNameForm(Form):
@@ -246,6 +262,8 @@ class ExperimentTemplateCreateForm(Form):
         cleaned_data = super().clean()
 
         if self.is_valid():
+            
+            #check that template with desired name does not already exist 
             template_name = cleaned_data["template_name"]
 
             num_templates = vt.ExperimentTemplate.objects.filter(
