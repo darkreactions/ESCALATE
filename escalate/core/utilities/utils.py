@@ -434,22 +434,19 @@ def experiment_copy(
 # list of model class names that have at least one view auto generated
 view_names = [
     "Material",
-    "Inventory",
-    "Actor",
     "Organization",
-    "Person",
     "Systemtool",
     "InventoryMaterial",
+    "MaterialIdentifier",
     "Vessel",
-    "SystemtoolType",
-    "UdfDef",
     "Status",
     "Tag",
-    "TagType",
     "MaterialType",
     "ExperimentInstance",
-    "Edocument",
     "ExperimentCompletedInstance",
     "ExperimentPendingInstance",
     "ExperimentTemplate",
+    "ActionDef",
+    "PropertyTemplate",
+    "ParameterDef"
 ]

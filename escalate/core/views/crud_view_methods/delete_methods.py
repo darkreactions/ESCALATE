@@ -4,14 +4,6 @@ import core.models
 import core.forms
 
 methods = {
-    "Actor": {
-        "model": core.models.view_tables.Actor,
-        "success_url": reverse_lazy("actor_list"),
-    },
-    "Inventory": {
-        "model": core.models.view_tables.Inventory,
-        "success_url": reverse_lazy("inventory_list"),
-    },
     "Material": {
         "model": core.models.view_tables.Material,
         "success_url": reverse_lazy("material_list"),
@@ -24,37 +16,21 @@ methods = {
         "model": core.models.view_tables.MaterialType,
         "success_url": reverse_lazy("material_type_list"),
     },
+    "MaterialIdentifier": {
+        "model": core.models.view_tables.MaterialIdentifier,
+        "success_url": reverse_lazy("material_identifier_list"),
+    },
     "Organization": {
         "model": core.models.view_tables.Organization,
         "success_url": reverse_lazy("organization_list"),
-    },
-    "Person": {
-        "model": core.models.view_tables.Person,
-        "success_url": reverse_lazy("person_list"),
     },
     "Status": {
         "model": core.models.view_tables.Status,
         "success_url": reverse_lazy("status_list"),
     },
-    "SystemtoolType": {
-        "model": core.models.view_tables.SystemtoolType,
-        "success_url": reverse_lazy("systemtool_type_list"),
-    },
     "Tag": {
         "model": core.models.view_tables.Tag,
         "success_url": reverse_lazy("tag_list"),
-    },
-    "TagType": {
-        "model": core.models.view_tables.TagType,
-        "success_url": reverse_lazy("tag_type_list"),
-    },
-    "UdfDef": {
-        "model": core.models.view_tables.UdfDef,
-        "success_url": reverse_lazy("udf_def_list"),
-    },
-    "Edocument": {
-        "model": core.models.Edocument,
-        "success_url": reverse_lazy("edocument_list"),
     },
     "InventoryMaterial": {
         "model": core.models.view_tables.InventoryMaterial,
@@ -76,4 +52,16 @@ methods = {
         "model": core.models.view_tables.Vessel,
         "success_url": reverse_lazy("vessel_list"),
     },
+    "ActionDef": {
+        "model": core.models.view_tables.ActionDef,
+        "success_url": reverse_lazy("action_def_list"),
+    },
+    "ParameterDef": {
+        "model": core.models.view_tables.ParameterDef,
+        "success_url": reverse_lazy("parameter_def_list")
+    },
+    "PropertyTemplate": {
+        "model": core.models.view_tables.PropertyTemplate,
+        "success_url": reverse_lazy("property_template_list"),
+    }
 }

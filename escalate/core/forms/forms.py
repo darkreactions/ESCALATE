@@ -25,11 +25,18 @@ from core.models.view_tables import (
     InventoryMaterial,
     Vessel,
     MaterialIdentifier,
+    MaterialIdentifierDef,
+    Property,
+    ActionDef,
+    PropertyTemplate,
+    ParameterDef,
+    DefaultValues,
 )
 from core.models.core_tables import TypeDef
 from core.widgets import ValFormField, ValWidget
 from packaging import version
 import django
+
 
 
 if version.parse(django.__version__) < version.parse("3.1"):
@@ -171,14 +178,32 @@ class MaterialForm(forms.ModelForm):
             else MaterialType.objects.none()
         )
 
+        '''current_material_properties = (
+            material_instance.property_m.all()
+            if material_instance
+            else Property.objects.none()
+
+        )'''
+
         super(MaterialForm, self).__init__(*args, **kwargs)
 
-        self.fields["identifier"] = forms.ModelMultipleChoiceField(
+        self.fields["identifier"] = forms.MultipleChoiceField(
             initial=current_material_identifiers,
             required=False,
-            queryset=MaterialIdentifier.objects.all(),
+            choices=[(mt.uuid, f'{mt.material_identifier_def} : {mt.description}') for mt in MaterialIdentifier.objects.all()],
+            #queryset=MaterialIdentifier.objects.all(),
         )
+
+
         self.fields["identifier"].widget.attrs.update(dropdown_attrs)
+
+        '''self.fields["property_m"] = forms.ModelMultipleChoiceField(
+            initial=current_material_properties,
+            required=False,
+            queryset=Property.objects.all(),
+        )
+
+        self.fields["property_m"].widget.attrs.update(dropdown_attrs)'''
 
         self.fields["material_type"] = forms.ModelMultipleChoiceField(
             initial=current_material_types,
@@ -191,20 +216,17 @@ class MaterialForm(forms.ModelForm):
         model = Material
         fields = [
             "consumable",
-            "material_class",
             "identifier",
+            #"property_m",
             "material_type",
             "status",
         ]
         field_classes = {
             # 'create_date': forms.SplitDateTimeField,
         }
-        labels = {"create_date": "Create date", "material_status": "Status"}
+        labels = {"material_status": "Status"}
         widgets = {
             "consumable": forms.CheckboxInput(),
-            "material_class": forms.RadioSelect(
-                choices=model._meta.get_field("material_class").choices  # type: ignore
-            ),
             "status": forms.Select(attrs=dropdown_attrs),
         }
 
@@ -591,7 +613,7 @@ class UploadEdocForm(forms.ModelForm):
                 attrs={
                     "cols": "10",
                     "rows": "3",
-                    "placeholder": "Your material type description",
+                    "placeholder": "Your file description",
                 }
             )
         }
@@ -642,6 +664,7 @@ class InventoryMaterialForm(forms.ModelForm):
             "material",
             #'material_consumable', 'material_composite_flg',
             "part_no",
+            "phase",
             "onhand_amt",
             "expiration_date",
             "location",
@@ -661,6 +684,7 @@ class InventoryMaterialForm(forms.ModelForm):
             "material": "Material",
             "actor": "Actor",
             "part_no": "Part Number",
+            "phase": "Phase",
             "onhand_amt": "Amount on hand",
             "expiration_date": "Expiration date",
             "location": "Inventory location",
@@ -675,6 +699,7 @@ class InventoryMaterialForm(forms.ModelForm):
                 attrs={"rows": "3", "cols": "10", "placeholder": "Description"}
             ),
             # "onhand_amt": forms.TextInput(attrs={"placeholder": "On hand amount"}),
+            "phase": forms.Select(attrs=dropdown_attrs),
             "onhand_amt": ValWidget(),
             "part_no": forms.TextInput(attrs={"placeholder": "Part number"}),
             "expiration_date": widgets.AdminSplitDateTime(),
@@ -686,23 +711,144 @@ class InventoryMaterialForm(forms.ModelForm):
 class VesselForm(forms.ModelForm):
     class Meta:
         model = Vessel
-        fields = ["description", "parent", "total_volume"]
+        fields = ["description", "parent", "total_volume", "well_number", "column_order"]
         field_classes = {
             "description": forms.CharField,
-            "total_volumne": forms.CharField,
+            "total_volume": forms.CharField,
+            "well_number": forms.IntegerField,
+            "column_order": forms.CharField,
         }
         labels = {
             "description": "Description",
             "parent": "Parent",
             "total_volume": "Total Volume",
+            "well_number": "Well Count",
+            "column_order": "Column Order"
         }
         widgets = {
             "description": forms.TextInput(
-                attrs={"placeholder": "Vessel Information..."}
+                attrs={"placeholder": "Vessel description..."}
             ),
-            "total_volumne": forms.TextInput(attrs={"placeholder": "total Volume..."}),
+            #"total_volume": forms.TextInput(attrs={"placeholder": "Total Volume..."}),
+            "column_order": forms.TextInput(attrs={"placeholder": "Order of columns for robot dispensing..."})
         }
 
+class ActionDefForm(forms.ModelForm):
+    
+    def __init__(self, *args, **kwargs):
+        action_def = kwargs.get("instance", None)
+
+        current_parameter_defs = (
+            action_def.parameter_def.all()
+            if action_def
+            else ParameterDef.objects.none()
+        )
+        
+        super(ActionDefForm, self).__init__(*args, **kwargs)
+
+        self.fields["parameter_def"] = forms.MultipleChoiceField(
+                initial=current_parameter_defs,
+                required=False,
+                choices=[(pd.uuid, pd.description) for pd in ParameterDef.objects.all()],
+            )
+        
+        self.fields["parameter_def"].widget.attrs.update(dropdown_attrs)
+    class Meta:
+        model = ActionDef
+        fields = ["description", "parameter_def"]
+        labels = {"description": "Description"}
+        widgets = {
+            "description": forms.Textarea(
+                attrs={
+                    "cols": "10",
+                    "rows": "3",
+                    "placeholder": "Your action def description",
+                },
+            ),
+        }
+
+class ParameterDefForm(forms.ModelForm):
+    
+    def __init__(self, *args, **kwargs):
+        parameter_def = kwargs.get("instance", None)
+
+        '''current_parameter_defs = (
+            action_def.parameter_def.all()
+            if action_def
+            else ParameterDef.objects.none()
+        )'''
+
+        current_default_val = (
+            parameter_def.default_val.all()
+            if parameter_def
+            else DefaultValues.objects.none()
+        )
+        
+        super(ParameterDefForm, self).__init__(*args, **kwargs)
+
+        self.fields["default_val"] = ValFormField(
+                initial=current_default_val,
+                required=False,
+                label="Default value",
+                #choices=[(pd.uuid, pd.description) for pd in ParameterDef.objects.all()],
+            )
+        
+        self.fields["default_val"].widget.attrs.update(dropdown_attrs)
+    class Meta:
+        model = ParameterDef
+        fields = ["description", "unit_type"]
+        labels = {"description": "Description"}
+        widgets = {
+            "description": forms.Textarea(
+                attrs={
+                    "cols": "10",
+                    "rows": "3",
+                    "placeholder": "Your parameter def description",
+                },
+            ),
+        }
+class PropertyTemplateForm(forms.ModelForm):
+    class Meta:
+        model = Status
+        fields = ["description"]
+        labels = {"description": "Property Description"}
+        widgets = {
+            "description": forms.Textarea(
+                attrs={
+                    "cols": "10",
+                    "rows": "3",
+                    "placeholder": "Your property description",
+                }
+            )
+        }
+
+class MaterialIdentifierForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+    
+
+        super(MaterialIdentifierForm, self).__init__(*args, **kwargs)
+
+        self.fields["material_identifier_def"]= forms.MultipleChoiceField(
+            #initial=current_material_identifiers,
+            required=False,
+            choices=[(mi.uuid, mi.description) for mi in MaterialIdentifierDef.objects.all()],
+                ),
+        
+        #self.fields["material_identifier_def"].widget.attrs.update(dropdown_attrs)
+
+    class Meta:
+        model = MaterialIdentifier
+        fields = [
+            "description",
+            "material_identifier_def"
+        ]
+        field_classes = {
+            "description": forms.CharField,
+        }
+        labels = {"description": "Description"}
+        widgets = {
+            "material_identifier_def": forms.Select(attrs=dropdown_attrs),
+        }
 
 class UploadFileForm(forms.Form):
     file = forms.FileField(label="Upload file", required=False)
