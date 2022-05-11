@@ -15,17 +15,10 @@ from core.models.core_tables import TypeDef
 import core.models.view_tables as vt
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column, Field
+from .forms import dropdown_attrs
 
 
 class ReagentTemplateCreateForm(Form):
-
-    widget_mc = CheckboxSelectMultiple(
-        attrs={
-            "class": "selectpicker",
-            "data-style": "btn-dark",
-            "data-live-search": "true",
-        }
-    )
 
     reagent_template_name = CharField(required=True)
 
@@ -34,7 +27,7 @@ class ReagentTemplateCreateForm(Form):
     )
 
     properties = MultipleChoiceField(
-        widget=SelectMultiple(),
+        widget=SelectMultiple(attrs=dropdown_attrs),
         required=False,
         label="Select Reagent-Level Properties",
     )
@@ -78,7 +71,7 @@ class ReagentTemplateMaterialAddForm(Form):
     name = CharField(disabled=True, label="Reagent")
 
     properties = MultipleChoiceField(
-        widget=SelectMultiple(),
+        widget=SelectMultiple(attrs=dropdown_attrs),
         required=False,
         label="Select Material-Level Properties (applies to each material)",
     )
@@ -88,7 +81,7 @@ class ReagentTemplateMaterialAddForm(Form):
     def generate_subforms(self, mat_index): #reagent_index):
         #self.fields[f"select_mt_{mat_index}_{reagent_index}"] = ChoiceField(
         self.fields[f"select_mt_{mat_index}"] = ChoiceField(
-            widget=Select(),
+            widget=Select(attrs=dropdown_attrs),
             required=False,
             label=f"Select Material Type: Material {mat_index+1}",
         )
@@ -182,7 +175,7 @@ class ExperimentTemplateNameForm(Form):
 class OutcomeDefinitionForm(Form):
 
     define_outcomes = CharField(label="Outcome", required=False, initial=None)
-    outcome_type = ChoiceField(widget=Select())
+    outcome_type = ChoiceField(widget=Select(attrs=dropdown_attrs))
 
     def __init__(self, *args, **kwargs):
         try:
@@ -227,22 +220,6 @@ class OutcomeDefinitionForm(Form):
 
 class ExperimentTemplateCreateForm(Form):
 
-    widget = Select(
-        attrs={
-            "class": "selectpicker",
-            "data-style": "btn-dark",
-            "data-live-search": "true",
-        }
-    )
-
-    widget_mc = CheckboxSelectMultiple(
-        attrs={
-            "class": "selectpicker",
-            "data-style": "btn-dark",
-            "data-live-search": "true",
-        }
-    )
-
     template_name = CharField(label="Experiment Template Name", required=True)
 
     num_reagents = IntegerField(
@@ -255,7 +232,6 @@ class ExperimentTemplateCreateForm(Form):
 
     def __init__(self, *args, **kwargs):
         org_id = kwargs.pop("org_id")
-        lab = vt.Actor.objects.get(organization=org_id, person__isnull=True)
         super().__init__(*args, **kwargs)
 
     def clean(self):
