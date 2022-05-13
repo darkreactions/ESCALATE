@@ -6,8 +6,14 @@ from plugins.sampler.base_sampler_plugin import BaseSamplerPlugin
 from core.utilities.randomSampling import generateExperiments
 from core.dataclass import ExperimentData, ActionUnitData, ActionData
 
+import pint
+from pint import UnitRegistry
+units = UnitRegistry()
+Q_ = units.Quantity
 class WF3SamplerPlugin(BaseSamplerPlugin):
     name = "Statespace sampler for WF3"
+
+    sampler_vars = {"finalVolume": ("Target Volume (per well)", "500. uL"), "maxMolarity": ("Max Molarity", 9.0), "desiredUnit": ("Desired Unit to Sample Volumes", 'uL'), "antisolventVol": ("Desired Antisolvent Volume", ('800. uL'))}
 
     def __init__(self):
         super().__init__()
@@ -21,7 +27,7 @@ class WF3SamplerPlugin(BaseSamplerPlugin):
             return False
         return True
 
-    def sample_experiments(self, data: ExperimentData, **kwargs):
+    def sample_experiments(self, data: ExperimentData, vars, **kwargs):
         reagent_template_names: List[str] = [
             rt.description for rt in data.reagent_properties
         ]
@@ -42,13 +48,22 @@ class WF3SamplerPlugin(BaseSamplerPlugin):
             reagent_template_names[0:-1],
             reagentDefs[0:-1],
             num_of_automated_experiments,
+            finalVolume = vars['finalVolume'],
+            maxMolarity = vars['maxMolarity'],
+            desiredUnit= vars['desiredUnit']
         )
 
+        #convent antisolvent volume to microliters
+        v= vars['antisolventVol'].split()
+        v1=Q_(float(v[0]), v[1]).to(units.ul)
+        antisolvent_vol = v1.magnitude
+        
+        #add desired antisolvent volume to data 
         desired_volume[reagent_template_names[-1]] = [
-            800.0
+            antisolvent_vol
             for i in range(
                 num_of_automated_experiments
-            )  # default volume for antisolvent is 800 uL
+            )  
         ]
 
         action_templates = data.experiment_template.get_action_templates(

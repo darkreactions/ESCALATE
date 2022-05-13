@@ -11,6 +11,8 @@ from core.dataclass import ExperimentData, ActionUnitData, ActionData
 class WF1SamplerPlugin(BaseSamplerPlugin):
     name = "Statespace sampler for WF1"
 
+    sampler_vars = {"finalVolume": ("Target Volume (per well)", "500. uL"), "maxMolarity": ("Max Molarity", 9.0), "desiredUnit": ("Desired Unit to Sample Volumes", 'uL')}
+
     def __init__(self):
         super().__init__()
 
@@ -43,7 +45,7 @@ class WF1SamplerPlugin(BaseSamplerPlugin):
             return False
         return True
 
-    def sample_experiments(self, data: ExperimentData, **kwargs):
+    def sample_experiments(self, data: ExperimentData, vars, **kwargs):
         reagent_template_names: List[str] = [
             rt.description for rt in data.reagent_properties
         ]
@@ -62,6 +64,9 @@ class WF1SamplerPlugin(BaseSamplerPlugin):
             reagent_template_names,
             reagentDefs,
             num_of_automated_experiments,
+            finalVolume = vars['finalVolume'],
+            maxMolarity = vars['maxMolarity'],
+            desiredUnit= vars['desiredUnit']
         )
 
         action_templates = data.experiment_template.get_action_templates(

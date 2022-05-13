@@ -14,6 +14,7 @@ from core.forms.wizard import (
     ManualExperimentForm,
     ActionParameterForm,
     AutomatedSpecificationForm,
+    AutomatedVarsForm,
     PostProcessForm,
 )
 from django.shortcuts import render
@@ -48,6 +49,7 @@ from core.dataclass import (
     NUM_OF_EXPS,
     MANUAL_SPEC,
     AUTOMATED_SPEC,
+    AUTOMATED_SPEC_VARS,
     REAGENT_PARAMS,
     SELECT_VESSELS,
     ACTION_PARAMS,
@@ -93,6 +95,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             ),
         ),
         (AUTOMATED_SPEC, AutomatedSpecificationForm),
+        (AUTOMATED_SPEC_VARS, AutomatedVarsForm),
         (MANUAL_SPEC, ManualExperimentForm),
         (
             POSTPROCESS,
@@ -204,6 +207,8 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             return self._get_manual_spec_kwargs()
         if step == AUTOMATED_SPEC:
             return self._get_automated_spec_kwargs()
+        if step == AUTOMATED_SPEC_VARS:
+            return self._get_automated_var_kwargs()
         if step == POSTPROCESS:
             return self._get_post_processor_kwargs()
 
@@ -213,9 +218,10 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
         return ["core/experiment/create/wizard.html"]
 
     def get_form(self, step=None, data=None, files=None):
-        """Work around for not having a hook in WizardView.post() before form.is_valid() is called.
-        This is done specifically for the sampler. If the sampler code is run on this step,
-        and it fails, the function will add the error to the form and re-render it. This is not
+        """Work-around for not having a hook in WizardView.post() before form.is_valid() is called.
+        This is done specifically for the sampler but is called after sampler variables are specified,
+        if applicable. If the sampler code is run on this step,
+        and it fails, the function will add the error to the automated spec form and re-render it. This is not
         possible in the default implementation of WizardView.post()
 
         Args:
@@ -228,25 +234,27 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
         """
         form = super().get_form(step, data, files)
         if (
-            self.steps.current == AUTOMATED_SPEC
+            self.steps.current == AUTOMATED_SPEC_VARS
             and step == None
             and self.steps.prev != MANUAL_SPEC
         ):
             if form.is_valid():
-                form_data = form.cleaned_data
+                form_data = self.all_form_data[AUTOMATED_SPEC] #form.cleaned_data
                 if not form_data["select_experiment_sampler"]:
+                    form = super().get_form(self.steps.prev, data, files)
                     return form
 
                 SamplerPlugin: Type[BaseSamplerPlugin] = globals()[
                     form_data["select_experiment_sampler"]
                 ]
-                prev_form_data = self.all_form_data
-                prev_form_data[AUTOMATED_SPEC] = form_data
+                #prev_form_data = self.all_form_data
+                #prev_form_data[AUTOMATED_SPEC] = form_data
                 sampler_plugin = SamplerPlugin()
-                exp_data = ExperimentData.parse_form_data(prev_form_data)
+                exp_data = ExperimentData.parse_form_data(self.all_form_data)
+                var_data = form.cleaned_data
                 if sampler_plugin.validate(data=exp_data):
                     try:
-                        data = sampler_plugin.sample_experiments(data=exp_data)
+                        data = sampler_plugin.sample_experiments(data=exp_data, vars=var_data)
                         # data = exp_data
                         self.request.session["experiment_data"] = data
                     except Exception as e:
@@ -261,7 +269,8 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
                         log = logging.getLogger("escalate")
                         log.exception("Exception in process automated formset")
                 else:
-                    form.add_error(  # type: ignore
+                    prev_form = super().get_form(self.steps.prev, data, files)
+                    prev_form.add_error(  # type: ignore
                         "select_experiment_sampler",
                         error=sampler_plugin.validation_errors,
                     )
@@ -312,9 +321,15 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
 
     def _get_automated_spec_kwargs(self) -> "dict[str, Any]":
         vessel_form_data = self.get_cleaned_data_for_step(SELECT_VESSELS)
-        kwargs = {"form_kwargs": {"vessel_form_data": vessel_form_data}}
+        #sampler_data = self.get_cleaned_data_for_step(AUTOMATED_SPEC)
+        kwargs = {"form_kwargs": {"vessel_form_data": vessel_form_data}} #"sampler_data": sampler_data}}
         return kwargs
-
+    
+    def _get_automated_var_kwargs(self) -> "dict[str, Any]":
+        sampler_data = self.get_cleaned_data_for_step(AUTOMATED_SPEC)
+        kwargs = {"form_kwargs": {"sampler_data": sampler_data}}
+        return kwargs
+    
     def _get_manual_spec_kwargs(self) -> "dict[str, Any]":
         vessel_form_data = self.get_cleaned_data_for_step(SELECT_VESSELS)
         assert isinstance(vessel_form_data, list)

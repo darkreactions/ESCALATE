@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import Dict, List
 from core.dataclass import ExperimentData
 from django.forms import ValidationError
 
@@ -7,6 +7,7 @@ from django.forms import ValidationError
 class BaseSamplerPlugin(ABC):
     name = "Default Sampler Plugin"
     errors: List[str] = list()
+    sampler_vars: dict()
 
     def __init__(self):
         pass
@@ -14,6 +15,11 @@ class BaseSamplerPlugin(ABC):
     @property
     def validation_errors(self):
         return ValidationError(message=self.errors)
+
+    @property
+    def get_variables(self):
+        '''Users can input sampler variables that are optional, if different from default'''
+        return self.sampler_vars
 
     @abstractmethod
     def validate(self, data: ExperimentData, **kwargs) -> bool:

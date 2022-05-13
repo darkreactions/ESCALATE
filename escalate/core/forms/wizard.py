@@ -1,4 +1,4 @@
-from typing import Tuple, Any
+from typing import Tuple, Any, Type
 from uuid import UUID
 from django.db.models import QuerySet
 from django.forms import (
@@ -31,6 +31,7 @@ from core.models.view_tables.workflow import ExperimentTemplate
 from core.widgets import ValWidget, TextInput
 from .forms import dropdown_attrs
 from plugins.sampler.base_sampler_plugin import BaseSamplerPlugin
+from plugins.sampler import *
 from plugins.postprocessing.base_post_processing_plugin import PostProcessPlugin
 from core.dataclass import METADATA
 
@@ -414,7 +415,6 @@ class ManualExperimentForm(Form):
         helper.form_tag = False
         self.helper = helper
 
-
 class AutomatedSpecificationForm(Form):
     widget = Select(
         attrs={
@@ -452,6 +452,7 @@ class AutomatedSpecificationForm(Form):
         ]
         self.fields["select_experiment_sampler"].choices = none_option + samplers
 
+    
     def clean(self):
         cleaned_data = super().clean()
 
@@ -468,6 +469,33 @@ class AutomatedSpecificationForm(Form):
 
         return cleaned_data
 
+class AutomatedVarsForm(Form):
+    widget = Select(
+        attrs={
+            "class": "selectpicker",
+            "data-style": "btn-outline",
+            "data-live-search": "true",
+        }
+    )
+
+    def __init__(self, *args, **kwargs):
+        form_kwargs = kwargs.pop("form_kwargs")
+        self.sampler_data = form_kwargs["sampler_data"]
+        
+        super().__init__(*args, **kwargs)
+        SamplerPlugin: Type[BaseSamplerPlugin] = globals()[
+                    self.sampler_data["select_experiment_sampler"]
+                ]
+
+        chosen_sampler = SamplerPlugin()
+        if chosen_sampler:
+            if chosen_sampler.sampler_vars is not None:
+                self._add_sampler_vars(chosen_sampler)
+
+
+    def _add_sampler_vars(self, sampler):
+        for var, (label, default) in sampler.sampler_vars.items():
+            self.fields[f"{var}"] = CharField(required=False, label=label, initial=default)
 
 class PostProcessForm(Form):
     widget = Select(
