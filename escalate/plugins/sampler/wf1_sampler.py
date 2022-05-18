@@ -7,11 +7,15 @@ from plugins.sampler.base_sampler_plugin import BaseSamplerPlugin
 from core.utilities.randomSampling import generateExperiments
 from core.dataclass import ExperimentData, ActionUnitData, ActionData
 
+import pint
+from pint import UnitRegistry
+units = UnitRegistry()
+Q_ = units.Quantity
 
 class WF1SamplerPlugin(BaseSamplerPlugin):
     name = "Statespace sampler for WF1"
 
-    sampler_vars = {"finalVolume": ("Target Volume (per well)", "500. uL"), "maxMolarity": ("Max Molarity", 9.0), "desiredUnit": ("Desired Unit to Sample Volumes", 'uL')}
+    sampler_vars = {"finalVolume": ("Target Volume (per well)",  Val(value=500, unit='uL', val_type='num')), "maxMolarity": ("Max Molarity",  Val(value=9.0, unit='M', val_type='num'))}
 
     def __init__(self):
         super().__init__()
@@ -60,13 +64,17 @@ class WF1SamplerPlugin(BaseSamplerPlugin):
             reagentDefs.append(rmt_data)
         num_of_automated_experiments = data.num_of_sampled_experiments
 
+        #convert volume to uL to pass into sampler
+        v = Q_(float(vars['finalVolume'].value), vars['finalVolume'].unit).to(units.ul)
+        vol = v.magnitude
+        
         desired_volume = generateExperiments(
             reagent_template_names,
             reagentDefs,
             num_of_automated_experiments,
-            finalVolume = vars['finalVolume'],
-            maxMolarity = vars['maxMolarity'],
-            desiredUnit= vars['desiredUnit']
+            finalVolume = vol,#vars['finalVolume'].value,
+            maxMolarity = vars['maxMolarity'].value,
+            desiredUnit= vars['finalVolume'].unit
         )
 
         action_templates = data.experiment_template.get_action_templates(

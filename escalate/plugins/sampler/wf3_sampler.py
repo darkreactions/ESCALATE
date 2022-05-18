@@ -13,7 +13,7 @@ Q_ = units.Quantity
 class WF3SamplerPlugin(BaseSamplerPlugin):
     name = "Statespace sampler for WF3"
 
-    sampler_vars = {"finalVolume": ("Target Volume (per well)", "500. uL"), "maxMolarity": ("Max Molarity", 9.0), "desiredUnit": ("Desired Unit to Sample Volumes", 'uL'), "antisolventVol": ("Desired Antisolvent Volume", ('800. uL'))}
+    sampler_vars = {"finalVolume": ("Target Volume (per well)",  Val(value=500, unit='uL', val_type='num')), "maxMolarity": Val(value=9.0, unit='M', val_type='num'),  "antisolventVol": ("Desired Antisolvent Volume", Val(value=800, unit='uL', val_type='num'))}
 
     def __init__(self):
         super().__init__()
@@ -43,19 +43,23 @@ class WF3SamplerPlugin(BaseSamplerPlugin):
 
         num_of_automated_experiments = data.num_of_sampled_experiments
 
+        #convert volume to uL to pass into sampler
+        v = Q_(float(vars['finalVolume'].value), vars['finalVolume'].unit).to(units.ul)
+        vol = v.magnitude
+
         #exclude antisolvent from the sampler 
         desired_volume = generateExperiments(
             reagent_template_names[0:-1],
             reagentDefs[0:-1],
             num_of_automated_experiments,
-            finalVolume = vars['finalVolume'],
-            maxMolarity = vars['maxMolarity'],
-            desiredUnit= vars['desiredUnit']
+            finalVolume = vol,#vars['finalVolume'].value,
+            maxMolarity = vars['maxMolarity'].value,
+            desiredUnit= vars['finalVolume'].unit
         )
 
         #convent antisolvent volume to microliters
-        v= vars['antisolventVol'].split()
-        v1=Q_(float(v[0]), v[1]).to(units.ul)
+        v= vars['antisolventVol']
+        v1=Q_(float(v.value), v.unit).to(units.ul)
         antisolvent_vol = v1.magnitude
         
         #add desired antisolvent volume to data 

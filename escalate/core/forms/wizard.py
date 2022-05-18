@@ -430,7 +430,7 @@ class AutomatedSpecificationForm(Form):
         min_value=0,
     )
     select_experiment_sampler = ChoiceField(widget=widget, required=False)
-
+    
     def __init__(self, *args, **kwargs):
         form_kwargs = kwargs.pop("form_kwargs")
         self.vessel_form_data = form_kwargs["vessel_form_data"]
@@ -444,6 +444,19 @@ class AutomatedSpecificationForm(Form):
         super().__init__(*args, **kwargs)
         self._populate_samplers()
 
+        if len(self.data) > 0:
+            if 'Specify Automated Experiments-select_experiment_sampler' in self.data.keys():
+
+                sampler = self.data['Specify Automated Experiments-select_experiment_sampler']
+                if len(sampler) >0: 
+                    SamplerPlugin: Type[BaseSamplerPlugin] = globals()[
+                            sampler
+                        ]
+
+                    chosen_sampler = SamplerPlugin()
+                    if chosen_sampler.sampler_vars is not None:
+                        self._add_sampler_vars(chosen_sampler)
+
     def _populate_samplers(self):
         none_option: "list[Tuple[Any, str]]" = [(None, "No sampler selected")]
         samplers: "list[Tuple[Any, str]]" = [
@@ -451,6 +464,10 @@ class AutomatedSpecificationForm(Form):
             for sampler_plugin in BaseSamplerPlugin.__subclasses__()
         ]
         self.fields["select_experiment_sampler"].choices = none_option + samplers
+
+    def _add_sampler_vars(self, sampler):
+        for var, (label, default) in sampler.sampler_vars.items():
+            self.fields[f"{var}_variable"] = ValFormField(required=True, label=label, initial=default)
 
     
     def clean(self):
@@ -468,34 +485,6 @@ class AutomatedSpecificationForm(Form):
                     )
 
         return cleaned_data
-
-class AutomatedVarsForm(Form):
-    widget = Select(
-        attrs={
-            "class": "selectpicker",
-            "data-style": "btn-outline",
-            "data-live-search": "true",
-        }
-    )
-
-    def __init__(self, *args, **kwargs):
-        form_kwargs = kwargs.pop("form_kwargs")
-        self.sampler_data = form_kwargs["sampler_data"]
-        
-        super().__init__(*args, **kwargs)
-        SamplerPlugin: Type[BaseSamplerPlugin] = globals()[
-                    self.sampler_data["select_experiment_sampler"]
-                ]
-
-        chosen_sampler = SamplerPlugin()
-        if chosen_sampler:
-            if chosen_sampler.sampler_vars is not None:
-                self._add_sampler_vars(chosen_sampler)
-
-
-    def _add_sampler_vars(self, sampler):
-        for var, (label, default) in sampler.sampler_vars.items():
-            self.fields[f"{var}"] = CharField(required=False, label=label, initial=default)
 
 class PostProcessForm(Form):
     widget = Select(
