@@ -73,7 +73,7 @@ class WF1SamplerPlugin(BaseSamplerPlugin):
             reagentDefs,
             num_of_automated_experiments,
             finalVolume = vol,#vars['finalVolume'].value,
-            maxMolarity = vars['maxMolarity'].value,
+            maxMolarity = float(vars['maxMolarity'].value),
             desiredUnit= vars['finalVolume'].unit
         )
 

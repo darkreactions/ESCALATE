@@ -13,7 +13,7 @@ Q_ = units.Quantity
 class WF3SamplerPlugin(BaseSamplerPlugin):
     name = "Statespace sampler for WF3"
 
-    sampler_vars = {"finalVolume": ("Target Volume (per well)",  Val(value=500, unit='uL', val_type='num')), "maxMolarity": Val(value=9.0, unit='M', val_type='num'),  "antisolventVol": ("Desired Antisolvent Volume", Val(value=800, unit='uL', val_type='num'))}
+    sampler_vars = {"finalVolume": ("Target Volume (per well)",  Val(value=500, unit='uL', val_type='num')), "maxMolarity": ("Max Molarity", Val(value=9.0, unit='M', val_type='num')),  "antisolventVol": ("Desired Antisolvent Volume", Val(value=800, unit='uL', val_type='num'))}
 
     def __init__(self):
         super().__init__()
@@ -53,7 +53,7 @@ class WF3SamplerPlugin(BaseSamplerPlugin):
             reagentDefs[0:-1],
             num_of_automated_experiments,
             finalVolume = vol,#vars['finalVolume'].value,
-            maxMolarity = vars['maxMolarity'].value,
+            maxMolarity = float(vars['maxMolarity'].value),
             desiredUnit= vars['finalVolume'].unit
         )
 
