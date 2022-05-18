@@ -134,8 +134,8 @@ class Val:
 
     def __str__(self):
         if not self.null:
-            # return f'{self.value} {self.unit}'
-            return self.str_value
+            return f"{self.value} {self.unit}"
+            # return self.str_value
         else:
             return ""
 
@@ -143,7 +143,7 @@ class Val:
         if not self.null:
             return f"{self.value} {self.unit} {self.val_type.description}"
         else:
-            return "null"
+            return None
 
     def to_dict(self) -> Any:
         if not self.null:
@@ -153,7 +153,8 @@ class Val:
                 "type": self.val_type.description,
             }
         else:
-            return "null"
+            # return "null"
+            return None
 
     @classmethod
     def from_db(cls, val_string):
