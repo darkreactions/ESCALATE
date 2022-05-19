@@ -20,11 +20,43 @@ class WF1SamplerPlugin(BaseSamplerPlugin):
     def __init__(self):
         super().__init__()
 
-    def validate(self, data: ExperimentData, **kwargs):
+    def validate(self, data: ExperimentData, vars: Dict, **kwargs):
         if data.experiment_template.description not in ["Workflow 1"]:
             self.errors.append(
                 f"Selected template is not Workflow 1. Found: {data.experiment_template.description}"
             )
+
+        #verify validity of numerical inputs for volume and molarity
+        vol = vars["finalVolume"].value
+        try:
+            vol = float(vol)
+            if vol < 0:
+                self.errors.append(f"Target volume value {vol} must be greater than 0")
+        except TypeError:
+            self.errors.append(f"Target volume value {vol} must be numerical input")
+        
+        mol = vars["maxMolarity"].value
+        try:
+            mol = float(mol)
+            if mol < 0:
+                self.errors.append(f"Molarity value {mol} must be greater than 0")
+        except TypeError:
+            self.errors.append(f"Molarity value {mol} must be numerical input")
+        
+        #verify that target volume does not exceed vessel capacity
+        for vessel_template, vessel in data.vessel_data.items():
+            if vessel_template.outcome_vessel == True:
+                target_vessel = vessel
+        desiredUnit = vars["finalVolume"].unit
+        try:
+            if target_vessel.total_volume.value is not None:
+                capacity = Q_(target_vessel.total_volume.value, target_vessel.total_volume.unit).to(desiredUnit)
+                vol = vars["finalVolume"].value
+                if vol > capacity:
+                    self.errors.append(f"Target volume {vol} {desiredUnit} exceeds capacity {capacity} for chosen vessel")
+        except pint.errors.DimensionalityError as e:
+           #self.errors.append(f"Check that the unit entered for target volume is an appropriate unit of volume. {desiredUnit} is not a valid unit of volume")
+           self.errors.append(e)
         """for rt, r_props in data.reagent_properties.items():
             for rmt, rm_props in r_props.reagent_materials.items():
                 # Check if all materials have a phase
