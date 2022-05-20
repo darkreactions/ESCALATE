@@ -260,7 +260,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
                         if i.value is not None:
                             vars.append(i)
                     if len(vars) > 0:
-                        if sampler_plugin.validate(data=exp_data):
+                        if sampler_plugin.validate(data=exp_data, vars=var_data):
                             try:
                                 data = sampler_plugin.sample_experiments(data=exp_data, vars=var_data)
                                 # data = exp_data
