@@ -732,7 +732,22 @@ class VesselForm(forms.ModelForm):
             #"total_volume": forms.TextInput(attrs={"placeholder": "Total Volume..."}),
             "column_order": forms.TextInput(attrs={"placeholder": "Order of columns for robot dispensing..."})
         }
+    def __init__(self, *args, **kwargs):
+        super(VesselForm, self).__init__(*args, **kwargs)
 
+        vessels = []
+        for v in Vessel.objects.all():
+            if v.parent is None:
+                vessels.append(v)
+
+        none_option = [(None, "No parent vessel selected")]
+        
+        self.fields["parent"] = forms.ChoiceField(
+                required=False,
+                choices=none_option+ [(v.uuid, v.description) for v in vessels],
+            )
+        
+        self.fields["parent"].widget.attrs.update(dropdown_attrs)
 class ActionDefForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):

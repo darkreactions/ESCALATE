@@ -66,31 +66,34 @@
                         <a class="nav-link" href="{% url 'main_menu' %}">Main Menu</a>
 
                     </li>
-
-                    <li class="nav-item {% if url_name == 'select_lab' %}active{% endif %}">
-                        <a class="nav-link" href="{% url 'select_lab' %}">Select Lab</a>
-                    </li>
-
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle " href="#" id="dropdown" data-toggle="dropdown">Models</a>
+                        <a class="nav-link dropdown-toggle " href="#" id="dropdown" data-toggle="dropdown">View/Edit Models</a>
                         <div class="dropdown-menu">
                             <ul class="list-unstyled">
                                 <li><a class="dropdown-item" href="{% url 'material_list' %}">Material</a></li>
-                                <li><a class="dropdown-item" href="{% url 'vessel_list' %}">Vessel</a></li>
                                 <li><a class="dropdown-item" href="{% url 'inventory_material_list' %}">Inventory
                                         Material</a></li>
-                                <li><a class="dropdown-item" href="{% url 'organization_list' %}">Organization</a></li>
-                                <li><a class="dropdown-item" href="{% url 'systemtool_list' %}">Systemtool</a></li>
                                 <li><a class="dropdown-item" href="{% url 'material_type_list' %}">Material Type</a>
                                 </li>
                                 <li><a class="dropdown-item" href="{% url 'material_identifier_list' %}">Material Identifier</a>
                                 </li>
+                                <li><a class="dropdown-item" href="{% url 'property_template_list' %}">Property</a>
+                                </li>
+                                <li><a class="dropdown-item" href="{% url 'vessel_list' %}">Vessel</a></li>
                                 <li><a class="dropdown-item" href="{% url 'action_def_list' %}">Action Def</a>
                                 </li>
                                 <li><a class="dropdown-item" href="{% url 'parameter_def_list' %}">Parameter Def</a>
                                 </li>
-                                <li><a class="dropdown-item" href="{% url 'property_template_list' %}">Property</a>
-                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle " href="#" id="dropdown" data-toggle="dropdown">Tools</a>
+                        <div class="dropdown-menu">
+                            <ul class="list-unstyled">
+                                <li><a class="dropdown-item" href="{% url 'organization_list' %}">Organization</a></li>
+                                <li><a class="dropdown-item" href="{% url 'systemtool_list' %}">Systemtool</a></li>
                                 <li><a class="dropdown-item" href="{% url 'status_list' %}">Status</a></li>
                                 <li><a class="dropdown-item" href="{% url 'tag_list' %}">Tag</a></li>
 
