@@ -1,47 +1,33 @@
 from __future__ import annotations
 import os
-import uuid
 from typing import List, Any, Type, Dict
-import dataclasses
 from formtools.wizard.views import SessionWizardView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from core.forms.wizard import (
     ExperimentTemplateSelectForm,
-    NumberOfExperimentsForm,
     BaseReagentFormSet,
     ReagentForm,
     VesselForm,
     ManualExperimentForm,
     ActionParameterForm,
     AutomatedSpecificationForm,
+    SamplerParametersForm,
     PostProcessForm,
 )
 from django.shortcuts import render
-from django.forms import BaseFormSet, Form, ValidationError, formset_factory
+from django.forms import Form, ValidationError, formset_factory
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.http import HttpResponseRedirect
-from django.db.models import Prefetch, QuerySet
+from django.db.models import QuerySet
 from django.urls import reverse
 from django.utils.html import format_html
-from django.utils.safestring import mark_safe
 from core.models.view_tables import (
     ExperimentTemplate,
     ReagentTemplate,
-    ExperimentInstance,
-    BillOfMaterials,
     ReagentMaterialTemplate,
-    VesselTemplate,
-    ReagentMaterial,
-    InventoryMaterial,
-    ParameterDef,
-    Parameter,
-    ActionUnit,
-    Actor,
-    VesselInstance,
     PropertyTemplate,
 )
-from core.models.app_tables import CustomUser
 from core.dataclass import (
     ExperimentData,
     SELECT_TEMPLATE,
@@ -52,15 +38,22 @@ from core.dataclass import (
     SELECT_VESSELS,
     ACTION_PARAMS,
     POSTPROCESS,
+    AUTOMATED_SAMPLER_SPEC,
 )
 from django.contrib import messages
-from django.core.exceptions import ObjectDoesNotExist
-from core.utilities.utils import experiment_copy, get_colors
+from core.utilities.utils import get_colors
 import pandas as pd
 
 from plugins.sampler.base_sampler_plugin import BaseSamplerPlugin
 from plugins.sampler import *
 import logging
+
+
+def check_sampler_selected(wizard):
+    # if wizard.steps.current != AUTOMATED_SAMPLER_SPEC:
+    cleaned_data = wizard.get_cleaned_data_for_step(AUTOMATED_SPEC) or {}
+    return cleaned_data.get("select_experiment_sampler", False)
+
 
 class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
     file_storage = FileSystemStorage(
@@ -93,6 +86,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             ),
         ),
         (AUTOMATED_SPEC, AutomatedSpecificationForm),
+        (AUTOMATED_SAMPLER_SPEC, SamplerParametersForm),
         (MANUAL_SPEC, ManualExperimentForm),
         (
             POSTPROCESS,
@@ -103,6 +97,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             ),
         ),
     ]
+    condition_dict = {AUTOMATED_SAMPLER_SPEC: check_sampler_selected}
     initial_dict: "dict[str, Any]"
 
     def __init__(self, *args, **kwargs):
@@ -135,10 +130,13 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             ACTION_PARAMS: self.get_cleaned_data_for_step(ACTION_PARAMS),
             REAGENT_PARAMS: self.get_cleaned_data_for_step(REAGENT_PARAMS),
             AUTOMATED_SPEC: self.get_cleaned_data_for_step(AUTOMATED_SPEC),
+            AUTOMATED_SAMPLER_SPEC: self.get_cleaned_data_for_step(
+                AUTOMATED_SAMPLER_SPEC
+            ),
         }
         return form_data
 
-    def get_form_initial(self, step: str) -> List[Any]:
+    def get_form_initial(self, step: str) -> "List[Any]|Dict[str, Any]":
         if step == REAGENT_PARAMS:
             reagent_props = self.experiment_template.get_reagent_templates()
             initial = []
@@ -185,7 +183,6 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
                 initial.append(action_initial)
 
             return initial
-
         return super().get_form_initial(step)
 
     def get_form_kwargs(self, step=None) -> "dict[str, Any]":
@@ -204,6 +201,8 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             return self._get_manual_spec_kwargs()
         if step == AUTOMATED_SPEC:
             return self._get_automated_spec_kwargs()
+        if step == AUTOMATED_SAMPLER_SPEC:
+            return self._get_automated_sampler_spec_kwargs()
         if step == POSTPROCESS:
             return self._get_post_processor_kwargs()
 
@@ -228,70 +227,54 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             _type_: _description_
         """
         form = super().get_form(step, data, files)
-        if (
-            self.steps.current == AUTOMATED_SPEC
-            and step == None
-            and self.steps.prev != MANUAL_SPEC
-        ):
-            #form = super().get_form(self.steps.prev, data, files)
-            if form.is_valid():
-                form_data = form.cleaned_data
-                #form_data = self.all_form_data[AUTOMATED_SPEC] #form.cleaned_data
-                if not form_data["select_experiment_sampler"]:
-                    #form = super().get_form(self.steps.prev, data, files)
-                    return form
+        if step == None and form.is_valid():
+            # form = super().get_form(self.steps.prev, data, files)
+            if (
+                self.steps.prev != MANUAL_SPEC
+                and self.steps.current == AUTOMATED_SAMPLER_SPEC
+            ):
+                form_data: Dict[str, Any] = form.cleaned_data
+                # form_data = self.all_form_data[AUTOMATED_SPEC] #form.cleaned_data
+                automated_spec_form_data = self.get_cleaned_data_for_step(
+                    AUTOMATED_SPEC
+                )
+                assert isinstance(automated_spec_form_data, dict)
 
                 SamplerPlugin: Type[BaseSamplerPlugin] = globals()[
-                    form_data["select_experiment_sampler"]
+                    automated_spec_form_data["select_experiment_sampler"]
                 ]
                 prev_form_data = self.all_form_data
-                prev_form_data[AUTOMATED_SPEC] = form_data
-                sampler_plugin = SamplerPlugin()
                 exp_data = ExperimentData.parse_form_data(prev_form_data)
-                var_data={}
-                for key, val in form_data.items():
-                    if "variable" in key:
-                        var=key.split('_')
-                        var_data[var[0]]=val
-                if len(var_data) > 0:
-                #var_data = form.cleaned_data
-                    vars = []
-                    for i in var_data.values():
-                        if i.value is not None:
-                            vars.append(i)
-                    if len(vars) > 0:
-                        if sampler_plugin.validate(data=exp_data, vars=var_data):
-                            try:
-                                data = sampler_plugin.sample_experiments(data=exp_data, vars=var_data)
-                                # data = exp_data
-                                self.request.session["experiment_data"] = data
-                            except Exception as e:
-                                form = super().get_form(step, data, files)
-                                form.add_error(  # type: ignore
-                                    "select_experiment_sampler",
-                                    error=format_html(
-                                        "Exception occured while running {} : {} <br/> Please check logs for more information.",
-                                        form_data["select_experiment_sampler"],
-                                        repr(e),
-                                    ),
-                                )
-                                log = logging.getLogger("escalate")
-                                log.exception("Exception in process automated formset")
-                                #return form
-                        else:
-                            form = super().get_form(step, data, files)
-                            form.add_error(  # type: ignore
-                                "select_experiment_sampler",
-                                error=sampler_plugin.validation_errors,
-                            )
-                            log = logging.getLogger("escalate")
-                            log.error("Exception in process automated formset")
-                            #return form
-                    else:
+                sampler_plugin = SamplerPlugin(**form_data)
+
+                if sampler_plugin.validate(data=exp_data):
+                    try:
+                        self.request.session[
+                            "experiment_data"
+                        ] = sampler_plugin.sample_experiments(data=exp_data)
+                    except Exception as e:
                         form = super().get_form(step, data, files)
-                        return form
-        if self.steps.current == MANUAL_SPEC and step == None:
-            if form.is_valid():
+                        form.add_error(  # type: ignore
+                            "select_experiment_sampler",
+                            error=format_html(
+                                "Exception occured while running {} : {} <br/> Please check logs for more information.",
+                                sampler_plugin.name,
+                                repr(e),
+                            ),
+                        )
+                        log = logging.getLogger("escalate")
+                        log.exception("Exception in process automated formset")
+                        # return form
+                else:
+                    form = super().get_form(step, data, files)
+                    form.add_error(  # type: ignore
+                        "select_experiment_sampler",
+                        error=sampler_plugin.validation_errors,
+                    )
+                    log = logging.getLogger("escalate")
+                    log.error("Exception in process automated formset")
+
+            if self.steps.current == MANUAL_SPEC:
                 if "experiment_data" not in self.request.session:
                     form.add_error(  # type: ignore
                         "file",
@@ -328,18 +311,33 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
 
         return render(self.request, "core/experiment/create/done.html", context=context)
 
+    def _get_automated_sampler_spec_kwargs(self) -> "dict[str, Any]":
+        automated_form_data = self.get_cleaned_data_for_step(AUTOMATED_SPEC)
+        kwargs = {}
+        if isinstance(automated_form_data, dict):
+            SamplerPlugin: Type[BaseSamplerPlugin] = globals()[
+                automated_form_data["select_experiment_sampler"]
+            ]
+            kwargs["form_kwargs"] = {}
+            kwargs["form_kwargs"]["sampler_name"] = SamplerPlugin.name
+            kwargs["form_kwargs"]["sampler_vars"] = SamplerPlugin.sampler_vars
+        return kwargs
+
     def _get_post_processor_kwargs(self) -> "dict[str, Any]":
         kwargs = {"form_kwargs": {"experiment_template": self.experiment_template}}
-        # kwargs = {}
         return kwargs
 
     def _get_automated_spec_kwargs(self) -> "dict[str, Any]":
         vessel_form_data = self.get_cleaned_data_for_step(SELECT_VESSELS)
-        #sampler_data = self.all_form_data
-        #sampler_data = self.get_cleaned_data_for_step(AUTOMATED_SPEC)
-        kwargs = {"form_kwargs": {"vessel_form_data": vessel_form_data, }}#"sampler_data": sampler_data}}
+        # sampler_data = self.all_form_data
+        # sampler_data = self.get_cleaned_data_for_step(AUTOMATED_SPEC)
+        kwargs = {
+            "form_kwargs": {
+                "vessel_form_data": vessel_form_data,
+            }
+        }  # "sampler_data": sampler_data}}
         return kwargs
-    
+
     def _get_manual_spec_kwargs(self) -> "dict[str, Any]":
         vessel_form_data = self.get_cleaned_data_for_step(SELECT_VESSELS)
         assert isinstance(vessel_form_data, list)
@@ -366,13 +364,14 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
         kwargs = {"form_kwargs": {"vt_names": []}}
         self.initial_dict[SELECT_VESSELS] = []
 
-        for vt in self.experiment_template.vessel_templates.all():
-            kwargs["form_kwargs"]["vt_names"].append(vt.description)
-            self.initial_dict[SELECT_VESSELS].append(
-                {"value": vt.default_vessel, "template_uuid": str(vt.uuid)}
-            )
-        colors = get_colors(self.experiment_template.vessel_templates.count())
-        kwargs["form_kwargs"]["colors"] = colors
+        if self.experiment_template:
+            for vt in self.experiment_template.vessel_templates.all():
+                kwargs["form_kwargs"]["vt_names"].append(vt.description)
+                self.initial_dict[SELECT_VESSELS].append(
+                    {"value": vt.default_vessel, "template_uuid": str(vt.uuid)}
+                )
+            colors = get_colors(self.experiment_template.vessel_templates.count())
+            kwargs["form_kwargs"]["colors"] = colors
         return kwargs
 
     def _get_reagent_form_kwargs(self) -> "dict[str, Any]":

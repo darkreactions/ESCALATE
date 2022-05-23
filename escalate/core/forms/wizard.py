@@ -415,6 +415,22 @@ class ManualExperimentForm(Form):
         helper.form_tag = False
         self.helper = helper
 
+
+class SamplerParametersForm(Form):
+    def __init__(self, *args, **kwargs):
+        form_kwargs = kwargs.pop("form_kwargs", {})
+        super().__init__(*args, **kwargs)
+        if "sampler_vars" in form_kwargs:
+            self.fields["select_experiment_sampler"] = CharField(
+                initial=form_kwargs["sampler_name"], disabled=True
+            )
+            self._add_sampler_vars(form_kwargs["sampler_vars"])
+
+    def _add_sampler_vars(self, sampler_vars):
+        for var, (label, default) in sampler_vars.items():
+            self.fields[var] = ValFormField(required=True, label=label, initial=default)
+
+
 class AutomatedSpecificationForm(Form):
     widget = Select(
         attrs={
@@ -430,20 +446,21 @@ class AutomatedSpecificationForm(Form):
         min_value=0,
     )
     select_experiment_sampler = ChoiceField(widget=widget, required=False)
-    
+
     def __init__(self, *args, **kwargs):
         form_kwargs = kwargs.pop("form_kwargs")
         self.vessel_form_data = form_kwargs["vessel_form_data"]
         self.outcome_vessels = []
-        for vessel_data in self.vessel_form_data:
-            vessel_data["template"] = VesselTemplate.objects.get(
-                uuid=vessel_data["template_uuid"]
-            )
-            if vessel_data["template"].outcome_vessel:
-                self.outcome_vessels.append(vessel_data["value"])
+        if self.vessel_form_data:
+            for vessel_data in self.vessel_form_data:
+                vessel_data["template"] = VesselTemplate.objects.get(
+                    uuid=vessel_data["template_uuid"]
+                )
+                if vessel_data["template"].outcome_vessel:
+                    self.outcome_vessels.append(vessel_data["value"])
         super().__init__(*args, **kwargs)
         self._populate_samplers()
-
+        """
         if len(self.data) > 0:
             if 'Specify Automated Experiments-select_experiment_sampler' in self.data.keys():
 
@@ -453,9 +470,10 @@ class AutomatedSpecificationForm(Form):
                             sampler
                         ]
 
-                    chosen_sampler = SamplerPlugin()
-                    if chosen_sampler.sampler_vars is not None:
-                        self._add_sampler_vars(chosen_sampler)
+                    #chosen_sampler = SamplerPlugin()
+                    if SamplerPlugin.sampler_vars is not None:
+                        self._add_sampler_vars(SamplerPlugin)
+        """
 
     def _populate_samplers(self):
         none_option: "list[Tuple[Any, str]]" = [(None, "No sampler selected")]
@@ -465,11 +483,6 @@ class AutomatedSpecificationForm(Form):
         ]
         self.fields["select_experiment_sampler"].choices = none_option + samplers
 
-    def _add_sampler_vars(self, sampler):
-        for var, (label, default) in sampler.sampler_vars.items():
-            self.fields[f"{var}_variable"] = ValFormField(required=True, label=label, initial=default)
-
-    
     def clean(self):
         cleaned_data = super().clean()
 
@@ -485,6 +498,7 @@ class AutomatedSpecificationForm(Form):
                     )
 
         return cleaned_data
+
 
 class PostProcessForm(Form):
     widget = Select(

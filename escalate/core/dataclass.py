@@ -44,6 +44,7 @@ REAGENT_PARAMS = "Specify Reagent Parameters"
 SELECT_VESSELS = "Select Vessels"
 ACTION_PARAMS = "Specify Action Parameters"
 POSTPROCESS = "Select Postprocessors"
+AUTOMATED_SAMPLER_SPEC = "Specify Sampler parameters"
 
 # Meta data label
 METADATA = "metadata"
@@ -480,6 +481,15 @@ class ExperimentData:
 
     @classmethod
     def parse_form_data(cls, form_data: Dict[str, Any]):
+        """Creates an Experiment dataclass instance based on the form data
+        collected up to the automated experiment creation
+
+        Args:
+            form_data (Dict[str, Any]): _description_
+
+        Returns:
+            _type_: _description_
+        """
         experiment_name = form_data[SELECT_TEMPLATE].get("experiment_name", "")
         num_automated = form_data[AUTOMATED_SPEC].get("automated", 0)
 

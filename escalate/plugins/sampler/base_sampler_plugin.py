@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List
+from typing import Dict, List, Any
 from core.dataclass import ExperimentData
 from django.forms import ValidationError
 
@@ -7,9 +7,9 @@ from django.forms import ValidationError
 class BaseSamplerPlugin(ABC):
     name = "Default Sampler Plugin"
     errors: List[str] = list()
-    sampler_vars: dict()
+    sampler_vars: Dict[str, Any] = dict()
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         pass
 
     @property

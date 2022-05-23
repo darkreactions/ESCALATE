@@ -9,54 +9,74 @@ from core.dataclass import ExperimentData, ActionUnitData, ActionData
 
 import pint
 from pint import UnitRegistry
+
 units = UnitRegistry()
 Q_ = units.Quantity
+
 
 class WF1SamplerPlugin(BaseSamplerPlugin):
     name = "Statespace sampler for WF1"
 
-    sampler_vars = {"finalVolume": ("Target Volume (per well)",  Val(value=500, unit='uL', val_type='num')), "maxMolarity": ("Max Molarity",  Val(value=9.0, unit='M', val_type='num'))}
+    sampler_vars = {
+        "finalVolume": (
+            "Target Volume (per well)",
+            Val.from_dict({"value": 500, "unit": "uL", "type": "num"}),
+        ),
+        "maxMolarity": (
+            "Max Molarity",
+            Val.from_dict({"value": 9.0, "unit": "M", "type": "num"}),
+        ),
+    }
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        self.vars = kwargs
+        super().__init__(*args, **kwargs)
 
-    def validate(self, data: ExperimentData, vars: Dict, **kwargs):
+    def validate(self, data: ExperimentData):
         if data.experiment_template.description not in ["Workflow 1"]:
             self.errors.append(
                 f"Selected template is not Workflow 1. Found: {data.experiment_template.description}"
             )
 
-        #verify validity of numerical inputs for volume and molarity
-        vol = vars["finalVolume"].value
+        # verify validity of numerical inputs for volume and molarity
+        vol = self.vars["finalVolume"].value
         try:
             vol = float(vol)
             if vol < 0:
                 self.errors.append(f"Target volume value {vol} must be greater than 0")
         except TypeError:
             self.errors.append(f"Target volume value {vol} must be numerical input")
-        
-        mol = vars["maxMolarity"].value
+
+        mol = self.vars["maxMolarity"].value
         try:
             mol = float(mol)
             if mol < 0:
                 self.errors.append(f"Molarity value {mol} must be greater than 0")
         except TypeError:
             self.errors.append(f"Molarity value {mol} must be numerical input")
-        
-        #verify that target volume does not exceed vessel capacity
+
+        # verify that target volume does not exceed vessel capacity
+        target_vessel = None
         for vessel_template, vessel in data.vessel_data.items():
             if vessel_template.outcome_vessel == True:
                 target_vessel = vessel
-        desiredUnit = vars["finalVolume"].unit
+
+        desiredUnit = self.vars["finalVolume"].unit
         try:
-            if target_vessel.total_volume.value is not None:
-                capacity = Q_(target_vessel.total_volume.value, target_vessel.total_volume.unit).to(desiredUnit)
-                vol = vars["finalVolume"].value
-                if vol > capacity:
-                    self.errors.append(f"Target volume {vol} {desiredUnit} exceeds capacity {capacity} for chosen vessel")
+            if target_vessel:
+                if target_vessel.total_volume.value is not None:
+                    capacity = Q_(
+                        target_vessel.total_volume.value,
+                        target_vessel.total_volume.unit,
+                    ).to(desiredUnit)
+                    vol = self.vars["finalVolume"].value
+                    if vol > capacity:
+                        self.errors.append(
+                            f"Target volume {vol} {desiredUnit} exceeds capacity {capacity} for chosen vessel"
+                        )
         except pint.errors.DimensionalityError as e:
-           #self.errors.append(f"Check that the unit entered for target volume is an appropriate unit of volume. {desiredUnit} is not a valid unit of volume")
-           self.errors.append(e)
+            # self.errors.append(f"Check that the unit entered for target volume is an appropriate unit of volume. {desiredUnit} is not a valid unit of volume")
+            self.errors.append(str(e))
         """for rt, r_props in data.reagent_properties.items():
             for rmt, rm_props in r_props.reagent_materials.items():
                 # Check if all materials have a phase
@@ -81,7 +101,7 @@ class WF1SamplerPlugin(BaseSamplerPlugin):
             return False
         return True
 
-    def sample_experiments(self, data: ExperimentData, vars, **kwargs):
+    def sample_experiments(self, data: ExperimentData):
         reagent_template_names: List[str] = [
             rt.description for rt in data.reagent_properties
         ]
@@ -96,17 +116,19 @@ class WF1SamplerPlugin(BaseSamplerPlugin):
             reagentDefs.append(rmt_data)
         num_of_automated_experiments = data.num_of_sampled_experiments
 
-        #convert volume to uL to pass into sampler
-        v = Q_(float(vars['finalVolume'].value), vars['finalVolume'].unit).to(units.ul)
+        # convert volume to uL to pass into sampler
+        v = Q_(float(self.vars["finalVolume"].value), self.vars["finalVolume"].unit).to(
+            units.ul
+        )
         vol = v.magnitude
-        
+
         desired_volume = generateExperiments(
             reagent_template_names,
             reagentDefs,
             num_of_automated_experiments,
-            finalVolume = vol,#vars['finalVolume'].value,
-            maxMolarity = float(vars['maxMolarity'].value),
-            desiredUnit= vars['finalVolume'].unit
+            finalVolume=vol,  # vars['finalVolume'].value,
+            maxMolarity=float(self.vars["maxMolarity"].value),
+            desiredUnit=self.vars["finalVolume"].unit,
         )
 
         action_templates = data.experiment_template.get_action_templates(

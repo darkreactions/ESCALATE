@@ -8,32 +8,49 @@ from core.dataclass import ExperimentData, ActionUnitData, ActionData
 
 import pint
 from pint import UnitRegistry
+
 units = UnitRegistry()
 Q_ = units.Quantity
+
+
 class WF3SamplerPlugin(BaseSamplerPlugin):
     name = "Statespace sampler for WF3"
 
-    sampler_vars = {"finalVolume": ("Target Volume (per well)",  Val(value=500, unit='uL', val_type='num')), "maxMolarity": ("Max Molarity", Val(value=9.0, unit='M', val_type='num')),  "antisolventVol": ("Desired Antisolvent Volume", Val(value=800, unit='uL', val_type='num'))}
+    sampler_vars = {
+        "finalVolume": (
+            "Target Volume (per well)",
+            Val.from_dict(dict(value=500, unit="uL", type="num")),
+        ),
+        "maxMolarity": (
+            "Max Molarity",
+            Val.from_dict(dict(value=9.0, unit="M", type="num")),
+        ),
+        "antisolventVol": (
+            "Desired Antisolvent Volume",
+            Val.from_dict(dict(value=800, unit="uL", type="num")),
+        ),
+    }
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        self.vars = kwargs
+        super().__init__(*args, **kwargs)
 
-    def validate(self, data: ExperimentData, vars: Dict, **kwargs):
+    def validate(self, data: ExperimentData):
         if data.experiment_template.description not in ["Workflow 3"]:
             self.errors.append(
                 f"Selected template is not Workflow 3. Found: {data.experiment_template.description}"
             )
-        
-        #verify validity of numerical inputs for volume and molarity
-        vol = vars["finalVolume"].value
+
+        # verify validity of numerical inputs for volume and molarity
+        vol = self.vars["finalVolume"].value
         try:
             vol = float(vol)
             if vol < 0:
                 self.errors.append(f"Target volume value {vol} must be greater than 0")
         except TypeError:
             self.errors.append(f"Target volume value {vol} must be numerical input")
-        
-        mol = vars["maxMolarity"].value
+
+        mol = self.vars["maxMolarity"].value
         try:
             mol = float(mol)
             if mol < 0:
@@ -41,35 +58,45 @@ class WF3SamplerPlugin(BaseSamplerPlugin):
         except TypeError:
             self.errors.append(f"Molarity value {mol} must be numerical input")
 
-        vol2 = vars["antisolventVol"].value
+        vol2 = self.vars["antisolventVol"].value
         try:
             vol2 = float(vol2)
             if vol2 < 0:
-                self.errors.append(f"Antisolvent volume value {vol2} must be greater than 0")
+                self.errors.append(
+                    f"Antisolvent volume value {vol2} must be greater than 0"
+                )
         except TypeError:
-            self.errors.append(f"Antisolvent volume value {vol2} must be numerical input")
-        
-        #verify that target volume does not exceed vessel capacity
+            self.errors.append(
+                f"Antisolvent volume value {vol2} must be numerical input"
+            )
+
+        # verify that target volume does not exceed vessel capacity
         for vessel_template, vessel in data.vessel_data.items():
             if vessel_template.outcome_vessel == True:
                 target_vessel = vessel
-        desiredUnit = vars["finalVolume"].unit
+        desiredUnit = self.vars["finalVolume"].unit
         try:
-            v = Q_(vol2.value, vol2.unit).to('uL') #attempt to convert antisolvent volume to verify its unit
+            v = Q_(vol2.value, vol2.unit).to(
+                "uL"
+            )  # attempt to convert antisolvent volume to verify its unit
             if target_vessel.total_volume.value is not None:
-                capacity = Q_(target_vessel.total_volume.value, target_vessel.total_volume.unit).to(desiredUnit)
-                vol = vars["finalVolume"].value
+                capacity = Q_(
+                    target_vessel.total_volume.value, target_vessel.total_volume.unit
+                ).to(desiredUnit)
+                vol = self.vars["finalVolume"].value
                 if vol > capacity:
-                    self.errors.append(f"Target volume {vol} {desiredUnit} exceeds capacity {capacity} for chosen vessel")
+                    self.errors.append(
+                        f"Target volume {vol} {desiredUnit} exceeds capacity {capacity} for chosen vessel"
+                    )
         except pint.errors.DimensionalityError as e:
-           #self.errors.append(f"Check that the unit entered for target volume is an appropriate unit of volume. {desiredUnit} is not a valid unit of volume")
-           self.errors.append(e)
-        
+            # self.errors.append(f"Check that the unit entered for target volume is an appropriate unit of volume. {desiredUnit} is not a valid unit of volume")
+            self.errors.append(str(e))
+
         if self.errors:
             return False
         return True
 
-    def sample_experiments(self, data: ExperimentData, vars, **kwargs):
+    def sample_experiments(self, data: ExperimentData):
         reagent_template_names: List[str] = [
             rt.description for rt in data.reagent_properties
         ]
@@ -85,31 +112,30 @@ class WF3SamplerPlugin(BaseSamplerPlugin):
 
         num_of_automated_experiments = data.num_of_sampled_experiments
 
-        #convert volume to uL to pass into sampler
-        v = Q_(float(vars['finalVolume'].value), vars['finalVolume'].unit).to(units.ul)
+        # convert volume to uL to pass into sampler
+        v = Q_(float(self.vars["finalVolume"].value), self.vars["finalVolume"].unit).to(
+            units.ul
+        )
         vol = v.magnitude
 
-        #exclude antisolvent from the sampler 
+        # exclude antisolvent from the sampler
         desired_volume = generateExperiments(
             reagent_template_names[0:-1],
             reagentDefs[0:-1],
             num_of_automated_experiments,
-            finalVolume = vol,#vars['finalVolume'].value,
-            maxMolarity = float(vars['maxMolarity'].value),
-            desiredUnit= vars['finalVolume'].unit
+            finalVolume=vol,  # vars['finalVolume'].value,
+            maxMolarity=float(self.vars["maxMolarity"].value),
+            desiredUnit=self.vars["finalVolume"].unit,
         )
 
-        #convent antisolvent volume to microliters
-        v= vars['antisolventVol']
-        v1=Q_(float(v.value), v.unit).to(units.ul)
+        # convent antisolvent volume to microliters
+        v = self.vars["antisolventVol"]
+        v1 = Q_(float(v.value), v.unit).to(units.ul)
         antisolvent_vol = v1.magnitude
-        
-        #add desired antisolvent volume to data 
+
+        # add desired antisolvent volume to data
         desired_volume[reagent_template_names[-1]] = [
-            antisolvent_vol
-            for i in range(
-                num_of_automated_experiments
-            )  
+            antisolvent_vol for i in range(num_of_automated_experiments)
         ]
 
         action_templates = data.experiment_template.get_action_templates(
@@ -121,7 +147,7 @@ class WF3SamplerPlugin(BaseSamplerPlugin):
             "Dispense Reagent 3 - Stock B": "Reagent 3 - Stock B",
             "Dispense Reagent 7 - Acid Volume 1": "Reagent 7 - Acid",
             "Dispense Reagent 7 - Acid Volume 2": "Reagent 7 - Acid",
-            "Dispense Reagent 9 - Antisolvent": "Reagent 9 - Antisolvent"
+            "Dispense Reagent 9 - Antisolvent": "Reagent 9 - Antisolvent",
         }
 
         for at in action_templates:
