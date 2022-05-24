@@ -513,9 +513,9 @@ def save_manual_volumes(
                         dv_prop.nominal_value = dead_volume
                         dv_prop.save()
 
-    if vessel.total_volume is not None:
+    if vessel.total_volume.value is not None:
         for vial, vol in volume_by_well.items():
-            if vol > vessel.total_volume:
+            if vol > vessel.total_volume.value:
                 raise ValueError(
                     "Total volume specified for vial {} exceeds capacity {}".format(
                         vial, vessel.total_volume
