@@ -75,8 +75,8 @@ class NimbusWF1RobotPlugin(RobotPlugin):
                 "Dispense Reagent 2 - Stock A": 2,
                 "Dispense Reagent 3 - Stock B": 3,
                 "Dispense Reagent 1 - Solvent": 1,
-                "Dispense Reagent 7 - Acid Volume 1": 7,
-                "Dispense Reagent 7 - Acid Volume 2": 8,
+                "Dispense Reagent 7 - Acid Volume 1": 6,
+                "Dispense Reagent 7 - Acid Volume 2": 7,
             }
             # source material -> Reagent number, vial_site -> row name
             for action_name, reagent_num in REAG_MAPPING.items():
