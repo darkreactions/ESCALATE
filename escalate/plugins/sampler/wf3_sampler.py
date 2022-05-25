@@ -70,15 +70,19 @@ class WF3SamplerPlugin(BaseSamplerPlugin):
                 f"Antisolvent volume value {vol2} must be numerical input"
             )
 
+        target_vessel = None
         # verify that target volume does not exceed vessel capacity
         for vessel_template, vessel in data.vessel_data.items():
             if vessel_template.outcome_vessel == True:
                 target_vessel = vessel
         desiredUnit = self.vars["finalVolume"].unit
         try:
-            v = Q_(vol2.value, vol2.unit).to(
+            v = Q_(
+                self.vars["antisolventVol"].value, self.vars["antisolventVol"].unit
+            ).to(
                 "uL"
             )  # attempt to convert antisolvent volume to verify its unit
+            assert target_vessel
             if target_vessel.total_volume.value is not None:
                 capacity = Q_(
                     target_vessel.total_volume.value, target_vessel.total_volume.unit

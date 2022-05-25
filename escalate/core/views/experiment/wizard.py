@@ -21,7 +21,7 @@ from django.core.files.storage import FileSystemStorage
 from django.http import HttpResponseRedirect
 from django.db.models import QuerySet
 from django.urls import reverse
-from django.utils.html import format_html
+
 from core.models.view_tables import (
     ExperimentTemplate,
     ReagentTemplate,
@@ -46,6 +46,8 @@ import pandas as pd
 
 from plugins.sampler.base_sampler_plugin import BaseSamplerPlugin
 from plugins.sampler import *
+
+
 import logging
 
 
@@ -114,7 +116,8 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
 
     @property
     def experiment_template(self) -> "ExperimentTemplate":
-        form_data = self.get_cleaned_data_for_step(SELECT_TEMPLATE)
+        form_data: Dict[str, Any] = self.get_cleaned_data_for_step(SELECT_TEMPLATE)
+        # assert isinstance(form_data, dict)
         if form_data:
             exp_template_uuid: str = form_data["select_experiment_template"]
             self._experiment_template = ExperimentTemplate.objects.get(
@@ -130,9 +133,9 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             ACTION_PARAMS: self.get_cleaned_data_for_step(ACTION_PARAMS),
             REAGENT_PARAMS: self.get_cleaned_data_for_step(REAGENT_PARAMS),
             AUTOMATED_SPEC: self.get_cleaned_data_for_step(AUTOMATED_SPEC),
-            AUTOMATED_SAMPLER_SPEC: self.get_cleaned_data_for_step(
-                AUTOMATED_SAMPLER_SPEC
-            ),
+            # AUTOMATED_SAMPLER_SPEC: self.get_cleaned_data_for_step(
+            #    AUTOMATED_SAMPLER_SPEC
+            # ),
         }
         return form_data
 
@@ -154,9 +157,6 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
                     initial_data = {
                         f"reagent_material_template_uuid_{j}": str(rmt.uuid),
                         f"material_type_{j}": str(rmt.material_type.uuid),
-                        # f"desired_concentration_{j}": rmt.properties.get(
-                        #    description="concentration"
-                        # ).default_value.nominal_value,
                     }
                     for k, prop in enumerate(rmt.properties.all()):
                         prop: PropertyTemplate
@@ -227,77 +227,53 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             _type_: _description_
         """
         form = super().get_form(step, data, files)
+        """
         if step == None and form.is_valid():
             # form = super().get_form(self.steps.prev, data, files)
             if (
                 self.steps.prev != MANUAL_SPEC
                 and self.steps.current == AUTOMATED_SAMPLER_SPEC
             ):
-                form_data: Dict[str, Any] = form.cleaned_data
-                # form_data = self.all_form_data[AUTOMATED_SPEC] #form.cleaned_data
-                automated_spec_form_data = self.get_cleaned_data_for_step(
-                    AUTOMATED_SPEC
-                )
-                assert isinstance(automated_spec_form_data, dict)
-
-                SamplerPlugin: Type[BaseSamplerPlugin] = globals()[
-                    automated_spec_form_data["select_experiment_sampler"]
-                ]
-                prev_form_data = self.all_form_data
-                exp_data = ExperimentData.parse_form_data(prev_form_data)
-                sampler_plugin = SamplerPlugin(**form_data)
-
-                if sampler_plugin.validate(data=exp_data):
-                    try:
-                        self.request.session[
-                            "experiment_data"
-                        ] = sampler_plugin.sample_experiments(data=exp_data)
-                    except Exception as e:
-                        form = super().get_form(step, data, files)
-                        form.add_error(  # type: ignore
-                            "select_experiment_sampler",
-                            error=format_html(
-                                "Exception occured while running {} : {} <br/> Please check logs for more information.",
-                                sampler_plugin.name,
-                                repr(e),
-                            ),
-                        )
-                        log = logging.getLogger("escalate")
-                        log.exception("Exception in process automated formset")
-                        # return form
-                else:
-                    form = super().get_form(step, data, files)
-                    form.add_error(  # type: ignore
-                        "select_experiment_sampler",
-                        error=sampler_plugin.validation_errors,
-                    )
-                    log = logging.getLogger("escalate")
-                    log.error("Exception in process automated formset")
-
+                form = self._validate_automated_form(form)
             if self.steps.current == MANUAL_SPEC:
-                if "experiment_data" not in self.request.session:
-                    form.add_error(  # type: ignore
-                        "file",
-                        error=ValidationError(
-                            "Automated experiments not generated. Please upload a manual file"
-                        ),
-                    )
+                form = self._validate_manual_form(form)
+            # if self.steps.current == POSTPROCESS:
+            #    form = self._validate_postprocess_form(form)
+        """
+        return form
+
+    def _validate_postprocess_form(self, form):
+        post_processor_form_data = form.cleaned_data
+        return form
+
+    def _validate_manual_form(self, form):
+        if "experiment_data" not in self.request.session:
+            form.add_error(  # type: ignore
+                "file",
+                error=ValidationError(
+                    "Automated experiments not generated. Please upload a manual file"
+                ),
+            )
+        return form
+
+    def _validate_automated_form(self, form):
+
         return form
 
     def process_step(self, form: Form):
         if self.steps.current == MANUAL_SPEC:
+            experiment_data: ExperimentData = self.request.session["experiment_data"]
             if form.cleaned_data["file"]:
                 df_dict = pd.read_excel(form.cleaned_data["file"], sheet_name=None)
-                experiment_data: ExperimentData = self.request.session[
-                    "experiment_data"
-                ]
                 experiment_data.parse_manual_file(df_dict)
-                self.request.session["experiment_data"] = experiment_data
+            experiment_instance = experiment_data.experiment_instance
+            self.request.session["experiment_data"] = experiment_data
         return super().process_step(form)
 
     def done(self, form_list, **kwargs):
         experiment_data: ExperimentData = self.request.session["experiment_data"]
         experiment_instance = experiment_data.experiment_instance
+        # self._run_post_processors(experiment_instance=experiment_instance)
         context = {
             "new_exp_name": experiment_instance.description,
             "experiment_link": reverse(
@@ -312,30 +288,35 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
         return render(self.request, "core/experiment/create/done.html", context=context)
 
     def _get_automated_sampler_spec_kwargs(self) -> "dict[str, Any]":
-        automated_form_data = self.get_cleaned_data_for_step(AUTOMATED_SPEC)
+        automated_spec_form_data = self.get_cleaned_data_for_step(AUTOMATED_SPEC)
         kwargs = {}
-        if isinstance(automated_form_data, dict):
+        if isinstance(automated_spec_form_data, dict):
             SamplerPlugin: Type[BaseSamplerPlugin] = globals()[
-                automated_form_data["select_experiment_sampler"]
+                automated_spec_form_data["select_experiment_sampler"]
             ]
             kwargs["form_kwargs"] = {}
-            kwargs["form_kwargs"]["sampler_name"] = SamplerPlugin.name
-            kwargs["form_kwargs"]["sampler_vars"] = SamplerPlugin.sampler_vars
+            kwargs["form_kwargs"]["sampler"] = SamplerPlugin
+            kwargs["form_kwargs"]["automated_spec_form_data"] = automated_spec_form_data
+            kwargs["form_kwargs"]["all_form_data"] = self.all_form_data
+            kwargs["form_kwargs"]["request"] = self.request
         return kwargs
 
     def _get_post_processor_kwargs(self) -> "dict[str, Any]":
-        kwargs = {"form_kwargs": {"experiment_template": self.experiment_template}}
+        kwargs = {
+            "form_kwargs": {
+                "experiment_template": self.experiment_template,
+                "experiment_data": self.request.session["experiment_data"],
+            }
+        }
         return kwargs
 
     def _get_automated_spec_kwargs(self) -> "dict[str, Any]":
         vessel_form_data = self.get_cleaned_data_for_step(SELECT_VESSELS)
-        # sampler_data = self.all_form_data
-        # sampler_data = self.get_cleaned_data_for_step(AUTOMATED_SPEC)
         kwargs = {
             "form_kwargs": {
                 "vessel_form_data": vessel_form_data,
             }
-        }  # "sampler_data": sampler_data}}
+        }
         return kwargs
 
     def _get_manual_spec_kwargs(self) -> "dict[str, Any]":
@@ -438,137 +419,3 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             }
 
         return kwargs
-
-
-"""
-    def _save_forms(self, instance_uuid: "str|uuid.UUID"):
-        exp_instance = ExperimentInstance.objects.select_related().get(
-            uuid=instance_uuid
-        )
-        # Get the operator and save
-        user: CustomUser = self.request.user  # type: ignore
-        operator = Actor.objects.get(
-            person=user.person,
-            organization__uuid=self.request.session["current_org_id"],
-        )
-        exp_instance.operator = operator
-        exp_instance.save()
-        # Save data from reagent_params, action_params and manual_spec
-        self._save_vessels(exp_instance)
-        self._save_reagents(exp_instance)
-        self._save_action_params(exp_instance)
-        self._save_manual_experiments(exp_instance)
-
-    def _save_vessels(self, exp_instance: ExperimentInstance) -> None:
-        cleaned_data = self.get_cleaned_data_for_step(SELECT_VESSELS)
-        assert isinstance(cleaned_data, list)
-        for vessel_data in cleaned_data:
-            vessel = vessel_data["value"]
-            vessel_template_uuid = vessel_data["template_uuid"]
-            vessel_template = VesselTemplate.objects.get(uuid=vessel_template_uuid)
-            VesselInstance.objects.create(
-                vessel=vessel,
-                vessel_template=vessel_template,
-                experiment_instance=exp_instance,
-            )
-
-    def _save_manual_experiments(self, exp_instance):
-        cleaned_data = self.get_cleaned_data_for_step(MANUAL_SPEC)
-        assert isinstance(cleaned_data, dict)
-        if cleaned_data["file"] is not None:
-            df_data = pd.read_excel(cleaned_data["file"], sheet_name=None)
-            reverse_meta_data = dict(
-                zip(df_data["meta_data"]["values"], df_data["meta_data"]["keys"])
-            )
-            meta_data = dict(
-                zip(df_data["meta_data"]["keys"], df_data["meta_data"]["values"])
-            )
-            manual_data = df_data[exp_instance.template.description]
-            action_units = ActionUnit.objects.filter(
-                action__experiment=exp_instance
-            ).prefetch_related("parameter_au")
-
-            # Find the action unit corresponding to the excel cell
-            for action in exp_instance.action_ei.filter(
-                template__dest_vessel_decomposable=True
-            ).prefetch_related("template__action_def__parameter_def"):
-                # reconstruct columns name
-                action_column_name = reverse_meta_data[str(action.template.uuid)]
-                for param_def in action.template.action_def.parameter_def.all():
-                    # Get the expected value and unit column names from meta_data
-                    param_value_column_name = reverse_meta_data[
-                        f"value:{param_def.uuid}:{action.template.uuid}"
-                    ]
-                    param_unit_column_name = reverse_meta_data[
-                        f"unit:{param_def.uuid}:{action.template.uuid}"
-                    ]
-
-                    # Loop through every row (destination vessel), get the value and unit from dataframe
-                    # and then store it in the appropriate action unit parameter in the database
-                    for i, dest_vessel_name in enumerate(
-                        manual_data[action_column_name]
-                    ):
-                        dest_vessel_uuid = meta_data[dest_vessel_name]
-                        au = action_units.get(
-                            destination_material__vessel__uuid=dest_vessel_uuid,
-                            action__template=action.template,
-                        )
-                        param = au.parameter_au.get(parameter_def=param_def)
-                        param.parameter_val_nominal.value = manual_data[
-                            param_value_column_name
-                        ].iloc[i]
-                        param.parameter_val_nominal.unit = manual_data[
-                            param_unit_column_name
-                        ].iloc[i]
-                        param.save()
-
-    def _save_action_params(self, exp_instance: ExperimentInstance):
-        cleaned_data = self.get_cleaned_data_for_step(REAGENT_PARAMS)
-        assert isinstance(cleaned_data, list)
-        for action_param_data in cleaned_data:
-            for key, value in action_param_data.items():
-                if key.startswith("parameter_uuid"):
-                    action_num, param_num = key.split("_")[-2:]
-                    param_def = ParameterDef.objects.get(uuid=value)
-                    param = Parameter.objects.get(
-                        parameter_def=param_def,
-                        action_unit__action__experiment=exp_instance,
-                    )
-                    param.value = action_param_data[f"value_{action_num}_{param_num}"]
-                    param.save()
-
-    def _save_reagents(
-        self,
-        exp_instance: ExperimentInstance,
-    ):
-        cleaned_data = self.get_cleaned_data_for_step(REAGENT_PARAMS)
-        assert isinstance(cleaned_data, list)
-        for reagent_data in cleaned_data:
-            for key, value in reagent_data.items():
-                if key.startswith("reagent_material_template_uuid"):
-                    reagent_num, reagent_material_num = key.split("_")[-2:]
-                    rmt = ReagentMaterialTemplate.objects.get(uuid=value)
-                    rm = ReagentMaterial.objects.get(
-                        template=rmt, reagent__experiment=exp_instance
-                    )
-                    rm.material = InventoryMaterial.objects.get(
-                        uuid=reagent_data[
-                            f"material_{reagent_num}_{reagent_material_num}"
-                        ]
-                    )
-                    rm.save()
-                    # TODO: generalize concentration to any property that a reagentmaterial has
-                    suffix = f"_{reagent_num}_{reagent_material_num}"
-                    for k in reagent_data:
-                        if k.endswith(suffix):
-                            prop_name = k[: -len(suffix)]
-                            try:
-                                prop = rm.property_rm.get(
-                                    template__description=prop_name
-                                )
-                                prop.nominal_value = reagent_data[k]
-                                prop.save()
-                            except ObjectDoesNotExist:
-                                continue
-
-"""

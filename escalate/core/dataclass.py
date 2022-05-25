@@ -454,12 +454,14 @@ class ExperimentData:
             )
             self._save_properties(reagent_data, reagent)
 
+            reagent_material_data: ReagentMaterialPropertyData
             for (
                 reagent_material_template,
                 reagent_material_data,
             ) in reagent_data.reagent_materials.items():
                 reagent_material: ReagentMaterial = ReagentMaterial.objects.create(
                     template=reagent_material_template,
+                    material=reagent_material_data.inventory_material,
                     reagent=reagent,
                     description=f"{exp_instance.description} : {reagent_template.description} : {reagent_material_template.description}",
                 )

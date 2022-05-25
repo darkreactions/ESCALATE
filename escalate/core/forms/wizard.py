@@ -1,5 +1,6 @@
-from typing import Tuple, Any, Type
+from typing import Tuple, Any, Type, Dict
 from uuid import UUID
+import logging
 from django.db.models import QuerySet
 from django.forms import (
     Select,
@@ -23,17 +24,17 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column, Hidden, Field, HTML
 from crispy_forms.bootstrap import Tab, TabHolder
 import pandas as pd
-
+from django.utils.html import format_html
 import core.models.view_tables as vt
 from core.models.view_tables import ReagentTemplate, VesselTemplate, PropertyTemplate
 from core.widgets import ValFormField
 from core.models.view_tables.workflow import ExperimentTemplate
-from core.widgets import ValWidget, TextInput
+from core.dataclass import ExperimentData, METADATA
 from .forms import dropdown_attrs
 from plugins.sampler.base_sampler_plugin import BaseSamplerPlugin
 from plugins.sampler import *
-from plugins.postprocessing.base_post_processing_plugin import PostProcessPlugin
-from core.dataclass import METADATA
+from plugins.postprocessing.base_post_processing_plugin import BasePostProcessPlugin
+from plugins.postprocessing import *
 
 
 class NumberOfExperimentsForm(Form):
@@ -420,15 +421,63 @@ class SamplerParametersForm(Form):
     def __init__(self, *args, **kwargs):
         form_kwargs = kwargs.pop("form_kwargs", {})
         super().__init__(*args, **kwargs)
-        if "sampler_vars" in form_kwargs:
+        if "sampler" in form_kwargs:
+            self.SamplerPlugin = form_kwargs["sampler"]
             self.fields["select_experiment_sampler"] = CharField(
-                initial=form_kwargs["sampler_name"], disabled=True
+                initial=self.SamplerPlugin.name, disabled=True
             )
-            self._add_sampler_vars(form_kwargs["sampler_vars"])
+            self._add_sampler_vars(self.SamplerPlugin.sampler_vars)
+        self.automated_spec_form_data = form_kwargs.get("automated_spec_form_data", {})
+        self.all_form_data = form_kwargs.get("all_form_data", {})
+        self.request = form_kwargs.get("request", None)
 
-    def _add_sampler_vars(self, sampler_vars):
+    def _add_sampler_vars(self, sampler_vars: Dict[str, Any]):
         for var, (label, default) in sampler_vars.items():
             self.fields[var] = ValFormField(required=True, label=label, initial=default)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if self.is_valid() and cleaned_data:
+            form_data: Dict[str, Any] = cleaned_data
+            # form_data = self.all_form_data[AUTOMATED_SPEC] #form.cleaned_data
+            # automated_spec_form_data = self.get_cleaned_data_for_step(AUTOMATED_SPEC)
+            # assert isinstance(automated_spec_form_data, dict)
+
+            # SamplerPlugin: Type[BaseSamplerPlugin] = globals()[
+            #    self.automated_spec_form_data["select_experiment_sampler"]
+            # ]
+
+            prev_form_data = self.all_form_data
+            exp_data = ExperimentData.parse_form_data(prev_form_data)
+            sampler_plugin = self.SamplerPlugin(**form_data)
+
+            if sampler_plugin.validate(data=exp_data):
+                try:
+                    if self.request:
+                        self.request.session[
+                            "experiment_data"
+                        ] = sampler_plugin.sample_experiments(data=exp_data)
+                except Exception as e:
+                    # form = super().get_form(step, data, files)
+                    self.add_error(  # type: ignore
+                        "select_experiment_sampler",
+                        error=format_html(
+                            "Exception occured while running {} : {} <br/> Please check logs for more information.",
+                            sampler_plugin.name,
+                            repr(e),
+                        ),
+                    )
+                    log = logging.getLogger("escalate")
+                    log.exception("Exception in process automated formset")
+                    # return form
+            else:
+                # form = super().get_form(step, data, files)
+                self.add_error(  # type: ignore
+                    "select_experiment_sampler",
+                    error=sampler_plugin.validation_errors,
+                )
+                log = logging.getLogger("escalate")
+                log.error("Exception in process automated formset")
 
 
 class AutomatedSpecificationForm(Form):
@@ -512,6 +561,7 @@ class PostProcessForm(Form):
     def __init__(self, *args, **kwargs):
         index = kwargs.pop("index")
         experiment_template = kwargs.pop("experiment_template")
+        self.experiment_data: ExperimentData = kwargs.pop("experiment_data")
         super().__init__(*args, **kwargs)
         self._populate_post_processors()
         self.get_helper()
@@ -522,15 +572,10 @@ class PostProcessForm(Form):
         helper.label_class = "col-lg-3"
         helper.field_class = "col-lg-8"
         rows = []
-        # for i, param_uuid in enumerate(self.action_parameter_list):
         rows.append(
             Column(Field(f"select_post_processor")),
         )
         helper.layout = Layout(*rows)
-        # helper.add_input(
-        #    Submit("add_post_processor", "Add Post Processor", css_class="btn-primary")
-        # )
-        # return helper
         helper.form_tag = False
         self.helper = helper
 
@@ -541,5 +586,26 @@ class PostProcessForm(Form):
         none_option: "list[Tuple[Any, str]]" = [(None, "No preprocessor selected")]
         self.fields["select_post_processor"].choices = none_option + [
             (post_processor_plugin.__name__, post_processor_plugin.name)
-            for post_processor_plugin in PostProcessPlugin.__subclasses__()
+            for post_processor_plugin in BasePostProcessPlugin.__subclasses__()
         ]
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if self.is_valid() and isinstance(cleaned_data, dict):
+            if cleaned_data["select_post_processor"] is None:
+                return cleaned_data
+
+            PostProcessPlugin: Type[BasePostProcessPlugin] = globals()[
+                cleaned_data["select_post_processor"]
+            ]
+            post_process = PostProcessPlugin()
+            experiment_instance = self.experiment_data.experiment_instance
+            if post_process.validate(experiment_instance=experiment_instance):
+                post_process.post_process(experiment_instance=experiment_instance)
+            else:
+                self.add_error(  # type: ignore
+                    "select_experiment_sampler",
+                    error=post_process.validation_errors,
+                )
+                log = logging.getLogger("escalate")
+                log.error("Exception in process automated formset")

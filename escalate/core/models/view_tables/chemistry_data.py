@@ -352,6 +352,9 @@ class Reagent(DateColumns, DescriptionColumn, StatusColumn):
                 )
                 prop.save()
 
+    def __str__(self):
+        return f"{self.description}"
+
 
 class ReagentMaterial(DateColumns, DescriptionColumn, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
@@ -396,3 +399,6 @@ class ReagentMaterial(DateColumns, DescriptionColumn, StatusColumn):
                     reagent_material=self,
                 )
                 prop.save()
+
+    def __str__(self):
+        return f"{self.description}"

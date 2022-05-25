@@ -1,17 +1,19 @@
 from abc import ABC, abstractmethod
 import core.models.view_tables as vt
+from typing import List
+from django.forms import ValidationError
 
 
-class PostProcessPlugin(ABC):
+class BasePostProcessPlugin(ABC):
     name = "Default PostProcess Plugin"
+    errors: List[str] = list()
 
     def __init__(self):
         pass
 
     @property
-    @abstractmethod
     def validation_errors(self):
-        pass
+        return ValidationError(message=self.errors)
 
     @abstractmethod
     def validate(self, experiment_instance: "vt.ExperimentInstance"):

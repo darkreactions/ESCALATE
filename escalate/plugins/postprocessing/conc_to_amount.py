@@ -1,4 +1,4 @@
-from plugins.postprocessing.base_post_processing_plugin import PostProcessPlugin
+from plugins.postprocessing.base_post_processing_plugin import BasePostProcessPlugin
 import core.models.view_tables as vt
 from core.models.core_tables import TypeDef
 import pandas as pd
@@ -11,7 +11,7 @@ units = UnitRegistry()
 Q_ = units.Quantity
 
 
-class ConcentrationToAmountPlugin(PostProcessPlugin):
+class ConcentrationToAmountPlugin(BasePostProcessPlugin):
     name = "Concentration To Amount Post Process Plugin"
 
     def __init__(self):
@@ -42,15 +42,17 @@ class ConcentrationToAmountPlugin(PostProcessPlugin):
                             reagent_material.material.description
                         )
                     )
-    
+
                 density_prop = reagent_material.material.material.property_m.filter(
                     template__description__icontains="density"
                 ).first()
-                
+
                 if density_prop is None:
                     self.errors.append(
                         "Error: Missing density data for {}. Please check the inventory table".format(
-                            reagent_material.material.description))
+                            reagent_material.material.description
+                        )
+                    )
         if self.errors:
             return False
         return True
@@ -75,7 +77,7 @@ class ConcentrationToAmountPlugin(PostProcessPlugin):
                 mw_prop = reagent_material.material.material.property_m.filter(
                     template__description__icontains="molecularweight"
                 ).first()
-               
+
                 mw = Q_(mw_prop.value.value, mw_prop.value.unit).to(units.g / units.mol)
                 density_prop = reagent_material.material.material.property_m.filter(
                     template__description__icontains="density"
@@ -205,7 +207,7 @@ class ConcentrationToAmountPlugin(PostProcessPlugin):
         return self.name
 
 
-class AmounttoConcentrationPlugin(PostProcessPlugin):
+class AmountToConcentrationPlugin(BasePostProcessPlugin):
     name = "Amount to Concentration Post Process Plugin"
 
     def __init__(self):
@@ -236,20 +238,22 @@ class AmounttoConcentrationPlugin(PostProcessPlugin):
                             reagent_material.material.description
                         )
                     )
-    
+
                 density_prop = reagent_material.material.material.property_m.filter(
                     template__description__icontains="density"
                 ).first()
-                
+
                 if density_prop is None:
                     self.errors.append(
                         "Error: Missing density data for {}. Please check the inventory table".format(
-                            reagent_material.material.description))
+                            reagent_material.material.description
+                        )
+                    )
         if self.errors:
             return False
         return True
 
-    def post_process(self, experiment_instance): # properties_lookup):
+    def post_process(self, experiment_instance):  # properties_lookup):
         """[summary]
         For each reagent in an experiment, this function obtains reagent material properties
         needed to calculate actual concentrations of each material based on solution preparation
@@ -260,21 +264,21 @@ class AmounttoConcentrationPlugin(PostProcessPlugin):
             saves calculated concentrations to database
         """
         # get experiment instance
-        exp_instance = vt.ExperimentInstance.objects.filter(uuid=experiment_instance).prefetch_related()[
-            0
-        ]
+        exp_instance = vt.ExperimentInstance.objects.filter(
+            uuid=experiment_instance
+        ).prefetch_related()[0]
 
         # This loop generates a dictionary for each reagent that contains the desired concentration,
         # material type, phase, MW, and density - data is then used for calculations
         for reagent in exp_instance.reagent_ei.all():
-            
-            #TODO: fix properties lookup 
+
+            # TODO: fix properties lookup
             #######
             properties = []
             property_instance = Property.objects.get(uuid=prop_uuid)
 
             rmvi = Property.objects.get(uuid=property_instance)
-            #rmvi.actual_value = form.cleaned_data["actual_value"]
+            # rmvi.actual_value = form.cleaned_data["actual_value"]
             properties.append(rmvi)
             #######
             input_data = {}
@@ -299,12 +303,14 @@ class AmounttoConcentrationPlugin(PostProcessPlugin):
                             units.g / units.mol
                         )
 
-                        density_prop = reagent_material.material.material.property_m.filter(
-                            template__description__icontains="density"
-                        ).first()
-                        d = d = Q_(density_prop.value.value, density_prop.value.unit).to(
-                            units.g / units.ml
+                        density_prop = (
+                            reagent_material.material.material.property_m.filter(
+                                template__description__icontains="density"
+                            ).first()
                         )
+                        d = d = Q_(
+                            density_prop.value.value, density_prop.value.unit
+                        ).to(units.g / units.ml)
 
                         input_data[reagent_material] = {
                             "amount": amount,
@@ -326,13 +332,12 @@ class AmounttoConcentrationPlugin(PostProcessPlugin):
                 db_conc.actual_value.unit = str(conc.units)
                 db_conc.save()
 
-
     def _back_calculate(self, input_data):
 
         """[summary]
         Calculates actual concentration of each material in a reagent given actual amounts used to prepare the reagents
         Args:
-            input_data([dic]): 
+            input_data([dic]):
         Returns:
             [dic]: concentration (M) of each material
                 NOTE: solvent concentrations are reported as 0.0 M by convention (a solvent does not have a concentration)
@@ -364,6 +369,6 @@ class AmounttoConcentrationPlugin(PostProcessPlugin):
                 )  # divide moles by volume to get concentration
 
         return concentrations
-    
+
     def __str__(self):
         return self.name
