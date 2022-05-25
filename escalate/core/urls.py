@@ -3,6 +3,7 @@ import core.views
 from core.views.function_views import (
     download_manual_spec_file,
     save_experiment_action_template,
+    create_action_def,
     experiment_invalid,
 )
 
@@ -80,6 +81,11 @@ urlpatterns += [
         "save_experiment_action_template/",
         save_experiment_action_template,
         name="save_experiment_action_template",
+    ),
+    path(
+        "create_action_def/",
+        create_action_def,
+        name="create_action_def",
     ),
 ]
 

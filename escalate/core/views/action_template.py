@@ -70,6 +70,7 @@ class ActionTemplateView(LoginRequired, View):
         workflow = action_def_workflow
 
         action_defs = [a for a in vt.ActionDef.objects.all()]
+        parameter_defs = [p for p in vt.ParameterDef.objects.all()]
         # exp_template = vt.ExperimentTemplate(uuid=request.META["PATH_INFO"].split("/"))
         exp_template_uuid = kwargs["pk"]
         temp = generate_action_def_json(action_defs, exp_template_uuid)
@@ -79,5 +80,6 @@ class ActionTemplateView(LoginRequired, View):
         context["components"] = components
         context["workflow"] = workflow
         context["exp_template"] = exp_template_uuid
+        context["parameter_defs"] = parameter_defs
 
         return render(request, self.template_name, context=context)

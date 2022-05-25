@@ -33,6 +33,44 @@
   </ul>
 </div>
 
+<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+  Create new action def
+</button>
+
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Create new action def</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="myForm" name="myForm">
+          <div class="form-group">
+            <label for="actionDef_description" class="col-form-label">Description:</label>
+            <input type="text" class="form-control" id="actionDef_description">
+          </div>
+          <div class="form-group">
+            <label for="parameterDefs" class="col-form-label">Parameters:</label>
+            <select multiple class="form-control" id="parameterDefs">
+              {% for param in parameter_defs %}
+                <option>{{param}}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="button" class="btn btn-primary" onclick="create_action_def()">Save</button>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 
 <wf-designer-host id="designerHost" canvas-height="75vh" data-activity-definitions='{{ components | safe }}'
   data-workflow='{{ workflow | safe }}' readonly="false" plugins="PrimitiveActivities"></wf-designer-host>
@@ -78,6 +116,37 @@
       }
     });
   }
-
+    
 </script>
 {% endblock %}
+
+{% block tailcontent %}
+<script>
+  async function create_action_def() {
+    //let result = await onclick(this.create_action_def());
+    //console.log(result);
+    let myForm = document.getElementById('myForm');
+    result = $('myForm').serializeArray();
+    console.log(result);
+    //var formData = new FormData(myForm);
+    //console.log(formData);
+    //formData.append("description", $("#actionDef_description").val());
+    //result["description"] = $("#actionDef_description").val(); 
+    var token = '{{csrf_token}}';
+    jQuery.ajax({
+      url: {% url 'create_action_def' %},
+      headers: { "X-CSRFToken": token },
+      type: "POST",
+      dataType: "json",
+      data: JSON.stringify(result),
+      success: function (data) {
+        console.log("This function works");
+        alert("Action def saved successfully!")
+      }
+    });
+    }
+</script>
+{% endblock %}
+
+
+

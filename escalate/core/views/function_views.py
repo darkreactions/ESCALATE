@@ -12,6 +12,7 @@ from core.models import (
     ExperimentInstance,
     Vessel,
     VesselTemplate,
+    ParameterDef,
 )
 from core.dataclass import ExperimentData
 
@@ -54,6 +55,28 @@ def experiment_invalid(request: HttpRequest, pk) -> Optional[HttpResponse]:
             return redirect("experiment_completed_instance_list")
         else:
             return JsonResponse(data={"message": "success"})
+
+
+def create_action_def(request: HttpRequest) -> HttpResponse:
+    if request.method == "POST":
+        for desc, params in request.POST.items():
+            parameters=[]
+            for p in params:
+                parameter = ParameterDef.objects.get(description=p)
+                parameters.append(parameter)
+            
+            #lookup actiondef description; create new only if it doesn't already exist
+            a = ActionDef.objects.filter(description = desc) 
+            if a is not None:
+                a, created = ActionDef.objects.create(
+                                description=desc,
+                                parameter_def= parameters,
+                            )
+                a.save()
+                
+                return JsonResponse(data={"message": "success"})
+            else:
+                return JsonResponse(data={"message": "failure"})
 
 
 def save_experiment_action_template(request: HttpRequest) -> HttpResponse:
