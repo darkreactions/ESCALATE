@@ -189,17 +189,21 @@ class Val:
             return cls(None, None, "", null=True)
         else:
             required_keys = set(["type", "value", "unit"])
+            val_type = None
             # Check if all keys are present in
             if not all(k in json_data for k in required_keys):
+                print("Data does not have attribute keys")
+                raise ValidationError(
+                    f'Missing key "{required_keys - set(json_data.keys())}". ',
+                    "invalid",
+                )
+            else:
                 try:
-                    raise ValidationError(
-                        f'Missing key "{required_keys - set(json_data.keys())}". ',
-                        "invalid",
+                    val_type = cls.validate_type(json_data["type"])
+                except Exception as e:
+                    print(
+                        "Exception occured in Val.from_dict(). Ignore if initializing"
                     )
-                except:
-                    print("Data does not have attribute keys")
-
-            val_type = cls.validate_type(json_data["type"])
             return cls(val_type, json_data["value"], json_data["unit"])
 
     @classmethod
