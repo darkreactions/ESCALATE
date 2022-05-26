@@ -12,7 +12,7 @@ Q_ = units.Quantity
 
 
 class ConcentrationToAmountPlugin(BasePostProcessPlugin):
-    name = "Concentration To Amount Post Process Plugin"
+    name = "Reagent Preparation: Concentration to Amount"
 
     def __init__(self):
         pass
@@ -208,7 +208,7 @@ class ConcentrationToAmountPlugin(BasePostProcessPlugin):
 
 
 class AmountToConcentrationPlugin(BasePostProcessPlugin):
-    name = "Amount to Concentration Post Process Plugin"
+    name = "Reagent Preparation: Amount to Concentratoin"
 
     def __init__(self):
         pass
