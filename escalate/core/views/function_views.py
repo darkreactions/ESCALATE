@@ -34,7 +34,7 @@ def download_manual_spec_file(request: HttpRequest) -> "FileResponse|JsonRespons
     response = FileResponse(
         temp,
         as_attachment=True,
-        filename=f"manual_{experiment_data.experiment_template.description}.xlsx",
+        filename=f"{experiment_data.experiment_name}_manual_{experiment_data.experiment_template.description}.xlsx",
     )
     return response
 

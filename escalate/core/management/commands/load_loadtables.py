@@ -299,11 +299,11 @@ class Command(BaseCommand):
             # Heat stir 1
             # ('Heat stir 1', 'heat_stir', (None, None), ('vessel', '96 Well Plate well'), 'Heat stir 1'),
             (
-                "Stir 1",
-                "stir",
+                "Heat-Stir 1",
+                "heat_stir",
                 (None, None),
                 ("vessel", "96 Well Plate well"),
-                "Stir 1",
+                "Heat-Stir 1",
             ),
             # Dispense Acid Vol 2
             (
@@ -316,11 +316,11 @@ class Command(BaseCommand):
             # Heat stir 2
             # ('Heat stir 2', 'heat_stir', (None, None), ('vessel', '96 Well Plate well'), 'Heat stir 2'),
             (
-                "Stir 2",
-                "stir",
+                "Heat-Stir 2",
+                "heat_stir",
                 (None, None),
                 ("vessel", "96 Well Plate well"),
-                "Stir 2",
+                "Heat-Stir 2",
             ),
             # Heat
             # ('Heat', 'heat', (None, None), ('vessel', '96 Well Plate well'), 'Heat'),
