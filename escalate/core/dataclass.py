@@ -29,6 +29,7 @@ from core.models.view_tables import (
     VesselInstance,
 )
 from core.custom_types import Val
+from core.utilities.utils import make_well_labels_list
 
 # from dacite.core import from_dict
 from itertools import product
@@ -253,11 +254,14 @@ class ExperimentData:
 
                 else:
                     # Add as many rows there are as children
-                    for i, child in enumerate(
-                        dest_vessel.children.all().order_by(
-                            "description",
-                        )
-                    ):
+                    child_list = []
+                    well_order = make_well_labels_list(len(dest_vessel.children.all()), robot='True')
+                    
+                    for well in well_order:
+                        child= dest_vessel.children.all().filter(description=well).first()
+                        child_list.append(child)
+
+                    for i, child in enumerate(child_list):
                         automated_sampled_data = action_data.parameters[pdef]
                         # Set default values first, if there are no sampled experiments, continue
                         nominal_value = pdef.default_val.value
