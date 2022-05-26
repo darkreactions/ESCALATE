@@ -37,6 +37,8 @@ class WF1SamplerPlugin(BaseSamplerPlugin):
             self.errors.append(
                 f"Selected template is not Workflow 1. Found: {data.experiment_template.description}"
             )
+        else:
+            self.errors=[]
 
         # verify validity of numerical inputs for volume and molarity
         vol = self.vars["finalVolume"].value
