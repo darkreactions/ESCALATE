@@ -76,4 +76,10 @@ methods = {
         "form_class": forms.PropertyTemplateForm,
         "success_url": reverse_lazy("property_template_list"),
     },
+     "ExperimentTemplate": {
+        "model": core.models.view_tables.ExperimentTemplate,
+        "context_object_name": "experiment_template",
+        "form_class": forms.ExperimentTemplateForm,
+        "success_url": reverse_lazy("experiment_template_list"),
+    },
 }

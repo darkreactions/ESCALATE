@@ -249,4 +249,25 @@ methods = {
         "org_related_path": "lab__organization",
         "default_filter_kwargs": {"template__isnull": False},
     },
+    "ExperimentTemplate": {
+        "model": core.models.view_tables.ExperimentTemplate,
+        "table_columns": [
+            "Template Name",
+            "Reagents",
+            "Vessels",
+            #"Actions",
+            "Outcomes",
+        ],
+        "column_necessary_fields": {
+            "Template Name": ["description"],
+           "Reagents": [],
+           "Vessels": [],
+           #"Actions": ["action_templates"],
+           "Outcomes": [],
+        },
+        "ordering": ["description"],
+        "field_contains": "",
+        "org_related_path": "lab__organization",
+        #"default_filter_kwargs": {"template__isnull": False},
+    },
 }

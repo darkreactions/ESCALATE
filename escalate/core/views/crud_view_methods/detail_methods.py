@@ -189,4 +189,13 @@ methods = {
             "Description": ["description"],
         },
     },
+    "ExperimentTemplate": {
+        "model": core.models.view_tables.ExperimentTemplate,
+        "detail_fields": [
+            "Description",
+        ],
+        "detail_fields_need_fields": {
+            "Description": ["description"],
+        },
+    },
 }

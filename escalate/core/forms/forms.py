@@ -31,6 +31,7 @@ from core.models.view_tables import (
     PropertyTemplate,
     ParameterDef,
     DefaultValues,
+    ExperimentTemplate,
 )
 from core.models.core_tables import TypeDef
 from core.widgets import ValFormField, ValWidget
@@ -879,3 +880,16 @@ class UploadFileForm(forms.Form):
             # Row(Column(Submit('upload_edoc', 'Submit'))),
         )
         return helper
+
+
+class ExperimentTemplateForm(forms.ModelForm):
+    class Meta:
+        model = ExperimentTemplate
+        fields = ["description", "reagent_templates", "outcome_templates"]
+        labels = {"description": "Experiment Template Name"}
+    
+    def __init__(self, *args, **kwargs):
+    
+        super((ExperimentTemplateForm), self).__init__(*args, **kwargs)
+
+        self.fields['description'].disabled = True

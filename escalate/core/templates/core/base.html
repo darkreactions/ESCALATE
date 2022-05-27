@@ -105,9 +105,7 @@
                             data-toggle="dropdown">Experiment</a>
                         <div class="dropdown-menu">
                             <ul class="list-unstyled">
-                                <li>
-                                    <a class="dropdown-item {% if url_name == 'exp_template' %}active{% endif %}"
-                                        href="{% url 'experiment_template_add' %}">Create New Experiment Template</a>
+                                <li><a class="dropdown-item" href="{% url 'experiment_template_list' %}">Experiment Templates</a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item {% if url_name == 'create_experiment' %}active{% endif %}"
