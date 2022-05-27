@@ -254,6 +254,7 @@ class Command(BaseCommand):
             "dispense": (("volume", "uL"),),
             "bring_to_temperature": (("temperature", "degC"),),
             "stir": (("duration", "s"), ("speed", "rpm")),
+            "heat_stir": (("duration", "s"), ("speed", "rpm"), ("temperature", "degC")),
         }
         # Action defs it is assumed that action defs are already inserted
         actions = [  # List of tuples (Description, Action def description, source_bommaterial, destination_bommaterial)

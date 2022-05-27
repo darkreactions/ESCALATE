@@ -18,10 +18,6 @@ users = {
         "person_data": {"first_name": "Isaac", "last_name": "Chang"},
         "password": "securepassword",
     },
-    "jpannizzo": {
-        "person_data": {"first_name": "Joseph", "last_name": "Pannizzo"},
-        "password": "password1",
-    },
     "nsmina": {
         "person_data": {"first_name": "Nicole", "last_name": "Smina"},
         "password": "password11",

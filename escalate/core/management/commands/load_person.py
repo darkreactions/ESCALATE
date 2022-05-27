@@ -21,7 +21,6 @@ person_data = [
     ["Liana", "Alves"],
     ["Zhi", "Li"],
     ["Gary", "Cattabriga"],
-    ["Joseph", "Pannizzo"],
     ["T", "Testuser"],
     ["Matt", "Castillo"],
     ["Joseph", "Kawamura"],

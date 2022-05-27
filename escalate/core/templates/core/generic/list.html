@@ -3,16 +3,19 @@
 {% load crispy_forms_tags %}
 {% load toUnderscore %}
 
-{% block add_data %}
-<form class="form-inline my-2 my-lg-0" method="get" action="{% url url_name %}">
-  <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" value="{{filter}}"
-    name="filter">
-  <button class="btn btn-sm btn-raised btn-success my-2 my-sm-0 " type="submit"><i class="fa fa-search"></i></button>
-  <a href="{{ add_url }}" class="btn btn-sm btn-raised btn-success mx-2 my-sm-0 view-add">Add {{ title }}</a>
-</form>
-{% endblock %}
-
 {% block content %}
+{% with url_name=request.resolver_match.url_name %}
+<div class="container">
+  <form class="form my-2 my-lg-0" method="get" action="{% url url_name %}">
+    <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" value="{{filter}}"
+      name="filter">
+    <button class="btn btn-sm btn-raised btn-success my-2 my-sm-0 " type="submit"><i class="fa fa-search"></i></button>
+    <a href="{{ add_url }}" class="btn btn-sm btn-raised btn-success mx-2 my-sm-0 view-add">Add {{ title }}</a>
+  </form>
+</div>
+<p> </p>
+ {% endwith %}
+
 <div class="container">
   {% if export_urls %}
   <div class="export-buttons-container">

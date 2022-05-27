@@ -128,7 +128,8 @@
                         </div>
                     </li>
 
-                    {% block add_data %}
+                    {% endwith %}
+
                     {% endblock %}
 
                 </ul>
@@ -152,14 +153,9 @@
                     <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
                 </div>
             </div>
-
-            {% endwith %}
         </nav>
 
-
-
     </div>
-    {% endblock %}
     <section>
         <div class="container">
 
