@@ -20,9 +20,9 @@ methods = {
         "table_columns": ["Description", "Identifier Type"],
         "column_necessary_fields": {
             "Description": ["description"],
-            "Identifier Type": ["material_identifier_def"],
+            "Identifier Type": ["full_description"],
         },
-        "ordering": ["description"],
+        "ordering": ["full_description"],
         "field_contains": "",
     },
     "Vessel": {

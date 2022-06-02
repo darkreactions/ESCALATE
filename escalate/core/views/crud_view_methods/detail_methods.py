@@ -53,7 +53,7 @@ methods = {
         "detail_fields": ["Description", "Identifier Type"],
         "detail_fields_need_fields": {
             "Description": ["description"],
-            "Identifier Type": ["material_identifier_def"],
+            "Identifier Type": ["full_description"],
         },
     },
     "Organization": {
