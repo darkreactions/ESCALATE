@@ -42,29 +42,33 @@ class NimbusWF1RobotPlugin(RobotPlugin):
         volume_parameters = experiment_instance.get_action_parameters(decomposable=True)
 
         PARAM_MAPPING= { 
-            "Temperature (C):": ('Stir 1', 'temperature'),
-            "Stir Rate (rpm):": ('Stir 1', 'speed'),
-            "Mixing time1 (s):": ('Stir 1', 'duration') ,
-            "Mixing time2 (s):": ('Stir 2', 'duration'),
+            "Temperature (C):": ('Heat-Stir 1', 'temperature'),
+            "Stir Rate (rpm):": ('Heat-Stir 1', 'speed'),
+            "Mixing time1 (s):": ('Heat-Stir 1', 'duration') ,
+            "Mixing time2 (s):": ('Heat-Stir 2', 'duration'),
             "Reaction time (s):": (' ', ' ') ,
             "Preheat Temperature (C):": ('Preheat Plate', 'temperature'),
         }
+        
+        action_units={}
+        for au in parameters:
+            action_units[au.action.template.description] = []
+            for param in au.parameter_au.all():
+                k = param.parameter_def.description
+                v = param.parameter_val_nominal.value
+                action_units[au.action.template.description].append((k, v))
+                       
 
-        #rp_keys = []
-        #rp_values = []
         rp = {}
         for label, (desc, param_def) in PARAM_MAPPING.items():
             #rp_keys.append(label)
-            for au in parameters:
-                if au.action.template.description == desc:
-                    for param in au.parameter_au.all():
-                        if param.parameter_def.description == param_def:
-                            #rp_keys.append(label)
-                            rp[label]=param.parameter_val_nominal.value
+            for action, parameters in action_units.items():
+                if action == desc:
+                    for (parameter, val) in parameters:
+                        if parameter == param_def:
+                            rp[label] = val
             if label not in rp.keys():
-                rp[label]= ' '
-                #else:
-                   # rp_values.append(' ')
+                rp[label]= ' '  
         
         rp_keys = []
         rp_values = []        
