@@ -183,7 +183,7 @@ class NimbusWF3RobotPlugin(RobotPlugin):
 
     @property
     def validation_errors(self):
-        return self._error_message
+        return self.errors
 
     def validate(self, data: ExperimentData): #experiment_instance: "vt.ExperimentInstance"):
         if data.template.description not in ["Workflow 3"]:
