@@ -7,6 +7,11 @@ import pandas as pd
 from core.utilities.utils import make_well_labels_list
 import tempfile
 
+import pint
+from pint import UnitRegistry
+
+units = UnitRegistry()
+Q_ = units.Quantity
 
 class NimbusWF1RobotPlugin(RobotPlugin):
     name = "NIMBUS Robot for WF1"
@@ -55,13 +60,15 @@ class NimbusWF1RobotPlugin(RobotPlugin):
             action_units[au.action.template.description] = []
             for param in au.parameter_au.all():
                 k = param.parameter_def.description
-                v = param.parameter_val_nominal.value
+                if k == 'duration': #convert units for duration to seconds, if necessary
+                    v = Q_(float(param.parameter_val_nominal.value), param.parameter_val_nominal.unit).to(units.s).magnitude
+                else: #presumably temp is celcius and speed is in rpm so no conversions are perfomed 
+                    v = param.parameter_val_nominal.value
                 action_units[au.action.template.description].append((k, v))
                        
 
         rp = {}
         for label, (desc, param_def) in PARAM_MAPPING.items():
-            #rp_keys.append(label)
             for action, parameters in action_units.items():
                 if action == desc:
                     for (parameter, val) in parameters:
@@ -75,13 +82,6 @@ class NimbusWF1RobotPlugin(RobotPlugin):
         for key, val in rp.items():
             rp_keys.append(key)
             rp_values.append(val)
-        
-        '''rp_keys = []
-        rp_values = []
-        for i, au in enumerate(parameters):
-            for param in au.parameter_au.all():
-                rp_keys.append(param.parameter_def.description)
-                rp_values.append(param.parameter_val_nominal.value)'''
 
         rxn_parameters = pd.DataFrame(
             {"Reaction Parameters": rp_keys, "Parameter Values": rp_values}
