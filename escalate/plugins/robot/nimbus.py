@@ -3,6 +3,7 @@ from uuid import UUID
 from django.db.models import QuerySet
 import core.models.view_tables as vt
 from core.models.core_tables import TypeDef
+from core.dataclass import ExperimentData
 import pandas as pd
 from core.utilities.utils import make_well_labels_list
 import tempfile
@@ -21,10 +22,18 @@ class NimbusWF1RobotPlugin(RobotPlugin):
 
     @property
     def validation_errors(self):
-        return self._error_message
+        return self.errors
 
-    def validate(self, experiment_instance: "vt.ExperimentInstance"):
-        # if experiment_instance.
+    def validate(self, data: ExperimentData): #experiment_instance: "vt.ExperimentInstance"):
+        if data.template.description not in ["Workflow 1"]:
+            self.errors.append(
+                f"Selected template is not Workflow 1. Found: {data.template.description}"
+            )
+        else:
+            self.errors=[]
+        
+        if self.errors:
+            return False
         return True
 
     def robot_file(self, experiment_instance: "vt.ExperimentInstance"):
@@ -176,8 +185,16 @@ class NimbusWF3RobotPlugin(RobotPlugin):
     def validation_errors(self):
         return self._error_message
 
-    def validate(self, experiment_instance: "vt.ExperimentInstance"):
-        # if experiment_instance.
+    def validate(self, data: ExperimentData): #experiment_instance: "vt.ExperimentInstance"):
+        if data.template.description not in ["Workflow 3"]:
+            self.errors.append(
+                f"Selected template is not Workflow 3. Found: {data.template.description}"
+            )
+        else:
+            self.errors=[]
+        
+        if self.errors:
+            return False
         return True
 
     def robot_file(self, experiment_instance: "vt.ExperimentInstance"):
@@ -199,12 +216,49 @@ class NimbusWF3RobotPlugin(RobotPlugin):
         parameters = experiment_instance.get_action_parameters(decomposable=False)
         volume_parameters = experiment_instance.get_action_parameters(decomposable=True)
 
+        PARAM_MAPPING= { 
+            "Temperature (C):": ('Heat-Stir 1', 'temperature'),
+            "Stir Rate (rpm):": ('Heat-Stir 1', 'speed'),
+            "Mixing time1 (s):": ('Heat-Stir 1', 'duration') ,
+            "Mixing time2 (s):": ('Heat-Stir 2', 'duration'),
+            "Reaction time (s):": (' ', ' ') ,
+            "Preheat Temperature (C):": ('Preheat Plate', 'temperature'),
+        }
+        
+        action_units={}
+        for au in parameters:
+            action_units[au.action.template.description] = []
+            for param in au.parameter_au.all():
+                k = param.parameter_def.description
+                if k == 'duration': #convert units for duration to seconds, if necessary
+                    v = Q_(float(param.parameter_val_nominal.value), param.parameter_val_nominal.unit).to(units.s).magnitude
+                else: #presumably temp is celcius and speed is in rpm so no conversions are perfomed 
+                    v = param.parameter_val_nominal.value
+                action_units[au.action.template.description].append((k, v))
+                       
+
+        rp = {}
+        for label, (desc, param_def) in PARAM_MAPPING.items():
+            for action, parameters in action_units.items():
+                if action == desc:
+                    for (parameter, val) in parameters:
+                        if parameter == param_def:
+                            rp[label] = val
+            if label not in rp.keys():
+                rp[label]= ' '  
+        
         rp_keys = []
+        rp_values = []        
+        for key, val in rp.items():
+            rp_keys.append(key)
+            rp_values.append(val)
+        
+        '''rp_keys = []
         rp_values = []
         for i, au in enumerate(parameters):
             for param in au.parameter_au.all():
                 rp_keys.append(param.parameter_def.description)
-                rp_values.append(param.parameter_val_nominal.value)
+                rp_values.append(param.parameter_val_nominal.value)'''
 
         rxn_parameters = pd.DataFrame(
             {"Reaction Parameters": rp_keys, "Parameter Values": rp_values}

@@ -5,6 +5,15 @@
 {% load get_range %}
 
 {% block content %}
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <div class="alert alert-danger" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </ul>
+    {% endif %}
 
 <form method="post" enctype="multipart/form-data">{% csrf_token %}
     {{ q1_material_formset.management_form }}

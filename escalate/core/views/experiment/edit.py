@@ -178,7 +178,7 @@ class ExperimentDetailEditView(TemplateView):
                     return False, str(e)
 
             else:
-                return False, rfc.validation_error
+                return False, rfc.validation_errors
 
 
 class ParameterEditView(TemplateView):

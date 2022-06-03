@@ -1,18 +1,20 @@
 from abc import ABC, abstractmethod
+from typing import List
 from uuid import UUID
 import core.models.view_tables as vt
+from django.forms import ValidationError
 
 
 class RobotPlugin(ABC):
     name = "Default Robot Plugin"
-
+    errors: List[str] = list()
     def __init__(self):
         pass
 
     @property
     @abstractmethod
     def validation_errors(self):
-        pass
+        return ValidationError(message=self.errors)
 
     @abstractmethod
     def validate(self, experiment_instance: "vt.ExperimentInstance"):

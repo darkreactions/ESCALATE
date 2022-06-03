@@ -567,10 +567,19 @@ class Command(BaseCommand):
             "bring_to_temperature": (("temperature", "degC"),),
             "stir": (("duration", "s"), ("speed", "rpm")),
             "heat": (("temperature", "degC"), ("duration", "s")),
+            "heat_stir": (("duration", "s"), ("speed", "rpm"), ("temperature", "degC")),
             "dwell": (("duration", "s"),),
         }
         # Action defs it is assumed that action defs are already inserted
         actions = [  # List of tuples (Description, Action def description, source_bommaterial, destination_bommaterial)
+            # Preheat plate
+            (
+                "Preheat Plate",
+                "bring_to_temperature",
+                (None, None),
+                ("vessel", "96 Well Plate well"),
+                "Preheat Plate",
+            ), 
             # Dispense Solvent to vials
             (
                 "Dispense Reagent 1 - Solvent",
@@ -605,11 +614,11 @@ class Command(BaseCommand):
             ),
             # Mix
             (
-                "Stir 1",
-                "stir",
+                "Heat-Stir 1",
+                "heat_stir",
                 (None, None),
                 ("vessel", "96 Well Plate well"),
-                "Stir 1",
+                "Heat-Stir 1",
             ),
             # Dispense Acid Vol 2
             (
@@ -621,11 +630,11 @@ class Command(BaseCommand):
             ),
             # Mix
             (
-                "Stir 2",
-                "stir",
+                "Heat-Stir 2",
+                "heat_stir",
                 (None, None),
                 ("vessel", "96 Well Plate well"),
-                "Stir 2",
+                "Heat-Stir 2",
             ),
             # Dispense antisolvent
             (
