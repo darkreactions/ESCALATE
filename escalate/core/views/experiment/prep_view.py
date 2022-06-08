@@ -19,6 +19,12 @@ class ExperimentReagentPrepView(TemplateView):
     template_name = "core/experiment_reagent_prep.html"
     # form_class = ExperimentTemplateForm
     # ReagentFormSet = formset_factory(ReagentForm, extra=0, formset=BaseReagentFormSet)
+    ReagentPropertyFormSet= formset_factory(
+        PropertyForm,
+        extra=0,
+        formset=BaseReagentFormSet,
+    )
+    
     ReagentFormSet = formset_factory(
         ReagentValueForm,
         extra=0,
@@ -33,66 +39,83 @@ class ExperimentReagentPrepView(TemplateView):
         return render(request, self.template_name, context)
 
     def get_reagent_forms(self, experiment, context):
-        formsets = []
+        reagent_material_formsets = []
+        reagent_property_formsets=[]
         reagent_names = []
         reagent_template_names = []
-        reagent_total_volume_forms = []
-        form_kwargs = {
-            "disabled_fields": ["material", "material_type", "nominal_value"],
+        #reagent_total_volume_forms = []
+        prop_form_kwargs = {"disabled_fields": ["uuid"]}
+        mat_form_kwargs = {
+            "disabled_fields": ["material", "material_type",] #"nominal_value"],
         }
+        context["material_form_helper"] = ReagentValueForm.get_helper(
+            readonly_fields=["material", "material_type",], #"nominal_value"]
+            )
+        context["material_form_helper"].form_tag = False
 
-        context["helper"] = ReagentValueForm.get_helper(
-            readonly_fields=["material", "material_type", "nominal_value"]
-        )
-        context["helper"].form_tag = False
-
-        context["volume_form_helper"] = PropertyForm.get_helper()
-        context["volume_form_helper"].form_tag = False
+        context["property_form_helper"] = PropertyForm.get_helper()
+        context["property_form_helper"].form_tag = False
 
         # for index, reagent_template in enumerate(reagent_templates):
         for index, reagent in enumerate(experiment.reagent_ei.all()):
+            #get reagent template and name
             reagent_template_names.append(reagent.template.description)
+            #get reagent materials for the reagent
             reagent_materials = reagent.reagent_material_r.filter(
                 property_rm__template__description="amount"
             )
-            #  template__reagent_template=)
-            property = reagent.property_r.get(
-                template__description__iexact="total volume"
+            #reagent_property_forms.append([])
+            #get all reagent-level properties
+            initial=[]
+            for i, prop in enumerate(reagent.property_r.all()):
+                initial.append(
+                {
+                    "instance": prop,
+                    "nominal_value_label": f"Desired {prop.template.description}",
+                    "value_label":f"Measured {prop.template.description}",
+                    #"disabled_fields":["nominal_value"],
+                    #"prefix":f"reagent_{index}_{i}",
+                })
+                
+            fset = self.ReagentPropertyFormSet(
+                prefix=f"reagent_{index}_{i}", initial=initial, form_kwargs=prop_form_kwargs
             )
-            reagent_total_volume_forms.append(
-                PropertyForm(
-                    instance=property,
-                    nominal_value_label="Calculated Volume",
-                    value_label="Measured Volume",
-                    disabled_fields=["nominal_value"],
-                    prefix=f"reagent_total_{index}",
-                )
-            )
+            reagent_property_formsets.append(fset)
+
+            #get data for all materials in the reagent and all of their properties
             initial = []
             for reagent_material in reagent_materials:
 
                 reagent_names.append(reagent_material.description)
-                rmvi = reagent_material.property_rm.all().get(
-                    template__description="amount"
-                )
+
+                nominal_vals=[]
+                actual_vals=[]
+                uuids = []
+
+                for i, rmvi in enumerate(reagent_material.property_rm.all()):
+                    nominal_vals.append({f"Desired {rmvi.template.description}": rmvi.nominal_value})
+                    actual_vals.append({f"Measured {rmvi.template.description}": rmvi.value})
+                    uuids.append(rmvi.uuid)
+                
                 initial.append(
-                    {
-                        "material_type": reagent_material.template.material_type.description,
-                        "material": reagent_material.material,
-                        "nominal_value": rmvi.nominal_value,
-                        "actual_value": rmvi.value,
-                        "uuid": rmvi.uuid,
-                    }
+                {
+                    "material_type": reagent_material.template.material_type.description,
+                    "material": reagent_material.material,
+                    "nominal_value": nominal_vals,
+                    "actual_value": actual_vals,
+                    "uuid":uuids,
+                }
                 )
+            
 
             fset = self.ReagentFormSet(
-                prefix=f"reagent_{index}", initial=initial, form_kwargs=form_kwargs
+                prefix=f"reagent_{index}", initial=initial, form_kwargs=mat_form_kwargs
             )
-            formsets.append(fset)
+            reagent_material_formsets.append(fset)
 
-        context["reagent_formsets"] = zip(formsets, reagent_total_volume_forms)
+        context["reagent_formsets"] = zip(reagent_material_formsets, reagent_property_formsets)
         context["reagent_template_names"] = reagent_template_names
-        context["colors"] = get_colors(len(formsets))
+        context["colors"] = get_colors(len(reagent_material_formsets))
 
         return context
 

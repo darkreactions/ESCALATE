@@ -22,6 +22,7 @@ from core.models.view_tables import ReagentTemplate
 from core.widgets import ValFormField
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column, Hidden, Field
+from crispy_forms.bootstrap import Tab, TabHolder
 
 # from django.forms import formset_factory
 dropdown_attrs = {
@@ -373,29 +374,51 @@ class ReagentForm(Form):
 class ReagentValueForm(Form):
     material_type = CharField(required=False)
     material = CharField(required=False)
-    nominal_value = ValFormField(required=False)
-    actual_value = ValFormField()
+    #nominal_value = ValFormField(required=False)
+    #actual_value = ValFormField()
     uuid = CharField(widget=HiddenInput())
+
+    def generate_valfields(self, property_index, data):
+        for key, val in data["nominal_value"][property_index].items():
+            description=key
+            value=val
+        self.fields[f"nominal_value_{property_index}"] = ValFormField(
+            required=False, 
+            label=description,
+            initial=value,
+            disabled=True)
+        for key, val in data["actual_value"][property_index].items():
+            description=key
+            value=val
+        self.fields[f"actual_value_{property_index}"] = ValFormField(
+            label=description,
+            initial=value,
+        )
 
     def __init__(self, *args, **kwargs):
         disabled_fields = kwargs.pop("disabled_fields", [])
         chemical_index = kwargs.pop("index")
         super().__init__(*args, **kwargs)
+        prop_count=len(kwargs["initial"]["nominal_value"])
+        for i in range(prop_count):
+            self.generate_valfields(i, kwargs["initial"])
         for field in disabled_fields:
             self.fields[field].disabled = True
+        #self.get_helper(prop_count)
 
-    @staticmethod
+
     def get_helper(readonly_fields=[]):
         # fields = ['uuid', 'material_type', 'material', 'nominal_value', 'actual_value']
         # css = {field:'form-group col-md-6 mb-0' for field in fields}
         def is_readonly(field):
-            return True if field in readonly_fields else False
+          return True if field in readonly_fields else False
 
         helper = FormHelper()
         helper.form_class = "form-horizontal"
         helper.label_class = "col-lg-2"
         helper.field_class = "col-lg-8"
-        helper.layout = Layout(
+    
+        '''helper.layout = Layout(
             Row(
                 Column(
                     Field(
@@ -415,9 +438,9 @@ class ReagentValueForm(Form):
             Row(
                 Column(Field("nominal_value", readonly=is_readonly("nominal_value"))),
                 Column(Field("actual_value")),
-            ),
-            Row("uuid"),
-        )
+            ),'''
+            #Row("uuid"),
+        #)
         return helper
 
     # class Meta:
@@ -468,20 +491,25 @@ class OutcomeForm(ModelForm):
 
 
 class PropertyForm(ModelForm):
+    
     def __init__(self, *args, **kwargs):
         nominal_value_label = "Nominal Value"
         value_label = "Value"
-        if "nominal_value_label" in kwargs:
-            nominal_value_label = kwargs.pop("nominal_value_label")
-        if "value_label" in kwargs:
-            value_label = kwargs.pop("value_label")
+        if "nominal_value_label" in kwargs["initial"]:
+            nominal_value_label = kwargs["initial"]["nominal_value_label"]#kwargs.pop("initial"["nominal_value_label"])
+            nominal_value = kwargs["initial"]["instance"].value
+        if "value_label" in kwargs["initial"]:
+            value_label = kwargs["initial"]["value_label"]#kwargs.pop("value_label")
 
         disabled_fields = kwargs.pop("disabled_fields", [])
+        index = kwargs.pop("index")
 
         super().__init__(*args, **kwargs)
 
         self.fields["nominal_value"].label = nominal_value_label
+        self.fields["nominal_value"].initial = nominal_value
         self.fields["value"].label = value_label
+        #self.fields["uuid"].hidden = True
         for field in disabled_fields:
             self.fields[field].disabled = True
 
