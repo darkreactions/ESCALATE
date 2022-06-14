@@ -30,6 +30,7 @@ from core.models.view_tables import (
 )
 from core.custom_types import Val
 from core.utilities.utils import make_well_labels_list
+from uuid import UUID
 
 # from dacite.core import from_dict
 from itertools import product
@@ -92,20 +93,30 @@ def custom_pairing(source_vessels, dest_vessels):
 class ExperimentData:
     experiment_name: str
     experiment_template: ExperimentTemplate
-    vessel_data: Dict[VesselTemplate, Vessel] = field(default_factory=dict)
-    action_parameters: Dict[ActionTemplate, ActionData] = field(default_factory=dict)
+    vessel_data: Dict[VesselTemplate, Vessel] = field(default_factory=dict, repr=False)
+    action_parameters: Dict[ActionTemplate, ActionData] = field(
+        default_factory=dict, repr=False
+    )
     reagent_properties: Dict[ReagentTemplate, ReagentPropertyData] = field(
-        default_factory=dict
+        default_factory=dict, repr=False
     )
     num_of_sampled_experiments: int = 0
     _experiment_instance: Optional[ExperimentInstance] = field(
         init=False, repr=False, default=None
     )
+    _experiment_instance_uuid: "Optional[UUID|str]" = field(init=False, default=None)
 
     @property
     def experiment_instance(self):
-        if not isinstance(self._experiment_instance, ExperimentInstance):
+        if (
+            not isinstance(self._experiment_instance, ExperimentInstance)
+            and self._experiment_instance_uuid is None
+        ):
             self._experiment_instance = self._create_experiment()
+        elif self._experiment_instance_uuid and self._experiment_instance is None:
+            self._experiment_instance = ExperimentInstance.objects.get(
+                uuid=self._experiment_instance_uuid
+            )
         return self._experiment_instance
 
     def generate_manual_spec_file(self):
@@ -255,10 +266,14 @@ class ExperimentData:
                 else:
                     # Add as many rows there are as children
                     child_list = []
-                    well_order = make_well_labels_list(len(dest_vessel.children.all()), robot='True')
-                    
+                    well_order = make_well_labels_list(
+                        len(dest_vessel.children.all()), robot="True"
+                    )
+
                     for well in well_order:
-                        child= dest_vessel.children.all().filter(description=well).first()
+                        child = (
+                            dest_vessel.children.all().filter(description=well).first()
+                        )
                         child_list.append(child)
 
                     for i, child in enumerate(child_list):
@@ -387,6 +402,7 @@ class ExperimentData:
             if self.experiment_name
             else f"Copy of {self.experiment_template.description}",
         )
+        self._experiment_instance_uuid = exp_instance.uuid
 
         bom = BillOfMaterials.objects.create(experiment_instance=exp_instance)
 

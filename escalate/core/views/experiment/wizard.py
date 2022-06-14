@@ -261,6 +261,11 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
         return form
 
     def process_step(self, form: Form):
+        if self.steps.current == AUTOMATED_SAMPLER_SPEC:
+            if "experiment_data" in form.cleaned_data:
+                self.request.session["experiment_data"] = form.cleaned_data[
+                    "experiment_data"
+                ]
         if self.steps.current == MANUAL_SPEC:
             experiment_data: ExperimentData = self.request.session["experiment_data"]
             if form.cleaned_data["file"]:

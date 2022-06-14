@@ -454,7 +454,10 @@ class SamplerParametersForm(Form):
             if sampler_plugin.validate(data=exp_data):
                 try:
                     if self.request:
-                        self.request.session[
+                        # if "experiment_data" not in self.request.session:
+                        # self.request.session[
+                        #    "experiment_data"
+                        cleaned_data[
                             "experiment_data"
                         ] = sampler_plugin.sample_experiments(data=exp_data)
                 except Exception as e:
@@ -478,6 +481,7 @@ class SamplerParametersForm(Form):
                 )
                 log = logging.getLogger("escalate")
                 log.error("Exception in process automated formset")
+        return cleaned_data
 
 
 class AutomatedSpecificationForm(Form):
