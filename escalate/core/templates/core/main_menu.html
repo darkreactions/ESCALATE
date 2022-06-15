@@ -6,15 +6,17 @@
 
 {% block content %}
 
-{% if messages %}
-<ul class="messages">
-  {% for message in messages %}
-  <div class="alert alert-danger" role="alert"></div>
-  <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
-    {% endfor %}
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <div class="alert alert-danger" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </ul>
     {% endif %}
 
-    <p>Please <a href="{% url 'select_lab' %}"> select a lab</a> before performing any experiment creation task</p>
+
     
     {% autoescape off %}
     {{ plot_div }}

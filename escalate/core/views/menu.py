@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.views import View
 from django.urls import reverse
+from django.contrib import messages
 
 
 from django.contrib.auth.decorators import login_required
@@ -72,4 +73,14 @@ class MainMenuView(LoginRequired, View):
         )
 
         context = {"plot_div": plot_div}  # , "user_person": vw_person}
+
+        if "current_org_id" in self.request.session:
+            org_id = self.request.session["current_org_id"]
+            #lab = Actor.objects.get(organization=org_id, person__isnull=True)
+            #context["lab"] = lab
+        else:
+            org_id = None
+            messages.error(request, "Please select a lab to continue")
+        
+
         return render(request, self.template_name, context=context)
