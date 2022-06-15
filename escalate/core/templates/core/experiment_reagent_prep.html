@@ -6,18 +6,16 @@
 {% block content %}
 
 <form method="post" action="">{% csrf_token %}
-    {% for reagent_formset, reagent_property_formset in reagent_formsets %}
-    {{ reagent_formset.management_form }}
+    {% for formset in rmvi_formsets %}
+    {{ formset.management_form }}
     <div class="card">
         <div class="card text-white" style="background-color: {{ colors|index:forloop.counter0 }}">
             <div class="card-body">
                 <h5>{{ reagent_template_names|index:forloop.counter0 }}</h5>
-                {% for reagent_form in reagent_formset %}
-                {% crispy reagent_form material_form_helper %}
+                {% for form in formset %}
+                {% crispy form %}
                 <hr>
                 {% endfor %}
-
-                {% crispy reagent_property_formset property_form_helper %}
           
             </div>
         </div>
