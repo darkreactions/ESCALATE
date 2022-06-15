@@ -67,23 +67,13 @@
 
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle " href="#" id="dropdown" data-toggle="dropdown">View/Edit Models</a>
+                        <a class="nav-link dropdown-toggle " href="#" id="dropdown" data-toggle="dropdown">Inventory</a>
                         <div class="dropdown-menu">
                             <ul class="list-unstyled">
                                 <li><a class="dropdown-item" href="{% url 'material_list' %}">Material</a></li>
                                 <li><a class="dropdown-item" href="{% url 'inventory_material_list' %}">Inventory
                                         Material</a></li>
-                                <li><a class="dropdown-item" href="{% url 'material_type_list' %}">Material Type</a>
-                                </li>
-                                <li><a class="dropdown-item" href="{% url 'material_identifier_list' %}">Material Identifier</a>
-                                </li>
-                                <li><a class="dropdown-item" href="{% url 'property_template_list' %}">Property</a>
-                                </li>
                                 <li><a class="dropdown-item" href="{% url 'vessel_list' %}">Vessel</a></li>
-                                <li><a class="dropdown-item" href="{% url 'action_def_list' %}">Action Def</a>
-                                </li>
-                                <li><a class="dropdown-item" href="{% url 'parameter_def_list' %}">Parameter Def</a>
-                                </li>
                             </ul>
                         </div>
                     </li>
@@ -105,8 +95,6 @@
                             data-toggle="dropdown">Experiment</a>
                         <div class="dropdown-menu">
                             <ul class="list-unstyled">
-                                <li><a class="dropdown-item" href="{% url 'experiment_template_list' %}">Experiment Templates</a>
-                                </li>
                                 <li>
                                     <a class="dropdown-item {% if url_name == 'create_experiment' %}active{% endif %}"
                                         href="{% url 'experiment_instance_add' %}">Create Experiment</a>
@@ -121,6 +109,27 @@
                                 </li>
                                 <li>
                                     <a class="dropdown-item active" href="http://escalation.sd2e.org/">Escalation</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle " href="#" id="dropdown" data-toggle="dropdown">Experiment Template</a>
+                        <div class="dropdown-menu">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <a class="dropdown-item {% if url_name == 'exp_template' %}active{% endif %}"
+                                        href="{% url 'experiment_template_add' %}">Create New Experiment Template</a>
+                                </li>
+                                <li><a class="dropdown-item" href="{% url 'material_type_list' %}">Material Type</a>
+                                </li>
+                                <li><a class="dropdown-item" href="{% url 'material_identifier_list' %}">Material Identifier</a>
+                                </li>
+                                <li><a class="dropdown-item" href="{% url 'property_template_list' %}">Property</a>
+                                </li>
+                                <li><a class="dropdown-item" href="{% url 'action_def_list' %}">Action Def</a>
+                                </li>
+                                <li><a class="dropdown-item" href="{% url 'parameter_def_list' %}">Parameter Def</a>
                                 </li>
                             </ul>
                         </div>
@@ -147,6 +156,7 @@
                     {{ request.user.person.first_name }} {{ request.user.person.last_name }}
                 </a>
                 <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                    <a class="dropdown-item" href="{% url 'select_lab' %}">Select a lab</a>
                     <a class="dropdown-item" href="{% url 'user_profile' %}">Profile</a>
                     <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
                 </div>
