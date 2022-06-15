@@ -1,7 +1,7 @@
-description	type	value	unit	required	unit_type
-volume	num	0	mL	t	volume
-duration	num	0	mins	t	time
-speed	num	0	rpm	t	rate
-temperature	num	0	degC	t	temperature
-mass	num	0	mg	t	mass
-seal    text    Y       f
+description,type,value,unit,required,unit_type
+volume,num,0,mL,t,volume
+duration,num,0,mins,t,time
+speed,num,0,rpm,t,rate
+temperature,num,0,degC,t,temperature
+mass,num,0,mg,t,mass
+seal,text,Y,,f,
