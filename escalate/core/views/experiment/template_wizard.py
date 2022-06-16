@@ -143,19 +143,6 @@ class CreateTemplateWizard(SessionWizardView):
 
                 kwargs = {"form_kwargs": {"colors": colors}} #color data for UI forms
 
-                ''' kwargs = {"form_kwargs": {"materials": {}}}
-                num_reagents = self.get_cleaned_data_for_step(INITIALIZE)["num_reagents"]
-                data = self.get_cleaned_data_for_step(ADD_REAGENTS)
-                for i in range(int(num_reagents)):
-                    material_initial = {}
-                    mat_initial = []
-                    name = data[i]["reagent_template_name"]
-                    num_materials = data[i]["num_materials"]
-                    for i in range(num_materials):
-                        mat_initial.append({})
-                    material_initial.update({name: mat_initial})
-                    kwargs["form_kwargs"]["materials"].update(material_initial)'''
-
                 return kwargs
 
         return {}
@@ -171,20 +158,17 @@ class CreateTemplateWizard(SessionWizardView):
         lab = Actor.objects.get(organization=org_id, person__isnull=True)
         data["lab"] = lab
 
-        exp_template_uuid = self.create_template(data) #create an experiment template with name provided
 
         reagents = self.get_cleaned_data_for_step(ADD_REAGENTS) #obtain reagent form data
         
         #for each reagent:
+        reagent_templates = []
+        vessel_templates = []
         for r in reagents: 
             #generate list of reagent-level properties, combining drop-down selection and those entered manually as text
             properties = r['properties']
-            '''if len(r['properties_add']) > 0:
-                properties_add = r['properties_add'].split(',')
-                for p in properties_add:
-                    properties.append(p)'''
             reagent = self.create_reagent_template(r["reagent_template_name"], properties) #create a reagent template
-            num_materials = r['num_materials']
+            reagent_templates.append(reagent)
             materials = []
             properties = []
             for i in self.get_cleaned_data_for_step(ADD_MATERIALS): #get list of materials associated with the reagent
@@ -195,44 +179,41 @@ class CreateTemplateWizard(SessionWizardView):
                         if 'properties' in key:
                             properties.append(val)
             self.add_materials(reagent.uuid, materials, properties[0]) #associate materials with reagent     
-            '''for key, val in i.items():
-                if 'select_mt' in key: #material types from drop-down menu
-                    if len(val) > 0: 
-                        mt = MaterialType.objects.get(uuid=val)
-                        materials.append(mt.description)
-                if 'add_type' in key: #material types entered manually 
-                    if len(val) > 0:
-                        materials.append(val)
-                if key == 'properties':
-                    for p in val:
-                        properties.append(p)
-                if key == 'properties_add':
-                    if len(val)>0:
-                        properties_add = val.split(',')
-                        for p in properties_add:
-                            properties.append(val)'''
-            '''if len(materials) != num_materials:
-                form = super().get_form(step=ADD_REAGENTS)
-                form.add_error(  # type: ignore
-                        "num_materials",
-                        error=ValidationError(
-                            "Number of materials does not match the number specified for this reagent"
-                        ),
-                    )
-            self.add_materials(reagent.uuid, materials, properties) #associate materials with reagent'''
-            self.add_reagent(exp_template_uuid, reagent.uuid) #associate reagent template with experiment template
-            self.create_vessel_template(exp_template_uuid, r["reagent_template_name"], outcome=False) #create a vessel template for the reagent
-
+                      
+            vessel = self.create_vessel_template(r["reagent_template_name"], outcome=False) #create a vessel template for the reagent
+            vessel_templates.append(vessel)
+        
+        #outcome vessel
+        ov = self.create_vessel_template(description="Outcome vessel", outcome=True) 
+        vessel_templates.append(ov)
+        
         outcomes = self.get_cleaned_data_for_step(ADD_OUTCOMES) #obtain outcome form data
         
         #for each outcome:
+        outcome_templates = []
         for o in outcomes:
             outcome_description = o["define_outcomes"]
             outcome_type = o["outcome_type"]
-            self.add_outcomes(exp_template_uuid, outcome_description, outcome_type) #create outcome template and add to exp template
-        
+            outcome = self.add_outcomes(outcome_description, outcome_type) #create outcome template and add to exp template
+            outcome_templates.append(outcome)
         #create outcome vessel template
-        self.create_vessel_template(exp_template_uuid, description="Outcome vessel", outcome=True) 
+        
+        
+        exp_template_uuid = self.create_template(data) #create an experiment template with name provided
+        exp_template = ExperimentTemplate.objects.get(uuid=exp_template_uuid)
+
+        #associate reagents, vessels, and outcomes with the template
+        for rt in reagent_templates:
+            exp_template.reagent_templates.add(
+                rt)
+        for vt in vessel_templates:
+            exp_template.vessel_templates.add(
+                vt)
+        for ot in outcome_templates:
+            exp_template.outcome_templates.add(
+                ot)
+            ot.experiment = exp_template
+            ot.save()
 
         #unique action template creation link for each exp template uuid
         workflow_link = reverse("action_template", args=[str(exp_template_uuid)])
@@ -312,81 +293,19 @@ class CreateTemplateWizard(SessionWizardView):
 
         rt = ReagentTemplate.objects.get(uuid=reagent_template.uuid)
 
-        '''default_val = {"value": 0, "unit": "mL", "type": "num"}
-        #dead_vol_val = {"value": 4000, "unit": "uL", "type": "num"}
-
-        default_volume_data = {
-            "description": "Zero ml",
-            "nominal_value": volume_val,
-            "actual_value": volume_val,
-        }
-        default_data = {
-            "description": "Zero",
-            "nominal_value": default_val,
-            "actual_value": default_val,
-        }
-
-        try:
-            default_val, created = DefaultValues.objects.get_or_create(
-                **default_data
-            )
-        except MultipleObjectsReturned:
-            default_val = DefaultValues.objects.filter(**default_data).first()
-
-        default_dead_volume_data = {
-            "description": "WF1 dead volume",
-            "nominal_value": dead_vol_val,
-            "actual_value": dead_vol_val,
-        }
-        try:
-            default_dead_volume, created = DefaultValues.objects.get_or_create(
-                **default_dead_volume_data
-            )
-        except MultipleObjectsReturned:
-            default_dead_volume = DefaultValues.objects.filter(
-                **default_dead_volume
-            ).first()'''
 
         # Create property templates for each reagent
         for p in properties:
             
-            '''prop_template, created = PropertyTemplate.objects.get_or_create(
-                **{
-                    "description": prop.description,
-                    "property_def_class": "extrinsic",
-                    "default_value": default_data,
-                }
-            )'''
 
             prop = PropertyTemplate.objects.filter(description=p).first()
             prop_template = self.create_property_template(prop) 
-            #prop = PropertyTemplate.objects.filter(description=p).first()
-            #if prop is not None:
-           # prop_template = self.create_property_template(p)
             rt.properties.add(prop_template)
         
-        '''total_volume_prop, created = PropertyTemplate.objects.get_or_create(
-            **{
-                "description": "total volume",
-                "property_def_class": "extrinsic",
-                "short_description": "volume",
-                "default_value": default_volume,
-            }
-        )
-        dead_volume_prop, created = PropertyTemplate.objects.get_or_create(
-            **{
-                "description": "dead volume",
-                "property_def_class": "extrinsic",
-                "short_description": "dead volume",
-                "default_value": default_dead_volume,
-            }
-        )
-        rt.properties.add(total_volume_prop)
-        rt.properties.add(dead_volume_prop)'''
         return rt
 
-    def create_vessel_template(self, exp_template_uuid, description, outcome=False):
-        exp_template = ExperimentTemplate.objects.get(uuid=exp_template_uuid)
+    def create_vessel_template(self, description, outcome=False):
+        #exp_template = ExperimentTemplate.objects.get(uuid=exp_template_uuid)
         
         default_vessel, created = Vessel.objects.get_or_create(
                                 description="Generic vessel"
@@ -400,40 +319,11 @@ class CreateTemplateWizard(SessionWizardView):
             default_vessel=default_vessel,
         )
         
-        exp_template.vessel_templates.add(
-            vessel_template)
-            
-    
-    '''def create_outcome_vessel_template(self, exp_template_uuid, decompose):
-        exp_template = ExperimentTemplate.objects.get(uuid=exp_template_uuid)
+        #exp_template.vessel_templates.add(
+           # vessel_template)
         
-        default_vessel, created = Vessel.objects.get_or_create(
-                                description="Outcome vessel"
-                            )
-        if decompose == True:
-            (vessel_template,
-                created,
-            ) = VesselTemplate.objects.get_or_create(
-                description= "Outcome vessel",
-                outcome_vessel=True,
-                decomposable=True,
-                default_vessel=default_vessel,
-            )
-        else:
-            (vessel_template,
-                created,
-            ) = VesselTemplate.objects.get_or_create(
-                description= "Outcome vessel",
-                outcome_vessel=True,
-                decomposable=False,
-                default_vessel=default_vessel,
-            )
-            
-
-        if created:
-            exp_template.vessel_templates.add(
-                vessel_template
-            )'''
+        return vessel_template
+        
 
     def add_materials(self, reagent, material_types, properties):
         '''[summary]
@@ -448,28 +338,6 @@ class CreateTemplateWizard(SessionWizardView):
         '''
         reagent_template = ReagentTemplate.objects.get(uuid=reagent)
 
-        '''amount_val = {"value": 0, "unit": "g", "type": "num"}
-
-        conc_val = {"value": 0, "unit": "M", "type": "num"}
-
-        default_amount, created = DefaultValues.objects.get_or_create(
-            **{
-                "description": "Zero g",
-                "nominal_value": amount_val,
-                "actual_value": amount_val,
-            }
-        )
-
-        default_conc, created = DefaultValues.objects.get_or_create(
-            **{
-                "description": "Zero M",
-                "nominal_value": conc_val,
-                "actual_value": conc_val,
-            }
-        )
-
-        # Concentration and amount data to be stored for each reagent material
-        reagent_values = {"concentration": default_conc, "amount": default_amount}'''
 
         for num, r in enumerate(material_types):
             mt = MaterialType.objects.get(uuid=r)
@@ -488,30 +356,10 @@ class CreateTemplateWizard(SessionWizardView):
             for p in properties:
                 prop = PropertyTemplate.objects.filter(description=p).first()
                 prop_template = self.create_property_template(prop)
-                '''(rmv_template, created,) = PropertyTemplate.objects.get_or_create(
-                    **{
-                        "description": rv,
-                        # "reagent_material_template": rmt,
-                        "default_value": default,
-                    }
-                )'''
                 rmt.properties.add(prop_template) #rmv_template)
 
-    def add_reagent(self, exp_template_uuid, reagent):
-        '''[summary]
-        Args:
-            exp_template_uuid([str]): uuid of experiment template
-            reagent([str]): uuid of reagent template
 
-        Returns:
-            N/A
-            associates reagent template with experiment template
-        '''
-        exp_template = ExperimentTemplate.objects.get(uuid=exp_template_uuid)
-        rt = ReagentTemplate.objects.get(uuid=reagent)
-        exp_template.reagent_templates.add(rt)
-
-    def add_outcomes(self, exp_template_uuid, outcome_description, outcome_type):
+    def add_outcomes(self,  outcome_description, outcome_type):
         '''[summary]
         Args:
             exp_template_uuid([str]): uuid of experiment template
@@ -522,7 +370,7 @@ class CreateTemplateWizard(SessionWizardView):
             N/A
             associates outcome template with experiment template
         '''
-        exp_template = ExperimentTemplate.objects.get(uuid=exp_template_uuid)
+        #exp_template = ExperimentTemplate.objects.get(uuid=exp_template_uuid)
         outcome_val = {"value": 0.0, "unit": " ", "type": outcome_type}
         default_score, created = DefaultValues.objects.get_or_create(
             **{
@@ -534,9 +382,9 @@ class CreateTemplateWizard(SessionWizardView):
 
         ot, created = OutcomeTemplate.objects.get_or_create(
             description=outcome_description,
-            experiment=exp_template,
+            #experiment=exp_template,
             # instance_labels=well_list,
             default_value=default_score,
         )
         ot.save()
-        exp_template.outcome_templates.add(ot)
+        return ot
