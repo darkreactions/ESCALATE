@@ -151,7 +151,7 @@ class GenericModelListBase:
                 final_field_class_name = final_field_model._meta.get_field(
                     final_field
                 ).__class__.__name__
-                if final_field_class_name == "ManyToManyField":
+                if final_field_class_name in ["ManyToManyField", "ManyToOneRel"]:
                     filter_kwargs.pop(related_field_query)
                     filter_kwargs[
                         f"{related_field}__internal_slug__icontains"

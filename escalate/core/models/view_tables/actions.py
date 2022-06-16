@@ -187,5 +187,9 @@ class VesselTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         related_name="vessel_template_v",
     )
 
+    internal_slug = SlugField(
+        populate_from=["description"], overwrite=True, max_length=255
+    )
+
     def __str__(self):
         return f"{self.description}"

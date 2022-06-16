@@ -163,7 +163,7 @@ class PersonTableForm(PersonFormData, forms.ModelForm):
         model = Person
 
 
-class MaterialForm(forms.ModelForm):
+class MaterialForm(forms.Form):
     def __init__(self, *args, **kwargs):
         # pk of model that is passed in to filter for tags belonging to the model
         material_instance = kwargs.get("instance", None)
@@ -179,18 +179,12 @@ class MaterialForm(forms.ModelForm):
             else MaterialType.objects.none()
         )
 
-        current_properties = (
-            Property.objects.filter(material=material_instance)
-            if material_instance
-            else Property.objects.none()
-        )
-
-        '''current_material_properties = (
+        current_material_properties = (
             material_instance.property_m.all()
             if material_instance
             else Property.objects.none()
 
-        )'''
+        )
 
         super(MaterialForm, self).__init__(*args, **kwargs)
 
@@ -204,13 +198,14 @@ class MaterialForm(forms.ModelForm):
 
         self.fields["identifier"].widget.attrs.update(dropdown_attrs)
 
-        '''self.fields["property_m"] = forms.ModelMultipleChoiceField(
+        self.fields["property_m"] = forms.ModelMultipleChoiceField(
             initial=current_material_properties,
             required=False,
-            queryset=Property.objects.all(),
+            choices = [(p.uuid, p.description) for p in Property.object.all()]
+            #queryset=Property.objects.all(),
         )
 
-        self.fields["property_m"].widget.attrs.update(dropdown_attrs)'''
+        self.fields["property_m"].widget.attrs.update(dropdown_attrs)
 
         self.fields["material_type"] = forms.ModelMultipleChoiceField(
             initial=current_material_types,
@@ -219,21 +214,12 @@ class MaterialForm(forms.ModelForm):
         )
         self.fields["material_type"].widget.attrs.update(dropdown_attrs)
 
-        self.fields["properties"] = forms.ModelMultipleChoiceField(
-            initial=current_properties,
-            required=False,
-            queryset=Property.objects.all(),
-        )
-
-        self.fields["properties"].widget.attrs.update(dropdown_attrs)
-        
-        #.queryset = Property.objects.filter(material=material_instance)
-
-    class Meta:
+    '''class Meta:
         model = Material
         fields = [
             "consumable",
             "identifier",
+            "property_m",
             "material_type",
             "status",
         ]
@@ -244,7 +230,7 @@ class MaterialForm(forms.ModelForm):
         widgets = {
             "consumable": forms.CheckboxInput(),
             "status": forms.Select(attrs=dropdown_attrs),
-        }
+        }'''
 
 
 class InventoryForm(forms.ModelForm):
@@ -859,25 +845,13 @@ class MaterialIdentifierForm(forms.ModelForm):
 
         super(MaterialIdentifierForm, self).__init__(*args, **kwargs)
 
-        self.fields["material_identifier_def"] = forms.ChoiceField(
-            required=False,
-            choices=[(mi.uuid, mi.internal_slug) for mi in MaterialIdentifierDef.objects.all()],
-            #queryset=MaterialIdentifier.objects.all(),
-        )
-        
-        #self.fields["material_identifier_def"]= model_to_dict(MaterialIdentifierDef.objects.all())
-        
-        #self.fields["material_identifier_def"].queryset = MaterialIdentifierDef.objects.all()
-        
-        #self.fields["material_identifier_def"].choices = [(mi.uuid, mi.description) for mi in MaterialIdentifierDef.objects.all()]
-        
-        #self.fields["material_identifier_def"]= forms.MultipleChoiceField(
+        self.fields["material_identifier_def"]= forms.MultipleChoiceField(
             #initial=current_material_identifiers,
-          #  required=False,
-           # choices=[(mi.uuid, mi.description) for mi in MaterialIdentifierDef.objects.all()],
-           #     ),
+            required=False,
+            choices=[(mi.uuid, mi.description) for mi in MaterialIdentifierDef.objects.all()],
+                ),
         
-        self.fields["material_identifier_def"].widget.attrs.update(dropdown_attrs)
+        #self.fields["material_identifier_def"].widget.attrs.update(dropdown_attrs)
 
     class Meta:
         model = MaterialIdentifier
@@ -887,13 +861,11 @@ class MaterialIdentifierForm(forms.ModelForm):
         ]
         field_classes = {
             "description": forms.CharField,
-            #"material_identifier_def": forms.MultipleChoiceField,
         }
-        labels = {"description": "Description",
-                    "material_identifier_def": "Identifier Type"}
-        #widgets = {
-            #"material_identifier_def": forms.Select(attrs=dropdown_attrs),
-        #}
+        labels = {"description": "Description"}
+        widgets = {
+            "material_identifier_def": forms.Select(attrs=dropdown_attrs),
+        }
 
 class UploadFileForm(forms.Form):
     file = forms.FileField(label="Upload file", required=False)
