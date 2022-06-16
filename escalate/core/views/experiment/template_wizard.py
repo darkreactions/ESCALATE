@@ -179,10 +179,10 @@ class CreateTemplateWizard(SessionWizardView):
         for r in reagents: 
             #generate list of reagent-level properties, combining drop-down selection and those entered manually as text
             properties = r['properties']
-            if len(r['properties_add']) > 0:
+            '''if len(r['properties_add']) > 0:
                 properties_add = r['properties_add'].split(',')
                 for p in properties_add:
-                    properties.append(p)
+                    properties.append(p)'''
             reagent = self.create_reagent_template(r["reagent_template_name"], properties) #create a reagent template
             num_materials = r['num_materials']
             materials = []
@@ -190,22 +190,28 @@ class CreateTemplateWizard(SessionWizardView):
             for i in self.get_cleaned_data_for_step(ADD_MATERIALS): #get list of materials associated with the reagent
                 if i['name'] == r["reagent_template_name"]:
                     for key, val in i.items():
-                        if 'select_mt' in key: #material types from drop-down menu
-                            if len(val) > 0: 
-                                mt = MaterialType.objects.get(uuid=val)
-                                materials.append(mt.description)
-                        if 'add_type' in key: #material types entered manually 
-                            if len(val) > 0:
-                                materials.append(val)
-                        if key == 'properties':
-                            for p in val:
-                                properties.append(p)
-                        if key == 'properties_add':
-                            if len(val)>0:
-                                properties_add = val.split(',')
-                                for p in properties_add:
-                                    properties.append(val)
-            if len(materials) != num_materials:
+                        if 'select_mt' in key:
+                            materials.append(val)
+                        if 'properties' in key:
+                            properties.append(val)
+            self.add_materials(reagent.uuid, materials, properties[0]) #associate materials with reagent     
+            '''for key, val in i.items():
+                if 'select_mt' in key: #material types from drop-down menu
+                    if len(val) > 0: 
+                        mt = MaterialType.objects.get(uuid=val)
+                        materials.append(mt.description)
+                if 'add_type' in key: #material types entered manually 
+                    if len(val) > 0:
+                        materials.append(val)
+                if key == 'properties':
+                    for p in val:
+                        properties.append(p)
+                if key == 'properties_add':
+                    if len(val)>0:
+                        properties_add = val.split(',')
+                        for p in properties_add:
+                            properties.append(val)'''
+            '''if len(materials) != num_materials:
                 form = super().get_form(step=ADD_REAGENTS)
                 form.add_error(  # type: ignore
                         "num_materials",
@@ -213,7 +219,7 @@ class CreateTemplateWizard(SessionWizardView):
                             "Number of materials does not match the number specified for this reagent"
                         ),
                     )
-            self.add_materials(reagent.uuid, materials, properties) #associate materials with reagent
+            self.add_materials(reagent.uuid, materials, properties) #associate materials with reagent'''
             self.add_reagent(exp_template_uuid, reagent.uuid) #associate reagent template with experiment template
             self.create_vessel_template(exp_template_uuid, r["reagent_template_name"], outcome=False) #create a vessel template for the reagent
 
@@ -258,7 +264,7 @@ class CreateTemplateWizard(SessionWizardView):
 
         return exp_template.uuid
 
-    def create_property_template(self, prop_description):
+    def create_property_template(self, property):
         ''' helper function to generate a property template 
         that can be associated with a reagent, material, etc
         '''
@@ -282,7 +288,7 @@ class CreateTemplateWizard(SessionWizardView):
         # Create property template
         prop_template, created = PropertyTemplate.objects.get_or_create(
             **{
-                "description": prop_description,
+                "description": property.description,
                 "property_def_class": "extrinsic",
                 "default_value": default_val,
             }
@@ -351,9 +357,12 @@ class CreateTemplateWizard(SessionWizardView):
                     "default_value": default_data,
                 }
             )'''
+
+            prop = PropertyTemplate.objects.filter(description=p).first()
+            prop_template = self.create_property_template(prop) 
             #prop = PropertyTemplate.objects.filter(description=p).first()
             #if prop is not None:
-            prop_template = self.create_property_template(p)
+           # prop_template = self.create_property_template(p)
             rt.properties.add(prop_template)
         
         '''total_volume_prop, created = PropertyTemplate.objects.get_or_create(
@@ -463,7 +472,8 @@ class CreateTemplateWizard(SessionWizardView):
         reagent_values = {"concentration": default_conc, "amount": default_amount}'''
 
         for num, r in enumerate(material_types):
-            mt, created = MaterialType.objects.get_or_create(description=r)
+            mt = MaterialType.objects.get(uuid=r)
+            #mt, created = MaterialType.objects.get_or_create(description=r)
             # reagent_template.material_type.add(mt)
 
             rmt = ReagentMaterialTemplate.objects.create(

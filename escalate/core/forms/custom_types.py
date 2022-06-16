@@ -24,6 +24,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column, Hidden, Field
 from crispy_forms.bootstrap import Tab, TabHolder
 
+
 # from django.forms import formset_factory
 dropdown_attrs = {
     "class": "selectpicker",
@@ -371,7 +372,7 @@ class ReagentForm(Form):
         return helper
 
 
-class ReagentValueForm(Form):
+'''class ReagentValueForm(Form):
     material_type = CharField(required=False)
     material = CharField(required=False)
     #nominal_value = ValFormField(required=False)
@@ -395,6 +396,9 @@ class ReagentValueForm(Form):
             initial=value,
         )
 
+        self.fields[f"uuid_{property_index}"]= CharField(widget=HiddenInput(),
+            initial=data["uuid"][property_index])
+
     def __init__(self, *args, **kwargs):
         disabled_fields = kwargs.pop("disabled_fields", [])
         chemical_index = kwargs.pop("index")
@@ -404,8 +408,23 @@ class ReagentValueForm(Form):
             self.generate_valfields(i, kwargs["initial"])
         for field in disabled_fields:
             self.fields[field].disabled = True
-        #self.get_helper(prop_count)
 
+        
+        try:
+            disabled_fields = kwargs.pop("disabled_fields", [])
+            chemical_index = kwargs.pop("index")
+        except KeyError:
+            pass
+        super().__init__(*args, **kwargs)
+        try:
+            prop_count=len(kwargs["initial"]["nominal_value"])
+            for i in range(prop_count):
+                self.generate_valfields(i, kwargs["initial"])
+            for field in disabled_fields:
+                self.fields[field].disabled = True
+            #self.get_helper(prop_count)
+        except KeyError:
+            pass
 
     def get_helper(readonly_fields=[]):
         # fields = ['uuid', 'material_type', 'material', 'nominal_value', 'actual_value']
@@ -418,7 +437,7 @@ class ReagentValueForm(Form):
         helper.label_class = "col-lg-2"
         helper.field_class = "col-lg-8"
     
-        '''helper.layout = Layout(
+        helper.layout = Layout(
             Row(
                 Column(
                     Field(
@@ -438,10 +457,10 @@ class ReagentValueForm(Form):
             Row(
                 Column(Field("nominal_value", readonly=is_readonly("nominal_value"))),
                 Column(Field("actual_value")),
-            ),'''
+            ),
             #Row("uuid"),
         #)
-        return helper
+        return helper'''
 
     # class Meta:
     #    model = vt.ReagentMaterial
@@ -489,29 +508,185 @@ class OutcomeForm(ModelForm):
         model = vt.Outcome
         fields = ["actual_value"]
 
+class ReagentRMVIForm(Form):
+    widget = Select(
+        attrs={
+            "class": "selectpicker",
+            "data-style": "btn-outline",
+            "data-live-search": "true",
+        }
+    )
 
-class PropertyForm(ModelForm):
+    def generate_reagent_property_fields(self):
+        for i, prop in enumerate(self.reagent_template.properties.all()):
+            prop: vt.Property
+            self.fields[f"reagent_prop_uuid_{i}"] = CharField(
+                widget=HiddenInput(), initial=prop.uuid
+            )
+            self.fields[f"nominal_reagent_prop_{i}"] = ValFormField(
+                required=False, label=f"Desired {prop.description.capitalize()}", initial=prop.value
+            )
+            self.fields[f"actual_reagent_prop_{i}"] = ValFormField(
+                required=False, label=f"Measured {prop.description.capitalize()}"
+            )
+
+    def generate_rmvi_fields(
+        self,
+        index: int,
+        #material_type: str,
+        rmi: vt.ReagentMaterial,
+    ):
+        # Material type
+        self.fields[f"material_type_{index}"] = CharField(
+            widget=self.widget, required=True, disabled= True, label="Material Type", initial=rmi.template.material_type,
+        )
+        # Material 
+        self.fields[f"material_{index}"] = CharField(
+            widget=self.widget, required=True, disabled= True, label="Material", initial=rmi.material,
+        )
+        # UUID of material 
+        self.fields[f"reagent_material_uuid_{index}"] = CharField(
+            widget=HiddenInput(), initial=rmi.uuid
+        )
+
+        # Loop through properties of the reagent material
+        for prop_index, prop in enumerate(rmi.property_rm.all()):
+            prop: vt.Property
+            self.fields[f"nominal_reagent_material_prop_{index}_{prop_index}"] = ValFormField(
+                required=False, label=f"Desired {prop.description.capitalize()}", initial = prop.value
+            )
+
+            self.fields[f"actual_reagent_material_prop_{index}_{prop_index}"] = ValFormField(
+                required=False, label=f"Measured {prop.description.capitalize()}"
+            )
+
+            self.fields[f"reagent_material_prop_uuid_{index}_{prop_index}"] = CharField(
+                widget=HiddenInput(), initial=prop.uuid
+            )
+ 
+        # self.fields[
+        #    f"material_{index}"
+        # ].label = f"Reagent {int(self.material_index)+1}: {material_type}"
+
+    def __init__(self, *args, **kwargs):
+        self.index = str(kwargs.pop("index"))
+        self.form_data = kwargs.pop("form_data")
+        #lab_uuid = UUID(kwargs.pop("lab_uuid"))
+        #self.inventory_materials: "dict[str, QuerySet[vt.InventoryMaterial]]" = {}
+        super().__init__(*args, **kwargs)
+        self.generate_reagent_property_fields()
+        
+        '''if (self.material_index is not None) and (
+            self.material_index in self.form_data
+        ):
+            self.material_types: "list[str]" = self.form_data[str(self.material_index)][
+                "mat_types_list"
+            ]
+            self.data_current = self.form_data[str(self.material_index)]
+            self.reagent_template: ReagentTemplate = self.data_current[
+                "reagent_template"
+            ]
+            self.generate_reagent_property_fields()
+            self.fields[f"reagent_template_uuid"] = CharField(
+                widget=HiddenInput(), initial=self.reagent_template.uuid
+            )
+            for i, rmt in enumerate(
+                self.reagent_template.reagent_material_template_rt.all().order_by(
+                    "material_type__description"
+                )
+            ):
+                material_type = rmt.material_type.description
+                if material_type not in self.inventory_materials:
+                    self.inventory_materials[
+                        material_type
+                    ] = vt.InventoryMaterial.objects.filter(
+                        material__material_type__description=material_type,
+                        inventory__lab__organization=lab_uuid,
+                    )
+                self.generate_rmvi_fields(i, rmt)'''
+        #self.get_helper()
+    
+    @staticmethod
+    def get_helper():
+        helper = FormHelper()
+        helper.form_class = "form-horizontal"
+        helper.label_class = "col-lg-3"
+        helper.field_class = "col-lg-8"
+        '''rows = [Row(Field("reagent_template_uuid"))]
+        tabs = []
+        for i, prop in enumerate(self.reagent_template.properties.all()):
+            rows.append(
+                Row(
+                    Column(Field(f"reagent_prop_{i}")),
+                    Field(f"reagent_prop_uuid_{i}"),
+                    HTML("</br>"),
+                )
+            )
+
+        if self.material_index is not None and (self.material_index in self.form_data):
+            for i, rmt in enumerate(
+                self.reagent_template.reagent_material_template_rt.all().order_by(
+                    "material_type__description"
+                )
+            ):
+                rmt: vt.ReagentMaterialTemplate
+                material_type: str = rmt.material_type.description
+                tabs.append(
+                    Tab(
+                        f"Material {i+1}: {material_type.capitalize()}",  # - {i}_{self.material_index}",
+                        Column(Field(f"material_{i}")),
+                        *[
+                            Column(
+                                Field(f"reagent_material_prop_{i}_{j}"),
+                                Field(f"reagent_material_prop_uuid_{i}_{j}"),
+                            )
+                            for j, prop in enumerate(rmt.properties.all())
+                        ],
+                        Field(f"reagent_material_template_uuid_{i}"),
+                        Field(f"material_type_{i}"),
+                        css_id=f"reagent-{self.material_index}-material-{i}",
+                    ),
+                )
+            rows.append(TabHolder(*tabs))  # type: ignore
+
+        helper.layout = Layout(*rows)'''
+        helper.form_tag = False
+        return helper
+
+
+'''class PropertyForm(ModelForm):
     
     def __init__(self, *args, **kwargs):
         nominal_value_label = "Nominal Value"
         value_label = "Value"
-        if "nominal_value_label" in kwargs["initial"]:
-            nominal_value_label = kwargs["initial"]["nominal_value_label"]#kwargs.pop("initial"["nominal_value_label"])
-            nominal_value = kwargs["initial"]["instance"].value
-        if "value_label" in kwargs["initial"]:
-            value_label = kwargs["initial"]["value_label"]#kwargs.pop("value_label")
-
-        disabled_fields = kwargs.pop("disabled_fields", [])
-        index = kwargs.pop("index")
-
+        uuid = ' '
+        try:
+            if "nominal_value_label" in kwargs["initial"]:
+                nominal_value_label = kwargs["initial"]["nominal_value_label"]#kwargs.pop("initial"["nominal_value_label"])
+                nominal_value = kwargs["initial"]["instance"].value
+            if "value_label" in kwargs["initial"]:
+                value_label = kwargs["initial"]["value_label"]#kwargs.pop("value_label")
+            if "instance" in kwargs["initial"]:
+                uuid = kwargs["initial"]["instance"].uuid
+            
+            disabled_fields = kwargs.pop("disabled_fields", [])
+            index = kwargs.pop("index")
+        except KeyError:
+            pass
+        
         super().__init__(*args, **kwargs)
 
         self.fields["nominal_value"].label = nominal_value_label
-        self.fields["nominal_value"].initial = nominal_value
         self.fields["value"].label = value_label
-        #self.fields["uuid"].hidden = True
-        for field in disabled_fields:
-            self.fields[field].disabled = True
+        self.fields["uuid"].initial = uuid
+
+        try:
+            self.fields["nominal_value"].initial = nominal_value
+            for field in disabled_fields:
+                self.fields[field].disabled = True
+        except UnboundLocalError:
+            pass
+        
 
     @staticmethod
     def get_helper(readonly_fields=[]):
@@ -531,4 +706,4 @@ class PropertyForm(ModelForm):
     class Meta:
         model = vt.Property
         fields = ["uuid", "nominal_value", "value"]
-        widgets = {"nominal_value": ValWidget(), "value": ValWidget()}
+        widgets = {"nominal_value": ValWidget(), "value": ValWidget()}'''
