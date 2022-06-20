@@ -5,6 +5,7 @@ from django.forms import (
     Select,
     CheckboxSelectMultiple,
     Form,
+    ModelForm,
     CharField,
     ChoiceField,
     IntegerField,
@@ -32,7 +33,7 @@ class ReagentTemplateCreateForm(Form):
         label="Select Reagent-Level Properties",
     )
 
-    #properties_add = CharField(required = False, label= "If desired properties are not listed, enter names separated by commas")
+    # properties_add = CharField(required = False, label= "If desired properties are not listed, enter names separated by commas")
 
     def __init__(self, *args, **kwargs):
         try:
@@ -61,11 +62,13 @@ class ReagentTemplateCreateForm(Form):
         helper.layout = Layout(
             Row(Column(Field(f"reagent_template_name")), Field(f"num_materials")),
             Row(Column(Field(f"properties"))),
-            #Row(Column(Field(f"properties_add"))),
+            # Row(Column(Field(f"properties_add"))),
         )
 
         helper.form_tag = False
         self.helper = helper
+
+
 class ReagentTemplateMaterialAddForm(Form):
 
     name = CharField(disabled=True, label="Reagent")
@@ -76,28 +79,27 @@ class ReagentTemplateMaterialAddForm(Form):
         label="Select Material-Level Properties (applies to each material)",
     )
 
-    #properties_add = CharField(required = False, label= "If desired properties are not listed, enter names separated by commas")
+    # properties_add = CharField(required = False, label= "If desired properties are not listed, enter names separated by commas")
 
-    def generate_subforms(self, mat_index): #reagent_index):
-        #self.fields[f"select_mt_{mat_index}_{reagent_index}"] = ChoiceField(
+    def generate_subforms(self, mat_index):  # reagent_index):
+        # self.fields[f"select_mt_{mat_index}_{reagent_index}"] = ChoiceField(
         self.fields[f"select_mt_{mat_index}"] = ChoiceField(
             widget=Select(attrs=dropdown_attrs),
             required=True,
             label=f"Select Material Type: Material {mat_index+1}",
         )
-        #self.fields[f"add_type_{mat_index}"] = CharField(required = False, label= "If desired material type is not listed, enter name")
+        # self.fields[f"add_type_{mat_index}"] = CharField(required = False, label= "If desired material type is not listed, enter name")
 
-        #self.fields[f"select_mt_{mat_index}_{reagent_index}"].choices = [
+        # self.fields[f"select_mt_{mat_index}_{reagent_index}"].choices = [
         none_option: "list[Tuple[Any, str]]" = [(None, "No material type selected")]
-        
-        mat_type: "list[Tuple[Any, str]]" = [
-           (r.uuid, r.description) for r in vt.MaterialType.objects.all()
-        ]
-        #self.fields[f"select_mt_{mat_index}"].choices = [
-           # (r.uuid, r.description) for r in vt.MaterialType.objects.all()
-        #]
-        self.fields[f"select_mt_{mat_index}"].choices = none_option + mat_type
 
+        mat_type: "list[Tuple[Any, str]]" = [
+            (r.uuid, r.description) for r in vt.MaterialType.objects.all()
+        ]
+        # self.fields[f"select_mt_{mat_index}"].choices = [
+        # (r.uuid, r.description) for r in vt.MaterialType.objects.all()
+        # ]
+        self.fields[f"select_mt_{mat_index}"].choices = none_option + mat_type
 
     def __init__(self, *args, **kwargs):
         try:
@@ -117,7 +119,7 @@ class ReagentTemplateMaterialAddForm(Form):
         ]
         num_materials = len(data[self.fields["name"].initial])
         for i in range(num_materials):
-            self.generate_subforms(i) #self.index)
+            self.generate_subforms(i)  # self.index)
 
         self.get_helper(num_materials)
 
@@ -135,22 +137,21 @@ class ReagentTemplateMaterialAddForm(Form):
             )
         )
 
-        #rows.append(Row(
-         #       Column(Field(f"properties_add"))))
-        
+        # rows.append(Row(
+        #       Column(Field(f"properties_add"))))
 
         for i in range(num_materials):
 
-            #rows.append(Row(Column(Field(f"select_mt_{i}_{self.index}"))))
+            # rows.append(Row(Column(Field(f"select_mt_{i}_{self.index}"))))
             rows.append(Row(Column(Field(f"select_mt_{i}"))))
-            #rows.append(Row(Column(Field(f"add_type_{i}"))))
-                
+            # rows.append(Row(Column(Field(f"add_type_{i}"))))
+
         helper.layout = Layout(*rows)
         helper.form_tag = False
 
         self.helper = helper
 
-    '''def clean(self):
+    """def clean(self):
         cleaned_data = super().clean()
 
         if self.is_valid():
@@ -166,7 +167,7 @@ class ReagentTemplateMaterialAddForm(Form):
                                 message = "Number of materials does not match the number specified for this reagent"
                                 self.add_error("select_mt_{}".format(index), ValidationError(message, code="invalid"))
 
-        return cleaned_data'''
+        return cleaned_data"""
 
 
 class ExperimentTemplateNameForm(Form):
@@ -214,12 +215,50 @@ class OutcomeDefinitionForm(Form):
         helper.form_class = "form-horizontal"
         helper.label_class = "col-lg-8"
         helper.field_class = "col-lg-8"
- 
-        helper.layout = Layout(Row(Column(Field(f"define_outcomes")), Column(Field(f"outcome_type"))))
+
+        helper.layout = Layout(
+            Row(Column(Field(f"define_outcomes")), Column(Field(f"outcome_type")))
+        )
 
         helper.form_tag = False
         # return helper
         self.helper = helper
+
+
+class VesselTemplateCreateForm(Form):
+    description = CharField()
+    outcome_vessel = BooleanField(required=False)
+    default_vessel = ChoiceField(widget=Select(attrs=dropdown_attrs))
+
+    def __init__(self, *args, **kwargs):
+        try:
+            self.index = kwargs.pop("index")
+            colors = kwargs.pop("colors")
+            self.data_current = {"color": colors[self.index]}
+        except KeyError:
+            self.index = 0
+        super().__init__(*args, **kwargs)
+        self.fields["description"].label = f"Vessel Template #{self.index+1}"
+        self.fields["default_vessel"].choices = [
+            (v.uuid, v.description) for v in vt.Vessel.objects.filter(parent=None)
+        ]
+        self.get_helper()
+
+    def get_helper(self):
+        helper = FormHelper()
+        helper.form_class = "form-horizontal"
+        helper.label_class = "col-lg-8"
+        helper.field_class = "col-lg-8"
+
+        helper.layout = Layout(
+            Column(Field("description")),
+            Column(Row(Field(f"outcome_vessel")), Row(Field(f"default_vessel"))),
+        )
+
+        helper.form_tag = False
+        # return helper
+        self.helper = helper
+
 
 class ExperimentTemplateCreateForm(Form):
 
@@ -233,6 +272,10 @@ class ExperimentTemplateCreateForm(Form):
         label="Number of outcomes to measure", required=True, initial=1, min_value=0
     )
 
+    num_vessels = IntegerField(
+        label="Number of vessels used", required=True, initial=1, min_value=0
+    )
+
     def __init__(self, *args, **kwargs):
         org_id = kwargs.pop("org_id")
         super().__init__(*args, **kwargs)
@@ -241,8 +284,8 @@ class ExperimentTemplateCreateForm(Form):
         cleaned_data = super().clean()
 
         if self.is_valid():
-            
-            #check that template with desired name does not already exist 
+
+            # check that template with desired name does not already exist
             template_name = cleaned_data["template_name"]
 
             num_templates = vt.ExperimentTemplate.objects.filter(

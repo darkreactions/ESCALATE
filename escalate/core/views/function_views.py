@@ -1,5 +1,6 @@
-from typing import Optional
-from django.http import HttpResponse, HttpRequest 
+from typing import Optional, Dict, Any
+import json
+from django.http import HttpResponse, HttpRequest
 from django.shortcuts import render, redirect
 from django.contrib.messages import get_messages
 from django.http.response import FileResponse, JsonResponse
@@ -57,40 +58,56 @@ def experiment_invalid(request: HttpRequest, pk) -> Optional[HttpResponse]:
             return JsonResponse(data={"message": "success"})
 
 
-def create_action_def(request: HttpRequest) -> HttpResponse:
+def create_action_def(request: HttpRequest) -> JsonResponse:
     if request.method == "POST":
-        for desc, params in request.POST.items():
-            parameters=[]
-            for p in params:
-                parameter = ParameterDef.objects.get(description=p)
-                parameters.append(parameter)
-            
-            #lookup actiondef description; create new only if it doesn't already exist
-            a = ActionDef.objects.filter(description = desc) 
-            if a is not None:
-                a, created = ActionDef.objects.create(
-                                description=desc,
-                                parameter_def= parameters,
-                            )
-                a.save()
-                
-                return JsonResponse(data={"message": "success"})
-            else:
-                return JsonResponse(data={"message": "failure"})
+        actiondef_desc = request.POST["actionDef_description"]
+        try:
+            ad, created = ActionDef.objects.get_or_create(description=actiondef_desc)
+
+            for pdef_uuid in request.POST.getlist("parameterDefs"):
+                pdef = ParameterDef.objects.get(uuid=pdef_uuid)
+                ad.parameter_def.add(pdef)
+            ad.save()
+        except Exception as e:
+            print(e)
+            return JsonResponse(data={"message": "failure"})
+        else:
+            return JsonResponse(data={"message": "success"})
+
+
+def parse_activity_data(activity_data: "Dict[str, Any]") -> str:
+    activity_dict = {}
+    start_nodes = 0
+    end_nodes = 0
+    for a in activity_data["activities"]:
+        if a["type"] == "start":
+            start_nodes += 1
+        elif a["type"] == "end":
+            end_nodes += 1
+        else:
+            activity_dict[a["id"]] = a
+    if not start_nodes == 1 or not end_nodes == 1:
+        return "ERROR: Action template not saved. Start or End nodes not found"
+
+    for uid, a in activity_dict.items():
+        a["state"]
+
+    return "SUCCESS: Workflow successfully saved"
 
 
 def save_experiment_action_template(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
-
-        exp_template = ExperimentTemplate.objects.get(uuid=request.POST["exp_template"])
+        data = json.loads(request.POST["data"])
+        exp_template = ExperimentTemplate.objects.get(uuid=data["exp_template"])
         # exp_template = ExperimentTemplate.objects.get(
         # uuid=request.session["experiment_template_uuid"]
         # )
+        return JsonResponse(data={"message": parse_activity_data(data)})
 
         action_tuples = []
 
         ids = []
-        # json.loads(request.POST["data"])
+
         for key, val in request.POST.items():
             if (
                 "connections" in key
@@ -145,9 +162,11 @@ def save_experiment_action_template(request: HttpRequest) -> HttpResponse:
                         source_vessel_template = None
                         source_vessel_decomposable = False
                         if properties["source"]:
-                            source_vessel_template= VesselTemplate.objects.filter(description=properties["source"])[0]
-                            
-                            '''default_vessel, created = Vessel.objects.get_or_create(
+                            source_vessel_template = VesselTemplate.objects.filter(
+                                description=properties["source"]
+                            )[0]
+
+                            """default_vessel, created = Vessel.objects.get_or_create(
                                 description="Generic Vessel"
                             )
                             (
@@ -163,18 +182,19 @@ def save_experiment_action_template(request: HttpRequest) -> HttpResponse:
                             if created:
                                 exp_template.vessel_templates.add(
                                     source_vessel_template
-                                )'''
+                                )"""
 
-                        #dest_vessel_template = None
-                        #if properties["destination"]:
-                        dest_vessel_template = VesselTemplate.objects.filter(description=properties["destination"])[0]
-                            
-                        
-                        if properties["destination_decomposable"] == 'true':
+                        # dest_vessel_template = None
+                        # if properties["destination"]:
+                        dest_vessel_template = VesselTemplate.objects.filter(
+                            description=properties["destination"]
+                        )[0]
+
+                        if properties["destination_decomposable"] == "true":
                             dest_vessel_decomposable = True
                         else:
                             dest_vessel_decomposable = False
-                            '''default_vessel, created = Vessel.objects.get_or_create(
+                            """default_vessel, created = Vessel.objects.get_or_create(
                                 description="Generic Vessel"
                             )
 
@@ -206,7 +226,7 @@ def save_experiment_action_template(request: HttpRequest) -> HttpResponse:
                                 )
 
                                 if created:
-                                    exp_template.vessel_templates.add(dest_vessel_template)'''
+                                    exp_template.vessel_templates.add(dest_vessel_template)"""
 
                         action_template, created = ActionTemplate.objects.get_or_create(
                             # action_sequence=action_sequences[action_seq],

@@ -211,28 +211,27 @@ def generate_action_def_json(action_defs, exp_template_uuid):
     ):
         source_choices.append(vt.description)
         dest_choices.append(vt.description)
-    
-    
-    '''for reagent in ReagentTemplate.objects.filter(
-        experiment_template_rt=ExperimentTemplate(uuid=exp_template_uuid)
-    ):
-        # include all reagents associated with experiment template as action sources/destinations
-        source_choices.append(reagent.description)
-        # dest_choices.append(reagent.description)'''
 
-    """for vt in VesselTemplate.objects.all():
-        # for vt in VesselType.objects.all():  # include all vessels as destinations
-        if 'Outcome' not in vt.description:
-            source_choices.append(vt.default_vessel.description+ ': ' + vt.description)
-            dest_choices.append(vt.default_vessel.description+ ': ' + vt.description)"""
-
-    '''for vt in Vessel.objects.all():
-        if vt.parent is None:
-            source_choices.append(vt.description)
-            dest_choices.append(vt.description)'''
-    #dest_choices = ['Outcome vessel', 'Other']
-
-    json_data = []
+    json_data = [
+        {
+            "type": "start",
+            "displayName": "Start",
+            "runtimeDescription": " ",
+            "description": "Start node",
+            "category": "template",
+            "outcomes": ["Done"],
+            "properties": [],
+        },
+        {
+            "type": "end",
+            "displayName": "End",
+            "runtimeDescription": " ",
+            "description": "End node",
+            "category": "template",
+            "outcomes": ["Done"],
+            "properties": [],
+        },
+    ]
 
     for i in range(len(action_defs)):
 
@@ -259,7 +258,6 @@ def generate_action_def_json(action_defs, exp_template_uuid):
                         "hint": "destination vessel",
                         "options": {"items": [i for i in dest_choices]},
                     },
-
                     {
                         "name": "destination_decomposable",
                         "type": "boolean",
@@ -448,5 +446,5 @@ view_names = [
     "ExperimentTemplate",
     "ActionDef",
     "PropertyTemplate",
-    "ParameterDef"
+    "ParameterDef",
 ]

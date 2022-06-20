@@ -18,26 +18,36 @@
     <li class="nav-item">
       <button class="btn btn-primary" onclick="addAction()">Add Action</button>
     </li>
-    <li class="nav-item">
+    <!--li class="nav-item">
       <button class="btn btn-secondary" onclick="importWorkflow()">Import</button>
-    </li>
-    <li class="nav-item">
+    </li-->
+    <!--li class="nav-item">
       <wf-export-button workflow-designer-host="designerHost"></wf-export-button>
+    </li-->
+    <li class="nav-item">
+      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+        Create new action defintion
+      </button>
     </li>
     <li class="nav-item">
-      <button class="btn btn-secondary" onclick="getWorkflow()">Save</button>
+      <div class="tooltip-wrapper" data-title="Dieser Link führt zu Google">
+        <button class="btn btn-secondary" onclick="getWorkflow()">Save</button>
+      </div>
+      {% if dont_allow_save %}disabled{% endif %}
     </li>
     <li class="nav-item">
-      <button class="btn btn-secondary" onclick="createNewWorkflow()">New Action Template</button>
+      <button class="btn btn-secondary" onclick="createNewWorkflow()">Clear all actions</button>
     </li>
   </ul>
 </div>
 
-<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
-  Create new action def
-</button>
 
-<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+
+<wf-designer-host id="designerHost" canvas-height="150vh" data-activity-definitions='{{ components | safe }}'
+  data-workflow='{{ workflow | safe }}' readonly="false" plugins="PrimitiveActivities"></wf-designer-host>
+
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+  aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -50,31 +60,25 @@
         <form id="myForm" name="myForm">
           <div class="form-group">
             <label for="actionDef_description" class="col-form-label">Description:</label>
-            <input type="text" class="form-control" id="actionDef_description">
+            <input type="text" class="form-control" id="actionDef_description" name="actionDef_description">
           </div>
           <div class="form-group">
             <label for="parameterDefs" class="col-form-label">Parameters:</label>
-            <select multiple class="form-control" id="parameterDefs">
+            <select multiple class="form-control" id="parameterDefs" name="parameterDefs">
               {% for param in parameter_defs %}
-                <option>{{param}}</option>
+              <option value="{{ param.uuid }}">{{param}}</option>
               {% endfor %}
             </select>
           </div>
-          <button type="button" class="btn btn-primary" onclick="create_action_def()">Save</button>
         </form>
       </div>
       <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="create_action_def()">Save</button>
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
       </div>
     </div>
   </div>
 </div>
-
-
-
-<wf-designer-host id="designerHost" canvas-height="75vh" data-activity-definitions='{{ components | safe }}'
-  data-workflow='{{ workflow | safe }}' readonly="false" plugins="PrimitiveActivities"></wf-designer-host>
-
 
 <script type="text/javascript">
   const designer = document.querySelector("#designerHost");
@@ -97,56 +101,46 @@
     //result["exp_template"] = $("#template").val();
     result["exp_template"] = $("#exp_template").val();
     console.log(result);
-    var token = '{{csrf_token}}';
+    var token = '{{ csrf_token }}';
     jQuery.ajax({
-      url: {% url 'save_experiment_action_template' %},
+      //url: {% url 'save_experiment_action_template' %},
       headers: { "X-CSRFToken": token },
       type: "POST",
-      //data: JSON.stringify(result),
-      data: result,
+      data: { 'data': JSON.stringify(result) },
+      //data: result,
+      //contentType: "application/json",
       dataType: "json",
       beforeSend: function (x) {
         if (x && x.overrideMimeType) {
-          x.overrideMimeType("application/j-son;charset=UTF-8");
+          x.overrideMimeType("application/json;charset=UTF-8");
         }
       },
       success: function (result) {
         console.log(result);
-        alert("Action template saved successfully!")
+        alert(result['message']);
       }
     });
   }
-    
+
 </script>
 {% endblock %}
 
 {% block tailcontent %}
 <script>
   async function create_action_def() {
-    //let result = await onclick(this.create_action_def());
-    //console.log(result);
-    let myForm = document.getElementById('myForm');
-    result = $('myForm').serializeArray();
+    result = $('#myForm').serializeArray();
     console.log(result);
-    //var formData = new FormData(myForm);
-    //console.log(formData);
-    //formData.append("description", $("#actionDef_description").val());
-    //result["description"] = $("#actionDef_description").val(); 
-    var token = '{{csrf_token}}';
+    var token = '{{ csrf_token }}';
     jQuery.ajax({
-      url: {% url 'create_action_def' %},
+      // url: {% url 'create_action_def' %},
       headers: { "X-CSRFToken": token },
       type: "POST",
       dataType: "json",
-      data: JSON.stringify(result),
+      data: result,
       success: function (data) {
-        console.log("This function works");
-        alert("Action def saved successfully!")
+        alert(data['message'])
       }
     });
-    }
+  }
 </script>
 {% endblock %}
-
-
-

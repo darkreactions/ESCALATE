@@ -8,6 +8,7 @@ from core.models.base_classes import (
     StatusColumn,
     ActorColumn,
     DescriptionColumn,
+    UniqueDescriptionColumn,
 )
 from core.models.view_tables.generic_data import Parameter
 
@@ -116,7 +117,7 @@ class Action(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         return "{}".format(self.description)
 
 
-class ActionDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
+class ActionDef(DateColumns, StatusColumn, ActorColumn, UniqueDescriptionColumn):
 
     uuid = RetUUIDField(
         primary_key=True, default=uuid.uuid4, db_column="action_def_uuid"
@@ -176,7 +177,7 @@ class ActionTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         return f"{self.description}"
 
 
-class VesselTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
+class VesselTemplate(DateColumns, StatusColumn, ActorColumn, UniqueDescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
     outcome_vessel = models.BooleanField(default=False)
     default_vessel = models.ForeignKey(
