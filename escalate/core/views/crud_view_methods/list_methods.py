@@ -4,11 +4,11 @@ import core.models
 methods = {
     "Material": {
         "model": core.models.view_tables.Material,
-        "table_columns": ["Chemical Name", "Identifiers", "Type", "Status"],
+        "table_columns": ["Chemical Name", "Identifiers", "Properties", "Type", "Status"],
         "column_necessary_fields": {
             "Chemical Name": ["description"],
             "Identifiers": ["identifier"],
-            #"Properties": ["property_m"],
+            "Properties": ["property_m"],
             "Type": ["material_type"],
             "Status": ["status.description"],
         },
@@ -260,10 +260,10 @@ methods = {
         ],
         "column_necessary_fields": {
             "Template Name": ["description"],
-           "Reagents": [],
-           "Vessels": [],
+           "Reagents": ["reagent_templates"],
+           "Vessels": ["vessel_templates"],
            #"Actions": ["action_templates"],
-           "Outcomes": [],
+           "Outcomes": ["outcome_templates"],
         },
         "ordering": ["description"],
         "field_contains": "",

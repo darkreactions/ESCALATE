@@ -243,11 +243,12 @@ class ActionTemplateView(LoginRequired, View):
             at, created = vt.ActionTemplate.objects.get_or_create(
                 uuid=uid,
                 experiment_template=exp_template,
-                action_def=adef,
-                source_vessel_template=source if source else None,
-                dest_vessel_template=dest if dest else None,
-                dest_vessel_decomposable=decomposable,
             )
+            at.action_def = adef
+            at.source_vessel_template = source if source else None
+            at.dest_vessel_template = dest if dest else None
+            at.dest_vessel_decomposable = decomposable
+            at.save()
             action_templates[str(at.uuid)] = at
 
         for conn in activity_data["connections"]:

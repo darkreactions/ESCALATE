@@ -164,6 +164,10 @@ class Property(DateColumns, StatusColumn, ActorColumn):
         related_name="property_rm",
     )
 
+    internal_slug = SlugField(
+        populate_from=["template__description"], overwrite=True, max_length=255
+    )
+
     def __str__(self):
         return "{} : {}".format(self.template.description, self.value)  # type: ignore
 

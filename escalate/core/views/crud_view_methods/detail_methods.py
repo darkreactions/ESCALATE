@@ -6,14 +6,14 @@ methods = {
         "detail_fields": [
             "Chemical Name",
             "Identifiers",
-            #"Properties",
+            "Properties",
             "Material Type",
             "Status",
         ],
         "detail_fields_need_fields": {
             "Chemical Name": ["description"],
             "Identifiers": ["identifier"],
-            #"Properties": ["property_m"],
+            "Properties": ["property_m"],
             "Material Type": ["material_type"],
             "Status": ["status.description"],
         },
@@ -193,9 +193,15 @@ methods = {
         "model": core.models.view_tables.ExperimentTemplate,
         "detail_fields": [
             "Description",
+            "Reagents",
+            "Outcomes",
+            "Vessels",
         ],
         "detail_fields_need_fields": {
             "Description": ["description"],
+            "Reagents": ["reagent_templates"],
+            "Outcomes": ["outcome_templates"],
+            "Vessels": ["vessel_templates"],
         },
     },
 }
