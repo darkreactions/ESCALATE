@@ -57,33 +57,6 @@ def get_action_parameter_form_data(
     return initial_q1, q1_details
 
 
-def save_forms_q_material(queries: QuerySet, formset: BaseFormSet, fields: dict):
-    """
-    Saves custom formset into queries
-    Args:
-        queries ([Queryset]): List of queries into which the forms values are saved
-        formset ([Formset]): Formset
-        fields (dict): Dictionary to map the column in queryset with field in formset
-    """
-    for form in formset:
-        if form.has_changed() and form.is_valid():
-            data = form.cleaned_data
-            desc = json.loads(data["uuid"])
-            if len(desc) == 2:
-                object_desc, param_def_desc = desc
-                query = queries.get(
-                    object_description=object_desc,
-                    parameter_def_description=param_def_desc,
-                )
-            else:
-                query = queries.get(object_description=desc[0])
-
-            for db_field, form_field in fields.items():
-                setattr(query, db_field, data[form_field])
-
-            query.save(update_fields=list(fields.keys()))
-
-
 def save_forms_q1(queries, formset, fields):
     """Saves custom formset into queries
 
@@ -109,16 +82,3 @@ def save_forms_q1(queries, formset, fields):
             for db_field, form_field in fields.items():
                 setattr(parameter, db_field, data[form_field])
             parameter.save(update_fields=list(fields.keys()))
-
-
-class BaseUUIDFormSet(BaseFormSet):
-    """
-    This formset adds a UUID as the kwarg. When the form is rendered,
-    the UUID is added as an attribute to the html field. Which when submitted
-    can be used to identify where the data goes
-    """
-
-    def get_form_kwargs(self, index):
-        kwargs = super().get_form_kwargs(index)
-        kwargs["uuid"] = kwargs["object_uuids"][index]
-        return kwargs
