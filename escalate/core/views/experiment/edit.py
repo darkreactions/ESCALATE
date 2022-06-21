@@ -14,7 +14,6 @@ from core.models.view_tables import (
     Edocument,
 )
 from core.forms.custom_types import (
-    InventoryMaterialForm,
     NominalActualForm,
 )
 from core.forms.experiment import QueueStatusForm, GenerateRobotFileForm
@@ -40,7 +39,7 @@ class ExperimentDetailEditView(TemplateView):
     template_name = "core/experiment_detail_editor.html"
     list_template = "core/experiment/list.html"
     NominalActualFormSet = formset_factory(NominalActualForm, extra=0)
-    MaterialFormSet = formset_factory(InventoryMaterialForm, extra=0)
+    # MaterialFormSet = formset_factory(InventoryMaterialForm, extra=0)
     EdocFormSet = formset_factory(form=UploadFileForm)
 
     def get_action_parameter_forms(self, exp_uuid, context, template=True):
