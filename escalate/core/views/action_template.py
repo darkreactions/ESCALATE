@@ -180,6 +180,8 @@ class ActionTemplateView(LoginRequired, View):
         if "data" in request.POST:
             data = json.loads(request.POST["data"])
             exp_template = vt.ExperimentTemplate.objects.get(uuid=data["exp_template"])
+            at_url = reverse("action_template", args=[str(exp_template.uuid)])
+            exp_template.action_templates = at_url
             return JsonResponse(
                 data={"message": self._parse_activity_data(data, exp_template)}
             )
