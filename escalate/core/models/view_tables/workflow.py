@@ -223,6 +223,8 @@ class ExperimentTemplate(DateColumns, StatusColumn):
     vessel_templates = models.ManyToManyField(
         "VesselTemplate", blank=True, related_name="experiment_template_vt"
     )
+    action_templates = models.URLField(blank=True)
+
     metadata = JSONField(blank=True, null=True)
     action_template_et: "QuerySet[ActionTemplate]"
 

@@ -193,15 +193,17 @@ methods = {
         "model": core.models.view_tables.ExperimentTemplate,
         "detail_fields": [
             "Description",
-            "Reagents",
-            "Outcomes",
-            "Vessels",
+            "Reagent Templates",
+            "Outcome Templates",
+            "Action Templates",
+            "Vessel Templates",
         ],
         "detail_fields_need_fields": {
             "Description": ["description"],
-            "Reagents": ["reagent_templates"],
-            "Outcomes": ["outcome_templates"],
-            "Vessels": ["vessel_templates"],
+            "Reagent Templates": ["reagent_templates"],
+            "Outcome Templates": ["outcome_templates"],
+            "Action Templates": ["action_templates"],
+            "Vessel Templates": ["vessel_templates"],
         },
     },
 }

@@ -1472,7 +1472,7 @@ class Command(BaseCommand):
         for _, row in df.iterrows():
             description = clean_string(row["description"])
             type_ = clean_string(row["type"])
-            value_from_csv = clean_string(row["value"])
+            value_from_csv = clean_string(str(row["value"]))
             unit = clean_string(row["unit"])
             required = to_bool(row["required"])
             unit_type = clean_string(row["unit_type"])

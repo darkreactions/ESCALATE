@@ -201,7 +201,7 @@ class OutcomeDefinitionForm(Form):
         super().__init__(*args, **kwargs)
         self.fields[
             "define_outcomes"
-        ].label = f"Outcome {str(int(self.outcome_index)+1)}"
+        ].label = f"Outcome {str(int(self.outcome_index)+1)} Description"
 
         try:
             data_types = TypeDef.objects.filter(category="data")
@@ -235,7 +235,7 @@ class OutcomeDefinitionForm(Form):
 
 
 class VesselTemplateCreateForm(Form):
-    description = CharField()
+    description = CharField(required=False)
     outcome_vessel = BooleanField(required=False)
     default_vessel = ChoiceField(widget=Select(attrs=dropdown_attrs))
 
@@ -247,7 +247,7 @@ class VesselTemplateCreateForm(Form):
         except KeyError:
             self.index = 0
         super().__init__(*args, **kwargs)
-        self.fields["description"].label = f"Vessel Template #{self.index+1}"
+        self.fields["description"].label = f"Vessel {self.index+1} Description"
         self.fields["default_vessel"].choices = [
             (v.uuid, v.description) for v in vt.Vessel.objects.filter(parent=None)
         ]
@@ -260,8 +260,8 @@ class VesselTemplateCreateForm(Form):
         helper.field_class = "col-lg-8"
 
         helper.layout = Layout(
-            Column(Field("description")),
-            Column(Row(Field(f"outcome_vessel")), Row(Field(f"default_vessel"))),
+            Row(Column(Field(f"description")), Column(Field(f"default_vessel"))),
+            Row(Column(Field("outcome_vessel"))),
         )
 
         helper.form_tag = False

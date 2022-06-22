@@ -1,6 +1,7 @@
 from typing import Optional, Dict, Any
 import json
 from django.http import HttpResponse, HttpRequest
+from django.urls import reverse
 from django.shortcuts import render, redirect
 from django.contrib.messages import get_messages
 from django.http.response import FileResponse, JsonResponse
@@ -102,6 +103,8 @@ def save_experiment_action_template(request: HttpRequest) -> HttpResponse:
         # exp_template = ExperimentTemplate.objects.get(
         # uuid=request.session["experiment_template_uuid"]
         # )
+        at_url = reverse("action_template", args=[str(exp_template.uuid)])
+        exp_template.action_templates.add(at_url)
         return JsonResponse(data={"message": parse_activity_data(data)})
 
         action_tuples = []

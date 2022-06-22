@@ -82,7 +82,7 @@
                         <i class="fa fa-download"></i>
                     </a>
               {% endif %}
-              <a title="Edit Experiment" href="{{ row_info.update_url }}" class="btn btn-raised text-secondary px-1 view-update">
+              <a title="Edit" href="{{ row_info.update_url }}" class="btn btn-raised text-secondary px-1 view-update">
                 <i class="fa fa-edit"></i>
               </a>
               {% if row_info.outcome_url %}
@@ -98,7 +98,7 @@
               <!--<a title="" href="{{ row_info.view_url }}" class="btn btn-raised text-secondary px-1 view-detail">
                 <i class="fa fa-eye"></i>
               </a> -->
-              <button title="Delete Experiment" type="button" class="btn btn-raised text-secondary px-2" data-toggle="modal"
+              <button title="Delete" type="button" class="btn btn-raised text-secondary px-2" data-toggle="modal"
                 data-target="#deleteModal" data-description="{{ row_info.obj_name }}" data-pk="{{ row_info.obj_pk }}">
                 <i class="fa fa-trash"></i>
               </button>
