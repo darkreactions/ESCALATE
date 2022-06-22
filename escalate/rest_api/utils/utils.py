@@ -225,7 +225,7 @@ expandable_fields = {
             "outcome": (
                 "rest_api.OutcomeSerializer",
                 {
-                    "source": "outcome_instance_experiment_instance",
+                    "source": "outcome_instance_ei",
                     "many": True,
                     "read_only": True,
                     "view_name": "outcome-detail",

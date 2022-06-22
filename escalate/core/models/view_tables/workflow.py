@@ -302,6 +302,8 @@ class ExperimentInstance(DateColumns, StatusColumn, DescriptionColumn):
         max_length=255, db_column="ref_uid", blank=True, null=True
     )
     # update to point to an experiment parent.
+    outcome_ei: "Outcome"
+    template: ExperimentTemplate
     template = models.ForeignKey(
         "ExperimentTemplate",
         db_column="parent_uuid",
@@ -454,7 +456,7 @@ class Outcome(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         on_delete=models.CASCADE,
         blank=True,
         null=True,
-        related_name="outcome_instance_experiment_instance",
+        related_name="outcome_instance_ei",
     )
     # instance_labels = ArrayField(
     # models.CharField(null=True, blank=True, max_length=255), null=True, blank=True

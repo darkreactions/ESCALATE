@@ -86,22 +86,6 @@ class Action(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         null=True,
         related_name="action_t",
     )
-    """
-    source_vessel_type = models.ForeignKey(
-        "VesselType",
-        on_delete=models.DO_NOTHING,
-        blank=True,
-        null=True,
-        related_name="action_sv",
-    )
-    dest_vessel_type = models.ForeignKey(
-        "VesselType",
-        on_delete=models.DO_NOTHING,
-        blank=True,
-        null=True,
-        related_name="action_dv",
-    )
-    """
 
     start_date = models.DateField(db_column="start_date", blank=True, null=True)
     end_date = models.DateField(db_column="end_date", blank=True, null=True)

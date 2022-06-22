@@ -35,6 +35,7 @@ from plugins.sampler.base_sampler_plugin import BaseSamplerPlugin
 from plugins.sampler import *
 from plugins.postprocessing.base_post_processing_plugin import BasePostProcessPlugin
 from plugins.postprocessing import *
+from .form_help_text import CreateExperimentHelp
 
 
 class NumberOfExperimentsForm(Form):
@@ -104,7 +105,7 @@ class ExperimentTemplateSelectForm(Form):
             "id": "template",
         }
     )
-    experiment_name = CharField()
+    experiment_name = CharField(label=CreateExperimentHelp.EXPERIMENT_NAME.value)
     select_experiment_template = ChoiceField(widget=widget)
 
     def __init__(self, *args, **kwargs):

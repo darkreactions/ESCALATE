@@ -26,6 +26,43 @@ from core.widgets import ValWidget
 from django.contrib import messages
 
 
+class ExperimentOutcomeList(TemplateView):
+    template_name = "core/experiment/outcome_list.html"
+    header_suffixes = ["location", "value", "unit", "note", "filename"]
+
+    def get(self, request: HttpRequest, *args, **kwargs):
+        context: dict[str, Any] = self.get_context_data(**kwargs)
+        pk = kwargs["pk"]
+        exp_instance: ExperimentInstance = ExperimentInstance.objects.get(uuid=pk)
+        context["outcome_templates"] = []
+        for ot in exp_instance.template.outcome_templates.all():
+            table_columns = [
+                f"{ot.description} {suffix}" for suffix in self.header_suffixes
+            ]
+            outcomes = exp_instance.outcome_instance_ei.filter(outcome_template=ot)
+            table_data = []
+            for o in outcomes:
+                notes = [
+                    note.notetext for note in Note.objects.filter(ref_note_uuid=o.uuid)
+                ]
+                filenames = [
+                    edoc.filename
+                    for edoc in Edocument.objects.filter(ref_edocument_uuid=o.uuid)
+                ]
+                table_data.append(
+                    (
+                        o.description,
+                        o.actual_value.value,
+                        o.actual_value.unit,
+                        notes,
+                        filenames,
+                    )
+                )
+
+            context["outcome_templates"].append((ot, table_columns, table_data))
+        return render(request, self.template_name, context)
+
+
 class ExperimentOutcomeView(TemplateView):
     template_name = "core/experiment_outcome.html"
     OutcomeFormSet = modelformset_factory(
@@ -82,7 +119,7 @@ class ExperimentOutcomeView(TemplateView):
 
         outcome_templates = ExperimentInstance.objects.get(
             uuid=exp_uuid
-        ).parent.outcome_templates.all()
+        ).template.outcome_templates.all()
         df.fillna("", inplace=True)
 
         related_filenames = [f.name for f in related_files]
@@ -143,28 +180,15 @@ class ExperimentOutcomeView(TemplateView):
         for ot in outcome_templates:
             # Loop through each outcome for that type (eg. Crystal score for A1, A2, ...)
             for o in outcomes.filter(outcome_template=ot):
-                if (
-                    "text" in ot.default_value.description
-                ):  # omit unit column for text-based outcomes
-                    # Outcome description
-                    data[ot.description + " location"].append(o.description)
-                    # Add value of outcome
-                    data[ot.description].append(o.actual_value.value)
-                    # Add filename of outcome (This can be used to associate any file uploaded with the well)
-                    data[ot.description + " filename"].append("")
-                    # Extra notes the user may wish to add
-                    data[ot.description + " notes"].append("")
-                else:
-                    # Outcome description
-                    data[ot.description + " location"].append(o.description)
-                    # Add value of outcome
-                    data[ot.description].append(o.actual_value.value)
-                    # Add unit of outcome
-                    data[ot.description + " unit"].append(o.actual_value.unit)
-                    # Add filename of outcome (This can be used to associate any file uploaded with the well)
-                    data[ot.description + " filename"].append("")
-                    # Extra notes the user may wish to add
-                    data[ot.description + " notes"].append("")
+                data[ot.description + " location"].append(o.description)
+                # Add value of outcome
+                data[ot.description].append(o.actual_value.value)
+                data[ot.description + " unit"].append(o.actual_value.unit)
+                # Add filename of outcome (This can be used to associate any file uploaded with the well)
+                data[ot.description + " filename"].append("")
+                # Extra notes the user may wish to add
+                data[ot.description + " notes"].append("")
+
         df = pd.DataFrame.from_dict(data)
         temp = tempfile.NamedTemporaryFile()
         df.to_csv(temp, index=False)  # type: ignore

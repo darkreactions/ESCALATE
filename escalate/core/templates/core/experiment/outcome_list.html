@@ -1,0 +1,85 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block add_data %}
+<form class="form-inline my-2 my-lg-0" method="get" action="{% url url_name %}">
+    <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" value="{{filter}}"
+        name="filter">
+    <button class="btn btn-sm btn-raised btn-success my-2 my-sm-0 " type="submit"><i class="fa fa-search"></i></button>
+
+</form>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <form method="post">{% csrf_token %}
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            {% for ot, table_data, table_columns in outcome_templates %}
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {% if forloop.counter0 == 0 %} active {% endif %}" id="{{ ot.description }}-tab"
+                    data-bs-toggle="tab" data-bs-target="#{{ ot.description }}" type="button" role="tab">{{ ot.description }}</button>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <div class="tab-content" id="myTabContent">
+            {% for ot, table_columns, table_data in outcome_templates %}
+            <div class="tab-pane fade {% if forloop.counter0 == 0 %} show active {% endif %}" id="{{ ot.description }}"
+                role="tabpanel">
+                <div class="table-responsive text-nowrap">
+                    <table class="table table-bordered table-hover">
+                        <thead class="black white-text">
+                            <tr>
+                                {% for header in table_columns %}
+                                <th>
+                                    {{ header }}
+                                    <button type="submit" name="sort" value="{{header}}_asc"
+                                        onclick="this.form.submit()">
+                                        <i class="fas fa-sort-amount-up"></i>
+                                    </button>
+                                    <button type="submit" name="sort" value="{{header}}_des"
+                                        onclick="this.form.submit()">
+                                        <i class="fas fa-sort-amount-down-alt"></i>
+                                    </button>
+                                </th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row_info in table_data %}
+                            <tr class="text-nowrap">
+                                {% for col_data in row_info %}
+                                <td> {% if col_data %}{{ col_data }} {% else %} N/A {% endif %}</td>
+                                {% endfor %}
+                                <td>
+                                    <a href="{{ row_info.view_url }}"
+                                        class="btn btn-raised text-secondary px-1 view-detail">
+                                        <i class="fa fa-eye"></i>
+                                    </a>
+                                    <a href="{{ row_info.update_url }}"
+                                        class="btn btn-raised text-secondary px-1 view-update">
+                                        <i class="fa fa-edit"></i>
+                                    </a>
+
+                                    <button type="button" class="btn btn-raised text-secondary px-2" data-toggle="modal"
+                                        data-target="#deleteModal" data-description="{{ row_info.obj_name }}"
+                                        data-pk="{{ row_info.obj_pk }}">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+
+
+
+    </form>
+</div>
+{% endblock %}

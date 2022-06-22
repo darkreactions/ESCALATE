@@ -17,6 +17,7 @@ import core.models.view_tables as vt
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column, Field
 from .forms import dropdown_attrs
+from .form_help_text import RTCreateHelp
 
 
 class ReagentTemplateCreateForm(Form):
@@ -24,13 +25,20 @@ class ReagentTemplateCreateForm(Form):
     reagent_template_name = CharField(required=True)
 
     num_materials = IntegerField(
-        label="Number of Materials", required=True, initial=1, min_value=1
+        # label="Number of Materials",
+        label=RTCreateHelp.NUM_MATERIALS.value,
+        required=True,
+        initial=1,
+        min_value=1,
+        # help_text=RTCreateHelp.NUM_MATERIALS.value,
     )
 
     properties = MultipleChoiceField(
         widget=SelectMultiple(attrs=dropdown_attrs),
         required=False,
-        label="Select Reagent-Level Properties",
+        label=RTCreateHelp.PROPERTIES.value
+        # label="Select Reagent-Level Properties",
+        # help_text=RTCreateHelp.PROPERTIES.value,
     )
 
     # properties_add = CharField(required = False, label= "If desired properties are not listed, enter names separated by commas")
@@ -77,6 +85,7 @@ class ReagentTemplateMaterialAddForm(Form):
         widget=SelectMultiple(attrs=dropdown_attrs),
         required=False,
         label="Select Material-Level Properties (applies to each material)",
+        help_text="",
     )
 
     # properties_add = CharField(required = False, label= "If desired properties are not listed, enter names separated by commas")
