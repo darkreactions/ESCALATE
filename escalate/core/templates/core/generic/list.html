@@ -95,6 +95,12 @@
                 <i class="fas fa-vial"></i>
               </a>
               {% endif %}
+
+              {% if title == "Experiment template" %}
+              <a href="{% url 'action_template' pk=row_info.obj_pk %}" class="btn btn-raised text-secondary px-1 view-update">
+                <i class="fa fa-puzzle-piece"></i>
+              </a>
+              {% endif %}
               <!--<a title="" href="{{ row_info.view_url }}" class="btn btn-raised text-secondary px-1 view-detail">
                 <i class="fa fa-eye"></i>
               </a> -->

@@ -326,7 +326,8 @@ class Command(BaseCommand):
             # Heat
             # ('Heat', 'heat', (None, None), ('vessel', '96 Well Plate well'), 'Heat'),
         ]
-
+        # Saving prev_action here so that we can save it as a parent for the next action_template
+        prev_action_template = None
         for action_tuple in actions:
             (
                 action_desc,
@@ -374,7 +375,7 @@ class Command(BaseCommand):
                 if created:
                     exp_template.vessel_templates.add(dest_vessel_template)
 
-            ActionTemplate.objects.get_or_create(
+            at, created = ActionTemplate.objects.get_or_create(
                 # action_sequence=action_sequences[action_seq],
                 description=action_desc,
                 experiment_template=exp_template,
@@ -384,6 +385,9 @@ class Command(BaseCommand):
                 dest_vessel_template=dest_vessel_template,
                 dest_vessel_decomposable=dest_vessel_decomposable,
             )
+            if prev_action_template is not None:
+                at.parent.add(prev_action_template)
+            prev_action_template = at
 
             for param_def_desc, unit in action_parameter_def[action_def_desc]:
                 param, created = ParameterDef.objects.get_or_create(
@@ -579,7 +583,7 @@ class Command(BaseCommand):
                 (None, None),
                 ("vessel", "96 Well Plate well"),
                 "Preheat Plate",
-            ), 
+            ),
             # Dispense Solvent to vials
             (
                 "Dispense Reagent 1 - Solvent",
@@ -654,6 +658,7 @@ class Command(BaseCommand):
             ),
         ]
 
+        prev_action_template = None
         for action_tuple in actions:
             (
                 action_desc,
@@ -717,7 +722,7 @@ class Command(BaseCommand):
                 if dest_vessel_template:
                     exp_template.vessel_templates.add(dest_vessel_template)
 
-            ActionTemplate.objects.get_or_create(
+            at, created = ActionTemplate.objects.get_or_create(
                 description=action_desc,
                 experiment_template=exp_template,
                 action_def=action_def,
@@ -726,6 +731,10 @@ class Command(BaseCommand):
                 dest_vessel_template=dest_vessel_template,
                 dest_vessel_decomposable=dest_vessel_decomposable,
             )
+
+            if prev_action_template is not None:
+                at.parent.add(prev_action_template)
+            prev_action_template = at
 
             for param_def_desc, unit in action_parameter_def[action_def_desc]:
                 param, created = ParameterDef.objects.get_or_create(

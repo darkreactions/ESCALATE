@@ -229,8 +229,8 @@ class ActionTemplateView(LoginRequired, View):
             # a["state"]
             adef_description = a["type"]
             at_description = a["state"].get("description", "")
-            source = a["state"].get("source", None)
-            dest = a["state"].get("destination", None)
+            source = a["state"].get("source", None).strip()
+            dest = a["state"].get("destination", None).strip()
             decomposable = a["state"].get("destination_decomposable", False)
 
             adef = vt.ActionDef.objects.get(description=adef_description)

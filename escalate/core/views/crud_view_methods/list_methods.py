@@ -4,7 +4,13 @@ import core.models
 methods = {
     "Material": {
         "model": core.models.view_tables.Material,
-        "table_columns": ["Chemical Name", "Identifiers", "Properties", "Type", "Status"],
+        "table_columns": [
+            "Chemical Name",
+            "Identifiers",
+            "Properties",
+            "Type",
+            "Status",
+        ],
         "column_necessary_fields": {
             "Chemical Name": ["description"],
             "Identifiers": ["identifier"],
@@ -150,7 +156,7 @@ methods = {
         ],
         "column_necessary_fields": {
             "Description": ["description"],
-            "Parameters": ["parameter_def"]
+            "Parameters": ["parameter_def"],
         },
         "ordering": ["description"],
         "field_contains": "",
@@ -170,7 +176,6 @@ methods = {
         "ordering": ["description"],
         "field_contains": "",
     },
-
     "PropertyTemplate": {
         "model": core.models.view_tables.PropertyTemplate,
         "table_columns": [
@@ -181,7 +186,6 @@ methods = {
         },
         "ordering": ["description"],
         "field_contains": "",
-
     },
     "ExperimentInstance": {
         "model": core.models.view_tables.ExperimentInstance,
@@ -255,19 +259,19 @@ methods = {
             "Template Name",
             "Reagent Templates",
             "Vessel Templates",
-            "Action Templates",
+            # "Action Templates",
             "Outcome Templates",
         ],
         "column_necessary_fields": {
             "Template Name": ["description"],
-           "Reagent Templates": ["reagent_templates"],
-           "Vessel Templates": ["vessel_templates"],
-           "Action Templates": ["action_templates"], 
-           "Outcome Templates": ["outcome_templates"],
+            "Reagent Templates": ["reagent_templates"],
+            "Vessel Templates": ["vessel_templates"],
+            # "Action Templates": ["action_templates"],
+            "Outcome Templates": ["outcome_templates"],
         },
         "ordering": ["description"],
         "field_contains": "",
         "org_related_path": "lab__organization",
-        #"default_filter_kwargs": {"template__isnull": False},
+        # "default_filter_kwargs": {"template__isnull": False},
     },
 }

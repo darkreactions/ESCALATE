@@ -120,7 +120,11 @@
                             <ul class="list-unstyled">
                                 <li>
                                     <a class="dropdown-item {% if url_name == 'exp_template' %}active{% endif %}"
-                                        href="{% url 'experiment_template_add' %}">Create New Experiment Template</a>
+                                        href="{% url 'experiment_template_add' %}" data-toggle="popover"
+                                        data-html="true" data-trigger="hover" data-placement="auto"
+                                        data-content="This is to create a completely new experiment">Create New
+                                        Experiment Template
+                                    </a>
                                 </li>
                                 <li><a class="dropdown-item" href="{% url 'experiment_template_list' %}">View
                                         Templates</a>
