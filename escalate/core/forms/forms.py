@@ -887,11 +887,11 @@ class UploadFileForm(forms.Form):
 class ExperimentTemplateForm(forms.ModelForm):
     class Meta:
         model = ExperimentTemplate
-        fields = ["description", "reagent_templates", "outcome_templates"]
+        fields = ["description", "reagent_templates", "outcome_templates", "vessel_templates"]
         labels = {"description": "Experiment Template Name"}
     
     def __init__(self, *args, **kwargs):
     
         super((ExperimentTemplateForm), self).__init__(*args, **kwargs)
 
-        self.fields['description'].disabled = True
+        #self.fields['description'].disabled = True
