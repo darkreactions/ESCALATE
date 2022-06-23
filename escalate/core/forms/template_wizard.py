@@ -194,7 +194,7 @@ class ExperimentTemplateNameForm(Form):
 
 class OutcomeDefinitionForm(Form):
 
-    define_outcomes = CharField(label="Outcome", required=False, initial=None)
+    define_outcomes = CharField(label="Outcome", required=True, initial=None)
     outcome_type = ChoiceField(widget=Select(attrs=dropdown_attrs))
 
     def __init__(self, *args, **kwargs):
@@ -242,7 +242,7 @@ class OutcomeDefinitionForm(Form):
 
 
 class VesselTemplateCreateForm(Form):
-    description = CharField(required=False)
+    description = CharField(required=True)
     outcome_vessel = BooleanField(required=False)
     default_vessel = ChoiceField(widget=Select(attrs=dropdown_attrs))
 
