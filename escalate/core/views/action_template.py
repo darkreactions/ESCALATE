@@ -244,6 +244,7 @@ class ActionTemplateView(LoginRequired, View):
                 decomposable = True
             at, created = vt.ActionTemplate.objects.get_or_create(
                 uuid=uid,
+                description=at_description,
                 experiment_template=exp_template,
             )
             at.action_def = adef
