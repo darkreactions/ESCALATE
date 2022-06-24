@@ -17,6 +17,7 @@ from core.models.base_classes import (
     StatusColumn,
     ActorColumn,
     DescriptionColumn,
+    UniqueDescriptionColumn,
 )
 from core.managers import OutcomeValueManager
 
@@ -172,7 +173,7 @@ class Property(DateColumns, StatusColumn, ActorColumn):
         return "{} : {}".format(self.template.description, self.value)  # type: ignore
 
 
-class PropertyTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
+class PropertyTemplate(DateColumns, StatusColumn, ActorColumn, UniqueDescriptionColumn):
     uuid = RetUUIDField(
         primary_key=True, default=uuid.uuid4, db_column="property_def_uuid"
     )

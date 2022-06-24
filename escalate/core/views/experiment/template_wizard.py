@@ -270,7 +270,7 @@ class CreateTemplateWizard(SessionWizardView):
             lab=data["lab"],
         )
 
-    def create_property_template(self, property):
+    '''def create_property_template(self, property):
         """helper function to generate a property template
         that can be associated with a reagent, material, etc
         """
@@ -297,7 +297,7 @@ class CreateTemplateWizard(SessionWizardView):
             }
         )
 
-        return prop_template
+        return prop_template'''
 
     def create_reagent_template(self, name, properties):
         """[summary]
@@ -317,8 +317,8 @@ class CreateTemplateWizard(SessionWizardView):
         # Create property templates for each reagent
         for p in properties:
             prop = PropertyTemplate.objects.filter(description=p).first()
-            prop_template = self.create_property_template(prop)
-            rt.properties.add(prop_template)
+            #prop_template = self.create_property_template(prop)
+            rt.properties.add(prop)
         return rt
 
     def add_materials(self, reagent, material_types, properties):
@@ -350,8 +350,8 @@ class CreateTemplateWizard(SessionWizardView):
             # for rv, default in reagent_values.items():
             for p in properties:
                 prop = PropertyTemplate.objects.filter(description=p).first()
-                prop_template = self.create_property_template(prop)
-                rmt.properties.add(prop_template)  # rmv_template)
+                #prop_template = self.create_property_template(prop)
+                rmt.properties.add(prop)  # rmv_template)
 
     def add_reagent(self, exp_template_uuid, reagent):
         """[summary]

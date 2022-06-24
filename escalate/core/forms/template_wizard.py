@@ -55,10 +55,13 @@ class ReagentTemplateCreateForm(Form):
         self.fields[
             "reagent_template_name"
         ].label = f"Reagent {str(int(self.reagent_index)+1)} Name"
+        property_choices = []
+        for pt in vt.PropertyTemplate.objects.all():
+            if pt.property_def_class != "intrinsic":
+                property_choices.append(pt)
         self.fields["properties"].choices = [
-            (pt.description, pt.description) for pt in vt.PropertyTemplate.objects.all()
+            (pt.description, pt.description) for pt in property_choices #vt.PropertyTemplate.objects.all()
         ]
-
         self.get_helper()
 
     def get_helper(self):
@@ -123,8 +126,12 @@ class ReagentTemplateMaterialAddForm(Form):
         super().__init__(*args, **kwargs)
 
         self.fields["name"].initial = list(data.keys())[0]
+        property_choices = []
+        for pt in vt.PropertyTemplate.objects.all():
+            if pt.property_def_class != "intrinsic":
+                property_choices.append(pt)
         self.fields["properties"].choices = [
-            (pt.description, pt.description) for pt in vt.PropertyTemplate.objects.all()
+            (pt.description, pt.description) for pt in property_choices #vt.PropertyTemplate.objects.all()
         ]
         num_materials = len(data[self.fields["name"].initial])
         for i in range(num_materials):
@@ -187,7 +194,7 @@ class ExperimentTemplateNameForm(Form):
 
 class OutcomeDefinitionForm(Form):
 
-    define_outcomes = CharField(label="Outcome", required=False, initial=None)
+    define_outcomes = CharField(label="Outcome", required=True, initial=None)
     outcome_type = ChoiceField(widget=Select(attrs=dropdown_attrs))
 
     def __init__(self, *args, **kwargs):
@@ -235,7 +242,7 @@ class OutcomeDefinitionForm(Form):
 
 
 class VesselTemplateCreateForm(Form):
-    description = CharField(required=False)
+    description = CharField(required=True)
     outcome_vessel = BooleanField(required=False)
     default_vessel = ChoiceField(widget=Select(attrs=dropdown_attrs))
 
