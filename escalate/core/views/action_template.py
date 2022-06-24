@@ -37,7 +37,7 @@ class ActionTemplateView(LoginRequired, View):
             # org_id=org_id
             # )
         else:
-            messages.error(request, "Please select a lab to continue")
+            # messages.error(request, "Please select a lab to continue")
             return HttpResponseRedirect(reverse("main_menu"))
 
         # return render(request, self.template_name, context)

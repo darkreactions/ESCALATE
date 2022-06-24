@@ -26,10 +26,6 @@ body {
   background-color: #f5f5f5;
 }
 
-.alert {
-  display: none;
-}
-
 .tooltip {
   position: relative;
   display: inline-block;

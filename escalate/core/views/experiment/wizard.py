@@ -110,7 +110,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
 
         org_id = self.request.session.get("current_org_id", None)
         if not org_id:
-            messages.error(request, "Please select a lab to continue")
+            # messages.error(request, "Please select a lab to continue")
             return HttpResponseRedirect(reverse("main_menu"))
         return super().get(request, *args, **kwargs)
 
