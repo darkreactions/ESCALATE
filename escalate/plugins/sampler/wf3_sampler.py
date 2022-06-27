@@ -41,7 +41,7 @@ class WF3SamplerPlugin(BaseSamplerPlugin):
                 f"Selected template is not Workflow 3. Found: {data.experiment_template.description}"
             )
         else:
-            self.errors=[]
+            self.errors = []
 
         # verify validity of numerical inputs for volume and molarity
         vol = self.vars["finalVolume"].value
@@ -144,7 +144,7 @@ class WF3SamplerPlugin(BaseSamplerPlugin):
             antisolvent_vol for i in range(num_of_automated_experiments)
         ]
 
-        action_templates = data.experiment_template.get_action_templates(
+        action_templates = data.experiment_template.action_template_et.filter(
             dest_vessel_decomposable=True
         )
         action_to_reagent_mapping = {

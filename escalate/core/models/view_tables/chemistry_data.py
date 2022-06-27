@@ -277,6 +277,13 @@ class MaterialType(DateColumns, DescriptionColumn):
 
 class ReagentTemplate(DateColumns, DescriptionColumn, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
+    experiment_template = models.ForeignKey(
+        "ExperimentTemplate",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name="reagent_templates",
+    )
     internal_slug = SlugField(
         populate_from=["description"], overwrite=True, max_length=255
     )

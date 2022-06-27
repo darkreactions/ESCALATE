@@ -183,11 +183,11 @@ class Command(BaseCommand):
         # corresponding ReagentMaterialTemplates and their Value Templates (ReagentMaterialValueTemplate)
         for r, rms in reagents.items():
             reagent_template, created = ReagentTemplate.objects.get_or_create(
-                description=r,
+                description=r, experiment_template=exp_template
             )
             reagent_template.properties.add(total_volume_prop)
             reagent_template.properties.add(dead_volume_prop)
-            exp_template.reagent_templates.add(reagent_template)
+            # exp_template.reagent_templates.add(reagent_template)
             for rm in rms:
                 self.stdout.write(self.style.NOTICE(f"{rm}"))
                 material_type = MaterialType.objects.get(description=rm)
@@ -242,12 +242,12 @@ class Command(BaseCommand):
 
         ot, created = OutcomeTemplate.objects.get_or_create(
             description="Crystal score",
-            experiment=exp_template,
+            experiment_template=exp_template,
             # instance_labels=well_list,
             default_value=default_crystal_score,
         )
         ot.save()
-        exp_template.outcome_templates.add(ot)
+        # exp_template.outcome_templates.add(ot)
 
         # heat_stir and heat causes duplicates, not sure why
         action_parameter_def = {
@@ -347,14 +347,15 @@ class Command(BaseCommand):
                     description="Generic Vessel"
                 )
                 source_vessel_template, created = VesselTemplate.objects.get_or_create(
+                    experiment_template=exp_template,
                     description=source_desc,
                     outcome_vessel=False,
                     # decomposable=False,
                     default_vessel=default_vessel,
                 )
 
-                if created:
-                    exp_template.vessel_templates.add(source_vessel_template)
+                # if created:
+                #    exp_template.vessel_templates.add(source_vessel_template)
 
             dest_vessel_template = None
             dest_vessel_decomposable = False
@@ -367,13 +368,14 @@ class Command(BaseCommand):
                     dest_vessel_decomposable = True
 
                 (dest_vessel_template, created,) = VesselTemplate.objects.get_or_create(
+                    experiment_template=exp_template,
                     description="Outcome vessel",
                     outcome_vessel=True,
                     default_vessel=default_vessel,
                 )
 
-                if created:
-                    exp_template.vessel_templates.add(dest_vessel_template)
+                # if created:
+                #    exp_template.vessel_templates.add(dest_vessel_template)
 
             at, created = ActionTemplate.objects.get_or_create(
                 # action_sequence=action_sequences[action_seq],
@@ -492,11 +494,12 @@ class Command(BaseCommand):
         # corresponding ReagentMaterialTemplates and their Property Templates
         for r, rms in reagents.items():
             reagent_template, created = ReagentTemplate.objects.get_or_create(
+                experiment_template=exp_template,
                 description=r,
             )
             reagent_template.properties.add(total_volume_prop)
             reagent_template.properties.add(dead_volume_prop)
-            exp_template.reagent_templates.add(reagent_template)
+            # exp_template.reagent_templates.add(reagent_template)
             for rm in rms:
                 self.stdout.write(self.style.NOTICE(f"{rm}"))
                 material_type = MaterialType.objects.get(description=rm)
@@ -559,12 +562,12 @@ class Command(BaseCommand):
         # Create outcome templates, Currently hard coded to capture 96 values
         ot, created = OutcomeTemplate.objects.get_or_create(
             description="Crystal score",
-            experiment=exp_template,
+            experiment_template=exp_template,
             # instance_labels=well_list,
             default_value=default_crystal_score,
         )
         ot.save()
-        exp_template.outcome_templates.add(ot)
+        # exp_template.outcome_templates.add(ot)
 
         action_parameter_def = {
             "dispense": (("volume", "uL"),),
@@ -687,12 +690,13 @@ class Command(BaseCommand):
                     description="Generic Vessel"
                 )
                 source_vessel_template, created = VesselTemplate.objects.get_or_create(
+                    experiment_template=exp_template,
                     description=source_desc,
                     outcome_vessel=False,
                     # decomposable=False,
                     default_vessel=default_vessel,
                 )
-                exp_template.vessel_templates.add(source_vessel_template)
+                # exp_template.vessel_templates.add(source_vessel_template)
 
             dest_vessel_template = None
             dest_vessel_decomposable = False
@@ -703,6 +707,7 @@ class Command(BaseCommand):
                         dest_vessel_template,
                         created,
                     ) = VesselTemplate.objects.get_or_create(
+                        experiment_template=exp_template,
                         description="Outcome vessel",
                         outcome_vessel=True,
                         default_vessel=default_vessel,
@@ -713,14 +718,15 @@ class Command(BaseCommand):
                         dest_vessel_template,
                         created,
                     ) = VesselTemplate.objects.get_or_create(
+                        experiment_template=exp_template,
                         description="Outcome vessel",
                         outcome_vessel=True,
                         default_vessel=default_vessel,
                     )
                     dest_vessel_decomposable = True
                 # print(dest_vessel_template, type(dest_desc))
-                if dest_vessel_template:
-                    exp_template.vessel_templates.add(dest_vessel_template)
+                # if dest_vessel_template:
+                #    exp_template.vessel_templates.add(dest_vessel_template)
 
             at, created = ActionTemplate.objects.get_or_create(
                 description=action_desc,

@@ -113,7 +113,7 @@ class ExperimentCreateViewSet(NestedViewSetMixin, viewsets.ViewSet):
         )
         vessel_templates = experiment_template.get_vessel_templates()
         reagent_templates = experiment_template.get_reagent_templates()
-        action_templates = experiment_template.get_action_templates(
+        action_templates = experiment_template.action_template_et.filter(
             source_vessel_decomposable=False, dest_vessel_decomposable=False
         )
 

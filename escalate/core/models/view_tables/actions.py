@@ -161,8 +161,15 @@ class ActionTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         return f"{self.description}"
 
 
-class VesselTemplate(DateColumns, StatusColumn, ActorColumn, UniqueDescriptionColumn):
+class VesselTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
+    experiment_template = models.ForeignKey(
+        "ExperimentTemplate",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name="vessel_templates",
+    )
     outcome_vessel = models.BooleanField(default=False)
     default_vessel = models.ForeignKey(
         "Vessel",
@@ -171,7 +178,6 @@ class VesselTemplate(DateColumns, StatusColumn, ActorColumn, UniqueDescriptionCo
         null=True,
         related_name="vessel_template_v",
     )
-
     internal_slug = SlugField(
         populate_from=["description"], overwrite=True, max_length=255
     )

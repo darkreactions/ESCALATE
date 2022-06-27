@@ -214,6 +214,11 @@ class ExperimentTemplate(DateColumns, StatusColumn):
         overwrite=True,
         max_length=255,
     )
+    reagent_templates: "QuerySet[ReagentTemplate]"
+    outcome_templates: "QuerySet[OutcomeTemplate]"
+    vessel_templates: "QuerySet[VesselTemplate]"
+
+    """
     reagent_templates = models.ManyToManyField(
         "ReagentTemplate", blank=True, related_name="experiment_template_rt"
     )
@@ -223,6 +228,8 @@ class ExperimentTemplate(DateColumns, StatusColumn):
     vessel_templates = models.ManyToManyField(
         "VesselTemplate", blank=True, related_name="experiment_template_vt"
     )
+    """
+
     # action_templates = models.URLField(blank=True)
 
     metadata = JSONField(blank=True, null=True)
@@ -237,10 +244,10 @@ class ExperimentTemplate(DateColumns, StatusColumn):
         dest_vessel_decomposable: "bool|None" = None,
     ) -> "list[ActionTemplate]":
         filter = {}
-        if source_vessel_decomposable is not None:
-            filter["source_vessel_decomposable"] = source_vessel_decomposable
-        if dest_vessel_decomposable is not None:
-            filter["dest_vessel_decomposable"] = dest_vessel_decomposable
+        # if source_vessel_decomposable is not None:
+        #    filter["source_vessel_decomposable"] = source_vessel_decomposable
+        # if dest_vessel_decomposable is not None:
+        #    filter["dest_vessel_decomposable"] = dest_vessel_decomposable
 
         # Sorting action templates using depth first
         # Get all action templates without parents
@@ -305,7 +312,7 @@ class ExperimentInstance(DateColumns, StatusColumn, DescriptionColumn):
     )
     # update to point to an experiment parent.
     outcome_ei: "Outcome"
-    template: ExperimentTemplate
+    # template: ExperimentTemplate
     template = models.ForeignKey(
         "ExperimentTemplate",
         db_column="parent_uuid",
@@ -416,13 +423,12 @@ class ExperimentPendingInstance(ExperimentInstance):
 
 class OutcomeTemplate(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="outcome_uuid")
-    experiment = models.ForeignKey(
+    experiment_template = models.ForeignKey(
         "ExperimentTemplate",
-        db_column="experiment_uuid",
         on_delete=models.CASCADE,
         blank=True,
         null=True,
-        related_name="outcome_template_experiment_template",
+        related_name="outcome_templates",
     )
     # instance_labels = ArrayField(
     # models.CharField(null=True, blank=True, max_length=255), null=True, blank=True
