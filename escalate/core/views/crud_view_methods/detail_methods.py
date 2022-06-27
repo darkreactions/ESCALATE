@@ -145,7 +145,7 @@ methods = {
             "Description",
             "Parent",
             "Total Volume",
-            "Well Count"
+            "Well Count",
             "Status",
         ],
         "detail_fields_need_fields": {
@@ -187,6 +187,23 @@ methods = {
         ],
         "detail_fields_need_fields": {
             "Description": ["description"],
+        },
+    },
+    "Outcome": {
+        "model": core.models.view_tables.Outcome,
+        "detail_fields": [
+            "Description",
+            "Experiment",
+            "Outcome Template",
+            "Nominal Value",
+            "Actual Value",
+        ],
+        "detail_fields_need_fields": {
+            "Description": ["description"],
+            "Experiment": ["experiment_instance"],
+            "Outcome Template": ["outcome_template"],
+            "Nominal Value": ["nominal_value"],
+            "Actual Value": ["actual_value"],
         },
     },
     "ExperimentTemplate": {

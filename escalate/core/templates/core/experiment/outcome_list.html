@@ -18,14 +18,14 @@
             {% for ot, table_data, table_columns in outcome_templates %}
             <li class="nav-item" role="presentation">
                 <button class="nav-link {% if forloop.counter0 == 0 %} active {% endif %}" id="{{ ot.description }}-tab"
-                    data-bs-toggle="tab" data-bs-target="#{{ ot.description }}" type="button" role="tab">{{ ot.description }}</button>
+                    data-toggle="tab" data-target="#{{ ot.description }}" type="button" role="tab">{{ ot.description }}</button>
             </li>
             {% endfor %}
         </ul>
 
         <div class="tab-content" id="myTabContent">
             {% for ot, table_columns, table_data in outcome_templates %}
-            <div class="tab-pane fade {% if forloop.counter0 == 0 %} show active {% endif %}" id="{{ ot.description }}"
+            <div class="tab-pane fade {% if forloop.counter0 == 0 %}show active{% endif %}" id="{{ ot.description }}"
                 role="tabpanel">
                 <div class="table-responsive text-nowrap">
                     <table class="table table-bordered table-hover">
@@ -47,21 +47,21 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for row_info in table_data %}
+                            {% for row_info, view_url, update_url in table_data %}
                             <tr class="text-nowrap">
                                 {% for col_data in row_info %}
                                 <td> {% if col_data %}{{ col_data }} {% else %} N/A {% endif %}</td>
                                 {% endfor %}
                                 <td>
-                                    <a href="{{ row_info.view_url }}"
+                                    <a href="{{ view_url }}"
                                         class="btn btn-raised text-secondary px-1 view-detail">
                                         <i class="fa fa-eye"></i>
                                     </a>
-                                    <a href="{{ row_info.update_url }}"
+                                    <a href="{{ update_url }}"
                                         class="btn btn-raised text-secondary px-1 view-update">
                                         <i class="fa fa-edit"></i>
                                     </a>
-
+                
                                     <button type="button" class="btn btn-raised text-secondary px-2" data-toggle="modal"
                                         data-target="#deleteModal" data-description="{{ row_info.obj_name }}"
                                         data-pk="{{ row_info.obj_pk }}">
@@ -76,10 +76,16 @@
             </div>
             {% endfor %}
         </div>
-
-
-
-
     </form>
 </div>
 {% endblock %}
+
+{% block tailcontent %}
+<script>
+$('#myTab a').on('click', function (event) {
+    event.preventDefault()
+    $(this).tab('show')
+  })
+</script>
+
+{% endblock %}  

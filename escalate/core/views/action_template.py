@@ -282,7 +282,7 @@ class ActionTemplateView(LoginRequired, View):
         dest_choices = []
 
         for v_template in vt.VesselTemplate.objects.filter(
-            experiment_template_vt=exp_template
+            experiment_template=exp_template
         ):
             source_choices.append(v_template.description)
             # dest_choices.append((v_template.description)

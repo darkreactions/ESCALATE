@@ -121,7 +121,7 @@ class ExperimentTemplateSelectForm(Form):
         ]
 
 
-class BaseReagentFormSet(BaseFormSet):
+class BaseIndexedFormSet(BaseFormSet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

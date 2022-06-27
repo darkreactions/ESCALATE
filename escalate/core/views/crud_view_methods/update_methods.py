@@ -66,9 +66,9 @@ methods = {
     },
     "ParameterDef": {
         "model": core.models.view_tables.ParameterDef,
-         "context_object_name": "parameter_def",
+        "context_object_name": "parameter_def",
         "form_class": forms.ParameterDefForm,
-        "success_url": reverse_lazy("parameter_def_list")
+        "success_url": reverse_lazy("parameter_def_list"),
     },
     "PropertyTemplate": {
         "model": core.models.view_tables.PropertyTemplate,
@@ -76,10 +76,16 @@ methods = {
         "form_class": forms.PropertyTemplateForm,
         "success_url": reverse_lazy("property_template_list"),
     },
-     "ExperimentTemplate": {
+    "ExperimentTemplate": {
         "model": core.models.view_tables.ExperimentTemplate,
         "context_object_name": "experiment_template",
         "form_class": forms.ExperimentTemplateForm,
+        "success_url": reverse_lazy("experiment_template_list"),
+    },
+    "Outcome": {
+        "model": core.models.view_tables.Outcome,
+        "context_object_name": "outcome",
+        "form_class": forms.OutcomeForm,
         "success_url": reverse_lazy("experiment_template_list"),
     },
 }

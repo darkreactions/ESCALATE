@@ -5,7 +5,7 @@ from formtools.wizard.views import SessionWizardView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from core.forms.wizard import (
     ExperimentTemplateSelectForm,
-    BaseReagentFormSet,
+    BaseIndexedFormSet,
     ReagentForm,
     VesselForm,
     ManualExperimentForm,
@@ -68,7 +68,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             formset_factory(
                 VesselForm,
                 extra=0,
-                formset=BaseReagentFormSet,
+                formset=BaseIndexedFormSet,
             ),
         ),
         (
@@ -76,7 +76,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             formset_factory(
                 ReagentForm,
                 extra=0,
-                formset=BaseReagentFormSet,
+                formset=BaseIndexedFormSet,
             ),
         ),
         (
@@ -84,7 +84,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             formset_factory(
                 ActionParameterForm,
                 extra=0,
-                formset=BaseReagentFormSet,
+                formset=BaseIndexedFormSet,
             ),
         ),
         (AUTOMATED_SPEC, AutomatedSpecificationForm),
@@ -95,7 +95,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             formset_factory(
                 PostProcessForm,
                 extra=1,
-                formset=BaseReagentFormSet,
+                formset=BaseIndexedFormSet,
             ),
         ),
     ]
@@ -168,16 +168,16 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
                 initial.append(reagent_initial)
             return initial
         if step == ACTION_PARAMS:
-            action_templates = self.experiment_template.get_action_templates(
-                source_vessel_decomposable=False, dest_vessel_decomposable=False
+            action_templates = self.experiment_template.action_template_et.filter(
+                dest_vessel_decomposable=False
             )
             initial = []
             for i, at in enumerate(action_templates):
                 action_initial = {"action_template_uuid": at.uuid}
                 for j, param_def in enumerate(at.action_def.parameter_def.all()):
                     param_initial = {
-                        "action_parameter_{j}": param_def.uuid,
-                        "value_{j}": param_def.default_val,
+                        f"action_parameter_{j}": param_def.uuid,
+                        f"value_{j}": param_def.default_val,
                     }
                     action_initial.update(param_initial)
                 initial.append(action_initial)
@@ -417,7 +417,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
                 "lab_uuid": self.request.session["current_org_id"],
             }
         }
-        action_templates = self.experiment_template.get_action_templates(
+        action_templates = self.experiment_template.action_template_et.filter(
             source_vessel_decomposable=False, dest_vessel_decomposable=False
         )
 

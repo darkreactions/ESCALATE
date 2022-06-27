@@ -447,4 +447,5 @@ view_names = [
     "ActionDef",
     "PropertyTemplate",
     "ParameterDef",
+    "Outcome",
 ]

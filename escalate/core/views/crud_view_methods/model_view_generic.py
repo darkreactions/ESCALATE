@@ -234,7 +234,10 @@ class GenericModelList(GenericModelListBase, ListView):
                     fields_for_col = []
                     for field in necessary_fields:
                         to_add = rgetattr(model_instance, field)
-                        if to_add.__class__.__name__ == "ManyRelatedManager":
+                        if to_add.__class__.__name__ in [
+                            "ManyRelatedManager",
+                            "RelatedManager",
+                        ]:
                             # if what we get is a many to many object instead of a flat easy to stringify field value
                             # Ex: Model.something.manyToMany
                             to_add = "\n".join([str(x) for x in to_add.all()])  # type: ignore
@@ -400,7 +403,12 @@ class GenericModelEdit:
             request.session["model_name"] = self.context_object_name
             self.success_url = reverse_lazy("model_tag_create", kwargs={"pk": model.pk})
         if request.POST.get("Submit"):
-            self.success_url = reverse(f"{self.context_object_name}_list")
+            if self.context_object_name == "outcome":
+                self.success_url = reverse(
+                    "outcome", kwargs={"pk": model.experiment_instance.uuid}
+                )
+            else:
+                self.success_url = reverse(f"{self.context_object_name}_list")
         return super().post(request, *args, **kwargs)  # type: ignore
 
     def form_valid(self, form):

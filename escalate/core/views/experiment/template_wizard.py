@@ -33,7 +33,7 @@ from core.forms.template_wizard import (
 from core.utilities.utils import get_colors
 from core.models.view_tables.generic_data import PropertyTemplate
 
-from core.forms.wizard import BaseReagentFormSet
+from core.forms.wizard import BaseIndexedFormSet
 
 # steps with names to display in UI
 INITIALIZE = "Create Experiment Template"
@@ -53,7 +53,7 @@ class CreateTemplateWizard(SessionWizardView):
             formset_factory(
                 ReagentTemplateCreateForm,
                 extra=0,
-                formset=BaseReagentFormSet,
+                formset=BaseIndexedFormSet,
             ),
         ),
         (
@@ -61,7 +61,7 @@ class CreateTemplateWizard(SessionWizardView):
             formset_factory(
                 ReagentTemplateMaterialAddForm,
                 extra=0,
-                formset=BaseReagentFormSet,
+                formset=BaseIndexedFormSet,
             ),
         ),
         (
@@ -69,13 +69,13 @@ class CreateTemplateWizard(SessionWizardView):
             formset_factory(
                 OutcomeDefinitionForm,
                 extra=0,
-                formset=BaseReagentFormSet,
+                formset=BaseIndexedFormSet,
             ),
         ),
         (
             ADD_VESSELS,
             formset_factory(
-                VesselTemplateCreateForm, extra=0, formset=BaseReagentFormSet
+                VesselTemplateCreateForm, extra=0, formset=BaseIndexedFormSet
             ),
         ),
     ]
@@ -317,7 +317,7 @@ class CreateTemplateWizard(SessionWizardView):
         # Create property templates for each reagent
         for p in properties:
             prop = PropertyTemplate.objects.filter(description=p).first()
-            #prop_template = self.create_property_template(prop)
+            # prop_template = self.create_property_template(prop)
             rt.properties.add(prop)
         return rt
 
@@ -350,7 +350,7 @@ class CreateTemplateWizard(SessionWizardView):
             # for rv, default in reagent_values.items():
             for p in properties:
                 prop = PropertyTemplate.objects.filter(description=p).first()
-                #prop_template = self.create_property_template(prop)
+                # prop_template = self.create_property_template(prop)
                 rmt.properties.add(prop)  # rmv_template)
 
     def add_reagent(self, exp_template_uuid, reagent):

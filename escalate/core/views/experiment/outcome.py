@@ -51,11 +51,15 @@ class ExperimentOutcomeList(TemplateView):
                 ]
                 table_data.append(
                     (
-                        o.description,
-                        o.actual_value.value,
-                        o.actual_value.unit,
-                        notes,
-                        filenames,
+                        (
+                            o.description,
+                            o.actual_value.value,
+                            o.actual_value.unit,
+                            notes,
+                            filenames,
+                        ),
+                        reverse("outcome_view", kwargs={"pk": o.uuid}),
+                        reverse("outcome_update", kwargs={"pk": o.uuid}),
                     )
                 )
 
