@@ -588,7 +588,7 @@ class PostProcessForm(Form):
         self.fields["select_post_processor"] = ChoiceField(
             widget=self.widget, required=False
         )
-        none_option: "list[Tuple[Any, str]]" = [(None, "No preprocessor selected")]
+        none_option: "list[Tuple[Any, str]]" = [(None, "No postprocessor selected")]
         self.fields["select_post_processor"].choices = none_option + [
             (post_processor_plugin.__name__, post_processor_plugin.name)
             for post_processor_plugin in BasePostProcessPlugin.__subclasses__()

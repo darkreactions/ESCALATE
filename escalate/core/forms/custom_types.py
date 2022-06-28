@@ -180,11 +180,11 @@ class ReagentRMVIForm(Form):
             )
             self.fields[f"reagent_prop_{i}"] = ValFormField(
                 required=False,
-                label=f"{prop.template.description.capitalize()} actual value",
+                label=f"Measured {prop.template.description.capitalize()}",
             )
             self.fields[f"reagent_prop_nom_{i}"] = ValFormField(
                 required=False,
-                label=f"{prop.template.description.capitalize()} expected value",
+                label=f"Desired {prop.template.description.capitalize()}",
             )
 
     def generate_reagent_material_fields(
@@ -195,7 +195,7 @@ class ReagentRMVIForm(Form):
     ):
         # Select material
         self.fields[f"material_{index}"] = ChoiceField(
-            widget=self.widget, required=False, label="Select Material"
+            widget=self.widget, required=False, label="Material"
         )
         # UUID of material template
         self.fields[f"reagent_material_template_uuid_{index}"] = CharField(
@@ -214,13 +214,13 @@ class ReagentRMVIForm(Form):
         for prop_index, prop in enumerate(rm.property_rm.all()):
             prop: vt.Property
             self.fields[f"reagent_material_prop_{index}_{prop_index}"] = ValFormField(
-                required=False, label=f"{prop.template.description.capitalize()} actual"
+                required=False, label=f"Measured {prop.template.description.capitalize()}"
             )
             self.fields[
                 f"reagent_material_prop_nom_{index}_{prop_index}"
             ] = ValFormField(
                 required=False,
-                label=f"{prop.template.description.capitalize()} nominal",
+                label=f"Desired {prop.template.description.capitalize()}",
             )
 
             self.fields[f"reagent_material_prop_uuid_{index}_{prop_index}"] = CharField(
@@ -268,9 +268,10 @@ class ReagentRMVIForm(Form):
     def get_helper(self):
         helper = FormHelper()
         helper.form_class = "form-horizontal"
-        helper.label_class = "col-lg-3"
-        helper.field_class = "col-lg-8"
-        rows = [Row(Field("reagent_uuid"))]
+        helper.label_class = "col-lg-5"
+        helper.field_class = "col-lg-6"
+        rows = [
+            Row(Field("reagent_uuid"))]
         tabs = []
         for i, prop in enumerate(self.reagent.property_r.all()):
             rows.append(
