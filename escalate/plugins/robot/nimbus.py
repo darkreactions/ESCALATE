@@ -70,7 +70,10 @@ class NimbusWF1RobotPlugin(RobotPlugin):
             for param in au.parameter_au.all():
                 k = param.parameter_def.description
                 if k == 'duration': #convert units for duration to seconds, if necessary
-                    v = Q_(float(param.parameter_val_nominal.value), param.parameter_val_nominal.unit).to(units.s).magnitude
+                    if param.parameter_val_nominal.unit != '':
+                        v = Q_(float(param.parameter_val_nominal.value), param.parameter_val_nominal.unit).to(units.s).magnitude
+                    else:
+                        v = param.parameter_val_nominal.value
                 else: #presumably temp is celcius and speed is in rpm so no conversions are perfomed 
                     v = param.parameter_val_nominal.value
                 action_units[au.action.template.description].append((k, v))

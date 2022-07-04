@@ -456,36 +456,36 @@ class ExperimentData:
             # aunits: Dict[ActionUnit] = {}
             parameters = []
 
-            for p_def, au_data_list in action_data.parameters.items():
-                for au_data in au_data_list:
-                    dest_bbm, bom_vessels = self._create_bbm(
-                        au_data.dest_vessel, bom_vessels, bom
-                    )
-                    source_bbm, bom_vessels = self._create_bbm(
-                        au_data.source_vessel, bom_vessels, bom
-                    )
-                    au, created = ActionUnit.objects.get_or_create(
-                        description=f"{action.description} : {source_bbm} -> {dest_bbm}",
-                        action=action,
-                        destination_material=dest_bbm,
-                        source_material=source_bbm,
-                    )
-                    au: ActionUnit
-                    if au_data.nominal_value:
-                        nominal_value = au_data.nominal_value
-                    else:
-                        nominal_value = p_def.default_val
-                    p = au.parameter_au.get(parameter_def=p_def)
-                    p.parameter_val_nominal = nominal_value
-                    """
-                    Parameter(
-                        parameter_def=p_def,
-                        parameter_val_nominal=nominal_value,
-                        parameter_val_actual=p_def.default_val,
-                        action_unit=au,
-                    )
-                    """
-                    parameters.append(p)
+            for p_def, au_data in action_data.parameters.items():
+                #for au_data in au_data_list:
+                dest_bbm, bom_vessels = self._create_bbm(
+                    au_data.dest_vessel, bom_vessels, bom
+                )
+                source_bbm, bom_vessels = self._create_bbm(
+                    au_data.source_vessel, bom_vessels, bom
+                )
+                au, created = ActionUnit.objects.get_or_create(
+                    description=f"{action.description} : {source_bbm} -> {dest_bbm}",
+                    action=action,
+                    destination_material=dest_bbm,
+                    source_material=source_bbm,
+                )
+                au: ActionUnit
+                if au_data.nominal_value:
+                    nominal_value = au_data.nominal_value
+                else:
+                    nominal_value = p_def.default_val
+                p = au.parameter_au.get(parameter_def=p_def)
+                p.parameter_val_nominal = nominal_value
+                """
+                Parameter(
+                    parameter_def=p_def,
+                    parameter_val_nominal=nominal_value,
+                    parameter_val_actual=p_def.default_val,
+                    action_unit=au,
+                )
+                """
+                parameters.append(p)
                 # aunits.append(au)
             # ActionUnit.objects.bulk_create(aunits)
             Parameter.objects.bulk_update(parameters, ["parameter_val_nominal"])
@@ -565,6 +565,7 @@ class ExperimentData:
         for action_params in form_data.get(action_params_key, {}):
             a_data: ActionData
             at = None
+            parameters={}
             for k, v in action_params.items():
                 if k == "action_template_uuid":
                     at = ActionTemplate.objects.get(uuid=v)
@@ -578,8 +579,9 @@ class ExperimentData:
                         dest_vessel=None,
                         nominal_value=action_params[f"value{suffix}"],
                     )
-                    a_data = ActionData(parameters={parameter_def: [aud]})
-                    action_parameters[at] = a_data
+                    parameters[parameter_def]= aud
+            a_data = ActionData(parameters=parameters)
+            action_parameters[at] = a_data
 
         # Setup reagent parameters
         reagent_properties_dict: Dict[ReagentTemplate, ReagentPropertyData] = {}

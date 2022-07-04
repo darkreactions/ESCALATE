@@ -29,7 +29,7 @@ class GenerateRobotFileForm(Form):
         self._populate_robot_generator()
 
     def _populate_robot_generator(self):
-        none_option: "list[Tuple[Any, str]]" = [(None, "No preprocessor selected")]
+        none_option: "list[Tuple[Any, str]]" = [(None, "No robot file generator selected")]
         self.fields["select_robot_file_generator"].choices = none_option + [
             (robot_plugin.__name__, robot_plugin.name)
             for robot_plugin in RobotPlugin.__subclasses__()

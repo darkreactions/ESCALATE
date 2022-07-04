@@ -10,6 +10,7 @@
     {% for form in rmvi_formsets %}
     <div class="card">
         <div class="card text-white" style="background-color: {{ colors|index:forloop.counter0 }}">
+            <div class="card-header ">{{ form.reagent.template.description }}</div>
             <div class="card-body">
                 {% crispy form %}
                 <hr>
