@@ -181,16 +181,16 @@ class ExperimentUploadOutcomeView(TemplateView):
             Edocument.objects.bulk_create(edoc_list)
             Outcome.objects.bulk_update(outcome_list, ["actual_value"])
         except KeyError as e:
-            messages.error(
-                request,
-                "Keyerror",
-            )
+            # messages.error(
+            #    request,
+            #    "Keyerror",
+            # )
             message = [
                 f"Error: File {e.args[0]} in outcome csv not found in uploaded files. Please correct and resubmit",
             ]
             return False, message
         except Exception as e:
-            messages.error(request, f"Error: {e}")
+            # messages.error(request, f"Error: {e}")
             message = [f"Python error: {e}"]
             return False, message
 
