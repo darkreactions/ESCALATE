@@ -13,6 +13,10 @@
 
 {% block content %}
 <div class="container">
+    <a href="{% url 'outcome_upload' pk=experiment_instance.uuid %}">
+        <button type="button" class="btn btn-primary">Bulk Upload Outcomes</button>
+    </a>
+
     <form method="post">{% csrf_token %}
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             {% for ot, table_data, table_columns in outcome_templates %}
@@ -53,15 +57,13 @@
                                 <td> {% if col_data %}{{ col_data }} {% else %} N/A {% endif %}</td>
                                 {% endfor %}
                                 <td>
-                                    <a href="{{ view_url }}"
-                                        class="btn btn-raised text-secondary px-1 view-detail">
+                                    <a href="{{ view_url }}" class="btn btn-raised text-secondary px-1 view-detail">
                                         <i class="fa fa-eye"></i>
                                     </a>
-                                    <a href="{{ update_url }}"
-                                        class="btn btn-raised text-secondary px-1 view-update">
+                                    <a href="{{ update_url }}" class="btn btn-raised text-secondary px-1 view-update">
                                         <i class="fa fa-edit"></i>
                                     </a>
-                
+
                                     <button type="button" class="btn btn-raised text-secondary px-2" data-toggle="modal"
                                         data-target="#deleteModal" data-description="{{ row_info.obj_name }}"
                                         data-pk="{{ row_info.obj_pk }}">
@@ -82,10 +84,10 @@
 
 {% block tailcontent %}
 <script>
-$('#myTab a').on('click', function (event) {
-    event.preventDefault()
-    $(this).tab('show')
-  })
+    $('#myTab a').on('click', function (event) {
+        event.preventDefault()
+        $(this).tab('show')
+    })
 </script>
 
-{% endblock %}  
+{% endblock %}

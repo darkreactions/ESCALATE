@@ -22,7 +22,7 @@ from .views import (
 )
 from .views.experiment import (
     ExperimentReagentPrepView,
-    ExperimentOutcomeView,
+    ExperimentUploadOutcomeView,
     ExperimentOutcomeList,
     ExperimentDetailEditView,
     ParameterEditView,
@@ -108,10 +108,14 @@ urlpatterns += [
         name="reagent_prep",
     ),
     path(
-        # "experiment/<uuid:pk>/outcome", ExperimentOutcomeView.as_view(), name="outcome"
         "experiment/<uuid:pk>/outcome",
         ExperimentOutcomeList.as_view(),
         name="outcome",
+    ),
+    path(
+        "experiment/<uuid:pk>/outcome-upload",
+        ExperimentUploadOutcomeView.as_view(),
+        name="outcome_upload",
     ),
 ]
 
@@ -168,7 +172,7 @@ urlpatterns += [
     ),
     path(
         "experiment_pending_instance/<uuid:pk>/outcome",
-        ExperimentOutcomeView.as_view(),
+        ExperimentOutcomeList.as_view(),
         name="experiment_pending_instance_outcome",
     ),
     path(

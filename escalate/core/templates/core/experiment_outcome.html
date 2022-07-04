@@ -4,23 +4,118 @@
 {% load index %}
 
 {% block content %}
+<script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
 
-<form method="post" action="">{% csrf_token %}
-    <div class="text-left">
-        <button class="btn btn-outline-primary" type="submit" name="outcome_download">Download outcome file</button>
-    </div>
-</form>
-
-<form method="post" action="" enctype="multipart/form-data">{% csrf_token %}
-    <div class="card">
-        <div class="card-body">
-            {% crispy outcome_file_upload_form outcome_file_upload_form_helper %}
+<div class="card">
+    <div class="card-body">
+        <h4 class="card-title">Outcome definition file (ODF)</h4>
+        <h5 class="card-subtitle"><b>Instructions:</b> To upload outcome data in bulk, 
+            first download and fill the outcome definition file (ODF) using the button below.
+            Add the filenames you intend to upload corresponding to the outcome vessel
+            specified in the ODF. You may also add notes and outcome values to the ODF</h5>
+        <form method="post" action="">{% csrf_token %}
             <div class="text-left">
-                <button class="btn btn-outline-primary" type="submit" name="outcome_upload">Submit Outcomes</button>
+                <button class="btn btn-outline-primary" type="submit" name="outcome_download">Download outcome file</button>
             </div>
-        </div>
+        </form>
     </div>
-    <br>
-    <input type="hidden" id="automated" name="automated" value="{{ automated }}">
-</form>
+</div>
+</br>
+<div class="card">
+    <div class="card-body">
+        <h4 class="card-title">Outcome upload form</h4>
+        <form enctype='multipart/form-data' class="" action="#" method='POST' id="upload_form" name="upload_form">{% csrf_token %}
+        <div class="input-group" ">
+            <div class="input-group-prepend">
+              <span class="input-group-text" id="inputGroupFileAddon01">Upload outcome definition file</span>
+            </div>
+            <div class="custom-file">
+              <input type="file" class="custom-file-input" id="inputGroupFile01" name="outcome_def_file" aria-describedby="inputGroupFileAddon01">
+              <label class="custom-file-label" for="inputGroupFile01">Choose file</label>
+            </div>
+          </div>
+        </br>
+            <div class="dropzone needsclick dz-clickable" id="mydropzone">
+                <div class="previews dz-message">
+                    Drag and drop outcome files added to the outcome definition file. Limit of 1000 files of 50 MB each
+                </div>
+            </div>
+            <div class="text-left">
+                <button class="btn btn-outline-primary" type="submit" id="submit-all" value="Upload" >Submit
+                    Outcomes</button>
+            </div>
+            
+        </form>
+        
+    </div>
+  </div>
+
+
+{% endblock %}
+
+{% block tailcontent %}
+<script>
+    //Dropzone.autoDiscover = false;
+    Dropzone.options.mydropzone = {
+        url: "{% url 'outcome_upload' pk=experiment_instance.uuid %}",
+        thumbnailWidth: 80,
+        thumbnailHeight: 80,
+        dictRemoveFile: "Remove",
+        autoProcessQueue: false,
+        uploadMultiple: true,
+        parallelUploads: 20,
+        maxFiles: 1000,
+        maxFilesize: 50,
+        addRemoveLinks: true,
+        init: function () {
+            dzClosure = this; // Makes sure that 'this' is understood inside the functions below.
+
+            // for Dropzone to process the queue (instead of default form behavior):
+            document.getElementById("submit-all").addEventListener("click", function (e) {
+                // Make sure that the form isn't actually being sent.
+                e.preventDefault();
+                e.stopPropagation();
+                if (dzClosure.getQueuedFiles().length > 0) {
+                    dzClosure.processQueue();
+                } else {
+                    var formData = new FormData($('#upload_form')[0]);
+                    formData.append("outcome_upload", true);
+                    console.log(formData);
+                    $.ajax({
+                        type: 'POST',
+                        processData: false,
+                        contentType: false,
+                        cache: false,
+                        data: formData,
+                        success: function(data){
+                            window.location.href = "{% url 'outcome' pk=experiment_instance.uuid %}";
+                        },
+                        error: function(data){
+                            alert(data.responseJSON.message)
+                        }
+                    });
+                }
+            });
+            /*{
+                'outcome_upload': true,
+                            'csrfmiddlewaretoken': '{{csrf_token}}',
+                        }*/
+            //send all the form data along with the files:
+            this.on("sendingmultiple", function (data, xhr, formData) {
+                console.log("sending multiple");
+                var odfData = new FormData($('#upload_form')[0]);
+                formData.append("outcome_upload", true);
+                formData.append('csrfmiddlewaretoken', '{{csrf_token}}');
+                formData.append('outcome_def_file', odfData.get('outcome_def_file'));
+                
+            });
+
+            
+
+        }
+    };
+</script>
+
+
 {% endblock %}

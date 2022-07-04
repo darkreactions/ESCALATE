@@ -24,7 +24,7 @@ import core.models.view_tables as vt
 from core.models.view_tables import ReagentTemplate, Reagent
 from core.widgets import ValFormField
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit, Row, Column, Hidden, Field, HTML
+from crispy_forms.layout import Layout, Submit, Row, Column, Hidden, Field, HTML, Div
 from crispy_forms.bootstrap import UneditableField
 from crispy_forms.bootstrap import Tab, TabHolder
 
@@ -39,15 +39,15 @@ dropdown_attrs = {
 
 class UploadFileForm(Form):
     # title = CharField(max_length=50)
-    file = FileField(label="Upload completed outcome file")
-    outcome_files = FileField(
-        label="Upload related files (images,xrd etc.)",
-        widget=FileInput(attrs={"multiple": True}),
+    outcome_def_file = FileField(
+        label="Upload outcome definition file",
+        # widget=FileInput(attrs={"multiple": True}),
     )
+    # mydropzone =
 
-    class Media:
-        css = {"all": ("css/dropzone.css",)}
-        js = ("js/dropzone.min.js",)
+    # class Media:
+    #    css = {"all": ("css/dropzone.css",)}
+    #    js = ("js/dropzone.min.js",)
 
     @staticmethod
     def get_helper():
@@ -56,8 +56,12 @@ class UploadFileForm(Form):
         helper.label_class = "col-lg-2"
         helper.field_class = "col-lg-8"
         helper.layout = Layout(
-            Row(Column(Field("file"))),
-            Row(Column(Field("outcome_files"))),
+            Row(Column(Field("outcome_def_file"))),
+            Row(
+                Column(
+                    Div("outcome_files", css_class="dropzone needsclick dz-clickable")
+                )
+            ),
             # Row(Column(Submit('outcome_upload', 'Submit'))),
         )
         return helper
