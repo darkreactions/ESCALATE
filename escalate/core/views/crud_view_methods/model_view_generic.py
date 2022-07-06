@@ -5,10 +5,11 @@ from django.urls import reverse_lazy, reverse
 from django.http import HttpResponse, HttpResponseRedirect, FileResponse, HttpRequest
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
+from django.contrib import messages
 from requests import request
 
 # from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
-from core.models.view_tables import Note, Actor, TagAssign, Tag, Edocument
+from core.models.view_tables import Note, Actor, TagAssign, Tag, Edocument, ExperimentInstance
 from core.models.core_tables import TypeDef
 from core.forms.forms import NoteForm, TagSelectForm, UploadEdocForm
 from django.forms import modelformset_factory
@@ -407,6 +408,11 @@ class GenericModelEdit:
                 self.success_url = reverse(
                     "outcome", kwargs={"pk": model.experiment_instance.uuid}
                 )
+            elif self.context_object_name == "experiment_template":
+                for i in ExperimentInstance.objects.all():
+                    if i.template.uuid == self.kwargs['pk']:
+                        messages.error(request, f"Template {model.description} cannot be edited. It has already been used to create experiments")
+                        return HttpResponseRedirect(reverse(f"{self.context_object_name}_list"))
             else:
                 self.success_url = reverse(f"{self.context_object_name}_list")
         return super().post(request, *args, **kwargs)  # type: ignore

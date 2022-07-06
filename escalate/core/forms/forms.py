@@ -33,6 +33,9 @@ from core.models.view_tables import (
     DefaultValues,
     ExperimentTemplate,
     Outcome,
+    ReagentTemplate,
+    OutcomeTemplate,
+    VesselTemplate,
 )
 from core.models.core_tables import TypeDef
 from core.widgets import ValFormField, ValWidget
@@ -905,13 +908,51 @@ class ExperimentTemplateForm(forms.ModelForm):
     class Meta:
         model = ExperimentTemplate
         fields = [
-            "description"
+            "description",
         ]  # "reagent_templates", "outcome_templates", "vessel_templates"]
         labels = {"description": "Experiment Template Name"}
 
     def __init__(self, *args, **kwargs):
 
+        template = kwargs.get("instance", None)
+
+        current_reagent_templates = (
+            template.reagent_templates.all()
+            if template
+            else ReagentTemplate.objects.none()
+        )
+        current_vessel_templates = (
+            template.vessel_templates.all()
+            if template
+            else VesselTemplate.objects.none()
+        )
+        current_outcome_templates = (
+            template.outcome_templates.all()
+            if template
+            else OutcomeTemplate.objects.none()
+        )
         super((ExperimentTemplateForm), self).__init__(*args, **kwargs)
+
+        self.fields["reagent_templates"] = forms.ModelMultipleChoiceField(
+            initial=current_reagent_templates,
+            required=False,
+            #choices=[(r.uuid, r.description) for r in ReagentTemplate.objects.all()],
+            queryset=ReagentTemplate.objects.all(),
+        )
+
+        self.fields["vessel_templates"] = forms.ModelMultipleChoiceField(
+            initial=current_vessel_templates,
+            required=False,
+            #choices=[(r.uuid, r.description) for r in ReagentTemplate.objects.all()],
+            queryset=VesselTemplate.objects.all(),
+        )
+
+        self.fields["outcome_templates"] = forms.ModelMultipleChoiceField(
+            initial=current_outcome_templates,
+            required=False,
+            #choices=[(r.uuid, r.description) for r in ReagentTemplate.objects.all()],
+            queryset=OutcomeTemplate.objects.all(),
+        )
 
         # self.fields['description'].disabled = True
 
