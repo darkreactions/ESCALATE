@@ -259,10 +259,16 @@ def generate_action_def_json(action_defs, exp_template_uuid):
                         "options": {"items": [i for i in dest_choices]},
                     },
                     {
+                        "name": "source_decomposable",
+                        "type": "boolean",
+                        "label": "Source vessel decomposable?",
+                        "hint": "does the action apply to the entire source vessel, or to its components?",
+                    },
+                    {
                         "name": "destination_decomposable",
                         "type": "boolean",
                         "label": "Destination vessel decomposable?",
-                        "hint": "does the action apply to the entire vessel, or to its components?",
+                        "hint": "does the action apply to the entire destination vessel, or to its components?",
                     },
                 ],
             }

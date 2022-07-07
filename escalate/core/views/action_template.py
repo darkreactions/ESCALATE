@@ -231,17 +231,22 @@ class ActionTemplateView(LoginRequired, View):
             at_description = a["state"].get("description", "")
             source = a["state"].get("source", None).strip()
             dest = a["state"].get("destination", None).strip()
-            decomposable = a["state"].get("destination_decomposable", False)
+            source_decomposable = a["state"].get("source_decomposable", False)
+            dest_decomposable = a["state"].get("destination_decomposable", False)
 
             adef = vt.ActionDef.objects.get(description=adef_description)
             if source:
                 source = vt.VesselTemplate.objects.get(description=source)
+            if source_decomposable is None or source_decomposable == "false":
+                source_decomposable = False
+            elif source_decomposable == "true":
+                source_decomposable = True
             if dest:
                 dest = vt.VesselTemplate.objects.get(description=dest)
-            if decomposable is None or decomposable == "false":
-                decomposable = False
-            elif decomposable == "true":
-                decomposable = True
+            if dest_decomposable is None or dest_decomposable == "false":
+                dest_decomposable = False
+            elif dest_decomposable == "true":
+                dest_decomposable = True
             at, created = vt.ActionTemplate.objects.get_or_create(
                 uuid=uid,
                 description=at_description,
@@ -249,8 +254,9 @@ class ActionTemplateView(LoginRequired, View):
             )
             at.action_def = adef
             at.source_vessel_template = source if source else None
+            at.source_vessel_decomposable = source_decomposable
             at.dest_vessel_template = dest if dest else None
-            at.dest_vessel_decomposable = decomposable
+            at.dest_vessel_decomposable = dest_decomposable
             at.save()
             action_templates[str(at.uuid)] = at
 
@@ -341,10 +347,16 @@ class ActionTemplateView(LoginRequired, View):
                             "options": {"items": source_choices},
                         },
                         {
+                            "name": "source_decomposable",
+                            "type": "boolean",
+                            "label": "Source vessel decomposable?",
+                            "hint": "does the action apply to the entire source vessel, or to its components?",
+                        },
+                        {
                             "name": "destination_decomposable",
                             "type": "boolean",
                             "label": "Destination vessel decomposable?",
-                            "hint": "does the action apply to the entire vessel, or to its components?",
+                            "hint": "does the action apply to the entire destination vessel, or to its components?",
                         },
                     ],
                 }
