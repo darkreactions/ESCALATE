@@ -1,7 +1,8 @@
 from django.urls import reverse_lazy
 
 import core.models
-import core.forms.forms as forms
+#import core.forms.forms as forms
+import core.forms.models as forms
 
 methods = {
     "Material": {

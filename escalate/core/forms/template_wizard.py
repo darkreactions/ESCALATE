@@ -3,9 +3,7 @@ from django.forms import (
     BooleanField,
     MultipleChoiceField,
     Select,
-    CheckboxSelectMultiple,
     Form,
-    ModelForm,
     CharField,
     ChoiceField,
     IntegerField,
@@ -41,8 +39,6 @@ class ReagentTemplateCreateForm(Form):
         # help_text=RTCreateHelp.PROPERTIES.value,
     )
 
-    # properties_add = CharField(required = False, label= "If desired properties are not listed, enter names separated by commas")
-
     def __init__(self, *args, **kwargs):
         try:
             self.reagent_index = kwargs.pop("index")
@@ -73,7 +69,6 @@ class ReagentTemplateCreateForm(Form):
         helper.layout = Layout(
             Row(Column(Field(f"reagent_template_name")), Field(f"num_materials")),
             Row(Column(Field(f"properties"))),
-            # Row(Column(Field(f"properties_add"))),
         )
 
         helper.form_tag = False
@@ -91,26 +86,19 @@ class ReagentTemplateMaterialAddForm(Form):
         help_text="",
     )
 
-    # properties_add = CharField(required = False, label= "If desired properties are not listed, enter names separated by commas")
+    def generate_subforms(self, mat_index): 
 
-    def generate_subforms(self, mat_index):  # reagent_index):
-        # self.fields[f"select_mt_{mat_index}_{reagent_index}"] = ChoiceField(
         self.fields[f"select_mt_{mat_index}"] = ChoiceField(
             widget=Select(attrs=dropdown_attrs),
             required=True,
             label=f"Select Material Type: Material {mat_index+1}",
         )
-        # self.fields[f"add_type_{mat_index}"] = CharField(required = False, label= "If desired material type is not listed, enter name")
 
-        # self.fields[f"select_mt_{mat_index}_{reagent_index}"].choices = [
         none_option: "list[Tuple[Any, str]]" = [(None, "No material type selected")]
 
         mat_type: "list[Tuple[Any, str]]" = [
             (r.uuid, r.description) for r in vt.MaterialType.objects.all()
         ]
-        # self.fields[f"select_mt_{mat_index}"].choices = [
-        # (r.uuid, r.description) for r in vt.MaterialType.objects.all()
-        # ]
         self.fields[f"select_mt_{mat_index}"].choices = none_option + mat_type
 
     def __init__(self, *args, **kwargs):
@@ -131,11 +119,11 @@ class ReagentTemplateMaterialAddForm(Form):
             if pt.property_def_class != "intrinsic":
                 property_choices.append(pt)
         self.fields["properties"].choices = [
-            (pt.description, pt.description) for pt in property_choices #vt.PropertyTemplate.objects.all()
+            (pt.description, pt.description) for pt in property_choices 
         ]
         num_materials = len(data[self.fields["name"].initial])
         for i in range(num_materials):
-            self.generate_subforms(i)  # self.index)
+            self.generate_subforms(i)  
 
         self.get_helper(num_materials)
 
@@ -153,37 +141,13 @@ class ReagentTemplateMaterialAddForm(Form):
             )
         )
 
-        # rows.append(Row(
-        #       Column(Field(f"properties_add"))))
-
         for i in range(num_materials):
-
-            # rows.append(Row(Column(Field(f"select_mt_{i}_{self.index}"))))
             rows.append(Row(Column(Field(f"select_mt_{i}"))))
-            # rows.append(Row(Column(Field(f"add_type_{i}"))))
 
         helper.layout = Layout(*rows)
         helper.form_tag = False
 
         self.helper = helper
-
-    """def clean(self):
-        cleaned_data = super().clean()
-
-        if self.is_valid():
-            
-            #check that the right number of materials have been selected for each reagent
-            for key, val in cleaned_data.items():
-                if 'select_mt' in key:
-                    index=key.split('_')[2]
-                    pair = 'add_type_{}'.format(index)
-                    for k, v in cleaned_data.items():
-                        if k==pair:
-                            if len(val)== 0 and len(v) ==0:
-                                message = "Number of materials does not match the number specified for this reagent"
-                                self.add_error("select_mt_{}".format(index), ValidationError(message, code="invalid"))
-
-        return cleaned_data"""
 
 
 class ExperimentTemplateNameForm(Form):

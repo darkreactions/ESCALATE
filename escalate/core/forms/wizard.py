@@ -4,24 +4,18 @@ import logging
 from django.db.models import QuerySet
 from django.forms import (
     Select,
-    SelectMultiple,
-    CheckboxSelectMultiple,
     Form,
     ModelChoiceField,
     HiddenInput,
     CharField,
     ChoiceField,
-    MultipleChoiceField,
     IntegerField,
     BaseFormSet,
-    BaseModelFormSet,
-    ModelForm,
     FileField,
-    ClearableFileInput,
     ValidationError,
 )
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit, Row, Column, Hidden, Field, HTML
+from crispy_forms.layout import Layout, Row, Column, Field, HTML
 from crispy_forms.bootstrap import Tab, TabHolder
 import pandas as pd
 from django.utils.html import format_html
@@ -183,9 +177,6 @@ class ReagentForm(Form):
         self.fields[f"material_{index}"].choices = [
             (im.uuid, im.description) for im in self.inventory_materials[material_type]
         ]
-        # self.fields[
-        #    f"material_{index}"
-        # ].label = f"Reagent {int(self.material_index)+1}: {material_type}"
 
     def __init__(self, *args, **kwargs):
         self.material_index = str(kwargs.pop("index"))
@@ -440,13 +431,6 @@ class SamplerParametersForm(Form):
         cleaned_data = super().clean()
         if self.is_valid() and cleaned_data:
             form_data: Dict[str, Any] = cleaned_data
-            # form_data = self.all_form_data[AUTOMATED_SPEC] #form.cleaned_data
-            # automated_spec_form_data = self.get_cleaned_data_for_step(AUTOMATED_SPEC)
-            # assert isinstance(automated_spec_form_data, dict)
-
-            # SamplerPlugin: Type[BaseSamplerPlugin] = globals()[
-            #    self.automated_spec_form_data["select_experiment_sampler"]
-            # ]
 
             prev_form_data = self.all_form_data
             exp_data = ExperimentData.parse_form_data(prev_form_data)
@@ -455,9 +439,6 @@ class SamplerParametersForm(Form):
             if sampler_plugin.validate(data=exp_data):
                 try:
                     if self.request:
-                        # if "experiment_data" not in self.request.session:
-                        # self.request.session[
-                        #    "experiment_data"
                         cleaned_data[
                             "experiment_data"
                         ] = sampler_plugin.sample_experiments(data=exp_data)
@@ -514,20 +495,7 @@ class AutomatedSpecificationForm(Form):
                     self.outcome_vessels.append(vessel_data["value"])
         super().__init__(*args, **kwargs)
         self._populate_samplers()
-        """
-        if len(self.data) > 0:
-            if 'Specify Automated Experiments-select_experiment_sampler' in self.data.keys():
-
-                sampler = self.data['Specify Automated Experiments-select_experiment_sampler']
-                if len(sampler) >0: 
-                    SamplerPlugin: Type[BaseSamplerPlugin] = globals()[
-                            sampler
-                        ]
-
-                    #chosen_sampler = SamplerPlugin()
-                    if SamplerPlugin.sampler_vars is not None:
-                        self._add_sampler_vars(SamplerPlugin)
-        """
+       
 
     def _populate_samplers(self):
         none_option: "list[Tuple[Any, str]]" = [(None, "No sampler selected")]

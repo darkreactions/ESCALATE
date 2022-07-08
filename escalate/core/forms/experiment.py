@@ -1,16 +1,12 @@
 from typing import Tuple, Any
-from core.widgets import ValWidget, TextInput
 from django.forms import (
     Select,
     Form,
     ChoiceField,
 )
-from core.models.core_tables import TypeDef
-import core.models.view_tables as vt
-from core.widgets import ValFormField
-from .forms import dropdown_attrs
+
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit, Row, Column, Hidden, Field
+from crispy_forms.layout import Layout, Row, Column, Field
 from plugins.robot.base_robot_plugin import RobotPlugin
 
 

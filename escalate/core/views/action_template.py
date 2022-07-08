@@ -4,9 +4,7 @@ from django.shortcuts import render
 from django.views import View
 import json
 import core.models.view_tables as vt
-from core.utilities import generate_action_def_json
-from core.forms.custom_types import ExperimentTemplateSelectForm
-from django.http.request import HttpRequest
+
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.contrib import messages
@@ -16,7 +14,6 @@ from pathlib import Path
 
 class ActionTemplateView(LoginRequired, View):
     template_name = "core/action_template.html"
-    form_class = ExperimentTemplateSelectForm
 
     def get_context_data(self, **kwargs):
         context = {}
@@ -33,14 +30,9 @@ class ActionTemplateView(LoginRequired, View):
 
         if "current_org_id" in self.request.session:
             org_id = self.request.session["current_org_id"]
-            # context["experiment_template_select_form"] = ExperimentTemplateSelectForm(
-            # org_id=org_id
-            # )
-        else:
-            # messages.error(request, "Please select a lab to continue")
-            return HttpResponseRedirect(reverse("main_menu"))
 
-        # return render(request, self.template_name, context)
+        else:
+            return HttpResponseRedirect(reverse("main_menu"))
 
         base_path = Path("./core/static/json/")
         base_path2 = Path("./escalate/core/static/json/")
@@ -54,12 +46,11 @@ class ActionTemplateView(LoginRequired, View):
 
         exp_template_uuid = kwargs["pk"]
         exp_template = vt.ExperimentTemplate.objects.get(uuid=kwargs["pk"])
-        # workflow = action_def_workflow
+
         workflow = self._generate_existing_workflow(exp_template)
 
         action_defs = [a for a in vt.ActionDef.objects.all()]
         parameter_defs = [p for p in vt.ParameterDef.objects.all()]
-        # exp_template = vt.ExperimentTemplate(uuid=request.META["PATH_INFO"].split("/"))
 
         temp = self._generate_action_def_json(action_defs, exp_template)
 
@@ -172,8 +163,7 @@ class ActionTemplateView(LoginRequired, View):
             wf_coords["activities"].append(
                 {"id": "1", "top": top, "left": 50, "type": "end", "state": {}}
             )
-            # exp_template.metadata["workflow_coordinates"] = wf_coords
-            # exp_template.save()
+
         return json.dumps(wf_coords)
 
     def post(self, request, *args, **kwargs):
@@ -278,19 +268,15 @@ class ActionTemplateView(LoginRequired, View):
         return "SUCCESS: Workflow successfully saved"
 
     def _generate_action_def_json(self, action_defs, exp_template):
-        # by convention, transfer-type actions(e.g. dispense) involve moving a source into a destination
-        # other actions, e.g. heat, involve only one material/vessel.
-        # this is specified as the destination and source is left blank
 
-        source_choices = [
+        vessel_choices = [
             (None, " ")
-        ]  # add a "blank" source for actions that do not involve transferring
-        dest_choices = []
+        ]  # add a "blank" option in case action has no source or no destination vessel
 
         for v_template in vt.VesselTemplate.objects.filter(
             experiment_template=exp_template
         ):
-            source_choices.append(v_template.description)
+            vessel_choices.append(v_template.description)
             # dest_choices.append((v_template.description)
 
         json_data = [
@@ -337,14 +323,14 @@ class ActionTemplateView(LoginRequired, View):
                             "type": "select",
                             "label": "From:",
                             "hint": "source vessel",
-                            "options": {"items": source_choices},
+                            "options": {"items": vessel_choices},
                         },
                         {
                             "name": "destination",
                             "type": "select",
                             "label": "To:",
                             "hint": "destination vessel",
-                            "options": {"items": source_choices},
+                            "options": {"items": vessel_choices},
                         },
                         {
                             "name": "source_decomposable",

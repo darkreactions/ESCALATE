@@ -1,8 +1,7 @@
-from typing import List, Optional, Type, Protocol, Any, Dict
-from django.db.models.query import QuerySet
+from typing import List, Optional, Type, Any, Dict
 from django.db.models import Q, Count, Model
 from django.urls import reverse_lazy, reverse
-from django.http import HttpResponse, HttpResponseRedirect, FileResponse, HttpRequest
+from django.http import HttpResponseRedirect, HttpRequest
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from django.contrib import messages
@@ -27,9 +26,7 @@ from ..exports.file_types import file_types as export_file_types
 from core.models.core_tables import custom_slugify
 
 import functools
-import urllib
 import urllib.parse as urlparse
-import core
 
 # class with generic classes to use in models
 

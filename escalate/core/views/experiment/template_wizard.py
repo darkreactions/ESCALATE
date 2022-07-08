@@ -1,11 +1,9 @@
 from __future__ import annotations
 from typing import Dict, Any
-from django.forms import formset_factory, ValidationError
+from django.forms import formset_factory
 from django.forms.formsets import formset_factory
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
-from django.core.exceptions import MultipleObjectsReturned
-from django.contrib import messages
 from typing import List
 from formtools.wizard.views import SessionWizardView
 
@@ -86,7 +84,6 @@ class CreateTemplateWizard(SessionWizardView):
     def get(self, request, *args, **kwargs):
         org_id = self.request.session.get("current_org_id", None)
         if not org_id:
-            # messages.error(request, "Please select a lab to continue")
             return HttpResponseRedirect(reverse("main_menu"))
         return super().get(request, *args, **kwargs)
 
@@ -270,34 +267,6 @@ class CreateTemplateWizard(SessionWizardView):
             lab=data["lab"],
         )
 
-    '''def create_property_template(self, property):
-        """helper function to generate a property template
-        that can be associated with a reagent, material, etc
-        """
-
-        default_val = {"value": 0, "unit": "mL", "type": "num"}
-
-        default_data = {
-            "description": "Zero",
-            "nominal_value": default_val,
-            "actual_value": default_val,
-        }
-
-        try:
-            default_val, created = DefaultValues.objects.get_or_create(**default_data)
-        except MultipleObjectsReturned:
-            default_val = DefaultValues.objects.filter(**default_data).first()
-
-        # Create property template
-        prop_template, created = PropertyTemplate.objects.get_or_create(
-            **{
-                "description": property.description,
-                "property_def_class": "extrinsic",
-                "default_value": default_val,
-            }
-        )
-
-        return prop_template'''
 
     def create_reagent_template(self, name, properties):
         """[summary]

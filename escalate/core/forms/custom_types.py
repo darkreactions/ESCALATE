@@ -1,53 +1,36 @@
-from core.widgets import ValWidget, TextInput
 from django.forms import (
     Select,
-    SelectMultiple,
-    CheckboxSelectMultiple,
     Form,
-    ModelChoiceField,
     HiddenInput,
     CharField,
     ChoiceField,
-    MultipleChoiceField,
-    IntegerField,
     BaseFormSet,
-    BaseModelFormSet,
     ModelForm,
     FileField,
-    ClearableFileInput,
-    FileInput,
 )
+
 from uuid import UUID
 from django.db.models import QuerySet
-from core.models.core_tables import TypeDef
 import core.models.view_tables as vt
-from core.models.view_tables import ReagentTemplate, Reagent
+from core.models.view_tables import Reagent
 from core.widgets import ValFormField
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit, Row, Column, Hidden, Field, HTML, Div
+from crispy_forms.layout import Layout, Row, Column, Field, HTML, Div
 from crispy_forms.bootstrap import UneditableField
 from crispy_forms.bootstrap import Tab, TabHolder
 
-
-# from django.forms import formset_factory
 dropdown_attrs = {
     "class": "selectpicker",
     "data-style": "btn-outline-primary",
     "data-live-search": "true",
 }
 
-
 class UploadFileForm(Form):
-    # title = CharField(max_length=50)
+
     outcome_def_file = FileField(
         label="Upload outcome definition file",
         # widget=FileInput(attrs={"multiple": True}),
     )
-    # mydropzone =
-
-    # class Media:
-    #    css = {"all": ("css/dropzone.css",)}
-    #    js = ("js/dropzone.min.js",)
 
     @staticmethod
     def get_helper():
@@ -73,41 +56,8 @@ class NominalActualForm(Form):
     uuid = CharField(widget=HiddenInput)
 
 
-class ReagentTemplateCreateForm(Form):
-    widget = Select(
-        attrs={
-            "class": "selectpicker",
-            "data-style": "btn-dark",
-            "data-live-search": "true",
-        }
-    )
 
-    widget_mc = CheckboxSelectMultiple(
-        attrs={
-            "class": "selectpicker",
-            "data-style": "btn-dark",
-            "data-live-search": "true",
-        }
-    )
-
-    reagent_template_name = CharField(label="Reagent Name", required=True)
-
-    select_mt = MultipleChoiceField(
-        widget=SelectMultiple(),
-        required=True,
-        label="Select Material Types",
-    )
-
-    def __init__(self, *args, **kwargs):
-        # org_id = kwargs.pop("org_id")
-        # lab = vt.Actor.objects.get(organization=org_id, person__isnull=True)
-        super().__init__(*args, **kwargs)
-        self.fields["select_mt"].choices = [
-            (r.uuid, r.description) for r in vt.MaterialType.objects.all()
-        ]
-
-
-class ExperimentTemplateSelectForm(Form):
+'''class ExperimentTemplateSelectForm(Form):
 
     widget = Select(
         attrs={
@@ -129,7 +79,7 @@ class ExperimentTemplateSelectForm(Form):
         self.fields["select_experiment_template"].choices = [
             (exp.uuid, exp.description)
             for exp in vt.ExperimentTemplate.objects.filter(lab=lab)
-        ]
+        ]'''
 
 
 class BaseIndexedFormSet(BaseFormSet):
@@ -146,7 +96,6 @@ class OutcomeForm(ModelForm):
             self.fields[
                 "actual_value"
             ].label = f"Outcome of: {self.instance.description}"
-        # self.fields["file"].required = False
 
     @staticmethod
     def get_helper():
