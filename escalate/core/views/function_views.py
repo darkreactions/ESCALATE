@@ -55,51 +55,18 @@ def experiment_invalid(request: HttpRequest, pk) -> Optional[HttpResponse]:
 
 
 def create_action_def(request: HttpRequest) -> JsonResponse:
-    if request.method == "POST":
-        actiondef_desc = request.POST["actionDef_description"]
-        try:
-            ad, created = ActionDef.objects.get_or_create(description=actiondef_desc)
+    '''
+    Create a new action def if missing from database
 
-            for pdef_uuid in request.POST.getlist("parameterDefs"):
-                pdef = ParameterDef.objects.get(uuid=pdef_uuid)
-                ad.parameter_def.add(pdef)
-            ad.save()
-        except Exception as e:
-            print(e)
-            return JsonResponse(data={"message": "failure"})
-        else:
-            return JsonResponse(data={"message": "success"})
-
-
-'''def parse_activity_data(activity_data: "Dict[str, Any]") -> str:
-    activity_dict = {}
-    start_nodes = 0
-    end_nodes = 0
-    for a in activity_data["activities"]:
-        if a["type"] == "start":
-            start_nodes += 1
-        elif a["type"] == "end":
-            end_nodes += 1
-        else:
-            activity_dict[a["id"]] = a
-    if not start_nodes == 1 or not end_nodes == 1:
-        return "ERROR: Action template not saved. Start or End nodes not found"
-
-    for uid, a in activity_dict.items():
-        a["state"]
-
-    return "SUCCESS: Workflow successfully saved" '''
+    included here for url patterns. see functions within action_template.py for functionality
+    '''
+    return JsonResponse(data={"message": "success"})
 
 
 def save_experiment_action_template(request: HttpRequest) -> HttpResponse:
-    if request.method == "POST":
-        data = json.loads(request.POST["data"])
-        exp_template = ExperimentTemplate.objects.get(uuid=data["exp_template"])
-        # exp_template = ExperimentTemplate.objects.get(
-        # uuid=request.session["experiment_template_uuid"]
-        # )
-        at_url = reverse("action_template", args=[str(exp_template.uuid)])
-        exp_template.action_templates.add(at_url)
-        return JsonResponse(data={"message": parse_activity_data(data)})
-
+    '''
+    Save action template from workflow designer
+    
+    included here for url patterns. see functions within action_template.py for functionality
+    '''
     return JsonResponse(data={"message": "success"})

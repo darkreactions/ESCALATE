@@ -69,6 +69,17 @@ class ActionTemplateView(LoginRequired, View):
         return render(request, self.template_name, context=context)
 
     def _generate_existing_workflow(self, exp_template):
+        """[summary]
+        For the selected experiment template, this function obtains the action template and displays the information visually
+        in the UI workflow designer
+
+        Args:
+            exp_template: Experiment Template database object
+
+        Returns:
+            json to render the workflow
+
+        """
         parent_ats = vt.ActionTemplate.objects.filter(
             experiment_template=exp_template, parent=None
         )
@@ -86,6 +97,8 @@ class ActionTemplateView(LoginRequired, View):
         return self._generate_workflow_json(graph, exp_template)
 
     def _generate_workflow_json(self, graph, exp_template):
+        """Parses action template data to generate json in proper format to be rendered in workflow designer"""
+
         wf_coords: Dict[str, List[Dict[str, Any]]] = {}
         if exp_template.metadata is None:
             exp_template.metadata = {}
@@ -167,7 +180,9 @@ class ActionTemplateView(LoginRequired, View):
         return json.dumps(wf_coords)
 
     def post(self, request, *args, **kwargs):
-        if "data" in request.POST:
+        #save action template and associate with experiment template
+        #triggered upon clicking "save" button
+        if "data" in request.POST: 
             data = json.loads(request.POST["data"])
             exp_template = vt.ExperimentTemplate.objects.get(uuid=data["exp_template"])
             at_url = reverse("action_template", args=[str(exp_template.uuid)])
@@ -175,16 +190,19 @@ class ActionTemplateView(LoginRequired, View):
             return JsonResponse(
                 data={"message": self._parse_activity_data(data, exp_template)}
             )
-        elif "actionDef_description" in request.POST:
+
+        #create new action definition
+        #triggered upon clicking "create new action definition" button
+        elif "actionDef_description" in request.POST: 
             actiondef_desc = request.POST["actionDef_description"]
             try:
                 ad, created = vt.ActionDef.objects.get_or_create(
                     description=actiondef_desc
-                )
+                ) #create action def
 
                 for pdef_uuid in request.POST.getlist("parameterDefs"):
                     pdef = vt.ParameterDef.objects.get(uuid=pdef_uuid)
-                    ad.parameter_def.add(pdef)
+                    ad.parameter_def.add(pdef) #associate parameters
                 ad.save()
             except Exception as e:
                 print(e)
@@ -197,6 +215,19 @@ class ActionTemplateView(LoginRequired, View):
                 )
 
     def _parse_activity_data(self, activity_data, exp_template):
+        """[summary]
+        This function parses a json of submitted data from the workflow designer and converts it into an action template, saving information
+        for each action (description, action def, source vessel (and if it is decomposable), destination vessel (and if it is decomposable)).
+        The information is used to create an action template that is then associated with the selected experiment template.
+
+        Args:
+            activity_data([dict]): json from workflow designer
+            exp_template: Experiment Template database object
+
+        Returns:
+            ([str]) message to indicate success or failure saving the action template
+
+        """
         if vt.ExperimentInstance.objects.filter(template=exp_template).exists():
             return "Cannot save changes to experiment template. Experiments using this template already exist"
 
@@ -268,6 +299,18 @@ class ActionTemplateView(LoginRequired, View):
         return "SUCCESS: Workflow successfully saved"
 
     def _generate_action_def_json(self, action_defs, exp_template):
+        """[summary]
+        This function is used to populate the workflow designer tool with action definitions - each shows up as a "box"
+        that can be added to a workflow design.
+
+        Args:
+            action_defs([list]): contains Action Def database objects
+            exp_template: Experiment Template database object
+
+        Returns:
+            json data to render action definition "boxes" in workflow designer
+
+        """
 
         vessel_choices = [
             (None, " ")
