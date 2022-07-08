@@ -457,35 +457,66 @@ class ExperimentData:
             parameters = []
 
             for p_def, au_data in action_data.parameters.items():
-                #for au_data in au_data_list:
-                dest_bbm, bom_vessels = self._create_bbm(
-                    au_data.dest_vessel, bom_vessels, bom
-                )
-                source_bbm, bom_vessels = self._create_bbm(
-                    au_data.source_vessel, bom_vessels, bom
-                )
-                au, created = ActionUnit.objects.get_or_create(
-                    description=f"{action.description} : {source_bbm} -> {dest_bbm}",
-                    action=action,
-                    destination_material=dest_bbm,
-                    source_material=source_bbm,
-                )
-                au: ActionUnit
-                if au_data.nominal_value:
-                    nominal_value = au_data.nominal_value
+                if type(au_data)==list:
+                    for a in au_data:
+                        dest_bbm, bom_vessels = self._create_bbm(
+                            a.dest_vessel, bom_vessels, bom
+                        )
+                        source_bbm, bom_vessels = self._create_bbm(
+                            a.source_vessel, bom_vessels, bom
+                        )
+                        au, created = ActionUnit.objects.get_or_create(
+                            description=f"{action.description} : {source_bbm} -> {dest_bbm}",
+                            action=action,
+                            destination_material=dest_bbm,
+                            source_material=source_bbm,
+                        )
+                        au: ActionUnit
+                        if a.nominal_value:
+                            nominal_value = a.nominal_value
+                        else:
+                            nominal_value = p_def.default_val
+                        p = au.parameter_au.get(parameter_def=p_def)
+                        p.parameter_val_nominal = nominal_value
+                        """
+                        Parameter(
+                            parameter_def=p_def,
+                            parameter_val_nominal=nominal_value,
+                            parameter_val_actual=p_def.default_val,
+                            action_unit=au,
+                        )
+                        """
+                        parameters.append(p)
                 else:
-                    nominal_value = p_def.default_val
-                p = au.parameter_au.get(parameter_def=p_def)
-                p.parameter_val_nominal = nominal_value
-                """
-                Parameter(
-                    parameter_def=p_def,
-                    parameter_val_nominal=nominal_value,
-                    parameter_val_actual=p_def.default_val,
-                    action_unit=au,
-                )
-                """
-                parameters.append(p)
+                    #for au_data in au_data_list:
+                    dest_bbm, bom_vessels = self._create_bbm(
+                        au_data.dest_vessel, bom_vessels, bom
+                    )
+                    source_bbm, bom_vessels = self._create_bbm(
+                        au_data.source_vessel, bom_vessels, bom
+                    )
+                    au, created = ActionUnit.objects.get_or_create(
+                        description=f"{action.description} : {source_bbm} -> {dest_bbm}",
+                        action=action,
+                        destination_material=dest_bbm,
+                        source_material=source_bbm,
+                    )
+                    au: ActionUnit
+                    if au_data.nominal_value:
+                        nominal_value = au_data.nominal_value
+                    else:
+                        nominal_value = p_def.default_val
+                    p = au.parameter_au.get(parameter_def=p_def)
+                    p.parameter_val_nominal = nominal_value
+                    """
+                    Parameter(
+                        parameter_def=p_def,
+                        parameter_val_nominal=nominal_value,
+                        parameter_val_actual=p_def.default_val,
+                        action_unit=au,
+                    )
+                    """
+                    parameters.append(p)
                 # aunits.append(au)
             # ActionUnit.objects.bulk_create(aunits)
             Parameter.objects.bulk_update(parameters, ["parameter_val_nominal"])
