@@ -169,9 +169,9 @@ class Material(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     # need to remove through crosstables when managed by django
     # property = models.ManyToManyField('Property', blank=True,
     #                                  related_name='material_property')
-    identifier = models.ManyToManyField(
-        "MaterialIdentifier", blank=True, related_name="material_material_identifier"
-    )
+    # identifier = models.ManyToManyField(
+    #    "MaterialIdentifier", blank=True, related_name="material_material_identifier"
+    # )
     material_type = models.ManyToManyField(
         "MaterialType", blank=True, related_name="material_material_type"
     )
@@ -234,6 +234,12 @@ class MaterialIdentifier(DateColumns, StatusColumn, DescriptionColumn):
         null=True,
         db_column="material_refname_def_uuid",
         related_name="material_identifier_material_identifier_def",
+    )
+    material = models.ForeignKey(
+        "Material",
+        on_delete=models.DO_NOTHING,
+        null=True,
+        related_name="identifier",
     )
     internal_slug = SlugField(
         populate_from=["material_identifier_def__internal_slug", "description"],

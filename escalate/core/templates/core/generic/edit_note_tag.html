@@ -33,6 +33,8 @@
 
             {{ form|crispy }}
 
+            <hr class="solid"> 
+            <h3>Notes</h3>
             {{ note_forms.management_form }}
 
             {% with num_notes=note_forms|length %}
@@ -43,7 +45,8 @@
             {% endwith %}
 
             <button type="submit" name="add_note" value="add_note" class="btn btn-raised btn-primary">Add Note</button>
-            
+            <hr class="solid"> 
+            <h3>E-documents</h3>         
             {{ edoc_forms.management_form}}
             {% with num_edocs=edoc_forms|length %} 
                 {% for i in 0|get_range:num_edocs %}
@@ -57,12 +60,14 @@
                 {% endfor %}
             {% endwith %}
             <button type="submit" name="add_edoc" value="add_edoc" class="btn btn-raised btn-primary">Add Edocument</button>
-            
+            <hr class="solid">
+            <h3>Tags</h3>
             {{ tag_select_form|crispy }}
             <div>
                 <button type="submit" name="add_new_tag" value="add_new_tag" class="btn btn-raised btn-primary">Create
                     New Tag</button>
             </div>
+            <input type="hidden" name="next" value="{{ request.META.HTTP_REFERER }}">
             <div class="spacer"></div>
             <div class="mt-2">
                 <input class="btn btn-raised btn-primary text-center" type="submit" name="Submit" value="Submit">

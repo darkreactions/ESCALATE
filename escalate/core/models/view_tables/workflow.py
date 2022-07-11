@@ -356,7 +356,7 @@ class ExperimentInstance(DateColumns, StatusColumn, DescriptionColumn):
         db_column="completion_status", max_length=255, default="Pending"
     )
     priority = models.CharField(db_column="priority", max_length=255, default="1")
-    metadata = JSONField(blank=True, null=True)
+    metadata = JSONField(blank=True, null=True, default=dict)
     action_ei: "QuerySet[Action]"
     reagent_ei: "QuerySet[Reagent]"
 

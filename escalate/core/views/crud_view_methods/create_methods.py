@@ -1,7 +1,8 @@
 from django.urls import reverse_lazy
 
 import core.models
-#import core.forms.forms as forms
+
+# import core.forms.forms as forms
 import core.forms.models as forms
 
 methods = {
@@ -10,7 +11,7 @@ methods = {
         "form_class": forms.MaterialForm,
         "success_url": reverse_lazy("material_list"),
     },
-     "MaterialIdentifier": {
+    "MaterialIdentifier": {
         "model": core.models.view_tables.MaterialIdentifier,
         "form_class": forms.MaterialIdentifierForm,
         "success_url": reverse_lazy("material_identifier_list"),
@@ -53,16 +54,21 @@ methods = {
     "ActionDef": {
         "model": core.models.view_tables.ActionDef,
         "form_class": forms.ActionDefForm,
-        "success_url": reverse_lazy("action_def_list")
+        "success_url": reverse_lazy("action_def_list"),
     },
     "ParameterDef": {
         "model": core.models.view_tables.ParameterDef,
         "form_class": forms.ParameterDefForm,
-        "success_url": reverse_lazy("parameter_def_list")
+        "success_url": reverse_lazy("parameter_def_list"),
     },
     "PropertyTemplate": {
         "model": core.models.view_tables.PropertyTemplate,
         "form_class": forms.PropertyTemplateForm,
-        "success_url": reverse_lazy("property_template_list")
-    }
+        "success_url": reverse_lazy("property_template_list"),
+    },
+    "Property": {
+        "model": core.models.view_tables.Property,
+        "form_class": forms.PropertyForm,
+        "success_url": reverse_lazy("property_template_list"),
+    },
 }

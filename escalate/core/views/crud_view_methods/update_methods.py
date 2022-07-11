@@ -88,4 +88,10 @@ methods = {
         "form_class": forms.OutcomeForm,
         "success_url": reverse_lazy("experiment_template_list"),
     },
+    "Property": {
+        "model": core.models.Property,
+        "context_object_name": "property",
+        "form_class": forms.PropertyForm,
+        "success_url": reverse_lazy("main_menu"),
+    },
 }

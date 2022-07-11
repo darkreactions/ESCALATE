@@ -19,8 +19,9 @@ from core.models.view_tables import (
     ReagentTemplate,
     OutcomeTemplate,
     VesselTemplate,
+    Material,
 )
-from core.widgets import ValFormField, ValWidget
+from core.widgets import ValFormField, ValWidget, RelatedFieldWidgetCanAdd
 from packaging import version
 import django
 
@@ -36,6 +37,26 @@ dropdown_attrs = {
     "data-style": "btn-outline-primary",
     "data-live-search": "true",
 }
+
+
+class PropertyForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        related_uuid = kwargs.pop("related_uuid", None)
+        super().__init__(*args, **kwargs)
+        if related_uuid:
+            self.fields["material"].initial = Material.objects.get(uuid=related_uuid)
+
+    class Meta:
+        model = Property
+        fields = ["template", "value", "material"]
+        labels = {}
+        widgets = {
+            "template": forms.Select(
+                attrs=dropdown_attrs,
+            ),
+            "value": ValWidget(),
+            "material": forms.HiddenInput(),
+        }
 
 
 class MaterialForm(forms.Form):
@@ -62,28 +83,33 @@ class MaterialForm(forms.Form):
 
         super(MaterialForm, self).__init__(*args, **kwargs)
 
-        self.fields["identifier"] = forms.MultipleChoiceField(
+        self.fields["identifier"] = forms.ModelMultipleChoiceField(
             initial=current_material_identifiers,
             required=False,
             label="Identifiers",
-            choices=[
-                (mt.uuid, f"{mt.material_identifier_def} : {mt.description}")
-                for mt in MaterialIdentifier.objects.all()
-            ],
-            # queryset=MaterialIdentifier.objects.all(),
+            queryset=current_material_identifiers,
+            widget=RelatedFieldWidgetCanAdd(
+                MaterialIdentifier,
+                related_url="material_identifier_add",
+                related_instance=material_instance,
+                attrs={"size": 5},
+            ),
         )
-
-        self.fields["identifier"].widget.attrs.update(dropdown_attrs)
 
         self.fields["property_m"] = forms.ModelMultipleChoiceField(
             initial=current_material_properties,
             required=False,
             label="Properties",
-            #choices=[(p.uuid, p.template.short_description) for p in Property.objects.all()],
-            queryset=Property.objects.all(),
+            # choices=[(p.uuid, p.template.short_description) for p in Property.objects.all()],
+            # queryset=Property.objects.all(),
+            queryset=current_material_properties,
+            widget=RelatedFieldWidgetCanAdd(
+                Property,
+                related_url="property_add",
+                related_instance=material_instance,
+                attrs={"size": 5},
+            ),
         )
-
-        self.fields["property_m"].widget.attrs.update(dropdown_attrs)
 
         self.fields["material_type"] = forms.ModelMultipleChoiceField(
             initial=current_material_types,
@@ -91,6 +117,7 @@ class MaterialForm(forms.Form):
             queryset=MaterialType.objects.all(),
         )
         self.fields["material_type"].widget.attrs.update(dropdown_attrs)
+
 
 class MaterialTypeForm(forms.ModelForm):
     class Meta:
@@ -289,6 +316,7 @@ class ParameterDefForm(forms.ModelForm):
             ),
         }
 
+
 class PropertyTemplateForm(forms.ModelForm):
     class Meta:
         model = Status
@@ -307,31 +335,34 @@ class PropertyTemplateForm(forms.ModelForm):
 
 class MaterialIdentifierForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-
+        related_uuid = kwargs.pop("related_uuid", None)
         super(MaterialIdentifierForm, self).__init__(*args, **kwargs)
 
-        self.fields["material_identifier_def"] = (
-            forms.MultipleChoiceField(
-                # initial=current_material_identifiers,
-                required=False,
-                choices=[
-                    (mi.uuid, mi.description)
-                    for mi in MaterialIdentifierDef.objects.all()
-                ],
-            ),
+        if related_uuid:
+            self.fields["material"].initial = Material.objects.get(uuid=related_uuid)
+
+        """
+        self.fields["material_identifier_def"] = forms.MultipleChoiceField(
+            # initial=current_material_identifiers,
+            required=False,
+            choices=[
+                (mi.uuid, mi.description) for mi in MaterialIdentifierDef.objects.all()
+            ],
         )
+        """
 
         # self.fields["material_identifier_def"].widget.attrs.update(dropdown_attrs)
 
     class Meta:
         model = MaterialIdentifier
-        fields = ["description", "material_identifier_def"]
+        fields = ["description", "material_identifier_def", "material"]
         field_classes = {
             "description": forms.CharField,
         }
         labels = {"description": "Description"}
         widgets = {
             "material_identifier_def": forms.Select(attrs=dropdown_attrs),
+            "material": forms.HiddenInput(),
         }
 
 
@@ -367,21 +398,21 @@ class ExperimentTemplateForm(forms.ModelForm):
         self.fields["reagent_templates"] = forms.ModelMultipleChoiceField(
             initial=current_reagent_templates,
             required=False,
-            #choices=[(r.uuid, r.description) for r in ReagentTemplate.objects.all()],
+            # choices=[(r.uuid, r.description) for r in ReagentTemplate.objects.all()],
             queryset=ReagentTemplate.objects.all(),
         )
 
         self.fields["vessel_templates"] = forms.ModelMultipleChoiceField(
             initial=current_vessel_templates,
             required=False,
-            #choices=[(r.uuid, r.description) for r in ReagentTemplate.objects.all()],
+            # choices=[(r.uuid, r.description) for r in ReagentTemplate.objects.all()],
             queryset=VesselTemplate.objects.all(),
         )
 
         self.fields["outcome_templates"] = forms.ModelMultipleChoiceField(
             initial=current_outcome_templates,
             required=False,
-            #choices=[(r.uuid, r.description) for r in ReagentTemplate.objects.all()],
+            # choices=[(r.uuid, r.description) for r in ReagentTemplate.objects.all()],
             queryset=OutcomeTemplate.objects.all(),
         )
 
@@ -396,6 +427,7 @@ class OutcomeForm(forms.ModelForm):
             "nominal_value": ValWidget,
             "actual_value": ValWidget,
         }
+
 
 class OrganizationForm(forms.ModelForm):
     class Meta:
@@ -516,6 +548,7 @@ class TagForm(forms.ModelForm):
             ),
         }
 
+
 class LatestSystemtoolForm(forms.ModelForm):
     class Meta:
         model = Systemtool
@@ -566,4 +599,3 @@ class LatestSystemtoolForm(forms.ModelForm):
             ),
             "systemtool_type": forms.Select(attrs=dropdown_attrs),
         }
-

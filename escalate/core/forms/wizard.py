@@ -14,6 +14,7 @@ from django.forms import (
     FileField,
     ValidationError,
 )
+from django.utils import timezone
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column, Field, HTML
 from crispy_forms.bootstrap import Tab, TabHolder
@@ -495,7 +496,6 @@ class AutomatedSpecificationForm(Form):
                     self.outcome_vessels.append(vessel_data["value"])
         super().__init__(*args, **kwargs)
         self._populate_samplers()
-       
 
     def _populate_samplers(self):
         none_option: "list[Tuple[Any, str]]" = [(None, "No sampler selected")]
@@ -526,15 +526,16 @@ class PostProcessForm(Form):
     widget = Select(
         attrs={
             "class": "selectpicker",
-            "data-style": "btn-outline",
+            "data-style": "btn-light",
             "data-live-search": "true",
         }
     )
 
     def __init__(self, *args, **kwargs):
-        index = kwargs.pop("index")
-        experiment_template = kwargs.pop("experiment_template")
-        self.experiment_data: ExperimentData = kwargs.pop("experiment_data")
+        # index = kwargs.pop("index")
+        # experiment_template = kwargs.pop("experiment_template")
+        # self.experiment_data: ExperimentData = kwargs.pop("experiment_data")
+        self.experiment_instance = kwargs.pop("experiment_instance")
         super().__init__(*args, **kwargs)
         self._populate_post_processors()
         self.get_helper()
@@ -571,13 +572,28 @@ class PostProcessForm(Form):
             PostProcessPlugin: Type[BasePostProcessPlugin] = globals()[
                 cleaned_data["select_post_processor"]
             ]
-            post_process = PostProcessPlugin()
-            experiment_instance = self.experiment_data.experiment_instance
-            if post_process.validate(experiment_instance=experiment_instance):
-                post_process.post_process(experiment_instance=experiment_instance)
+            post_process = PostProcessPlugin(self.experiment_instance)
+            experiment_instance = self.experiment_instance
+            if post_process.validate():
+                try:
+                    post_process.post_process()
+                    if self.experiment_instance.metadata is None:
+                        self.experiment_instance.metadata = {}
+
+                    pp_data = self.experiment_instance.metadata.get("post_process", {})
+                    pp_data[timezone.now().isoformat()] = post_process.name
+                    self.experiment_instance.metadata["post_process"] = pp_data
+                    self.experiment_instance.save()
+                except Exception as e:
+                    self.add_error(
+                        "select_post_processor",
+                        error=f"Error encountered {repr(e)}. Please check logs for more information",
+                    )
+                    log = logging.getLogger("escalate")
+                    log.exception("Exception while running post processor")
             else:
                 self.add_error(  # type: ignore
-                    "select_experiment_sampler",
+                    "select_post_processor",
                     error=post_process.validation_errors,
                 )
                 log = logging.getLogger("escalate")

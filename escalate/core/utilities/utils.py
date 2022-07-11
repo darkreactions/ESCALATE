@@ -454,4 +454,5 @@ view_names = [
     "PropertyTemplate",
     "ParameterDef",
     "Outcome",
+    "Property",
 ]

@@ -38,7 +38,7 @@ methods = {
     },
     "ExperimentInstance": {
         "model": core.models.view_tables.ExperimentInstance,
-        "success_url": reverse_lazy("experiment_list"),
+        "success_url": reverse_lazy("experiment_pending_instance_list"),
     },
     "ExperimentPendingInstance": {
         "model": core.models.view_tables.ExperimentPendingInstance,
@@ -58,10 +58,14 @@ methods = {
     },
     "ParameterDef": {
         "model": core.models.view_tables.ParameterDef,
-        "success_url": reverse_lazy("parameter_def_list")
+        "success_url": reverse_lazy("parameter_def_list"),
     },
     "PropertyTemplate": {
         "model": core.models.view_tables.PropertyTemplate,
         "success_url": reverse_lazy("property_template_list"),
-    }
+    },
+    "Property": {
+        "model": core.models.Property,
+        "success_url": reverse_lazy("material_list"),
+    },
 }

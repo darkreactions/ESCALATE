@@ -45,7 +45,7 @@ class DescriptionColumn(models.Model):
 
 
 class UniqueDescriptionColumn(models.Model):
-    description = models.CharField(max_length=255, blank=True, unique=True)
+    description = models.CharField(max_length=255, unique=True)
 
     class Meta:
         abstract = True

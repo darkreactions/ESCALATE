@@ -4,11 +4,19 @@ from django.urls import reverse_lazy, reverse
 from django.http import HttpResponseRedirect, HttpRequest
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
+from django.views.generic.edit import DeleteView
 from django.contrib import messages
 from requests import request
 
 # from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
-from core.models.view_tables import Note, Actor, TagAssign, Tag, Edocument, ExperimentInstance
+from core.models.view_tables import (
+    Note,
+    Actor,
+    TagAssign,
+    Tag,
+    Edocument,
+    ExperimentInstance,
+)
 from core.models.core_tables import TypeDef
 from core.forms.forms import NoteForm, TagSelectForm, UploadEdocForm
 from django.forms import modelformset_factory
@@ -37,6 +45,13 @@ import urllib.parse as urlparse
 #         context = super(GenericListView, self).get_context_data(**kwargs)
 #         context['filter'] = self.request.GET.get('filter', '')
 #         return context
+
+
+class GenericDeleteView(DeleteView):
+    def post(self, request, *args, **kwargs):
+        if self.model.__name__ in ["Property", "MaterialIdentifier"]:
+            self.success_url = request.META["HTTP_REFERER"]
+        return super().post(request, *args, **kwargs)
 
 
 class GenericModelListBase:
@@ -304,7 +319,7 @@ class GenericModelList(GenericModelListBase, ListView):
                 context["export_urls"] = export_urls
         return context
 
-    def post(self, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         order_raw = self.request.POST.get("sort", None)
         if self.context_object_name:
             if order_raw:
@@ -336,6 +351,7 @@ class GenericModelList(GenericModelListBase, ListView):
 
 class GenericModelEdit:
     template_name = "core/generic/edit_note_tag.html"
+    related_uuid = None
 
     # override in subclass
     model: "Type[Model]"
@@ -392,6 +408,16 @@ class GenericModelEdit:
 
         return context
 
+    def get(self, request, *args, **kwargs):
+        self.related_uuid = request.GET.get("related_uuid", None)
+        return super().get(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        if self.related_uuid:
+            kwargs["related_uuid"] = self.related_uuid
+        return kwargs
+
     def post(self, request, *args, **kwargs):
         if "pk" in self.kwargs:
             model = get_object_or_404(self.model, pk=self.kwargs["pk"])
@@ -407,9 +433,16 @@ class GenericModelEdit:
                 )
             elif self.context_object_name == "experiment_template":
                 for i in ExperimentInstance.objects.all():
-                    if i.template.uuid == self.kwargs['pk']:
-                        messages.error(request, f"Template {model.description} cannot be edited. It has already been used to create experiments")
-                        return HttpResponseRedirect(reverse(f"{self.context_object_name}_list"))
+                    if i.template.uuid == self.kwargs["pk"]:
+                        messages.error(
+                            request,
+                            f"Template {model.description} cannot be edited. It has already been used to create experiments",
+                        )
+                        return HttpResponseRedirect(
+                            reverse(f"{self.context_object_name}_list")
+                        )
+            elif self.context_object_name in ["property", "material_identifier"]:
+                self.success_url = request.POST.get("next", reverse("material_list"))
             else:
                 self.success_url = reverse(f"{self.context_object_name}_list")
         return super().post(request, *args, **kwargs)  # type: ignore

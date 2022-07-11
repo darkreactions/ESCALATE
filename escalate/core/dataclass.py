@@ -105,6 +105,7 @@ class ExperimentData:
         init=False, repr=False, default=None
     )
     _experiment_instance_uuid: "Optional[UUID|str]" = field(init=False, default=None)
+    _current_operator: Any = field(init=False, default=None)
 
     @property
     def experiment_instance(self):
@@ -118,6 +119,14 @@ class ExperimentData:
                 uuid=self._experiment_instance_uuid
             )
         return self._experiment_instance
+
+    @property
+    def current_operator(self):
+        return self._current_operator
+    
+    @current_operator.setter
+    def current_operator(self, operator):
+        self._current_operator = operator
 
     def generate_manual_spec_file(self):
         outframe, meta_dataframe = self._generate_manual_spec_dataframes()
@@ -420,7 +429,8 @@ class ExperimentData:
             ref_uid=self.experiment_template.ref_uid,
             template=self.experiment_template,
             owner=self.experiment_template.owner,
-            operator=self.experiment_template.operator,
+            #operator=self.experiment_template.operator,
+            operator=self.current_operator,
             lab=self.experiment_template.lab,
             description=self.experiment_name
             if self.experiment_name

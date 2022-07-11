@@ -27,6 +27,7 @@ from core.models.view_tables import (
     ReagentTemplate,
     ReagentMaterialTemplate,
     PropertyTemplate,
+    Actor,
 )
 from core.dataclass import (
     ExperimentData,
@@ -90,6 +91,8 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
         (AUTOMATED_SPEC, AutomatedSpecificationForm),
         (AUTOMATED_SAMPLER_SPEC, SamplerParametersForm),
         (MANUAL_SPEC, ManualExperimentForm),
+    ]
+    """
         (
             POSTPROCESS,
             formset_factory(
@@ -98,7 +101,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
                 formset=BaseIndexedFormSet,
             ),
         ),
-    ]
+        """
     condition_dict = {AUTOMATED_SAMPLER_SPEC: check_sampler_selected}
     initial_dict: "dict[str, Any]"
 
@@ -176,8 +179,8 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
                 action_initial = {"action_template_uuid": at.uuid}
                 for j, param_def in enumerate(at.action_def.parameter_def.all()):
                     param_initial = {
-                        f"action_parameter_{j}": param_def.uuid,
-                        f"value_{j}": param_def.default_val,
+                        f"parameter_uuid_{i}_{j}": param_def.uuid,
+                        f"value_{i}_{j}": param_def.default_val,
                     }
                     action_initial.update(param_initial)
                 initial.append(action_initial)
@@ -282,7 +285,11 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             if form.cleaned_data["file"]:
                 df_dict = pd.read_excel(form.cleaned_data["file"], sheet_name=None)
                 experiment_data.parse_manual_file(df_dict)
-            experiment_instance = experiment_data.experiment_instance
+
+            experiment_data.current_operator = Actor.objects.get(
+                person=self.request.user.person, organization=None
+            )
+            # experiment_instance = experiment_data.experiment_instance
             self.request.session["experiment_data"] = experiment_data
         return super().process_step(form)
 
@@ -290,6 +297,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
         experiment_data: ExperimentData = self.request.session["experiment_data"]
         experiment_instance = experiment_data.experiment_instance
         # self._run_post_processors(experiment_instance=experiment_instance)
+        """
         context = {
             "new_exp_name": experiment_instance.description,
             "experiment_link": reverse(
@@ -300,8 +308,11 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             ),
             "outcome_link": reverse("outcome", args=[experiment_instance.uuid]),
         }
-
-        return render(self.request, "core/experiment/create/done.html", context=context)
+        """
+        # return render(self.request, "core/experiment/create/done.html", context=context)
+        return HttpResponseRedirect(
+            reverse("experiment_instance_view", args=[experiment_instance.uuid])
+        )
 
     def _get_automated_sampler_spec_kwargs(self) -> "dict[str, Any]":
         automated_spec_form_data = self.get_cleaned_data_for_step(AUTOMATED_SPEC)

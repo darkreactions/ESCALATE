@@ -7,20 +7,21 @@ from django.forms import ValidationError
 class BasePostProcessPlugin(ABC):
     name = "Default PostProcess Plugin"
     errors: List[str] = list()
+    experiment_instance: "vt.ExperimentInstance"
 
-    def __init__(self):
-        pass
+    def __init__(self, experiment_instance):
+        self.experiment_instance = experiment_instance
 
     @property
     def validation_errors(self):
         return ValidationError(message=self.errors)
 
     @abstractmethod
-    def validate(self, experiment_instance: "vt.ExperimentInstance"):
+    def validate(self):
         pass
 
     @abstractmethod
-    def post_process(self, experiment_instance: "vt.ExperimentInstance"):
+    def post_process(self):
         pass
 
     def __str__(self):

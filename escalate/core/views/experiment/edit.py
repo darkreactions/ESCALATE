@@ -1,11 +1,12 @@
 import json
+from datetime import datetime, timezone, tzinfo
 from django.db.models import F
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.views.generic import TemplateView
 from django.forms import ValidationError, formset_factory
 from django.urls import reverse
 from django.shortcuts import render, redirect
-
+from django.utils import timezone
 from core.forms.forms import UploadFileForm
 from core.models.view_tables import (
     ExperimentInstance,
@@ -26,6 +27,7 @@ from core.views.experiment import (
     get_action_parameter_form_data,
 )
 from core.custom_types import Val
+from core.forms.wizard import PostProcessForm
 from plugins.robot.base_robot_plugin import RobotPlugin
 from plugins.robot import *
 
@@ -62,20 +64,17 @@ class ExperimentDetailEditView(TemplateView):
     def get_context_data(self, **kwargs):
         # Setup
         context = super().get_context_data(**kwargs)
-        related_exp_material = "bom__experiment"
-        org_id = self.request.session["current_org_id"]
-        lab = Actor.objects.get(organization=org_id, person__isnull=True)
-        self.all_experiments = ExperimentTemplate.objects.filter(lab=lab)
-        context["all_experiments"] = self.all_experiments
+        # org_id = self.request.session["current_org_id"]
+        # lab = Actor.objects.get(organization=org_id, person__isnull=True)
+        # self.all_experiments = ExperimentTemplate.objects.filter(lab=lab)
+        # context["all_experiments"] = self.all_experiments
         pk = str(kwargs["pk"])
         experiment = ExperimentInstance.objects.get(pk=pk)
         context["experiment"] = experiment
-
         # parameter redirect
         context["parameter_link"] = reverse(
             "experiment_pending_instance_parameter", args=[experiment.uuid]
         )
-
         # Queue Status/Priority
         overview_info = [
             ("Queued by", experiment.operator),
@@ -83,13 +82,17 @@ class ExperimentDetailEditView(TemplateView):
             ("Template", experiment.template.description),
         ]
         context["overview_info"] = overview_info
-        qs = QueueStatusForm(experiment)
-        context["queue_status_form"] = qs
-        context["helper"] = qs.get_helper()
-        context["helper"].form_tag = False
-
-        robot_file_gen_form = GenerateRobotFileForm()
-        context["robot_file_gen_form"] = robot_file_gen_form
+        if experiment.metadata is None:
+            experiment.metadata = {}
+        post_proc_metadata = experiment.metadata.get("post_process", {})
+        post_proc_table_data = []
+        for date_string, post_proc_name in post_proc_metadata.items():
+            timestamp = datetime.fromisoformat(date_string)
+            # .replace(
+            #    tzinfo=timezone.utc
+            # )
+            post_proc_table_data.append((timestamp, post_proc_name))
+        context["post_process_table_data"] = post_proc_table_data
 
         # Edocs
         edocs = Edocument.objects.filter(ref_edocument_uuid=experiment.uuid)
@@ -101,13 +104,22 @@ class ExperimentDetailEditView(TemplateView):
             )
             for edoc in edocs
         }
-
         context["edocs"] = edocs
         uf = UploadFileForm()
         context["edoc_upload_form"] = uf
         context["edoc_helper"] = uf.get_helper()
         context["edoc_helper"].form_tag = False
         form_kwargs = {"org_uuid": self.request.session["current_org_id"]}
+        qs = QueueStatusForm(experiment)
+        context["queue_status_form"] = qs
+        context["helper"] = qs.get_helper()
+        context["helper"].form_tag = False
+
+        robot_file_gen_form = GenerateRobotFileForm()
+        context["robot_file_gen_form"] = robot_file_gen_form
+
+        post_process_form = PostProcessForm(experiment_instance=experiment)
+        context["post_process_form"] = post_process_form
 
         return context
 
@@ -117,7 +129,9 @@ class ExperimentDetailEditView(TemplateView):
 
     def post(self, request, *args, **kwargs):
         context = self.get_context_data(*args, **kwargs)
-        exp: ExperimentInstance = context["experiment"]
+        pk = str(kwargs["pk"])
+        exp = ExperimentInstance.objects.get(pk=pk)
+        # exp: ExperimentInstance = context["experiment"]
         if request.POST.get("add_edoc"):
             hasfile = "file" in request.FILES.keys()
             if hasfile:
@@ -162,6 +176,16 @@ class ExperimentDetailEditView(TemplateView):
                         "select_robot_file_generator",
                         ValidationError(error_message, "error"),
                     )
+                    context["robot_file_gen_form"] = robot_file_gen_form
+                else:
+                    return redirect(request.path)
+
+        post_processor_form = PostProcessForm(request.POST, experiment_instance=exp)
+        if post_processor_form.has_changed():
+            if not post_processor_form.is_valid():
+                context["post_process_form"] = post_processor_form
+            else:
+                return redirect(request.path)
 
         return render(request, self.template_name, context)
 

@@ -38,7 +38,7 @@
     {% block headcontent %}
     {% endblock %}
 
-    <link rel="stylesheet" href={% static "main.css" %}?v=0.2>
+    <link rel="stylesheet" href={% static "main.css" %}?v=0.3>
 
 
 
@@ -71,7 +71,8 @@
                         <div class="dropdown-menu">
                             <ul class="list-unstyled">
                                 <li><a class="dropdown-item" href="{% url 'material_list' %}">Material</a></li>
-                                <li><a class="dropdown-item" href="{% url 'inventory_material_list' %}">Inventory</a></li>
+                                <li><a class="dropdown-item" href="{% url 'inventory_material_list' %}">Inventory</a>
+                                </li>
                                 <li><a class="dropdown-item" href="{% url 'vessel_list' %}">Vessel</a></li>
                             </ul>
                         </div>
@@ -246,7 +247,7 @@
                     <form id="delete_form" action="" method="post">{% csrf_token %}
                         <div class="modal-body">
 
-                            <p id="message"></p>
+                            <p id="deleteModalmessage"></p>
 
 
                         </div>
@@ -334,10 +335,12 @@
             console.log('Button clicked!')
             var button = $(event.relatedTarget) // Button that triggered the modal
             var description = button.data('description') // Extract info from data-* attributes
-            var pk = button.data('pk')
-            $("#delete_form").attr("action", {% block delete_url %} {% endblock %});
-        var modal = $(this);
-        $('#message').text('Are you sure you want to delete ' + description + '?');
+            if (description && typeof description !== "undefined"){
+                var pk = button.data('pk')
+                $("#delete_form").attr("action", {% block delete_url %} {% endblock %});
+                var modal = $(this);
+                $('#deleteModalmessage').text('Are you sure you want to delete ' + description + '?');
+            }
 
             })
 

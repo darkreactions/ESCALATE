@@ -3,43 +3,99 @@
 {% load crispy_forms_tags %}
 {% load index %}
 {% load get_range %}
+{% load tz %}
 
 {% block content %}
-    {% if messages %}
-    <ul class="messages">
-        {% for message in messages %}
-        <div class="alert alert-danger" role="alert">
-            {{ message }}
-        </div>
-        {% endfor %}
-    </ul>
-    {% endif %}
 
 <form method="post" enctype="multipart/form-data">{% csrf_token %}
     {{ q1_material_formset.management_form }}
-    <div class="treeview-animated border mx-4 my-4">
-        <h6 class="pt-3 pl-3">Overview of queued experiment {{ experiment.description }}</h6>
+    <div class="border mx-4 my-4">
+        <h3 class="pt-3 pl-3">Overview of queued experiment {{ experiment.description }}</h3>
         <hr>
-        <ul>
-            {% for k, v in overview_info %}
-            <li>
-                {{ k }} : {{ v }}
-            </li>
-            {% endfor %}
-        </ul>
-        <div class="container">
-            {% crispy queue_status_form helper %}
+        <div class="row justify-content-center">
+            <div class="col-auto">
+                <table class="table table-striped">
+                    <tbody>
+                        {% for k, v in overview_info %}
+                        <tr>
+                            <th scope="row">{{ k }}</th>
+                            <td>{{ v }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-auto">
+                {% crispy queue_status_form helper %}
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-auto">
+                <table class="table table-striped">
+                    <tbody>
+                        <tr>
+                            <th scope="row">Outcome Submission</th>
+                            <td>
+                                <form action="{% url 'outcome' pk=experiment.uuid %}">
+                                    <button class="btn btn-outline-primary" type="submit">Submit</button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Reagent Preparation</th>
+                            <td>
+                                <form action="{% url 'reagent_prep' pk=experiment.uuid %}">
+                                    <button class="btn btn-outline-primary" type="submit">Submit</button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Update Parameters</th>
+                            <td><button type="submit" name="param_update" value="param_update"
+                                    class="btn btn-outline-primary">Submit</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
         <div class="container">
-            {{ robot_file_gen_form|crispy }}
+            <hr>
+            <h4 class="pt-3 pl-3">Robot File </h4>
+            <div class="col-auto">
+                {{ robot_file_gen_form|crispy }}
+            </div>
+
         </div>
-        <div class="text-right">
-            <button class="btn btn-outline-primary" type="submit" name="update_exp" value="update_exp">
-                Update Experiment
-            </button>
+        <div class="container">
+            <hr>
+            <h4 class="pt-3 pl-3">Post processor</h4>
+            <div class="col-auto">
+                {{ post_process_form|crispy }}
+            </div>
+            <div class="text-right">
+                <button class="btn btn-outline-primary" type="submit" name="update_exp" value="update_exp">
+                    Update Experiment
+                </button>
+            </div>
+            <h5>History</h5>
+            <table class="table">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Time stamp</th>
+                        <th scope="col">Postprocessor used</th>
+                    </tr>
+                </thead>
+
+                {% for time_stamp, pp_name in post_process_table_data %}
+                <tr>
+                    <td>{% timezone None %}{{ time_stamp }}{% endtimezone %}</td>
+                    <td>{{ pp_name }}</td>
+                </tr>
+                {% endfor %}
+            </table>
         </div>
-        <center><button type="submit" name="param_update" value="param_update"
-                class="btn btn-raised btn-primary">View/Update Parameters</button></center>
+
     </div>
     <div class="treeview-animated border mx-4 my-4">
         <h6 class="pt-3 pl-3">Files associated with {{ experiment.description }}</h6>

@@ -9,6 +9,7 @@ from core.views.crud_view_methods.model_view_generic import (
     GenericModelEdit,
     GenericModelList,
     GenericModelView,
+    GenericDeleteView,
 )
 from core.views.crud_view_methods import (
     create_methods,
@@ -48,7 +49,7 @@ def create_update_view(model_name, methods):
 
 def create_delete_view(model_name, methods):
     globals()[model_name + "Delete"] = type(
-        model_name + "Delete", tuple([LoginRequired, DeleteView]), methods
+        model_name + "Delete", tuple([LoginRequired, GenericDeleteView]), methods
     )
 
 

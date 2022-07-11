@@ -25,12 +25,12 @@
       <wf-export-button workflow-designer-host="designerHost"></wf-export-button>
     </li-->
     <li class="nav-item">
-      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#actionDefModal">
         Create new action definition
       </button>
     </li>
     <li class="nav-item">
-      <div class="tooltip-wrapper" data-title="Dieser Link führt zu Google">
+      <div class="tooltip-wrapper" data-title="">
         <button class="btn btn-secondary" onclick="getWorkflow()">Save</button>
       </div>
       {% if dont_allow_save %}disabled{% endif %}
@@ -46,7 +46,7 @@
 <wf-designer-host id="designerHost" canvas-height="150vh" data-activity-definitions='{{ components | safe }}'
   data-workflow='{{ workflow | safe }}' readonly="false" plugins="PrimitiveActivities"></wf-designer-host>
 
-<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+<div class="modal fade" id="actionDefModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
   aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -138,7 +138,8 @@
       dataType: "json",
       data: result,
       success: function (data) {
-        alert(data['message'])
+        $('#actionDefModal').modal('hide');
+        alert(data['message']);
       }
     });
   }
