@@ -467,7 +467,7 @@ class ExperimentData:
             parameters = []
 
             for p_def, au_data in action_data.parameters.items():
-                if type(au_data)==list:
+                if isinstance(au_data, list):
                     for a in au_data:
                         dest_bbm, bom_vessels = self._create_bbm(
                             a.dest_vessel, bom_vessels, bom
