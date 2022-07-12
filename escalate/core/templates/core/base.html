@@ -38,7 +38,7 @@
     {% block headcontent %}
     {% endblock %}
 
-    <link rel="stylesheet" href={% static "main.css" %}?v=0.3>
+    <link rel="stylesheet" href={% static "main.css" %}?v=0.4>
 
 
 
@@ -335,11 +335,11 @@
             console.log('Button clicked!')
             var button = $(event.relatedTarget) // Button that triggered the modal
             var description = button.data('description') // Extract info from data-* attributes
-            if (description && typeof description !== "undefined"){
+            if (description && typeof description !== "undefined") {
                 var pk = button.data('pk')
                 $("#delete_form").attr("action", {% block delete_url %} {% endblock %});
-                var modal = $(this);
-                $('#deleteModalmessage').text('Are you sure you want to delete ' + description + '?');
+        var modal = $(this);
+        $('#deleteModalmessage').text('Are you sure you want to delete ' + description + '?');
             }
 
             })

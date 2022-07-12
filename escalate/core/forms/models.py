@@ -39,6 +39,66 @@ dropdown_attrs = {
 }
 
 
+class VesselTemplateForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        related_uuid = kwargs.pop("related_uuid", None)
+        super().__init__(*args, **kwargs)
+        if related_uuid:
+            self.fields["experiment_template"].initial = ExperimentTemplate.objects.get(
+                uuid=related_uuid
+            )
+
+    class Meta:
+        model = VesselTemplate
+        fields = [
+            "description",
+            "experiment_template",
+            "outcome_vessel",
+            "default_vessel",
+        ]
+        widgets = {
+            "experiment_template": forms.HiddenInput(),
+        }
+
+
+class OutcomeTemplateForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        related_uuid = kwargs.pop("related_uuid", None)
+        super().__init__(*args, **kwargs)
+        if related_uuid:
+            self.fields["experiment_template"].initial = ExperimentTemplate.objects.get(
+                uuid=related_uuid
+            )
+
+    class Meta:
+        model = OutcomeTemplate
+        fields = ["description", "experiment_template", "default_value"]
+        widgets = {
+            "experiment_template": forms.HiddenInput(),
+            "default_value": forms.Select(attrs=dropdown_attrs),
+        }
+
+
+class ReagentTemplateForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        related_uuid = kwargs.pop("related_uuid", None)
+        super().__init__(*args, **kwargs)
+        if related_uuid:
+            self.fields["experiment_template"].initial = ExperimentTemplate.objects.get(
+                uuid=related_uuid
+            )
+
+    class Meta:
+        model = ReagentTemplate
+        fields = ["description", "experiment_template", "properties"]
+        widgets = {
+            "experiment_template": forms.HiddenInput(),
+            # "properties": forms.Select(
+            #    attrs=dropdown_attrs,
+            # ),
+        }
+
+
 class PropertyForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         related_uuid = kwargs.pop("related_uuid", None)
@@ -379,41 +439,64 @@ class ExperimentTemplateForm(forms.ModelForm):
         template = kwargs.get("instance", None)
 
         current_reagent_templates = (
-            template.reagent_templates.all()
+            [(item.uuid, item.description) for item in template.reagent_templates.all()]
             if template
-            else ReagentTemplate.objects.none()
+            else list()
         )
         current_vessel_templates = (
-            template.vessel_templates.all()
+            [(item.uuid, item.description) for item in template.vessel_templates.all()]
             if template
-            else VesselTemplate.objects.none()
+            else list()
         )
         current_outcome_templates = (
-            template.outcome_templates.all()
+            [(item.uuid, item.description) for item in template.outcome_templates.all()]
             if template
-            else OutcomeTemplate.objects.none()
+            else list()
         )
         super((ExperimentTemplateForm), self).__init__(*args, **kwargs)
 
-        self.fields["reagent_templates"] = forms.ModelMultipleChoiceField(
+        """
+        forms.ModelMultipleChoiceField(
             initial=current_reagent_templates,
             required=False,
             # choices=[(r.uuid, r.description) for r in ReagentTemplate.objects.all()],
             queryset=ReagentTemplate.objects.all(),
         )
-
-        self.fields["vessel_templates"] = forms.ModelMultipleChoiceField(
-            initial=current_vessel_templates,
+        """
+        self.fields["reagent_templates"] = forms.ChoiceField(
+            choices=current_reagent_templates,
             required=False,
-            # choices=[(r.uuid, r.description) for r in ReagentTemplate.objects.all()],
-            queryset=VesselTemplate.objects.all(),
+            label="Reagent Templates",
+            widget=RelatedFieldWidgetCanAdd(
+                ReagentTemplate,
+                related_url="reagent_template_add",
+                related_instance=template,
+                attrs={"size": 5},
+            ),
         )
 
-        self.fields["outcome_templates"] = forms.ModelMultipleChoiceField(
-            initial=current_outcome_templates,
+        self.fields["vessel_templates"] = forms.ChoiceField(
+            choices=current_vessel_templates,
             required=False,
-            # choices=[(r.uuid, r.description) for r in ReagentTemplate.objects.all()],
-            queryset=OutcomeTemplate.objects.all(),
+            label="Vessel Templates",
+            widget=RelatedFieldWidgetCanAdd(
+                VesselTemplate,
+                related_url="vessel_template_add",
+                related_instance=template,
+                attrs={"size": 5},
+            ),
+        )
+
+        self.fields["outcome_templates"] = forms.ChoiceField(
+            choices=current_outcome_templates,
+            required=False,
+            label="Outcome Templates",
+            widget=RelatedFieldWidgetCanAdd(
+                OutcomeTemplate,
+                related_url="outcome_template_add",
+                related_instance=template,
+                attrs={"size": 5},
+            ),
         )
 
         # self.fields['description'].disabled = True
@@ -528,12 +611,12 @@ class StatusForm(forms.ModelForm):
 class TagForm(forms.ModelForm):
     class Meta:
         model = Tag
-        fields = ["display_text", "description", "actor", "tag_type"]
+        fields = ["display_text", "description", "tag_type"]
         labels = {
             "display_text": "Tag Name",
             "description": "Tag Description",
             "actor": "Actor",
-            "tag_type": "Tag Type Name",
+            "tag_type": "Tag Type",
         }
         widgets = {
             "display_text": forms.TextInput(
@@ -543,7 +626,7 @@ class TagForm(forms.ModelForm):
                 attrs={
                     "cols": "10",
                     "rows": "3",
-                    "placeholder": "Detail description for your tag type",
+                    "placeholder": "Detailed description for your tag",
                 }
             ),
         }

@@ -94,4 +94,22 @@ methods = {
         "form_class": forms.PropertyForm,
         "success_url": reverse_lazy("main_menu"),
     },
+    "ReagentTemplate": {
+        "model": core.models.ReagentTemplate,
+        "context_object_name": "reagent_template",
+        "form_class": forms.ReagentTemplateForm,
+        "success_url": reverse_lazy("experiment_template_list"),
+    },
+    "VesselTemplate": {
+        "model": core.models.VesselTemplate,
+        "context_object_name": "vessel_template",
+        "form_class": forms.VesselTemplateForm,
+        "success_form": reverse_lazy("experiment_template_list"),
+    },
+    "OutcomeTemplate": {
+        "model": core.models.OutcomeTemplate,
+        "context_object_name": "outcome_template",
+        "form_class": forms.OutcomeTemplateForm,
+        "success_form": reverse_lazy("experiment_template_list"),
+    },
 }

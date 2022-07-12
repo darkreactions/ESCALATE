@@ -71,4 +71,19 @@ methods = {
         "form_class": forms.PropertyForm,
         "success_url": reverse_lazy("property_template_list"),
     },
+    "ReagentTemplate": {
+        "model": core.models.view_tables.ReagentTemplate,
+        "form_class": forms.ReagentTemplateForm,
+        "success_url": reverse_lazy("experiment_template_list"),
+    },
+    "VesselTemplate": {
+        "model": core.models.view_tables.VesselTemplate,
+        "form_class": forms.VesselTemplateForm,
+        "success_url": reverse_lazy("experiment_template_list"),
+    },
+    "OutcomeTemplate": {
+        "model": core.models.OutcomeTemplate,
+        "form_class": forms.OutcomeTemplateForm,
+        "success_url": reverse_lazy("experiment_template_list"),
+    },
 }

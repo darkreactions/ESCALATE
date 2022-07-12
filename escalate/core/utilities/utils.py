@@ -455,4 +455,7 @@ view_names = [
     "ParameterDef",
     "Outcome",
     "Property",
+    "ReagentTemplate",
+    "VesselTemplate",
+    "OutcomeTemplate",
 ]

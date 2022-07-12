@@ -36,23 +36,21 @@
                         <tr>
                             <th scope="row">Outcome Submission</th>
                             <td>
-                                <form action="{% url 'outcome' pk=experiment.uuid %}">
-                                    <button class="btn btn-outline-primary" type="submit">Submit</button>
-                                </form>
+                                <a href="{% url 'outcome' pk=experiment.uuid %}"
+                                    class="btn btn-outline-primary">Open</a>
                             </td>
                         </tr>
                         <tr>
                             <th scope="row">Reagent Preparation</th>
                             <td>
-                                <form action="{% url 'reagent_prep' pk=experiment.uuid %}">
-                                    <button class="btn btn-outline-primary" type="submit">Submit</button>
-                                </form>
+                                <a href="{% url 'reagent_prep' pk=experiment.uuid %}"
+                                    class="btn btn-outline-primary">Open</a>
                             </td>
                         </tr>
                         <tr>
                             <th scope="row">Update Parameters</th>
                             <td><button type="submit" name="param_update" value="param_update"
-                                    class="btn btn-outline-primary">Submit</button>
+                                    class="btn btn-outline-primary">Open</button>
                             </td>
                         </tr>
                     </tbody>

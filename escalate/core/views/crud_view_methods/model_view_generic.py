@@ -49,7 +49,13 @@ import urllib.parse as urlparse
 
 class GenericDeleteView(DeleteView):
     def post(self, request, *args, **kwargs):
-        if self.model.__name__ in ["Property", "MaterialIdentifier"]:
+        if self.model.__name__ in [
+            "Property",
+            "MaterialIdentifier",
+            "ReagentTemplate",
+            "VesselTemplate",
+            "OutcomeTemplate",
+        ]:
             self.success_url = request.META["HTTP_REFERER"]
         return super().post(request, *args, **kwargs)
 
@@ -441,8 +447,14 @@ class GenericModelEdit:
                         return HttpResponseRedirect(
                             reverse(f"{self.context_object_name}_list")
                         )
-            elif self.context_object_name in ["property", "material_identifier"]:
-                self.success_url = request.POST.get("next", reverse("material_list"))
+            elif self.model.__name__ in [
+                "Property",
+                "MaterialIdentifier",
+                "ReagentTemplate",
+                "VesselTemplate",
+                "OutcomeTemplate",
+            ]:
+                self.success_url = request.POST.get("next", self.success_url)
             else:
                 self.success_url = reverse(f"{self.context_object_name}_list")
         return super().post(request, *args, **kwargs)  # type: ignore

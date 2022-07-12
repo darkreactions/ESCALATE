@@ -52,3 +52,48 @@ body {
 hr.solid {
   border-top: 3px solid #999;
 }
+
+.sticky-table td:first-child {
+  position: sticky;
+  left: 0px;
+  z-index: 1;
+}
+
+.sticky-table th:first-child {
+  position: sticky;
+  left: 0px;
+  z-index: 2;
+}
+
+.sticky-table td:first-child {
+  background-color: white;
+}
+
+.sticky-table th:first-child {
+  background-color: black;
+}
+
+.sticky-table table thead th {
+  padding: 3px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: black;
+}
+
+.sticky-table table tbody th {
+  position: sticky;
+  left: 0;
+  background: black;
+  z-index: 1;
+}
+
+.my-custom-scrollbar {
+  position: relative;
+  height: 68vh;
+  overflow: auto;
+}
+
+.table-wrapper-scroll-y {
+  display: block;
+}

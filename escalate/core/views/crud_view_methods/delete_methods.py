@@ -68,4 +68,16 @@ methods = {
         "model": core.models.Property,
         "success_url": reverse_lazy("material_list"),
     },
+    "ReagentTemplate": {
+        "model": core.models.ReagentTemplate,
+        "success_url": reverse_lazy("experiment_template_list"),
+    },
+    "VesselTemplate": {
+        "model": core.models.VesselTemplate,
+        "success_url": reverse_lazy("experiment_template_list"),
+    },
+    "OutcomeTemplate": {
+        "model": core.models.OutcomeTemplate,
+        "success_url": reverse_lazy("experiment_template_list"),
+    },
 }
