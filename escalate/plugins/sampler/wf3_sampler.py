@@ -72,6 +72,18 @@ class WF3SamplerPlugin(BaseSamplerPlugin):
                 f"Antisolvent volume value {vol2} must be numerical input"
             )
 
+        reagentDefs = []
+        for rpd in data.reagent_properties.values():
+            rmt_data: "Dict[str, str| Val | None]" = {}
+            for rmd in rpd.reagent_materials.values():
+                for prop_template, value in rmd.properties.items():
+                    if prop_template.description == "concentration":
+                        rmt_data[rmd.inventory_material.description] = value.value
+                        break
+            reagentDefs.append(rmt_data)
+        if reagentDefs[1]==reagentDefs[2]:
+            self.errors.append("Stock solutions A and B cannot be identical in concentration")  
+        
         target_vessel = None
         # verify that target volume does not exceed vessel capacity
         for vessel_template, vessel in data.vessel_data.items():
