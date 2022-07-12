@@ -4,7 +4,9 @@ from core.custom_types import Val
 
 from plugins.sampler.base_sampler_plugin import BaseSamplerPlugin
 from core.utilities.randomSampling import generateExperiments
-from core.dataclass import ExperimentData, ActionUnitData, ActionData
+from core.dataclass import ExperimentData, ActionUnitData, ActionData, VesselData
+from core.models import VesselTemplate
+from core.utilities.utils import make_well_labels_list
 
 import pint
 from pint import UnitRegistry
@@ -168,22 +170,82 @@ class WF3SamplerPlugin(BaseSamplerPlugin):
             "Dispense Reagent 9 - Antisolvent": "Reagent 9 - Antisolvent",
         }
 
+        column_order = "ACEGBDFH"
+        rows = 12
+
+        a_well_list = []
+        b_well_list = []
+
+        for row in range(rows):
+            if (row + 1) % 2 != 0:
+                for col in column_order[0:4]:
+                    a_well_list.append("{}{}".format(col, row + 1))
+
+            else:
+                for col in column_order[4:]:
+                    b_well_list.append("{}{}".format(col, row + 1))
+
         for at in action_templates:
             reagent_desc = action_to_reagent_mapping[at.description]
             parameter_def = at.action_def.parameter_def.get(description="volume")
             a_data = ActionData(parameters={})
             dispense_vols: List[ActionUnitData] = []
-            for vol in desired_volume[reagent_desc]:
-                if at.description == "Dispense Reagent 7 - Acid Volume 1":
-                    vol = ceil(vol / 2.0)
-                elif at.description == "Dispense Reagent 7 - Acid Volume 2":
-                    vol = floor(vol / 2.0)
-                volume = Val.from_dict({"value": vol, "unit": "uL", "type": "num"})
-                aud = ActionUnitData(
-                    source_vessel=None, dest_vessel=None, nominal_value=volume
-                )
-                dispense_vols.append(aud)
-            a_data.parameters[parameter_def] = dispense_vols
-            data.action_parameters[at] = a_data
+            
+            dest_vt: VesselTemplate = data.experiment_template.vessel_templates.get(
+                description="Outcome vessel"
+            )
+            source_vt: VesselTemplate = data.experiment_template.vessel_templates.get(
+                description=reagent_desc
+            )
+            source_vessel = data.vessel_data[source_vt]
+            dest_base_vessel = data.vessel_data[dest_vt]
+
+
+            if (children := dest_base_vessel.children.all().order_by("description")) :
+
+                if at.description == "Dispense Reagent 9 - Antisolvent":
+                    #dispense antisolvent into b wells
+                    for dest_vessel_name, vol in zip(
+                        b_well_list[: len(desired_volume[reagent_desc])],
+                        desired_volume[reagent_desc],
+                    ):
+                        volume = Val.from_dict({"value": vol, "unit": "uL", "type": "num"})
+                        dest_vessel = children.get(description=dest_vessel_name)
+                        aud = ActionUnitData(
+                            source_vessel=VesselData(
+                                vessel=source_vessel, vessel_template=source_vt
+                            ),
+                            dest_vessel=VesselData(
+                                vessel=dest_vessel, vessel_template=dest_vt
+                            ),
+                            nominal_value=volume,
+                        )
+                        dispense_vols.append(aud)
+                    a_data.parameters[parameter_def] = dispense_vols
+
+                else:
+                    #dispense all other reagents into a wells
+                    for dest_vessel_name, vol in zip(
+                        a_well_list[: len(desired_volume[reagent_desc])],
+                        desired_volume[reagent_desc],
+                    ):
+                        if at.description == "Dispense Reagent 7 - Acid Volume 1":
+                            vol = ceil(vol / 2.0)
+                        elif at.description == "Dispense Reagent 7 - Acid Volume 2":
+                            vol = floor(vol / 2.0)
+                        volume = Val.from_dict({"value": vol, "unit": "uL", "type": "num"})
+                        dest_vessel = children.get(description=dest_vessel_name)
+                        aud = ActionUnitData(
+                            source_vessel=VesselData(
+                                vessel=source_vessel, vessel_template=source_vt
+                            ),
+                            dest_vessel=VesselData(
+                                vessel=dest_vessel, vessel_template=dest_vt
+                            ),
+                            nominal_value=volume,
+                        )
+                        dispense_vols.append(aud)
+                    a_data.parameters[parameter_def] = dispense_vols
+                data.action_parameters[at] = a_data
 
         return data

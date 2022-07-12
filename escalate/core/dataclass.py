@@ -452,13 +452,13 @@ class ExperimentData:
             )
 
             # Create a list of all source vessels
-            # source_vessels = self._get_vessel_list(at, dest=False)
+            #source_vessels = self._get_vessel_list(at, dest=False)
 
             # Create a list of all destination vessels
-            # dest_vessels = self._get_vessel_list(at)
-
+            #dest_vessels = self._get_vessel_list(at)
+            
             # Pair source and dest vessels
-            # vessel_pairs = self._pair_vessels(source_vessels, dest_vessels)
+            #vessel_pairs = self._pair_vessels(source_vessels, dest_vessels)
             # sv: "None|Vessel"
             # dv: "None|Vessel"
             # for sv, dv in vessel_pairs:
@@ -467,43 +467,13 @@ class ExperimentData:
             parameters = []
 
             for p_def, au_data in action_data.parameters.items():
-                if isinstance(au_data, list):
-                    for a in au_data:
-                        dest_bbm, bom_vessels = self._create_bbm(
-                            a.dest_vessel, bom_vessels, bom
-                        )
-                        source_bbm, bom_vessels = self._create_bbm(
-                            a.source_vessel, bom_vessels, bom
-                        )
-                        au, created = ActionUnit.objects.get_or_create(
-                            description=f"{action.description} : {source_bbm} -> {dest_bbm}",
-                            action=action,
-                            destination_material=dest_bbm,
-                            source_material=source_bbm,
-                        )
-                        au: ActionUnit
-                        if a.nominal_value:
-                            nominal_value = a.nominal_value
-                        else:
-                            nominal_value = p_def.default_val
-                        p = au.parameter_au.get(parameter_def=p_def)
-                        p.parameter_val_nominal = nominal_value
-                        """
-                        Parameter(
-                            parameter_def=p_def,
-                            parameter_val_nominal=nominal_value,
-                            parameter_val_actual=p_def.default_val,
-                            action_unit=au,
-                        )
-                        """
-                        parameters.append(p)
-                else:
-                    #for au_data in au_data_list:
+                #if isinstance(au_data, list):
+                for a in au_data:
                     dest_bbm, bom_vessels = self._create_bbm(
-                        au_data.dest_vessel, bom_vessels, bom
+                        a.dest_vessel, bom_vessels, bom
                     )
                     source_bbm, bom_vessels = self._create_bbm(
-                        au_data.source_vessel, bom_vessels, bom
+                        a.source_vessel, bom_vessels, bom
                     )
                     au, created = ActionUnit.objects.get_or_create(
                         description=f"{action.description} : {source_bbm} -> {dest_bbm}",
@@ -512,20 +482,12 @@ class ExperimentData:
                         source_material=source_bbm,
                     )
                     au: ActionUnit
-                    if au_data.nominal_value:
-                        nominal_value = au_data.nominal_value
+                    if a.nominal_value:
+                        nominal_value = a.nominal_value
                     else:
                         nominal_value = p_def.default_val
                     p = au.parameter_au.get(parameter_def=p_def)
                     p.parameter_val_nominal = nominal_value
-                    """
-                    Parameter(
-                        parameter_def=p_def,
-                        parameter_val_nominal=nominal_value,
-                        parameter_val_actual=p_def.default_val,
-                        action_unit=au,
-                    )
-                    """
                     parameters.append(p)
                 # aunits.append(au)
             # ActionUnit.objects.bulk_create(aunits)
@@ -615,12 +577,28 @@ class ExperimentData:
                 if k.startswith("parameter_uuid"):
                     suffix = k.split("parameter_uuid")[-1]
                     parameter_def: ParameterDef = ParameterDef.objects.get(uuid=v)
+                    source_vd = (
+                        VesselData(
+                            vessel=vessel_data[at.source_vessel_template],
+                            vessel_template=at.source_vessel_template,
+                        )
+                        if at.source_vessel_template
+                        else None
+                    )
+                    dest_vd = (
+                        VesselData(
+                            vessel=vessel_data[at.dest_vessel_template],
+                            vessel_template=at.dest_vessel_template,
+                        )
+                        if at.dest_vessel_template
+                        else None
+                    )
                     aud = ActionUnitData(
-                        source_vessel=None,
-                        dest_vessel=None,
+                        source_vessel=source_vd,
+                        dest_vessel= dest_vd,
                         nominal_value=action_params[f"value{suffix}"],
                     )
-                    parameters[parameter_def]= aud
+                    parameters[parameter_def]= [aud]
             a_data = ActionData(parameters=parameters)
             action_parameters[at] = a_data
 
