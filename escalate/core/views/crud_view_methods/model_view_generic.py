@@ -1,50 +1,38 @@
-from typing import List, Optional, Type, Any, Dict
-from django.db.models import Q, Count, Model
-from django.urls import reverse_lazy, reverse
-from django.http import HttpResponseRedirect, HttpRequest
-from django.views.generic.detail import DetailView
-from django.views.generic.list import ListView
-from django.views.generic.edit import DeleteView
-from django.contrib import messages
-from requests import request
-
-# from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
-from core.models.view_tables import (
-    Note,
-    Actor,
-    TagAssign,
-    Tag,
-    Edocument,
-    ExperimentInstance,
-)
-from core.models.core_tables import TypeDef
-from core.forms.forms import NoteForm, TagSelectForm, UploadEdocForm
-from django.forms import modelformset_factory
-from django.shortcuts import get_object_or_404, render
-from django.core.exceptions import FieldDoesNotExist
-from core.utils_no_dependencies import (
-    rgetattr,
-    get_all_related_fields,
-    get_model_of_related_field,
-)
-from django.core import serializers
-from core.utilities.utils import camel_to_snake
-from ..exports.export_methods import methods as export_methods
-from ..exports.file_types import file_types as export_file_types
-from core.models.core_tables import custom_slugify
-
 import functools
 import urllib.parse as urlparse
+from typing import Any, Dict, List, Optional, Type
 
-# class with generic classes to use in models
+from core.forms.forms import NoteForm, TagSelectForm, UploadEdocForm
+from core.models.core_tables import TypeDef, custom_slugify
+from core.models.view_tables import (
+    Actor,
+    Edocument,
+    ExperimentInstance,
+    Note,
+    Tag,
+    TagAssign,
+)
+from core.utilities.utils import camel_to_snake
+from core.utils_no_dependencies import (
+    get_all_related_fields,
+    get_model_of_related_field,
+    rgetattr,
+)
+from django.contrib import messages
+from django.core import serializers
+from django.core.exceptions import FieldDoesNotExist
+from django.db.models import Count, Model, Q
+from django.forms import modelformset_factory
+from django.http import HttpRequest, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render
+from django.urls import reverse, reverse_lazy
+from django.views.generic.detail import DetailView
+from django.views.generic.edit import DeleteView
+from django.views.generic.list import ListView
+from requests import request
 
-
-# class GenericListView(ListView):
-
-#     def get_context_data(self, **kwargs):
-#         context = super(GenericListView, self).get_context_data(**kwargs)
-#         context['filter'] = self.request.GET.get('filter', '')
-#         return context
+from ..exports.export_methods import methods as export_methods
+from ..exports.file_types import file_types as export_file_types
 
 
 class GenericDeleteView(DeleteView):
@@ -140,7 +128,9 @@ class GenericModelListBase:
             if "current_org_id" in self.request.session:
                 if self.org_related_path:
                     org_filter_kwargs = {
-                        self.org_related_path: self.request.session["current_org_id"]
+                        f"{self.org_related_path}__uuid": self.request.session[
+                            "current_org_id"
+                        ]
                     }
                     base_query = self.model.objects.filter(**org_filter_kwargs)
                 else:

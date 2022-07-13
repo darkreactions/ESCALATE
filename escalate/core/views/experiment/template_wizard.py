@@ -1,37 +1,35 @@
 from __future__ import annotations
-from typing import Dict, Any
-from django.forms import formset_factory
-from django.forms.formsets import formset_factory
-from django.shortcuts import render
-from django.http import HttpResponseRedirect
-from typing import List
-from formtools.wizard.views import SessionWizardView
 
-from django.urls import reverse
+from typing import Any, Dict, List
 
-from core.models import DefaultValues, ReagentTemplate
-
-from core.models.view_tables import (
-    ExperimentTemplate,
-    Actor,
-    ReagentTemplate,
-    ReagentMaterialTemplate,
-    MaterialType,
-    OutcomeTemplate,
-    Vessel,
-    VesselTemplate,
-)
 from core.forms.template_wizard import (
-    OutcomeDefinitionForm,
     ExperimentTemplateCreateForm,
+    OutcomeDefinitionForm,
     ReagentTemplateCreateForm,
     ReagentTemplateMaterialAddForm,
     VesselTemplateCreateForm,
 )
-from core.utilities.utils import get_colors
-from core.models.view_tables.generic_data import PropertyTemplate
-
 from core.forms.wizard import BaseIndexedFormSet
+from core.models import DefaultValues, ReagentTemplate
+from core.models.view_tables import (
+    Actor,
+    ExperimentTemplate,
+    MaterialType,
+    OutcomeTemplate,
+    ReagentMaterialTemplate,
+    ReagentTemplate,
+    Vessel,
+    VesselTemplate,
+)
+from core.models.view_tables.generic_data import PropertyTemplate
+from core.utilities.utils import get_colors
+from core.views.user_views import SelectLabMixin
+from django.forms import formset_factory
+from django.forms.formsets import formset_factory
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
+from django.urls import reverse
+from formtools.wizard.views import SessionWizardView
 
 # steps with names to display in UI
 INITIALIZE = "Create Experiment Template"
@@ -41,7 +39,7 @@ ADD_OUTCOMES = "Define Outcome Templates"
 ADD_VESSELS = "Define Vessel Templates"
 
 
-class CreateTemplateWizard(SessionWizardView):
+class CreateTemplateWizard(SelectLabMixin, SessionWizardView):
 
     # list steps in order, where each step is a tuple: (step name, form/formset)
     form_list = [
@@ -81,11 +79,13 @@ class CreateTemplateWizard(SessionWizardView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    """
     def get(self, request, *args, **kwargs):
         org_id = self.request.session.get("current_org_id", None)
         if not org_id:
             return HttpResponseRedirect(reverse("main_menu"))
         return super().get(request, *args, **kwargs)
+    """
 
     def get_form_initial(self, step):
         if step == ADD_REAGENTS:
@@ -266,7 +266,6 @@ class CreateTemplateWizard(SessionWizardView):
             ref_uid=data["template_name"],
             lab=data["lab"],
         )
-
 
     def create_reagent_template(self, name, properties):
         """[summary]

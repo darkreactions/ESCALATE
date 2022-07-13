@@ -1,55 +1,54 @@
 from __future__ import annotations
-import os
-from typing import List, Any, Type, Dict
-from formtools.wizard.views import SessionWizardView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from core.forms.wizard import (
-    ExperimentTemplateSelectForm,
-    BaseIndexedFormSet,
-    ReagentForm,
-    VesselForm,
-    ManualExperimentForm,
-    ActionParameterForm,
-    AutomatedSpecificationForm,
-    SamplerParametersForm,
-    PostProcessForm,
-)
-from django.shortcuts import render
-from django.forms import Form, ValidationError, formset_factory
-from django.conf import settings
-from django.core.files.storage import FileSystemStorage
-from django.http import HttpResponseRedirect
-from django.db.models import QuerySet
-from django.urls import reverse
-
-from core.models.view_tables import (
-    ExperimentTemplate,
-    ReagentTemplate,
-    ReagentMaterialTemplate,
-    PropertyTemplate,
-    Actor,
-)
-from core.dataclass import (
-    ExperimentData,
-    SELECT_TEMPLATE,
-    NUM_OF_EXPS,
-    MANUAL_SPEC,
-    AUTOMATED_SPEC,
-    REAGENT_PARAMS,
-    SELECT_VESSELS,
-    ACTION_PARAMS,
-    POSTPROCESS,
-    AUTOMATED_SAMPLER_SPEC,
-)
-from django.contrib import messages
-from core.utilities.utils import get_colors
-import pandas as pd
-
-from plugins.sampler.base_sampler_plugin import BaseSamplerPlugin
-from plugins.sampler import *
-
 
 import logging
+import os
+from typing import Any, Dict, List, Type
+
+import pandas as pd
+from core.dataclass import (
+    ACTION_PARAMS,
+    AUTOMATED_SAMPLER_SPEC,
+    AUTOMATED_SPEC,
+    MANUAL_SPEC,
+    NUM_OF_EXPS,
+    POSTPROCESS,
+    REAGENT_PARAMS,
+    SELECT_TEMPLATE,
+    SELECT_VESSELS,
+    ExperimentData,
+)
+from core.forms.wizard import (
+    ActionParameterForm,
+    AutomatedSpecificationForm,
+    BaseIndexedFormSet,
+    ExperimentTemplateSelectForm,
+    ManualExperimentForm,
+    PostProcessForm,
+    ReagentForm,
+    SamplerParametersForm,
+    VesselForm,
+)
+from core.models.view_tables import (
+    Actor,
+    ExperimentTemplate,
+    PropertyTemplate,
+    ReagentMaterialTemplate,
+    ReagentTemplate,
+)
+from core.utilities.utils import get_colors
+from core.views.user_views import SelectLabMixin
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.files.storage import FileSystemStorage
+from django.db.models import QuerySet
+from django.forms import Form, ValidationError, formset_factory
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
+from django.urls import reverse
+from formtools.wizard.views import SessionWizardView
+from plugins.sampler import *
+from plugins.sampler.base_sampler_plugin import BaseSamplerPlugin
 
 
 def check_sampler_selected(wizard):
@@ -58,7 +57,7 @@ def check_sampler_selected(wizard):
     return cleaned_data.get("select_experiment_sampler", False)
 
 
-class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
+class CreateExperimentWizard(LoginRequiredMixin, SelectLabMixin, SessionWizardView):
     file_storage = FileSystemStorage(
         location=os.path.join(settings.MEDIA_ROOT, "uploaded_files")
     )
@@ -109,6 +108,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
         self._experiment_template = None
         super().__init__(*args, **kwargs)
 
+    """
     def get(self, request, *args, **kwargs):
 
         org_id = self.request.session.get("current_org_id", None)
@@ -116,6 +116,7 @@ class CreateExperimentWizard(LoginRequiredMixin, SessionWizardView):
             # messages.error(request, "Please select a lab to continue")
             return HttpResponseRedirect(reverse("main_menu"))
         return super().get(request, *args, **kwargs)
+    """
 
     @property
     def experiment_template(self) -> "ExperimentTemplate":

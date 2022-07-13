@@ -93,7 +93,7 @@
                         },
                         error: function(data){
                             alert(data.responseJSON.message)
-                        }
+                        },
                     });
                 }
             });
@@ -109,6 +109,10 @@
                 formData.append('csrfmiddlewaretoken', '{{csrf_token}}');
                 formData.append('outcome_def_file', odfData.get('outcome_def_file'));
                 
+            });
+
+            this.on("successmultiple", function(file){
+                window.location.href = "{% url 'outcome' pk=experiment_instance.uuid %}";
             });
 
             

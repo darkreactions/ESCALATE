@@ -238,7 +238,7 @@ class NimbusWF3RobotPlugin(RobotPlugin):
             "Stir Rate (rpm):": ("Heat-Stir 1", "speed"),
             "Mixing time1 (s):": ("Heat-Stir 1", "duration"),
             "Mixing time2 (s):": ("Heat-Stir 2", "duration"),
-            "Reaction time (s):": (" ", " "),
+            "Reaction time (s):": ("Store", "duration"),
             "Preheat Temperature (C):": ("Preheat Plate", "temperature"),
         }
 
