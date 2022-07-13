@@ -98,9 +98,9 @@ class ExperimentDetailEditView(TemplateView):
         edocs = Edocument.objects.filter(ref_edocument_uuid=experiment.uuid)
         edocs = {
             edoc: (
-                self.request.build_absolute_uri(
-                    reverse("edoc_download", args=[edoc.pk])
-                )
+                # self.request.build_absolute_uri(
+                reverse("edoc_download", args=[edoc.pk])
+                # )
             )
             for edoc in edocs
         }
