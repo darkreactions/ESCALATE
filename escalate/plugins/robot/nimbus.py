@@ -14,6 +14,7 @@ from pint import UnitRegistry
 units = UnitRegistry()
 Q_ = units.Quantity
 
+
 class NimbusWF1RobotPlugin(RobotPlugin):
     name = "NIMBUS Robot for WF1"
 
@@ -24,14 +25,16 @@ class NimbusWF1RobotPlugin(RobotPlugin):
     def validation_errors(self):
         return self.errors
 
-    def validate(self, data: ExperimentData): #experiment_instance: "vt.ExperimentInstance"):
+    def validate(
+        self, data: ExperimentData
+    ):  # experiment_instance: "vt.ExperimentInstance"):
         if data.template.description not in ["Workflow 1"]:
             self.errors.append(
                 f"Selected template is not Workflow 1. Found: {data.template.description}"
             )
         else:
-            self.errors=[]
-        
+            self.errors = []
+
         if self.errors:
             return False
         return True
@@ -55,29 +58,37 @@ class NimbusWF1RobotPlugin(RobotPlugin):
         parameters = experiment_instance.get_action_parameters(decomposable=False)
         volume_parameters = experiment_instance.get_action_parameters(decomposable=True)
 
-        PARAM_MAPPING= { 
-            "Temperature (C):": ('Heat-Stir 1', 'temperature'),
-            "Stir Rate (rpm):": ('Heat-Stir 1', 'speed'),
-            "Mixing time1 (s):": ('Heat-Stir 1', 'duration') ,
-            "Mixing time2 (s):": ('Heat-Stir 2', 'duration'),
-            "Reaction time (s):": (' ', ' ') ,
-            "Preheat Temperature (C):": ('Preheat Plate', 'temperature'),
+        PARAM_MAPPING = {
+            "Temperature (C):": ("Heat-Stir 1", "temperature"),
+            "Stir Rate (rpm):": ("Heat-Stir 1", "speed"),
+            "Mixing time1 (s):": ("Heat-Stir 1", "duration"),
+            "Mixing time2 (s):": ("Heat-Stir 2", "duration"),
+            "Reaction time (s):": (" ", " "),
+            "Preheat Temperature (C):": ("Preheat Plate", "temperature"),
         }
-        
-        action_units={}
+
+        action_units = {}
         for au in parameters:
             action_units[au.action.template.description] = []
             for param in au.parameter_au.all():
                 k = param.parameter_def.description
-                if k == 'duration': #convert units for duration to seconds, if necessary
-                    if param.parameter_val_nominal.unit != '':
-                        v = Q_(float(param.parameter_val_nominal.value), param.parameter_val_nominal.unit).to(units.s).magnitude
+                if (
+                    k == "duration"
+                ):  # convert units for duration to seconds, if necessary
+                    if param.parameter_val_nominal.unit != "":
+                        v = (
+                            Q_(
+                                float(param.parameter_val_nominal.value),
+                                param.parameter_val_nominal.unit,
+                            )
+                            .to(units.s)
+                            .magnitude
+                        )
                     else:
                         v = param.parameter_val_nominal.value
-                else: #presumably temp is celcius and speed is in rpm so no conversions are perfomed 
+                else:  # presumably temp is celcius and speed is in rpm so no conversions are perfomed
                     v = param.parameter_val_nominal.value
                 action_units[au.action.template.description].append((k, v))
-                       
 
         rp = {}
         for label, (desc, param_def) in PARAM_MAPPING.items():
@@ -87,10 +98,10 @@ class NimbusWF1RobotPlugin(RobotPlugin):
                         if parameter == param_def:
                             rp[label] = val
             if label not in rp.keys():
-                rp[label]= ' '  
-        
+                rp[label] = " "
+
         rp_keys = []
-        rp_values = []        
+        rp_values = []
         for key, val in rp.items():
             rp_keys.append(key)
             rp_values.append(val)
@@ -178,6 +189,7 @@ class NimbusWF1RobotPlugin(RobotPlugin):
         temp.seek(0)
         return temp
 
+
 class NimbusWF3RobotPlugin(RobotPlugin):
     name = "NIMBUS Robot for WF3"
 
@@ -188,14 +200,16 @@ class NimbusWF3RobotPlugin(RobotPlugin):
     def validation_errors(self):
         return self.errors
 
-    def validate(self, data: ExperimentData): #experiment_instance: "vt.ExperimentInstance"):
+    def validate(
+        self, data: ExperimentData
+    ):  # experiment_instance: "vt.ExperimentInstance"):
         if data.template.description not in ["Workflow 3"]:
             self.errors.append(
                 f"Selected template is not Workflow 3. Found: {data.template.description}"
             )
         else:
-            self.errors=[]
-        
+            self.errors = []
+
         if self.errors:
             return False
         return True
@@ -203,7 +217,7 @@ class NimbusWF3RobotPlugin(RobotPlugin):
     def robot_file(self, experiment_instance: "vt.ExperimentInstance"):
         robotfile_blob = self._generate_robot_file_wf3(experiment_instance)
         doc_type = TypeDef.objects.get(category="file", description="text")
-        robotfile_edoc, created = vt.Edocument.objects.get_or_create(
+        robotfile_edoc = vt.Edocument.objects.create(
             title=f"Nimbus Robot file for WF3: {experiment_instance.description}",
             filename=f"{experiment_instance.uuid}_{experiment_instance.description}_RobotInput.xls",
             ref_edocument_uuid=experiment_instance.uuid,
@@ -219,26 +233,34 @@ class NimbusWF3RobotPlugin(RobotPlugin):
         parameters = experiment_instance.get_action_parameters(decomposable=False)
         volume_parameters = experiment_instance.get_action_parameters(decomposable=True)
 
-        PARAM_MAPPING= { 
-            "Temperature (C):": ('Heat-Stir 1', 'temperature'),
-            "Stir Rate (rpm):": ('Heat-Stir 1', 'speed'),
-            "Mixing time1 (s):": ('Heat-Stir 1', 'duration') ,
-            "Mixing time2 (s):": ('Heat-Stir 2', 'duration'),
-            "Reaction time (s):": (' ', ' ') ,
-            "Preheat Temperature (C):": ('Preheat Plate', 'temperature'),
+        PARAM_MAPPING = {
+            "Temperature (C):": ("Heat-Stir 1", "temperature"),
+            "Stir Rate (rpm):": ("Heat-Stir 1", "speed"),
+            "Mixing time1 (s):": ("Heat-Stir 1", "duration"),
+            "Mixing time2 (s):": ("Heat-Stir 2", "duration"),
+            "Reaction time (s):": (" ", " "),
+            "Preheat Temperature (C):": ("Preheat Plate", "temperature"),
         }
-        
-        action_units={}
+
+        action_units = {}
         for au in parameters:
             action_units[au.action.template.description] = []
             for param in au.parameter_au.all():
                 k = param.parameter_def.description
-                if k == 'duration': #convert units for duration to seconds, if necessary
-                    v = Q_(float(param.parameter_val_nominal.value), param.parameter_val_nominal.unit).to(units.s).magnitude
-                else: #presumably temp is celcius and speed is in rpm so no conversions are perfomed 
+                if (
+                    k == "duration"
+                ):  # convert units for duration to seconds, if necessary
+                    v = (
+                        Q_(
+                            float(param.parameter_val_nominal.value),
+                            param.parameter_val_nominal.unit,
+                        )
+                        .to(units.s)
+                        .magnitude
+                    )
+                else:  # presumably temp is celcius and speed is in rpm so no conversions are perfomed
                     v = param.parameter_val_nominal.value
                 action_units[au.action.template.description].append((k, v))
-                       
 
         rp = {}
         for label, (desc, param_def) in PARAM_MAPPING.items():
@@ -248,20 +270,20 @@ class NimbusWF3RobotPlugin(RobotPlugin):
                         if parameter == param_def:
                             rp[label] = val
             if label not in rp.keys():
-                rp[label]= ' '  
-        
+                rp[label] = " "
+
         rp_keys = []
-        rp_values = []        
+        rp_values = []
         for key, val in rp.items():
             rp_keys.append(key)
             rp_values.append(val)
-        
-        '''rp_keys = []
+
+        """rp_keys = []
         rp_values = []
         for i, au in enumerate(parameters):
             for param in au.parameter_au.all():
                 rp_keys.append(param.parameter_def.description)
-                rp_values.append(param.parameter_val_nominal.value)'''
+                rp_values.append(param.parameter_val_nominal.value)"""
 
         rxn_parameters = pd.DataFrame(
             {"Reaction Parameters": rp_keys, "Parameter Values": rp_values}
@@ -276,7 +298,7 @@ class NimbusWF3RobotPlugin(RobotPlugin):
             {"Vial Site": well_names, "Labware ID:": "Symyx_96_well_0003"}
         )
 
-        reagent_colnames = [f"Reagent{i} (ul)" for i in range(1, 9)]
+        reagent_colnames = [f"Reagent{i} (ul)" for i in range(1, 10)]
         reaction_volumes_output = pd.DataFrame(
             {reagent_col: [0] * len(df_tray) for reagent_col in reagent_colnames}
         )
@@ -309,6 +331,16 @@ class NimbusWF3RobotPlugin(RobotPlugin):
                         parameter_def__description="volume"
                     ).parameter_val_nominal.value
 
+        # Remove rows where every volume dispensed is zero
+        reaction_volumes_output = reaction_volumes_output[
+            ~(
+                reaction_volumes_output.iloc[
+                    :, reaction_volumes_output.columns != "Vial Site"
+                ]
+                == 0
+            ).all(axis=1)
+        ]
+        reaction_volumes_output.reset_index(inplace=True, drop=True)
         rxn_conditions = pd.DataFrame(
             {
                 "Reagents": [f"Reagent{i}" for i in range(1, 10)],
@@ -331,7 +363,7 @@ class NimbusWF3RobotPlugin(RobotPlugin):
         outframe = pd.concat(
             [  # df_tray['Vial Site'],
                 reaction_volumes_output,
-                df_tray["Labware ID:"],
+                df_tray["Labware ID:"][: len(reaction_volumes_output)],
                 rxn_parameters,
                 rxn_conditions,
             ],

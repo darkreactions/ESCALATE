@@ -402,6 +402,39 @@ class Command(BaseCommand):
                 action_def.parameter_def.add(param)
 
     def _create_wf3(self):
+        # Creating the 48 well plate used for WF3 experiments
+        plate = Vessel.objects.create(
+            description="48 well plate - WF3",
+            well_number=48,
+            parent=None,
+        )
+        plate.vessel_type.add(VesselType.objects.get(description="plate"))
+        plate.save()
+        plate_wells = {}
+        vial_type = VesselType.objects.get(description="well")
+
+        column_order = "ACEGBDFH"
+        rows = 12
+        a_well_list = []
+        b_well_list = []
+        well_list = []
+        for row in range(rows):
+            if (row + 1) % 2 != 0:
+                for col in column_order[0:4]:
+                    a_well_list.append("{}{}".format(col, row + 1))
+                    well_list.append("{}{}".format(col, row + 1))
+            else:
+                for col in column_order[4:]:
+                    b_well_list.append("{}{}".format(col, row + 1))
+                    well_list.append("{}{}".format(col, row + 1))
+        for well in well_list:
+            plate_wells[well] = Vessel(parent=plate, description=well)
+
+        Vessel.objects.bulk_create(plate_wells.values())
+        for well in well_list:
+            plate_wells[well].vessel_type.add(vial_type)
+            plate_wells[well].save()
+
         # Get the lab related to this template
         lab = Actor.objects.get(
             description="Haverford College",
@@ -525,31 +558,6 @@ class Command(BaseCommand):
                     )
                     reagent_material_template.properties.add(rmv_template)
 
-        column_order = "ACEGBDFH"
-        rows = 12
-        """
-        Previous Implementation
-        well_list = [f'{col}{row}' for row in range(1, rows+1) for col in column_order]
-        plate = Vessel.objects.get(description='96 Well Plate well')
-        # Dictionary of plate wells so that we don't keep accessing the database
-        # multiple times
-        plate_wells = {}
-        for well in well_list:
-            plate_wells[well] = Vessel.objects.get(parent=plate, description=well)
-        """
-        a_well_list = []
-        b_well_list = []
-        well_list = []
-        for row in range(rows):
-            if (row + 1) % 2 != 0:
-                for col in column_order[0:4]:
-                    a_well_list.append("{}{}".format(col, row + 1))
-                    well_list.append("{}{}".format(col, row + 1))
-            else:
-                for col in column_order[4:]:
-                    b_well_list.append("{}{}".format(col, row + 1))
-                    well_list.append("{}{}".format(col, row + 1))
-        plate = Vessel.objects.get(description="96 Well Plate well")
         # Dictionary of plate wells so that we don't keep accessing the database
         # multiple times
         a_wells = {}
@@ -584,7 +592,7 @@ class Command(BaseCommand):
                 "Preheat Plate",
                 "bring_to_temperature",
                 (None, None),
-                ("vessel", "96 Well Plate well"),
+                ("vessel", "48 well plate - WF3"),
                 "Preheat Plate",
             ),
             # Dispense Solvent to vials
@@ -624,7 +632,7 @@ class Command(BaseCommand):
                 "Heat-Stir 1",
                 "heat_stir",
                 (None, None),
-                ("vessel", "96 Well Plate well"),
+                ("vessel", "48 well plate - WF3"),
                 "Heat-Stir 1",
             ),
             # Dispense Acid Vol 2
@@ -640,7 +648,7 @@ class Command(BaseCommand):
                 "Heat-Stir 2",
                 "heat_stir",
                 (None, None),
-                ("vessel", "96 Well Plate well"),
+                ("vessel", "48 well plate - WF3"),
                 "Heat-Stir 2",
             ),
             # Dispense antisolvent
@@ -656,7 +664,7 @@ class Command(BaseCommand):
                 "Store",
                 "dwell",
                 (None, None),
-                ("vessel", "96 Well Plate well"),
+                ("vessel", "48 well plate - WF3"),
                 "Store",
             ),
         ]
@@ -701,32 +709,18 @@ class Command(BaseCommand):
             dest_vessel_template = None
             dest_vessel_decomposable = False
             if dest_desc:
-                default_vessel = Vessel.objects.get(description="96 Well Plate well")
+                # default_vessel = Vessel.objects.get(description="96 Well Plate well")
+                default_vessel = plate
+                (dest_vessel_template, created,) = VesselTemplate.objects.get_or_create(
+                    experiment_template=exp_template,
+                    description="Outcome vessel",
+                    outcome_vessel=True,
+                    default_vessel=default_vessel,
+                )
                 if isinstance(dest_desc, str):
-                    (
-                        dest_vessel_template,
-                        created,
-                    ) = VesselTemplate.objects.get_or_create(
-                        experiment_template=exp_template,
-                        description="Outcome vessel",
-                        outcome_vessel=True,
-                        default_vessel=default_vessel,
-                    )
                     dest_vessel_decomposable = False
                 elif isinstance(dest_desc, dict):
-                    (
-                        dest_vessel_template,
-                        created,
-                    ) = VesselTemplate.objects.get_or_create(
-                        experiment_template=exp_template,
-                        description="Outcome vessel",
-                        outcome_vessel=True,
-                        default_vessel=default_vessel,
-                    )
                     dest_vessel_decomposable = True
-                # print(dest_vessel_template, type(dest_desc))
-                # if dest_vessel_template:
-                #    exp_template.vessel_templates.add(dest_vessel_template)
 
             at, created = ActionTemplate.objects.get_or_create(
                 description=action_desc,
