@@ -14,17 +14,17 @@ users = {
         "person_data": {"first_name": "Mike", "last_name": "Tynes"},
         "password": "hello1world2",
     },
-    "ichang": {
-        "person_data": {"first_name": "Isaac", "last_name": "Chang"},
-        "password": "securepassword",
-    },
     "nsmina": {
         "person_data": {"first_name": "Nicole", "last_name": "Smina"},
         "password": "password11",
     },
-    "jkawamura": {
-        "person_data": {"first_name": "Joseph", "last_name": "Kawamura"},
-        "password": "password2",
+    "adye": {
+        "person_data": {"first_name": "Aldan", "last_name": "Dye"},
+        "password": "password1",
+    },
+    "cfleming": {
+        "person_data": {"first_name": "Clare", "last_name": "Fleming"},
+        "password": "password1",
     },
 }
 
