@@ -165,8 +165,9 @@ class WF3SamplerPlugin(BaseSamplerPlugin):
             "Dispense Reagent 1 - Solvent": "Reagent 1 - Solvent",
             "Dispense Reagent 2 - Stock A": "Reagent 2 - Stock A",
             "Dispense Reagent 3 - Stock B": "Reagent 3 - Stock B",
-            "Dispense Reagent 7 - Acid Volume 1": "Reagent 7 - Acid",
-            "Dispense Reagent 7 - Acid Volume 2": "Reagent 7 - Acid",
+            "Dispense Reagent 7 - Acid": "Reagent 7 - Acid",
+            #"Dispense Reagent 7 - Acid Volume 1": "Reagent 7 - Acid",
+            #"Dispense Reagent 7 - Acid Volume 2": "Reagent 7 - Acid",
             "Dispense Reagent 9 - Antisolvent": "Reagent 9 - Antisolvent",
         }
 
@@ -229,10 +230,6 @@ class WF3SamplerPlugin(BaseSamplerPlugin):
                         a_well_list[: len(desired_volume[reagent_desc])],
                         desired_volume[reagent_desc],
                     ):
-                        if at.description == "Dispense Reagent 7 - Acid Volume 1":
-                            vol = ceil(vol / 2.0)
-                        elif at.description == "Dispense Reagent 7 - Acid Volume 2":
-                            vol = floor(vol / 2.0)
                         volume = Val.from_dict({"value": vol, "unit": "uL", "type": "num"})
                         dest_vessel = children.get(description=dest_vessel_name)
                         aud = ActionUnitData(

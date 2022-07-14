@@ -619,37 +619,21 @@ class Command(BaseCommand):
                 ("vessel", a_wells),
                 "Dispense Reagent 3 - Stock B",
             ),
-            # Dispense Acid Vol 1
+            # Dispense Acid
             (
-                "Dispense Reagent 7 - Acid Volume 1",
+                "Dispense Reagent 7 - Acid",
                 "dispense",
                 (None, "Reagent 7 - Acid"),
                 ("vessel", a_wells),
-                "Dispense Reagent 7 - Acid Volume 1",
+                "Dispense Reagent 7 - Acid",
             ),
             # Mix
             (
-                "Heat-Stir 1",
+                "Heat-Stir",
                 "heat_stir",
                 (None, None),
                 ("vessel", "48 well plate - WF3"),
-                "Heat-Stir 1",
-            ),
-            # Dispense Acid Vol 2
-            (
-                "Dispense Reagent 7 - Acid Volume 2",
-                "dispense",
-                (None, "Reagent 7 - Acid"),
-                ("vessel", a_wells),
-                "Dispense Reagent 7 - Acid Volume 2",
-            ),
-            # Mix
-            (
-                "Heat-Stir 2",
-                "heat_stir",
-                (None, None),
-                ("vessel", "48 well plate - WF3"),
-                "Heat-Stir 2",
+                "Heat-Stir",
             ),
             # Dispense antisolvent
             (

@@ -234,12 +234,12 @@ class NimbusWF3RobotPlugin(RobotPlugin):
         volume_parameters = experiment_instance.get_action_parameters(decomposable=True)
 
         PARAM_MAPPING = {
-            "Temperature (C):": ("Heat-Stir 1", "temperature"),
-            "Stir Rate (rpm):": ("Heat-Stir 1", "speed"),
-            "Mixing time1 (s):": ("Heat-Stir 1", "duration"),
-            "Mixing time2 (s):": ("Heat-Stir 2", "duration"),
-            "Reaction time (s):": ("Store", "duration"),
-            "Preheat Temperature (C):": ("Preheat Plate", "temperature"),
+            "Temperature (C):": ("Heat-Stir", "temperature"),
+            "Stir Rate (rpm):": ("Heat-Stir", "speed"),
+            "Mixing time (s):": ("Heat-Stir", "duration"),
+            #"Mixing time2 (s):": ("Heat-Stir 2", "duration"),
+            #"Reaction time (s):": ("Store", "duration"),
+            #"Preheat Temperature (C):": ("Preheat Plate", "temperature"),
         }
 
         action_units = {}
@@ -307,13 +307,14 @@ class NimbusWF3RobotPlugin(RobotPlugin):
             reaction_volumes_output = pd.concat(
                 [df_tray["Vial Site"], reaction_volumes_output], axis=1
             )
-            # Keep this Acid Volume 1/Acid Volume 2, do not change to acid vol
+            
             REAG_MAPPING = {
                 "Dispense Reagent 2 - Stock A": 2,
                 "Dispense Reagent 3 - Stock B": 3,
                 "Dispense Reagent 1 - Solvent": 1,
-                "Dispense Reagent 7 - Acid Volume 1": 6,
-                "Dispense Reagent 7 - Acid Volume 2": 7,
+                "Dispense Reagent 7 - Acid": 7,
+                #"Dispense Reagent 7 - Acid Volume 1": 6,
+                #"Dispense Reagent 7 - Acid Volume 2": 7,
                 "Dispense Reagent 9 - Antisolvent": 9,
             }
             # source material -> Reagent number, vial_site -> row name
@@ -346,15 +347,15 @@ class NimbusWF3RobotPlugin(RobotPlugin):
                 "Reagents": [f"Reagent{i}" for i in range(1, 10)],
                 "Reagent identity": [f"{i}" for i in range(1, 10)],
                 "Liquid Class": [
-                    "HighVolume_Water_DispenseJet_Empty",
-                    "HighVolume_Water_DispenseJet_Empty",
-                    "HighVolume_Water_DispenseJet_Empty",
-                    "Tip_50ul_Water_DispenseJet_Empty",
-                    "Tip_50ul_Water_DispenseJet_Empty",
+                    "StandardVolume_Water_DispenseJet_Empty",
                     "StandardVolume_Water_DispenseJet_Empty",
                     "StandardVolume_Water_DispenseJet_Empty",
                     "Tip_50ul_Water_DispenseJet_Empty",
                     "Tip_50ul_Water_DispenseJet_Empty",
+                    "Tip_50ul_Water_DispenseJet_Empty",
+                    "StandardVolume_Water_DispenseJet_Empty",
+                    "Tip_50ul_Water_DispenseJet_Empty",
+                    "HighVolume_Water_DispenseJet_Empty",
                 ],
                 "Reagent Temperature": [45] * 9,
             }
