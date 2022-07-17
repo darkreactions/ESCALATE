@@ -1,4 +1,4 @@
-from plugins.robot.base_robot_plugin import RobotPlugin
+from plugins.robot.base_robot_plugin import BaseRobotPlugin
 from uuid import UUID
 from django.db.models import QuerySet
 import core.models.view_tables as vt
@@ -15,7 +15,7 @@ units = UnitRegistry()
 Q_ = units.Quantity
 
 
-class NimbusWF1RobotPlugin(RobotPlugin):
+class NimbusWF1RobotPlugin(BaseRobotPlugin):
     name = "NIMBUS Robot for WF1"
 
     def __init__(self):
@@ -190,7 +190,7 @@ class NimbusWF1RobotPlugin(RobotPlugin):
         return temp
 
 
-class NimbusWF3RobotPlugin(RobotPlugin):
+class NimbusWF3RobotPlugin(BaseRobotPlugin):
     name = "NIMBUS Robot for WF3"
 
     def __init__(self):
@@ -237,9 +237,9 @@ class NimbusWF3RobotPlugin(RobotPlugin):
             "Temperature (C):": ("Heat-Stir", "temperature"),
             "Stir Rate (rpm):": ("Heat-Stir", "speed"),
             "Mixing time (s):": ("Heat-Stir", "duration"),
-            #"Mixing time2 (s):": ("Heat-Stir 2", "duration"),
-            #"Reaction time (s):": ("Store", "duration"),
-            #"Preheat Temperature (C):": ("Preheat Plate", "temperature"),
+            # "Mixing time2 (s):": ("Heat-Stir 2", "duration"),
+            # "Reaction time (s):": ("Store", "duration"),
+            # "Preheat Temperature (C):": ("Preheat Plate", "temperature"),
         }
 
         action_units = {}
@@ -307,14 +307,14 @@ class NimbusWF3RobotPlugin(RobotPlugin):
             reaction_volumes_output = pd.concat(
                 [df_tray["Vial Site"], reaction_volumes_output], axis=1
             )
-            
+
             REAG_MAPPING = {
                 "Dispense Reagent 2 - Stock A": 2,
                 "Dispense Reagent 3 - Stock B": 3,
                 "Dispense Reagent 1 - Solvent": 1,
                 "Dispense Reagent 7 - Acid": 7,
-                #"Dispense Reagent 7 - Acid Volume 1": 6,
-                #"Dispense Reagent 7 - Acid Volume 2": 7,
+                # "Dispense Reagent 7 - Acid Volume 1": 6,
+                # "Dispense Reagent 7 - Acid Volume 2": 7,
                 "Dispense Reagent 9 - Antisolvent": 9,
             }
             # source material -> Reagent number, vial_site -> row name

@@ -5,9 +5,10 @@ import core.models.view_tables as vt
 from django.forms import ValidationError
 
 
-class RobotPlugin(ABC):
+class BaseRobotPlugin(ABC):
     name = "Default Robot Plugin"
     errors: List[str] = list()
+
     def __init__(self):
         pass
 

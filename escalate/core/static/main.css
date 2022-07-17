@@ -54,27 +54,21 @@ hr.solid {
 }
 
 .sticky-table td:first-child {
+  background-color: white;
   position: sticky;
-  left: 0px;
+  left: 0;
   z-index: 1;
 }
 
 .sticky-table th:first-child {
+  background-color: black;
   position: sticky;
-  left: 0px;
+  top: 0;
+  left: 0;
   z-index: 2;
 }
 
-.sticky-table td:first-child {
-  background-color: white;
-}
-
-.sticky-table th:first-child {
-  background-color: black;
-}
-
 .sticky-table table thead th {
-  padding: 3px;
   position: sticky;
   top: 0;
   z-index: 1;

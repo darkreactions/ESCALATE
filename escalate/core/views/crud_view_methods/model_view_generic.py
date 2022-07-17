@@ -43,6 +43,7 @@ class GenericDeleteView(DeleteView):
             "ReagentTemplate",
             "VesselTemplate",
             "OutcomeTemplate",
+            "Vessel",
         ]:
             self.success_url = request.META["HTTP_REFERER"]
         return super().post(request, *args, **kwargs)
@@ -443,6 +444,7 @@ class GenericModelEdit:
                 "ReagentTemplate",
                 "VesselTemplate",
                 "OutcomeTemplate",
+                "Vessel",
             ]:
                 self.success_url = request.POST.get("next", self.success_url)
             else:

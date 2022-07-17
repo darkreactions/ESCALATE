@@ -77,6 +77,8 @@ def get_model_of_related_field(model, full_related_field, all_related_fields=Non
         if cur_model == None:
             print("should never reach here")
             break
-        cur_field_details = FrozenDict(**{"model": cur_model, "field_name": field_name})
+        cur_field_details = FrozenDict(
+            **{"model": cur_model, "field_name": field_name.strip("-")}
+        )
         cur_model = all_related_fields[cur_field_details]
     return cur_field_details["model"]

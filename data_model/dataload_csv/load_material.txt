@@ -9,7 +9,7 @@ Phenethylammonium iodide 	model	TRUE	"Phenethylammonium iodide |PhEtNH3I|InChI=1
 Acetamidinium iodide	model	TRUE	"Acetamidinium iodide|AcNH3I|InChI=1S/C2H6N2.HI/c1-2(3)4;/h1H3,(H3,3,4);1H|GGYGJCFIYJVWIP-UHFFFAOYSA-N"	Chemical_Name|Abbreviation|InChI|InChIKey	organic
 n-Butylammonium iodide	model	TRUE	"n-Butylammonium iodide|n-BuNH3I|InChI=1S/C4H11N.HI/c1-2-3-4-5;/h2-5H2,1H3;1H|CALQKRVFTWDYDG-UHFFFAOYSA-N"	Chemical_Name|Abbreviation|InChI|InChIKey	organic
 Guanidinium iodide	model	TRUE	"Guanidinium iodide|GnNH3I|InChI=1S/CH5N3.HI/c2-1(3)4;/h(H5,2,3,4);1H|UUDRLGYROXTISK-UHFFFAOYSA-N"	Chemical_Name|Abbreviation|InChI|InChIKey	organic
-Dichloromethane	model	TRUE	Dichloromethane|DCM|InChI=1S/CH2Cl2/c2-1-3/h1H2|YMWUJEATGCHHMB-UHFFFAOYSA-N	Chemical_Name|Abbreviation|InChI|InChIKey	solvent
+Dichloromethane	model	TRUE	Dichloromethane|DCM|InChI=1S/CH2Cl2/c2-1-3/h1H2|YMWUJEATGCHHMB-UHFFFAOYSA-N	Chemical_Name|Abbreviation|InChI|InChIKey	solvent|antisolvent
 Dimethylammonium iodide	model	TRUE	"Dimethylammonium iodide|Me2NH2I|InChI=1S/C2H7N.HI/c1-3-2;/h3H,1-2H3;1H|JMXLWMIFDJCGBV-UHFFFAOYSA-N"	Chemical_Name|Abbreviation|InChI|InChIKey	organic
 Phenylammonium Iodide	model	TRUE	"Phenylammonium Iodide|PhenylammoniumIodide|InChI=1S/C6H7N.HI/c7-6-4-2-1-3-5-6;/h1-5H,7H2;1H|KFQARYBEAKAXIC-UHFFFAOYSA-N"	Chemical_Name|Abbreviation|InChI|InChIKey	organic
 t-Butylammonium Iodide	model	TRUE	"t-Butylammonium Iodide|tButylammoniumIodide|InChI=1S/C4H11N.HI/c1-4(2,3)5;/h5H2,1-3H3;1H|NLJDBTZLVTWXRG-UHFFFAOYSA-N"	Chemical_Name|Abbreviation|InChI|InChIKey	organic
@@ -29,7 +29,7 @@ Benzylammonium Iodide	model	TRUE	"Benzylammonium Iodide|BenzylammoniumIodide|InC
 Beta Alanine Hydroiodide	model	TRUE	"Beta Alanine Hydroiodide|betaAlanineHydroiodide|InChI=1S/C3H7NO2.HI/c4-2-1-3(5)6;/h1-2,4H2,(H,5,6);1H|XAKAQFUGWUAPJN-UHFFFAOYSA-N"	Chemical_Name|Abbreviation|InChI|InChIKey	organic
 Bismuth iodide	model	TRUE	Bismuth iodide|BiI3|InChI=1S/Bi.3HI/h;3*1H/q+3;;;/p-3|KOECRLKKXSXCPB-UHFFFAOYSA-K	Chemical_Name|Abbreviation|InChI|InChIKey	inorganic
 Cesium iodide	model	TRUE	Cesium iodide|CsI|InChI=1S/Cs.HI/h;1H/q+1;/p-1|XQPRBTXUXXVTKB-UHFFFAOYSA-M	Chemical_Name|Abbreviation|InChI|InChIKey	inorganic
-Dimethylformamide	model	TRUE	"Dimethylformamide|DMF|InChI=1S/C3H7NO/c1-4(2)3-5/h3H,1-2H3|ZMXDDKWLCZADIW-UHFFFAOYSA-N"	Chemical_Name|Abbreviation|InChI|InChIKey	solvent
+Dimethylformamide	model	TRUE	"Dimethylformamide|DMF|InChI=1S/C3H7NO/c1-4(2)3-5/h3H,1-2H3|ZMXDDKWLCZADIW-UHFFFAOYSA-N"	Chemical_Name|Abbreviation|InChI|InChIKey	solvent|antisolvent
 "Ethane-1,2-diammonium bromide"	model	TRUE	"Ethane-1,2-diammonium bromide|EthylenediamineDihydrobromide|InChI=1S/C2H8N2.2BrH/c3-1-2-4;;/h1-4H2;2*1H|BCQZYUOYVLJOPE-UHFFFAOYSA-N"	Chemical_Name|Abbreviation|InChI|InChIKey	organic
 "Ethane-1,2-diammonium iodide"	model	TRUE	"Ethane-1,2-diammonium iodide|EthylenediamineDihydriodide|InChI=1S/C2H8N2.2HI/c3-1-2-4;;/h1-4H2;2*1H|IWNWLPUNKAYUAW-UHFFFAOYSA-N"	Chemical_Name|Abbreviation|InChI|InChIKey	organic
 Ethylammonium bromide	model	TRUE	"Ethylammonium bromide|EtNH3Br|InChI=1S/C2H7N.BrH/c1-2-3;/h2-3H2,1H3;1H|PNZDZRMOBIIQTC-UHFFFAOYSA-N"	Chemical_Name|Abbreviation|InChI|InChIKey	organic

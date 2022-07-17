@@ -42,6 +42,7 @@ methods = {
         },
         "ordering": ["description"],
         "field_contains": "",
+        "default_filter_kwargs": {"parent__isnull": True},
     },
     "Systemtool": {
         "model": core.models.view_tables.Systemtool,

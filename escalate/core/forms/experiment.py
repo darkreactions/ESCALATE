@@ -1,13 +1,9 @@
-from typing import Tuple, Any
-from django.forms import (
-    Select,
-    Form,
-    ChoiceField,
-)
+from typing import Any, Tuple
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Row, Column, Field
-from plugins.robot.base_robot_plugin import RobotPlugin
+from crispy_forms.layout import Column, Field, Layout, Row
+from django.forms import ChoiceField, Form, Select
+from plugins.robot.base_robot_plugin import BaseRobotPlugin
 
 
 class GenerateRobotFileForm(Form):
@@ -25,10 +21,12 @@ class GenerateRobotFileForm(Form):
         self._populate_robot_generator()
 
     def _populate_robot_generator(self):
-        none_option: "list[Tuple[Any, str]]" = [(None, "No robot file generator selected")]
+        none_option: "list[Tuple[Any, str]]" = [
+            (None, "No robot file generator selected")
+        ]
         self.fields["select_robot_file_generator"].choices = none_option + [
             (robot_plugin.__name__, robot_plugin.name)
-            for robot_plugin in RobotPlugin.__subclasses__()
+            for robot_plugin in BaseRobotPlugin.__subclasses__()
         ]
 
 

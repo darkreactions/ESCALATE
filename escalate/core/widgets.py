@@ -41,36 +41,39 @@ class RelatedFieldWidgetCanAdd(widgets.Select):
             self.related_url = (
                 self.related_base_url + f"?related_uuid={self.related_instance.uuid}"
             )
+        else:
+            self.related_url = self.related_base_url
 
         output: "List[Any]" = [super().render(name, value, *args, **kwargs)]
         output.append(f'<a href="{self.related_url}" id="add_id_{name}">')
         output.append(
             f'<i class="fa fa-plus" aria-hidden="true"> Add another {self.related_model._meta.object_name}</i></a>'
         )
-        output.append(
-            f"""<a class="add-another" id="edit_id_{name}" onclick="edit_{name}()"><br>
-            <i class="fa fa-edit" aria-hidden="true"> Edit selected {self.related_model._meta.object_name}</i></a><br>
-            <a class="add-another" id="delete_id_{name}" onclick="delete_{name}()"><i class="fa fa-trash" aria-hidden="true"> Delete selected {self.related_model._meta.object_name}</i></a>"""
-        )
-        output.append(
-            f"""<script>
-                function edit_{name}() 
-                    {{ 
+        if self.choices:
+            output.append(
+                f"""<a class="add-another" id="edit_id_{name}" onclick="edit_{name}()"><br>
+                <i class="fa fa-edit" aria-hidden="true"> Edit selected {self.related_model._meta.object_name}</i></a><br>
+                <a class="add-another" id="delete_id_{name}" onclick="delete_{name}()"><i class="fa fa-trash" aria-hidden="true"> Delete selected {self.related_model._meta.object_name}</i></a>"""
+            )
+            output.append(
+                f"""<script>
+                    function edit_{name}() 
+                        {{ 
+                            var e = document.getElementById("{kwargs["attrs"]["id"]}"); 
+                            var uuid = e.value; 
+                            window.location.href = "{self.related_base_url}" + uuid
+                        }}
+                    function delete_{name}() 
+                    {{
                         var e = document.getElementById("{kwargs["attrs"]["id"]}"); 
-                        var uuid = e.value; 
-                        window.location.href = "{self.related_base_url}" + uuid
-                     }}
-                function delete_{name}() 
-                {{
-                    var e = document.getElementById("{kwargs["attrs"]["id"]}"); 
-                    var uuid = e.value;
-                    const description = e.options[e.selectedIndex].text;
-                    $('#deleteModalmessage').html('Are you sure you want to delete the entry: <br>' + description + '?');
-                    $("#delete_form").attr("action", {self.related_base_url} + uuid + "/delete");
-                    $("#deleteModal").modal();
-                }}
-                </script>"""
-        )
+                        var uuid = e.value;
+                        const description = e.options[e.selectedIndex].text;
+                        $('#deleteModalmessage').html('Are you sure you want to delete the entry: <br>' + description + '?');
+                        $("#delete_form").attr("action", {self.related_base_url} + uuid + "/delete");
+                        $("#deleteModal").modal();
+                    }}
+                    </script>"""
+            )
         return mark_safe(f"".join(output))
 
 

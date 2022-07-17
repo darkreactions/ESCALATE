@@ -1,35 +1,29 @@
 import json
 from datetime import datetime, timezone, tzinfo
-from django.db.models import F
-from django.http.response import HttpResponse, HttpResponseRedirect
-from django.views.generic import TemplateView
-from django.forms import ValidationError, formset_factory
-from django.urls import reverse
-from django.shortcuts import render, redirect
-from django.utils import timezone
+
+from core.custom_types import Val
+from core.forms.custom_types import NominalActualForm
+from core.forms.experiment import GenerateRobotFileForm, QueueStatusForm
 from core.forms.forms import UploadFileForm
+from core.forms.wizard import PostProcessForm
 from core.models.view_tables import (
-    ExperimentInstance,
-    ExperimentTemplate,
     BomMaterial,
     Edocument,
-)
-from core.forms.custom_types import (
-    NominalActualForm,
-)
-from core.forms.experiment import QueueStatusForm, GenerateRobotFileForm
-from core.utilities.experiment_utils import (
-    get_action_parameter_querysets,
+    ExperimentInstance,
+    ExperimentTemplate,
 )
 from core.models.view_tables.organization import Actor
-from core.views.experiment import (
-    save_forms_q1,
-    get_action_parameter_form_data,
-)
-from core.custom_types import Val
-from core.forms.wizard import PostProcessForm
-from plugins.robot.base_robot_plugin import RobotPlugin
+from core.utilities.experiment_utils import get_action_parameter_querysets
+from core.views.experiment import get_action_parameter_form_data, save_forms_q1
+from django.db.models import F
+from django.forms import ValidationError, formset_factory
+from django.http.response import HttpResponse, HttpResponseRedirect
+from django.shortcuts import redirect, render
+from django.urls import reverse
+from django.utils import timezone
+from django.views.generic import TemplateView
 from plugins.robot import *
+from plugins.robot.base_robot_plugin import BaseRobotPlugin
 
 
 class ExperimentDetailEditView(TemplateView):
@@ -191,7 +185,7 @@ class ExperimentDetailEditView(TemplateView):
 
     def generate_robot_file(self, class_name: str, exp: ExperimentInstance):
         if class_name in globals():
-            RobotFileClass: RobotPlugin = globals()[class_name]
+            RobotFileClass: BaseRobotPlugin = globals()[class_name]
             rfc = RobotFileClass()
             if rfc.validate(exp):
                 try:

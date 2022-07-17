@@ -36,20 +36,20 @@
                         <tr>
                             <th scope="row">Outcome Submission</th>
                             <td>
-                                <a href="{% url 'outcome' pk=experiment.uuid %}"
+                                <a href="{% url 'outcome' pk=experiment.uuid %}" target="_blank" rel="noopener noreferrer"
                                     class="btn btn-outline-primary">Open</a>
                             </td>
                         </tr>
                         <tr>
                             <th scope="row">Reagent Preparation</th>
                             <td>
-                                <a href="{% url 'reagent_prep' pk=experiment.uuid %}"
+                                <a href="{% url 'reagent_prep' pk=experiment.uuid %}" target="_blank" rel="noopener noreferrer"
                                     class="btn btn-outline-primary">Open</a>
                             </td>
                         </tr>
                         <tr>
                             <th scope="row">Update Parameters</th>
-                            <td><button type="submit" name="param_update" value="param_update"
+                            <td><button type="submit" name="param_update" value="param_update" target="_blank" rel="noopener noreferrer"
                                     class="btn btn-outline-primary">Open</button>
                             </td>
                         </tr>

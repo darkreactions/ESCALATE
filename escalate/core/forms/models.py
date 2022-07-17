@@ -1,30 +1,30 @@
-from django import forms
-from django.contrib.admin import widgets
+import django
 from core.models.view_tables import (
+    ActionDef,
+    DefaultValues,
+    ExperimentTemplate,
+    InventoryMaterial,
+    Material,
+    MaterialIdentifier,
+    MaterialIdentifierDef,
+    MaterialType,
     Organization,
+    Outcome,
+    OutcomeTemplate,
+    ParameterDef,
+    Property,
+    ReagentTemplate,
     Status,
     Systemtool,
     Tag,
-    MaterialType,
-    InventoryMaterial,
     Vessel,
-    MaterialIdentifier,
-    MaterialIdentifierDef,
-    Property,
-    ActionDef,
-    ParameterDef,
-    DefaultValues,
-    ExperimentTemplate,
-    Outcome,
-    ReagentTemplate,
-    OutcomeTemplate,
     VesselTemplate,
-    Material,
 )
-from core.widgets import ValFormField, ValWidget, RelatedFieldWidgetCanAdd
+from core.widgets import RelatedFieldWidgetCanAdd, ValFormField, ValWidget
+from django import forms
+from django.contrib.admin import widgets
 from packaging import version
-import django
-
+from django.utils.safestring import mark_safe
 
 if version.parse(django.__version__) < version.parse("3.1"):
     from django.contrib.postgres.forms import JSONField
@@ -119,15 +119,18 @@ class PropertyForm(forms.ModelForm):
         }
 
 
-class MaterialForm(forms.Form):
+class MaterialForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         # pk of model that is passed in to filter for tags belonging to the model
         material_instance = kwargs.pop("instance", None)
 
         current_material_identifiers = (
-            material_instance.identifier.all()
+            [
+                (item.uuid, item.description)
+                for item in material_instance.identifier.all()
+            ]
             if material_instance
-            else MaterialIdentifier.objects.none()
+            else list()
         )
         current_material_types = (
             material_instance.material_type.all()
@@ -136,18 +139,21 @@ class MaterialForm(forms.Form):
         )
 
         current_material_properties = (
-            material_instance.property_m.all()
+            [
+                (item.uuid, item.template.description)
+                for item in material_instance.property_m.all()
+            ]
             if material_instance
-            else Property.objects.none()
+            else list()
         )
 
-        super(MaterialForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
-        self.fields["identifier"] = forms.ModelMultipleChoiceField(
-            initial=current_material_identifiers,
+        self.fields["identifier"] = forms.ChoiceField(
+            choices=current_material_identifiers,
             required=False,
             label="Identifiers",
-            queryset=current_material_identifiers,
+            # queryset=current_material_identifiers,
             widget=RelatedFieldWidgetCanAdd(
                 MaterialIdentifier,
                 related_url="material_identifier_add",
@@ -156,13 +162,10 @@ class MaterialForm(forms.Form):
             ),
         )
 
-        self.fields["property_m"] = forms.ModelMultipleChoiceField(
-            initial=current_material_properties,
+        self.fields["property_m"] = forms.ChoiceField(
+            choices=current_material_properties,
             required=False,
             label="Properties",
-            # choices=[(p.uuid, p.template.short_description) for p in Property.objects.all()],
-            # queryset=Property.objects.all(),
-            queryset=current_material_properties,
             widget=RelatedFieldWidgetCanAdd(
                 Property,
                 related_url="property_add",
@@ -177,6 +180,11 @@ class MaterialForm(forms.Form):
             queryset=MaterialType.objects.all(),
         )
         self.fields["material_type"].widget.attrs.update(dropdown_attrs)
+
+    class Meta:
+        model = Material
+        fields = ["material_type"]
+        labels = {"property_m": "Properties"}
 
 
 class MaterialTypeForm(forms.ModelForm):
@@ -261,7 +269,7 @@ class VesselForm(forms.ModelForm):
         ]
         field_classes = {
             "description": forms.CharField,
-            "total_volume": forms.CharField,
+            "total_volume": ValFormField,
             "well_number": forms.IntegerField,
             "column_order": forms.CharField,
         }
@@ -277,27 +285,42 @@ class VesselForm(forms.ModelForm):
                 attrs={"placeholder": "Vessel description..."}
             ),
             # "total_volume": forms.TextInput(attrs={"placeholder": "Total Volume..."}),
+            "total_volume": ValWidget(),
             "column_order": forms.TextInput(
                 attrs={"placeholder": "Order of columns for robot dispensing..."}
             ),
+            "parent": forms.HiddenInput(),
         }
 
     def __init__(self, *args, **kwargs):
-        super(VesselForm, self).__init__(*args, **kwargs)
+        related_uuid = kwargs.pop("related_uuid", None)
+        super().__init__(*args, **kwargs)
+        vessel_instance: Vessel = kwargs.pop("instance", None)
 
-        vessels = []
-        for v in Vessel.objects.all():
-            if v.parent is None:
-                vessels.append(v)
-
-        none_option = [(None, "No parent vessel selected")]
-
-        self.fields["parent"] = forms.ChoiceField(
-            required=False,
-            choices=none_option + [(v.uuid, v.description) for v in vessels],
-        )
+        if related_uuid:
+            self.fields["parent"].initial = Vessel.objects.get(uuid=related_uuid)
 
         self.fields["parent"].widget.attrs.update(dropdown_attrs)
+
+        current_children = []
+        if vessel_instance:
+            current_children = [
+                (child.uuid, child.description)
+                for child in vessel_instance.children.all()
+            ]
+
+        if vessel_instance:
+            self.fields["children"] = forms.ChoiceField(
+                choices=current_children,
+                required=False,
+                label=mark_safe("Vials/Wells/Child vessels"),
+                widget=RelatedFieldWidgetCanAdd(
+                    Vessel,
+                    related_url="vessel_add",
+                    related_instance=vessel_instance,
+                    attrs={"size": 5},
+                ),
+            )
 
 
 class ActionDefForm(forms.ModelForm):

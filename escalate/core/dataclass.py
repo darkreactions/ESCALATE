@@ -1,40 +1,41 @@
 import json
-from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional, Tuple
-from django.db.models import QuerySet
-import pandas as pd
 import tempfile
-from core.models.view_tables import (
-    Vessel,
-    VesselTemplate,
-    ParameterDef,
-    ReagentMaterialTemplate,
-    ExperimentTemplate,
-    ReagentTemplate,
-    InventoryMaterial,
-    MaterialType,
-    PropertyTemplate,
-    BillOfMaterials,
-    ExperimentInstance,
-    Action,
-    BaseBomMaterial,
-    ActionUnit,
-    Parameter,
-    Reagent,
-    ReagentMaterial,
-    Outcome,
-    Property,
-    ActionTemplate,
-    ActionDef,
-    VesselInstance,
-)
-from core.custom_types import Val
-from core.utilities.utils import make_well_labels_list
-from uuid import UUID
+from dataclasses import dataclass, field
 
 # from dacite.core import from_dict
 from itertools import product
+from typing import Any, Dict, List, Optional, Tuple
+from uuid import UUID
 
+import pandas as pd
+from django.db.models import QuerySet
+
+from core.custom_types import Val
+from core.models.view_tables import (
+    Action,
+    ActionDef,
+    ActionTemplate,
+    ActionUnit,
+    BaseBomMaterial,
+    BillOfMaterials,
+    ExperimentInstance,
+    ExperimentTemplate,
+    InventoryMaterial,
+    MaterialType,
+    Outcome,
+    Parameter,
+    ParameterDef,
+    Property,
+    PropertyTemplate,
+    Reagent,
+    ReagentMaterial,
+    ReagentMaterialTemplate,
+    ReagentTemplate,
+    Vessel,
+    VesselInstance,
+    VesselTemplate,
+)
+from core.utilities.utils import make_well_labels_list
 
 # steps with names to display in UI
 SELECT_TEMPLATE = "Select Experiment Template"
@@ -123,7 +124,7 @@ class ExperimentData:
     @property
     def current_operator(self):
         return self._current_operator
-    
+
     @current_operator.setter
     def current_operator(self, operator):
         self._current_operator = operator
@@ -304,10 +305,11 @@ class ExperimentData:
                     )
 
                     for well in well_order:
-                        child = (
-                            dest_vessel.children.all().filter(description=well).first()
-                        )
-                        child_list.append(child)
+                        if dest_vessel.children.filter(description=well).exists():
+                            child = dest_vessel.children.filter(
+                                description=well
+                            ).first()
+                            child_list.append(child)
 
                     for i, child in enumerate(child_list):
                         automated_sampled_data = action_data.parameters[pdef]
@@ -429,7 +431,7 @@ class ExperimentData:
             ref_uid=self.experiment_template.ref_uid,
             template=self.experiment_template,
             owner=self.experiment_template.owner,
-            #operator=self.experiment_template.operator,
+            # operator=self.experiment_template.operator,
             operator=self.current_operator,
             lab=self.experiment_template.lab,
             description=self.experiment_name
@@ -452,13 +454,13 @@ class ExperimentData:
             )
 
             # Create a list of all source vessels
-            #source_vessels = self._get_vessel_list(at, dest=False)
+            # source_vessels = self._get_vessel_list(at, dest=False)
 
             # Create a list of all destination vessels
-            #dest_vessels = self._get_vessel_list(at)
-            
+            # dest_vessels = self._get_vessel_list(at)
+
             # Pair source and dest vessels
-            #vessel_pairs = self._pair_vessels(source_vessels, dest_vessels)
+            # vessel_pairs = self._pair_vessels(source_vessels, dest_vessels)
             # sv: "None|Vessel"
             # dv: "None|Vessel"
             # for sv, dv in vessel_pairs:
@@ -467,7 +469,7 @@ class ExperimentData:
             parameters = []
 
             for p_def, au_data in action_data.parameters.items():
-                #if isinstance(au_data, list):
+                # if isinstance(au_data, list):
                 for a in au_data:
                     dest_bbm, bom_vessels = self._create_bbm(
                         a.dest_vessel, bom_vessels, bom
@@ -568,7 +570,7 @@ class ExperimentData:
         for action_params in form_data.get(action_params_key, {}):
             a_data: ActionData
             at = None
-            parameters={}
+            parameters = {}
             for k, v in action_params.items():
                 if k == "action_template_uuid":
                     at = ActionTemplate.objects.get(uuid=v)
@@ -595,10 +597,10 @@ class ExperimentData:
                     )
                     aud = ActionUnitData(
                         source_vessel=source_vd,
-                        dest_vessel= dest_vd,
+                        dest_vessel=dest_vd,
                         nominal_value=action_params[f"value{suffix}"],
                     )
-                    parameters[parameter_def]= [aud]
+                    parameters[parameter_def] = [aud]
             a_data = ActionData(parameters=parameters)
             action_parameters[at] = a_data
 
