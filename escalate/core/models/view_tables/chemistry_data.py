@@ -12,6 +12,7 @@ from core.models.base_classes import (
     StatusColumn,
     ActorColumn,
     DescriptionColumn,
+    UniqueDescriptionColumn,
 )
 from django.contrib.postgres.fields import ArrayField
 
@@ -164,24 +165,13 @@ class Inventory(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         return "{}".format(self.description)
 
 
-class Material(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
+class Material(DateColumns, StatusColumn, ActorColumn, UniqueDescriptionColumn):
     property_m: "QuerySet[Property]"
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="material_uuid")
     consumable = models.BooleanField(blank=True, null=True)
-    # composite_flg = models.BooleanField(blank=True, null=True)
-    # material_types = models.ManyToManyField('MaterialType',
-    #                                        through='MaterialTypeAssign',
-    #                                        related_name='material_material_types')
     material_class = models.CharField(
         max_length=64, choices=MATERIAL_CLASS_CHOICES, blank=True, null=True
     )
-
-    # need to remove through crosstables when managed by django
-    # property = models.ManyToManyField('Property', blank=True,
-    #                                  related_name='material_property')
-    # identifier = models.ManyToManyField(
-    #    "MaterialIdentifier", blank=True, related_name="material_material_identifier"
-    # )
     material_type = models.ManyToManyField(
         "MaterialType", blank=True, related_name="material_material_type"
     )

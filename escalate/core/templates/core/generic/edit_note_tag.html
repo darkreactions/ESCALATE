@@ -5,8 +5,7 @@
 {% load get_range %}
 
 {% block headcontent %}
-<link rel="stylesheet" type="text/css" 
-    href="{% static 'admin//widgets.css' %}"/>
+<link rel="stylesheet" type="text/css" href="{% static 'admin//widgets.css' %}" />
 
 
 {% endblock %}
@@ -15,58 +14,85 @@
 <div class="container">
     <div class="col-md-6 offset-md-3">
         <h3> {{ title }} </h3>
-                {% if messages %}
-                <ul class="messages">
-                    {% for message in messages %}
-                    <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
-                        {% endfor %}
-                </ul>
-                {% endif %}
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+                {% endfor %}
+        </ul>
+        {% endif %}
         <a href="#last">Jump to the end </a>
 
         <form method="post" enctype="multipart/form-data">{% csrf_token %}
             {% if form.errors %}
-            
-                {{ form.errors }}
-            
+
+            {{ form.errors }}
+
             {% endif %}
 
             {{ form|crispy }}
 
-            <hr class="solid"> 
-            <h3>Notes</h3>
-            {{ note_forms.management_form }}
-
-            {% with num_notes=note_forms|length %}
-                {% for i in 0|get_range:num_notes %}
-                    <div><b>Note {{i|add:"1"}}</b></div>
-                    {{note_forms|index:i|crispy}}
-                {% endfor %}
-            {% endwith %}
-
-            <button type="submit" name="add_note" value="add_note" class="btn btn-raised btn-primary">Add Note</button>
-            <hr class="solid"> 
-            <h3>E-documents</h3>         
-            {{ edoc_forms.management_form}}
-            {% with num_edocs=edoc_forms|length %} 
-                {% for i in 0|get_range:num_edocs %}
-                    <div><b>Edocument Form {{i|add:"1"}}</b></div>
-                    {{edoc_forms|index:i|crispy}}
-                    {% if i < edoc_files|length %}
-                        {% with file=edoc_files|index:i %}
-                        <span>Current File: <a style="display:inline-block;" href="{{file.download_url}}" download>{{file.filename|linebreaks}}</a></span>
-                        {% endwith %}
-                    {% endif %}
-                {% endfor %}
-            {% endwith %}
-            <button type="submit" name="add_edoc" value="add_edoc" class="btn btn-raised btn-primary">Add Edocument</button>
             <hr class="solid">
-            <h3>Tags</h3>
-            {{ tag_select_form|crispy }}
-            <div>
-                <button type="submit" name="add_new_tag" value="add_new_tag" class="btn btn-raised btn-primary">Create
-                    New Tag</button>
+            <div class="treeview-animated mx-6 my-6">
+                <h3>Notes</h3>
+                <hr>
+                <ul class="treeview-animated-list">
+                    <li class="treeview-animated-items">
+                        <a class="closed">
+                            <i class="fas fa-plus"> Click to expand</i>
+                        </a>
+                        <ul class="nested">
+                            <li>
+                                {{ note_forms.management_form }}
+
+                                {% with num_notes=note_forms|length %}
+                                {% for i in 0|get_range:num_notes %}
+                                <div><b>Note {{i|add:"1"}}</b></div>
+                                {{note_forms|index:i|crispy}}
+                                {% endfor %}
+                                {% endwith %}
+                            </li>
+                            <button type="submit" name="add_note" value="add_note"
+                                class="btn btn-raised btn-primary">Add Note</button>
+                        </ul>
+                    </li>
+                </ul>
             </div>
+            <hr class="solid">
+            <div class="treeview-animated mx-6 my-6">
+                <h3>E-documents</h3>
+                <hr>
+                <ul class="treeview-animated-list">
+                    <li class="treeview-animated-items">
+                        <a class="closed">
+                            <i class="fas fa-plus"> Click to expand</i>
+                        </a>
+                        <ul class="nested">
+                            <li>
+                                {{ edoc_forms.management_form}}
+                                {% with num_edocs=edoc_forms|length %}
+                                {% for i in 0|get_range:num_edocs %}
+                                <div><b>Edocument Form {{i|add:"1"}}</b></div>
+                                {{edoc_forms|index:i|crispy}}
+                                {% if i < edoc_files|length %} {% with file=edoc_files|index:i %} <span>Current File: <a
+                                        style="display:inline-block;" href="{{file.download_url}}"
+                                        download>{{file.filename|linebreaks}}</a></span>
+                                    {% endwith %}
+                                    {% endif %}
+                                    {% endfor %}
+                                    {% endwith %}
+                            </li>
+                            <button type="submit" name="add_edoc" value="add_edoc"
+                                class="btn btn-raised btn-primary">Add Edocument</button>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            {% if title != 'Tag' %}
+            <h3>Tags</h3>
+            {% crispy tag_select_form tag_select_form.helper %}
+            {% endif %}
             <input type="hidden" name="next" value="{{ request.META.HTTP_REFERER }}">
             <div class="spacer"></div>
             <div class="mt-2">
@@ -81,16 +107,16 @@
 {% endblock %}
 
 {% block tailcontent %}
-<script type="text/javascript" 
-    src="/admin/jsi18n/"></script>
-<script type="text/javascript" 
-    src="{% static 'admin/js/core.js' %}"></script>
-<script type="text/javascript" 
-    src="{% static 'admin/js/admin/RelatedObjectLookups.js' %}"></script>
-<script type="text/javascript" 
-    src="{% static 'admin/js/actions.js' %}"></script>
-<script type="text/javascript" 
-    src="{% static 'admin/js/calendar.js' %}"></script>
-<script type="text/javascript" 
-    src="{% static 'admin/js/admin/DateTimeShortcuts.js' %}"></script>
+<script>
+    // Treeview Initialization
+    $(document).ready(function () {
+        $('.treeview-animated').mdbTreeview();
+    });
+</script>
+<script type="text/javascript" src="/admin/jsi18n/"></script>
+<script type="text/javascript" src="{% static 'admin/js/core.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/admin/RelatedObjectLookups.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/actions.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/calendar.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/admin/DateTimeShortcuts.js' %}"></script>
 {% endblock %}

@@ -1,26 +1,23 @@
-from django import forms
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.hashers import make_password
-from core.models import (
-    CustomUser,
-    OrganizationPassword,
-)
+import django
+from core.models import CustomUser, OrganizationPassword
+from core.models.core_tables import TypeDef
 from core.models.view_tables import (
-    Person,
-    Inventory,
     Actor,
+    Edocument,
+    Inventory,
     Note,
+    Person,
     SystemtoolType,
     Tag,
     TagAssign,
     TagType,
-    Edocument,
-
 )
-from core.models.core_tables import TypeDef
+from crispy_forms.layout import Submit
+from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.hashers import make_password
+from django.urls import reverse_lazy
 from packaging import version
-import django
-
 
 if version.parse(django.__version__) < version.parse("3.1"):
     from django.contrib.postgres.forms import JSONField
@@ -28,7 +25,7 @@ else:
     from django.forms import JSONField
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Row, Column, Field
+from crispy_forms.layout import Column, Field, Layout, Row
 
 dropdown_attrs = {
     "class": "selectpicker",
@@ -144,6 +141,7 @@ class PersonTableForm(PersonFormData, forms.ModelForm):
     class Meta(PersonFormData.Meta):
         model = Person
 
+
 class InventoryForm(forms.ModelForm):
     class Meta:
         model = Inventory
@@ -256,21 +254,61 @@ class TagSelectForm(forms.Form):
     def __init__(self, *args, **kwargs):
         # pk of model that is passed in to filter for tags belonging to the model
         if "model_pk" in kwargs:
-            model_pk = kwargs.pop("model_pk")
+            self.model_pk = kwargs.pop("model_pk")
             current_tags = Tag.objects.filter(
-                pk__in=TagAssign.objects.filter(ref_tag=model_pk).values_list(
+                pk__in=TagAssign.objects.filter(ref_tag=self.model_pk).values_list(
                     "tag", flat=True
                 )
             )
         else:
             current_tags = Tag.objects.none()
+
+        if "queryset" in kwargs:
+            queryset = kwargs.pop("queryset")
+        else:
+            queryset = Tag.objects.all()
         super(TagSelectForm, self).__init__(*args, **kwargs)
 
         self.fields["tags"] = forms.ModelMultipleChoiceField(
-            initial=current_tags, required=False, queryset=Tag.objects.all()
+            initial=current_tags, required=False, queryset=queryset
         )
         # self.fields['tags'].widget.attrs.update({'data-live-search': 'true'})
         self.fields["tags"].widget.attrs.update(dropdown_attrs)
+        self.fields[
+            "tags"
+        ].help_text = (
+            f'To create a new tag, <a href="{reverse_lazy("tag_add")}">click here</a>'
+        )
+        self.get_helper()
+
+    def update_tags(self):
+        """
+        Call this function to update the selected tags to the model assigned
+        """
+        submitted_tags = self.cleaned_data["tags"]
+        # tags from db with a TagAssign that connects the model and the tags
+        existing_tags = Tag.objects.filter(
+            pk__in=TagAssign.objects.filter(ref_tag=self.model_pk).values_list(
+                "tag", flat=True
+            )
+        )
+        for tag in existing_tags:
+            if tag not in submitted_tags:
+                # this tag is not assign to this model anymore
+                # delete TagAssign for existing tags that are no longer used
+                TagAssign.objects.filter(tag=tag).delete()
+        for tag in submitted_tags:
+            # make TagAssign for existing tags that are now used
+            if tag not in existing_tags:
+                tag_assign = TagAssign.objects.create(tag=tag, ref_tag=self.model_pk)
+
+    def get_helper(self):
+        helper = FormHelper()
+        helper.form_class = "form-horizontal"
+        helper.label_class = "col-lg-3"
+        helper.field_class = "col-lg-8"
+        helper.form_tag = False
+        self.helper = helper
 
 
 class UploadEdocForm(forms.ModelForm):
@@ -305,6 +343,7 @@ class UploadEdocForm(forms.ModelForm):
                 }
             )
         }
+
 
 class UploadFileForm(forms.Form):
     file = forms.FileField(label="Upload file", required=False)

@@ -17,14 +17,16 @@ from core.models.view_tables import (
     Status,
     Systemtool,
     Tag,
+    TagType,
     Vessel,
     VesselTemplate,
 )
 from core.widgets import RelatedFieldWidgetCanAdd, ValFormField, ValWidget
 from django import forms
 from django.contrib.admin import widgets
-from packaging import version
+from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
+from packaging import version
 
 if version.parse(django.__version__) < version.parse("3.1"):
     from django.contrib.postgres.forms import JSONField
@@ -121,8 +123,9 @@ class PropertyForm(forms.ModelForm):
 
 class MaterialForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         # pk of model that is passed in to filter for tags belonging to the model
-        material_instance = kwargs.pop("instance", None)
+        material_instance: Material = kwargs.get("instance", None)
 
         current_material_identifiers = (
             [
@@ -146,8 +149,6 @@ class MaterialForm(forms.ModelForm):
             if material_instance
             else list()
         )
-
-        super().__init__(*args, **kwargs)
 
         self.fields["identifier"] = forms.ChoiceField(
             choices=current_material_identifiers,
@@ -173,17 +174,19 @@ class MaterialForm(forms.ModelForm):
                 attrs={"size": 5},
             ),
         )
+        # self.fields["description"].initial = material_instance.description
 
-        self.fields["material_type"] = forms.ModelMultipleChoiceField(
-            initial=current_material_types,
-            required=False,
-            queryset=MaterialType.objects.all(),
-        )
-        self.fields["material_type"].widget.attrs.update(dropdown_attrs)
+        # self.fields["material_type"] = forms.ModelMultipleChoiceField(
+        #    initial=current_material_types,
+        #    required=False,
+        #    queryset=MaterialType.objects.all(),
+        # )
+        # self.fields["material_type"].widget.attrs.update(dropdown_attrs)
 
     class Meta:
         model = Material
-        fields = ["material_type"]
+        fields = ["description", "material_type"]
+        # fields = "__all__"
         labels = {"property_m": "Properties"}
 
 
@@ -318,7 +321,11 @@ class VesselForm(forms.ModelForm):
                     Vessel,
                     related_url="vessel_add",
                     related_instance=vessel_instance,
-                    attrs={"size": 5},
+                    attrs={
+                        "size": 5,
+                        "class": "selectpicker",
+                        "data-live-search": "true",
+                    },
                 ),
             )
 
@@ -631,7 +638,19 @@ class StatusForm(forms.ModelForm):
         }
 
 
+class TagTypeForm(forms.ModelForm):
+    class Meta:
+        model = TagType
+        fields = ["type"]
+
+
 class TagForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields[
+            "tag_type"
+        ].help_text = f'To create a new tag type, <a href="{reverse_lazy("tag_type_add")}">click here</a>'
+
     class Meta:
         model = Tag
         fields = ["display_text", "description", "tag_type"]

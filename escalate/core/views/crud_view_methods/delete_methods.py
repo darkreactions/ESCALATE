@@ -32,6 +32,10 @@ methods = {
         "model": core.models.view_tables.Tag,
         "success_url": reverse_lazy("tag_list"),
     },
+    "TagType": {
+        "model": core.models.view_tables.TagType,
+        "success_url": reverse_lazy("tag_type_list"),
+    },
     "InventoryMaterial": {
         "model": core.models.view_tables.InventoryMaterial,
         "success_url": reverse_lazy("inventory_material_list"),

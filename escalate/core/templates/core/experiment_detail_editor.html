@@ -36,26 +36,31 @@
                         <tr>
                             <th scope="row">Outcome Submission</th>
                             <td>
-                                <a href="{% url 'outcome' pk=experiment.uuid %}" target="_blank" rel="noopener noreferrer"
-                                    class="btn btn-outline-primary">Open</a>
+                                <a href="{% url 'outcome' pk=experiment.uuid %}" target="_blank"
+                                    rel="noopener noreferrer" class="btn btn-outline-primary">Open</a>
                             </td>
                         </tr>
                         <tr>
                             <th scope="row">Reagent Preparation</th>
                             <td>
-                                <a href="{% url 'reagent_prep' pk=experiment.uuid %}" target="_blank" rel="noopener noreferrer"
-                                    class="btn btn-outline-primary">Open</a>
+                                <a href="{% url 'reagent_prep' pk=experiment.uuid %}" target="_blank"
+                                    rel="noopener noreferrer" class="btn btn-outline-primary">Open</a>
                             </td>
                         </tr>
                         <tr>
                             <th scope="row">Update Parameters</th>
-                            <td><button type="submit" name="param_update" value="param_update" target="_blank" rel="noopener noreferrer"
-                                    class="btn btn-outline-primary">Open</button>
+                            <td><button type="submit" name="param_update" value="param_update" target="_blank"
+                                    rel="noopener noreferrer" class="btn btn-outline-primary">Open</button>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
+        </div>
+        <div class="container">
+            <hr>
+            <h4 class="pt-3 pl-3">Experiment Tags </h4>
+            {{ tag_select_form }}
         </div>
         <div class="container">
             <hr>
@@ -71,11 +76,7 @@
             <div class="col-auto">
                 {{ post_process_form|crispy }}
             </div>
-            <div class="text-right">
-                <button class="btn btn-outline-primary" type="submit" name="update_exp" value="update_exp">
-                    Update Experiment
-                </button>
-            </div>
+
             <h5>History</h5>
             <table class="table">
                 <thead class="thead-dark">
@@ -120,18 +121,25 @@
         </div>
         <br>
     </div>
-    <div class="text-right">
-        {% if '/experiment_completed_instance/' in request.path %}
-        <button class="btn btn-outline-primary" type="submit" name="exp_list" value="exp_list"
-            formaction="{% url 'experiment_completed_instance_list' %}">
-            Return to Completed Experiment List
-        </button>
-        {% else %}
-        <button class="btn btn-outline-primary" type="submit" name="exp_list" value="exp_list"
-            formaction="{% url 'experiment_pending_instance_list' %}">
-            Return to Experiment Queue
-        </button>
-        {% endif %}
+    <div class="row">
+        <div class="col-md-12 text-right">
+            <button class="btn btn-outline-primary" type="submit" name="update_exp" value="update_exp">
+                Update Experiment
+            </button>
+
+            {% if '/experiment_completed_instance/' in request.path %}
+            <button class="btn btn-outline-primary" type="submit" name="exp_list" value="exp_list"
+                formaction="{% url 'experiment_completed_instance_list' %}">
+                Return to Completed Experiment List
+            </button>
+            {% else %}
+
+            <button class="btn btn-outline-primary" type="submit" name="exp_list" value="exp_list"
+                formaction="{% url 'experiment_pending_instance_list' %}">
+                Return to Experiment Queue
+            </button>
+            {% endif %}
+        </div>
     </div>
 </form>
 

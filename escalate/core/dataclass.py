@@ -37,6 +37,7 @@ from core.models.view_tables import (
     Vessel,
     VesselInstance,
     VesselTemplate,
+    TagAssign,
 )
 from core.utilities.utils import make_well_labels_list
 
@@ -97,6 +98,7 @@ def custom_pairing(source_vessels, dest_vessels):
 class ExperimentData:
     experiment_name: str
     experiment_template: ExperimentTemplate
+    experiment_tag: List[Any]
     vessel_data: Dict[VesselTemplate, Vessel] = field(default_factory=dict, repr=False)
     action_parameters: Dict[ActionTemplate, ActionData] = field(
         default_factory=dict, repr=False
@@ -459,6 +461,9 @@ class ExperimentData:
         )
         self._experiment_instance_uuid = exp_instance.uuid
 
+        for tag in self.experiment_tag:
+            TagAssign.objects.create(tag=tag, ref_tag=exp_instance.uuid)
+
         bom = BillOfMaterials.objects.create(experiment_instance=exp_instance)
 
         # Get all action sequences related to this experiment template
@@ -566,6 +571,7 @@ class ExperimentData:
         experiment_template = ExperimentTemplate.objects.get(
             uuid=form_data[SELECT_TEMPLATE]["select_experiment_template"]
         )
+        experiment_tag = form_data[SELECT_TEMPLATE].get("tags")
 
         # Setup vessel templates
         vessel_data: Dict[VesselTemplate, Vessel] = {}
@@ -683,6 +689,7 @@ class ExperimentData:
 
         return cls(
             experiment_name=experiment_name,
+            experiment_tag=experiment_tag,
             experiment_template=experiment_template,
             vessel_data=vessel_data,
             action_parameters=action_parameters,

@@ -33,10 +33,9 @@ methods = {
     },
     "Vessel": {
         "model": core.models.view_tables.Vessel,
-        "table_columns": ["Description", "Parent", "Total Volume", "Well Count"],
+        "table_columns": ["Description", "Total Volume", "Well Count"],
         "column_necessary_fields": {
             "Description": ["description"],
-            "Parent": ["parent.description"],
             "Total Volume": ["total_volume"],
             "Well Count": ["well_number"],
         },
@@ -124,6 +123,12 @@ methods = {
         },
         "ordering": ["display_text"],
         "field_contains": "",
+    },
+    "TagType": {
+        "model": core.models.view_tables.TagType,
+        "table_columns": ["Type"],
+        "column_necessary_fields": {"Type": ["type"]},
+        "ordering": ["type"],
     },
     "InventoryMaterial": {
         "model": core.models.view_tables.InventoryMaterial,

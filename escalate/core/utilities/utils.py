@@ -445,6 +445,7 @@ view_names = [
     "Vessel",
     "Status",
     "Tag",
+    "TagType",
     "MaterialType",
     "ExperimentInstance",
     "ExperimentCompletedInstance",

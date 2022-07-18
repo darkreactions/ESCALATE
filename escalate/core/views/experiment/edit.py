@@ -4,13 +4,14 @@ from datetime import datetime, timezone, tzinfo
 from core.custom_types import Val
 from core.forms.custom_types import NominalActualForm
 from core.forms.experiment import GenerateRobotFileForm, QueueStatusForm
-from core.forms.forms import UploadFileForm
+from core.forms.forms import UploadFileForm, TagSelectForm
 from core.forms.wizard import PostProcessForm
 from core.models.view_tables import (
     BomMaterial,
     Edocument,
     ExperimentInstance,
     ExperimentTemplate,
+    Tag,
 )
 from core.models.view_tables.organization import Actor
 from core.utilities.experiment_utils import get_action_parameter_querysets
@@ -115,6 +116,12 @@ class ExperimentDetailEditView(TemplateView):
         post_process_form = PostProcessForm(experiment_instance=experiment)
         context["post_process_form"] = post_process_form
 
+        tag_select_form = TagSelectForm(
+            model_pk=experiment.uuid,
+            queryset=Tag.objects.filter(tag_type__type="experiment"),
+        )
+        context["tag_select_form"] = tag_select_form
+
         return context
 
     def get(self, request, *args, **kwargs):
@@ -179,6 +186,19 @@ class ExperimentDetailEditView(TemplateView):
             if not post_processor_form.is_valid():
                 context["post_process_form"] = post_processor_form
             else:
+                return redirect(request.path)
+
+        tag_select_form = TagSelectForm(
+            request.POST,
+            model_pk=exp.uuid,
+            queryset=Tag.objects.filter(tag_type__type="experiment"),
+        )
+        if tag_select_form.has_changed():
+
+            if not tag_select_form.is_valid():
+                context["tag_select_form"] = tag_select_form
+            else:
+                tag_select_form.update_tags()
                 return redirect(request.path)
 
         return render(request, self.template_name, context)

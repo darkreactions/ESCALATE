@@ -41,6 +41,11 @@ methods = {
         "form_class": forms.TagForm,
         "success_url": reverse_lazy("tag_list"),
     },
+    "TagType": {
+        "model": core.models.TagType,
+        "form_class": forms.TagTypeForm,
+        "success_url": reverse_lazy("tag_type_list"),
+    },
     "InventoryMaterial": {
         "model": core.models.view_tables.InventoryMaterial,
         "form_class": forms.InventoryMaterialForm,

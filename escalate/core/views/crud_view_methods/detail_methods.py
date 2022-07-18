@@ -114,6 +114,11 @@ methods = {
             "Tag Type": ["tag_type.type"],
         },
     },
+    "TagType": {
+        "model": core.models.TagType,
+        "detail_fields": ["Type"],
+        "detail_fields_need_fields": {"Type": ["type"]},
+    },
     "InventoryMaterial": {
         "model": core.models.view_tables.InventoryMaterial,
         "detail_fields": [

@@ -261,10 +261,6 @@ class Tag(DateColumns, ActorColumn, DescriptionColumn):
         null=True,
         related_name="tag_tag_type",
     )
-    type = models.CharField(max_length=255, blank=True, null=True, editable=False)
-    type_description = models.CharField(
-        max_length=255, blank=True, null=True, editable=False
-    )
 
     def __str__(self):
         return "{}".format(self.display_text)

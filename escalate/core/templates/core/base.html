@@ -107,9 +107,6 @@
                                     <a class="dropdown-item {% if url_name == 'experiment_completed_list' %}active{% endif %}"
                                         href="{% url 'experiment_completed_instance_list' %}">Completed Experiments</a>
                                 </li>
-                                <li>
-                                    <a class="dropdown-item active" href="http://escalation.sd2e.org/">Escalation</a>
-                                </li>
                             </ul>
                         </div>
                     </li>
@@ -317,9 +314,29 @@
         $(function () {
             $('[data-toggle="tooltip"]').tooltip()
         });
-        $(function () {
-            $('[data-toggle="popover"]').popover()
-        });
+        //$(function () {
+        //   $('[data-toggle="popover"]').popover(
+        //      {
+        //         trigger: 'manual', //<--- you need a trigger other than manual
+        //    }
+        //)
+        //});
+
+        $(".pop").popover({ trigger: "manual", html: true, animation: false })
+            .on("mouseenter", function () {
+                var _this = this;
+                $(this).popover("show");
+                $(".popover").on("mouseleave", function () {
+                    $(_this).popover('hide');
+                });
+            }).on("mouseleave", function () {
+                var _this = this;
+                setTimeout(function () {
+                    if (!$(".popover:hover").length) {
+                        $(_this).popover("hide");
+                    }
+                }, 300);
+            });
         $('.alert').alert();
     </script>
     <script>

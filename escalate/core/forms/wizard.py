@@ -3,6 +3,7 @@ from uuid import UUID
 import logging
 from django.db.models import QuerySet
 from django.forms import (
+    ModelMultipleChoiceField,
     Select,
     Form,
     ModelChoiceField,
@@ -31,6 +32,7 @@ from plugins.sampler import *
 from plugins.postprocessing.base_post_processing_plugin import BasePostProcessPlugin
 from plugins.postprocessing import *
 from .form_help_text import CreateExperimentHelp
+from django.urls import reverse_lazy
 
 
 class NumberOfExperimentsForm(Form):
@@ -97,7 +99,7 @@ class ExperimentTemplateSelectForm(Form):
             "class": "selectpicker",
             "data-style": "btn-dark",
             "data-live-search": "true",
-            "id": "template",
+            # "id": "template",
         }
     )
     experiment_name = CharField(label=CreateExperimentHelp.EXPERIMENT_NAME.value)
@@ -114,6 +116,17 @@ class ExperimentTemplateSelectForm(Form):
             (exp.uuid, exp.description)
             for exp in vt.ExperimentTemplate.objects.filter(lab=lab)
         ]
+        self.fields["tags"] = ModelMultipleChoiceField(
+            initial=vt.Tag.objects.none(), required=False, queryset=vt.Tag.objects.all()
+        )
+        # self.fields['tags'].widget.attrs.update({'data-live-search': 'true'})
+        self.fields["tags"].widget.attrs.update(dropdown_attrs)
+        # self.fields["experiment_tag"].label = CreateExperimentHelp.EXPERIMENT_TAG.value
+        # self.fields[
+        #    "experiment_tag"
+        # ].help_text = f"""If a tag is missing
+        #                <a href={reverse_lazy("tag_add")} target="_blank" rel="noopener noreferrer">click here</a>
+        #                to create a new one. Refresh the page after creating. Only tags with "experiment" tag type will be shown here"""
 
 
 class BaseIndexedFormSet(BaseFormSet):

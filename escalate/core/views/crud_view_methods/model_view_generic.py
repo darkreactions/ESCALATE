@@ -29,7 +29,7 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import DeleteView
 from django.views.generic.list import ListView
-from requests import request
+from inflection import humanize
 
 from ..exports.export_methods import methods as export_methods
 from ..exports.file_types import file_types as export_file_types
@@ -174,7 +174,16 @@ class GenericModelListBase:
                 if len(filter_kwargs) > 0
                 else Q()
             )
-            new_queryset = new_queryset.filter(filter_query).distinct()
+            matching_tags = Tag.objects.filter(display_text__icontains=filter_val)
+            if matching_tags:
+                matching_uuids = TagAssign.objects.values_list(
+                    "ref_tag", flat=True
+                ).filter(tag__in=matching_tags)
+                tagged_objs = base_query.filter(uuid__in=set(matching_uuids))
+                new_queryset = new_queryset.filter(filter_query) | tagged_objs
+            else:
+                new_queryset = new_queryset.filter(filter_query)
+            new_queryset = new_queryset.distinct()
         else:
             new_queryset = base_query
 
@@ -224,7 +233,8 @@ class GenericModelList(GenericModelListBase, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["table_columns"] = self.table_columns
+        # Added a tag column
+        context["table_columns"] = self.table_columns + ["Tags"]
         if self.context_object_name:
             context["page_obj"].adjusted_elided_pages = context[
                 "paginator"
@@ -268,6 +278,16 @@ class GenericModelList(GenericModelListBase, ListView):
                         col_data = "N/A"
                     table_row_data.append(col_data)
 
+                # Adding tags in the final column
+                existing_tags = [
+                    tag.display_text
+                    for tag in Tag.objects.filter(
+                        pk__in=TagAssign.objects.filter(
+                            ref_tag=model_instance.uuid
+                        ).values_list("tag", flat=True)
+                    )
+                ]
+                table_row_data.append(", ".join(existing_tags))
                 # dict containing the data, view and update url, primary key and obj
                 # name to use in template
                 table_row_info = {
@@ -302,6 +322,9 @@ class GenericModelList(GenericModelListBase, ListView):
             context["table_data"] = table_data
             # get rid of underscores with spaces and capitalize
             context["title"] = model_name.replace("_", " ").capitalize()
+            context["filter"] = self.request.GET.get(
+                "filter", self.field_contains
+            ).strip()
 
             export_urls = {}
             if self.model.__name__ in export_methods.keys():
@@ -401,7 +424,8 @@ class GenericModelEdit:
             context["tag_select_form"] = TagSelectForm()
 
         if isinstance(self.context_object_name, str):
-            context["title"] = self.context_object_name.capitalize()
+            # context["title"] = self.context_object_name.capitalize()
+            context["title"] = humanize(self.context_object_name)
 
         return context
 

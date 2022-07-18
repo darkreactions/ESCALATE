@@ -1,13 +1,16 @@
 from enum import Enum
 from django.utils.html import format_html
+from django.urls import reverse_lazy
 
 
-def _(label, content):
+def _(label, content, span_text=""):
+
     return (
-        label + ' <a tabindex="0" role="button" data-toggle="popover" data-html="true"'
+        label
+        + ' <a class="pop" tabindex="0" role="button" data-toggle="popover" data-html="true"'
         ' data-trigger="hover" data-placement="auto" data-content="'
         + content
-        + '"><span class="fa fa-question-circle"></span></a>'
+        + f'"><span class="fa fa-question-circle">{span_text}</span></a>'
     )
 
 
@@ -25,3 +28,7 @@ class RTCreateHelp(Enum):
 
 class CreateExperimentHelp(Enum):
     EXPERIMENT_NAME = _("Experiment Name", "Name of the experiment")
+    EXPERIMENT_TAG = _(
+        "Experiment Tag",
+        "Tag your experiment with keywords. ",
+    )
