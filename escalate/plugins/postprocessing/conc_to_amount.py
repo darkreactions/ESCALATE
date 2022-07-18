@@ -4,7 +4,7 @@ from core.models.core_tables import TypeDef
 import pandas as pd
 import tempfile
 from logging import raiseExceptions
-from pint import Quantity, UnitRegistry
+from pint import DimensionalityError, Quantity, UnitRegistry
 from core.models.view_tables import Property
 
 units = UnitRegistry()
@@ -225,7 +225,31 @@ class AmountToConcentrationPlugin(BasePostProcessPlugin):
                             phase, reagent_material.material.description
                         )
                     )
+                    break
 
+                prop = reagent_material.property_rm.filter(template__description="amount").first()
+                amount = Q_(prop.nominal_value.value, prop.nominal_value.unit)
+                if amount.magnitude != 0.0:
+                    if phase == 'solid':
+                        try:
+                            amount.to(units.g)
+                        except DimensionalityError:
+                            self.errors.append(
+                                "Error: Invalid unit of measure for {}. Please enter a unit that is appropriate for materials of {} phase".format(
+                                    reagent_material.material.description, phase
+                                )
+                            )
+                            break
+                    elif phase == 'liquid':
+                        try:
+                            amount.to(units.ml)
+                        except DimensionalityError:
+                            self.errors.append(
+                                "Error: Invalid unit of measure for {}. Please enter a unit that is appropriate for materials of {} phase".format(
+                                    reagent_material.material.description, phase
+                                )
+                            )
+                            break
                 mw_prop = reagent_material.material.material.property_m.filter(
                     template__description__icontains="molecularweight"
                 ).first()
@@ -235,6 +259,7 @@ class AmountToConcentrationPlugin(BasePostProcessPlugin):
                             reagent_material.material.description
                         )
                     )
+                    break
 
                 density_prop = reagent_material.material.material.property_m.filter(
                     template__description__icontains="density"
@@ -246,6 +271,8 @@ class AmountToConcentrationPlugin(BasePostProcessPlugin):
                             reagent_material.material.description
                         )
                     )
+                    break
+        
         if self.errors:
             return False
         return True
@@ -262,7 +289,7 @@ class AmountToConcentrationPlugin(BasePostProcessPlugin):
                 prop: "Property|None"
                 if prop is None:
                     continue
-                amount = Q_(prop.value.value, prop.value.unit)
+                amount = Q_(prop.nominal_value.value, prop.nominal_value.unit)
                 mat_type = reagent_material.template.material_type.description
                 phase = reagent_material.material.phase
 
@@ -339,15 +366,21 @@ class AmountToConcentrationPlugin(BasePostProcessPlugin):
                 )  # convert mass to volume
                 total_vol += vol  # add this to total volume
             elif val["phase"] == "liquid":  # for the solvent(s)
-                vol = (val["amount"]).to(units.ml)  # make sure volume is in mL
+                if val["amount"].magnitude == 0:
+                    vol=Q_(0, 'ml')
+                else:
+                    vol = (val["amount"]).to(units.ml)  # make sure volume is in mL
                 total_vol += vol  # add this to total volume
                 concentrations[key] = Q_(0.0, "M")  # concentration of a solvent is 0 M
 
         for substance, amount in concentrations.items():
             if amount.magnitude != 0.0:  # for the solids
-                concentrations[substance] = (amount / total_vol).to(
-                    units.molar
-                )  # divide moles by volume to get concentration
+                if total_vol.magnitude != 0.0:
+                    concentrations[substance] = (amount / total_vol).to(
+                        units.molar
+                    )  # divide moles by volume to get concentration
+            else:
+                concentrations[substance]=Q_(amount.magnitude, 'molar')
 
         return concentrations
 
