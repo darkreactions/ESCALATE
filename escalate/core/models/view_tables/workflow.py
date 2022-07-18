@@ -1,42 +1,41 @@
-from django.db import models
-from django.db.models import QuerySet, Prefetch, F
-from django.contrib.postgres.fields import ArrayField
-from packaging import version
 import django
+from django.contrib.postgres.fields import ArrayField
+from django.db import models
+from django.db.models import F, Prefetch, QuerySet
+from packaging import version
 
 if version.parse(django.__version__) < version.parse("3.1"):
     from django.contrib.postgres.fields import JSONField
 else:
     from django.db.models import JSONField
 
-from core.models.core_tables import RetUUIDField, SlugField
-from core.models.custom_types import ValField, CustomArrayField
-
 import uuid
-from core.models.base_classes import (
-    DateColumns,
-    StatusColumn,
-    ActorColumn,
-    DescriptionColumn,
-)
+
 from core.managers import (
-    ExperimentTemplateManager,
-    ExperimentInstanceManager,
-    BomMaterialManager,
     BomCompositeMaterialManager,
+    BomMaterialManager,
     BomVesselManager,
     ExperimentCompletedInstanceManager,
+    ExperimentInstanceManager,
     ExperimentPendingInstanceManager,
+    ExperimentTemplateManager,
 )
+from core.models.base_classes import (
+    ActorColumn,
+    DateColumns,
+    DescriptionColumn,
+    StatusColumn,
+)
+from core.models.core_tables import RetUUIDField, SlugField
+from core.models.custom_types import CustomArrayField, ValField
 from core.models.view_tables import (
-    ActionTemplate,
     Action,
-    ReagentTemplate,
+    ActionTemplate,
     Reagent,
+    ReagentTemplate,
     VesselTemplate,
 )
 from core.models.view_tables.actions import ActionUnit
-
 
 managed_tables = True
 managed_views = False
@@ -224,7 +223,7 @@ class ExperimentTemplate(DateColumns, StatusColumn):
 
     # action_templates = models.URLField(blank=True)
 
-    metadata = JSONField(blank=True, null=True)
+    metadata = JSONField(blank=True, null=True, default=dict)
     action_template_et: "QuerySet[ActionTemplate]"
 
     def __str__(self):

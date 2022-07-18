@@ -1,6 +1,7 @@
 from enum import Enum
-from django.utils.html import format_html
+
 from django.urls import reverse_lazy
+from django.utils.html import format_html
 
 
 def _(label, content, span_text=""):
@@ -30,5 +31,6 @@ class CreateExperimentHelp(Enum):
     EXPERIMENT_NAME = _("Experiment Name", "Name of the experiment")
     EXPERIMENT_TAG = _(
         "Experiment Tag",
-        "Tag your experiment with keywords. ",
+        """Tag your experiment with keywords. For example, you can tag an 
+        experiment as 'robot run' and 'perovskites' if you are""",
     )

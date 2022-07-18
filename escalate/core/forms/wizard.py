@@ -1,38 +1,40 @@
-from typing import Tuple, Any, Type, Dict
-from uuid import UUID
 import logging
+from typing import Any, Dict, Tuple, Type
+from uuid import UUID
+
+import core.models.view_tables as vt
+import pandas as pd
+from core.dataclass import METADATA, ExperimentData
+from core.models.view_tables import PropertyTemplate, ReagentTemplate, VesselTemplate
+from core.models.view_tables.workflow import ExperimentTemplate
+from core.widgets import ValFormField
+from crispy_forms.bootstrap import Tab, TabHolder
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import HTML, Column, Field, Layout, Row
 from django.db.models import QuerySet
 from django.forms import (
-    ModelMultipleChoiceField,
-    Select,
-    Form,
-    ModelChoiceField,
-    HiddenInput,
+    BaseFormSet,
     CharField,
     ChoiceField,
-    IntegerField,
-    BaseFormSet,
     FileField,
+    Form,
+    HiddenInput,
+    IntegerField,
+    ModelChoiceField,
+    ModelMultipleChoiceField,
+    Select,
     ValidationError,
 )
-from django.utils import timezone
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Row, Column, Field, HTML
-from crispy_forms.bootstrap import Tab, TabHolder
-import pandas as pd
-from django.utils.html import format_html
-import core.models.view_tables as vt
-from core.models.view_tables import ReagentTemplate, VesselTemplate, PropertyTemplate
-from core.widgets import ValFormField
-from core.models.view_tables.workflow import ExperimentTemplate
-from core.dataclass import ExperimentData, METADATA
-from .forms import dropdown_attrs
-from plugins.sampler.base_sampler_plugin import BaseSamplerPlugin
-from plugins.sampler import *
-from plugins.postprocessing.base_post_processing_plugin import BasePostProcessPlugin
-from plugins.postprocessing import *
-from .form_help_text import CreateExperimentHelp
 from django.urls import reverse_lazy
+from django.utils import timezone
+from django.utils.html import format_html
+from plugins.postprocessing import *
+from plugins.postprocessing.base_post_processing_plugin import BasePostProcessPlugin
+from plugins.sampler import *
+from plugins.sampler.base_sampler_plugin import BaseSamplerPlugin
+
+from .form_help_text import CreateExperimentHelp
+from .forms import dropdown_attrs
 
 
 class NumberOfExperimentsForm(Form):
@@ -117,16 +119,17 @@ class ExperimentTemplateSelectForm(Form):
             for exp in vt.ExperimentTemplate.objects.filter(lab=lab)
         ]
         self.fields["tags"] = ModelMultipleChoiceField(
-            initial=vt.Tag.objects.none(), required=False, queryset=vt.Tag.objects.all()
+            initial=vt.Tag.objects.none(),
+            required=False,
+            queryset=vt.Tag.objects.filter(tag_type__type="experiment"),
         )
-        # self.fields['tags'].widget.attrs.update({'data-live-search': 'true'})
         self.fields["tags"].widget.attrs.update(dropdown_attrs)
-        # self.fields["experiment_tag"].label = CreateExperimentHelp.EXPERIMENT_TAG.value
-        # self.fields[
-        #    "experiment_tag"
-        # ].help_text = f"""If a tag is missing
-        #                <a href={reverse_lazy("tag_add")} target="_blank" rel="noopener noreferrer">click here</a>
-        #                to create a new one. Refresh the page after creating. Only tags with "experiment" tag type will be shown here"""
+        self.fields["tags"].label = CreateExperimentHelp.EXPERIMENT_TAG.value
+        self.fields[
+            "tags"
+        ].help_text = f"""If a tag is missing
+                       <a href={reverse_lazy("tag_add")} target="_blank" rel="noopener noreferrer">click here</a>
+                       to create a new one. Refresh the page after creating. Only tags with "experiment" tag type will be shown here"""
 
 
 class BaseIndexedFormSet(BaseFormSet):

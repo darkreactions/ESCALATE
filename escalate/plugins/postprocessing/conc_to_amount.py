@@ -1,11 +1,12 @@
-from plugins.postprocessing.base_post_processing_plugin import BasePostProcessPlugin
-import core.models.view_tables as vt
-from core.models.core_tables import TypeDef
-import pandas as pd
 import tempfile
 from logging import raiseExceptions
-from pint import DimensionalityError, Quantity, UnitRegistry
+
+import core.models.view_tables as vt
+import pandas as pd
+from core.models.core_tables import TypeDef
 from core.models.view_tables import Property
+from pint import DimensionalityError, Quantity, UnitRegistry
+from plugins.postprocessing.base_post_processing_plugin import BasePostProcessPlugin
 
 units = UnitRegistry()
 Q_ = units.Quantity
@@ -13,10 +14,6 @@ Q_ = units.Quantity
 
 class ConcentrationToAmountPlugin(BasePostProcessPlugin):
     name = "Reagent Preparation: Concentration to Amount"
-
-    @property
-    def validation_errors(self):
-        pass
 
     def validate(self):
         for reagent in self.experiment_instance.reagent_ei.all():
@@ -211,10 +208,6 @@ class ConcentrationToAmountPlugin(BasePostProcessPlugin):
 class AmountToConcentrationPlugin(BasePostProcessPlugin):
     name = "Reagent Preparation: Amount to Concentration"
 
-    @property
-    def validation_errors(self):
-        pass
-
     def validate(self):
         for reagent in self.experiment_instance.reagent_ei.all():
             for reagent_material in reagent.reagent_material_r.all():
@@ -225,31 +218,25 @@ class AmountToConcentrationPlugin(BasePostProcessPlugin):
                             phase, reagent_material.material.description
                         )
                     )
-                    break
 
-                prop = reagent_material.property_rm.filter(template__description="amount").first()
-                amount = Q_(prop.nominal_value.value, prop.nominal_value.unit)
+                prop = reagent_material.property_rm.filter(
+                    template__description="amount"
+                ).first()
+                amount = Q_(prop.value.value, prop.value.unit)
                 if amount.magnitude != 0.0:
-                    if phase == 'solid':
-                        try:
+                    try:
+                        if phase == "solid":
                             amount.to(units.g)
-                        except DimensionalityError:
-                            self.errors.append(
-                                "Error: Invalid unit of measure for {}. Please enter a unit that is appropriate for materials of {} phase".format(
-                                    reagent_material.material.description, phase
-                                )
-                            )
-                            break
-                    elif phase == 'liquid':
-                        try:
+                        elif phase == "liquid":
                             amount.to(units.ml)
-                        except DimensionalityError:
-                            self.errors.append(
-                                "Error: Invalid unit of measure for {}. Please enter a unit that is appropriate for materials of {} phase".format(
-                                    reagent_material.material.description, phase
-                                )
+                    except DimensionalityError:
+                        self.errors.append(
+                            "Error: Invalid unit of measure for {} in {}. Please enter a unit that is appropriate for materials of {} phase".format(
+                                reagent_material.material.description,
+                                reagent_material.template,
+                                phase,
                             )
-                            break
+                        )
                 mw_prop = reagent_material.material.material.property_m.filter(
                     template__description__icontains="molecularweight"
                 ).first()
@@ -259,7 +246,6 @@ class AmountToConcentrationPlugin(BasePostProcessPlugin):
                             reagent_material.material.description
                         )
                     )
-                    break
 
                 density_prop = reagent_material.material.material.property_m.filter(
                     template__description__icontains="density"
@@ -271,8 +257,7 @@ class AmountToConcentrationPlugin(BasePostProcessPlugin):
                             reagent_material.material.description
                         )
                     )
-                    break
-        
+
         if self.errors:
             return False
         return True
@@ -367,7 +352,7 @@ class AmountToConcentrationPlugin(BasePostProcessPlugin):
                 total_vol += vol  # add this to total volume
             elif val["phase"] == "liquid":  # for the solvent(s)
                 if val["amount"].magnitude == 0:
-                    vol=Q_(0, 'ml')
+                    vol = Q_(0, "ml")
                 else:
                     vol = (val["amount"]).to(units.ml)  # make sure volume is in mL
                 total_vol += vol  # add this to total volume
@@ -380,7 +365,7 @@ class AmountToConcentrationPlugin(BasePostProcessPlugin):
                         units.molar
                     )  # divide moles by volume to get concentration
             else:
-                concentrations[substance]=Q_(amount.magnitude, 'molar')
+                concentrations[substance] = Q_(amount.magnitude, "molar")
 
         return concentrations
 

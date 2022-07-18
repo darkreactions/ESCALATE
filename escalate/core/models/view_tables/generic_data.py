@@ -126,6 +126,7 @@ class ParameterDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     def __str__(self):
         return "{}".format(self.description)
 
+
 class ReactionParameter(StatusColumn, DescriptionColumn, DateColumns):
     uuid = RetUUIDField(
         primary_key=True,
@@ -263,7 +264,7 @@ class Tag(DateColumns, ActorColumn, DescriptionColumn):
     )
 
     def __str__(self):
-        return "{}".format(self.display_text)
+        return "{}: {}".format(self.tag_type.type, self.display_text)
 
 
 class TagAssign(DateColumns):

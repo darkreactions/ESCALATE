@@ -1,26 +1,26 @@
-from django.db import models
-from core.models.core_tables import RetUUIDField, SlugField
-from core.models.custom_types import (
-    ValField,
-    PROPERTY_CLASS_CHOICES,
-    PROPERTY_DEF_CLASS_CHOICES,
-    MATERIAL_CLASS_CHOICES,
-)
 import uuid
-from core.models.base_classes import (
-    DateColumns,
-    StatusColumn,
-    ActorColumn,
-    DescriptionColumn,
-    UniqueDescriptionColumn,
-)
-from django.contrib.postgres.fields import ArrayField
-
-from core.models.view_tables.generic_data import Property
-from django.db.models import QuerySet
 
 import django
+from core.models.base_classes import (
+    ActorColumn,
+    DateColumns,
+    DescriptionColumn,
+    StatusColumn,
+    UniqueDescriptionColumn,
+)
+from core.models.core_tables import RetUUIDField, SlugField
+from core.models.custom_types import (
+    MATERIAL_CLASS_CHOICES,
+    PROPERTY_CLASS_CHOICES,
+    PROPERTY_DEF_CLASS_CHOICES,
+    ValField,
+)
+from core.models.view_tables.generic_data import Property
+from django.contrib.postgres.fields import ArrayField
+from django.db import models
+from django.db.models import QuerySet
 from packaging import version
+
 if version.parse(django.__version__) < version.parse("3.1"):
     from django.contrib.postgres.fields import JSONField
 else:
