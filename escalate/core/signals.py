@@ -6,8 +6,6 @@ from core.models import (
     Organization,
     Systemtool,
     Action,
-    UdfX,
-    Udf,
     BomCompositeMaterial,
     Parameter,
     BomMaterial,
@@ -35,20 +33,6 @@ def create_actor(sender, **kwargs):
         # actor = Actor(**fields)
         # actor.save()
         Actor.objects.get_or_create(**fields)
-
-
-@receiver(post_save, sender=Udf)
-def create_udf_x(sender, **kwargs):
-    """
-    Creates uuid, ref_uuid in udf_x table based on udf table
-
-    Args:
-        sender (Udf Instance): Instance of the newly created udf_x
-    TODO: Missing ref_udf_uuid
-    """
-    if kwargs["created"]:
-        udf_x = UdfX(Udf=kwargs["instance"])
-        udf_x.save()
 
 
 

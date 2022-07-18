@@ -11,7 +11,6 @@ from core.models.view_tables import (
     Actor,
     Note,
     SystemtoolType,
-    UdfDef,
     Tag,
     TagAssign,
     TagType,
@@ -230,41 +229,6 @@ class SystemtoolTypeForm(forms.ModelForm):
             )
         }
 
-
-class UdfDefForm(forms.ModelForm):
-    class Meta:
-        model = UdfDef
-        fields = [
-            "description",  #'val_type_description'
-        ]
-        labels = {
-            "description": "Description",
-            #'val_type_description': 'Value type'
-        }
-        CHOICES = (
-            ("1", "int"),
-            ("2", "array_int"),
-            ("3", "num"),
-            ("4", "array_num"),
-            ("5", "text"),
-            ("6", "array_text"),
-            ("7", "blob_text"),
-            ("8", "blob_svg"),
-            ("9", "blob_jpg"),
-            ("10", "blob_png"),
-            ("11", "blob_xrd"),
-        )
-        widgets = {
-            "description": forms.Textarea(
-                attrs={
-                    "cols": "10",
-                    "rows": "3",
-                    "placeholder": "Your system tool type description",
-                }
-            ),
-            #'val_type_description': forms.Select(attrs={
-            #    'placeholder': 'Ex: text, image'}, choices=CHOICES)
-        }
 
 class TagTypeForm(forms.ModelForm):
     class Meta:

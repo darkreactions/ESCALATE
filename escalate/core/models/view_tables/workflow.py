@@ -124,14 +124,6 @@ class BaseBomMaterial(DateColumns, StatusColumn, ActorColumn, DescriptionColumn)
         null=True,  # db_column='bom_material_uuid',
         related_name="bom_composite_material_bom_material",
     )
-    mixture = models.ForeignKey(
-        "Mixture",
-        on_delete=models.CASCADE,
-        blank=True,
-        null=True,
-        db_column="material_composite_uuid",
-        related_name="bom_composite_material_composite_material",
-    )
     internal_slug = SlugField(
         populate_from=[
             "description",

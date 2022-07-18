@@ -28,7 +28,7 @@ def camel_case_uuid(text):
     return text
 
 
-misc_views = set(["NoteX"])
+#misc_views = set(["NoteX"])
 
 excluded_fields = ["internal_slug"]
 
@@ -42,7 +42,6 @@ core_views = set(
         "Inventory",
         "InventoryMaterial",
         "Material",
-        "Mixture",
         "MaterialIdentifierDef",
         "MaterialIdentifier",
         "MaterialType",
@@ -53,7 +52,6 @@ core_views = set(
         "UnitType",
         "TypeDef",
         "ParameterDef",
-        "UdfDef",
         "ExperimentTemplate",
         "Type",
         "BillOfMaterials",
@@ -67,7 +65,6 @@ core_views = set(
         "Vessel",
         "VesselInstance",
         "VesselType",
-        "Contents",
         "Reagent",
         "ReagentMaterial",
         # "ReagentMaterialValue",
@@ -120,7 +117,7 @@ perform_create_views = set(
 )
 
 # Set of models for rest_api/serializers.py
-rest_serializer_views = core_views | misc_views | perform_create_views
+rest_serializer_views = core_views | perform_create_views
 
 # Set of models for all exposed urls in rest_api/urls.py
 rest_exposed_url_views = (
@@ -130,7 +127,6 @@ rest_exposed_url_views = (
 # Set of models for all nested urls in rest_api/urls.py
 rest_nested_url_views = (
     core_views
-    | misc_views
     | custom_serializer_views
     | perform_create_views
     | unexposed_views
@@ -139,7 +135,6 @@ rest_nested_url_views = (
 # Set of models that have viewsets in rest_api/viewsets.py
 rest_viewset_views = (
     core_views
-    | misc_views
     | custom_serializer_views
     | perform_create_views
     | unexposed_views

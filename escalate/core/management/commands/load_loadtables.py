@@ -18,7 +18,6 @@ from core.models import (
     MaterialType,
     MaterialIdentifier,
     MaterialIdentifierDef,
-    Mixture,
     ParameterDef,
     PropertyTemplate,
     Property,
@@ -1612,7 +1611,7 @@ class Command(BaseCommand):
         )
         self.stdout.write(self.style.NOTICE("Finished loading calculation def"))
 
-    def _load_mixture(self):
+    '''def _load_mixture(self):
         self.stdout.write(self.style.NOTICE("Beginning loading mixture"))
         filename = "load_mixture.csv"
         MIXTURE = path_to_file(filename)
@@ -1643,7 +1642,7 @@ class Command(BaseCommand):
             if created:
                 new_mixture += 1
         self.stdout.write(self.style.SUCCESS(f"Added {new_mixture} new mixture"))
-        self.stdout.write(self.style.NOTICE("Finished loading mixture"))
+        self.stdout.write(self.style.NOTICE("Finished loading mixture"))'''
 
     def _load_base_bom_material(self):
         self.stdout.write(self.style.NOTICE("Beginning loading base bom material"))

@@ -126,6 +126,51 @@ class ParameterDef(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     def __str__(self):
         return "{}".format(self.description)
 
+class ReactionParameter(StatusColumn, DescriptionColumn, DateColumns):
+    uuid = RetUUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        db_column="reaction_parameter_profile_uuid",
+    )
+    experiment_template = models.ForeignKey(
+        "ExperimentTemplate",
+        models.CASCADE,
+        blank=True,
+        null=True,
+        related_name="reaction_parameter_profile_workflow",
+    )
+    organization = models.ForeignKey(
+        "Organization",
+        models.CASCADE,
+        blank=True,
+        null=True,
+        related_name="reaction_parameter_profile_organization",
+    )
+    value = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        db_column="reaction_parameter_profile_parameter_value",
+    )
+    unit = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        db_column="reaction_parameter_profile_parameter_unit",
+    )
+    type = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        db_column="reaction_parameter_profile_parameter_type",
+    )
+    experiment_uuid = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        db_column="reaction_parameter_profile_experiment_uuid",
+    )
+
 
 class Property(DateColumns, StatusColumn, ActorColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="property_uuid")

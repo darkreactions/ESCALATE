@@ -95,12 +95,12 @@ class BomMaterialManager(models.Manager):
             .filter(
                 vessel__isnull=True,
                 inventory_material__isnull=False,
-                mixture__isnull=True,
+                #mixture__isnull=True,
             )
         )
 
     def create(self, **kwargs):
-        kwargs.update({"mixture": None})
+        #kwargs.update({"mixture": None})
         return super().create(**kwargs)
 
 
@@ -112,7 +112,7 @@ class BomCompositeMaterialManager(models.Manager):
             .filter(
                 vessel__isnull=True,
                 inventory_material__isnull=True,
-                mixture__isnull=False,
+                #mixture__isnull=False,
             )
         )
 
@@ -128,7 +128,7 @@ class BomVesselManager(models.Manager):
             .get_queryset()
             .filter(
                 vessel__isnull=False,
-                mixture__isnull=True,
+                #mixture__isnull=True,
                 inventory_material__isnull=True,
             )
         )
