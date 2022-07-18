@@ -7,6 +7,9 @@ from itertools import product
 from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
 
+#from types import NoneType
+from typing import List, Dict, Any, Optional, Tuple
+from django.db.models import QuerySet
 import pandas as pd
 from django.db.models import QuerySet
 
@@ -300,16 +303,32 @@ class ExperimentData:
                 else:
                     # Add as many rows there are as children
                     child_list = []
-                    well_order = make_well_labels_list(
-                        len(dest_vessel.children.all()), robot="True"
-                    )
 
-                    for well in well_order:
-                        if dest_vessel.children.filter(description=well).exists():
-                            child = dest_vessel.children.filter(
-                                description=well
-                            ).first()
+                    #if well order is specified in metadata, use that order
+                    if 'well_order' in dest_vessel.metadata.keys():
+                        well_order = dest_vessel.metadata['well_order']
+                        for well in well_order:
+                            child = (
+                                dest_vessel.children.all().filter(description=well).first()
+                            )
                             child_list.append(child)
+                    #otherwise, try using a function to generate a standard well order
+                    else:
+                        try:
+                            well_order = make_well_labels_list(
+                                len(dest_vessel.children.all()), robot="True"
+                            )
+                            for well in well_order:
+                                child = (
+                                    dest_vessel.children.all().filter(description=well).first()
+                                )
+                                child_list.append(child)
+                        #for non-standard vessels, simply list wells in arbitrary order
+                        except AttributeError:
+
+                            for i in range(len(dest_vessel.children.all())):
+                                child=dest_vessel.children.all()[i]
+                                child_list.append(child)
 
                     for i, child in enumerate(child_list):
                         automated_sampled_data = action_data.parameters[pdef]

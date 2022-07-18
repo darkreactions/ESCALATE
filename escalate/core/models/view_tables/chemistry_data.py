@@ -18,6 +18,13 @@ from django.contrib.postgres.fields import ArrayField
 from core.models.view_tables.generic_data import Property
 from django.db.models import QuerySet
 
+import django
+from packaging import version
+if version.parse(django.__version__) < version.parse("3.1"):
+    from django.contrib.postgres.fields import JSONField
+else:
+    from django.db.models import JSONField
+
 manage_tables = True
 manage_views = False
 
@@ -48,6 +55,9 @@ class Vessel(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
     vessel_type = models.ManyToManyField(
         "VesselType", blank=True, related_name="vessel_vessel_type"
     )
+
+    metadata = JSONField(blank=True, null=True, default=dict)
+
     internal_slug = SlugField(
         populate_from=[
             #'plate_name',
