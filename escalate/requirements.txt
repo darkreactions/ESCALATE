@@ -1,7 +1,7 @@
 packaging
 certifi==2019.6.16
 django==3.2
-django-filter==2.3.0
+django-filter==2.4.0
 djangorestframework==3.12.2
 Markdown==3.1.1
 pytz==2019.1
