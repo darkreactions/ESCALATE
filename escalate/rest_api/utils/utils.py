@@ -1,4 +1,13 @@
 import inflection
+from urllib.parse import urlparse
+from django.urls import resolve
+
+
+def get_object_from_url(url, model):
+    path = urlparse(url)[2]  # get path of the url
+    match = resolve(path)
+    model_obj = model.objects.get(uuid=match.kwargs["pk"])
+    return model_obj
 
 
 def camel_case(text):
@@ -19,7 +28,7 @@ def camel_case_uuid(text):
     return text
 
 
-misc_views = set(["NoteX"])
+#misc_views = set(["NoteX"])
 
 excluded_fields = ["internal_slug"]
 
@@ -33,7 +42,6 @@ core_views = set(
         "Inventory",
         "InventoryMaterial",
         "Material",
-        "Mixture",
         "MaterialIdentifierDef",
         "MaterialIdentifier",
         "MaterialType",
@@ -44,19 +52,11 @@ core_views = set(
         "UnitType",
         "TypeDef",
         "ParameterDef",
-        # "ActionSequenceType",
-        "UdfDef",
         "ExperimentTemplate",
-        "ActionSequence",
-        "ExperimentActionSequence",
-        # "ExperimentType",
         "Type",
         "BillOfMaterials",
-        "Measure",
-        "MeasureType",
-        "MeasureDef",
         "OutcomeTemplate",
-        "OutcomeInstance",
+        "Outcome",
         "Action",
         "ActionUnit",
         "ActionDef",
@@ -65,7 +65,6 @@ core_views = set(
         "Vessel",
         "VesselInstance",
         "VesselType",
-        "Contents",
         "Reagent",
         "ReagentMaterial",
         # "ReagentMaterialValue",
@@ -76,6 +75,8 @@ core_views = set(
         "DescriptorTemplate",
         "MolecularDescriptor",
         "ExperimentDescriptor",
+        "ActionTemplate",
+        "VesselTemplate",
     ]
 )
 
@@ -116,7 +117,7 @@ perform_create_views = set(
 )
 
 # Set of models for rest_api/serializers.py
-rest_serializer_views = core_views | misc_views | perform_create_views
+rest_serializer_views = core_views | perform_create_views
 
 # Set of models for all exposed urls in rest_api/urls.py
 rest_exposed_url_views = (
@@ -126,7 +127,6 @@ rest_exposed_url_views = (
 # Set of models for all nested urls in rest_api/urls.py
 rest_nested_url_views = (
     core_views
-    | misc_views
     | custom_serializer_views
     | perform_create_views
     | unexposed_views
@@ -135,7 +135,6 @@ rest_nested_url_views = (
 # Set of models that have viewsets in rest_api/viewsets.py
 rest_viewset_views = (
     core_views
-    | misc_views
     | custom_serializer_views
     | perform_create_views
     | unexposed_views
@@ -177,12 +176,6 @@ expandable_fields = {
     "ExperimentTemplate": {
         "options": {"many_to_many": ["action_sequence"]},
         "fields": {
-            "action_sequence": (
-                "rest_api.ActionSequenceSerializer",
-                {
-                    "many": True,
-                },
-            ),
             "bill_of_materials": (
                 "rest_api.BillOfMaterialsSerializer",
                 {
@@ -204,44 +197,76 @@ expandable_fields = {
         },
     },
     "ExperimentInstance": {
-        "options": {"many_to_many": ["action_sequence"]},
+        "options": {},
         "fields": {
-            "action_sequence": (
-                "rest_api.ActionSequenceSerializer",
+            "action": (
+                "rest_api.ActionSerializer",
                 {
-                    "many": True,
-                },
-            ),
-            "bill_of_materials": (
-                "rest_api.BillOfMaterialsSerializer",
-                {
-                    "source": "bom_experiment_instance",
+                    "source": "action_ei",
                     "many": True,
                     "read_only": True,
-                    "view_name": "billofmaterials-detail",
+                    "view_name": "action-detail",
                 },
             ),
-            "reagents": (
+            "reagent": (
                 "rest_api.ReagentSerializer",
                 {
                     "source": "reagent_ei",
                     "many": True,
                     "read_only": True,
-                    "view_name": "reagentmaterial-detail",
+                    "view_name": "reagent-detail",
                 },
             ),
-            "outcome_instance": (
-                "rest_api.OutcomeInstanceSerializer",
+            "outcome": (
+                "rest_api.OutcomeSerializer",
                 {
-                    "source": "outcome_instance_experiment_instance",
+                    "source": "outcome_instance_ei",
                     "many": True,
                     "read_only": True,
-                    "view_name": "outcomeinstance-detail",
+                    "view_name": "outcome-detail",
                 },
             ),
         },
     },
+    "Reagent": {
+        "options": {},
+        "fields": {
+            "reagent_material": (
+                "rest_api.ReagentMaterialSerializer",
+                {
+                    "source": "reagent_material_r",
+                    "many": True,
+                    "read_only": True,
+                    "view_name": "reagentmaterial-detail",
+                },
+            ),
+            "property": (
+                "rest_api.PropertySerializer",
+                {
+                    "source": "property_r",
+                    "many": True,
+                    "read_only": True,
+                    "view_name": "property-detail",
+                },
+            ),
+        },
+    },
+    "ReagentMaterial": {
+        "options": {},
+        "fields": {
+            "property": (
+                "rest_api.PropertySerializer",
+                {
+                    "source": "property_rm",
+                    "many": True,
+                    "read_only": True,
+                    "view_name": "property-detail",
+                },
+            )
+        },
+    },
 }
+
 
 # Endpoints should be filtered based on lab selected and permissions of the user
 # Remove delete for selected models

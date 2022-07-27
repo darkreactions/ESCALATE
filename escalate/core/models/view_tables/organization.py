@@ -56,6 +56,7 @@ class Actor(DateColumns, StatusColumn, DescriptionColumn):
     )
 
     def __str__(self):
+        """
         rep = list(
             filter(
                 lambda x: x != "None",
@@ -68,7 +69,10 @@ class Actor(DateColumns, StatusColumn, DescriptionColumn):
             )
         )
         return "-".join(rep)
+        """
+        return f"{self.description}"
         # return "{}".format()
+
 
 class Organization(DateColumns, AddressColumns, DescriptionColumn):
     uuid = RetUUIDField(
@@ -217,4 +221,4 @@ class SystemtoolType(DateColumns, DescriptionColumn):
     )
 
     def __str__(self):
-        return self.description
+        return f"{self.description}"

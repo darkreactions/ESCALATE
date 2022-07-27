@@ -1,5 +1,6 @@
 from django.contrib.auth.base_user import BaseUserManager
-from django.utils.translation import ugettext_lazy as _
+
+# from django.utils.translation import ugettext_lazy as _
 from django.db import models
 from django.db.models import Q
 
@@ -29,9 +30,9 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault("is_active", True)
 
         if extra_fields.get("is_staff") is not True:
-            raise ValueError(_("Superuser must have is_staff=True."))
+            raise ValueError("Superuser must have is_staff=True.")
         if extra_fields.get("is_superuser") is not True:
-            raise ValueError(_("Superuser must have is_superuser=True."))
+            raise ValueError("Superuser must have is_superuser=True.")
         return self.create_user(username, password, **extra_fields)
 
 
@@ -94,12 +95,12 @@ class BomMaterialManager(models.Manager):
             .filter(
                 vessel__isnull=True,
                 inventory_material__isnull=False,
-                mixture__isnull=True,
+                #mixture__isnull=True,
             )
         )
 
     def create(self, **kwargs):
-        kwargs.update({"mixture": None})
+        #kwargs.update({"mixture": None})
         return super().create(**kwargs)
 
 
@@ -111,7 +112,7 @@ class BomCompositeMaterialManager(models.Manager):
             .filter(
                 vessel__isnull=True,
                 inventory_material__isnull=True,
-                mixture__isnull=False,
+                #mixture__isnull=False,
             )
         )
 
@@ -127,7 +128,7 @@ class BomVesselManager(models.Manager):
             .get_queryset()
             .filter(
                 vessel__isnull=False,
-                mixture__isnull=True,
+                #mixture__isnull=True,
                 inventory_material__isnull=True,
             )
         )
@@ -137,7 +138,7 @@ class BomVesselManager(models.Manager):
         return super().create(**kwargs)
 
 
-class OutcomeInstanceValueManager(models.Manager):
+class OutcomeValueManager(models.Manager):
     """Stores the nominal and actual values related to an outcome instance
 
     Args:

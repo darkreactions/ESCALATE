@@ -7,7 +7,7 @@
   <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" value="{{filter}}"
     name="filter">
   <button class="btn btn-sm btn-raised btn-success my-2 my-sm-0 " type="submit"><i class="fa fa-search"></i></button>
-  
+
 </form>
 {% endblock %}
 
@@ -42,13 +42,12 @@
             <td>{{ col_data }}</td>
             {% endfor %}
             <td>
-                <a href="{{ row_info.view_url }}" class="btn btn-raised text-secondary px-1 view-detail">
-                    <i class="fa fa-eye"></i>
-                </a>
+              <a href="{{ row_info.view_url }}" class="btn btn-raised text-secondary px-1 view-detail">
+                <i class="fa fa-eye"></i>
+              </a>
               <a href="{{ row_info.update_url }}" class="btn btn-raised text-secondary px-1 view-update">
                 <i class="fa fa-edit"></i>
               </a>
-            
               <button type="button" class="btn btn-raised text-secondary px-2" data-toggle="modal"
                 data-target="#deleteModal" data-description="{{ row_info.obj_name }}" data-pk="{{ row_info.obj_pk }}">
                 <i class="fa fa-trash"></i>
@@ -59,7 +58,7 @@
         </tbody>
       </table>
     </div>
-    
+
   </form>
 </div>
 {% endblock %}

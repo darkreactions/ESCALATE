@@ -1,14 +1,19 @@
+from __future__ import annotations
+
 import csv
 import json
-from django.core.exceptions import ValidationError
-from core.models.core_tables import TypeDef
-from core.cached_queries import get_val_types
 import uuid
+from typing import Any, AnyStr, Callable, Tuple
+
+from django.core.exceptions import ValidationError
+
+from core.cached_queries import get_val_types
+from core.models.core_tables import TypeDef
 
 
 class Val:
-
-    positions = {
+    val_type: TypeDef
+    positions: dict[str, int] = {
         "text": 2,
         "array_text": 3,
         "int": 4,
@@ -21,13 +26,20 @@ class Val:
         "array_bool": 11,
     }
 
-    def __init__(self, val_type, value, unit, null=False, raw_string=""):
+    def __init__(
+        self,
+        val_type: TypeDef | None,
+        value: Any,
+        unit: str,
+        null: bool = False,
+        raw_string: str = "",
+    ):
         self.null = null
-        self.unit = None
+        self.unit: str | None = None
         if isinstance(value, str):
             if len(value) == 0:
                 print(raw_string)
-        if not self.null:
+        if not self.null and val_type is not None:
             self.val_type = val_type
             if not isinstance(val_type, str):
                 self.type_uuid = val_type.uuid
@@ -41,23 +53,23 @@ class Val:
             # print(self.val_type.description, self.value, self.unit)
         else:
             self.value = None
-            self.val_type = None
+            # self.val_type = None
 
     def to_db(self):
         if not self.null:
-            string_list = [""] * 12
-            string_list[0] = str(self.val_type.uuid)
+            string_list: list[Any] = [""] * 12
+            val_type_uuid: uuid.UUID = self.val_type.uuid
+            string_list[0] = str(val_type_uuid)
             string_list[1] = self.unit
-            string_list[
-                self.positions[self.val_type.description]
-            ] = f'"{str(self.value)}"'
+            val_type_desc = self.val_type.description
+            string_list[self.positions[val_type_desc]] = f'"{str(self.value)}"'
             return f'({",".join(string_list)})'
         else:
             return None
 
-    def convert_value(self):
+    def convert_value(self) -> Any:
         # Converts self.value from string to its primitive type. Used in validator and initialization
-        converted_value = None
+        converted_value: Any = None
         if not self.null:
             if "array" in self.val_type.description:
                 converted_value = self.convert_list_value(
@@ -69,15 +81,16 @@ class Val:
                 )
         return converted_value
 
-    def convert_single_value(self, description, value):
+    def convert_single_value(self, description: str, value: Any) -> Any:
+        int_convert: Callable[[str], int] = lambda x: int(float(x))
         primitives = {
             "bool": bool,
-            "int": lambda x: int(float(x)),
+            "int": int_convert,
             "num": float,
             "text": str,
             "blob": str,
         }
-        reverse_primitives = {bool: "bool", int: "int", float: "num", str: "text"}
+        # reverse_primitives = {bool: "bool", int: "int", float: "num", str: "text"}
         default_primitives = {
             "bool": False,
             "int": 0,
@@ -99,7 +112,7 @@ class Val:
             result = default_primitives[description]
         return result
 
-    def convert_list_value(self, description, value):
+    def convert_list_value(self, description: str, value: Any):
         primitives = {
             "array_bool": bool,
             "array_int": int,
@@ -124,8 +137,8 @@ class Val:
 
     def __str__(self):
         if not self.null:
-            # return f'{self.value} {self.unit}'
-            return self.str_value
+            return f"{self.value} {self.unit}"
+            # return self.str_value
         else:
             return ""
 
@@ -133,9 +146,9 @@ class Val:
         if not self.null:
             return f"{self.value} {self.unit} {self.val_type.description}"
         else:
-            return "null"
+            return None
 
-    def to_dict(self):
+    def to_dict(self) -> Any:
         if not self.null:
             return {
                 "value": self.value,
@@ -143,7 +156,8 @@ class Val:
                 "type": self.val_type.description,
             }
         else:
-            return "null"
+            # return "null"
+            return None
 
     @classmethod
     def from_db(cls, val_string):
@@ -152,7 +166,7 @@ class Val:
         # print(args)
         type_uuid = args[0]
         unit = args[1]
-        val_type = get_val_types()[uuid.UUID(type_uuid)]
+        val_type: TypeDef = get_val_types(uuid.UUID(type_uuid))
 
         # Values should be from index 2 onwards.
         value = args[cls.positions[val_type.description]]
@@ -175,20 +189,24 @@ class Val:
     @classmethod
     def from_dict(cls, json_data):
         if json_data is None:
-            return cls(None, None, None, null=True)
+            return cls(None, None, "", null=True)
         else:
             required_keys = set(["type", "value", "unit"])
+            val_type = None
             # Check if all keys are present in
             if not all(k in json_data for k in required_keys):
+                print("Data does not have attribute keys")
+                raise ValidationError(
+                    f'Missing key "{required_keys - set(json_data.keys())}". ',
+                    "invalid",
+                )
+            else:
                 try:
-                    raise ValidationError(
-                        f'Missing key "{required_keys - set(json_data.keys())}". ',
-                        "invalid",
+                    val_type = cls.validate_type(json_data["type"])
+                except Exception as e:
+                    print(
+                        "Exception occured in Val.from_dict(). Ignore if initializing"
                     )
-                except:
-                    print("Data does not have attribute keys")
-
-            val_type = cls.validate_type(json_data["type"])
             return cls(val_type, json_data["value"], json_data["unit"])
 
     @classmethod
@@ -202,7 +220,7 @@ class Val:
                 break
         # except TypeDef.DoesNotExist:
         if val_type is None:
-            options = [val.description for val in cls.val_types]
+            options = [val.description for val in val_types]
             raise ValidationError(
                 f'Data type {type_string} does not exist. Options are: {", ".join(options)}',
                 code="invalid",

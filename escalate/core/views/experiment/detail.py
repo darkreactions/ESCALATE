@@ -8,7 +8,6 @@ from core.utilities.experiment_utils import (
 )
 
 from core.models.view_tables import Note, TagAssign, Tag
-from core.utilities.experiment_utils import get_action_parameter_querysets
 
 
 class ExperimentDetailView(DetailView):
@@ -27,7 +26,6 @@ class ExperimentDetailView(DetailView):
         # dict of detail field names to their value
         detail_data = {}
 
-        # q1, q2, q3 = get_action_parameter_querysets(exp.uuid)
         q1 = get_action_parameter_querysets(exp.uuid)
         mat_q = get_material_querysets(exp.uuid)
         edocs = Edocument.objects.filter(ref_edocument_uuid=exp.uuid)

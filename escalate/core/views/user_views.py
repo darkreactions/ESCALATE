@@ -7,7 +7,7 @@ from django.contrib.auth.hashers import make_password, check_password
 from django.shortcuts import render, redirect
 from django.views import View
 from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
-
+from django.http import HttpResponseRedirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from core.forms.forms import (
@@ -125,14 +125,14 @@ class UserProfileView(LoginRequiredMixin, View):
             if check_password(request.POST["password"], org_pwd.password):
                 person = Person.objects.get(pk=request.user.person.pk)
                 organization = Organization.objects.get(pk=org_pwd.organization.pk)
-                actor = Actor.objects.get(
-                    person=person, organization=organization
-                )
+                actor = Actor.objects.get(person=person, organization=organization)
                 actor.delete()
 
-                #call actor again to verify delete
-                #returns false if deleted successfully
-                deleted = Actor.objects.filter(person=person, organization=organization).exists()
+                # call actor again to verify delete
+                # returns false if deleted successfully
+                deleted = Actor.objects.filter(
+                    person=person, organization=organization
+                ).exists()
 
                 if not deleted:
                     messages.success(
@@ -148,7 +148,7 @@ class UserProfileView(LoginRequiredMixin, View):
                     request,
                     f"Incorrect password for {org_pwd.organization}. Please contact admin for correct password",
                 )
-        
+
         return redirect("user_profile")
 
 
@@ -305,3 +305,12 @@ class UserProfileEdit(LoginRequiredMixin, View):
         context = self.get_context_data()
         context["form"] = form
         return render(self.request, self.template_name, context)
+
+
+class SelectLabMixin:
+    def get(self, request, *args, **kwargs):
+        org_id = request.session.get("current_org_id", None)
+        if not org_id:
+            # messages.error(request, "Please select a lab to continue")
+            return HttpResponseRedirect(reverse("main_menu"))
+        return super().get(request, *args, **kwargs)

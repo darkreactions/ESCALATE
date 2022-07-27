@@ -6,15 +6,6 @@
 
 {% block content %}
 
-{% if messages %}
-<ul class="messages">
-  {% for message in messages %}
-  <div class="alert alert-danger" role="alert"></div>
-  <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
-    {% endfor %}
-    {% endif %}
-
-    <h6>*Please select a lab organization before performing any experiment creation task</h6>
     
     {% autoescape off %}
     {{ plot_div }}

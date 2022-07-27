@@ -2,10 +2,8 @@
 Created on Mar 29, 2021
 
 """
+import uuid
 import numpy as np
-from copy import deepcopy
-import os
-from tkinter.constants import CURRENT
 from django.db.models import F
 from django.db.models.query import QuerySet
 
@@ -18,118 +16,14 @@ from core.models.view_tables import (
     Reagent,
     Vessel,
     ReactionParameter,
-    ActionSequence,
 )
-from core.custom_types import Val
 from core.utilities.randomSampling import generateExperiments
 from core.utilities.utils import make_well_labels_list
 
 
-def update_dispense_action_set(dispense_action_set, volumes, unit="mL"):
-    """Create a new action set based on the action set passed
-
-    Args:
-        dispense_action_set (Queryset): Queryset that contains the dispense actions
-        volumes (list): List of volumes used to update the queryset
-        unit (str, optional): Unit of volumes. Defaults to "mL".
-    """
-
-    dispense_action_set_params = deepcopy(dispense_action_set.__dict__)
-    # delete keys from dispense action set that are not needed for creating a new action set
-    delete_keys = [
-        "uuid",
-        "_state",
-        "_prefetched_objects_cache",
-        # the below keys are the annotations from q1..q3
-        "object_description",
-        "object_uuid",
-        "parameter_def_description",
-        "parameter_uuid",
-        "parameter_value",
-        "experiment_uuid",
-        "experiment_description",
-        "workflow_seq",
-    ]
-    [dispense_action_set_params.pop(k, None) for k in delete_keys]
-
-    # delete the old action set
-    dispense_action_set.delete()
-
-    if isinstance(volumes, np.ndarray):
-        # recall: needs to be a list of Val
-        v = [
-            Val.from_dict({"type": "num", "value": vol, "unit": unit})
-            for vol in volumes
-        ]
-    elif isinstance(volumes, Val):
-        v = [volumes]
-    dispense_action_set_params["calculation_id"] = None
-    dispense_action_set_params["parameter_val_nominal"] = v
-    instance = ActionSequence(**dispense_action_set_params)
-    instance.save()
-
-
-def update_lsr_edoc(
-    template_edoc, experiment_copy_uuid, experiment_copy_name, **kwargs
-):
-    """Copy LSR file from the experiment template, update tagged maps with kwargs, save to experiment copy
-    Returns the uuid if completed successfully, else none
-    """
-    from LSRGenerator.generate import generate_lsr_design
-    import xml.etree.ElementTree as ET
-
-    # copy the template edoc
-    template_edoc.pk = None  # this effectively creates a copy of the original edoc
-
-    # convert to format LSRGenerator understands
-    lsr_template = template_edoc.edocument.tobytes().decode("utf-16")
-    lsr_template = ET.ElementTree(ET.fromstring(lsr_template))
-
-    # populate LSR design with kwargs, handling failure
-    new_lsr_uuid = None
-    message = None
-    try:
-        lsr_design = generate_lsr_design(lsr_template, **kwargs)
-    except Exception as e:
-        message = str(e)
-    else:
-        lsr_design = ET.tostring(lsr_design.getroot(), encoding="utf-16")
-        # associate with the experiment copy and save
-        template_edoc.ref_edocument_uuid = experiment_copy_uuid
-        template_edoc.edocument = lsr_design
-        template_edoc.filename = experiment_copy_name + ".lsr"
-        template_edoc.save()
-        new_lsr_uuid = template_edoc.pk
-
-    return new_lsr_uuid, message
-
-
-def supported_wfs():
-    """
-    # find template file names from experiment_templates dir, strips .py and .cpython from the files
-    # and populates SUPPORTED_CREATE_WFS in experiment.py. Ignores __init___.py.
-    # This prevents needing to hardcode template names
-    """
-    # current_path = .../.../ESCALTE/escalate
-    current_path = os.getcwd()
-    # core_path = .../.../ESCLATE/escalate/core
-    core_path = os.path.join(current_path, "core")
-    # template_path = .../.../ESCALATE/escalate/core/experiment_templates
-    template_path = os.path.join(core_path, "experiment_templates")
-
-    template_list = []
-    for r, d, f in os.walk(template_path):
-        for file in f:
-            if ".py" in file:
-                if not "__init__" in file and not ".cpython" in file:
-                    # remove .py from filename
-                    outfile = os.path.splitext(file)[0]
-                    template_list.append(outfile)
-
-    return template_list
-
-
-def get_action_parameter_querysets(exp_uuid: str, template=True) -> QuerySet:
+def get_action_parameter_querysets(
+    exp_uuid: "str | uuid.UUID", template=True
+) -> "QuerySet[ExperimentTemplate]":
     """Get a queryset that has data related to the given experiment
 
     Args:
@@ -140,15 +34,8 @@ def get_action_parameter_querysets(exp_uuid: str, template=True) -> QuerySet:
         QuerySet: Returns action parameters related to the experiment
     """
 
-    related_exp = "workflow__experiment_workflow_workflow__experiment"
-    # related_exp_wf = 'workflow__experiment_workflow_workflow'
-    # factored out until new workflow changes are implemented
-
-    # Related action unit
-    # related_au = 'workflow__action_workflow__action_unit_action'
-    # related_a = 'workflow__action_workflow'
-    related_au = "action_sequence__action_action_sequence__action_unit_action"
-    related_a = "action_sequence__action_action_sequence"
+    related_au = "action_ei__action_unit_a"
+    related_a = "action_ei"
     related_exp_wf = "action_sequence__experiment_action_sequence_as"
 
     if template:
@@ -156,11 +43,13 @@ def get_action_parameter_querysets(exp_uuid: str, template=True) -> QuerySet:
     else:
         model = ExperimentInstance
 
-    q1: QuerySet = (
+    q1: QuerySet[ExperimentTemplate] = (
         model.objects.filter(uuid=exp_uuid)
         .prefetch_related(related_au)
         .annotate(object_description=F(f"{related_a}__description"))
-        .annotate(object_def_description=F(f"{related_a}__action_def__description"))
+        .annotate(
+            object_def_description=F(f"{related_a}__template__action_def__description")
+        )
         .annotate(object_uuid=F(f"{related_a}__uuid"))
         .annotate(action_unit_description=F(f"{related_au}__description"))
         .annotate(
@@ -171,26 +60,23 @@ def get_action_parameter_querysets(exp_uuid: str, template=True) -> QuerySet:
                 f"{related_au}__destination_material__vessel__description"
             )
         )
-        .annotate(parameter_uuid=F(f"{related_au}__parameter_action_unit"))
+        .annotate(parameter_uuid=F(f"{related_au}__parameter_au"))
         .annotate(
-            parameter_value=F(
-                f"{related_au}__parameter_action_unit__parameter_val_nominal"
-            )
+            parameter_value=F(f"{related_au}__parameter_au__parameter_val_nominal")
         )
         .annotate(
             parameter_value_actual=F(
-                f"{related_au}__parameter_action_unit__parameter_val_actual"
+                f"{related_au}__parameter_au__parameter_val_actual"
             )
         )
         .annotate(
             parameter_def_description=F(
-                f"{related_au}__parameter_action_unit__parameter_def__description"
+                f"{related_au}__parameter_au__parameter_def__description"
             )
         )
         .annotate(experiment_uuid=F("uuid"))
         .annotate(experiment_description=F("description"))
-        .annotate(workflow_seq=F(f"{related_exp_wf}__experiment_action_sequence_seq"))
-    )  # .filter(workflow_action_set__isnull=True).prefetch_related(f'{related_exp}')
+    )
 
     return q1
 
@@ -439,7 +325,7 @@ def save_manual_parameters(df, exp_template, experiment_copy_uuid):
 
 
 def save_manual_volumes(
-    df, experiment_copy_uuid, reagent_template_names, dead_volume, vessel
+    df, experiment_copy_uuid, reagent_template_names, dead_volume, vessel, num_manual
 ):
     """[summary]
 
@@ -458,16 +344,23 @@ def save_manual_volumes(
     # experiment = ExperimentInstance.objects.get(uuid=experiment_copy_uuid)
     reagents = Reagent.objects.filter(experiment=experiment_copy_uuid)
 
-    well_list = []
-    for well in df["Vial Site"]:
-        well_list.append(well)
+    well_list = make_well_labels_list(
+        well_count=vessel.well_number,
+        column_order=vessel.column_order,
+        robot="True",
+    )
+
+    well_indices = {}
+    for i in range(num_manual):
+        well_indices[i] = well_list[i]  # df['Vial Site'][i]
 
     volume_by_well = {}
     # for reagent in reagents:
     for reagent_name in reagent_template_names:
         total_volume = 0
 
-        for i, vial in enumerate(well_list):
+        # for i, vial in enumerate(well_list):
+        for i, vial in well_indices.items():
             action = (
                 q1.filter(action_unit_description__icontains=reagent_name)
                 .filter(action_unit_description__icontains="dispense")

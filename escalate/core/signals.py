@@ -6,11 +6,6 @@ from core.models import (
     Organization,
     Systemtool,
     Action,
-    Mixture,
-    Measure,
-    MeasureX,
-    UdfX,
-    Udf,
     BomCompositeMaterial,
     Parameter,
     BomMaterial,
@@ -40,32 +35,6 @@ def create_actor(sender, **kwargs):
         Actor.objects.get_or_create(**fields)
 
 
-@receiver(post_save, sender=Udf)
-def create_udf_x(sender, **kwargs):
-    """
-    Creates uuid, ref_uuid in udf_x table based on udf table
-
-    Args:
-        sender (Udf Instance): Instance of the newly created udf_x
-    TODO: Missing ref_udf_uuid
-    """
-    if kwargs["created"]:
-        udf_x = UdfX(Udf=kwargs["instance"])
-        udf_x.save()
-
-
-@receiver(post_save, sender=Measure)
-def create_measure_x(sender, **kwargs):
-    """
-    Creates measure_x table based on Measure table
-
-    Args:
-        sender (Measure Instance): Instance of the newly created measure_x
-    """
-    if kwargs["created"]:
-        measure_x = MeasureX(measure=kwargs["instance"])
-        measure_x.save()
-
 
 @receiver(post_save, sender=ActionUnit)
 def create_parameters(sender, **kwargs):
@@ -84,37 +53,17 @@ def create_parameters(sender, **kwargs):
     except ActionUnit.DoesNotExist:
     """
     try:
-        param_defs = action_unit.action.action_def.parameter_def.all()
+        param_defs = action_unit.action.template.action_def.parameter_def.all()
         active_status = Status.objects.get(description="active")
         for p_def in param_defs:
-            p = Parameter(
+            p = Parameter.objects.create(
                 parameter_def=p_def,
                 parameter_val_nominal=p_def.default_val,
                 parameter_val_actual=p_def.default_val,
                 action_unit=action_unit,
                 status=active_status,
             )
-            p.save()
+            # p.save()
     except Exception as e:
         print(f"Exception {e}")
 
-
-@receiver(post_save, sender=BomMaterial)
-def create_bom_composite_material(sender, **kwargs):
-    """
-    Checks if there are component materials associated
-    with Material, if there are then create corresponding
-    BomCompositeMaterials
-    """
-    if kwargs["created"]:
-        bom_material = kwargs["instance"]
-        material = bom_material.inventory_material.material
-        if not material.consumable:
-            c_materials = Mixture.objects.filter(composite=material)
-            for cm in c_materials:
-                bcm = BomCompositeMaterial(
-                    description=f"{bom_material.description}: {cm.description}",
-                    mixture=cm,
-                    bom_material=bom_material,
-                )
-                bcm.save()

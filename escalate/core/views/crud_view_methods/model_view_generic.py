@@ -1,53 +1,63 @@
-from django.db.models.query import QuerySet
-from django.db.models import Q, Count
-from django.urls import reverse_lazy, reverse
-from django.http import HttpResponse, HttpResponseRedirect, FileResponse
-from django.views.generic.detail import DetailView
-from django.views.generic.list import ListView
+import functools
+import urllib.parse as urlparse
+from typing import Any, Dict, List, Optional, Type
 
-# from django.views.generic.edit import FormView, CreateView, DeleteView, UpdateView
-from core.models.view_tables import Note, Actor, TagAssign, Tag, Edocument
-from core.models.core_tables import TypeDef
 from core.forms.forms import NoteForm, TagSelectForm, UploadEdocForm
-from django.forms import modelformset_factory
-from django.shortcuts import get_object_or_404, render
-from django.core.exceptions import FieldDoesNotExist
+from core.models.core_tables import TypeDef, custom_slugify
+from core.models.view_tables import (
+    Actor,
+    Edocument,
+    ExperimentInstance,
+    Note,
+    Tag,
+    TagAssign,
+)
+from core.utilities.utils import camel_to_snake
 from core.utils_no_dependencies import (
-    rgetattr,
     get_all_related_fields,
     get_model_of_related_field,
+    rgetattr,
 )
+from django.contrib import messages
 from django.core import serializers
-from core.utilities.utils import camel_to_snake
+from django.core.exceptions import FieldDoesNotExist
+from django.db.models import Count, Model, Q
+from django.forms import modelformset_factory
+from django.http import HttpRequest, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render
+from django.urls import reverse, reverse_lazy
+from django.views.generic.detail import DetailView
+from django.views.generic.edit import DeleteView
+from django.views.generic.list import ListView
+from inflection import humanize
+
 from ..exports.export_methods import methods as export_methods
 from ..exports.file_types import file_types as export_file_types
-from core.models.core_tables import custom_slugify
-
-import functools
-import urllib
-import urllib.parse as urlparse
-import core
-
-# class with generic classes to use in models
 
 
-# class GenericListView(ListView):
-
-#     def get_context_data(self, **kwargs):
-#         context = super(GenericListView, self).get_context_data(**kwargs)
-#         context['filter'] = self.request.GET.get('filter', '')
-#         return context
+class GenericDeleteView(DeleteView):
+    def post(self, request, *args, **kwargs):
+        if self.model.__name__ in [
+            "Property",
+            "MaterialIdentifier",
+            "ReagentTemplate",
+            "VesselTemplate",
+            "OutcomeTemplate",
+            "Vessel",
+        ]:
+            self.success_url = request.META["HTTP_REFERER"]
+        return super().post(request, *args, **kwargs)
 
 
 class GenericModelListBase:
     # Override the 2 fields below in subclass
-    model = None
+    model: "Type[Model]"
     # lowercase, snake case and plural. Ex:tag_types or inventorys
 
     # Override 2 fields below in subclass
-    table_columns = None  # list of strings of column names
+    table_columns: "list[str]" = []  # list of strings of column names
     # should be a dictionary with keys from table_columns
-    column_necessary_fields = None
+    column_necessary_fields: "dict[str, list[str]]" = {}
     # and value should be a list of the field names (as strings)needed
     # to fill out the corresponding cell.
     # Fields in list of fields should be spelled exactly
@@ -55,12 +65,14 @@ class GenericModelListBase:
 
     # for get_queryset method. Override the 2 fields below in subclass
     ordering = None  # Ex: ['first_name', etc...]
-    field_contains = None  # Ex: 'Gary'. Use '' to show all
+    field_contains: str = ""  # Ex: 'Gary'. Use '' to show all
 
     # A related path that points to the organization this field belongs to
     org_related_path = None
 
     default_filter_kwargs = None
+
+    request: HttpRequest
 
     def header_to_necessary_fields(self, field_raw):
         # get the fields that make up the header column
@@ -111,13 +123,15 @@ class GenericModelListBase:
         }
 
         # Filter by organization if it exists in the model
-        if self.request.user.is_superuser:
+        if self.request.user.is_superuser:  # type: ignore
             base_query = self.model.objects.all()
         else:
             if "current_org_id" in self.request.session:
                 if self.org_related_path:
                     org_filter_kwargs = {
-                        self.org_related_path: self.request.session["current_org_id"]
+                        f"{self.org_related_path}__uuid": self.request.session[
+                            "current_org_id"
+                        ]
                     }
                     base_query = self.model.objects.filter(**org_filter_kwargs)
                 else:
@@ -147,7 +161,7 @@ class GenericModelListBase:
                 final_field_class_name = final_field_model._meta.get_field(
                     final_field
                 ).__class__.__name__
-                if final_field_class_name == "ManyToManyField":
+                if final_field_class_name in ["ManyToManyField", "ManyToOneRel"]:
                     filter_kwargs.pop(related_field_query)
                     filter_kwargs[
                         f"{related_field}__internal_slug__icontains"
@@ -160,7 +174,16 @@ class GenericModelListBase:
                 if len(filter_kwargs) > 0
                 else Q()
             )
-            new_queryset = new_queryset.filter(filter_query).distinct()
+            matching_tags = Tag.objects.filter(display_text__icontains=filter_val)
+            if matching_tags:
+                matching_uuids = TagAssign.objects.values_list(
+                    "ref_tag", flat=True
+                ).filter(tag__in=matching_tags)
+                tagged_objs = base_query.filter(uuid__in=set(matching_uuids))
+                new_queryset = new_queryset.filter(filter_query) | tagged_objs
+            else:
+                new_queryset = new_queryset.filter(filter_query)
+            new_queryset = new_queryset.distinct()
         else:
             new_queryset = base_query
 
@@ -194,146 +217,177 @@ class GenericModelList(GenericModelListBase, ListView):
     paginate_by = 10
 
     @property
-    def context_object_name(self):
-        return f"{camel_to_snake(self.model.__name__)}s" if self.model != None else None
+    def context_object_name(self) -> Optional[str]:
+        if self.model is not None:
+            return f"{camel_to_snake(self.model.__name__)}s"
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        model_name = self.context_object_name[:-1]
-        if self.model.__name__ in export_methods.keys():
-            self.request.session[
-                f"{model_name}_queryset_serialized"
-            ] = serializers.serialize("json", queryset)
+        if self.context_object_name:
+            model_name = self.context_object_name[:-1]
+            if self.model.__name__ in export_methods.keys():
+                self.request.session[
+                    f"{model_name}_queryset_serialized"
+                ] = serializers.serialize("json", queryset)
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["table_columns"] = self.table_columns
-        models = context[self.context_object_name]
-        model_name = self.context_object_name[:-1]  # Ex: tag_types -> tag_type
-        table_data = []
-        for model_instance in models:
-            table_row_data = []
+        # Added a tag column
+        context["table_columns"] = self.table_columns + ["Tags"]
+        if self.context_object_name:
+            context["page_obj"].adjusted_elided_pages = context[
+                "paginator"
+            ].get_elided_page_range(context["page_obj"].number)
+            models = context[self.context_object_name]
+            model_name = self.context_object_name[:-1]  # Ex: tag_types -> tag_type
+            table_data = []
+            for model_instance in models:
+                table_row_data = []
 
-            # loop to get each column data for one row.
-            header_names = self.table_columns
-            for field_name in header_names:
-                # get list of fields used to fill out one cell
-                necessary_fields = self.column_necessary_fields[field_name]
-                # get actual field value from the model
-                fields_for_col = []
-                for field in necessary_fields:
-                    to_add = rgetattr(model_instance, field)
-                    if to_add.__class__.__name__ == "ManyRelatedManager":
-                        # if what we get is a many to many object instead of a flat easy to stringify field value
-                        # Ex: Model.something.manyToMany
-                        to_add = "\n".join([str(x) for x in to_add.all()])
-                    fields_for_col.append(to_add)
-                # loop to change None to '' or non-string to string because join needs strings
-                for k in range(0, len(fields_for_col)):
-                    if fields_for_col[k] == None:
-                        fields_for_col[k] = ""
-                    if not isinstance(fields_for_col[k], str):
-                        fields_for_col[k] = str(fields_for_col[k])
-                col_data = " ".join(list(filter(lambda s: len(s) != 0, fields_for_col)))
-                # take away any leading and trailing whitespace
-                col_data = col_data.strip()
-                # change the cell data to be N/A if it is empty string at this point
-                if len(col_data) == 0:
-                    col_data = "N/A"
-                table_row_data.append(col_data)
+                # loop to get each column data for one row.
+                header_names = self.table_columns
+                for field_name in header_names:
+                    # get list of fields used to fill out one cell
+                    necessary_fields = self.column_necessary_fields[field_name]
+                    # get actual field value from the model
+                    fields_for_col = []
+                    for field in necessary_fields:
+                        to_add = rgetattr(model_instance, field)
+                        if to_add.__class__.__name__ in [
+                            "ManyRelatedManager",
+                            "RelatedManager",
+                        ]:
+                            # if what we get is a many to many object instead of a flat easy to stringify field value
+                            # Ex: Model.something.manyToMany
+                            to_add = "\n".join([str(x) for x in to_add.all()])  # type: ignore
+                        fields_for_col.append(to_add)
+                    # loop to change None to '' or non-string to string because join needs strings
+                    for k in range(0, len(fields_for_col)):
+                        if fields_for_col[k] == None:
+                            fields_for_col[k] = ""
+                        if not isinstance(fields_for_col[k], str):
+                            fields_for_col[k] = str(fields_for_col[k])
+                    col_data = " ".join(
+                        list(filter(lambda s: len(s) != 0, fields_for_col))
+                    )
+                    # take away any leading and trailing whitespace
+                    col_data = col_data.strip()
+                    # change the cell data to be N/A if it is empty string at this point
+                    if len(col_data) == 0:
+                        col_data = "N/A"
+                    table_row_data.append(col_data)
 
-            # dict containing the data, view and update url, primary key and obj
-            # name to use in template
-            table_row_info = {
-                "table_row_data": table_row_data,
-                "view_url": reverse_lazy(
-                    f"{model_name}_view", kwargs={"pk": model_instance.pk}
-                ),
-                "update_url": reverse_lazy(
-                    f"{model_name}_update", kwargs={"pk": model_instance.pk}
-                ),
-                "obj_name": str(model_instance),
-                "obj_pk": model_instance.pk,
-            }
-            if model_name == "edocument":
-                table_row_info["download_url"] = reverse(
-                    "edoc_download", args=(model_instance.pk,)
-                )
-            # Following links show up to the right of experiment list
-            if model_name in (
-                "experiment_instance",
-                "experiment_pending_instance",
-                "experiment_completed_instance",
-            ):
-                table_row_info["outcome_url"] = reverse(
-                    "outcome", args=(model_instance.pk,)
-                )
-                table_row_info["reagent_prep_url"] = reverse(
-                    "reagent_prep", args=(model_instance.pk,)
-                )
-            table_data.append(table_row_info)
-        context["add_url"] = reverse_lazy(f"{model_name}_add")
-        context["table_data"] = table_data
-        # get rid of underscores with spaces and capitalize
-        context["title"] = model_name.replace("_", " ").capitalize()
+                # Adding tags in the final column
+                existing_tags = [
+                    tag.display_text
+                    for tag in Tag.objects.filter(
+                        pk__in=TagAssign.objects.filter(
+                            ref_tag=model_instance.uuid
+                        ).values_list("tag", flat=True)
+                    )
+                ]
+                table_row_data.append(", ".join(existing_tags))
+                # dict containing the data, view and update url, primary key and obj
+                # name to use in template
+                table_row_info = {
+                    "table_row_data": table_row_data,
+                    "view_url": reverse_lazy(
+                        f"{model_name}_view", kwargs={"pk": model_instance.pk}
+                    ),
+                    "update_url": reverse_lazy(
+                        f"{model_name}_update", kwargs={"pk": model_instance.pk}
+                    ),
+                    "obj_name": str(model_instance),
+                    "obj_pk": model_instance.pk,
+                }
+                if model_name == "edocument":
+                    table_row_info["download_url"] = reverse(
+                        "edoc_download", args=(model_instance.pk,)
+                    )
+                # Following links show up to the right of experiment list
+                if model_name in (
+                    "experiment_instance",
+                    "experiment_pending_instance",
+                    "experiment_completed_instance",
+                ):
+                    table_row_info["outcome_url"] = reverse(
+                        "outcome", args=(model_instance.pk,)
+                    )
+                    table_row_info["reagent_prep_url"] = reverse(
+                        "reagent_prep", args=(model_instance.pk,)
+                    )
+                table_data.append(table_row_info)
+            context["add_url"] = reverse_lazy(f"{model_name}_add")
+            context["table_data"] = table_data
+            # get rid of underscores with spaces and capitalize
+            context["title"] = model_name.replace("_", " ").capitalize()
+            context["filter"] = self.request.GET.get(
+                "filter", self.field_contains
+            ).strip()
 
-        export_urls = {}
-        if self.model.__name__ in export_methods.keys():
-            _parsed = urlparse.urlparse(self.request.get_full_path())
-            query_string = "&".join(
-                [f"{q}={p[0]}" for q, p in urlparse.parse_qs(_parsed.query).items()]
-            )
-            for file_type in export_file_types:
-                export_urls[file_type] = reverse_lazy(
-                    f"{model_name}_export_{file_type}"
-                ) + (f"?{query_string}" if len(query_string) > 0 else "")
-            context["export_urls"] = export_urls
+            export_urls = {}
+            if self.model.__name__ in export_methods.keys():
+                _parsed = urlparse.urlparse(self.request.get_full_path())
+                query_string = "&".join(
+                    [f"{q}={p[0]}" for q, p in urlparse.parse_qs(_parsed.query).items()]
+                )
+                for file_type in export_file_types:
+                    export_urls[file_type] = reverse_lazy(
+                        f"{model_name}_export_{file_type}"
+                    ) + (f"?{query_string}" if len(query_string) > 0 else "")
+                context["export_urls"] = export_urls
         return context
 
-    def post(self, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         order_raw = self.request.POST.get("sort", None)
-        if order_raw:
-            col, order = order_raw.split("_")
+        if self.context_object_name:
+            if order_raw:
+                col, order = order_raw.split("_")
 
-            # get current query string from path
-            parsed = urlparse.urlparse(self.request.get_full_path())
-            query = urlparse.parse_qs(parsed.query)
+                # get current query string from path
+                parsed = urlparse.urlparse(self.request.get_full_path())
+                query = urlparse.parse_qs(parsed.query)
 
-            query_params = {q: p[0] for q, p in query.items()}
+                query_params = {q: p[0] for q, p in query.items()}
 
-            # add clicked column and order to query params
-            query_params[f"{col}_sort"] = order
+                # add clicked column and order to query params
+                query_params[f"{col}_sort"] = order
 
-            # build new query string
-            new_query_string = "&".join([f"{q}={p}" for q, p in query_params.items()])
+                # build new query string
+                new_query_string = "&".join(
+                    [f"{q}={p}" for q, p in query_params.items()]
+                )
 
-            # add back query params
-            new_path = reverse(f"{self.context_object_name[:-1]}_list") + (
-                f"?{new_query_string}" if len(new_query_string) > 0 else ""
+                # add back query params
+                new_path = reverse(f"{self.context_object_name[:-1]}_list") + (
+                    f"?{new_query_string}" if len(new_query_string) > 0 else ""
+                )
+                return HttpResponseRedirect(new_path)
+            return HttpResponseRedirect(
+                reverse(f"{self.context_object_name[:-1]}_list")
             )
-            return HttpResponseRedirect(new_path)
-        return HttpResponseRedirect(reverse(f"{self.context_object_name[:-1]}_list"))
 
 
 class GenericModelEdit:
     template_name = "core/generic/edit_note_tag.html"
+    related_uuid = None
 
     # override in subclass
-    model = None
+    model: "Type[Model]"
     form_class = None
-
     # success_url = reverse_lazy(f'{context_object_name}_list')
     NoteFormSet = modelformset_factory(Note, form=NoteForm, can_delete=True)
-
     EdocFormSet = modelformset_factory(Edocument, form=UploadEdocForm, can_delete=True)
+    request: HttpRequest
+    kwargs: Dict[str, Any]
 
     @property
-    def context_object_name(self):
+    def context_object_name(self) -> Optional[str]:
         return camel_to_snake(self.model.__name__) if self.model != None else None
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)  # type: ignore
 
         if self.context_object_name in context:
 
@@ -369,9 +423,21 @@ class GenericModelEdit:
             context["edoc_files"] = []
             context["tag_select_form"] = TagSelectForm()
 
-        context["title"] = self.context_object_name.capitalize()
+        if isinstance(self.context_object_name, str):
+            # context["title"] = self.context_object_name.capitalize()
+            context["title"] = humanize(self.context_object_name)
 
         return context
+
+    def get(self, request, *args, **kwargs):
+        self.related_uuid = request.GET.get("related_uuid", None)
+        return super().get(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        if self.related_uuid:
+            kwargs["related_uuid"] = self.related_uuid
+        return kwargs
 
     def post(self, request, *args, **kwargs):
         if "pk" in self.kwargs:
@@ -382,8 +448,32 @@ class GenericModelEdit:
             request.session["model_name"] = self.context_object_name
             self.success_url = reverse_lazy("model_tag_create", kwargs={"pk": model.pk})
         if request.POST.get("Submit"):
-            self.success_url = reverse(f"{self.context_object_name}_list")
-        return super().post(request, *args, **kwargs)
+            if self.context_object_name == "outcome":
+                self.success_url = reverse(
+                    "outcome", kwargs={"pk": model.experiment_instance.uuid}
+                )
+            elif self.context_object_name == "experiment_template":
+                for i in ExperimentInstance.objects.all():
+                    if i.template.uuid == self.kwargs["pk"]:
+                        messages.error(
+                            request,
+                            f"Template {model.description} cannot be edited. It has already been used to create experiments",
+                        )
+                        return HttpResponseRedirect(
+                            reverse(f"{self.context_object_name}_list")
+                        )
+            elif self.model.__name__ in [
+                "Property",
+                "MaterialIdentifier",
+                "ReagentTemplate",
+                "VesselTemplate",
+                "OutcomeTemplate",
+                "Vessel",
+            ]:
+                self.success_url = request.POST.get("next", self.success_url)
+            else:
+                self.success_url = reverse(f"{self.context_object_name}_list")
+        return super().post(request, *args, **kwargs)  # type: ignore
 
     def form_valid(self, form):
         print("INSIDE FORM VALID")
@@ -445,7 +535,7 @@ class GenericModelEdit:
 
         if self.NoteFormSet != None:
             actor = Actor.objects.get(
-                person=self.request.user.person.pk, organization=None
+                person=self.request.user.person.pk, organization=None  # type: ignore
             )
             formset = self.NoteFormSet(self.request.POST, prefix="note")
             # Loop through every note form
@@ -472,7 +562,7 @@ class GenericModelEdit:
 
         if self.EdocFormSet != None:
             actor = Actor.objects.get(
-                person=self.request.user.person.pk, organization=None
+                person=self.request.user.person.pk, organization=None  # type: ignore
             )
             formset = self.EdocFormSet(
                 self.request.POST, self.request.FILES, prefix="edoc"
@@ -538,7 +628,7 @@ class GenericModelEdit:
                     f"{self.context_object_name}_update", kwargs={"pk": self.object.pk}
                 )
 
-        return HttpResponseRedirect(self.get_success_url())
+        return HttpResponseRedirect(self.get_success_url())  # type: ignore
 
     def form_invalid(self, form):
         print("IN FORM INVALID!")
@@ -549,24 +639,27 @@ class GenericModelEdit:
 
 class GenericModelView(DetailView):
     # Override below 2 in subclass
-    model = None
+    # model = None
     template_name = "core/generic/detail.html"
 
     # Override below 2 in subclass
     # list of strings of detail fields (does not need to be same as field names in model)
-    detail_fields = None
-    detail_fields_need_fields = None  # should be a dictionary with keys detail_fields
+    detail_fields: List[str]
+    detail_fields_need_fields: Dict[
+        str, List[str]
+    ]  # should be a dictionary with keys detail_fields
     # and value should be a list of the field names (as strings)needed
     # to fill out the corresponding cell.
     # Fields in list of fields should be spelled exactly
     # Ex: {'Name': ['first_name','middle_name','last_name']}
 
     @property
-    def context_object_name(self):
+    def context_object_name(self) -> Optional[str]:
         return camel_to_snake(self.model.__name__) if self.model != None else None
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        assert isinstance(self.context_object_name, str)
         obj = context[self.context_object_name]
         # dict of detail field names to their value
         detail_data = {}
@@ -582,7 +675,7 @@ class GenericModelView(DetailView):
                 if to_add.__class__.__name__ == "ManyRelatedManager":
                     # if value is many to many obj get the values
                     # Ex: Model.something.manyToMany
-                    to_add = "\n".join([str(x) for x in to_add.all()])
+                    to_add = "\n".join([str(x) for x in to_add.all()])  # type: ignore
                 fields_for_field.append(to_add)
             # loop to change None to '' or non-string to string because join needs strings
             for i in range(0, len(fields_for_field)):

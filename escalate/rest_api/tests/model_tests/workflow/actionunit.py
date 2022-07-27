@@ -84,7 +84,7 @@ actionunit_tests = [
                 "name": name,
                 "method": POST,
                 "endpoint": "action-list",
-                "body": random_model_dict(Action, action_def="actiondef0__url"),
+                "body": random_model_dict(Action),  # action_def="actiondef0__url"),
                 "args": [],
                 "query_params": [],
                 "is_valid_response": {

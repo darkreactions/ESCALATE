@@ -2,47 +2,46 @@ import core.models
 
 
 methods = {
-    "Actor": {
-        "model": core.models.view_tables.Actor,
+    "Material": {
+        "model": core.models.view_tables.Material,
         "table_columns": [
-            "Person",
-            "Organization",
-            "Systemtool",
+            "Chemical Name",
+            "Identifiers",
+            "Properties",
+            "Type",
             "Status",
         ],
         "column_necessary_fields": {
-            "Person": ["person.first_name", "person.middle_name", "person.last_name"],
-            "Organization": ["organization.full_name"],
-            "Systemtool": ["systemtool.systemtool_name"],
-            "Status": ["status.description"],
-        },
-        "ordering": ["description"],
-        "field_contains": "",
-    },
-    "Inventory": {
-        "model": core.models.view_tables.Inventory,
-        "table_columns": ["Description", "Owner", "Operator", "Lab", "Status"],
-        "column_necessary_fields": {
-            "Description": ["description"],
-            "Owner": ["owner.description"],
-            "Operator": ["operator.description"],
-            "Lab": ["lab.description"],
-            "Status": ["status.description"],
-        },
-        "ordering": ["description"],
-        "field_contains": "",
-    },
-    "Material": {
-        "model": core.models.view_tables.Material,
-        "table_columns": ["Chemical Name", "Other Names", "Type", "Status"],
-        "column_necessary_fields": {
             "Chemical Name": ["description"],
-            "Other Names": ["identifier"],
+            "Identifiers": ["identifier"],
+            "Properties": ["property_m"],
             "Type": ["material_type"],
             "Status": ["status.description"],
         },
         "ordering": ["description"],
         "field_contains": "",
+    },
+    "MaterialIdentifier": {
+        "model": core.models.view_tables.MaterialIdentifier,
+        "table_columns": ["Description", "Identifier Type"],
+        "column_necessary_fields": {
+            "Description": ["description"],
+            "Identifier Type": ["full_description"],
+        },
+        "ordering": ["full_description"],
+        "field_contains": "",
+    },
+    "Vessel": {
+        "model": core.models.view_tables.Vessel,
+        "table_columns": ["Description", "Total Volume", "Well Count"],
+        "column_necessary_fields": {
+            "Description": ["description"],
+            "Total Volume": ["total_volume"],
+            "Well Count": ["well_number"],
+        },
+        "ordering": ["description"],
+        "field_contains": "",
+        "default_filter_kwargs": {"parent__isnull": True},
     },
     "Systemtool": {
         "model": core.models.view_tables.Systemtool,
@@ -92,32 +91,6 @@ methods = {
         "ordering": ["full_name"],
         "field_contains": "",
     },
-    "Person": {
-        "model": core.models.view_tables.Person,
-        "table_columns": [
-            "Name",
-            "Address",
-            "Email",
-            "Organization",
-            "Added Organization",
-        ],
-        "column_necessary_fields": {
-            "Name": ["first_name", "middle_name", "last_name"],
-            "Address": [
-                "address1",
-                "address2",
-                "zip",
-                "city",
-                "state_province",
-                "country",
-            ],
-            "Email": ["email"],
-            "Organization": ["organization.full_name"],
-            "Added Organization": ["added_organization"],
-        },
-        "ordering": ["first_name", "middle_name", "last_name"],
-        "field_contains": "",
-    },
     "Status": {
         "model": core.models.view_tables.Status,
         "table_columns": [
@@ -151,12 +124,19 @@ methods = {
         "ordering": ["display_text"],
         "field_contains": "",
     },
+    "TagType": {
+        "model": core.models.view_tables.TagType,
+        "table_columns": ["Type"],
+        "column_necessary_fields": {"Type": ["type"]},
+        "ordering": ["type"],
+    },
     "InventoryMaterial": {
         "model": core.models.view_tables.InventoryMaterial,
         "table_columns": [
             "Description",
             "Inventory",
             "Material",
+            "Phase",
             "Amount On Hand",
             "Expiration Date",
             "Location",
@@ -165,6 +145,7 @@ methods = {
             "Description": ["description"],
             "Inventory": ["inventory.description"],
             "Material": ["material.description"],
+            "Phase": ["phase"],
             "Amount On Hand": ["onhand_amt"],
             "Expiration Date": ["expiration_date"],
             "Location": ["location"],
@@ -173,49 +154,41 @@ methods = {
         "field_contains": "",
         "org_related_path": "inventory__lab__organization",
     },
-    "TagType": {
-        "model": core.models.view_tables.TagType,
-        "table_columns": [
-            "Type",
-            "Description",
-        ],
-        "column_necessary_fields": {"Type": ["type"], "Description": ["description"]},
-        "ordering": ["type"],
-        "field_contains": "",
-    },
-    "UdfDef": {
-        "model": core.models.view_tables.UdfDef,
+    "ActionDef": {
+        "model": core.models.view_tables.ActionDef,
         "table_columns": [
             "Description",
-            "Value Type",
+            "Parameters",
         ],
         "column_necessary_fields": {
             "Description": ["description"],
-            "Value Type": ["val_type.category", "val_type.description"],
+            "Parameters": ["parameter_def"],
         },
         "ordering": ["description"],
         "field_contains": "",
     },
-    "Edocument": {
-        "model": core.models.Edocument,
-        "context_object_name": "edocuments",
-        "table_columns": ["Title", "Description", "File Type", "Version"],
+    "ParameterDef": {
+        "model": core.models.view_tables.ParameterDef,
+        "table_columns": [
+            "Description",
+            "Default Value",
+            "Unit Type",
+        ],
         "column_necessary_fields": {
-            "Title": ["title"],
             "Description": ["description"],
-            "File Type": ["edoc_type_uuid.description"],
-            "Version": ["edoc_ver"],
+            "Default Value": ["default_val"],
+            "Unit Type": ["unit_type"],
         },
         "ordering": ["description"],
         "field_contains": "",
     },
-    "Vessel": {
-        "model": core.models.view_tables.Vessel,
-        "table_columns": ["Description", "Parent", "Total Volume"],
+    "PropertyTemplate": {
+        "model": core.models.view_tables.PropertyTemplate,
+        "table_columns": [
+            "Description",
+        ],
         "column_necessary_fields": {
             "Description": ["description"],
-            "Parent": ["parent.description"],
-            "Total Volume": ["total_volume"],
         },
         "ordering": ["description"],
         "field_contains": "",
@@ -240,7 +213,7 @@ methods = {
         "ordering": ["description"],
         "field_contains": "",
         "org_related_path": "lab__organization",
-        "default_filter_kwargs": {"parent__isnull": False},
+        "default_filter_kwargs": {"template__isnull": False},
     },
     "ExperimentPendingInstance": {
         "model": core.models.view_tables.ExperimentPendingInstance,
@@ -262,7 +235,7 @@ methods = {
         "ordering": ["description"],
         "field_contains": "",
         "org_related_path": "lab__organization",
-        "default_filter_kwargs": {"parent__isnull": False},
+        "default_filter_kwargs": {"template__isnull": False},
     },
     "ExperimentCompletedInstance": {
         "model": core.models.view_tables.ExperimentCompletedInstance,
@@ -284,6 +257,27 @@ methods = {
         "ordering": ["description"],
         "field_contains": "",
         "org_related_path": "lab__organization",
-        "default_filter_kwargs": {"parent__isnull": False},
+        "default_filter_kwargs": {"template__isnull": False},
+    },
+    "ExperimentTemplate": {
+        "model": core.models.view_tables.ExperimentTemplate,
+        "table_columns": [
+            "Template Name",
+            "Reagent Templates",
+            "Vessel Templates",
+            # "Action Templates",
+            "Outcome Templates",
+        ],
+        "column_necessary_fields": {
+            "Template Name": ["description"],
+            "Reagent Templates": ["reagent_templates"],
+            "Vessel Templates": ["vessel_templates"],
+            # "Action Templates": ["action_templates"],
+            "Outcome Templates": ["outcome_templates"],
+        },
+        "ordering": ["description"],
+        "field_contains": "",
+        "org_related_path": "lab__organization",
+        # "default_filter_kwargs": {"template__isnull": False},
     },
 }

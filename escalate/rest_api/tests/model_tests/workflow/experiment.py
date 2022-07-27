@@ -13,7 +13,6 @@ from core.models import (
     Type,
     TypeDef,
     Actor,
-    ActionSequence,
     ExperimentTemplate,
 )
 

@@ -1,72 +1,37 @@
-from django.db import models
+import uuid
+
+import django
+from core.models.base_classes import (
+    ActorColumn,
+    DateColumns,
+    DescriptionColumn,
+    StatusColumn,
+    UniqueDescriptionColumn,
+)
 from core.models.core_tables import RetUUIDField, SlugField
 from core.models.custom_types import (
-    ValField,
+    MATERIAL_CLASS_CHOICES,
     PROPERTY_CLASS_CHOICES,
     PROPERTY_DEF_CLASS_CHOICES,
-    MATERIAL_CLASS_CHOICES,
+    ValField,
 )
-import uuid
-from core.models.base_classes import (
-    DateColumns,
-    StatusColumn,
-    ActorColumn,
-    DescriptionColumn,
-)
-from django.contrib.postgres.fields import ArrayField
-
 from core.models.view_tables.generic_data import Property
+from django.contrib.postgres.fields import ArrayField
+from django.db import models
+from django.db.models import QuerySet
+from packaging import version
+
+if version.parse(django.__version__) < version.parse("3.1"):
+    from django.contrib.postgres.fields import JSONField
+else:
+    from django.db.models import JSONField
 
 manage_tables = True
 manage_views = False
 
 
-class Mixture(DateColumns, StatusColumn, ActorColumn):
-    uuid = RetUUIDField(
-        primary_key=True, default=uuid.uuid4, db_column="material_composite_uuid"
-    )
-    composite = models.ForeignKey(
-        "Material",
-        on_delete=models.DO_NOTHING,
-        blank=True,
-        null=True,
-        db_column="composite_uuid",
-        related_name="composite_material_composite",
-    )
-    # composite_description = models.CharField(
-    #    max_length=255, blank=True, null=True, editable=False)
-    # composite_class = models.CharField(max_length=64, choices=MATERIAL_CLASS_CHOICES)
-    # composite_flg = models.BooleanField(blank=True, null=True)
-    component = models.ForeignKey(
-        "Material",
-        on_delete=models.DO_NOTHING,
-        blank=True,
-        null=True,
-        db_column="component_uuid",
-        related_name="composite_material_component",
-    )
-    # component_description = models.CharField(
-    #    max_length=255, blank=True, null=True, editable=False)
-    addressable = models.BooleanField(blank=True, null=True)
-    # property = models.ManyToManyField('Property', through='CompositeMaterialProperty', related_name='composite_material_property',
-    #    through_fields=('composite_material', 'property'))
-    material_type = models.ManyToManyField(
-        "MaterialType", blank=True, related_name="composite_material_material_type"
-    )
-    internal_slug = SlugField(
-        populate_from=["composite__internal_slug", "component__internal_slug"],
-        overwrite=True,
-        max_length=255,
-    )
-
-    def __str__(self):
-        return "{} - {}".format(
-            self.composite.description if self.composite else "",
-            self.component.description if self.component else "",
-        )
-
-
 class Vessel(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
+    children: "QuerySet[Vessel]"
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="vessel_uuid")
     # plate_name = models.CharField(max_length = 64, blank=True, null=True)
     total_volume = ValField(blank=True, null=True)
@@ -86,11 +51,14 @@ class Vessel(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         on_delete=models.DO_NOTHING,
         blank=True,
         null=True,
-        related_name="parent_vessel",
+        related_name="children",
     )
     vessel_type = models.ManyToManyField(
         "VesselType", blank=True, related_name="vessel_vessel_type"
     )
+
+    metadata = JSONField(blank=True, null=True, default=dict)
+
     internal_slug = SlugField(
         populate_from=[
             #'plate_name',
@@ -105,7 +73,7 @@ class Vessel(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
 
     def __str__(self):
         # return "{}  {}".format(self.plate_name, self.well_number)
-        return self.description
+        return f"{self.description}"
 
 
 class VesselInstance(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
@@ -113,12 +81,37 @@ class VesselInstance(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         primary_key=True, default=uuid.uuid4, db_column="vessel_instance_uuid"
     )
     vessel_template = models.ForeignKey(
+        "VesselTemplate",
+        on_delete=models.DO_NOTHING,
+        blank=True,
+        null=True,
+        related_name="vessel_instance_vt",
+    )
+    vessel = models.ForeignKey(
         "Vessel",
         on_delete=models.DO_NOTHING,
         blank=True,
         null=True,
-        related_name="vessel_instance_vessel_template",
+        related_name="vessel_instance_v",
     )
+    experiment_instance = models.ForeignKey(
+        "ExperimentInstance",
+        on_delete=models.DO_NOTHING,
+        blank=True,
+        null=True,
+        related_name="vessel_instance_ei",
+    )
+
+    def save(self, *args, **kwargs) -> None:
+        if self.vessel and self.vessel_template:
+            self.description = (
+                f"{self.vessel.description} : {self.vessel_template.description}"
+            )
+        elif self.vessel:
+            self.description = self.vessel.description
+        elif self.vessel_template:
+            self.description = self.vessel_template.description
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.description}"
@@ -134,29 +127,6 @@ class VesselType(DateColumns, DescriptionColumn):
 
     def __str__(self):
         return "{}".format(self.description)
-
-
-class Contents(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="contents_uuid")
-    vessel_instance = models.ForeignKey(
-        "VesselInstance",
-        on_delete=models.DO_NOTHING,
-        blank=True,
-        null=True,
-        related_name="contents_vessel_instance",
-    )
-    base_bom_material = models.ForeignKey(
-        "BaseBomMaterial",
-        on_delete=models.DO_NOTHING,
-        blank=True,
-        null=True,
-        db_column="bom_material_uuid",
-        related_name="contents_bom_material_uuid",
-    )
-    value = ValField(blank=True, null=True)
-
-    def __str__(self):
-        return f"{self.description}"
 
 
 class Inventory(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
@@ -186,6 +156,24 @@ class Inventory(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
         null=True,
         db_column="lab_uuid",
         related_name="inventory_lab",
+    )
+    internal_slug = SlugField(
+        populate_from=["description"], overwrite=True, max_length=255
+    )
+
+    def __str__(self):
+        return "{}".format(self.description)
+
+
+class Material(DateColumns, StatusColumn, ActorColumn, UniqueDescriptionColumn):
+    property_m: "QuerySet[Property]"
+    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="material_uuid")
+    consumable = models.BooleanField(blank=True, null=True)
+    material_class = models.CharField(
+        max_length=64, choices=MATERIAL_CLASS_CHOICES, blank=True, null=True
+    )
+    material_type = models.ManyToManyField(
+        "MaterialType", blank=True, related_name="material_material_type"
     )
     internal_slug = SlugField(
         populate_from=["description"], overwrite=True, max_length=255
@@ -235,32 +223,6 @@ class InventoryMaterial(DateColumns, StatusColumn, ActorColumn, DescriptionColum
         return "{} : {}".format(self.inventory, self.material)
 
 
-class Material(DateColumns, StatusColumn, ActorColumn, DescriptionColumn):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4, db_column="material_uuid")
-    consumable = models.BooleanField(blank=True, null=True)
-    # composite_flg = models.BooleanField(blank=True, null=True)
-    # material_types = models.ManyToManyField('MaterialType',
-    #                                        through='MaterialTypeAssign',
-    #                                        related_name='material_material_types')
-    material_class = models.CharField(max_length=64, choices=MATERIAL_CLASS_CHOICES)
-
-    # need to remove through crosstables when managed by django
-    # property = models.ManyToManyField('Property', blank=True,
-    #                                  related_name='material_property')
-    identifier = models.ManyToManyField(
-        "MaterialIdentifier", blank=True, related_name="material_material_identifier"
-    )
-    material_type = models.ManyToManyField(
-        "MaterialType", blank=True, related_name="material_material_type"
-    )
-    internal_slug = SlugField(
-        populate_from=["description"], overwrite=True, max_length=255
-    )
-
-    def __str__(self):
-        return "{}".format(self.description)
-
-
 class MaterialIdentifier(DateColumns, StatusColumn, DescriptionColumn):
     uuid = RetUUIDField(
         primary_key=True, default=uuid.uuid4, db_column="material_refname_uuid"
@@ -273,6 +235,12 @@ class MaterialIdentifier(DateColumns, StatusColumn, DescriptionColumn):
         db_column="material_refname_def_uuid",
         related_name="material_identifier_material_identifier_def",
     )
+    material = models.ForeignKey(
+        "Material",
+        on_delete=models.DO_NOTHING,
+        null=True,
+        related_name="identifier",
+    )
     internal_slug = SlugField(
         populate_from=["material_identifier_def__internal_slug", "description"],
         overwrite=True,
@@ -282,7 +250,7 @@ class MaterialIdentifier(DateColumns, StatusColumn, DescriptionColumn):
 
     def __str__(self):
         # return "{}: {}".format(self.material_identifier_def, self.description)
-        return self.full_description
+        return f"{self.full_description}"
 
     def save(self, *args, **kwargs):
         self.full_description = f"{self.material_identifier_def}: {self.description}"
@@ -315,6 +283,13 @@ class MaterialType(DateColumns, DescriptionColumn):
 
 class ReagentTemplate(DateColumns, DescriptionColumn, StatusColumn):
     uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
+    experiment_template = models.ForeignKey(
+        "ExperimentTemplate",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name="reagent_templates",
+    )
     internal_slug = SlugField(
         populate_from=["description"], overwrite=True, max_length=255
     )
@@ -323,9 +298,10 @@ class ReagentTemplate(DateColumns, DescriptionColumn, StatusColumn):
         blank=True,
         related_name="reagent_template_p",
     )
+    reagent_material_template_rt: "QuerySet[ReagentMaterialTemplate]"
 
     def __str__(self):
-        return self.description
+        return f"{self.description}"
 
 
 class ReagentMaterialTemplate(DateColumns, DescriptionColumn, StatusColumn):
@@ -349,25 +325,7 @@ class ReagentMaterialTemplate(DateColumns, DescriptionColumn, StatusColumn):
     )
 
     def __str__(self):
-        return self.description
-
-
-"""
-class ReagentMaterialValueTemplate(DateColumns, DescriptionColumn, StatusColumn):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
-    reagent_material_template = models.ForeignKey(
-        "ReagentMaterialTemplate",
-        on_delete=models.DO_NOTHING,
-        related_name="reagent_material_value_template_rmt",
-    )
-    default_value = models.ForeignKey(
-        "DefaultValues",
-        on_delete=models.DO_NOTHING,
-        blank=True,
-        null=True,
-        related_name="reagent_material_value_template_dv",
-    )
-"""
+        return f"{self.description}"
 
 
 class Reagent(DateColumns, DescriptionColumn, StatusColumn):
@@ -383,6 +341,8 @@ class Reagent(DateColumns, DescriptionColumn, StatusColumn):
         editable=False,
         related_name="reagent_rt",
     )
+    property_r: "QuerySet[Property]"
+    reagent_material_r: "QuerySet[ReagentMaterial]"
 
     def save(self, *args, **kwargs):
         """
@@ -404,6 +364,9 @@ class Reagent(DateColumns, DescriptionColumn, StatusColumn):
                     reagent=self,
                 )
                 prop.save()
+
+    def __str__(self):
+        return f"{self.description}"
 
 
 class ReagentMaterial(DateColumns, DescriptionColumn, StatusColumn):
@@ -427,6 +390,7 @@ class ReagentMaterial(DateColumns, DescriptionColumn, StatusColumn):
         blank=True,
         related_name="reagent_material_rmt",
     )
+    property_rm: "QuerySet[Property]"
 
     def save(self, *args, **kwargs):
         """
@@ -449,35 +413,5 @@ class ReagentMaterial(DateColumns, DescriptionColumn, StatusColumn):
                 )
                 prop.save()
 
-
-"""
-class ReagentMaterialValue(DateColumns, DescriptionColumn, StatusColumn):
-    uuid = RetUUIDField(primary_key=True, default=uuid.uuid4)
-    nominal_value = ValField(blank=True, null=True)
-    actual_value = ValField(blank=True, null=True)
-    reagent_material = models.ForeignKey(
-        "ReagentMaterial",
-        on_delete=models.DO_NOTHING,
-        null=True,
-        blank=True,
-        related_name="reagent_material_value_rmi",
-    )
-    template = models.ForeignKey(
-        "ReagentMaterialValueTemplate",
-        on_delete=models.DO_NOTHING,
-        null=True,
-        blank=True,
-        related_name="reagent_material_value_rmvt",
-    )
-
-    def save(self, *args, **kwargs):
-        if self.template.default_value is not None:
-            if self.nominal_value is None:
-                self.nominal_value = self.template.default_value.nominal_value
-            if self.actual_value is None:
-                self.actual_value = self.template.default_value.actual_value
-        super().save(*args, **kwargs)
-
     def __str__(self):
-        return self.description
-"""
+        return f"{self.description}"

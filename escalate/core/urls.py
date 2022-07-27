@@ -1,9 +1,9 @@
 from django.urls import path, include
 import core.views
 from core.views.function_views import (
-    download_vp_spec_file,
-    # save_action_sequence,
-    save_experiment_action_sequence,
+    download_manual_spec_file,
+    save_experiment_action_template,
+    create_action_def,
     experiment_invalid,
 )
 
@@ -12,8 +12,7 @@ from .views import (
     CreateUserView,
     MainMenuView,
     SelectLabView,
-    ActionSequenceView,
-    # ExperimentActionSequenceView,
+    ActionTemplateView,
     ModelTagCreate,
     ModelTagUpdate,
     logout_view,
@@ -22,17 +21,15 @@ from .views import (
     UserProfileEdit,
 )
 from .views.experiment import (
-    CreateExperimentView,
-    SetupExperimentView,
-    CreateExperimentTemplate,
-    # ExperimentDetailView,
     ExperimentReagentPrepView,
-    ExperimentOutcomeView,
+    ExperimentUploadOutcomeView,
+    ExperimentOutcomeList,
     ExperimentDetailEditView,
     ParameterEditView,
+    CreateExperimentWizard,
+    CreateTemplateWizard,
 )
 
-from .views.experiment.create_select_template import SelectReagentsView
 
 from core.utilities.utils import view_names, camel_to_snake
 from django.contrib.staticfiles.storage import staticfiles_storage
@@ -45,11 +42,10 @@ urlpatterns = [
     path("create_user/", CreateUserView.as_view(), name="create_user"),
     path("main_menu/", MainMenuView.as_view(), name="main_menu"),
     path("select_lab/", SelectLabView.as_view(), name="select_lab"),
-    # path("action_sequence/", ActionSequenceView.as_view(), name="action_sequence"),
     path(
-        "action_sequence/<uuid:pk>",
-        ActionSequenceView.as_view(),
-        name="action_sequence",
+        "action_template/<uuid:pk>",
+        ActionTemplateView.as_view(),
+        name="action_template",
     ),
     path("logout/", logout_view, name="logout"),
     path("user_profile/", UserProfileView.as_view(), name="user_profile"),
@@ -61,27 +57,16 @@ urlpatterns = [
     ),
 ]
 
-# Experiment Instance creation patterns
 urlpatterns += [
     path(
-        "experiment/setup",
-        SetupExperimentView.as_view(),
+        "experiment-instance/",
+        CreateExperimentWizard.as_view(),
         name="experiment_instance_add",
     ),
     path(
-        "experiment/setup/select_reagents",
-        SelectReagentsView.as_view(),
-        name="select_reagents",
-    ),
-    path(
-        "experiment/setup/create",
-        CreateExperimentView.as_view(),
-        name="create_experiment",
-    ),
-    path(
-        "experiment/setup/robot_file",
-        download_vp_spec_file,
-        name="download_vp_spec_file",
+        "experiment-instance/robot_file",
+        download_manual_spec_file,
+        name="download_manual_spec_file",
     ),
 ]
 
@@ -89,14 +74,19 @@ urlpatterns += [
 urlpatterns += [
     path(
         "exp_template/",
-        CreateExperimentTemplate.as_view(),
+        CreateTemplateWizard.as_view(),
         name="experiment_template_add",
     ),
     # path("save_action_sequence/", save_action_sequence, name="save_action_sequence",),
     path(
-        "save_experiment_action_sequence/",
-        save_experiment_action_sequence,
-        name="save_experiment_action_sequence",
+        "save_experiment_action_template/",
+        save_experiment_action_template,
+        name="save_experiment_action_template",
+    ),
+    path(
+        "create_action_def/",
+        create_action_def,
+        name="create_action_def",
     ),
 ]
 
@@ -118,18 +108,19 @@ urlpatterns += [
         name="reagent_prep",
     ),
     path(
-        "experiment/<uuid:pk>/outcome", ExperimentOutcomeView.as_view(), name="outcome"
+        "experiment/<uuid:pk>/outcome",
+        ExperimentOutcomeList.as_view(),
+        name="outcome",
+    ),
+    path(
+        "experiment/<uuid:pk>/outcome-upload",
+        ExperimentUploadOutcomeView.as_view(),
+        name="outcome_upload",
     ),
 ]
 
 # Completed experiment patterns
 urlpatterns += [
-    path(
-        "experiment_completed_instance/",
-        CreateExperimentView.as_view(),
-        name="experiment_completed_instance_add",
-    ),
-    path("exp_template/experiment", CreateExperimentView.as_view(), name="experiment"),
     path(
         "experiment_completed_instance/<uuid:pk>",
         ExperimentDetailEditView.as_view(),
@@ -155,8 +146,13 @@ urlpatterns += [
 # Pending experiment patterns
 urlpatterns += [
     path(
+        "experiment_completed_instance/",
+        CreateExperimentWizard.as_view(),
+        name="experiment_completed_instance_add",
+    ),
+    path(
         "experiment_pending_instance/",
-        CreateExperimentView.as_view(),
+        CreateExperimentWizard.as_view(),
         name="experiment_pending_instance_add",
     ),
     path(
@@ -176,7 +172,7 @@ urlpatterns += [
     ),
     path(
         "experiment_pending_instance/<uuid:pk>/outcome",
-        ExperimentOutcomeView.as_view(),
+        ExperimentOutcomeList.as_view(),
         name="experiment_pending_instance_outcome",
     ),
     path(
@@ -221,8 +217,11 @@ def add_urls(model_name, pattern_list):
             )
         )
     if (delete_view_class := getattr(core.views, f"{model_name}Delete", None)) != None:
-        #remove ExperimentPendingInstance and ExperimentCompletedInstance
-        if (lower_case_model_name != 'experiment_pending_instance' and lower_case_model_name != 'experiment_completed_instance'):
+        # remove ExperimentPendingInstance and ExperimentCompletedInstance
+        if (
+            lower_case_model_name != "experiment_pending_instance"
+            and lower_case_model_name != "experiment_completed_instance"
+        ):
             new_urls.append(
                 path(
                     f"{lower_case_model_name}/<uuid:pk>/delete",

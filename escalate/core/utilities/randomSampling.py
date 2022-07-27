@@ -17,6 +17,7 @@ from numpy.linalg import lstsq
 
 import pint
 from pint import UnitRegistry
+from typing import Dict, Any, List
 
 units = UnitRegistry()
 Q_ = units.Quantity
@@ -46,7 +47,8 @@ descriptions = ["Reagent1", "Reagent2", "Reagent3", "Reagent7"]
 nExpt = 96
 maxMolarity = 15.0
 
-finalVolume = "500 ul"
+finalVolume = "500" 
+#default unit is uL
 
 # %% [markdown]
 # ## Helper Functions
@@ -495,15 +497,15 @@ def generate_vectors(descriptions, reagents):
 
 # %%
 def generateExperiments(
-    reagent_template_names,
-    reagentDefs,
+    reagent_template_names: "List[str]",
+    reagentDefs: "List[Dict[str, Any]]",
     # descriptions,
-    nExpt,
-    finalVolume="500. uL",
+    nExpt: int,
+    finalVolume: 500.,
     excludedReagents=None,
     maxMolarity=9.0,
     desiredUnit="uL",
-):
+) -> "Dict[str, Any]":
     # def generateExperiments(reagentDefs, nExpt, excludedReagentDefs=None, maxMolarity=9., finalVolume='500. uL', desiredUnit='uL'):
 
     # convert reagent input into proper vector format
@@ -532,7 +534,7 @@ def generateExperiments(
             excludedReagentDefs: (optional) Dictionary of reagents you would like to exclude from experiment generation.
             nExpt: (optional) The number of experiments you want to generate (default is 96).
             maxMolarity: (optional) The max molarity you want to impose (default is 9.).
-            finalVolume: (optional) The final volume you want to impose (default 500. ul).
+            finalVolume: (optional) The final volume you want to impose (default 500.).
                 ***must be input as a string with value and units
             desiredUnit: (optional): The unit in which final volumes should be expressed (default ul)
 
@@ -562,9 +564,9 @@ def generateExperiments(
                 reagentDefs,
                 # descriptions,
                 nExpt,
-                maxMolarity=9.0,
+                maxMolarity=maxMolarity,
                 finalVolume=finalVolume,
-                desiredUnit="uL",
+                desiredUnit=desiredUnit,
                 processValues="round",
             )
         else:
@@ -573,9 +575,9 @@ def generateExperiments(
                 reagentDefs,
                 # descriptions,
                 nExpt,
-                maxMolarity=9.0,
+                maxMolarity=maxMolarity,
                 finalVolume=finalVolume,
-                desiredUnit="uL",
+                desiredUnit=desiredUnit,
                 processValues="round",
             )
 
@@ -628,17 +630,17 @@ def generateHitAndRunExperiments(
     # descriptions,
     nExpt=96,
     maxMolarity=9.0,
-    finalVolume="500 uL",
+    finalVolume=500.,
     desiredUnit="uL",
     processValues="round",
-):
+) -> "Dict[str, Any]":
     """This generates hit and run experiments. This block runs if species dimensionality is > 3.
     Args:
         reagents: list of dictionaries, where each list corresponds to a reagent. keys are chemical components and values are concentrations for the components
         descriptions: list of names of reagents, e.g. ['Reagent 1', 'Reagent 2', 'Reagent 3', Reagent 7']
         nExpt: (optional) The number of experiments to generate (default is 96).
         maxMolarity: (optional) The max molarity you want to impose (default is 9.).
-        finalVolume: (optional) The final volume you want to impose (default 500. ul).
+        finalVolume: (optional) The final volume you want to impose (default 500.).
             ***must be input as a string with value and units
         desiredUnit: (optional): The unit in which final volumes should be expressed (default ul)
         processValues: (optional) Doesn't currently support an operation other than rounding the volumes to whole number (default is round).
@@ -648,8 +650,8 @@ def generateHitAndRunExperiments(
 
     # convert input volume to microliters, if it isn't already
     # v=finalVolume.split()
-    v1 = Q_(finalVolume).to(units.ul)
-    finalVolume = v1.magnitude
+    #v1 = Q_(float(finalVolume), desiredUnit).to(units.ul)
+    #finalVolume = v1.magnitude
     # finalVolume = Q_(finalVolume).to(units.ul)
 
     reagentDefs = generate_vectors(
@@ -692,17 +694,17 @@ def generate3DExperiments(
     # descriptions,
     nExpt=96,
     maxMolarity=9.0,
-    finalVolume="500 uL",
+    finalVolume=500.,
     desiredUnit="uL",
     processValues="round",
-):
+) -> "Dict[str, Any]":
     """This generates hit and run experiments. This block runs if species dimensionality is <= 3.
     Args:
         reagents: list of dictionaries, where each list corresponds to a reagent. keys are chemical components and values are concentrations for the components
         descriptions: list of names of reagents, e.g. ['Reagent 1', 'Reagent 2', 'Reagent 3', Reagent 7']
         nExpt: (optional) The number of experiments to generate (default is 96).
         maxMolarity: (optional) The max molarity you want to impose (default is 9.).
-        finalVolume: (optional) The final volume you want to impose (default 500. ul).
+        finalVolume: (optional) The final volume you want to impose (default 500.).
             ***must be input as a string with value and units
         desiredUnit: (optional): The unit in which final volumes should be expressed (default ul)
         processValues: (optional) Doesn't currently support an operation other than rounding the volumes to whole number (default is round).
@@ -712,9 +714,8 @@ def generate3DExperiments(
     """
 
     # convert input volume to microliters, if it isn't already
-    v = finalVolume.split()
-    v1 = Q_(float(v[0]), v[1]).to(units.ul)
-    finalVolume = v1.magnitude
+    #v1 = Q_(float(finalVolume), desiredUnit).to(units.ul)
+    #finalVolume = v1.magnitude
 
     reagentDefs = generate_vectors(
         reagent_template_names, reagentDefs

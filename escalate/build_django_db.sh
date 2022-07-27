@@ -7,7 +7,7 @@ elif [[ "$1" = "reset" ]]; then
 fi
 
 rm -r ./core/migrations/00*.py
-python manage.py makemigrations
+python manage.py makemigrations core rest_api
 python manage.py migrate
 python manage.py load_standard
 python manage.py load_organization

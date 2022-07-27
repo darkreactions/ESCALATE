@@ -1,6 +1,6 @@
 packaging
 certifi==2019.6.16
-django==3.0.14
+django==3.2
 django-filter==2.3.0
 djangorestframework==3.12.2
 Markdown==3.1.1
@@ -18,7 +18,7 @@ django-url-filter
 drf-spectacular
 django-extensions==3.0.5
 coreschema
-drf-extensions
+drf-extensions==0.7.1
 drf-flex-fields
 numpy
 pandas
@@ -30,3 +30,4 @@ scipy
 pint
 ipython
 chemdescriptor
+django-formtools

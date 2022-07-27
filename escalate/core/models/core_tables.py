@@ -1,18 +1,12 @@
-# This is an auto-generated Django model module.
-# You'll have to do the following manually to clean this up:
-#   * Rearrange models' order
-#   * Make sure each model has one field with primary_key=True
-#   * Make sure each ForeignKey has `on_delete` set to the desired behavior.
-#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
-# Feel free to rename the models, but don't rename db_table values or field names.
+from typing import AnyStr
 from django.db import models
 from datetime import datetime
 from django.utils.timezone import now
-import uuid
 from django_extensions.db.fields import AutoSlugField
 from core.utils_no_dependencies import rgetattr
 import unicodedata
 import re
+import uuid
 
 # managed_value = False
 managed_tables = True
@@ -71,7 +65,7 @@ class SlugField(AutoSlugField):
         lookup_value_path = ".".join(lookup_value.split("__"))
         attr = rgetattr(model_instance, lookup_value_path, None)
 
-        if attr.__class__.__name__ == "ManyRelatedManager":
+        if attr.__class__.__name__ == "ManyRelatedManager" and attr is not None:
             return "-".join(attr.all())
         if callable(attr):
             return "%s" % attr()

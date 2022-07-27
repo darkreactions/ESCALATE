@@ -1,21 +1,9 @@
 from django.urls import reverse_lazy
 
 import core.models
-import core.forms.forms as forms
+import core.forms.models as forms
 
 methods = {
-    "Actor": {
-        "model": core.models.view_tables.Actor,
-        "context_object_name": "actor",
-        "form_class": forms.ActorForm,
-        "success_url": reverse_lazy("actor_list"),
-    },
-    "Inventory": {
-        "model": core.models.view_tables.Inventory,
-        "context_object_name": "inventory",
-        "form_class": forms.InventoryForm,
-        "success_url": reverse_lazy("inventory_list"),
-    },
     "Material": {
         "model": core.models.view_tables.Material,
         "context_object_name": "material",
@@ -34,29 +22,23 @@ methods = {
         "form_class": forms.MaterialTypeForm,
         "success_url": reverse_lazy("material_type_list"),
     },
+    "MaterialIdentifier": {
+        "model": core.models.view_tables.MaterialIdentifier,
+        "context_object_name": "material_identifier",
+        "form_class": forms.MaterialIdentifierForm,
+        "success_url": reverse_lazy("material_identifier_list"),
+    },
     "Organization": {
         "model": core.models.view_tables.Organization,
         "context_object_name": "organization",
         "form_class": forms.OrganizationForm,
         "success_url": reverse_lazy("organization_list"),
     },
-    "Person": {
-        "model": core.models.view_tables.Person,
-        "context_object_name": "person",
-        "form_class": forms.PersonForm,
-        "success_url": reverse_lazy("person_list"),
-    },
     "Status": {
         "model": core.models.view_tables.Status,
         "context_object_name": "status",
         "form_class": forms.StatusForm,
         "success_url": reverse_lazy("status_list"),
-    },
-    "SystemtoolType": {
-        "model": core.models.view_tables.SystemtoolType,
-        "context_object_name": "systemtool_type",
-        "form_class": forms.StatusForm,
-        "success_url": reverse_lazy("systemtool_type_list"),
     },
     "Tag": {
         "model": core.models.view_tables.Tag,
@@ -70,18 +52,6 @@ methods = {
         "form_class": forms.TagTypeForm,
         "success_url": reverse_lazy("tag_type_list"),
     },
-    "UdfDef": {
-        "model": core.models.view_tables.UdfDef,
-        "context_object_name": "udf_def",
-        "form_class": forms.UdfDefForm,
-        "success_url": reverse_lazy("udf_def_list"),
-    },
-    "Edocument": {
-        "model": core.models.Edocument,
-        "context_object_name": "edocument",
-        "form_class": forms.UploadEdocForm,
-        "success_url": reverse_lazy("edocument_list"),
-    },
     "InventoryMaterial": {
         "model": core.models.view_tables.InventoryMaterial,
         "context_object_name": "inventory_material",
@@ -93,5 +63,59 @@ methods = {
         "context_object_name": "vessel",
         "form_class": forms.VesselForm,
         "success_url": reverse_lazy("vessel_list"),
+    },
+    "ActionDef": {
+        "model": core.models.view_tables.ActionDef,
+        "context_object_name": "action_def",
+        "form_class": forms.ActionDefForm,
+        "success_url": reverse_lazy("action_def_list"),
+    },
+    "ParameterDef": {
+        "model": core.models.view_tables.ParameterDef,
+        "context_object_name": "parameter_def",
+        "form_class": forms.ParameterDefForm,
+        "success_url": reverse_lazy("parameter_def_list"),
+    },
+    "PropertyTemplate": {
+        "model": core.models.view_tables.PropertyTemplate,
+        "context_object_name": "property_template",
+        "form_class": forms.PropertyTemplateForm,
+        "success_url": reverse_lazy("property_template_list"),
+    },
+    "ExperimentTemplate": {
+        "model": core.models.view_tables.ExperimentTemplate,
+        "context_object_name": "experiment_template",
+        "form_class": forms.ExperimentTemplateForm,
+        "success_url": reverse_lazy("experiment_template_list"),
+    },
+    "Outcome": {
+        "model": core.models.view_tables.Outcome,
+        "context_object_name": "outcome",
+        "form_class": forms.OutcomeForm,
+        "success_url": reverse_lazy("experiment_template_list"),
+    },
+    "Property": {
+        "model": core.models.Property,
+        "context_object_name": "property",
+        "form_class": forms.PropertyForm,
+        "success_url": reverse_lazy("main_menu"),
+    },
+    "ReagentTemplate": {
+        "model": core.models.ReagentTemplate,
+        "context_object_name": "reagent_template",
+        "form_class": forms.ReagentTemplateForm,
+        "success_url": reverse_lazy("experiment_template_list"),
+    },
+    "VesselTemplate": {
+        "model": core.models.VesselTemplate,
+        "context_object_name": "vessel_template",
+        "form_class": forms.VesselTemplateForm,
+        "success_form": reverse_lazy("experiment_template_list"),
+    },
+    "OutcomeTemplate": {
+        "model": core.models.OutcomeTemplate,
+        "context_object_name": "outcome_template",
+        "form_class": forms.OutcomeTemplateForm,
+        "success_form": reverse_lazy("experiment_template_list"),
     },
 }

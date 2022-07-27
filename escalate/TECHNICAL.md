@@ -50,8 +50,6 @@ These models are defined in `./core/models/view_tables/*`
 
 1. **Action**: actual activity to be performed (by actor/person/systemtool/organization); associated with actionunits, parameters and/or calculations
 2. **ActionDef**: specification of an action
-3. **ActionSequence**: container of specified actions and associated action paths
-4. **ActionSequenceType**: desctiption of ActionSequence
 5. **ActionUnit**: measurement of action performed; contains a source and optionally a destination that the action is performed on
 6. **Actor**: object that act on, or with any of the entities
 7. **BaseBomMaterial**: instance of BillOfMaterials that associate inventories, vessels, and materials
@@ -65,7 +63,6 @@ These models are defined in `./core/models/view_tables/*`
 15. **Contents**: defines materials contained within a vessel instance
 16. **DefaultValues**: template for nominal and actual values
 17. **DescriptorTemplate**: template for multiple model instance descriptors
-18. **ExperimentActionSequence**: sequential order of an experiment; instance of ActionSequence
 19. **ExperimentCompletedInstance**: proxy model of ExpermentInstance that contains finished experiments
 20. **ExperimentInstance**: container **specifying** one or more action sequences (of actions) operating on or with one or more materials and **capturing** one or more measures and/or observables at any level of experiment detail
 21. **ExperimentPendingInstance**: proxy model of ExpermentInstance that contains pending experiments
@@ -77,15 +74,12 @@ These models are defined in `./core/models/view_tables/*`
 27. **MaterialIdentifier**: descriptors for materials; can be composed of multiple definitions
 28. **MaterialIdentifierDef**: individual descriptor for MaterialIdentifier
 29. **MaterialType**: defines the type of material within multiple template models
-30. **Measure**: observable and/or measure associated with a specific entity
-31. **MeasureDef**: defines the specifcations of a Measure model
-32. **MeasureType**: unit of measurement associated with Measure
 33. **Mixture**: composite materials and components associated with the creation of the mixture; material types can be defined and accessed
 34. **MolecularDescriptor**: descriptor for molecular materials
 35. **Note**: text that can be associated with any entity
 36. **Organization**: organization that act on, or with any of the entities
-37. **OutcomeInstance**: container of measures that address purpose or aim of experiment
-38. **OutcomeInstanceValue**: stores the nominal and actual values related to an outcome instance
+37. **Outcome**: container of measures that address purpose or aim of experiment
+38. **OutcomeValue**: stores the nominal and actual values related to an outcome instance
 39. **OutcomeTemplate**: template for outcomes; contains associated experiment and default values
 40. **Parameter**: actual characterization of an activity or calculation; of which action or calculation can have zero to many
 41. **ParameterDef**: specification of Parameter model
@@ -118,8 +112,6 @@ API endpoints are available for most models. Below are the API endpoint URLs for
 
 1. **action**: "http://localhost:8000/api/action/",
 2. **actiondef**: "http://localhost:8000/api/action-def/",
-3. **actionsequence**: "http://localhost:8000/api/action-sequence/",
-4. **actionsequencetype**: "http://localhost:8000/api/action-sequence-type/",
 5. **actionunit**: "http://localhost:8000/api/action-unit/",
 6. **actor**: "http://localhost:8000/api/actor/",
 7. **basebommaterial**: "http://localhost:8000/api/base-bom-material/",
@@ -129,7 +121,6 @@ API endpoints are available for most models. Below are the API endpoint URLs for
 11. **contents**: "http://localhost:8000/api/contents/",
 12. **defaultvalues**: "http://localhost:8000/api/default-values/",
 13. **descriptortemplate**: "http://localhost:8000/api/descriptor-template/",
-14. **experimentactionsequence**: "http://localhost:8000/api/experiment-action-sequence/",
 15. **experimentdescriptor**: "http://localhost:8000/api/experiment-descriptor/",
 16. **experimentinstance**: "http://localhost:8000/api/experiment-instance/",
 17. **experimenttemplate**: "http://localhost:8000/api/experiment-template/",
@@ -146,7 +137,7 @@ API endpoints are available for most models. Below are the API endpoint URLs for
 28. **mixture**: "http://localhost:8000/api/mixture/",
 29. **moleculardescriptor**: "http://localhost:8000/api/molecular-descriptor/",
 30. **organization**: "http://localhost:8000/api/organization/",
-31. **outcomeinstance**: "http://localhost:8000/api/outcome-instance/",
+31. **Outcome**: "http://localhost:8000/api/outcome-instance/",
 32. **outcometemplate**: "http://localhost:8000/api/outcome-template/",
 33. **parameterdef**: "http://localhost:8000/api/parameter-def/",
 34. **person**: "http://localhost:8000/api/person/",

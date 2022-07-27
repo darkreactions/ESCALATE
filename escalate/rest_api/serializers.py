@@ -1,41 +1,48 @@
 # from core.models import (Actor, Material, Inventory,
 #                         Person, Organization, Note)
 
-# from escalate.core.models.view_tables.workflow import Workflow, WorkflowStep, BillOfMaterials
-from django.db.models.fields import related
-from django.core.exceptions import ObjectDoesNotExist
-from rest_framework import serializers
-from core.models.view_tables import Edocument, Note
-from core.models.core_tables import TypeDef
-from rest_framework.serializers import (
-    SerializerMethodField,
-    ModelSerializer,
-    HyperlinkedModelSerializer,
-    JSONField,
-    FileField,
-    CharField,
-    ListSerializer,
-    HyperlinkedRelatedField,
-    PrimaryKeyRelatedField,
-    Serializer,
-)
-from rest_framework.reverse import reverse
-from rest_flex_fields import FlexFieldsModelSerializer
+import json
 
-
-from rest_api.endpoint_details import details
+import rest_framework.serializers
 
 # import core.models
 from core.models import *
-from core.models.view_tables import *
-from .utils import rest_serializer_views, expandable_fields, excluded_fields
+from core.models.core_tables import TypeDef
 from core.models.custom_types import Val, ValField
+from core.models.view_tables import *
+from core.models.view_tables import Edocument, Note
 from core.validators import ValValidator
-from django.core.exceptions import ValidationError
-import json
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+
+# from escalate.core.models.view_tables.workflow import Workflow, WorkflowStep, BillOfMaterials
+from django.db.models.fields import related
+from rest_flex_fields import FlexFieldsModelSerializer
+from rest_framework import serializers
+from rest_framework.reverse import reverse
+from rest_framework.serializers import (
+    CharField,
+    FileField,
+    HyperlinkedModelSerializer,
+    HyperlinkedRelatedField,
+    ListSerializer,
+    ModelSerializer,
+    PrimaryKeyRelatedField,
+    Serializer,
+    SerializerMethodField,
+    URLField,
+)
+
+from rest_api.endpoint_details import details
+
+from .utils import (
+    excluded_fields,
+    expandable_fields,
+    get_object_from_url,
+    rest_serializer_views,
+)
 
 
-class ValSerializerField(JSONField):
+class ValSerializerField(rest_framework.serializers.JSONField):
     def __init__(self, **kwargs):
         self.validators.append(ValValidator())
         super().__init__(**kwargs)
@@ -69,11 +76,6 @@ class DynamicFieldsModelSerializer(
             kwargs.pop("view_name")
         super(DynamicFieldsModelSerializer, self).__init__(*args, **kwargs)
 
-    def get_queryset(self):
-        return super().get_queryset()
-    
-    
-
 
 class TagAssignSerializer(DynamicFieldsModelSerializer):
     tag_label = CharField(source="tag.display_text", read_only=True)
@@ -89,8 +91,7 @@ class TagListSerializer(DynamicFieldsModelSerializer):
 
     def get_tags(self, obj):
         tags = TagAssign.objects.filter(ref_tag=obj.uuid)
-        result_serializer = TagAssignSerializer(
-            tags, many=True, context=self.context)
+        result_serializer = TagAssignSerializer(tags, many=True, context=self.context)
         return result_serializer.data
 
 
@@ -107,8 +108,7 @@ class NoteListSerializer(DynamicFieldsModelSerializer):
     def get_notes(self, obj):
         # notes = Note.objects.filter(note_x_note__ref_note=obj.uuid)
         notes = Note.objects.filter(ref_note_uuid=obj.uuid)
-        result_serializer = NoteSerializer(
-            notes, many=True, context=self.context)
+        result_serializer = NoteSerializer(notes, many=True, context=self.context)
         return result_serializer.data
 
 
@@ -117,7 +117,7 @@ class PropertySerializer(DynamicFieldsModelSerializer):
         model = Property
         fields = "__all__"
         # read_only_fields = ['property_ref']
-        read_only_fields = ["material"]
+        # read_only_fields = ["material"]
 
 
 class PropertyListSerializer(DynamicFieldsModelSerializer):
@@ -149,24 +149,6 @@ class ParameterListSerializer(DynamicFieldsModelSerializer):
         return result_serializer.data
 
 
-class MeasureSerializer(DynamicFieldsModelSerializer):
-    class Meta:
-        model = Measure
-        fields = "__all__"
-        read_only_fields = ["ref_measure_uuid"]
-
-
-class MeasureListSerializer(DynamicFieldsModelSerializer):
-    measures = SerializerMethodField()
-
-    def get_measures(self, obj):
-        measures = Measure.objects.filter(
-            measure_x_measure__ref_measure=obj.uuid)
-        result_serializer = MeasureSerializer(
-            measures, many=True, context=self.context)
-        return result_serializer.data
-
-
 class EdocumentSerializer(
     TagListSerializer, NoteListSerializer, DynamicFieldsModelSerializer
 ):
@@ -175,8 +157,7 @@ class EdocumentSerializer(
 
     def get_download_link(self, obj):
         result = "{}".format(
-            reverse("edoc_download", args=[
-                    obj.uuid], request=self.context["request"])
+            reverse("edoc_download", args=[obj.uuid], request=self.context["request"])
         )
         return result
 
@@ -227,8 +208,7 @@ class EdocListSerializer(DynamicFieldsModelSerializer):
 
     def get_edocs(self, obj):
         edocs = Edocument.objects.filter(ref_edocument_uuid=obj.uuid)
-        result_serializer = EdocumentSerializer(
-            edocs, many=True, context=self.context)
+        result_serializer = EdocumentSerializer(edocs, many=True, context=self.context)
         return result_serializer.data
 
 
@@ -264,8 +244,7 @@ for model_name in rest_serializer_views:
     if model_name == "ActionUnit":
         base_serializers.insert(3, ParameterListSerializer)
     globals()[model_name + "Serializer"] = type(
-        model_name +
-        "Serializer", tuple(base_serializers), {"Meta": meta_class}
+        model_name + "Serializer", tuple(base_serializers), {"Meta": meta_class}
     )
 
 # Create serializers with expandable fields
@@ -311,15 +290,9 @@ for model_name, data in expandable_fields.items():
                 NoteListSerializer,
                 DynamicFieldsModelSerializer,
             ]
-        ),
+        ),  # type: ignore
         extra_fields,
     )
-
-
-class OutcomeInstanceSerializer(DynamicFieldsModelSerializer):
-    class Meta:
-        model = OutcomeInstance
-        fields = "__all__"
 
 
 class OutcomeTemplateSerializer(DynamicFieldsModelSerializer):
@@ -334,15 +307,14 @@ class BomSerializer(DynamicFieldsModelSerializer):
 
     def get_bill_of_materials(self, obj):
         boms = BillOfMaterials.objects.filter(experiment_id=obj.uuid)
-        result_serializer = BillOfMaterialsSerializer(
+        result_serializer = BillOfMaterialsSerializer(  # type: ignore
             boms, many=True, context=self.context
         )
         return result_serializer.data
 
 
 class BomMaterialSerializer(DynamicFieldsModelSerializer):
-    url = serializers.HyperlinkedIdentityField(
-        view_name="basebommaterial-detail")
+    url = serializers.HyperlinkedIdentityField(view_name="basebommaterial-detail")
 
     class Meta:
         model = BomMaterial
@@ -362,8 +334,7 @@ class BomMaterialSerializer(DynamicFieldsModelSerializer):
 
 
 class BomCompositeMaterialSerializer(DynamicFieldsModelSerializer):
-    url = serializers.HyperlinkedIdentityField(
-        view_name="basebommaterial-detail")
+    url = serializers.HyperlinkedIdentityField(view_name="basebommaterial-detail")
 
     class Meta:
         model = BomCompositeMaterial
@@ -426,3 +397,98 @@ class ExperimentDetailSerializer(Serializer):
 
     class Meta:
         fields = "__all__"
+
+
+class VesselTemplateCreateSerializer(Serializer):
+    vessel_template_description = CharField(
+        max_length=500,
+        allow_blank=True,
+        trim_whitespace=True,
+        read_only=True,
+        allow_null=True,
+    )
+    vessel_template = URLField(
+        max_length=500,
+        allow_blank=True,
+        allow_null=True,
+    )
+    vessel = URLField(max_length=500, min_length=None, allow_blank=False, required=True)
+
+    def validate(self, attrs):
+        if attrs["vessel"]:
+            try:
+                self.vessel_obj = get_object_from_url(attrs["vessel"], Vessel)
+                self.vessel_template_obj = get_object_from_url(
+                    attrs["vessel_template"], VesselTemplate
+                )
+            except Exception as e:
+                raise serializers.ValidationError(f"Exception parsing vessel data: {e}")
+        return super().validate(attrs)
+
+    def create(self, validated_data):
+        assert hasattr(self, "vessel_obj"), "Vessel object not found"
+        assert hasattr(self, "vessel_template_obj"), "Vessel template object not found"
+
+
+class PropertyTemplateCreateSerializer(Serializer):
+    property_template_description = CharField(
+        max_length=500,
+        allow_blank=True,
+        trim_whitespace=True,
+        read_only=True,
+        allow_null=True,
+    )
+    property_template = CharField(
+        max_length=500,
+        allow_blank=True,
+        trim_whitespace=True,
+        read_only=True,
+        allow_null=True,
+    )
+    property_nominal_value = ValSerializerField()
+
+
+class ReagentMaterialTemplateCreateSerializer(Serializer):
+    reagent_material_template_description = CharField(
+        max_length=500,
+        allow_blank=True,
+        trim_whitespace=True,
+        read_only=True,
+        allow_null=True,
+    )
+    reagent_material_template = CharField(
+        max_length=500,
+        allow_blank=True,
+        trim_whitespace=True,
+        read_only=True,
+        allow_null=True,
+    )
+    properties = PropertyTemplateCreateSerializer(many=True)
+
+
+class ReagentTemplateCreateSerializer(Serializer):
+    reagent_template_description = CharField(
+        max_length=500,
+        allow_blank=True,
+        trim_whitespace=True,
+        read_only=True,
+        allow_null=True,
+    )
+    reagent_template = CharField(
+        max_length=500,
+        allow_blank=True,
+        trim_whitespace=True,
+        read_only=True,
+        allow_null=True,
+    )
+    properties = PropertyTemplateCreateSerializer(many=True)
+    reagent_materials = ReagentMaterialTemplateCreateSerializer(many=True)
+
+
+class ExperimentTemplateCreateSerializer(Serializer):
+    experiment_name = CharField(
+        max_length=255, min_length=None, allow_blank=False, trim_whitespace=True
+    )
+    vessel_templates = VesselTemplateCreateSerializer(many=True)
+    # reagent_templates = ReagentTemplateCreateSerializer(many=True)
+    # action_templates = ActionTemplateCreateSerializer(many=True)

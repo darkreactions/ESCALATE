@@ -1,0 +1,30 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load index %}
+
+{% block content %}
+
+{% if template_name %}
+<p> Created experiment template for  {{ template_name }}</p>
+<p> </p>
+<p> This template is NOT complete and cannot be used to create experiments until action templates are added to it </p>
+<p> <a href={{ workflow_link }}> Add action templates</a></p>
+
+
+{% elif new_exp_name %}
+<p> Created Experiment! </p>
+<p>Experiment name: {{ new_exp_name }}</p>
+<p> <a href={{ experiment_link }}> View experiment details</a></p>
+<form action="{{ reagent_prep_link }}">
+    <button class="btn btn-outline-primary" type="submit">Prepare Reagent</button>
+</form>
+<form action="{{ outcome_link }}">
+    <button class="btn btn-outline-primary" type="submit">Submit Outcomes</button>
+</form>
+{% endif %}
+
+{% if lsr_download_link %}
+<p> <a href={{ lsr_download_link }}> Download LibraryStudio file </a></p>
+{% endif %}
+{% endblock %}

@@ -4,4 +4,3 @@ duration	num	0	mins	t	time
 speed	num	0	rpm	t	rate
 temperature	num	0	degC	t	temperature
 mass	num	0	mg	t	mass
-seal    text    Y       f

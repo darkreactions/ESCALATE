@@ -4,7 +4,8 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.views import View
 from django.urls import reverse
-
+from django.contrib import messages
+from django.utils.safestring import mark_safe
 
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -43,33 +44,49 @@ class MainMenuView(LoginRequired, View):
         try:
             users = Person.objects.count()
             experiments_created = ExperimentInstance.objects.count()
-            experiments_completed = ExperimentInstance.objects.filter(completion_status="Completed").count()    
+            experiments_completed = ExperimentInstance.objects.filter(
+                completion_status="Completed"
+            ).count()
         except:
             users = 0
             experiments_created = 0
-            experiments_completed = 0    
+            experiments_completed = 0
 
         x_data = ["Users", "Experiments Created", "Experiments Completed"]
-        y_data = [users,experiments_created,experiments_completed]
+        y_data = [users, experiments_created, experiments_completed]
         meta = ["ESCALATE v3 Data", "Data"]
 
         trace = go.Bar(
-                            x=x_data,
-                            y=y_data,
-                            name='ESCALATE v3 Data',
-                            marker_color=['orange','red','green'],
-                            opacity=0.8,
-                        )
-        data = [trace]   
-        layout = {'title': 'ESCALATE v3 Data'}
+            x=x_data,
+            y=y_data,
+            name="ESCALATE v3 Data",
+            marker_color=["orange", "red", "green"],
+            opacity=0.8,
+        )
+        data = [trace]
+        layout = {"title": "ESCALATE v3 Data"}
         fig = go.Figure(data=data, layout=layout)
         fig.update_layout(title_x=0.5)
 
         plot_div = plot(
-                    fig,
-                    output_type='div',
-                    include_plotlyjs=False,
+            fig,
+            output_type="div",
+            include_plotlyjs=False,
         )
 
         context = {"plot_div": plot_div}  # , "user_person": vw_person}
+
+        if "current_org_id" in self.request.session:
+            org_id = self.request.session["current_org_id"]
+            # lab = Actor.objects.get(organization=org_id, person__isnull=True)
+            # context["lab"] = lab
+        else:
+            org_id = None
+            messages.error(
+                request,
+                mark_safe(
+                    f"Please <a href='{reverse('select_lab')}'>select a lab</a> to continue"
+                ),
+            )
+
         return render(request, self.template_name, context=context)

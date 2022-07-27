@@ -3,62 +3,22 @@
         {
             "id": "2cfafd9c-1b76-4498-8111-fe79edd30ef5",
             "top": 90,
-            "left": 470,
-            "type": "dispense",
-            "state": {
-                "volume": "",
-                "source": "inorganic",
-                "destination": "Stock A Vial"
-            }
+            "left": 50,
+            "type": "start",
+            "state": {}
         },
         {
             "id": "bef80360-f612-4c94-b781-1856868f60cd",
-            "top": 128,
-            "left": 57,
-            "type": "bring_to_temperature",
-            "state": {
-                "temp": "80 degC",
-                "source": "",
-                "destination": "96 well plate well"
-            }
-        },
-        {
-            "id": "5f87c94f-ad83-4b22-b6bc-9bcf59e4261f",
-            "top": 146,
-            "left": 702,
-            "type": "dispense",
-            "state": {
-                "volume": "",
-                "source": "organic",
-                "destination": "Stock A Vial"
-            }
-        },
-        {
-            "id": "6aaa280c-05ab-4769-9afc-a9159f0a44fc",
-            "top": 254,
-            "left": 268,
-            "type": "dispense",
-            "state": {
-                "volume": "",
-                "source": "solvent",
-                "destination": "Stock A Vial"
-            }
+            "top": 90,
+            "left": 250,
+            "type": "end",
+            "state": {}
         }
     ],
     "connections": [
         {
-            "sourceActivityId": "bef80360-f612-4c94-b781-1856868f60cd",
-            "destinationActivityId": "6aaa280c-05ab-4769-9afc-a9159f0a44fc",
-            "outcome": "Done"
-        },
-        {
-            "sourceActivityId": "6aaa280c-05ab-4769-9afc-a9159f0a44fc",
-            "destinationActivityId": "2cfafd9c-1b76-4498-8111-fe79edd30ef5",
-            "outcome": "Done"
-        },
-        {
             "sourceActivityId": "2cfafd9c-1b76-4498-8111-fe79edd30ef5",
-            "destinationActivityId": "5f87c94f-ad83-4b22-b6bc-9bcf59e4261f",
+            "destinationActivityId": "bef80360-f612-4c94-b781-1856868f60cd",
             "outcome": "Done"
         }
     ]

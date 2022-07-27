@@ -12,14 +12,12 @@ from core.models import (
     DefaultValues,
     ExperimentTemplate,
     Type,
-    ExperimentActionSequence,
     Inventory,
     InventoryMaterial,
     Material,
     MaterialType,
     MaterialIdentifier,
     MaterialIdentifierDef,
-    Mixture,
     ParameterDef,
     PropertyTemplate,
     Property,
@@ -27,8 +25,6 @@ from core.models import (
     Systemtool,
     TypeDef,
     Vessel,
-    ActionSequence,
-    # ActionSequenceType,
     ReagentTemplate,
     ReagentMaterialTemplate,
     # ReagentMaterialValueTemplate,
@@ -36,6 +32,8 @@ from core.models import (
     Parameter,
     DescriptorTemplate,
     VesselType,
+    ActionTemplate,
+    VesselTemplate,
 )
 from core.custom_types import Val
 import csv
@@ -59,11 +57,11 @@ class Command(BaseCommand):
         self._load_inventory_material()
         self._load_vessels()
         self._load_experiment_related_def()
-        self._load_experiment_and_action_sequence()
+        # self._load_experiment_and_action_sequence()
         # self._load_mixture()
-        self._load_base_bom_material()
-        self._load_action()
-        self._load_action_unit()
+        # self._load_base_bom_material()
+        # self._load_action()
+        # self._load_action_unit()
         # self._load_reagents_and_outcomes()
         self._create_wf1()
         self._create_wf3()
@@ -102,12 +100,11 @@ class Command(BaseCommand):
         )
 
         # Create the experiment
-        exp_template = ExperimentTemplate(
+        exp_template, created = ExperimentTemplate.objects.get_or_create(
             description="Workflow 1",
             ref_uid="workflow_1",
             lab=lab,
         )
-        exp_template.save()
 
         reagents = {
             "Reagent 2 - Stock A": ["organic", "solvent"],
@@ -185,11 +182,11 @@ class Command(BaseCommand):
         # corresponding ReagentMaterialTemplates and their Value Templates (ReagentMaterialValueTemplate)
         for r, rms in reagents.items():
             reagent_template, created = ReagentTemplate.objects.get_or_create(
-                description=r,
+                description=r, experiment_template=exp_template
             )
             reagent_template.properties.add(total_volume_prop)
             reagent_template.properties.add(dead_volume_prop)
-            exp_template.reagent_templates.add(reagent_template)
+            # exp_template.reagent_templates.add(reagent_template)
             for rm in rms:
                 self.stdout.write(self.style.NOTICE(f"{rm}"))
                 material_type = MaterialType.objects.get(description=rm)
@@ -214,41 +211,12 @@ class Command(BaseCommand):
                         }
                     )
                     reagent_material_template.properties.add(rmv_template)
-        # Create ActionSequence -> Actions -> ActionUnits
-        action_sequences = {
-            "Preheat Plate": ActionSequence.objects.create(description="Preheat Plate"),
-            "Dispense Reagent 1 - Solvent": ActionSequence.objects.create(
-                description="Dispense Reagent 1 - Solvent"
-            ),
-            "Dispense Reagent 2 - Stock A": ActionSequence.objects.create(
-                description="Dispense Reagent 2 - Stock A"
-            ),
-            "Dispense Reagent 3 - Stock B": ActionSequence.objects.create(
-                description="Dispense Reagent 3 - Stock B"
-            ),
-            "Stir 1": ActionSequence.objects.create(description="Stir 1 "),
-            "Dispense Reagent 7 - Acid Volume 1": ActionSequence.objects.create(
-                description="Dispense Acid Volume 1"
-            ),
-            "Dispense Reagent 7 - Acid Volume 2": ActionSequence.objects.create(
-                description="Dispense Acid Volume 2"
-            ),
-            "Stir 2": ActionSequence.objects.create(description="Stir 2"),
-        }
-
-        for i, action_seq in enumerate(action_sequences.values()):
-            ac_sq = ExperimentActionSequence(
-                experiment_template=exp_template,
-                experiment_action_sequence_seq=i,
-                action_sequence=action_seq,
-            )
-            ac_sq.save()
 
         # VESSEL data
 
         vessel_types = ["plate", "well", "beaker", "tube", "wells"]
         for vt in vessel_types:
-            VesselType.objects.create(description=vt)
+            VesselType.objects.get_or_create(description=vt)
 
         column_order = "ACEGBDFH"
         rows = 12
@@ -273,18 +241,19 @@ class Command(BaseCommand):
 
         ot, created = OutcomeTemplate.objects.get_or_create(
             description="Crystal score",
-            experiment=exp_template,
+            experiment_template=exp_template,
             # instance_labels=well_list,
             default_value=default_crystal_score,
         )
         ot.save()
-        exp_template.outcome_templates.add(ot)
+        # exp_template.outcome_templates.add(ot)
 
         # heat_stir and heat causes duplicates, not sure why
         action_parameter_def = {
-            "dispense": ("volume",),
-            "bring_to_temperature": ("temperature",),
-            "stir": ("duration", "speed"),
+            "dispense": (("volume", "uL"),),
+            "bring_to_temperature": (("temperature", "degC"),),
+            "stir": (("duration", "s"), ("speed", "rpm")),
+            "heat_stir": (("duration", "s"), ("speed", "rpm"), ("temperature", "degC")),
         }
         # Action defs it is assumed that action defs are already inserted
         actions = [  # List of tuples (Description, Action def description, source_bommaterial, destination_bommaterial)
@@ -296,14 +265,6 @@ class Command(BaseCommand):
                 ("vessel", "96 Well Plate well"),
                 "Preheat Plate",
             ),
-            # Prepare stock A
-            # ('Add Solvent to Stock A', 'dispense', (None, 'Solvent'), (None, 'Stock A Vial'), 'Prepare stock A'),
-            # ('Add Organic to Stock A', 'dispense', (None, 'Organic'), (None, 'Stock A Vial'), 'Prepare stock A'),
-            # ('Add Inorganic to Stock A', 'dispense', (None, 'Inorganic'), (None, 'Stock A Vial'), 'Prepare stock A'),
-            # Prepare stock B
-            # ('Add Solvent to Stock B', 'dispense', (None, 'Solvent'), (None, 'Stock B Vial'), 'Prepare stock B'),
-            # ('Add Organic to Stock B', 'dispense', (None, 'Organic'), (None, 'Stock B Vial'), 'Prepare stock B'),
-            # Dispense Solvent to vials
             (
                 "Dispense Reagent 1 - Solvent",
                 "dispense",
@@ -338,11 +299,11 @@ class Command(BaseCommand):
             # Heat stir 1
             # ('Heat stir 1', 'heat_stir', (None, None), ('vessel', '96 Well Plate well'), 'Heat stir 1'),
             (
-                "Stir 1",
-                "stir",
+                "Heat-Stir 1",
+                "heat_stir",
                 (None, None),
                 ("vessel", "96 Well Plate well"),
-                "Stir 1",
+                "Heat-Stir 1",
             ),
             # Dispense Acid Vol 2
             (
@@ -355,16 +316,17 @@ class Command(BaseCommand):
             # Heat stir 2
             # ('Heat stir 2', 'heat_stir', (None, None), ('vessel', '96 Well Plate well'), 'Heat stir 2'),
             (
-                "Stir 2",
-                "stir",
+                "Heat-Stir 2",
+                "heat_stir",
                 (None, None),
                 ("vessel", "96 Well Plate well"),
-                "Stir 2",
+                "Heat-Stir 2",
             ),
             # Heat
             # ('Heat', 'heat', (None, None), ('vessel', '96 Well Plate well'), 'Heat'),
         ]
-
+        # Saving prev_action here so that we can save it as a parent for the next action_template
+        prev_action_template = None
         for action_tuple in actions:
             (
                 action_desc,
@@ -376,78 +338,107 @@ class Command(BaseCommand):
             action_def, created = ActionDef.objects.get_or_create(
                 description=action_def_desc
             )
-            action = Action(
+            # action_sequences[action_seq].action_def.add(action_def)
+            source_vessel_template = None
+            source_vessel_decomposable = False
+            if source_desc:
+                default_vessel, created = Vessel.objects.get_or_create(
+                    description="Generic Vessel"
+                )
+                source_vessel_template, created = VesselTemplate.objects.get_or_create(
+                    experiment_template=exp_template,
+                    description=source_desc,
+                    outcome_vessel=False,
+                    # decomposable=False,
+                    default_vessel=default_vessel,
+                )
+
+                # if created:
+                #    exp_template.vessel_templates.add(source_vessel_template)
+
+            dest_vessel_template = None
+            dest_vessel_decomposable = False
+            if dest_desc:
+                default_vessel = Vessel.objects.get(description="96 Well Plate well")
+
+                if isinstance(dest_desc, str):
+                    dest_vessel_decomposable = False
+                elif isinstance(dest_desc, dict):
+                    dest_vessel_decomposable = True
+
+                (dest_vessel_template, created,) = VesselTemplate.objects.get_or_create(
+                    experiment_template=exp_template,
+                    description="Outcome vessel",
+                    outcome_vessel=True,
+                    default_vessel=default_vessel,
+                )
+
+                # if created:
+                #    exp_template.vessel_templates.add(dest_vessel_template)
+
+            at, created = ActionTemplate.objects.get_or_create(
+                # action_sequence=action_sequences[action_seq],
                 description=action_desc,
+                experiment_template=exp_template,
                 action_def=action_def,
-                action_sequence=action_sequences[action_seq],
+                source_vessel_template=source_vessel_template,
+                source_vessel_decomposable=source_vessel_decomposable,
+                dest_vessel_template=dest_vessel_template,
+                dest_vessel_decomposable=dest_vessel_decomposable,
             )
-            action.save()
-            for param_def_desc in action_parameter_def[action_def_desc]:
+            if prev_action_template is not None:
+                at.parent.add(prev_action_template)
+            prev_action_template = at
+
+            for param_def_desc, unit in action_parameter_def[action_def_desc]:
                 param, created = ParameterDef.objects.get_or_create(
                     description=param_def_desc,
-                    default_val=Val.from_dict(
-                        {"value": 0, "unit": "uL", "type": "num"}
-                    ),
                 )
-                action.parameter_def.add(param)
-
-            if source_desc is not None:
-                rt = ReagentTemplate.objects.get(description=source_desc)
-                source_bbm = BaseBomMaterial.objects.create(
-                    description=source_desc, reagent=rt
+                param.default_val = Val.from_dict(
+                    {"value": 0, "unit": unit, "type": "num"}
                 )
-            else:
-                source_bbm = None
-
-            if dest_col == "vessel":
-                if isinstance(dest_desc, dict):
-                    for well in dest_desc.values():
-                        dest_bbm = BaseBomMaterial.objects.create(
-                            description=f"{plate.description} : {well.description}",
-                            vessel=well,
-                        )
-                        if source_bbm:
-                            description = f"{action.description} : {source_bbm.description} -> {dest_bbm.description}"
-                        else:
-                            description = (
-                                f"{action.description} : {dest_bbm.description}"
-                            )
-                        ActionUnit.objects.create(
-                            action=action,
-                            source_material=source_bbm,
-                            destination_material=dest_bbm,
-                            description=description,
-                        )
-                else:
-                    dest_bbm = BaseBomMaterial.objects.create(
-                        description=plate.description, vessel=plate
-                    )
-                    if source_bbm:
-                        description = f"{action.description} : {source_bbm.description} -> {dest_bbm.description}"
-                    else:
-                        description = f"{action.description} : {dest_bbm.description}"
-                    ActionUnit.objects.create(
-                        action=action,
-                        source_material=source_bbm,
-                        description=description,
-                        destination_material=dest_bbm,
-                    )
-
-            elif dest_col is None:
-                dest_bbm = BaseBomMaterial.objects.create(description=dest_desc)
-                if source_bbm:
-                    description = f"{action.description} : {source_bbm.description} -> {dest_bbm.description}"
-                else:
-                    description = f"{action.description} : {dest_bbm.description}"
-                au = ActionUnit(
-                    action=action,
-                    source_material=source_bbm,
-                    description=description,
-                    destination_material=dest_bbm,
-                )
-                au.save()
+                param.save()
+                action_def.parameter_def.add(param)
 
     def _create_wf3(self):
+        # Creating the 48 well plate used for WF3 experiments
+        plate = Vessel.objects.create(
+            description="48 well plate - WF3",
+            well_number=48,
+            parent=None,
+            metadata={'well_order': 
+                ['A1','C1','E1','G1', 'B2','D2','F2','H2','A3','C3','E3','G3',
+                'B4','D4','F4','H4','A5','C5','E5','G5', 'B6', 'D6', 'F6','H6',
+                'A7','C7','E7','G7', 'B8','D8','F8','H8','A9', 'C9','E9','G9',
+                'B10','D10','F10','H10','A11','C11','E11','G11', 'B12','D12','F12','H12']})
+                
+        plate.vessel_type.add(VesselType.objects.get(description="plate"))
+        plate.save()
+        plate_wells = {}
+        vial_type = VesselType.objects.get(description="well")
+
+        column_order = "ACEGBDFH"
+        rows = 12
+        a_well_list = []
+        b_well_list = []
+        well_list = []
+        for row in range(rows):
+            if (row + 1) % 2 != 0:
+                for col in column_order[0:4]:
+                    a_well_list.append("{}{}".format(col, row + 1))
+                    well_list.append("{}{}".format(col, row + 1))
+            else:
+                for col in column_order[4:]:
+                    b_well_list.append("{}{}".format(col, row + 1))
+                    well_list.append("{}{}".format(col, row + 1))
+        for well in well_list:
+            plate_wells[well] = Vessel(parent=plate, description=well)
+
+        Vessel.objects.bulk_create(plate_wells.values())
+        for well in well_list:
+            plate_wells[well].vessel_type.add(vial_type)
+            plate_wells[well].save()
+
         # Get the lab related to this template
         lab = Actor.objects.get(
             description="Haverford College",
@@ -456,12 +447,12 @@ class Command(BaseCommand):
         )
 
         # Create the experiment
-        exp_template = ExperimentTemplate(
+        exp_template, created = ExperimentTemplate.objects.get_or_create(
             description="Workflow 3",
             ref_uid="workflow_3",
             lab=lab,
         )
-        exp_template.save()
+        # exp_template.save()
 
         reagents = {
             "Reagent 2 - Stock A": ["inorganic", "organic", "solvent"],
@@ -540,11 +531,12 @@ class Command(BaseCommand):
         # corresponding ReagentMaterialTemplates and their Property Templates
         for r, rms in reagents.items():
             reagent_template, created = ReagentTemplate.objects.get_or_create(
+                experiment_template=exp_template,
                 description=r,
             )
             reagent_template.properties.add(total_volume_prop)
             reagent_template.properties.add(dead_volume_prop)
-            exp_template.reagent_templates.add(reagent_template)
+            # exp_template.reagent_templates.add(reagent_template)
             for rm in rms:
                 self.stdout.write(self.style.NOTICE(f"{rm}"))
                 material_type = MaterialType.objects.get(description=rm)
@@ -569,65 +561,7 @@ class Command(BaseCommand):
                         }
                     )
                     reagent_material_template.properties.add(rmv_template)
-        # Create ActionSequence -> Actions -> ActionUnits
-        action_sequences = {
-            "Preheat Plate": ActionSequence.objects.create(description="Preheat Plate"),
-            "Dispense Reagent 1 - Solvent": ActionSequence.objects.create(
-                description="Dispense Reagent 1 - Solvent"
-            ),
-            "Dispense Reagent 2 - Stock A": ActionSequence.objects.create(
-                description="Dispense Reagent 2 - Stock A"
-            ),
-            "Dispense Reagent 3 - Stock B": ActionSequence.objects.create(
-                description="Dispense Reagent 3 - Stock B"
-            ),
-            "Dispense Reagent 7 - Acid Volume 1": ActionSequence.objects.create(
-                description="Dispense Reagent 7 - Acid Volume 1"
-            ),
-            "Stir 1": ActionSequence.objects.create(description="Stir 1"),
-            "Dispense Reagent 7 - Acid Volume 2": ActionSequence.objects.create(
-                description="Dispense Reagent 7 - Acid Volume 2"
-            ),
-            "Stir 2": ActionSequence.objects.create(description="Stir 2"),
-            "Dispense Reagent 9 - Antisolvent": ActionSequence.objects.create(
-                description="Dispense Reagent 9 - Antisolvent"
-            ),
-            "Store": ActionSequence.objects.create(description="Store"),
-        }
 
-        for i, action_seq in enumerate(action_sequences.values()):
-            ac_sq = ExperimentActionSequence(
-                experiment_template=exp_template,
-                experiment_action_sequence_seq=i,
-                action_sequence=action_seq,
-            )
-            ac_sq.save()
-
-        column_order = "ACEGBDFH"
-        rows = 12
-        """
-        Previous Implementation
-        well_list = [f'{col}{row}' for row in range(1, rows+1) for col in column_order]
-        plate = Vessel.objects.get(description='96 Well Plate well')
-        # Dictionary of plate wells so that we don't keep accessing the database
-        # multiple times
-        plate_wells = {}
-        for well in well_list:
-            plate_wells[well] = Vessel.objects.get(parent=plate, description=well)
-        """
-        a_well_list = []
-        b_well_list = []
-        well_list = []
-        for row in range(rows):
-            if (row + 1) % 2 != 0:
-                for col in column_order[0:4]:
-                    a_well_list.append("{}{}".format(col, row + 1))
-                    well_list.append("{}{}".format(col, row + 1))
-            else:
-                for col in column_order[4:]:
-                    b_well_list.append("{}{}".format(col, row + 1))
-                    well_list.append("{}{}".format(col, row + 1))
-        plate = Vessel.objects.get(description="96 Well Plate well")
         # Dictionary of plate wells so that we don't keep accessing the database
         # multiple times
         a_wells = {}
@@ -640,22 +574,31 @@ class Command(BaseCommand):
         # Create outcome templates, Currently hard coded to capture 96 values
         ot, created = OutcomeTemplate.objects.get_or_create(
             description="Crystal score",
-            experiment=exp_template,
+            experiment_template=exp_template,
             # instance_labels=well_list,
             default_value=default_crystal_score,
         )
         ot.save()
-        exp_template.outcome_templates.add(ot)
+        # exp_template.outcome_templates.add(ot)
 
         action_parameter_def = {
-            "dispense": ("volume",),
-            "bring_to_temperature": ("temperature",),
-            "stir": ("temperature", "duration", "speed"),
-            "heat": ("temperature", "duration"),
-            "dwell": ("duration"),
+            "dispense": (("volume", "uL"),),
+            "bring_to_temperature": (("temperature", "degC"),),
+            "stir": (("duration", "s"), ("speed", "rpm")),
+            "heat": (("temperature", "degC"), ("duration", "s")),
+            "heat_stir": (("duration", "s"), ("speed", "rpm"), ("temperature", "degC")),
+            "dwell": (("duration", "s"),),
         }
         # Action defs it is assumed that action defs are already inserted
         actions = [  # List of tuples (Description, Action def description, source_bommaterial, destination_bommaterial)
+            # Preheat plate
+            (
+                "Preheat Plate",
+                "bring_to_temperature",
+                (None, None),
+                ("vessel", "48 well plate - WF3"),
+                "Preheat Plate",
+            ),
             # Dispense Solvent to vials
             (
                 "Dispense Reagent 1 - Solvent",
@@ -680,37 +623,21 @@ class Command(BaseCommand):
                 ("vessel", a_wells),
                 "Dispense Reagent 3 - Stock B",
             ),
-            # Dispense Acid Vol 1
+            # Dispense Acid
             (
-                "Dispense Reagent 7 - Acid Volume 1",
+                "Dispense Reagent 7 - Acid",
                 "dispense",
                 (None, "Reagent 7 - Acid"),
                 ("vessel", a_wells),
-                "Dispense Reagent 7 - Acid Volume 1",
+                "Dispense Reagent 7 - Acid",
             ),
             # Mix
             (
-                "Stir 1",
-                "stir",
+                "Heat-Stir",
+                "heat_stir",
                 (None, None),
-                ("vessel", "96 Well Plate well"),
-                "Stir 1",
-            ),
-            # Dispense Acid Vol 2
-            (
-                "Dispense Reagent 7 - Acid Volume 2",
-                "dispense",
-                (None, "Reagent 7 - Acid"),
-                ("vessel", a_wells),
-                "Dispense Reagent 7 - Acid Volume 2",
-            ),
-            # Mix
-            (
-                "Stir 2",
-                "stir",
-                (None, None),
-                ("vessel", "96 Well Plate well"),
-                "Stir 2",
+                ("vessel", "48 well plate - WF3"),
+                "Heat-Stir",
             ),
             # Dispense antisolvent
             (
@@ -725,11 +652,12 @@ class Command(BaseCommand):
                 "Store",
                 "dwell",
                 (None, None),
-                ("vessel", "96 Well Plate well"),
+                ("vessel", "48 well plate - WF3"),
                 "Store",
             ),
         ]
 
+        prev_action_template = None
         for action_tuple in actions:
             (
                 action_desc,
@@ -741,21 +669,73 @@ class Command(BaseCommand):
             action_def, created = ActionDef.objects.get_or_create(
                 description=action_def_desc
             )
+            # action_sequences[action_seq].action_def.add(action_def)
+
+            """
             action = Action(
                 description=action_desc,
                 action_def=action_def,
                 action_sequence=action_sequences[action_seq],
             )
             action.save()
-            for param_def_desc in action_parameter_def[action_def_desc]:
+            """
+            source_vessel_template = None
+            source_vessel_decomposable = False
+            if source_desc:
+                default_vessel, created = Vessel.objects.get_or_create(
+                    description="Generic Vessel"
+                )
+                source_vessel_template, created = VesselTemplate.objects.get_or_create(
+                    experiment_template=exp_template,
+                    description=source_desc,
+                    outcome_vessel=False,
+                    # decomposable=False,
+                    default_vessel=default_vessel,
+                )
+                # exp_template.vessel_templates.add(source_vessel_template)
+
+            dest_vessel_template = None
+            dest_vessel_decomposable = False
+            if dest_desc:
+                # default_vessel = Vessel.objects.get(description="96 Well Plate well")
+                default_vessel = plate
+                (dest_vessel_template, created,) = VesselTemplate.objects.get_or_create(
+                    experiment_template=exp_template,
+                    description="Outcome vessel",
+                    outcome_vessel=True,
+                    default_vessel=default_vessel,
+                )
+                if isinstance(dest_desc, str):
+                    dest_vessel_decomposable = False
+                elif isinstance(dest_desc, dict):
+                    dest_vessel_decomposable = True
+
+            at, created = ActionTemplate.objects.get_or_create(
+                description=action_desc,
+                experiment_template=exp_template,
+                action_def=action_def,
+                source_vessel_template=source_vessel_template,
+                source_vessel_decomposable=source_vessel_decomposable,
+                dest_vessel_template=dest_vessel_template,
+                dest_vessel_decomposable=dest_vessel_decomposable,
+            )
+
+            if prev_action_template is not None:
+                at.parent.add(prev_action_template)
+            prev_action_template = at
+
+            for param_def_desc, unit in action_parameter_def[action_def_desc]:
                 param, created = ParameterDef.objects.get_or_create(
                     description=param_def_desc,
-                    default_val=Val.from_dict(
-                        {"value": 0, "unit": "uL", "type": "num"}
-                    ),
                 )
-                action.parameter_def.add(param)
+                param.default_val = Val.from_dict(
+                    {"value": 0, "unit": unit, "type": "num"}
+                )
+                param.save()
+                # action.parameter_def.add(param)
+                action_def.parameter_def.add(param)
 
+            """
             if source_desc is not None:
                 rt = ReagentTemplate.objects.get(description=source_desc)
                 source_bbm = BaseBomMaterial.objects.create(
@@ -811,6 +791,7 @@ class Command(BaseCommand):
                     destination_material=dest_bbm,
                 )
                 au.save()
+            """
 
     def _load_reagents_and_outcomes(self):
         exp_template = ExperimentTemplate.objects.get(description="perovskite_demo")
@@ -1255,16 +1236,7 @@ class Command(BaseCommand):
                 )
 
                 # update phase, model update to include phase into materials and foreign key material from inventory material
-                """
-                phase = None
-                if "acid" in mat_type_desc:
-                    phase = "liquid"
-                elif "solvent" in mat_type_desc:
-                    phase = "liquid"
-                elif "organic" in mat_type_desc:
-                    phase = "solid"
-                """
-
+                y: str
                 material_identifier__description = (
                     [x.strip() for x in y.split("|")]
                     if not string_is_null(y := material_identifier_descs_joined)
@@ -1381,18 +1353,15 @@ class Command(BaseCommand):
                     inventory_material_instance,
                     created,
                 ) = InventoryMaterial.objects.get_or_create(**fields)
-            except Exception as e:
-                print(e)
-                print(material_description)
-
-            try:
+                if created:
+                    new_inventory_material += 1
                 material_object = Material.objects.get(description=material_description)
                 inventory_material_instance.material = material_object
             except Material.DoesNotExist:
                 inventory_material_instance.material = None
-
-            if created:
-                new_inventory_material += 1
+            except Exception as e:
+                print(e)
+                print(material_description)
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -1500,7 +1469,7 @@ class Command(BaseCommand):
         for _, row in df.iterrows():
             description = clean_string(row["description"])
             type_ = clean_string(row["type"])
-            value_from_csv = clean_string(row["value"])
+            value_from_csv = clean_string(str(row["value"]))
             unit = clean_string(row["unit"])
             required = to_bool(row["required"])
             unit_type = clean_string(row["unit_type"])
@@ -1548,7 +1517,7 @@ class Command(BaseCommand):
                 new_action_def += 1
             action_def_instance.parameter_def.add(
                 *[
-                    ParameterDef.objects.get(description=x)
+                    ParameterDef.objects.filter(description=x).first()
                     for x in parameter_def_descriptions
                 ]
             )
@@ -1642,157 +1611,7 @@ class Command(BaseCommand):
         )
         self.stdout.write(self.style.NOTICE("Finished loading calculation def"))
 
-    def _load_experiment_and_action_sequence(self):
-        self.stdout.write(
-            self.style.NOTICE("Beginning loading experiment and action_sequence")
-        )
-
-        EXPERIMENT = path_to_file("load_experiment.csv")
-
-        experiment_df = pd.read_csv(
-            EXPERIMENT, sep="\t", index_col=False, header=0, na_filter=False
-        )
-        active_status = Status.objects.get(description="active")
-
-        experiment_type = {x.description: x for x in Type.objects.all()}
-
-        new_experiment = 0
-        for _, row in experiment_df.iterrows():
-            description = clean_string(row["description"])
-            ref_uid = clean_string(row["ref_uid"])
-            experiment_type_description = clean_string(
-                row["experiment_type_description"]
-            )
-            owner_description = clean_string(row["owner_description"])
-            operator_description = clean_string(row["operator_description"])
-            lab_description = clean_string(row["lab_description"])
-
-            fields = {
-                "description": description,
-                "ref_uid": ref_uid,
-                "experiment_type": experiment_type[descr]
-                if not string_is_null(descr := experiment_type_description)
-                else None,
-                "owner": Actor.objects.get(description=owner_description)
-                if not string_is_null(owner_description)
-                else None,
-                "operator": Actor.objects.get(description=operator_description)
-                if not string_is_null(operator_description)
-                else None,
-                "lab": Actor.objects.get(description=lab_description)
-                if not string_is_null(lab_description)
-                else None,
-                "status": active_status,
-            }
-            experiment_instance, created = ExperimentTemplate.objects.get_or_create(
-                **fields
-            )
-            if created:
-                new_experiment += 1
-
-            bom_description = clean_string(row["bom_description"])
-            BillOfMaterials.objects.get_or_create(
-                description=bom_description,
-                experiment=experiment_instance,
-                status=active_status,
-            )
-
-        for _, row in experiment_df.iterrows():
-            description = clean_string(row["description"])
-            parent_description = clean_string(row["parent_description"])
-            row_experiment_instance = ExperimentTemplate.objects.get(
-                description=description
-            )
-            row_experiment_instance.parent = (
-                ExperimentTemplate.objects.get(description=parent_description)
-                if not string_is_null(parent_description)
-                else None
-            )
-            # row_experiment_instance.save(update_fields=['parent'])
-        self.stdout.write(self.style.SUCCESS(f"Added {new_experiment} new experiments"))
-
-        WORKFLOW = path_to_file("load_workflow.csv")
-        workflow_df = pd.read_csv(
-            WORKFLOW, sep="\t", index_col=False, header=0, na_filter=False
-        )
-        active_status = Status.objects.get(description="active")
-
-        action_sequence_type = {x.description: x for x in Type.objects.all()}
-
-        new_action_sequence = 0
-        for _, row in workflow_df.iterrows():
-            description = clean_string(row["description"])
-            action_sequence_type_description = clean_string(
-                row["workflow_type_description"]
-            )
-
-            fields = {
-                "description": description,
-                "action_sequence_type": action_sequence_type[y]
-                if not string_is_null(y := action_sequence_type_description)
-                else None,
-                "status": active_status,
-            }
-            (
-                action_sequence_instance,
-                created,
-            ) = ActionSequence.objects.get_or_create(**fields)
-            if created:
-                new_action_sequence += 1
-            experiment_description = (
-                [x.strip() for x in y.split(",")]
-                if not string_is_null(y := clean_string(row["experiment_description"]))
-                else []
-            )
-            experiment_action_sequence_seq_num = (
-                [x.strip() for x in y.split(",")]
-                if not string_is_null(
-                    y := clean_string(row["experiment_workflow_seq_num"])
-                )
-                else []
-            )
-
-            for exp_desc, exp_wf_seq_num in zip(
-                experiment_description, experiment_action_sequence_seq_num
-            ):
-                fields = {
-                    "experiment_template": ExperimentTemplate.objects.get(
-                        description=exp_desc
-                    )
-                    if not string_is_null(exp_desc)
-                    else None,
-                    "action_sequence": action_sequence_instance,
-                    "experiment_action_sequence_seq": int(exp_wf_seq_num)
-                    if not string_is_null(exp_wf_seq_num)
-                    else -1,
-                }
-                ExperimentActionSequence.objects.get_or_create(**fields)
-
-        for _, row in workflow_df.iterrows():
-            description = clean_string(row["description"])
-            parent_description = clean_string(row["parent_description"])
-
-            row_action_sequence_instance = ActionSequence.objects.get(
-                description=description
-            )
-            parent = (
-                ActionSequence.objects.get(description=parent_description)
-                if not string_is_null(parent_description)
-                else None
-            )
-
-            row_action_sequence_instance.parent = parent
-
-            # row_action_sequence_instance.save(update_fields=["parent"])
-        self.stdout.write(
-            self.style.SUCCESS(f"Added {new_action_sequence} new action_sequences")
-        )
-
-        self.stdout.write(
-            self.style.NOTICE("Finished loading experiment and action_sequence")
-        )
-
-    def _load_mixture(self):
+    '''def _load_mixture(self):
         self.stdout.write(self.style.NOTICE("Beginning loading mixture"))
         filename = "load_mixture.csv"
         MIXTURE = path_to_file(filename)
@@ -1823,7 +1642,7 @@ class Command(BaseCommand):
             if created:
                 new_mixture += 1
         self.stdout.write(self.style.SUCCESS(f"Added {new_mixture} new mixture"))
-        self.stdout.write(self.style.NOTICE("Finished loading mixture"))
+        self.stdout.write(self.style.NOTICE("Finished loading mixture"))'''
 
     def _load_base_bom_material(self):
         self.stdout.write(self.style.NOTICE("Beginning loading base bom material"))
@@ -1999,9 +1818,6 @@ class Command(BaseCommand):
                 "action_def": ActionDef.objects.get(description=y)
                 if not string_is_null(y := action_def_description)
                 else None,
-                "action_sequence": ActionSequence.objects.get(description=y)
-                if not string_is_null(y := action_sequence_description)
-                else None,
                 "start_date": start_date if not string_is_null(start_date) else None,
                 "end_date": end_date if not string_is_null(end_date) else None,
                 "duration": int(duration) if not string_is_null(duration) else None,
@@ -2020,12 +1836,12 @@ class Command(BaseCommand):
                 if not string_is_null(y := row["parameter_def_description"])
                 else []
             )
-            action_instance.parameter_def.add(
-                *[
-                    ParameterDef.objects.get(description=d)
-                    for d in parameter_def_description
-                ]
-            )
+            # action_instance.parameter_def.add(
+            #    *[
+            #        ParameterDef.objects.get(description=d)
+            #        for d in parameter_def_description
+            #    ]
+            # )
 
         self.stdout.write(self.style.SUCCESS(f"Added {new_action} new action"))
         self.stdout.write(self.style.NOTICE("Finished loading action"))

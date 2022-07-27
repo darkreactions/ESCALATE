@@ -1,35 +1,23 @@
-from django import forms
-from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-from django.contrib.auth.hashers import make_password
-from django.contrib.admin import widgets
-from core.models import (
-    CustomUser,
-    OrganizationPassword,
-)
+import django
+from core.models import CustomUser, OrganizationPassword
+from core.models.core_tables import TypeDef
 from core.models.view_tables import (
-    Person,
-    Material,
-    Inventory,
     Actor,
+    Edocument,
+    Inventory,
     Note,
-    Organization,
-    Systemtool,
+    Person,
     SystemtoolType,
-    UdfDef,
-    Status,
     Tag,
     TagAssign,
     TagType,
-    MaterialType,
-    Edocument,
-    InventoryMaterial,
-    Vessel,
-    MaterialIdentifier,
 )
-from core.models.core_tables import TypeDef
-
+from crispy_forms.layout import Submit
+from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.hashers import make_password
+from django.urls import reverse_lazy
 from packaging import version
-import django
 
 if version.parse(django.__version__) < version.parse("3.1"):
     from django.contrib.postgres.forms import JSONField
@@ -37,7 +25,7 @@ else:
     from django.forms import JSONField
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit, Row, Column, Hidden, Field
+from crispy_forms.layout import Column, Field, Layout, Row
 
 dropdown_attrs = {
     "class": "selectpicker",
@@ -154,60 +142,6 @@ class PersonTableForm(PersonFormData, forms.ModelForm):
         model = Person
 
 
-class MaterialForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        # pk of model that is passed in to filter for tags belonging to the model
-        material_instance = kwargs.get("instance", None)
-
-        current_material_identifiers = (
-            material_instance.identifier.all()
-            if material_instance
-            else MaterialIdentifier.objects.none()
-        )
-        current_material_types = (
-            material_instance.material_type.all()
-            if material_instance
-            else MaterialType.objects.none()
-        )
-
-        super(MaterialForm, self).__init__(*args, **kwargs)
-
-        self.fields["identifier"] = forms.ModelMultipleChoiceField(
-            initial=current_material_identifiers,
-            required=False,
-            queryset=MaterialIdentifier.objects.all(),
-        )
-        self.fields["identifier"].widget.attrs.update(dropdown_attrs)
-
-        self.fields["material_type"] = forms.ModelMultipleChoiceField(
-            initial=current_material_types,
-            required=False,
-            queryset=MaterialType.objects.all(),
-        )
-        self.fields["material_type"].widget.attrs.update(dropdown_attrs)
-
-    class Meta:
-        model = Material
-        fields = [
-            "consumable",
-            "material_class",
-            "identifier",
-            "material_type",
-            "status",
-        ]
-        field_classes = {
-            # 'create_date': forms.SplitDateTimeField,
-        }
-        labels = {"create_date": "Create date", "material_status": "Status"}
-        widgets = {
-            "consumable": forms.CheckboxInput(),
-            "material_class": forms.RadioSelect(
-                choices=model._meta.get_field("material_class").choices
-            ),
-            "status": forms.Select(attrs=dropdown_attrs),
-        }
-
-
 class InventoryForm(forms.ModelForm):
     class Meta:
         model = Inventory
@@ -278,138 +212,6 @@ class ActorForm(forms.ModelForm):
         }
 
 
-class OrganizationForm(forms.ModelForm):
-    class Meta:
-        model = Organization
-        fields = [
-            "full_name",
-            "short_name",
-            "description",
-            "address1",
-            "address2",
-            "city",
-            "state_province",
-            "zip",
-            "country",
-            "website_url",
-            "phone",
-            "parent",
-        ]
-        field_classes = {
-            "full_name": forms.CharField,
-            "short_name": forms.CharField,
-            "description": forms.CharField,
-            "address1": forms.CharField,
-            "address2": forms.CharField,
-            "city": forms.CharField,
-            "state_province": forms.CharField,
-            "zip": forms.CharField,
-            "country": forms.CharField,
-            "website_url": forms.URLField,
-            "phone": forms.CharField,
-        }
-        labels = {
-            "full_name": "Full name",
-            "short_name": "Short name",
-            "description": "Description",
-            "address1": "Address Line 1",
-            "address2": "Address Line 2",
-            "city": "City",
-            "state_province": "State/Province",
-            "zip": "Zip",
-            "country": "Country",
-            "website_url": "Website URL",
-            "phone": "Phone",
-            "parent": "Parent Organization",
-            "parent_org_full_name": "Parent Organization full name",
-        }
-        help_texts = {
-            "website_url": "Make sure to include https:// or http:// or www(1-9)"
-        }
-        widgets = {
-            "full_name": forms.TextInput(
-                attrs={"placeholder": "Ex: Some Full Organization Name"}
-            ),
-            "short_name": forms.TextInput(attrs={"placeholder": "Ex: S.F.O.N"}),
-            "description": forms.Textarea(
-                attrs={
-                    "cols": "10",
-                    "rows": "3",
-                    "placeholder": "Your organization description",
-                }
-            ),
-            "address1": forms.TextInput(attrs={"placeholder": "Ex: 123 Smith Street"}),
-            "address2": forms.TextInput(attrs={"placeholder": "Ex: Apt. 2c"}),
-            "city": forms.TextInput(attrs={"placeholder": "Ex: San Francisco"}),
-            "state_province": forms.TextInput(
-                attrs={"cols": 3, "placeholder": "Ex: CA"}
-            ),
-            "zip": forms.TextInput(attrs={"placeholder": "Ex: 12345/12345-6789"}),
-            "country": forms.TextInput(
-                attrs={"placeholder": "Ex: United States of America"}
-            ),
-            "website_url": forms.URLInput(
-                attrs={"placeholder": "Ex: https://example.com"}
-            ),
-            "phone": forms.TextInput(
-                attrs={"placeholder": "Ex: 1-234-567-8900/12345678900"}
-            ),
-            "parent": forms.Select(attrs=dropdown_attrs),
-        }
-
-
-class LatestSystemtoolForm(forms.ModelForm):
-    class Meta:
-        model = Systemtool
-        fields = [
-            "systemtool_name",
-            "description",
-            "systemtool_type",
-            "vendor_organization",
-            "model",
-            "serial",
-            "ver",
-        ]
-        field_classes = {
-            "systemtool_name": forms.CharField,
-            "description": forms.CharField,
-            "model": forms.CharField,
-            "serial": forms.CharField,
-            "ver": forms.CharField,
-        }
-        labels = {
-            "systemtool_name": "System tool name",
-            "description": "Description",
-            "model": "Model",
-            "serial": "Serial number",
-            "ver": "Version",
-            "systemtool_type": "System tool type",
-            "vendor_organization": "Vendor Organization",
-        }
-        # help_texts = {
-        #  }
-        widgets = {
-            "systemtool_name": forms.TextInput(
-                attrs={"placeholder": "Ex: Command Line"}
-            ),
-            "description": forms.Textarea(
-                attrs={
-                    "cols": "10",
-                    "rows": "3",
-                    "placeholder": "Your system tool description",
-                }
-            ),
-            "model": forms.TextInput(attrs={"placeholder": "Ex: left to be done"}),
-            "serial": forms.TextInput(
-                attrs={"placeholder": "Your system tool serial number Ex:Y291325"}
-            ),
-            "ver": forms.TextInput(
-                attrs={"placeholder": "Your system tool current version Ex: 1.06"}
-            ),
-            "systemtool_type": forms.Select(attrs=dropdown_attrs),
-        }
-
-
 class SystemtoolTypeForm(forms.ModelForm):
     class Meta:
         model = SystemtoolType
@@ -423,82 +225,6 @@ class SystemtoolTypeForm(forms.ModelForm):
                     "placeholder": "Your system tool type description",
                 }
             )
-        }
-
-
-class UdfDefForm(forms.ModelForm):
-    class Meta:
-        model = UdfDef
-        fields = [
-            "description",  #'val_type_description'
-        ]
-        labels = {
-            "description": "Description",
-            #'val_type_description': 'Value type'
-        }
-        CHOICES = (
-            ("1", "int"),
-            ("2", "array_int"),
-            ("3", "num"),
-            ("4", "array_num"),
-            ("5", "text"),
-            ("6", "array_text"),
-            ("7", "blob_text"),
-            ("8", "blob_svg"),
-            ("9", "blob_jpg"),
-            ("10", "blob_png"),
-            ("11", "blob_xrd"),
-        )
-        widgets = {
-            "description": forms.Textarea(
-                attrs={
-                    "cols": "10",
-                    "rows": "3",
-                    "placeholder": "Your system tool type description",
-                }
-            ),
-            #'val_type_description': forms.Select(attrs={
-            #    'placeholder': 'Ex: text, image'}, choices=CHOICES)
-        }
-
-
-class StatusForm(forms.ModelForm):
-    class Meta:
-        model = Status
-        fields = ["description"]
-        labels = {"description": "Status Description"}
-        widgets = {
-            "description": forms.Textarea(
-                attrs={
-                    "cols": "10",
-                    "rows": "3",
-                    "placeholder": "Your status description",
-                }
-            )
-        }
-
-
-class TagForm(forms.ModelForm):
-    class Meta:
-        model = Tag
-        fields = ["display_text", "description", "actor", "tag_type"]
-        labels = {
-            "display_text": "Tag Name",
-            "description": "Tag Description",
-            "actor": "Actor",
-            "tag_type": "Tag Type Name",
-        }
-        widgets = {
-            "display_text": forms.TextInput(
-                attrs={"placeholder": "Enter your name of the tag Ex: acid"}
-            ),
-            "description": forms.Textarea(
-                attrs={
-                    "cols": "10",
-                    "rows": "3",
-                    "placeholder": "Detail description for your tag type",
-                }
-            ),
         }
 
 
@@ -524,42 +250,65 @@ class TagTypeForm(forms.ModelForm):
         }
 
 
-class MaterialTypeForm(forms.ModelForm):
-    class Meta:
-        model = MaterialType
-        fields = ["description"]
-        field_classes = {"description": forms.CharField}
-        labels = {"description": "Description"}
-        widgets = {
-            "description": forms.Textarea(
-                attrs={
-                    "cols": "10",
-                    "rows": "3",
-                    "placeholder": "Your material type description",
-                }
-            )
-        }
-
-
 class TagSelectForm(forms.Form):
     def __init__(self, *args, **kwargs):
         # pk of model that is passed in to filter for tags belonging to the model
         if "model_pk" in kwargs:
-            model_pk = kwargs.pop("model_pk")
+            self.model_pk = kwargs.pop("model_pk")
             current_tags = Tag.objects.filter(
-                pk__in=TagAssign.objects.filter(ref_tag=model_pk).values_list(
+                pk__in=TagAssign.objects.filter(ref_tag=self.model_pk).values_list(
                     "tag", flat=True
                 )
             )
         else:
             current_tags = Tag.objects.none()
+
+        if "queryset" in kwargs:
+            queryset = kwargs.pop("queryset")
+        else:
+            queryset = Tag.objects.all()
         super(TagSelectForm, self).__init__(*args, **kwargs)
 
         self.fields["tags"] = forms.ModelMultipleChoiceField(
-            initial=current_tags, required=False, queryset=Tag.objects.all()
+            initial=current_tags, required=False, queryset=queryset
         )
         # self.fields['tags'].widget.attrs.update({'data-live-search': 'true'})
         self.fields["tags"].widget.attrs.update(dropdown_attrs)
+        self.fields[
+            "tags"
+        ].help_text = (
+            f'To create a new tag, <a href="{reverse_lazy("tag_add")}">click here</a>'
+        )
+        self.get_helper()
+
+    def update_tags(self):
+        """
+        Call this function to update the selected tags to the model assigned
+        """
+        submitted_tags = self.cleaned_data["tags"]
+        # tags from db with a TagAssign that connects the model and the tags
+        existing_tags = Tag.objects.filter(
+            pk__in=TagAssign.objects.filter(ref_tag=self.model_pk).values_list(
+                "tag", flat=True
+            )
+        )
+        for tag in existing_tags:
+            if tag not in submitted_tags:
+                # this tag is not assign to this model anymore
+                # delete TagAssign for existing tags that are no longer used
+                TagAssign.objects.filter(tag=tag).delete()
+        for tag in submitted_tags:
+            # make TagAssign for existing tags that are now used
+            if tag not in existing_tags:
+                tag_assign = TagAssign.objects.create(tag=tag, ref_tag=self.model_pk)
+
+    def get_helper(self):
+        helper = FormHelper()
+        helper.form_class = "form-horizontal"
+        helper.label_class = "col-lg-3"
+        helper.field_class = "col-lg-8"
+        helper.form_tag = False
+        self.helper = helper
 
 
 class UploadEdocForm(forms.ModelForm):
@@ -590,10 +339,26 @@ class UploadEdocForm(forms.ModelForm):
                 attrs={
                     "cols": "10",
                     "rows": "3",
-                    "placeholder": "Your material type description",
+                    "placeholder": "Your file description",
                 }
             )
         }
+
+
+class UploadFileForm(forms.Form):
+    file = forms.FileField(label="Upload file", required=False)
+    # upload_edoc = forms.Select(label='Submit')
+    @staticmethod
+    def get_helper():
+        helper = FormHelper()
+        helper.form_class = "form-horizontal"
+        helper.label_class = "col-lg-2"
+        helper.field_class = "col-lg-8"
+        helper.layout = Layout(
+            Row(Column(Field("file"))),
+            # Row(Column(Submit('upload_edoc', 'Submit'))),
+        )
+        return helper
 
 
 class JoinOrganizationForm(forms.ModelForm):
@@ -605,6 +370,7 @@ class JoinOrganizationForm(forms.ModelForm):
         model = OrganizationPassword
         fields = ["organization", "password"]
         widgets = {"password": forms.PasswordInput()}
+
 
 class LeaveOrganizationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -629,89 +395,3 @@ class CreateOrganizationPasswordForm(forms.ModelForm):
         model = OrganizationPassword
         fields = ["organization", "password"]
         widgets = {"password": forms.PasswordInput()}
-
-
-class InventoryMaterialForm(forms.ModelForm):
-    class Meta:
-        model = InventoryMaterial
-        fields = [
-            "description",
-            "inventory",
-            "material",
-            #'material_consumable', 'material_composite_flg',
-            "part_no",
-            "onhand_amt",
-            "expiration_date",
-            "location",
-            "status",
-        ]
-
-        field_classes = {
-            "description": forms.CharField,
-            "part_no": forms.CharField,
-            #'onhand_amt': ValFormField,
-            "onhand_amt": JSONField,
-            "expiration_date": forms.SplitDateTimeField,
-            "location": forms.CharField,
-        }
-        labels = {
-            "description": "Description",
-            "material": "Material",
-            "actor": "Actor",
-            "part_no": "Part Number",
-            "onhand_amt": "Amount on hand",
-            "expiration_date": "Expiration date",
-            "location": "Inventory location",
-            #'material_consumable': 'Consumable',
-            #'material_composite_flg': 'Composite Material'
-        }
-        widgets = {
-            "material": forms.Select(attrs=dropdown_attrs),
-            "actor": forms.Select(attrs=dropdown_attrs),
-            "inventory": forms.Select(attrs=dropdown_attrs),
-            "description": forms.Textarea(
-                attrs={"rows": "3", "cols": "10", "placeholder": "Description"}
-            ),
-            "onhand_amt": forms.TextInput(attrs={"placeholder": "On hand amount"}),
-            "part_no": forms.TextInput(attrs={"placeholder": "Part number"}),
-            "expiration_date": widgets.AdminSplitDateTime(),
-            "location": forms.TextInput(attrs={"placeholder": "Location"}),
-            "status": forms.Select(attrs=dropdown_attrs),
-        }
-
-
-class VesselForm(forms.ModelForm):
-    class Meta:
-        model = Vessel
-        fields = ["description", "parent", "total_volume"]
-        field_classes = {
-            "description": forms.CharField,
-            "total_volumne": forms.CharField,
-        }
-        labels = {
-            "description": "Description",
-            "parent": "Parent",
-            "total_volume": "Total Volume",
-        }
-        widgets = {
-            "description": forms.TextInput(
-                attrs={"placeholder": "Vessel Information..."}
-            ),
-            "total_volumne": forms.TextInput(attrs={"placeholder": "total Volume..."}),
-        }
-
-
-class UploadFileForm(forms.Form):
-    file = forms.FileField(label="Upload file", required=False)
-    # upload_edoc = forms.Select(label='Submit')
-    @staticmethod
-    def get_helper():
-        helper = FormHelper()
-        helper.form_class = "form-horizontal"
-        helper.label_class = "col-lg-2"
-        helper.field_class = "col-lg-8"
-        helper.layout = Layout(
-            Row(Column(Field("file"))),
-            # Row(Column(Submit('upload_edoc', 'Submit'))),
-        )
-        return helper

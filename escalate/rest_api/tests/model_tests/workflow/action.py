@@ -11,7 +11,6 @@ from ..model_tests_utils import (
 )
 from core.models import (
     ActionDef,
-    ActionSequence,
     ParameterDef,
     # CalculationDef,
     Action,
@@ -47,19 +46,6 @@ action_tests = [
             },
         },
         {
-            "name": "actionsequence0",
-            "method": POST,
-            "endpoint": "actionsequence-list",
-            "body": random_model_dict(ActionSequence),
-            "args": [],
-            "query_params": [],
-            "is_valid_response": {
-                "function": check_status_code,
-                "args": [],
-                "kwargs": {"status_code": POST},
-            },
-        },
-        {
             "name": "parameterdef0",
             "method": POST,
             "endpoint": "parameterdef-list",
@@ -79,9 +65,6 @@ action_tests = [
             "body": (
                 request_body := random_model_dict(
                     Action,
-                    action_def="actiondef0__url",
-                    action_sequence="actionsequence0__url",
-                    # calculation_def='calculationdef0__url'
                 )
             ),
             "args": [],

@@ -183,19 +183,6 @@ methods = {
         "ordering": ["type"],
         "field_contains": "",
     },
-    "UdfDef": {
-        "model": core.models.view_tables.UdfDef,
-        "column_names": [
-            "Description",
-            "Value Type",
-        ],
-        "column_necessary_fields": {
-            "Description": ["description"],
-            "Value Type": ["val_type.category", "val_type.description"],
-        },
-        "ordering": ["description"],
-        "field_contains": "",
-    },
     # 'Edocument': {
     #     'model': core.models.Edocument,
     #     'context_object_name': 'edocuments',

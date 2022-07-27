@@ -22,7 +22,7 @@
     <div class="col-md-4 offset-md-4">
         <div class="card">
             <div class="card-body">
-                <form action="/" method="post">
+                <form action="{% url 'login' %}" method="post">
                     {% csrf_token %}
                     {{ login_form|crispy }}
                     <div class="col text-center">

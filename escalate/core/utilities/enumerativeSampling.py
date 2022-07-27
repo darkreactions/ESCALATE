@@ -4,24 +4,17 @@
 # # Dependencies
 # Created by wrborrelli
 # %%
-import sys
 import itertools
 import random
+import sys
 
-# import matplotlib.pyplot as plt
-from scipy.spatial import ConvexHull
-from scipy.optimize import Bounds
-from scipy.optimize import linprog
-from scipy.optimize import nnls
-from scipy.optimize import minimize
-from scipy.optimize import lsq_linear
-from scipy.spatial import HalfspaceIntersection
-
-# from scipy.spatial.qhull import _Qhull
 import numpy as np
-
 import pint
 from pint import UnitRegistry
+from scipy.optimize import Bounds, linprog, lsq_linear, minimize, nnls
+
+# import matplotlib.pyplot as plt
+from scipy.spatial import ConvexHull, HalfspaceIntersection
 
 units = UnitRegistry()
 Q_ = units.Quantity
