@@ -145,3 +145,7 @@ Stock FAH	Haverford Inventory	Stock FAH
 Neat GBL	Haverford Inventory	Gamma-Butyrolactone						
 Lead Diiodide	Haverford Inventory	Lead Diiodide						
 Ethylammonium Iodide	Haverford Inventory	Ethylammonium Iodide						
+DMF	Haverford Inventory	Dimethylformamide						
+Copper (I) Iodide	Haverford Inventory	Copper (I) Iodide						
+Copper (II) Chloride	Haverford Inventory	Copper (II) Chloride						
+Copper (II) Bromide	Haverford Inventory	Copper (II) Bromide						
