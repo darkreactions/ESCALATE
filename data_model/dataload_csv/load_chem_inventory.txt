@@ -1,6 +1,6 @@
 ChemicalName	ChemicalAbbreviation	MolecularWeight	Density	InChI	InChIKey	ChemicalCategory	CanonicalSMILES	MolecularFormula	PubChemID	CatalogDescr	Synonyms	CatalogNo	SigmaAldrichURL	PrimaryInformationSource
-Gamma-Butyrolactone	GBL	86.09	1.12	InChI=1S/C4H6O2/c5-4-2-1-3-6-4/h1-3H2	YEJRWHAVMIAJKC-UHFFFAOYSA-N	solvent	C1CC(=O)OC1	C4H6O2				Spectrum 1Kg bottle		(note: there is also a 3Kg bottle version: product ID id:jLq9jXvYvnwz)
-Dimethyl sulfoxide	DMSO	78.13	1.1	InChI=1S/C2H6OS/c1-4(2)3/h1-2H3	IAZDPXIOMUYVGZ-UHFFFAOYSA-N	solvent	CS(=O)C	C2H6OS						
+Gamma-Butyrolactone	GBL	86.09	1.12	InChI=1S/C4H6O2/c5-4-2-1-3-6-4/h1-3H2	YEJRWHAVMIAJKC-UHFFFAOYSA-N	"solvent,antisolvent"	C1CC(=O)OC1	C4H6O2				Spectrum 1Kg bottle		(note: there is also a 3Kg bottle version: product ID id:jLq9jXvYvnwz)
+Dimethyl sulfoxide	DMSO	78.13	1.1	InChI=1S/C2H6OS/c1-4(2)3/h1-2H3	IAZDPXIOMUYVGZ-UHFFFAOYSA-N	"solvent,antisolvent"	CS(=O)C	C2H6OS						
 Formic Acid	FAH	46.03	1.22	"InChI=1S/CH2O2/c2-1-3/h1H,(H,2,3)"	BDAGIHXWWSANSR-UHFFFAOYSA-N	"acid,solvent"	C(=O)O	CH2O2		"Formic acid, reagent grade, 1L"		Sigma:F0507-1L		
 Lead Diiodide	PbI2	461.01	6.16	InChI=1S/2HI.Pb/h2*1H;/q;;+2/p-2	RQQRAHKHDFPBMC-UHFFFAOYSA-L	inorganic	I[Pb]I	PbI2		"Lead(II) iodide 99%, 50g"		Sigma:211168-50G		
 Ethylammonium Iodide	EtNH3I	173	2.053408	"InChI=1S/C2H7N.HI/c1-2-3;/h2-3H2,1H3;1H"	XFYICZOIWSBQSK-UHFFFAOYSA-N	organic	CC[NH3+].[I-]	C2H8IN	57461411	"Ethylammonium Iodide 98%, 25g"		Sigma:805823-25G		
@@ -29,7 +29,7 @@ Benzylammonium Iodide	BenzylammoniumIodide	235.07	1.745993	"InChI=1S/C7H9N.HI/c8
 Beta Alanine Hydroiodide	betaAlanineHydroiodide	217.01	2.023364	"InChI=1S/C3H7NO2.HI/c4-2-1-3(5)6;/h1-2,4H2,(H,5,6);1H"	XAKAQFUGWUAPJN-UHFFFAOYSA-N	organic	[I-].[NH3+]CCC(O)=O							https://cactus.nci.nih.gov/chemical/structure/I.NCCC(O)=O/stdinchikey
 Bismuth iodide	BiI3	589.69	5.78	InChI=1S/Bi.3HI/h;3*1H/q+3;;;/p-3	KOECRLKKXSXCPB-UHFFFAOYSA-K	inorganic	I[Bi](I)I	BiI3				Sigma: 341010-100G		https://pubchem.ncbi.nlm.nih.gov/compound/Bismuth_iodide#section=3D-Status
 Cesium iodide	CsI	259.81	4.51	InChI=1S/Cs.HI/h;1H/q+1;/p-1	XQPRBTXUXXVTKB-UHFFFAOYSA-M	inorganic	[I-].[Cs+]	CsI				Sigma: 203033-10G		https://pubchem.ncbi.nlm.nih.gov/compound/24601
-Dimethylformamide	DMF	73.1	0.944	"InChI=1S/C3H7NO/c1-4(2)3-5/h3H,1-2H3"	ZMXDDKWLCZADIW-UHFFFAOYSA-N	solvent	CN(C)C=O	C3H7NO		"Anhydrous DMF.  Note.  ECL maintains this as a stocked item, so we do not have to both with a product number"				
+Dimethylformamide	DMF	73.1	0.944	"InChI=1S/C3H7NO/c1-4(2)3-5/h3H,1-2H3"	ZMXDDKWLCZADIW-UHFFFAOYSA-N	"solvent,antisolvent"	CN(C)C=O	C3H7NO		"Anhydrous DMF.  Note.  ECL maintains this as a stocked item, so we do not have to both with a product number"				
 "Ethane-1,2-diammonium bromide"	EthylenediamineDihydrobromide	221.92	2.067161	InChI=1S/C2H8N2.2BrH/c3-1-2-4;;/h1-4H2;2*1H	BCQZYUOYVLJOPE-UHFFFAOYSA-N	organic	C(C[NH3+])[NH3+].[Br-].[Br-]	C2H10Br2N2	164699			greatcell: MS302002-10; sigma: 900833-25G	https://www.sigmaaldrich.com/catalog/product/aldrich/900833?lang=en&region=US	https://pubchem.ncbi.nlm.nih.gov/compound/Ethylenediamine-dihydrobromide
 "Ethane-1,2-diammonium iodide"	EthylenediamineDihydriodide	315.93	2.544818	InChI=1S/C2H8N2.2HI/c3-1-2-4;;/h1-4H2;2*1H	IWNWLPUNKAYUAW-UHFFFAOYSA-N	organic	C(C[NH3+])[NH3+].[I-].[I-]	C2H10I2N2				Sigma: 900852-25G	https://www.sigmaaldrich.com/catalog/product/aldrich/900852?lang=en&region=US	https://pubchem.ncbi.nlm.nih.gov/compound/5700-49-2#section=Names-and-Identifiers
 Ethylammonium bromide	EtNH3Br	126	1.671914	"InChI=1S/C2H7N.BrH/c1-2-3;/h2-3H2,1H3;1H"	PNZDZRMOBIIQTC-UHFFFAOYSA-N	organic	CC[NH3+].[Br-]	C2H8BrN				Sigma: 900868-10G	https://www.sigmaaldrich.com/catalog/product/aldrich/900868?lang=en&region=US	https://pubchem.ncbi.nlm.nih.gov/compound/68974
@@ -136,14 +136,14 @@ tetrabutylammonium iodide	tetrabutylammoniumiodide	369.37	0.997999	"InChI=1S/C16
 1-butyl-4-methylpyridinium iodide	1butyl4methylpyridiniumiodide	277.14	1.443722	"InChI=1S/C10H16N.HI/c1-3-4-7-11-8-5-10(2)6-9-11;/h5-6,8-9H,3-4,7H2,1-2H3;1H/q+1;/p-1"	RSJCFBORABJFGA-UHFFFAOYSA-M	organic	CCCC[N+]1=CC=C(C=C1)C.[I-]	C10H16IN	11995188					
 Phenyltriethylammonium iodide	phenyltriethylammoniumiodide	305.2	1.302907	"InChI=1S/C12H20N.HI/c1-4-13(5-2,6-3)12-10-8-7-9-11-12;/h7-11H,4-6H2,1-3H3;1H/q+1;/p-1"	WMSWXWGJYOIACA-UHFFFAOYSA-M	organic	CC[N+](CC)(CC)C1=CC=CC=C1.[I-]	C12H20IN	70524					
 2-Chloro-1-methylpyridinium iodide	2chloro1methylpyridiniumiodide	255.48	2.000082	"InChI=1S/C6H7ClN.HI/c1-8-5-3-2-4-6(8)7;/h2-5H,1H3;1H/q+1;/p-1"	ABFPKTQEQNICFT-UHFFFAOYSA-M	organic	C[N+]1=CC=CC=C1Cl.[I-]	C6H7ClIN	167069					
-4-Chlorophenethylammonium bromide	4chlorophenethylammoniumbromide													
-diphenylammonium bromide														
-4-Chlorophenylammonium bromide														
-4-hydroxyphenethylammonium bromide														
-2-thiophenemethylammonium bromide														
-trimethylammonium bromide														
-iso-pentylammonium bromide														
-Methyltriphenylphosphonium bromide														
+4-Chlorophenethylammonium bromide	4chlorophenethylammoniumbromide					organic								
+diphenylammonium bromide						organic								
+4-Chlorophenylammonium bromide						organic								
+4-hydroxyphenethylammonium bromide						organic								
+2-thiophenemethylammonium bromide						organic								
+trimethylammonium bromide						organic								
+iso-pentylammonium bromide						organic								
+Methyltriphenylphosphonium bromide						organic								
 2-(2-Naphthyl)ethylamine hydrochloride	Naphthylethylaminehydrochloride	207.7		"InChI=1S/C12H13N.ClH/c13-8-7-10-5-6-11-3-1-2-4-12(11)9-10;/h1-6,9H,7-8,13H2;1H"	VJPPXKBLHHCXLG-UHFFFAOYSA-N	organic	C1=CC=C2C=C(C=CC2=C1)CCN.Cl	C12H14ClN	16218122					
 Piperidinium bromide	Piperidiniumbromide	160.01		"InChI=1S/C5H11N.BrH/c1-2-4-6-5-3-1;/h6H,1-5H2;1H"	ROFVJSWBDQUQGW-UHFFFAOYSA-N	organic	C1CC[NH2+]CC1.[Br-]	C5H12BrN	44887073					
 Nonanoic Acid	Nonanoicacid	158.21	0.9052	"InChI=1S/C9H18O2/c1-2-3-4-5-6-7-8-9(10)11/h2-8H2,1H3,(H,10,11)"	FBUKVWPVBMHYJY-UHFFFAOYSA-N	organic	CCCCCCCCC(=O)O	C9H18O2	8158					
@@ -165,3 +165,6 @@ Trioctylphosphine	Trioctylphosphine	370.6	0.831	"InChI=1S/C24H51P/c1-4-7-10-13-1
 "Trimethyl2,2:6,2terpyridine4,4,4tricarboxylate"	Trimethyl2262terpyridine444tricarboxylate	407.4	1.95636	"InChI=1S/C21H17N3O6/c1-28-19(25)12-4-6-22-15(8-12)17-10-14(21(27)30-3)11-18(24-17)16-9-13(5-7-23-16)20(26)29-2/h4-11H,1-3H3"	YDXTYOYBYASPDS-UHFFFAOYSA-N	organic	COC(=O)C1=CC(=NC=C1)C2=CC(=CC(=N2)C3=NC=CC(=C3)C(=O)OC)C(=O)OC	C21H17N3O6	66776557					
 "4'-(4-Methylphenyl)-2,2':6',2''-terpyridine"	44Methylphenyl2262terpyridine	323.4	1.80526	"InChI=1S/C22H17N3/c1-16-8-10-17(11-9-16)18-14-21(19-6-2-4-12-23-19)25-22(15-18)20-7-3-5-13-24-20/h2-15H,1H3"	IDJYBUVHZHLIIT-UHFFFAOYSA-N	organic	CC1=CC=C(C=C1)C2=CC(=NC(=C2)C3=CC=CC=N3)C4=CC=CC=N4	C22H17N3	146114					
 "4,4,4-Tri-tert-Butyl-2,2:6,2-terpyridine"	444TritertButyl2262terpyridine	401.6	1.601166	"InChI=1S/C27H35N3/c1-25(2,3)18-10-12-28-21(14-18)23-16-20(27(7,8)9)17-24(30-23)22-15-19(11-13-29-22)26(4,5)6/h10-17H,1-9H3"	QMABMHJGSFUTPF-UHFFFAOYSA-N	organic	CC(C)(C)C1=CC(=NC=C1)C2=CC(=CC(=N2)C3=NC=CC(=C3)C(C)(C)C)C(C)(C)C	C27H35N3	4229824					
+Copper (I) Iodide	CuI	190.45	5.67			inorganic								
+Copper (II) Chloride	CuCl2	134.45	3.39			inorganic								
+Copper (II) Bromide	CuBr2	223.37	4.71			inorganic								
