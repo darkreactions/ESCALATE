@@ -1,0 +1,47 @@
+BarCode,Chemical Name,Inventory Name,CAS Num,Phase,Purity,Vendor,Material type,molar mass
+120585,Argon,,7440-37-1,Gas,,CSU Legacy ,Gas,39.95
+128224,Benzene,,71-43-2,Liquid,,CSU Legacy ,Organic,78.11
+20790,Boric acid,,10043-35-3,Solid,,CSU Legacy ,Organic,61.83
+207298,Chromium,Powder,7440-47-3,Solid,,CSU Legacy ,Inorganic,51.99
+23852,Cobalt,metal powder,7440-48-4,Solid,,CSU Legacy ,Inorganic,58.93
+20838,Copper, metal,7440-50-8,Solid,,CSU Legacy ,Inorganic,63.55
+21402,Erbium oxide,,12061-16-4,Solid,,CSU Legacy ,"Inorganic, oxide",382.56
+221216,Erbium(III) chloride anhydrous,,10138-41-7,Solid,99.9,CSU Legacy ,Inorganic,273.62
+130336,Ethyl Alcohol,200 proof,64-17-5,Liquid,,CSU Legacy ,Organic,46.07
+23859,Gallium,,7440-55-3,Solid,99.99,CSU Legacy ,Inorganic,69.72
+20994,Indium,Metal,7440-74-6,Solid,,CSU Legacy ,Inorganic,114.82
+23853,Iron,Metal,7439-89-6,Solid,,CSU Legacy ,Inorganic,55.85
+21197,Lead,shot,7439-92-1,Solid,,CSU Legacy ,Inorganic,207.2
+201405,Lithium chloride anhydrous,,7447-41-8,Solid,,Alfa  Aesar,Inorganic,42.39
+37137,Lithium nitride,,26134-62-3,Solid,>=99.5,CSU Legacy ,"Inorganic, nitride",34.83
+ENS_02_005,Lithium nitride chloride ,,,solid,,Emily,"Inorganic, nitride",77.22
+185574,Magnesium chloride,powder,7786-30-3,Solid,,MilliporeSigma,Inorganic,95.21
+,Magnesium Nitride,,,Solid,,,"Inorganic, nitride",100.92
+,Magnesium nitride chloride,,,solid,,Emily,"Inorganic, nitride",98.07
+22594,Manganese,powder,7439-96-5,Solid,>=99,CSU Legacy ,Inorganic,54.94
+187637,Molybdenum,,7439-98-7,Solid,,Alfa  Aesar,Inorganic,95.95
+159946,"N, N-Dimethylformamide",,68-12-2,Liquid,,Fisher Scientific,Organic,79.39
+19942,Nickel,,7440-02-0,Solid,,CSU Legacy ,Inorganic,58.69
+207792,Niobium,Powder,3/1/1940,Solid,99.8,CSU Legacy ,Inorganic,92.91
+120570,Nitrogen,,7727-37-9,Gas,,CSU Legacy ,Gas,14.01
+50705,Oxygen,,7782-44-7,Gas,,CSU Legacy ,Gas,15.99
+144944,Potassium chloride,,7447-40-7,Solid,,MilliporeSigma,Inorganic,74.55
+180498,Ruthenium,powder,7440-18-8,Solid,99.9,Alfa  Aesar,Inorganic,101.07
+182791,Selenium,powder,7782-49-2,Solid,99.99,MilliporeSigma,Inorganic,78.96
+164265,Silver,,7440-22-4,Solid,,MilliporeSigma,Inorganic,107.87
+221196,Sodium chloride,,7647-14-5,Solid,,CSU Legacy ,Inorganic,58.44
+23923,Sulfur, powder,7704-34-9,Solid,99.5,CSU Legacy ,Inorganic,32.07
+207299,Tantalum,,7440-25-7,Solid,,CSU Legacy ,Inorganic,180.95
+221205,Tellurium,broken ingot,13494-80-9,Solid,,CSU Legacy ,Inorganic,127.6
+19186,Tin,,7440-31-5,Solid,,CSU Legacy ,Inorganic,118.71
+185009,Triphenylphosphine,,603-35-0,Solid,,Alfa  Aesar,Organic,262.29
+207312,Vanadium, powder,7440-62-2,Solid,99.5,CSU Legacy ,Inorganic,50.94
+11570,Vanadium(III) chloride,,7718-98-1,Liquid,95,CSU Legacy ,Inorganic,157.3
+23885,Vanadium(V) Oxide,,1314-62-1,Solid,,CSU Legacy ,"Inorganic, oxide",181.88
+ENS_02_032,vanadium (III) oxychloride ,,,solid,,Emily,inorganic,102.39
+21350,Yttrium chloride,,12741-05-8,Solid,,CSU Legacy ,Inorganic,195.26
+,Yttrium oxychloride,,,solid,,Emily,inorganic,140.36
+29150,Zinc chloride anhydrous,,7646-85-7,Solid,,CSU Legacy ,Inorganic,136.29
+213149,Zinc nitride,,1313-49-1,Solid,,CSU Legacy ,"Inorganic, nitride",224.15
+,Zinc nitride chloride,,,solid,,Emily,"Inorganic, nitride",180.22
+158960,Zirconium (IV) Chloride,,10026-11-6,Solid,,Acros Organics,Inorganic,233.04

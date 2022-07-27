@@ -1,11 +1,14 @@
 from __future__ import annotations
-from typing import Any, Callable, Tuple, AnyStr
+
 import csv
 import json
-from django.core.exceptions import ValidationError
-from core.models.core_tables import TypeDef
-from core.cached_queries import get_val_types
 import uuid
+from typing import Any, AnyStr, Callable, Tuple
+
+from django.core.exceptions import ValidationError
+
+from core.cached_queries import get_val_types
+from core.models.core_tables import TypeDef
 
 
 class Val:
@@ -163,7 +166,7 @@ class Val:
         # print(args)
         type_uuid = args[0]
         unit = args[1]
-        val_type = get_val_types()[uuid.UUID(type_uuid)]
+        val_type: TypeDef = get_val_types(uuid.UUID(type_uuid))
 
         # Values should be from index 2 onwards.
         value = args[cls.positions[val_type.description]]

@@ -1,44 +1,45 @@
 # from core.models import (Actor, Material, Inventory,
 #                         Person, Organization, Note)
 
-# from escalate.core.models.view_tables.workflow import Workflow, WorkflowStep, BillOfMaterials
-from django.db.models.fields import related
-from django.core.exceptions import ObjectDoesNotExist
-from rest_framework import serializers
-from core.models.view_tables import Edocument, Note
-from core.models.core_tables import TypeDef
-from rest_framework.serializers import (
-    SerializerMethodField,
-    ModelSerializer,
-    HyperlinkedModelSerializer,
-    FileField,
-    CharField,
-    URLField,
-    ListSerializer,
-    HyperlinkedRelatedField,
-    PrimaryKeyRelatedField,
-    Serializer,
-)
+import json
+
 import rest_framework.serializers
-from rest_framework.reverse import reverse
-from rest_flex_fields import FlexFieldsModelSerializer
-
-
-from rest_api.endpoint_details import details
 
 # import core.models
 from core.models import *
-from core.models.view_tables import *
-from .utils import (
-    rest_serializer_views,
-    expandable_fields,
-    excluded_fields,
-    get_object_from_url,
-)
+from core.models.core_tables import TypeDef
 from core.models.custom_types import Val, ValField
+from core.models.view_tables import *
+from core.models.view_tables import Edocument, Note
 from core.validators import ValValidator
-from django.core.exceptions import ValidationError
-import json
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+
+# from escalate.core.models.view_tables.workflow import Workflow, WorkflowStep, BillOfMaterials
+from django.db.models.fields import related
+from rest_flex_fields import FlexFieldsModelSerializer
+from rest_framework import serializers
+from rest_framework.reverse import reverse
+from rest_framework.serializers import (
+    CharField,
+    FileField,
+    HyperlinkedModelSerializer,
+    HyperlinkedRelatedField,
+    ListSerializer,
+    ModelSerializer,
+    PrimaryKeyRelatedField,
+    Serializer,
+    SerializerMethodField,
+    URLField,
+)
+
+from rest_api.endpoint_details import details
+
+from .utils import (
+    excluded_fields,
+    expandable_fields,
+    get_object_from_url,
+    rest_serializer_views,
+)
 
 
 class ValSerializerField(rest_framework.serializers.JSONField):
@@ -116,7 +117,7 @@ class PropertySerializer(DynamicFieldsModelSerializer):
         model = Property
         fields = "__all__"
         # read_only_fields = ['property_ref']
-        read_only_fields = ["material"]
+        # read_only_fields = ["material"]
 
 
 class PropertyListSerializer(DynamicFieldsModelSerializer):
