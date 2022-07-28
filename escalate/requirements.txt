@@ -31,3 +31,4 @@ pint
 ipython
 chemdescriptor
 django-formtools
+better_exceptions

@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
+from better_exceptions.integrations.django import skip_errors_filter
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -208,5 +210,9 @@ LOGGING = {
                 "console",
             ],
         },
+    },
+    "skip_errors": {
+        "()": "django.utils.log.CallbackFilter",
+        "callback": skip_errors_filter,
     },
 }
