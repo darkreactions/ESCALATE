@@ -1,6 +1,6 @@
 pytest-django
 beautifulsoup4
-werkzeug==1.0.1
+werkzeug==2.2.3
 black
 pre-commit
 better_exceptions
